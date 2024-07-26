@@ -19,13 +19,17 @@ import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
+import static org.hyperledger.besu.datatypes.Address.SHA256;
+
+import java.util.Map;
+import java.util.function.BiFunction;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Factories;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.ChildContextEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
@@ -39,6 +43,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.Cal
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
+import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.Sha2SubSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
@@ -47,16 +53,19 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CallSection extends TraceSection
-    implements PostExecDefer,
+    implements ChildContextEntryDefer,
         ContextExitDefer,
         ReEnterContextDefer,
         PostRollbackDefer,
         PostTransactionDefer {
+
+  // TODO: finish this map
+  private static final Map<Address, BiFunction<Hub, CallSection, PrecompileSubsection>>
+      ADDRESS_TO_PRECOMPILE = Map.of(SHA256, Sha2SubSection::new);
 
   // row i+0
   private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
@@ -91,6 +100,9 @@ public class CallSection extends TraceSection
   private boolean successBit;
   private AccountSnapshot postRollbackCalleeSnapshot;
   private AccountSnapshot postRollbackCallerSnapshot;
+
+  //
+  private PrecompileSubsection precompileSubsection;
 
   public CallSection(Hub hub) {
     super(hub, maxNumberOfLines(hub));
@@ -152,7 +164,7 @@ public class CallSection extends TraceSection
     final boolean aborts = hub.pch().abortingConditions().any();
     Preconditions.checkArgument(oobCall.isAbortingCondition() == aborts);
 
-    hub.defers().scheduleForPostExecution(this);
+    hub.defers().scheduleForImmediateContextEntry(this);
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
     hub.defers().scheduleForPostTransaction(this);
 
@@ -233,8 +245,7 @@ public class CallSection extends TraceSection
   }
 
   @Override
-  public void resolvePostExecution(
-      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+  public void resolveUponEnteringChildContext(Hub hub) {
     switch (scenarioFragment.getScenario()) {
       case CALL_EOA_SUCCESS_WONT_REVERT, CALL_SMC_UNDEFINED -> {
         postOpcodeCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
@@ -250,7 +261,13 @@ public class CallSection extends TraceSection
         }
       }
       case CALL_PRC_UNDEFINED -> {
-        // TODO: implement
+        // TODO implement
+
+        precompileSubsection =
+            ADDRESS_TO_PRECOMPILE.get(preOpcodeCalleeSnapshot.address()).apply(hub, this);
+
+        hub.defers().scheduleForContextReEntry(precompileSubsection, hub.callStack().parent());
+        hub.defers().scheduleForPostTransaction(precompileSubsection);
       }
     }
 
@@ -310,6 +327,7 @@ public class CallSection extends TraceSection
         } else {
           scenarioFragment.setScenario(CALL_PRC_FAILURE);
         }
+        // TODO: we need to fill the first two account rows!
       }
 
       case CALL_SMC_UNDEFINED -> {
@@ -359,7 +377,7 @@ public class CallSection extends TraceSection
     postRollbackCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
     postRollbackCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
 
-    CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
+    final CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
     switch (callScenario) {
       case CALL_ABORT_WONT_REVERT -> completeAbortWillRevert(factory);
       case CALL_EOA_SUCCESS_WONT_REVERT -> completeEoaSuccessWillRevert(factory);

@@ -15,5 +15,28 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
-public class PrecompileScenarioFragment {
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileFlag;
+import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileScenario;
+
+@Getter
+@AllArgsConstructor
+public class PrecompileScenarioFragment implements TraceFragment {
+
+  @Setter PrecompileScenario scenario;
+  final PrecompileFlag flag;
+
+  public PrecompileScenarioFragment(final PrecompileFlag flag, final PrecompileScenario scenario) {
+    this.flag = flag;
+    this.scenario = scenario;
+  }
+
+  @Override
+  public Trace trace(Trace trace) {
+    return null;
+  }
 }

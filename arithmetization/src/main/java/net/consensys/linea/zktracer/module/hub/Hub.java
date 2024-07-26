@@ -640,7 +640,7 @@ public class Hub implements Module {
           codeDeploymentNumber,
           isDeployment);
 
-      this.defers.resolveUponEnteringChildContext(this, frame);
+      this.defers.resolveUponEnteringChildContext(this);
 
       for (Module m : this.modules) {
         m.traceContextEnter(frame);
@@ -1092,131 +1092,6 @@ public class Hub implements Module {
       case CREATE -> new CreateSection(this);
 
       case CALL -> new CallSection(this);
-        // {
-        //  final Address myAddress = this.currentFrame().accountAddress();
-        //  final Account myAccount = frame.getWorldUpdater().get(myAddress);
-        //  final AccountSnapshot myAccountSnapshot =
-        //      AccountSnapshot.fromAccount(
-        //          myAccount,
-        //          frame.isAddressWarm(myAddress),
-        //          this.transients.conflation().deploymentInfo().number(myAddress),
-        //          this.transients.conflation().deploymentInfo().isDeploying(myAddress));
-        //
-        //  final Bytes rawCalledAddress = frame.getStackItem(1);
-        //  final Address calledAddress = Words.toAddress(rawCalledAddress);
-        //  final Optional<Account> calledAccount =
-        //      Optional.ofNullable(frame.getWorldUpdater().get(calledAddress));
-        //  final boolean hasCode = calledAccount.map(AccountState::hasCode).orElse(false);
-        //
-        //  final AccountSnapshot calledAccountSnapshot =
-        //      AccountSnapshot.fromAccount(
-        //          calledAccount,
-        //          frame.isAddressWarm(myAddress),
-        //          this.transients.conflation().deploymentInfo().number(myAddress),
-        //          this.transients.conflation().deploymentInfo().isDeploying(myAddress));
-        //
-        //  Optional<Precompile> targetPrecompile = Precompile.maybeOf(calledAddress);
-        //
-        //  if (Exceptions.any(this.pch().exceptions())) {
-        //    //
-        //    // THERE IS AN EXCEPTION
-        //    //
-        //    if (Exceptions.staticFault(this.pch().exceptions())) {
-        //      this.addTraceSection(
-        //          new FailedCallSection(
-        //              this,
-        //              ScenarioFragment.forCall(this, hasCode),
-        //              ImcFragment.forCall(this, myAccount, calledAccount),
-        //              ContextFragment.readContextDataByContextNumber(
-        //                  this, this.currentFrame().contextNumber()))); // TODO
-        //    } else if (Exceptions.memoryExpansionException(this.pch().exceptions())) {
-        //      this.addTraceSection(
-        //          new FailedCallSection(
-        //              this,
-        //              ScenarioFragment.forCall(this, hasCode),
-        //              ImcFragment.forCall(this, myAccount, calledAccount)));
-        //    } else if (Exceptions.outOfGasException(this.pch().exceptions())) {
-        //      this.addTraceSection(
-        //          new FailedCallSection(
-        //              this,
-        //              ScenarioFragment.forCall(this, hasCode),
-        //              ImcFragment.forCall(this, myAccount, calledAccount),
-        //              this.factories
-        //                  .accountFragment()
-        //                  .makeWithTrm(
-        //                      calledAccountSnapshot,
-        //                      calledAccountSnapshot,
-        //                      rawCalledAddress,
-        //                      DomSubStampsSubFragment.standardDomSubStamps(this.stamp(), 0))));
-        //    }
-        //  } else if (this.pch.abortingConditions().any()) {
-        //    //
-        //    // THERE IS AN ABORT
-        //    //
-        //    TraceSection abortedSection =
-        //        new FailedCallSection(
-        //            this,
-        //            ScenarioFragment.forCall(this, hasCode),
-        //            ImcFragment.forCall(this, myAccount, calledAccount),
-        //            ContextFragment.readCurrentContextData(this),
-        //            this.factories
-        //                .accountFragment()
-        //                .make(
-        //                    myAccountSnapshot,
-        //                    myAccountSnapshot,
-        //                    DomSubStampsSubFragment.standardDomSubStamps(this.stamp(), 0)),
-        //            this.factories
-        //                .accountFragment()
-        //                .makeWithTrm(
-        //                    calledAccountSnapshot,
-        //                    calledAccountSnapshot,
-        //                    rawCalledAddress,
-        //                    DomSubStampsSubFragment.standardDomSubStamps(this.stamp(), 1)),
-        //            ContextFragment.nonExecutionProvidesEmptyReturnData(this));
-        //    this.addTraceSection(abortedSection);
-        //  } else {
-        //    final ImcFragment imcFragment = /* ImcFragment.forOpcode(this, frame)*/
-        //        ImcFragment.empty(this);
-        //
-        //    if (hasCode) {
-        //      final SmartContractCallSection section =
-        //          new SmartContractCallSection(
-        //              this, myAccountSnapshot, calledAccountSnapshot, rawCalledAddress,
-        // imcFragment);
-        //      this.addTraceSection(section);
-        //      this.currentFrame().sectionToUnlatch(section);
-        //    } else {
-        //      //
-        //      // CALL EXECUTED
-        //      //
-        //
-        //      // TODO: fill the callee & requested return data for the current call frame
-        //      //  i.e. ensure that the precompile frame behaves as expected
-        //
-        //      Optional<PrecompileInvocation> precompileInvocation =
-        //          targetPrecompile.map(p -> PrecompileInvocation.of(this, p));
-        //
-        //      // TODO: this is ugly, and surely not at the right place. It should provide the
-        //      // precompile result (from the precompile module)
-        //      // TODO useless (and potentially dangerous) if the precompile is a failure
-        //      if (targetPrecompile.isPresent()) {
-        //        this.callStack.newPrecompileResult(
-        //            this.stamp(), Bytes.EMPTY, 0, targetPrecompile.get().address);
-        //      }
-        //
-        //      final NoCodeCallSection section =
-        //          new NoCodeCallSection(
-        //              this,
-        //              precompileInvocation,
-        //              myAccountSnapshot,
-        //              calledAccountSnapshot,
-        //              rawCalledAddress,
-        //              imcFragment);
-        //      this.addTraceSection(section);
-        //      this.currentFrame().sectionToUnlatch(section);
-        //    }
-        //  }
-        // }
 
       case JUMP -> new JumpSection(this);
     }

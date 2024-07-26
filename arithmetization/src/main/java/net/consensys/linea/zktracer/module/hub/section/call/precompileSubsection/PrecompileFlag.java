@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
-public enum PrecompileFlags {
+public enum PrecompileFlag {
   PRC_ECRECOVER,
   PRC_SHA2_256,
   PRC_RIPEMD_160,

@@ -114,6 +114,9 @@ public class DeferRegistry
    * @param tx the current {@link Transaction}
    */
   // TODO: should use the TransactionProcessingMetadata
+
+  // TODO add docs to understand why we do two rounds of resolving (due to AccountFragment created
+  // at endTx which are too deferEndTx)
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
@@ -199,9 +202,9 @@ public class DeferRegistry
   }
 
   @Override
-  public void resolveUponEnteringChildContext(Hub hub, MessageFrame frame) {
+  public void resolveUponEnteringChildContext(Hub hub) {
     for (ChildContextEntryDefer defer : this.childContextEntryDefers) {
-      defer.resolveUponEnteringChildContext(hub, frame);
+      defer.resolveUponEnteringChildContext(hub);
     }
     this.childContextEntryDefers.clear();
   }

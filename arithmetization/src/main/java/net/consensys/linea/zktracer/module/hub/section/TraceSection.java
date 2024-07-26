@@ -44,7 +44,7 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
 /* A TraceSection gather the trace lines linked to a single operation */
-public abstract class TraceSection {
+public class TraceSection {
   private final Hub hub;
   public final CommonFragmentValues commonValues;
   @Getter List<TraceFragment> fragments;

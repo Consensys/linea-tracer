@@ -17,22 +17,50 @@ package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsectio
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
+import net.consensys.linea.zktracer.types.MemorySpan;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Accessors(fluent = true)
-public abstract class PrecompileSubsection {
+public abstract class PrecompileSubsection implements ReEnterContextDefer, PostTransactionDefer {
   @Getter List<TraceFragment> fragments;
+  /* The input data for the precompile */
+  final MemorySpan callDataMemorySpan;
+
+  /* Where the caller wants the precompile return data to be stored */
+  final MemorySpan parentReturnDataTarget;
+
+  /* Leftover gas of the caller */
+  final long callerGas;
+
+  /* Available gas of the callee */
+  final long calleeGas;
+
+  /* The intrinsic cost of the precompile */
+  long precompileCost;
 
   /**
    * Default creator specifying the max number of rows the precompile processing subsection can
    * contain.
    */
-  public PrecompileSubsection(final CallSection callSection, final short maxNumberOfLines) {
-    this.fragments = new ArrayList<>(maxNumberOfLines);
+  public PrecompileSubsection(final Hub hub, final CallSection callSection) {
+    fragments = new ArrayList<>(maxNumberOfLines());
+    callDataMemorySpan = hub.currentFrame().callDataInfo().memorySpan();
+    parentReturnDataTarget = hub.currentFrame().parentReturnDataTarget();
+    callerGas = hub.callStack().parent().frame().getRemainingGas();
+    calleeGas = hub.messageFrame().getRemainingGas();
   }
+
+  private long returnGas() {
+    return calleeGas - precompileCost;
+  }
+
+  protected abstract short maxNumberOfLines();
 }

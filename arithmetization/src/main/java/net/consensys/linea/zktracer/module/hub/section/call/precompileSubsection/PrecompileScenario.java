@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
-public enum PrecompileScenarios {
+public enum PrecompileScenario {
   PRC_FAILURE_KNOWN_TO_HUB,
   PRC_FAILURE_KNOWN_TO_RAM,
   PRC_SUCCESS_WILL_REVERT,

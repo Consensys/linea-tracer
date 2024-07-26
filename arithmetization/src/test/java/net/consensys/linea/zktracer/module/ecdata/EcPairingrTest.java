@@ -279,6 +279,7 @@ public class EcPairingrTest {
   }
 
   private static Stream<Arguments> ecPairingSingleSource() {
+    // TODO: some cases can be filtered since redundant
     List<Arguments> arguments = new ArrayList<>();
     for (Arguments smallPoint : smallPoints) {
       for (Arguments largePoint : largePoints) {

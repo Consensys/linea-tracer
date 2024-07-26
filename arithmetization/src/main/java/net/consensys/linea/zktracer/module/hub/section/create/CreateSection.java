@@ -78,6 +78,8 @@ public class CreateSection
   // row i+?
   private ContextFragment finalContextFragment;
 
+  // TODO: according to our preliminary conclusion in issue #866
+  //  CREATE's that raise a failure condition _do spawn a child context_.
   public CreateSection(Hub hub) {
     final short exceptions = hub.pch().exceptions();
 

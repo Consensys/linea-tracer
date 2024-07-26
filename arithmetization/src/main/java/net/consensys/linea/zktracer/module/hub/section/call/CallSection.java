@@ -52,11 +52,13 @@ import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CallSection extends TraceSection
-    implements PostExecDefer,
-        PostRollbackDefer,
-        PostTransactionDefer,
+    implements
+        PostExecDefer,
+        ContextExitDefer,
         ReEnterContextDefer,
-        ContextExitDefer {
+        PostRollbackDefer,
+        PostTransactionDefer
+{
 
   // row i+0
   private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
@@ -85,9 +87,7 @@ public class CallSection extends TraceSection
   private AccountSnapshot reEntryCallerSnapshot;
   private AccountSnapshot reEntryCalleeSnapshot;
 
-  private boolean initialCalleeWarmth;
-  private boolean isSelfCall;
-  private boolean callCanTransferValue;
+    private boolean selfCallWithNonzeroValueTransfer;
 
   private Wei value;
 
@@ -182,13 +182,15 @@ public class CallSection extends TraceSection
       // TODO: write a test where the recipient of the call does not exist in the state
     }
 
-    this.callCanTransferValue = hub.currentFrame().opCode().callCanTransferValue();
 
     // TODO: lastContextFragment for PRC
 
     if (this.scenarioFragment.getScenario() == CALL_SMC_UNDEFINED) {
-      this.finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);
-      this.isSelfCall = callerAddress.equals(calleeAddress);
+      finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);
+      final boolean callCanTransferValue = hub.currentFrame().opCode().callCanTransferValue();
+      final boolean isSelfCall = callerAddress.equals(calleeAddress);
+      value = Wei.of(hub.messageFrame().getStackItem(2).toUnsignedBigInteger());
+      selfCallWithNonzeroValueTransfer = isSelfCall && callCanTransferValue && !value.isZero();
     }
 
     if (this.scenarioFragment.getScenario() == CALL_EOA_SUCCESS_WONT_REVERT) {
@@ -245,12 +247,11 @@ public class CallSection extends TraceSection
         this.postOpcodeCalleeSnapshot =
             AccountSnapshot.canonical(hub, this.preOpcodeCalleeSnapshot.address());
 
-        if (isSelfCall && callCanTransferValue) {
+        if (selfCallWithNonzeroValueTransfer) {
           // In case of a self-call that transfers value, the balance of the caller
           // is decremented by the value transferred. This becomes the initial state
           // of the callee, which is then credited by that value. This can happen
           // only for the SMC case.
-          value = Wei.of(frame.getStackItem(2).toUnsignedBigInteger());
           postOpcodeCallerSnapshot.decrementBalance(value);
           preOpcodeCalleeSnapshot.decrementBalance(value);
         }
@@ -282,12 +283,90 @@ public class CallSection extends TraceSection
   }
 
   @Override
+  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
+    if (!(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED)) {
+      return;
+    }
+    childContextExitCallerSnapshot =
+            AccountSnapshot.canonical(hub, preOpcodeCallerSnapshot.address());
+    childContextExitCalleeSnapshot =
+            AccountSnapshot.canonical(hub, preOpcodeCalleeSnapshot.address());
+
+    // TODO: what follows assumes that the caller's stack has been updated
+    //  to contain the success bit of the call at traceContextReEntry.
+    //  See issue #872.
+    returnDataContextNumber = hub.currentFrame().contextNumber();
+    // TODO: when does the callFrame update its output data?
+    returnDataMemorySpan = hub.currentFrame().outputDataSpan();
+  }
+
+  @Override
+  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
+    // TODO: what follows assumes that the caller's stack has been updated
+    //  to contain the success bit of the call at traceContextReEntry.
+    //  See issue #872.
+    successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
+    switch (this.scenarioFragment.getScenario()) {
+      case CALL_PRC_UNDEFINED -> {
+        if (successBit) {
+          scenarioFragment.setScenario(CALL_PRC_SUCCESS_WONT_REVERT);
+        } else {
+          scenarioFragment.setScenario(CALL_PRC_FAILURE);
+        }
+      }
+
+      case CALL_SMC_UNDEFINED -> {
+
+        reEntryCallerSnapshot = AccountSnapshot.canonical(hub, preOpcodeCallerSnapshot.address());
+        reEntryCalleeSnapshot = AccountSnapshot.canonical(hub, preOpcodeCalleeSnapshot.address());
+
+        if (successBit) {
+          scenarioFragment.setScenario(CALL_SMC_SUCCESS_WONT_REVERT);
+          return;
+        }
+
+        scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
+
+        if (selfCallWithNonzeroValueTransfer) {
+          childContextExitCallerSnapshot.decrementBalance(value);
+          reEntryCalleeSnapshot.decrementBalance(value);
+        }
+
+        final AccountFragment postReEntryCallerAccountFragment =
+                hub.factories()
+                        .accountFragment()
+                        .make(
+                                postOpcodeCallerSnapshot,
+                                reEntryCallerSnapshot,
+                                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                                        this.hubStamp(), frame.revertStamp(), 2));
+
+        final AccountFragment postReEntryCalleeAccountFragment =
+                hub.factories()
+                        .accountFragment()
+                        .make(
+                                postOpcodeCalleeSnapshot,
+                                reEntryCalleeSnapshot,
+                                DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                                        this.hubStamp(), frame.revertStamp(), 3));
+
+        this.addFragmentsWithoutStack(
+                postReEntryCallerAccountFragment, postReEntryCalleeAccountFragment);
+      }
+      default -> {}
+    }
+  }
+
+  @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
     final Factories factories = hub.factories();
     final AccountSnapshot postRollbackCalleeSnapshot =
         AccountSnapshot.canonical(hub, this.preOpcodeCalleeSnapshot.address());
+    final AccountSnapshot postRollbackCallerSnapshot =
+            AccountSnapshot.canonical(hub, this.preOpcodeCallerSnapshot.address());
 
-    switch (this.scenarioFragment.getScenario()) {
+    CallScenarioFragment.CallScenario callScenario = this.scenarioFragment.getScenario();
+    switch (callScenario) {
       case CALL_ABORT_WONT_REVERT -> {
         this.scenarioFragment.setScenario(CALL_ABORT_WILL_REVERT);
         final AccountFragment undoingCalleeAccountFragment =
@@ -305,8 +384,6 @@ public class CallSection extends TraceSection
 
       case CALL_EOA_SUCCESS_WONT_REVERT -> {
         this.scenarioFragment.setScenario(CALL_EOA_SUCCESS_WILL_REVERT);
-        final AccountSnapshot postRollbackCallerSnapshot =
-            AccountSnapshot.canonical(hub, this.preOpcodeCallerSnapshot.address());
 
         final AccountFragment undoingCallerAccountFragment =
             factories
@@ -331,17 +408,45 @@ public class CallSection extends TraceSection
       case CALL_SMC_FAILURE_WONT_REVERT -> {
         scenarioFragment.setScenario(CALL_SMC_FAILURE_WILL_REVERT);
 
-        AccountFragment warmthUndoingAccountFragment;
+        // this (should) work for both self calls and foreign address calls
+        final AccountFragment undoingCalleeWarmthAccountFragment =
+                  factories
+                          .accountFragment()
+                          .make(
+                                  reEntryCalleeSnapshot,
+                                  postRollbackCalleeSnapshot,
+                                  DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), callFrame.revertStamp(), 4));
 
-        if (isSelfCall && callCanTransferValue) {
-          // warmthUndoingAccountFragment =
+        this.addFragment(undoingCalleeWarmthAccountFragment);
+      }
+      case CALL_SMC_SUCCESS_WONT_REVERT, CALL_PRC_SUCCESS_WONT_REVERT-> {
+
+        if (callScenario == CALL_SMC_SUCCESS_WONT_REVERT) {
+          scenarioFragment.setScenario(CALL_SMC_SUCCESS_WILL_REVERT);
+        } else {
+          scenarioFragment.setScenario(CALL_PRC_SUCCESS_WILL_REVERT);
         }
-      }
-      case CALL_SMC_SUCCESS_WONT_REVERT -> {
-        scenarioFragment.setScenario(CALL_SMC_SUCCESS_WILL_REVERT);
-      }
-      case CALL_PRC_SUCCESS_WONT_REVERT -> {
-        scenarioFragment.setScenario(CALL_PRC_SUCCESS_WILL_REVERT);
+
+        if (selfCallWithNonzeroValueTransfer) {
+
+        } else {
+          final AccountFragment undoingCallerAccountFragment =
+                  factories
+                          .accountFragment()
+                          .make(
+                                  reEntryCallerSnapshot,
+                                  postRollbackCallerSnapshot,
+                                  DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), callFrame.revertStamp(), 2));
+          final AccountFragment undoingCalleeAccountFragment =
+                  factories
+                          .accountFragment()
+                          .make(
+                                  reEntryCalleeSnapshot,
+                                  postRollbackCalleeSnapshot,
+                                  DomSubStampsSubFragment.revertWithCurrentDomSubStamps(this.hubStamp(), callFrame.revertStamp(), 3));
+
+          this.addFragmentsWithoutStack(undoingCallerAccountFragment, undoingCalleeAccountFragment);
+        }
       }
       default -> throw new IllegalArgumentException("Illegal CALL scenario");
     }
@@ -352,78 +457,5 @@ public class CallSection extends TraceSection
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
     this.addFragment(finalContextFragment);
-  }
-
-  @Override
-  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-    // TODO: what follows assumes that the caller's stack has been updated
-    //  to contain the success bit of the call at traceContextReEntry.
-    //  See issue #872.
-    successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
-    switch (this.scenarioFragment.getScenario()) {
-      case CALL_PRC_UNDEFINED -> {
-        if (successBit) {
-          scenarioFragment.setScenario(CALL_PRC_SUCCESS_WONT_REVERT);
-        } else {
-          scenarioFragment.setScenario(CALL_PRC_FAILURE);
-        }
-      }
-      case CALL_SMC_UNDEFINED -> {
-        if (successBit) {
-          scenarioFragment.setScenario(CALL_SMC_SUCCESS_WONT_REVERT);
-          return;
-        }
-
-        scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
-
-        reEntryCallerSnapshot = AccountSnapshot.canonical(hub, preOpcodeCallerSnapshot.address());
-        reEntryCalleeSnapshot = AccountSnapshot.canonical(hub, preOpcodeCalleeSnapshot.address());
-
-        if (isSelfCall && callCanTransferValue) {
-          childContextExitCallerSnapshot.decrementBalance(value);
-          reEntryCalleeSnapshot.decrementBalance(value);
-        }
-
-        final AccountFragment postReEntryCallerAccountFragment =
-            hub.factories()
-                .accountFragment()
-                .make(
-                    postOpcodeCallerSnapshot,
-                    reEntryCallerSnapshot,
-                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                        this.hubStamp(), revertStamp(), 2));
-
-        final AccountFragment postReEntryCalleeAccountFragment =
-            hub.factories()
-                .accountFragment()
-                .make(
-                    postOpcodeCalleeSnapshot,
-                    reEntryCalleeSnapshot,
-                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                        this.hubStamp(), revertStamp(), 3));
-
-        this.addFragmentsWithoutStack(
-            postReEntryCallerAccountFragment, postReEntryCalleeAccountFragment);
-      }
-      default -> {}
-    }
-  }
-
-  @Override
-  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
-    if (!scenarioFragment.getScenario().equals(CALL_SMC_UNDEFINED)) {
-      return;
-    }
-    childContextExitCallerSnapshot =
-        AccountSnapshot.canonical(hub, preOpcodeCallerSnapshot.address());
-    childContextExitCalleeSnapshot =
-        AccountSnapshot.canonical(hub, preOpcodeCalleeSnapshot.address());
-
-    // TODO: what follows assumes that the caller's stack has been updated
-    //  to contain the success bit of the call at traceContextReEntry.
-    //  See issue #872.
-    returnDataContextNumber = hub.currentFrame().contextNumber();
-    // TODO: when does the callFrame update its output data?
-    returnDataMemorySpan = hub.currentFrame().outputDataSpan();
   }
 }

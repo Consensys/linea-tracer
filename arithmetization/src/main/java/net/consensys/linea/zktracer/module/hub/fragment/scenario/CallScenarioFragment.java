@@ -39,13 +39,16 @@ public class CallScenarioFragment implements TraceFragment {
     CALL_EXCEPTION,
     CALL_ABORT_WILL_REVERT,
     CALL_ABORT_WONT_REVERT,
+    // Externally owned account call scenarios
     CALL_EOA_SUCCESS_WILL_REVERT,
     CALL_EOA_SUCCESS_WONT_REVERT,
+    // Smart contract call scenarios:
     CALL_SMC_UNDEFINED,
     CALL_SMC_FAILURE_WILL_REVERT,
     CALL_SMC_FAILURE_WONT_REVERT,
     CALL_SMC_SUCCESS_WILL_REVERT,
     CALL_SMC_SUCCESS_WONT_REVERT,
+    // Precompile call scenarios:
     CALL_PRC_UNDEFINED,
     CALL_PRC_FAILURE,
     CALL_PRC_SUCCESS_WILL_REVERT,

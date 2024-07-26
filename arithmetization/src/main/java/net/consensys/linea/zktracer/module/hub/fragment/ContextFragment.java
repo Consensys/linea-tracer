@@ -18,6 +18,10 @@ package net.consensys.linea.zktracer.module.hub.fragment;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -26,15 +30,18 @@ import net.consensys.linea.zktracer.types.Either;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.hyperledger.besu.datatypes.Address;
 
-public record ContextFragment(
-    Hub hub,
-    CallStack callStack,
-    // Left: callFrameId, Right: contextNumber
-    Either<Integer, Integer> callFrameReference,
-    int returnDataContextNumber,
-    MemorySpan returnDataSegment,
-    boolean updateReturnData)
-    implements TraceFragment {
+@Getter
+@Setter
+@Accessors(fluent = true)
+@AllArgsConstructor
+public class ContextFragment implements TraceFragment {
+  private final Hub hub;
+  private final CallStack callStack;
+  // Left: callFrameId, Right: contextNumber
+  private Either<Integer, Integer> callFrameReference;
+  private int returnDataContextNumber;
+  private MemorySpan returnDataSegment;
+  private boolean updateReturnData;
 
   public static ContextFragment readContextDataByContextNumber(
       final Hub hub, final int contextNumber) {

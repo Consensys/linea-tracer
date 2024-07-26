@@ -248,5 +248,7 @@ public abstract class TraceSection {
     return commonValues.hubStamp;
   }
 
-  public int revertStamp() {return commonValues.callFrame().revertStamp();}
+  public int revertStamp() {
+    return commonValues.callFrame().revertStamp();
+  }
 }

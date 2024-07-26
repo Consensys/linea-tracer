@@ -391,7 +391,7 @@ public class CallSection extends TraceSection
                     postOpcodeCallerSnapshot,
                     reEntryCallerSnapshot,
                     DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                        this.hubStamp(), frame.revertStamp(), 2));
+                        this.hubStamp(), revertStamp(), 2));
 
         final AccountFragment postReEntryCalleeAccountFragment =
             hub.factories()
@@ -400,7 +400,7 @@ public class CallSection extends TraceSection
                     postOpcodeCalleeSnapshot,
                     reEntryCalleeSnapshot,
                     DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                        this.hubStamp(), frame.revertStamp(), 3));
+                        this.hubStamp(), revertStamp(), 3));
 
         this.addFragmentsWithoutStack(
             postReEntryCallerAccountFragment, postReEntryCalleeAccountFragment);

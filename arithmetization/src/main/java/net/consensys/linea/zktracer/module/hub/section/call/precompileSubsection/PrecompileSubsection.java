@@ -29,20 +29,22 @@ import net.consensys.linea.zktracer.types.MemorySpan;
 @RequiredArgsConstructor
 @Getter
 public abstract class PrecompileSubsection implements ReEnterContextDefer, PostTransactionDefer {
-  List<TraceFragment> fragments;
-  /* The input data for the precompile */
+  /** List of fragments of the precompile specific subsection */
+  final List<TraceFragment> fragments;
+
+  /** The input data for the precompile */
   final MemorySpan callDataMemorySpan;
 
-  /* Where the caller wants the precompile return data to be stored */
+  /** Where the caller wants the precompile return data to be stored */
   final MemorySpan parentReturnDataTarget;
 
-  /* Leftover gas of the caller */
+  /** Leftover gas of the caller */
   final long callerGas;
 
-  /* Available gas of the callee */
+  /** Available gas of the callee */
   final long calleeGas;
 
-  /* The intrinsic cost of the precompile */
+  /** The intrinsic cost of the precompile */
   long precompileCost;
 
   /**

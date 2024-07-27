@@ -34,7 +34,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 @RequiredArgsConstructor
-public class Pin55 {
+public class DebugMode {
   public static class PinLevel {
     private static final int CONFLATION = 1;
     private static final int BLOCK = 1 << 2;

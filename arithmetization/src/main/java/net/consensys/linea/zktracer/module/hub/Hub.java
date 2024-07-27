@@ -595,7 +595,7 @@ public class Hub implements Module {
             this.transients.conflation().deploymentInfo().isDeploying(toAddress));
       }
     } else {
-      // ...or CALL
+      // ...or CALL or CREATE
       final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
       final Address codeAddress = frame.getContractAddress();
       final CallFrameType frameType =

@@ -32,11 +32,17 @@ import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.platform.commons.util.Preconditions;
 
+// A TestWatcher is used to log the results of testEcPairingSingleForScenario
+// into a csv file (one for successful and one for failing cases)
+// that can be used to run the same test cases with @CsvFileSource
+@ExtendWith(EcPairingSingleForScenarioTestWatcher.class)
 public class EcPairingrTest {
   // https://github.com/Consensys/linea-arithmetization/issues/822
 
@@ -57,26 +63,26 @@ public class EcPairingrTest {
   static List<Arguments> largePoints;
 
   @BeforeAll
-  public static void initConcatenetedLists() throws IOException {
+  public static void initConcatenatedLists() {
     try {
       String basePath = "../arithmetization/src/test/resources/ecpairing/";
       smallPointsOutOfRange =
-          readCsvToArgumentsList(Paths.get(basePath, "small_points_out_of_range.csv").toString());
+          csvToArgumentsList(Paths.get(basePath, "small_points_out_of_range.csv").toString());
       smallPointsNotOnC1 =
-          readCsvToArgumentsList(Paths.get(basePath, "small_points_not_on_c1.csv").toString());
+          csvToArgumentsList(Paths.get(basePath, "small_points_not_on_c1.csv").toString());
       smallPointsOnC1 =
-          readCsvToArgumentsList(Paths.get(basePath, "small_points_on_c1.csv").toString());
+          csvToArgumentsList(Paths.get(basePath, "small_points_on_c1.csv").toString());
 
       largePointsOutOfRange =
-          readCsvToArgumentsList(Paths.get(basePath, "large_points_out_of_range.csv").toString());
+          csvToArgumentsList(Paths.get(basePath, "large_points_out_of_range.csv").toString());
       largePointsNotOnC2 =
-          readCsvToArgumentsList(Paths.get(basePath, "large_points_not_on_c2.csv").toString());
+          csvToArgumentsList(Paths.get(basePath, "large_points_not_on_c2.csv").toString());
       largePointsNotOnG2 =
-          readCsvToArgumentsList(Paths.get(basePath, "large_points_not_on_g2.csv").toString());
+          csvToArgumentsList(Paths.get(basePath, "large_points_not_on_g2.csv").toString());
       largePointsOnG2 =
-          readCsvToArgumentsList(Paths.get(basePath, "large_points_on_g2.csv").toString());
+          csvToArgumentsList(Paths.get(basePath, "large_points_on_g2.csv").toString());
     } catch (IOException e) {
-      throw new IOException(e);
+      throw new RuntimeException("Failed to read CSV files", e);
     }
 
     smallPoints =
@@ -98,6 +104,7 @@ public class EcPairingrTest {
             .collect(Collectors.toList());
   }
 
+  // Tests
   @Test
   void testEcPairingWithSingleTrivialPairing() {
     BytecodeCompiler program =
@@ -155,7 +162,23 @@ public class EcPairingrTest {
 
   @ParameterizedTest
   @MethodSource("ecPairingSingleSource")
-  void testEcPairingSingleForScenario(
+  void testEcPairingSingleForScenarioUsingMethodSource(
+      String Ax, String Ay, String BxIm, String BxRe, String ByIm, String ByRe) {
+    testEcPairingSingleForScenario(Ax, Ay, BxIm, BxRe, ByIm, ByRe);
+  }
+
+  @ParameterizedTest
+  @CsvFileSource(
+      resources = "/ecpairing/test_ec_pairing_single_for_scenario_failed_placeholder.csv",
+      numLinesToSkip = 1)
+  void testEcPairingSingleForScenarioUsingCsv(
+      String Ax, String Ay, String BxIm, String BxRe, String ByIm, String ByRe) {
+    testEcPairingSingleForScenario(Ax, Ay, BxIm, BxRe, ByIm, ByRe);
+  }
+
+  // Body of testEcPairingSingleForScenarioUsingMethodSource and
+  // testEcPairingSingleForScenarioUsingCsv
+  private static void testEcPairingSingleForScenario(
       String Ax, String Ay, String BxIm, String BxRe, String ByIm, String ByRe) {
     // small point: (Ax,Ay)
     // large point: (BxRe + i*BxIm, ByRe + i*ByIm)
@@ -193,6 +216,7 @@ public class EcPairingrTest {
     bytecodeRunner.run();
   }
 
+  // Method source of testEcPairingSingleForScenarioUsingMethodSource
   private static Stream<Arguments> ecPairingSingleSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (Arguments smallPoint : smallPoints) {
@@ -203,7 +227,8 @@ public class EcPairingrTest {
     return arguments.stream();
   }
 
-  // Support methods
+  // Support methods and tests
+  // This is a test for a support method
   @Test
   public void testPair() {
     Arguments smallPoint = Arguments.of("Ax", "Ay");
@@ -232,7 +257,7 @@ public class EcPairingrTest {
     return Arguments.of(pairArray);
   }
 
-  public static List<Arguments> readCsvToArgumentsList(String filePath) throws IOException {
+  public static List<Arguments> csvToArgumentsList(String filePath) throws IOException {
     List<Arguments> argumentsList = new ArrayList<>();
     try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
       String line;

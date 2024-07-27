@@ -33,7 +33,7 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class CodeCopySection extends TraceSection implements PostTransactionDefer {
+public class CodeCopySection extends TraceSection {
   final ImcFragment imcFragment;
   boolean triggerMmu;
   final short exceptions;
@@ -107,14 +107,6 @@ public class CodeCopySection extends TraceSection implements PostTransactionDefe
     triggerMmu = mxpCall.isMayTriggerNonTrivialMmuOperation();
     if (triggerMmu) {
       mmuCall = MmuCall.codeCopy(hub);
-      hub.defers().scheduleForPostTransaction(this);
-    }
-  }
-
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    if (triggerMmu) {
       imcFragment.callMmu(mmuCall);
     }
   }

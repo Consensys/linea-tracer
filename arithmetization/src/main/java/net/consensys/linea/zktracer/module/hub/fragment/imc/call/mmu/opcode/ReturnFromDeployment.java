@@ -33,7 +33,7 @@ public class ReturnFromDeployment extends MmuCall {
   private final ContractMetadata contract;
 
   public ReturnFromDeployment(final Hub hub) {
-    super(MMU_INST_RAM_TO_EXO_WITH_PADDING);
+    super(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING);
 
     this.hub = hub;
 

@@ -34,7 +34,7 @@ public class CodeCopy extends MmuCall {
   private final ContractMetadata contract;
 
   public CodeCopy(final Hub hub) {
-    super(MMU_INST_ANY_TO_RAM_WITH_PADDING);
+    super(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING);
     this.hub = hub;
     this.contract = hub.currentFrame().metadata();
 

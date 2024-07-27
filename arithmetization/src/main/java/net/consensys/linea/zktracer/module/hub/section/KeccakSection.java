@@ -27,11 +27,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class KeccakSection extends TraceSection implements PostExecDefer, PostTransactionDefer {
-
-  final ImcFragment miscFragment;
-  final boolean triggerMmu;
-  MmuCall mmuCall;
+public class KeccakSection extends TraceSection implements PostExecDefer {
 
   public KeccakSection(Hub hub) {
     super(hub, (short) 3);
@@ -39,26 +35,20 @@ public class KeccakSection extends TraceSection implements PostExecDefer, PostTr
 
     hub.addTraceSection(this);
 
-    miscFragment = ImcFragment.empty(hub);
-    this.addStackAndFragments(hub, miscFragment);
+    final ImcFragment imcFragment = ImcFragment.empty(hub);
+    this.addStackAndFragments(hub, imcFragment);
 
     final MxpCall mxpCall = new MxpCall(hub);
-    miscFragment.callMxp(mxpCall);
+    imcFragment.callMxp(mxpCall);
 
     final boolean mayTriggerNonTrivialOperation = mxpCall.isMayTriggerNonTrivialMmuOperation();
-    triggerMmu = mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
+    final boolean triggerMmu = mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
 
     if (triggerMmu) {
       hub.defers().scheduleForPostExecution(this);
-      hub.defers().scheduleForPostTransaction(this);
-      mmuCall = MmuCall.sha3(hub);
+      final MmuCall mmuCall = MmuCall.sha3(hub);
+      imcFragment.callMmu(mmuCall);
     }
-  }
-
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    miscFragment.callMmu(mmuCall);
   }
 
   @Override

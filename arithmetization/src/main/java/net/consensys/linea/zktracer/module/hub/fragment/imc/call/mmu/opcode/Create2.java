@@ -35,7 +35,7 @@ public class Create2 extends MmuCall implements RomLexDefer {
   private ContractMetadata contract;
 
   public Create2(final Hub hub, boolean failureCondition) {
-    super(MMU_INST_RAM_TO_EXO_WITH_PADDING);
+    super(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING);
     this.hub = hub;
     this.hub.romLex().createDefers().register(this);
 

@@ -37,12 +37,11 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class CallDataLoadSection extends TraceSection implements PostTransactionDefer {
+public class CallDataLoadSection extends TraceSection {
   final short exception;
   final Bytes callDataRam;
   final int currentContextNumber;
   final long callDataCN;
-  final ImcFragment imcFragment;
   final EWord sourceOffset;
 
   long callDataOffset = -1;
@@ -61,47 +60,40 @@ public class CallDataLoadSection extends TraceSection implements PostTransaction
     this.callDataCN = hub.currentFrame().callDataInfo().callDataContextNumber();
     this.callDataRam = hub.currentFrame().callDataInfo().data();
 
-    this.imcFragment = ImcFragment.empty(hub);
+    final ImcFragment imcFragment = ImcFragment.empty(hub);
 
     final OobCall oobCall = new CallDataLoadOobCall();
     imcFragment.callOob(oobCall);
+
+    if (Exceptions.none(exception)) {
+
+      if (!(Words.clampedToLong(sourceOffset) >= callDataSize)) {
+
+        final EWord read =
+          EWord.of(
+            Bytes.wrap(
+              Arrays.copyOfRange(
+                hub.currentFrame().callDataInfo().data().toArray(),
+                Words.clampedToInt(sourceOffset),
+                Words.clampedToInt(sourceOffset) + WORD_SIZE)));
+
+        final MmuCall call =
+          new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+            .sourceId((int) callDataCN)
+            .sourceOffset(sourceOffset)
+            .referenceOffset(callDataOffset)
+            .referenceSize(callDataSize)
+            .limb1(read.hi())
+            .limb2(read.lo())
+            .sourceRamBytes(Optional.of(callDataRam));
+
+        imcFragment.callMmu(call);
+      }
+    }
 
     this.addFragment(imcFragment);
 
     final ContextFragment context = readCurrentContextData(hub);
     this.addFragment(context);
-
-    hub.defers().scheduleForPostTransaction(this);
-  }
-
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    if (Exceptions.none(exception)) {
-
-      if (Words.clampedToLong(sourceOffset) >= callDataSize) {
-        return;
-      }
-
-      final EWord read =
-          EWord.of(
-              Bytes.wrap(
-                  Arrays.copyOfRange(
-                      hub.currentFrame().callDataInfo().data().toArray(),
-                      Words.clampedToInt(sourceOffset),
-                      Words.clampedToInt(sourceOffset) + WORD_SIZE)));
-
-      final MmuCall call =
-          new MmuCall(MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-              .sourceId((int) callDataCN)
-              .sourceOffset(sourceOffset)
-              .referenceOffset(callDataOffset)
-              .referenceSize(callDataSize)
-              .limb1(read.hi())
-              .limb2(read.lo())
-              .sourceRamBytes(Optional.of(callDataRam));
-
-      imcFragment.callMmu(call);
-    }
   }
 }

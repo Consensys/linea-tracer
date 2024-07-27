@@ -30,8 +30,6 @@ public class LogSection implements PostTransactionDefer {
 
   LogCommonSection sectionPrequel;
 
-  final boolean isStatic;
-
   final boolean mxpX;
   final boolean oogX;
 
@@ -39,19 +37,17 @@ public class LogSection implements PostTransactionDefer {
   LogInvocation logData;
 
   public LogSection(Hub hub) {
-    this.mxpX = Exceptions.memoryExpansionException(hub.pch().exceptions());
-    this.oogX = Exceptions.outOfGasException(hub.pch().exceptions());
+    // this.mxpX = Exceptions.memoryExpansionException(hub.pch().exceptions());
+    // this.oogX = Exceptions.outOfGasException(hub.pch().exceptions());
 
     // Static Case
     if (hub.currentFrame().frame().isStatic()) {
-      isStatic = true;
       hub.addTraceSection(
           new LogCommonSection(hub, (short) 4, ContextFragment.readCurrentContextData(hub)));
       return;
     }
 
     // General Case
-    isStatic = false;
     this.sectionPrequel =
         new LogCommonSection(hub, (short) 5, ContextFragment.readCurrentContextData(hub));
     hub.addTraceSection(sectionPrequel);
@@ -67,7 +63,6 @@ public class LogSection implements PostTransactionDefer {
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    if (!isStatic) {
       if (!this.logData.reverted()) {
         hub.state.stamps().incrementLogStamp();
         this.sectionPrequel.commonValues.logStamp(hub.state.stamps().log());
@@ -75,7 +70,6 @@ public class LogSection implements PostTransactionDefer {
       final boolean mmuTrigger = !this.logData.reverted() && this.logData.size != 0;
       if (mmuTrigger) {
         miscFragment.callMmu(MmuCall.LogX(hub, this.logData));
-      }
     }
   }
 

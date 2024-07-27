@@ -35,7 +35,7 @@ public class ExtCodeCopy extends MmuCall {
   private final ContractMetadata contract;
 
   public ExtCodeCopy(final Hub hub) {
-    super(MMU_INST_ANY_TO_RAM_WITH_PADDING);
+    super(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING);
     this.hub = hub;
     final Address sourceAddress = Words.toAddress(hub.messageFrame().getStackItem(0));
     this.contract =

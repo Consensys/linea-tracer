@@ -13,19 +13,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.plugins.config;
+package net.consensys.linea.plugins;
 
-import lombok.Builder;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
+import java.util.function.Supplier;
 
-/** The Linea L1 L2 bridge configuration. */
-@Builder(toBuilder = true)
-public record LineaL1L2BridgeConfiguration(Address contract, Bytes topic) {
-  public static final LineaL1L2BridgeConfiguration EMPTY =
-      LineaL1L2BridgeConfiguration.builder().contract(Address.ZERO).topic(Bytes.EMPTY).build();
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
-  public boolean isEmpty() {
-    return this.contract.equals(Address.ZERO) || this.topic.isEmpty();
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public class LineaOptionsPluginConfiguration {
+  @Getter private final LineaCliOptions cliOptions;
+  private final Supplier<LineaOptionsConfiguration> optionsConfigSupplier;
+  @Getter private LineaOptionsConfiguration optionsConfig;
+
+  public void initOptionsConfig() {
+    if (optionsConfig == null) {
+      optionsConfig = optionsConfigSupplier.get();
+    }
   }
 }

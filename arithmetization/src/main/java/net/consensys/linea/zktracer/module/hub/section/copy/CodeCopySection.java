@@ -47,7 +47,7 @@ public class CodeCopySection extends TraceSection implements PostTransactionDefe
 
     // Miscellaneous row
     imcFragment = ImcFragment.empty(hub);
-    this.addFragmentsAndStack(hub, imcFragment);
+    this.addStackAndFragments(hub, imcFragment);
 
     // triggerOob = false
     // triggerMxp = true

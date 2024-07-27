@@ -31,6 +31,6 @@ public class ExceptionalCreate extends TraceSection {
 
     final CreateScenarioFragment scenarioFragment = new CreateScenarioFragment(CREATE_EXCEPTION);
 
-    this.addFragmentsAndStack(hub, scenarioFragment, commonContext, imcFragment);
+    this.addStackAndFragments(hub, scenarioFragment, commonContext, imcFragment);
   }
 }

@@ -40,7 +40,7 @@ public class KeccakSection extends TraceSection implements PostExecDefer, PostTr
     hub.addTraceSection(this);
 
     miscFragment = ImcFragment.empty(hub);
-    this.addFragmentsAndStack(hub, miscFragment);
+    this.addStackAndFragments(hub, miscFragment);
 
     final MxpCall mxpCall = new MxpCall(hub);
     miscFragment.callMxp(mxpCall);

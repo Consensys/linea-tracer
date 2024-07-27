@@ -35,6 +35,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbsOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.PrecompileCommonOobCall;
 
+// TODO: remove this class ... total annihilation :)
 @RequiredArgsConstructor
 public class PrecompileLinesGenerator {
   public static List<TraceFragment> generateFor(final Hub hub, final PrecompileInvocation p) {

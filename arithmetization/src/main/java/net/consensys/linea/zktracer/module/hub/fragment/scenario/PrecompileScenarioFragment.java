@@ -84,7 +84,7 @@ public class PrecompileScenarioFragment implements TraceFragment {
         .pScenarioPrcFailureKnownToRam(scenario == PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM)
         .pScenarioPrcCallerGas(precompileSubSection.getCallerGas())
         .pScenarioPrcCalleeGas(precompileSubSection.getCalleeGas())
-        .pScenarioPrcReturnGas(precompileSubSection.returnGas())
+        .pScenarioPrcReturnGas(precompileSubSection.getReturnGas())
         .pScenarioPrcCdo(precompileSubSection.getCallDataMemorySpan().offset())
         .pScenarioPrcCds(precompileSubSection.getCallDataMemorySpan().length())
         .pScenarioPrcRao(precompileSubSection.getParentReturnDataTarget().offset())

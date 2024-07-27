@@ -24,6 +24,6 @@ public class ContextSection extends TraceSection {
     hub.addTraceSection(this);
 
     ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
-    this.addFragmentsAndStack(hub, currentContext);
+    this.addStackAndFragments(hub, currentContext);
   }
 }

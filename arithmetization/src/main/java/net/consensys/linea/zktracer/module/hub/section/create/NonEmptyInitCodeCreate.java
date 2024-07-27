@@ -40,7 +40,7 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
 
     this.scenarioFragment = new CreateScenarioFragment();
 
-    this.addFragmentsAndStack(hub, scenarioFragment, commonContext, imcFragment);
+    this.addStackAndFragments(hub, scenarioFragment, commonContext, imcFragment);
     hub.romLex().callRomLex(hub.messageFrame());
   }
 
@@ -79,7 +79,7 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
             DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
     oldToMidCreatedAccountFragment.requiresRomlex(true);
 
-    this.addFragmentsWithoutStack(oldToMidCreatorAccountFragment, oldToMidCreatedAccountFragment);
+    this.addFragments(oldToMidCreatorAccountFragment, oldToMidCreatedAccountFragment);
 
     if (!createSuccess) {
       final AccountFragment midToNewCreatorAccountFragment =
@@ -96,7 +96,7 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
               DomSubStampsSubFragment.revertsWithChildDomSubStamps(
                   this.hubStamp(), childRevertStamp, 3));
 
-      this.addFragmentsWithoutStack(midToNewCreatorAccountFragment, midToNewCreatedAccountFragment);
+      this.addFragments(midToNewCreatorAccountFragment, midToNewCreatedAccountFragment);
     }
   }
 
@@ -134,7 +134,7 @@ public class NonEmptyInitCodeCreate extends TraceSection implements FillCreateSe
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                 this.hubStamp(), currentRevertStamp, createSuccess ? 3 : 5));
 
-    this.addFragmentsWithoutStack(undoCreatorAccountFragment, undoCreatedAccountFragment);
+    this.addFragments(undoCreatorAccountFragment, undoCreatedAccountFragment);
   }
 
   @Override

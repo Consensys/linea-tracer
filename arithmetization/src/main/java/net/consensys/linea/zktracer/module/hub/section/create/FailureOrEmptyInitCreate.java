@@ -42,7 +42,7 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
 
     this.scenarioFragment = new CreateScenarioFragment(scenario);
 
-    this.addFragmentsAndStack(hub, scenarioFragment, currentContextFragment, imcFragment);
+    this.addStackAndFragments(hub, scenarioFragment, currentContextFragment, imcFragment);
   }
 
   @Override
@@ -73,7 +73,7 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
             newCreatedSnapshot,
             DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
-    this.addFragmentsWithoutStack(creatorAccountFragment, createdAccountFragment);
+    this.addFragments(creatorAccountFragment, createdAccountFragment);
   }
 
   @Override
@@ -109,7 +109,7 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                 this.hubStamp(), currentRevertStamp, 3));
 
-    this.addFragmentsWithoutStack(undoCreatorAccountFragment, undoCreatedAccountFragment);
+    this.addFragments(undoCreatorAccountFragment, undoCreatedAccountFragment);
   }
 
   @Override

@@ -66,7 +66,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     // Message call case
     ////////////////////
     if (!deploymentStatus) {
-      this.addFragmentsAndStack(hub, readCurrentContextData(hub));
+      this.addStackAndFragments(hub, readCurrentContextData(hub));
       return;
     }
 
@@ -88,7 +88,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
                 afterEmptyDeployment,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
-    this.addFragmentsAndStack(hub, readCurrentContextData(hub), doingAccountFragment);
+    this.addStackAndFragments(hub, readCurrentContextData(hub), doingAccountFragment);
   }
 
   /**
@@ -113,7 +113,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
             hubStamp, hub.callStack().current().revertStamp(), 1);
 
-    this.addFragmentsWithoutStack(
+    this.addFragments(
         hub.factories()
             .accountFragment()
             .make(
@@ -134,6 +134,6 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    this.addFragmentsWithoutStack(this.parentContextReturnDataReset);
+    this.addFragments(this.parentContextReturnDataReset);
   }
 }

@@ -44,7 +44,7 @@ public class ReturnDataCopySection extends TraceSection implements PostTransacti
     hub.addTraceSection(this);
 
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
-    this.addFragmentsAndStack(hub, currentContext);
+    this.addStackAndFragments(hub, currentContext);
 
     miscFragment = ImcFragment.empty(hub);
     this.addFragment(miscFragment);

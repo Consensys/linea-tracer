@@ -98,7 +98,7 @@ public class TraceSection {
    *
    * @param fragments the fragments to add to the section
    */
-  public final void addFragmentsWithoutStack(TraceFragment... fragments) {
+  public final void addFragments(TraceFragment... fragments) {
     for (TraceFragment f : fragments) {
       this.addFragment(f);
     }
@@ -109,7 +109,7 @@ public class TraceSection {
    *
    * @param fragments the fragments to add to the section
    */
-  public final void addFragmentsWithoutStack(List<TraceFragment> fragments) {
+  public final void addFragments(List<TraceFragment> fragments) {
     for (TraceFragment f : fragments) {
       this.addFragment(f);
     }
@@ -122,9 +122,9 @@ public class TraceSection {
    * @param hub the execution context
    * @param fragments the fragments to insert
    */
-  public final void addFragmentsAndStack(Hub hub, TraceFragment... fragments) {
+  public final void addStackAndFragments(Hub hub, TraceFragment... fragments) {
     this.addStack(hub);
-    this.addFragmentsWithoutStack(fragments);
+    this.addFragments(fragments);
   }
 
   /** This method is called at commit time, to build required information post-hoc. */

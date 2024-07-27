@@ -70,7 +70,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
 
     // CONTEXT fragment
     final ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
-    this.addFragmentsAndStack(hub, readCurrentContext);
+    this.addStackAndFragments(hub, readCurrentContext);
 
     if (staticContextException) {
       return;

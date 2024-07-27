@@ -48,7 +48,7 @@ class AbortCreate extends TraceSection {
     final ContextFragment updatedCurrentContextFragment =
         ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
 
-    this.addFragmentsAndStack(
+    this.addStackAndFragments(
         hub,
         scenarioFragment,
         currentContextFragment,

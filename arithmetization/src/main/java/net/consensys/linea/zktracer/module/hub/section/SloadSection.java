@@ -72,7 +72,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     ImcFragment miscFragmentForSload = ImcFragment.empty(hub);
     StorageFragment doingSload = doingSload(hub);
 
-    this.addFragmentsAndStack(hub, readCurrentContext, miscFragmentForSload, doingSload);
+    this.addStackAndFragments(hub, readCurrentContext, miscFragmentForSload, doingSload);
   }
 
   private StorageFragment doingSload(Hub hub) {

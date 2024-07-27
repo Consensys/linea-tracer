@@ -15,17 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_UNDEFINED;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_UNDEFINED_SCENARIO;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
 public class Sha2SubSection extends PrecompileSubsection {
   public Sha2SubSection(Hub hub, CallSection callSection) {
@@ -52,5 +48,4 @@ public class Sha2SubSection extends PrecompileSubsection {
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
-
 }

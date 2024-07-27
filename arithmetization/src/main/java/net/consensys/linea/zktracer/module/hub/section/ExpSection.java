@@ -30,6 +30,6 @@ public class ExpSection extends TraceSection {
 
     final ExpCall expCall = new ExplogExpCall();
     final ImcFragment miscFragment = ImcFragment.empty(hub).callExp(expCall);
-    this.addFragmentsAndStack(hub, miscFragment);
+    this.addStackAndFragments(hub, miscFragment);
   }
 }

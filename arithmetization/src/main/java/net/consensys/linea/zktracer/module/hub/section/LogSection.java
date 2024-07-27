@@ -82,7 +82,7 @@ public class LogSection implements PostTransactionDefer {
   public static class LogCommonSection extends TraceSection {
     public LogCommonSection(Hub hub, short maxNbOfRows, ContextFragment fragment) {
       super(hub, maxNbOfRows);
-      this.addFragmentsAndStack(hub, fragment);
+      this.addStackAndFragments(hub, fragment);
     }
   }
 }

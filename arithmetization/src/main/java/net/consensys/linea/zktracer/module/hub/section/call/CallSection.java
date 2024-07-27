@@ -35,7 +35,6 @@ import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -115,7 +114,7 @@ public class CallSection extends TraceSection
     // row i+2
     final ImcFragment firstImcFragment = ImcFragment.empty(hub);
 
-    this.addFragmentsAndStack(hub, scenarioFragment, currentContextFragment, firstImcFragment);
+    this.addStackAndFragments(hub, scenarioFragment, currentContextFragment, firstImcFragment);
 
     if (Exceptions.any(exceptions)) {
       scenarioFragment.setScenario(CALL_EXCEPTION);
@@ -237,7 +236,7 @@ public class CallSection extends TraceSection
                 rawCalleeAddress,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
-    this.addFragmentsWithoutStack(callerAccountFragment, calleeAccountFragment);
+    this.addFragments(callerAccountFragment, calleeAccountFragment);
   }
 
   private void abortingCall(Hub hub) {
@@ -294,7 +293,7 @@ public class CallSection extends TraceSection
       firstCalleeAccountFragment.requiresRomlex(true);
     }
 
-    this.addFragmentsWithoutStack(firstCallerAccountFragment, firstCalleeAccountFragment);
+    this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
   }
 
   /** Resolution happens as the child context is about to terminate. */
@@ -365,8 +364,7 @@ public class CallSection extends TraceSection
                     DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                         this.hubStamp(), this.revertStamp(), 3));
 
-        this.addFragmentsWithoutStack(
-            postReEntryCallerAccountFragment, postReEntryCalleeAccountFragment);
+        this.addFragments(postReEntryCallerAccountFragment, postReEntryCalleeAccountFragment);
       }
       default -> {}
     }
@@ -398,7 +396,9 @@ public class CallSection extends TraceSection
 
     Preconditions.checkArgument(scenario.noLongerUndefined());
 
-    // iterate over the precompileSubsection
+    if (scenario.isPrecompileScenario()) {
+      this.addFragments(precompileSubsection.getFragments());
+    }
 
     this.addFragment(finalContextFragment);
   }
@@ -437,7 +437,7 @@ public class CallSection extends TraceSection
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 3));
 
-    this.addFragmentsWithoutStack(undoingCallerAccountFragment, undoingCalleeAccountFragment);
+    this.addFragments(undoingCallerAccountFragment, undoingCalleeAccountFragment);
   }
 
   private void completeSmcFailureWillRevert(Factories factory) {
@@ -487,8 +487,6 @@ public class CallSection extends TraceSection
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 3));
 
-    this.addFragmentsWithoutStack(undoingCallerAccountFragment, undoingCalleeAccountFragment);
+    this.addFragments(undoingCallerAccountFragment, undoingCalleeAccountFragment);
   }
-
-
 }

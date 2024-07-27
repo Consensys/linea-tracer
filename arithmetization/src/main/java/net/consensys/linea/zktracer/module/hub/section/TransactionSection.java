@@ -27,6 +27,6 @@ public class TransactionSection extends TraceSection {
     super(hub, Exceptions.none(hub.pch().exceptions()) ? (short) 2 : (short) 3);
     hub.addTraceSection(this);
 
-    this.addFragmentsAndStack(hub, TransactionFragment.prepare(hub.txStack().current()));
+    this.addStackAndFragments(hub, TransactionFragment.prepare(hub.txStack().current()));
   }
 }

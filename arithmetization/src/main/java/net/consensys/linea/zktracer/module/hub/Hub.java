@@ -733,7 +733,7 @@ public class Hub implements Module {
     //////////////////////////////////////////////////////
     if (exceptional) {
       this.currentTraceSection()
-          .addFragmentsWithoutStack(ContextFragment.executionProvidesEmptyReturnData(this));
+          .addFragments(ContextFragment.executionProvidesEmptyReturnData(this));
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
     }
@@ -907,7 +907,7 @@ public class Hub implements Module {
   }
 
   public void addFragmentsAndStack(TraceFragment... fragments) {
-    currentTraceSection().addFragmentsAndStack(this, fragments);
+    currentTraceSection().addStackAndFragments(this, fragments);
   }
 
   public void addTraceSection(TraceSection section) {

@@ -40,7 +40,7 @@ public class RevertSection extends TraceSection implements PostTransactionDefer 
     short exceptions = hub.pch().exceptions();
 
     imcFragment = ImcFragment.empty(hub);
-    this.addFragmentsAndStack(hub, imcFragment);
+    this.addStackAndFragments(hub, imcFragment);
 
     // triggerExp = false
     // triggerOob = false
@@ -69,7 +69,7 @@ public class RevertSection extends TraceSection implements PostTransactionDefer 
 
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     final ContextFragment parentContext = ContextFragment.executionProvidesEmptyReturnData(hub);
-    this.addFragmentsWithoutStack(currentContext, parentContext);
+    this.addFragments(currentContext, parentContext);
   }
 
   @Override

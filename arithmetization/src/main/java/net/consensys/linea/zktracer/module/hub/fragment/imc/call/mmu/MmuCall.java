@@ -353,61 +353,62 @@ public class MmuCall implements TraceSubFragment {
     }
   }
 
-  private static MmuCall forRipeMd160Sha(
-      final Hub hub, PrecompileInvocation p, int i, final boolean isSha) {
-    Preconditions.checkArgument(i >= 0 && i < 3);
+  private static MmuCall forShaTwoOrRipemdCallDataExtraction(
+      final Hub hub, PrecompileInvocation p, final boolean isSha) {
 
     final int precompileContextNumber = p.hubStamp() + 1;
 
-    if (i == 0) {
-      if (p.callDataSource().isEmpty()) {
-        return nop();
-      } else {
-        return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
-            .sourceId(hub.currentFrame().contextNumber())
-            .targetId(precompileContextNumber)
-            .sourceOffset(EWord.of(p.callDataSource().offset()))
-            .size(p.callDataSource().length())
-            .referenceSize(p.callDataSource().length())
-            .phase(isSha ? PHASE_SHA2_DATA : PHASE_RIPEMD_DATA)
-            .setRipSha();
-      }
-    } else if (i == 1) {
-      if (p.callDataSource().isEmpty()) {
-        return new MmuCall(MMU_INST_MSTORE)
-            .targetId(precompileContextNumber)
-            .targetOffset(EWord.ZERO)
-            .limb1(isSha ? bigIntegerToBytes(EMPTY_SHA2_HI) : Bytes.ofUnsignedLong(EMPTY_RIPEMD_HI))
-            .limb2(isSha ? bigIntegerToBytes(EMPTY_SHA2_LO) : bigIntegerToBytes(EMPTY_RIPEMD_LO));
-      } else {
-        return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-            .sourceId(precompileContextNumber)
-            .targetId(precompileContextNumber)
-            .size(WORD_SIZE)
-            .phase(isSha ? PHASE_SHA2_RESULT : PHASE_RIPEMD_RESULT)
-            .setRipSha();
-      }
+    return new MmuCall(MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .sourceId(hub.currentFrame().contextNumber())
+        .targetId(precompileContextNumber)
+        .sourceOffset(EWord.of(p.callDataSource().offset()))
+        .size(p.callDataSource().length())
+        .referenceSize(p.callDataSource().length())
+        .phase(isSha ? PHASE_SHA2_DATA : PHASE_RIPEMD_DATA)
+        .setRipSha();
+  }
+
+  private static MmuCall forShaTwoOrRipemdFullResultTransfer(
+      final Hub hub, PrecompileInvocation p, final boolean isSha) {
+
+    final int precompileContextNumber = p.hubStamp() + 1;
+
+    if (p.callDataSource().isEmpty()) {
+      return new MmuCall(MMU_INST_MSTORE)
+          .targetId(precompileContextNumber)
+          .targetOffset(EWord.ZERO)
+          .limb1(isSha ? bigIntegerToBytes(EMPTY_SHA2_HI) : Bytes.ofUnsignedLong(EMPTY_RIPEMD_HI))
+          .limb2(isSha ? bigIntegerToBytes(EMPTY_SHA2_LO) : bigIntegerToBytes(EMPTY_RIPEMD_LO));
     } else {
-      if (p.requestedReturnDataTarget().isEmpty()) {
-        return nop();
-      } else {
-        return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
-            .sourceId(precompileContextNumber)
-            .targetId(hub.currentFrame().contextNumber())
-            .sourceOffset(EWord.ZERO)
-            .size(WORD_SIZE)
-            .referenceOffset(p.requestedReturnDataTarget().offset())
-            .referenceSize(p.requestedReturnDataTarget().length());
-      }
+      return new MmuCall(MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+          .sourceId(precompileContextNumber)
+          .targetId(precompileContextNumber)
+          .size(WORD_SIZE)
+          .phase(isSha ? PHASE_SHA2_RESULT : PHASE_RIPEMD_RESULT)
+          .setRipSha();
     }
   }
 
+  private static MmuCall forShaTwoOrRipemdPartialResultCopy(
+      final Hub hub, PrecompileInvocation p, final boolean isSha) {
+
+    final int precompileContextNumber = p.hubStamp() + 1;
+
+    return new MmuCall(MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(precompileContextNumber)
+        .targetId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.ZERO)
+        .size(WORD_SIZE)
+        .referenceOffset(p.requestedReturnDataTarget().offset())
+        .referenceSize(p.requestedReturnDataTarget().length());
+  }
+
   public static MmuCall forSha2(final Hub hub, PrecompileInvocation p, int i) {
-    return forRipeMd160Sha(hub, p, i, true);
+    return forShaTwoOrRipemdFullResultTransfer(hub, p, true);
   }
 
   public static MmuCall forRipeMd160(final Hub hub, PrecompileInvocation p, int i) {
-    return forRipeMd160Sha(hub, p, i, false);
+    return forShaTwoOrRipemdFullResultTransfer(hub, p, false);
   }
 
   public static MmuCall forIdentity(final Hub hub, final PrecompileInvocation p, int i) {

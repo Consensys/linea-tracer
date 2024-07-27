@@ -55,15 +55,14 @@ public class CallScenarioFragment implements TraceFragment {
     CALL_PRC_SUCCESS_WONT_REVERT;
 
     public boolean isPrecompileScenario() {
-      return  this == CALL_PRC_FAILURE ||
-              this == CALL_PRC_SUCCESS_WILL_REVERT ||
-              this == CALL_PRC_SUCCESS_WONT_REVERT;
+      return this == CALL_PRC_FAILURE
+          || this == CALL_PRC_SUCCESS_WILL_REVERT
+          || this == CALL_PRC_SUCCESS_WONT_REVERT;
     }
 
     public boolean noLongerUndefined() {
       return this != UNDEFINED && this != CALL_PRC_UNDEFINED && this != CALL_SMC_UNDEFINED;
     }
-
   }
 
   private static final List<CallScenario> illegalTracingScenario =

@@ -142,7 +142,7 @@ public class TxPreWarmingMacroSection {
   public static class TxPrewarmingSection extends TraceSection {
     public TxPrewarmingSection(Hub hub, TraceFragment fragment) {
       super(hub, (short) 1);
-      this.addFragmentsWithoutStack(fragment);
+      this.addFragments(fragment);
     }
   }
 }

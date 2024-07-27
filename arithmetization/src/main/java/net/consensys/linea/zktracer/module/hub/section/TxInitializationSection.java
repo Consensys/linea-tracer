@@ -119,7 +119,7 @@ public class TxInitializationSection {
   public static class InitializationSection extends TraceSection {
     public InitializationSection(Hub hub, TraceFragment... fragments) {
       super(hub, (short) 5);
-      this.addFragmentsWithoutStack(fragments);
+      this.addFragments(fragments);
     }
   }
 }

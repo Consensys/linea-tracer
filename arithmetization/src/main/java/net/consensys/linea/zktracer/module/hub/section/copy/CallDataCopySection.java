@@ -42,7 +42,7 @@ public class CallDataCopySection extends TraceSection implements PostTransaction
     hub.addTraceSection(this);
 
     miscFragment = ImcFragment.empty(hub);
-    this.addFragmentsAndStack(hub, miscFragment);
+    this.addStackAndFragments(hub, miscFragment);
 
     // triggerOob = false
     // triggerMxp = true

@@ -14,6 +14,10 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_UNDEFINED;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,15 +37,11 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_UNDEFINED;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
-
 /** Note: {@link PrecompileSubsection}'s are created at child context entry by the call section */
 @RequiredArgsConstructor
 @Getter
-public class PrecompileSubsection implements ContextExitDefer, ReEnterContextDefer, PostRollbackDefer, PostTransactionDefer {
+public class PrecompileSubsection
+    implements ContextExitDefer, ReEnterContextDefer, PostRollbackDefer, PostTransactionDefer {
   /** List of fragments of the precompile specific subsection */
   final List<TraceFragment> fragments;
 
@@ -74,10 +74,14 @@ public class PrecompileSubsection implements ContextExitDefer, ReEnterContextDef
     parentReturnDataTarget = hub.currentFrame().parentReturnDataTarget();
     callerGas = hub.callStack().parent().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
-    precompileScenarioFragment = new PrecompileScenarioFragment(this, PRC_UNDEFINED_SCENARIO, PRC_UNDEFINED);
+    precompileScenarioFragment =
+        new PrecompileScenarioFragment(this, PRC_UNDEFINED_SCENARIO, PRC_UNDEFINED);
   }
 
-  protected short maxNumberOfLines() {return 0;};
+  protected short maxNumberOfLines() {
+    return 0;
+  }
+  ;
 
   public void resolveUponExitingContext(Hub hub, CallFrame frame) {
     returnGas = frame.frame().getRemainingGas();
@@ -85,7 +89,7 @@ public class PrecompileSubsection implements ContextExitDefer, ReEnterContextDef
 
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-    successBit =  bytesToBoolean(hub.messageFrame().getStackItem(0));
+    successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
     if (successBit) {
       hub.defers().scheduleForPostRollback(this, frame);
       precompileScenarioFragment.setScenario(PRC_SUCCESS_WONT_REVERT);
@@ -99,7 +103,6 @@ public class PrecompileSubsection implements ContextExitDefer, ReEnterContextDef
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-
-  }
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
 }

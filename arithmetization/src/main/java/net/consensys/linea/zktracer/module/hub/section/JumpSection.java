@@ -43,7 +43,7 @@ public class JumpSection extends TraceSection {
 
   public void populateSection(Hub hub) {
 
-    this.addFragmentsAndStack(hub);
+    this.addStackAndFragments(hub);
 
     if (Exceptions.outOfGasException(hub.pch().exceptions())) {
       return;
@@ -95,8 +95,7 @@ public class JumpSection extends TraceSection {
 
     // CONTEXT, ACCOUNT, MISCELLANEOUS
     //////////////////////////////////
-    this.addFragmentsWithoutStack(
-        contextRowCurrentContext, accountRowCodeAccount, miscellaneousRow);
+    this.addFragments(contextRowCurrentContext, accountRowCodeAccount, miscellaneousRow);
 
     // jump destination vetting
     ///////////////////////////

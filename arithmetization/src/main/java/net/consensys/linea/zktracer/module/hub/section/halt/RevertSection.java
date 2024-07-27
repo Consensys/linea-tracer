@@ -16,21 +16,17 @@ package net.consensys.linea.zktracer.module.hub.section.halt;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class RevertSection extends TraceSection implements PostTransactionDefer {
+public class RevertSection extends TraceSection {
 
   final ImcFragment imcFragment;
   MmuCall mmuCall;
-  final boolean triggerMmu;
 
   public RevertSection(Hub hub) {
     // up to 4 = 1 + 3 rows
@@ -50,31 +46,25 @@ public class RevertSection extends TraceSection implements PostTransactionDefer 
     imcFragment.callMxp(mxpCall);
     Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
-    triggerMmu =
-        (Exceptions.none(exceptions))
-            && !hub.currentFrame().isRoot()
-            && mxpCall.isMayTriggerNonTrivialMmuOperation() // i.e. size ≠ 0 ∧ ¬MXPX
-            && !hub.currentFrame().parentReturnDataTarget().isEmpty();
-
-    if (triggerMmu) {
-      mmuCall = MmuCall.revert(hub);
-      hub.defers().scheduleForPostTransaction(this);
-    }
-
     // The XAHOY case
     /////////////////
     if (Exceptions.any(exceptions)) {
       return;
     }
 
+    final boolean triggerMmu =
+        (Exceptions.none(exceptions))
+            && !hub.currentFrame().isRoot()
+            && mxpCall.mayTriggerNontrivialMmuOperation // i.e. size ≠ 0 ∧ ¬MXPX
+            && !hub.currentFrame().parentReturnDataTarget().isEmpty();
+
+    if (triggerMmu) {
+      mmuCall = MmuCall.revert(hub);
+      imcFragment.callMmu(mmuCall);
+    }
+
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     final ContextFragment parentContext = ContextFragment.executionProvidesEmptyReturnData(hub);
     this.addFragments(currentContext, parentContext);
-  }
-
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    imcFragment.callMmu(mmuCall);
   }
 }

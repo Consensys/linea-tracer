@@ -16,18 +16,15 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class KeccakSection extends TraceSection implements PostExecDefer {
+public class KeccakSection extends TraceSection implements PostOpcodeDefer {
 
   public KeccakSection(Hub hub) {
     super(hub, (short) 3);
@@ -41,8 +38,9 @@ public class KeccakSection extends TraceSection implements PostExecDefer {
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
-    final boolean mayTriggerNonTrivialOperation = mxpCall.isMayTriggerNonTrivialMmuOperation();
-    final boolean triggerMmu = mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
+    final boolean mayTriggerNonTrivialOperation = mxpCall.mayTriggerNontrivialMmuOperation;
+    final boolean triggerMmu =
+        mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
 
     if (triggerMmu) {
       hub.defers().scheduleForPostExecution(this);

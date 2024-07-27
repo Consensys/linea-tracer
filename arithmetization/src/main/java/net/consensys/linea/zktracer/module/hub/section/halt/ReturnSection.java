@@ -15,12 +15,14 @@
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
-import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.memoryExpansionException;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
@@ -30,52 +32,45 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.types.Bytecode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public class ReturnSection extends TraceSection implements PostTransactionDefer, PostRollbackDefer {
+public class ReturnSection extends TraceSection
+    implements ContextReEntryDefer, PostRollbackDefer, PostTransactionDefer {
 
-  final int hubStamp;
-  final CallFrame currentFrame;
-  final short exceptions;
+  final boolean returnFromMessageCall;
   final boolean returnFromDeployment;
-  final boolean returnFromMessageCall; // not stricly speaking necessary
+  boolean nonemptyByteCode;
   final ReturnScenarioFragment returnScenarioFragment;
-  final ImcFragment firstImcFragment;
-  ImcFragment secondImcFragment;
   AccountFragment deploymentFragment;
-  AccountFragment undoingDeploymentAccountFragment;
-  MmuCall firstMmuCall;
-  MmuCall secondMmuCall;
 
+  AccountSnapshot preDeploymentAccountSnapshot;
+  AccountSnapshot postDeploymentAccountSnapshot;
+  AccountSnapshot undoingDeploymentAccountSnapshot;
   ContextFragment squashParentContextReturnData;
-  @Getter public boolean emptyDeployment;
-  @Getter public boolean deploymentWasReverted = false;
+  Address deploymentAddress;
 
   public ReturnSection(Hub hub) {
-    // 5 = 1 + 4
-    // 8 = 1 + 7
-    super(hub, Exceptions.any(hub.pch().exceptions()) ? (short) 5 : (short) 8);
+    super(hub, maxNumberOfRows(hub));
     hub.addTraceSection(this);
 
-    hubStamp = hub.stamp();
-    currentFrame = hub.currentFrame();
-    exceptions = hub.pch().exceptions();
-    returnFromMessageCall = hub.currentFrame().isMessageCall();
-    returnFromDeployment = hub.currentFrame().isDeployment();
-    firstImcFragment = ImcFragment.empty(hub);
+    CallFrame currentFrame = hub.currentFrame();
+    returnFromMessageCall = currentFrame.isMessageCall();
+    returnFromDeployment = currentFrame.isDeployment();
 
     returnScenarioFragment = new ReturnScenarioFragment();
     final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
+    final ImcFragment firstImcFragment = ImcFragment.empty(hub);
     final MxpCall mxpCall = new MxpCall(hub);
     firstImcFragment.callMxp(mxpCall);
 
@@ -84,60 +79,63 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     this.addFragment(currentContextFragment);
     this.addFragment(firstImcFragment);
 
-    // Exceptional RETURN's
-    ///////////////////////
-    ///////////////////////
+    short exceptions = hub.pch().exceptions();
 
     if (Exceptions.any(exceptions)) {
       returnScenarioFragment.setScenario(RETURN_EXCEPTION);
     }
 
-    // Memory expansion exception (MXPX)
-    // Out of gas exception (OOGX)
-    ////////////////////////////////////
-    if (Exceptions.memoryExpansionException(exceptions)
-        || Exceptions.outOfGasException(exceptions)) {
-      // Note: the missing context fragment is added elsewhere
+    Preconditions.checkArgument(mxpCall.mxpx == memoryExpansionException(exceptions));
+
+    if (mxpCall.mxpx) {
       return;
     }
 
-    // Max code size exception (MAXCSX)
-    ///////////////////////////////////
+    if (Exceptions.outOfGasException(exceptions) && returnFromMessageCall) {
+      Preconditions.checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      return;
+    }
+
+    if (Exceptions.any(exceptions)) {
+      // exceptional message calls are dealt with;
+      // if exceptions remain they must be related
+      // to deployments:
+      Preconditions.checkArgument(returnFromDeployment);
+    }
+
+    // maxCodeSizeException case
     boolean triggerOobForMaxCodeSizeException = Exceptions.codeSizeOverflow(exceptions);
     if (triggerOobForMaxCodeSizeException) {
-      Preconditions.checkArgument(hub.currentFrame().isDeployment());
       OobCall oobCall = new XCallOobCall();
       firstImcFragment.callOob(oobCall);
       return;
     }
 
-    // Invalid code prefix exception (ICPX)
-    ///////////////////////////////////////
+    // invalidCodePrefixException case
+    final boolean nontrivialMmuOperation = mxpCall.mayTriggerNontrivialMmuOperation;
     final boolean triggerMmuForInvalidCodePrefix = Exceptions.invalidCodePrefix(exceptions);
     if (triggerMmuForInvalidCodePrefix) {
-      Preconditions.checkArgument(hub.currentFrame().isDeployment());
-      firstMmuCall = MmuCall.invalidCodePrefix(hub);
-      hub.defers().scheduleForPostTransaction(this);
+      Preconditions.checkArgument(returnFromDeployment && nontrivialMmuOperation);
+
+      MmuCall actuallyInvalidCodePrefixMmuCall = MmuCall.invalidCodePrefix(hub);
+      firstImcFragment.callMmu(actuallyInvalidCodePrefixMmuCall);
+
+      Preconditions.checkArgument(!actuallyInvalidCodePrefixMmuCall.successBit());
       return;
     }
-
-    Preconditions.checkArgument(Exceptions.none(exceptions));
 
     // Unexceptional RETURN's
     // (we have exceptions ≡ ∅ by the checkArgument)
     ////////////////////////////////////////////////
-    ////////////////////////////////////////////////
 
-    final boolean nontrivialMmOperation = mxpCall.isMayTriggerNonTrivialMmuOperation();
+    Preconditions.checkArgument(Exceptions.none(exceptions));
 
     // RETURN_FROM_MESSAGE_CALL cases
-    /////////////////////////////////
-    /////////////////////////////////
     if (returnFromMessageCall) {
       final boolean messageCallReturnTouchesRam =
-          !hub.currentFrame().isRoot()
-              && nontrivialMmOperation // [size ≠ 0] ∧ ¬MXPX
-              && !hub.currentFrame().parentReturnDataTarget().isEmpty(); // [r@c ≠ 0]
+          !currentFrame.isRoot()
+              && nontrivialMmuOperation // [size ≠ 0] ∧ ¬MXPX
+              && !currentFrame.parentReturnDataTarget().isEmpty(); // [r@c ≠ 0]
 
       returnScenarioFragment.setScenario(
           messageCallReturnTouchesRam
@@ -145,100 +143,88 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
               : RETURN_FROM_MESSAGE_CALL_WONT_TOUCH_RAM);
 
       if (messageCallReturnTouchesRam) {
-        firstMmuCall = MmuCall.returnFromMessageCall(hub);
-        Preconditions.checkArgument(!firstMmuCall.successBit());
-        hub.defers().scheduleForPostTransaction(this);
+        MmuCall returnFromMessageCall = MmuCall.returnFromMessageCall(hub);
+        firstImcFragment.callMmu(returnFromMessageCall);
       }
-      // no need for the else case (and a nop) as per @François
 
       final ContextFragment updateCallerReturnData =
           ContextFragment.executionProvidesReturnData(
               hub,
-              hub.callStack().getById(hub.currentFrame().parentFrameId()).contextNumber(),
-              hub.currentFrame().contextNumber());
+              hub.callStack().getById(currentFrame.parentFrameId()).contextNumber(),
+              currentFrame.contextNumber());
       this.addFragment(updateCallerReturnData);
 
       return;
     }
 
     // RETURN_FROM_DEPLOYMENT cases
-    ///////////////////////////////
-    ///////////////////////////////
     if (returnFromDeployment) {
-      hub.defers().scheduleForPostRollback(this, hub.currentFrame());
 
-      final long byteCodeSize = hub.messageFrame().getStackItem(1).toLong();
-      final boolean emptyDeployment = byteCodeSize == 0;
-      final boolean triggerOobForNonemptyDeployments = mxpCall.isMayTriggerNonTrivialMmuOperation();
-      Preconditions.checkArgument(triggerOobForNonemptyDeployments == !emptyDeployment);
+      // TODO: @Olivier and @François: what happens when "re-entering" the root's parent context ?
+      //  we may need to improve the triggering of the resolution to also kick in at transaction
+      //  end for stuff that happens after the root returns ...
+      hub.defers()
+          .scheduleForContextReEntry(
+              this, hub.callStack().parent()); // post deployment account snapshot
+      hub.defers().scheduleForPostRollback(this, currentFrame); // undo deployment
+      hub.defers().scheduleForPostTransaction(this); // inserting the final context row;
 
-      final Address deploymentAddress = hub.messageFrame().getRecipientAddress();
-      final AccountSnapshot accountBeforeDeployment =
-          AccountSnapshot.canonical(hub, deploymentAddress);
+      squashParentContextReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
+      deploymentAddress = hub.messageFrame().getRecipientAddress();
+      nonemptyByteCode = mxpCall.mayTriggerNontrivialMmuOperation;
+      preDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
+      returnScenarioFragment.setScenario(
+          nonemptyByteCode
+              ? RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT
+              : RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WONT_REVERT);
+
+      final Bytes byteCodeSize = hub.messageFrame().getStackItem(1);
+      Preconditions.checkArgument(nonemptyByteCode == (!byteCodeSize.isZero()));
 
       // Empty deployments
-      ////////////////////
-      if (emptyDeployment) {
-
-        final AccountSnapshot accountAfterEmptyDeployment =
-            accountBeforeDeployment.deployByteCode(Bytecode.EMPTY);
-        final AccountFragment emptyDeploymentAccountFragment =
-            hub.factories()
-                .accountFragment()
-                .make(
-                    accountBeforeDeployment,
-                    accountAfterEmptyDeployment,
-                    DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
-        this.addFragment(emptyDeploymentAccountFragment);
-
-        // Note:
-        //  - triggerHASHINFO isn't required;
-        //  - triggerROMLEX isn't required either;
-
+      if (!nonemptyByteCode) {
         return;
       }
 
-      // Nonempty deployments
-      ///////////////////////
-      hub.defers().scheduleForPostTransaction(this);
+      MmuCall invalidCodePrefixCheckMmuCall = MmuCall.invalidCodePrefix(hub);
+      firstImcFragment.callMmu(invalidCodePrefixCheckMmuCall);
 
-      firstMmuCall = MmuCall.invalidCodePrefix(hub);
-      Preconditions.checkArgument(firstMmuCall.successBit());
+      DeploymentOobCall maxCodeSizeOobCall = new DeploymentOobCall();
+      firstImcFragment.callOob(maxCodeSizeOobCall);
 
-      secondImcFragment = ImcFragment.empty(hub);
-      secondMmuCall = MmuCall.returnFromDeployment(hub);
+      // sanity checks
+      Preconditions.checkArgument(invalidCodePrefixCheckMmuCall.successBit());
+      Preconditions.checkArgument(!maxCodeSizeOobCall.isMaxCodeSizeException());
+
+      ImcFragment secondImcFragment = ImcFragment.empty(hub);
       this.addFragment(secondImcFragment);
 
-      final long offset = clampedToLong(hub.messageFrame().getStackItem(0));
-      final Bytecode deploymentCode =
-          new Bytecode(hub.messageFrame().shadowReadMemory(offset, byteCodeSize));
+      MmuCall nonemptyDeploymentMmuCall = MmuCall.returnFromDeployment(hub);
+      secondImcFragment.callMmu(nonemptyDeploymentMmuCall);
+    }
+  }
 
+  @Override
+  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
+
+    postDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
+    final AccountFragment deploymentAccountFragment =
+        hub.factories()
+            .accountFragment()
+            .make(
+                preDeploymentAccountSnapshot,
+                postDeploymentAccountSnapshot,
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+
+    if (nonemptyByteCode) {
       // TODO: we require the
-      //  - triggerHashInfo stuff on the first stack row
-      //  - triggerROMLEX on the deploymentAccountFragment row (done)
-      final AccountFragment nonemptyDeploymentAccountFragment =
-          hub.factories()
-              .accountFragment()
-              .make(
-                  accountBeforeDeployment,
-                  accountBeforeDeployment.deployByteCode(deploymentCode),
-                  DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
-      nonemptyDeploymentAccountFragment.requiresRomlex(true);
+      //  - triggerHashInfo stuff on the first stack row (automatic AFAICT)
+      //  - triggerROMLEX on the deploymentAccountFragment row (see below)
+      deploymentAccountFragment.requiresRomlex(true);
       hub.romLex().callRomLex(hub.messageFrame());
-
-      this.addFragment(nonemptyDeploymentAccountFragment);
-
-      // TODO: we need to implement the mechanism that will append the
-      //  context row which will squash the creator's return data after
-      //  any and all account-rows.
-      //
-      // TODO: make sure this works if the current context is the root
-      //  context (deployment transaction) in particular the following
-      //  ``Either.left(callStack.parent().id())''
-      squashParentContextReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
     }
 
-    // returnFromDeployment =
+    this.addFragment(deploymentAccountFragment);
   }
 
   @Override
@@ -246,42 +232,37 @@ public class ReturnSection extends TraceSection implements PostTransactionDefer,
     // TODO
     Preconditions.checkArgument(returnFromDeployment);
     returnScenarioFragment.setScenario(
-        emptyDeployment
-            ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WILL_REVERT
-            : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT);
+        nonemptyByteCode
+            ? RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT
+            : RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WILL_REVERT);
 
-    // TODO: do we account for updates to
-    //  - deploymentNumber and status ? Presumably, but if so by coincidence
-    //  - MARKED_FOR_SELF_DESTRUCT(_NEW) ? No
-    //  -
-    undoingDeploymentAccountFragment =
+    undoingDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
+
+    // TODO: does this account for updates to
+    //  - deploymentNumber and status ?
+    //  - MARKED_FOR_SELF_DESTRUCT(_NEW) ?
+    AccountFragment undoingDeploymentAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
-                deploymentFragment.newState(),
-                deploymentFragment.oldState(),
+                postDeploymentAccountSnapshot,
+                undoingDeploymentAccountSnapshot,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    hubStamp, hub.currentFrame().revertStamp(), 1));
+                    this.hubStamp(), hub.callStack().current().revertStamp(), 1));
 
     this.addFragment(undoingDeploymentAccountFragment);
-    deploymentWasReverted = true;
   }
 
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    // TODO
 
-    if (returnFromDeployment && !deploymentWasReverted) {
-      returnScenarioFragment.setScenario(
-          emptyDeployment
-              ? RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WONT_REVERT
-              : RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT);
-    }
-
-    if (firstMmuCall != null) firstImcFragment.callMmu(firstMmuCall);
-    if (secondMmuCall != null) secondImcFragment.callMmu(secondMmuCall);
-
+    Preconditions.checkArgument(returnFromDeployment);
     this.addFragment(squashParentContextReturnData);
+  }
+
+  private static short maxNumberOfRows(Hub hub) {
+    return (short)
+        (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 4 : 7));
   }
 }

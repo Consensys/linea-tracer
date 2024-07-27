@@ -27,9 +27,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
-import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
@@ -44,7 +44,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @RequiredArgsConstructor
 @Getter
 public class PrecompileSubsection
-    implements ContextExitDefer, ReEnterContextDefer, PostRollbackDefer, PostTransactionDefer {
+    implements ContextExitDefer, ContextReEntryDefer, PostRollbackDefer, PostTransactionDefer {
   /** List of fragments of the precompile specific subsection */
   private final List<TraceFragment> fragments;
 

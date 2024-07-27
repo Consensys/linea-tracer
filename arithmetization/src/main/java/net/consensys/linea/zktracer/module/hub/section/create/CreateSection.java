@@ -24,10 +24,10 @@ import java.util.Optional;
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.ChildContextEntryDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostExecDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
-import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.RlpAddrSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -48,8 +48,12 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+// TODO: should implement ContextEntryDefer
 public class CreateSection
-    implements PostExecDefer, ReEnterContextDefer, PostTransactionDefer, ChildContextEntryDefer {
+    implements PostOpcodeDefer,
+        ContextReEntryDefer,
+        PostTransactionDefer,
+        ImmediateContextEntryDefer {
   private FillCreateSection createSection;
 
   private int creatorContextId;

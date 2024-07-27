@@ -15,68 +15,81 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.runtime.LogInvocation;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.worldstate.WorldView;
+import net.consensys.linea.zktracer.runtime.LogData;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class LogSection implements PostTransactionDefer {
+public class LogSection extends TraceSection implements PostRollbackDefer {
 
-  LogCommonSection sectionPrequel;
-
-  final boolean mxpX;
-  final boolean oogX;
-
-  ImcFragment miscFragment;
-  LogInvocation logData;
+  MmuCall mmuCall;
 
   public LogSection(Hub hub) {
-    // this.mxpX = Exceptions.memoryExpansionException(hub.pch().exceptions());
-    // this.oogX = Exceptions.outOfGasException(hub.pch().exceptions());
+    super(hub, maxNumberOfRows(hub));
+
+    final short exceptions = hub.pch().exceptions();
+
+    final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
+
+    this.addStack(hub);
+    this.addFragment(currentContextFragment);
 
     // Static Case
     if (hub.currentFrame().frame().isStatic()) {
-      hub.addTraceSection(
-          new LogCommonSection(hub, (short) 4, ContextFragment.readCurrentContextData(hub)));
+      Preconditions.checkArgument(Exceptions.staticFault(exceptions));
       return;
     }
 
-    // General Case
-    this.sectionPrequel =
-        new LogCommonSection(hub, (short) 5, ContextFragment.readCurrentContextData(hub));
-    hub.addTraceSection(sectionPrequel);
-    logData = new LogInvocation(hub);
+    final ImcFragment imcFragment = ImcFragment.empty(hub);
+    this.addFragment(imcFragment);
 
     final MxpCall mxpCall = new MxpCall(hub);
-    miscFragment = ImcFragment.empty(hub).callMxp(mxpCall);
-    this.sectionPrequel.addFragment(miscFragment);
+    imcFragment.callMxp(mxpCall);
 
-    hub.defers().scheduleForPostTransaction(this);
-  }
+    Preconditions.checkArgument(
+        mxpCall.isMxpx() == Exceptions.memoryExpansionException(exceptions));
 
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-      if (!this.logData.reverted()) {
-        hub.state.stamps().incrementLogStamp();
-        this.sectionPrequel.commonValues.logStamp(hub.state.stamps().log());
-      }
-      final boolean mmuTrigger = !this.logData.reverted() && this.logData.size != 0;
-      if (mmuTrigger) {
-        miscFragment.callMmu(MmuCall.LogX(hub, this.logData));
+    // MXPX case
+    if (mxpCall.isMxpx()) {
+      return;
+    }
+
+    // OOGX case
+    if (Exceptions.outOfGasException(exceptions)) {
+      return;
+    }
+
+    // the unexceptional case
+    Preconditions.checkArgument(Exceptions.none(exceptions));
+
+    final LogData logData = new LogData(hub);
+    Preconditions.checkArgument(
+        logData.nontrivialLog() == mxpCall.mayTriggerNontrivialMmuOperation);
+    mmuCall = (logData.nontrivialLog()) ? MmuCall.LogX(hub, logData) : null;
+
+    if (mmuCall != null) {
+      imcFragment.callMmu(mmuCall);
+      hub.defers().scheduleForPostRollback(this, hub.currentFrame());
     }
   }
 
-  public static class LogCommonSection extends TraceSection {
-    public LogCommonSection(Hub hub, short maxNbOfRows, ContextFragment fragment) {
-      super(hub, maxNbOfRows);
-      this.addStackAndFragments(hub, fragment);
+  private static short maxNumberOfRows(Hub hub) {
+    return (short)
+        (hub.opCode().numberOfStackRows()
+            + (Exceptions.staticFault(hub.pch().exceptions()) ? 2 : 3));
+  }
+
+  @Override
+  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
+    if (mmuCall != null) {
+      mmuCall.dontTraceMe();
     }
   }
 }

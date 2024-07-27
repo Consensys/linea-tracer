@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys AG.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,9 +16,8 @@
 package net.consensys.linea.zktracer.module.hub.defer;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.operation.Operation;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
-public interface PostExecDefer {
-  void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult operationResult);
+public interface ContextReEntryDefer {
+  void resolveAtContextReEntry(final Hub hub, final CallFrame frame);
 }

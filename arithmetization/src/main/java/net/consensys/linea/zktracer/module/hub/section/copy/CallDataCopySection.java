@@ -15,81 +15,67 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
+
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class CallDataCopySection extends TraceSection implements PostTransactionDefer {
-
-  final short exceptions;
-  final ImcFragment miscFragment;
-  boolean triggerMmu = false;
-  MmuCall mmuCall;
+public class CallDataCopySection extends TraceSection {
 
   public CallDataCopySection(Hub hub) {
     // 3 = 1 + 2
-    super(hub, (short) 3);
-    this.exceptions = hub.pch().exceptions();
-
+    super(hub, maxNumberOfRows(hub));
     hub.addTraceSection(this);
 
-    miscFragment = ImcFragment.empty(hub);
-    this.addStackAndFragments(hub, miscFragment);
+    final ImcFragment imcFragment = ImcFragment.empty(hub);
+    this.addStack(hub);
+    this.addFragment(imcFragment);
 
     // triggerOob = false
     // triggerMxp = true
     final MxpCall mxpCall = new MxpCall(hub);
-    miscFragment.callMxp(mxpCall);
-
-    Preconditions.checkArgument(
-        mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));
+    imcFragment.callMxp(mxpCall);
 
     // the only allowable exceptions are
     // - memoryExpansionException (MXPX)
     // - outOfGasException OOGX
     ////////////////////////////////////
 
+    short exceptions = hub.pch().exceptions();
+    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+
     // The MXPX case
-    ////////////////
     if (mxpCall.mxpx) {
       return;
     }
 
     // The OOGX case
-    ////////////////
     if (Exceptions.any(exceptions)) {
-      Preconditions.checkArgument(this.exceptions == Exceptions.OUT_OF_GAS_EXCEPTION);
+      Preconditions.checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
       return;
     }
 
     // The unexceptional case
-    /////////////////////////
-
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     this.addFragment(currentContext);
 
-    triggerMmu = mxpCall.mayTriggerNonTrivialMmuOperation;
+    final boolean triggerMmu = mxpCall.mayTriggerNontrivialMmuOperation;
+
     if (!triggerMmu) {
       return;
     }
 
-    mmuCall = MmuCall.callDataCopy(hub);
-    hub.defers().scheduleForPostTransaction(this);
+    MmuCall mmuCall = MmuCall.callDataCopy(hub);
+    imcFragment.callMmu(mmuCall);
   }
 
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    if (triggerMmu) {
-      miscFragment.callMmu(mmuCall);
-    }
+  private static short maxNumberOfRows(Hub hub) {
+    return (short) (hub.opCode().numberOfStackRows() + 2);
   }
 }

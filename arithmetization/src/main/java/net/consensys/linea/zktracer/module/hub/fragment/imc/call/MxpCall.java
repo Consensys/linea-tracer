@@ -39,7 +39,7 @@ public class MxpCall implements TraceSubFragment {
   @Getter @Setter public EWord size1 = EWord.ZERO;
   @Getter @Setter public EWord offset2 = EWord.ZERO;
   @Getter @Setter public EWord size2 = EWord.ZERO;
-  @Getter @Setter public boolean mayTriggerNonTrivialMmuOperation;
+  @Setter public boolean mayTriggerNontrivialMmuOperation;
 
   /** mxpx is short of Memory eXPansion eXception */
   @Getter @Setter public boolean mxpx;
@@ -73,7 +73,7 @@ public class MxpCall implements TraceSubFragment {
         .pMiscMxpOffset2Lo(this.offset2.lo())
         .pMiscMxpSize2Hi(this.size2.hi())
         .pMiscMxpSize2Lo(this.size2.lo())
-        .pMiscMxpMtntop(this.mayTriggerNonTrivialMmuOperation)
+        .pMiscMxpMtntop(this.mayTriggerNontrivialMmuOperation)
         .pMiscMxpMxpx(this.mxpx)
         .pMiscMxpWords(Bytes.ofUnsignedLong(this.memorySizeInWords))
         .pMiscMxpGasMxp(Bytes.ofUnsignedLong(this.gasMxp));

@@ -22,19 +22,23 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
-public class LogInvocation {
+public class LogData {
   public final CallFrame callFrame;
   public final Bytes ramSourceBytes;
   public final EWord offset;
   public final long size;
 
-  public LogInvocation(Hub hub) {
+  public LogData(Hub hub) {
     this.callFrame = hub.currentFrame();
     final MessageFrame messageFrame = callFrame.frame();
     offset = EWord.of(messageFrame.getStackItem(0));
     size = Words.clampedToLong(messageFrame.getStackItem(1));
     this.ramSourceBytes =
         size == 0 ? Bytes.EMPTY : messageFrame.shadowReadMemory(0, messageFrame.memoryByteSize());
+  }
+
+  public boolean nontrivialLog() {
+    return this.size != 0;
   }
 
   public boolean reverted() {

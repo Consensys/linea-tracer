@@ -231,7 +231,7 @@ public class MxpOperation extends ModuleOperation {
 
   private void setMtntop() {
     final boolean mxpx = mxpCall.isMxpx();
-    mxpCall.setMayTriggerNonTrivialMmuOperation(
+    mxpCall.setMayTriggerNontrivialMmuOperation(
         typeMxp == MxpType.TYPE_4 && !mxpx && mxpCall.getSize1().loBigInt().signum() != 0);
   }
 
@@ -608,7 +608,7 @@ public class MxpOperation extends ModuleOperation {
           .linCost(Bytes.ofUnsignedLong(this.getLinCost()))
           .gasMxp(Bytes.ofUnsignedLong(this.mxpCall.getGasMxp()))
           .expands(this.isExpands())
-          .mtntop(this.mxpCall.isMayTriggerNonTrivialMmuOperation())
+          .mtntop(this.mxpCall.mayTriggerNontrivialMmuOperation)
           .validateRow();
     }
   }

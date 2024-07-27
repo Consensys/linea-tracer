@@ -21,7 +21,6 @@ import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -31,8 +30,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
  * IMCFragments embed data required for Inter-Module Communication, i.e. data that are required to
@@ -100,7 +97,7 @@ public class ImcFragment implements TraceFragment {
     } else {
       mmuIsSet = true;
     }
-    // Note: the triggering of the MMU is made by the creation of the MmuCAll
+    // Note: the triggering of the MMU is made by the creation of the MmuCall
     this.moduleCalls.add(f);
     return this;
   }

@@ -217,6 +217,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     }
   }
 
+  // TODO: this isn't called anywhere ...
+
   //  @Override
   public void tracePrepareTransaction(WorldView worldView, Transaction transaction) {
     try {

@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
@@ -33,9 +32,7 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CallDataLoadSection extends TraceSection {
   final short exception;
@@ -70,22 +67,22 @@ public class CallDataLoadSection extends TraceSection {
       if (!(Words.clampedToLong(sourceOffset) >= callDataSize)) {
 
         final EWord read =
-          EWord.of(
-            Bytes.wrap(
-              Arrays.copyOfRange(
-                hub.currentFrame().callDataInfo().data().toArray(),
-                Words.clampedToInt(sourceOffset),
-                Words.clampedToInt(sourceOffset) + WORD_SIZE)));
+            EWord.of(
+                Bytes.wrap(
+                    Arrays.copyOfRange(
+                        hub.currentFrame().callDataInfo().data().toArray(),
+                        Words.clampedToInt(sourceOffset),
+                        Words.clampedToInt(sourceOffset) + WORD_SIZE)));
 
         final MmuCall call =
-          new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-            .sourceId((int) callDataCN)
-            .sourceOffset(sourceOffset)
-            .referenceOffset(callDataOffset)
-            .referenceSize(callDataSize)
-            .limb1(read.hi())
-            .limb2(read.lo())
-            .sourceRamBytes(Optional.of(callDataRam));
+            new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+                .sourceId((int) callDataCN)
+                .sourceOffset(sourceOffset)
+                .referenceOffset(callDataOffset)
+                .referenceSize(callDataSize)
+                .limb1(read.hi())
+                .limb2(read.lo())
+                .sourceRamBytes(Optional.of(callDataRam));
 
         imcFragment.callMmu(call);
       }

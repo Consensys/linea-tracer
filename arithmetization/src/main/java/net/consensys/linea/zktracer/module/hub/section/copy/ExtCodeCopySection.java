@@ -15,14 +15,12 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.none;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.outOfGasException;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -34,59 +32,47 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class ExtCodeCopySection extends TraceSection
-    implements PostRollbackDefer, PostTransactionDefer {
+public class ExtCodeCopySection extends TraceSection implements PostRollbackDefer {
 
-  final int hubStamp;
   final Bytes rawAddress;
   final Address address;
   final int incomingDeploymentNumber;
   final boolean incomingDeploymentStatus;
   final boolean incomingWarmth;
-  final short exceptions;
 
   AccountSnapshot accountBefore;
   AccountSnapshot accountAfter;
 
-  final ImcFragment miscFragment;
-  boolean triggerMmu = false;
-  MmuCall mmuCall;
-
   public ExtCodeCopySection(Hub hub) {
     // 4 = 1 + 3
-    super(hub, (short) 4);
+    super(hub, maxNumberOfRows(hub));
     hub.addTraceSection(this);
 
     final MessageFrame frame = hub.messageFrame();
-    hubStamp = hub.stamp();
     rawAddress = frame.getStackItem(0);
     address = Address.extract((Bytes32) rawAddress);
     incomingDeploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
     incomingDeploymentStatus = hub.transients().conflation().deploymentInfo().isDeploying(address);
     incomingWarmth = frame.isAddressWarm(address);
-    exceptions = hub.pch().exceptions();
-    miscFragment = ImcFragment.empty(hub);
+    ImcFragment imcFragment = ImcFragment.empty(hub);
 
     this.addStack(hub);
-    this.addFragment(miscFragment);
+    this.addFragment(imcFragment);
 
     // triggerExp = false
     // triggerOob = false
     // triggerStp = false
     // triggerMxp = true
     final MxpCall mxpCall = new MxpCall(hub);
-    miscFragment.callMxp(mxpCall);
+    imcFragment.callMxp(mxpCall);
 
-    Preconditions.checkArgument(
-        mxpCall.mxpx == Exceptions.memoryExpansionException(this.exceptions));
+    short exceptions = hub.pch().exceptions();
+    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // The MXPX case
-    ////////////////
     if (mxpCall.mxpx) {
       return;
     }
@@ -101,7 +87,6 @@ public class ExtCodeCopySection extends TraceSection
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
 
     // The OOGX case
-    ////////////////
     if (outOfGasException(exceptions)) {
       // the last context row will be added automatically
       final AccountFragment accountReadingFragment =
@@ -114,11 +99,12 @@ public class ExtCodeCopySection extends TraceSection
     }
 
     // The unexceptional case
-    /////////////////////////
-    triggerMmu = none(exceptions) && mxpCall.mayTriggerNonTrivialMmuOperation;
+    Preconditions.checkArgument(Exceptions.none(exceptions));
+
+    final boolean triggerMmu = mxpCall.mayTriggerNontrivialMmuOperation;
     if (triggerMmu) {
-      mmuCall = MmuCall.extCodeCopy(hub);
-      hub.defers().scheduleForPostTransaction(this);
+      MmuCall mmuCall = MmuCall.extCodeCopy(hub);
+      imcFragment.callMmu(mmuCall);
     }
 
     // TODO: make sure that hasCode returns false during deployments
@@ -171,7 +157,8 @@ public class ExtCodeCopySection extends TraceSection
             deploymentStatusAtRollback);
 
     final DomSubStampsSubFragment undoingDomSubStamps =
-        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, callFrame.revertStamp(), 1);
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+            this.hubStamp(), callFrame.revertStamp(), 1);
     final AccountFragment undoingAccountFragment =
         hub.factories()
             .accountFragment()
@@ -180,11 +167,7 @@ public class ExtCodeCopySection extends TraceSection
     this.addFragment(undoingAccountFragment);
   }
 
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    if (triggerMmu) {
-      miscFragment.callMmu(mmuCall);
-    }
+  private static short maxNumberOfRows(Hub hub) {
+    return (short) (hub.opCode().numberOfStackRows() + 3);
   }
 }

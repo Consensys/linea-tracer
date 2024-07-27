@@ -31,26 +31,26 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  */
 // TODO: fix naming and implement the missing interfaces
 public class DeferRegistry
-    implements PostExecDefer,
+    implements PostOpcodeDefer,
+        ImmediateContextEntryDefer,
+        ContextExitDefer,
         PostRollbackDefer,
         PostTransactionDefer,
-        PostConflationDefer,
-        ChildContextEntryDefer,
-        ContextExitDefer {
+        PostConflationDefer {
 
   /** A list of actions deferred until the end of the current opcode execution */
-  private final List<PostExecDefer> postExecDefers = new ArrayList<>();
+  private final List<PostOpcodeDefer> postOpcodeDefers = new ArrayList<>();
 
-  /** A list of actions deferred until the end of the current opcode execution */
-  private final List<ChildContextEntryDefer> childContextEntryDefers = new ArrayList<>();
+  /** A list of actions deferred to the immediate entry into a child or parent context */
+  private final List<ImmediateContextEntryDefer> immediateContextEntryDefers = new ArrayList<>();
 
-  /** A list of actions deferred until the exit of a given context */
+  /** A list of actions deferred to the end of a given context */
   private final Map<Integer, List<ContextExitDefer>> contextExitDefers = new HashMap<>();
 
-  /** A list of actions deferred until the end of the current opcode execution */
-  private final Map<CallFrame, List<ReEnterContextDefer>> contextReEntryDefers = new HashMap<>();
+  /** A list of actions deferred to the end of the current opcode execution */
+  private final Map<CallFrame, List<ContextReEntryDefer>> contextReEntryDefers = new HashMap<>();
 
-  /** A list of actions deferred until the end of the current transaction */
+  /** A list of actions deferred to the end of the current transaction */
   private final List<PostTransactionDefer> postTransactionDefers = new ArrayList<>();
 
   /** A list of actions deferred until the end of the current conflation execution */
@@ -64,13 +64,13 @@ public class DeferRegistry
   private final Map<CallFrame, List<PostRollbackDefer>> rollbackDefers = new HashMap<>();
 
   /** Schedule an action to be executed after the completion of the current opcode. */
-  public void scheduleForImmediateContextEntry(ChildContextEntryDefer defer) {
-    this.childContextEntryDefers.add(defer);
+  public void scheduleForImmediateContextEntry(ImmediateContextEntryDefer defer) {
+    this.immediateContextEntryDefers.add(defer);
   }
 
   /** Schedule an action to be executed after the completion of the current opcode. */
-  public void scheduleForPostExecution(PostExecDefer defer) {
-    this.postExecDefers.add(defer);
+  public void scheduleForPostExecution(PostOpcodeDefer defer) {
+    this.postOpcodeDefers.add(defer);
   }
 
   /** Schedule an action to be executed at the exit of a given context. */
@@ -92,7 +92,7 @@ public class DeferRegistry
   }
 
   /** Schedule an action to be executed at the re-entry in the current context. */
-  public void scheduleForContextReEntry(ReEnterContextDefer defer, CallFrame callFrame) {
+  public void scheduleForContextReEntry(ContextReEntryDefer defer, CallFrame callFrame) {
     if (!contextReEntryDefers.containsKey(callFrame)) {
       contextReEntryDefers.put(callFrame, new ArrayList<>());
     }
@@ -154,10 +154,10 @@ public class DeferRegistry
    */
   @Override
   public void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult result) {
-    for (PostExecDefer defer : this.postExecDefers) {
+    for (PostOpcodeDefer defer : this.postOpcodeDefers) {
       defer.resolvePostExecution(hub, frame, result);
     }
-    this.postExecDefers.clear();
+    this.postOpcodeDefers.clear();
   }
 
   /**
@@ -168,7 +168,7 @@ public class DeferRegistry
    */
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
     if (this.contextReEntryDefers.containsKey(callFrame)) {
-      for (ReEnterContextDefer defer : this.contextReEntryDefers.get(callFrame)) {
+      for (ContextReEntryDefer defer : this.contextReEntryDefers.get(callFrame)) {
         defer.resolveAtContextReEntry(hub, callFrame);
       }
       this.contextReEntryDefers.remove(callFrame);
@@ -203,10 +203,10 @@ public class DeferRegistry
 
   @Override
   public void resolveUponEnteringChildContext(Hub hub) {
-    for (ChildContextEntryDefer defer : this.childContextEntryDefers) {
+    for (ImmediateContextEntryDefer defer : this.immediateContextEntryDefers) {
       defer.resolveUponEnteringChildContext(hub);
     }
-    this.childContextEntryDefers.clear();
+    this.immediateContextEntryDefers.clear();
   }
 
   @Override

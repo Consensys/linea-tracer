@@ -82,7 +82,7 @@ import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.runtime.LogInvocation;
+import net.consensys.linea.zktracer.runtime.LogData;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
@@ -129,6 +129,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   protected boolean exoIsBlakeModexp = false;
   protected boolean exoIsEcData = false;
   private int exoSum = 0;
+
+  public void dontTraceMe() {
+    this.traceMe = false;
+  }
 
   private MmuCall updateExoSum(final int exoValue) {
     this.exoSum += exoValue;
@@ -218,20 +222,20 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         : hub.callStack().parent().contextNumber();
   }
 
-  public static MmuCall LogX(final Hub hub, final LogInvocation logInvocation) {
+  public static MmuCall LogX(final Hub hub, final LogData logData) {
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .sourceId(logInvocation.callFrame.contextNumber())
+        .sourceId(logData.callFrame.contextNumber())
         .targetId(hub.state.stamps().log())
-        .sourceOffset(logInvocation.offset)
-        .size(logInvocation.size)
-        .referenceSize(logInvocation.size)
-        .sourceRamBytes(Optional.of(logInvocation.ramSourceBytes))
+        .sourceOffset(logData.offset)
+        .size(logData.size)
+        .referenceSize(logData.size)
+        .sourceRamBytes(Optional.of(logData.ramSourceBytes))
         .exoBytes(
             Optional.of(
                 slice(
-                    logInvocation.ramSourceBytes,
-                    (int) Words.clampedToLong(logInvocation.offset),
-                    (int) logInvocation.size)))
+                    logData.ramSourceBytes,
+                    (int) Words.clampedToLong(logData.offset),
+                    (int) logData.size)))
         .setLog();
   }
 
@@ -533,7 +537,9 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
               .phase(PHASE_ECPAIRING_DATA);
     } else if (i == 1) {
       if (p.callDataSource().isEmpty()) {
-        return new MmuCall(hub, MMU_INST_MSTORE).targetId(precompileContextNumber).limb2(Bytes.of(1));
+        return new MmuCall(hub, MMU_INST_MSTORE)
+            .targetId(precompileContextNumber)
+            .limb2(Bytes.of(1));
       } else {
         return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
             .sourceId(precompileContextNumber)
@@ -695,37 +701,38 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
   @Override
   public Trace trace(Trace trace, State.TxState.Stamps stamps) {
-    if (traceMe){
+    if (traceMe) {
       stamps.incrementMmuStamp();
       return trace
-        .pMiscMmuFlag(true)
-        .pMiscMmuInst(
-          this.instruction() == -1
-            ? 0
-            : this.instruction()) // TODO: WTF I wanted to put -1? Only for debug?
-        .pMiscMmuTgtId(this.targetId())
-        .pMiscMmuSrcId(this.sourceId())
-        .pMiscMmuAuxId(this.auxId())
-        .pMiscMmuSrcOffsetHi(this.sourceOffset().hi())
-        .pMiscMmuSrcOffsetLo(this.sourceOffset().lo())
-        .pMiscMmuTgtOffsetLo(this.targetOffset().lo())
-        .pMiscMmuSize(this.size())
-        .pMiscMmuRefOffset(this.referenceOffset())
-        .pMiscMmuRefSize(this.referenceSize())
-        .pMiscMmuSuccessBit(this.successBit())
-        .pMiscMmuLimb1(this.limb1())
-        .pMiscMmuLimb2(this.limb2())
-        .pMiscMmuExoSum(this.exoSum)
-        .pMiscMmuPhase(this.phase());
+          .pMiscMmuFlag(true)
+          .pMiscMmuInst(
+              this.instruction() == -1
+                  ? 0
+                  : this.instruction()) // TODO: WTF I wanted to put -1? Only for debug?
+          .pMiscMmuTgtId(this.targetId())
+          .pMiscMmuSrcId(this.sourceId())
+          .pMiscMmuAuxId(this.auxId())
+          .pMiscMmuSrcOffsetHi(this.sourceOffset().hi())
+          .pMiscMmuSrcOffsetLo(this.sourceOffset().lo())
+          .pMiscMmuTgtOffsetLo(this.targetOffset().lo())
+          .pMiscMmuSize(this.size())
+          .pMiscMmuRefOffset(this.referenceOffset())
+          .pMiscMmuRefSize(this.referenceSize())
+          .pMiscMmuSuccessBit(this.successBit())
+          .pMiscMmuLimb1(this.limb1())
+          .pMiscMmuLimb2(this.limb2())
+          .pMiscMmuExoSum(this.exoSum)
+          .pMiscMmuPhase(this.phase());
     } else {
       return trace;
     }
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-if (traceMe){
-  hub.mmu().call(this, hub.callStack());
-}
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    if (traceMe) {
+      hub.mmu().call(this, hub.callStack());
+    }
   }
 }

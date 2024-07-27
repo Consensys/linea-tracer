@@ -13,10 +13,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.plugins.config;
+package net.consensys.linea.plugins;
 
-import lombok.Builder;
-
-/** The Linea tracer configuration. */
-@Builder(toBuilder = true)
-public record LineaTracerConfiguration(String moduleLimitsFilePath, String tracesOutputPath) {}
+public interface LineaOptionsConfiguration {}

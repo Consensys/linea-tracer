@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
+import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,6 +28,7 @@ import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection
 public class PrecompileScenarioFragment implements TraceFragment {
 
   public enum PrecompileScenario {
+    PRC_UNDEFINED_SCENARIO,
     PRC_FAILURE_KNOWN_TO_HUB,
     PRC_FAILURE_KNOWN_TO_RAM,
     PRC_SUCCESS_WILL_REVERT,
@@ -34,6 +36,7 @@ public class PrecompileScenarioFragment implements TraceFragment {
   }
 
   public enum PrecompileFlag {
+    PRC_UNDEFINED,
     PRC_ECRECOVER,
     PRC_SHA2_256,
     PRC_RIPEMD_160,
@@ -47,7 +50,7 @@ public class PrecompileScenarioFragment implements TraceFragment {
 
   final PrecompileSubsection precompileSubSection;
   @Setter PrecompileScenario scenario;
-  final PrecompileFlag flag;
+  @Setter PrecompileFlag flag;
 
   public PrecompileScenarioFragment(
       final PrecompileSubsection precompileSubsection,
@@ -60,6 +63,8 @@ public class PrecompileScenarioFragment implements TraceFragment {
 
   @Override
   public Trace trace(Trace trace) {
+    Preconditions.checkArgument(this.scenario != PrecompileScenario.PRC_UNDEFINED_SCENARIO);
+    Preconditions.checkArgument(this.flag != PrecompileFlag.PRC_UNDEFINED);
     return trace
         .peekAtScenario(true)
         // // Precompile scenarios

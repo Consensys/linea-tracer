@@ -35,6 +35,7 @@ import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
@@ -393,6 +394,12 @@ public class CallSection extends TraceSection
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
+    CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
+
+    Preconditions.checkArgument(scenario.noLongerUndefined());
+
+    // iterate over the precompileSubsection
+
     this.addFragment(finalContextFragment);
   }
 
@@ -482,4 +489,6 @@ public class CallSection extends TraceSection
 
     this.addFragmentsWithoutStack(undoingCallerAccountFragment, undoingCalleeAccountFragment);
   }
+
+
 }

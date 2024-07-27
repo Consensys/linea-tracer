@@ -16,25 +16,41 @@
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_UNDEFINED;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_UNDEFINED_SCENARIO;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
+
 public class Sha2SubSection extends PrecompileSubsection {
   public Sha2SubSection(Hub hub, CallSection callSection) {
     super(hub, callSection);
+    precompileScenarioFragment.setFlag(PRC_SHA2_256);
   }
 
+  // 4 = 1 + 3 (scenario row + up to 3 miscellaneous fragments)
   @Override
   protected short maxNumberOfLines() {
-    return 3;
+    return (short) (successBit ? 4 : 2);
   }
 
   @Override
-  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {}
+  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
+    // TODO
+  }
+
+  @Override
+  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
+    super.resolveAtContextReEntry(hub, frame);
+  }
 
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
+
 }

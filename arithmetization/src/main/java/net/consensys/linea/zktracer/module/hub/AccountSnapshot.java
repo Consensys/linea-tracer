@@ -78,12 +78,6 @@ public class AccountSnapshot {
     return this;
   }
 
-  // Deprecated ?
-  //   public static AccountSnapshot fromWorld(WorldView world, Address address) {
-  //     final Account account = world.get(address);
-  //     return fromAccount(account, true, 0, false); // TODO: implement warm, depNumber and Status
-  //   }
-
   public static AccountSnapshot fromAccount(
       Account account, boolean isWarm, int deploymentNumber, boolean deploymentStatus) {
     return fromAccount(Optional.ofNullable(account), isWarm, deploymentNumber, deploymentStatus);

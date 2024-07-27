@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section.create;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum.CREATE_ABORT;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_ABORT;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;

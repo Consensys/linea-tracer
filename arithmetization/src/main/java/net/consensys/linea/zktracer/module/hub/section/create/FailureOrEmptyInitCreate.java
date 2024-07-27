@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.section.create;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum.CREATE_EMPTY_INIT_CODE_WILL_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum.CREATE_FAILURE_CONDITION_WILL_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum.CREATE_FAILURE_CONDITION_WONT_REVERT;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_EMPTY_INIT_CODE_WILL_REVERT;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_FAILURE_CONDITION_WILL_REVERT;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_FAILURE_CONDITION_WONT_REVERT;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -27,7 +27,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.RlpAddrSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 
 public class FailureOrEmptyInitCreate extends TraceSection implements FillCreateSection {
@@ -35,7 +34,7 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
 
   public FailureOrEmptyInitCreate(
       final Hub hub,
-      final ScenarioEnum scenario,
+      final CreateScenarioFragment.CreateScenario scenario,
       final ContextFragment currentContextFragment,
       final ImcFragment imcFragment) {
     super(hub, (short) 10);
@@ -88,8 +87,8 @@ public class FailureOrEmptyInitCreate extends TraceSection implements FillCreate
       AccountSnapshot oldCreatedSnapshot,
       AccountSnapshot midCreatedSnapshot,
       AccountSnapshot newCreatedSnapshot) {
-    final ScenarioEnum newScenario =
-        this.scenarioFragment.getScenario() == CREATE_FAILURE_CONDITION_WONT_REVERT
+    final CreateScenarioFragment.CreateScenario newScenario =
+        scenarioFragment.getScenario() == CREATE_FAILURE_CONDITION_WONT_REVERT
             ? CREATE_FAILURE_CONDITION_WILL_REVERT
             : CREATE_EMPTY_INIT_CODE_WILL_REVERT;
     this.scenarioFragment.setScenario(newScenario);

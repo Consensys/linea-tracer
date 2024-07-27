@@ -14,9 +14,6 @@
  */
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
-
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
@@ -24,39 +21,53 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
 public class CreateScenarioFragment implements TraceFragment {
 
-  @Setter @Getter private ScenarioEnum scenario;
-
-  public CreateScenarioFragment() {
-    this.scenario = ScenarioEnum.UNDEFINED;
+  public enum CreateScenario {
+    UNDEFINED,
+    CREATE_EXCEPTION,
+    CREATE_ABORT,
+    CREATE_FAILURE_CONDITION_WILL_REVERT,
+    CREATE_FAILURE_CONDITION_WONT_REVERT,
+    CREATE_EMPTY_INIT_CODE_WILL_REVERT,
+    CREATE_EMPTY_INIT_CODE_WONT_REVERT,
+    CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT,
+    CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT,
+    CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WILL_REVERT,
+    CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT
   }
 
-  public CreateScenarioFragment(ScenarioEnum scenario) {
+  @Setter @Getter private CreateScenario scenario;
+
+  public CreateScenarioFragment() {
+    this.scenario = CreateScenario.UNDEFINED;
+  }
+
+  public CreateScenarioFragment(CreateScenario scenario) {
     this.scenario = scenario;
   }
 
   @Override
   public Trace trace(Trace trace) {
-    Preconditions.checkArgument(this.scenario.isCreate());
     return trace
         .peekAtScenario(true)
         // CREATE scenarios
-        .pScenarioCreateException(scenario == ScenarioEnum.CREATE_EXCEPTION)
-        .pScenarioCreateAbort(scenario == ScenarioEnum.CREATE_ABORT)
+        ////////////////////
+        .pScenarioCreateException(scenario == CreateScenario.CREATE_EXCEPTION)
+        .pScenarioCreateAbort(scenario == CreateScenario.CREATE_ABORT)
         .pScenarioCreateFailureConditionWillRevert(
-            scenario == ScenarioEnum.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT)
+            scenario == CreateScenario.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT)
         .pScenarioCreateFailureConditionWontRevert(
-            scenario == ScenarioEnum.CREATE_FAILURE_CONDITION_WONT_REVERT)
+            scenario == CreateScenario.CREATE_FAILURE_CONDITION_WONT_REVERT)
         .pScenarioCreateEmptyInitCodeWillRevert(
-            scenario == ScenarioEnum.CREATE_EMPTY_INIT_CODE_WILL_REVERT)
+            scenario == CreateScenario.CREATE_EMPTY_INIT_CODE_WILL_REVERT)
         .pScenarioCreateEmptyInitCodeWontRevert(
-            scenario == ScenarioEnum.CREATE_EMPTY_INIT_CODE_WONT_REVERT)
+            scenario == CreateScenario.CREATE_EMPTY_INIT_CODE_WONT_REVERT)
         .pScenarioCreateNonemptyInitCodeFailureWillRevert(
-            scenario == ScenarioEnum.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT)
+            scenario == CreateScenario.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT)
         .pScenarioCreateNonemptyInitCodeFailureWontRevert(
-            scenario == ScenarioEnum.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT)
+            scenario == CreateScenario.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT)
         .pScenarioCreateNonemptyInitCodeSuccessWillRevert(
-            scenario == ScenarioEnum.CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WILL_REVERT)
+            scenario == CreateScenario.CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WILL_REVERT)
         .pScenarioCreateNonemptyInitCodeSuccessWontRevert(
-            scenario == ScenarioEnum.CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT);
+            scenario == CreateScenario.CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT);
   }
 }

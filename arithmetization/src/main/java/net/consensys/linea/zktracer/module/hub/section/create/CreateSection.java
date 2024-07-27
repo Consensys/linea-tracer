@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section.create;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum.CREATE_EMPTY_INIT_CODE_WONT_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum.CREATE_FAILURE_CONDITION_WONT_REVERT;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_EMPTY_INIT_CODE_WONT_REVERT;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_FAILURE_CONDITION_WONT_REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 
 import java.util.Optional;
@@ -35,7 +35,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CreateOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.scenario.ScenarioEnum;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -163,7 +163,7 @@ public class CreateSection
     final boolean emptyInitCode = hub.transients().op().initCodeSegment().isEmpty();
 
     if (failureCondition || emptyInitCode) {
-      final ScenarioEnum scenario =
+      final CreateScenarioFragment.CreateScenario scenario =
           failureCondition
               ? CREATE_FAILURE_CONDITION_WONT_REVERT
               : CREATE_EMPTY_INIT_CODE_WONT_REVERT;

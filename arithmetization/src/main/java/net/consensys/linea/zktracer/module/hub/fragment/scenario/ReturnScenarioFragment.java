@@ -46,54 +46,8 @@ public class ReturnScenarioFragment implements TraceFragment {
     Preconditions.checkArgument(!this.scenario.equals(UNDEFINED));
     return trace
         .peekAtScenario(true)
-        // // CALL scenarios
+        // // RETURN scenarios
         ////////////////////
-        // .pScenarioCallException(false)
-        // .pScenarioCallAbort(false)
-        // .pScenarioCallPrcFailure(false)
-        // .pScenarioCallPrcSuccessCallerWillRevert(false)
-        // .pScenarioCallPrcSuccessCallerWontRevert(false)
-        // .pScenarioCallSmcFailureCallerWillRevert(false)
-        // .pScenarioCallSmcFailureCallerWontRevert(false)
-        // .pScenarioCallSmcSuccessCallerWontRevert(false)
-        // .pScenarioCallSmcSuccessCallerWillRevert(false)
-        // .pScenarioCallEoaSuccessCallerWontRevert(false)
-        // .pScenarioCallEoaSuccessCallerWillRevert(false)
-        // // CREATE scenarios
-        //////////////////////
-        // .pScenarioCreateException(false) .pScenarioCreateAbort(false)
-        // .pScenarioCreateFailureConditionWillRevert(false)
-        // .pScenarioCreateFailureConditionWontRevert(false)
-        // .pScenarioCreateEmptyInitCodeWillRevert(false)
-        // .pScenarioCreateEmptyInitCodeWontRevert(false)
-        // .pScenarioCreateNonemptyInitCodeFailureWillRevert(false)
-        // .pScenarioCreateNonemptyInitCodeFailureWontRevert(false)
-        // .pScenarioCreateNonemptyInitCodeSuccessWillRevert(false)
-        // .pScenarioCreateNonemptyInitCodeSuccessWontRevert(false)
-        // // PRECOMPILE CALL scenarios
-        ///////////////////////////////
-        // .pScenarioPrcEcrecover(false)
-        // .pScenarioPrcSha2256(false)
-        // .pScenarioPrcRipemd160(false)
-        // .pScenarioPrcIdentity(false)
-        // .pScenarioPrcModexp(false)
-        // .pScenarioPrcEcadd(false)
-        // .pScenarioPrcEcmul(false)
-        // .pScenarioPrcEcpairing(false)
-        // .pScenarioPrcBlake2F(false)
-        // .pScenarioPrcSuccessCallerWillRevert(false)
-        // .pScenarioPrcSuccessCallerWontRevert(false)
-        // .pScenarioPrcFailureKnownToHub(false)
-        // .pScenarioPrcFailureKnownToRam(false)
-        // .pScenarioPrcCallerGas(0)
-        // .pScenarioPrcCalleeGas(0)
-        // .pScenarioPrcReturnGas(0)
-        // .pScenarioPrcCdo(0)
-        // .pScenarioPrcCds(0)
-        // .pScenarioPrcRao(0)
-        // .pScenarioPrcRac(0)
-        // RETURN scenarios
-        ///////////////////
         .pScenarioReturnException(this.scenario.equals(RETURN_EXCEPTION))
         .pScenarioReturnFromMessageCallWillTouchRam(
             this.scenario.equals(RETURN_FROM_MESSAGE_CALL_WILL_TOUCH_RAM))
@@ -106,13 +60,6 @@ public class ReturnScenarioFragment implements TraceFragment {
         .pScenarioReturnFromDeploymentNonemptyCodeWillRevert(
             this.scenario.equals(RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT))
         .pScenarioReturnFromDeploymentNonemptyCodeWontRevert(
-            this.scenario.equals(RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT))
-    // // SELFDESTRUCT scenarios
-    ////////////////////////////
-    // .pScenarioSelfdestructException(false)
-    // .pScenarioSelfdestructWillRevert(false)
-    // .pScenarioSelfdestructWontRevertAlreadyMarked(false)
-    // .pScenarioSelfdestructWontRevertNotYetMarked(false)
-    ;
+            this.scenario.equals(RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT));
   }
 }

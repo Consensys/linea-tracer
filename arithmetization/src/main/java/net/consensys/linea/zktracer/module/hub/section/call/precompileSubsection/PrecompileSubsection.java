@@ -19,7 +19,6 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ReEnterContextDefer;
@@ -28,9 +27,9 @@ import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.types.MemorySpan;
 
 @RequiredArgsConstructor
-@Accessors(fluent = true)
+@Getter
 public abstract class PrecompileSubsection implements ReEnterContextDefer, PostTransactionDefer {
-  @Getter List<TraceFragment> fragments;
+  List<TraceFragment> fragments;
   /* The input data for the precompile */
   final MemorySpan callDataMemorySpan;
 
@@ -58,7 +57,7 @@ public abstract class PrecompileSubsection implements ReEnterContextDefer, PostT
     calleeGas = hub.messageFrame().getRemainingGas();
   }
 
-  private long returnGas() {
+  public long returnGas() {
     return calleeGas - precompileCost;
   }
 

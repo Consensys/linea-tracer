@@ -35,6 +35,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
+// TODO: implement
 public class ExtCodeCopySection extends TraceSection implements PostRollbackDefer {
 
   final Bytes rawAddress;
@@ -79,9 +80,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     final Account foreignAccount = frame.getWorldUpdater().get(this.address);
 
-    this.accountBefore =
-        AccountSnapshot.fromAccount(
-            foreignAccount, incomingWarmth, incomingDeploymentNumber, incomingDeploymentStatus);
+    this.accountBefore = AccountSnapshot.canonical(hub, address);
 
     final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
@@ -131,38 +130,15 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
-    final int deploymentNumberAtRollback =
-        hub.transients().conflation().deploymentInfo().number(address);
-    final boolean deploymentStatusAtRollback =
-        hub.transients().conflation().deploymentInfo().isDeploying(address);
-
-    final AccountSnapshot revertFromSnapshot =
-        new AccountSnapshot(
-            accountAfter.address(),
-            accountAfter.nonce(),
-            accountAfter.balance(),
-            accountAfter.isWarm(),
-            accountAfter.code(),
-            deploymentNumberAtRollback,
-            deploymentStatusAtRollback);
-
-    final AccountSnapshot revertToSnapshot =
-        new AccountSnapshot(
-            accountBefore.address(),
-            accountBefore.nonce(),
-            accountBefore.balance(),
-            accountBefore.isWarm(),
-            accountBefore.code(),
-            deploymentNumberAtRollback,
-            deploymentStatusAtRollback);
+    AccountSnapshot accountPostRollback = AccountSnapshot.canonical(hub, address);
 
     final DomSubStampsSubFragment undoingDomSubStamps =
-        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-            this.hubStamp(), callFrame.revertStamp(), 1);
-    final AccountFragment undoingAccountFragment =
-        hub.factories()
+            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                    this.hubStamp(), callFrame.revertStamp(), 1);
+
+    final AccountFragment undoingAccountFragment = hub.factories()
             .accountFragment()
-            .make(revertFromSnapshot, revertToSnapshot, undoingDomSubStamps);
+            .make(accountAfter, accountPostRollback, undoingDomSubStamps);
 
     this.addFragment(undoingAccountFragment);
   }

@@ -36,8 +36,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.DebugMode;
+import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.Utils;
@@ -255,6 +255,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
    */
   @Override
   public void tracePreExecution(final MessageFrame frame) {
+    this.hub.currentFrame().frame(frame);
     if (frame.getCode().getSize() > 0) {
       try {
         this.hub.tracePreExecution(frame);
@@ -271,6 +272,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   /**
    * Compare with description of {@link #tracePreExecution(MessageFrame)}.
+   *
    * @param frame
    * @param operationResult
    */

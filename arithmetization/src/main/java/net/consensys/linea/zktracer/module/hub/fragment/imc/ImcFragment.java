@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
@@ -29,15 +28,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.internal.Words;
 
 /**
  * IMCFragments embed data required for Inter-Module Communication, i.e. data that are required to
@@ -86,72 +78,6 @@ public class ImcFragment implements TraceFragment {
     final ImcFragment miscFragment = ImcFragment.empty(hub);
 
     return shouldCopyTxCallData ? miscFragment.callMmu(MmuCall.txInit(hub)) : miscFragment;
-  }
-
-  /**
-   * Create an ImcFragment to be used when executing a *CALL.
-   *
-   * @param hub the execution context
-   * @param callerAccount the caller account
-   * @param calledAccount the (maybe non-existing) called account
-   * @return the ImcFragment for the *CALL
-   */
-  public static ImcFragment forCall(
-      Hub hub, Account callerAccount, Optional<Account> calledAccount) {
-    final ImcFragment r = new ImcFragment(hub);
-
-    if (hub.pch().signals().mxp()) {
-      r.callMxp(MxpCall.build(hub));
-    }
-
-    if (hub.pch().signals().oob()) {
-      switch (hub.opCode()) {
-        case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-          if (hub.opCode().equals(OpCode.CALL) && Exceptions.any(hub.pch().exceptions())) {
-            r.callOob(new XCallOobCall());
-          } else {
-            r.callOob(new CallOobCall());
-          }
-        }
-        default -> throw new IllegalArgumentException("unexpected opcode for IMC/CALL");
-      }
-    }
-
-    if (hub.pch().signals().stp()) {
-      final long gas = Words.clampedToLong(hub.messageFrame().getStackItem(0));
-      EWord value = EWord.ZERO;
-      if (hub.opCode().isAnyOf(OpCode.CALL, OpCode.CALLCODE)) {
-        value = EWord.of(hub.messageFrame().getStackItem(2));
-      }
-
-      final long stipend = value.isZero() ? 0 : GlobalConstants.GAS_CONST_G_CALL_STIPEND;
-      final long upfrontCost = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).total();
-
-      // TODO: @Olivier get memory expansion gas
-      long memoryExpansionGas = 0xdeadbeefL;
-      StpCall stpCall = new StpCall(hub, memoryExpansionGas);
-
-      r.callStp(stpCall);
-
-      //              EWord.of(gas),
-      //              value,
-      //              calledAccount.isPresent(),
-      //              calledAccount
-      //                  .map(a -> hub.messageFrame().isAddressWarm(a.getAddress()))
-      //                  .orElse(false),
-      //              hub.pch().exceptions().outOfGasException(),
-      //              upfrontCost,
-      //              Math.max(
-      //                  Words.unsignedMin(
-      //                      allButOneSixtyFourth(hub.messageFrame().getRemainingGas() -
-      // upfrontCost),
-      //                      gas),
-      //                  0),
-      //              stipend)
-      //    );
-    }
-
-    return r;
   }
 
   public ImcFragment callOob(OobCall f) {

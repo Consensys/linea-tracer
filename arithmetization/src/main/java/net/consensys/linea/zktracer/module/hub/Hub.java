@@ -558,7 +558,7 @@ public class Hub implements Module {
             this.state.stamps().hub(),
             this.transients.tx().getBesuTransaction().getSender(),
             toAddress,
-            CallFrameType.MANTLE,
+            CallFrameType.TRANSACTION_CALL_DATA_HOLDER,
             new Bytecode(
                 toAddress == null
                     ? this.transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY)
@@ -578,7 +578,7 @@ public class Hub implements Module {
             this.state.stamps().hub(),
             this.txStack.current().getBesuTransaction().getSender(),
             toAddress,
-            CallFrameType.BEDROCK,
+            CallFrameType.ROOT,
             new Bytecode(
                 toAddress == null
                     ? this.transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY)
@@ -694,6 +694,7 @@ public class Hub implements Module {
               gasRefund,
               minerIsWarm,
               this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
+
       if (this.state.getProcessingPhase() != TX_SKIP) {
         this.state.setProcessingPhase(TX_FINL);
         new TxFinalizationSection(this, frame.getWorldUpdater());
@@ -950,7 +951,8 @@ public class Hub implements Module {
       previousOperationWasCallToEcPrecompile = false;
     }
 
-    this.currentFrame().frame(frame);
+    // TODO: delete me, we do it in the ZKTracer in every case (ie even if codeSize == 0)
+    // this.currentFrame().frame(frame);
     this.state.stamps().incrementHubStamp();
 
     this.pch.setup(frame);

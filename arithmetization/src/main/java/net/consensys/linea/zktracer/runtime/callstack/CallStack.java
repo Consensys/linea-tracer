@@ -42,7 +42,7 @@ public final class CallStack {
 
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
   @Getter
-  private final List<CallFrame> frames =
+  private final List<CallFrame> callFrames =
       new ArrayList<>(
           50) { // TODO: PERF as the List of TraceSection, we should have an estimate based on
         // gasLimit on the nb of CallFrame a tx might have
@@ -68,7 +68,7 @@ public final class CallStack {
             -1,
             -1,
             false,
-            this.frames.size(),
+            this.callFrames.size(),
             hubStamp,
             precompileAddress,
             precompileAddress,
@@ -84,7 +84,7 @@ public final class CallStack {
             -1,
             this.depth);
 
-    this.frames.add(newFrame);
+    this.callFrames.add(newFrame);
   }
 
   public void newBedrock(
@@ -116,7 +116,7 @@ public final class CallStack {
         accountDeploymentNumber,
         codeDeploymentNumber,
         codeDeploymentStatus);
-    this.current = this.frames.size() - 1;
+    this.current = this.callFrames.size() - 1;
   }
 
   /**
@@ -147,14 +147,14 @@ public final class CallStack {
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
     this.depth = -1;
-    this.frames.add(new CallFrame(from, callData, hubStamp));
+    this.callFrames.add(new CallFrame(from, callData, hubStamp));
     this.enter(
         hubStamp,
         to,
         to,
         from,
         toCode == null ? Bytecode.EMPTY : toCode,
-        CallFrameType.BEDROCK,
+        CallFrameType.ROOT,
         value,
         gas,
         callData,
@@ -164,22 +164,22 @@ public final class CallStack {
         accountDeploymentNumber,
         codeDeploymentNumber,
         codeDeploymentStatus);
-    this.current = this.frames.size() - 1;
+    this.current = this.callFrames.size() - 1;
   }
 
   /**
    * @return the currently executing {@link CallFrame}
    */
   public CallFrame current() {
-    return this.frames.get(this.current);
+    return this.callFrames.get(this.current);
   }
 
   public boolean isEmpty() {
-    return this.frames.isEmpty();
+    return this.callFrames.isEmpty();
   }
 
   public int futureId() {
-    return this.frames.size();
+    return this.callFrames.size();
   }
 
   /**
@@ -187,14 +187,14 @@ public final class CallStack {
    */
   public CallFrame parent() {
     if (this.current().parentFrameId() != -1) {
-      return this.frames.get(this.current().parentFrameId());
+      return this.callFrames.get(this.current().parentFrameId());
     } else {
       return CallFrame.EMPTY;
     }
   }
 
   public Optional<CallFrame> maybeCurrent() {
-    return this.frames.isEmpty() ? Optional.empty() : Optional.of(this.current());
+    return this.callFrames.isEmpty() ? Optional.empty() : Optional.of(this.current());
   }
 
   /**
@@ -228,14 +228,13 @@ public final class CallStack {
       int codeDeploymentNumber,
       boolean isDeployment) {
     final int caller = this.depth == -1 ? -1 : this.current;
-    final int newTop = this.frames.size();
+    final int newTop = this.callFrames.size();
     this.depth += 1;
 
     Bytes callData = Bytes.EMPTY;
     if (type != CallFrameType.INIT_CODE) {
       callData = input;
     }
-
     final CallFrame newFrame =
         new CallFrame(
             accountDeploymentNumber,
@@ -257,11 +256,11 @@ public final class CallStack {
             callDataContextNumber,
             this.depth);
 
-    this.frames.add(newFrame);
+    this.callFrames.add(newFrame);
     this.current = newTop;
     if (caller != -1) {
-      this.frames.get(caller).returnData(Bytes.EMPTY);
-      this.frames.get(caller).childFrames().add(newTop);
+      this.callFrames.get(caller).returnData(Bytes.EMPTY);
+      this.callFrames.get(caller).childFrames().add(newTop);
     }
   }
 
@@ -302,7 +301,7 @@ public final class CallStack {
    * @return the caller of the current frame
    */
   public CallFrame caller() {
-    return this.frames.get(this.current().parentFrameId());
+    return this.callFrames.get(this.current().parentFrameId());
   }
 
   /**
@@ -313,10 +312,10 @@ public final class CallStack {
    * @throws IndexOutOfBoundsException if the index is out of range
    */
   public CallFrame getById(int i) {
-    if (i < 0 || this.frames.isEmpty()) {
+    if (i < 0 || this.callFrames.isEmpty()) {
       return CallFrame.EMPTY;
     }
-    return this.frames.get(i);
+    return this.callFrames.get(i);
   }
 
   /**
@@ -327,7 +326,7 @@ public final class CallStack {
    * @throws IndexOutOfBoundsException if the index is out of range
    */
   public CallFrame getByContextNumber(final long i) {
-    for (CallFrame f : this.frames) {
+    for (CallFrame f : this.callFrames) {
       if (f.contextNumber() == i) {
         return f;
       }
@@ -344,11 +343,11 @@ public final class CallStack {
    * @throws IndexOutOfBoundsException if the index is out of range
    */
   public CallFrame getParentCallFrameById(int id) {
-    if (this.frames.isEmpty()) {
+    if (this.callFrames.isEmpty()) {
       return CallFrame.EMPTY;
     }
 
-    return this.getById(this.frames.get(id).parentFrameId());
+    return this.getById(this.callFrames.get(id).parentFrameId());
   }
 
   /**
@@ -369,7 +368,7 @@ public final class CallStack {
 
   public String pretty() {
     StringBuilder r = new StringBuilder(2000);
-    for (CallFrame c : this.frames) {
+    for (CallFrame c : this.callFrames) {
       final CallFrame parent = this.getParentCallFrameById(c.id());
       r.append(" ".repeat(c.depth()));
       r.append(

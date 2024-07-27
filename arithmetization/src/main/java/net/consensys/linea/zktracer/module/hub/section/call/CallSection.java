@@ -247,7 +247,7 @@ public class CallSection extends TraceSection
   @Override
   public void resolveUponEnteringChildContext(Hub hub) {
     switch (scenarioFragment.getScenario()) {
-      case CALL_EOA_SUCCESS_WONT_REVERT, CALL_SMC_UNDEFINED -> {
+      case CALL_SMC_UNDEFINED -> {
         postOpcodeCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
         postOpcodeCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
 
@@ -259,41 +259,48 @@ public class CallSection extends TraceSection
           postOpcodeCallerSnapshot.decrementBalance(value);
           preOpcodeCalleeSnapshot.decrementBalance(value);
         }
-      }
-      case CALL_PRC_UNDEFINED -> {
-        // TODO implement
 
+        final Factories factories = hub.factories();
+        final AccountFragment firstCallerAccountFragment =
+            factories
+                .accountFragment()
+                .make(
+                    preOpcodeCallerSnapshot,
+                    postOpcodeCallerSnapshot,
+                    DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+
+        final AccountFragment firstCalleeAccountFragment =
+            factories
+                .accountFragment()
+                .makeWithTrm(
+                    preOpcodeCalleeSnapshot,
+                    postOpcodeCalleeSnapshot,
+                    rawCalleeAddress,
+                    DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
+
+        if (scenarioFragment.getScenario() == CALL_SMC_UNDEFINED) {
+          firstCalleeAccountFragment.requiresRomlex(true);
+        }
+
+        this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
+      }
+
+      case CALL_PRC_UNDEFINED -> {
+        // Account rows for precompile are traced at contextReEntry
         precompileSubsection =
             ADDRESS_TO_PRECOMPILE.get(preOpcodeCalleeSnapshot.address()).apply(hub, this);
 
         hub.defers().scheduleForContextReEntry(precompileSubsection, hub.callStack().parent());
         hub.defers().scheduleForPostTransaction(precompileSubsection);
       }
+
+      case CALL_EOA_SUCCESS_WONT_REVERT -> {
+        // Account rows for EOA calls are traced at contextReEntry
+        return;
+      }
+
+      default -> throw new IllegalArgumentException("Should be in one of the three scenario above");
     }
-
-    final Factories factories = hub.factories();
-    final AccountFragment firstCallerAccountFragment =
-        factories
-            .accountFragment()
-            .make(
-                preOpcodeCallerSnapshot,
-                postOpcodeCallerSnapshot,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
-
-    final AccountFragment firstCalleeAccountFragment =
-        factories
-            .accountFragment()
-            .makeWithTrm(
-                preOpcodeCalleeSnapshot,
-                postOpcodeCalleeSnapshot,
-                rawCalleeAddress,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
-
-    if (scenarioFragment.getScenario() == CALL_SMC_UNDEFINED) {
-      firstCalleeAccountFragment.requiresRomlex(true);
-    }
-
-    this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
   }
 
   /** Resolution happens as the child context is about to terminate. */
@@ -320,20 +327,25 @@ public class CallSection extends TraceSection
     //  to contain the success bit of the call at traceContextReEntry.
     //  See issue #872.
     successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
+
+    reEntryCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
+    reEntryCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
+
     switch (scenarioFragment.getScenario()) {
+      case CALL_EOA_SUCCESS_WONT_REVERT -> {
+        emptyCodeFirstCoupleOfAccountFragments(hub);
+      }
+
       case CALL_PRC_UNDEFINED -> {
         if (successBit) {
           scenarioFragment.setScenario(CALL_PRC_SUCCESS_WONT_REVERT);
         } else {
           scenarioFragment.setScenario(CALL_PRC_FAILURE);
         }
-        // TODO: we need to fill the first two account rows!
+        emptyCodeFirstCoupleOfAccountFragments(hub);
       }
 
       case CALL_SMC_UNDEFINED -> {
-        reEntryCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
-        reEntryCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
-
         if (successBit) {
           scenarioFragment.setScenario(CALL_SMC_SUCCESS_WONT_REVERT);
           return;
@@ -366,6 +378,7 @@ public class CallSection extends TraceSection
 
         this.addFragments(postReEntryCallerAccountFragment, postReEntryCalleeAccountFragment);
       }
+
       default -> {}
     }
   }
@@ -488,5 +501,27 @@ public class CallSection extends TraceSection
                     this.hubStamp(), this.revertStamp(), 3));
 
     this.addFragments(undoingCallerAccountFragment, undoingCalleeAccountFragment);
+  }
+
+  private void emptyCodeFirstCoupleOfAccountFragments(final Hub hub) {
+    final Factories factories = hub.factories();
+    final AccountFragment firstCallerAccountFragment =
+        factories
+            .accountFragment()
+            .make(
+                preOpcodeCallerSnapshot,
+                reEntryCallerSnapshot,
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+
+    final AccountFragment firstCalleeAccountFragment =
+        factories
+            .accountFragment()
+            .makeWithTrm(
+                preOpcodeCalleeSnapshot,
+                reEntryCalleeSnapshot,
+                rawCalleeAddress,
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
+
+    this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
   }
 }

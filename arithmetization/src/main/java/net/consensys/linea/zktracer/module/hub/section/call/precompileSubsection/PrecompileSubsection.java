@@ -16,6 +16,7 @@ package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsectio
 
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_UNDEFINED;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
+import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -33,6 +35,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScena
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.MemorySpan;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -43,13 +46,19 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class PrecompileSubsection
     implements ContextExitDefer, ReEnterContextDefer, PostRollbackDefer, PostTransactionDefer {
   /** List of fragments of the precompile specific subsection */
-  final List<TraceFragment> fragments;
+  private final List<TraceFragment> fragments;
+
+  /** The (potentially empty) call data of the precompile call */
+  final Bytes callData;
 
   /** The input data for the precompile */
-  final MemorySpan callDataMemorySpan;
+  private final MemorySpan callDataMemorySpan;
 
   /** Where the caller wants the precompile return data to be stored */
-  final MemorySpan parentReturnDataTarget;
+  private final MemorySpan parentReturnDataTarget;
+
+  /** The (potentially empty) return data of the precompile call */
+  @Setter Bytes returnData;
 
   /** Leftover gas of the caller */
   final long callerGas;
@@ -64,6 +73,9 @@ public class PrecompileSubsection
 
   final PrecompileScenarioFragment precompileScenarioFragment;
 
+  /** A snapshot of the caller's memory before the execution of the precompile */
+  final Bytes callerMemorySnapshot;
+
   /**
    * Default creator specifying the max number of rows the precompile processing subsection can
    * contain.
@@ -71,11 +83,15 @@ public class PrecompileSubsection
   public PrecompileSubsection(final Hub hub, final CallSection callSection) {
     fragments = new ArrayList<>(maxNumberOfLines());
     callDataMemorySpan = hub.currentFrame().callDataInfo().memorySpan();
+    callData = hub.messageFrame().getInputData();
     parentReturnDataTarget = hub.currentFrame().parentReturnDataTarget();
     callerGas = hub.callStack().parent().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
     precompileScenarioFragment =
         new PrecompileScenarioFragment(this, PRC_UNDEFINED_SCENARIO, PRC_UNDEFINED);
+
+    final MessageFrame callerFrame = hub.callStack().parent().frame();
+    callerMemorySnapshot = extractContiguousLimbsFromMemory(callerFrame, callDataMemorySpan);
   }
 
   protected short maxNumberOfLines() {
@@ -90,6 +106,8 @@ public class PrecompileSubsection
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
     successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
+    returnData = frame.frame().getReturnData();
+
     if (successBit) {
       hub.defers().scheduleForPostRollback(this, frame);
       precompileScenarioFragment.setScenario(PRC_SUCCESS_WONT_REVERT);

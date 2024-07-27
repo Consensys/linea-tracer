@@ -98,7 +98,7 @@ public class CallFrame {
   @Getter private final CallFrameType type;
 
   public int getCodeFragmentIndex(Hub hub) {
-    return this == CallFrame.EMPTY || this.type() == CallFrameType.MANTLE
+    return this == CallFrame.EMPTY || this.type() == CallFrameType.TRANSACTION_CALL_DATA_HOLDER
         ? 0
         : hub.getCfiByMetaData(
             Words.toAddress(this.codeAddressAsEWord()),
@@ -164,7 +164,7 @@ public class CallFrame {
 
   /** Create a MANTLE call frame. */
   CallFrame(final Address origin, final Bytes callData, final int contextNumber) {
-    this.type = CallFrameType.MANTLE;
+    this.type = CallFrameType.TRANSACTION_CALL_DATA_HOLDER;
     this.contextNumber = contextNumber;
     this.accountAddress = origin;
     this.callDataInfo = new CallDataInfo(callData, 0, callData.size(), contextNumber);
@@ -336,5 +336,11 @@ public class CallFrame {
     this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     this.opCodeData = OpCodes.of(this.opCode);
     this.pc = frame.getPC();
+  }
+
+  public static Bytes extractContiguousLimbsFromMemory(
+      final MessageFrame frame, final MemorySpan memorySpan) {
+    // TODO: optimize me please. Need a review of the MMU operation handling.
+    return memorySpan.isEmpty() ? Bytes.EMPTY : frame.shadowReadMemory(0, frame.memoryByteSize());
   }
 }

@@ -105,6 +105,17 @@ public class TraceSection {
   }
 
   /**
+   * Add several fragments within this section for the specified fragments.
+   *
+   * @param fragments the fragments to add to the section
+   */
+  public final void addFragmentsWithoutStack(List<TraceFragment> fragments) {
+    for (TraceFragment f : fragments) {
+      this.addFragment(f);
+    }
+  }
+
+  /**
    * Insert Stack fragments related to the current state of the stack, then insert the provided
    * fragments in a single swoop.
    *

@@ -228,11 +228,13 @@ public class EcPairingrTest {
     return arguments.stream();
   }
 
-  @ParameterizedTest
+  @ParameterizedTest(name = "{index} {0}")
   @MethodSource("ecPairingGenericSource")
-  void testEcPairingGenericForScenarioUsingMethodSource(List<Arguments> pairings) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+  void testEcPairingGenericForScenarioUsingMethodSource(
+      String description, List<Arguments> pairings) {
+    System.out.println(description);
 
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < pairings.size(); i++) {
       Arguments pair = pairings.get(i);
 
@@ -296,8 +298,8 @@ public class EcPairingrTest {
   }
 
   // Method source of testEcPairingGenericForScenarioUsingMethodSource
-  private static Stream<List<Arguments>> ecPairingGenericSource() {
-    List<List<Arguments>> allPairings = new ArrayList<>();
+  private static Stream<Arguments> ecPairingGenericSource() {
+    List<Arguments> allPairings = new ArrayList<>();
 
     // Test case with maximum number of pairings
     List<Arguments> manyPairings = new ArrayList<>();
@@ -307,7 +309,16 @@ public class EcPairingrTest {
     for (int i = 0; i < PRECOMPILE_ECPAIRING_MILLER_LOOPS; i++) {
       manyPairings.add(pair(rnd(smallPoints), rnd(largePoints)));
     }
-    allPairings.add(manyPairings);
+    // TODO: double check if this is correct
+    allPairings.add(
+        Arguments.of(
+            "64 pairings "
+                + manyPairings.stream()
+                    .flatMap(arguments -> Stream.of(arguments.get()))
+                    .filter(obj -> obj instanceof String)
+                    .map(obj -> (String) obj)
+                    .collect(Collectors.joining(", ")),
+            manyPairings));
 
     return allPairings.stream();
   }

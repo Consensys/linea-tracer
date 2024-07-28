@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
@@ -68,9 +69,9 @@ public class Trm implements Module {
     }
   }
 
-  public Address callTrimming(Bytes32 rawHash) {
+  public Address callTrimming(Bytes rawHash) {
     this.trimmings.add(new TrmOperation(EWord.of(rawHash)));
-    return Address.extract(rawHash);
+    return Address.extract(Bytes32.wrap(rawHash));
   }
 
   @Override

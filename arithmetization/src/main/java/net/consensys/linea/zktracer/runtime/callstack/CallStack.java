@@ -41,7 +41,15 @@ public final class CallStack {
   static final int MAX_CALLSTACK_SIZE = 1024;
 
   /** a never-pruned-tree of the {@link CallFrame} executed by the {@link Hub} */
-  private final List<CallFrame> frames = new ArrayList<>();
+  @Getter
+  private final List<CallFrame> frames =
+      new ArrayList<>(
+          50) { // TODO: PERF as the List of TraceSection, we should have an estimate based on
+        // gasLimit on the nb of CallFrame a tx might have
+        {
+          add(CallFrame.EMPTY);
+        }
+      };
 
   /** the current depth of the call stack. */
   @Getter private int depth;
@@ -64,6 +72,7 @@ public final class CallStack {
             hubStamp,
             precompileAddress,
             precompileAddress,
+            precompileAddress,
             Bytecode.EMPTY,
             CallFrameType.PRECOMPILE_RETURN_DATA,
             this.current,
@@ -80,7 +89,7 @@ public final class CallStack {
 
   public void newBedrock(
       int hubStamp,
-      //      Address from,
+      Address from,
       Address to,
       CallFrameType type,
       Bytecode toCode,
@@ -95,6 +104,7 @@ public final class CallStack {
         hubStamp,
         to,
         to,
+        from,
         toCode == null ? Bytecode.EMPTY : toCode,
         type,
         value,
@@ -137,11 +147,12 @@ public final class CallStack {
       int codeDeploymentNumber,
       boolean codeDeploymentStatus) {
     this.depth = -1;
-    this.frames.add(new CallFrame(callData, hubStamp));
+    this.frames.add(new CallFrame(from, callData, hubStamp));
     this.enter(
         hubStamp,
         to,
         to,
+        from,
         toCode == null ? Bytecode.EMPTY : toCode,
         CallFrameType.BEDROCK,
         value,
@@ -175,8 +186,8 @@ public final class CallStack {
    * @return the parent {@link CallFrame} of the current frame
    */
   public CallFrame parent() {
-    if (this.current().parentFrame() != -1) {
-      return this.frames.get(this.current().parentFrame());
+    if (this.current().parentFrameId() != -1) {
+      return this.frames.get(this.current().parentFrameId());
     } else {
       return CallFrame.EMPTY;
     }
@@ -190,7 +201,7 @@ public final class CallStack {
    * Creates a new call frame.
    *
    * @param hubStamp the hub stamp at the time of entry in the new frame
-   * @param address the {@link Address} of the bytecode being executed
+   * @param accountAddress the {@link Address} of the bytecode being executed
    * @param code the {@link Code} being executed
    * @param type the execution type of call frame
    * @param value the value given to this call frame
@@ -202,8 +213,9 @@ public final class CallStack {
    */
   public void enter(
       int hubStamp,
-      Address address,
-      Address codeAddress,
+      Address accountAddress,
+      Address byteCodeAddress,
+      Address callerAddress,
       Bytecode code,
       CallFrameType type,
       Wei value,
@@ -224,15 +236,16 @@ public final class CallStack {
       callData = input;
     }
 
-    CallFrame newFrame =
+    final CallFrame newFrame =
         new CallFrame(
             accountDeploymentNumber,
             codeDeploymentNumber,
             isDeployment,
             newTop,
             hubStamp,
-            address,
-            codeAddress,
+            accountAddress,
+            callerAddress,
+            byteCodeAddress,
             code,
             type,
             caller,
@@ -247,7 +260,7 @@ public final class CallStack {
     this.frames.add(newFrame);
     this.current = newTop;
     if (caller != -1) {
-      this.frames.get(caller).latestReturnData(Bytes.EMPTY);
+      this.frames.get(caller).returnData(Bytes.EMPTY);
       this.frames.get(caller).childFrames().add(newTop);
     }
   }
@@ -259,7 +272,7 @@ public final class CallStack {
   public void exit() {
     this.depth -= 1;
     Preconditions.checkState(this.depth >= 0);
-    this.current = this.current().parentFrame();
+    this.current = this.current().parentFrameId();
   }
 
   /**
@@ -289,7 +302,7 @@ public final class CallStack {
    * @return the caller of the current frame
    */
   public CallFrame caller() {
-    return this.frames.get(this.current().parentFrame());
+    return this.frames.get(this.current().parentFrameId());
   }
 
   /**
@@ -326,16 +339,28 @@ public final class CallStack {
   /**
    * Returns the parent of the ith {@link CallFrame} in this call stack.
    *
-   * @param i ID of the call frame whose parent to fetch
+   * @param id ID of the call frame whose parent to fetch
    * @return the ith call frame parent
    * @throws IndexOutOfBoundsException if the index is out of range
    */
-  public CallFrame getParentOf(int i) {
+  public CallFrame getParentCallFrameById(int id) {
     if (this.frames.isEmpty()) {
       return CallFrame.EMPTY;
     }
 
-    return this.getById(this.frames.get(i).parentFrame());
+    return this.getById(this.frames.get(id).parentFrameId());
+  }
+
+  /**
+   * Retrieves the context number of the parent {@link CallFrame} for a given call frame ID.
+   *
+   * @param id the ID of the call frame whose parent's context number is to be retrieved.
+   * @return the context number of the parent call frame. If the call frame has no parent, or if the
+   *     specified ID does not correspond to a valid call frame, this method returns the context
+   *     number of the {@link CallFrame#EMPTY} which is typically 0.
+   */
+  public int getParentContextNumberById(int id) {
+    return this.getParentCallFrameById(id).contextNumber();
   }
 
   public void revert(int stamp) {
@@ -345,7 +370,7 @@ public final class CallStack {
   public String pretty() {
     StringBuilder r = new StringBuilder(2000);
     for (CallFrame c : this.frames) {
-      final CallFrame parent = this.getParentOf(c.id());
+      final CallFrame parent = this.getParentCallFrameById(c.id());
       r.append(" ".repeat(c.depth()));
       r.append(
           "%d/%d (<- %d/%d): %s"

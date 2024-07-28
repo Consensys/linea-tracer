@@ -101,7 +101,7 @@ public class ReplayTests {
   }
 
   @Test
-  void noCodeCallSectionMissingPrecompileLines() {
+  void multipleFailingCallToEcrecover() {
     replay("5000544.json.gz");
   }
 }

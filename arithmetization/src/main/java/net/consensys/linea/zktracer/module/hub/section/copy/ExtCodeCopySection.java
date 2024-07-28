@@ -58,7 +58,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     incomingDeploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
     incomingDeploymentStatus = hub.transients().conflation().deploymentInfo().isDeploying(address);
     incomingWarmth = frame.isAddressWarm(address);
-    ImcFragment imcFragment = ImcFragment.empty(hub);
+    final ImcFragment imcFragment = ImcFragment.empty(hub);
 
     this.addStack(hub);
     this.addFragment(imcFragment);
@@ -70,7 +70,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
-    short exceptions = hub.pch().exceptions();
+    final short exceptions = hub.pch().exceptions();
     Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // The MXPX case
@@ -133,10 +133,11 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     AccountSnapshot accountPostRollback = AccountSnapshot.canonical(hub, address);
 
     final DomSubStampsSubFragment undoingDomSubStamps =
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), callFrame.revertStamp(), 1);
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+            this.hubStamp(), callFrame.revertStamp(), 1);
 
-    final AccountFragment undoingAccountFragment = hub.factories()
+    final AccountFragment undoingAccountFragment =
+        hub.factories()
             .accountFragment()
             .make(accountAfter, accountPostRollback, undoingDomSubStamps);
 

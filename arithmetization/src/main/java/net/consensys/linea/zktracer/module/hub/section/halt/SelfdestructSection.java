@@ -101,7 +101,7 @@ public class SelfdestructSection extends TraceSection
     }
 
     // CON fragment (1)
-    ContextFragment contextFragment = ContextFragment.readCurrentContextData(hub);
+    final ContextFragment contextFragment = ContextFragment.readCurrentContextData(hub);
     this.addFragment(contextFragment);
 
     // STATICX case

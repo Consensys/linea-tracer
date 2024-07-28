@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -27,11 +29,8 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 public class AccountSection extends TraceSection implements PostRollbackDefer {
 
@@ -43,7 +42,7 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
     hub.addTraceSection(this);
     this.addStack(hub);
 
-    short exceptions = hub.pch().exceptions();
+    final short exceptions = hub.pch().exceptions();
 
     if (hub.opCode().isAnyOf(OpCode.SELFBALANCE, OpCode.CODESIZE)) {
       if (Exceptions.any(exceptions)) {
@@ -51,68 +50,71 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
         return;
       }
 
-      ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
+      final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
       this.addFragment(currentContext);
     }
 
     final MessageFrame frame = hub.messageFrame();
 
-    targetAddress = switch (hub.opCode()) {
-      case BALANCE, EXTCODESIZE, EXTCODEHASH -> {
-        hub.defers().scheduleForPostRollback(this, hub.currentFrame());
-        rawTargetAddress = frame.getStackItem(0);
-        yield Words.toAddress(this.rawTargetAddress);
-      }
-      case SELFBALANCE -> frame.getRecipientAddress();
-      case CODESIZE -> frame.getContractAddress();
-      default -> throw new RuntimeException("Not an ACCOUNT instruction");
-    };
+    targetAddress =
+        switch (hub.opCode()) {
+          case BALANCE, EXTCODESIZE, EXTCODEHASH -> {
+            hub.defers().scheduleForPostRollback(this, hub.currentFrame());
+            rawTargetAddress = frame.getStackItem(0);
+            yield Words.toAddress(this.rawTargetAddress);
+          }
+          case SELFBALANCE -> frame.getRecipientAddress();
+          case CODESIZE -> frame.getContractAddress();
+          default -> throw new RuntimeException("Not an ACCOUNT instruction");
+        };
 
-    AccountSnapshot accountSnapshotBefore = AccountSnapshot.canonical(hub, targetAddress);
-    AccountSnapshot accountSnapshotAfter = accountSnapshotBefore.deepCopy().turnOnWarmth();
+    final AccountSnapshot accountSnapshotBefore = AccountSnapshot.canonical(hub, targetAddress);
+    final AccountSnapshot accountSnapshotAfter =
+        accountSnapshotBefore.deepCopy().turnOnWarmth(); // TODO: at postExecDefers ?
 
     final DomSubStampsSubFragment doingDomSubStamps =
-            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
+        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
 
-    AccountFragment doingAccountFragment =
-            switch (hub.opCode()) {
-              case BALANCE, EXTCODESIZE, EXTCODEHASH -> hub.factories()
-                      .accountFragment()
-                      .makeWithTrm(
-                              accountSnapshotBefore,
-                              accountSnapshotAfter,
-                              rawTargetAddress,
-                              doingDomSubStamps);
-              case SELFBALANCE, CODESIZE -> hub.factories()
-                      .accountFragment()
-                      .make(accountSnapshotBefore, accountSnapshotAfter, doingDomSubStamps);
-              default -> throw new IllegalStateException("Not an ACCOUNT instruction");
-            };
+    final AccountFragment doingAccountFragment =
+        switch (hub.opCode()) {
+          case BALANCE, EXTCODESIZE, EXTCODEHASH -> hub.factories()
+              .accountFragment()
+              .makeWithTrm(
+                  accountSnapshotBefore, accountSnapshotAfter, rawTargetAddress, doingDomSubStamps);
+          case SELFBALANCE, CODESIZE -> hub.factories()
+              .accountFragment()
+              .make(accountSnapshotBefore, accountSnapshotAfter, doingDomSubStamps);
+          default -> throw new IllegalStateException("Not an ACCOUNT instruction");
+        };
     this.addFragment(doingAccountFragment);
   }
 
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
-    AccountSnapshot postRollBackAccountSnapshot = AccountSnapshot.canonical(hub, targetAddress);
+    final AccountSnapshot postRollBackAccountSnapshot =
+        AccountSnapshot.canonical(hub, targetAddress);
 
     final DomSubStampsSubFragment undoingDomSubStamps =
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
             this.hubStamp(), hub.currentFrame().revertStamp(), 0);
 
-    AccountSnapshot preRollBackAccountSnapshot = postRollBackAccountSnapshot.deepCopy().turnOnWarmth();
+    final AccountSnapshot preRollBackAccountSnapshot =
+        postRollBackAccountSnapshot.deepCopy().turnOnWarmth();
 
-    {
-      // sanity check
-      final int deploymentNumberAtRollback =
-              hub.transients().conflation().deploymentInfo().number(targetAddress);
-      final boolean deploymentStatusAtRollback =
-              hub.transients().conflation().deploymentInfo().isDeploying(targetAddress);
-      Preconditions.checkArgument(deploymentNumberAtRollback == postRollBackAccountSnapshot.deploymentNumber());
-      Preconditions.checkArgument(deploymentStatusAtRollback == postRollBackAccountSnapshot.deploymentStatus());
-    }
+    // sanity check
+    final int deploymentNumberAtRollback =
+        hub.transients().conflation().deploymentInfo().number(targetAddress);
+    final boolean deploymentStatusAtRollback =
+        hub.transients().conflation().deploymentInfo().isDeploying(targetAddress);
+    Preconditions.checkArgument(
+        deploymentNumberAtRollback == postRollBackAccountSnapshot.deploymentNumber());
+    Preconditions.checkArgument(
+        deploymentStatusAtRollback == postRollBackAccountSnapshot.deploymentStatus());
 
     this.addFragment(
-        hub.factories().accountFragment().make(preRollBackAccountSnapshot, postRollBackAccountSnapshot, undoingDomSubStamps));
+        hub.factories()
+            .accountFragment()
+            .make(preRollBackAccountSnapshot, postRollBackAccountSnapshot, undoingDomSubStamps));
   }
 
   private static short maxNumberOfRows(Hub hub) {

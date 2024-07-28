@@ -53,10 +53,6 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHAS
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_EXPONENT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_MODULUS;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_RESULT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_RIPEMD_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_RIPEMD_RESULT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_SHA2_DATA;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_SHA2_RESULT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_RIPEMD_160;
@@ -371,8 +367,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   public static MmuCall forShaTwoOrRipemdCallDataExtraction(
       final Hub hub, PrecompileSubsection precompileSubsection) {
 
-
-    PrecompileScenarioFragment.PrecompileFlag flag = precompileSubsection.precompileScenarioFragment().getFlag();
+    PrecompileScenarioFragment.PrecompileFlag flag =
+        precompileSubsection.precompileScenarioFragment().getFlag();
     Preconditions.checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
 
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
@@ -415,10 +411,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall forShaTwoOrRipemdPartialResultCopy(
-          final Hub hub, PrecompileSubsection precompileSubsection) {
+      final Hub hub, PrecompileSubsection precompileSubsection) {
 
     PrecompileScenarioFragment.PrecompileFlag flag =
-            precompileSubsection.precompileScenarioFragment().getFlag();
+        precompileSubsection.precompileScenarioFragment().getFlag();
 
     Preconditions.checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
     Preconditions.checkArgument(!precompileSubsection.parentReturnDataTarget.isEmpty());

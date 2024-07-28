@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
-
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -29,8 +27,11 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
+
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 public class AccountSection extends TraceSection implements PostRollbackDefer {
 

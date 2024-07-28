@@ -33,11 +33,11 @@ import org.hyperledger.besu.datatypes.Address;
 @RequiredArgsConstructor
 public class RlpAddrSubFragment implements TraceSubFragment {
   private final short recipe;
-  private final Address depAddress;
+  private final Address deploymentAddress;
   private final Bytes32 salt;
   private final Bytes32 keccak;
 
-  public static RlpAddrSubFragment makeFragment(Hub hub, Address createdAddress) {
+  public static RlpAddrSubFragment makeFragment(Hub hub, Address deploymentAddress) {
     final OpCode currentOpCode = hub.opCode();
     switch (currentOpCode) {
       case CREATE2 -> {
@@ -45,11 +45,11 @@ public class RlpAddrSubFragment implements TraceSubFragment {
         final Bytes initCode = OperationAncillaries.callData(hub.currentFrame().frame());
         final Bytes32 hash =
             Hash.keccak256(initCode); // TODO: could be done better, we compute the HASH two times
-        return new RlpAddrSubFragment((short) 2, createdAddress, salt, hash);
+        return new RlpAddrSubFragment((short) 2, deploymentAddress, salt, hash);
       }
       case CREATE -> {
         return new RlpAddrSubFragment(
-            (short) 1, createdAddress, (Bytes32) Bytes32.EMPTY, (Bytes32) Bytes32.EMPTY);
+            (short) 1, deploymentAddress, (Bytes32) Bytes32.EMPTY, (Bytes32) Bytes32.EMPTY);
       }
       default -> throw new IllegalStateException("Unexpected value: " + currentOpCode);
     }
@@ -60,8 +60,8 @@ public class RlpAddrSubFragment implements TraceSubFragment {
     return trace
         .pAccountRlpaddrFlag(true)
         .pAccountRlpaddrRecipe(recipe)
-        .pAccountRlpaddrDepAddrHi(highPart(depAddress))
-        .pAccountRlpaddrDepAddrLo(lowPart(depAddress))
+        .pAccountRlpaddrDepAddrHi(highPart(deploymentAddress))
+        .pAccountRlpaddrDepAddrLo(lowPart(deploymentAddress))
         .pAccountRlpaddrSaltHi(salt.slice(0, LLARGE))
         .pAccountRlpaddrSaltLo(salt.slice(LLARGE, LLARGE))
         .pAccountRlpaddrKecHi(keccak.slice(0, LLARGE))

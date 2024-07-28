@@ -82,11 +82,6 @@ public class NoCodeCallSection extends TraceSection
 
   @Override
   public void runAtReEnter(Hub hub, MessageFrame frame) {
-    if (postCallCalledAccountSnapshot.address().equals(Address.ECREC)) {
-      System.out.printf("HELLO, I'm returning from ECRECOVER\n");
-      System.out.printf("GAS AVAILABLE IN CHILD CONTEXT  %s\n", frame.getRemainingGas());
-    }
-
     // The precompile lines will read the return data, so they need to be added after re-entry.
     this.maybePrecompileLines =
         this.precompileInvocation.map(p -> PrecompileLinesGenerator.generateFor(hub, p));

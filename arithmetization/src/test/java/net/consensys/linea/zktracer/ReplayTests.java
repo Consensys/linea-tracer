@@ -104,4 +104,14 @@ public class ReplayTests {
   void multipleFailingCallToEcrecover() {
     replay("5000544.json.gz");
   }
+
+  @Test
+  void empty_6110052_makesBatchFailing() {
+    replay("6110035-6110064.json.gz");
+  }
+
+  @Test
+  void nonEmpty_6110052_whenAlone() {
+    replay("6110052.json.gz");
+  }
 }

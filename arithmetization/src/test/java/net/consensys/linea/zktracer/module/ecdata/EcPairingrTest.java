@@ -232,8 +232,6 @@ public class EcPairingrTest {
   @MethodSource("ecPairingGenericSource")
   void testEcPairingGenericForScenarioUsingMethodSource(
       String description, List<Arguments> pairings) {
-    System.out.println(description);
-
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < pairings.size(); i++) {
       Arguments pair = pairings.get(i);
@@ -303,27 +301,41 @@ public class EcPairingrTest {
 
     // Test case with maximum number of pairings
     List<Arguments> manyPairings = new ArrayList<>();
-    int PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64;
-    // Due to PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64 limit, the maximum number of pairings for a
-    // single call to ECPRECOMILE is 64
-    for (int i = 0; i < PRECOMPILE_ECPAIRING_MILLER_LOOPS; i++) {
+    final int TOTAL_PAIRINGS_MAX = 64; // = PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64
+    for (int i = 0; i < TOTAL_PAIRINGS_MAX; i++) {
       manyPairings.add(pair(rnd(smallPoints), rnd(largePoints)));
     }
-    // TODO: double check if this is correct
+    allPairings.add(Arguments.of(descriptionOfPairings("64 pairings", manyPairings), manyPairings));
+
+    // Test case small points out of range
+    List<Arguments> smallPointsOutOfRangePairings = new ArrayList<>();
+    final int TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE = 10;
+    for (int i = 0; i < TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE; i++) {
+      smallPointsOutOfRangePairings.add(pair(rnd(smallPointsOutOfRange), rnd(largePoints)));
+    }
     allPairings.add(
         Arguments.of(
-            "64 pairings "
-                + manyPairings.stream()
-                    .flatMap(arguments -> Stream.of(arguments.get()))
-                    .filter(obj -> obj instanceof String)
-                    .map(obj -> (String) obj)
-                    .collect(Collectors.joining(", ")),
-            manyPairings));
+            descriptionOfPairings("small points out of range", smallPointsOutOfRangePairings),
+            smallPointsOutOfRangePairings));
 
     return allPairings.stream();
   }
 
   // Support methods and tests
+  private static String descriptionOfPairings(String header, List<Arguments> pairings) {
+    String description =
+        "["
+            + header
+            + "] "
+            + pairings.stream()
+                .flatMap(arguments -> Stream.of(arguments.get()))
+                .filter(obj -> obj instanceof String)
+                .map(obj -> (String) obj)
+                .collect(Collectors.joining(", "));
+    System.out.println(description);
+    return description;
+  }
+
   // This is a test for a support method
   @Test
   public void testPair() {

@@ -229,8 +229,8 @@ public class EcPairingrTest {
   }
 
   @ParameterizedTest
-  @MethodSource("ecPairingMultipleSource")
-  void testEcPairingMultipleForScenarioUsingMethodSource(List<Arguments> pairings) {
+  @MethodSource("ecPairingGenericSource")
+  void testEcPairingGenericForScenarioUsingMethodSource(List<Arguments> pairings) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     for (int i = 0; i < pairings.size(); i++) {
@@ -295,8 +295,8 @@ public class EcPairingrTest {
     bytecodeRunner.run();
   }
 
-  // Method source of testEcPairingMultipleForScenarioUsingMethodSource
-  private static Stream<List<Arguments>> ecPairingMultipleSource() {
+  // Method source of testEcPairingGenericForScenarioUsingMethodSource
+  private static Stream<List<Arguments>> ecPairingGenericSource() {
     List<List<Arguments>> allPairings = new ArrayList<>();
 
     // Test case with maximum number of pairings

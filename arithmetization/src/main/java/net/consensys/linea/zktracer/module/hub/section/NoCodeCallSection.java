@@ -142,9 +142,13 @@ public class NoCodeCallSection extends TraceSection
           hub,
           ScenarioFragment.forPrecompileEpilogue(
               hub, precompileInvocation.get(), callerCallFrame.id(), calledCallFrameId));
+      System.out.printf("CALLER ADDRESS %s\n", callerCallFrame.address());
+      System.out.printf("CALLEE ADDRESS %s\n", hub.currentFrame().address());
       for (TraceFragment f :
           this.maybePrecompileLines.orElseThrow(
-              () -> new IllegalStateException("missing precompile lines"))) {
+              () ->
+                  new IllegalStateException(
+                      "missing precompile lines for %s".formatted(callerCallFrame.opCode())))) {
         this.addFragment(hub, callerCallFrame, f);
       }
     } else {

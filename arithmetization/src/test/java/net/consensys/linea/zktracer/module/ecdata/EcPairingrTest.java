@@ -227,6 +227,101 @@ public class EcPairingrTest {
     return arguments.stream();
   }
 
+  @ParameterizedTest
+  @MethodSource("ecPairingMultipleSource")
+  void testEcPairingMultipleForScenarioUsingMethodSource(List<Arguments> pairings) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    for (int i = 0; i < pairings.size(); i++) {
+      Arguments pair = pairings.get(i);
+
+      // Extract the values of the pair
+      String Ax = (String) pair.get()[0];
+      String Ay = (String) pair.get()[1];
+      String BxIm = (String) pair.get()[2];
+      String BxRe = (String) pair.get()[3];
+      String ByIm = (String) pair.get()[4];
+      String ByRe = (String) pair.get()[5];
+      System.out.println("###");
+      System.out.println("Ax: " + Ax);
+      System.out.println("Ay: " + Ay);
+      System.out.println("BxIm: " + BxIm);
+      System.out.println("BxRe: " + BxRe);
+      System.out.println("ByIm: " + ByIm);
+      System.out.println("ByRe: " + ByRe);
+
+      // small point: (Ax,Ay)
+      // large point: (BxRe + i*BxIm, ByRe + i*ByIm)
+
+      // Add the pair to the program
+      final int bytesOffset = 192 * i;
+
+      // point supposed to be in C1
+      program
+          .push(Ax) // Ax
+          .push(bytesOffset)
+          .op(OpCode.MSTORE)
+          .push(Ay) // Ay
+          .push(0x20 + bytesOffset)
+          .op(OpCode.MSTORE)
+          // point supposed to be in G2
+          .push(BxIm) // BxIm
+          .push(0x40 + bytesOffset)
+          .op(OpCode.MSTORE)
+          .push(BxRe) // BxRe
+          .push(0x60 + bytesOffset)
+          .op(OpCode.MSTORE)
+          .push(ByIm) // ByIm
+          .push(0x80 + bytesOffset)
+          .op(OpCode.MSTORE)
+          .push(ByRe) // ByRe
+          .push(0xA0 + bytesOffset)
+          .op(OpCode.MSTORE);
+    }
+
+    // Once all the pairs are added, do the call
+    program
+        .push(0x20) // retSize
+        .push(0) // retOffset
+        .push(192 * pairings.size()) // argSize
+        .push(0) // argOffset
+        .push(8) // address
+        .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+        .op(OpCode.STATICCALL);
+
+    // Run the program
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+  }
+
+  // Method source of testEcPairingMultipleForScenarioUsingMethodSource
+  private static Stream<List<Arguments>> ecPairingMultipleSource() {
+    List<List<Arguments>> allPairings = new ArrayList<>();
+
+    // Test case 1
+    List<Arguments> pairings1 =
+        List.of(
+            pair(smallPoints.get(0), largePoints.get(0)),
+            pair(smallPoints.get(1), largePoints.get(1)),
+            pair(smallPoints.get(2), largePoints.get(2)),
+            pair(smallPoints.get(3), largePoints.get(3)));
+    allPairings.add(pairings1);
+
+    // Test case 2
+    List<Arguments> pairings2 =
+        List.of(
+            pair(smallPoints.get(0), largePoints.get(0)),
+            pair(smallPoints.get(1), largePoints.get(1)),
+            pair(smallPoints.get(2), largePoints.get(2)));
+    allPairings.add(pairings2);
+
+    // Test case 3
+    List<Arguments> pairings3 = List.of(pair(smallPoints.get(0), largePoints.get(0)));
+    allPairings.add(pairings3);
+
+    return allPairings.stream();
+  }
+
   // Support methods and tests
   // This is a test for a support method
   @Test

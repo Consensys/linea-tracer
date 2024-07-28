@@ -649,7 +649,7 @@ public class EcDataOperation extends ModuleOperation {
       trace
           .stamp(stamp)
           .id(id)
-          .index(isData ? UnsignedByte.of(i) : UnsignedByte.of(i - nRowsData))
+          .index(isData ? i : i - nRowsData)
           .limb(limb.get(i))
           .totalSize(Bytes.ofUnsignedLong(getTotalSize(ecType, isData)))
           .phase(getPhase(ecType, isData))

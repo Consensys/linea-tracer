@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -242,7 +243,7 @@ public class EcPairingrTest {
       String BxRe = (String) pair.get()[3];
       String ByIm = (String) pair.get()[4];
       String ByRe = (String) pair.get()[5];
-      System.out.println("###");
+      System.out.println("### Pairing " + (i + 1));
       System.out.println("Ax: " + Ax);
       System.out.println("Ay: " + Ay);
       System.out.println("BxIm: " + BxIm);
@@ -298,26 +299,15 @@ public class EcPairingrTest {
   private static Stream<List<Arguments>> ecPairingMultipleSource() {
     List<List<Arguments>> allPairings = new ArrayList<>();
 
-    // Test case 1
-    List<Arguments> pairings1 =
-        List.of(
-            pair(smallPoints.get(0), largePoints.get(0)),
-            pair(smallPoints.get(1), largePoints.get(1)),
-            pair(smallPoints.get(2), largePoints.get(2)),
-            pair(smallPoints.get(3), largePoints.get(3)));
-    allPairings.add(pairings1);
-
-    // Test case 2
-    List<Arguments> pairings2 =
-        List.of(
-            pair(smallPoints.get(0), largePoints.get(0)),
-            pair(smallPoints.get(1), largePoints.get(1)),
-            pair(smallPoints.get(2), largePoints.get(2)));
-    allPairings.add(pairings2);
-
-    // Test case 3
-    List<Arguments> pairings3 = List.of(pair(smallPoints.get(0), largePoints.get(0)));
-    allPairings.add(pairings3);
+    // Test case with maximum number of pairings
+    List<Arguments> manyPairings = new ArrayList<>();
+    int PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64;
+    // Due to PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64 limit, the maximum number of pairings for a
+    // single call to ECPRECOMILE is 64
+    for (int i = 0; i < PRECOMPILE_ECPAIRING_MILLER_LOOPS; i++) {
+      manyPairings.add(pair(rnd(smallPoints), rnd(largePoints)));
+    }
+    allPairings.add(manyPairings);
 
     return allPairings.stream();
   }
@@ -367,5 +357,12 @@ public class EcPairingrTest {
       }
     }
     return argumentsList;
+  }
+
+  private static final Random random = new Random(1);
+
+  private static Arguments rnd(List<Arguments> points) {
+    int index = random.nextInt(points.size());
+    return points.get(index);
   }
 }

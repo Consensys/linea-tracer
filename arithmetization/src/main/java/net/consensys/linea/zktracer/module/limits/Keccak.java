@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.limits;
 
-import static net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType.KECCAK;
+import static net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType.KECCAK;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;

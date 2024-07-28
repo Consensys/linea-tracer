@@ -136,7 +136,7 @@ public class CallFrame {
   @Getter @Setter private MemorySpan outputDataSpan;
 
   /** where this frame is expected to write its outputData within its parent's memory space. */
-  @Getter private MemorySpan parentReturnDataTarget = MemorySpan.empty();
+  @Getter private MemorySpan returnDataTargetInCaller = MemorySpan.empty();
 
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
@@ -247,7 +247,7 @@ public class CallFrame {
     this.depth = depth;
     this.outputDataSpan = MemorySpan.empty();
     this.returnDataSpan = MemorySpan.empty();
-    this.parentReturnDataTarget = MemorySpan.empty(); // TODO: fix me Franklin
+    this.returnDataTargetInCaller = MemorySpan.empty(); // TODO: fix me Franklin
   }
 
   public boolean isRoot() {

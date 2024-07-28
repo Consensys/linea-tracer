@@ -22,31 +22,30 @@ import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
-import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /** Note: {@link PrecompileSubsection}'s are created at child context entry by the call section */
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public class PrecompileSubsection
-    implements ContextExitDefer, ContextReEntryDefer, PostRollbackDefer, PostTransactionDefer {
+    implements ImmediateContextEntryDefer,
+        ContextExitDefer,
+        ContextReEntryDefer,
+        PostRollbackDefer {
 
   public final CallSection callSection;
 
@@ -54,32 +53,32 @@ public class PrecompileSubsection
   private final List<TraceFragment> fragments;
 
   /** The (potentially empty) call data of the precompile call */
-  final Bytes callData;
+  public Bytes callData;
 
   /** The input data for the precompile */
-  private final MemorySpan callDataMemorySpan;
+  public MemorySpan callDataMemorySpan;
 
   /** Where the caller wants the precompile return data to be stored */
-  private final MemorySpan parentReturnDataTarget;
+  public MemorySpan parentReturnDataTarget;
 
   /** The (potentially empty) return data of the precompile call */
-  @Setter Bytes returnData;
+  @Setter public Bytes returnData;
 
   /** Leftover gas of the caller */
-  final long callerGas;
+  long callerGas;
 
   /** Available gas of the callee */
-  final long calleeGas;
+  long calleeGas;
 
   /** The gas to return to the caller context */
   long returnGas;
 
   boolean successBit;
 
-  final PrecompileScenarioFragment precompileScenarioFragment;
+  public final PrecompileScenarioFragment precompileScenarioFragment;
 
   /** A snapshot of the caller's memory before the execution of the precompile */
-  final Bytes callerMemorySnapshot;
+  public Bytes callerMemorySnapshot;
 
   /**
    * Default creator specifying the max number of rows the precompile processing subsection can
@@ -88,27 +87,30 @@ public class PrecompileSubsection
   public PrecompileSubsection(final Hub hub, final CallSection callSection) {
     this.callSection = callSection;
     fragments = new ArrayList<>(maxNumberOfLines());
-    callDataMemorySpan = hub.currentFrame().callDataInfo().memorySpan();
-    callData = hub.messageFrame().getInputData();
-    parentReturnDataTarget = hub.currentFrame().parentReturnDataTarget();
-    callerGas = hub.callStack().parent().frame().getRemainingGas();
-    calleeGas = hub.messageFrame().getRemainingGas();
-
-    final MessageFrame callerFrame = hub.callStack().parent().frame();
-    callerMemorySnapshot = extractContiguousLimbsFromMemory(callerFrame, callDataMemorySpan);
 
     precompileScenarioFragment =
-        new PrecompileScenarioFragment(this, PRC_UNDEFINED_SCENARIO, PRC_UNDEFINED);
+        new PrecompileScenarioFragment(this, PRC_SUCCESS_WONT_REVERT, PRC_UNDEFINED);
     fragments.add(precompileScenarioFragment);
   }
 
   protected short maxNumberOfLines() {
     return 0;
   }
-  ;
 
-  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
-    returnGas = frame.frame().getRemainingGas();
+  @Override
+  public void resolveUponEnteringChildContext(Hub hub) {
+    callerGas = hub.callStack().parent().frame().getRemainingGas();
+    calleeGas = hub.messageFrame().getRemainingGas();
+    callDataMemorySpan = hub.currentFrame().callDataInfo().memorySpan();
+    callData = hub.messageFrame().getInputData();
+    parentReturnDataTarget = hub.currentFrame().returnDataTargetInCaller();
+
+    final MessageFrame callerFrame = hub.callStack().parent().frame();
+    callerMemorySnapshot = extractContiguousLimbsFromMemory(callerFrame, callDataMemorySpan);
+  }
+
+  public void resolveUponExitingContext(Hub hub, CallFrame callFrame) {
+    returnGas = callFrame.frame().getRemainingGas();
   }
 
   @Override
@@ -118,17 +120,31 @@ public class PrecompileSubsection
 
     if (successBit) {
       hub.defers().scheduleForPostRollback(this, frame);
-      precompileScenarioFragment.setScenario(PRC_SUCCESS_WONT_REVERT);
+    } else {
+      // TODO: extensions of this class are responsible for setting either
+      //  PRC_FAILURE_KNOWN_TO_HUB / PRC_FAILURE_KNOWN_TO_RAM
+      //  in case of a failure.
+      //  In any case, the failure scenario is required to have been set
+      //  before context re-entry.
+      Preconditions.checkArgument(precompileScenarioFragment.isPrcFailure());
     }
   }
 
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
+    // only successful PRC calls should enter here
+    Preconditions.checkArgument(
+        precompileScenarioFragment.getScenario() == PRC_SUCCESS_WONT_REVERT);
+
     precompileScenarioFragment.setScenario(PRC_SUCCESS_WILL_REVERT);
   }
 
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
+  public int exoModuleOperationId() {
+    return this.callSection.hubStamp() + 1;
+  }
+
+  public int returnDataContextNumber() {
+    return exoModuleOperationId();
+  }
 }

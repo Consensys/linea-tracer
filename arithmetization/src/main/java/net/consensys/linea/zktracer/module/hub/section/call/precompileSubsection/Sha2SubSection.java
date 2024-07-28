@@ -17,55 +17,81 @@ package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsectio
 
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_SHA2;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
-import static net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType.SHA256;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
+import static net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType.SHA256;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.PrecompileCommonOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class Sha2SubSection extends PrecompileSubsection {
+  final ImcFragment firstImcFragment;
+  final PrecompileCommonOobCall oobCall;
+
   public Sha2SubSection(Hub hub, CallSection callSection) {
     super(hub, callSection);
+
     precompileScenarioFragment.setFlag(PRC_SHA2_256);
-    PrecompileCommonOobCall oobCall = new PrecompileCommonOobCall(OOB_INST_SHA2);
-  }
+    oobCall = new PrecompileCommonOobCall(OOB_INST_SHA2);
 
-  // 4 = 1 + 3 (scenario row + up to 3 miscellaneous fragments)
-  @Override
-  protected short maxNumberOfLines() {
-    return (short) (successBit ? 4 : 2);
-  }
+    firstImcFragment = ImcFragment.empty(hub);
+    firstImcFragment.callOob(oobCall);
 
-  @Override
-  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
-    // TODO
+    if (!oobCall.isHubSuccess()) {
+      precompileScenarioFragment.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
+    }
   }
 
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
     super.resolveAtContextReEntry(hub, callFrame);
-    final boolean successBit = bytesToBoolean(callFrame.frame().getStackItem(0));
-    if (successBit) {
-      // may get updated later
-      precompileScenarioFragment.setScenario(
-          PrecompileScenarioFragment.PrecompileScenario.PRC_SUCCESS_WONT_REVERT);
+
+    // sanity check
+    Preconditions.checkArgument(successBit == oobCall.isHubSuccess());
+
+    if (!successBit) {
+      return;
+    }
+
+    // NOTE: we trigger the SHAKIRA module for nonempty call data only
+    if (!callData.isEmpty()) {
       ShakiraDataOperation shakiraCall =
           new ShakiraDataOperation(
-              this.callSection.hubStamp(), SHA256, callData, callFrame.frame().getReturnData());
+              this.callSection.hubStamp(), SHA256, callData(), callFrame.frame().getReturnData());
       hub.shakiraData().call(shakiraCall);
-    } else {
-      precompileScenarioFragment.setScenario(
-          PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB);
+
+      MmuCall mmuCall = MmuCall.forShaTwoOrRipemdCallDataExtraction(hub, this);
+      firstImcFragment.callMmu(mmuCall);
+    }
+
+    // the full result transfer happens in all cases
+    ImcFragment secondImcFragment = ImcFragment.empty(hub);
+    this.fragments().add(secondImcFragment);
+
+    MmuCall fullOutputDataTransfer = MmuCall.forShaTwoOrRipemdFullResultTransfer(hub, this);
+    secondImcFragment.callMmu(fullOutputDataTransfer);
+
+    ImcFragment thirdImcFragment = ImcFragment.empty(hub);
+    this.fragments().add(thirdImcFragment);
+
+    // the partial copy of return data happens only if the caller context
+    // provided a nonempty return data target
+    if (!parentReturnDataTarget.isEmpty()) {
+      MmuCall partialReturnDataCopy = MmuCall.forShaTwoOrRipemdPartialResultCopy(hub, this);
+      thirdImcFragment.callMmu(partialReturnDataCopy);
     }
   }
 
+  // 4 = 1 + 3 (scenario row + up to 3 miscellaneous fragments)
   @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {}
+  protected short maxNumberOfLines() {
+    return 4;
+    // Note: we don't have the successBit available at the moment
+    // and can't provide the "real" value (2 in case of FKTH.)
+  }
 }

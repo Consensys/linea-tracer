@@ -30,7 +30,7 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
-import net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -118,7 +118,7 @@ public final class RipemdBlocks implements Module {
 
         if (hub.transients().op().gasAllowanceForCall() >= gasNeeded) {
           this.shakiraData.call(
-              new ShakiraDataOperation(hub.stamp(), ShakiraPrecompileType.RIPEMD, inputData));
+              new ShakiraDataOperation(hub.stamp(), ShakiraHashType.RIPEMD, inputData));
 
           this.counts.push(this.counts.pop() + blockCount);
         }

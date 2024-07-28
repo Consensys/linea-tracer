@@ -15,10 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
+import java.util.Map;
+
 import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
@@ -28,7 +31,6 @@ import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection
 public class PrecompileScenarioFragment implements TraceFragment {
 
   public enum PrecompileScenario {
-    PRC_UNDEFINED_SCENARIO,
     PRC_FAILURE_KNOWN_TO_HUB,
     PRC_FAILURE_KNOWN_TO_RAM,
     PRC_SUCCESS_WILL_REVERT,
@@ -45,7 +47,55 @@ public class PrecompileScenarioFragment implements TraceFragment {
     PRC_ECADD,
     PRC_ECMUL,
     PRC_ECPAIRING,
-    PRC_BLAKE2F
+    PRC_BLAKE2F;
+
+    private static final Map<PrecompileFlag, Integer> DATA_PHASE_MAP =
+        Map.of(
+            PRC_ECRECOVER, GlobalConstants.PHASE_ECRECOVER_DATA,
+            PRC_SHA2_256, GlobalConstants.PHASE_SHA2_DATA,
+            PRC_RIPEMD_160, GlobalConstants.PHASE_RIPEMD_DATA,
+            // IDENTITY not supported
+            // MODEXP not supported
+            PRC_ECADD, GlobalConstants.PHASE_ECADD_DATA,
+            PRC_ECMUL, GlobalConstants.PHASE_ECMUL_DATA,
+            PRC_ECPAIRING, GlobalConstants.PHASE_ECPAIRING_DATA
+            // BLAKE2f not supported
+            );
+
+    private static final Map<PrecompileFlag, Integer> RESULT_PHASE_MAP =
+        Map.of(
+            PRC_ECRECOVER, GlobalConstants.PHASE_ECRECOVER_RESULT,
+            PRC_SHA2_256, GlobalConstants.PHASE_SHA2_RESULT,
+            PRC_RIPEMD_160, GlobalConstants.PHASE_RIPEMD_RESULT,
+            // IDENTITY not supported
+            PRC_MODEXP, GlobalConstants.PHASE_MODEXP_RESULT,
+            PRC_ECADD, GlobalConstants.PHASE_ECADD_RESULT,
+            PRC_ECMUL, GlobalConstants.PHASE_ECMUL_RESULT,
+            PRC_ECPAIRING, GlobalConstants.PHASE_ECPAIRING_RESULT,
+            PRC_BLAKE2F, GlobalConstants.PHASE_BLAKE_RESULT);
+
+    public int dataPhase() {
+      if (!DATA_PHASE_MAP.containsKey(this)) {
+        throw new IllegalArgumentException("Precompile not supported by the DATA_PHASE_MAP");
+      }
+      return DATA_PHASE_MAP.get(this);
+    }
+
+    public int resultPhase() {
+      if (!RESULT_PHASE_MAP.containsKey(this)) {
+        throw new IllegalArgumentException("Precompile not supported by the RESULT_PHASE_MAP");
+      }
+      return RESULT_PHASE_MAP.get(this);
+    }
+
+    public boolean isAnyOf(PrecompileFlag... flags) {
+      for (PrecompileFlag flag : flags) {
+        if (this == flag) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   final PrecompileSubsection precompileSubSection;
@@ -61,9 +111,13 @@ public class PrecompileScenarioFragment implements TraceFragment {
     this.scenario = scenario;
   }
 
+  public boolean isPrcFailure() {
+    return scenario == PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB
+        || scenario == PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM;
+  }
+
   @Override
   public Trace trace(Trace trace) {
-    Preconditions.checkArgument(this.scenario != PrecompileScenario.PRC_UNDEFINED_SCENARIO);
     Preconditions.checkArgument(this.flag != PrecompileFlag.PRC_UNDEFINED);
     return trace
         .peekAtScenario(true)

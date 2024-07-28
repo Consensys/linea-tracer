@@ -95,9 +95,6 @@ public class CallSection extends TraceSection
 
   private Wei value;
 
-  // The successBit will only be set
-  // if the call is acted upon i.e. if the call is un-exceptional and un-aborted
-  private boolean successBit;
   private AccountSnapshot postRollbackCalleeSnapshot;
   private AccountSnapshot postRollbackCallerSnapshot;
 
@@ -180,6 +177,15 @@ public class CallSection extends TraceSection
 
     if (isPrecompile(calleeAddress)) {
       scenarioFragment.setScenario(CALL_PRC_UNDEFINED);
+      // Account rows for precompile are traced at contextReEntry
+
+      precompileSubsection =
+          ADDRESS_TO_PRECOMPILE.get(preOpcodeCalleeSnapshot.address()).apply(hub, this);
+
+      hub.defers().scheduleForImmediateContextEntry(precompileSubsection); // gas & input data, ...
+      hub.defers()
+          .scheduleForContextReEntry(
+              precompileSubsection, hub.callStack().parent()); // success bit & return data
     } else {
       scenarioFragment.setScenario(
           world.get(calleeAddress).hasCode() ? CALL_SMC_UNDEFINED : CALL_EOA_SUCCESS_WONT_REVERT);
@@ -285,14 +291,7 @@ public class CallSection extends TraceSection
         this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
       }
 
-      case CALL_PRC_UNDEFINED -> {
-        // Account rows for precompile are traced at contextReEntry
-        precompileSubsection =
-            ADDRESS_TO_PRECOMPILE.get(preOpcodeCalleeSnapshot.address()).apply(hub, this);
-
-        hub.defers().scheduleForContextReEntry(precompileSubsection, hub.callStack().parent());
-        hub.defers().scheduleForPostTransaction(precompileSubsection);
-      }
+      case CALL_PRC_UNDEFINED -> {}
 
       case CALL_EOA_SUCCESS_WONT_REVERT -> {
         // Account rows for EOA calls are traced at contextReEntry
@@ -326,7 +325,9 @@ public class CallSection extends TraceSection
     // TODO: what follows assumes that the caller's stack has been updated
     //  to contain the success bit of the call at traceContextReEntry.
     //  See issue #872.
-    successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
+    // The successBit will only be set
+    // if the call is acted upon i.e. if the call is un-exceptional and un-aborted
+    final boolean successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
 
     reEntryCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
     reEntryCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());

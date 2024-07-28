@@ -24,9 +24,9 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHAS
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_SHA2_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_SHA2_RESULT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
-import static net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType.KECCAK;
-import static net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType.RIPEMD;
-import static net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType.SHA256;
+import static net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType.KECCAK;
+import static net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType.RIPEMD;
+import static net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType.SHA256;
 import static net.consensys.linea.zktracer.module.shakiradata.Trace.INDEX_MAX_RESULT;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
@@ -41,7 +41,7 @@ import org.hyperledger.besu.crypto.Hash;
 @Accessors(fluent = true)
 public class ShakiraDataOperation extends ModuleOperation {
 
-  private final ShakiraPrecompileType precompileType;
+  private final ShakiraHashType precompileType;
   private final Bytes hashInput;
   @Getter private final long ID;
   private final int inputSize;
@@ -51,7 +51,7 @@ public class ShakiraDataOperation extends ModuleOperation {
 
   // TODO: deprecate in favour of the version with the return data argument
   public ShakiraDataOperation(
-      final long hubStamp, final ShakiraPrecompileType precompileType, final Bytes hashInput) {
+      final long hubStamp, final ShakiraHashType precompileType, final Bytes hashInput) {
     this.precompileType = precompileType;
     this.ID = hubStamp + 1;
     this.hashInput = hashInput;
@@ -63,7 +63,7 @@ public class ShakiraDataOperation extends ModuleOperation {
 
   public ShakiraDataOperation(
       final long hubStamp,
-      final ShakiraPrecompileType precompileType,
+      final ShakiraHashType precompileType,
       final Bytes hashInput,
       final Bytes result) {
     this.precompileType = precompileType;

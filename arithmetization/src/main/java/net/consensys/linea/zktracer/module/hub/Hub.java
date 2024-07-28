@@ -814,6 +814,10 @@ public class Hub implements Module {
     return 1 + this.stamp();
   }
 
+  public int precompileId() {
+    return newChildContextNumber();
+  }
+
   public CallFrame currentFrame() {
     if (this.callStack().isEmpty()) {
       return CallFrame.EMPTY;

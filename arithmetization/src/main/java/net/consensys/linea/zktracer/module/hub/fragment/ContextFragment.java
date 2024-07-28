@@ -164,8 +164,8 @@ public class ContextFragment implements TraceFragment {
         .pContextCallDataContextNumber(parent.contextNumber())
         .pContextCallDataOffset(callFrame.callDataInfo().memorySpan().offset())
         .pContextCallDataSize(callFrame.callDataInfo().memorySpan().length())
-        .pContextReturnAtOffset(callFrame.parentReturnDataTarget().offset())
-        .pContextReturnAtCapacity(callFrame.parentReturnDataTarget().length())
+        .pContextReturnAtOffset(callFrame.returnDataTargetInCaller().offset())
+        .pContextReturnAtCapacity(callFrame.returnDataTargetInCaller().length())
         .pContextUpdate(updateReturnData)
         .pContextReturnDataContextNumber(returnDataContextNumber)
         //             callFrame.id() == 0

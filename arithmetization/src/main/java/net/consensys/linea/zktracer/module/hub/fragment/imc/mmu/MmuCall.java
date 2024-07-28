@@ -59,7 +59,10 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHAS
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_SHA2_RESULT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_RIPEMD_160;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static org.apache.tuweni.bytes.Bytes.minimalBytes;
 
 import java.util.Optional;
 
@@ -78,9 +81,11 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.Create;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.Create2;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.ExtCodeCopy;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.ReturnFromDeployment;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.LogData;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -303,8 +308,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .targetId(hub.callStack().getById(hub.currentFrame().parentFrameId()).contextNumber())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
-        .referenceOffset(hub.currentFrame().parentReturnDataTarget().offset())
-        .referenceSize(hub.currentFrame().parentReturnDataTarget().length());
+        .referenceOffset(hub.currentFrame().returnDataTargetInCaller().offset())
+        .referenceSize(hub.currentFrame().returnDataTargetInCaller().length());
   }
 
   public static MmuCall txInit(final Hub hub) {
@@ -363,62 +368,68 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     }
   }
 
-  private static MmuCall forShaTwoOrRipemdCallDataExtraction(
-      final Hub hub, PrecompileInvocation p, final boolean isSha) {
+  public static MmuCall forShaTwoOrRipemdCallDataExtraction(
+      final Hub hub, PrecompileSubsection precompileSubsection) {
 
-    final int precompileContextNumber = p.hubStamp() + 1;
+
+    PrecompileScenarioFragment.PrecompileFlag flag = precompileSubsection.precompileScenarioFragment().getFlag();
+    Preconditions.checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
 
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
-        .targetId(precompileContextNumber)
-        .sourceOffset(EWord.of(p.callDataSource().offset()))
-        .size(p.callDataSource().length())
-        .referenceSize(p.callDataSource().length())
-        .phase(isSha ? PHASE_SHA2_DATA : PHASE_RIPEMD_DATA)
+        .sourceRamBytes(Optional.of(precompileSubsection.callerMemorySnapshot()))
+        .targetId(precompileSubsection.exoModuleOperationId())
+        .exoBytes(Optional.of(precompileSubsection.callData))
+        .sourceOffset(EWord.of(precompileSubsection.callDataMemorySpan.offset()))
+        .size(precompileSubsection.callDataMemorySpan.length())
+        .referenceSize(precompileSubsection.callDataMemorySpan.length())
+        .phase(flag.dataPhase())
         .setRipSha();
   }
 
-  private static MmuCall forShaTwoOrRipemdFullResultTransfer(
-      final Hub hub, PrecompileInvocation p, final boolean isSha) {
+  public static MmuCall forShaTwoOrRipemdFullResultTransfer(
+      final Hub hub, PrecompileSubsection precompileSubsection) {
 
-    final int precompileContextNumber = p.hubStamp() + 1;
+    PrecompileScenarioFragment.PrecompileFlag flag =
+        precompileSubsection.precompileScenarioFragment().getFlag();
+    Preconditions.checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
 
-    if (p.callDataSource().isEmpty()) {
+    final boolean isShaTwo = flag == PRC_SHA2_256;
+
+    if (precompileSubsection.callDataMemorySpan.isEmpty()) {
       return new MmuCall(hub, MMU_INST_MSTORE)
-          .targetId(precompileContextNumber)
+          .targetId(precompileSubsection.exoModuleOperationId())
           .targetOffset(EWord.ZERO)
-          .limb1(isSha ? bigIntegerToBytes(EMPTY_SHA2_HI) : Bytes.ofUnsignedLong(EMPTY_RIPEMD_HI))
-          .limb2(isSha ? bigIntegerToBytes(EMPTY_SHA2_LO) : bigIntegerToBytes(EMPTY_RIPEMD_LO));
+          .limb1(isShaTwo ? bigIntegerToBytes(EMPTY_SHA2_HI) : minimalBytes(EMPTY_RIPEMD_HI))
+          .limb2(isShaTwo ? bigIntegerToBytes(EMPTY_SHA2_LO) : bigIntegerToBytes(EMPTY_RIPEMD_LO));
     } else {
       return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-          .sourceId(precompileContextNumber)
-          .targetId(precompileContextNumber)
+          .sourceId(precompileSubsection.exoModuleOperationId())
+          .targetId(precompileSubsection.returnDataContextNumber())
+          .exoBytes(Optional.of(precompileSubsection.returnData))
+          .targetRamBytes(Optional.of(Bytes.EMPTY))
           .size(WORD_SIZE)
-          .phase(isSha ? PHASE_SHA2_RESULT : PHASE_RIPEMD_RESULT)
+          .phase(flag.resultPhase())
           .setRipSha();
     }
   }
 
-  private static MmuCall forShaTwoOrRipemdPartialResultCopy(
-      final Hub hub, PrecompileInvocation p, final boolean isSha) {
+  public static MmuCall forShaTwoOrRipemdPartialResultCopy(
+          final Hub hub, PrecompileSubsection precompileSubsection) {
 
-    final int precompileContextNumber = p.hubStamp() + 1;
+    PrecompileScenarioFragment.PrecompileFlag flag =
+            precompileSubsection.precompileScenarioFragment().getFlag();
+
+    Preconditions.checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
+    Preconditions.checkArgument(!precompileSubsection.parentReturnDataTarget.isEmpty());
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
-        .sourceId(precompileContextNumber)
+        .sourceId(precompileSubsection.returnDataContextNumber())
         .targetId(hub.currentFrame().contextNumber())
         .sourceOffset(EWord.ZERO)
         .size(WORD_SIZE)
-        .referenceOffset(p.requestedReturnDataTarget().offset())
-        .referenceSize(p.requestedReturnDataTarget().length());
-  }
-
-  public static MmuCall forSha2(final Hub hub, PrecompileInvocation p, int i) {
-    return forShaTwoOrRipemdFullResultTransfer(hub, p, true);
-  }
-
-  public static MmuCall forRipeMd160(final Hub hub, PrecompileInvocation p, int i) {
-    return forShaTwoOrRipemdFullResultTransfer(hub, p, false);
+        .referenceOffset(precompileSubsection.parentReturnDataTarget.offset())
+        .referenceSize(precompileSubsection.parentReturnDataTarget.length());
   }
 
   public static MmuCall forIdentity(final Hub hub, final PrecompileInvocation p, int i) {

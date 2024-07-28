@@ -25,6 +25,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
@@ -43,8 +44,12 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 /** Note: {@link PrecompileSubsection}'s are created at child context entry by the call section */
 @RequiredArgsConstructor
 @Getter
+@Accessors(fluent = true)
 public class PrecompileSubsection
     implements ContextExitDefer, ContextReEntryDefer, PostRollbackDefer, PostTransactionDefer {
+
+  public final CallSection callSection;
+
   /** List of fragments of the precompile specific subsection */
   private final List<TraceFragment> fragments;
 
@@ -81,17 +86,20 @@ public class PrecompileSubsection
    * contain.
    */
   public PrecompileSubsection(final Hub hub, final CallSection callSection) {
+    this.callSection = callSection;
     fragments = new ArrayList<>(maxNumberOfLines());
     callDataMemorySpan = hub.currentFrame().callDataInfo().memorySpan();
     callData = hub.messageFrame().getInputData();
     parentReturnDataTarget = hub.currentFrame().parentReturnDataTarget();
     callerGas = hub.callStack().parent().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
-    precompileScenarioFragment =
-        new PrecompileScenarioFragment(this, PRC_UNDEFINED_SCENARIO, PRC_UNDEFINED);
 
     final MessageFrame callerFrame = hub.callStack().parent().frame();
     callerMemorySnapshot = extractContiguousLimbsFromMemory(callerFrame, callDataMemorySpan);
+
+    precompileScenarioFragment =
+        new PrecompileScenarioFragment(this, PRC_UNDEFINED_SCENARIO, PRC_UNDEFINED);
+    fragments.add(precompileScenarioFragment);
   }
 
   protected short maxNumberOfLines() {

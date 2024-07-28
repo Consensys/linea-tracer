@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Slf4j

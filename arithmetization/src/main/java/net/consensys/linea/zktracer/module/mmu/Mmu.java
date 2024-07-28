@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
 import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;

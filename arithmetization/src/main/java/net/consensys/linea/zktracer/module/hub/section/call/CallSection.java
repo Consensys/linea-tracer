@@ -37,10 +37,10 @@ import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
@@ -397,6 +397,12 @@ public class CallSection extends TraceSection
       case CALL_SMC_SUCCESS_WONT_REVERT,
           CALL_PRC_SUCCESS_WONT_REVERT -> completeSmcSuccessWillRevertOrPrcSuccessWillRevert(
           factory);
+      case CALL_PRC_FAILURE -> {
+        // Note: no undoing required
+        //  - account snapshots were taken with value transfers undone
+        //  - precompiles are warm by definition so no warmth undoing required
+        return;
+      }
       default -> throw new IllegalArgumentException("Illegal CALL scenario");
     }
   }
@@ -410,7 +416,7 @@ public class CallSection extends TraceSection
     Preconditions.checkArgument(scenario.noLongerUndefined());
 
     if (scenario.isPrecompileScenario()) {
-      this.addFragments(precompileSubsection.getFragments());
+      this.addFragments(precompileSubsection.fragments());
     }
 
     this.addFragment(finalContextFragment);

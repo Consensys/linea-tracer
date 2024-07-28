@@ -27,7 +27,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;

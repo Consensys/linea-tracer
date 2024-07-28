@@ -82,12 +82,12 @@ public class PrecompileScenarioFragment implements TraceFragment {
         .pScenarioPrcSuccessCallerWontRevert(scenario == PrecompileScenario.PRC_SUCCESS_WONT_REVERT)
         .pScenarioPrcFailureKnownToHub(scenario == PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB)
         .pScenarioPrcFailureKnownToRam(scenario == PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM)
-        .pScenarioPrcCallerGas(precompileSubSection.getCallerGas())
-        .pScenarioPrcCalleeGas(precompileSubSection.getCalleeGas())
-        .pScenarioPrcReturnGas(precompileSubSection.getReturnGas())
-        .pScenarioPrcCdo(precompileSubSection.getCallDataMemorySpan().offset())
-        .pScenarioPrcCds(precompileSubSection.getCallDataMemorySpan().length())
-        .pScenarioPrcRao(precompileSubSection.getParentReturnDataTarget().offset())
-        .pScenarioPrcRac(precompileSubSection.getParentReturnDataTarget().length());
+        .pScenarioPrcCallerGas(precompileSubSection.callerGas())
+        .pScenarioPrcCalleeGas(precompileSubSection.calleeGas())
+        .pScenarioPrcReturnGas(precompileSubSection.returnGas())
+        .pScenarioPrcCdo(precompileSubSection.callDataMemorySpan().offset())
+        .pScenarioPrcCds(precompileSubSection.callDataMemorySpan().length())
+        .pScenarioPrcRao(precompileSubSection.parentReturnDataTarget().offset())
+        .pScenarioPrcRac(precompileSubSection.parentReturnDataTarget().length());
   }
 }

@@ -230,10 +230,10 @@ public class Hub implements Module {
   @Getter private final Mmu mmu;
 
   // precompile-linked modules
-  private final BlakeModexpData blakeModexpData = new BlakeModexpData(this.wcp);
+  @Getter private final BlakeModexpData blakeModexpData = new BlakeModexpData(this.wcp);
   @Getter private final EcData ecData;
-  private final ModexpEffectiveCall modexpEffectiveCall;
-  private final ShakiraData shakiraData = new ShakiraData(this.wcp);
+  @Getter private final ModexpEffectiveCall modexpEffectiveCall;
+  @Getter private final ShakiraData shakiraData = new ShakiraData(this.wcp);
   /*
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits

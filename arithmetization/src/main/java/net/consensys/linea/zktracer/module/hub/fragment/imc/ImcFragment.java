@@ -23,11 +23,9 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 

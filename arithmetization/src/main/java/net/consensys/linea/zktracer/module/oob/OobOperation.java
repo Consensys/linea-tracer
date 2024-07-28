@@ -91,24 +91,24 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallDataLoadOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CallOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.CreateOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.DeploymentOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.JumpiOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.ReturnDataCopyOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.SstoreOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.opcodes.XCallOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fCallDataSizeOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.Blake2fParamsOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpCallDataSizeOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpExtractOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpLeadOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpPricingOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.ModexpXbsOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.oob.precompiles.PrecompileCommonOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CreateOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.DeploymentOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpiOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.ReturnDataCopyOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.SstoreOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.XCallOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Blake2fCallDataSizeOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Blake2fParamsOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpCallDataSizeOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpExtractOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpLeadOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpPricingOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpXbsOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.PrecompileCommonOobCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -213,7 +213,7 @@ public class OobOperation extends ModuleOperation {
   }
 
   private void setFlagsAndWghtSumAndIncomingInstAndMaxCt() {
-    switch (oobCall.oobInstruction()) {
+    switch (oobCall.oobInstructionValue()) {
       case OOB_INST_JUMP -> {
         isJump = true;
         wghtSum = OOB_INST_JUMP;

@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.StpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;

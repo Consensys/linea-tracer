@@ -31,7 +31,7 @@ import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.MxpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;

@@ -17,8 +17,8 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExplogExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class ExpSection extends TraceSection {

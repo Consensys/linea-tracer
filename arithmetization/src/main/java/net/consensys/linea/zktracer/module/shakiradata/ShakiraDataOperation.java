@@ -49,6 +49,7 @@ public class ShakiraDataOperation extends ModuleOperation {
   private final int indexMaxData;
   private Bytes32 result;
 
+  // TODO: deprecate in favour of the version with the return data argument
   public ShakiraDataOperation(
       final long hubStamp, final ShakiraPrecompileType precompileType, final Bytes hashInput) {
     this.precompileType = precompileType;
@@ -58,6 +59,21 @@ public class ShakiraDataOperation extends ModuleOperation {
     this.lastNBytes = (short) (inputSize % LLARGE == 0 ? LLARGE : inputSize % LLARGE);
     // this.indexMaxData = Math.ceilDiv(inputSize, LLARGE) - 1;
     this.indexMaxData = (inputSize + LLARGEMO) / LLARGE - 1;
+  }
+
+  public ShakiraDataOperation(
+      final long hubStamp,
+      final ShakiraPrecompileType precompileType,
+      final Bytes hashInput,
+      final Bytes result) {
+    this.precompileType = precompileType;
+    this.ID = hubStamp + 1;
+    this.hashInput = hashInput;
+    this.inputSize = hashInput.size();
+    this.lastNBytes = (short) (inputSize % LLARGE == 0 ? LLARGE : inputSize % LLARGE);
+    // this.indexMaxData = Math.ceilDiv(inputSize, LLARGE) - 1;
+    this.indexMaxData = (inputSize + LLARGEMO) / LLARGE - 1;
+    this.result = Bytes32.leftPad(result);
   }
 
   @Override

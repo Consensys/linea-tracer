@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.limits;
 
+import static net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType.KECCAK;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -31,7 +33,6 @@ import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
-import net.consensys.linea.zktracer.module.shakiradata.ShakiraPrecompileType;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -118,8 +119,7 @@ public class Keccak implements Module {
       final long codeOffset = Words.clampedToLong(frame.getStackItem(codeOffsetStackItemOffset));
       final Bytes byteCode = frame.shadowReadMemory(codeOffset, codeSize);
 
-      this.shakiraData.call(
-          new ShakiraDataOperation(hub.stamp(), ShakiraPrecompileType.KECCAK, byteCode));
+      this.shakiraData.call(new ShakiraDataOperation(hub.stamp(), KECCAK, byteCode));
     }
   }
 

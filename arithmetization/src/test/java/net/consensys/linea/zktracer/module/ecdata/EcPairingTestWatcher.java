@@ -52,6 +52,13 @@ public class EcPairingTestWatcher implements TestWatcher {
     if (!testsToWatch.contains(testName)) {
       return;
     }
+    String arguments = EcPairingArgumentsSingleton.getInstance().getArguments();
+
+    /*
+    System.out.println("#######################################################");
+    System.out.println(arguments);
+    System.out.println("#######################################################");
+    */
 
     // Compute temporary file name based on the name of the test (camel case to snake case) and
     // timestamp
@@ -77,10 +84,8 @@ public class EcPairingTestWatcher implements TestWatcher {
     // Write the test parameters to the file
     Optional<Method> testMethod = context.getTestMethod();
     if (testMethod.isPresent()) {
-      String params = context.getDisplayName().replaceAll("\\[\\d+]", "").replaceAll(" ", "");
-      // TODO: manage the case in which the display name is truncated
       try (FileWriter writer = new FileWriter(filePath.toFile(), true)) {
-        writer.append(params).append("\n");
+        writer.append(arguments).append("\n");
       } catch (IOException e) {
         throw new RuntimeException(e);
       }

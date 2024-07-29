@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.ecdata;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -214,6 +215,10 @@ public class EcPairingrTest {
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
+
+    // Set arguments for TestWatcher
+    EcPairingArgumentsSingleton.getInstance()
+        .setArguments(Ax + "," + Ay + "," + BxIm + "," + BxRe + "," + ByIm + "," + ByRe);
   }
 
   // Method source of testEcPairingSingleForScenarioUsingMethodSource
@@ -237,7 +242,8 @@ public class EcPairingrTest {
   @ParameterizedTest
   @CsvFileSource(
       resources =
-          "/ecpairing/test_ec_pairing_generic_for_scenario_using_method_source_success_placeholder.csv")
+          "/ecpairing/test_ec_pairing_generic_for_scenario_using_method_source_failed_placeholder.csv",
+      maxCharsPerColumn = 100000)
   void testEcPairingGenericForScenarioUsingCsv(String description, String pairingsAsString) {
     testEcPairingGenericForScenario(description, pairingsAsString);
   }
@@ -245,7 +251,8 @@ public class EcPairingrTest {
   // Body of testEcPairingGenericForScenarioUsingMethodSource and
   // testEcPairingGenericForScenarioUsingCsv
   private void testEcPairingGenericForScenario(String description, String pairingsAsString) {
-    System.out.println(description);
+    assertFalse(description.contains(" "), "Description cannot contain spaces");
+
     List<Arguments> pairings = pairingsAsStringToArgumentsList(pairingsAsString);
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
@@ -259,6 +266,7 @@ public class EcPairingrTest {
       String BxRe = (String) pair.get()[3];
       String ByIm = (String) pair.get()[4];
       String ByRe = (String) pair.get()[5];
+      /*
       System.out.println("### Pairing " + (i + 1));
       System.out.println("Ax: " + Ax);
       System.out.println("Ay: " + Ay);
@@ -266,6 +274,7 @@ public class EcPairingrTest {
       System.out.println("BxRe: " + BxRe);
       System.out.println("ByIm: " + ByIm);
       System.out.println("ByRe: " + ByRe);
+       */
 
       // small point: (Ax,Ay)
       // large point: (BxRe + i*BxIm, ByRe + i*ByIm)
@@ -309,6 +318,9 @@ public class EcPairingrTest {
     // Run the program
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
+
+    // Set arguments for TestWatcher
+    EcPairingArgumentsSingleton.getInstance().setArguments(description + "," + pairingsAsString);
   }
 
   // Method source of testEcPairingGenericForScenarioUsingMethodSource
@@ -317,21 +329,21 @@ public class EcPairingrTest {
 
     // Test case with maximum number of pairings
     List<Arguments> manyPairings = new ArrayList<>();
-    final int TOTAL_PAIRINGS_MAX = 1; // = PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64
+    final int TOTAL_PAIRINGS_MAX = 64; // = PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64
     for (int i = 0; i < TOTAL_PAIRINGS_MAX; i++) {
       manyPairings.add(pair(rnd(smallPoints), rnd(largePoints)));
     }
-    allPairings.add(Arguments.of("64 pairings", argumentsListToPairingsAsString(manyPairings)));
+    allPairings.add(Arguments.of("64pairings", argumentsListToPairingsAsString(manyPairings)));
 
     // Test case small points out of range
     List<Arguments> smallPointsOutOfRangePairings = new ArrayList<>();
-    final int TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE = 1;
+    final int TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE = 10;
     for (int i = 0; i < TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE; i++) {
       smallPointsOutOfRangePairings.add(pair(rnd(smallPointsOutOfRange), rnd(largePoints)));
     }
     allPairings.add(
         Arguments.of(
-            "small points out of range",
+            "smallPointsOutOfRange",
             argumentsListToPairingsAsString(smallPointsOutOfRangePairings)));
 
     return allPairings.stream();

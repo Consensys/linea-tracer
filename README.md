@@ -15,13 +15,11 @@ the [Apache 2.0 license](https://github.com/Consensys/linea-monorepo/blob/main/L
 
 If you already have an understanding of the tech stack, use our [Get Started](docs/get-started.md) guide.
 
-## Looking for the Linea code?
-
-### Plugins
+### Looking for plugins?
 
 Discover [existing plugins](docs/plugins.md) and understand the [plugin release process](docs/plugin-release.md). 
 
-### Tech stack
+## Looking for the Linea code?
 
 Linea's stack is made up of multiple repositories, these include:
 
@@ -53,8 +51,8 @@ Consider starting with a ["good first issue"](https://github.com/ConsenSys/linea
 
 Before contributing, ensure you're familiar with:
 
-- Our [contribution guide](https://github.com/Consensys/linea-monorepo/blob/main/docs/contribute.md)
-- Our [code of conduct](https://github.com/Consensys/linea-monorepo/blob/main/docs/code-of-conduct.md)
+- Our [Linea contribution guide](https://github.com/Consensys/linea-monorepo/blob/main/docs/contribute.md)
+- Our [Linea code of conduct](https://github.com/Consensys/linea-monorepo/blob/main/docs/code-of-conduct.md)
 - The [Besu contribution guide](https://github.com/Consensys/linea-monorepo/blob/main/https://wiki.hyperledger.org/display/BESU/Coding+Conventions), for Besu:Linea related contributions
 
 

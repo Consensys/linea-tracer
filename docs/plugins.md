@@ -1,6 +1,7 @@
 # Linea plugins
 
 ## Shared components
+
 ### Profitability calculator
 The profitability calculator is a shared component, that is used to check if a tx is profitable.
 It is applied, with different configuration to:
@@ -8,7 +9,7 @@ It is applied, with different configuration to:
 2. Tx validation for the txpool
 3. Tx selection during block creation
 
-#### CLI Options
+#### CLI options
 
 | Option Name              | Default Value | Command Line Argument                     |
 |--------------------------|---------------|-------------------------------------------|
@@ -24,9 +25,9 @@ It is applied, with different configuration to:
 | TX_POOL_ENABLE_CHECK_API     | true          | `--plugin-linea-tx-pool-profitability-check-api-enabled`  |
 | TX_POOL_ENABLE_CHECK_P2P     | false         | `--plugin-linea-tx-pool-profitability-check-p2p-enabled`  |
 
-### L1 L2 Bridge
+### L1<>L2 bridge
 
-#### CLI Options
+#### CLI options
 
 | Option Name                  | Default Value | Command Line Argument                       |
 |------------------------------|---------------|---------------------------------------------|
@@ -34,7 +35,7 @@ It is applied, with different configuration to:
 | L1L2_BRIDGE_LOG_TOPIC        |               | `--plugin-linea-l1l2-bridge-topic`          |
 
 ## Sequencer
-### Transaction Selection - LineaTransactionSelectorPlugin
+### Transaction selection - LineaTransactionSelectorPlugin
 
 This plugin extends the standard transaction selection protocols employed by Besu for block creation. 
 It leverages the TransactionSelectionService to manage and customize the process of transaction selection. 
@@ -42,7 +43,7 @@ This includes setting limits such as `TraceLineLimit`, `maxBlockGas`, and `maxCa
 of a transaction.
 
 
-#### CLI Options
+#### CLI options
 
 | Option Name                      | Default Value        | Command Line Argument                             |
 |----------------------------------|----------------------|---------------------------------------------------|
@@ -59,7 +60,7 @@ transaction pool. It leverages the PluginTransactionValidatorService to manage a
 process of transaction validation. This includes, for example, setting a deny list of addresses
 that are not allowed to add transactions to the pool.
 
-#### CLI Options
+#### CLI options
 
 | Option Name             | Default Value     | Command Line Argument                 |
 |-------------------------|-------------------|---------------------------------------|
@@ -69,7 +70,8 @@ that are not allowed to add transactions to the pool.
 
 ## RPC
 
-### Linea Estimate Gas
+### Linea estimate gas
+
 #### `linea_estimateGas`
 
 This endpoint simulates a transaction and returns the estimated gas used ( as the standard `eth_estimateGas`) plus the estimated gas price to be used when submitting the tx. 
@@ -103,7 +105,7 @@ The endpoint generates conflated file traces.
 - `tracerVersion`: _string_ - The tracer version. It will return an error if the
   requested version is different from the tracer runtime
 
-## Continuous Tracing
+## Continuous tracing
 
 The continuous tracing plugin allows to trace every newly imported block and use Corset to check if the constraints are
 valid. In case of an error a message will be sent to the configured Slack channel.

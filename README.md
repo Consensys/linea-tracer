@@ -1,182 +1,63 @@
-# Linea Arithmetization (zkEVM)
+# Linea arithmetization (zkEVM)
 
-A Linea tracing implementation for [Hyperledger Besu](https://github.com/hyperledger/besu) based on
-an [existing implementation in Go](https://github.com/Consensys/zk-evm/).
+This repository hosts a Linea tracing implementation for 
+[Hyperledger Besu](https://github.com/hyperledger/besu) based on an 
+[existing implementation in Go](https://github.com/Consensys/zk-evm/).
 
-## Development Setup
+It serves developers by making the Linea tech stack open source under 
+the [Apache 2.0 license](https://github.com/Consensys/linea-monorepo/blob/main/LICENSE).
 
-### Install Java 21
+## What is Linea?
 
-```
-brew install openjdk@21
-```
+[Linea](https://linea.build) is a developer-ready layer 2 network scaling Ethereum. It's secured with a zero-knowledge rollup, built on lattice-based cryptography, and powered by [Consensys](https://consensys.io).
 
-### Install the Go toolchain
+## Get started
 
-### Install Rust
+If you already have an understanding of the tech stack, use our [Get Started](docs/get-started.md) guide.
 
-```
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+## Looking for the Linea code?
 
-# Use local git executable to fetch from repos (needed for private repos)
-echo "net.git-fetch-with-cli=true" >> .cargo/config.toml
-```
+### Plugins
 
-### Install Corset
+Discover [existing plugins](docs/plugins.md) and understand the [plugin release process](docs/plugin-release.md). 
 
-```shell
-cargo install --git ssh://git@github.com/ConsenSys/corset --locked --force
-```
+### Tech stack
 
-### Update Constraints [Submodule](https://github.com/Consensys/zkevm-constraints/)
+Linea's stack is made up of multiple repositories, these include:
 
-```shell
-git submodule update --init --recursive
-```
+- [linea-monorepo](https://github.com/Consensys/linea-monorepo): The main repository for the Linea stack & network 
+- [linea-besu](https://github.com/Consensys/linea-besu): Fork of Besu to implement the Linea-Besu client
+- [linea-sequencer](https://github.com/Consensys/linea-sequencer): A set of Linea-Besu plugins for the sequencer and RPC nodes
+- [linea-arithmetization](https://github.com/Consensys/linea-arithmetization): Linea-Besu plugins to implement the constraints for the circuits used to construct the zero-knowledge proofs
+- [linea-constraints](https://github.com/Consensys/linea-constraints): Constraints applied to the arithmetization, and ultimately to the circuits
+- Coming soon: [linea-specification](https://github.com/Consensys/linea-specification): Home of the zk-EVM specification
 
-### Install [pre-commit](https://pre-commit.com/)
+Linea abstracts away the complexity of this technical architecture to allow developers to:
 
-```shell
-pip install --user pre-commit
+- [Bridge tokens](https://docs.linea.build/developers/guides/bridge)
+- [Deploy a contract](https://docs.linea.build/developers/quickstart/deploy-smart-contract)
+- [Run a node](https://docs.linea.build/developers/guides/run-a-node)
 
-# For macOS users.
-brew install pre-commit
-```
+... and more.
 
-Then run `pre-commit install` to set up git hook scripts.
-Used hooks can be found [here](.pre-commit-config.yaml).
+## How to contribute
 
-______________________________________________________________________
+Contributions of any kind are welcome!
 
-NOTE
+1. [Create an issue](https://github.com/Consensys/linea-monorepo/issues)
+> If the proposed update is non-trivial, also tag us for discussion.
+2. Submit the update as a pull request from your [fork of this repo](https://github.com/Consensys/linea-monorepo/fork), and tag us for review. 
+> Include the issue number in the pull request description and (optionally) in the branch name.
 
-> `pre-commit` aids in running checks (end of file fixing,
-> markdown linting, linting, runs tests, json validation, etc.)
-> before you perform your git commits.
+Consider starting with a ["good first issue"](https://github.com/ConsenSys/linea-monorepo/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
-______________________________________________________________________
+Before contributing, ensure you're familiar with:
 
-### Run tests
+- Our [contribution guide](https://github.com/Consensys/linea-monorepo/blob/main/docs/contribute.md)
+- Our [code of conduct](https://github.com/Consensys/linea-monorepo/blob/main/docs/code-of-conduct.md)
+- The [Besu contribution guide](https://github.com/Consensys/linea-monorepo/blob/main/https://wiki.hyperledger.org/display/BESU/Coding+Conventions), for Besu:Linea related contributions
 
-```shell
-# Run all tests
-./gradlew clean test
 
-# Run only unit tests
-./gradlew clean unitTests
+### Useful links
 
-# Run only acceptance tests
-./gradlew clean acceptanceTests
-
-# Run EVM test suite BlockchainTests
-./gradlew clean referenceBlockchainTests
-
-# Run EVM test suite GeneralStateTests
-./gradlew clean referenceGeneralStateTests
-
-# Run all EVM test suite reference tests
-./gradlew clean referenceTests
-
-# Run single reference test via gradle, e.g for net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583
-./gradlew :reference-tests:referenceTests --tests "net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583"
-```
-
-______________________________________________________________________
-
-NOTE
-
-> Please be aware if the reference test code generation tasks `blockchainReferenceTests` and
-> `generalStateReferenceTests` do not generate any java code, than probably you are missing the Ethereum tests
-> submodule which you can clone via `git submodule update --init --recursive`.
-
-______________________________________________________________________
-
-### Capturing a replay
-
-For debugging and inspection purposes, it is possible to capture a _replay_, _i.e._ all the minimal information required to replay a series of blocks as they played on the blockchain, which is done with `scripts/capture.pl`.
-
-A typical invocation would be:
-
-```
-scripts/capture.pl --start 1300923
-```
-
-which would capture a replay of block #1300923 and store it in `arithmetization/src/test/resources/replays`. More options are available, refer to `scripts/capture.pl -h`.
-
-## IntelliJ IDEA Setup
-
-### Enable Annotation Processing
-
-- Go to `Settings | Build, Execution, Deployment | Compiler | Annotation Processors` and tick the following
-  checkbox:
-
-  ![idea_enable_annotation_processing_setting.png](images/idea_enable_annotation_processing_setting.png)
-
-______________________________________________________________________
-
-NOTE
-
-> This setting is required to avoid IDE compilation errors because of the [Lombok](https://projectlombok.org/features/)
-> library used for code generation of boilerplate Java code such as:
->
-> - Getters/Setters (via [`@Getter/@Setter`](https://projectlombok.org/features/GetterSetter))
-> - Class log instances (via [`@Slf4j`](https://projectlombok.org/features/log))
-> - Builder classes (via [`@Builder`](https://projectlombok.org/features/Builder))
-> - Constructors (
->   via [`@NoArgsConstructor/@RequiredArgsConstructor/@AllArgsConstructor`](https://projectlombok.org/features/constructor))
-> - etc.
->
-> Learn more about how Java annotation processing
-> works [here](https://www.baeldung.com/java-annotation-processing-builder).
-
-______________________________________________________________________
-
-### Set Up IDE Code Re-formatting
-
-- Install [Checkstyle](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea) plugin and set IDE code
-  reformatting to comply with the project's Checkstyle configuration:
-
-  - Go to `Settings | Editor | Code Style | Java | <hamburger menu> | Import Scheme | Checkstyle configuration`:
-
-    ![idea_checkstyle_reformat.png](images/idea_checkstyle_reformat.png)
-
-    and select `<project_root>/config/checkstyle.xml`.
-
-### Install Optional Plugins
-
-- Install [Spotless Gradle](https://plugins.jetbrains.com/plugin/18321-spotless-gradle) plugin to re-format through
-  the IDE according to spotless configuration.
-
-## Debugging Traces
-
-- JSON files can be debugged with the following command:
-
-```shell
-corset check -T <JSON_FILE> -v zkevm-constraints/zkevm.bin
-```
-
-## Disable Corset Expansion
-
-Corset expansion means that generated traces are checked as accurately
-as possible.  However, this slows testing down to some extent.  It can
-be easily disabled in IntelliJ:
-   
-   - Go to `Run | Edit Configurations`
-   
-   ![idea_disable_corset_expansion.png](images/idea_disable_corset_expansion.png)
-
-   and add `CORSET_FLAGS=` under `Environment Variables`.  This turns
-   off all expansion modes, including field arithmetic.
-   
-## Plugins
-
-Plugins are documented [here](PLUGINS.md).
-
-## Release Process
-Here are the steps for releasing a new version of the plugins:
-  1. Create a tag with the release version number in the format vX.Y.Z (e.g., v0.2.0 creates a release version 0.2.0).
-  2. Push the tag to the repository.
-  3. GitHub Actions will automatically create a draft release for the release tag.
-  4. Once the release workflow completes, update the release notes, uncheck "Draft", and publish the release.
-
-Note: Release tags (of the form v*) are protected and can only be pushed by organization and/or repository owners.
+[Reach out, or learn more](https://github.com/Consensys/linea-monorepo/blob/main/readme.md#useful-links).

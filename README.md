@@ -44,12 +44,12 @@ Linea abstracts away the complexity of this technical architecture to allow deve
 
 Contributions of any kind are welcome!
 
-1. [Create an issue](https://github.com/Consensys/linea-monorepo/issues)
+1. [Create an issue](https://github.com/Consensys/linea-arithmetization/issues).
 > If the proposed update is non-trivial, also tag us for discussion.
-2. Submit the update as a pull request from your [fork of this repo](https://github.com/Consensys/linea-monorepo/fork), and tag us for review. 
+2. Submit the update as a pull request from your [fork of this repo](https://github.com/Consensys/linea-arithmetization/fork), and tag us for review. 
 > Include the issue number in the pull request description and (optionally) in the branch name.
 
-Consider starting with a ["good first issue"](https://github.com/ConsenSys/linea-monorepo/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+Consider starting with a ["good first issue"](https://github.com/ConsenSys/linea-arithmetization/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 Before contributing, ensure you're familiar with:
 
@@ -60,4 +60,8 @@ Before contributing, ensure you're familiar with:
 
 ### Useful links
 
-[Reach out, or learn more](https://github.com/Consensys/linea-monorepo/blob/main/readme.md#useful-links).
+- [Linea docs](https://docs.linea.build)
+- [Linea blog](https://linea.mirror.xyz)
+- [Support](https://support.linea.build)
+- [Discord](https://discord.gg/linea)
+- [Twitter](https://twitter.com/LineaBuild)

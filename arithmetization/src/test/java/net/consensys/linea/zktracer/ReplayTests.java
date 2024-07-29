@@ -106,6 +106,16 @@ public class ReplayTests {
   }
 
   @Test
+  void empty_6110052_makesBatchFailing___old() {
+    replay("6110035-6110064-old-replay.json.gz");
+  }
+
+  @Test
+  void nonEmpty_6110052_whenAlone___old() {
+    replay("6110052-old-replay.json.gz");
+  }
+
+  @Test
   void empty_6110052_makesBatchFailing() {
     replay("6110035-6110064.json.gz");
   }

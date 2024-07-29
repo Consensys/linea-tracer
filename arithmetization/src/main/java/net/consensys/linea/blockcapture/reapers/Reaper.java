@@ -59,8 +59,6 @@ public class Reaper {
     tx.getTo().ifPresent(this::touchAddress);
   }
 
-  public void exitTransaction(boolean success) {}
-
   public void touchAddress(final Address address) {
     this.addresses.touch(address);
   }

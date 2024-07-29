@@ -15,22 +15,17 @@
 
 package net.consensys.linea.blockcapture;
 
-import java.util.List;
-import java.util.Set;
-
 import com.google.gson.Gson;
 import net.consensys.linea.blockcapture.reapers.Reaper;
 import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.AddressUtils;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
@@ -69,21 +64,8 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
   }
 
   @Override
-  public void traceStartTransaction(WorldView worldView, Transaction transaction) {
+  public void tracePrepareTransaction(WorldView worldView, Transaction transaction) {
     this.reaper.enterTransaction(transaction);
-  }
-
-  @Override
-  public void traceEndTransaction(
-      WorldView worldView,
-      Transaction tx,
-      boolean status,
-      Bytes output,
-      List<Log> logs,
-      long gasUsed,
-      Set<Address> selfDestructs,
-      long timeNs) {
-    this.reaper.exitTransaction(status);
   }
 
   /**

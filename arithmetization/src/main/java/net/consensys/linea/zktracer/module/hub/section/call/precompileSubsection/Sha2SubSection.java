@@ -60,29 +60,29 @@ public class Sha2SubSection extends PrecompileSubsection {
 
     // NOTE: we trigger the SHAKIRA module for nonempty call data only
     if (!callData.isEmpty()) {
-      ShakiraDataOperation shakiraCall =
+      final ShakiraDataOperation shakiraCall =
           new ShakiraDataOperation(
               this.callSection.hubStamp(), SHA256, callData(), callFrame.frame().getReturnData());
       hub.shakiraData().call(shakiraCall);
 
-      MmuCall mmuCall = MmuCall.forShaTwoOrRipemdCallDataExtraction(hub, this);
+      final MmuCall mmuCall = MmuCall.forShaTwoOrRipemdCallDataExtraction(hub, this);
       firstImcFragment.callMmu(mmuCall);
     }
 
     // the full result transfer happens in all cases
-    ImcFragment secondImcFragment = ImcFragment.empty(hub);
+    final ImcFragment secondImcFragment = ImcFragment.empty(hub);
     this.fragments().add(secondImcFragment);
 
-    MmuCall fullOutputDataTransfer = MmuCall.forShaTwoOrRipemdFullResultTransfer(hub, this);
+    final MmuCall fullOutputDataTransfer = MmuCall.forShaTwoOrRipemdFullResultTransfer(hub, this);
     secondImcFragment.callMmu(fullOutputDataTransfer);
 
-    ImcFragment thirdImcFragment = ImcFragment.empty(hub);
+    final ImcFragment thirdImcFragment = ImcFragment.empty(hub);
     this.fragments().add(thirdImcFragment);
 
     // the partial copy of return data happens only if the caller context
     // provided a nonempty return data target
     if (!parentReturnDataTarget.isEmpty()) {
-      MmuCall partialReturnDataCopy = MmuCall.forShaTwoOrRipemdPartialResultCopy(hub, this);
+      final MmuCall partialReturnDataCopy = MmuCall.forShaTwoOrRipemdPartialResultCopy(hub, this);
       thirdImcFragment.callMmu(partialReturnDataCopy);
     }
   }

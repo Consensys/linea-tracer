@@ -41,10 +41,10 @@ import org.hyperledger.besu.crypto.Hash;
 @Accessors(fluent = true)
 public class ShakiraDataOperation extends ModuleOperation {
 
-  private final ShakiraHashType precompileType;
+  @Getter private final ShakiraHashType precompileType;
   private final Bytes hashInput;
   @Getter private final long ID;
-  private final int inputSize;
+  @Getter private final int inputSize;
   @Getter private final short lastNBytes;
   private final int indexMaxData;
   private Bytes32 result;

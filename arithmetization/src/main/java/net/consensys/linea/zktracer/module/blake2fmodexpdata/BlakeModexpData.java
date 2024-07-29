@@ -31,6 +31,9 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
+import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -39,6 +42,9 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @RequiredArgsConstructor
 public class BlakeModexpData implements Module {
   private final Wcp wcp;
+  private final ModexpEffectiveCall modexpEffectiveCall;
+  private final BlakeEffectiveCall blakeEffectiveCall;
+  private final BlakeRounds blakeRounds;
   private StackedSet<BlakeModexpDataOperation> operations = new StackedSet<>();
   private List<BlakeModexpDataOperation> sortedOperations = new ArrayList<>();
   private int numberOfOperationsAtStartTx = 0;
@@ -89,8 +95,15 @@ public class BlakeModexpData implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  public void call(final BlakeModexpDataOperation operation) {
-    this.operations.add(operation);
+  public void callModexp(final ModexpComponents modexpComponents) {
+    operations.add(new BlakeModexpDataOperation(modexpComponents));
+    modexpEffectiveCall.addPrecompileLimit(1);
+  }
+
+  public void callBlake(final BlakeComponents blakeComponents) {
+    operations.add(new BlakeModexpDataOperation(blakeComponents));
+    blakeEffectiveCall.addPrecompileLimit(1);
+    blakeRounds.addPrecompileLimit(blakeComponents.r().toInt());
   }
 
   @Override

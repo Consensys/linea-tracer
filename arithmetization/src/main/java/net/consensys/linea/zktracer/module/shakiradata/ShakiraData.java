@@ -25,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
+import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -36,6 +38,9 @@ public class ShakiraData implements Module {
   private final List<ShakiraDataOperation> sortedOperations = new ArrayList<>();
   private int numberOfOperationsAtStartTx = 0;
   private final ShakiraDataComparator comparator = new ShakiraDataComparator();
+
+  private final Sha256Blocks sha256Blocks;
+  private final RipemdBlocks ripemdBlocks;
 
   @Override
   public String moduleKey() {
@@ -56,7 +61,7 @@ public class ShakiraData implements Module {
   @Override
   public int lineCount() {
     return this.operations.lineCount()
-        + 1; /*because the lookup HUB -> SHAKIRA requires at least two padding rows. TODO: should be done by Corset */
+        + 1; /*because the lookup HUB -> SHAKIRA requires at least two padding rows. TODO: shouldn't it be done by Corset via the spilling ? */
   }
 
   @Override
@@ -68,6 +73,14 @@ public class ShakiraData implements Module {
     this.operations.add(operation);
     this.wcp.callGT(operation.lastNBytes(), 0);
     this.wcp.callLEQ(operation.lastNBytes(), LLARGE);
+
+    switch (operation.precompileType()) {
+      case SHA256 -> sha256Blocks.addPrecompileLimit(operation.inputSize());
+      case KECCAK -> { // TODO
+      }
+      case RIPEMD -> ripemdBlocks.addPrecompileLimit(operation.inputSize());
+      default -> throw new IllegalArgumentException("Precompile type not supported by SHAKIRA");
+    }
   }
 
   @Override

@@ -33,8 +33,8 @@ public class Exp implements Module {
   /** A list of the operations to trace */
   private final StackedSet<ExpOperation> chunks = new StackedSet<>();
 
-  private final Wcp wcp;
   private final Hub hub;
+  private final Wcp wcp;
 
   @Override
   public String moduleKey() {

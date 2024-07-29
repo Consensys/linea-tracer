@@ -18,18 +18,10 @@ package net.consensys.linea.zktracer.module.hub.precompiles;
 import lombok.Builder;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
-import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.Precompile;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.internal.Words;
+
+// TODO: delete me please
 
 @Accessors(fluent = true)
 @Builder
@@ -64,114 +56,109 @@ public record PrecompileInvocation(
     return !this.hubFailure && !this.ramFailure;
   }
 
-  public boolean hubSuccess() {
-    return !this.hubFailure;
-  }
-
-  public boolean ramSuccess() {
-    return !this.ramFailure;
-  }
-
+  // TODO: will die
   public static PrecompileInvocation of(final Hub hub, Precompile p) {
-    final boolean hubFailure =
-        switch (p) {
-          case EC_RECOVER -> !EcRecoverEffectiveCall.hasEnoughGas(hub);
-          case SHA2_256 -> !Sha256Blocks.hasEnoughGas(hub);
-          case RIPEMD_160 -> !RipemdBlocks.hasEnoughGas(hub);
-          case IDENTITY -> switch (hub.opCode()) {
-            case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-              final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
-              if (target.equals(Address.ID)) {
-                final long dataByteLength = hub.transients().op().callDataSegment().length();
-                final long wordCount = (dataByteLength + 31) / 32;
-                final long gasNeeded = 15 + 3 * wordCount;
-
-                yield hub.transients().op().gasAllowanceForCall() < gasNeeded;
-              } else {
-                throw new IllegalStateException();
-              }
-            }
-            default -> throw new IllegalStateException();
-          };
-          case MODEXP -> false;
-          case EC_ADD -> hub.transients().op().gasAllowanceForCall() < 150;
-          case EC_MUL -> hub.transients().op().gasAllowanceForCall() < 6000;
-          case EC_PAIRING -> EcPairingFinalExponentiations.isHubFailure(hub);
-          case BLAKE2F -> BlakeRounds.isHubFailure(hub);
-        };
-
-    final boolean ramFailure =
-        !hubFailure
-            && switch (p) {
-              case EC_RECOVER, IDENTITY, RIPEMD_160, SHA2_256 -> false;
-              case MODEXP -> ModexpEffectiveCall.gasCost(hub)
-                  > hub.transients().op().gasAllowanceForCall();
-              case EC_ADD -> EcAddEffectiveCall.isRamFailure(hub);
-              case EC_MUL -> EcMulEffectiveCall.isRamFailure(hub);
-              case EC_PAIRING -> EcPairingFinalExponentiations.isRamFailure(hub);
-              case BLAKE2F -> BlakeRounds.isRamFailure(hub);
-            };
-
-    final long opCodeGas = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).total();
-
-    final long precompilePrice =
-        hubFailure || ramFailure
-            ? hub.transients().op().gasAllowanceForCall()
-            : switch (p) {
-              case EC_RECOVER -> EcRecoverEffectiveCall.gasCost();
-              case SHA2_256 -> Sha256Blocks.gasCost(hub);
-              case RIPEMD_160 -> RipemdBlocks.gasCost(hub);
-              case IDENTITY -> switch (hub.opCode()) {
-                case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
-                  final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
-                  if (target.equals(Address.ID)) {
-                    final long dataByteLength = hub.transients().op().callDataSegment().length();
-                    final long wordCount = (dataByteLength + 31) / 32;
-                    yield 15 + 3 * wordCount;
-                  } else {
-                    throw new IllegalStateException();
-                  }
-                }
-                default -> throw new IllegalStateException();
-              };
-              case MODEXP -> ModexpEffectiveCall.gasCost(hub);
-              case EC_ADD -> EcAddEffectiveCall.gasCost();
-              case EC_MUL -> EcMulEffectiveCall.gasCost();
-              case EC_PAIRING -> EcPairingFinalExponentiations.gasCost(hub);
-              case BLAKE2F -> BlakeRounds.gasCost(hub);
-            };
-
-    final long returnGas =
-        hubFailure || ramFailure
-            ? 0
-            : hub.transients().op().gasAllowanceForCall() - precompilePrice;
-
-    PrecompileMetadata metadata =
-        switch (p) {
-          case EC_RECOVER -> EcRecoverMetadata.of(hub);
-          case SHA2_256 -> null;
-          case RIPEMD_160 -> null;
-          case IDENTITY -> null;
-          case MODEXP -> ModExpMetadata.of(hub);
-          case EC_ADD -> null;
-          case EC_MUL -> null;
-          case EC_PAIRING -> null;
-          case BLAKE2F -> BlakeRounds.metadata(hub);
-        };
-
-    return PrecompileInvocation.builder()
-        .precompile(p)
-        .metadata(metadata)
-        .callDataSource(hub.transients().op().callDataSegment())
-        .requestedReturnDataTarget(hub.transients().op().returnDataRequestedSegment())
-        .hubFailure(hubFailure)
-        .ramFailure(ramFailure)
-        .opCodeGas(opCodeGas)
-        .precompilePrice(precompilePrice)
-        .gasAtCall(hub.messageFrame().getRemainingGas())
-        .gasAllowance(hub.transients().op().gasAllowanceForCall())
-        .returnGas(returnGas)
-        .hubStamp(hub.stamp())
-        .build();
+    // final boolean hubFailure =
+    //     switch (p) {
+    //       case EC_RECOVER -> !EcRecoverEffectiveCall.hasEnoughGas(hub);
+    //       case SHA2_256 -> !Sha256Blocks.hasEnoughGas(hub);
+    //       case RIPEMD_160 -> !RipemdBlocks.hasEnoughGas(hub);
+    //       case IDENTITY -> switch (hub.opCode()) {
+    //         case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
+    //           final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
+    //           if (target.equals(Address.ID)) {
+    //             final long dataByteLength = hub.transients().op().callDataSegment().length();
+    //             final long wordCount = (dataByteLength + 31) / 32;
+    //             final long gasNeeded = 15 + 3 * wordCount;
+    //
+    //             yield hub.transients().op().gasAllowanceForCall() < gasNeeded;
+    //           } else {
+    //             throw new IllegalStateException();
+    //           }
+    //         }
+    //         default -> throw new IllegalStateException();
+    //       };
+    //       case MODEXP -> false;
+    //       case EC_ADD -> hub.transients().op().gasAllowanceForCall() < 150;
+    //       case EC_MUL -> hub.transients().op().gasAllowanceForCall() < 6000;
+    //       case EC_PAIRING -> EcPairingFinalExponentiations.isHubFailure(hub);
+    //       case BLAKE2F -> BlakeRounds.isHubFailure(hub);
+    //     };
+    //
+    // final boolean ramFailure =
+    //     !hubFailure
+    //         && switch (p) {
+    //           case EC_RECOVER, IDENTITY, RIPEMD_160, SHA2_256 -> false;
+    //           case MODEXP -> ModexpEffectiveCall.gasCost(hub)
+    //               > hub.transients().op().gasAllowanceForCall();
+    //           case EC_ADD -> EcAddEffectiveCall.isRamFailure(hub);
+    //           case EC_MUL -> EcMulEffectiveCall.isRamFailure(hub);
+    //           case EC_PAIRING -> EcPairingFinalExponentiations.isRamFailure(hub);
+    //           case BLAKE2F -> BlakeRounds.isRamFailure(hub);
+    //         };
+    //
+    // final long opCodeGas = Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).total();
+    //
+    // final long precompilePrice =
+    //     hubFailure || ramFailure
+    //         ? hub.transients().op().gasAllowanceForCall()
+    //         : switch (p) {
+    //           case EC_RECOVER -> EcRecoverEffectiveCall.gasCost();
+    //           case SHA2_256 -> Sha256Blocks.gasCost(hub);
+    //           case RIPEMD_160 -> RipemdBlocks.gasCost(hub);
+    //           case IDENTITY -> switch (hub.opCode()) {
+    //             case CALL, STATICCALL, DELEGATECALL, CALLCODE -> {
+    //               final Address target = Words.toAddress(hub.messageFrame().getStackItem(1));
+    //               if (target.equals(Address.ID)) {
+    //                 final long dataByteLength = hub.transients().op().callDataSegment().length();
+    //                 final long wordCount = (dataByteLength + 31) / 32;
+    //                 yield 15 + 3 * wordCount;
+    //               } else {
+    //                 throw new IllegalStateException();
+    //               }
+    //             }
+    //             default -> throw new IllegalStateException();
+    //           };
+    //           case MODEXP -> ModexpEffectiveCall.gasCost(hub);
+    //           case EC_ADD -> EcAddEffectiveCall.gasCost();
+    //           case EC_MUL -> EcMulEffectiveCall.gasCost();
+    //           case EC_PAIRING -> EcPairingFinalExponentiations.gasCost(hub);
+    //           case BLAKE2F -> BlakeRounds.gasCost(hub);
+    //         };
+    //
+    // final long returnGas =
+    //     hubFailure || ramFailure
+    //         ? 0
+    //         : hub.transients().op().gasAllowanceForCall() - precompilePrice;
+    //
+    // PrecompileMetadata metadata =
+    //     switch (p) {
+    //       case EC_RECOVER -> EcRecoverMetadata.of(hub);
+    //       case SHA2_256 -> null;
+    //       case RIPEMD_160 -> null;
+    //       case IDENTITY -> null;
+    //       case MODEXP -> ModExpMetadata.of(hub);
+    //       case EC_ADD -> null;
+    //       case EC_MUL -> null;
+    //       case EC_PAIRING -> null;
+    //       case BLAKE2F -> BlakeRounds.metadata(hub);
+    //     };
+    //
+    // return PrecompileInvocation.builder()
+    //     .precompile(p)
+    //     .metadata(metadata)
+    //     .callDataSource(hub.transients().op().callDataSegment())
+    //     .requestedReturnDataTarget(hub.transients().op().returnDataRequestedSegment())
+    //     .hubFailure(hubFailure)
+    //     .ramFailure(ramFailure)
+    //     .opCodeGas(opCodeGas)
+    //     .precompilePrice(precompilePrice)
+    //     .gasAtCall(hub.messageFrame().getRemainingGas())
+    //     .gasAllowance(hub.transients().op().gasAllowanceForCall())
+    //     .returnGas(returnGas)
+    //     .hubStamp(hub.stamp())
+    //     .build();
+    //
+    return PrecompileInvocation.builder().build();
   }
 }

@@ -83,6 +83,7 @@ public class Keccak implements Module {
     return (int) r;
   }
 
+  // TODO should die (but not yet implemented at the right place
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
     final OpCode opCode = this.hub.opCode();

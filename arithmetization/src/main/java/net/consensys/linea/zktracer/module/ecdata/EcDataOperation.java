@@ -85,7 +85,7 @@ public class EcDataOperation extends ModuleOperation {
   @Getter private final long id;
   private final Bytes data;
 
-  private final int ecType;
+  @Getter private final int ecType;
   private final int nRows;
   private final int nRowsData;
   private final int nRowsResult;

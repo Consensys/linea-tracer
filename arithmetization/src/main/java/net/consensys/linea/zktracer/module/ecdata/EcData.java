@@ -15,6 +15,11 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
+import static net.consensys.linea.zktracer.module.ecdata.Trace.ECADD;
+import static net.consensys.linea.zktracer.module.ecdata.Trace.ECMUL;
+import static net.consensys.linea.zktracer.module.ecdata.Trace.ECPAIRING;
+import static net.consensys.linea.zktracer.module.ecdata.Trace.ECRECOVER;
+
 import java.nio.MappedByteBuffer;
 import java.util.Comparator;
 import java.util.List;
@@ -27,6 +32,12 @@ import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2MembershipCalls;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
@@ -43,6 +54,14 @@ public class EcData implements Module {
   private final Hub hub;
   private final Wcp wcp;
   private final Ext ext;
+
+  private final EcAddEffectiveCall ecAddEffectiveCall;
+  private final EcMulEffectiveCall ecMulEffectiveCall;
+  private final EcRecoverEffectiveCall ecRecoverEffectiveCall;
+
+  private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls;
+  private final EcPairingMillerLoops ecPairingMillerLoops;
+  private final EcPairingFinalExponentiations ecPairingFinalExponentiations;
 
   @Getter private EcDataOperation ecDataOperation;
 
@@ -104,6 +123,20 @@ public class EcData implements Module {
       stamp++;
       op.trace(trace, stamp, previousId);
       previousId = op.id();
+    }
+  }
+
+  public void callEcdata(final EcDataOperation ecDataOperation) {
+    this.operations.add(ecDataOperation);
+
+    switch (ecDataOperation.ecType()) {
+      case ECADD -> ecAddEffectiveCall.addPrecompileLimit(1);
+      case ECMUL -> ecMulEffectiveCall.addPrecompileLimit(1);
+      case ECRECOVER -> ecRecoverEffectiveCall.addPrecompileLimit(1);
+      case ECPAIRING -> {
+        // TODO @Lorenzo
+      }
+      default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }
   }
 }

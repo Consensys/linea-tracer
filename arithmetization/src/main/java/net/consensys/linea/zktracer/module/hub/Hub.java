@@ -79,7 +79,6 @@ import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
-import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
@@ -151,10 +150,10 @@ public class Hub implements Module {
   @Getter public final State state = new State();
 
   /** contain the factories for trace segments that need complex initialization */
-  @Getter private final Factories factories;
+  @Getter private final Factories factories = new Factories(this);
 
   /** provides phase-related volatile information */
-  @Getter Transients transients;
+  @Getter Transients transients = new Transients(this);
 
   /**
    * Long-lived states, not used in tracing per se but keeping track of data of the associated
@@ -169,8 +168,9 @@ public class Hub implements Module {
   @Getter private final DeferRegistry defers = new DeferRegistry();
 
   /** stores all data related to failure states & module activation */
-  @Getter private final PlatformController pch;
+  @Getter private final PlatformController pch = new PlatformController(this);
 
+  // TODO: should die
   private boolean previousOperationWasCallToEcPrecompile;
 
   @Override
@@ -201,7 +201,7 @@ public class Hub implements Module {
   private final Add add = new Add();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(wcp);
-  private final Euc euc;
+  private final Euc euc = new Euc(wcp);
   private final Ext ext = new Ext(this);
   private final Gas gas = new Gas();
   private final Mul mul = new Mul(this);
@@ -211,36 +211,84 @@ public class Hub implements Module {
 
   // other
   private final Blockdata blockdata;
-  private final RlpTxn rlpTxn;
-  private final Rom rom;
-  @Getter private final RomLex romLex;
-  @Getter private final Mxp mxp;
+  @Getter private final RomLex romLex = new RomLex(this);
+  private final Rom rom = new Rom(romLex);
+  private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  private final RlpTxnRcpt rlpTxnRcpt;
-  private final LogInfo logInfo;
-  private final LogData logData;
+  private final TxnData txnData = new TxnData(wcp, euc);
+  private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt(txnData);
+  private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
+  private final LogData logData = new LogData(rlpTxnRcpt);
   private final RlpAddr rlpAddr = new RlpAddr(this, trm);
-  private final TxnData txnData;
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
-  @Getter private final Stp stp = new Stp(wcp, mod);
-  @Getter private final Oob oob;
-  @Getter private final Exp exp;
+  @Getter private final Mxp mxp = new Mxp();
+  @Getter private final Oob oob = new Oob(this, add, mod, wcp);
   @Getter private final Mmu mmu;
+  @Getter private final Stp stp = new Stp(wcp, mod);
+  @Getter private final Exp exp = new Exp(this, wcp);
 
-  // precompile-linked modules
-  @Getter private final BlakeModexpData blakeModexpData = new BlakeModexpData(this.wcp);
-  @Getter private final EcData ecData;
-  @Getter private final ModexpEffectiveCall modexpEffectiveCall;
-  @Getter private final ShakiraData shakiraData = new ShakiraData(this.wcp);
   /*
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
-  private final List<Module> precompileLimitModules;
-  private final L2Block l2Block;
+  private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
+  private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
+  private final EcMulEffectiveCall ecMulEffectiveCall = new EcMulEffectiveCall();
+  private final EcRecoverEffectiveCall ecRecoverEffectiveCall = new EcRecoverEffectiveCall();
+
+  private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls =
+      new EcPairingG2MembershipCalls();
+  private final EcPairingMillerLoops ecPairingMillerLoops = new EcPairingMillerLoops();
+  private final EcPairingFinalExponentiations ecPairingFinalExponentiations =
+      new EcPairingFinalExponentiations();
+
+  private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
+
+  private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
+
+  private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
+  private final BlakeRounds blakeRounds = new BlakeRounds();
+
+  private final List<Module> precompileLimitModules =
+      List.of(
+          sha256Blocks,
+          ecAddEffectiveCall,
+          ecMulEffectiveCall,
+          ecRecoverEffectiveCall,
+          ecPairingG2MembershipCalls,
+          ecPairingMillerLoops,
+          ecPairingFinalExponentiations,
+          modexpEffectiveCall,
+          ripemdBlocks,
+          blakeEffectiveCall,
+          blakeRounds);
+
+  /*
+   * precompile-data modules
+   * those module are traced (and could be count)
+   */
+  private final ShakiraData shakiraData = new ShakiraData(wcp, sha256Blocks, ripemdBlocks);
+  private final BlakeModexpData blakeModexpData =
+      new BlakeModexpData(this.wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
+  private final EcData ecData =
+      new EcData(
+          this,
+          wcp,
+          ext,
+          ecAddEffectiveCall,
+          ecMulEffectiveCall,
+          ecRecoverEffectiveCall,
+          ecPairingG2MembershipCalls,
+          ecPairingMillerLoops,
+          ecPairingFinalExponentiations);
+
+  private final L2Block l2Block;
+  private final L2L1Logs l2L1Logs;
+
+  /** list of module triggered by the HUB at BESU hooks */
   private final List<Module> modules;
 
   // reference table modules
@@ -328,23 +376,9 @@ public class Hub implements Module {
 
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
     this.l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    this.transients = new Transients(this);
-    this.factories = new Factories(this);
+    this.l2L1Logs = new L2L1Logs(l2Block);
 
-    this.pch = new PlatformController(this);
-    this.mxp = new Mxp(this);
-    this.exp = new Exp(this.wcp, this);
-    this.romLex = new RomLex(this);
-    this.rom = new Rom(this.romLex);
-    this.rlpTxn = new RlpTxn(this.romLex);
-    this.euc = new Euc(this.wcp);
-    this.txnData = new TxnData(this.wcp, this.euc);
     this.blockdata = new Blockdata(this.wcp, this.txnData, this.rlpTxn);
-    this.rlpTxnRcpt = new RlpTxnRcpt(txnData);
-    this.logData = new LogData(rlpTxnRcpt);
-    this.logInfo = new LogInfo(rlpTxnRcpt);
-    this.ecData = new EcData(this, this.wcp, this.ext);
-    this.oob = new Oob(this, this.add, this.mod, this.wcp);
     this.mmu =
         new Mmu(
             this.euc,
@@ -356,30 +390,6 @@ public class Hub implements Module {
             this.blakeModexpData,
             this.callStack);
     this.mmio = new Mmio(this.mmu);
-
-    final EcRecoverEffectiveCall ecRec = new EcRecoverEffectiveCall(this);
-    this.modexpEffectiveCall = new ModexpEffectiveCall(this, this.blakeModexpData);
-    final EcPairingFinalExponentiations ecPairingCall = new EcPairingFinalExponentiations(this);
-    final L2Block l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    final BlakeRounds blakeRounds = new BlakeRounds(this, this.blakeModexpData);
-
-    this.precompileLimitModules =
-        List.of(
-            new Sha256Blocks(this, shakiraData),
-            ecRec,
-            new RipemdBlocks(this, shakiraData),
-            this.modexpEffectiveCall,
-            new EcAddEffectiveCall(this),
-            new EcMulEffectiveCall(this),
-            ecPairingCall,
-            new EcPairingG2MembershipCalls(ecPairingCall),
-            new EcPairingMillerLoops(ecPairingCall),
-            blakeRounds,
-            new BlakeEffectiveCall(blakeRounds),
-            // Block level limits
-            l2Block,
-            new Keccak(this, ecRec, l2Block, shakiraData),
-            new L2L1Logs(l2Block));
 
     this.refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
 

@@ -60,11 +60,16 @@ public class BlakeModexpDataOperation extends ModuleOperation {
   public final Optional<ModexpComponents> modexpComponents;
   public final Optional<BlakeComponents> blake2fComponents;
 
-  public BlakeModexpDataOperation(
-      long hubStamp, ModexpComponents modexpComponents, BlakeComponents blakeComponents) {
-    this.id = hubStamp + 1;
-    this.modexpComponents = Optional.ofNullable(modexpComponents);
-    this.blake2fComponents = Optional.ofNullable(blakeComponents);
+  public BlakeModexpDataOperation(final ModexpComponents modexpComponents) {
+    this.id = 0; // TODO
+    this.modexpComponents = Optional.of(modexpComponents);
+    this.blake2fComponents = Optional.empty();
+  }
+
+  public BlakeModexpDataOperation(final BlakeComponents blakeComponents) {
+    this.id = 0; // TODO
+    this.modexpComponents = Optional.empty();
+    this.blake2fComponents = Optional.of(blakeComponents);
   }
 
   @Override

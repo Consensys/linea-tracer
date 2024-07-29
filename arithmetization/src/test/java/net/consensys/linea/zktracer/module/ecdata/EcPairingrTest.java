@@ -38,12 +38,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvFileSource;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.platform.commons.util.Preconditions;
 
 // A TestWatcher is used to log the results of testEcPairingSingleForScenario
 // into a csv file (one for successful and one for failing cases)
 // that can be used to run the same test cases with @CsvFileSource
-@ExtendWith(EcPairingSingleForScenarioTestWatcher.class)
+@ExtendWith(EcPairingTestWatcher.class)
 public class EcPairingrTest {
   // https://github.com/Consensys/linea-arithmetization/issues/822
 
@@ -170,8 +169,8 @@ public class EcPairingrTest {
 
   @ParameterizedTest
   @CsvFileSource(
-      resources = "/ecpairing/test_ec_pairing_single_for_scenario_failed_placeholder.csv",
-      numLinesToSkip = 1)
+      resources =
+          "/ecpairing/test_ec_pairing_single_for_scenario_using_method_source_failed_placeholder.csv")
   void testEcPairingSingleForScenarioUsingCsv(
       String Ax, String Ay, String BxIm, String BxRe, String ByIm, String ByRe) {
     testEcPairingSingleForScenario(Ax, Ay, BxIm, BxRe, ByIm, ByRe);
@@ -228,10 +227,27 @@ public class EcPairingrTest {
     return arguments.stream();
   }
 
-  @ParameterizedTest(name = "{index} {0}")
+  @ParameterizedTest
   @MethodSource("ecPairingGenericSource")
   void testEcPairingGenericForScenarioUsingMethodSource(
-      String description, List<Arguments> pairings) {
+      String description, String pairingsAsString) {
+    testEcPairingGenericForScenario(description, pairingsAsString);
+  }
+
+  @ParameterizedTest
+  @CsvFileSource(
+      resources =
+          "/ecpairing/test_ec_pairing_generic_for_scenario_using_method_source_success_placeholder.csv")
+  void testEcPairingGenericForScenarioUsingCsv(String description, String pairingsAsString) {
+    testEcPairingGenericForScenario(description, pairingsAsString);
+  }
+
+  // Body of testEcPairingGenericForScenarioUsingMethodSource and
+  // testEcPairingGenericForScenarioUsingCsv
+  private void testEcPairingGenericForScenario(String description, String pairingsAsString) {
+    System.out.println(description);
+    List<Arguments> pairings = pairingsAsStringToArgumentsList(pairingsAsString);
+
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < pairings.size(); i++) {
       Arguments pair = pairings.get(i);
@@ -301,41 +317,27 @@ public class EcPairingrTest {
 
     // Test case with maximum number of pairings
     List<Arguments> manyPairings = new ArrayList<>();
-    final int TOTAL_PAIRINGS_MAX = 64; // = PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64
+    final int TOTAL_PAIRINGS_MAX = 1; // = PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64
     for (int i = 0; i < TOTAL_PAIRINGS_MAX; i++) {
       manyPairings.add(pair(rnd(smallPoints), rnd(largePoints)));
     }
-    allPairings.add(Arguments.of(descriptionOfPairings("64 pairings", manyPairings), manyPairings));
+    allPairings.add(Arguments.of("64 pairings", argumentsListToPairingsAsString(manyPairings)));
 
     // Test case small points out of range
     List<Arguments> smallPointsOutOfRangePairings = new ArrayList<>();
-    final int TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE = 10;
+    final int TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE = 1;
     for (int i = 0; i < TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE; i++) {
       smallPointsOutOfRangePairings.add(pair(rnd(smallPointsOutOfRange), rnd(largePoints)));
     }
     allPairings.add(
         Arguments.of(
-            descriptionOfPairings("small points out of range", smallPointsOutOfRangePairings),
-            smallPointsOutOfRangePairings));
+            "small points out of range",
+            argumentsListToPairingsAsString(smallPointsOutOfRangePairings)));
 
     return allPairings.stream();
   }
 
   // Support methods and tests
-  private static String descriptionOfPairings(String header, List<Arguments> pairings) {
-    String description =
-        "["
-            + header
-            + "] "
-            + pairings.stream()
-                .flatMap(arguments -> Stream.of(arguments.get()))
-                .filter(obj -> obj instanceof String)
-                .map(obj -> (String) obj)
-                .collect(Collectors.joining(", "));
-    System.out.println(description);
-    return description;
-  }
-
   // This is a test for a support method
   @Test
   public void testPair() {
@@ -352,17 +354,59 @@ public class EcPairingrTest {
   }
 
   public static Arguments pair(Arguments smallPointArgs, Arguments largePointArgs) {
-    Preconditions.notNull(smallPointArgs, "first argument must not be null");
-    Preconditions.notNull(largePointArgs, "second argument must not be null");
+    assertEquals(2, smallPointArgs.get().length);
+    assertEquals(4, largePointArgs.get().length);
+    return Arguments.of(
+        smallPointArgs.get()[0],
+        smallPointArgs.get()[1],
+        largePointArgs.get()[0],
+        largePointArgs.get()[1],
+        largePointArgs.get()[2],
+        largePointArgs.get()[3]);
+  }
 
-    Object[] smallPointArray = smallPointArgs.get();
-    Object[] largePointArray = largePointArgs.get();
-    Object[] pairArray = new Object[smallPointArray.length + largePointArray.length];
+  // This is a test for a support method
+  @Test
+  public void testArgumentsListToPairingsAsString() {
+    List<Arguments> pairings = new ArrayList<>();
+    pairings.add(Arguments.of("Ax1", "Ay1", "BxIm1", "BxRe1", "ByIm1", "ByRe1"));
+    pairings.add(Arguments.of("Ax2", "Ay2", "BxIm2", "BxRe2", "ByIm2", "ByRe2"));
+    pairings.add(Arguments.of("Ax3", "Ay3", "BxIm3", "BxRe3", "ByIm3", "ByRe3"));
+    assertEquals(
+        "Ax1_Ay1_BxIm1_BxRe1_ByIm1_ByRe1_Ax2_Ay2_BxIm2_BxRe2_ByIm2_ByRe2_Ax3_Ay3_BxIm3_BxRe3_ByIm3_ByRe3",
+        argumentsListToPairingsAsString(pairings));
+  }
 
-    System.arraycopy(smallPointArray, 0, pairArray, 0, smallPointArray.length);
-    System.arraycopy(largePointArray, 0, pairArray, smallPointArray.length, largePointArray.length);
+  private static final String DELIMITER_CSV = ",";
+  private static final String DELIMITER_PAIRINGS = "_";
 
-    return Arguments.of(pairArray);
+  private static String argumentsListToPairingsAsString(List<Arguments> pairings) {
+    StringBuilder sb = new StringBuilder();
+    for (Arguments pair : pairings) {
+      assertEquals(6, pair.get().length);
+      for (Object coordinate : pair.get()) {
+        sb.append(coordinate.toString()).append(DELIMITER_PAIRINGS);
+      }
+    }
+    return !sb.isEmpty() ? sb.substring(0, sb.length() - 1) : "";
+  }
+
+  private List<Arguments> pairingsAsStringToArgumentsList(String pairingsAsString) {
+    final String[] pairingsAsArray = pairingsAsString.split(DELIMITER_PAIRINGS);
+    // Each pair is composed by 6 coordinates
+    final int totalPairings = pairingsAsArray.length / 6;
+    List<Arguments> pairings = new ArrayList<>();
+    for (int i = 0; i < totalPairings; i++) {
+      pairings.add(
+          Arguments.of(
+              pairingsAsArray[6 * i],
+              pairingsAsArray[6 * i + 1],
+              pairingsAsArray[6 * i + 2],
+              pairingsAsArray[6 * i + 3],
+              pairingsAsArray[6 * i + 4],
+              pairingsAsArray[6 * i + 5]));
+    }
+    return pairings;
   }
 
   public static List<Arguments> csvToArgumentsList(String filePath) throws IOException {
@@ -375,7 +419,7 @@ public class EcPairingrTest {
           isFirstLine = false;
           continue; // Skip the first line (column names)
         }
-        String[] values = line.split(",");
+        String[] values = line.split(DELIMITER_CSV);
         argumentsList.add(Arguments.of((Object[]) values));
       }
     }

@@ -33,6 +33,7 @@ import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -168,6 +169,7 @@ public class EcPairingrTest {
     testEcPairingSingleForScenario(Ax, Ay, BxIm, BxRe, ByIm, ByRe);
   }
 
+  @Disabled // Useful only to test specific test cases in a CSV file
   @ParameterizedTest
   @CsvFileSource(
       resources =
@@ -239,6 +241,7 @@ public class EcPairingrTest {
     testEcPairingGenericForScenario(description, pairingsAsString);
   }
 
+  @Disabled // Useful only to test specific test cases in a CSV file
   @ParameterizedTest
   @CsvFileSource(
       resources =

@@ -24,9 +24,9 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHAS
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_SHA2_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_SHA2_RESULT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
-import static net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType.KECCAK;
-import static net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType.RIPEMD;
-import static net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType.SHA256;
+import static net.consensys.linea.zktracer.module.shakiradata.HashType.KECCAK;
+import static net.consensys.linea.zktracer.module.shakiradata.HashType.RIPEMD;
+import static net.consensys.linea.zktracer.module.shakiradata.HashType.SHA256;
 import static net.consensys.linea.zktracer.module.shakiradata.Trace.INDEX_MAX_RESULT;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
@@ -41,7 +41,7 @@ import org.hyperledger.besu.crypto.Hash;
 @Accessors(fluent = true)
 public class ShakiraDataOperation extends ModuleOperation {
 
-  @Getter private final ShakiraHashType precompileType;
+  @Getter private final HashType hashType;
   private final Bytes hashInput;
   @Getter private final long ID;
   @Getter private final int inputSize;
@@ -51,8 +51,8 @@ public class ShakiraDataOperation extends ModuleOperation {
 
   // TODO: deprecate in favour of the version with the return data argument
   public ShakiraDataOperation(
-      final long hubStamp, final ShakiraHashType precompileType, final Bytes hashInput) {
-    this.precompileType = precompileType;
+      final long hubStamp, final HashType precompileType, final Bytes hashInput) {
+    this.hashType = precompileType;
     this.ID = hubStamp + 1;
     this.hashInput = hashInput;
     this.inputSize = hashInput.size();
@@ -62,11 +62,11 @@ public class ShakiraDataOperation extends ModuleOperation {
   }
 
   public ShakiraDataOperation(
-      final long hubStamp,
-      final ShakiraHashType precompileType,
+      final int hubStamp,
+      final HashType precompileType,
       final Bytes hashInput,
       final Bytes result) {
-    this.precompileType = precompileType;
+    this.hashType = precompileType;
     this.ID = hubStamp + 1;
     this.hashInput = hashInput;
     this.inputSize = hashInput.size();
@@ -89,11 +89,11 @@ public class ShakiraDataOperation extends ModuleOperation {
   }
 
   private void traceData(Trace trace, final int stamp) {
-    final boolean isShaData = precompileType == SHA256;
-    final boolean isKecData = precompileType == KECCAK;
-    final boolean isRipData = precompileType == RIPEMD;
+    final boolean isShaData = hashType == SHA256;
+    final boolean isKecData = hashType == KECCAK;
+    final boolean isRipData = hashType == RIPEMD;
     final UnsignedByte phase =
-        switch (precompileType) {
+        switch (hashType) {
           case SHA256 -> UnsignedByte.of(PHASE_SHA2_DATA);
           case KECCAK -> UnsignedByte.of(PHASE_KECCAK_DATA);
           case RIPEMD -> UnsignedByte.of(PHASE_RIPEMD_DATA);
@@ -128,11 +128,11 @@ public class ShakiraDataOperation extends ModuleOperation {
   }
 
   private void traceResult(Trace trace, final int stamp) {
-    final boolean isShaResult = precompileType == SHA256;
-    final boolean isKecResult = precompileType == KECCAK;
-    final boolean isRipResult = precompileType == RIPEMD;
+    final boolean isShaResult = hashType == SHA256;
+    final boolean isKecResult = hashType == KECCAK;
+    final boolean isRipResult = hashType == RIPEMD;
     final UnsignedByte phase =
-        switch (precompileType) {
+        switch (hashType) {
           case SHA256 -> UnsignedByte.of(PHASE_SHA2_RESULT);
           case KECCAK -> UnsignedByte.of(PHASE_KECCAK_RESULT);
           case RIPEMD -> UnsignedByte.of(PHASE_RIPEMD_RESULT);
@@ -158,9 +158,9 @@ public class ShakiraDataOperation extends ModuleOperation {
         case 0 -> trace
             .limb(result.slice(0, LLARGE))
             .nBytesAcc(LLARGE)
-            .selectorKeccakResHi(precompileType == KECCAK)
-            .selectorSha2ResHi(precompileType == SHA256)
-            .selectorRipemdResHi(precompileType == RIPEMD)
+            .selectorKeccakResHi(hashType == KECCAK)
+            .selectorSha2ResHi(hashType == SHA256)
+            .selectorRipemdResHi(hashType == RIPEMD)
             .validateRow();
         case 1 -> trace
             .limb(result.slice(LLARGE, LLARGE))
@@ -174,7 +174,7 @@ public class ShakiraDataOperation extends ModuleOperation {
   }
 
   private Bytes computeResult() {
-    return switch (precompileType) {
+    return switch (hashType) {
       case SHA256 -> Hash.sha256(hashInput);
       case KECCAK -> Hash.keccak256(hashInput);
       case RIPEMD -> Hash.ripemd160(hashInput);

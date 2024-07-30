@@ -76,7 +76,7 @@ public class ShakiraData implements Module {
     this.wcp.callGT(operation.lastNBytes(), 0);
     this.wcp.callLEQ(operation.lastNBytes(), LLARGE);
 
-    switch (operation.precompileType()) {
+    switch (operation.hashType()) {
       case SHA256 -> sha256Blocks.addPrecompileLimit(operation.inputSize());
       case KECCAK -> keccak.addPrecompileLimit(operation.inputSize());
       case RIPEMD -> ripemdBlocks.addPrecompileLimit(operation.inputSize());

@@ -276,7 +276,7 @@ public class Hub implements Module {
    * precompile-data modules
    * those module are traced (and could be count)
    */
-  private final ShakiraData shakiraData;
+  @Getter private final ShakiraData shakiraData;
   private final BlakeModexpData blakeModexpData =
       new BlakeModexpData(this.wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
   private final EcData ecData =

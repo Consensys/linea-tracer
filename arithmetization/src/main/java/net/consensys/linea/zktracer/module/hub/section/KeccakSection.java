@@ -15,22 +15,29 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static net.consensys.linea.zktracer.module.shakiradata.HashType.KECCAK;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 
 public class KeccakSection extends TraceSection implements PostOpcodeDefer {
 
+  private final boolean triggerMmu;
+  private Bytes hashInput;
+
   public KeccakSection(Hub hub) {
     super(hub, (short) 3);
     hub.addTraceSection(this);
-
-    hub.addTraceSection(this);
+    hub.defers().scheduleForPostExecution(this);
 
     final ImcFragment imcFragment = ImcFragment.empty(hub);
     this.addStackAndFragments(hub, imcFragment);
@@ -39,20 +46,31 @@ public class KeccakSection extends TraceSection implements PostOpcodeDefer {
     imcFragment.callMxp(mxpCall);
 
     final boolean mayTriggerNonTrivialOperation = mxpCall.mayTriggerNontrivialMmuOperation;
-    final boolean triggerMmu =
-        mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
+    triggerMmu = mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
 
     if (triggerMmu) {
       hub.defers().scheduleForPostExecution(this);
       final MmuCall mmuCall = MmuCall.sha3(hub);
       imcFragment.callMmu(mmuCall);
+      hashInput =
+          hub.currentFrame()
+              .frame()
+              .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize());
     }
   }
 
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    final Bytes32 hashResult = Bytes32.leftPad(frame.getStackItem(0));
+
     // retroactively set HASH_INFO_FLAG and HASH_INFO_KECCAK_HI, HASH_INFO_KECCAK_LO
-    this.triggerHashInfo(frame.getStackItem(0));
+    this.triggerHashInfo(hashResult);
+
+    if (triggerMmu) {
+      final ShakiraDataOperation shakiraDataOperation =
+          new ShakiraDataOperation(this.hubStamp(), KECCAK, hashInput, hashResult);
+      hub.shakiraData().call(shakiraDataOperation);
+    }
   }
 }

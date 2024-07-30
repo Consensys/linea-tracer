@@ -60,11 +60,13 @@ public class ReturnSection extends TraceSection
   ContextFragment squashParentContextReturnData;
   Address deploymentAddress;
 
+  // TODO: trigger SHAKIRA
+
   public ReturnSection(Hub hub) {
     super(hub, maxNumberOfRows(hub));
     hub.addTraceSection(this);
 
-    CallFrame currentFrame = hub.currentFrame();
+    final CallFrame currentFrame = hub.currentFrame();
     returnFromMessageCall = currentFrame.isMessageCall();
     returnFromDeployment = currentFrame.isDeployment();
 
@@ -117,7 +119,7 @@ public class ReturnSection extends TraceSection
     if (triggerMmuForInvalidCodePrefix) {
       Preconditions.checkArgument(returnFromDeployment && nontrivialMmuOperation);
 
-      MmuCall actuallyInvalidCodePrefixMmuCall = MmuCall.invalidCodePrefix(hub);
+      final MmuCall actuallyInvalidCodePrefixMmuCall = MmuCall.invalidCodePrefix(hub);
       firstImcFragment.callMmu(actuallyInvalidCodePrefixMmuCall);
 
       Preconditions.checkArgument(!actuallyInvalidCodePrefixMmuCall.successBit());
@@ -143,7 +145,7 @@ public class ReturnSection extends TraceSection
               : RETURN_FROM_MESSAGE_CALL_WONT_TOUCH_RAM);
 
       if (messageCallReturnTouchesRam) {
-        MmuCall returnFromMessageCall = MmuCall.returnFromMessageCall(hub);
+        final MmuCall returnFromMessageCall = MmuCall.returnFromMessageCall(hub);
         firstImcFragment.callMmu(returnFromMessageCall);
       }
 
@@ -186,20 +188,20 @@ public class ReturnSection extends TraceSection
         return;
       }
 
-      MmuCall invalidCodePrefixCheckMmuCall = MmuCall.invalidCodePrefix(hub);
+      final MmuCall invalidCodePrefixCheckMmuCall = MmuCall.invalidCodePrefix(hub);
       firstImcFragment.callMmu(invalidCodePrefixCheckMmuCall);
 
-      DeploymentOobCall maxCodeSizeOobCall = new DeploymentOobCall();
+      final DeploymentOobCall maxCodeSizeOobCall = new DeploymentOobCall();
       firstImcFragment.callOob(maxCodeSizeOobCall);
 
       // sanity checks
       Preconditions.checkArgument(invalidCodePrefixCheckMmuCall.successBit());
       Preconditions.checkArgument(!maxCodeSizeOobCall.isMaxCodeSizeException());
 
-      ImcFragment secondImcFragment = ImcFragment.empty(hub);
+      final ImcFragment secondImcFragment = ImcFragment.empty(hub);
       this.addFragment(secondImcFragment);
 
-      MmuCall nonemptyDeploymentMmuCall = MmuCall.returnFromDeployment(hub);
+      final MmuCall nonemptyDeploymentMmuCall = MmuCall.returnFromDeployment(hub);
       secondImcFragment.callMmu(nonemptyDeploymentMmuCall);
     }
   }
@@ -241,7 +243,7 @@ public class ReturnSection extends TraceSection
     // TODO: does this account for updates to
     //  - deploymentNumber and status ?
     //  - MARKED_FOR_SELF_DESTRUCT(_NEW) ?
-    AccountFragment undoingDeploymentAccountFragment =
+    final AccountFragment undoingDeploymentAccountFragment =
         hub.factories()
             .accountFragment()
             .make(

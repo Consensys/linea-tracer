@@ -188,6 +188,7 @@ public class CreateSection
         hub.opCode() == OpCode.CREATE2
             ? MmuCall.create2(hub, failureCondition)
             : MmuCall.create(hub);
+    // TODO: trigger SHAKIRA to hash non empty init code for CREATE2
 
     this.finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);
   }

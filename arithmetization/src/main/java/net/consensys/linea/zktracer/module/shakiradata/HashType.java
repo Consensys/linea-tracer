@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.shakiradata;
 
-public enum ShakiraHashType {
+public enum HashType {
   KECCAK,
   SHA256,
   RIPEMD

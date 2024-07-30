@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsectio
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_SHA2;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
-import static net.consensys.linea.zktracer.module.shakiradata.ShakiraHashType.SHA256;
+import static net.consensys.linea.zktracer.module.shakiradata.HashType.SHA256;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;

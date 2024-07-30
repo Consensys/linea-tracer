@@ -54,12 +54,6 @@ public class EcPairingTestWatcher implements TestWatcher {
     }
     String arguments = EcPairingArgumentsSingleton.getInstance().getArguments();
 
-    /*
-    System.out.println("#######################################################");
-    System.out.println(arguments);
-    System.out.println("#######################################################");
-    */
-
     // Compute temporary file name based on the name of the test (camel case to snake case) and
     // timestamp
     String fileName =

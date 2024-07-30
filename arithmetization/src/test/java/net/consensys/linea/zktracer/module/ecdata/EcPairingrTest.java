@@ -269,15 +269,6 @@ public class EcPairingrTest {
       String BxRe = (String) pair.get()[3];
       String ByIm = (String) pair.get()[4];
       String ByRe = (String) pair.get()[5];
-      /*
-      System.out.println("### Pairing " + (i + 1));
-      System.out.println("Ax: " + Ax);
-      System.out.println("Ay: " + Ay);
-      System.out.println("BxIm: " + BxIm);
-      System.out.println("BxRe: " + BxRe);
-      System.out.println("ByIm: " + ByIm);
-      System.out.println("ByRe: " + ByRe);
-       */
 
       // small point: (Ax,Ay)
       // large point: (BxRe + i*BxIm, ByRe + i*ByIm)
@@ -338,12 +329,20 @@ public class EcPairingrTest {
         allPairings.add(
             generatePairings("maxGenericPairings" + info(64, r), 64, smallPoints, largePoints));
 
-        // Small points cases
+        // Focus on small points scenarios
         allPairings.add(
             generatePairings(
                 "smallPointsOutOfRange" + info(totalPairings, r),
                 totalPairings,
                 smallPointsOutOfRange,
+                largePoints));
+
+        allPairings.add(
+            generatePairingsSmallPointsMixed(
+                "smallPointsOutOfRangeMixed" + info(totalPairings, r),
+                totalPairings,
+                smallPointsOutOfRange,
+                smallPoints,
                 largePoints));
 
         allPairings.add(
@@ -354,10 +353,26 @@ public class EcPairingrTest {
                 largePoints));
 
         allPairings.add(
+            generatePairingsSmallPointsMixed(
+                "smallPointsNotOnC1Mixed" + info(totalPairings, r),
+                totalPairings,
+                smallPointsNotOnC1,
+                smallPoints,
+                largePoints));
+
+        allPairings.add(
             generatePairings(
                 "smallPointsOnC1" + info(totalPairings, r),
                 totalPairings,
                 smallPointsOnC1,
+                largePoints));
+
+        allPairings.add(
+            generatePairingsSmallPointsMixed(
+                "smallPointsOnC1Mixed" + info(totalPairings, r),
+                totalPairings,
+                smallPointsOnC1,
+                smallPoints,
                 largePoints));
 
         allPairings.add(
@@ -367,13 +382,29 @@ public class EcPairingrTest {
                 List.of(smallPointInfinity),
                 largePoints));
 
-        // Large points cases
+        allPairings.add(
+            generatePairingsSmallPointsMixed(
+                "smallPointInfinityMixed" + info(totalPairings, r),
+                totalPairings,
+                List.of(smallPointInfinity),
+                smallPoints,
+                largePoints));
+
+        // Focus on large points scenarios
         allPairings.add(
             generatePairings(
                 "largePointsOutOfRange" + info(totalPairings, r),
                 totalPairings,
                 smallPoints,
                 largePointsOutOfRange));
+
+        allPairings.add(
+            generatePairingsLargePointsMixed(
+                "largePointsOutOfRangeMixed" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                largePointsOutOfRange,
+                largePoints));
 
         allPairings.add(
             generatePairings(
@@ -383,11 +414,27 @@ public class EcPairingrTest {
                 largePointsNotOnC2));
 
         allPairings.add(
+            generatePairingsLargePointsMixed(
+                "largePointsNotOnC2Mixed" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                largePointsNotOnC2,
+                largePoints));
+
+        allPairings.add(
             generatePairings(
                 "largePointsNotOnG2" + info(totalPairings, r),
                 totalPairings,
                 smallPoints,
                 largePointsNotOnG2));
+
+        allPairings.add(
+            generatePairingsLargePointsMixed(
+                "largePointsNotOnG2Mixed" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                largePointsNotOnG2,
+                largePoints));
 
         allPairings.add(
             generatePairings(
@@ -397,13 +444,29 @@ public class EcPairingrTest {
                 largePointsOnG2));
 
         allPairings.add(
+            generatePairingsLargePointsMixed(
+                "largePointsOnG2Mixed" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                largePointsOnG2,
+                largePoints));
+
+        allPairings.add(
             generatePairings(
                 "largePointInfinity" + info(totalPairings, r),
                 totalPairings,
                 smallPoints,
                 List.of(largePointInfinity)));
 
-        // Mixed cases
+        allPairings.add(
+            generatePairingsLargePointsMixed(
+                "largePointInfinityMixed" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                List.of(largePointInfinity),
+                largePoints));
+
+        // Focus on combinations of small and large points scenarios
         allPairings.add(
             generatePairingsLargePointsMixed(
                 "largePointNotOnG2Exists" + info(totalPairings, r),
@@ -444,6 +507,20 @@ public class EcPairingrTest {
                 List.of(largePointInfinity)));
       }
     }
+
+    // TODO: add a case where we ensure the pairing operation is returning 1. The structure should
+    // be something like:
+    //  List<Arguments> successfulNonTrivialPairing = new ArrayList<>();
+    //  successfulNonTrivialPairing.add(Arguments.of("Ax1", "Ay1", "BxIm1", "BxRe1", "ByIm1",
+    // "ByRe1"));
+    //  successfulNonTrivialPairing.add(Arguments.of("Ax2", "Ay2", "BxIm2", "BxRe2", "ByIm2",
+    // "ByRe2"));
+    //  successfulNonTrivialPairing.add(Arguments.of("Ax3", "Ay3", "BxIm3", "BxRe3", "ByIm3",
+    // "ByRe3"));
+    //  // ...
+    //  allPairings.add(Arguments.of("successfulNonTrivialPairing",
+    // argumentsListToPairingsAsString(successfulNonTrivialPairing)));
+
     return allPairings.stream();
   }
 

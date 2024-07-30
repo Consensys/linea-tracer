@@ -79,6 +79,7 @@ import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
+import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
@@ -233,6 +234,8 @@ public class Hub implements Module {
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
+  private final Keccak keccak;
+
   private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
   private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
@@ -252,25 +255,28 @@ public class Hub implements Module {
   private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
   private final BlakeRounds blakeRounds = new BlakeRounds();
 
-  private final List<Module> precompileLimitModules =
-      List.of(
-          sha256Blocks,
-          ecAddEffectiveCall,
-          ecMulEffectiveCall,
-          ecRecoverEffectiveCall,
-          ecPairingG2MembershipCalls,
-          ecPairingMillerLoops,
-          ecPairingFinalExponentiations,
-          modexpEffectiveCall,
-          ripemdBlocks,
-          blakeEffectiveCall,
-          blakeRounds);
+  private List<Module> precompileLimitModules() {
+
+    return List.of(
+        keccak,
+        sha256Blocks,
+        ecAddEffectiveCall,
+        ecMulEffectiveCall,
+        ecRecoverEffectiveCall,
+        ecPairingG2MembershipCalls,
+        ecPairingMillerLoops,
+        ecPairingFinalExponentiations,
+        modexpEffectiveCall,
+        ripemdBlocks,
+        blakeEffectiveCall,
+        blakeRounds);
+  }
 
   /*
    * precompile-data modules
    * those module are traced (and could be count)
    */
-  private final ShakiraData shakiraData = new ShakiraData(wcp, sha256Blocks, ripemdBlocks);
+  private final ShakiraData shakiraData;
   private final BlakeModexpData blakeModexpData =
       new BlakeModexpData(this.wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
   private final EcData ecData =
@@ -291,7 +297,7 @@ public class Hub implements Module {
   /** list of module triggered by the HUB at BESU hooks */
   private final List<Module> modules;
 
-  // reference table modules
+  /** reference table modules */
   private final List<Module> refTableModules;
 
   /**
@@ -370,14 +376,15 @@ public class Hub implements Module {
                 this.txnData,
                 this.wcp,
                 this.l2Block),
-            this.precompileLimitModules.stream())
+            this.precompileLimitModules().stream())
         .toList();
   }
 
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
     this.l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    this.l2L1Logs = new L2L1Logs(l2Block);
-
+    this.l2L1Logs = new L2L1Logs(l2Block); // TODO: we never use it, to delete ?
+    this.keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
+    this.shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     this.blockdata = new Blockdata(this.wcp, this.txnData, this.rlpTxn);
     this.mmu =
         new Mmu(
@@ -425,7 +432,7 @@ public class Hub implements Module {
                     this.wcp, /* WARN: must be called BEFORE txnData */
                     this.txnData,
                     this.blockdata /* WARN: must be called AFTER txnData */),
-                this.precompileLimitModules.stream())
+                this.precompileLimitModules().stream())
             .toList();
   }
 
@@ -847,12 +854,6 @@ public class Hub implements Module {
   }
 
   void triggerModules(MessageFrame frame) {
-    if (Exceptions.none(this.pch.exceptions()) && this.pch.abortingConditions().none()) {
-      for (Module precompileLimit : this.precompileLimitModules) {
-        precompileLimit.tracePreOpcode(frame);
-      }
-    }
-
     if (this.pch.signals().add()) {
       this.add.tracePreOpcode(frame);
     }

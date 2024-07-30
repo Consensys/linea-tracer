@@ -25,6 +25,7 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -40,6 +41,7 @@ public class ShakiraData implements Module {
   private final ShakiraDataComparator comparator = new ShakiraDataComparator();
 
   private final Sha256Blocks sha256Blocks;
+  private final Keccak keccak;
   private final RipemdBlocks ripemdBlocks;
 
   @Override
@@ -76,8 +78,7 @@ public class ShakiraData implements Module {
 
     switch (operation.precompileType()) {
       case SHA256 -> sha256Blocks.addPrecompileLimit(operation.inputSize());
-      case KECCAK -> { // TODO
-      }
+      case KECCAK -> keccak.addPrecompileLimit(operation.inputSize());
       case RIPEMD -> ripemdBlocks.addPrecompileLimit(operation.inputSize());
       default -> throw new IllegalArgumentException("Precompile type not supported by SHAKIRA");
     }

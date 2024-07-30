@@ -330,29 +330,202 @@ public class EcPairingrTest {
   private static Stream<Arguments> ecPairingGenericSource() {
     List<Arguments> allPairings = new ArrayList<>();
 
-    // Test case with maximum number of pairings
-    List<Arguments> manyPairings = new ArrayList<>();
-    final int TOTAL_PAIRINGS_MAX = 64; // = PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64
-    for (int i = 0; i < TOTAL_PAIRINGS_MAX; i++) {
-      manyPairings.add(pair(rnd(smallPoints), rnd(largePoints)));
-    }
-    allPairings.add(Arguments.of("64pairings", argumentsListToPairingsAsString(manyPairings)));
+    final int REPETITIONS = 3;
+    for (int r = 1; r <= REPETITIONS; r++) {
+      for (Integer totalPairings : List.of(3, 4, 5)) {
+        // PRECOMPILE_ECPAIRING_MILLER_LOOPS = 64
+        // This test has totalPairings fixed to 64
+        allPairings.add(
+            generatePairings("maxGenericPairings" + info(64, r), 64, smallPoints, largePoints));
 
-    // Test case small points out of range
-    List<Arguments> smallPointsOutOfRangePairings = new ArrayList<>();
-    final int TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE = 10;
-    for (int i = 0; i < TOTAL_PAIRINGS_SMALL_POINTS_OUT_OF_RANGE; i++) {
-      smallPointsOutOfRangePairings.add(pair(rnd(smallPointsOutOfRange), rnd(largePoints)));
-    }
-    allPairings.add(
-        Arguments.of(
-            "smallPointsOutOfRange",
-            argumentsListToPairingsAsString(smallPointsOutOfRangePairings)));
+        // Small points cases
+        allPairings.add(
+            generatePairings(
+                "smallPointsOutOfRange" + info(totalPairings, r),
+                totalPairings,
+                smallPointsOutOfRange,
+                largePoints));
 
+        allPairings.add(
+            generatePairings(
+                "smallPointsNotOnC1" + info(totalPairings, r),
+                totalPairings,
+                smallPointsNotOnC1,
+                largePoints));
+
+        allPairings.add(
+            generatePairings(
+                "smallPointsOnC1" + info(totalPairings, r),
+                totalPairings,
+                smallPointsOnC1,
+                largePoints));
+
+        allPairings.add(
+            generatePairings(
+                "smallPointInfinity" + info(totalPairings, r),
+                totalPairings,
+                List.of(smallPointInfinity),
+                largePoints));
+
+        // Large points cases
+        allPairings.add(
+            generatePairings(
+                "largePointsOutOfRange" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                largePointsOutOfRange));
+
+        allPairings.add(
+            generatePairings(
+                "largePointsNotOnC2" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                largePointsNotOnC2));
+
+        allPairings.add(
+            generatePairings(
+                "largePointsNotOnG2" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                largePointsNotOnG2));
+
+        allPairings.add(
+            generatePairings(
+                "largePointsOnG2" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                largePointsOnG2));
+
+        allPairings.add(
+            generatePairings(
+                "largePointInfinity" + info(totalPairings, r),
+                totalPairings,
+                smallPoints,
+                List.of(largePointInfinity)));
+
+        // Mixed cases
+        allPairings.add(
+            generatePairingsLargePointsMixed(
+                "largePointNotOnG2Exists" + info(totalPairings, r),
+                totalPairings,
+                smallPointsOnC1,
+                largePointsNotOnG2,
+                largePoints));
+
+        allPairings.add(
+            generatePairings(
+                "trivialPairingAllSmallPointsOnC1" + info(totalPairings, r),
+                totalPairings,
+                smallPointsOnC1,
+                List.of(largePointInfinity)));
+
+        allPairings.add(
+            generatePairingsSmallPointsMixed(
+                "trivialPairingSmallPointsOnC1AndInfinity" + info(totalPairings, r),
+                totalPairings,
+                smallPointsOnC1,
+                List.of(smallPointInfinity),
+                List.of(largePointInfinity)));
+
+        allPairings.add(
+            generatePairings(
+                "nonTrivialPairingExcludingInfinity" + info(totalPairings, r),
+                totalPairings,
+                smallPointsOnC1,
+                largePointsOnG2));
+
+        allPairings.add(
+            generatePairingsMixed(
+                "nonTrivialPairingIncludingInfinity" + info(totalPairings, r),
+                totalPairings,
+                smallPointsOnC1,
+                List.of(smallPointInfinity),
+                largePointsOnG2,
+                List.of(largePointInfinity)));
+      }
+    }
     return allPairings.stream();
   }
 
   // Support methods and tests
+  private static String info(int totalPairings, int r) {
+    // r represents the number of the repetition of a scenario
+    return "TotalPairings" + totalPairings + "(" + r + ")";
+  }
+
+  private static Arguments generatePairings(
+      final String description,
+      final int totalPairings,
+      List<Arguments> smallPointsType,
+      List<Arguments> largePointsType) {
+    List<Arguments> pairings = new ArrayList<>();
+    for (int i = 0; i < totalPairings; i++) {
+      pairings.add(pair(rnd(smallPointsType), rnd(largePointsType)));
+    }
+    return Arguments.of(description, argumentsListToPairingsAsString(pairings));
+  }
+
+  private static Arguments generatePairingsSmallPointsMixed(
+      final String description,
+      final int totalPairings,
+      List<Arguments> smallPointsType1,
+      List<Arguments> smallPointsType2,
+      List<Arguments> largePointsType) {
+    List<Arguments> pairings = new ArrayList<>();
+    for (int i = 0; i < totalPairings; i++) {
+      if (i % 2 == 0) {
+        pairings.add(pair(rnd(smallPointsType1), rnd(largePointsType)));
+      } else {
+        pairings.add(pair(rnd(smallPointsType2), rnd(largePointsType)));
+      }
+    }
+    return Arguments.of(description, argumentsListToPairingsAsString(pairings));
+  }
+
+  private static Arguments generatePairingsLargePointsMixed(
+      final String description,
+      final int totalPairings,
+      List<Arguments> smallPointsType,
+      List<Arguments> largePointsType1,
+      List<Arguments> largePointsType2) {
+    List<Arguments> pairings = new ArrayList<>();
+    for (int i = 0; i < totalPairings; i++) {
+      if (i % 2 == 0) {
+        pairings.add(pair(rnd(smallPointsType), rnd(largePointsType1)));
+      } else {
+        pairings.add(pair(rnd(smallPointsType), rnd(largePointsType2)));
+      }
+    }
+    return Arguments.of(description, argumentsListToPairingsAsString(pairings));
+  }
+
+  private static Arguments generatePairingsMixed(
+      final String description,
+      final int totalPairings,
+      List<Arguments> smallPointsType1,
+      List<Arguments> smallPointsType2,
+      List<Arguments> largePointsType1,
+      List<Arguments> largePointsType2) {
+    List<Arguments> pairings = new ArrayList<>();
+    for (int i = 0; i < totalPairings; i++) {
+      switch (i % 4) {
+        case 0 -> {
+          pairings.add(pair(rnd(smallPointsType1), rnd(largePointsType1)));
+        }
+        case 1 -> {
+          pairings.add(pair(rnd(smallPointsType1), rnd(largePointsType2)));
+        }
+        case 2 -> {
+          pairings.add(pair(rnd(smallPointsType2), rnd(largePointsType1)));
+        }
+        case 3 -> {
+          pairings.add(pair(rnd(smallPointsType2), rnd(largePointsType2)));
+        }
+      }
+    }
+    return Arguments.of(description, argumentsListToPairingsAsString(pairings));
+  }
+
   // This is a test for a support method
   @Test
   public void testPair() {
@@ -444,6 +617,10 @@ public class EcPairingrTest {
   private static final Random random = new Random(1);
 
   private static Arguments rnd(List<Arguments> points) {
+    // If there is only one point, return it
+    if (points.size() == 1) {
+      return points.getFirst();
+    }
     int index = random.nextInt(points.size());
     return points.get(index);
   }

@@ -5,7 +5,7 @@ This repository hosts a Linea tracing implementation for
 [existing implementation in Go](https://github.com/Consensys/zk-evm/).
 
 It serves developers by making the Linea tech stack open source under 
-the [Apache 2.0 license](https://github.com/Consensys/linea-monorepo/blob/main/LICENSE).
+the [Apache 2.0 license](LICENSE).
 
 ## What is Linea?
 
@@ -28,7 +28,7 @@ Linea's stack is made up of multiple repositories, these include:
 - [linea-sequencer](https://github.com/Consensys/linea-sequencer): A set of Linea-Besu plugins for the sequencer and RPC nodes
 - [linea-arithmetization](https://github.com/Consensys/linea-arithmetization): Linea-Besu plugins to implement the constraints for the circuits used to construct the zero-knowledge proofs
 - [linea-constraints](https://github.com/Consensys/linea-constraints): Constraints applied to the arithmetization, and ultimately to the circuits
-- Coming soon: [linea-specification](https://github.com/Consensys/linea-specification): Home of the zk-EVM specification
+- [linea-specification](https://github.com/Consensys/linea-specification): Home of the zk-EVM specification
 
 Linea abstracts away the complexity of this technical architecture to allow developers to:
 
@@ -54,6 +54,7 @@ Before contributing, ensure you're familiar with:
 - Our [Linea contribution guide](https://github.com/Consensys/linea-monorepo/blob/main/docs/contribute.md)
 - Our [Linea code of conduct](https://github.com/Consensys/linea-monorepo/blob/main/docs/code-of-conduct.md)
 - The [Besu contribution guide](https://github.com/Consensys/linea-monorepo/blob/main/https://wiki.hyperledger.org/display/BESU/Coding+Conventions), for Besu:Linea related contributions
+- Our [Security policy](https://github.com/Consensys/linea-monorepo/blob/main/docs/security.md)
 
 
 ### Useful links

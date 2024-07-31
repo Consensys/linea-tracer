@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.ecdata;
+package net.consensys.linea.zktracer.module.ecdata.ecpairing;
 
 import java.io.FileWriter;
 import java.io.IOException;

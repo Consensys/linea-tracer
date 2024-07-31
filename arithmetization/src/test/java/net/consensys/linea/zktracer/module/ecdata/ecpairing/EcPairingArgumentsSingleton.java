@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.ecdata;
+package net.consensys.linea.zktracer.module.ecdata.ecpairing;
 
 import lombok.Getter;
 import lombok.Setter;

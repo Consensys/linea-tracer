@@ -13,18 +13,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.ecdata;
+package net.consensys.linea.zktracer.module.ecdata.ecpairing;
 
+import static net.consensys.linea.zktracer.module.ecdata.ecpairing.EcPairingTestSupport.argumentsListToPairingsAsString;
+import static net.consensys.linea.zktracer.module.ecdata.ecpairing.EcPairingTestSupport.csvToArgumentsList;
+import static net.consensys.linea.zktracer.module.ecdata.ecpairing.EcPairingTestSupport.generatePairings;
+import static net.consensys.linea.zktracer.module.ecdata.ecpairing.EcPairingTestSupport.generatePairingsLargePointsMixed;
+import static net.consensys.linea.zktracer.module.ecdata.ecpairing.EcPairingTestSupport.generatePairingsMixed;
+import static net.consensys.linea.zktracer.module.ecdata.ecpairing.EcPairingTestSupport.generatePairingsSmallPointsMixed;
+import static net.consensys.linea.zktracer.module.ecdata.ecpairing.EcPairingTestSupport.info;
+import static net.consensys.linea.zktracer.module.ecdata.ecpairing.EcPairingTestSupport.pair;
+import static net.consensys.linea.zktracer.module.ecdata.ecpairing.EcPairingTestSupport.pairingsAsStringToArgumentsList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -179,7 +185,8 @@ public class EcPairingrTest {
     testEcPairingSingleForScenario(Ax, Ay, BxIm, BxRe, ByIm, ByRe);
   }
 
-  // Body of testEcPairingSingleForScenarioUsingMethodSource and
+  // Body of:
+  // testEcPairingSingleForScenarioUsingMethodSource
   // testEcPairingSingleForScenarioUsingCsv
   private static void testEcPairingSingleForScenario(
       String Ax, String Ay, String BxIm, String BxRe, String ByIm, String ByRe) {
@@ -235,7 +242,7 @@ public class EcPairingrTest {
   }
 
   @ParameterizedTest
-  @MethodSource("ecPairingGenericSource")
+  @MethodSource({"ecPairingGenericSource", "ecPairingSuccessfulNonTrivialSource"})
   void testEcPairingGenericForScenarioUsingMethodSource(
       String description, String pairingsAsString) {
     testEcPairingGenericForScenario(description, pairingsAsString);
@@ -251,7 +258,8 @@ public class EcPairingrTest {
     testEcPairingGenericForScenario(description, pairingsAsString);
   }
 
-  // Body of testEcPairingGenericForScenarioUsingMethodSource and
+  // Body of:
+  // testEcPairingGenericForScenarioUsingMethodSource
   // testEcPairingGenericForScenarioUsingCsv
   private void testEcPairingGenericForScenario(String description, String pairingsAsString) {
     assertFalse(description.contains(" "), "Description cannot contain spaces");
@@ -507,103 +515,25 @@ public class EcPairingrTest {
                 List.of(largePointInfinity)));
       }
     }
-
-    // TODO: add a case where we ensure the pairing operation is returning 1. The structure should
-    // be something like:
-    //  List<Arguments> successfulNonTrivialPairing = new ArrayList<>();
-    //  successfulNonTrivialPairing.add(Arguments.of("Ax1", "Ay1", "BxIm1", "BxRe1", "ByIm1",
-    // "ByRe1"));
-    //  successfulNonTrivialPairing.add(Arguments.of("Ax2", "Ay2", "BxIm2", "BxRe2", "ByIm2",
-    // "ByRe2"));
-    //  successfulNonTrivialPairing.add(Arguments.of("Ax3", "Ay3", "BxIm3", "BxRe3", "ByIm3",
-    // "ByRe3"));
-    //  // ...
-    //  allPairings.add(Arguments.of("successfulNonTrivialPairing",
-    // argumentsListToPairingsAsString(successfulNonTrivialPairing)));
-
     return allPairings.stream();
   }
 
-  // Support methods and tests
-  private static String info(int totalPairings, int r) {
-    // r represents the number of the repetition of a scenario
-    return "TotalPairings" + totalPairings + "(" + r + ")";
+  // Method source of testEcPairingGenericForScenarioUsingMethodSource
+  private static Stream<Arguments> ecPairingSuccessfulNonTrivialSource() {
+    List<Arguments> allPairings = new ArrayList<>();
+    // TODO: fill actual data
+    List<Arguments> successfulNonTrivialPairing = new ArrayList<>();
+    successfulNonTrivialPairing.add(Arguments.of("0", "0", "0", "0", "0", "0"));
+    successfulNonTrivialPairing.add(Arguments.of("0", "0", "0", "0", "0", "0"));
+    successfulNonTrivialPairing.add(Arguments.of("0", "0", "0", "0", "0", "0"));
+    allPairings.add(
+        Arguments.of(
+            "successfulNonTrivialPairing",
+            argumentsListToPairingsAsString(successfulNonTrivialPairing)));
+    return allPairings.stream();
   }
 
-  private static Arguments generatePairings(
-      final String description,
-      final int totalPairings,
-      List<Arguments> smallPointsType,
-      List<Arguments> largePointsType) {
-    List<Arguments> pairings = new ArrayList<>();
-    for (int i = 0; i < totalPairings; i++) {
-      pairings.add(pair(rnd(smallPointsType), rnd(largePointsType)));
-    }
-    return Arguments.of(description, argumentsListToPairingsAsString(pairings));
-  }
-
-  private static Arguments generatePairingsSmallPointsMixed(
-      final String description,
-      final int totalPairings,
-      List<Arguments> smallPointsType1,
-      List<Arguments> smallPointsType2,
-      List<Arguments> largePointsType) {
-    List<Arguments> pairings = new ArrayList<>();
-    for (int i = 0; i < totalPairings; i++) {
-      if (i % 2 == 0) {
-        pairings.add(pair(rnd(smallPointsType1), rnd(largePointsType)));
-      } else {
-        pairings.add(pair(rnd(smallPointsType2), rnd(largePointsType)));
-      }
-    }
-    return Arguments.of(description, argumentsListToPairingsAsString(pairings));
-  }
-
-  private static Arguments generatePairingsLargePointsMixed(
-      final String description,
-      final int totalPairings,
-      List<Arguments> smallPointsType,
-      List<Arguments> largePointsType1,
-      List<Arguments> largePointsType2) {
-    List<Arguments> pairings = new ArrayList<>();
-    for (int i = 0; i < totalPairings; i++) {
-      if (i % 2 == 0) {
-        pairings.add(pair(rnd(smallPointsType), rnd(largePointsType1)));
-      } else {
-        pairings.add(pair(rnd(smallPointsType), rnd(largePointsType2)));
-      }
-    }
-    return Arguments.of(description, argumentsListToPairingsAsString(pairings));
-  }
-
-  private static Arguments generatePairingsMixed(
-      final String description,
-      final int totalPairings,
-      List<Arguments> smallPointsType1,
-      List<Arguments> smallPointsType2,
-      List<Arguments> largePointsType1,
-      List<Arguments> largePointsType2) {
-    List<Arguments> pairings = new ArrayList<>();
-    for (int i = 0; i < totalPairings; i++) {
-      switch (i % 4) {
-        case 0 -> {
-          pairings.add(pair(rnd(smallPointsType1), rnd(largePointsType1)));
-        }
-        case 1 -> {
-          pairings.add(pair(rnd(smallPointsType1), rnd(largePointsType2)));
-        }
-        case 2 -> {
-          pairings.add(pair(rnd(smallPointsType2), rnd(largePointsType1)));
-        }
-        case 3 -> {
-          pairings.add(pair(rnd(smallPointsType2), rnd(largePointsType2)));
-        }
-      }
-    }
-    return Arguments.of(description, argumentsListToPairingsAsString(pairings));
-  }
-
-  // This is a test for a support method
+  // Tests for support methods
   @Test
   public void testPair() {
     Arguments smallPoint = Arguments.of("Ax", "Ay");
@@ -618,19 +548,6 @@ public class EcPairingrTest {
     assertEquals("ByRe", pair.get()[5]);
   }
 
-  public static Arguments pair(Arguments smallPointArgs, Arguments largePointArgs) {
-    assertEquals(2, smallPointArgs.get().length);
-    assertEquals(4, largePointArgs.get().length);
-    return Arguments.of(
-        smallPointArgs.get()[0],
-        smallPointArgs.get()[1],
-        largePointArgs.get()[0],
-        largePointArgs.get()[1],
-        largePointArgs.get()[2],
-        largePointArgs.get()[3]);
-  }
-
-  // This is a test for a support method
   @Test
   public void testArgumentsListToPairingsAsString() {
     List<Arguments> pairings = new ArrayList<>();
@@ -640,65 +557,5 @@ public class EcPairingrTest {
     assertEquals(
         "Ax1_Ay1_BxIm1_BxRe1_ByIm1_ByRe1_Ax2_Ay2_BxIm2_BxRe2_ByIm2_ByRe2_Ax3_Ay3_BxIm3_BxRe3_ByIm3_ByRe3",
         argumentsListToPairingsAsString(pairings));
-  }
-
-  private static final String DELIMITER_CSV = ",";
-  private static final String DELIMITER_PAIRINGS = "_";
-
-  private static String argumentsListToPairingsAsString(List<Arguments> pairings) {
-    StringBuilder sb = new StringBuilder();
-    for (Arguments pair : pairings) {
-      assertEquals(6, pair.get().length);
-      for (Object coordinate : pair.get()) {
-        sb.append(coordinate.toString()).append(DELIMITER_PAIRINGS);
-      }
-    }
-    return !sb.isEmpty() ? sb.substring(0, sb.length() - 1) : "";
-  }
-
-  private List<Arguments> pairingsAsStringToArgumentsList(String pairingsAsString) {
-    final String[] pairingsAsArray = pairingsAsString.split(DELIMITER_PAIRINGS);
-    // Each pair is composed by 6 coordinates
-    final int totalPairings = pairingsAsArray.length / 6;
-    List<Arguments> pairings = new ArrayList<>();
-    for (int i = 0; i < totalPairings; i++) {
-      pairings.add(
-          Arguments.of(
-              pairingsAsArray[6 * i],
-              pairingsAsArray[6 * i + 1],
-              pairingsAsArray[6 * i + 2],
-              pairingsAsArray[6 * i + 3],
-              pairingsAsArray[6 * i + 4],
-              pairingsAsArray[6 * i + 5]));
-    }
-    return pairings;
-  }
-
-  public static List<Arguments> csvToArgumentsList(String filePath) throws IOException {
-    List<Arguments> argumentsList = new ArrayList<>();
-    try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-      String line;
-      boolean isFirstLine = true;
-      while ((line = br.readLine()) != null) {
-        if (isFirstLine) {
-          isFirstLine = false;
-          continue; // Skip the first line (column names)
-        }
-        String[] values = line.split(DELIMITER_CSV);
-        argumentsList.add(Arguments.of((Object[]) values));
-      }
-    }
-    return argumentsList;
-  }
-
-  private static final Random random = new Random(1);
-
-  private static Arguments rnd(List<Arguments> points) {
-    // If there is only one point, return it
-    if (points.size() == 1) {
-      return points.getFirst();
-    }
-    int index = random.nextInt(points.size());
-    return points.get(index);
   }
 }

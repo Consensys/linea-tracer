@@ -22,7 +22,10 @@ Discover [existing plugins](docs/plugins.md) and understand the [plugin release 
 ## Looking for the Linea code?
 
 Linea's stack is made up of multiple repositories, these include:
-
+- [linea-tracer](https://github.com/Consensys/linea-tracer): 
+> Tracing refers to the process of extracting data from the execution of an EVM client in order to construct large matrices known as execution traces. Execution traces are subject to the constraint system specified in the [linea-specification](https://github.com/Consensys/linea-specification) repo and implemented in the [linea-constraints](https://github.com/Consensys/linea-constraints) repo.
+>
+> This repository contains the elements of the Linea stack responsible for this process.
 - [linea-monorepo](https://github.com/Consensys/linea-monorepo): The main repository for the Linea stack & network 
 - [linea-besu](https://github.com/Consensys/linea-besu): Fork of Besu to implement the Linea-Besu client
 - [linea-sequencer](https://github.com/Consensys/linea-sequencer): A set of Linea-Besu plugins for the sequencer and RPC nodes

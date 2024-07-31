@@ -1,0 +1,25 @@
+plugins {
+  id "common-plugins"
+}
+
+apply from: rootProject.file("gradle/corset.gradle")
+apply from: rootProject.file("gradle/java.gradle")
+apply from: rootProject.file("gradle/tests.gradle")
+apply from: rootProject.file("gradle/dependency-management.gradle")
+apply from: rootProject.file('gradle/common-dependencies.gradle')
+apply from: rootProject.file("gradle/lint.gradle")
+
+dependencies {
+  implementation project(path: ':arithmetization')
+  implementation "${besuArtifactGroup}:besu-datatypes"
+  implementation "${besuArtifactGroup}:evm"
+  implementation "${besuArtifactGroup}.internal:core:${besuVersion}"
+  implementation "${besuArtifactGroup}.internal:referencetests:${besuVersion}"
+  implementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
+  implementation "${besuArtifactGroup}.internal:testutil:${besuVersion}"
+  implementation "${besuArtifactGroup}:plugin-api"
+  implementation 'org.assertj:assertj-core'
+
+  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
+  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+}

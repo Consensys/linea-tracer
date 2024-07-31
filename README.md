@@ -1,4 +1,4 @@
-# Linea arithmetization (zkEVM)
+# Linea tracer (zkEVM)
 
 This repository hosts a Linea tracing implementation for 
 [Hyperledger Besu](https://github.com/hyperledger/besu) based on an 

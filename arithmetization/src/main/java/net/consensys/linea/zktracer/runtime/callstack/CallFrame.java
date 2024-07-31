@@ -331,6 +331,10 @@ public class CallFrame {
     return this.selfReverts || this.getsReverted;
   }
 
+  public void initializeFrame(final MessageFrame frame) {
+    this.frame = frame;
+  }
+
   public void frame(MessageFrame frame) {
     this.frame = frame;
     this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());

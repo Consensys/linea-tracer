@@ -658,6 +658,7 @@ public class Hub implements Module {
           this.transients.conflation().deploymentInfo().number(codeAddress),
           codeDeploymentNumber,
           isDeployment);
+      this.currentFrame().initializeFrame(frame); // TODO should be done in enter
 
       this.defers.resolveUponEnteringChildContext(this);
 

@@ -52,6 +52,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextSection;
+import net.consensys.linea.zktracer.module.hub.section.CreateSection;
 import net.consensys.linea.zktracer.module.hub.section.ExpSection;
 import net.consensys.linea.zktracer.module.hub.section.JumpSection;
 import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
@@ -71,7 +72,6 @@ import net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.ExtCodeCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.ReturnDataCopySection;
-import net.consensys.linea.zktracer.module.hub.section.create.CreateSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.ReturnSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.RevertSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
@@ -279,6 +279,8 @@ public class Hub implements Module {
   @Getter private final ShakiraData shakiraData;
   private final BlakeModexpData blakeModexpData =
       new BlakeModexpData(this.wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
+
+  @Getter
   private final EcData ecData =
       new EcData(
           this,
@@ -666,7 +668,7 @@ public class Hub implements Module {
   }
 
   public void traceContextReEnter(MessageFrame frame) {
-    final int latestChildId = this.currentFrame().childFrames().getLast();
+    final int latestChildId = this.currentFrame().childFramesId().getLast();
     this.defers.resolvePostRollback(this, frame, this.callStack.getById(latestChildId));
     this.defers.resolveAtContextReEntry(this, this.currentFrame());
     if (this.currentFrame().sectionToUnlatch() != null) {
@@ -1127,5 +1129,9 @@ public class Hub implements Module {
     final CallFrame parentFrame = this.callStack.parent();
     parentFrame.returnData(Bytes.EMPTY);
     parentFrame.returnDataSpan(MemorySpan.empty());
+  }
+
+  public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {
+    return this.callStack.getById(parentFrame.childFramesId().getLast());
   }
 }

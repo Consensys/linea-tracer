@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.types;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+import static org.hyperledger.besu.crypto.Hash.keccak256;
+import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.List;
 
@@ -82,6 +84,19 @@ public class AddressUtils {
               out.writeLongScalar(nonce);
               out.endList();
             }));
+  }
+
+  public static Bytes32 gerCreate2RawAddress(final MessageFrame frame) {
+    final Address sender = frame.getRecipientAddress();
+
+    final Bytes32 salt = Bytes32.leftPad(frame.getStackItem(3));
+
+    final long offset = clampedToLong(frame.getStackItem(1));
+    final long length = clampedToLong(frame.getStackItem(2));
+    final Bytes initCode = frame.shadowReadMemory(offset, length);
+    final Bytes32 hash = keccak256(initCode);
+
+    return getCreate2RawAddress(sender, salt, hash);
   }
 
   public static Bytes32 getCreate2RawAddress(

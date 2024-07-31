@@ -125,7 +125,7 @@ public class RlpAddr implements Module {
 
         final Bytes32 rawCreate2Address = getCreate2RawAddress(sender, salt, hash);
 
-        RlpAddrOperation chunk =
+        final RlpAddrOperation chunk =
             new RlpAddrOperation(rawCreate2Address, OpCode.CREATE2, sender, salt, hash);
         this.chunkList.add(chunk);
         this.trm.callTrimming(rawCreate2Address);

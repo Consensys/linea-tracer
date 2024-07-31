@@ -34,7 +34,7 @@ public class Create2 extends MmuCall implements RomLexDefer {
   private final Hub hub;
   private ContractMetadata contract;
 
-  public Create2(final Hub hub, boolean failureCondition) {
+  public Create2(final Hub hub, final boolean failedCreate) {
     super(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING);
     this.hub = hub;
     this.hub.romLex().createDefers().register(this);
@@ -51,7 +51,7 @@ public class Create2 extends MmuCall implements RomLexDefer {
         .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
         .setKec();
 
-    if (!failureCondition) {
+    if (!failedCreate) {
       this.setRom();
     }
   }

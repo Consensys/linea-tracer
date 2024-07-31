@@ -196,7 +196,7 @@ public class DeferRegistry
 
     // recursively roll back child call frames
     final CallStack callStack = hub.callStack();
-    currentCallFrame.childFrames().stream()
+    currentCallFrame.childFramesId().stream()
         .map(callStack::getById)
         .forEach(childCallFrame -> resolvePostRollback(hub, messageFrame, childCallFrame));
   }

@@ -260,7 +260,7 @@ public final class CallStack {
     this.current = newTop;
     if (caller != -1) {
       this.callFrames.get(caller).returnData(Bytes.EMPTY);
-      this.callFrames.get(caller).childFrames().add(newTop);
+      this.callFrames.get(caller).childFramesId().add(newTop);
     }
   }
 

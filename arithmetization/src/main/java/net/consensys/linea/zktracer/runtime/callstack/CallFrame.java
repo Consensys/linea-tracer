@@ -68,7 +68,7 @@ public class CallFrame {
   @Getter private int parentFrameId;
 
   /** all the {@link CallFrame} that have been called by this frame. */
-  @Getter private final List<Integer> childFrames = new ArrayList<>();
+  @Getter private final List<Integer> childFramesId = new ArrayList<>();
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
   @Getter private final Address accountAddress;
@@ -284,11 +284,11 @@ public class CallFrame {
    * @return the ID of the latest callee
    */
   public Optional<Integer> lastCallee() {
-    if (this.childFrames.isEmpty()) {
+    if (this.childFramesId.isEmpty()) {
       return Optional.empty();
     }
 
-    return Optional.of(this.childFrames.get(this.childFrames.size() - 1));
+    return Optional.of(this.childFramesId.get(this.childFramesId.size() - 1));
   }
 
   /**
@@ -302,7 +302,7 @@ public class CallFrame {
   }
 
   private void revertChildren(CallStack callStack, int parentRevertStamp) {
-    this.childFrames.stream()
+    this.childFramesId.stream()
         .map(callStack::getById)
         .forEach(
             frame -> {

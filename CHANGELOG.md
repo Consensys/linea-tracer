@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.0-rc1
+* feat: upgrade besu version to 24.7-develop-f812936 ([#880](https://github.com/Consensys/linea-arithmetization/pull/880))
+
+## 0.2.0-rc5
+* fix(ecData): ugly hack to discard unsuccessful EcRecover call ([#891](https://github.com/Consensys/linea-arithmetization/pull/891))
+
+## 0.2.0-rc4
+* fix: init config object only once ([#873](https://github.com/Consensys/linea-arithmetization/pull/873))
+* feat: improve design of shared and private CLI options ([#864](https://github.com/Consensys/linea-arithmetization/pull/864))
+
+## 0.2.0-rc3
+* fix: make --plugin-linea-conflated-trace-generation-traces-output-path option required to avoid faulty registration of the trace generation RPC endpoint ([#858](https://github.com/Consensys/linea-arithmetization/pull/858))
+* feat: separate shared and private CLI options ([#856](https://github.com/Consensys/linea-arithmetization/pull/856))
+
+## 0.2.0-rc2
+* feat: improve ZkTracer initialization time by doing only once Opcodes and spillings loading from disk resources ([#720](https://github.com/Consensys/linea-arithmetization/pull/720))
+* perf: parallelize refundedGas for big transactions ([#793](https://github.com/Consensys/linea-arithmetization/pull/793))
+
 ## 0.2.0-rc1
 * feat: add PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS in spillings.toml and did some renaming ([#819](https://github.com/Consensys/linea-arithmetization/pull/819))
 * feat: optimise trace generation (except hub) ([#838](https://github.com/Consensys/linea-arithmetization/pull/838))

@@ -81,6 +81,11 @@ public class ReplayTests {
   }
 
   @Test
+  void leoFailingRange() {
+    replay("5389571-5389577.json.gz");
+  }
+
+  @Test
   void failingMmuModexp() {
     replay("5995162.json.gz");
   }
@@ -93,5 +98,10 @@ public class ReplayTests {
   @Test
   void rlprcptManyTopicsWoLogData() {
     replay("6569423.json.gz");
+  }
+
+  @Test
+  void multipleFailingCallToEcrecover() {
+    replay("5000544.json.gz");
   }
 }

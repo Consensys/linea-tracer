@@ -13,25 +13,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.ecdata.ecpairing;
+package net.consensys.linea.plugins;
 
-import lombok.Getter;
-import lombok.Setter;
+public interface LineaCliOptions {
+  LineaOptionsConfiguration toDomainObject();
 
-@Getter
-@Setter
-public class EcPairingArgumentsSingleton {
-  private static EcPairingArgumentsSingleton instance;
-  private String arguments;
-
-  private EcPairingArgumentsSingleton() {
-    // private constructor to prevent instantiation
-  }
-
-  public static EcPairingArgumentsSingleton getInstance() {
-    if (instance == null) {
-      instance = new EcPairingArgumentsSingleton();
-    }
-    return instance;
+  default LineaOptionsPluginConfiguration asPluginConfig() {
+    return new LineaOptionsPluginConfiguration(this, this::toDomainObject);
   }
 }

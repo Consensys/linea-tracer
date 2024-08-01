@@ -37,9 +37,21 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 @Slf4j
 public class ExpTest {
-  // Generates 128, 64, 2, 1 as LD
-  private static final int[] LD_INDICES = new int[] {1, 2, 7, 8};
-  private static final int[] C = new int[] {1, 2, 10, 15, 16, 17, 20, 31, 32};
+  // Generates 128, 64, 2, 1 as LD (leading digit)
+  // LD_INDICES | LD
+  // ---------- | ---------------------
+  // 1          | 128 = 1000 0000 = 0x80
+  // 2          | 64  = 0100 0000 = 0x40
+  // 7          | 2   = 0000 0010 = 0x02
+  // 8          | 1   = 0000 0001 = 0x01
+  private static final int[] LD_INDICES = new int[] {1, 2, 7, 8}; // LEADING_DIGIT_INDICES
+
+  // Generates 1, 2, 10, 15, 16, 17, 20, 31, 32 as ebsCutoff and cdsCutoff
+  // and k (index of a specific sequence of bytes based on the test case)
+  private static final int[] C = new int[] {1, 2, 10, 15, 16, 17, 20, 31, 32}; // CUTOFFS
+
+  // See https://github.com/Consensys/linea-specification-internal/issues/326 as additional
+  // documentation
 
   @Test
   void testExpLogSingleCase() {
@@ -111,6 +123,7 @@ public class ExpTest {
   void testModexpLogFFBlockWithLDCase(int ebsCutoff, int cdsCutoff, int k, int LDIndex) {
     log.debug("k: " + k);
     log.debug("LDIndex: " + LDIndex);
+    // 0x00000000000000000000000000000040ffffffffffffffffffffffffffffffff
     Bytes wordAfterBase = Bytes.fromHexStringLenient(ffBlockWithLd(k, LDIndex));
     BytecodeCompiler program = initProgramInvokingModexp(ebsCutoff, cdsCutoff, wordAfterBase);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());

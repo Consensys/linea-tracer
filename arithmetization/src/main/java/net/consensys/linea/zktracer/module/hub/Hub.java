@@ -277,6 +277,8 @@ public class Hub implements Module {
    * those module are traced (and could be count)
    */
   @Getter private final ShakiraData shakiraData;
+
+  @Getter
   private final BlakeModexpData blakeModexpData =
       new BlakeModexpData(this.wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
 
@@ -296,7 +298,7 @@ public class Hub implements Module {
   private final L2Block l2Block;
   private final L2L1Logs l2L1Logs;
 
-  /** list of module triggered by the HUB at BESU hooks */
+  /** list of module than can be modified during execution */
   private final List<Module> modules;
 
   /** reference table modules */
@@ -546,7 +548,7 @@ public class Hub implements Module {
             logs,
             selfDestructs);
 
-    if (!(this.state.getProcessingPhase() == TX_SKIP)) {
+    if (this.state.getProcessingPhase() != TX_SKIP) {
       this.state.stamps().incrementHubStamp();
     }
 
@@ -669,6 +671,7 @@ public class Hub implements Module {
   }
 
   public void traceContextReEnter(MessageFrame frame) {
+    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
     final int latestChildId = this.currentFrame().childFramesId().getLast();
     this.defers.resolvePostRollback(this, frame, this.callStack.getById(latestChildId));
     this.defers.resolveAtContextReEntry(this, this.currentFrame());
@@ -680,6 +683,7 @@ public class Hub implements Module {
 
   @Override
   public void traceContextExit(MessageFrame frame) {
+    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
     if (frame.getDepth() > 0) {
       this.transients
           .conflation()
@@ -969,8 +973,6 @@ public class Hub implements Module {
       previousOperationWasCallToEcPrecompile = false;
     }
 
-    // TODO: delete me, we do it in the ZKTracer in every case (ie even if codeSize == 0)
-    // this.currentFrame().frame(frame);
     this.state.stamps().incrementHubStamp();
 
     this.pch.setup(frame);
@@ -1115,10 +1117,6 @@ public class Hub implements Module {
 
       case JUMP -> new JumpSection(this);
     }
-  }
-
-  public TraceSection getCurrentSection() {
-    return this.state.currentTxTrace().currentSection();
   }
 
   public void squashCurrentFrameOutputData() {

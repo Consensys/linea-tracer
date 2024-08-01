@@ -365,16 +365,4 @@ public final class CallStack {
   public void revert(int stamp) {
     this.current().revert(this, stamp);
   }
-
-  public String pretty() {
-    StringBuilder r = new StringBuilder(2000);
-    for (CallFrame c : this.callFrames) {
-      final CallFrame parent = this.getParentCallFrameById(c.id());
-      r.append(" ".repeat(c.depth()));
-      r.append(
-          "%d/%d (<- %d/%d): %s"
-              .formatted(c.id(), c.contextNumber(), parent.id(), parent.contextNumber(), c.type()));
-    }
-    return r.toString();
-  }
 }

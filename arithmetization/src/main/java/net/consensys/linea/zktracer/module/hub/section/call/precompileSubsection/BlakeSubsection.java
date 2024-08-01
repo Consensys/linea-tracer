@@ -13,8 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.blake2fmodexpdata;
+package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 
-public record ModexpComponents(Bytes base, Bytes exp, Bytes mod) {}
+public class BlakeSubsection extends PrecompileSubsection {
+  public BlakeSubsection(Hub hub, CallSection callSection) {
+    super(hub, callSection);
+  }
+}

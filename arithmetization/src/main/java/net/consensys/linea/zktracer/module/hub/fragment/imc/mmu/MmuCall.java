@@ -81,6 +81,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScena
 import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
+import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ModexpSubsection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.LogData;
@@ -603,102 +604,131 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     }
   }
 
-  public static MmuCall forModExp(final Hub hub, final PrecompileInvocation p, int i) {
-    Preconditions.checkArgument(i >= 2 && i < 12);
-    final ModExpMetadata m = (ModExpMetadata) p.metadata();
-    final int precompileContextNumber = p.hubStamp() + 1;
+  public static MmuCall forModexpExtractBbs(
+      final Hub hub, final ModexpSubsection precompileSubsection, final ModExpMetadata metaData) {
+    return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+        .sourceId(hub.currentFrame().contextNumber())
+        .referenceOffset(precompileSubsection.callDataMemorySpan.offset())
+        .referenceSize(precompileSubsection.callDataMemorySpan.length())
+        .limb1(metaData.bbs().hi())
+        .limb2(metaData.bbs().lo());
+  }
 
-    if (i == 2) {
-      return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-          .sourceId(hub.currentFrame().contextNumber())
-          .referenceOffset(p.callDataSource().offset())
-          .referenceSize(p.callDataSource().length())
-          .limb1(m.bbs().hi())
-          .limb2(m.bbs().lo());
-    } else if (i == 3) {
-      return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-          .sourceId(hub.currentFrame().contextNumber())
-          .sourceOffset(EWord.of(32))
-          .referenceOffset(p.callDataSource().offset())
-          .referenceSize(p.callDataSource().length())
-          .limb1(m.ebs().hi())
-          .limb2(m.ebs().lo());
-    } else if (i == 4) {
-      return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
-          .sourceId(hub.currentFrame().contextNumber())
-          .sourceOffset(EWord.of(64))
-          .referenceOffset(p.callDataSource().offset())
-          .referenceSize(p.callDataSource().length())
-          .limb1(m.mbs().hi())
-          .limb2(m.mbs().lo());
-    } else if (i == 5) {
-      return new MmuCall(hub, MMU_INST_MLOAD)
-          .sourceId(hub.currentFrame().contextNumber())
-          .sourceOffset(EWord.of(p.callDataSource().offset() + 96 + m.bbs().toInt()))
-          .limb1(m.rawLeadingWord().hi())
-          .limb2(m.rawLeadingWord().lo());
-    } else if (i == 7) {
-      if (m.extractBase()) {
-        return new MmuCall(hub, MMU_INST_MODEXP_DATA)
-            .sourceId(hub.currentFrame().contextNumber())
-            .targetId(precompileContextNumber)
-            .sourceOffset(EWord.of(96))
-            .size(m.bbs().toInt())
-            .referenceOffset(p.callDataSource().offset())
-            .referenceSize(p.callDataSource().length())
-            .phase(PHASE_MODEXP_BASE)
-            .setBlakeModexp();
-      } else {
-        return new MmuCall(hub, MMU_INST_MODEXP_ZERO)
-            .targetId(precompileContextNumber)
-            .phase(PHASE_MODEXP_BASE)
-            .setBlakeModexp();
-      }
-    } else if (i == 8) {
-      if (m.extractExponent()) {
-        return new MmuCall(hub, MMU_INST_MODEXP_DATA)
-            .sourceId(hub.currentFrame().contextNumber())
-            .targetId(precompileContextNumber)
-            .sourceOffset(EWord.of(96 + m.bbs().toInt()))
-            .size(m.ebs().toInt())
-            .referenceOffset(p.callDataSource().offset())
-            .referenceSize(p.callDataSource().length())
-            .phase(PHASE_MODEXP_EXPONENT)
-            .setBlakeModexp();
-      } else {
-        return new MmuCall(hub, MMU_INST_MODEXP_ZERO)
-            .targetId(precompileContextNumber)
-            .phase(PHASE_MODEXP_EXPONENT)
-            .setBlakeModexp();
-      }
-    } else if (i == 9) {
+  public static MmuCall forModexpExtractEbs(
+      final Hub hub, final ModexpSubsection precompileSubsection, final ModExpMetadata metaData) {
+    return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+        .sourceId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.of(32))
+        .referenceOffset(precompileSubsection.callDataMemorySpan.offset())
+        .referenceSize(precompileSubsection.callDataMemorySpan.length())
+        .limb1(metaData.ebs().hi())
+        .limb2(metaData.ebs().lo());
+  }
+
+  public static MmuCall forModexpExtractMbs(
+      final Hub hub, final ModexpSubsection precompileSubsection, final ModExpMetadata metaData) {
+    return new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
+        .sourceId(hub.currentFrame().contextNumber())
+        .sourceOffset(EWord.of(64))
+        .referenceOffset(precompileSubsection.callDataMemorySpan.offset())
+        .referenceSize(precompileSubsection.callDataMemorySpan.length())
+        .limb1(metaData.mbs().hi())
+        .limb2(metaData.mbs().lo());
+  }
+
+  public static MmuCall forModexpLoadLead(
+      final Hub hub, final ModexpSubsection precompileSubsection, final ModExpMetadata metaData) {
+    return new MmuCall(hub, MMU_INST_MLOAD)
+        .sourceId(hub.currentFrame().contextNumber())
+        .sourceOffset(
+            EWord.of(
+                precompileSubsection.callDataMemorySpan.offset() + 96 + metaData.bbs().toInt()))
+        .limb1(metaData.rawLeadingWord().hi())
+        .limb2(metaData.rawLeadingWord().lo());
+  }
+
+  public static MmuCall forModexpExtractBase(
+      final Hub hub, final ModexpSubsection modexpSubsection, final ModExpMetadata modExpMetadata) {
+    if (modExpMetadata.extractBase()) {
       return new MmuCall(hub, MMU_INST_MODEXP_DATA)
-          .sourceId(hub.currentFrame().contextNumber())
-          .targetId(precompileContextNumber)
-          .sourceOffset(EWord.of(96 + m.bbs().toInt() + m.ebs().toInt()))
-          .size(m.mbs().toInt())
-          .referenceOffset(p.callDataSource().offset())
-          .referenceSize(p.callDataSource().length())
-          .phase(PHASE_MODEXP_MODULUS)
+          .sourceId(modexpSubsection.callSection.hubStamp())
+          .sourceRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
+          .targetId(modexpSubsection.exoModuleOperationId())
+          .targetRamBytes(Optional.of(modExpMetadata.base()))
+          .sourceOffset(EWord.of(96))
+          .size(modExpMetadata.bbs().toInt())
+          .referenceOffset(modexpSubsection.callDataMemorySpan.offset())
+          .referenceSize(modexpSubsection.callDataMemorySpan.length())
+          .phase(PHASE_MODEXP_BASE)
           .setBlakeModexp();
-    } else if (i == 10) {
-      return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-          .sourceId(precompileContextNumber)
-          .targetId(precompileContextNumber)
-          .size(512)
-          .phase(PHASE_MODEXP_RESULT)
-          .setBlakeModexp();
-    } else if (i == 11) {
-      return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
-          .sourceId(precompileContextNumber)
-          .targetId(hub.currentFrame().contextNumber())
-          .sourceOffset(EWord.of(512 - m.mbs().toInt()))
-          .size(m.mbs().toInt())
-          .referenceOffset(p.requestedReturnDataTarget().offset())
-          .referenceSize(p.requestedReturnDataTarget().length());
     } else {
-      throw new IllegalArgumentException("need a boolean");
+      return new MmuCall(hub, MMU_INST_MODEXP_ZERO)
+          .targetId(modexpSubsection.exoModuleOperationId())
+          .phase(PHASE_MODEXP_BASE)
+          .setBlakeModexp();
     }
+  }
+
+  public static MmuCall forModexpExtractExponent(
+      final Hub hub, final ModexpSubsection modexpSubsection, final ModExpMetadata modExpMetadata) {
+    if (modExpMetadata.extractExponent()) {
+      return new MmuCall(hub, MMU_INST_MODEXP_DATA)
+          .sourceId(modexpSubsection.callSection.hubStamp())
+          .sourceRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
+          .targetId(modexpSubsection.exoModuleOperationId())
+          .targetRamBytes(Optional.of(modExpMetadata.exp()))
+          .sourceOffset(EWord.of(96 + modExpMetadata.bbs().toInt()))
+          .size(modExpMetadata.ebs().toInt())
+          .referenceOffset(modexpSubsection.callDataMemorySpan.offset())
+          .referenceSize(modexpSubsection.callDataMemorySpan.length())
+          .phase(PHASE_MODEXP_EXPONENT)
+          .setBlakeModexp();
+    } else {
+      return new MmuCall(hub, MMU_INST_MODEXP_ZERO)
+          .targetId(modexpSubsection.exoModuleOperationId())
+          .phase(PHASE_MODEXP_EXPONENT)
+          .setBlakeModexp();
+    }
+  }
+
+  public static MmuCall forModexpExtractModulus(
+      final Hub hub, final ModexpSubsection modexpSubsection, final ModExpMetadata modExpMetadata) {
+    return new MmuCall(hub, MMU_INST_MODEXP_DATA)
+        .sourceId(modexpSubsection.callSection.hubStamp())
+        .sourceRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
+        .targetId(modexpSubsection.exoModuleOperationId())
+        .targetRamBytes(Optional.of(modExpMetadata.mod()))
+        .sourceOffset(EWord.of(96 + modExpMetadata.bbs().toInt() + modExpMetadata.ebs().toInt()))
+        .size(modExpMetadata.mbs().toInt())
+        .referenceOffset(modexpSubsection.callDataMemorySpan.offset())
+        .referenceSize(modexpSubsection.callDataMemorySpan.length())
+        .phase(PHASE_MODEXP_MODULUS)
+        .setBlakeModexp();
+  }
+
+  public static MmuCall forModexpFullResultCopy(
+      final Hub hub, final ModexpSubsection modexpSubsection, final ModExpMetadata modExpMetadata) {
+    return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+        .sourceId(modexpSubsection.exoModuleOperationId())
+        .exoBytes(Optional.of(modexpSubsection.returnData()))
+        .targetId(modexpSubsection.returnDataContextNumber())
+        .targetRamBytes(Optional.of(Bytes.EMPTY))
+        .size(512)
+        .phase(PHASE_MODEXP_RESULT)
+        .setBlakeModexp();
+  }
+
+  public static MmuCall forModexpPartialResultCopy(
+      final Hub hub, final ModexpSubsection modexpSubsection, final ModExpMetadata modExpMetadata) {
+    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(modexpSubsection.exoModuleOperationId())
+        .sourceRamBytes(Optional.of(modexpSubsection.returnData()))
+        .targetId(modexpSubsection.callSection.hubStamp())
+        .targetRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
+        .sourceOffset(EWord.of(512 - modExpMetadata.mbs().toInt()))
+        .size(modExpMetadata.mbs().toInt())
+        .referenceOffset(modexpSubsection.parentReturnDataTarget.offset())
+        .referenceSize(modexpSubsection.parentReturnDataTarget.length());
   }
 
   @Override

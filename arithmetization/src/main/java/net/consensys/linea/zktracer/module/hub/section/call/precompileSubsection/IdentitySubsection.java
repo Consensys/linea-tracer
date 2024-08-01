@@ -31,7 +31,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
 public class IdentitySubsection extends PrecompileSubsection {
 
-  final ImcFragment firstImcFragment;
   final PrecompileCommonOobCall oobCall;
 
   public IdentitySubsection(final Hub hub, final CallSection callSection) {
@@ -39,7 +38,6 @@ public class IdentitySubsection extends PrecompileSubsection {
 
     precompileScenarioFragment.setFlag(PRC_IDENTITY);
 
-    firstImcFragment = ImcFragment.empty(hub);
     oobCall = new PrecompileCommonOobCall(OOB_INST_IDENTITY);
     firstImcFragment.callOob(oobCall);
 
@@ -56,7 +54,7 @@ public class IdentitySubsection extends PrecompileSubsection {
     Preconditions.checkArgument(successBit == oobCall.isHubSuccess());
 
     if (!successBit) {
-      return;
+      precompileScenarioFragment.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
     }
 
     final boolean extractCallData = successBit && !callDataMemorySpan.lengthNull();

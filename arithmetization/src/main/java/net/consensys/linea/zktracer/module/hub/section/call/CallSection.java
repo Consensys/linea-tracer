@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScen
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import static org.hyperledger.besu.datatypes.Address.ID;
+import static org.hyperledger.besu.datatypes.Address.MODEXP;
 import static org.hyperledger.besu.datatypes.Address.SHA256;
 
 import java.util.Map;
@@ -45,6 +46,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.XCallOob
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.IdentitySubsection;
+import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ModexpSubsection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.Sha2Subsection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -67,13 +69,19 @@ public class CallSection extends TraceSection
 
   // TODO: finish this map
   private static final Map<Address, BiFunction<Hub, CallSection, PrecompileSubsection>>
-      ADDRESS_TO_PRECOMPILE = Map.of(SHA256, Sha2Subsection::new, ID, IdentitySubsection::new);
+      ADDRESS_TO_PRECOMPILE =
+          Map.of(
+              SHA256,
+              Sha2Subsection::new,
+              ID,
+              IdentitySubsection::new,
+              MODEXP,
+              ModexpSubsection::new);
 
   // row i+0
   private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
 
   // Just before call
-
   private ContextFragment finalContextFragment;
   private Bytes rawCalleeAddress;
 

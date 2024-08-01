@@ -30,6 +30,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -76,6 +77,7 @@ public class PrecompileSubsection
   boolean successBit;
 
   public final PrecompileScenarioFragment precompileScenarioFragment;
+  public final ImcFragment firstImcFragment;
 
   /** A snapshot of the caller's memory before the execution of the precompile */
   public Bytes callerMemorySnapshot;
@@ -91,6 +93,9 @@ public class PrecompileSubsection
     precompileScenarioFragment =
         new PrecompileScenarioFragment(this, PRC_SUCCESS_WONT_REVERT, PRC_UNDEFINED);
     fragments.add(precompileScenarioFragment);
+
+    firstImcFragment = ImcFragment.empty(hub);
+    fragments().add(firstImcFragment);
   }
 
   protected short maxNumberOfLines() {
@@ -120,13 +125,6 @@ public class PrecompileSubsection
 
     if (successBit) {
       hub.defers().scheduleForPostRollback(this, frame);
-    } else {
-      // TODO: extensions of this class are responsible for setting either
-      //  PRC_FAILURE_KNOWN_TO_HUB / PRC_FAILURE_KNOWN_TO_RAM
-      //  in case of a failure.
-      //  In any case, the failure scenario is required to have been set
-      //  before context re-entry.
-      Preconditions.checkArgument(precompileScenarioFragment.isPrcFailure());
     }
   }
 

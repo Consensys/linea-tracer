@@ -30,17 +30,14 @@ import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
 public class Sha2Subsection extends PrecompileSubsection {
-  final ImcFragment firstImcFragment;
   final PrecompileCommonOobCall oobCall;
 
   public Sha2Subsection(Hub hub, CallSection callSection) {
     super(hub, callSection);
 
     precompileScenarioFragment.setFlag(PRC_SHA2_256);
-    oobCall = new PrecompileCommonOobCall(OOB_INST_SHA2);
 
-    firstImcFragment = ImcFragment.empty(hub);
-    this.fragments().add(firstImcFragment);
+    oobCall = new PrecompileCommonOobCall(OOB_INST_SHA2);
     firstImcFragment.callOob(oobCall);
 
     if (!oobCall.isHubSuccess()) {
@@ -56,7 +53,7 @@ public class Sha2Subsection extends PrecompileSubsection {
     Preconditions.checkArgument(successBit == oobCall.isHubSuccess());
 
     if (!successBit) {
-      return;
+      precompileScenarioFragment.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
     }
 
     // NOTE: we trigger the SHAKIRA module for nonempty call data only

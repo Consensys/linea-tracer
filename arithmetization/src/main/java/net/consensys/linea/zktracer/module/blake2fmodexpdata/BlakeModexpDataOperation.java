@@ -40,6 +40,7 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.Hash;
@@ -57,24 +58,24 @@ public class BlakeModexpDataOperation extends ModuleOperation {
 
   @Getter public final long id;
 
-  public final Optional<ModexpComponents> modexpComponents;
+  public final Optional<ModExpMetadata> modexpMetaData;
   public final Optional<BlakeComponents> blake2fComponents;
 
-  public BlakeModexpDataOperation(final ModexpComponents modexpComponents) {
-    this.id = 0; // TODO
-    this.modexpComponents = Optional.of(modexpComponents);
+  public BlakeModexpDataOperation(final ModExpMetadata modexpMetaData, final int id) {
+    this.id = id;
+    this.modexpMetaData = Optional.of(modexpMetaData);
     this.blake2fComponents = Optional.empty();
   }
 
   public BlakeModexpDataOperation(final BlakeComponents blakeComponents) {
     this.id = 0; // TODO
-    this.modexpComponents = Optional.empty();
+    this.modexpMetaData = Optional.empty();
     this.blake2fComponents = Optional.of(blakeComponents);
   }
 
   @Override
   protected int computeLineCount() {
-    return modexpComponents.isPresent()
+    return modexpMetaData.isPresent()
         ? MODEXP_COMPONENTS_LINE_COUNT
         : BLAKE2f_COMPONENTS_LINE_COUNT;
   }
@@ -82,7 +83,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
   void trace(Trace trace, final int stamp) {
     final UnsignedByte stampByte = UnsignedByte.of(stamp);
 
-    if (modexpComponents.isPresent()) {
+    if (modexpMetaData.isPresent()) {
       traceBase(trace, stampByte);
       traceExponent(trace, stampByte);
       traceModulus(trace, stampByte);
@@ -130,7 +131,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
   }
 
   private void traceBase(Trace trace, final UnsignedByte stamp) {
-    final Bytes input = leftPadTo(modexpComponents.get().base(), MODEXP_COMPONENT_BYTE_SIZE);
+    final Bytes input = leftPadTo(modexpMetaData.get().base(), MODEXP_COMPONENT_BYTE_SIZE);
     for (int index = 0; index <= INDEX_MAX_MODEXP_BASE; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_MODEXP_BASE);
       trace.phase(UnsignedByte.of(PHASE_MODEXP_BASE)).isModexpBase(true).fillAndValidateRow();
@@ -138,7 +139,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
   }
 
   private void traceExponent(Trace trace, final UnsignedByte stamp) {
-    final Bytes input = leftPadTo(modexpComponents.get().exp(), MODEXP_COMPONENT_BYTE_SIZE);
+    final Bytes input = leftPadTo(modexpMetaData.get().exp(), MODEXP_COMPONENT_BYTE_SIZE);
     for (int index = 0; index <= INDEX_MAX_MODEXP_EXPONENT; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_MODEXP_EXPONENT);
       trace
@@ -149,7 +150,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
   }
 
   private void traceModulus(Trace trace, final UnsignedByte stamp) {
-    final Bytes input = leftPadTo(modexpComponents.get().mod(), MODEXP_COMPONENT_BYTE_SIZE);
+    final Bytes input = leftPadTo(modexpMetaData.get().mod(), MODEXP_COMPONENT_BYTE_SIZE);
     for (int index = 0; index <= INDEX_MAX_MODEXP_MODULUS; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_MODEXP_MODULUS);
       trace.phase(UnsignedByte.of(PHASE_MODEXP_MODULUS)).isModexpModulus(true).fillAndValidateRow();
@@ -157,7 +158,7 @@ public class BlakeModexpDataOperation extends ModuleOperation {
   }
 
   private void traceModexpResult(Trace trace, final UnsignedByte stamp) {
-    final Bytes input = leftPadTo(computeModexpResult(), MODEXP_COMPONENT_BYTE_SIZE);
+    final Bytes input = leftPadTo(modexpMetaData.get().rawResult(), MODEXP_COMPONENT_BYTE_SIZE);
     for (int index = 0; index <= INDEX_MAX_MODEXP_RESULT; index++) {
       commonTrace(trace, stamp, index, input, INDEX_MAX_MODEXP_RESULT);
       trace.phase(UnsignedByte.of(PHASE_MODEXP_RESULT)).isModexpResult(true).fillAndValidateRow();
@@ -174,9 +175,9 @@ public class BlakeModexpDataOperation extends ModuleOperation {
   }
 
   private Bytes computeModexpResult() {
-    final BigInteger baseBigInt = modexpComponents.get().base().toUnsignedBigInteger();
-    final BigInteger expBigInt = modexpComponents.get().exp().toUnsignedBigInteger();
-    final BigInteger modBigInt = modexpComponents.get().mod().toUnsignedBigInteger();
+    final BigInteger baseBigInt = modexpMetaData.get().base().toUnsignedBigInteger();
+    final BigInteger expBigInt = modexpMetaData.get().exp().toUnsignedBigInteger();
+    final BigInteger modBigInt = modexpMetaData.get().mod().toUnsignedBigInteger();
 
     return modBigInt.equals(BigInteger.ZERO)
         ? Bytes.of(0)

@@ -31,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
@@ -45,8 +46,8 @@ public class BlakeModexpData implements Module {
   private final ModexpEffectiveCall modexpEffectiveCall;
   private final BlakeEffectiveCall blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
-  private StackedSet<BlakeModexpDataOperation> operations = new StackedSet<>();
-  private List<BlakeModexpDataOperation> sortedOperations = new ArrayList<>();
+  private final StackedSet<BlakeModexpDataOperation> operations = new StackedSet<>();
+  private final List<BlakeModexpDataOperation> sortedOperations = new ArrayList<>();
   private int numberOfOperationsAtStartTx = 0;
 
   @Override
@@ -95,8 +96,8 @@ public class BlakeModexpData implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  public void callModexp(final ModexpComponents modexpComponents) {
-    operations.add(new BlakeModexpDataOperation(modexpComponents));
+  public void callModexp(final ModExpMetadata modexpMetaData, final int id) {
+    operations.add(new BlakeModexpDataOperation(modexpMetaData, id));
     modexpEffectiveCall.addPrecompileLimit(1);
   }
 
@@ -119,9 +120,9 @@ public class BlakeModexpData implements Module {
   public Bytes getInputDataByIdAndPhase(final int id, final int phase) {
     final BlakeModexpDataOperation op = getOperationById(id);
     return switch (phase) {
-      case PHASE_MODEXP_BASE -> op.modexpComponents.get().base();
-      case PHASE_MODEXP_EXPONENT -> op.modexpComponents.get().exp();
-      case PHASE_MODEXP_MODULUS -> op.modexpComponents.get().mod();
+      case PHASE_MODEXP_BASE -> op.modexpMetaData.get().base();
+      case PHASE_MODEXP_EXPONENT -> op.modexpMetaData.get().exp();
+      case PHASE_MODEXP_MODULUS -> op.modexpMetaData.get().mod();
       case PHASE_MODEXP_RESULT -> Bytes.EMPTY; // TODO
       case PHASE_BLAKE_DATA -> op.blake2fComponents.get().data();
       case PHASE_BLAKE_RESULT -> Bytes.EMPTY; // TODO

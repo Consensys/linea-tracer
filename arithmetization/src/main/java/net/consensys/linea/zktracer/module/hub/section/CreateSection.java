@@ -268,15 +268,15 @@ public class CreateSection extends TraceSection
 
       final AccountFragment undoCreator =
           accountFragmentFactory.make(
-              reEntryCreatorSnapshot,
               childEntryCreatorSnapshot,
+              reEntryCreatorSnapshot,
               DomSubStampsSubFragment.revertsWithChildDomSubStamps(
                   this.hubStamp(), childRevertStamp, 2));
 
       final AccountFragment undoCreatee =
           accountFragmentFactory.make(
-              reEntryCreateeSnapshot,
               childEntryCreateeSnapshot,
+              reEntryCreateeSnapshot,
               DomSubStampsSubFragment.revertsWithChildDomSubStamps(
                   this.hubStamp(), childRevertStamp, 3));
 
@@ -297,14 +297,14 @@ public class CreateSection extends TraceSection
 
     final AccountFragment undoCreator =
         accountFragmentFactory.make(
-            childEntryCreatorSnapshot,
+            firstUndo ? childEntryCreatorSnapshot : reEntryCreatorSnapshot,
             preOpcodeCreatorSnapshot,
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                 this.hubStamp(), revertStamp, firstUndo ? 2 : 4));
 
     final AccountFragment undoCreatee =
         accountFragmentFactory.make(
-            childEntryCreateeSnapshot,
+            firstUndo ? childEntryCreateeSnapshot : reEntryCreateeSnapshot,
             preOpcodeCreateeSnapshot,
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                 this.hubStamp(), revertStamp, firstUndo ? 3 : 5));

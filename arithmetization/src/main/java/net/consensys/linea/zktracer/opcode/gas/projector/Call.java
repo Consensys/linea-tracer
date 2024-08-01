@@ -62,8 +62,8 @@ public class Call extends GasProjection {
     }
 
     return Math.max(
-        inputData.isEmpty() ? 0 : Words.clampedAdd(inputData.offset(), inputData.length()),
-        returnData.isEmpty() ? 0 : Words.clampedAdd(returnData.offset(), returnData.length()));
+        inputData.lengthNull() ? 0 : Words.clampedAdd(inputData.offset(), inputData.length()),
+        returnData.lengthNull() ? 0 : Words.clampedAdd(returnData.offset(), returnData.length()));
   }
 
   @Override

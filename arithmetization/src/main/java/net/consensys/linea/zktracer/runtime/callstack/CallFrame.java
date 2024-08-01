@@ -345,6 +345,8 @@ public class CallFrame {
   public static Bytes extractContiguousLimbsFromMemory(
       final MessageFrame frame, final MemorySpan memorySpan) {
     // TODO: optimize me please. Need a review of the MMU operation handling.
-    return memorySpan.isEmpty() ? Bytes.EMPTY : frame.shadowReadMemory(0, frame.memoryByteSize());
+    return memorySpan.lengthNull()
+        ? Bytes.EMPTY
+        : frame.shadowReadMemory(0, frame.memoryByteSize());
   }
 }

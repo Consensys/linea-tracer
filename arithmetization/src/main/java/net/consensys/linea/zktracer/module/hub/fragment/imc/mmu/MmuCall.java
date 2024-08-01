@@ -348,7 +348,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         return nop();
       }
     } else {
-      if (recoverySuccessful && !p.requestedReturnDataTarget().isEmpty()) {
+      if (recoverySuccessful && !p.requestedReturnDataTarget().lengthNull()) {
 
         return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
             .sourceId(precompileContextNumber)
@@ -392,7 +392,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
     final boolean isShaTwo = flag == PRC_SHA2_256;
 
-    if (precompileSubsection.callDataMemorySpan.isEmpty()) {
+    if (precompileSubsection.callDataMemorySpan.lengthNull()) {
       return new MmuCall(hub, MMU_INST_MSTORE)
           .targetId(precompileSubsection.exoModuleOperationId())
           .targetOffset(EWord.ZERO)
@@ -417,7 +417,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         precompileSubsection.precompileScenarioFragment().getFlag();
 
     Preconditions.checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
-    Preconditions.checkArgument(!precompileSubsection.parentReturnDataTarget.isEmpty());
+    Preconditions.checkArgument(!precompileSubsection.parentReturnDataTarget.lengthNull());
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(precompileSubsection.returnDataContextNumber())
@@ -428,36 +428,31 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .referenceSize(precompileSubsection.parentReturnDataTarget.length());
   }
 
-  public static MmuCall forIdentity(final Hub hub, final PrecompileInvocation p, int i) {
-    Preconditions.checkArgument(i >= 0 && i < 2);
+  public static MmuCall forIdentityExtractCallData(
+      final Hub hub, PrecompileSubsection precompileSubsection) {
 
-    if (p.callDataSource().isEmpty()) {
-      return nop();
-    }
+    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(precompileSubsection.callSection.hubStamp())
+        .sourceRamBytes(Optional.of(precompileSubsection.callerMemorySnapshot))
+        .targetId(precompileSubsection.exoModuleOperationId())
+        .targetRamBytes(Optional.of(Bytes.EMPTY))
+        .sourceOffset(EWord.of(precompileSubsection.callDataMemorySpan.offset()))
+        .targetOffset(EWord.ZERO)
+        .size(precompileSubsection.callDataMemorySpan.length());
+  }
 
-    final int precompileContextNumber = p.hubStamp() + 1;
+  public static MmuCall forIdentityReturnData(
+      final Hub hub, final PrecompileSubsection precompileSubsection) {
 
-    if (i == 0) {
-      return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
-          .sourceId(hub.currentFrame().contextNumber())
-          .targetId(precompileContextNumber)
-          .sourceOffset(EWord.of(p.callDataSource().offset()))
-          .size(p.callDataSource().length())
-          .referenceOffset(0)
-          .referenceSize(p.callDataSource().length());
-    } else {
-      if (p.requestedReturnDataTarget().isEmpty()) {
-        return nop();
-      } else {
-        return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
-            .sourceId(precompileContextNumber)
-            .targetId(hub.currentFrame().contextNumber())
-            .sourceOffset(EWord.ZERO)
-            .size(p.callDataSource().length())
-            .referenceOffset(p.requestedReturnDataTarget().offset())
-            .referenceSize(p.requestedReturnDataTarget().length());
-      }
-    }
+    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(precompileSubsection.exoModuleOperationId())
+        .sourceRamBytes(Optional.of(precompileSubsection.returnData()))
+        .targetId(precompileSubsection.callSection.hubStamp())
+        .targetRamBytes(Optional.of(precompileSubsection.callerMemorySnapshot))
+        .sourceOffset(EWord.ZERO)
+        .targetOffset(EWord.of(precompileSubsection.parentReturnDataTarget.offset()))
+        .size(precompileSubsection.parentReturnDataTarget.length())
+        .referenceSize(precompileSubsection.parentReturnDataTarget.length());
   }
 
   public static MmuCall forEcAdd(final Hub hub, final PrecompileInvocation p, int i) {
@@ -543,7 +538,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
               .setEcData()
               .phase(PHASE_ECPAIRING_DATA);
     } else if (i == 1) {
-      if (p.callDataSource().isEmpty()) {
+      if (p.callDataSource().lengthNull()) {
         return new MmuCall(hub, MMU_INST_MSTORE)
             .targetId(precompileContextNumber)
             .limb2(Bytes.of(1));
@@ -595,7 +590,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
           .setBlakeModexp()
           .phase(PHASE_BLAKE_RESULT);
     } else {
-      if (p.requestedReturnDataTarget().isEmpty()) {
+      if (p.requestedReturnDataTarget().lengthNull()) {
         return MmuCall.nop();
       } else {
         return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)

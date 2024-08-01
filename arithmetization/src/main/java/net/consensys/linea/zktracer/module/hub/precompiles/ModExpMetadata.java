@@ -35,7 +35,7 @@ public record ModExpMetadata(
     implements PrecompileMetadata {
   public static ModExpMetadata of(final Hub hub) {
     final MemorySpan callDataSource = hub.transients().op().callDataSegment();
-    final boolean extractBbs = !callDataSource.isEmpty();
+    final boolean extractBbs = !callDataSource.lengthNull();
     final boolean extractEbs = callDataSource.length() > 32;
     final boolean extractMbs = callDataSource.length() > 64;
 

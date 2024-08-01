@@ -29,17 +29,18 @@ import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
-public class Sha2SubSection extends PrecompileSubsection {
+public class Sha2Subsection extends PrecompileSubsection {
   final ImcFragment firstImcFragment;
   final PrecompileCommonOobCall oobCall;
 
-  public Sha2SubSection(Hub hub, CallSection callSection) {
+  public Sha2Subsection(Hub hub, CallSection callSection) {
     super(hub, callSection);
 
     precompileScenarioFragment.setFlag(PRC_SHA2_256);
     oobCall = new PrecompileCommonOobCall(OOB_INST_SHA2);
 
     firstImcFragment = ImcFragment.empty(hub);
+    this.fragments().add(firstImcFragment);
     firstImcFragment.callOob(oobCall);
 
     if (!oobCall.isHubSuccess()) {
@@ -81,7 +82,7 @@ public class Sha2SubSection extends PrecompileSubsection {
 
     // the partial copy of return data happens only if the caller context
     // provided a nonempty return data target
-    if (!parentReturnDataTarget.isEmpty()) {
+    if (!parentReturnDataTarget.lengthNull()) {
       final MmuCall partialReturnDataCopy = MmuCall.forShaTwoOrRipemdPartialResultCopy(hub, this);
       thirdImcFragment.callMmu(partialReturnDataCopy);
     }

@@ -182,7 +182,7 @@ public class CreateSection extends TraceSection
         deploymentAccount.map(AccountState::hasCode).orElse(false);
 
     final boolean failedCreate = createdAddressHasNonZeroNonce || createdAddressHasNonEmptyCode;
-    final boolean emptyInitCode = hub.transients().op().initCodeSegment().isEmpty();
+    final boolean emptyInitCode = hub.transients().op().initCodeSegment().lengthNull();
 
     // Trigger MMU & SHAKIRA to hash the (non-empty) InitCode of CREATE2 - even for failed CREATE2
     if (hub.opCode() == CREATE2 && !emptyInitCode) {

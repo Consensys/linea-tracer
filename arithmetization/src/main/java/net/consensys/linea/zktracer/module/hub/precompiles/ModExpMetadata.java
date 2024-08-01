@@ -99,12 +99,16 @@ public class ModExpMetadata {
     return EWord.of(rawMbs().shiftRight(mbsShift()).shiftLeft(mbsShift()));
   }
 
-  private int bbsInt() {
-    return bbs().toUnsignedBigInteger().intValueExact();
+  public int bbsInt() {
+    return (int) Words.clampedToLong(bbs());
   }
 
-  private int ebsInt() {
-    return ebs().toUnsignedBigInteger().intValueExact();
+  public int ebsInt() {
+    return (int) Words.clampedToLong(ebs());
+  }
+
+  public int mbsInt() {
+    return (int) Words.clampedToLong(mbs());
   }
 
   public boolean loadRawLeadingWord() {
@@ -156,8 +160,7 @@ public class ModExpMetadata {
     Bytes unpadded = Bytes.EMPTY;
     final int firstOffset = BASE_MIN_OFFSET + bbsInt() + ebsInt();
     if (callDataSource.length() >= firstOffset) {
-      final int sizeToExtract =
-          (int) Math.min(Words.clampedToLong(mbs()), callDataSource().length() - firstOffset);
+      final int sizeToExtract = (int) Math.min(mbsInt(), callDataSource().length() - firstOffset);
       unpadded = callData.slice(firstOffset, sizeToExtract);
     }
     return rightPadTo(unpadded, (int) Words.clampedToLong(mbs()));

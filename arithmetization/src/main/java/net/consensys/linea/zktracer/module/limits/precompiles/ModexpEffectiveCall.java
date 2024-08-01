@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import java.math.BigInteger;
-
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +25,7 @@ import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
 @Accessors(fluent = true)
 public class ModexpEffectiveCall extends CountingOnlyModule {
 
-  private static final BigInteger PROVER_MAX_INPUT_BYTE_SIZE = BigInteger.valueOf(4096 / 8);
+  public static final int PROVER_MAX_INPUT_BYTE_SIZE = 4096 / 8;
 
   @Override
   public String moduleKey() {
@@ -37,8 +34,6 @@ public class ModexpEffectiveCall extends CountingOnlyModule {
 
   @Override
   public void addPrecompileLimit(final int numberEffectiveCall) {
-    Preconditions.checkArgument(
-        numberEffectiveCall == 1, "can't add more than one effective precompile call at a time");
     this.counts.add(numberEffectiveCall);
   }
 }

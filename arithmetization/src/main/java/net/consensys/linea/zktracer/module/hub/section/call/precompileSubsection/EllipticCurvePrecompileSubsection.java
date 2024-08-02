@@ -77,7 +77,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);
         }
       }
-        // ECRECOVER can only be FAILURE_KNOWN_TO_HUB ro some form of SUCCESS_XXXX_REVERT
+        // ECRECOVER can only be FAILURE_KNOWN_TO_HUB or some form of SUCCESS_XXXX_REVERT
       default -> {}
     }
 

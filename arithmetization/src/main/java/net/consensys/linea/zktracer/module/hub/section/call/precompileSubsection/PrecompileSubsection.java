@@ -18,6 +18,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.Precompi
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
+import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,10 +34,12 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 
 /** Note: {@link PrecompileSubsection}'s are created at child context entry by the call section */
 @RequiredArgsConstructor
@@ -101,9 +104,22 @@ public class PrecompileSubsection
     firstImcFragment = ImcFragment.empty(hub);
     fragments().add(firstImcFragment);
 
-    // TODO: this is ugly, but Idk how to do it better (for modexp)
+    final OpCode opCode = hub.opCode();
+    final long offset =
+        Words.clampedToLong(
+            opCode.callCanTransferValue()
+                ? hub.messageFrame().getStackItem(3)
+                : hub.messageFrame().getStackItem(2));
+    final long length =
+        Words.clampedToLong(
+            opCode.callCanTransferValue()
+                ? hub.messageFrame().getStackItem(4)
+                : hub.messageFrame().getStackItem(3));
+    callDataMemorySpan = new MemorySpan(offset, length);
     callerMemorySnapshot =
-        extractContiguousLimbsFromMemory(hub.currentFrame().frame(), new MemorySpan(0, 1));
+        extractContiguousLimbsFromMemory(hub.currentFrame().frame(), callDataMemorySpan);
+    final int lengthToExtract = (int) Math.min(length, callerMemorySnapshot.size() - offset);
+    callData = rightPadTo(callerMemorySnapshot.slice((int) offset, lengthToExtract), (int) length);
   }
 
   protected short maxNumberOfLines() {
@@ -112,14 +128,18 @@ public class PrecompileSubsection
 
   @Override
   public void resolveUponEnteringChildContext(Hub hub) {
+    // Sanity check
+    Preconditions.checkArgument(
+        callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));
+    Preconditions.checkArgument(callData.equals(hub.messageFrame().getInputData()));
+    final MessageFrame callerFrame = hub.callStack().parent().frame();
+    Preconditions.checkArgument(
+        callerMemorySnapshot.equals(
+            extractContiguousLimbsFromMemory(callerFrame, callDataMemorySpan)));
+
     callerGas = hub.callStack().parent().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
-    callDataMemorySpan = hub.currentFrame().callDataInfo().memorySpan();
-    callData = hub.messageFrame().getInputData();
     parentReturnDataTarget = hub.currentFrame().returnDataTargetInCaller();
-
-    final MessageFrame callerFrame = hub.callStack().parent().frame();
-    callerMemorySnapshot = extractContiguousLimbsFromMemory(callerFrame, callDataMemorySpan);
   }
 
   public void resolveUponExitingContext(Hub hub, CallFrame callFrame) {

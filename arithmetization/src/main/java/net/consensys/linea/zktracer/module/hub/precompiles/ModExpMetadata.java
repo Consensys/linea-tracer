@@ -15,13 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub.precompiles;
 
+import static net.consensys.linea.zktracer.module.txndata.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.internal.Words;
 
@@ -33,34 +33,30 @@ public class ModExpMetadata {
   static final int BASE_MIN_OFFSET = 96;
 
   private final Bytes callData;
-  private final MemorySpan callDataSource;
   @Setter private Bytes rawResult;
 
-  public ModExpMetadata(final Bytes callData, final MemorySpan callDataSource) {
+  public ModExpMetadata(final Bytes callData) {
     this.callData = callData;
-    this.callDataSource = callDataSource;
   }
 
   public boolean extractBbs() {
-    return !callDataSource.lengthNull();
+    return !callData.isEmpty();
   }
 
   public boolean extractEbs() {
-    return callDataSource.length() > EBS_MIN_OFFSET;
+    return callData.size() > EBS_MIN_OFFSET;
   }
 
   public boolean extractMbs() {
-    return callDataSource.length() > MBS_MIN_OFFSET;
+    return callData.size() > MBS_MIN_OFFSET;
   }
 
   private int bbsShift() {
-    return EBS_MIN_OFFSET - (int) Math.min(EBS_MIN_OFFSET, callDataSource.length());
+    return EBS_MIN_OFFSET - Math.min(EBS_MIN_OFFSET, callData.size());
   }
 
   public Bytes rawBbs() {
-    return extractBbs()
-        ? callData.slice((int) callDataSource.offset(), EBS_MIN_OFFSET)
-        : Bytes.EMPTY;
+    return extractBbs() ? callData.slice(0, EBS_MIN_OFFSET) : Bytes.EMPTY;
   }
 
   public EWord bbs() {
@@ -69,14 +65,12 @@ public class ModExpMetadata {
 
   private int ebsShift() {
     return extractEbs()
-        ? EBS_MIN_OFFSET - (int) Math.min(EBS_MIN_OFFSET, callDataSource.length() - EBS_MIN_OFFSET)
+        ? EBS_MIN_OFFSET - Math.min(EBS_MIN_OFFSET, callData.size() - EBS_MIN_OFFSET)
         : 0;
   }
 
   public Bytes rawEbs() {
-    return extractEbs()
-        ? callData.slice((int) (callDataSource.offset() + EBS_MIN_OFFSET), EBS_MIN_OFFSET)
-        : Bytes.EMPTY;
+    return extractEbs() ? callData.slice(EBS_MIN_OFFSET, WORD_SIZE) : Bytes.EMPTY;
   }
 
   public EWord ebs() {
@@ -85,14 +79,12 @@ public class ModExpMetadata {
 
   private int mbsShift() {
     return extractMbs()
-        ? EBS_MIN_OFFSET - (int) Math.min(EBS_MIN_OFFSET, callDataSource.length() - MBS_MIN_OFFSET)
+        ? EBS_MIN_OFFSET - Math.min(EBS_MIN_OFFSET, callData.size() - MBS_MIN_OFFSET)
         : 0;
   }
 
   public Bytes rawMbs() {
-    return extractMbs()
-        ? callData.slice((int) (callDataSource.offset() + MBS_MIN_OFFSET), EBS_MIN_OFFSET)
-        : Bytes.EMPTY;
+    return extractMbs() ? callData.slice(MBS_MIN_OFFSET, WORD_SIZE) : Bytes.EMPTY;
   }
 
   public EWord mbs() {
@@ -112,20 +104,18 @@ public class ModExpMetadata {
   }
 
   public boolean loadRawLeadingWord() {
-    return callDataSource.length() > BASE_MIN_OFFSET + bbsInt() && !ebs().isZero();
+    return callData.size() > BASE_MIN_OFFSET + bbsInt() && !ebs().isZero();
   }
 
   public EWord rawLeadingWord() {
 
     return loadRawLeadingWord()
-        ? EWord.of(
-            callData.slice(
-                (int) (callDataSource.offset() + BASE_MIN_OFFSET + bbsInt()), EBS_MIN_OFFSET))
+        ? EWord.of(callData.slice(BASE_MIN_OFFSET + bbsInt(), WORD_SIZE))
         : EWord.ZERO;
   }
 
   public boolean extractModulus() {
-    return (callDataSource.length() > MBS_MIN_OFFSET + bbsInt() + ebsInt()) && !mbs().isZero();
+    return (callData.size() > MBS_MIN_OFFSET + bbsInt() + ebsInt()) && !mbs().isZero();
   }
 
   public boolean extractBase() {
@@ -138,9 +128,8 @@ public class ModExpMetadata {
 
   public Bytes base() {
     Bytes unpadded = Bytes.EMPTY;
-    if (callDataSource.length() >= BASE_MIN_OFFSET) {
-      final int sizeToExtract =
-          (int) Math.min(bbsInt(), callDataSource().length() - MBS_MIN_OFFSET);
+    if (callData.size() >= BASE_MIN_OFFSET) {
+      final int sizeToExtract = Math.min(bbsInt(), callData.size() - MBS_MIN_OFFSET);
       unpadded = callData.slice(MBS_MIN_OFFSET, sizeToExtract);
     }
     return rightPadTo(unpadded, bbsInt());
@@ -148,9 +137,8 @@ public class ModExpMetadata {
 
   public Bytes exp() {
     Bytes unpadded = Bytes.EMPTY;
-    if (callDataSource.length() >= BASE_MIN_OFFSET + bbsInt()) {
-      final int sizeToExtract =
-          (int) Math.min(ebsInt(), callDataSource().length() - BASE_MIN_OFFSET - bbsInt());
+    if (callData.size() >= BASE_MIN_OFFSET + bbsInt()) {
+      final int sizeToExtract = Math.min(ebsInt(), callData.size() - BASE_MIN_OFFSET - bbsInt());
       unpadded = callData.slice(BASE_MIN_OFFSET + bbsInt(), sizeToExtract);
     }
     return rightPadTo(unpadded, ebsInt());
@@ -159,8 +147,8 @@ public class ModExpMetadata {
   public Bytes mod() {
     Bytes unpadded = Bytes.EMPTY;
     final int firstOffset = BASE_MIN_OFFSET + bbsInt() + ebsInt();
-    if (callDataSource.length() >= firstOffset) {
-      final int sizeToExtract = (int) Math.min(mbsInt(), callDataSource().length() - firstOffset);
+    if (callData.size() >= firstOffset) {
+      final int sizeToExtract = Math.min(mbsInt(), callData.size() - firstOffset);
       unpadded = callData.slice(firstOffset, sizeToExtract);
     }
     return rightPadTo(unpadded, (int) Words.clampedToLong(mbs()));

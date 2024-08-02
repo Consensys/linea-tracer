@@ -32,6 +32,8 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstru
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
 import static net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall.PROVER_MAX_INPUT_BYTE_SIZE;
 
+import java.math.BigInteger;
+
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -39,7 +41,9 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.PrecompileCommonOobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.hyperledger.besu.evm.internal.Words;
 
 public class ModexpSubsection extends PrecompileSubsection {
 
@@ -49,10 +53,37 @@ public class ModexpSubsection extends PrecompileSubsection {
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
 
-    modExpMetadata = new ModExpMetadata(callData, callDataMemorySpan);
-    if (modExpMetadata.bbsInt() > PROVER_MAX_INPUT_BYTE_SIZE
-        || modExpMetadata.mbsInt() > PROVER_MAX_INPUT_BYTE_SIZE
-        || modExpMetadata.ebsInt() > PROVER_MAX_INPUT_BYTE_SIZE) {
+    // TODO: I'm not really happy with that ... @Olivier
+    // We have to trigger OOB at exec time, and we update the callData at childContextEntry
+    final OpCode opCode = hub.opCode();
+    final long offset =
+        Words.clampedToLong(
+            opCode.callCanTransferValue()
+                ? hub.messageFrame().getStackItem(3)
+                : hub.messageFrame().getStackItem(2));
+    final long length =
+        Words.clampedToLong(
+            opCode.callCanTransferValue()
+                ? hub.messageFrame().getStackItem(4)
+                : hub.messageFrame().getStackItem(3));
+    callData = callerMemorySnapshot.slice((int) offset, (int) length);
+
+    modExpMetadata = new ModExpMetadata(callData);
+    if (modExpMetadata
+                .bbs()
+                .toUnsignedBigInteger()
+                .compareTo(BigInteger.valueOf(PROVER_MAX_INPUT_BYTE_SIZE))
+            >= 0
+        || modExpMetadata
+                .mbs()
+                .toUnsignedBigInteger()
+                .compareTo(BigInteger.valueOf(PROVER_MAX_INPUT_BYTE_SIZE))
+            >= 0
+        || modExpMetadata
+                .ebs()
+                .toUnsignedBigInteger()
+                .compareTo(BigInteger.valueOf(PROVER_MAX_INPUT_BYTE_SIZE))
+            >= 0) {
       hub.modexpEffectiveCall().addPrecompileLimit(Integer.MAX_VALUE);
       return;
     }

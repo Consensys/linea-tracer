@@ -100,6 +100,10 @@ public class PrecompileSubsection
 
     firstImcFragment = ImcFragment.empty(hub);
     fragments().add(firstImcFragment);
+
+    // TODO: this is ugly, but Idk how to do it better (for modexp)
+    callerMemorySnapshot =
+        extractContiguousLimbsFromMemory(hub.currentFrame().frame(), new MemorySpan(0, 1));
   }
 
   protected short maxNumberOfLines() {

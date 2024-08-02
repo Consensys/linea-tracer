@@ -446,21 +446,16 @@ public class OobOperation extends ModuleOperation {
         setCreate(createOobCall);
       }
     } else if (isPrecompile()) {
-      // DELEGATECALL, STATICCALL cases
-      int argsOffset = 2;
-      // this corresponds to argsSize on evm.codes
-      int cdsIndex = 3;
-      // this corresponds to retSize on evm.codes
-      int returnAtCapacityIndex = 5;
-      // value is not part of the arguments for DELEGATECALL and STATICCALL
-      boolean transfersValue = false;
-      // CALL, CALLCODE cases
-      if (opCode == OpCode.CALL || opCode == OpCode.CALLCODE) {
-        argsOffset = 3;
-        cdsIndex = 4;
-        returnAtCapacityIndex = 6;
-        transfersValue = !frame.getStackItem(2).isZero();
-      }
+      final long argsOffset =
+          Words.clampedToLong(
+              opCode.callCanTransferValue()
+                  ? hub.messageFrame().getStackItem(3)
+                  : hub.messageFrame().getStackItem(2));
+      final int cdsIndex = opCode.callCanTransferValue() ? 4 : 3;
+      final int returnAtCapacityIndex = opCode.callCanTransferValue() ? 6 : 5;
+
+      final boolean transfersValue =
+          opCode.callCanTransferValue() && !frame.getStackItem(2).isZero();
 
       final BigInteger callGas =
           BigInteger.valueOf(

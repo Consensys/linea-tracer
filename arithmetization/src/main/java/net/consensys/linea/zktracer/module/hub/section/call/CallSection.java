@@ -181,7 +181,6 @@ public class CallSection extends TraceSection
     }
 
     // The CALL is now unexceptional and un-aborted
-    hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     final WorldUpdater world = hub.messageFrame().getWorldUpdater();
 
@@ -215,6 +214,7 @@ public class CallSection extends TraceSection
       value = Wei.of(hub.messageFrame().getStackItem(2).toUnsignedBigInteger());
       selfCallWithNonzeroValueTransfer = isSelfCall && callCanTransferValue && !value.isZero();
       hub.romLex().callRomLex(hub.currentFrame().frame());
+      hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     }
 
     if (scenarioFragment.getScenario() == CALL_EOA_SUCCESS_WONT_REVERT) {
@@ -316,9 +316,8 @@ public class CallSection extends TraceSection
   /** Resolution happens as the child context is about to terminate. */
   @Override
   public void resolveUponExitingContext(Hub hub, CallFrame frame) {
-    if (!(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED)) {
-      return;
-    }
+    Preconditions.checkArgument(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED);
+
     childContextExitCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
     childContextExitCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
 
@@ -423,7 +422,7 @@ public class CallSection extends TraceSection
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
-    CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
+    final CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
 
     Preconditions.checkArgument(scenario.noLongerUndefined());
 

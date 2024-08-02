@@ -88,12 +88,11 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
       switch (flag()) {
         case PRC_ECRECOVER -> {
           final boolean successfulRecovery = !returnData.isEmpty();
-          firstMmuCall = MmuCall.ecRecoverDataExtraction(hub, this, successfulRecovery);
+          firstMmuCall = MmuCall.callDataExtractionForEcrecover(hub, this, successfulRecovery);
         }
         case PRC_ECADD -> firstMmuCall = MmuCall.callDataExtractionForEcadd(hub, this, callSuccess);
         case PRC_ECMUL -> firstMmuCall = MmuCall.callDataExtractionForEcmul(hub, this, callSuccess);
-        case PRC_ECPAIRING -> firstMmuCall =
-            MmuCall.callDataExtractionForEcpairing(hub, this, callSuccess);
+        case PRC_ECPAIRING -> firstMmuCall = MmuCall.callDataExtractionForEcpairing(hub, this, callSuccess);
         default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
       }
       firstImcFragment.callMmu(firstMmuCall);

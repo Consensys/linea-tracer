@@ -319,7 +319,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .setRlpTxn();
   }
 
-  public static MmuCall ecRecoverDataExtraction(
+  public static MmuCall callDataExtractionForEcrecover(
       final Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successfulRecovery) {
 
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)

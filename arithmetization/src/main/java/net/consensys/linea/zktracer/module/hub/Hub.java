@@ -672,8 +672,6 @@ public class Hub implements Module {
 
   public void traceContextReEnter(MessageFrame frame) {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
-    final int latestChildId = this.currentFrame().childFramesId().getLast();
-    this.defers.resolvePostRollback(this, frame, this.callStack.getById(latestChildId));
     this.defers.resolveAtContextReEntry(this, this.currentFrame());
     if (this.currentFrame().sectionToUnlatch() != null) {
       this.unlatchStack(frame, this.currentFrame().sectionToUnlatch());
@@ -726,6 +724,10 @@ public class Hub implements Module {
     }
 
     this.defers.resolveUponExitingContext(this, this.currentFrame());
+    // TODO: verify me please @Olivier
+    if (Exceptions.any(this.pch.exceptions())) {
+      this.defers.resolvePostRollback(this, frame, this.currentFrame());
+    }
   }
 
   public void tracePreExecution(final MessageFrame frame) {

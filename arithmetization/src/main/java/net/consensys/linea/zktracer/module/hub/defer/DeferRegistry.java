@@ -29,7 +29,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  * Stores different categories of actions whose execution must be deferred later in the normal
  * transaction execution process.
  */
-// TODO: fix naming and implement the missing interfaces
 public class DeferRegistry
     implements PostOpcodeDefer,
         ImmediateContextEntryDefer,
@@ -116,7 +115,7 @@ public class DeferRegistry
   // TODO: should use the TransactionProcessingMetadata
 
   // TODO add docs to understand why we do two rounds of resolving (due to AccountFragment created
-  // at endTx which are too deferEndTx)
+  // at endTx which are too deferEndTx), maybe no more the case, so not needed anymore
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {

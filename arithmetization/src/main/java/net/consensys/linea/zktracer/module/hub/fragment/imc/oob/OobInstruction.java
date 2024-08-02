@@ -45,5 +45,17 @@ public enum OobInstruction {
   OOB_INST_SSTORE(GlobalConstants.OOB_INST_SSTORE),
   OOB_INST_XCALL(GlobalConstants.OOB_INST_XCALL);
 
+  public boolean isCommonPrecompile() {
+    return this == OOB_INST_ECRECOVER
+        || this == OOB_INST_SHA2
+        || this == OOB_INST_RIPEMD
+        || this == OOB_INST_IDENTITY
+        || this == OOB_INST_ECADD
+        || this == OOB_INST_ECMUL
+        || this == OOB_INST_ECPAIRING;
+  }
+
+  // TODO: add checks for other families of precompiles, if necessary
+
   private final int value;
 }

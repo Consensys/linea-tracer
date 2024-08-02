@@ -15,9 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_RIPEMD;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_SHA2;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
+import static net.consensys.linea.zktracer.module.shakiradata.HashType.RIPEMD;
 import static net.consensys.linea.zktracer.module.shakiradata.HashType.SHA256;
 
 import com.google.common.base.Preconditions;
@@ -29,19 +31,25 @@ import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
-public class Sha2Subsection extends PrecompileSubsection {
+public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
+  ImcFragment firstImcFragment;
   final PrecompileCommonOobCall oobCall;
 
-  public Sha2Subsection(Hub hub, CallSection callSection) {
+  public ShaTwoOrRipemdSubSection(Hub hub, CallSection callSection) {
     super(hub, callSection);
 
-    precompileScenarioFragment.setFlag(PRC_SHA2_256);
-
-    oobCall = new PrecompileCommonOobCall(OOB_INST_SHA2);
+    oobCall =
+        switch (flag()) {
+          case PRC_SHA2_256 -> new PrecompileCommonOobCall(OOB_INST_SHA2);
+          case PRC_RIPEMD_160 -> new PrecompileCommonOobCall(OOB_INST_RIPEMD);
+          default -> throw new IllegalArgumentException(
+              String.format(
+                  "Precompile address %s not supported by constructor", this.flag().toString()));
+        };
     firstImcFragment.callOob(oobCall);
 
     if (!oobCall.isHubSuccess()) {
-      precompileScenarioFragment.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
+      this.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
     }
   }
 
@@ -50,17 +58,20 @@ public class Sha2Subsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity check
-    Preconditions.checkArgument(successBit == oobCall.isHubSuccess());
+    Preconditions.checkArgument(callSuccess == oobCall.isHubSuccess());
 
-    if (!successBit) {
-      precompileScenarioFragment.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
+    if (!callSuccess) {
+      return;
     }
 
     // NOTE: we trigger the SHAKIRA module for nonempty call data only
     if (!callData.isEmpty()) {
       final ShakiraDataOperation shakiraCall =
           new ShakiraDataOperation(
-              this.callSection.hubStamp(), SHA256, callData(), callFrame.frame().getReturnData());
+              callSection.hubStamp(),
+              this.flag() == PRC_SHA2_256 ? SHA256 : RIPEMD,
+              callData(),
+              callFrame.frame().getReturnData());
       hub.shakiraData().call(shakiraCall);
 
       final MmuCall mmuCall = MmuCall.forShaTwoOrRipemdCallDataExtraction(hub, this);
@@ -89,7 +100,7 @@ public class Sha2Subsection extends PrecompileSubsection {
   @Override
   protected short maxNumberOfLines() {
     return 4;
-    // Note: we don't have the successBit available at the moment
+    // Note: we don't have the callSuccess available at the moment
     // and can't provide the "real" value (2 in case of FKTH.)
   }
 }

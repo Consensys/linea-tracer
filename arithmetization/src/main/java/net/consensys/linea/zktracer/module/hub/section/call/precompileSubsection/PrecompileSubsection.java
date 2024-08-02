@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_UNDEFINED;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
@@ -74,7 +74,8 @@ public class PrecompileSubsection
   /** The gas to return to the caller context */
   long returnGas;
 
-  boolean successBit;
+  /** The boolean pushed onto the caller's stack when it resumes execution */
+  boolean callSuccess;
 
   public final PrecompileScenarioFragment precompileScenarioFragment;
   public final ImcFragment firstImcFragment;
@@ -90,8 +91,11 @@ public class PrecompileSubsection
     this.callSection = callSection;
     fragments = new ArrayList<>(maxNumberOfLines());
 
+    PrecompileScenarioFragment.PrecompileFlag precompileFlag =
+        addressToPrecompileFlag(callSection.precompileAddress.orElseThrow());
+
     precompileScenarioFragment =
-        new PrecompileScenarioFragment(this, PRC_SUCCESS_WONT_REVERT, PRC_UNDEFINED);
+        new PrecompileScenarioFragment(this, PRC_SUCCESS_WONT_REVERT, precompileFlag);
     fragments.add(precompileScenarioFragment);
 
     firstImcFragment = ImcFragment.empty(hub);
@@ -120,10 +124,10 @@ public class PrecompileSubsection
 
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-    successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
+    callSuccess = bytesToBoolean(hub.messageFrame().getStackItem(0));
     returnData = frame.frame().getReturnData();
 
-    if (successBit) {
+    if (callSuccess) {
       hub.defers().scheduleForPostRollback(this, frame);
     }
   }
@@ -132,10 +136,9 @@ public class PrecompileSubsection
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     // only successful PRC calls should enter here
-    Preconditions.checkArgument(
-        precompileScenarioFragment.getScenario() == PRC_SUCCESS_WONT_REVERT);
+    Preconditions.checkArgument(precompileScenarioFragment.scenario() == PRC_SUCCESS_WONT_REVERT);
 
-    precompileScenarioFragment.setScenario(PRC_SUCCESS_WILL_REVERT);
+    precompileScenarioFragment.scenario(PRC_SUCCESS_WILL_REVERT);
   }
 
   public int exoModuleOperationId() {
@@ -144,5 +147,13 @@ public class PrecompileSubsection
 
   public int returnDataContextNumber() {
     return exoModuleOperationId();
+  }
+
+  public PrecompileScenarioFragment.PrecompileFlag flag() {
+    return precompileScenarioFragment.flag;
+  }
+
+  public void setScenario(PrecompileScenarioFragment.PrecompileScenario scenario) {
+    this.precompileScenarioFragment.scenario(scenario);
   }
 }

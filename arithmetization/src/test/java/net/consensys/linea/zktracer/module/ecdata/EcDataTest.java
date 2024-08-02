@@ -74,13 +74,14 @@ public class EcDataTest {
 
     List<Arguments> arguments = new ArrayList<>();
 
-    // Test cases where ICP = successBit = 1 (first one) or ICP = successBit = 0 (all the others)
+    // Test cases where ICP = callSuccess = 1 (first one) or ICP =
+    // callSuccess = 0 (all the others)
     for (int i = 0; i < v.size(); i++) {
       for (int j = 0; j < r.size(); j++) {
         for (int k = 0; k < s.size(); k++) {
           arguments.add(
               Arguments.of(
-                  i + j + k == 0 ? "[ICP = 1, successBit = 1]" : "[ICP = 0, successBit = 0]",
+                  i + j + k == 0 ? "[ICP = 1, callSuccess = 1]" : "[ICP = 0, callSuccess = 0]",
                   h,
                   v.get(i),
                   r.get(j),
@@ -91,10 +92,10 @@ public class EcDataTest {
       }
     }
 
-    // Test cases where ICP = successBit = 1
+    // Test cases where ICP = callSuccess = 1
     arguments.add(
         argumentsFromStrings(
-            "[ICP = 1, successBit = 1]",
+            "[ICP = 1, callSuccess = 1]",
             "0x279d94621558f755796898fc4bd36b6d407cae77537865afe523b79c74cc680b",
             "0x1b",
             "0xc2ff96feed8749a5ad1c0714f950b5ac939d8acedbedcbc2949614ab8af06312",
@@ -104,7 +105,7 @@ public class EcDataTest {
 
     arguments.add(
         argumentsFromStrings(
-            "[ICP = 1, successBit = 1]",
+            "[ICP = 1, callSuccess = 1]",
             "0x4be146e06cc1b37342b6b7b1fa8542ae58a62103b8af0f7d58f8a1ffffcf7914",
             "0x1b",
             "0xa7b0f504b652b3a621921c78c587fdf80a3ab590e22c304b0b0930e90c4e081d",
@@ -114,7 +115,7 @@ public class EcDataTest {
 
     arguments.add(
         argumentsFromStrings(
-            "[ICP = 1, successBit = 1]",
+            "[ICP = 1, callSuccess = 1]",
             "0xca3e75570aea0e3dd8e7a9d38c2efa866f5ee2b18bf527a0f4e3248b7c7cf376",
             "0x1c",
             "0xf1136900c2cd16eacc676f2c7b70f3dfec13fd16a426aab4eda5d8047c30a9e9",
@@ -124,7 +125,7 @@ public class EcDataTest {
 
     arguments.add(
         argumentsFromStrings(
-            "[ICP = 1, successBit = 1]",
+            "[ICP = 1, callSuccess = 1]",
             "0x9a3fa82837622a34408888b40af937f21f4e6d051f04326d3d7717848c434448",
             "0x1b",
             "0x52a734f01d14d161795ba3b38ce329eba468e109b4f2e330af671649ffef4e0e",
@@ -132,11 +133,11 @@ public class EcDataTest {
             true,
             true));
 
-    // Test cases where ICP = 1 but successBit = 0
+    // Test cases where ICP = 1 but callSuccess = 0
     // Failing reason QNR
     arguments.add(
         argumentsFromStrings(
-            "[ICP = 1, successBit = 0 due to QNR]",
+            "[ICP = 1, callSuccess = 0 due to QNR]",
             "0x94f66d57fb0a3854a44d94956447e01f8b3f09845860f18856e792c821359162",
             "0x1c",
             "0x000000000000000000000000000000014551231950b75fc4402da1722fc9baed",
@@ -147,7 +148,7 @@ public class EcDataTest {
     // Failing reason INFINITY
     arguments.add(
         argumentsFromStrings(
-            "[ICP = 1, successBit = 0 due to INFINITY]",
+            "[ICP = 1, callSuccess = 0 due to INFINITY]",
             "0xd33cfae367f4f7413985ff82dc7db3ffbf7a027fb5dad7097b4a15cc85ab6580",
             "0x1c",
             "0xa12b54d413c4ffaaecd59468de6a7d414d2fa7f2ba700d8e0753ca226410c806",
@@ -158,7 +159,7 @@ public class EcDataTest {
     // Failing reason INFINITY
     arguments.add(
         argumentsFromStrings(
-            "[ICP = 1, successBit = 0 due to INFINITY]",
+            "[ICP = 1, callSuccess = 0 due to INFINITY]",
             "0x6ec17edf5cecd83ed50c08adfeba8146f69769231f4b7903eba38c2e7e98e173",
             "0x1b",
             "0xaeb8ffe3655e07edd6bde0ab79edd92d4e7a155385c3d8c8ca117bfd13633516",
@@ -217,10 +218,10 @@ public class EcDataTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
 
-    // Retrieve recoveredAddress, internalChecksPassed, successBit
-    // Assert internalChecksPassed and successBit are what expected
+    // Retrieve recoveredAddress, internalChecksPassed, callSuccess
+    // Assert internalChecksPassed and callSuccess are what expected
     EcDataOperation ecDataOperation =
-        bytecodeRunner.getHub().ecData().getOperations().stream().toList().get(0);
+        bytecodeRunner.getHub().ecData.getOperations().stream().toList().get(0);
     EWord recoveredAddress =
         EWord.of(
             ecDataOperation.limb().get(8).toUnsignedBigInteger(),
@@ -233,7 +234,7 @@ public class EcDataTest {
 
     System.out.println("recoveredAddress: " + recoveredAddress);
     System.out.println("internalChecksPassed: " + internalChecksPassed);
-    System.out.println("successBit: " + successBit);
+    System.out.println("callSuccess: " + successBit);
   }
 
   // TODO: continue testing the other precompiles in a more structured way

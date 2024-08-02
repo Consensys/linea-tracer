@@ -19,11 +19,10 @@ import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
-import static org.hyperledger.besu.datatypes.Address.ID;
-import static org.hyperledger.besu.datatypes.Address.MODEXP;
-import static org.hyperledger.besu.datatypes.Address.SHA256;
+import static org.hyperledger.besu.datatypes.Address.*;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiFunction;
 
 import com.google.common.base.Preconditions;
@@ -45,10 +44,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallOobC
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.IdentitySubsection;
-import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ModexpSubsection;
-import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
-import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.Sha2Subsection;
+import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.*;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
@@ -71,12 +67,16 @@ public class CallSection extends TraceSection
   private static final Map<Address, BiFunction<Hub, CallSection, PrecompileSubsection>>
       ADDRESS_TO_PRECOMPILE =
           Map.of(
-              SHA256,
-              Sha2Subsection::new,
-              ID,
-              IdentitySubsection::new,
-              MODEXP,
-              ModexpSubsection::new);
+              ECREC, EllipticCurvePrecompileSubsection::new,
+              SHA256, ShaTwoOrRipemdSubSection::new,
+              RIPEMD160, ShaTwoOrRipemdSubSection::new,
+              ID, IdentitySubsection::new,
+              MODEXP, ModexpSubsection::new,
+              ALTBN128_ADD, EllipticCurvePrecompileSubsection::new,
+              ALTBN128_MUL, EllipticCurvePrecompileSubsection::new,
+              ALTBN128_PAIRING, EllipticCurvePrecompileSubsection::new);
+
+  public Optional<Address> precompileAddress;
 
   // row i+0
   private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
@@ -335,7 +335,7 @@ public class CallSection extends TraceSection
     // TODO: what follows assumes that the caller's stack has been updated
     //  to contain the success bit of the call at traceContextReEntry.
     //  See issue #872.
-    // The successBit will only be set
+    // The callSuccess will only be set
     // if the call is acted upon i.e. if the call is un-exceptional and un-aborted
     final boolean successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
 

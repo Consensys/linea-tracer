@@ -203,7 +203,7 @@ public class Hub implements Module {
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(wcp);
   private final Euc euc = new Euc(wcp);
-  private final Ext ext = new Ext(this);
+  @Getter private final Ext ext = new Ext(this);
   private final Gas gas = new Gas();
   private final Mul mul = new Mul(this);
   private final Mod mod = new Mod();
@@ -283,7 +283,7 @@ public class Hub implements Module {
       new BlakeModexpData(this.wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
 
   @Getter
-  private final EcData ecData =
+  public final EcData ecData =
       new EcData(
           this,
           wcp,

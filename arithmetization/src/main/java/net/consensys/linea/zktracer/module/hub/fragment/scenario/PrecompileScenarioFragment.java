@@ -17,17 +17,19 @@ package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
+import org.hyperledger.besu.datatypes.Address;
 
 @Getter
 @AllArgsConstructor
+@Accessors(fluent = true)
 public class PrecompileScenarioFragment implements TraceFragment {
 
   public enum PrecompileScenario {
@@ -38,7 +40,6 @@ public class PrecompileScenarioFragment implements TraceFragment {
   }
 
   public enum PrecompileFlag {
-    PRC_UNDEFINED,
     PRC_ECRECOVER,
     PRC_SHA2_256,
     PRC_RIPEMD_160,
@@ -48,6 +49,18 @@ public class PrecompileScenarioFragment implements TraceFragment {
     PRC_ECMUL,
     PRC_ECPAIRING,
     PRC_BLAKE2F;
+
+    private static final Map<Address, PrecompileFlag> ADDRESS_TO_FLAG_MAP =
+        Map.of(
+            Address.ECREC, PRC_ECRECOVER,
+            Address.SHA256, PRC_SHA2_256,
+            Address.RIPEMD160, PRC_RIPEMD_160,
+            Address.ID, PRC_IDENTITY,
+            Address.MODEXP, PRC_MODEXP,
+            Address.ALTBN128_ADD, PRC_ECADD,
+            Address.ALTBN128_MUL, PRC_ECMUL,
+            Address.ALTBN128_PAIRING, PRC_ECPAIRING,
+            Address.BLAKE2B_F_COMPRESSION, PRC_BLAKE2F);
 
     private static final Map<PrecompileFlag, Integer> DATA_PHASE_MAP =
         Map.of(
@@ -74,6 +87,13 @@ public class PrecompileScenarioFragment implements TraceFragment {
             PRC_ECPAIRING, GlobalConstants.PHASE_ECPAIRING_RESULT,
             PRC_BLAKE2F, GlobalConstants.PHASE_BLAKE_RESULT);
 
+    public static PrecompileFlag addressToPrecompileFlag(Address precompileAddress) {
+      if (!ADDRESS_TO_FLAG_MAP.containsKey(precompileAddress)) {
+        throw new IllegalArgumentException("Not valid London precompile address");
+      }
+      return ADDRESS_TO_FLAG_MAP.get(precompileAddress);
+    }
+
     public int dataPhase() {
       if (!DATA_PHASE_MAP.containsKey(this)) {
         throw new IllegalArgumentException("Precompile not supported by the DATA_PHASE_MAP");
@@ -88,6 +108,10 @@ public class PrecompileScenarioFragment implements TraceFragment {
       return RESULT_PHASE_MAP.get(this);
     }
 
+    public boolean isEcdataPrecompile() {
+      return this.isAnyOf(PRC_ECRECOVER, PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING);
+    }
+
     public boolean isAnyOf(PrecompileFlag... flags) {
       for (PrecompileFlag flag : flags) {
         if (this == flag) {
@@ -99,8 +123,8 @@ public class PrecompileScenarioFragment implements TraceFragment {
   }
 
   final PrecompileSubsection precompileSubSection;
-  @Setter PrecompileScenario scenario;
-  @Setter PrecompileFlag flag;
+  @Setter public PrecompileScenario scenario;
+  @Setter public PrecompileFlag flag;
 
   public PrecompileScenarioFragment(
       final PrecompileSubsection precompileSubsection,
@@ -118,7 +142,6 @@ public class PrecompileScenarioFragment implements TraceFragment {
 
   @Override
   public Trace trace(Trace trace) {
-    Preconditions.checkArgument(this.flag != PrecompileFlag.PRC_UNDEFINED);
     return trace
         .peekAtScenario(true)
         // // Precompile scenarios

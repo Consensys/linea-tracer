@@ -15,10 +15,7 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
-import static net.consensys.linea.zktracer.module.ecdata.Trace.ECADD;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.ECMUL;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.ECPAIRING;
-import static net.consensys.linea.zktracer.module.ecdata.Trace.ECRECOVER;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.addressToPrecompileFlag;
 
 import java.nio.MappedByteBuffer;
 import java.util.Comparator;
@@ -96,7 +93,8 @@ public class EcData implements Module {
     final Bytes data = hub.transients().op().callData();
 
     this.ecDataOperation =
-        EcDataOperation.of(this.wcp, this.ext, 1 + this.hub.stamp(), target.get(19), data);
+        EcDataOperation.of(
+            this.wcp, this.ext, hub.precompileId(), addressToPrecompileFlag(target), data);
     this.operations.add(ecDataOperation);
   }
 
@@ -133,11 +131,11 @@ public class EcData implements Module {
   public void callEcdata(final EcDataOperation ecDataOperation) {
     this.operations.add(ecDataOperation);
 
-    switch (ecDataOperation.ecType()) {
-      case ECADD -> ecAddEffectiveCall.addPrecompileLimit(1);
-      case ECMUL -> ecMulEffectiveCall.addPrecompileLimit(1);
-      case ECRECOVER -> ecRecoverEffectiveCall.addPrecompileLimit(1);
-      case ECPAIRING -> {
+    switch (ecDataOperation.precompileFlag()) {
+      case PRC_ECADD -> ecAddEffectiveCall.addPrecompileLimit(1);
+      case PRC_ECMUL -> ecMulEffectiveCall.addPrecompileLimit(1);
+      case PRC_ECRECOVER -> ecRecoverEffectiveCall.addPrecompileLimit(1);
+      case PRC_ECPAIRING -> {
         // TODO @Lorenzo
       }
       default -> throw new IllegalArgumentException("Operation not supported by EcData");

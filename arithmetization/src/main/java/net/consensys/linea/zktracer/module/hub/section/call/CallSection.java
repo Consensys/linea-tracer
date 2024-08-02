@@ -186,6 +186,7 @@ public class CallSection extends TraceSection
     final WorldUpdater world = hub.messageFrame().getWorldUpdater();
 
     if (isPrecompile(calleeAddress)) {
+      precompileAddress = Optional.of(calleeAddress);
       scenarioFragment.setScenario(CALL_PRC_UNDEFINED);
       // Account rows for precompile are traced at contextReEntry
 

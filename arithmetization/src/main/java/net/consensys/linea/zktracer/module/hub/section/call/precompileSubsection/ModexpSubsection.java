@@ -29,8 +29,8 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstru
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_MODEXP_LEAD;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_MODEXP_PRICING;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_MODEXP_XBS;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_MODEXP;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
+import static net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall.PROVER_MAX_INPUT_BYTE_SIZE;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -44,16 +44,21 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 public class ModexpSubsection extends PrecompileSubsection {
 
   private final ModExpMetadata modExpMetadata;
-  private final PrecompileCommonOobCall sixthOobCall;
+  private PrecompileCommonOobCall sixthOobCall;
 
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
-    precompileScenarioFragment.setFlag(PRC_MODEXP);
+
+    modExpMetadata = new ModExpMetadata(callData, callDataMemorySpan);
+    if (modExpMetadata.bbsInt() > PROVER_MAX_INPUT_BYTE_SIZE
+        || modExpMetadata.mbsInt() > PROVER_MAX_INPUT_BYTE_SIZE
+        || modExpMetadata.ebsInt() > PROVER_MAX_INPUT_BYTE_SIZE) {
+      hub.modexpEffectiveCall().addPrecompileLimit(Integer.MAX_VALUE);
+      return;
+    }
 
     final PrecompileCommonOobCall firstOobCAll = new PrecompileCommonOobCall(OOB_INST_MODEXP_CDS);
     firstImcFragment.callOob(firstOobCAll);
-
-    modExpMetadata = new ModExpMetadata(callData, callDataMemorySpan);
 
     // TODO: sounds weird we construct all OOB Call same way ...
     final ImcFragment secondImcFragment = ImcFragment.empty(hub);
@@ -105,10 +110,10 @@ public class ModexpSubsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity check
-    Preconditions.checkArgument(successBit == sixthOobCall.isHubSuccess());
+    Preconditions.checkArgument(callSuccess == sixthOobCall.isHubSuccess());
 
-    if (!successBit) {
-      precompileScenarioFragment.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
+    if (!callSuccess) {
+      precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_HUB);
       return;
     }
 

@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsectio
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.forIdentityExtractCallData;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.forIdentityReturnData;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_IDENTITY;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_IDENTITY;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
 
 import com.google.common.base.Preconditions;
@@ -36,13 +35,11 @@ public class IdentitySubsection extends PrecompileSubsection {
   public IdentitySubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
 
-    precompileScenarioFragment.setFlag(PRC_IDENTITY);
-
     oobCall = new PrecompileCommonOobCall(OOB_INST_IDENTITY);
     firstImcFragment.callOob(oobCall);
 
     if (!oobCall.isHubSuccess()) {
-      precompileScenarioFragment.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
+      precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_HUB);
     }
   }
 
@@ -51,13 +48,13 @@ public class IdentitySubsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity check
-    Preconditions.checkArgument(successBit == oobCall.isHubSuccess());
+    Preconditions.checkArgument(callSuccess == oobCall.isHubSuccess());
 
-    if (!successBit) {
-      precompileScenarioFragment.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
+    if (!callSuccess) {
+      precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_HUB);
     }
 
-    final boolean extractCallData = successBit && !callDataMemorySpan.lengthNull();
+    final boolean extractCallData = callSuccess && !callDataMemorySpan.lengthNull();
     if (extractCallData) {
       final MmuCall mmuCall = forIdentityExtractCallData(hub, this);
       firstImcFragment.callMmu(mmuCall);

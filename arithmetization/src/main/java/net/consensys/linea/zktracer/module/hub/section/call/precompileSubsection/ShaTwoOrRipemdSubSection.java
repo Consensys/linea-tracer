@@ -32,7 +32,6 @@ import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
 public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
-  ImcFragment firstImcFragment;
   final PrecompileCommonOobCall oobCall;
 
   public ShaTwoOrRipemdSubSection(Hub hub, CallSection callSection) {

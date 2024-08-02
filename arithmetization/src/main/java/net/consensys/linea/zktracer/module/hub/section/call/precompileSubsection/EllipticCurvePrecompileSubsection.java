@@ -21,14 +21,12 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.Precompi
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.PrecompileCommonOobCall;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
 public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
-  final ImcFragment firstImcFragment;
   final PrecompileCommonOobCall oobCall;
 
   public EllipticCurvePrecompileSubsection(Hub hub, CallSection callSection) {
@@ -45,7 +43,6 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
                   "Precompile address %s not supported by constructor", this.flag().toString()));
         };
 
-    firstImcFragment = ImcFragment.empty(hub);
     firstImcFragment.callOob(oobCall);
 
     // Recall that the default scenario is PRC_SUCCESS_WONT_REVERT

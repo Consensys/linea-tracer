@@ -268,10 +268,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     }
   }
 
-  // TODO: the stack at tracePostExecution (as well as the gas) seems not to have
-  //  changed relative to tracePreExecution. In particular this is not the place to
-  //  get BLOCKHASH or similar fields.
-
   /**
    * Compare with description of {@link #tracePreExecution(MessageFrame)}.
    *

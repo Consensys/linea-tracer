@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHAS
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_EXPONENT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_MODULUS;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_RESULT;
-import static net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall.PROVER_MAX_INPUT_BYTE_SIZE;
 
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
@@ -98,12 +97,6 @@ public class BlakeModexpData implements Module {
   }
 
   public void callModexp(final ModExpMetadata modexpMetaData, final int id) {
-    if (modexpMetaData.bbsInt() > PROVER_MAX_INPUT_BYTE_SIZE
-        || modexpMetaData.mbsInt() > PROVER_MAX_INPUT_BYTE_SIZE
-        || modexpMetaData.ebsInt() > PROVER_MAX_INPUT_BYTE_SIZE) {
-      modexpEffectiveCall.addPrecompileLimit(Integer.MAX_VALUE);
-      return;
-    }
     operations.add(new BlakeModexpDataOperation(modexpMetaData, id));
     modexpEffectiveCall.addPrecompileLimit(1);
   }

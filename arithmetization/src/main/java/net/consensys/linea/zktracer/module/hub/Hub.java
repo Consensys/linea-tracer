@@ -248,7 +248,7 @@ public class Hub implements Module {
   private final EcPairingFinalExponentiations ecPairingFinalExponentiations =
       new EcPairingFinalExponentiations();
 
-  private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
+  @Getter private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
 
   private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 

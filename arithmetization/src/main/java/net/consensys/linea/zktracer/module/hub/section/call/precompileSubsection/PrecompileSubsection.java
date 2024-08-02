@@ -91,7 +91,7 @@ public class PrecompileSubsection
     this.callSection = callSection;
     fragments = new ArrayList<>(maxNumberOfLines());
 
-    PrecompileScenarioFragment.PrecompileFlag precompileFlag =
+    final PrecompileScenarioFragment.PrecompileFlag precompileFlag =
         addressToPrecompileFlag(callSection.precompileAddress.orElseThrow());
 
     precompileScenarioFragment =

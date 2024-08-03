@@ -22,7 +22,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.Bytecode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
@@ -52,16 +54,30 @@ public class AccountSnapshot {
   //   DEFERRED,
   // }
 
+  // TODO: is there a "canonical" way to take a snapshot fo an account
+  //  where getWorldUpdater().getAccount(address) return null ?
   public static AccountSnapshot canonical(Hub hub, Address address) {
     final Account account = hub.messageFrame().getWorldUpdater().getAccount(address);
-    return new AccountSnapshot(
-        address,
-        account.getNonce(),
-        account.getBalance(),
-        hub.messageFrame().isAddressWarm(address),
-        new Bytecode(account.getCode()),
-        hub.transients.conflation().deploymentInfo().number(address),
-        hub.transients.conflation().deploymentInfo().isDeploying(address));
+    boolean isPrecompile = AddressUtils.isPrecompile(address);
+    if (account != null) {
+      return new AccountSnapshot(
+          address,
+          account.getNonce(),
+          account.getBalance(),
+          hub.messageFrame().isAddressWarm(address),
+          new Bytecode(account.getCode()),
+          hub.transients.conflation().deploymentInfo().number(address),
+          hub.transients.conflation().deploymentInfo().isDeploying(address));
+    } else {
+      return new AccountSnapshot(
+          address,
+          0,
+          Wei.ZERO,
+          hub.messageFrame().isAddressWarm(address),
+          new Bytecode(Bytes.EMPTY),
+          hub.transients.conflation().deploymentInfo().number(address),
+          hub.transients.conflation().deploymentInfo().isDeploying(address));
+    }
   }
 
   public AccountSnapshot decrementBalance(Wei quantity) {

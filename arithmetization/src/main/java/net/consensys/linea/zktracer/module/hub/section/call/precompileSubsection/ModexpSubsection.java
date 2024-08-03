@@ -27,7 +27,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.f
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpXbsCase.OOB_INST_MODEXP_BBS;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpXbsCase.OOB_INST_MODEXP_EBS;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpXbsCase.OOB_INST_MODEXP_MBS;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM;
 import static net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall.PROVER_MAX_INPUT_BYTE_SIZE;
 
 import java.math.BigInteger;
@@ -128,7 +128,7 @@ public class ModexpSubsection extends PrecompileSubsection {
     Preconditions.checkArgument(callSuccess == sixthOobCall.isRamSuccess());
 
     if (!callSuccess) {
-      precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_HUB);
+      precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);
       return;
     }
 

@@ -39,7 +39,7 @@ public class OperationAncillaries {
 
   private static Bytes maybeShadowReadMemory(final MemorySpan span, final MessageFrame frame) {
     // Accesses to huge offset with 0-length are valid
-    if (span.lengthNull()) {
+    if (span.isEmpty()) {
       return Bytes.EMPTY;
     }
 
@@ -248,7 +248,7 @@ public class OperationAncillaries {
     final MemorySpan outputDataSpan = outputDataSpan();
 
     // Accesses to huge offset with 0-length are valid
-    if (outputDataSpan.lengthNull()) {
+    if (outputDataSpan.isEmpty()) {
       return Bytes.EMPTY;
     }
 

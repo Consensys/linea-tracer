@@ -171,7 +171,6 @@ public class CallSection extends TraceSection
     final boolean aborts = hub.pch().abortingConditions().any();
     Preconditions.checkArgument(oobCall.isAbortingCondition() == aborts);
 
-    hub.defers().scheduleForImmediateContextEntry(this);
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
     hub.defers().scheduleForPostTransaction(this);
 
@@ -181,6 +180,7 @@ public class CallSection extends TraceSection
     }
 
     // The CALL is now unexceptional and un-aborted
+    hub.defers().scheduleForImmediateContextEntry(this);
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     final WorldUpdater world = hub.messageFrame().getWorldUpdater();
 
@@ -195,7 +195,7 @@ public class CallSection extends TraceSection
       hub.defers().scheduleForImmediateContextEntry(precompileSubsection); // gas & input data, ...
       hub.defers()
           .scheduleForContextReEntry(
-              precompileSubsection, hub.callStack().parent()); // success bit & return data
+              precompileSubsection, hub.currentFrame()); // success bit & return data
     } else {
       scenarioFragment.setScenario(
           world.get(calleeAddress).hasCode() ? CALL_SMC_UNDEFINED : CALL_EOA_SUCCESS_WONT_REVERT);
@@ -262,7 +262,7 @@ public class CallSection extends TraceSection
   }
 
   @Override
-  public void resolveUponEnteringChildContext(Hub hub) {
+  public void resolveUponImmediateContextEntry(Hub hub) {
     switch (scenarioFragment.getScenario()) {
       case CALL_SMC_UNDEFINED -> {
         postOpcodeCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());

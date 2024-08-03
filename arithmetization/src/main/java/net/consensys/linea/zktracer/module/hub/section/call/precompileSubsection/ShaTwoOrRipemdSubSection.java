@@ -73,7 +73,7 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
               callFrame.frame().getReturnData());
       hub.shakiraData().call(shakiraCall);
 
-      final MmuCall mmuCall = MmuCall.forShaTwoOrRipemdCallDataExtraction(hub, this);
+      final MmuCall mmuCall = MmuCall.callDataExtractionForShaTwoAndRipemd(hub, this);
       firstImcFragment.callMmu(mmuCall);
     }
 
@@ -81,7 +81,7 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
     final ImcFragment secondImcFragment = ImcFragment.empty(hub);
     this.fragments().add(secondImcFragment);
 
-    final MmuCall fullOutputDataTransfer = MmuCall.forShaTwoOrRipemdFullResultTransfer(hub, this);
+    final MmuCall fullOutputDataTransfer = MmuCall.fullResultTransferForShaTwoAndRipemd(hub, this);
     secondImcFragment.callMmu(fullOutputDataTransfer);
 
     final ImcFragment thirdImcFragment = ImcFragment.empty(hub);
@@ -89,8 +89,9 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
 
     // the partial copy of return data happens only if the caller context
     // provided a nonempty return data target
-    if (!parentReturnDataTarget.lengthNull()) {
-      final MmuCall partialReturnDataCopy = MmuCall.forShaTwoOrRipemdPartialResultCopy(hub, this);
+    if (!parentReturnDataTarget.isEmpty()) {
+      final MmuCall partialReturnDataCopy =
+          MmuCall.partialReturnDataCopyForShaTwoAndRipemd(hub, this);
       thirdImcFragment.callMmu(partialReturnDataCopy);
     }
   }

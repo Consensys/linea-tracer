@@ -50,7 +50,7 @@ public record MemorySpan(long offset, long length) {
     return this.length + this.length;
   }
 
-  public boolean lengthNull() {
+  public boolean isEmpty() {
     return this.length == 0;
   }
 

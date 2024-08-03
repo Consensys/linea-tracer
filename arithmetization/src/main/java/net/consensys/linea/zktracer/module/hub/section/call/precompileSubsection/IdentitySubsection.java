@@ -54,7 +54,7 @@ public class IdentitySubsection extends PrecompileSubsection {
       precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_HUB);
     }
 
-    final boolean extractCallData = callSuccess && !callDataMemorySpan.lengthNull();
+    final boolean extractCallData = callSuccess && !callDataMemorySpan.isEmpty();
     if (extractCallData) {
       final MmuCall mmuCall = forIdentityExtractCallData(hub, this);
       firstImcFragment.callMmu(mmuCall);
@@ -62,7 +62,7 @@ public class IdentitySubsection extends PrecompileSubsection {
 
     final ImcFragment secondImcFragment = ImcFragment.empty(hub);
     fragments().add(secondImcFragment);
-    if (extractCallData && !parentReturnDataTarget().lengthNull()) {
+    if (extractCallData && !parentReturnDataTarget().isEmpty()) {
       final MmuCall mmuCall = forIdentityReturnData(hub, this);
       secondImcFragment.callMmu(mmuCall);
     }

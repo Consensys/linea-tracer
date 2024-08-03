@@ -64,12 +64,12 @@ public class DeferRegistry
 
   /** Schedule an action to be executed after the completion of the current opcode. */
   public void scheduleForImmediateContextEntry(ImmediateContextEntryDefer defer) {
-    this.immediateContextEntryDefers.add(defer);
+    immediateContextEntryDefers.add(defer);
   }
 
   /** Schedule an action to be executed after the completion of the current opcode. */
   public void scheduleForPostExecution(PostOpcodeDefer defer) {
-    this.postOpcodeDefers.add(defer);
+    postOpcodeDefers.add(defer);
   }
 
   /** Schedule an action to be executed at the exit of a given context. */
@@ -82,12 +82,12 @@ public class DeferRegistry
 
   /** Schedule an action to be executed at the end of the current transaction. */
   public void scheduleForPostTransaction(PostTransactionDefer defer) {
-    this.postTransactionDefers.add(defer);
+    postTransactionDefers.add(defer);
   }
 
   /** Schedule an action to be executed at the end of the current transaction. */
   public void scheduleForPostConflation(PostConflationDefer defer) {
-    this.postConflationDefers.add(defer);
+    postConflationDefers.add(defer);
   }
 
   /** Schedule an action to be executed at the re-entry in the current context. */
@@ -120,15 +120,15 @@ public class DeferRegistry
   public void resolvePostTransaction(
       Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
     final List<PostTransactionDefer> postTransactionDefersFirstRound =
-        new ArrayList<>(this.postTransactionDefers);
-    this.postTransactionDefers.clear();
+        new ArrayList<>(postTransactionDefers);
+    postTransactionDefers.clear();
     for (PostTransactionDefer defer : postTransactionDefersFirstRound) {
       defer.resolvePostTransaction(hub, world, tx, isSuccessful);
     }
-    for (PostTransactionDefer defer : this.postTransactionDefers) {
+    for (PostTransactionDefer defer : postTransactionDefers) {
       defer.resolvePostTransaction(hub, world, tx, isSuccessful);
     }
-    this.postTransactionDefers.clear();
+    postTransactionDefers.clear();
   }
 
   /**
@@ -138,10 +138,10 @@ public class DeferRegistry
    */
   @Override
   public void resolvePostConflation(Hub hub, WorldView world) {
-    for (PostConflationDefer defer : this.postConflationDefers) {
+    for (PostConflationDefer defer : postConflationDefers) {
       defer.resolvePostConflation(hub, world);
     }
-    this.postConflationDefers.clear();
+    postConflationDefers.clear();
   }
 
   /**
@@ -153,10 +153,10 @@ public class DeferRegistry
    */
   @Override
   public void resolvePostExecution(Hub hub, MessageFrame frame, Operation.OperationResult result) {
-    for (PostOpcodeDefer defer : this.postOpcodeDefers) {
+    for (PostOpcodeDefer defer : postOpcodeDefers) {
       defer.resolvePostExecution(hub, frame, result);
     }
-    this.postOpcodeDefers.clear();
+    postOpcodeDefers.clear();
   }
 
   /**
@@ -166,11 +166,11 @@ public class DeferRegistry
    * @param callFrame the {@link CallFrame} of the transaction
    */
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
-    if (this.contextReEntryDefers.containsKey(callFrame)) {
-      for (ContextReEntryDefer defer : this.contextReEntryDefers.get(callFrame)) {
+    if (contextReEntryDefers.containsKey(callFrame)) {
+      for (ContextReEntryDefer defer : contextReEntryDefers.get(callFrame)) {
         defer.resolveAtContextReEntry(hub, callFrame);
       }
-      this.contextReEntryDefers.remove(callFrame);
+      contextReEntryDefers.remove(callFrame);
     }
   }
 
@@ -201,11 +201,11 @@ public class DeferRegistry
   }
 
   @Override
-  public void resolveUponEnteringChildContext(Hub hub) {
-    for (ImmediateContextEntryDefer defer : this.immediateContextEntryDefers) {
-      defer.resolveUponEnteringChildContext(hub);
+  public void resolveUponImmediateContextEntry(Hub hub) {
+    for (ImmediateContextEntryDefer defer : immediateContextEntryDefers) {
+      defer.resolveUponImmediateContextEntry(hub);
     }
-    this.immediateContextEntryDefers.clear();
+    immediateContextEntryDefers.clear();
   }
 
   @Override

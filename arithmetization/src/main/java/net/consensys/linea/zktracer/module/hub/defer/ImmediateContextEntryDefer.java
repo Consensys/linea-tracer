@@ -18,5 +18,5 @@ package net.consensys.linea.zktracer.module.hub.defer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 
 public interface ImmediateContextEntryDefer {
-  void resolveUponEnteringChildContext(Hub hub);
+  void resolveUponImmediateContextEntry(Hub hub);
 }

@@ -167,7 +167,7 @@ public class ModexpSubsection extends PrecompileSubsection {
 
     final ImcFragment eleventhImcFragment = ImcFragment.empty(hub);
     fragments().add(eleventhImcFragment);
-    if (modExpMetadata.mbsNonZero() && !parentReturnDataTarget.lengthNull()) {
+    if (modExpMetadata.mbsNonZero() && !parentReturnDataTarget.isEmpty()) {
       final MmuCall mmuCall = forModexpPartialResultCopy(hub, this, modExpMetadata);
       eleventhImcFragment.callMmu(mmuCall);
     }

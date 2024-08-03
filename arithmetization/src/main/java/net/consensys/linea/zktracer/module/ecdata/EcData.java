@@ -86,7 +86,7 @@ public class EcData implements Module {
     final MemorySpan callDataSource = hub.transients().op().callDataSegment();
 
     if (target.equals(Address.ALTBN128_PAIRING)
-        && (callDataSource.lengthNull() || callDataSource.length() % 192 != 0)) {
+        && (callDataSource.isEmpty() || callDataSource.length() % 192 != 0)) {
       return;
     }
 

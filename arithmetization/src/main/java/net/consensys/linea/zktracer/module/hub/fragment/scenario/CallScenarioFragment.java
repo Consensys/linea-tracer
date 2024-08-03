@@ -71,7 +71,7 @@ public class CallScenarioFragment implements TraceFragment {
 
   public Trace trace(Trace trace) {
     Preconditions.checkArgument(
-        !illegalTracingScenario.contains(this.scenario), "Final Scenario hasn't been set");
+        this.scenario.noLongerUndefined(), "Final Scenario hasn't been set");
     return trace
         .peekAtScenario(true)
         // // CALL scenarios

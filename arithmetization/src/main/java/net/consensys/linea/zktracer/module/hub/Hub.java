@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.CALL;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
 import java.nio.MappedByteBuffer;
@@ -124,6 +125,7 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
+import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -564,7 +566,7 @@ public class Hub implements Module {
     this.pch.reset();
 
     if (frame.getDepth() == 0) {
-      // Bedrock...
+      // Root context
       final TransactionProcessingMetadata currentTx = transients().tx();
       final Address toAddress = effectiveToAddress(currentTx.getBesuTransaction());
       final boolean isDeployment = this.transients.tx().getBesuTransaction().getTo().isEmpty();
@@ -662,7 +664,7 @@ public class Hub implements Module {
           isDeployment);
       this.currentFrame().initializeFrame(frame); // TODO should be done in enter
 
-      this.defers.resolveUponEnteringChildContext(this);
+      this.defers.resolveUponImmediateContextEntry(this);
 
       for (Module m : this.modules) {
         m.traceContextEnter(frame);
@@ -672,7 +674,7 @@ public class Hub implements Module {
 
   public void traceContextReEnter(MessageFrame frame) {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
-    this.defers.resolveAtContextReEntry(this, this.currentFrame());
+    defers.resolveAtContextReEntry(this, this.currentFrame());
     if (this.currentFrame().sectionToUnlatch() != null) {
       this.unlatchStack(frame, this.currentFrame().sectionToUnlatch());
       this.currentFrame().sectionToUnlatch(null);
@@ -998,7 +1000,7 @@ public class Hub implements Module {
       if (this.pch.signals().ecData()) {
         this.previousOperationWasCallToEcPrecompile = true;
       }
-      this.traceOperation(frame);
+      this.traceOpcode(frame);
     } else {
 
       this.squashCurrentFrameOutputData();
@@ -1028,7 +1030,9 @@ public class Hub implements Module {
     return this.state.txCount();
   }
 
-  void traceOperation(MessageFrame frame) {
+  void traceOpcode(MessageFrame frame) {
+    boolean breakHere = this.opCodeData().instructionFamily() == CALL;
+
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
           MOD,
@@ -1115,12 +1119,24 @@ public class Hub implements Module {
 
       case CREATE -> new CreateSection(this);
 
-      case CALL -> new CallSection(this);
+      case CALL -> {
+        boolean breakHereAgain =
+            AddressUtils.isPrecompile(AddressUtils.addressFromBytes(frame.getStackItem(1)));
+        new CallSection(this);
+      }
 
       case JUMP -> new JumpSection(this);
     }
   }
 
+  /**
+   * 0x 0000000000000000000000000000000000000000000000000000000000000020
+   * 0000000000000000000000000000000000000000000000000000000000000020
+   * 0000000000000000000000000000000000000000000000000000000000000020
+   * 1b0d87982c98b463c5a1058e31ea2b39022d5ed69aeca8f24153d3f2962121ed
+   * 0000000000000000000000000000000000000000000000000000000001000000
+   * 30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001
+   */
   public void squashCurrentFrameOutputData() {
     this.currentFrame().outputDataSpan(MemorySpan.empty());
     this.currentFrame().outputData(Bytes.EMPTY);
@@ -1134,5 +1150,9 @@ public class Hub implements Module {
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {
     return this.callStack.getById(parentFrame.childFramesId().getLast());
+  }
+
+  private boolean withinPrecompile(MessageFrame frame) {
+    return AddressUtils.isPrecompile(frame.getContractAddress());
   }
 }

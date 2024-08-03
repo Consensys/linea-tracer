@@ -17,10 +17,12 @@ package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsectio
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.*;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.PrecompileCommonOobCall;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
@@ -71,17 +73,17 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
       return;
     }
 
-    switch (flag()) {
-      case PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING -> {
-        if (oobCall.isHubSuccess() && !callSuccess) {
-          precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);
-        }
+    // NOTE: from here on out
+    //    hubSuccess ≡ true
+
+    // ECRECOVER can only be FAILURE_KNOWN_TO_HUB or some form of SUCCESS_XXXX_REVERT
+    if (flag().isAnyOf(PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING)) {
+      if (oobCall.isHubSuccess() && !callSuccess) { // hub success is implicitly true
+        precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);
       }
-        // ECRECOVER can only be FAILURE_KNOWN_TO_HUB or some form of SUCCESS_XXXX_REVERT
-      default -> {}
     }
 
-    MmuCall firstMmuCall;
+    final MmuCall firstMmuCall;
     final boolean nonemptyCallData = !callData.isEmpty();
 
     if (nonemptyCallData) {
@@ -92,10 +94,63 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
         }
         case PRC_ECADD -> firstMmuCall = MmuCall.callDataExtractionForEcadd(hub, this, callSuccess);
         case PRC_ECMUL -> firstMmuCall = MmuCall.callDataExtractionForEcmul(hub, this, callSuccess);
-        case PRC_ECPAIRING -> firstMmuCall = MmuCall.callDataExtractionForEcpairing(hub, this, callSuccess);
+        case PRC_ECPAIRING -> firstMmuCall =
+            MmuCall.callDataExtractionForEcpairing(hub, this, callSuccess);
         default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
       }
       firstImcFragment.callMmu(firstMmuCall);
+    }
+
+    final ImcFragment secondImcFragment = ImcFragment.empty(hub);
+    this.fragments().add(secondImcFragment);
+
+    final ImcFragment thirdImcFragment = ImcFragment.empty(hub);
+    this.fragments().add(thirdImcFragment);
+
+    MmuCall secondMmuCall = null;
+    MmuCall thirdMmuCall = null;
+    final boolean producesNonemptyReturnData = !returnData.isEmpty();
+    final boolean callerMayReceiveReturnData = !parentReturnDataTarget.isEmpty();
+
+    if (producesNonemptyReturnData) {
+      switch (flag()) {
+        case PRC_ECRECOVER -> {
+          secondMmuCall = MmuCall.fullReturnDataTransferForEcrecover(hub, this);
+          if (callerMayReceiveReturnData) {
+            thirdMmuCall = MmuCall.partialReturnDataCopyForEcrecover(hub, this);
+          }
+        }
+        case PRC_ECADD -> {
+          if (nonemptyCallData) {
+            secondMmuCall = MmuCall.fullReturnDataTransferForEcadd(hub, this);
+          }
+          if (callerMayReceiveReturnData) {
+            thirdMmuCall = MmuCall.partialCopyOfReturnDataForEcadd(hub, this);
+          }
+        }
+        case PRC_ECMUL -> {
+          if (nonemptyCallData) {
+            secondMmuCall = MmuCall.fullReturnDataTransferForEcmul(hub, this);
+          }
+          if (callerMayReceiveReturnData) {
+            thirdMmuCall = MmuCall.partialCopyOfReturnDataForEcmul(hub, this);
+          }
+        }
+        case PRC_ECPAIRING -> {
+          secondMmuCall = MmuCall.fullReturnDataTransferForEcpairing(hub, this);
+
+          if (callerMayReceiveReturnData) {
+            thirdMmuCall = MmuCall.partialCopyOfReturnDataForEcpairing(hub, this);
+          }
+        }
+        default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
+      }
+      if (secondMmuCall != null) {
+        secondImcFragment.callMmu(secondMmuCall);
+      }
+      if (thirdMmuCall != null) {
+        thirdImcFragment.callMmu(thirdMmuCall);
+      }
     }
   }
 }

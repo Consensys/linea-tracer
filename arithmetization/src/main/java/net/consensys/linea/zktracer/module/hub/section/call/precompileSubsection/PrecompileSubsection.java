@@ -127,7 +127,7 @@ public class PrecompileSubsection
   }
 
   @Override
-  public void resolveUponEnteringChildContext(Hub hub) {
+  public void resolveUponImmediateContextEntry(Hub hub) {
     // Sanity check
     Preconditions.checkArgument(
         callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));

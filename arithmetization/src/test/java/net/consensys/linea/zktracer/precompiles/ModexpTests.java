@@ -13,5 +13,31 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 package net.consensys.linea.zktracer.precompiles;
+
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.testing.BytecodeRunner;
+import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Test;
+
 public class ModexpTests {
+
+  // the thing fails at AccountSnapshot.canonical()
+  // of the precompile address 0x00...05 ≡ MODEXP
+  @Test
+  void basicModexpTest() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(0)
+            .push(0)
+            .push(0)
+            .push(0)
+            .push(0)
+            .push(0x05) // address
+            .push(0xffff) // gas
+            .op(OpCode.CALL)
+            .op(OpCode.POP)
+            .compile();
+    BytecodeRunner.of(bytecode).run();
+  }
 }

@@ -13,5 +13,48 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 package net.consensys.linea.zktracer.precompiles;
+
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.testing.BytecodeRunner;
+import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Test;
+
 public class EcrecoverTests {
+
+  // the thing fails at AccountSnapshot.canonical()
+  // of the precompile address 0x00...01 ≡ ECRECOVER
+  @Test
+  void basicEcrecoverTest() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(0)
+            .push(0)
+            .push(0)
+            .push(0)
+            .push(0)
+            .push(0x01) // address
+            .push(0xffff) // gas
+            .op(OpCode.CALL)
+            .op(OpCode.POP)
+            .compile();
+    BytecodeRunner.of(bytecode).run();
+  }
+
+  @Test
+  void insufficientGasEcrecoverTest() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(0)
+            .push(0)
+            .push(0)
+            .push(0)
+            .push(0)
+            .push(0x01) // address
+            .push(0x0bb7) // gas; note 0x0bb8 ⇔ 3000
+            .op(OpCode.CALL)
+            .op(OpCode.POP)
+            .compile();
+    BytecodeRunner.of(bytecode).run();
+  }
 }

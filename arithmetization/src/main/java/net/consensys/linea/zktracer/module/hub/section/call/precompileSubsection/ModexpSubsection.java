@@ -73,8 +73,8 @@ public class ModexpSubsection extends PrecompileSubsection {
       return;
     }
 
-    final ModexpCallDataSizeOobCall firstOobCAll = new ModexpCallDataSizeOobCall();
-    firstImcFragment.callOob(firstOobCAll);
+    final ModexpCallDataSizeOobCall firstOobCall = new ModexpCallDataSizeOobCall();
+    firstImcFragment.callOob(firstOobCall);
 
     final ImcFragment secondImcFragment = ImcFragment.empty(hub);
     fragments().add(secondImcFragment);

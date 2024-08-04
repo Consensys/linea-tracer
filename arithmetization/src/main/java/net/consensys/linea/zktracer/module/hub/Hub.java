@@ -1031,7 +1031,6 @@ public class Hub implements Module {
   }
 
   void traceOpcode(MessageFrame frame) {
-    boolean breakHere = this.opCodeData().instructionFamily() == CALL;
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
@@ -1120,8 +1119,6 @@ public class Hub implements Module {
       case CREATE -> new CreateSection(this);
 
       case CALL -> {
-        boolean breakHereAgain =
-            AddressUtils.isPrecompile(AddressUtils.addressFromBytes(frame.getStackItem(1)));
         new CallSection(this);
       }
 

@@ -26,7 +26,7 @@ public abstract class OobCall implements TraceSubFragment {
   public Bytes ZERO = Bytes.EMPTY;
   public Bytes ONE = Bytes.of(1);
 
-  final OobInstruction oobInstruction;
+  public final OobInstruction oobInstruction;
 
   public int oobInstructionValue() {
     return oobInstruction.getValue();

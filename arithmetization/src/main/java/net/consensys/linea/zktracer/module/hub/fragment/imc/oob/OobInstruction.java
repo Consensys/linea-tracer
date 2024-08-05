@@ -45,14 +45,52 @@ public enum OobInstruction {
   OOB_INST_SSTORE(GlobalConstants.OOB_INST_SSTORE),
   OOB_INST_XCALL(GlobalConstants.OOB_INST_XCALL);
 
+  public boolean isEvmInstruction() {
+    return this.isAnyOf(
+        OOB_INST_CALL,
+        OOB_INST_CDL,
+        OOB_INST_CREATE,
+        OOB_INST_DEPLOYMENT,
+        OOB_INST_JUMP,
+        OOB_INST_JUMPI,
+        OOB_INST_RDC,
+        OOB_INST_SSTORE,
+        OOB_INST_XCALL);
+  }
+
   public boolean isCommonPrecompile() {
-    return this == OOB_INST_ECRECOVER
-        || this == OOB_INST_SHA2
-        || this == OOB_INST_RIPEMD
-        || this == OOB_INST_IDENTITY
-        || this == OOB_INST_ECADD
-        || this == OOB_INST_ECMUL
-        || this == OOB_INST_ECPAIRING;
+    return this.isAnyOf(
+        OOB_INST_ECRECOVER,
+        OOB_INST_SHA2,
+        OOB_INST_RIPEMD,
+        OOB_INST_IDENTITY,
+        OOB_INST_ECADD,
+        OOB_INST_ECMUL,
+        OOB_INST_ECPAIRING);
+  }
+
+  public boolean isModexp() {
+    return this.isAnyOf(
+        OOB_INST_MODEXP_CDS,
+        OOB_INST_MODEXP_EXTRACT,
+        OOB_INST_MODEXP_LEAD,
+        OOB_INST_MODEXP_PRICING,
+        OOB_INST_MODEXP_XBS);
+  }
+
+  public boolean isBlake() {
+    return this.isAnyOf(OOB_INST_BLAKE_PARAMS, OOB_INST_BLAKE_CDS);
+  }
+
+  public boolean isPrecompile() {
+    return this.isCommonPrecompile() || this.isModexp() || this.isBlake();
+  }
+
+  public boolean isAnyOf(OobInstruction... oobInstructions) {
+    for (OobInstruction oobInstruction : oobInstructions) {
+      if (this == oobInstruction) return true;
+    }
+    return false;
   }
 
   // TODO: add checks for other families of precompiles, if necessary

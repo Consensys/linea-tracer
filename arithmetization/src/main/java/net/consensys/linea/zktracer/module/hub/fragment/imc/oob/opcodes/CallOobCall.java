@@ -30,10 +30,9 @@ import net.consensys.linea.zktracer.types.EWord;
 @Getter
 @Setter
 public class CallOobCall extends OobCall {
-  EWord value;
+  public EWord value;
   BigInteger balance;
   BigInteger callStackDepth;
-  boolean valueIsNonzero;
   boolean abortingCondition;
 
   public CallOobCall() {
@@ -58,7 +57,7 @@ public class CallOobCall extends OobCall {
         .data4(ZERO)
         .data5(ZERO)
         .data6(bigIntegerToBytes(callStackDepth))
-        .data7(booleanToBytes(valueIsNonzero))
+        .data7(booleanToBytes(!value.isZero()))
         .data8(booleanToBytes(abortingCondition));
   }
 
@@ -73,7 +72,7 @@ public class CallOobCall extends OobCall {
         .pMiscOobData4(ZERO)
         .pMiscOobData5(ZERO)
         .pMiscOobData6(bigIntegerToBytes(callStackDepth))
-        .pMiscOobData7(booleanToBytes(valueIsNonzero))
+        .pMiscOobData7(booleanToBytes(!value.isZero()))
         .pMiscOobData8(booleanToBytes(abortingCondition));
   }
 }

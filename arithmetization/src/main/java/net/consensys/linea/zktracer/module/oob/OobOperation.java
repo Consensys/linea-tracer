@@ -296,15 +296,14 @@ public class OobOperation extends ModuleOperation {
   public void populateColumnsForPrecompile(MessageFrame frame) {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     final long argsOffset =
-            Words.clampedToLong(
-                    opCode.callCanTransferValue()
-                            ? hub.messageFrame().getStackItem(3)
-                            : hub.messageFrame().getStackItem(2));
+        Words.clampedToLong(
+            opCode.callCanTransferValue()
+                ? hub.messageFrame().getStackItem(3)
+                : hub.messageFrame().getStackItem(2));
     final int cdsIndex = opCode.callCanTransferValue() ? 4 : 3;
     final int returnAtCapacityIndex = opCode.callCanTransferValue() ? 6 : 5;
 
-    final boolean transfersValue =
-            opCode.callCanTransferValue() && !frame.getStackItem(2).isZero();
+    final boolean transfersValue = opCode.callCanTransferValue() && !frame.getStackItem(2).isZero();
 
     // shameless copy from gasAvailableForChildCall found in TangerineWhistleGasCalculator
     // TODO: @Olivier and @François: find out whether frame.getRemainingGas was already
@@ -312,10 +311,10 @@ public class OobOperation extends ModuleOperation {
     //  decremented version
     long remainingGas = frame.getRemainingGas();
     long gasCap =
-            Words.unsignedMin(
-                    allButOneSixtyFourth(remainingGas), Words.clampedToLong(frame.getStackItem(0)));
+        Words.unsignedMin(
+            allButOneSixtyFourth(remainingGas), Words.clampedToLong(frame.getStackItem(0)));
     long callGasLong =
-            transfersValue ? gasCap + ZkTracer.gasCalculator.getAdditionalCallStipend() : gasCap;
+        transfersValue ? gasCap + ZkTracer.gasCalculator.getAdditionalCallStipend() : gasCap;
     final BigInteger callGas = BigInteger.valueOf(callGasLong);
 
     final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
@@ -326,7 +325,7 @@ public class OobOperation extends ModuleOperation {
     // }
 
     final BigInteger returnAtCapacity =
-            EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
+        EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
 
     if (isCommonPrecompile()) {
       PrecompileCommonOobCall commonOobCall = (PrecompileCommonOobCall) oobCall;
@@ -337,8 +336,10 @@ public class OobOperation extends ModuleOperation {
       setPrcCommon(commonOobCall);
 
       switch (oobCall.oobInstruction) {
-        case OOB_INST_ECRECOVER, OOB_INST_ECADD, OOB_INST_ECMUL -> setEcrecoverEcaddEcmul(commonOobCall);
-        case OOB_INST_SHA2, OOB_INST_RIPEMD, OOB_INST_IDENTITY -> setShaTwoRipemdIdentity(commonOobCall);
+        case OOB_INST_ECRECOVER, OOB_INST_ECADD, OOB_INST_ECMUL -> setEcrecoverEcaddEcmul(
+            commonOobCall);
+        case OOB_INST_SHA2, OOB_INST_RIPEMD, OOB_INST_IDENTITY -> setShaTwoRipemdIdentity(
+            commonOobCall);
         case OOB_INST_ECPAIRING -> setEcpairing(commonOobCall);
       }
     }
@@ -347,7 +348,7 @@ public class OobOperation extends ModuleOperation {
       final Bytes unpaddedCallData = frame.shadowReadMemory(argsOffset, cds.longValue());
       // pad unpaddedCallData to 96
       final Bytes paddedCallData =
-              cds.intValue() < 96 ? rightPadTo(unpaddedCallData, 96) : unpaddedCallData;
+          cds.intValue() < 96 ? rightPadTo(unpaddedCallData, 96) : unpaddedCallData;
 
       // cds and the data below can be int when compared (after size check)
       final BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
@@ -356,21 +357,21 @@ public class OobOperation extends ModuleOperation {
 
       // Check if bbs, ebs and mbs are <= 512
       if (bbs.compareTo(BigInteger.valueOf(512)) > 0
-              || ebs.compareTo(BigInteger.valueOf(512)) > 0
-              || mbs.compareTo(BigInteger.valueOf(512)) > 0) {
+          || ebs.compareTo(BigInteger.valueOf(512)) > 0
+          || mbs.compareTo(BigInteger.valueOf(512)) > 0) {
         throw new IllegalArgumentException("byte sizes are too big");
       }
 
       // pad paddedCallData to 96 + bbs + ebs
       final Bytes doublePaddedCallData =
-              cds.intValue() < 96 + bbs.intValue() + ebs.intValue()
-                      ? rightPadTo(paddedCallData, 96 + bbs.intValue() + ebs.intValue())
-                      : paddedCallData;
+          cds.intValue() < 96 + bbs.intValue() + ebs.intValue()
+              ? rightPadTo(paddedCallData, 96 + bbs.intValue() + ebs.intValue())
+              : paddedCallData;
 
       final BigInteger leadingBytesOfExponent =
-              doublePaddedCallData
-                      .slice(96 + bbs.intValue(), min(ebs.intValue(), 32))
-                      .toUnsignedBigInteger();
+          doublePaddedCallData
+              .slice(96 + bbs.intValue(), min(ebs.intValue(), 32))
+              .toUnsignedBigInteger();
 
       BigInteger exponentLog;
       if (ebs.intValue() <= 32 && leadingBytesOfExponent.signum() == 0) {
@@ -379,9 +380,9 @@ public class OobOperation extends ModuleOperation {
         exponentLog = BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR));
       } else if (ebs.intValue() > 32 && leadingBytesOfExponent.signum() != 0) {
         exponentLog =
-                BigInteger.valueOf(8)
-                        .multiply(ebs.subtract(BigInteger.valueOf(32)))
-                        .add(BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR)));
+            BigInteger.valueOf(8)
+                .multiply(ebs.subtract(BigInteger.valueOf(32)))
+                .add(BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR)));
       } else {
         exponentLog = BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
       }
@@ -457,15 +458,10 @@ public class OobOperation extends ModuleOperation {
           setBlake2FCds(prcBlake2FCdsCall);
         }
         case OOB_INST_BLAKE_PARAMS -> {
-          final BigInteger blakeR =
-                  frame
-                          .shadowReadMemory(argsOffset, cds.longValue())
-                          .slice(0, 4)
-                          .toUnsignedBigInteger();
+          Bytes callData = frame.shadowReadMemory(argsOffset, 213);
+          final BigInteger blakeR = callData.slice(0, 4).toUnsignedBigInteger();
 
-          final BigInteger blakeF =
-                  BigInteger.valueOf(
-                          toUnsignedInt(frame.shadowReadMemory(argsOffset, cds.longValue()).get(212)));
+          final BigInteger blakeF = BigInteger.valueOf(toUnsignedInt(callData.get(212)));
 
           final Blake2fParamsOobCall prcBlake2FParamsOobCall = (Blake2fParamsOobCall) oobCall;
           prcBlake2FParamsOobCall.setCallGas(callGas);
@@ -474,9 +470,8 @@ public class OobOperation extends ModuleOperation {
 
           setBlake2FParams(prcBlake2FParamsOobCall);
         }
+        default -> throw new RuntimeException("no opcode or precompile flag was set to true");
       }
-    } else {
-      throw new RuntimeException("no opcode or precompile flag was set to true");
     }
   }
 
@@ -831,14 +826,14 @@ public class OobOperation extends ModuleOperation {
 
   private void setEcrecoverEcaddEcmul(PrecompileCommonOobCall prcCommonOobCall) {
     long precompileCostLong =
-            switch (oobCall.oobInstruction) {
-              case OOB_INST_ECRECOVER -> 3000;
-              case OOB_INST_ECADD -> 150;
-              case OOB_INST_ECMUL -> 6000;
-              default -> throw new IllegalArgumentException("Precompile isn't any of ECRECOVER, ECADD, ECMUL");
-            };
-    precompileCost =
-        BigInteger.valueOf(precompileCostLong);
+        switch (oobCall.oobInstruction) {
+          case OOB_INST_ECRECOVER -> 3000;
+          case OOB_INST_ECADD -> 150;
+          case OOB_INST_ECMUL -> 6000;
+          default -> throw new IllegalArgumentException(
+              "Precompile isn't any of ECRECOVER, ECADD, ECMUL");
+        };
+    precompileCost = BigInteger.valueOf(precompileCostLong);
 
     // row i + 2
     final boolean insufficientGas =
@@ -866,17 +861,15 @@ public class OobOperation extends ModuleOperation {
             BigInteger.valueOf(32));
 
     long factor =
-            switch (oobCall.oobInstruction) {
-              case OOB_INST_SHA2 -> 12L;
-              case OOB_INST_RIPEMD -> 120L;
-              case OOB_INST_IDENTITY -> 3L;
-              default -> throw new IllegalArgumentException("precompile ought to be one of SHA2-256, RIPEMD-160 or IDENTITY");
-            };
+        switch (oobCall.oobInstruction) {
+          case OOB_INST_SHA2 -> 12L;
+          case OOB_INST_RIPEMD -> 120L;
+          case OOB_INST_IDENTITY -> 3L;
+          default -> throw new IllegalArgumentException(
+              "precompile ought to be one of SHA2-256, RIPEMD-160 or IDENTITY");
+        };
 
-    precompileCost =
-        (BigInteger.valueOf(5).add(ceiling))
-            .multiply(
-                BigInteger.valueOf(factor));
+    precompileCost = (BigInteger.valueOf(5).add(ceiling)).multiply(BigInteger.valueOf(factor));
 
     // row i + 3
     final boolean insufficientGas =

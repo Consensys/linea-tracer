@@ -78,9 +78,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.Create2;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.ExtCodeCopy;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.ReturnFromDeployment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
-import net.consensys.linea.zktracer.module.hub.precompiles.Blake2fMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
-import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.EllipticCurvePrecompileSubsection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ModexpSubsection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
@@ -562,47 +560,56 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .referenceSize(32);
   }
 
-  public static MmuCall forBlake2f(final Hub hub, final PrecompileInvocation p, int i) {
-    Preconditions.checkArgument(i >= 0 && i < 4);
-    final int precompileContextNumber = p.hubStamp() + 1;
-    if (i == 0) {
-      return new MmuCall(hub, MMU_INST_BLAKE)
-          .sourceId(hub.currentFrame().contextNumber())
-          .targetId(precompileContextNumber)
-          .sourceOffset(EWord.of(p.callDataSource().offset()))
-          .successBit(!p.ramFailure())
-          .limb1(EWord.of(((Blake2fMetadata) p.metadata()).r()))
-          .limb2(EWord.of(((Blake2fMetadata) p.metadata()).f()))
-          .setBlakeModexp()
-          .phase(PHASE_BLAKE_PARAMS);
-    } else if (i == 1) {
-      return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-          .sourceId(hub.currentFrame().contextNumber())
-          .targetId(precompileContextNumber)
-          .sourceOffset(EWord.of(p.callDataSource().offset() + 4))
-          .size(208)
-          .referenceSize(208)
-          .setBlakeModexp()
-          .phase(PHASE_BLAKE_DATA);
-    } else if (i == 2) {
-      return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-          .sourceId(precompileContextNumber)
-          .targetId(precompileContextNumber)
-          .size(64)
-          .setBlakeModexp()
-          .phase(PHASE_BLAKE_RESULT);
-    } else {
-      if (p.requestedReturnDataTarget().isEmpty()) {
-        return MmuCall.nop();
-      } else {
-        return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
-            .sourceId(precompileContextNumber)
-            .targetId(hub.currentFrame().contextNumber())
-            .size(64)
-            .referenceOffset(p.requestedReturnDataTarget().offset())
-            .referenceSize(p.requestedReturnDataTarget().length());
-      }
-    }
+  public static MmuCall parameterExtractionForBlake(
+      final Hub hub,
+      PrecompileSubsection subsection,
+      boolean blakeSuccess,
+      Bytes blakeR,
+      Bytes blakeF) {
+    final int precompileContextNumber = subsection.exoModuleOperationId();
+    return new MmuCall(hub, MMU_INST_BLAKE)
+        .sourceId(hub.currentFrame().contextNumber())
+        .targetId(precompileContextNumber)
+        .sourceOffset(EWord.of(subsection.callDataMemorySpan.offset()))
+        .successBit(blakeSuccess)
+        .limb1(blakeR)
+        .limb2(blakeF)
+        .setBlakeModexp()
+        .phase(PHASE_BLAKE_PARAMS);
+  }
+
+  public static MmuCall callDataExtractionforBlake(final Hub hub, PrecompileSubsection subsection) {
+    final int precompileContextNumber = subsection.exoModuleOperationId();
+    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
+        .sourceId(hub.currentFrame().contextNumber())
+        .targetId(precompileContextNumber)
+        .sourceOffset(EWord.of(subsection.callDataMemorySpan.offset() + 4))
+        .size(208)
+        .referenceSize(208)
+        .setBlakeModexp()
+        .phase(PHASE_BLAKE_DATA);
+  }
+
+  public static MmuCall fullReturnDataTransferForBlake(
+      final Hub hub, PrecompileSubsection subsection) {
+    final int precompileContextNumber = subsection.exoModuleOperationId();
+    return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+        .sourceId(precompileContextNumber)
+        .targetId(precompileContextNumber)
+        .size(64)
+        .setBlakeModexp()
+        .phase(PHASE_BLAKE_RESULT);
+  }
+
+  public static MmuCall partialCopyOfReturnDataforBlake(
+      final Hub hub, PrecompileSubsection subsection) {
+    final int precompileContextNumber = subsection.exoModuleOperationId();
+    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(precompileContextNumber)
+        .targetId(hub.currentFrame().contextNumber())
+        .size(64)
+        .referenceOffset(subsection.parentReturnDataTarget.offset())
+        .referenceSize(subsection.parentReturnDataTarget.length());
   }
 
   public static MmuCall forModexpExtractBbs(

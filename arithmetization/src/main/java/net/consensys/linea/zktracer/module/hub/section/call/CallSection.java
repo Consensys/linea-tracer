@@ -74,7 +74,8 @@ public class CallSection extends TraceSection
               MODEXP, ModexpSubsection::new,
               ALTBN128_ADD, EllipticCurvePrecompileSubsection::new,
               ALTBN128_MUL, EllipticCurvePrecompileSubsection::new,
-              ALTBN128_PAIRING, EllipticCurvePrecompileSubsection::new);
+              ALTBN128_PAIRING, EllipticCurvePrecompileSubsection::new,
+              BLAKE2B_F_COMPRESSION, BlakeSubsection::new);
 
   public Optional<Address> precompileAddress;
 

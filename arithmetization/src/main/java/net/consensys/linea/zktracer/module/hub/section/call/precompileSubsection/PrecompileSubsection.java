@@ -54,7 +54,7 @@ public class PrecompileSubsection
   public final CallSection callSection;
 
   /** List of fragments of the precompile specific subsection */
-  private final List<TraceFragment> fragments;
+  public final List<TraceFragment> fragments;
 
   /** The (potentially empty) call data of the precompile call */
   public Bytes callData;
@@ -102,7 +102,7 @@ public class PrecompileSubsection
     fragments.add(precompileScenarioFragment);
 
     firstImcFragment = ImcFragment.empty(hub);
-    fragments().add(firstImcFragment);
+    fragments.add(firstImcFragment);
 
     final OpCode opCode = hub.opCode();
     final long offset =
@@ -140,6 +140,14 @@ public class PrecompileSubsection
     callerGas = hub.callStack().parent().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
     parentReturnDataTarget = hub.currentFrame().returnDataTargetInCaller();
+
+    // TODO: @françois: I've added this here as I believe that we will want
+    //  to resolve at context exit in all cases and my impression is that
+    //  we weren't doing so currently.
+    //  This actually raises the question if we should pre-emptively schedule
+    //  everything for ContextExit as soon as it has been scheduled for
+    //  ContextEntry ...
+    hub.defers().scheduleForContextExit(this, hub.currentFrame().id());
   }
 
   public void resolveUponExitingContext(Hub hub, CallFrame callFrame) {
@@ -153,6 +161,14 @@ public class PrecompileSubsection
 
     if (callSuccess) {
       hub.defers().scheduleForPostRollback(this, frame);
+    }
+  }
+
+  public void sanityCheck() {
+    if (callSuccess) {
+      Preconditions.checkArgument(precompileScenarioFragment.scenario.isSuccess());
+    } else {
+      Preconditions.checkArgument(precompileScenarioFragment.scenario.isFailure());
     }
   }
 

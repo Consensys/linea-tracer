@@ -36,7 +36,15 @@ public class PrecompileScenarioFragment implements TraceFragment {
     PRC_FAILURE_KNOWN_TO_HUB,
     PRC_FAILURE_KNOWN_TO_RAM,
     PRC_SUCCESS_WILL_REVERT,
-    PRC_SUCCESS_WONT_REVERT
+    PRC_SUCCESS_WONT_REVERT;
+
+    public boolean isFailure() {
+      return this == PRC_FAILURE_KNOWN_TO_HUB || this == PRC_FAILURE_KNOWN_TO_RAM;
+    }
+
+    public boolean isSuccess() {
+      return this == PRC_SUCCESS_WILL_REVERT || this == PRC_SUCCESS_WONT_REVERT;
+    }
   }
 
   public enum PrecompileFlag {

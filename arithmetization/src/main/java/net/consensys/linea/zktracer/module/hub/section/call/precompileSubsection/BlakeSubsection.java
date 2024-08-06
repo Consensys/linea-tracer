@@ -15,11 +15,106 @@
 
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Blake2fCallDataSizeOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Blake2fParamsOobCall;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.apache.tuweni.bytes.Bytes;
 
 public class BlakeSubsection extends PrecompileSubsection {
+  final Blake2fCallDataSizeOobCall blakeCdsOobCall;
+  ImcFragment secondImcFragment;
+  Blake2fParamsOobCall blake2fParamsOobCall;
+  final boolean blakeSuccess;
+
   public BlakeSubsection(Hub hub, CallSection callSection) {
     super(hub, callSection);
+
+    blakeCdsOobCall = new Blake2fCallDataSizeOobCall();
+    firstImcFragment.callOob(blakeCdsOobCall);
+
+    hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
+
+    if (!blakeCdsOobCall.isHubSuccess()) {
+      this.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
+      blakeSuccess = false;
+      return;
+    }
+
+    Bytes blakeR = callData.slice(0, 4);
+    Bytes blakeF = callData.slice(212, 1);
+
+    {
+      boolean wellFormedF = blakeF.get(0) == 0 || blakeF.get(0) == 1;
+      long rounds = blakeR.toLong();
+      boolean sufficientGas = calleeGas >= rounds;
+      blakeSuccess = wellFormedF && sufficientGas;
+    }
+
+    if (!blakeSuccess) {
+      this.setScenario(PRC_FAILURE_KNOWN_TO_RAM);
+    }
+
+    MmuCall blakeParameterExtractionMmuCall =
+        MmuCall.parameterExtractionForBlake(hub, this, blakeSuccess, blakeR, blakeF);
+    firstImcFragment.callMmu(blakeParameterExtractionMmuCall);
+
+    secondImcFragment = ImcFragment.empty(hub);
+    fragments.add(secondImcFragment);
+
+    blake2fParamsOobCall = new Blake2fParamsOobCall();
+    secondImcFragment.callOob(blake2fParamsOobCall);
+
+    checkArgument(blake2fParamsOobCall.isRamSuccess() == blakeSuccess);
+  }
+
+  @Override
+  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
+    super.resolveAtContextReEntry(hub, frame);
+
+    // sanity checks
+    checkArgument(blakeCdsOobCall.isHubSuccess() == (callDataMemorySpan.length() == 213));
+    checkArgument(callSuccess == blakeSuccess);
+    this.sanityCheck();
+
+    if (!callSuccess) {
+      return;
+    }
+
+    // finish 2nd MISC row
+    MmuCall callDataExtractionforBlake = MmuCall.callDataExtractionforBlake(hub, this);
+    secondImcFragment.callMmu(callDataExtractionforBlake);
+
+    // 3rd MISC row
+    ImcFragment thirdImcFragment = ImcFragment.empty(hub);
+    fragments.add(thirdImcFragment);
+
+    MmuCall returnDataFullTransferForBlake = MmuCall.fullReturnDataTransferForBlake(hub, this);
+    thirdImcFragment.callMmu(returnDataFullTransferForBlake);
+
+    // 3rd MISC row
+    ImcFragment fourthImcFragment = ImcFragment.empty(hub);
+    fragments.add(fourthImcFragment);
+
+    if (!this.parentReturnDataTarget.isEmpty()) {
+      MmuCall partialReturnDataCopyForBlake = MmuCall.partialCopyOfReturnDataforBlake(hub, this);
+      fourthImcFragment.callMmu(partialReturnDataCopyForBlake);
+    }
+  }
+
+  @Override
+  protected short maxNumberOfLines() {
+    // 3 = SCEN + MISC + CON (squash caller return data): if size != 213
+    // 4 = SCEN + MISC + MISC + CON (squash caller return data): if insufficient gas / f not a bit
+    // 6 = SCEN + MISC + (3 * MISC) + CON (provide caller with return data): if success
+    // we don't optimize as BLAKE calls are rare
+    return 6;
   }
 }

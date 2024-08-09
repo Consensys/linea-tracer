@@ -118,5 +118,8 @@ public class JumpiTest {
             addOffsetToHexString(
                 jumpiConditionByteOffset,
                 "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")));
+                // TODO: @lorenzo
+                //  this returns "1000000000000000000000000000000000000000000000000000000000000001e", a 65 character long hex string
+                //  this in turn blows up the push instruction
   }
 }

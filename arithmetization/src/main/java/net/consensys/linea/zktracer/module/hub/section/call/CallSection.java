@@ -198,8 +198,19 @@ public class CallSection extends TraceSection
           .scheduleForContextReEntry(
               precompileSubsection, hub.currentFrame()); // success bit & return data
     } else {
-      scenarioFragment.setScenario(
-          world.get(calleeAddress).hasCode() ? CALL_SMC_UNDEFINED : CALL_EOA_SUCCESS_WONT_REVERT);
+      Optional.ofNullable(world.get(calleeAddress))
+          .ifPresentOrElse(
+              account -> {
+                scenarioFragment.setScenario(
+                    account.hasCode() ? CALL_SMC_UNDEFINED : CALL_EOA_SUCCESS_WONT_REVERT);
+              },
+              () -> {
+                scenarioFragment.setScenario(CALL_EOA_SUCCESS_WONT_REVERT);
+              });
+
+      // TODO is world == worldUpdater & what happen if get doesn't work ?
+
+      ;
 
       // TODO is world == worldUpdater & what happen if get
       //  doesn't work ?

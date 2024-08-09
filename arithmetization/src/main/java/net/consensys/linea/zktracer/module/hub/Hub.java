@@ -675,6 +675,7 @@ public class Hub implements Module {
   public void traceContextReEnter(MessageFrame frame) {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
     defers.resolveAtContextReEntry(this, this.currentFrame());
+    // TODO: now we unlatch if != null ?
     if (this.currentFrame().sectionToUnlatch() != null) {
       this.unlatchStack(frame, this.currentFrame().sectionToUnlatch());
       this.currentFrame().sectionToUnlatch(null);
@@ -793,6 +794,7 @@ public class Hub implements Module {
       this.ecData.getEcDataOperation().returnData(frame.getReturnData());
     }
 
+    // TODO: we unlatch if section == null ????
     if (this.currentFrame().sectionToUnlatch() == null) {
       this.unlatchStack(frame);
     }

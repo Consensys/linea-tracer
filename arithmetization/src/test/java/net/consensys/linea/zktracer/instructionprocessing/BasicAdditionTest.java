@@ -20,38 +20,11 @@ import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
-public class CallTrivialCasesTest {
+public class BasicAdditionTest {
   @Test
-  void eoaCallScenarioTest() {
+  void basicAdditionTest() {
     final Bytes bytecode =
-        BytecodeCompiler.newProgram()
-            .push(0)
-            .push(0)
-            .push(0)
-            .push(0)
-            .push(0)
-            .push(0x0add7e55)
-            .push(0xff)
-            .op(OpCode.CALL)
-            .op(OpCode.POP)
-            .compile();
-    BytecodeRunner.of(bytecode).run();
-  }
-
-  @Test
-  void eoaCallScenarioTestZeroCalleeGas() {
-    final Bytes bytecode =
-        BytecodeCompiler.newProgram()
-            .push(0)
-            .push(0)
-            .push(0)
-            .push(0)
-            .push(0)
-            .push(0x0add7e55)
-            .push(0)
-            .op(OpCode.CALL)
-            .op(OpCode.POP)
-            .compile();
+        BytecodeCompiler.newProgram().push(1).push(2).op(OpCode.ADD).op(OpCode.POP).compile();
     BytecodeRunner.of(bytecode).run();
   }
 }

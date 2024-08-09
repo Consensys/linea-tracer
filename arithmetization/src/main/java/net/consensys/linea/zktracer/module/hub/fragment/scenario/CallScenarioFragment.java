@@ -88,13 +88,13 @@ public class CallScenarioFragment implements TraceFragment {
             this.scenario.equals(CallScenario.CALL_SMC_FAILURE_WILL_REVERT))
         .pScenarioCallSmcFailureCallerWontRevert(
             this.scenario.equals(CallScenario.CALL_SMC_FAILURE_WONT_REVERT))
-        .pScenarioCallSmcSuccessCallerWontRevert(
-            this.scenario.equals(CallScenario.CALL_SMC_SUCCESS_WILL_REVERT))
         .pScenarioCallSmcSuccessCallerWillRevert(
+            this.scenario.equals(CallScenario.CALL_SMC_SUCCESS_WILL_REVERT))
+        .pScenarioCallSmcSuccessCallerWontRevert(
             this.scenario.equals(CallScenario.CALL_SMC_SUCCESS_WONT_REVERT))
-        .pScenarioCallEoaSuccessCallerWontRevert(
-            this.scenario.equals(CallScenario.CALL_EOA_SUCCESS_WILL_REVERT))
         .pScenarioCallEoaSuccessCallerWillRevert(
+            this.scenario.equals(CallScenario.CALL_EOA_SUCCESS_WILL_REVERT))
+        .pScenarioCallEoaSuccessCallerWontRevert(
             this.scenario.equals(CallScenario.CALL_EOA_SUCCESS_WONT_REVERT));
   }
 }

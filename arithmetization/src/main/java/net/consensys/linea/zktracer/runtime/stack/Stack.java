@@ -278,10 +278,9 @@ public class Stack {
     Bytes val5 = getStack(frame, 4);
     Bytes val6 = getStack(frame, 5);
 
-    boolean sevenItems =
-        this.currentOpcodeData.stackSettings().flag1()
-            || this.currentOpcodeData.stackSettings().flag2();
-    if (sevenItems) {
+    boolean callCanTransferValue = this.currentOpcodeData.mnemonic().callCanTransferValue();
+
+    if (callCanTransferValue) {
       Bytes val7 = getStack(frame, 6);
 
       pending.addLine(
@@ -301,7 +300,7 @@ public class Stack {
           new IndexedStackOperation(
               3, StackOperation.pop(this.height - 2, val3, stackStampWithOffset(2))),
           new IndexedStackOperation(
-              4, StackOperation.push(this.height - 6, stackStampWithOffset(6))));
+              4, StackOperation.push(this.height - 6, stackStampWithOffset(7))));
     } else {
 
       pending.addLine(
@@ -315,7 +314,8 @@ public class Stack {
               4, StackOperation.pop(this.height - 5, val6, stackStampWithOffset(6))));
 
       pending.addArmingLine(
-          new IndexedStackOperation(1, StackOperation.pop(this.height, val1, this.stamp)),
+          new IndexedStackOperation(
+              1, StackOperation.pop(this.height, val1, stackStampWithOffset(0))),
           new IndexedStackOperation(
               2, StackOperation.pop(this.height - 1, val2, stackStampWithOffset(1))),
           new IndexedStackOperation(

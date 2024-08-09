@@ -37,4 +37,22 @@ public class CallTrivialCasesTest {
             .compile();
     BytecodeRunner.of(bytecode).run();
   }
+
+
+  @Test
+  void eoaCallScenarioTestZeroCalleeGas() {
+    final Bytes bytecode =
+            BytecodeCompiler.newProgram()
+                    .push(0)
+                    .push(0)
+                    .push(0)
+                    .push(0)
+                    .push(0)
+                    .push(0x0add7e55)
+                    .push(0)
+                    .op(OpCode.CALL)
+                    .op(OpCode.POP)
+                    .compile();
+    BytecodeRunner.of(bytecode).run();
+  }
 }

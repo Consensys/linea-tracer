@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
@@ -43,6 +44,7 @@ public class JumpiTest {
   @ParameterizedTest
   @MethodSource("provideJumpiScenario")
   void jumpiScenarioTest(String description, String jumpiCondition, String pcNew) {
+    Preconditions.checkArgument(pcNew.length() <= 64, "pcNew must be at most 32 bytes long");
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push(jumpiCondition)
@@ -96,30 +98,20 @@ public class JumpiTest {
             "jumpiOntoJumpDestByteOwnedBySomePush",
             jumpiCondition,
             addOffsetToHexString(jumpiConditionByteOffset, "8")),
+        Arguments.of("jumpiOutOfBoundsSmall", jumpiCondition, "ff"),
         Arguments.of(
-            "jumpiOutOfBoundsSmall",
-            jumpiCondition,
-            addOffsetToHexString(jumpiConditionByteOffset, "ff")),
+            "jumpiOutOfBoundsMaxUint128", jumpiCondition, "ffffffffffffffffffffffffffffffff"),
         Arguments.of(
-            "jumpiOutOfBoundsMaxUint128",
-            jumpiCondition,
-            addOffsetToHexString(jumpiConditionByteOffset, "ffffffffffffffffffffffffffffffff")),
-        Arguments.of(
-            "jumpiOutOfBoundsTwoToThe128",
-            jumpiCondition,
-            addOffsetToHexString(jumpiConditionByteOffset, "0100000000000000000000000000000000")),
+            "jumpiOutOfBoundsTwoToThe128", jumpiCondition, "0100000000000000000000000000000000"),
         Arguments.of(
             "jumpiOutOfBoundsTwoToThe128Plus4",
             jumpiCondition,
-            addOffsetToHexString(jumpiConditionByteOffset, "0100000000000000000000000000000004")),
+            "0100000000000000000000000000000004"),
         Arguments.of(
             "jumpiOutOfBoundsMaxUint256",
             jumpiCondition,
-            addOffsetToHexString(
-                jumpiConditionByteOffset,
-                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff")));
-                // TODO: @lorenzo
-                //  this returns "1000000000000000000000000000000000000000000000000000000000000001e", a 65 character long hex string
-                //  this in turn blows up the push instruction
+            "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"));
+    // In the out of bound cases we do not add jumpiConditionByteOffset since it is out of
+    // bound anyway and we want to test those specific values of pcNew
   }
 }

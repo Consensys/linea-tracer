@@ -187,11 +187,13 @@ public class DeferRegistry
   public void resolvePostRollback(
       final Hub hub, final MessageFrame messageFrame, CallFrame currentCallFrame) {
 
-    // roll back current context
-    for (PostRollbackDefer defer : hub.defers().rollbackDefers.get(currentCallFrame)) {
-      defer.resolvePostRollback(hub, messageFrame, currentCallFrame);
-    }
-    hub.defers().rollbackDefers.get(currentCallFrame).clear();
+    Optional.ofNullable(hub.defers().rollbackDefers.get(currentCallFrame))
+        .ifPresent(
+            defers -> {
+              defers.forEach(
+                  defer -> defer.resolvePostRollback(hub, messageFrame, currentCallFrame));
+              defers.clear();
+            });
 
     // recursively roll back child call frames
     final CallStack callStack = hub.callStack();

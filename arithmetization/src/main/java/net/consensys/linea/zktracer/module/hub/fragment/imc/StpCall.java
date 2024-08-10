@@ -145,6 +145,7 @@ public class StpCall implements TraceSubFragment {
         .pMiscStpExists(exists)
         .pMiscStpWarmth(warm)
         .pMiscStpOogx(outOfGasException)
+        .pMiscStpGasMxp(Bytes.ofUnsignedLong(memoryExpansionGas))
         .pMiscStpGasUpfrontGasCost(Bytes.ofUnsignedLong(upfrontGasCost))
         .pMiscStpGasPaidOutOfPocket(Bytes.ofUnsignedLong(gasPaidOutOfPocket))
         .pMiscStpGasStipend(stipend);

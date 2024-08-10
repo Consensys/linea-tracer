@@ -137,7 +137,7 @@ public class StpCall implements TraceSubFragment {
   public Trace trace(Trace trace) {
     return trace
         .pMiscStpFlag(true)
-        .pMiscStpInstruction(opCode.byteValue())
+        .pMiscStpInstruction(opCode.byteValue() & 0xff)
         .pMiscStpGasHi(gas.hi())
         .pMiscStpGasLo(gas.lo())
         .pMiscStpValueHi(value.hi())

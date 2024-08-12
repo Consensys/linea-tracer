@@ -117,9 +117,9 @@ public class ExpTest {
     bytecodeRunner.run();
   }
 
-  // @Disabled("EXP tests are disabled due to running for over 30 min.")
+  // TODO: we may want to run these long tests only during nightly builds
   @ParameterizedTest
-  @MethodSource("testModexpLogXSource")
+  @MethodSource("testModexpLogSource")
   void testModexpLogFFBlockWithLDCase(int ebsCutoff, int cdsCutoff, int k, int LDIndex) {
     log.debug("k: " + k);
     log.debug("LDIndex: " + LDIndex);
@@ -130,9 +130,9 @@ public class ExpTest {
     bytecodeRunner.run();
   }
 
-  // @Disabled("EXP tests are disabled due to running for over 30 min.")
+  // TODO: we may want to run these long tests only during nightly builds
   @ParameterizedTest
-  @MethodSource("testModexpLogXSource")
+  @MethodSource("testModexpLogSource")
   void testModexpLogLDAtCase(int ebsCutoff, int cdsCutoff, int k, int ldIndex) {
     log.debug("k: " + k);
     log.debug("ldIndex: " + ldIndex);
@@ -142,7 +142,7 @@ public class ExpTest {
     bytecodeRunner.run();
   }
 
-  private static Stream<Arguments> testModexpLogXSource() {
+  private static Stream<Arguments> testModexpLogSource() {
     List<Arguments> moxexpLogCases = new ArrayList<>();
     for (int ebsCutoff : C) {
       for (int cdsCutoff : C) {
@@ -182,7 +182,6 @@ public class ExpTest {
     bytecodeRunner.run();
   }
 
-  // @Disabled("EXP tests are disabled due to running for over 30 min.")
   @ParameterizedTest
   @MethodSource("testModexpLogZerosCaseSource")
   void testModexpLogZerosCase(int ebsCutoff, int cdsCutoff) {

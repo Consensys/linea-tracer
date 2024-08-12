@@ -148,28 +148,17 @@ public class ModexpLogOperation extends ExpOperation {
     pPreprocessingWcpArg2Hi[3] = Bytes.of(0);
     pPreprocessingWcpArg2Lo[3] = Bytes.of(0);
     pPreprocessingWcpInst[3] = UnsignedByte.of(EVM_INST_ISZERO);
-    final boolean rawHiPartIsZero = wcp.callISZERO(this.rawLead.hi());
-    pPreprocessingWcpRes[3] = rawHiPartIsZero;
+    final boolean rawLeadHiIsZero = wcp.callISZERO(this.rawLead.hi());
+    pPreprocessingWcpRes[3] = rawLeadHiIsZero;
 
-    // Fifth row
-    final int paddedBase2Log =
-        8 * nBytesExcludingLeadingByte + nBitsOfLeadingByteExcludingLeadingBit;
-
-    pPreprocessingWcpFlag[4] = true;
-    pPreprocessingWcpArg1Hi[4] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[4] = Bytes.of(paddedBase2Log);
-    pPreprocessingWcpArg2Hi[4] = Bytes.of(0);
-    pPreprocessingWcpArg2Lo[4] = Bytes.of(0);
-    pPreprocessingWcpInst[4] = UnsignedByte.of(EVM_INST_ISZERO);
-    final boolean trivialTrim = wcp.callISZERO(Bytes.of(paddedBase2Log));
-    pPreprocessingWcpRes[4] = trivialTrim;
+    // Fifth row is filled later since we need pComputationTrimAcc
 
     // Linking constraints and fill rawAcc and pltJmp
     if (minCutoffLeq16) {
       pComputationRawAcc = leftPadTo(this.rawLead.hi(), LLARGE);
       pComputationPltJmp = (short) minCutoff;
     } else {
-      if (!rawHiPartIsZero) {
+      if (!rawLeadHiIsZero) {
         pComputationRawAcc = leftPadTo(this.rawLead.hi(), LLARGE);
         pComputationPltJmp = (short) 16;
       } else {
@@ -190,5 +179,15 @@ public class ModexpLogOperation extends ExpOperation {
         pComputationMsb = UnsignedByte.of(trimByte);
       }
     }
+
+    // Fifth row
+    pPreprocessingWcpFlag[4] = true;
+    pPreprocessingWcpArg1Hi[4] = Bytes.of(0);
+    pPreprocessingWcpArg1Lo[4] = pComputationTrimAcc;
+    pPreprocessingWcpArg2Hi[4] = Bytes.of(0);
+    pPreprocessingWcpArg2Lo[4] = Bytes.of(0);
+    pPreprocessingWcpInst[4] = UnsignedByte.of(EVM_INST_ISZERO);
+    final boolean trimAccIsZero = wcp.callISZERO(pComputationTrimAcc);
+    pPreprocessingWcpRes[4] = trimAccIsZero;
   }
 }

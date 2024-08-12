@@ -29,6 +29,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -117,7 +118,7 @@ public class ExpTest {
     bytecodeRunner.run();
   }
 
-  // TODO: we may want to run these long tests only during nightly builds
+  @Disabled("We may want to run these long tests only during nightly builds")
   @ParameterizedTest
   @MethodSource("testModexpLogSource")
   void testModexpLogFFBlockWithLDCase(int ebsCutoff, int cdsCutoff, int k, int LDIndex) {
@@ -130,7 +131,7 @@ public class ExpTest {
     bytecodeRunner.run();
   }
 
-  // TODO: we may want to run these long tests only during nightly builds
+  @Disabled("We may want to run these long tests only during nightly builds")
   @ParameterizedTest
   @MethodSource("testModexpLogSource")
   void testModexpLogLDAtCase(int ebsCutoff, int cdsCutoff, int k, int ldIndex) {

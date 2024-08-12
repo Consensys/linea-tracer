@@ -85,16 +85,17 @@ dependencies {
   testImplementation project(":arithmetization")
   testImplementation "${besuArtifactGroup}:besu-datatypes"
   testImplementation "${besuArtifactGroup}:evm"
-  testImplementation "${besuArtifactGroup}.internal:config:${besuVersion}"
-  testImplementation "${besuArtifactGroup}.internal:core:${besuVersion}"
-  testImplementation "${besuArtifactGroup}.internal:algorithms:${besuVersion}"
-  testImplementation "${besuArtifactGroup}.internal:metrics-core:${besuVersion}"
-  testImplementation "${besuArtifactGroup}.internal:referencetests:${besuVersion}"
-  testImplementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
-  testImplementation "${besuArtifactGroup}.internal:testutil:${besuVersion}"
-  testImplementation "${besuArtifactGroup}.internal:trie:$besuVersion"
-  testImplementation "${besuArtifactGroup}.internal:util:${besuVersion}"
   testImplementation "${besuArtifactGroup}:plugin-api"
+  testImplementation "${besuArtifactGroup}.internal:algorithms"
+  testImplementation "${besuArtifactGroup}.internal:config"
+  testImplementation "${besuArtifactGroup}.internal:core"
+  testImplementation "${besuArtifactGroup}.internal:metrics-core"
+  testImplementation "${besuArtifactGroup}.internal:referencetests"
+  testImplementation "${besuArtifactGroup}.internal:rlp"
+  testImplementation "${besuArtifactGroup}.internal:testutil"
+  testImplementation "${besuArtifactGroup}.internal:trie"
+  testImplementation "${besuArtifactGroup}.internal:util"
+
 
   testImplementation 'io.tmio:tuweni-bytes'
   testImplementation 'io.tmio:tuweni-units'

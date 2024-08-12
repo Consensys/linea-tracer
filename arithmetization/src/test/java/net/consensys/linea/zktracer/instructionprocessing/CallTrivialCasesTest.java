@@ -41,17 +41,17 @@ public class CallTrivialCasesTest {
   @Test
   void eoaCallWithCallDataAndReturnDataCapacityTest() {
     final Bytes bytecode =
-            BytecodeCompiler.newProgram()
-                    .push(0x31)
-                    .push(0x11)
-                    .push(0x22)
-                    .push(0x90)
-                    .push(0)
-                    .push(0x0add7e55)
-                    .push(0xff)
-                    .op(OpCode.CALL)
-                    .op(OpCode.POP)
-                    .compile();
+        BytecodeCompiler.newProgram()
+            .push(0x31)
+            .push(0x11)
+            .push(0x22)
+            .push(0x90)
+            .push(0)
+            .push(0x0add7e55)
+            .push(0xff)
+            .op(OpCode.CALL)
+            .op(OpCode.POP)
+            .compile();
     BytecodeRunner.of(bytecode).run();
   }
 

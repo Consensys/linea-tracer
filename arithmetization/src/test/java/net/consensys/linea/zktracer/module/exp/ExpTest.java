@@ -143,13 +143,6 @@ public class ExpTest {
   }
 
   private static Stream<Arguments> testModexpLogXSource() {
-    // TODO: ensure the patch to manage the corner case:
-    //  trivial_trim = 1
-    //  raw_hi_part_is_zero = 1
-    //  ebs_cutoff_leq_16 = 0
-    //  is correct.
-    //  An example is the one below:
-    //  return Stream.of(Arguments.of(17, 1, 16, 2));
     List<Arguments> moxexpLogCases = new ArrayList<>();
     for (int ebsCutoff : C) {
       for (int cdsCutoff : C) {

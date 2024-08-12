@@ -61,15 +61,6 @@ public class ModexpLogOperation extends ExpOperation {
       // lead_log (same as EYP)
       int leadLog = lead.signum() == 0 ? 0 : log2(lead, RoundingMode.FLOOR);
 
-      // TODO: ensure the patch below to manage the corner case:
-      //  trivial_trim = 1
-      //  raw_hi_part_is_zero = 1
-      //  ebs_cutoff_leq_16 = 0
-      //  is correct.
-      if (!rawLead.hi().isZero() && ebsCutoff > 16 && leadLog == 0) {
-        leadLog = 8 * (ebsCutoff - 16);
-      }
-
       return new LeadLogTrimLead(leadLog, trim);
     }
   }

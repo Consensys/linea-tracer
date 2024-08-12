@@ -49,7 +49,6 @@ import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextSection;
@@ -929,10 +928,6 @@ public class Hub implements Module {
     return this.state.currentTxTrace().currentSection();
   }
 
-  public void addFragmentsAndStack(TraceFragment... fragments) {
-    currentTraceSection().addStackAndFragments(this, fragments);
-  }
-
   public void addTraceSection(TraceSection section) {
     this.state.currentTxTrace().add(section);
   }
@@ -948,7 +943,7 @@ public class Hub implements Module {
 
     final StackContext pending = this.currentFrame().pending();
     for (int i = 0; i < pending.lines().size(); i++) {
-      StackLine line = pending.lines().get(i);
+      final StackLine line = pending.lines().get(i);
 
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
@@ -958,6 +953,7 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
+        final boolean breakHere = !(section.fragments().get(i) instanceof StackFragment);
         ((StackFragment) section.fragments().get(i))
             .stackOps()
             .get(line.resultColumn() - 1)

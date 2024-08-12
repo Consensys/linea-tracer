@@ -39,10 +39,7 @@ import net.consensys.linea.zktracer.runtime.stack.StackOperation;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
-import org.hyperledger.besu.evm.account.AccountState;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
@@ -149,29 +146,6 @@ public final class StackFragment implements TraceFragment {
         gp,
         isDeploying,
         willRevert);
-  }
-
-  public void feedHashedValue(MessageFrame frame) {
-    if (hashInfoFlag) {
-      switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
-        case SHA3 -> this.hashInfoKeccak = EWord.of(frame.getStackItem(0));
-        case CREATE2 -> {
-          Address newAddress = EWord.of(frame.getStackItem(0)).toAddress();
-          // zero address indicates a failed deployment
-          if (!newAddress.isZero()) {
-            this.hashInfoKeccak =
-                EWord.of(
-                    Optional.ofNullable(frame.getWorldUpdater().get(newAddress))
-                        .map(AccountState::getCodeHash)
-                        .orElse(Hash.EMPTY));
-          }
-        }
-        case RETURN -> {
-          /* already set at opcode invocation */
-        }
-        default -> throw new IllegalStateException("unexpected opcode");
-      }
-    }
   }
 
   private boolean traceLog() {

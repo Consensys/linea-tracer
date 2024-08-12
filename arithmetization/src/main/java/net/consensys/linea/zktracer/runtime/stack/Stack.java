@@ -394,7 +394,8 @@ public class Stack {
       this.status = Status.OVERFLOW;
     }
 
-    hub.wcp().callLT(this.height, this.currentOpcodeData.stackSettings().delta());
+    // CALL WCP for the SUX/SOX lookup
+    hub.wcp().callLT(this.height, delta);
     if (!this.isUnderflow()) {
       hub.wcp().callGT(this.height - delta + alpha, MAX_STACK_SIZE);
     }

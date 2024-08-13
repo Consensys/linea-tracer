@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.addressToPrecompileFlag;
+
 import java.nio.MappedByteBuffer;
 import java.util.Comparator;
 import java.util.List;
@@ -27,6 +29,12 @@ import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2MembershipCalls;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
@@ -44,7 +52,15 @@ public class EcData implements Module {
   private final Wcp wcp;
   private final Ext ext;
 
-  @Getter private EcDataOperation ecdDataOperation;
+  private final EcAddEffectiveCall ecAddEffectiveCall;
+  private final EcMulEffectiveCall ecMulEffectiveCall;
+  private final EcRecoverEffectiveCall ecRecoverEffectiveCall;
+
+  private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls;
+  private final EcPairingMillerLoops ecPairingMillerLoops;
+  private final EcPairingFinalExponentiations ecPairingFinalExponentiations;
+
+  @Getter private EcDataOperation ecDataOperation;
 
   @Override
   public String moduleKey() {
@@ -76,9 +92,10 @@ public class EcData implements Module {
 
     final Bytes data = hub.transients().op().callData();
 
-    this.ecdDataOperation =
-        EcDataOperation.of(this.wcp, this.ext, 1 + this.hub.stamp(), target.get(19), data);
-    this.operations.add(ecdDataOperation);
+    this.ecDataOperation =
+        EcDataOperation.of(
+            this.wcp, this.ext, hub.precompileId(), addressToPrecompileFlag(target), data);
+    this.operations.add(ecDataOperation);
   }
 
   @Override
@@ -108,6 +125,20 @@ public class EcData implements Module {
         op.trace(trace, stamp, previousId);
         previousId = op.id();
       }
+    }
+  }
+
+  public void callEcdata(final EcDataOperation ecDataOperation) {
+    this.operations.add(ecDataOperation);
+
+    switch (ecDataOperation.precompileFlag()) {
+      case PRC_ECADD -> ecAddEffectiveCall.addPrecompileLimit(1);
+      case PRC_ECMUL -> ecMulEffectiveCall.addPrecompileLimit(1);
+      case PRC_ECRECOVER -> ecRecoverEffectiveCall.addPrecompileLimit(1);
+      case PRC_ECPAIRING -> {
+        // TODO @Lorenzo
+      }
+      default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }
   }
 }

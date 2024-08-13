@@ -33,13 +33,14 @@ public class CallStackReader {
   public Bytes valueFromMemory(final long contextNumber, final boolean ramIsSource) {
     final CallFrame callFrame = callStack.getByContextNumber(contextNumber);
 
-    if (callFrame.type() == CallFrameType.MANTLE || callFrame.type() == CallFrameType.BEDROCK) {
+    if (callFrame.type() == CallFrameType.TRANSACTION_CALL_DATA_HOLDER
+        || callFrame.type() == CallFrameType.ROOT) {
       return callFrame.callDataInfo().data();
     }
 
     if (callFrame.type() == CallFrameType.PRECOMPILE_RETURN_DATA) {
       if (ramIsSource) {
-        return callFrame.returnData();
+        return callFrame.outputData();
       } else {
         return Bytes.EMPTY;
       }

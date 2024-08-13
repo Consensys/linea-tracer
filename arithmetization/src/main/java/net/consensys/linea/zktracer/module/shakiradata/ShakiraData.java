@@ -25,10 +25,11 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.limits.Keccak;
+import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
+import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.log.Log;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
@@ -38,6 +39,10 @@ public class ShakiraData implements Module {
   private final List<ShakiraDataOperation> sortedOperations = new ArrayList<>();
   private int numberOfOperationsAtStartTx = 0;
   private final ShakiraDataComparator comparator = new ShakiraDataComparator();
+
+  private final Sha256Blocks sha256Blocks;
+  private final Keccak keccak;
+  private final RipemdBlocks ripemdBlocks;
 
   @Override
   public String moduleKey() {
@@ -58,7 +63,7 @@ public class ShakiraData implements Module {
   @Override
   public int lineCount() {
     return this.operations.lineCount()
-        + 1; /*because the lookup HUB -> SHAKIRA requires at least two padding rows. TODO: should be done by Corset */
+        + 1; /*because the lookup HUB -> SHAKIRA requires at least two padding rows. TODO: shouldn't it be done by Corset via the spilling ? */
   }
 
   @Override
@@ -70,21 +75,22 @@ public class ShakiraData implements Module {
     this.operations.add(operation);
     this.wcp.callGT(operation.lastNBytes(), 0);
     this.wcp.callLEQ(operation.lastNBytes(), LLARGE);
+
+    switch (operation.hashType()) {
+      case SHA256 -> sha256Blocks.addPrecompileLimit(operation.inputSize());
+      case KECCAK -> keccak.addPrecompileLimit(operation.inputSize());
+      case RIPEMD -> ripemdBlocks.addPrecompileLimit(operation.inputSize());
+      default -> throw new IllegalArgumentException("Precompile type not supported by SHAKIRA");
+    }
   }
 
   @Override
-  public void traceStartTx(WorldView worldView, Transaction tx) {
+  public void traceStartTx(WorldView worldView, TransactionProcessingMetadata tx) {
     this.numberOfOperationsAtStartTx = operations.size();
   }
 
   @Override
-  public void traceEndTx(
-      WorldView worldView,
-      Transaction tx,
-      boolean isSuccessful,
-      Bytes output,
-      List<Log> logs,
-      long gasUsed) {
+  public void traceEndTx(TransactionProcessingMetadata tx) {
     final List<ShakiraDataOperation> newOperations =
         new ArrayList<>(this.operations.sets.getLast());
     newOperations.sort(comparator);

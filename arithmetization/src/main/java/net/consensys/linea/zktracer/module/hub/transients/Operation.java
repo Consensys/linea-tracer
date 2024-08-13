@@ -18,9 +18,9 @@ package net.consensys.linea.zktracer.module.hub.transients;
 import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
@@ -47,7 +47,7 @@ public class Operation {
         if (opCode == OpCode.CALL || opCode == OpCode.CALLCODE) {
           value = EWord.of(hub.messageFrame().getStackItem(2));
         }
-        final long stipend = value.isZero() ? 0 : GasConstants.G_CALL_STIPEND.cost();
+        final long stipend = value.isZero() ? 0 : GlobalConstants.GAS_CONST_G_CALL_STIPEND;
         final long upfrontCost = Hub.GAS_PROJECTOR.of(hub.messageFrame(), opCode).total();
         return stipend
             + Math.max(

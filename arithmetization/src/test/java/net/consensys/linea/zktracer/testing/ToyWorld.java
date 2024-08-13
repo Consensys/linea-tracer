@@ -58,6 +58,9 @@ public class ToyWorld implements WorldUpdater {
     this.accounts = accounts;
     this.addressAccountMap = new HashMap<>();
     this.authorizedCodeService = new AuthorizedCodeService();
+    for (ToyAccount account : accounts) {
+      addressAccountMap.put(account.getAddress(), account);
+    }
   }
 
   public static ToyWorld empty() {
@@ -106,6 +109,8 @@ public class ToyWorld implements WorldUpdater {
   public MutableAccount createAccount(final Address address, final long nonce, final Wei balance) {
     return createAccount(null, address, nonce, balance, Bytes.EMPTY);
   }
+
+  // Why are we not forced to override a method that allows us to also set the code for an account?
 
   public MutableAccount createAccount(
       final Account parentAccount,

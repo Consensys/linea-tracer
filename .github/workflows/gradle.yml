@@ -81,7 +81,7 @@ jobs:
 #          echo $HOME >> $GITHUB_PATH
 
       - name: Run unit tests
-        run: ./gradlew :arithmetization:test
+        run: ./gradlew :arithmetization:test --stacktrace
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand

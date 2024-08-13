@@ -36,9 +36,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
+import net.consensys.linea.zktracer.module.DebugMode;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.Pin55;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.Utils;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -77,7 +78,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   @Getter private final Hub hub;
-  private final Optional<Pin55> pin55;
+  private final Optional<DebugMode> debugMode;
   private Hash hashOfLastTransactionTraced = Hash.EMPTY;
 
   /** Accumulate all the exceptions that happened at tracing time. */
@@ -98,12 +99,12 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     // >>>> CHANGE ME >>>>
     // >>>> CHANGE ME >>>>
     // >>>> CHANGE ME >>>>
-    final Pin55.PinLevel debugLevel = new Pin55.PinLevel();
+    final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     // <<<< CHANGE ME <<<<
     // <<<< CHANGE ME <<<<
     // <<<< CHANGE ME <<<<
-    this.pin55 =
-        debugLevel.none() ? Optional.empty() : Optional.of(new Pin55(debugLevel, this.hub));
+    this.debugMode =
+        debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
   }
 
   public Path writeToTmpFile() {
@@ -166,7 +167,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public void traceStartConflation(final long numBlocksInConflation) {
     try {
       hub.traceStartConflation(numBlocksInConflation);
-      this.pin55.ifPresent(x -> x.traceStartConflation(numBlocksInConflation));
+      this.debugMode.ifPresent(x -> x.traceStartConflation(numBlocksInConflation));
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
@@ -176,7 +177,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public void traceEndConflation(final WorldView state) {
     try {
       this.hub.traceEndConflation(state);
-      this.pin55.ifPresent(Pin55::traceEndConflation);
+      this.debugMode.ifPresent(DebugMode::traceEndConflation);
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
@@ -190,7 +191,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
     try {
       this.hub.traceStartBlock(processableBlockHeader);
-      this.pin55.ifPresent(Pin55::traceEndConflation);
+      this.debugMode.ifPresent(DebugMode::traceEndConflation);
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
@@ -200,7 +201,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     try {
       this.hub.traceStartBlock(blockHeader);
-      this.pin55.ifPresent(x -> x.traceStartBlock(blockHeader, blockBody));
+      this.debugMode.ifPresent(x -> x.traceStartBlock(blockHeader, blockBody));
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
@@ -210,18 +211,17 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     try {
       this.hub.traceEndBlock(blockHeader, blockBody);
-      this.pin55.ifPresent(Pin55::traceEndBlock);
+      this.debugMode.ifPresent(DebugMode::traceEndBlock);
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
   }
 
-  //  @Override
   public void tracePrepareTransaction(WorldView worldView, Transaction transaction) {
     try {
       hashOfLastTransactionTraced = transaction.getHash();
-      this.pin55.ifPresent(x -> x.tracePrepareTx(worldView, transaction));
-      this.hub.traceStartTx(worldView, transaction);
+      this.debugMode.ifPresent(x -> x.tracePrepareTx(worldView, transaction));
+      this.hub.traceStartTransaction(worldView, transaction);
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
@@ -237,31 +237,46 @@ public class ZkTracer implements ConflationAwareOperationTracer {
       Set<Address> selfDestructs,
       long timeNs) {
     try {
-      this.pin55.ifPresent(x -> x.traceEndTx(worldView, tx, status, output, logs, gasUsed));
-      this.hub.traceEndTx(worldView, tx, status, output, logs, gasUsed);
+      this.debugMode.ifPresent(x -> x.traceEndTx(worldView, tx, status, output, logs, gasUsed));
+      this.hub.traceEndTransaction(worldView, tx, status, logs, selfDestructs);
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
   }
 
+  /**
+   * Linea's zkEVM does not trace the STOP instruction of either (a) CALL's to accounts with empty
+   * byte code (b) CREATE's with empty initialization code.
+   *
+   * <p>Note however that the relevant {@link CallFrame}'s are (and SHOULD BE) created regardless.
+   *
+   * @param frame
+   */
   @Override
   public void tracePreExecution(final MessageFrame frame) {
+    this.hub.currentFrame().frame(frame);
     if (frame.getCode().getSize() > 0) {
       try {
-        this.hub.tracePreOpcode(frame);
-        this.pin55.ifPresent(x -> x.tracePreOpcode(frame));
+        this.hub.tracePreExecution(frame);
+        this.debugMode.ifPresent(x -> x.tracePreOpcode(frame));
       } catch (final Exception e) {
         this.tracingExceptions.add(e);
       }
     }
   }
 
+  /**
+   * Compare with description of {@link #tracePreExecution(MessageFrame)}.
+   *
+   * @param frame
+   * @param operationResult
+   */
   @Override
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     if (frame.getCode().getSize() > 0) {
       try {
         this.hub.tracePostExecution(frame, operationResult);
-        this.pin55.ifPresent(x -> x.tracePostOpcode(frame, operationResult));
+        this.debugMode.ifPresent(x -> x.tracePostOpcode(frame, operationResult));
       } catch (final Exception e) {
         this.tracingExceptions.add(e);
       }
@@ -275,7 +290,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     if (frame.getState() == MessageFrame.State.NOT_STARTED) {
       try {
         this.hub.traceContextEnter(frame);
-        this.pin55.ifPresent(x -> x.traceContextEnter(frame));
+        this.debugMode.ifPresent(x -> x.traceContextEnter(frame));
       } catch (final Exception e) {
         this.tracingExceptions.add(e);
       }
@@ -286,7 +301,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public void traceContextReEnter(MessageFrame frame) {
     try {
       this.hub.traceContextReEnter(frame);
-      this.pin55.ifPresent(x -> x.traceContextReEnter(frame));
+      this.debugMode.ifPresent(x -> x.traceContextReEnter(frame));
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
@@ -296,7 +311,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public void traceContextExit(MessageFrame frame) {
     try {
       this.hub.traceContextExit(frame);
-      this.pin55.ifPresent(x -> x.traceContextExit(frame));
+      this.debugMode.ifPresent(x -> x.traceContextExit(frame));
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }

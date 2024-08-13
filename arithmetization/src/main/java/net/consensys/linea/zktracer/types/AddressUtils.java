@@ -15,6 +15,11 @@
 
 package net.consensys.linea.zktracer.types;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+import static org.hyperledger.besu.crypto.Hash.keccak256;
+import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
+
 import java.util.List;
 
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
@@ -81,6 +86,19 @@ public class AddressUtils {
             }));
   }
 
+  public static Bytes32 gerCreate2RawAddress(final MessageFrame frame) {
+    final Address sender = frame.getRecipientAddress();
+
+    final Bytes32 salt = Bytes32.leftPad(frame.getStackItem(3));
+
+    final long offset = clampedToLong(frame.getStackItem(1));
+    final long length = clampedToLong(frame.getStackItem(2));
+    final Bytes initCode = frame.shadowReadMemory(offset, length);
+    final Bytes32 hash = keccak256(initCode);
+
+    return getCreate2RawAddress(sender, salt, hash);
+  }
+
   public static Bytes32 getCreate2RawAddress(
       final Address sender, final Bytes32 salt, final Bytes32 hash) {
     return Hash.keccak256(Bytes.concatenate(CREATE2_PREFIX, sender, salt, hash));
@@ -96,9 +114,23 @@ public class AddressUtils {
 
   public static Address getDeploymentAddress(final MessageFrame frame) {
     final OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    if (!opcode.equals(OpCode.CREATE2) && !opcode.equals(OpCode.CREATE)) {
-      throw new IllegalArgumentException("Must be called only for CREATE/CREATE2 opcode");
+    if (opcode.isAnyOf(OpCode.CREATE, OpCode.CREATE2)) {
+      return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
     }
-    return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
+    throw new IllegalArgumentException("Must be called only for CREATE/CREATE2 opcode");
+  }
+
+  public static Address addressFromBytes(final Bytes input) {
+    return input.size() == Address.SIZE
+        ? Address.wrap(input)
+        : Address.wrap(leftPadTo(input.trimLeadingZeros(), Address.SIZE));
+  }
+
+  public static long highPart(Address address) {
+    return address.slice(0, 4).toLong();
+  }
+
+  public static Bytes lowPart(Address address) {
+    return address.slice(4, LLARGE);
   }
 }

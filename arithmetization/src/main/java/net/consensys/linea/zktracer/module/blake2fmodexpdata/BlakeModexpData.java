@@ -31,17 +31,23 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
+import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 public class BlakeModexpData implements Module {
   private final Wcp wcp;
-  private StackedSet<BlakeModexpDataOperation> operations = new StackedSet<>();
-  private List<BlakeModexpDataOperation> sortedOperations = new ArrayList<>();
+  private final ModexpEffectiveCall modexpEffectiveCall;
+  private final BlakeEffectiveCall blakeEffectiveCall;
+  private final BlakeRounds blakeRounds;
+  private final StackedSet<BlakeModexpDataOperation> operations = new StackedSet<>();
+  private final List<BlakeModexpDataOperation> sortedOperations = new ArrayList<>();
   private int numberOfOperationsAtStartTx = 0;
 
   @Override
@@ -55,13 +61,7 @@ public class BlakeModexpData implements Module {
   }
 
   @Override
-  public void traceEndTx(
-      WorldView worldView,
-      Transaction tx,
-      boolean isSuccessful,
-      Bytes output,
-      List<Log> logs,
-      long gasUsed) {
+  public void traceEndTx(TransactionProcessingMetadata tx) {
     final List<BlakeModexpDataOperation> newOperations =
         new ArrayList<>(this.operations.sets.getLast())
             .stream().sorted(Comparator.comparingLong(BlakeModexpDataOperation::id)).toList();
@@ -75,7 +75,8 @@ public class BlakeModexpData implements Module {
   }
 
   @Override
-  public void traceStartTx(WorldView worldView, Transaction tx) {
+  public void traceStartTx(
+      WorldView world, TransactionProcessingMetadata transactionProcessingMetadata) {
     this.numberOfOperationsAtStartTx = operations.size();
   }
 
@@ -95,8 +96,15 @@ public class BlakeModexpData implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  public void call(final BlakeModexpDataOperation operation) {
-    this.operations.add(operation);
+  public void callModexp(final ModExpMetadata modexpMetaData, final int id) {
+    operations.add(new BlakeModexpDataOperation(modexpMetaData, id));
+    modexpEffectiveCall.addPrecompileLimit(1);
+  }
+
+  public void callBlake(final BlakeComponents blakeComponents) {
+    operations.add(new BlakeModexpDataOperation(blakeComponents));
+    blakeEffectiveCall.addPrecompileLimit(1);
+    blakeRounds.addPrecompileLimit(blakeComponents.r().toInt());
   }
 
   @Override
@@ -112,9 +120,9 @@ public class BlakeModexpData implements Module {
   public Bytes getInputDataByIdAndPhase(final int id, final int phase) {
     final BlakeModexpDataOperation op = getOperationById(id);
     return switch (phase) {
-      case PHASE_MODEXP_BASE -> op.modexpComponents.get().base();
-      case PHASE_MODEXP_EXPONENT -> op.modexpComponents.get().exp();
-      case PHASE_MODEXP_MODULUS -> op.modexpComponents.get().mod();
+      case PHASE_MODEXP_BASE -> op.modexpMetaData.get().base();
+      case PHASE_MODEXP_EXPONENT -> op.modexpMetaData.get().exp();
+      case PHASE_MODEXP_MODULUS -> op.modexpMetaData.get().mod();
       case PHASE_MODEXP_RESULT -> Bytes.EMPTY; // TODO
       case PHASE_BLAKE_DATA -> op.blake2fComponents.get().data();
       case PHASE_BLAKE_RESULT -> Bytes.EMPTY; // TODO

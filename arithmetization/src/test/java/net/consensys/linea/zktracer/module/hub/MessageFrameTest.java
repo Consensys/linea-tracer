@@ -15,18 +15,23 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import java.util.List;
+
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
+import net.consensys.linea.zktracer.testing.ToyAccount;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(EvmExtension.class)
 public class MessageFrameTest {
 
   @Test
   void TestCreate() {
+    // The pc is not updated as expected
+    // We do not execute the init code of the created smart contract
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -45,20 +50,22 @@ public class MessageFrameTest {
 
   @Test
   void TestCall() {
-    // Interestingly for CALL the pc is updated as expected and we execute the bytecode of the callee
+    // Interestingly for CALL the pc is updated as expected
+    // We execute the bytecode of the called smart contract
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    program
-      .push(0)
-      .push(0)
-      .push(0)
-      .push(0)
-      .push(0x01)
-      .push("ca11ee")
-      .push(0xffff)
-      .op(OpCode.CALL);
+    program.push(0).push(0).push(0).push(0).push(0x01).push("ca11ee").push(0xffff).op(OpCode.CALL);
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run();
+
+    final ToyAccount smartContractAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(7)
+            .address(Address.fromHexString("0xca11ee"))
+            .code(Bytes.fromHexString("0x63deadbeef00"))
+            .build();
+
+    bytecodeRunner.run(List.of(smartContractAccount));
   }
 }

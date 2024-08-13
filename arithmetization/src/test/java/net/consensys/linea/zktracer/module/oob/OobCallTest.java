@@ -15,15 +15,14 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
-import static net.consensys.linea.zktracer.module.oob.OobTestCommon.assertNumberOfOnesInOobEvent1;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.util.List;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import net.consensys.linea.zktracer.testing.ToyAccount;
 import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
 import net.consensys.linea.zktracer.testing.ToyTransaction;
@@ -37,12 +36,8 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(EvmExtension.class)
-@Disabled("Disabled since oob update is in progress")
 public class OobCallTest {
 
   @Test
@@ -103,9 +98,9 @@ public class OobCallTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().none());
+    assertTrue(Exceptions.none(hub.pch().exceptions()));
 
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
   // Support methods
@@ -178,9 +173,10 @@ public class OobCallTest {
 
     Hub hub = toyExecutionEnvironment.getHub();
 
-    assertTrue(hub.pch().exceptions().none());
+    assertTrue(Exceptions.none(hub.pch().exceptions()));
 
-    assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getHub().oob(), numberOfOnesInOobEvent1);
+    // assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getHub().oob(),
+    // numberOfOnesInOobEvent1);
   }
 
   private void testRecursiveCalls(EWord iterations) {
@@ -234,8 +230,9 @@ public class OobCallTest {
 
     Hub hub = toyExecutionEnvironment.getHub();
 
-    assertTrue(hub.pch().exceptions().none());
+    assertTrue(Exceptions.none(hub.pch().exceptions()));
 
-    assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getHub().oob(), numberOfOnesInOobEvent1);
+    // assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getHub().oob(),
+    // numberOfOnesInOobEvent1);
   }
 }

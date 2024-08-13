@@ -16,33 +16,43 @@
 package net.consensys.linea.zktracer.module.oob.parameters;
 
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.oob.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 
-public record CallOobParameters(EWord val, BigInteger bal, boolean nonZeroValue, BigInteger csd)
-    implements OobParameters {
+@Getter
+@RequiredArgsConstructor
+public class CallOobParameters implements OobParameters {
+  private final EWord value;
+  private final BigInteger balance;
+  private final BigInteger callStackDepth;
+  @Setter boolean valueIsNonzero;
+  @Setter boolean abortingCondition;
 
-  public BigInteger valHi() {
-    return val.hiBigInt();
+  public BigInteger valueHi() {
+    return value.hiBigInt();
   }
 
-  public BigInteger valLo() {
-    return val.loBigInt();
+  public BigInteger valueLo() {
+    return value.loBigInt();
   }
 
   @Override
   public Trace trace(Trace trace) {
     return trace
-        .data1(bigIntegerToBytes(valHi()))
-        .data2(bigIntegerToBytes(valLo()))
-        .data3(bigIntegerToBytes(bal))
-        .data4(nonZeroValue ? ONE : ZERO)
+        .data1(bigIntegerToBytes(valueHi()))
+        .data2(bigIntegerToBytes(valueLo()))
+        .data3(bigIntegerToBytes(balance))
+        .data4(ZERO)
         .data5(ZERO)
-        .data6(bigIntegerToBytes(csd))
-        .data7(ZERO) // TODO: temporary value; to fill when oob update is complete
-        .data8(ZERO); // TODO: temporary value; to fill when oob update is complete
+        .data6(bigIntegerToBytes(callStackDepth))
+        .data7(booleanToBytes(valueIsNonzero))
+        .data8(booleanToBytes(abortingCondition));
   }
 }

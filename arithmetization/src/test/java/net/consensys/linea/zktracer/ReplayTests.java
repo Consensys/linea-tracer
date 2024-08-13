@@ -40,6 +40,8 @@ import org.junit.jupiter.api.Test;
  * | jq '.result.capture' -r
  * | gzip > arithmetization/src/test/resources/replays/my-test-case.json.gz
  * }</pre>
+ *
+ * One can run this command: scripts/capture.pl --start xxx --end yyy --output my-test-case.json.gz
  */
 @Slf4j
 public class ReplayTests {
@@ -76,5 +78,35 @@ public class ReplayTests {
   @Test
   void fatMxp() {
     replay("2492975-2492977.json.gz");
+  }
+
+  @Test
+  void leoFailingRange() {
+    replay("5389571-5389577.json.gz");
+  }
+
+  @Test
+  void failingMmuModexp() {
+    replay("5995162.json.gz");
+  }
+
+  @Test
+  void failRlpAddress() {
+    replay("5995097.json.gz");
+  }
+
+  @Test
+  void rlprcptManyTopicsWoLogData() {
+    replay("6569423.json.gz");
+  }
+
+  @Test
+  void multipleFailingCallToEcrecover() {
+    replay("5000544.json.gz");
+  }
+
+  @Test
+  void incident777zkGethMainnet() {
+    replay("7461019-7461030.json.gz");
   }
 }

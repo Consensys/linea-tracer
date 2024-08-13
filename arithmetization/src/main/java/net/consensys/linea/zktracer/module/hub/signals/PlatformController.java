@@ -27,10 +27,13 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 public class PlatformController {
   private final Hub hub;
+
   /** What other modules should be triggered for the current operation */
   @Getter private final Signals signals;
+
   /** The exceptions raised during the execution of the current operation */
-  @Getter private final Exceptions exceptions;
+  @Getter private short exceptions;
+
   /** The aborting conditions raised during the execution of the current operation */
   @Getter private final AbortingConditions aborts;
 
@@ -38,7 +41,7 @@ public class PlatformController {
 
   public PlatformController(final Hub hub) {
     this.hub = hub;
-    this.exceptions = new Exceptions(hub);
+    this.exceptions = Exceptions.NONE;
     this.aborts = new AbortingConditions();
     this.signals = new Signals(this);
     this.failures = new FailureConditions(hub);
@@ -47,7 +50,7 @@ public class PlatformController {
   /** Reset all information */
   public void reset() {
     this.signals.reset();
-    this.exceptions.reset();
+    this.exceptions = Exceptions.NONE;
     this.aborts.reset();
     this.failures.reset();
   }
@@ -61,8 +64,8 @@ public class PlatformController {
   public void setup(MessageFrame frame) {
     this.reset();
 
-    this.exceptions.prepare(frame, Hub.GAS_PROJECTOR);
-    if (this.exceptions.none()) {
+    this.exceptions |= Exceptions.fromFrame(hub, frame);
+    if (Exceptions.none(this.exceptions)) {
       this.aborts.prepare(hub);
       if (aborts.none()) {
         this.failures.prepare(frame);

@@ -58,7 +58,7 @@ public class Trace {
   public static final int TOTAL_SIZE_ECADD_RESULT = 0x40;
   public static final int TOTAL_SIZE_ECMUL_DATA = 0x60;
   public static final int TOTAL_SIZE_ECMUL_RESULT = 0x40;
-  public static final int TOTAL_SIZE_ECPAIRING_DATA_MIN = 0xc4;
+  public static final int TOTAL_SIZE_ECPAIRING_DATA_MIN = 0xc0;
   public static final int TOTAL_SIZE_ECPAIRING_RESULT = 0x20;
   public static final int TOTAL_SIZE_ECRECOVER_DATA = 0x80;
   public static final int TOTAL_SIZE_ECRECOVER_RESULT = 0x20;
@@ -67,7 +67,7 @@ public class Trace {
   private int currentLine = 0;
 
   private final MappedByteBuffer accPairings;
-  private final MappedByteBuffer acceptablePairOfPointForPairingCircuit;
+  private final MappedByteBuffer acceptablePairOfPointsForPairingCircuit;
   private final MappedByteBuffer byteDelta;
   private final MappedByteBuffer circuitSelectorEcadd;
   private final MappedByteBuffer circuitSelectorEcmul;
@@ -124,7 +124,7 @@ public class Trace {
   static List<ColumnHeader> headers(int length) {
     return List.of(
         new ColumnHeader("ecdata.ACC_PAIRINGS", 32, length),
-        new ColumnHeader("ecdata.ACCEPTABLE_PAIR_OF_POINT_FOR_PAIRING_CIRCUIT", 1, length),
+        new ColumnHeader("ecdata.ACCEPTABLE_PAIR_OF_POINTS_FOR_PAIRING_CIRCUIT", 1, length),
         new ColumnHeader("ecdata.BYTE_DELTA", 1, length),
         new ColumnHeader("ecdata.CIRCUIT_SELECTOR_ECADD", 1, length),
         new ColumnHeader("ecdata.CIRCUIT_SELECTOR_ECMUL", 1, length),
@@ -146,7 +146,7 @@ public class Trace {
         new ColumnHeader("ecdata.G2_MEMBERSHIP_TEST_REQUIRED", 1, length),
         new ColumnHeader("ecdata.HURDLE", 1, length),
         new ColumnHeader("ecdata.ID", 8, length),
-        new ColumnHeader("ecdata.INDEX", 1, length),
+        new ColumnHeader("ecdata.INDEX", 4, length),
         new ColumnHeader("ecdata.INDEX_MAX", 32, length),
         new ColumnHeader("ecdata.INTERNAL_CHECKS_PASSED", 1, length),
         new ColumnHeader("ecdata.IS_ECADD_DATA", 1, length),
@@ -181,7 +181,7 @@ public class Trace {
 
   public Trace(List<MappedByteBuffer> buffers) {
     this.accPairings = buffers.get(0);
-    this.acceptablePairOfPointForPairingCircuit = buffers.get(1);
+    this.acceptablePairOfPointsForPairingCircuit = buffers.get(1);
     this.byteDelta = buffers.get(2);
     this.circuitSelectorEcadd = buffers.get(3);
     this.circuitSelectorEcmul = buffers.get(4);
@@ -260,15 +260,15 @@ public class Trace {
     return this;
   }
 
-  public Trace acceptablePairOfPointForPairingCircuit(final Boolean b) {
+  public Trace acceptablePairOfPointsForPairingCircuit(final Boolean b) {
     if (filled.get(0)) {
       throw new IllegalStateException(
-          "ecdata.ACCEPTABLE_PAIR_OF_POINT_FOR_PAIRING_CIRCUIT already set");
+          "ecdata.ACCEPTABLE_PAIR_OF_POINTS_FOR_PAIRING_CIRCUIT already set");
     } else {
       filled.set(0);
     }
 
-    acceptablePairOfPointForPairingCircuit.put((byte) (b ? 1 : 0));
+    acceptablePairOfPointsForPairingCircuit.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -557,14 +557,14 @@ public class Trace {
     return this;
   }
 
-  public Trace index(final UnsignedByte b) {
+  public Trace index(final int b) {
     if (filled.get(23)) {
       throw new IllegalStateException("ecdata.INDEX already set");
     } else {
       filled.set(23);
     }
 
-    index.put(b.toByte());
+    index.putInt(b);
 
     return this;
   }
@@ -968,7 +968,7 @@ public class Trace {
 
     if (!filled.get(0)) {
       throw new IllegalStateException(
-          "ecdata.ACCEPTABLE_PAIR_OF_POINT_FOR_PAIRING_CIRCUIT has not been filled");
+          "ecdata.ACCEPTABLE_PAIR_OF_POINTS_FOR_PAIRING_CIRCUIT has not been filled");
     }
 
     if (!filled.get(2)) {
@@ -1191,8 +1191,8 @@ public class Trace {
     }
 
     if (!filled.get(0)) {
-      acceptablePairOfPointForPairingCircuit.position(
-          acceptablePairOfPointForPairingCircuit.position() + 1);
+      acceptablePairOfPointsForPairingCircuit.position(
+          acceptablePairOfPointsForPairingCircuit.position() + 1);
     }
 
     if (!filled.get(2)) {
@@ -1280,7 +1280,7 @@ public class Trace {
     }
 
     if (!filled.get(23)) {
-      index.position(index.position() + 1);
+      index.position(index.position() + 4);
     }
 
     if (!filled.get(24)) {

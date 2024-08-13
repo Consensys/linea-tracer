@@ -28,22 +28,17 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.util.encoders.Hex;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-@ExtendWith(EvmExtension.class)
 public class OobSha2RipemdIdentityTest {
   Random random = new Random(1L);
   static final int[] argSizes =
-      new int[] {1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
-
-  // Add back 0
+      new int[] {0, 1, 10, 20, 31, 32, 33, 63, 64, 65, 95, 96, 97, 127, 128, 129, 1000, 2000};
 
   // https://coderpad.io/blog/development/writing-a-parameterized-test-in-junit-with-examples/
   // https://stackoverflow.com/questions/76124016/pass-externally-defined-variable-to-junit-valuesource-annotation-in-a-paramete

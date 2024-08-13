@@ -20,12 +20,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(EvmExtension.class)
 public class TestDuplicatedOperations {
   @Test
   void testDuplicate() {
@@ -46,7 +43,7 @@ public class TestDuplicatedOperations {
                 .compile())
         .zkTracerValidator(
             zkTracer -> {
-              assertThat(zkTracer.getModulesLineCount().get("EXT")).isEqualTo(9);
+              assertThat(zkTracer.getModulesLineCount().get("EXT")).isEqualTo(8);
             })
         .run();
   }

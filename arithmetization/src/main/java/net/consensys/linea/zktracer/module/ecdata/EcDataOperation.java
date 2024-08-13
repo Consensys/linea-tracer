@@ -647,12 +647,16 @@ public class EcDataOperation extends ModuleOperation {
       boolean notOnG2AccMax =
           precompileFlag == PRC_ECPAIRING
               && isData
-              && this
-                  .notOnG2AccMax; // && conditions is necessary since we want IS_ECPAIRING_DATA = 1
+              && this.notOnG2AccMax
+              && internalChecksPassed; // && conditions is necessary since we want IS_ECPAIRING_DATA
+      // = 1
+      // && conditions is necessary since we want IS_ECPAIRING_DATA
+      // We care about G2 membership only if ICP = 1
       boolean g2MembershipTestRequired =
-          notOnG2AccMax
-              ? isLargePoint && !largePointIsAtInfinity && notOnG2.get(i)
-              : isLargePoint && !largePointIsAtInfinity && smallPointIsAtInfinity;
+          (notOnG2AccMax
+                  ? isLargePoint && !largePointIsAtInfinity && notOnG2.get(i)
+                  : isLargePoint && !largePointIsAtInfinity && smallPointIsAtInfinity)
+              && internalChecksPassed;
       boolean acceptablePairOfPointsForPairingCircuit =
           precompileFlag == PRC_ECPAIRING
               && successBit
@@ -668,7 +672,7 @@ public class EcDataOperation extends ModuleOperation {
       trace
           .stamp(stamp)
           .id(id)
-          .index(isData ? UnsignedByte.of(i) : UnsignedByte.of(i - nRowsData))
+          .index(isData ? i : i - nRowsData)
           .limb(limb.get(i))
           .totalSize(Bytes.ofUnsignedLong(getTotalSize(precompileFlag, isData)))
           .phase(getPhase(precompileFlag, isData))
@@ -696,8 +700,11 @@ public class EcDataOperation extends ModuleOperation {
               (short) (isSmallPoint ? CT_MAX_SMALL_POINT : (isLargePoint ? CT_MAX_LARGE_POINT : 0)))
           .isSmallPoint(isSmallPoint)
           .isLargePoint(isLargePoint)
-          .notOnG2(notOnG2.get(i))
-          .notOnG2Acc(notOnG2Acc.get(i))
+          .notOnG2(
+              notOnG2.get(i) && internalChecksPassed) // We care about G2 membership only if ICP = 1
+          .notOnG2Acc(
+              notOnG2Acc.get(i)
+                  && internalChecksPassed) // We care about G2 membership only if ICP = 1
           .notOnG2AccMax(notOnG2AccMax)
           .isInfinity(isInfinity.get(i))
           .overallTrivialPairing(

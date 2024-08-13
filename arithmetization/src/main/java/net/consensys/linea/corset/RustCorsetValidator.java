@@ -178,7 +178,7 @@ public class RustCorsetValidator extends AbstractExecutable {
    * @return
    */
   private List<String> buildCommandLine(Path traceFile, String zkEvmBin) {
-    ArrayList<String> options = new ArrayList<>();
+    List<String> options = new ArrayList<>();
     // Specify corset binary
     options.add(corsetBin);
     // Specify corset "check" command.

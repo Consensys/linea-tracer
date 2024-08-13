@@ -117,9 +117,9 @@ public class CallSection extends TraceSection
     hub.addTraceSection(this);
     final short exceptions = hub.pch().exceptions();
 
-    // row i, i + 1 and i + 2
+    // row i + 1
     final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
-    // row i+2
+    // row i + 2
     final ImcFragment firstImcFragment = ImcFragment.empty(hub);
 
     this.addStackAndFragments(hub, scenarioFragment, currentContextFragment, firstImcFragment);
@@ -276,11 +276,11 @@ public class CallSection extends TraceSection
 
   @Override
   public void resolveUponImmediateContextEntry(Hub hub) {
+    postOpcodeCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
+    postOpcodeCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
+
     switch (scenarioFragment.getScenario()) {
       case CALL_SMC_UNDEFINED -> {
-        postOpcodeCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
-        postOpcodeCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
-
         if (selfCallWithNonzeroValueTransfer) {
           // In case of a self-call that transfers value, the balance of the caller
           // is decremented by the value transferred. This becomes the initial state
@@ -403,7 +403,7 @@ public class CallSection extends TraceSection
         this.addFragments(postReEntryCallerAccountFragment, postReEntryCalleeAccountFragment);
       }
 
-      default -> {}
+      default -> throw new IllegalArgumentException("Illegal CALL scenario");
     }
   }
 

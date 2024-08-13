@@ -32,6 +32,7 @@ public class MessageFrameTest {
   void TestCreate() {
     // The pc is not updated as expected
     // We do not execute the init code of the created smart contract
+    // TODO: fix this!
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program

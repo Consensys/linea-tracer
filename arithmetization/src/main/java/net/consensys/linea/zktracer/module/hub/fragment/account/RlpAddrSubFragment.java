@@ -48,8 +48,7 @@ public class RlpAddrSubFragment implements TraceSubFragment {
         return new RlpAddrSubFragment((short) 2, deploymentAddress, salt, hash);
       }
       case CREATE -> {
-        return new RlpAddrSubFragment(
-            (short) 1, deploymentAddress, (Bytes32) Bytes32.EMPTY, (Bytes32) Bytes32.EMPTY);
+        return new RlpAddrSubFragment((short) 1, deploymentAddress, Bytes32.ZERO, Bytes32.ZERO);
       }
       default -> throw new IllegalStateException("Unexpected value: " + currentOpCode);
     }

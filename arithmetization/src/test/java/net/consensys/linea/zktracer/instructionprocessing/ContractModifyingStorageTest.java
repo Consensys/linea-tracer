@@ -175,6 +175,7 @@ public class ContractModifyingStorageTest {
     Bytes initCode = randData(true);
     world.accounts(List.of(account1, account2, account3, account4, account5));
 
+    // TODO: deployment transaction fails in our ToyWorld
     /*
     txList.add(
         ToyTransaction.builder()

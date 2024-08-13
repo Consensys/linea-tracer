@@ -617,6 +617,7 @@ public class Hub implements Module {
       }
     } else {
       // ...or CALL or CREATE
+      final OpCode currentOpCode = callStack.current().opCode();
       final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
       final Address codeAddress = frame.getContractAddress();
       final CallFrameType frameType =
@@ -627,20 +628,23 @@ public class Hub implements Module {
       final int codeDeploymentNumber =
           this.transients.conflation().deploymentInfo().number(codeAddress);
 
-      final int callDataOffsetStackArgument =
-          callStack.current().opCode().callMayNotTransferValue() ? 2 : 3;
-
       final long callDataOffset =
           isDeployment
               ? 0
               : Words.clampedToLong(
-                  callStack.current().frame().getStackItem(callDataOffsetStackArgument));
+                  callStack
+                      .current()
+                      .frame()
+                      .getStackItem(currentOpCode.callMayNotTransferValue() ? 2 : 3));
 
       final long callDataSize =
           isDeployment
               ? 0
               : Words.clampedToLong(
-                  callStack.current().frame().getStackItem(callDataOffsetStackArgument + 1));
+                  callStack
+                      .current()
+                      .frame()
+                      .getStackItem(currentOpCode.callMayNotTransferValue() ? 3 : 4));
 
       final long callDataContextNumber = this.callStack.current().contextNumber();
 

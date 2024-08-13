@@ -144,6 +144,7 @@ public class CreateSection extends TraceSection
 
     // The CREATE(2) is now unexceptional
     Preconditions.checkArgument(Exceptions.none(exceptions));
+    hub.currentFrame().childSpanningSection(this);
 
     final CreateOobCall oobCall = new CreateOobCall();
     imcFragment.callOob(oobCall);

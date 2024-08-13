@@ -24,6 +24,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -138,7 +139,7 @@ public class CallFrame {
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
 
-  // the hub stamp at which this frame reverts (0 means it does not revert)
+  /** the hub stamp at which this frame reverts (0 means it does not revert) */
   @Getter @Setter private int revertStamp = 0;
 
   /** this frame {@link Stack}. */
@@ -147,9 +148,11 @@ public class CallFrame {
   /** the latched context of this callframe stack. */
   @Getter @Setter private StackContext pending;
 
-  public static void provideParentContextWithEmptyReturnData(Hub hub) {
-    updateParentContextReturnData(hub, Bytes.EMPTY, MemorySpan.empty());
-  }
+  /**
+   * the section responsible for the creation of a child context, either a CALL or a CREATE
+   * instruction
+   */
+  @Getter @Setter private TraceSection childSpanningSection;
 
   public static void updateParentContextReturnData(
       Hub hub, Bytes outputData, MemorySpan returnDataSource) {
@@ -167,6 +170,7 @@ public class CallFrame {
     this.callDataInfo = new CallDataInfo(callData, 0, callData.size(), contextNumber);
   }
 
+  // TODO: should die ?
   /** Create a PRECOMPILE_RETURN_DATA callFrame */
   CallFrame(
       final int contextNumber,

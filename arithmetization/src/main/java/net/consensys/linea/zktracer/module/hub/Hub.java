@@ -124,7 +124,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
-import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -672,9 +671,10 @@ public class Hub implements Module {
   }
 
   public void traceContextReEnter(MessageFrame frame) {
+    // Note: the update of the current call frame is made during traceContextExit of the child frame
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
     defers.resolveAtContextReEntry(this, this.currentFrame());
-    this.unlatchStack(frame);
+    this.unlatchStack(frame, this.currentFrame().childSpanningSection());
   }
 
   @Override
@@ -785,12 +785,14 @@ public class Hub implements Module {
 
     this.defers.resolvePostExecution(this, frame, operationResult);
 
+    // TODO this should die
     if (this.previousOperationWasCallToEcPrecompile) {
       this.ecData.getEcDataOperation().returnData(frame.getReturnData());
     }
 
-    // TODO: special care for CALL/CREATE instructions ?
-    this.unlatchStack(frame);
+    if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
+      this.unlatchStack(frame);
+    }
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD -> {}
@@ -1041,10 +1043,8 @@ public class Hub implements Module {
         switch (this.opCode()) {
           case OpCode.EXP -> new ExpSection(this);
           case OpCode.MUL -> new StackOnlySection(this);
-          default -> {
-            throw new IllegalStateException(
-                String.format("opcode %s not part of the MUL instruction family", this.opCode()));
-          }
+          default -> throw new IllegalStateException(
+              String.format("opcode %s not part of the MUL instruction family", this.opCode()));
         }
       }
       case HALT -> {
@@ -1110,9 +1110,7 @@ public class Hub implements Module {
 
       case CREATE -> new CreateSection(this);
 
-      case CALL -> {
-        new CallSection(this);
-      }
+      case CALL -> new CallSection(this);
 
       case JUMP -> new JumpSection(this);
     }
@@ -1139,9 +1137,5 @@ public class Hub implements Module {
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {
     return this.callStack.getById(parentFrame.childFramesId().getLast());
-  }
-
-  private boolean withinPrecompile(MessageFrame frame) {
-    return AddressUtils.isPrecompile(frame.getContractAddress());
   }
 }

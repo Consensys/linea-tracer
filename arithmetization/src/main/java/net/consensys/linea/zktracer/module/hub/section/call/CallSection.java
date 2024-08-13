@@ -165,6 +165,7 @@ public class CallSection extends TraceSection
 
     // The CALL is now unexceptional
     Preconditions.checkArgument(Exceptions.none(exceptions));
+    hub.currentFrame().childSpanningSection(this);
 
     final CallOobCall oobCall = new CallOobCall();
     firstImcFragment.callOob(oobCall);

@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 
 import com.google.common.base.Preconditions;
+import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Factories;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -82,8 +83,9 @@ public class CallSection extends TraceSection
   // row i+0
   private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
 
-  // Just before call
-  private ContextFragment finalContextFragment;
+  // last row
+  @Setter private ContextFragment finalContextFragment;
+
   private Bytes rawCalleeAddress;
 
   // Just before the CALL Opcode
@@ -217,8 +219,6 @@ public class CallSection extends TraceSection
       //  doesn't work ?
       // TODO: write a test where the recipient of the call does not exist in the state
     }
-
-    // TODO: lastContextFragment for PRC
 
     if (scenarioFragment.getScenario() == CALL_SMC_UNDEFINED) {
       finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);

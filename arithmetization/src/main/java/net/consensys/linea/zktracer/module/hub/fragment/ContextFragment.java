@@ -134,6 +134,17 @@ public class ContextFragment implements TraceFragment {
     //  also: will the latestReturnData have been updated ?
   }
 
+  public static ContextFragment updateReturnData(
+      final Hub hub, final int returnDataContextNumber, final MemorySpan returnDataMetaInfo) {
+    return new ContextFragment(
+        hub,
+        hub.callStack(),
+        Either.right(hub.callStack().current().contextNumber()),
+        returnDataContextNumber,
+        returnDataMetaInfo,
+        true);
+  }
+
   @Override
   public Trace trace(Trace trace) {
     final CallFrame callFrame =

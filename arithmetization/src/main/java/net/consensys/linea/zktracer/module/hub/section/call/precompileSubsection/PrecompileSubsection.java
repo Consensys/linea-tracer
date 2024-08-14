@@ -30,6 +30,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.*;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
@@ -161,6 +162,10 @@ public class PrecompileSubsection
 
     if (callSuccess) {
       hub.defers().scheduleForPostRollback(this, frame);
+      callSection.setFinalContextFragment(
+          ContextFragment.updateReturnData(hub, returnDataContextNumber(), parentReturnDataTarget));
+    } else {
+      callSection.setFinalContextFragment(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
     }
   }
 

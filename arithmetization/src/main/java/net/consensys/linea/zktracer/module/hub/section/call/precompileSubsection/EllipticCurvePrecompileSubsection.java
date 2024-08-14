@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.PrecompileCommonOobCall;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.apache.tuweni.bytes.Bytes;
 
 public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
   final PrecompileCommonOobCall oobCall;
@@ -61,7 +62,10 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
     switch (flag()) {
       case PRC_ECRECOVER -> {
         checkArgument(oobCall.isHubSuccess() == callSuccess);
-        checkArgument(returnData.size() == (callSuccess ? WORD_SIZE : 0));
+        checkArgument(
+            callSuccess
+                ? (returnData == Bytes.EMPTY || returnData.size() == WORD_SIZE)
+                : returnData == Bytes.EMPTY);
       }
       case PRC_ECPAIRING -> checkArgument(returnData.size() == (callSuccess ? WORD_SIZE : 0));
       case PRC_ECADD, PRC_ECMUL -> checkArgument(

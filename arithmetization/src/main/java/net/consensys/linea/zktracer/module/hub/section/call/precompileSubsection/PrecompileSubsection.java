@@ -119,7 +119,8 @@ public class PrecompileSubsection
     callDataMemorySpan = new MemorySpan(offset, length);
     callerMemorySnapshot =
         extractContiguousLimbsFromMemory(hub.currentFrame().frame(), callDataMemorySpan);
-    final int lengthToExtract = (int) Math.min(length, callerMemorySnapshot.size() - offset);
+    final int lengthToExtract =
+        (int) Math.min(length, Math.max(callerMemorySnapshot.size() - offset, 0));
     callData = rightPadTo(callerMemorySnapshot.slice((int) offset, lengthToExtract), (int) length);
   }
 
@@ -133,10 +134,6 @@ public class PrecompileSubsection
     Preconditions.checkArgument(
         callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));
     Preconditions.checkArgument(callData.equals(hub.messageFrame().getInputData()));
-    final MessageFrame callerFrame = hub.callStack().parent().frame();
-    Preconditions.checkArgument(
-        callerMemorySnapshot.equals(
-            extractContiguousLimbsFromMemory(callerFrame, callDataMemorySpan)));
 
     callerGas = hub.callStack().parent().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();

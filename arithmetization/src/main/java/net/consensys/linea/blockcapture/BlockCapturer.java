@@ -155,6 +155,13 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
           this.reaper.touchAddress(target);
         }
       }
+
+      case BLOCKHASH -> {
+        if (frame.stackSize() > 0) {
+          final long blockNumber = frame.getStackItem(0).toLong();
+          // TODO: (see #935) this.reaper.touchBlockHash(blockNumber);
+        }
+      }
     }
   }
 

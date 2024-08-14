@@ -186,11 +186,6 @@ public class ToyWorld implements WorldUpdater {
     return Optional.empty();
   }
 
-  @Override
-  public void setAuthorizedCodeService(final AuthorizedCodeService authorizedCodeService) {
-    this.authorizedCodeService = authorizedCodeService;
-  }
-
   public static class ToyWorldBuilder {
     public ToyWorld build() {
       ToyWorld toyWorld = new ToyWorld(parent);

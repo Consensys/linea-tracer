@@ -206,6 +206,7 @@ public class EcDataOperation extends ModuleOperation {
     return ecDataRes;
   }
 
+  //TODO @Lorenzo this is not needed anymore as we have the output from ecDataCall
   public void setReturnData(Bytes returnData) {
     switch (precompileFlag) {
       case PRC_ECRECOVER -> {

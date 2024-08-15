@@ -35,16 +35,6 @@ public final class StpOperation extends ModuleOperation {
     this.stpCall = stpCall;
   }
 
-  private boolean isCallType() {
-    return stpCall
-        .opCode()
-        .isAnyOf(OpCode.CALL, OpCode.CALLCODE, OpCode.DELEGATECALL, OpCode.STATICCALL);
-  }
-
-  private boolean callCanTransferValue() {
-    return stpCall.opCode().isAnyOf(OpCode.CALL, OpCode.CALLCODE);
-  }
-
   private boolean isCall() {
     return stpCall.opCode() == OpCode.CALL;
   }
@@ -59,10 +49,6 @@ public final class StpOperation extends ModuleOperation {
 
   private boolean isStaticCall() {
     return stpCall.opCode() == OpCode.STATICCALL;
-  }
-
-  private boolean isCreateType() {
-    return stpCall.opCode().isAnyOf(OpCode.CREATE, OpCode.CREATE2);
   }
 
   private boolean isCreate() {
@@ -106,10 +92,10 @@ public final class StpOperation extends ModuleOperation {
           .instruction(UnsignedByte.of(stpCall.opCode().byteValue()))
           .isCreate(isCreate())
           .isCreate2(isCreate2())
-          .isCall(isCall())
-          .isCallcode(isCallCode())
-          .isDelegatecall(isDelegateCall())
-          .isStaticcall(isStaticCall())
+          .isCall(false)
+          .isCallcode(false)
+          .isDelegatecall(false)
+          .isStaticcall(false)
           // .gasHi(Bytes.EMPTY) // redundant
           // .gasLo(Bytes.EMPTY) // redundant
           .valHi(stpCall.value().slice(0, 16))
@@ -162,8 +148,8 @@ public final class StpOperation extends ModuleOperation {
           .ct(UnsignedByte.of(ct))
           .ctMax(UnsignedByte.of(ctMax))
           .instruction(UnsignedByte.of(stpCall.opCode().byteValue()))
-          .isCreate(isCreate())
-          .isCreate2(isCreate2())
+          .isCreate(false)
+          .isCreate2(false)
           .isCall(isCall())
           .isCallcode(isCallCode())
           .isDelegatecall(isDelegateCall())

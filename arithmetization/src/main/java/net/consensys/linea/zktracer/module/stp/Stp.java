@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.Conversions.longToBytes32;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
@@ -27,7 +28,6 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 
 @RequiredArgsConstructor
@@ -39,8 +39,12 @@ public class Stp implements Module {
   private final Mod mod;
 
   public void call(StpCall stpCall) {
-    StpOperation stpOperation = new StpOperation(stpCall);
+    final StpOperation stpOperation = new StpOperation(stpCall);
     this.operations.add(stpOperation);
+
+    Preconditions.checkArgument(
+        stpCall.opCode().isCall() || stpCall.opCode().isCreate(),
+        "STP handles only Calls and CREATEs");
 
     if (stpCall.opCode().isCreate()) {
       this.wcp.callLT(longToBytes32(stpCall.gasActual()), Bytes32.ZERO);
@@ -52,7 +56,7 @@ public class Stp implements Module {
 
     if (stpCall.opCode().isCall()) {
       this.wcp.callLT(longToBytes32(stpCall.gasActual()), Bytes32.ZERO);
-      if (callCanTransferValue(stpCall.opCode())) {
+      if (stpCall.opCode().callCanTransferValue()) {
         this.wcp.callISZERO(Bytes32.leftPad(stpCall.value()));
       }
       this.wcp.callLT(longToBytes32(stpCall.gasActual()), longToBytes32(stpCall.upfrontGasCost()));
@@ -86,10 +90,6 @@ public class Stp implements Module {
   @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
-  }
-
-  static boolean callCanTransferValue(OpCode opCode) {
-    return (opCode == OpCode.CALL) || (opCode == OpCode.CALLCODE);
   }
 
   @Override

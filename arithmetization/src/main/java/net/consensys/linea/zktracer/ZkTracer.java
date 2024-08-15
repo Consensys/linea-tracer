@@ -46,7 +46,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.ethereum.mainnet.feemarket.FeeMarket;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
@@ -62,7 +61,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
-  public static final FeeMarket feeMarket = FeeMarket.london(-1);
   private static final Map<String, Integer> spillings;
 
   static {

@@ -171,18 +171,6 @@ public class ExpOperation extends ModuleOperation {
     initArrays(CT_MAX_PRPRC_MODEXP_LOG + 1);
 
     // Preprocessing
-    EWord trim =
-        EWord.of(
-            LeadLogTrimLead.fromArgs(
-                    modexplogExpCall.getRawLeadingWord(),
-                    modexplogExpCall.getCdsCutoff(),
-                    modexplogExpCall.getEbsCutoff())
-                .trim());
-
-    final BigInteger trimLimb = trim.hi().isZero() ? trim.loBigInt() : trim.hiBigInt();
-    final int trimLog = trimLimb.signum() == 0 ? 0 : log2(trimLimb, RoundingMode.FLOOR);
-    final int nBitsOfLeadingByteExcludingLeadingBit = trimLog % 8;
-    final int nBytesExcludingLeadingByte = trimLog / 8;
 
     // First row
     pPreprocessingWcpFlag[0] = true;
@@ -213,47 +201,35 @@ public class ExpOperation extends ModuleOperation {
     pPreprocessingWcpArg2Hi[2] = Bytes.of(0);
     pPreprocessingWcpArg2Lo[2] = Bytes.of(LLARGEPO);
     pPreprocessingWcpInst[2] = UnsignedByte.of(EVM_INST_LT);
-    pPreprocessingWcpRes[2] =
+    final boolean ebsCutoffLeq16 =
         wcp.callLT(Bytes.of(modexplogExpCall.getEbsCutoff()), Bytes.of(LLARGEPO));
+    pPreprocessingWcpRes[2] = ebsCutoffLeq16;
 
     // Fourth row
+    final EWord rawLead = modexplogExpCall.getRawLeadingWord();
+    final Bytes rawLeadHi = rawLead.hi();
+    final Bytes rawLeadLo = rawLead.lo();
     pPreprocessingWcpFlag[3] = true;
     pPreprocessingWcpArg1Hi[3] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[3] = modexplogExpCall.getRawLeadingWord().hi();
+    pPreprocessingWcpArg1Lo[3] = rawLeadHi;
     pPreprocessingWcpArg2Hi[3] = Bytes.of(0);
     pPreprocessingWcpArg2Lo[3] = Bytes.of(0);
     pPreprocessingWcpInst[3] = UnsignedByte.of(EVM_INST_ISZERO);
-    final boolean rawHiPartIsZero = wcp.callISZERO(modexplogExpCall.getRawLeadingWord().hi());
-    pPreprocessingWcpRes[3] = rawHiPartIsZero;
+    final boolean rawLeadHiIsZero = wcp.callISZERO(rawLeadHi);
+    pPreprocessingWcpRes[3] = rawLeadHiIsZero;
 
-    // Fifth row
-    final int paddedBase2Log =
-        8 * nBytesExcludingLeadingByte + nBitsOfLeadingByteExcludingLeadingBit;
+    // Fifth row is filled later since we need pComputationTrimAcc
 
-    pPreprocessingWcpFlag[4] = true;
-    pPreprocessingWcpArg1Hi[4] = Bytes.of(0);
-    pPreprocessingWcpArg1Lo[4] = Bytes.of(paddedBase2Log);
-    pPreprocessingWcpArg2Hi[4] = Bytes.of(0);
-    pPreprocessingWcpArg2Lo[4] = Bytes.of(0);
-    pPreprocessingWcpInst[4] = UnsignedByte.of(EVM_INST_ISZERO);
-    pPreprocessingWcpRes[4] = wcp.callISZERO(Bytes.of(paddedBase2Log));
-
-    // Linking constraints and fill rawAcc
+    // Linking constraints and fill rawAcc and pltJmp
     if (minCutoffLeq16) {
-      pComputationRawAcc = leftPadTo(modexplogExpCall.getRawLeadingWord().hi(), LLARGE);
-    } else if (!rawHiPartIsZero) {
-      pComputationRawAcc = leftPadTo(modexplogExpCall.getRawLeadingWord().hi(), LLARGE);
-    } else {
-      pComputationRawAcc = leftPadTo(modexplogExpCall.getRawLeadingWord().lo(), LLARGE);
-    }
-
-    // Fill pltJmp
-    if (minCutoffLeq16) {
+      pComputationRawAcc = leftPadTo(rawLeadHi, LLARGE);
       pComputationPltJmp = (short) minCutoff;
     } else {
-      if (!rawHiPartIsZero) {
+      if (!rawLeadHiIsZero) {
+        pComputationRawAcc = leftPadTo(rawLeadHi, LLARGE);
         pComputationPltJmp = (short) 16;
       } else {
+        pComputationRawAcc = leftPadTo(rawLeadLo, LLARGE);
         pComputationPltJmp = (short) (minCutoff - 16);
       }
     }
@@ -270,6 +246,16 @@ public class ExpOperation extends ModuleOperation {
         pComputationMsb = UnsignedByte.of(trimByte);
       }
     }
+
+    // Fifth row
+    pPreprocessingWcpFlag[4] = true;
+    pPreprocessingWcpArg1Hi[4] = Bytes.of(0);
+    pPreprocessingWcpArg1Lo[4] = pComputationTrimAcc;
+    pPreprocessingWcpArg2Hi[4] = Bytes.of(0);
+    pPreprocessingWcpArg2Lo[4] = Bytes.of(0);
+    pPreprocessingWcpInst[4] = UnsignedByte.of(EVM_INST_ISZERO);
+    final boolean trimAccIsZero = wcp.callISZERO(pComputationTrimAcc);
+    pPreprocessingWcpRes[4] = trimAccIsZero;
   }
 
   final void traceComputation(int stamp, Trace trace) {

@@ -698,8 +698,6 @@ public class Hub implements Module {
         this.callStack.revert(this.state.stamps().hub()); // TODO: Duplicate s?
       }
 
-      this.callStack.exit();
-
       for (Module m : this.modules) {
         m.traceContextExit(frame);
       }
@@ -727,9 +725,13 @@ public class Hub implements Module {
 
     this.defers.resolveUponExitingContext(this, this.currentFrame());
     // TODO: verify me please @Olivier
-    // if (Exceptions.any(this.pch.exceptions())) {
-    //   this.defers.resolvePostRollback(this, frame, this.currentFrame());
-    // }
+    if (Exceptions.any(this.pch.exceptions())) {
+      this.defers.resolvePostRollback(this, frame, this.currentFrame());
+    }
+
+    if (frame.getDepth() > 0) {
+      this.callStack.exit();
+    }
   }
 
   public void tracePreExecution(final MessageFrame frame) {

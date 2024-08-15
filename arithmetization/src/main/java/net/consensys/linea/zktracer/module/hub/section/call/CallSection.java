@@ -307,9 +307,7 @@ public class CallSection extends TraceSection
                     rawCalleeAddress,
                     DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
-        if (scenarioFragment.getScenario() == CALL_SMC_UNDEFINED) {
-          firstCalleeAccountFragment.requiresRomlex(true);
-        }
+        firstCalleeAccountFragment.requiresRomlex(true);
 
         this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
       }

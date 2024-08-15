@@ -58,7 +58,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
     super.resolveAtContextReEntry(hub, callFrame);
 
-    hub.ecData.callEcdata(flag(), callData(), returnData());
+    hub.ecData.callEcData(flag(), callData(), returnData());
 
     // sanity checks
     switch (flag()) {

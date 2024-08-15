@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffective
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
 public class EcData implements Module {
@@ -74,15 +73,14 @@ public class EcData implements Module {
     this.operations.pop();
   }
 
-  @Override
+  /*
   public void tracePreOpcode(MessageFrame frame) {
-    /*
     final Address target = Words.toAddress(frame.getStackItem(1));
     if (!EC_PRECOMPILES.contains(target)) {
       return;
     }
     final MemorySpan callDataSource = hub.transients().op().callDataSegment();
-
+    TODO: where this check should be moved?
     if (target.equals(Address.ALTBN128_PAIRING)
         && (callDataSource.isEmpty() || callDataSource.length() % 192 != 0)) {
       return;
@@ -94,8 +92,8 @@ public class EcData implements Module {
         EcDataOperation.of(
             this.wcp, this.ext, hub.precompileId(), addressToPrecompileFlag(target), data);
     this.operations.add(ecDataOperation);
-    */
   }
+  */
 
   @Override
   public int lineCount() {
@@ -118,7 +116,7 @@ public class EcData implements Module {
 
     for (EcDataOperation op : sortedOperations) {
       // TODO: temporary hack, we should have only successful EcData Operations, will be fixed in PR
-      // #748
+      //  #748
       if (op.successBit()) {
         stamp++;
         op.trace(trace, stamp, previousId);
@@ -127,7 +125,7 @@ public class EcData implements Module {
     }
   }
 
-  public void callEcdata(
+  public void callEcData(
       PrecompileScenarioFragment.PrecompileFlag precompileFlag, Bytes callData, Bytes returnData) {
     this.ecDataOperation =
         EcDataOperation.of(

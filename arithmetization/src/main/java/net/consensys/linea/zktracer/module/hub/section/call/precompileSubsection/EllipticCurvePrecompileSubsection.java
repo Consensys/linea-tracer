@@ -58,13 +58,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
     super.resolveAtContextReEntry(hub, callFrame);
 
-    //TODO Lorenzo
-    //callEcDAta here, when you're here we have input and output of the EcDAta precompile
-
-    // input == callData()
-    // ouptut == returnData
-
-    // @ Lorenzo hub.ecData.callEcdata(inoyt, output, maybe more stuff);
+    hub.ecData.callEcdata(flag(), callData(), returnData());
 
     // sanity checks
     switch (flag()) {

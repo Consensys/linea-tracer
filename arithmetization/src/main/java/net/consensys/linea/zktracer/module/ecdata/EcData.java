@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.addressToPrecompileFlag;
-
 import java.nio.MappedByteBuffer;
 import java.util.Comparator;
 import java.util.List;
@@ -29,6 +27,7 @@ import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
@@ -36,11 +35,9 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2Members
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
 public class EcData implements Module {
@@ -79,6 +76,7 @@ public class EcData implements Module {
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
+    /*
     final Address target = Words.toAddress(frame.getStackItem(1));
     if (!EC_PRECOMPILES.contains(target)) {
       return;
@@ -96,6 +94,7 @@ public class EcData implements Module {
         EcDataOperation.of(
             this.wcp, this.ext, hub.precompileId(), addressToPrecompileFlag(target), data);
     this.operations.add(ecDataOperation);
+    */
   }
 
   @Override
@@ -128,7 +127,11 @@ public class EcData implements Module {
     }
   }
 
-  public void callEcdata(final EcDataOperation ecDataOperation) {
+  public void callEcdata(
+      PrecompileScenarioFragment.PrecompileFlag precompileFlag, Bytes callData, Bytes returnData) {
+    this.ecDataOperation =
+        EcDataOperation.of(
+            this.wcp, this.ext, hub.precompileId(), precompileFlag, callData, returnData);
     this.operations.add(ecDataOperation);
 
     switch (ecDataOperation.precompileFlag()) {

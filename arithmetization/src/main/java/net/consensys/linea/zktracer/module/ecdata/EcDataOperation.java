@@ -135,21 +135,22 @@ public class EcDataOperation extends ModuleOperation {
       Ext ext,
       int id,
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
-      Bytes data) {
+      Bytes callData,
+      Bytes returnData) {
     Preconditions.checkArgument(precompileFlag.isEcdataPrecompile(), "invalid EC type");
 
     this.precompileFlag = precompileFlag;
     final int paddedCallDataLength = this.precompileFlag == PRC_ECMUL ? 96 : 128;
-    if (data.size() < paddedCallDataLength) {
-      this.data = leftPadTo(data, paddedCallDataLength);
+    if (callData.size() < paddedCallDataLength) {
+      this.data = leftPadTo(callData, paddedCallDataLength);
     } else {
       // TODO: why keep the entire data rather than data[0:paddedCallDataLength] ?
-      this.data = data;
+      this.data = callData;
     }
 
     if (precompileFlag == PRC_ECPAIRING) {
-      Preconditions.checkArgument(data.size() % 192 == 0);
-      totalPairings = data.size() / 192;
+      Preconditions.checkArgument(callData.size() % 192 == 0);
+      totalPairings = callData.size() / 192;
     } else {
       totalPairings = 0;
     }
@@ -188,6 +189,9 @@ public class EcDataOperation extends ModuleOperation {
     overallTrivialPairing = repeat(true, nRows);
     notOnG2 = repeat(false, nRows);
     notOnG2Acc = repeat(false, nRows);
+
+    // Set returnData
+    setReturnData(returnData);
   }
 
   public static EcDataOperation of(
@@ -195,18 +199,19 @@ public class EcDataOperation extends ModuleOperation {
       Ext ext,
       int id,
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
-      Bytes data) {
-    EcDataOperation ecDataRes = new EcDataOperation(wcp, ext, id, precompileFlag, data);
+      Bytes callData,
+      Bytes returnData) {
+    EcDataOperation ecDataOperation =
+        new EcDataOperation(wcp, ext, id, precompileFlag, callData, returnData);
     switch (precompileFlag) {
-      case PRC_ECRECOVER -> ecDataRes.handleRecover();
-      case PRC_ECADD -> ecDataRes.handleAdd();
-      case PRC_ECMUL -> ecDataRes.handleMul();
-      case PRC_ECPAIRING -> ecDataRes.handlePairing();
+      case PRC_ECRECOVER -> ecDataOperation.handleRecover();
+      case PRC_ECADD -> ecDataOperation.handleAdd();
+      case PRC_ECMUL -> ecDataOperation.handleMul();
+      case PRC_ECPAIRING -> ecDataOperation.handlePairing();
     }
-    return ecDataRes;
+    return ecDataOperation;
   }
 
-  //TODO @Lorenzo this is not needed anymore as we have the output from ecDataCall
   public void setReturnData(Bytes returnData) {
     switch (precompileFlag) {
       case PRC_ECRECOVER -> {
@@ -271,13 +276,6 @@ public class EcDataOperation extends ModuleOperation {
         limb.set(limb.size() - 1, pairingResult.lo());
 
         // Set callSuccess
-        /*
-        if (!internalChecksPassed || notOnG2AccMax) {
-          callSuccess = false;
-        } else {
-          callSuccess = true;
-        }
-        */
         if (!internalChecksPassed) {
           successBit = false;
         } else {

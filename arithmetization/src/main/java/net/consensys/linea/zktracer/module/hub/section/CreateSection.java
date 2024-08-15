@@ -217,6 +217,8 @@ public class CreateSection extends TraceSection
         .scheduleForContextReEntry(
             this, hub.currentFrame()); // To get the success bit of the CREATE(2)
 
+    hub.romLex().callRomLex(frame);
+
     // Note: the case CREATE2 has been set before, we need to do it even in the failure case
     if (hub.opCode() == CREATE) {
       final MmuCall mmuCall = MmuCall.create(hub);

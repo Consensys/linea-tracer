@@ -22,6 +22,7 @@ import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -114,10 +115,8 @@ public class AddressUtils {
 
   public static Address getDeploymentAddress(final MessageFrame frame) {
     final OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    if (opcode.isAnyOf(OpCode.CREATE, OpCode.CREATE2)) {
-      return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
-    }
-    throw new IllegalArgumentException("Must be called only for CREATE/CREATE2 opcode");
+    Preconditions.checkArgument(opcode.isCreate(), "Must be called only for CREATE/CREATE2 opcode");
+    return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
   }
 
   public static Address addressFromBytes(final Bytes input) {

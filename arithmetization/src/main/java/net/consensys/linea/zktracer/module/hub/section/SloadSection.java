@@ -49,7 +49,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     super(
         hub,
         (short)
-            (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 6 : 5)));
+            (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 5 : 4)));
 
     this.world = world;
     this.address = hub.messageFrame().getRecipientAddress();
@@ -68,9 +68,17 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     // - stackUnderflowException
     // - outOfGasException
     // in the present case we don't have a stack exception
-    ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
-    ImcFragment miscFragmentForSload = ImcFragment.empty(hub);
-    StorageFragment doingSload = doingSload(hub);
+    final ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
+    final ImcFragment miscFragmentForSload = ImcFragment.empty(hub);
+    final StorageFragment doingSload = doingSload(hub);
+
+    // Update the First Last time seen map of storage keys
+    final State.StorageSlotIdentifier storageSlotIdentifier =
+        new State.StorageSlotIdentifier(
+            address,
+            hub.transients().conflation().deploymentInfo().number(address),
+            EWord.of(storageKey));
+    hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSload);
 
     this.addStackAndFragments(hub, readCurrentContext, miscFragmentForSload, doingSload);
   }

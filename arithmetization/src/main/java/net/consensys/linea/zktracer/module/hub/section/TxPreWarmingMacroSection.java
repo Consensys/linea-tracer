@@ -53,8 +53,8 @@ public class TxPreWarmingMacroSection {
         .ifPresent(
             accessList -> {
               if (!accessList.isEmpty()) {
-                Set<Address> seenAddresses = new HashSet<>(precompileAddress);
-                HashMap<Address, Set<Bytes>> seenKeys = new HashMap<>();
+                final Set<Address> seenAddresses = new HashSet<>(precompileAddress);
+                final HashMap<Address, Set<Bytes>> seenKeys = new HashMap<>();
 
                 for (AccessListEntry entry : accessList) {
                   hub.state.stamps().incrementHubStamp();
@@ -105,7 +105,7 @@ public class TxPreWarmingMacroSection {
                             .map(account -> EWord.of(account.getStorageValue(key)))
                             .orElse(EWord.ZERO);
 
-                    State.StorageSlotIdentifier storageSlotIdentifier =
+                    final State.StorageSlotIdentifier storageSlotIdentifier =
                         new State.StorageSlotIdentifier(
                             address, deploymentInfo.number(address), EWord.of(k));
 

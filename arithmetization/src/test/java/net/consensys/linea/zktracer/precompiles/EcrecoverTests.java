@@ -22,8 +22,6 @@ import org.junit.jupiter.api.Test;
 
 public class EcrecoverTests {
 
-  // the thing fails at AccountSnapshot.canonical()
-  // of the precompile address 0x00...01 ≡ ECRECOVER
   @Test
   void basicEcrecoverTest() {
     final Bytes bytecode =

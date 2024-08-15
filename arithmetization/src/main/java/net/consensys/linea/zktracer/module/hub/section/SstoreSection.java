@@ -50,7 +50,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     super(
         hub,
         (short)
-            (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 6 : 5)));
+            (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 5 : 4)));
 
     this.world = world;
     this.address = hub.messageFrame().getRecipientAddress();
@@ -94,6 +94,14 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     // STORAGE fragment (for doing)
     final StorageFragment doingSstore = this.doingSstore(hub);
     this.addFragment(doingSstore);
+
+    // Update the First Last time seen map of storage keys
+    final State.StorageSlotIdentifier storageSlotIdentifier =
+        new State.StorageSlotIdentifier(
+            address,
+            hub.transients().conflation().deploymentInfo().number(address),
+            EWord.of(storageKey));
+    hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSstore);
 
     // set the refundDelta
     this.commonValues.refundDelta(

@@ -64,7 +64,6 @@ public class CallSection extends TraceSection
         PostRollbackDefer,
         PostTransactionDefer {
 
-  // TODO: finish this map
   private static final Map<Address, BiFunction<Hub, CallSection, PrecompileSubsection>>
       ADDRESS_TO_PRECOMPILE =
           Map.of(

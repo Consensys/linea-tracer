@@ -54,9 +54,8 @@ public class State implements StackedContainer {
 
   public void updateOrInsertStorageSlotOccurrence(
       StorageSlotIdentifier slotIdentifier, StorageFragment storageFragment) {
-    int size = firstAndLastStorageSlotOccurrences.size();
-    HashMap<StorageSlotIdentifier, StorageFragmentPair> current =
-        firstAndLastStorageSlotOccurrences.get(size - 1);
+    final HashMap<StorageSlotIdentifier, StorageFragmentPair> current =
+        firstAndLastStorageSlotOccurrences.getLast();
     if (current.containsKey(slotIdentifier)) {
       current.get(slotIdentifier).update(storageFragment);
     } else {

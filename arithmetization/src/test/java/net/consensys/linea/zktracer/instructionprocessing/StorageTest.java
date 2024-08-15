@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,30 +12,26 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.precompiles;
+
+package net.consensys.linea.zktracer.instructionprocessing;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
-public class ModexpTests {
+public class StorageTest {
 
   @Test
-  void basicModexpTest() {
-    final Bytes bytecode =
-        BytecodeCompiler.newProgram()
-            .push(0)
-            .push(0)
-            .push(0)
-            .push(0)
-            .push(0)
-            .push(0x05) // address
-            .push(0xffff) // gas
-            .op(OpCode.CALL)
-            .op(OpCode.POP)
-            .compile();
-    BytecodeRunner.of(bytecode).run();
+  void simpleSstoreSload() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(0x666) // value
+                .push(0xca7) // key
+                .op(OpCode.SSTORE)
+                .push(0xca7) // key
+                .op(OpCode.SLOAD)
+                .compile())
+        .run();
   }
 }

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea;
+package net.consensys.linea.testing;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

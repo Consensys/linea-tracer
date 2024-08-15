@@ -13,9 +13,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.testing;
+package net.consensys.linea.testing;
 
-import static net.consensys.linea.GeneralStateReferenceTestTools.executeTest;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BASE_FEE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BLOCK_GAS_LIMIT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_DIFFICULTY;
@@ -72,7 +71,8 @@ public class ToyExecutionEnvironmentV2 {
   @Singular private final List<Transaction> transactions;
 
   public void run() {
-    executeTest(this.buildGeneralStateTestCaseSpec(), getMainnetTransactionProcessor(), feeMarket);
+    GeneralStateReferenceTestTools.executeTest(
+        this.buildGeneralStateTestCaseSpec(), getMainnetTransactionProcessor(), feeMarket);
   }
 
   public GeneralStateTestCaseEipSpec buildGeneralStateTestCaseSpec() {

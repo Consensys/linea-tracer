@@ -14,7 +14,7 @@
  *
  */
 
-package net.consensys.linea.zktracer.testing;
+package net.consensys.linea.testing;
 
 import java.util.HashMap;
 import java.util.Map;

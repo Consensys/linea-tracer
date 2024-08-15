@@ -17,9 +17,15 @@ dependencies {
   implementation "${besuArtifactGroup}.internal:referencetests:${besuVersion}"
   implementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
   implementation "${besuArtifactGroup}.internal:testutil:${besuVersion}"
+  implementation "${besuArtifactGroup}.internal:algorithms:${besuVersion}"
   implementation "${besuArtifactGroup}:plugin-api"
-  implementation 'org.assertj:assertj-core'
 
-  implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
-  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+  implementation 'org.junit.jupiter:junit-jupiter-api'
+  runtimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  implementation 'org.junit.jupiter:junit-jupiter-params'
+  runtimeOnly 'org.junit.vintage:junit-vintage-engine'
+
+  implementation 'org.mockito:mockito-core'
+  implementation 'org.mockito:mockito-junit-jupiter'
+  implementation 'org.assertj:assertj-core'
 }

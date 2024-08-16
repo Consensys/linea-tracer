@@ -92,10 +92,6 @@ public final class StpOperation extends ModuleOperation {
           .instruction(UnsignedByte.of(stpCall.opCode().byteValue()))
           .isCreate(isCreate())
           .isCreate2(isCreate2())
-          .isCall(false)
-          .isCallcode(false)
-          .isDelegatecall(false)
-          .isStaticcall(false)
           // .gasHi(Bytes.EMPTY) // redundant
           // .gasLo(Bytes.EMPTY) // redundant
           .valHi(stpCall.value().slice(0, 16))
@@ -103,11 +99,11 @@ public final class StpOperation extends ModuleOperation {
           // .exists(false) // redundant
           // .warm(false)   // redundant
           .outOfGasException(stpCall.outOfGasException())
-          .gasActual(Bytes.ofUnsignedLong(stpCall.gasActual()))
-          .gasMxp(Bytes.ofUnsignedLong(stpCall.memoryExpansionGas()))
-          .gasUpfront(Bytes.ofUnsignedLong(stpCall.upfrontGasCost()))
-          .gasOutOfPocket(Bytes.ofUnsignedLong(gasOopkt))
-          .gasStipend(Bytes.ofUnsignedLong(stpCall.stipend()))
+          .gasActual(stpCall.gasActual())
+          .gasMxp(stpCall.memoryExpansionGas())
+          .gasUpfront(stpCall.upfrontGasCost())
+          .gasOutOfPocket(gasOopkt)
+          .gasStipend(stpCall.stipend())
           .arg1Hi(Bytes.EMPTY);
 
       switch (ct) {
@@ -118,7 +114,7 @@ public final class StpOperation extends ModuleOperation {
             .resLo(Bytes.EMPTY) // we REQUIRE that the currently available gas is nonnegative
             .wcpFlag(true)
             .modFlag(false)
-            .validateRow();
+            .fillAndValidateRow();
         case 1 -> trace
             .arg1Lo(Bytes.ofUnsignedLong(stpCall.gasActual()))
             .arg2Lo(Bytes.ofUnsignedLong(stpCall.upfrontGasCost()))
@@ -126,7 +122,7 @@ public final class StpOperation extends ModuleOperation {
             .resLo(Bytes.of(stpCall.outOfGasException() ? 1 : 0))
             .wcpFlag(true)
             .modFlag(false)
-            .validateRow();
+            .fillAndValidateRow();
         case 2 -> trace
             .arg1Lo(Bytes.ofUnsignedLong(getGDiff()))
             .arg2Lo(Bytes.of(64))
@@ -134,7 +130,7 @@ public final class StpOperation extends ModuleOperation {
             .resLo(Bytes.ofUnsignedLong(getGDiffOver64()))
             .wcpFlag(false)
             .modFlag(true)
-            .validateRow();
+            .fillAndValidateRow();
         default -> throw new IllegalArgumentException("counter too big, should be <=" + ctMax);
       }
     }
@@ -148,8 +144,6 @@ public final class StpOperation extends ModuleOperation {
           .ct(UnsignedByte.of(ct))
           .ctMax(UnsignedByte.of(ctMax))
           .instruction(UnsignedByte.of(stpCall.opCode().byteValue()))
-          .isCreate(false)
-          .isCreate2(false)
           .isCall(isCall())
           .isCallcode(isCallCode())
           .isDelegatecall(isDelegateCall())
@@ -161,11 +155,11 @@ public final class StpOperation extends ModuleOperation {
           .exists(stpCall.exists())
           .warm(stpCall.warm())
           .outOfGasException(stpCall.outOfGasException())
-          .gasActual(Bytes.ofUnsignedLong(stpCall.gasActual()))
-          .gasMxp(Bytes.ofUnsignedLong(stpCall.memoryExpansionGas()))
-          .gasUpfront(Bytes.ofUnsignedLong(stpCall.upfrontGasCost()))
-          .gasOutOfPocket(Bytes.ofUnsignedLong(stpCall.gasPaidOutOfPocket()))
-          .gasStipend(Bytes.ofUnsignedLong(stpCall.stipend()));
+          .gasActual(stpCall.gasActual())
+          .gasMxp(stpCall.memoryExpansionGas())
+          .gasUpfront(stpCall.upfrontGasCost())
+          .gasOutOfPocket(stpCall.gasPaidOutOfPocket())
+          .gasStipend(stpCall.stipend());
 
       switch (ct) {
         case 0 -> trace
@@ -176,7 +170,7 @@ public final class StpOperation extends ModuleOperation {
             .resLo(Bytes.EMPTY) // we REQUIRE that the currently available gas is nonnegative
             .wcpFlag(true)
             .modFlag(false)
-            .validateRow();
+            .fillAndValidateRow();
         case 1 -> trace
             .arg1Hi(stpCall.value().slice(0, 16))
             .arg1Lo(stpCall.value().slice(16, 16))
@@ -185,7 +179,7 @@ public final class StpOperation extends ModuleOperation {
             .resLo(Bytes.of(stpCall.value().isZero() ? 1 : 0))
             .wcpFlag(stpCall.opCode().callCanTransferValue())
             .modFlag(false)
-            .validateRow();
+            .fillAndValidateRow();
         case 2 -> trace
             .arg1Hi(Bytes.EMPTY)
             .arg1Lo(Bytes.ofUnsignedLong(stpCall.gasActual()))
@@ -194,7 +188,7 @@ public final class StpOperation extends ModuleOperation {
             .resLo(Bytes.of(stpCall.outOfGasException() ? 1 : 0))
             .wcpFlag(true)
             .modFlag(false)
-            .validateRow();
+            .fillAndValidateRow();
           // the following rows are only filled in if no out of gas exception
         case 3 -> trace
             .arg1Hi(Bytes.EMPTY)
@@ -204,7 +198,7 @@ public final class StpOperation extends ModuleOperation {
             .resLo(Bytes.ofUnsignedLong(getGDiffOver64()))
             .wcpFlag(false)
             .modFlag(true)
-            .validateRow();
+            .fillAndValidateRow();
         case 4 -> trace
             .arg1Hi(stpCall.gas().slice(0, 16))
             .arg1Lo(stpCall.gas().slice(16, 16))
@@ -221,7 +215,7 @@ public final class StpOperation extends ModuleOperation {
                         : 0))
             .wcpFlag(true)
             .modFlag(false)
-            .validateRow();
+            .fillAndValidateRow();
         default -> throw new IllegalArgumentException("counter too big, should be <=" + ctMax);
       }
     }

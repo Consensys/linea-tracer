@@ -171,9 +171,6 @@ public class Hub implements Module {
   /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch = new PlatformController(this);
 
-  // TODO: should die
-  private boolean previousOperationWasCallToEcPrecompile;
-
   @Override
   public String moduleKey() {
     return "HUB";
@@ -790,11 +787,6 @@ public class Hub implements Module {
 
     this.defers.resolvePostExecution(this, frame, operationResult);
 
-    // TODO this should die
-    if (this.previousOperationWasCallToEcPrecompile) {
-      this.ecData.getEcDataOperation().returnData(frame.getReturnData());
-    }
-
     if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
       this.unlatchStack(frame);
     }
@@ -905,11 +897,6 @@ public class Hub implements Module {
     if (this.pch.signals().hashInfo()) {
       // TODO: this.hashInfo.tracePreOpcode(frame);
     }
-    if (this.pch
-        .signals()
-        .ecData()) { // TODO why do we have this ? Shouldn't it be triggered by a precompileLimits ?
-      this.ecData.tracePreOpcode(frame);
-    }
     if (this.pch.signals().blockhash()) {
       this.blockhash.tracePreOpcode(frame);
     }
@@ -967,11 +954,6 @@ public class Hub implements Module {
 
   void processStateExec(MessageFrame frame) {
 
-    if (previousOperationWasCallToEcPrecompile) {
-      this.ecData.getEcDataOperation().returnData(frame.getReturnData());
-      previousOperationWasCallToEcPrecompile = false;
-    }
-
     this.state.stamps().incrementHubStamp();
 
     this.pch.setup(frame);
@@ -984,17 +966,6 @@ public class Hub implements Module {
     }
 
     if (this.currentFrame().stack().isOk()) {
-      // TODO: this is insufficient because it neglects:
-      //  - exceptions other than stack exceptions e.g.
-      //    * STATICX
-      //    * MXPX
-      //    * OOGX
-      //  - it COULD (unlikely ?) produce issues with ABORTS
-      //  - it COULD interfere with CALL's to precompiles that don't reach EC_DATA e.g.
-      //    * ECRECOVER, ECADD, ECMUL, ECPAIRING with zero call data size parameter
-      if (this.pch.signals().ecData()) {
-        this.previousOperationWasCallToEcPrecompile = true;
-      }
       this.traceOpcode(frame);
     } else {
 

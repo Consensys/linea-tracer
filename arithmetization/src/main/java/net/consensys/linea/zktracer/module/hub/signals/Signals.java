@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.signals;
 
-import static net.consensys.linea.zktracer.module.ecdata.EcData.EC_PRECOMPILES;
-
 import java.util.Optional;
 import java.util.Set;
 
@@ -64,7 +62,6 @@ public class Signals {
   @Getter private boolean trm;
   @Getter private boolean hashInfo;
   @Getter private boolean rlpAddr;
-  @Getter private boolean ecData;
 
   private final PlatformController platformController;
 
@@ -86,7 +83,6 @@ public class Signals {
     this.trm = false;
     this.hashInfo = false;
     this.rlpAddr = false;
-    this.ecData = false;
   }
 
   public Signals snapshot() {
@@ -108,7 +104,6 @@ public class Signals {
     r.trm = this.trm;
     r.hashInfo = this.hashInfo;
     r.rlpAddr = this.rlpAddr;
-    r.ecData = this.ecData;
 
     return r;
   }
@@ -150,7 +145,6 @@ public class Signals {
                 .map(AccountState::hasCode)
                 .orElse(false);
 
-        this.ecData = Exceptions.none(ex) && EC_PRECOMPILES.contains(target);
         this.exp =
             Exceptions.none(ex)
                 && this.platformController.abortingConditions().none()

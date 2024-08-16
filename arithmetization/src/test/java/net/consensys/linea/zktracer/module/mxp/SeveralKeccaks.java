@@ -14,9 +14,9 @@
  */
 package net.consensys.linea.zktracer.module.mxp;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import org.junit.jupiter.api.Test;
 
 public class SeveralKeccaks {

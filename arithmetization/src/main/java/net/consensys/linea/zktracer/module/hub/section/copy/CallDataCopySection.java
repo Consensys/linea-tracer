@@ -71,7 +71,7 @@ public class CallDataCopySection extends TraceSection {
       return;
     }
 
-    MmuCall mmuCall = MmuCall.callDataCopy(hub);
+    final MmuCall mmuCall = MmuCall.callDataCopy(hub);
     imcFragment.callMmu(mmuCall);
   }
 

@@ -285,7 +285,6 @@ public class Hub implements Module {
   @Getter
   public final EcData ecData =
       new EcData(
-          this,
           wcp,
           ext,
           ecAddEffectiveCall,
@@ -843,10 +842,6 @@ public class Hub implements Module {
 
   public int newChildContextNumber() {
     return 1 + this.stamp();
-  }
-
-  public int precompileId() {
-    return newChildContextNumber();
   }
 
   public CallFrame currentFrame() {

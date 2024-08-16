@@ -184,7 +184,7 @@ public class PrecompileSubsection
   }
 
   public int exoModuleOperationId() {
-    return this.callSection.hubStamp() + 1;
+    return callSection.hubStamp() + 1;
   }
 
   public int returnDataContextNumber() {
@@ -196,6 +196,6 @@ public class PrecompileSubsection
   }
 
   public void setScenario(PrecompileScenarioFragment.PrecompileScenario scenario) {
-    this.precompileScenarioFragment.scenario(scenario);
+    precompileScenarioFragment.scenario(scenario);
   }
 }

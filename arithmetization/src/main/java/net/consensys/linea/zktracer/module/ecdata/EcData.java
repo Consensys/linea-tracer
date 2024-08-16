@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ext.Ext;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
@@ -44,7 +43,6 @@ public class EcData implements Module {
       Set.of(Address.ECREC, Address.ALTBN128_ADD, Address.ALTBN128_MUL, Address.ALTBN128_PAIRING);
 
   @Getter private final StackedSet<EcDataOperation> operations = new StackedSet<>();
-  private final Hub hub;
   private final Wcp wcp;
   private final Ext ext;
 
@@ -73,28 +71,6 @@ public class EcData implements Module {
     this.operations.pop();
   }
 
-  /*
-  public void tracePreOpcode(MessageFrame frame) {
-    final Address target = Words.toAddress(frame.getStackItem(1));
-    if (!EC_PRECOMPILES.contains(target)) {
-      return;
-    }
-    final MemorySpan callDataSource = hub.transients().op().callDataSegment();
-    TODO: where this check should be moved?
-    if (target.equals(Address.ALTBN128_PAIRING)
-        && (callDataSource.isEmpty() || callDataSource.length() % 192 != 0)) {
-      return;
-    }
-
-    final Bytes data = hub.transients().op().callData();
-
-    this.ecDataOperation =
-        EcDataOperation.of(
-            this.wcp, this.ext, hub.precompileId(), addressToPrecompileFlag(target), data);
-    this.operations.add(ecDataOperation);
-  }
-  */
-
   @Override
   public int lineCount() {
     return this.operations.lineCount();
@@ -111,6 +87,7 @@ public class EcData implements Module {
     int stamp = 0;
     long previousId = 0;
 
+    // TODO: operations should come in the right order now, no need to sort them. To test.
     List<EcDataOperation> sortedOperations =
         this.operations.stream().sorted(Comparator.comparingLong(EcDataOperation::id)).toList();
 
@@ -126,10 +103,12 @@ public class EcData implements Module {
   }
 
   public void callEcData(
-      PrecompileScenarioFragment.PrecompileFlag precompileFlag, Bytes callData, Bytes returnData) {
+      final int id,
+      final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
+      final Bytes callData,
+      final Bytes returnData) {
     this.ecDataOperation =
-        EcDataOperation.of(
-            this.wcp, this.ext, hub.precompileId(), precompileFlag, callData, returnData);
+        EcDataOperation.of(this.wcp, this.ext, id, precompileFlag, callData, returnData);
     this.operations.add(ecDataOperation);
 
     switch (ecDataOperation.precompileFlag()) {

@@ -58,8 +58,6 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
     super.resolveAtContextReEntry(hub, callFrame);
 
-    hub.ecData.callEcData(flag(), callData(), returnData());
-
     // sanity checks
     switch (flag()) {
       case PRC_ECRECOVER -> {
@@ -105,6 +103,12 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
         default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
       }
       firstImcFragment.callMmu(firstMmuCall);
+
+      hub.ecData.callEcData(
+          exoModuleOperationId(),
+          flag(),
+          callData(),
+          returnData()); // TODO @Lorenzo @Olivier : verify it's at the right position
     }
 
     final ImcFragment secondImcFragment = ImcFragment.empty(hub);

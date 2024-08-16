@@ -77,6 +77,12 @@ public class RomLex implements Module, PostOpcodeDefer {
     this.chunks.pop();
   }
 
+  public int getCodeFragmentIndexByMetadata(
+      final Address address, final int deploymentNumber, final boolean depStatus) {
+    return getCodeFragmentIndexByMetadata(
+        ContractMetadata.make(address, deploymentNumber, depStatus));
+  }
+
   public int getCodeFragmentIndexByMetadata(final ContractMetadata metadata) {
     if (this.sortedChunks.isEmpty()) {
       throw new RuntimeException("Chunks have not been sorted yet");
@@ -240,10 +246,8 @@ public class RomLex implements Module, PostOpcodeDefer {
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     Preconditions.checkArgument(hub.opCode().isCreate());
     final int depNumber = hub.transients().conflation().deploymentInfo().number(this.address);
-    final boolean depStatus =
-        hub.transients().conflation().deploymentInfo().isDeploying(this.address);
     final ContractMetadata contractMetadata =
-        ContractMetadata.make(this.address, depNumber, depStatus);
+        ContractMetadata.underDeployment(this.address, depNumber);
 
     final RomChunk chunk = new RomChunk(contractMetadata, true, false, this.byteCode);
     this.chunks.add(chunk);

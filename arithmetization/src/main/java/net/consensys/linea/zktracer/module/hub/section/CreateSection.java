@@ -70,8 +70,6 @@ public class CreateSection extends TraceSection
         ContextReEntryDefer,
         PostTransactionDefer {
 
-  private int creatorContextId;
-
   // Just before create
   private AccountSnapshot preOpcodeCreatorSnapshot;
   private AccountSnapshot preOpcodeCreateeSnapshot;
@@ -200,7 +198,7 @@ public class CreateSection extends TraceSection
     }
 
     if (failedCreate || emptyInitCode) {
-      this.finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
+      finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
 
       if (failedCreate) {
         scenarioFragment.setScenario(CREATE_FAILURE_CONDITION_WONT_REVERT);
@@ -318,7 +316,7 @@ public class CreateSection extends TraceSection
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    this.addFragment(this.finalContextFragment);
+    addFragment(finalContextFragment);
   }
 
   private static short maxNumberOfLines(final short exceptions, final AbortingConditions abort) {

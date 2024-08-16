@@ -38,7 +38,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
 public class CallFrame {
@@ -98,10 +97,7 @@ public class CallFrame {
   public int getCodeFragmentIndex(Hub hub) {
     return this == CallFrame.EMPTY || this.type() == CallFrameType.TRANSACTION_CALL_DATA_HOLDER
         ? 0
-        : hub.getCfiByMetaData(
-            Words.toAddress(this.codeAddressAsEWord()),
-            this.codeDeploymentNumber(),
-            this.isDeployment());
+        : hub.getCfiByMetaData(byteCodeAddress, codeDeploymentNumber, isDeployment);
   }
 
   @Getter @Setter private int pc;

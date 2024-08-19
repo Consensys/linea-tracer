@@ -156,6 +156,9 @@ public class CreateSection extends TraceSection
     final Address creatorAddress = callFrame.accountAddress();
     preOpcodeCreatorSnapshot = AccountSnapshot.canonical(hub, creatorAddress);
 
+    final Address createeAddress = getDeploymentAddress(frame);
+    preOpcodeCreateeSnapshot = AccountSnapshot.canonical(hub, createeAddress);
+
     if (aborts.any()) {
       scenarioFragment.setScenario(CREATE_ABORT);
       this.finishAbortCreate(hub);
@@ -168,10 +171,9 @@ public class CreateSection extends TraceSection
     hub.defers().scheduleForPostRollback(this, hub.currentFrame()); // in case of Rollback
     hub.defers().scheduleForPostTransaction(this); // when we add the last context row
 
-    final Address createeAddress = getDeploymentAddress(frame);
     rlpAddrSubFragment = RlpAddrSubFragment.makeFragment(hub, createeAddress);
 
-    preOpcodeCreateeSnapshot = AccountSnapshot.canonical(hub, createeAddress);
+
 
     final Optional<Account> deploymentAccount =
         Optional.ofNullable(frame.getWorldUpdater().get(createeAddress));

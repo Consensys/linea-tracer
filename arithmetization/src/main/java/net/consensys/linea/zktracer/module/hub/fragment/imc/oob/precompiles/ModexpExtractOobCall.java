@@ -54,7 +54,8 @@ public class ModexpExtractOobCall extends OobCall {
         .data5(bigIntegerToBytes(mbs))
         .data6(booleanToBytes(extractBase))
         .data7(booleanToBytes(extractExponent))
-        .data8(booleanToBytes(extractModulus));
+        .data8(booleanToBytes(extractModulus))
+        .data9(ZERO);
   }
 
   @Override

@@ -37,6 +37,7 @@ public class CreateOobCall extends OobCall {
   BigInteger callStackDepth;
   boolean abortingCondition;
   boolean failureCondition;
+  BigInteger creatorNonce;
 
   public CreateOobCall() {
     super(OOB_INST_CREATE);
@@ -61,7 +62,8 @@ public class CreateOobCall extends OobCall {
         .data5(booleanToBytes(hasCode))
         .data6(bigIntegerToBytes(callStackDepth))
         .data7(booleanToBytes(abortingCondition))
-        .data8(booleanToBytes(failureCondition));
+        .data8(booleanToBytes(failureCondition))
+        .data9(bigIntegerToBytes(creatorNonce));
   }
 
   @Override

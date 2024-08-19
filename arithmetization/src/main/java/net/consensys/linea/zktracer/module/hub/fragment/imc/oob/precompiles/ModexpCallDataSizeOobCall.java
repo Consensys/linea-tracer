@@ -50,7 +50,8 @@ public class ModexpCallDataSizeOobCall extends OobCall {
         .data5(booleanToBytes(extractMbs))
         .data6(ZERO)
         .data7(ZERO)
-        .data8(ZERO);
+        .data8(ZERO)
+        .data9(ZERO);
   }
 
   @Override

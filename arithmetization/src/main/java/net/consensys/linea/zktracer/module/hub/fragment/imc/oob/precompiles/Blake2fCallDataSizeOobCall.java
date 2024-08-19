@@ -49,7 +49,8 @@ public class Blake2fCallDataSizeOobCall extends OobCall {
         .data5(ZERO)
         .data6(ZERO)
         .data7(ZERO)
-        .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
+        .data8(booleanToBytes(returnAtCapacityNonZero)) // Set after the constructor
+        .data9(ZERO);
   }
 
   @Override

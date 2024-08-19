@@ -52,7 +52,8 @@ public class Blake2fParamsOobCall extends OobCall {
         .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
         .data6(bigIntegerToBytes(blakeR))
         .data7(bigIntegerToBytes(blakeF))
-        .data8(ZERO);
+        .data8(ZERO)
+        .data9(ZERO);
   }
 
   @Override

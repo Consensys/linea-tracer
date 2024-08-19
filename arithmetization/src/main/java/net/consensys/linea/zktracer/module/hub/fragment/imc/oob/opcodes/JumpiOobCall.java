@@ -83,6 +83,7 @@ public class JumpiOobCall extends OobCall {
         .data5(bigIntegerToBytes(codeSize))
         .data6(booleanToBytes(jumpNotAttempted))
         .data7(booleanToBytes(jumpGuanranteedException))
-        .data8(booleanToBytes(jumpMustBeAttempted));
+        .data8(booleanToBytes(jumpMustBeAttempted))
+        .data9(ZERO);
   }
 }

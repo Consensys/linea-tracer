@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.oob;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
@@ -106,7 +105,7 @@ public class Oob implements Module {
           .stamp(stamp)
           .ct((short) ct)
           .ctMax((short) oobOperation.ctMax())
-          .oobInst(bigIntegerToBytes(BigInteger.valueOf(oobInstruction.getValue())))
+          .oobInst(oobInstruction.getValue())
           .isJump(oobInstruction == OOB_INST_JUMP)
           .isJumpi(oobInstruction == OOB_INST_JUMPI)
           .isRdc(oobInstruction == OOB_INST_RDC)

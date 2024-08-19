@@ -63,7 +63,8 @@ public class PrecompileCommonOobCall extends OobCall {
         .data5(bigIntegerToBytes(returnGas)) // Set after the constructor
         .data6(booleanToBytes(getExtractCallData())) // Derived from other parameters
         .data7(booleanToBytes(getCallDataIsEmpty())) // Derived from other parameters
-        .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
+        .data8(booleanToBytes(returnAtCapacityNonZero)) // Set after the constructor
+        .data9(ZERO);
   }
 
   @Override

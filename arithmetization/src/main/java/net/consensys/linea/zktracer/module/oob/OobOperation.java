@@ -278,6 +278,7 @@ public class OobOperation extends ModuleOperation {
         createOobCall.setNonce(BigInteger.valueOf(nonce));
         createOobCall.setHasCode(hasCode);
         createOobCall.setCallStackDepth(BigInteger.valueOf(frame.getDepth()));
+        createOobCall.setCreatorNonce(BigInteger.valueOf(creatorAccount.getNonce()));
         setCreate(createOobCall);
       }
       case OOB_INST_SSTORE -> {
@@ -801,8 +802,18 @@ public class OobOperation extends ModuleOperation {
     // row i + 2
     final boolean nonzeroNonce = !callToISZERO(2, BigInteger.ZERO, createOobCall.getNonce());
 
+    // row i + 3
+    final boolean creatorNonceAbort =
+        !callToLT(
+            3,
+            BigInteger.ZERO,
+            createOobCall.getCreatorNonce(),
+            BigInteger.ZERO,
+            (BigInteger.valueOf(2).pow(64)).subtract(BigInteger.valueOf(1))); // TODO: use constant
+
     // Set aborting condition
-    createOobCall.setAbortingCondition(insufficientBalanceAbort || callStackDepthAbort);
+    createOobCall.setAbortingCondition(
+        insufficientBalanceAbort || callStackDepthAbort || creatorNonceAbort);
 
     // Set failureCondition
     createOobCall.setFailureCondition(

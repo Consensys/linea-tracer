@@ -66,7 +66,8 @@ public class ReturnDataCopyOobCall extends OobCall {
         .data5(bigIntegerToBytes(rds))
         .data6(ZERO)
         .data7(booleanToBytes(rdcx))
-        .data8(ZERO);
+        .data8(ZERO)
+        .data9(ZERO);
   }
 
   @Override

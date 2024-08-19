@@ -58,7 +58,8 @@ public class CallOobCall extends OobCall {
         .data5(ZERO)
         .data6(bigIntegerToBytes(callStackDepth))
         .data7(booleanToBytes(!value.isZero()))
-        .data8(booleanToBytes(abortingCondition));
+        .data8(booleanToBytes(abortingCondition))
+        .data9(ZERO);
   }
 
   @Override

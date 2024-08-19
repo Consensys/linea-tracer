@@ -57,7 +57,8 @@ public class CallDataLoadOobCall extends OobCall {
         .data5(bigIntegerToBytes(cds))
         .data6(ZERO)
         .data7(booleanToBytes(cdlOutOfBounds))
-        .data8(ZERO);
+        .data8(ZERO)
+        .data9(ZERO);
   }
 
   @Override

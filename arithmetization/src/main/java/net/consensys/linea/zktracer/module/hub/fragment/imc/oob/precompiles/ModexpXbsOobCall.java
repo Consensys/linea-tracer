@@ -55,7 +55,8 @@ public class ModexpXbsOobCall extends OobCall {
         .data5(ZERO)
         .data6(ZERO)
         .data7(bigIntegerToBytes(maxXbsYbs))
-        .data8(booleanToBytes(xbsNonZero));
+        .data8(booleanToBytes(xbsNonZero))
+        .data9(ZERO);
   }
 
   @Override

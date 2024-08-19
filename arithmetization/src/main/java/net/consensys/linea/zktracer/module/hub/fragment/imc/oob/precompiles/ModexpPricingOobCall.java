@@ -55,7 +55,8 @@ public class ModexpPricingOobCall extends OobCall {
         .data5(bigIntegerToBytes(returnGas))
         .data6(bigIntegerToBytes(exponentLog))
         .data7(Bytes.of(maxMbsBbs))
-        .data8(booleanToBytes(returnAtCapacityNonZero));
+        .data8(booleanToBytes(returnAtCapacityNonZero))
+        .data9(ZERO);
   }
 
   @Override

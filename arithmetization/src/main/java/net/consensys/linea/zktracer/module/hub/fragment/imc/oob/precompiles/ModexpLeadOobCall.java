@@ -55,7 +55,8 @@ public class ModexpLeadOobCall extends OobCall {
         .data5(ZERO)
         .data6(Bytes.of(cdsCutoff))
         .data7(Bytes.of(ebsCutoff))
-        .data8(Bytes.of(subEbs32));
+        .data8(Bytes.of(subEbs32))
+        .data9(ZERO);
   }
 
   @Override

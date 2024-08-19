@@ -58,7 +58,8 @@ public class JumpOobCall extends OobCall {
         .data5(bigIntegerToBytes(codeSize))
         .data6(ZERO)
         .data7(booleanToBytes(jumpGuaranteedException))
-        .data8(booleanToBytes(jumpMustBeAttempted));
+        .data8(booleanToBytes(jumpMustBeAttempted))
+        .data9(ZERO);
   }
 
   @Override

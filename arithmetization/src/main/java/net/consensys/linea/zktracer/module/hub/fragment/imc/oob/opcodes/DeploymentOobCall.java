@@ -56,7 +56,8 @@ public class DeploymentOobCall extends OobCall {
         .data5(ZERO)
         .data6(ZERO)
         .data7(booleanToBytes(maxCodeSizeException))
-        .data8(ZERO);
+        .data8(ZERO)
+        .data9(ZERO);
   }
 
   @Override

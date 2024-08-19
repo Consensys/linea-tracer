@@ -57,7 +57,8 @@ public class XCallOobCall extends OobCall {
         .data5(ZERO)
         .data6(ZERO)
         .data7(booleanToBytes(valueIsNonzero))
-        .data8(booleanToBytes(valueIsZero));
+        .data8(booleanToBytes(valueIsZero))
+        .data9(ZERO);
   }
 
   @Override

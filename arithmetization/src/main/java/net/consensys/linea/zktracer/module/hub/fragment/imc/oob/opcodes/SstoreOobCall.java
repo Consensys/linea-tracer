@@ -47,7 +47,8 @@ public class SstoreOobCall extends OobCall {
         .data5(bigIntegerToBytes(gas))
         .data6(ZERO)
         .data7(booleanToBytes(sstorex))
-        .data8(ZERO);
+        .data8(ZERO)
+        .data9(ZERO);
   }
 
   @Override

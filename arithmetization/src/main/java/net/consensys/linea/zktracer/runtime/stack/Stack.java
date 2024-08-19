@@ -324,17 +324,18 @@ public class Stack {
   }
 
   private void create(MessageFrame frame, StackContext pending) {
-    Bytes val1 = getStack(frame, 1);
-    Bytes val2 = getStack(frame, 2);
+    final Bytes val1 = getStack(frame, 1);
+    final Bytes val2 = getStack(frame, 2);
 
     pending.addLine(
         new IndexedStackOperation(
             1, StackOperation.pop(this.height - 1, val1, stackStampWithOffset(1))),
         new IndexedStackOperation(
             2, StackOperation.pop(this.height - 2, val2, stackStampWithOffset(2))));
-    if (this.currentOpcodeData.stackSettings().flag1()) {
-      Bytes val3 = getStack(frame, 3);
-      Bytes val4 = getStack(frame, 0);
+    // case CREATE2
+    if (this.currentOpcodeData.stackSettings().flag2()) {
+      final Bytes val3 = getStack(frame, 3);
+      final Bytes val4 = getStack(frame, 0);
 
       pending.addArmingLine(
           new IndexedStackOperation(
@@ -343,8 +344,10 @@ public class Stack {
               3, StackOperation.pop(this.height, val4, stackStampWithOffset(0))),
           new IndexedStackOperation(
               4, StackOperation.push(this.height - 3, stackStampWithOffset(4))));
-    } else {
-      Bytes val4 = getStack(frame, 0);
+    } else
+    // case CREATE
+    {
+      final Bytes val4 = getStack(frame, 0);
 
       pending.addArmingLine(
           new IndexedStackOperation(

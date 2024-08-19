@@ -173,8 +173,6 @@ public class CreateSection extends TraceSection
 
     rlpAddrSubFragment = RlpAddrSubFragment.makeFragment(hub, createeAddress);
 
-
-
     final Optional<Account> deploymentAccount =
         Optional.ofNullable(frame.getWorldUpdater().get(createeAddress));
     final boolean createdAddressHasNonZeroNonce =

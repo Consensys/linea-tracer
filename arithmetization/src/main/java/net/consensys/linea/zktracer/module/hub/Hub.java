@@ -740,8 +740,8 @@ public class Hub implements Module {
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     Preconditions.checkArgument(
-        this.state().processingPhase != TX_SKIP,
-        "There can't be any execution if the HUB is in the a skip phase");
+        this.state().processingPhase == TX_EXEC,
+        "There can't be any execution if the HUB is not in execution phase");
 
     final long gasCost = operationResult.getGasCost();
     final TraceSection currentSection = this.state.currentTxTrace().currentSection();

@@ -49,7 +49,6 @@ public class KeccakSection extends TraceSection implements PostOpcodeDefer {
     triggerMmu = mayTriggerNonTrivialOperation & Exceptions.none(hub.pch().exceptions());
 
     if (triggerMmu) {
-      hub.defers().scheduleForPostExecution(this);
       final MmuCall mmuCall = MmuCall.sha3(hub);
       imcFragment.callMmu(mmuCall);
       hashInput =

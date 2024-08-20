@@ -173,6 +173,7 @@ public class ShakiraDataOperation extends ModuleOperation {
     }
   }
 
+  // TODO: this should die, we should use teh result from BESU
   private Bytes computeResult() {
     return switch (hashType) {
       case SHA256 -> Hash.sha256(hashInput);

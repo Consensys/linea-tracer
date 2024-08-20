@@ -57,6 +57,8 @@ public class ContractModifyingStorageTest {
       - The same contract can have a function doing the same stuff.
     */
 
+  // NOTE: 0.8.0+commit.c7dfd78e compiler version is used and Remix VM (London) as environment to
+  // compile and deploy the contracts below
   @Test
   void contractModifyingStorageInConstructorTest() {
     // Deploy
@@ -71,7 +73,6 @@ public class ContractModifyingStorageTest {
     System.out.println("User address: " + userAddress);
 
     // Deployment transaction
-    // NOTE: 3050 in the beginning has been added manually
     Transaction tx =
         ToyTransaction.builder()
             .sender(userAccount)

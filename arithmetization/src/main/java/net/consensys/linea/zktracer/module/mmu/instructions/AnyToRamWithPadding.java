@@ -261,8 +261,8 @@ public class AnyToRamWithPadding implements MmuInstruction {
     wcpCallRecords.add(
         MmuWcpCallRecord.instIsZeroBuilder().arg1Lo(wcpArg1).result(wcpResult).build());
 
-    final long dividend = maxTargetOffset + 1;
-    EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
+    final long dividend = maxTargetByteOffset + 1;
+    final EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend)

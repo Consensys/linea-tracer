@@ -50,7 +50,7 @@ public class ModexpSubsection extends PrecompileSubsection {
 
   private final ModExpMetadata modExpMetadata;
   private ModexpPricingOobCall sixthOobCall;
-  private ModexpExtractOobCall seventhOobCall;
+  private ImcFragment seventhImcFragment;
 
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
@@ -123,7 +123,9 @@ public class ModexpSubsection extends PrecompileSubsection {
 
     // We need to trigger the OOB before CALL's execution
     if (sixthOobCall.isRamSuccess()) {
-      seventhOobCall = new ModexpExtractOobCall();
+      seventhImcFragment = ImcFragment.empty(hub);
+      final ModexpExtractOobCall seventhOobCall = new ModexpExtractOobCall();
+      seventhImcFragment.callOob(seventhOobCall);
     }
   }
 
@@ -142,9 +144,7 @@ public class ModexpSubsection extends PrecompileSubsection {
     modExpMetadata.rawResult(returnData);
     hub.blakeModexpData().callModexp(modExpMetadata, this.exoModuleOperationId());
 
-    final ImcFragment seventhImcFragment = ImcFragment.empty(hub);
     fragments().add(seventhImcFragment);
-    seventhImcFragment.callOob(seventhOobCall);
     if (modExpMetadata.extractModulus()) {
       final MmuCall mmuCall = forModexpExtractBase(hub, this, modExpMetadata);
       seventhImcFragment.callMmu(mmuCall);

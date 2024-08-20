@@ -48,13 +48,13 @@ public class BlakeSubsection extends PrecompileSubsection {
       return;
     }
 
-    Bytes blakeR = callData.slice(0, 4);
-    Bytes blakeF = callData.slice(212, 1);
+    final Bytes blakeR = callData.slice(0, 4);
+    final Bytes blakeF = callData.slice(212, 1);
 
     {
-      boolean wellFormedF = blakeF.get(0) == 0 || blakeF.get(0) == 1;
-      long rounds = blakeR.toLong();
-      boolean sufficientGas = calleeGas >= rounds;
+      final boolean wellFormedF = blakeF.get(0) == 0 || blakeF.get(0) == 1;
+      final long rounds = blakeR.toLong();
+      final boolean sufficientGas = calleeGas >= rounds;
       blakeSuccess = wellFormedF && sufficientGas;
     }
 
@@ -62,7 +62,7 @@ public class BlakeSubsection extends PrecompileSubsection {
       this.setScenario(PRC_FAILURE_KNOWN_TO_RAM);
     }
 
-    MmuCall blakeParameterExtractionMmuCall =
+    final MmuCall blakeParameterExtractionMmuCall =
         MmuCall.parameterExtractionForBlake(hub, this, blakeSuccess, blakeR, blakeF);
     firstImcFragment.callMmu(blakeParameterExtractionMmuCall);
 
@@ -89,22 +89,24 @@ public class BlakeSubsection extends PrecompileSubsection {
     }
 
     // finish 2nd MISC row
-    MmuCall callDataExtractionforBlake = MmuCall.callDataExtractionforBlake(hub, this);
+    final MmuCall callDataExtractionforBlake = MmuCall.callDataExtractionforBlake(hub, this);
     secondImcFragment.callMmu(callDataExtractionforBlake);
 
     // 3rd MISC row
-    ImcFragment thirdImcFragment = ImcFragment.empty(hub);
+    final ImcFragment thirdImcFragment = ImcFragment.empty(hub);
     fragments.add(thirdImcFragment);
 
-    MmuCall returnDataFullTransferForBlake = MmuCall.fullReturnDataTransferForBlake(hub, this);
+    final MmuCall returnDataFullTransferForBlake =
+        MmuCall.fullReturnDataTransferForBlake(hub, this);
     thirdImcFragment.callMmu(returnDataFullTransferForBlake);
 
     // 3rd MISC row
-    ImcFragment fourthImcFragment = ImcFragment.empty(hub);
+    final ImcFragment fourthImcFragment = ImcFragment.empty(hub);
     fragments.add(fourthImcFragment);
 
     if (!this.parentReturnDataTarget.isEmpty()) {
-      MmuCall partialReturnDataCopyForBlake = MmuCall.partialCopyOfReturnDataforBlake(hub, this);
+      final MmuCall partialReturnDataCopyForBlake =
+          MmuCall.partialCopyOfReturnDataforBlake(hub, this);
       fourthImcFragment.callMmu(partialReturnDataCopyForBlake);
     }
   }

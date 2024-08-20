@@ -35,6 +35,7 @@ import java.math.BigInteger;
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpCallDataSizeOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpExtractOobCall;
@@ -49,6 +50,7 @@ public class ModexpSubsection extends PrecompileSubsection {
 
   private final ModExpMetadata modExpMetadata;
   private ModexpPricingOobCall sixthOobCall;
+  private ModexpExtractOobCall seventhOobCall;
 
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
@@ -110,14 +112,19 @@ public class ModexpSubsection extends PrecompileSubsection {
     if (modExpMetadata.loadRawLeadingWord()) {
       final MmuCall mmuCall = forModexpLoadLead(hub, this, modExpMetadata);
       fifthImcFragment.callMmu(mmuCall);
-      // final ExpCall expCall = new ModexpLogExpCall(); // TODO: to do
-      // fifthImcFragment.callExp(expCall);
+      final ExpCall expCall = null; // TODO: to do new ModexpLogExpCall() ... @Lorenzo;
+      fifthImcFragment.callExp(expCall);
     }
 
     final ImcFragment sixthImcFragment = ImcFragment.empty(hub);
     fragments().add(sixthImcFragment);
     sixthOobCall = new ModexpPricingOobCall();
     sixthImcFragment.callOob(sixthOobCall);
+
+    // We need to trigger the OOB before CALL's execution
+    if (sixthOobCall.isRamSuccess()) {
+      seventhOobCall = new ModexpExtractOobCall();
+    }
   }
 
   @Override
@@ -137,7 +144,6 @@ public class ModexpSubsection extends PrecompileSubsection {
 
     final ImcFragment seventhImcFragment = ImcFragment.empty(hub);
     fragments().add(seventhImcFragment);
-    final ModexpExtractOobCall seventhOobCall = new ModexpExtractOobCall();
     seventhImcFragment.callOob(seventhOobCall);
     if (modExpMetadata.extractModulus()) {
       final MmuCall mmuCall = forModexpExtractBase(hub, this, modExpMetadata);

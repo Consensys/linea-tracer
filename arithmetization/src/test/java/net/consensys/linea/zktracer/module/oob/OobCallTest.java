@@ -94,7 +94,7 @@ public class OobCallTest {
   void TestRecursiveCallsWithBytecode() {
     BytecodeRunner bytecodeRunner =
         BytecodeRunner.of(Bytes.fromHexString("60006000600060006000305af1"));
-    bytecodeRunner.run(Wei.fromEth(400), 0xfffffffffffL);
+    bytecodeRunner.run(Wei.fromEth(400), 0xFFFFFFFFL);
 
     Hub hub = bytecodeRunner.getHub();
 

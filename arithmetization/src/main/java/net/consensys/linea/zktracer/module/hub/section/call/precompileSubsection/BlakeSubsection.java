@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_RAM;
 
+import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeComponents;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
@@ -109,6 +110,11 @@ public class BlakeSubsection extends PrecompileSubsection {
           MmuCall.partialCopyOfReturnDataforBlake(hub, this);
       fourthImcFragment.callMmu(partialReturnDataCopyForBlake);
     }
+
+    // TODO: make it smarter
+    final BlakeComponents blake2f =
+        new BlakeComponents(callData, callData.slice(0, 4), callData.slice(212, 1), returnData);
+    hub.blakeModexpData().callBlake(blake2f, this.exoModuleOperationId());
   }
 
   @Override

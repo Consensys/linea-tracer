@@ -67,8 +67,8 @@ public class BlakeModexpDataOperation extends ModuleOperation {
     this.blake2fComponents = Optional.empty();
   }
 
-  public BlakeModexpDataOperation(final BlakeComponents blakeComponents) {
-    this.id = 0; // TODO
+  public BlakeModexpDataOperation(final BlakeComponents blakeComponents, final int id) {
+    this.id = id;
     this.modexpMetaData = Optional.empty();
     this.blake2fComponents = Optional.of(blakeComponents);
   }

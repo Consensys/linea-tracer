@@ -23,22 +23,18 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHAS
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_RESULT;
 
 import java.nio.MappedByteBuffer;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 public class BlakeModexpData implements Module {
@@ -46,9 +42,9 @@ public class BlakeModexpData implements Module {
   private final ModexpEffectiveCall modexpEffectiveCall;
   private final BlakeEffectiveCall blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
-  private final StackedSet<BlakeModexpDataOperation> operations = new StackedSet<>();
-  private final List<BlakeModexpDataOperation> sortedOperations = new ArrayList<>();
-  private int numberOfOperationsAtStartTx = 0;
+
+  private final StackedList<BlakeModexpDataOperation> operations = new StackedList<>();
+  private long previousID = 0;
 
   @Override
   public String moduleKey() {
@@ -61,28 +57,7 @@ public class BlakeModexpData implements Module {
   }
 
   @Override
-  public void traceEndTx(TransactionProcessingMetadata tx) {
-    final List<BlakeModexpDataOperation> newOperations =
-        new ArrayList<>(this.operations.sets.getLast())
-            .stream().sorted(Comparator.comparingLong(BlakeModexpDataOperation::id)).toList();
-
-    this.sortedOperations.addAll(newOperations);
-    final int numberOfOperationsAtEndTx = sortedOperations.size();
-    for (int i = numberOfOperationsAtStartTx; i < numberOfOperationsAtEndTx; i++) {
-      final long previousID = i == 0 ? 0 : sortedOperations.get(i - 1).id();
-      this.wcp.callLT(previousID, sortedOperations.get(i).id());
-    }
-  }
-
-  @Override
-  public void traceStartTx(
-      WorldView world, TransactionProcessingMetadata transactionProcessingMetadata) {
-    this.numberOfOperationsAtStartTx = operations.size();
-  }
-
-  @Override
   public void popTransaction() {
-    this.sortedOperations.removeAll(this.operations.sets.getLast());
     this.operations.pop();
   }
 
@@ -96,27 +71,35 @@ public class BlakeModexpData implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  public void callModexp(final ModExpMetadata modexpMetaData, final int id) {
-    operations.add(new BlakeModexpDataOperation(modexpMetaData, id));
+  public void callModexp(final ModExpMetadata modexpMetaData, final int operationID) {
+    operations.add(new BlakeModexpDataOperation(modexpMetaData, operationID));
     modexpEffectiveCall.addPrecompileLimit(1);
+    callWcpForIdCheck(operationID);
   }
 
-  public void callBlake(final BlakeComponents blakeComponents) {
-    operations.add(new BlakeModexpDataOperation(blakeComponents));
+  public void callBlake(final BlakeComponents blakeComponents, final int operationID) {
+    operations.add(new BlakeModexpDataOperation(blakeComponents, operationID));
     blakeEffectiveCall.addPrecompileLimit(1);
     blakeRounds.addPrecompileLimit(blakeComponents.r().toInt());
+    callWcpForIdCheck(operationID);
+  }
+
+  private void callWcpForIdCheck(final int operationID) {
+    wcp.callLT(previousID, operationID);
+    previousID = operationID;
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (BlakeModexpDataOperation o : this.sortedOperations) {
+    for (BlakeModexpDataOperation o : operations) {
       stamp++;
       o.trace(trace, stamp);
     }
   }
 
+  // TODO: this should die, the MMU just have to read in MmuCall
   public Bytes getInputDataByIdAndPhase(final int id, final int phase) {
     final BlakeModexpDataOperation op = getOperationById(id);
     return switch (phase) {

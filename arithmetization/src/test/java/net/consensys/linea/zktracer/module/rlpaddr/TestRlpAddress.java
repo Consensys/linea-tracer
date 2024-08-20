@@ -64,6 +64,7 @@ public class TestRlpAddress {
             .keyPair(keyPair)
             .transactionType(TransactionType.FRONTIER)
             .gasLimit(rnd.nextLong(21000, 0xffffL))
+            .gasPrice(Wei.of(10L))
             .payload(initCode)
             .build();
 
@@ -85,7 +86,7 @@ public class TestRlpAddress {
 
     final ToyAccount senderAccount =
         ToyAccount.builder()
-            .balance(Wei.of(100000000))
+            .balance(Wei.fromEth(1000))
             .nonce(randLong())
             .address(senderAddress)
             .build();
@@ -94,7 +95,7 @@ public class TestRlpAddress {
     final Address contractAddress = Address.fromHexString("0x000bad000000b077000");
     final ToyAccount contractAccount =
         ToyAccount.builder()
-            .balance(Wei.of(10000000))
+            .balance(Wei.fromEth(1000))
             .nonce(10)
             .address(contractAddress)
             .code(

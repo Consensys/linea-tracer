@@ -211,7 +211,7 @@ public class OobCallTest {
             .to(contractCallerAccount)
             .payload(Bytes.fromHexString("0x63acac8e" + iterations.toString().substring(2)))
             .transactionType(TransactionType.FRONTIER)
-            .gasLimit(0xffffffffffL)
+            .gasLimit(0xFFFFFFFFL)
             .value(Wei.ZERO)
             .keyPair(keyPair)
             .build();

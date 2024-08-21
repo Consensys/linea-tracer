@@ -948,12 +948,12 @@ public class OobOperation extends ModuleOperation {
     // row i + 1
     final boolean extractEbs =
         callToLT(
-            1, BigInteger.ZERO, prcModexpCdsCall.getCds(), BigInteger.ZERO, BigInteger.valueOf(32));
+            1, BigInteger.ZERO, BigInteger.valueOf(32), BigInteger.ZERO, prcModexpCdsCall.getCds());
 
     // row i + 2
     final boolean extractMbs =
         callToLT(
-            2, BigInteger.ZERO, prcModexpCdsCall.getCds(), BigInteger.ZERO, BigInteger.valueOf(64));
+            2, BigInteger.ZERO, BigInteger.valueOf(64), BigInteger.ZERO, prcModexpCdsCall.getCds());
 
     // Set extractBbs
     prcModexpCdsCall.setExtractBbs(extractBbs);
@@ -1034,6 +1034,8 @@ public class OobOperation extends ModuleOperation {
               BigInteger.valueOf(32));
     } else {
       noCall(3);
+      // TODO: this is not explicitly indicated in the specs, but otherwise we have not
+      //  initialized values when filling the trace
     }
 
     // Set loadLead

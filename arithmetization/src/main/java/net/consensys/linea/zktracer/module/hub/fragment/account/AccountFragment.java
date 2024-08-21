@@ -98,13 +98,13 @@ public final class AccountFragment
       DomSubStampsSubFragment domSubStampsSubFragment) {
     Preconditions.checkArgument(oldState.address().equals(newState.address()));
 
-    this.transactionProcessingMetadata = hub.txStack().current();
-    this.hubStamp = hub.stamp();
+    transactionProcessingMetadata = hub.txStack().current();
+    hubStamp = hub.stamp();
 
     this.oldState = oldState;
     this.newState = newState;
-    this.deploymentNumber = newState.deploymentNumber();
-    this.isDeployment = newState.deploymentStatus();
+    deploymentNumber = newState.deploymentNumber();
+    isDeployment = newState.deploymentStatus();
     this.addressToTrim = addressToTrim;
     this.domSubStampsSubFragment = domSubStampsSubFragment;
 
@@ -122,9 +122,9 @@ public final class AccountFragment
     final EWord eCodeHashNew = EWord.of(newState.code().getCodeHash());
 
     // tracing
-    this.domSubStampsSubFragment.trace(trace);
+    domSubStampsSubFragment.trace(trace);
     if (rlpAddrSubFragment != null) {
-      this.rlpAddrSubFragment.trace(trace);
+      rlpAddrSubFragment.trace(trace);
     }
 
     return trace
@@ -143,7 +143,7 @@ public final class AccountFragment
         .pAccountCodeHashLoNew(eCodeHashNew.lo())
         .pAccountHasCode(oldState.code().getCodeHash() != Hash.EMPTY)
         .pAccountHasCodeNew(newState.code().getCodeHash() != Hash.EMPTY)
-        .pAccountCodeFragmentIndex(this.codeFragmentIndex)
+        .pAccountCodeFragmentIndex(codeFragmentIndex)
         .pAccountRomlexFlag(requiresRomlex)
         .pAccountExists(
             oldState.nonce() > 0
@@ -163,8 +163,8 @@ public final class AccountFragment
         .pAccountDeploymentStatusNew(newState.deploymentStatus())
         .pAccountDeploymentNumberInfty(deploymentNumberInfinity)
         .pAccountDeploymentStatusInfty(existsInfinity)
-        .pAccountTrmFlag(this.addressToTrim.isPresent())
-        .pAccountTrmRawAddressHi(this.addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
+        .pAccountTrmFlag(addressToTrim.isPresent())
+        .pAccountTrmRawAddressHi(addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
         .pAccountIsPrecompile(isPrecompile(oldState.address()));
   }
 
@@ -175,28 +175,27 @@ public final class AccountFragment
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
     final TransactionProcessingMetadata.EphemeralAccount ephemeralAccount =
         new TransactionProcessingMetadata.EphemeralAccount(
-            this.oldState.address(), this.oldState.deploymentNumber());
+            oldState.address(), oldState.deploymentNumber());
     if (effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
       final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
-      this.markedForSelfDestruct = this.hubStamp < selfDestructTime;
-      this.markedForSelfDestructNew = this.hubStamp >= selfDestructTime;
+      markedForSelfDestruct = hubStamp < selfDestructTime;
+      markedForSelfDestructNew = hubStamp >= selfDestructTime;
     } else {
-      this.markedForSelfDestruct = false;
-      this.markedForSelfDestructNew = false;
+      markedForSelfDestruct = false;
+      markedForSelfDestructNew = false;
     }
   }
 
   @Override
   public void resolvePostConflation(Hub hub, WorldView world) {
-    this.deploymentNumberInfinity =
-        hub.transients().conflation().deploymentInfo().number(this.oldState.address());
-    this.existsInfinity = world.get(this.oldState.address()) != null;
-    this.codeFragmentIndex =
-        this.requiresRomlex
+    deploymentNumberInfinity =
+        hub.transients().conflation().deploymentInfo().number(oldState.address());
+    existsInfinity = world.get(oldState.address()) != null;
+    codeFragmentIndex =
+        requiresRomlex
             ? hub.romLex()
                 .getCodeFragmentIndexByMetadata(
-                    ContractMetadata.make(
-                        this.oldState.address(), this.deploymentNumber, this.isDeployment))
+                    ContractMetadata.make(oldState.address(), deploymentNumber, isDeployment))
             : 0;
   }
 }

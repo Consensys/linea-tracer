@@ -67,14 +67,25 @@ public class TxInitializationSection {
 
     final Account recipientAccount = world.get(toAddress);
 
-    final AccountSnapshot recipientBeforeValueTransfer =
-        isSelfCredit
-            ? senderAfterPayingForTransaction
-            : AccountSnapshot.fromAccount(
-                recipientAccount,
-                tx.isReceiverPreWarmed(),
-                deploymentInfo.number(toAddress),
-                deploymentInfo.isDeploying(toAddress));
+    AccountSnapshot recipientBeforeValueTransfer;
+
+    if (recipientAccount != null) {
+      recipientBeforeValueTransfer =
+          isSelfCredit
+              ? senderAfterPayingForTransaction
+              : AccountSnapshot.fromAccount(
+                  recipientAccount,
+                  tx.isReceiverPreWarmed(),
+                  deploymentInfo.number(toAddress),
+                  deploymentInfo.isDeploying(toAddress));
+    } else {
+      recipientBeforeValueTransfer =
+          AccountSnapshot.fromAddress(
+              toAddress,
+              tx.isReceiverPreWarmed(),
+              deploymentInfo.number(toAddress),
+              deploymentInfo.isDeploying(toAddress));
+    }
 
     if (isDeployment) {
       deploymentInfo.deploy(toAddress);

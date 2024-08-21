@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub.precompiles;
 import static net.consensys.linea.zktracer.module.txndata.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -109,9 +110,22 @@ public class ModExpMetadata {
 
   public EWord rawLeadingWord() {
 
-    return loadRawLeadingWord()
-        ? EWord.of(callData.slice(BASE_MIN_OFFSET + bbsInt(), WORD_SIZE))
-        : EWord.ZERO;
+    if (!loadRawLeadingWord()) return EWord.ZERO;
+
+    int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
+    if (exponentOffsetInCallData + WORD_SIZE <= callData.size())
+      return EWord.of(callData.slice(BASE_MIN_OFFSET + bbsInt(), WORD_SIZE));
+
+    int nExponentBytesInCallData = callData.size() - exponentOffsetInCallData;
+    Preconditions.checkArgument(
+        nExponentBytesInCallData > 0
+            && nExponentBytesInCallData < WORD_SIZE);
+    StringBuilder callDataHexString = new StringBuilder(callData.slice(exponentOffsetInCallData, nExponentBytesInCallData).toHexString());
+    for (int i = 0; i < nExponentBytesInCallData; i++) {
+      callDataHexString.append("00");
+    }
+    Preconditions.checkArgument(callDataHexString.length() == WORD_SIZE);
+    return (EWord) Bytes.fromHexString(callDataHexString);
   }
 
   public boolean extractModulus() {

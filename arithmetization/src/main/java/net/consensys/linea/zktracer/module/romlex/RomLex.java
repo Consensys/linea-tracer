@@ -102,10 +102,6 @@ public class RomLex implements Module, PostOpcodeDefer {
   }
 
   public Optional<RomChunk> getChunkByMetadata(final ContractMetadata metadata) {
-    if (this.sortedChunks.isEmpty()) {
-      throw new RuntimeException("Chunks have not been sorted yet");
-    }
-
     for (RomChunk c : this.chunks) {
       if (c.metadata().equals(metadata)) {
         return Optional.of(c);

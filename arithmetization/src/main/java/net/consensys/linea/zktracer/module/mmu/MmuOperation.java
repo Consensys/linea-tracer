@@ -151,10 +151,7 @@ public class MmuOperation extends ModuleOperation {
     if (exoSum != 0) {
       mmuData.exoSumDecoder(exoSumDecoder);
       final int exoId =
-          (int)
-              (mmuData.exoLimbIsSource()
-                  ? this.mmuData.hubToMmuValues().sourceId()
-                  : this.mmuData.hubToMmuValues().targetId());
+          mmuData.exoLimbIsSource() ? mmuData.mmuCall().sourceId() : mmuData.mmuCall().targetId();
       mmuData.exoBytes(exoSumDecoder.getExoBytes(mmuData.hubToMmuValues(), exoId));
     }
   }

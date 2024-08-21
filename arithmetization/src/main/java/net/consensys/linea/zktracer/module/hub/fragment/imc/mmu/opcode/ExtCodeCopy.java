@@ -20,23 +20,27 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_
 import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostConflationDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.internal.Words;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
  * A specialization of {@link MmuCall} that addresses the fact that the MMU requires access to the
  * sorted Code Fragment Index of the copied bytecode, which is only available post-conflation.
  */
-public class ExtCodeCopy extends MmuCall {
+public class ExtCodeCopy extends MmuCall implements PostConflationDefer {
   private final Hub hub;
   private final ContractMetadata contract;
 
   public ExtCodeCopy(final Hub hub) {
     super(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING);
     this.hub = hub;
+    hub.defers().scheduleForPostConflation(this);
+
     final Address sourceAddress = Words.toAddress(hub.messageFrame().getStackItem(0));
     this.contract =
         ContractMetadata.make(
@@ -57,21 +61,20 @@ public class ExtCodeCopy extends MmuCall {
   }
 
   @Override
-  public int sourceId() {
-    try {
-      return this.hub.romLex().getCodeFragmentIndexByMetadata(this.contract);
-    } catch (Exception ignored) {
-      // Triggered if the external bytecode is empty, and thus absent from the ROMLex.
-      return 0;
-    }
+  public long referenceSize() {
+    return hub.romLex()
+        .getChunkByMetadata(contract)
+        .map(chunk -> chunk.byteCode().size())
+        .orElse(0);
   }
 
   @Override
-  public long referenceSize() {
-    return this.hub
-        .romLex()
-        .getChunkByMetadata(this.contract)
-        .map(chunk -> chunk.byteCode().size())
-        .orElse(0);
+  public void resolvePostConflation(Hub hub, WorldView world) {
+    try {
+      sourceId(hub.romLex().getCodeFragmentIndexByMetadata(contract));
+    } catch (Exception ignored) {
+      // Can be 0 in case the ext account is empty. In this case, no associated CFI
+      sourceId(0);
+    }
   }
 }

@@ -149,6 +149,11 @@ public class OperationAncillaries {
     return maybeShadowReadMemory(callDataSegment, frame);
   }
 
+  public static Bytes initCode(final MessageFrame frame) {
+    final MemorySpan initCodeSegment = initCodeSegment(frame);
+    return maybeShadowReadMemory(initCodeSegment, frame);
+  }
+
   /**
    * Returns the RAM segment offered by the caller for the return data if the current operation is a
    * call, throws otherwise.

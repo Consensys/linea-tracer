@@ -108,7 +108,7 @@ public class AddressUtils {
   public static Address getCreate2Address(final MessageFrame frame) {
     final Address sender = frame.getRecipientAddress();
     final Bytes32 salt = Bytes32.leftPad(frame.getStackItem(3));
-    final Bytes initCode = OperationAncillaries.callData(frame);
+    final Bytes initCode = OperationAncillaries.initCode(frame);
     final Bytes32 hash = Hash.keccak256(initCode);
     return Address.extract(getCreate2RawAddress(sender, salt, hash));
   }

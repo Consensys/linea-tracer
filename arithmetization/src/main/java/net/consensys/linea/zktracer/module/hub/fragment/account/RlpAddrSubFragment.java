@@ -42,7 +42,7 @@ public class RlpAddrSubFragment implements TraceSubFragment {
     switch (currentOpCode) {
       case CREATE2 -> {
         final Bytes32 salt = Bytes32.leftPad(hub.currentFrame().frame().getStackItem(3));
-        final Bytes initCode = OperationAncillaries.callData(hub.currentFrame().frame());
+        final Bytes initCode = OperationAncillaries.initCode(hub.currentFrame().frame());
         final Bytes32 hash =
             Hash.keccak256(initCode); // TODO: could be done better, we compute the HASH two times
         return new RlpAddrSubFragment((short) 2, deploymentAddress, salt, hash);

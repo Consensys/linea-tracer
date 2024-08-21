@@ -80,7 +80,11 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     final Account foreignAccount = frame.getWorldUpdater().get(address);
 
-    accountBefore = AccountSnapshot.canonical(hub, address);
+    accountBefore =
+        foreignAccount != null
+            ? AccountSnapshot.canonical(hub, address)
+            : AccountSnapshot.fromAddress(
+                address, incomingWarmth, incomingDeploymentNumber, incomingDeploymentStatus);
 
     final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
@@ -108,11 +112,10 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     // TODO: make sure that hasCode returns false during deployments
     //  in particular: write tests for that scenario
-    final boolean triggerCfi = triggerMmu && foreignAccount.hasCode();
+    final boolean foreignAccountHasCode = foreignAccount != null && foreignAccount.hasCode();
+    final boolean triggerCfi = triggerMmu && foreignAccountHasCode;
 
-    accountAfter =
-        AccountSnapshot.fromAccount(
-            foreignAccount, true, incomingDeploymentNumber, incomingDeploymentStatus);
+    accountAfter = accountBefore.turnOnWarmth();
 
     final AccountFragment accountDoingFragment =
         hub.factories()

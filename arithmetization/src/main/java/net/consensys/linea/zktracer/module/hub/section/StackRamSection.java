@@ -40,7 +40,6 @@ public class StackRamSection extends TraceSection {
   public StackRamSection(Hub hub) {
     super(hub, (short) 3);
 
-    hub.addTraceSection(this);
     this.addStack(hub);
 
     final OpCode instruction = hub.opCode();

@@ -82,16 +82,15 @@ public class TxPreWarmingMacroSection {
                       new DomSubStampsSubFragment(
                           DomSubStampsSubFragment.DomSubType.STANDARD, hub.stamp(), 0, 0, 0, 0, 0);
 
-                  hub.addTraceSection(
-                      new TxPrewarmingSection(
-                          hub,
-                          hub.factories()
-                              .accountFragment()
-                              .makeWithTrm(
-                                  preWarmingAccountSnapshot,
-                                  postWarmingAccountSnapshot,
-                                  address,
-                                  domSubStampsSubFragment)));
+                  new TxPrewarmingSection(
+                      hub,
+                      hub.factories()
+                          .accountFragment()
+                          .makeWithTrm(
+                              preWarmingAccountSnapshot,
+                              postWarmingAccountSnapshot,
+                              address,
+                              domSubStampsSubFragment));
 
                   seenAddresses.add(address);
 
@@ -122,7 +121,7 @@ public class TxPreWarmingMacroSection {
                             DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0),
                             hub.state.firstAndLastStorageSlotOccurrences.size());
 
-                    hub.addTraceSection(new TxPrewarmingSection(hub, storageFragment));
+                    new TxPrewarmingSection(hub, storageFragment);
                     hub.state.updateOrInsertStorageSlotOccurrence(
                         storageSlotIdentifier, storageFragment);
 

@@ -34,7 +34,6 @@ public class CodeCopySection extends TraceSection {
 
   public CodeCopySection(Hub hub) {
     super(hub, maxNumberOfRows(hub));
-    hub.addTraceSection(this);
 
     // Miscellaneous row
     final ImcFragment imcFragment = ImcFragment.empty(hub);

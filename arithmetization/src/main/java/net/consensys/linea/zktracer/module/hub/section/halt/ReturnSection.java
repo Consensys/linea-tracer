@@ -64,7 +64,6 @@ public class ReturnSection extends TraceSection
 
   public ReturnSection(Hub hub) {
     super(hub, maxNumberOfRows(hub));
-    hub.addTraceSection(this);
 
     final CallFrame currentFrame = hub.currentFrame();
     returnFromMessageCall = currentFrame.isMessageCall();

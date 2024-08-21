@@ -22,7 +22,6 @@ import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -35,8 +34,9 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class TxInitializationSection {
+public class TxInitializationSection extends TraceSection {
   public TxInitializationSection(Hub hub, WorldView world) {
+    super(hub, (short) 5);
 
     hub.state.setProcessingPhase(TX_INIT);
     hub.state.stamps().incrementHubStamp();
@@ -106,31 +106,20 @@ public class TxInitializationSection {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
 
-    hub.addTraceSection(
-        new InitializationSection(
-            hub,
-            accountFragmentFactory.make(
-                senderBeforePayingForTransaction,
-                senderAfterPayingForTransaction,
-                senderDomSubStamps),
-            accountFragmentFactory
-                .makeWithTrm(
-                    recipientBeforeValueTransfer,
-                    recipientAfterValueTransfer,
-                    toAddress,
-                    recipientDomSubStamps)
-                .requiresRomlex(true),
-            ImcFragment.forTxInit(hub),
-            ContextFragment.initializeNewExecutionContext(hub),
-            txFragment));
+    this.addFragment(
+        accountFragmentFactory.make(
+            senderBeforePayingForTransaction, senderAfterPayingForTransaction, senderDomSubStamps));
+    this.addFragment(
+        accountFragmentFactory
+            .makeWithTrm(
+                recipientBeforeValueTransfer,
+                recipientAfterValueTransfer,
+                toAddress,
+                recipientDomSubStamps)
+            .requiresRomlex(true));
+    this.addFragments(
+        ImcFragment.forTxInit(hub), ContextFragment.initializeNewExecutionContext(hub), txFragment);
 
     hub.state.setProcessingPhase(TX_EXEC);
-  }
-
-  public static class InitializationSection extends TraceSection {
-    public InitializationSection(Hub hub, TraceFragment... fragments) {
-      super(hub, (short) 5);
-      this.addFragments(fragments);
-    }
   }
 }

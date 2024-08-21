@@ -31,7 +31,6 @@ public class ReturnDataCopySection extends TraceSection {
 
   public ReturnDataCopySection(Hub hub) {
     super(hub, maxNumberOfRows(hub));
-    hub.addTraceSection(this);
 
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     final ImcFragment imcFragment = ImcFragment.empty(hub);

@@ -17,10 +17,10 @@ package net.consensys.linea.zktracer.module.hub;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
+import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
-import static net.consensys.linea.zktracer.opcode.InstructionFamily.CALL;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
 import java.nio.MappedByteBuffer;
@@ -66,7 +66,7 @@ import net.consensys.linea.zktracer.module.hub.section.TransactionSection;
 import net.consensys.linea.zktracer.module.hub.section.TxFinalizationSection;
 import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
 import net.consensys.linea.zktracer.module.hub.section.TxPreWarmingMacroSection;
-import net.consensys.linea.zktracer.module.hub.section.TxSkippedSectionDefers;
+import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection;
@@ -489,23 +489,23 @@ public class Hub implements Module {
   }
 
   public void traceStartTransaction(final WorldView world, final Transaction tx) {
-    this.pch.reset();
-    this.state.enter();
-    this.txStack.enterTransaction(world, tx, transients.block());
+    pch.reset();
+    state.enter();
+    txStack.enterTransaction(world, tx, transients.block());
 
     this.enterTransaction();
 
-    if (!this.txStack.current().requiresEvmExecution()) {
-      this.state.setProcessingPhase(TX_SKIP);
-      this.state.stamps().incrementHubStamp();
-      this.defers.scheduleForPostTransaction(
-          new TxSkippedSectionDefers(world, this.txStack.current(), this.transients));
+    if (!txStack.current().requiresEvmExecution()) {
+      state.setProcessingPhase(TX_SKIP);
+      state.stamps().incrementHubStamp();
+      defers.scheduleForPostTransaction(
+          new TxSkippedSection(this, world, this.txStack.current(), this.transients));
     } else {
-      if (this.txStack.current().requiresPrewarming()) {
-        this.state.setProcessingPhase(TX_WARM);
+      if (txStack.current().requiresPrewarming()) {
+        state.setProcessingPhase(TX_WARM);
         new TxPreWarmingMacroSection(world, this);
       }
-
+      state.setProcessingPhase(TX_INIT);
       new TxInitializationSection(this, world);
     }
 
@@ -515,7 +515,7 @@ public class Hub implements Module {
      *  2. should be the father of all root contexts
      *  3. should have the current root context as its lastCallee()
      */
-    this.callStack.getById(0).universalParentReturnDataContextNumber(this.stamp() + 1);
+    callStack.getById(0).universalParentReturnDataContextNumber(this.stamp() + 1);
 
     for (Module m : this.modules) {
       m.traceStartTx(world, this.txStack().current());

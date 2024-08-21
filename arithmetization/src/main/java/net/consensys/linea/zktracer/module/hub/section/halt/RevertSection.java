@@ -31,7 +31,6 @@ public class RevertSection extends TraceSection {
   public RevertSection(Hub hub) {
     // up to 4 = 1 + 3 rows
     super(hub, (short) 4);
-    hub.addTraceSection(this);
 
     short exceptions = hub.pch().exceptions();
 

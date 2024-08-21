@@ -50,7 +50,6 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   public ExtCodeCopySection(Hub hub) {
     // 4 = 1 + 3
     super(hub, maxNumberOfRows(hub));
-    hub.addTraceSection(this);
 
     final MessageFrame frame = hub.messageFrame();
     rawAddress = frame.getStackItem(0);

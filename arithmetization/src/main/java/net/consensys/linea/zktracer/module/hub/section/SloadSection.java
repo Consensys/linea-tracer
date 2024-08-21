@@ -61,7 +61,6 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     this.valueCurrent = EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
     this.exceptions = hub.pch().exceptions();
 
-    hub.addTraceSection(this);
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
 
     // NOTE: SLOAD can only trigger

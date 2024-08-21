@@ -63,8 +63,6 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     this.valueNext = EWord.of(hub.messageFrame().getStackItem(1));
     final short exceptions = hub.pch().exceptions();
 
-    hub.addTraceSection(this);
-
     final boolean staticContextException = Exceptions.staticFault(exceptions);
     final boolean sstoreException = Exceptions.outOfSStore(exceptions);
 

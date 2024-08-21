@@ -115,7 +115,7 @@ public class CallSection extends TraceSection
 
   public CallSection(Hub hub) {
     super(hub, maxNumberOfLines(hub));
-    hub.addTraceSection(this);
+
     final short exceptions = hub.pch().exceptions();
 
     // row i + 1

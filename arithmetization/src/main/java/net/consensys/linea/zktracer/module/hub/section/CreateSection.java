@@ -95,7 +95,6 @@ public class CreateSection extends TraceSection
     super(hub, maxNumberOfLines(hub.pch().exceptions(), hub.pch().abortingConditions()));
     final short exceptions = hub.pch().exceptions();
 
-    hub.addTraceSection(this);
     this.addStack(hub);
 
     // row  i+ 0

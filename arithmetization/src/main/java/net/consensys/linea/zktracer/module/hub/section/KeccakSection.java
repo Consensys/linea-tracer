@@ -36,7 +36,6 @@ public class KeccakSection extends TraceSection implements PostOpcodeDefer {
 
   public KeccakSection(Hub hub) {
     super(hub, (short) 3);
-    hub.addTraceSection(this);
     hub.defers().scheduleForPostExecution(this);
 
     final ImcFragment imcFragment = ImcFragment.empty(hub);

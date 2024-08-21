@@ -67,7 +67,6 @@ public class SelfdestructSection extends TraceSection
   public SelfdestructSection(Hub hub) {
     // up to 8 = 1 + 7 rows
     super(hub, (short) 8);
-    hub.addTraceSection(this);
 
     // Init
     this.id = hub.currentFrame().id();

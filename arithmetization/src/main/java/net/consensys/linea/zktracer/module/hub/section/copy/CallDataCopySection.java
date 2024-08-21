@@ -31,7 +31,6 @@ public class CallDataCopySection extends TraceSection {
   public CallDataCopySection(Hub hub) {
     // 3 = 1 + 2
     super(hub, maxNumberOfRows(hub));
-    hub.addTraceSection(this);
 
     final ImcFragment imcFragment = ImcFragment.empty(hub);
     this.addStack(hub);
@@ -47,7 +46,7 @@ public class CallDataCopySection extends TraceSection {
     // - outOfGasException OOGX
     ////////////////////////////////////
 
-    short exceptions = hub.pch().exceptions();
+    final short exceptions = hub.pch().exceptions();
     Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // The MXPX case
@@ -67,12 +66,10 @@ public class CallDataCopySection extends TraceSection {
 
     final boolean triggerMmu = mxpCall.mayTriggerNontrivialMmuOperation;
 
-    if (!triggerMmu) {
-      return;
+    if (triggerMmu) {
+      final MmuCall mmuCall = MmuCall.callDataCopy(hub);
+      imcFragment.callMmu(mmuCall);
     }
-
-    final MmuCall mmuCall = MmuCall.callDataCopy(hub);
-    imcFragment.callMmu(mmuCall);
   }
 
   private static short maxNumberOfRows(Hub hub) {

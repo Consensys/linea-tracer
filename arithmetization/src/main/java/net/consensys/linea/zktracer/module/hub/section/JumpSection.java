@@ -37,11 +37,6 @@ public class JumpSection extends TraceSection {
     // 5 = 1 + 4
     // There are up to 4 NSR's
     super(hub, (short) 5);
-    this.populateSection(hub);
-    hub.addTraceSection(this);
-  }
-
-  public void populateSection(Hub hub) {
 
     this.addStackAndFragments(hub);
 
@@ -51,22 +46,22 @@ public class JumpSection extends TraceSection {
 
     // CONTEXT fragment
     ///////////////////
-    ContextFragment contextRowCurrentContext = ContextFragment.readCurrentContextData(hub);
+    final ContextFragment contextRowCurrentContext = ContextFragment.readCurrentContextData(hub);
 
     // ACCOUNT fragment
     ///////////////////
-    Address codeAddress = hub.messageFrame().getContractAddress();
+    final Address codeAddress = hub.messageFrame().getContractAddress();
 
-    DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
+    final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     final int deploymentNumber = deploymentInfo.number(codeAddress);
     final boolean deploymentStatus = deploymentInfo.isDeploying(codeAddress);
 
     final boolean warmth = hub.messageFrame().isAddressWarm(codeAddress);
     Preconditions.checkArgument(warmth);
 
-    AccountSnapshot codeAccount = canonical(hub, codeAddress);
+    final AccountSnapshot codeAccount = canonical(hub, codeAddress);
 
-    AccountFragment accountRowCodeAccount =
+    final AccountFragment accountRowCodeAccount =
         hub.factories()
             .accountFragment()
             .make(
@@ -76,7 +71,7 @@ public class JumpSection extends TraceSection {
 
     // MISCELLANEOUS fragment
     /////////////////////////
-    ImcFragment miscellaneousRow = ImcFragment.empty(hub);
+    final ImcFragment miscellaneousRow = ImcFragment.empty(hub);
     boolean mustAttemptJump = false;
     switch (hub.opCode()) {
       case OpCode.JUMP -> {

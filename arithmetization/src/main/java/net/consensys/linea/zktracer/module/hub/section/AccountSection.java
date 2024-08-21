@@ -39,7 +39,6 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
 
   public AccountSection(Hub hub) {
     super(hub, maxNumberOfRows(hub));
-    hub.addTraceSection(this);
     this.addStack(hub);
 
     final short exceptions = hub.pch().exceptions();

@@ -21,7 +21,6 @@ import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -34,19 +33,20 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  * later, through a {@link PostTransactionDefer}, to generate the trace chunks required for the
  * proving of a pure transaction.
  */
-public class TxSkippedSectionDefers implements PostTransactionDefer {
+public class TxSkippedSection extends TraceSection implements PostTransactionDefer {
   final TransactionProcessingMetadata txMetadata;
   final AccountSnapshot oldFromAccount;
   final AccountSnapshot oldToAccount;
   final AccountSnapshot oldMinerAccount;
 
-  public TxSkippedSectionDefers(
-      WorldView world, TransactionProcessingMetadata txMetadata, Transients transients) {
+  public TxSkippedSection(
+      Hub hub, WorldView world, TransactionProcessingMetadata txMetadata, Transients transients) {
+    super(hub, (short) 4);
     this.txMetadata = txMetadata;
 
     // From account information
     final Address fromAddress = txMetadata.getBesuTransaction().getSender();
-    this.oldFromAccount =
+    oldFromAccount =
         AccountSnapshot.fromAccount(
             world.get(fromAddress),
             isPrecompile(fromAddress),
@@ -58,7 +58,7 @@ public class TxSkippedSectionDefers implements PostTransactionDefer {
     if (txMetadata.isDeployment()) {
       transients.conflation().deploymentInfo().deploy(toAddress);
     }
-    this.oldToAccount =
+    oldToAccount =
         AccountSnapshot.fromAccount(
             world.get(toAddress),
             isPrecompile(toAddress),
@@ -67,7 +67,7 @@ public class TxSkippedSectionDefers implements PostTransactionDefer {
 
     // Miner account information
     final Address minerAddress = txMetadata.getCoinbase();
-    this.oldMinerAccount =
+    oldMinerAccount =
         AccountSnapshot.fromAccount(
             world.get(minerAddress),
             isPrecompile(minerAddress),
@@ -104,41 +104,34 @@ public class TxSkippedSectionDefers implements PostTransactionDefer {
             hub.transients().conflation().deploymentInfo().number(minerAddress),
             false);
 
-    // Append the final chunk to the hub chunks
-    hub.addTraceSection(
-        new TxSkippedSection(
-            hub,
-            // 3 lines -- account changes
-            // From
-            hub.factories()
-                .accountFragment()
-                .make(
-                    oldFromAccount,
-                    newFromAccount,
-                    DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
-            // To
-            hub.factories()
-                .accountFragment()
-                .make(
-                    oldToAccount,
-                    newToAccount,
-                    DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
-            // Miner
-            hub.factories()
-                .accountFragment()
-                .make(
-                    oldMinerAccount,
-                    newMinerAccount,
-                    DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2)),
+    // From
+    this.addFragment(
+        hub.factories()
+            .accountFragment()
+            .make(
+                oldFromAccount,
+                newFromAccount,
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)));
 
-            // 1 line -- transaction data
-            TransactionFragment.prepare(hub.txStack().current())));
-  }
+    // To
+    this.addFragment(
+        hub.factories()
+            .accountFragment()
+            .make(
+                oldToAccount,
+                newToAccount,
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)));
 
-  public static class TxSkippedSection extends TraceSection {
-    public TxSkippedSection(Hub hub, TraceFragment... fragments) {
-      super(hub, (short) 4);
-      this.addFragments(fragments);
-    }
+    // Miner
+    this.addFragment(
+        hub.factories()
+            .accountFragment()
+            .make(
+                oldMinerAccount,
+                newMinerAccount,
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2)));
+
+    // Transaction data
+    this.addFragment(TransactionFragment.prepare(hub.txStack().current()));
   }
 }

@@ -20,7 +20,6 @@ import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -29,7 +28,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class TxFinalizationSection implements PostTransactionDefer {
+public class TxFinalizationSection extends TraceSection implements PostTransactionDefer {
   private final TransactionProcessingMetadata txMetadata;
   private final AccountSnapshot fromAccountBeforeTxFinalization;
   private final AccountSnapshot toAccountBeforeTxFinalization;
@@ -39,6 +38,7 @@ public class TxFinalizationSection implements PostTransactionDefer {
   private @Setter AccountSnapshot minerAccountAfterTxFinalization;
 
   public TxFinalizationSection(Hub hub, WorldView world) {
+    super(hub, (short) 4);
     this.txMetadata = hub.txStack().current();
 
     final DeploymentInfo depInfo = hub.transients().conflation().deploymentInfo();
@@ -105,102 +105,105 @@ public class TxFinalizationSection implements PostTransactionDefer {
 
   private void successfulFinalization(Hub hub) {
     if (!senderIsMiner()) {
-      hub.addTraceSection(
-          new FinalizationSection(
-              hub,
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      this.fromAccountBeforeTxFinalization,
-                      this.fromAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      this.minerAccountBeforeTxFinalization,
-                      this.minerAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
-              TransactionFragment.prepare(hub.txStack().current())));
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.fromAccountBeforeTxFinalization,
+                  this.fromAccountAfterTxFinalization,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)));
+
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.minerAccountBeforeTxFinalization,
+                  this.minerAccountAfterTxFinalization,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)));
+      this.addFragment(TransactionFragment.prepare(hub.txStack().current()));
     } else {
       // TODO: verify it works
-      hub.addTraceSection(
-          new FinalizationSection(
-              hub,
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      this.fromAccountBeforeTxFinalization,
-                      this.fromAccountBeforeTxFinalization.incrementBalance(
-                          txMetadata.getGasRefundInWei()),
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      this.fromAccountBeforeTxFinalization,
-                      this.minerAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
-              TransactionFragment.prepare(hub.txStack().current())));
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.fromAccountBeforeTxFinalization,
+                  this.fromAccountBeforeTxFinalization.incrementBalance(
+                      txMetadata.getGasRefundInWei()),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)));
+
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.fromAccountBeforeTxFinalization,
+                  this.minerAccountAfterTxFinalization,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)));
+      this.addFragment(TransactionFragment.prepare(hub.txStack().current()));
     }
   }
 
   private void unsuccessfulFinalization(Hub hub) {
     if (noAccountCollision()) {
-      hub.addTraceSection(
-          new FinalizationSection(
-              hub,
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      this.fromAccountBeforeTxFinalization,
-                      this.fromAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      this.toAccountBeforeTxFinalization,
-                      this.toAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      this.minerAccountBeforeTxFinalization,
-                      this.minerAccountAfterTxFinalization,
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2)),
-              TransactionFragment.prepare(hub.txStack().current())));
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.fromAccountBeforeTxFinalization,
+                  this.fromAccountAfterTxFinalization,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)));
+
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.toAccountBeforeTxFinalization,
+                  this.toAccountAfterTxFinalization,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)));
+
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.minerAccountBeforeTxFinalization,
+                  this.minerAccountAfterTxFinalization,
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2)));
+      this.addFragment(TransactionFragment.prepare(hub.txStack().current()));
     } else {
       // TODO: test this
-      hub.addTraceSection(
-          new FinalizationSection(
-              hub,
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      this.fromAccountBeforeTxFinalization,
-                      this.fromAccountBeforeTxFinalization
-                          .incrementBalance((Wei) txMetadata.getBesuTransaction().getValue())
-                          .incrementBalance(txMetadata.getGasRefundInWei()),
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)),
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      senderIsTo()
-                          ? this.fromAccountBeforeTxFinalization
-                          : this.toAccountBeforeTxFinalization,
-                      senderIsTo()
-                          ? this.fromAccountBeforeTxFinalization.decrementBalance(
-                              (Wei) txMetadata.getBesuTransaction().getValue())
-                          : this.toAccountBeforeTxFinalization.decrementBalance(
-                              (Wei) txMetadata.getBesuTransaction().getValue()),
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)),
-              hub.factories()
-                  .accountFragment()
-                  .make(
-                      this.minerAccountAfterTxFinalization.decrementBalance(
-                          txMetadata.getMinerReward()),
-                      this.minerAccountAfterTxFinalization.incrementBalance(
-                          txMetadata.getMinerReward()),
-                      DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2)),
-              TransactionFragment.prepare(hub.txStack().current())));
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.fromAccountBeforeTxFinalization,
+                  this.fromAccountBeforeTxFinalization
+                      .incrementBalance((Wei) txMetadata.getBesuTransaction().getValue())
+                      .incrementBalance(txMetadata.getGasRefundInWei()),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)));
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  senderIsTo()
+                      ? this.fromAccountBeforeTxFinalization
+                      : this.toAccountBeforeTxFinalization,
+                  senderIsTo()
+                      ? this.fromAccountBeforeTxFinalization.decrementBalance(
+                          (Wei) txMetadata.getBesuTransaction().getValue())
+                      : this.toAccountBeforeTxFinalization.decrementBalance(
+                          (Wei) txMetadata.getBesuTransaction().getValue()),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1)));
+
+      this.addFragment(
+          hub.factories()
+              .accountFragment()
+              .make(
+                  this.minerAccountAfterTxFinalization.decrementBalance(
+                      txMetadata.getMinerReward()),
+                  this.minerAccountAfterTxFinalization.incrementBalance(
+                      txMetadata.getMinerReward()),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2)));
+      this.addFragment(TransactionFragment.prepare(hub.txStack().current()));
     }
   }
 
@@ -224,12 +227,5 @@ public class TxFinalizationSection implements PostTransactionDefer {
 
   private boolean noAccountCollision() {
     return !senderIsMiner() && !senderIsTo() && !toIsMiner();
-  }
-
-  public class FinalizationSection extends TraceSection {
-    public FinalizationSection(Hub hub, TraceFragment... fragments) {
-      super(hub, (short) (txMetadata.statusCode() ? 3 : 4));
-      this.addFragments(fragments);
-    }
   }
 }

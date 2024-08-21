@@ -63,6 +63,7 @@ public class TraceSection {
     this.fragments =
         new ArrayList<>(
             22); // 22 is the maximum number of lines in a section (Successful reverted Modexp)
+    hub.addTraceSection(this);
   }
 
   /** Default creator specifying the max number of rows the section can contain. */
@@ -70,6 +71,7 @@ public class TraceSection {
     this.hub = hub;
     this.commonValues = new CommonFragmentValues(hub);
     this.fragments = new ArrayList<>(maxNumberOfLines);
+    hub.addTraceSection(this);
   }
 
   /**

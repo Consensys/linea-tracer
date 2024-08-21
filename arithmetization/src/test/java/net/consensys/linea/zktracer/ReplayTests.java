@@ -109,4 +109,39 @@ public class ReplayTests {
   void incident777zkGethMainnet() {
     replay("7461019-7461030.json.gz");
   }
+
+  @Test
+  void leoFailingRangeA() {
+    replay("2247091-2247391.json.gz");
+  }
+
+  @Test
+  void leoFailingRangeB() {
+    replay("2265460-2265684.json.gz");
+  }
+
+  @Test
+  void leoFailingRangeC() {
+    replay("2260037-2260198.json.gz");
+  }
+
+  @Test
+  void leoFailingRangeD() {
+    replay("2250131-2250478.json.gz");
+  }
+
+  @Test
+  void testBlock() {
+    replay("2260000-2260000.json.gz");
+  }
+
+  @Test
+  void testRange() {
+    replay("2260000-2260010.json.gz");
+  }
+// 2260000-2260010
+// 2247091-2247391
+// 2265460-2265684
+// 2260037-2260198
+// 2250131-2250478
 }

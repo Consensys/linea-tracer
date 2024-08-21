@@ -197,11 +197,25 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     final MemorySpan callDataSegment = hub.currentFrame().callDataInfo().memorySpan();
 
     final int callDataContextNumber = callDataContextNumber(hub);
-    final CallFrame callFrame = hub.callStack().getByContextNumber(callDataContextNumber);
+
+    /* TODO: we have a disjonction isRoot / isNotRoot we have to kill. We have it in the special case
+    - root context
+    - payload empty
+
+    In this case, we haven't created a fictious context with the callData and thus hub.callStack().getByContextNumber(callDataContextNumber);
+    is not working. This is not normal.
+    * */
+    final boolean isRoot = hub.currentFrame().isRoot();
+    final CallFrame callFrame =
+        isRoot ? null : hub.callStack().getByContextNumber(callDataContextNumber);
 
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId(callDataContextNumber)
-        .sourceRamBytes(Optional.of(callFrame.callDataInfo().data()))
+        .sourceRamBytes(
+            Optional.of(
+                isRoot
+                    ? hub.txStack().current().getBesuTransaction().getPayload()
+                    : callFrame.callDataInfo().data()))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(
             Optional.of(

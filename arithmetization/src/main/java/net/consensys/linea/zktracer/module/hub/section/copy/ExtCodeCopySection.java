@@ -54,7 +54,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     final MessageFrame frame = hub.messageFrame();
     rawAddress = frame.getStackItem(0);
-    address = Address.extract((Bytes32) rawAddress);
+    address = Address.fromHexString(rawAddress.toHexString());
     incomingDeploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
     incomingDeploymentStatus = hub.transients().conflation().deploymentInfo().isDeploying(address);
     incomingWarmth = frame.isAddressWarm(address);
@@ -78,7 +78,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
       return;
     }
 
-    final Account foreignAccount = frame.getWorldUpdater().get(this.address);
+    final Account foreignAccount = frame.getWorldUpdater().getOrCreate(this.address);
 
     this.accountBefore = AccountSnapshot.canonical(hub, address);
 

@@ -42,7 +42,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
-import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
@@ -102,7 +102,7 @@ public class ExpOperation extends ModuleOperation {
 
       // Extract inputs
       PrecompileInvocation precompileInvocation = modexplogExpCall.getP();
-      ModExpMetadata modexpMetadata = (ModExpMetadata) precompileInvocation.metadata();
+      ModexpMetadata modexpMetadata = (ModexpMetadata) precompileInvocation.metadata();
       final int bbsInt = modexpMetadata.bbs().toUnsignedBigInteger().intValueExact();
       final int ebsInt = modexpMetadata.ebs().toUnsignedBigInteger().intValueExact();
       Preconditions.checkArgument(

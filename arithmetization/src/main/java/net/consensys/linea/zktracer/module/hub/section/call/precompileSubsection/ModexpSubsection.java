@@ -42,20 +42,20 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Mode
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpLeadOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpPricingOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpXbsOobCall;
-import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
 public class ModexpSubsection extends PrecompileSubsection {
 
-  private final ModExpMetadata modExpMetadata;
+  private final ModexpMetadata modExpMetadata;
   private ModexpPricingOobCall sixthOobCall;
   private ImcFragment seventhImcFragment;
 
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
 
-    modExpMetadata = new ModExpMetadata(callData);
+    modExpMetadata = new ModexpMetadata(callData);
     if (modExpMetadata
                 .bbs()
                 .toUnsignedBigInteger()

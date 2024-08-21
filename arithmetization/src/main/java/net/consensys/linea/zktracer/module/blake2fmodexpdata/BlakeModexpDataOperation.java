@@ -40,7 +40,7 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.Hash;
@@ -58,10 +58,10 @@ public class BlakeModexpDataOperation extends ModuleOperation {
 
   @Getter public final long id;
 
-  public final Optional<ModExpMetadata> modexpMetaData;
+  public final Optional<ModexpMetadata> modexpMetaData;
   public final Optional<BlakeComponents> blake2fComponents;
 
-  public BlakeModexpDataOperation(final ModExpMetadata modexpMetaData, final int id) {
+  public BlakeModexpDataOperation(final ModexpMetadata modexpMetaData, final int id) {
     this.id = id;
     this.modexpMetaData = Optional.of(modexpMetaData);
     this.blake2fComponents = Optional.empty();

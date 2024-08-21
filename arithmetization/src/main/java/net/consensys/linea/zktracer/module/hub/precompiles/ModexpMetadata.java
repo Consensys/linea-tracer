@@ -28,7 +28,7 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @Getter
 @Accessors(fluent = true)
-public class ModExpMetadata {
+public class ModexpMetadata {
   static final int EBS_MIN_OFFSET = 32;
   static final int MBS_MIN_OFFSET = 64;
   static final int BASE_MIN_OFFSET = 96;
@@ -36,7 +36,7 @@ public class ModExpMetadata {
   private final Bytes callData;
   @Setter private Bytes rawResult;
 
-  public ModExpMetadata(final Bytes callData) {
+  public ModexpMetadata(final Bytes callData) {
     this.callData = callData;
   }
 
@@ -121,11 +121,11 @@ public class ModExpMetadata {
         nExponentBytesInCallData > 0
             && nExponentBytesInCallData < WORD_SIZE);
     StringBuilder callDataHexString = new StringBuilder(callData.slice(exponentOffsetInCallData, nExponentBytesInCallData).toHexString());
-    for (int i = 0; i < nExponentBytesInCallData; i++) {
+    for (int i = nExponentBytesInCallData; i < WORD_SIZE; i++) {
       callDataHexString.append("00");
     }
-    Preconditions.checkArgument(callDataHexString.length() == WORD_SIZE);
-    return (EWord) Bytes.fromHexString(callDataHexString);
+    Preconditions.checkArgument(callDataHexString.length() == 2 + 2 * WORD_SIZE); // "0x" + 2 characters per byte
+    return EWord.of(Bytes.fromHexString(callDataHexString));
   }
 
   public boolean extractModulus() {

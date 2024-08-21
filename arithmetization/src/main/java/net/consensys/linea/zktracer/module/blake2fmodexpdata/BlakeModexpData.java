@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.precompiles.ModExpMetadata;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
@@ -71,7 +71,7 @@ public class BlakeModexpData implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  public void callModexp(final ModExpMetadata modexpMetaData, final int operationID) {
+  public void callModexp(final ModexpMetadata modexpMetaData, final int operationID) {
     operations.add(new BlakeModexpDataOperation(modexpMetaData, operationID));
     modexpEffectiveCall.addPrecompileLimit(1);
     callWcpForIdCheck(operationID);

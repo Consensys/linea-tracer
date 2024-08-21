@@ -1034,8 +1034,8 @@ public class OobOperation extends ModuleOperation {
               BigInteger.valueOf(32));
     } else {
       noCall(3);
-      // This is not explicitly indicated in the specs, but otherwise we have not
-      // initialized values when filling the trace
+      // Note: this noCall is not explicitly indicated in the specs since not necessary
+      // Here it is done only to initialize the corresponding array elements to fill the trace
     }
 
     // Set loadLead

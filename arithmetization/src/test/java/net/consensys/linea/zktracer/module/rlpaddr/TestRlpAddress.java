@@ -63,7 +63,7 @@ public class TestRlpAddress {
             .sender(senderAccount)
             .keyPair(keyPair)
             .transactionType(TransactionType.FRONTIER)
-            .gasLimit(rnd.nextLong(21000, 0xffffL))
+            .gasLimit(1000000L)
             .gasPrice(Wei.of(10L))
             .payload(initCode)
             .build();
@@ -135,7 +135,7 @@ public class TestRlpAddress {
             .to(contractAccount)
             .keyPair(keyPair)
             .transactionType(TransactionType.FRONTIER)
-            .gasLimit(rnd.nextLong(21000, 0xffffL))
+            .gasLimit(1000000L)
             .payload(initCodeReturnContractCode)
             .build();
 

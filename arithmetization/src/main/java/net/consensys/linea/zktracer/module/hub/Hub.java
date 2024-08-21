@@ -565,8 +565,7 @@ public class Hub implements Module {
       final Address toAddress = effectiveToAddress(currentTx.getBesuTransaction());
       final boolean isDeployment = this.transients.tx().getBesuTransaction().getTo().isEmpty();
 
-      final boolean shouldCopyTxCallData =
-          !isDeployment && !frame.getInputData().isEmpty() && currentTx.requiresEvmExecution();
+      final boolean shouldCopyTxCallData = !isDeployment && currentTx.requiresEvmExecution();
       // TODO simplify this, the same bedRock context ( = root context ??) seems to be
       // generated in
       // both case

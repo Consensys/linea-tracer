@@ -439,8 +439,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .targetId(precompileSubsection.exoModuleOperationId())
         .targetRamBytes(Optional.of(Bytes.EMPTY))
         .sourceOffset(EWord.of(precompileSubsection.callDataMemorySpan.offset()))
-        .targetOffset(EWord.ZERO)
-        .size(precompileSubsection.callDataMemorySpan.length());
+        .size(precompileSubsection.callDataMemorySpan.length())
+        .referenceSize(precompileSubsection.callDataMemorySpan.length());
   }
 
   public static MmuCall forIdentityReturnData(

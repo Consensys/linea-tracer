@@ -54,7 +54,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     final MessageFrame frame = hub.messageFrame();
     rawAddress = frame.getStackItem(0);
-    address = Address.extract((Bytes32) rawAddress);
+    address = Address.extract(Bytes32.leftPad(rawAddress));
     incomingDeploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
     incomingDeploymentStatus = hub.transients().conflation().deploymentInfo().isDeploying(address);
     incomingWarmth = frame.isAddressWarm(address);
@@ -78,9 +78,9 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
       return;
     }
 
-    final Account foreignAccount = frame.getWorldUpdater().get(this.address);
+    final Account foreignAccount = frame.getWorldUpdater().get(address);
 
-    this.accountBefore = AccountSnapshot.canonical(hub, address);
+    accountBefore = AccountSnapshot.canonical(hub, address);
 
     final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
@@ -102,7 +102,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     final boolean triggerMmu = mxpCall.mayTriggerNontrivialMmuOperation;
     if (triggerMmu) {
-      MmuCall mmuCall = MmuCall.extCodeCopy(hub);
+      final MmuCall mmuCall = MmuCall.extCodeCopy(hub);
       imcFragment.callMmu(mmuCall);
     }
 
@@ -110,7 +110,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     //  in particular: write tests for that scenario
     final boolean triggerCfi = triggerMmu && foreignAccount.hasCode();
 
-    this.accountAfter =
+    accountAfter =
         AccountSnapshot.fromAccount(
             foreignAccount, true, incomingDeploymentNumber, incomingDeploymentStatus);
 
@@ -130,7 +130,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
-    AccountSnapshot accountPostRollback = AccountSnapshot.canonical(hub, address);
+    final AccountSnapshot accountPostRollback = AccountSnapshot.canonical(hub, address);
 
     final DomSubStampsSubFragment undoingDomSubStamps =
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(

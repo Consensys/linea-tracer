@@ -36,6 +36,7 @@ import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpCallDataSizeOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpExtractOobCall;
@@ -112,8 +113,8 @@ public class ModexpSubsection extends PrecompileSubsection {
     if (modExpMetadata.loadRawLeadingWord()) {
       final MmuCall mmuCall = forModexpLoadLead(hub, this, modExpMetadata);
       fifthImcFragment.callMmu(mmuCall);
-      final ExpCall expCall = null; // TODO: to do new ModexpLogExpCall() ... @Lorenzo;
-      fifthImcFragment.callExp(expCall);
+      final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modExpMetadata);
+      fifthImcFragment.callExp(modexpLogCallToExp);
     }
 
     final ImcFragment sixthImcFragment = ImcFragment.empty(hub);

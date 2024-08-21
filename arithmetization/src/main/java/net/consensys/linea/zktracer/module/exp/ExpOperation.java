@@ -101,15 +101,14 @@ public class ExpOperation extends ModuleOperation {
       ModexpLogExpCall modexplogExpCall = (ModexpLogExpCall) expCall;
 
       // Extract inputs
-      PrecompileInvocation precompileInvocation = modexplogExpCall.getP();
-      ModexpMetadata modexpMetadata = (ModexpMetadata) precompileInvocation.metadata();
+      ModexpMetadata modexpMetadata = modexplogExpCall.getModexpMetadata();
       final int bbsInt = modexpMetadata.bbs().toUnsignedBigInteger().intValueExact();
       final int ebsInt = modexpMetadata.ebs().toUnsignedBigInteger().intValueExact();
       Preconditions.checkArgument(
-          precompileInvocation.callDataSource().length() - 96 - bbsInt >= 0);
+          modexpMetadata.callData().size() - 96 - bbsInt >= 0);
       EWord rawLead = modexpMetadata.rawLeadingWord();
       int cdsCutoff =
-          Math.min((int) (precompileInvocation.callDataSource().length() - 96 - bbsInt), 32);
+          Math.min(modexpMetadata.callData().size() - 96 - bbsInt, 32);
       int ebsCutoff = Math.min(ebsInt, 32);
       BigInteger leadLog =
           BigInteger.valueOf(LeadLogTrimLead.fromArgs(rawLead, cdsCutoff, ebsCutoff).leadLog());

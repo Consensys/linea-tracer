@@ -22,7 +22,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class TrmTracerTest {
@@ -119,9 +118,9 @@ public class TrmTracerTest {
   }
 
   @Test
-  void testSixArgCall() {
+  void testSampleDelegateCall() {
     for (long tiny = 0; tiny < 16; tiny++) {
-      sixArgCall(tiny);
+      sampleDelegateCall(tiny);
     }
   }
 
@@ -170,7 +169,7 @@ public class TrmTracerTest {
         .run();
   }
 
-  void sixArgCall(long rawAddr) {
+  void sampleDelegateCall(long rawAddr) {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
                 .push(Bytes.fromHexString("0xff")) // rds

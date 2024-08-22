@@ -26,19 +26,58 @@ public class SeveralKeccaks {
         .run();
   }
 
+  /**
+   * For readability we write __ instead of 00
+   */
+  @Test
+  void TestIsTheBeefDeadYet() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push("deadbeef") // 4 bytes
+                .push(28 * 8)
+                .op(OpCode.SHL) //  stack = [ 0x DE AD BE EF __ ... __]
+                .op(OpCode.DUP1) // stack = [ 0x DE AD BE EF __ ... __, 0x DE AD BE EF __ ... __]
+                .push(1)
+                .op(OpCode.MSTORE) // memory looks like so 0x __ DE AD BE EF __ __ __ ...
+                .push(6)
+                .op(OpCode.MSTORE) // memory looks like so 0x __ DE AD BE EF __ DE AD BE EF __ __ __ ...
+                .push(4) .push(1) .op(OpCode.SHA3) // KEC(0xDEADBEEF)
+                .push(5) .push(0) .op(OpCode.SHA3) // KEC(0x00DEADBEEF)
+                .push(6) .push(0) .op(OpCode.SHA3) // KEC(0x00DEADBEEF00)
+                .push(5) .push(1) .op(OpCode.SHA3) // KEC(0xDEADBEEF00)
+                .push(4) .push(6) .op(OpCode.SHA3) // KEC(0xDEADBEEF)
+                .push(5) .push(6) .op(OpCode.SHA3) // KEC(0xDEADBEEF00)
+                .push(6) .push(5) .op(OpCode.SHA3) // KEC(0x00DEADBEEF00)
+                .push(5) .push(5) .op(OpCode.SHA3) // KEC(0x00DEADBEEF)
+                .compile())
+        .run();
+  }
+
   @Test
   void testSeveralKeccaks() {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
                 .push(0)
                 .push(0)
+                .op(OpCode.SHA3) // empty hash, no memory expansion
+                .op(OpCode.POP)
+                .push(0)
+                .push(31)
+                .op(OpCode.SHA3) // empty hash, no memory expansion
+                .op(OpCode.POP)
+                .push(64)
+                .push(13)
+                .op(OpCode.SHA3)
+                .op(OpCode.POP)
+                .push(0)
+                .push(49)
                 .op(OpCode.SHA3)
                 .op(OpCode.POP)
                 .push(64)
                 .push(13)
                 .op(OpCode.SHA3)
                 .op(OpCode.POP)
-                .push(11)
+                .push(37)
                 .push(75)
                 .op(OpCode.SHA3)
                 .op(OpCode.POP)

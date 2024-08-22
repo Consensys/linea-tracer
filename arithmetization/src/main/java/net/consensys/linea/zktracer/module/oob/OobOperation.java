@@ -1036,6 +1036,7 @@ public class OobOperation extends ModuleOperation {
       noCall(3);
       // Note: this noCall is not explicitly indicated in the specs since not necessary
       // Here it is done only to initialize the corresponding array elements to fill the trace
+      // TODO: init the lists with zeros (or something equivalent) instead of using noCall
     }
 
     // Set loadLead

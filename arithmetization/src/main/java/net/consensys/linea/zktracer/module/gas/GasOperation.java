@@ -15,50 +15,84 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
 import static net.consensys.linea.zktracer.module.gas.Trace.CT_MAX;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 
 import java.math.BigInteger;
 
 import lombok.EqualsAndHashCode;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class GasOperation extends ModuleOperation {
   @EqualsAndHashCode.Include GasParameters gasParameters;
-  Bytes acc1;
-  Bytes acc2;
+  BigInteger[] wcpArg1Lo;
+  BigInteger[] wcpArg2Lo;
+  UnsignedByte[] wcpInst;
+  BigInteger[] wcpRes;
+  int CT_MAX;
 
   public GasOperation(GasParameters gasParameters) {
     this.gasParameters = gasParameters;
-    acc1 = bigIntegerToBytes(gasParameters.gasActl());
-    acc2 =
-        bigIntegerToBytes(
-            (BigInteger.valueOf((2L * booleanToInt(gasParameters.oogx()) - 1))
-                    .multiply(gasParameters.gasCost().subtract(gasParameters.gasActl())))
-                .subtract(BigInteger.valueOf(booleanToInt(gasParameters.oogx()))));
+    CT_MAX = gasParameters.ctMax();
+
+    // init arrays
+    wcpArg1Lo = new BigInteger[CT_MAX + 1];
+    wcpArg2Lo = new BigInteger[CT_MAX + 1];
+    wcpInst = new UnsignedByte[CT_MAX + 1];
+    wcpRes = new BigInteger[CT_MAX + 1];
+
+    // row 0
+    wcpArg1Lo[0] = BigInteger.ZERO;
+    wcpArg2Lo[0] = gasParameters.gasActual();
+    wcpInst[0] = UnsignedByte.of(WCP_INST_LEQ);
+    wcpRes[0] = BigInteger.ONE;
+
+    // row 1
+    wcpArg1Lo[1] = BigInteger.ZERO;
+    wcpArg2Lo[1] = gasParameters.gasCost();
+    wcpInst[1] = UnsignedByte.of(WCP_INST_LEQ);
+    wcpRes[1] = BigInteger.ONE;
+
+    // row 2
+    if (gasParameters.oogx()) {
+      wcpArg1Lo[2] = gasParameters.gasActual();
+      wcpArg2Lo[2] = gasParameters.gasCost();
+      wcpInst[2] = UnsignedByte.of(EVM_INST_LT);
+      wcpRes[2] = booleanToBigInteger(gasParameters.oogx());
+    } else {
+      // TODO: init the lists with zeros (or something equivalent) instead
+      wcpArg1Lo[2] = BigInteger.ZERO;
+      wcpArg2Lo[2] = BigInteger.ZERO;
+      wcpInst[2] = UnsignedByte.of(0);
+      wcpRes[2] = BigInteger.ZERO;
+    }
   }
 
   @Override
   protected int computeLineCount() {
-    return CT_MAX + 1;
+    return gasParameters.ctMax() + 1;
   }
 
   public void trace(int stamp, Trace trace) {
     for (short i = 0; i < CT_MAX + 1; i++) {
       trace
-          .stamp(stamp)
+          // .inputsAndOutputsAreMeaningful(stamp != 0) ?
+          // .first(i == 0)
           .ct(i)
-          .gasActl(gasParameters.gasActl().longValue())
+          // .ctMax(CT_MAX)
+          .gasActl(gasParameters.gasActual().longValue())
           .gasCost(bigIntegerToBytes(gasParameters.gasCost()))
+          // .xahoy(gasParameters.xahoy())
           .oogx(gasParameters.oogx())
-          .byte1(UnsignedByte.of(acc1.get(i)))
-          .byte2(UnsignedByte.of(acc2.get(i)))
-          .acc1(acc1.slice(0, i + 1))
-          .acc2(acc2.slice(0, i + 1))
+          // .wcpArg1Lo(bigIntegerToBytes(wcpArg1Lo[i]))
+          // .wcpArg2Lo(bigIntegerToBytes(wcpArg2Lo[i]))
+          // .wcpInst(wcpInst[i].byteValue())
+          // .wcpRes(bigIntegerToBytes(wcpRes[i]))
           .validateRow();
     }
   }

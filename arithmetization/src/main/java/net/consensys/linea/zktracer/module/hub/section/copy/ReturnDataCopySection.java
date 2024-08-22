@@ -70,7 +70,7 @@ public class ReturnDataCopySection extends TraceSection {
     // beyond this point unexceptional
     final boolean triggerMmu = mxpCall.mayTriggerNontrivialMmuOperation;
     if (triggerMmu) {
-      MmuCall mmuCall = MmuCall.returnDataCopy(hub);
+      final MmuCall mmuCall = MmuCall.returnDataCopy(hub);
       imcFragment.callMmu(mmuCall);
     }
   }

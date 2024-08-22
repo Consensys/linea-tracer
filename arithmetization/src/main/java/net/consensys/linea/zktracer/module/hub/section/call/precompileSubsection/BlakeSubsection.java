@@ -41,8 +41,6 @@ public class BlakeSubsection extends PrecompileSubsection {
     blakeCdsOobCall = new Blake2fCallDataSizeOobCall();
     firstImcFragment.callOob(blakeCdsOobCall);
 
-    hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
-
     if (!blakeCdsOobCall.isHubSuccess()) {
       this.setScenario(PRC_FAILURE_KNOWN_TO_HUB);
       blakeSuccess = false;

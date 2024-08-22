@@ -95,6 +95,10 @@ public class PrecompileSubsection
     this.callSection = callSection;
     fragments = new ArrayList<>(maxNumberOfLines());
 
+    hub.defers().scheduleForImmediateContextEntry(this); // gas & input data, ...
+    hub.defers().scheduleForContextExit(this, exoModuleOperationId());
+    hub.defers().scheduleForContextReEntry(this, hub.currentFrame()); // success bit & return data
+
     final PrecompileScenarioFragment.PrecompileFlag precompileFlag =
         addressToPrecompileFlag(callSection.precompileAddress.orElseThrow());
 
@@ -156,6 +160,9 @@ public class PrecompileSubsection
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
     callSuccess = bytesToBoolean(hub.messageFrame().getStackItem(0));
     returnData = frame.frame().getReturnData();
+
+    frame.returnDataContextNumber(exoModuleOperationId());
+    frame.returnDataSpan(new MemorySpan(0, returnData.size()));
 
     if (callSuccess) {
       hub.defers().scheduleForPostRollback(this, frame);

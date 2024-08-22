@@ -90,7 +90,7 @@ public class Mmu implements Module {
     int mmuStamp = 0;
     int mmioStamp = 0;
 
-    for (MmuOperation mmuOp : this.mmuOperations) {
+    for (MmuOperation mmuOp : mmuOperations) {
       mmuOp.getCFI();
       mmuOp.setExoBytes(exoSumDecoder);
       mmuOp.fillLimb();

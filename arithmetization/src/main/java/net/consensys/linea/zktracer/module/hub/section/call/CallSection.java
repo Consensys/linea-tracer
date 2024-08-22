@@ -194,11 +194,6 @@ public class CallSection extends TraceSection
 
       precompileSubsection =
           ADDRESS_TO_PRECOMPILE.get(preOpcodeCalleeSnapshot.address()).apply(hub, this);
-
-      hub.defers().scheduleForImmediateContextEntry(precompileSubsection); // gas & input data, ...
-      hub.defers()
-          .scheduleForContextReEntry(
-              precompileSubsection, hub.currentFrame()); // success bit & return data
     } else {
       Optional.ofNullable(world.get(calleeAddress))
           .ifPresentOrElse(

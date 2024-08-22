@@ -102,7 +102,7 @@ public class ShakiraDataOperation extends ModuleOperation {
     for (int ct = 0; ct <= indexMaxData; ct++) {
       final boolean lastDataRow = ct == indexMaxData;
       trace
-          .ripshaStamp(stamp)
+          .shakiraStamp(stamp)
           .id(ID)
           .phase(phase)
           .index(ct)
@@ -140,7 +140,7 @@ public class ShakiraDataOperation extends ModuleOperation {
 
     for (int ct = 0; ct <= INDEX_MAX_RESULT; ct++) {
       trace
-          .ripshaStamp(stamp)
+          .shakiraStamp(stamp)
           .id(ID)
           .phase(phase)
           .index(ct)

@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
-import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 

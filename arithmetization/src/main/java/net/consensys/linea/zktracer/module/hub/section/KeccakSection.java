@@ -52,10 +52,7 @@ public class KeccakSection extends TraceSection implements PostOpcodeDefer {
       imcFragment.callMmu(mmuCall);
       long offset = hub.messageFrame().getStackItem(0).toLong();
       long size = hub.messageFrame().getStackItem(1).toLong();
-      hashInput =
-          hub.currentFrame()
-              .frame()
-              .shadowReadMemory(offset, size);
+      hashInput = hub.currentFrame().frame().shadowReadMemory(offset, size);
     }
   }
 

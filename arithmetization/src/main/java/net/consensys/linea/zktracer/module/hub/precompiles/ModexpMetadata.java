@@ -117,12 +117,14 @@ public class ModexpMetadata {
 
     int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
     int numberOfBytesToGrabFromCallData =
-            (exponentOffsetInCallData + WORD_SIZE <= callData.size())
-                    ? WORD_SIZE
-                    : callData.size() - exponentOffsetInCallData;
+        (exponentOffsetInCallData + WORD_SIZE <= callData.size())
+            ? WORD_SIZE
+            : callData.size() - exponentOffsetInCallData;
     Preconditions.checkArgument(0 < numberOfBytesToGrabFromCallData);
 
-    return EWord.of(Bytes32.rightPad(callData.slice(BASE_MIN_OFFSET + bbsInt(), numberOfBytesToGrabFromCallData)));
+    return EWord.of(
+        Bytes32.rightPad(
+            callData.slice(BASE_MIN_OFFSET + bbsInt(), numberOfBytesToGrabFromCallData)));
   }
 
   public boolean extractModulus() {

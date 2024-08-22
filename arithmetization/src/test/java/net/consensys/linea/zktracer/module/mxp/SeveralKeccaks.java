@@ -26,9 +26,7 @@ public class SeveralKeccaks {
         .run();
   }
 
-  /**
-   * For readability we write __ instead of 00
-   */
+  /** For readability we write __ instead of 00 */
   @Test
   void TestIsTheBeefDeadYet() {
     BytecodeRunner.of(
@@ -40,15 +38,32 @@ public class SeveralKeccaks {
                 .push(1)
                 .op(OpCode.MSTORE) // memory looks like so 0x __ DE AD BE EF __ __ __ ...
                 .push(6)
-                .op(OpCode.MSTORE) // memory looks like so 0x __ DE AD BE EF __ DE AD BE EF __ __ __ ...
-                .push(4) .push(1) .op(OpCode.SHA3) // KEC(0xDEADBEEF)
-                .push(5) .push(0) .op(OpCode.SHA3) // KEC(0x00DEADBEEF)
-                .push(6) .push(0) .op(OpCode.SHA3) // KEC(0x00DEADBEEF00)
-                .push(5) .push(1) .op(OpCode.SHA3) // KEC(0xDEADBEEF00)
-                .push(4) .push(6) .op(OpCode.SHA3) // KEC(0xDEADBEEF)
-                .push(5) .push(6) .op(OpCode.SHA3) // KEC(0xDEADBEEF00)
-                .push(6) .push(5) .op(OpCode.SHA3) // KEC(0x00DEADBEEF00)
-                .push(5) .push(5) .op(OpCode.SHA3) // KEC(0x00DEADBEEF)
+                .op(OpCode.MSTORE) // memory looks like so 0x __ DE AD BE EF __ DE AD BE EF __ __ __
+                // ...
+                .push(4)
+                .push(1)
+                .op(OpCode.SHA3) // KEC(0xDEADBEEF)
+                .push(5)
+                .push(0)
+                .op(OpCode.SHA3) // KEC(0x00DEADBEEF)
+                .push(6)
+                .push(0)
+                .op(OpCode.SHA3) // KEC(0x00DEADBEEF00)
+                .push(5)
+                .push(1)
+                .op(OpCode.SHA3) // KEC(0xDEADBEEF00)
+                .push(4)
+                .push(6)
+                .op(OpCode.SHA3) // KEC(0xDEADBEEF)
+                .push(5)
+                .push(6)
+                .op(OpCode.SHA3) // KEC(0xDEADBEEF00)
+                .push(6)
+                .push(5)
+                .op(OpCode.SHA3) // KEC(0x00DEADBEEF00)
+                .push(5)
+                .push(5)
+                .op(OpCode.SHA3) // KEC(0x00DEADBEEF)
                 .compile())
         .run();
   }

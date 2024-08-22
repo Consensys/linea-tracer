@@ -43,7 +43,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
-import net.consensys.linea.zktracer.module.hub.precompiles.PrecompileInvocation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -104,11 +103,9 @@ public class ExpOperation extends ModuleOperation {
       ModexpMetadata modexpMetadata = modexplogExpCall.getModexpMetadata();
       final int bbsInt = modexpMetadata.bbs().toUnsignedBigInteger().intValueExact();
       final int ebsInt = modexpMetadata.ebs().toUnsignedBigInteger().intValueExact();
-      Preconditions.checkArgument(
-          modexpMetadata.callData().size() - 96 - bbsInt >= 0);
+      Preconditions.checkArgument(modexpMetadata.callData().size() - 96 - bbsInt >= 0);
       EWord rawLead = modexpMetadata.rawLeadingWord();
-      int cdsCutoff =
-          Math.min(modexpMetadata.callData().size() - 96 - bbsInt, 32);
+      int cdsCutoff = Math.min(modexpMetadata.callData().size() - 96 - bbsInt, 32);
       int ebsCutoff = Math.min(ebsInt, 32);
       BigInteger leadLog =
           BigInteger.valueOf(LeadLogTrimLead.fromArgs(rawLead, cdsCutoff, ebsCutoff).leadLog());

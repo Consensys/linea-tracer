@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.operation.Operation;
 
 public class KeccakSection extends TraceSection implements PostOpcodeDefer {
@@ -50,8 +51,8 @@ public class KeccakSection extends TraceSection implements PostOpcodeDefer {
     if (triggerMmu) {
       final MmuCall mmuCall = MmuCall.sha3(hub);
       imcFragment.callMmu(mmuCall);
-      long offset = hub.messageFrame().getStackItem(0).toLong();
-      long size = hub.messageFrame().getStackItem(1).toLong();
+      final long offset = Words.clampedToLong(hub.messageFrame().getStackItem(0));
+      final long size = Words.clampedToLong(hub.messageFrame().getStackItem(1));
       hashInput = hub.currentFrame().frame().shadowReadMemory(offset, size);
     }
   }

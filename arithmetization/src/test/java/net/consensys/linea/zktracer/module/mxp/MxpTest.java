@@ -126,7 +126,7 @@ public class MxpTest {
   }
 
   @Test
-  void testMxpRandomTriggerRoob() {
+  void testMxpRandomTriggerRoob() {////fhuc
     // Testing a random program
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     final int INSTRUCTION_COUNT = 256;

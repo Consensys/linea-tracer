@@ -83,7 +83,7 @@ jobs:
       - name: Run unit tests
         run: ./gradlew :arithmetization:test --stacktrace
         env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
+          JAVA_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.workers.max=1
           CORSET_FLAGS: fields,expand,expand,expand
 
       - name: Upload test report

@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -38,8 +37,6 @@ public class TxInitializationSection extends TraceSection {
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 5);
 
-    hub.state.setProcessingPhase(TX_INIT);
-    hub.state.stamps().incrementHubStamp();
     final TransactionProcessingMetadata tx = hub.txStack().current();
     final boolean isDeployment = tx.isDeployment();
     final Address toAddress = tx.getEffectiveTo();

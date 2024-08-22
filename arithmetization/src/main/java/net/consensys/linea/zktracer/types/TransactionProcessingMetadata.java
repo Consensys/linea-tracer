@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.types;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
-import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
 import java.math.BigInteger;
@@ -32,7 +31,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
@@ -179,16 +177,9 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   }
 
   public void completeLineaTransaction(
-      Hub hub,
-      WorldView world,
-      final boolean statusCode,
-      final int hubStampTransactionEnd,
-      final HubProcessingPhase hubPhase,
-      final List<Log> logs,
-      final Set<Address> selfDestructs) {
+      Hub hub, final boolean statusCode, final List<Log> logs, final Set<Address> selfDestructs) {
     this.statusCode = statusCode;
-    this.hubStampTransactionEnd =
-        (hubPhase == TX_SKIP) ? hubStampTransactionEnd : hubStampTransactionEnd + 1;
+    this.hubStampTransactionEnd = hub.stamp();
     this.logs = logs;
     for (Address address : selfDestructs) {
       this.destructedAccountsSnapshot.add(AccountSnapshot.canonical(hub, address));

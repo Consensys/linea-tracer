@@ -57,7 +57,6 @@ public class TxPreWarmingMacroSection {
                 final HashMap<Address, Set<Bytes>> seenKeys = new HashMap<>();
 
                 for (AccessListEntry entry : accessList) {
-                  hub.state.stamps().incrementHubStamp();
                   final Address address = entry.address();
 
                   final DeploymentInfo deploymentInfo =
@@ -96,7 +95,6 @@ public class TxPreWarmingMacroSection {
 
                   final List<Bytes32> keys = entry.storageKeys();
                   for (Bytes32 k : keys) {
-                    hub.state.stamps().incrementHubStamp();
 
                     final UInt256 key = UInt256.fromBytes(k);
                     final EWord value =

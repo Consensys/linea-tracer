@@ -43,6 +43,7 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
       Hub hub, WorldView world, TransactionProcessingMetadata txMetadata, Transients transients) {
     super(hub, (short) 4);
     this.txMetadata = txMetadata;
+    hub.defers().scheduleForPostTransaction(this);
 
     // From account information
     final Address fromAddress = txMetadata.getBesuTransaction().getSender();

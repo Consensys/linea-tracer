@@ -497,9 +497,7 @@ public class Hub implements Module {
 
     if (!txStack.current().requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
-      state.stamps().incrementHubStamp();
-      defers.scheduleForPostTransaction(
-          new TxSkippedSection(this, world, this.txStack.current(), this.transients));
+      new TxSkippedSection(this, world, this.txStack.current(), this.transients);
     } else {
       if (txStack.current().requiresPrewarming()) {
         state.setProcessingPhase(TX_WARM);
@@ -533,20 +531,7 @@ public class Hub implements Module {
 
     // TODO: add the following resolution this.defers.resolvePostRollback(this, ...
 
-    this.txStack
-        .current()
-        .completeLineaTransaction(
-            this,
-            world,
-            isSuccessful,
-            this.state.stamps().hub(),
-            this.state().getProcessingPhase(),
-            logs,
-            selfDestructs);
-
-    if (this.state.getProcessingPhase() != TX_SKIP) {
-      this.state.stamps().incrementHubStamp();
-    }
+    this.txStack.current().completeLineaTransaction(this, isSuccessful, logs, selfDestructs);
 
     for (Module m : this.modules) {
       m.traceEndTx(txStack.current());
@@ -952,9 +937,6 @@ public class Hub implements Module {
   }
 
   void processStateExec(MessageFrame frame) {
-
-    this.state.stamps().incrementHubStamp();
-
     this.pch.setup(frame);
 
     this.handleStack(frame);

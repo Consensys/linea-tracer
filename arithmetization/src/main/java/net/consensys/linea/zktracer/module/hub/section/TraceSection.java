@@ -54,23 +54,12 @@ public class TraceSection {
   /* A link to the next section */
   @Setter public TraceSection nextSection = null;
 
-  /**
-   * Default creator for an empty section. Prefer the creator where we specify the max nb of rows
-   */
-  public TraceSection(Hub hub) {
-    this.hub = hub;
-    this.commonValues = new CommonFragmentValues(hub);
-    this.fragments =
-        new ArrayList<>(
-            22); // 22 is the maximum number of lines in a section (Successful reverted Modexp)
-    hub.addTraceSection(this);
-  }
-
   /** Default creator specifying the max number of rows the section can contain. */
   public TraceSection(final Hub hub, final short maxNumberOfLines) {
     this.hub = hub;
-    this.commonValues = new CommonFragmentValues(hub);
-    this.fragments = new ArrayList<>(maxNumberOfLines);
+    hub.state().stamps().incrementHubStamp();
+    commonValues = new CommonFragmentValues(hub);
+    fragments = new ArrayList<>(maxNumberOfLines);
     hub.addTraceSection(this);
   }
 
@@ -81,7 +70,7 @@ public class TraceSection {
    */
   public final void addFragment(TraceFragment fragment) {
     Preconditions.checkArgument(!(fragment instanceof CommonFragment));
-    this.fragments.add(fragment);
+    fragments.add(fragment);
   }
 
   /**

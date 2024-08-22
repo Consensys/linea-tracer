@@ -978,7 +978,6 @@ public class Hub implements Module {
   }
 
   void traceOpcode(MessageFrame frame) {
-
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
           MOD,

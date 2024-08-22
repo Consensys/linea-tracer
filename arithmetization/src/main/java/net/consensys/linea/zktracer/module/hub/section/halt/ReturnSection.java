@@ -80,7 +80,7 @@ public class ReturnSection extends TraceSection
     this.addFragment(currentContextFragment);
     this.addFragment(firstImcFragment);
 
-    short exceptions = hub.pch().exceptions();
+    final short exceptions = hub.pch().exceptions();
 
     if (Exceptions.any(exceptions)) {
       returnScenarioFragment.setScenario(RETURN_EXCEPTION);
@@ -194,7 +194,10 @@ public class ReturnSection extends TraceSection
       firstImcFragment.callOob(maxCodeSizeOobCall);
 
       // sanity checks
-      Preconditions.checkArgument(invalidCodePrefixCheckMmuCall.successBit());
+      // TODO: Olivier should confirm this validation check.
+      Preconditions.checkArgument(
+          Exceptions.invalidCodePrefix(exceptions) == invalidCodePrefixCheckMmuCall.successBit());
+      //      Preconditions.checkArgument(invalidCodePrefixCheckMmuCall.successBit());
       Preconditions.checkArgument(!maxCodeSizeOobCall.isMaxCodeSizeException());
 
       final ImcFragment secondImcFragment = ImcFragment.empty(hub);

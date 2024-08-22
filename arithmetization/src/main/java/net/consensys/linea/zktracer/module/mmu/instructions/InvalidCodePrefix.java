@@ -61,7 +61,7 @@ public class InvalidCodePrefix implements MmuInstruction {
     // Set mmuData.sourceRamBytes
     CallStackReader callStackReader = new CallStackReader(callStack);
     final Bytes sourceMemory =
-        callStackReader.valueFromMemory(mmuData.hubToMmuValues().sourceId(), true);
+        callStackReader.fullCopyOfContextMemory(mmuData.hubToMmuValues().sourceId(), true);
     mmuData.sourceRamBytes(sourceMemory);
 
     // row n°1
@@ -120,7 +120,7 @@ public class InvalidCodePrefix implements MmuInstruction {
             .sourceLimbOffset(initialSourceLimbOffset)
             .sourceByteOffset(initialSourceByteOffset)
             .targetByteOffset((short) LLARGEMO)
-            .limb((Bytes16) microLimb)
+            .limb(Bytes16.leftPad(microLimb))
             .build());
 
     return mmuData;

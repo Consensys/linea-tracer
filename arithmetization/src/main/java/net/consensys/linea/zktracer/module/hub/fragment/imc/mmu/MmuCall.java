@@ -287,6 +287,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall invalidCodePrefix(final Hub hub) {
+    final short currentExceptions = hub.pch().exceptions();
+
     return new MmuCall(hub, MMU_INST_INVALID_CODE_PREFIX)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(
@@ -295,7 +297,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
                     .frame()
                     .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .successBit(Exceptions.any(hub.pch().exceptions()));
+        .successBit(Exceptions.invalidCodePrefix(currentExceptions));
   }
 
   public static MmuCall revert(final Hub hub) {

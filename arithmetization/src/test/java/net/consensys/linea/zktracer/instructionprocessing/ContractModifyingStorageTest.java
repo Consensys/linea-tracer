@@ -22,7 +22,7 @@ import java.util.Random;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.testing.ToyExecutionEnvironment;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.testing.ToyWorld;
 import net.consensys.linea.zktracer.types.AddressUtils;
@@ -91,12 +91,8 @@ public class ContractModifyingStorageTest {
 
     ToyWorld toyWorld = ToyWorld.builder().accounts(List.of(userAccount)).build();
 
-    ToyExecutionEnvironment toyExecutionEnvironment =
-        ToyExecutionEnvironment.builder()
-            .toyWorld(toyWorld)
-            .transaction(tx)
-            .testValidator(x -> {})
-            .build();
+    ToyExecutionEnvironmentV2 toyExecutionEnvironment =
+        ToyExecutionEnvironmentV2.builder().toyWorld(toyWorld).transaction(tx).build();
 
     toyExecutionEnvironment.run();
   }
@@ -127,12 +123,8 @@ public class ContractModifyingStorageTest {
 
     ToyWorld toyWorld = ToyWorld.builder().accounts(List.of(userAccount)).build();
 
-    ToyExecutionEnvironment toyExecutionEnvironment =
-        ToyExecutionEnvironment.builder()
-            .toyWorld(toyWorld)
-            .transaction(tx)
-            .testValidator(x -> {})
-            .build();
+    ToyExecutionEnvironmentV2 toyExecutionEnvironment =
+        ToyExecutionEnvironmentV2.builder().toyWorld(toyWorld).transaction(tx).build();
 
     // TODO: add transaction to invoke function
 
@@ -209,12 +201,7 @@ public class ContractModifyingStorageTest {
             .value(Wei.fromEth(3))
             .build());
 
-    ToyExecutionEnvironment.builder()
-        .toyWorld(world.build())
-        .transactions(txList)
-        .testValidator(x -> {})
-        .build()
-        .run();
+    ToyExecutionEnvironmentV2.builder().toyWorld(world.build()).transactions(txList).build().run();
   }
 
   // Temporary support function

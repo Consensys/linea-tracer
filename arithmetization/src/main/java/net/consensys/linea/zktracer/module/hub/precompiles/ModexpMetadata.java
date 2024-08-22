@@ -24,6 +24,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Getter
@@ -110,22 +111,18 @@ public class ModexpMetadata {
 
   public EWord rawLeadingWord() {
 
-    if (!loadRawLeadingWord()) return EWord.ZERO;
+    if (!loadRawLeadingWord()) {
+      return EWord.ZERO;
+    }
 
     int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
-    if (exponentOffsetInCallData + WORD_SIZE <= callData.size())
-      return EWord.of(callData.slice(BASE_MIN_OFFSET + bbsInt(), WORD_SIZE));
+    int numberOfBytesToGrabFromCallData =
+            (exponentOffsetInCallData + WORD_SIZE <= callData.size())
+                    ? WORD_SIZE
+                    : callData.size() - exponentOffsetInCallData;
+    Preconditions.checkArgument(0 < numberOfBytesToGrabFromCallData);
 
-    int nExponentBytesInCallData = callData.size() - exponentOffsetInCallData;
-    Preconditions.checkArgument(
-        nExponentBytesInCallData > 0
-            && nExponentBytesInCallData < WORD_SIZE);
-    StringBuilder callDataHexString = new StringBuilder(callData.slice(exponentOffsetInCallData, nExponentBytesInCallData).toHexString());
-    for (int i = nExponentBytesInCallData; i < WORD_SIZE; i++) {
-      callDataHexString.append("00");
-    }
-    Preconditions.checkArgument(callDataHexString.length() == 2 + 2 * WORD_SIZE); // "0x" + 2 characters per byte
-    return EWord.of(Bytes.fromHexString(callDataHexString));
+    return EWord.of(Bytes32.rightPad(callData.slice(BASE_MIN_OFFSET + bbsInt(), numberOfBytesToGrabFromCallData)));
   }
 
   public boolean extractModulus() {

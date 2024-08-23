@@ -71,7 +71,7 @@ class MemoryTests {
   void mstoreAndReturn() {
     BytecodeCompiler program = newProgram();
     program
-            .push("deadbeef00000000deadbeef33333333deadbeefccccccccdeadbeef11111111").push(0x20).op(OpCode.MSTORE)
+            .push("deadbeef11111111deadbeef22222222deadbeef00000000deadbeefcccccccc").push(0x20).op(OpCode.MSTORE)
             .push(0x10).push(0x30).op(OpCode.RETURN);
     BytecodeRunner.of(program.compile()).run();
   }
@@ -80,7 +80,7 @@ class MemoryTests {
   void mstoreAndRevert() {
     BytecodeCompiler program = newProgram();
     program
-            .push("deadbeef22222222deadbeef33333333deadbeefccccccccdeadbeef11111111").push(0x20).op(OpCode.MSTORE)
+            .push("deadbeef11111111deadbeef22222222deadbeef00000000deadbeefcccccccc").push(0x20).op(OpCode.MSTORE)
             .push(0x10).push(0x28).op(OpCode.REVERT);
     BytecodeRunner.of(program.compile()).run();
   }
@@ -106,7 +106,7 @@ class MemoryTests {
   }
 
   @Test
-  void simpleRevertedLog() {
+  void revertAfterLog2() {
     BytecodeCompiler program = newProgram();
     program
             .push(0x01).push(0x11).op(OpCode.SHA3) // KECCAK("00")
@@ -119,6 +119,7 @@ class MemoryTests {
             .push(0xbbbbbbbb) // topic 2
             .push(0xaaaaaaaa) // topic 1
             .op(OpCode.LOG2)
+            .push("deadbeef00000000deadbeef33333333deadbeefccccccccdeadbeef11111111").push(0x40).op(OpCode.MSTORE)
             .push(0x10).push(0x30).op(OpCode.REVERT);
 
     BytecodeRunner.of(program.compile()).run();

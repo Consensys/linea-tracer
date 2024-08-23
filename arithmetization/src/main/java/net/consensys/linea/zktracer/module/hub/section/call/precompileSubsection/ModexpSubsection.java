@@ -46,6 +46,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Mode
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.EWord;
 
 public class ModexpSubsection extends PrecompileSubsection {
 
@@ -56,7 +57,7 @@ public class ModexpSubsection extends PrecompileSubsection {
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
 
-    modExpMetadata = new ModexpMetadata(callData);
+    modExpMetadata = new ModexpMetadata(hub, callData);
     if (modExpMetadata
                 .bbs()
                 .toUnsignedBigInteger()

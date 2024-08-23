@@ -30,9 +30,10 @@ import org.hyperledger.besu.evm.internal.Words;
 @Getter
 @Accessors(fluent = true)
 public class ModexpMetadata {
-  static final int EBS_MIN_OFFSET = 32;
-  static final int MBS_MIN_OFFSET = 64;
-  static final int BASE_MIN_OFFSET = 96;
+  static final int BBS_MIN_OFFSET = 0x00;
+  static final int EBS_MIN_OFFSET = 0x20;
+  static final int MBS_MIN_OFFSET = 0x40;
+  static final int BASE_MIN_OFFSET = 0x60;
 
   private final Bytes callData;
   @Setter private Bytes rawResult;
@@ -57,9 +58,9 @@ public class ModexpMetadata {
     return EBS_MIN_OFFSET - Math.min(EBS_MIN_OFFSET, callData.size());
   }
 
-  public Bytes rawBbs() {
-    return extractBbs() ? callData.slice(0, EBS_MIN_OFFSET) : Bytes.EMPTY;
-  }
+  public Bytes rawBbs() { return Util.slice(callData, BBS_MIN_OFFSET, WORD_SIZE); }
+  public Bytes rawEbs() { return Util.slice(callData, EBS_MIN_OFFSET, WORD_SIZE); }
+  public Bytes rawMbs() { return Util.slice(callData, MBS_MIN_OFFSET, WORD_SIZE); }
 
   public EWord bbs() {
     return EWord.of(rawBbs().shiftRight(bbsShift()).shiftLeft(bbsShift()));
@@ -71,9 +72,6 @@ public class ModexpMetadata {
         : 0;
   }
 
-  public Bytes rawEbs() {
-    return extractEbs() ? callData.slice(EBS_MIN_OFFSET, WORD_SIZE) : Bytes.EMPTY;
-  }
 
   public EWord ebs() {
     return EWord.of(rawEbs().shiftRight(ebsShift()).shiftLeft(ebsShift()));
@@ -83,10 +81,6 @@ public class ModexpMetadata {
     return extractMbs()
         ? EBS_MIN_OFFSET - Math.min(EBS_MIN_OFFSET, callData.size() - MBS_MIN_OFFSET)
         : 0;
-  }
-
-  public Bytes rawMbs() {
-    return extractMbs() ? callData.slice(MBS_MIN_OFFSET, WORD_SIZE) : Bytes.EMPTY;
   }
 
   public EWord mbs() {

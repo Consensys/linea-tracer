@@ -123,7 +123,7 @@ public class Oob implements Module {
           .isEcmul(oobInstruction == OOB_INST_ECMUL)
           .isEcpairing(oobInstruction == OOB_INST_ECPAIRING)
           .isBlake2FCds(oobInstruction == OOB_INST_BLAKE_CDS)
-          .isBlake2FParams(oobInstruction == OOB_INST_BLAKE_CDS)
+          .isBlake2FParams(oobInstruction == OOB_INST_BLAKE_PARAMS)
           .isModexpCds(oobInstruction == OOB_INST_MODEXP_CDS)
           .isModexpXbs(oobInstruction == OOB_INST_MODEXP_XBS)
           .isModexpLead(oobInstruction == OOB_INST_MODEXP_LEAD)

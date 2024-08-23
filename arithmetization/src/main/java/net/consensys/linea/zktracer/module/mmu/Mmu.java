@@ -79,7 +79,7 @@ public class Mmu implements Module {
 
     for (int i = 0; i < this.mmuOperations.size(); i++) {
       MmuOperation mmuOperation = this.mmuOperations.get(i);
-      if (mmuOperation.mmuData().mmuCall().traceMe()) {
+      if (mmuOperation.traceMe()) {
         lineCount += mmuOperation.lineCount();
       }
     }
@@ -99,16 +99,16 @@ public class Mmu implements Module {
     int mmuStamp = 0;
     int mmioStamp = 0;
 
-    for (MmuOperation mmuOp : mmuOperations) {
+    for (MmuOperation mmuOperation : mmuOperations) {
 
-      if (mmuOp.mmuData().mmuCall().traceMe()) {
-        mmuOp.getCFI();
-        mmuOp.setExoBytes(exoSumDecoder);
-        mmuOp.fillLimb();
+      if (mmuOperation.traceMe()) {
+        mmuOperation.getCFI();
+        mmuOperation.setExoBytes(exoSumDecoder);
+        mmuOperation.fillLimb();
 
         mmuStamp += 1;
-        mmuOp.trace(mmuStamp, mmioStamp, trace);
-        mmioStamp += mmuOp.mmuData().numberMmioInstructions();
+        mmuOperation.trace(mmuStamp, mmioStamp, trace);
+        mmioStamp += mmuOperation.mmuData().numberMmioInstructions();
       }
     }
   }

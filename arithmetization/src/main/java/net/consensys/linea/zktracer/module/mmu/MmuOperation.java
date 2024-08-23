@@ -79,6 +79,10 @@ public class MmuOperation extends ModuleOperation {
     this.callStackReader = new CallStackReader(callStack);
   }
 
+  public boolean traceMe() {
+    return this.mmuData.mmuCall().traceMe();
+  }
+
   @Override
   protected int computeLineCount() {
     return 1 + mmuData.numberMmuPreprocessingRows() + mmuData.numberMmioInstructions();

@@ -116,14 +116,15 @@ public class ModexpTests {
 
     for (int returnAtCapacity : returnAtCapacityList) {
       for (int callDataSize : callDataSizeList) {
-        parametrizedModexpCall(program, returnAtCapacity, callDataSize);
+        appendParametrizedModexpCall(program, returnAtCapacity, callDataSize);
       }
     }
 
     return program;
   }
 
-  void parametrizedModexpCall(BytecodeCompiler program, int returnAtCapacity, int callDataSize) {
+  void appendParametrizedModexpCall(
+      BytecodeCompiler program, int returnAtCapacity, int callDataSize) {
     program
         .push(returnAtCapacity) // r@c
         .push(Bytes.fromHexString("0100")) // r@o

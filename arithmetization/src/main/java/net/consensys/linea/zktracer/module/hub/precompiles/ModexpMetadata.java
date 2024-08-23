@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.module.Util;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Getter
@@ -44,11 +43,12 @@ public class ModexpMetadata {
   public ModexpMetadata(final Hub hub, final Bytes callData) {
     this.callData = callData;
     int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
-    this.rawLeadingWord = EWord.of(hub.messageFrame().shadowReadMemory(exponentOffsetInCallData, WORD_SIZE));
+    this.rawLeadingWord =
+        EWord.of(hub.messageFrame().shadowReadMemory(exponentOffsetInCallData, WORD_SIZE));
   }
 
   public boolean extractBbs() {
-    return !callData.isEmpty();
+    return callData.size() > BBS_MIN_OFFSET;
   }
 
   public boolean extractEbs() {
@@ -59,13 +59,21 @@ public class ModexpMetadata {
     return callData.size() > MBS_MIN_OFFSET;
   }
 
+  public Bytes rawBbs() {
+    return Util.slice(callData, BBS_MIN_OFFSET, WORD_SIZE);
+  }
+
+  public Bytes rawEbs() {
+    return Util.slice(callData, EBS_MIN_OFFSET, WORD_SIZE);
+  }
+
+  public Bytes rawMbs() {
+    return Util.slice(callData, MBS_MIN_OFFSET, WORD_SIZE);
+  }
+
   private int bbsShift() {
     return EBS_MIN_OFFSET - Math.min(EBS_MIN_OFFSET, callData.size());
   }
-
-  public Bytes rawBbs() { return Util.slice(callData, BBS_MIN_OFFSET, WORD_SIZE); }
-  public Bytes rawEbs() { return Util.slice(callData, EBS_MIN_OFFSET, WORD_SIZE); }
-  public Bytes rawMbs() { return Util.slice(callData, MBS_MIN_OFFSET, WORD_SIZE); }
 
   public EWord bbs() {
     return EWord.of(rawBbs().shiftRight(bbsShift()).shiftLeft(bbsShift()));
@@ -76,7 +84,6 @@ public class ModexpMetadata {
         ? EBS_MIN_OFFSET - Math.min(EBS_MIN_OFFSET, callData.size() - EBS_MIN_OFFSET)
         : 0;
   }
-
 
   public EWord ebs() {
     return EWord.of(rawEbs().shiftRight(ebsShift()).shiftLeft(ebsShift()));
@@ -109,29 +116,9 @@ public class ModexpMetadata {
   }
 
   public EWord rawLeadingWord() {
-
-    // if (!loadRawLeadingWord()) {
-    //   return EWord.ZERO;
-    // }
-
     // TODO: is this precaution useless / dangerous ?
     Preconditions.checkArgument(loadRawLeadingWord());
     return this.rawLeadingWord;
-
-    // int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
-
-    // return EWord.of(hub.messageFrame().shadowReadMemory(exponentOffsetInCallData, WORD_SIZE));
-
-    // int numberOfBytesToGrabFromCallData =
-    //     (exponentOffsetInCallData + WORD_SIZE <= callData.size())
-    //         ? WORD_SIZE
-    //         : callData.size() - exponentOffsetInCallData;
-    // Preconditions.checkArgument(0 < numberOfBytesToGrabFromCallData);
-
-    // return EWord.of(
-    //     Bytes32.rightPad(
-    //         callData.slice(BASE_MIN_OFFSET + bbsInt(), numberOfBytesToGrabFromCallData)));
-
   }
 
   public boolean extractModulus() {

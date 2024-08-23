@@ -705,7 +705,7 @@ public class Hub implements Module {
 
     this.defers.resolveUponExitingContext(this, this.currentFrame());
     // TODO: verify me please @Olivier
-    if (Exceptions.any(this.pch.exceptions())) {
+    if (this.currentFrame().opCode() == OpCode.REVERT || Exceptions.any(this.pch.exceptions())) {
       this.defers.resolvePostRollback(this, frame, this.currentFrame());
     }
 

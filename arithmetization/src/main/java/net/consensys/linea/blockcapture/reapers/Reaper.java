@@ -24,9 +24,14 @@ import net.consensys.linea.blockcapture.snapshots.AccountSnapshot;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.StorageSnapshot;
+import net.consensys.linea.blockcapture.snapshots.TransactionResultSnapshot;
+import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.DelegatingBytes;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -48,10 +53,15 @@ public class Reaper {
   /** Collect the blocks within a conflation */
   private final List<BlockSnapshot> blocks = new ArrayList<>();
 
+  /**
+   * Transaction index is used to do determine the current transaction being processed within the current block.
+   */
+  private int txIndex;
   public void enterBlock(final BlockHeader header, final BlockBody body) {
     this.blocks.add(
         BlockSnapshot.of((org.hyperledger.besu.ethereum.core.BlockHeader) header, body));
     this.addresses.touch(header.getCoinbase());
+    txIndex = 0; // reset
   }
 
   public void enterTransaction(Transaction tx) {
@@ -59,7 +69,21 @@ public class Reaper {
     tx.getTo().ifPresent(this::touchAddress);
   }
 
-  public void exitTransaction(boolean success) {}
+  public void exitTransaction(boolean status,Bytes output,List<Log> logs,long gasUsed,
+                              Set<Address> selfDestructs) {
+    // Identify relevant transaction snapshot
+    TransactionSnapshot txSnapshot = blocks.getLast().txs().get(txIndex);
+    List<String> logStrings = logs.stream().map(l -> l.getData().toHexString()).toList();
+    List<String> destructStrings = selfDestructs.stream().map(Address::toHexString).toList();
+    // Construct the result snapshot
+    TransactionResultSnapshot resultSnapshot = new TransactionResultSnapshot(status,output.toHexString(),logStrings,
+      gasUsed,
+      destructStrings);
+    // Record the outcome
+    txSnapshot.setTransactionResult(resultSnapshot);
+    // Move to next transaction
+    txIndex++;
+  }
 
   public void touchAddress(final Address address) {
     this.addresses.touch(address);

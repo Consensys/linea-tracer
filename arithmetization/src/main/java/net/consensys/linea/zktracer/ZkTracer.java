@@ -32,9 +32,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.blockcapture.snapshots.TransactionResultSnapshot;
+import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.module.DebugMode;
 import net.consensys.linea.zktracer.module.Module;

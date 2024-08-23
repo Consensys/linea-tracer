@@ -109,4 +109,9 @@ public class ReplayTests {
   void incident777zkGethMainnet() {
     replay("7461019-7461030.json.gz");
   }
+
+  @Test
+  void block_6110045() {
+    replay("6110045_outcome.json.gz");
+  }
 }

@@ -83,7 +83,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
       long gasUsed,
       Set<Address> selfDestructs,
       long timeNs) {
-    this.reaper.exitTransaction(status);
+    this.reaper.exitTransaction(status, output, logs, gasUsed, selfDestructs);
   }
 
   /**

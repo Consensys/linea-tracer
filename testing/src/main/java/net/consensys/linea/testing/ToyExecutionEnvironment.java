@@ -35,6 +35,7 @@ import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
+import net.consensys.linea.blockcapture.snapshots.TransactionResultSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
@@ -146,7 +147,7 @@ public class ToyExecutionEnvironment {
     final ToyWorld overridenToyWorld = ToyWorld.of(conflation);
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
       for (TransactionSnapshot tx : blockSnapshot.txs()) {
-        this.chainId = tx.chainId();
+        this.chainId = tx.getChainId();
       }
     }
     final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
@@ -154,14 +155,17 @@ public class ToyExecutionEnvironment {
     tracer.traceStartConflation(conflation.blocks().size());
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
       BlockHeader header = blockSnapshot.header().toBlockHeader();
+
       BlockBody body =
           new BlockBody(
               blockSnapshot.txs().stream().map(TransactionSnapshot::toTransaction).toList(),
               new ArrayList<>());
       tracer.traceStartBlock(header, body);
 
-      for (Transaction tx : body.getTransactions()) {
-        transactionProcessor.processTransaction(
+      for (TransactionSnapshot txs : blockSnapshot.txs()) {
+        Transaction tx = txs.toTransaction();
+        // Process transaction leading to expected outcome
+        TransactionProcessingResult outcome = transactionProcessor.processTransaction(
             overridenToyWorld.updater(),
             (ProcessableBlockHeader) header,
             tx,
@@ -172,6 +176,8 @@ public class ToyExecutionEnvironment {
             },
             false,
             Wei.ZERO);
+        // Check expected outcome.
+        checkOutcome(tx,outcome,txs.getOutcome());
       }
       tracer.traceEndBlock(header, body);
     }
@@ -253,5 +259,34 @@ public class ToyExecutionEnvironment {
 
   public Hub getHub() {
     return tracer.getHub();
+  }
+
+  /**
+   * Check that the expected outcome matches the actual outcome.  If not, then an exception is raised with a suitable
+   * error message.
+   *
+   * @param actual The actual result from executing the transaction.
+   * @param expected The expected result from executing the transaction.
+   */
+  private void checkOutcome(Transaction tx, TransactionProcessingResult actual, TransactionResultSnapshot expected) {
+    String hash = tx.getHash().toHexString();
+    if(expected != null) {
+      if(expected.status() != actual.isSuccessful()) {
+        throw new RuntimeException("tx " + hash + " outcome does not match expected outcome");
+      }
+      if(expected.gasUsed() != actual.getEstimateGasUsedByTransaction()) {
+        throw new RuntimeException("tx " + hash + " gas (estimated) used does not expected gas used");
+      }
+      if(!expected.output().equals(actual.getOutput().toHexString())) {
+        throw new RuntimeException("tx " + hash + " output does not match expected output");
+      }
+      // Convert logs into hex strings
+      List<String> actualLogStrings = actual.getLogs().stream().map(l -> l.getData().toHexString()).toList();
+      if(!actualLogStrings.equals(expected.logs())) {
+        throw new RuntimeException("tx " + hash + " logs do not match expected logs");
+      }
+    } else {
+      log.info("tx `{}` outcome not checked (missing)", hash);
+    }
   }
 }

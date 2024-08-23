@@ -178,7 +178,7 @@ public final class AccountFragment
             oldState.address(), oldState.deploymentNumber());
     if (effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
       final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
-      markedForSelfDestruct = hubStamp < selfDestructTime;
+      markedForSelfDestruct = hubStamp > selfDestructTime;
       markedForSelfDestructNew = hubStamp >= selfDestructTime;
     } else {
       markedForSelfDestruct = false;

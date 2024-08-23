@@ -78,6 +78,7 @@ public class GasOperation extends ModuleOperation {
 
   public void trace(int stamp, Trace trace) {
     for (short i = 0; i < CT_MAX + 1; i++) {
+      // TODO: review traced values
       trace
           .inputsAndOutputsAreMeaningful(stamp != 0)
           .first(i == 0)

@@ -91,13 +91,16 @@ public class Mmu implements Module {
     int mmioStamp = 0;
 
     for (MmuOperation mmuOp : mmuOperations) {
-      mmuOp.getCFI();
-      mmuOp.setExoBytes(exoSumDecoder);
-      mmuOp.fillLimb();
 
-      mmuStamp += 1;
-      mmuOp.trace(mmuStamp, mmioStamp, trace);
-      mmioStamp += mmuOp.mmuData().numberMmioInstructions();
+      if (mmuOp.mmuData().mmuCall().traceMe()) {
+        mmuOp.getCFI();
+        mmuOp.setExoBytes(exoSumDecoder);
+        mmuOp.fillLimb();
+
+        mmuStamp += 1;
+        mmuOp.trace(mmuStamp, mmioStamp, trace);
+        mmioStamp += mmuOp.mmuData().numberMmioInstructions();
+      }
     }
   }
 

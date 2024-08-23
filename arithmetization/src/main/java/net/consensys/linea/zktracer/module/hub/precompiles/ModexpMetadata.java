@@ -22,6 +22,8 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.Util;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -36,10 +38,13 @@ public class ModexpMetadata {
   static final int BASE_MIN_OFFSET = 0x60;
 
   private final Bytes callData;
+  private final EWord rawLeadingWord;
   @Setter private Bytes rawResult;
 
-  public ModexpMetadata(final Bytes callData) {
+  public ModexpMetadata(final Hub hub, final Bytes callData) {
     this.callData = callData;
+    int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
+    this.rawLeadingWord = EWord.of(hub.messageFrame().shadowReadMemory(exponentOffsetInCallData, WORD_SIZE));
   }
 
   public boolean extractBbs() {
@@ -105,20 +110,28 @@ public class ModexpMetadata {
 
   public EWord rawLeadingWord() {
 
-    if (!loadRawLeadingWord()) {
-      return EWord.ZERO;
-    }
+    // if (!loadRawLeadingWord()) {
+    //   return EWord.ZERO;
+    // }
 
-    int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
-    int numberOfBytesToGrabFromCallData =
-        (exponentOffsetInCallData + WORD_SIZE <= callData.size())
-            ? WORD_SIZE
-            : callData.size() - exponentOffsetInCallData;
-    Preconditions.checkArgument(0 < numberOfBytesToGrabFromCallData);
+    // TODO: is this precaution useless / dangerous ?
+    Preconditions.checkArgument(loadRawLeadingWord());
+    return this.rawLeadingWord;
 
-    return EWord.of(
-        Bytes32.rightPad(
-            callData.slice(BASE_MIN_OFFSET + bbsInt(), numberOfBytesToGrabFromCallData)));
+    // int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
+
+    // return EWord.of(hub.messageFrame().shadowReadMemory(exponentOffsetInCallData, WORD_SIZE));
+
+    // int numberOfBytesToGrabFromCallData =
+    //     (exponentOffsetInCallData + WORD_SIZE <= callData.size())
+    //         ? WORD_SIZE
+    //         : callData.size() - exponentOffsetInCallData;
+    // Preconditions.checkArgument(0 < numberOfBytesToGrabFromCallData);
+
+    // return EWord.of(
+    //     Bytes32.rightPad(
+    //         callData.slice(BASE_MIN_OFFSET + bbsInt(), numberOfBytesToGrabFromCallData)));
+
   }
 
   public boolean extractModulus() {

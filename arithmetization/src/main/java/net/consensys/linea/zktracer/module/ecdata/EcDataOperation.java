@@ -53,7 +53,6 @@ import java.util.List;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.ext.Ext;
@@ -73,7 +72,7 @@ public class EcDataOperation extends ModuleOperation {
   public static final EWord SECP256K1N = EWord.of(SECP256K1N_HI, SECP256K1N_LO);
   public static final int nBYTES_OF_DELTA_BYTES = 4;
 
-  @Setter private Bytes returnData;
+  private final Bytes returnData;
 
   private final Wcp wcp;
   private final Ext ext;
@@ -121,14 +120,11 @@ public class EcDataOperation extends ModuleOperation {
   // pairing-specific
   private final int totalPairings;
 
-  private List<Boolean> notOnG2; // counter-constant
-  private List<Boolean> notOnG2Acc; // counter-constant
+  private final List<Boolean> notOnG2; // counter-constant
+  private final List<Boolean> notOnG2Acc; // counter-constant
   private boolean notOnG2AccMax; // index-constant
-  private List<Boolean> isInfinity; // counter-constant
-  private List<Boolean> overallTrivialPairing; // counter-constant
-
-  // For debugging
-  private boolean returnDataSet = false;
+  private final List<Boolean> isInfinity; // counter-constant
+  private final List<Boolean> overallTrivialPairing; // counter-constant
 
   private EcDataOperation(
       Wcp wcp,
@@ -191,7 +187,7 @@ public class EcDataOperation extends ModuleOperation {
     notOnG2Acc = repeat(false, nRows);
 
     // Set returnData
-    setReturnData(returnData);
+    this.returnData = returnData;
   }
 
   public static EcDataOperation of(
@@ -212,84 +208,8 @@ public class EcDataOperation extends ModuleOperation {
     return ecDataOperation;
   }
 
-  public void setReturnData(Bytes returnData) {
-    switch (precompileFlag) {
-      case PRC_ECRECOVER -> {
-        EWord recoveredAddress = EWord.ZERO;
-
-        // Extract output
-        if (internalChecksPassed) {
-          recoveredAddress = EWord.of(returnData);
-        }
-
-        // Set success bit and output limb
-        successBit = !recoveredAddress.isZero();
-        limb.set(8, recoveredAddress.hi());
-        limb.set(9, recoveredAddress.lo());
-      }
-      case PRC_ECADD -> {
-        EWord resX = EWord.ZERO;
-        EWord resY = EWord.ZERO;
-
-        // Extract output
-        if (internalChecksPassed && returnData.toArray().length != 0) {
-          Preconditions.checkArgument(returnData.toArray().length == 64);
-          resX = EWord.of(returnData.slice(0, 32));
-          resY = EWord.of(returnData.slice(32, 32));
-        }
-
-        // Set success bit and output limb
-        successBit = internalChecksPassed;
-        limb.set(8, resX.hi());
-        limb.set(9, resX.lo());
-        limb.set(10, resY.hi());
-        limb.set(11, resY.lo());
-      }
-      case PRC_ECMUL -> {
-        EWord resX = EWord.ZERO;
-        EWord resY = EWord.ZERO;
-
-        // Extract output
-        if (internalChecksPassed && returnData.toArray().length != 0) {
-          Preconditions.checkArgument(returnData.toArray().length == 64);
-          resX = EWord.of(returnData.slice(0, 32));
-          resY = EWord.of(returnData.slice(32, 32));
-        }
-
-        // Set success bit and output limb
-        successBit = internalChecksPassed;
-        limb.set(6, resX.hi());
-        limb.set(7, resX.lo());
-        limb.set(8, resY.hi());
-        limb.set(9, resY.lo());
-      }
-      case PRC_ECPAIRING -> {
-        EWord pairingResult = EWord.ZERO;
-
-        // Extract output
-        if (internalChecksPassed) {
-          pairingResult = EWord.of(returnData);
-        }
-
-        // Set output limb
-        limb.set(limb.size() - 2, pairingResult.hi());
-        limb.set(limb.size() - 1, pairingResult.lo());
-
-        // Set callSuccess
-        if (!internalChecksPassed) {
-          successBit = false;
-        } else {
-          successBit = !notOnG2AccMax;
-        }
-      }
-    }
-    returnDataSet = true;
-  }
-
   private int getTotalSize(
       PrecompileScenarioFragment.PrecompileFlag precompileFlag, boolean isData) {
-    Preconditions.checkArgument(returnDataSet, "returnData must be set before");
-
     if (isData) {
       return switch (precompileFlag) {
         case PRC_ECRECOVER -> TOTAL_SIZE_ECRECOVER_DATA;
@@ -443,6 +363,19 @@ public class EcDataOperation extends ModuleOperation {
     // Because of the hashmap in the ext module, this useless row will only be inserted one time.
     // Tested by TestEcRecoverWithEmptyExt
     ext.callADDMOD(Bytes.EMPTY, Bytes.EMPTY, Bytes.EMPTY);
+
+    // Set result rows
+    EWord recoveredAddress = EWord.ZERO;
+
+    // Extract output
+    if (internalChecksPassed) {
+      recoveredAddress = EWord.of(returnData);
+    }
+
+    // Set success bit and output limb
+    successBit = !recoveredAddress.isZero();
+    limb.set(8, recoveredAddress.hi());
+    limb.set(9, recoveredAddress.lo());
   }
 
   void handleAdd() {
@@ -479,6 +412,24 @@ public class EcDataOperation extends ModuleOperation {
 
     // set circuitSelectorEcadd
     circuitSelectorEcadd = internalChecksPassed;
+
+    // Set result rows
+    EWord resX = EWord.ZERO;
+    EWord resY = EWord.ZERO;
+
+    // Extract output
+    if (internalChecksPassed && returnData.toArray().length != 0) {
+      Preconditions.checkArgument(returnData.toArray().length == 64);
+      resX = EWord.of(returnData.slice(0, 32));
+      resY = EWord.of(returnData.slice(32, 32));
+    }
+
+    // Set success bit and output limb
+    successBit = internalChecksPassed;
+    limb.set(8, resX.hi());
+    limb.set(9, resX.lo());
+    limb.set(10, resY.hi());
+    limb.set(11, resY.lo());
   }
 
   void handleMul() {
@@ -509,6 +460,24 @@ public class EcDataOperation extends ModuleOperation {
 
     // Set circuitSelectorEcmul
     circuitSelectorEcmul = internalChecksPassed;
+
+    // Set result rows
+    EWord resX = EWord.ZERO;
+    EWord resY = EWord.ZERO;
+
+    // Extract output
+    if (internalChecksPassed && returnData.toArray().length != 0) {
+      Preconditions.checkArgument(returnData.toArray().length == 64);
+      resX = EWord.of(returnData.slice(0, 32));
+      resY = EWord.of(returnData.slice(32, 32));
+    }
+
+    // Set success bit and output limb
+    successBit = internalChecksPassed;
+    limb.set(6, resX.hi());
+    limb.set(7, resX.lo());
+    limb.set(8, resY.hi());
+    limb.set(9, resY.lo());
   }
 
   void handlePairing() {
@@ -615,15 +584,30 @@ public class EcDataOperation extends ModuleOperation {
 
     // This is after all pairings have been processed
 
-    // Success bit is set in setReturnData
+    // Set result rows
+    EWord pairingResult = EWord.ZERO;
+
+    // Extract output
+    if (internalChecksPassed) {
+      pairingResult = EWord.of(returnData);
+    }
+
+    // Set output limb
+    limb.set(limb.size() - 2, pairingResult.hi());
+    limb.set(limb.size() - 1, pairingResult.lo());
+
+    // Set callSuccess
+    if (!internalChecksPassed) {
+      successBit = false;
+    } else {
+      successBit = !notOnG2AccMax;
+    }
 
     // acceptablePairOfPointsForPairingCircuit, g2MembershipTestRequired, circuitSelectorEcpairing,
     // circuitSelectorG2Membership are set in the trace method
   }
 
   void trace(Trace trace, final int stamp, final long previousId) {
-    Preconditions.checkArgument(returnDataSet, "returnData must be set before");
-
     final Bytes deltaByte =
         leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
 

@@ -62,7 +62,7 @@ public class CallDataLoadSection extends TraceSection {
 
     if (Exceptions.none(exception)) {
 
-      if (oobCall.isCdlOutOfBounds()) {
+      if (!oobCall.isCdlOutOfBounds()) {
 
         final EWord read =
             EWord.of(

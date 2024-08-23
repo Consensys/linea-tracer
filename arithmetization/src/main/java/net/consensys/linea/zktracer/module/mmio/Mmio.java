@@ -47,7 +47,6 @@ public class Mmio implements Module {
 
   public Mmio(Mmu mmu) {
     this.mmu = mmu;
-    // this.callStackReader = new CallStackReader(callStack);
   }
 
   @Override
@@ -80,7 +79,7 @@ public class Mmio implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (MmuOperation mmuOperation : this.mmu.mmuOperations()) {
+    for (MmuOperation mmuOperation : mmu.mmuOperations()) {
       final MmuData currentMmuData = mmuOperation.mmuData();
 
       for (int currentMmioInstNumber = 0;

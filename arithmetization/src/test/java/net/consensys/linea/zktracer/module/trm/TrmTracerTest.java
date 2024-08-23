@@ -15,14 +15,14 @@
 
 package net.consensys.linea.zktracer.module.trm;
 
+import java.util.List;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 public class TrmTracerTest {
   private final Bytes32 RANDOM_STRING_FROM_THE_INTERNET =
@@ -59,27 +59,27 @@ public class TrmTracerTest {
               + "00000000"
               + "00000000");
   private final Bytes32 BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___ONE =
-          Bytes32.fromHexString(
-                  "0x"
-                          + "00000000"
-                          + "00000000"
-                          + "00000001"
-                          + "00000000"
-                          + "00000000"
-                          + "00000000"
-                          + "00000000"
-                          + "00000000");
+      Bytes32.fromHexString(
+          "0x"
+              + "00000000"
+              + "00000000"
+              + "00000001"
+              + "00000000"
+              + "00000000"
+              + "00000000"
+              + "00000000"
+              + "00000000");
   private final Bytes32 BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___RANDOM =
-          Bytes32.fromHexString(
-                  "0x"
-                          + "b18cd834"
-                          + "b6192fcf"
-                          + "9f51322e"
-                          + "00000000"
-                          + "00000000"
-                          + "00000000"
-                          + "00000000"
-                          + "00000000");
+      Bytes32.fromHexString(
+          "0x"
+              + "b18cd834"
+              + "b6192fcf"
+              + "9f51322e"
+              + "00000000"
+              + "00000000"
+              + "00000000"
+              + "00000000"
+              + "00000000");
 
   @Test
   void testNonCallTinyParamLessThan16() {
@@ -137,18 +137,18 @@ public class TrmTracerTest {
 
     for (int i = 0; i < 11; i++) {
       program
-              .push(BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___MAX_VALUE)
-              .push(i)
-              .op(OpCode.OR)
-              .op(opCodeList.get(i % 3))
-              .push(BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___RANDOM)
-              .push(i)
-              .op(OpCode.OR)
-              .op(opCodeList.get((i + 1) % 3))
-              .push(BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___ONE)
-              .push(i)
-              .op(OpCode.OR)
-              .op(opCodeList.get((i + 2) % 3));
+          .push(BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___MAX_VALUE)
+          .push(i)
+          .op(OpCode.OR)
+          .op(opCodeList.get(i % 3))
+          .push(BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___RANDOM)
+          .push(i)
+          .op(OpCode.OR)
+          .op(opCodeList.get((i + 1) % 3))
+          .push(BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___ONE)
+          .push(i)
+          .op(OpCode.OR)
+          .op(opCodeList.get((i + 2) % 3));
     }
 
     BytecodeRunner.of(program.compile()).run();

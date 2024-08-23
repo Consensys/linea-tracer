@@ -17,9 +17,7 @@ package net.consensys.linea.zktracer.module.gas;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
-import static net.consensys.linea.zktracer.module.gas.Trace.CT_MAX;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 
 import java.math.BigInteger;
 
@@ -33,7 +31,7 @@ public class GasOperation extends ModuleOperation {
   BigInteger[] wcpArg1Lo;
   BigInteger[] wcpArg2Lo;
   UnsignedByte[] wcpInst;
-  BigInteger[] wcpRes;
+  boolean[] wcpRes;
   int CT_MAX;
 
   public GasOperation(GasParameters gasParameters) {
@@ -44,32 +42,32 @@ public class GasOperation extends ModuleOperation {
     wcpArg1Lo = new BigInteger[CT_MAX + 1];
     wcpArg2Lo = new BigInteger[CT_MAX + 1];
     wcpInst = new UnsignedByte[CT_MAX + 1];
-    wcpRes = new BigInteger[CT_MAX + 1];
+    wcpRes = new boolean[CT_MAX + 1];
 
     // row 0
     wcpArg1Lo[0] = BigInteger.ZERO;
     wcpArg2Lo[0] = gasParameters.gasActual();
     wcpInst[0] = UnsignedByte.of(WCP_INST_LEQ);
-    wcpRes[0] = BigInteger.ONE;
+    wcpRes[0] = true;
 
     // row 1
     wcpArg1Lo[1] = BigInteger.ZERO;
     wcpArg2Lo[1] = gasParameters.gasCost();
     wcpInst[1] = UnsignedByte.of(WCP_INST_LEQ);
-    wcpRes[1] = BigInteger.ONE;
+    wcpRes[1] = true;
 
     // row 2
     if (gasParameters.oogx()) {
       wcpArg1Lo[2] = gasParameters.gasActual();
       wcpArg2Lo[2] = gasParameters.gasCost();
       wcpInst[2] = UnsignedByte.of(EVM_INST_LT);
-      wcpRes[2] = booleanToBigInteger(gasParameters.oogx());
+      wcpRes[2] = gasParameters.oogx();
     } else {
       // TODO: init the lists with zeros (or something equivalent) instead
       wcpArg1Lo[2] = BigInteger.ZERO;
       wcpArg2Lo[2] = BigInteger.ZERO;
       wcpInst[2] = UnsignedByte.of(0);
-      wcpRes[2] = BigInteger.ZERO;
+      wcpRes[2] = false;
     }
   }
 
@@ -81,18 +79,18 @@ public class GasOperation extends ModuleOperation {
   public void trace(int stamp, Trace trace) {
     for (short i = 0; i < CT_MAX + 1; i++) {
       trace
-          // .inputsAndOutputsAreMeaningful(stamp != 0) ?
-          // .first(i == 0)
+          .inputsAndOutputsAreMeaningful(stamp != 0)
+          .first(i == 0)
           .ct(i)
-          // .ctMax(CT_MAX)
-          .gasActl(gasParameters.gasActual().longValue())
+          .ctMax(CT_MAX)
+          .gasActual(gasParameters.gasActual().longValue())
           .gasCost(bigIntegerToBytes(gasParameters.gasCost()))
-          // .xahoy(gasParameters.xahoy())
-          .oogx(gasParameters.oogx())
-          // .wcpArg1Lo(bigIntegerToBytes(wcpArg1Lo[i]))
-          // .wcpArg2Lo(bigIntegerToBytes(wcpArg2Lo[i]))
-          // .wcpInst(wcpInst[i].byteValue())
-          // .wcpRes(bigIntegerToBytes(wcpRes[i]))
+          .exceptionsAhoy(gasParameters.xahoy())
+          .outOfGasException(gasParameters.oogx())
+          .wcpArg1Lo(bigIntegerToBytes(wcpArg1Lo[i]))
+          .wcpArg2Lo(bigIntegerToBytes(wcpArg2Lo[i]))
+          .wcpInst(wcpInst[i])
+          .wcpRes(wcpRes[i])
           .validateRow();
     }
   }

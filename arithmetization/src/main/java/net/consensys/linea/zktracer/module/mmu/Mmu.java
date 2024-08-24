@@ -75,16 +75,7 @@ public class Mmu implements Module {
 
   @Override
   public int lineCount() {
-    int lineCount = 0;
-
-    for (int i = 0; i < this.mmuOperations.size(); i++) {
-      MmuOperation mmuOperation = this.mmuOperations.get(i);
-      if (mmuOperation.traceMe()) {
-        lineCount += mmuOperation.lineCount();
-      }
-    }
-
-    return lineCount;
+    return this.mmuOperations.lineCount();
   }
 
   @Override

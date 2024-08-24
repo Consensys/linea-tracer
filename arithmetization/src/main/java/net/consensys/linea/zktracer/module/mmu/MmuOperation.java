@@ -80,18 +80,23 @@ public class MmuOperation extends ModuleOperation {
   }
 
   public boolean traceMe() {
-    return this.mmuData.mmuCall().traceMe();
+    return mmuData.mmuCall().traceMe();
   }
 
   @Override
   protected int computeLineCount() {
-    return 1 + mmuData.numberMmuPreprocessingRows() + mmuData.numberMmioInstructions();
+    return traceMe()
+        ? 1 + mmuData.numberMmuPreprocessingRows() + mmuData.numberMmioInstructions()
+        : 0;
   }
 
   public int computeMmioLineCount() {
     int sum = 0;
-    for (int i = 0; i < mmuData().numberMmioInstructions(); i++) {
-      sum += numberOfRowOfMmioInstruction(mmuData.mmuToMmioInstructions().get(i).mmioInstruction());
+    if (traceMe()) {
+      for (int i = 0; i < mmuData().numberMmioInstructions(); i++) {
+        sum +=
+            numberOfRowOfMmioInstruction(mmuData.mmuToMmioInstructions().get(i).mmioInstruction());
+      }
     }
     return sum;
   }

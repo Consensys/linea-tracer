@@ -138,7 +138,9 @@ public class EcDataOperation extends ModuleOperation {
 
     this.precompileFlag = precompileFlag;
     int callDataSize = callData.size();
-    Preconditions.checkArgument(callDataSize > 0, "EcDataOperation should only be called with nonempty call rightPaddedCallData");
+    Preconditions.checkArgument(
+        callDataSize > 0,
+        "EcDataOperation should only be called with nonempty call rightPaddedCallData");
     final int paddedCallDataLength =
         switch (precompileFlag) {
           case PRC_ECRECOVER -> 128;
@@ -156,7 +158,8 @@ public class EcDataOperation extends ModuleOperation {
     if (callData.size() < paddedCallDataLength) {
       this.rightPaddedCallData = rightPadTo(callData, paddedCallDataLength);
     } else {
-      // TODO: why keep the entire rightPaddedCallData rather than rightPaddedCallData[0:paddedCallDataLength] ?
+      // TODO: why keep the entire rightPaddedCallData rather than
+      // rightPaddedCallData[0:paddedCallDataLength] ?
       this.rightPaddedCallData = callData;
     }
 

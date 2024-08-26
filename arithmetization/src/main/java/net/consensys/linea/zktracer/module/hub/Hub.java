@@ -716,8 +716,8 @@ public class Hub implements Module {
 
   public void tracePreExecution(final MessageFrame frame) {
     Preconditions.checkArgument(
-        this.state().processingPhase != TX_SKIP,
-        "There can't be any execution if the HUB is in the a skip phase");
+        this.state().processingPhase == TX_EXEC,
+        "There can't be any execution if the HUB is not in execution phase");
 
     this.processStateExec(frame);
   }
@@ -927,7 +927,6 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        final boolean breakHere = !(section.fragments().get(i) instanceof StackFragment);
         ((StackFragment) section.fragments().get(i))
             .stackOps()
             .get(line.resultColumn() - 1)

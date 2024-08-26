@@ -174,6 +174,7 @@ public class CallSection extends TraceSection
     final boolean aborts = hub.pch().abortingConditions().any();
     Preconditions.checkArgument(oobCall.isAbortingCondition() == aborts);
 
+    hub.defers().scheduleForImmediateContextEntry(this);
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
     hub.defers().scheduleForPostTransaction(this);
 
@@ -183,7 +184,6 @@ public class CallSection extends TraceSection
     }
 
     // The CALL is now unexceptional and un-aborted
-    hub.defers().scheduleForImmediateContextEntry(this);
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     final WorldUpdater world = hub.messageFrame().getWorldUpdater();
 

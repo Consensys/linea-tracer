@@ -953,7 +953,7 @@ public class Hub implements Module {
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
 
-      this.addTraceSection(new StackOnlySection(this));
+      new StackOnlySection(this);
     }
   }
 

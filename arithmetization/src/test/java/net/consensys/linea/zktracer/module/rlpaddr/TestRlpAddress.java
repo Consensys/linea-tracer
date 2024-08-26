@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rlpaddr;
 
-import static net.consensys.linea.zktracer.module.rlpcommon.RlpRandEdgeCase.randData;
 import static net.consensys.linea.zktracer.module.rlpcommon.RlpRandEdgeCase.randLong;
 
 import java.util.Random;
@@ -55,7 +54,7 @@ public class TestRlpAddress {
             .build();
     ;
 
-    final Bytes initCode = randData(true);
+    final Bytes initCode = BytecodeCompiler.newProgram().push(1).push(1).op(OpCode.SLT).compile();
 
     world.account(senderAccount);
 

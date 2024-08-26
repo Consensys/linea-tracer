@@ -174,14 +174,21 @@ public class Exceptions {
   }
 
   private static boolean isStaticFault(final MessageFrame frame, OpCodeData opCodeData) {
-    if (frame.isStatic() && opCodeData.mnemonic() == OpCode.CALL && frame.stackSize() > 2) {
-      final long value = Words.clampedToLong(frame.getStackItem(2));
-      if (value > 0) {
-        return true;
-      }
+    if(!frame.isStatic()){
+      return false;
     }
 
-    return frame.isStatic() && opCodeData.stackSettings().forbiddenInStatic();
+    if(opCodeData.mnemonic() != OpCode.CALL){
+      return opCodeData.stackSettings().forbiddenInStatic();
+    }
+
+    //CALL case: call is forbidden if non zero value (item 2)
+    if (frame.stackSize() >= 7) {
+      final long value = Words.clampedToLong(frame.getStackItem(2));
+      return value > 0;
+    }
+
+    return false;
   }
 
   private static boolean isOutOfSStore(MessageFrame frame, OpCode opCode) {

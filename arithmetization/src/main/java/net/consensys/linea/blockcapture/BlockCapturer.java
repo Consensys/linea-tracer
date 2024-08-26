@@ -75,7 +75,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
 
   @Override
   public void traceEndTransaction(
-      WorldView worldView,
+      WorldView world,
       Transaction tx,
       boolean status,
       Bytes output,
@@ -83,7 +83,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
       long gasUsed,
       Set<Address> selfDestructs,
       long timeNs) {
-    this.reaper.exitTransaction(status, output, logs, gasUsed, selfDestructs);
+    this.reaper.exitTransaction(world, status, output, logs, gasUsed, selfDestructs);
   }
 
   /**

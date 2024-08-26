@@ -15,25 +15,24 @@
 package net.consensys.linea.blockcapture.snapshots;
 
 import java.util.List;
-import java.util.Set;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.log.Log;
 
 /**
- * Records details regarding the outcome of a given transaction, such as whether it suceeded or failed.
+ * Records details regarding the outcome of a given transaction, such as whether it suceeded or
+ * failed.
  *
  * @param status true if the transaction was successful, false otherwise
  * @param output the bytes output from the transaction (i.e. return data).
  * @param logs the logs emitted by this transaction
  * @param gasUsed the gas used by the entire transaction
- * @param selfDestructs the set of addresses that self-destructed during the transaction
+ * @param accounts accounts touched by this transaction.
+ * @param storage storage locations touched by this transaction.
+ * @param selfDestructs accounts which self-destructed during this transaction
  */
 public record TransactionResultSnapshot(
-  boolean status,
-  String output,
-  List<String> logs,
-  long gasUsed,
-  List<String> selfDestructs) {
-
-}
+    boolean status,
+    String output,
+    List<String> logs,
+    long gasUsed,
+    List<AccountSnapshot> accounts,
+    List<StorageSnapshot> storage,
+    List<String> selfDestructs) {}

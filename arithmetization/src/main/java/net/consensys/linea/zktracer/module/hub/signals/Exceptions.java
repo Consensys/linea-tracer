@@ -174,15 +174,20 @@ public class Exceptions {
   }
 
   private static boolean isStaticFault(final MessageFrame frame, OpCodeData opCodeData) {
-    if(!frame.isStatic()){
+
+    // staticException requires a static context
+    if (!frame.isStatic()) {
       return false;
     }
 
-    if(opCodeData.mnemonic() != OpCode.CALL){
+    // SSTORE, SELFDESTRUCT, CREATE, CREATE2, ...
+    // automatically trigger the staticException
+    if (opCodeData.mnemonic() != OpCode.CALL) {
       return opCodeData.stackSettings().forbiddenInStatic();
     }
 
-    //CALL case: call is forbidden if non zero value (item 2)
+    // CALL's trigger a staticException if and only if
+    // they attempt to transfer value
     if (frame.stackSize() >= 7) {
       final long value = Words.clampedToLong(frame.getStackItem(2));
       return value > 0;

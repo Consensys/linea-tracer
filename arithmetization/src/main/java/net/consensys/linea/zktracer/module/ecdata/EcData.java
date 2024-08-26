@@ -90,13 +90,9 @@ public class EcData implements Module {
     List<EcDataOperation> sortedOperations =
         this.operations.stream().sorted(Comparator.comparingLong(EcDataOperation::id)).toList();
     for (EcDataOperation op : sortedOperations) {
-      // TODO: temporary hack, we should have only successful EcData Operations, will be fixed in PR
-      //  #748
-      // if (op.successBit()) {
       stamp++;
       op.trace(trace, stamp, previousId);
       previousId = op.id();
-      // }
     }
   }
 

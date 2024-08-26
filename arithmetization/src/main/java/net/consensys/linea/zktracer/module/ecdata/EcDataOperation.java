@@ -79,7 +79,7 @@ public class EcDataOperation extends ModuleOperation {
   private final Ext ext;
 
   @Getter private final long id;
-  private final Bytes data;
+  private final Bytes rightPaddedCallData;
 
   @Getter private final PrecompileScenarioFragment.PrecompileFlag precompileFlag;
   private final int nRows;
@@ -137,13 +137,14 @@ public class EcDataOperation extends ModuleOperation {
     Preconditions.checkArgument(precompileFlag.isEcdataPrecompile(), "invalid EC type");
 
     this.precompileFlag = precompileFlag;
+    int callDataSize = callData.size();
+    Preconditions.checkArgument(callDataSize > 0, "EcDataOperation should only be called with nonempty call rightPaddedCallData");
     final int paddedCallDataLength =
         switch (precompileFlag) {
           case PRC_ECRECOVER -> 128;
           case PRC_ECADD -> 128;
           case PRC_ECMUL -> 96;
           case PRC_ECPAIRING -> {
-            int callDataSize = callData.size();
             Preconditions.checkArgument(callDataSize % 192 == 0);
             yield callDataSize;
           }
@@ -153,10 +154,10 @@ public class EcDataOperation extends ModuleOperation {
         };
 
     if (callData.size() < paddedCallDataLength) {
-      this.data = rightPadTo(callData, paddedCallDataLength);
+      this.rightPaddedCallData = rightPadTo(callData, paddedCallDataLength);
     } else {
-      // TODO: why keep the entire data rather than data[0:paddedCallDataLength] ?
-      this.data = callData;
+      // TODO: why keep the entire rightPaddedCallData rather than rightPaddedCallData[0:paddedCallDataLength] ?
+      this.rightPaddedCallData = callData;
     }
 
     if (precompileFlag == PRC_ECPAIRING) {
@@ -322,10 +323,10 @@ public class EcDataOperation extends ModuleOperation {
 
   void handleRecover() {
     // Extract inputs
-    final EWord h = EWord.of(data.slice(0, 32));
-    final EWord v = EWord.of(data.slice(32, 32));
-    final EWord r = EWord.of(data.slice(64, 32));
-    final EWord s = EWord.of(data.slice(96, 32));
+    final EWord h = EWord.of(rightPaddedCallData.slice(0, 32));
+    final EWord v = EWord.of(rightPaddedCallData.slice(32, 32));
+    final EWord r = EWord.of(rightPaddedCallData.slice(64, 32));
+    final EWord s = EWord.of(rightPaddedCallData.slice(96, 32));
 
     // Set input limb
     limb.set(0, h.hi());
@@ -395,10 +396,10 @@ public class EcDataOperation extends ModuleOperation {
 
   void handleAdd() {
     // Extract inputs
-    final EWord pX = EWord.of(data.slice(0, 32));
-    final EWord pY = EWord.of(data.slice(32, 32));
-    final EWord qX = EWord.of(data.slice(64, 32));
-    final EWord qY = EWord.of(data.slice(96, 32));
+    final EWord pX = EWord.of(rightPaddedCallData.slice(0, 32));
+    final EWord pY = EWord.of(rightPaddedCallData.slice(32, 32));
+    final EWord qX = EWord.of(rightPaddedCallData.slice(64, 32));
+    final EWord qY = EWord.of(rightPaddedCallData.slice(96, 32));
 
     // Set limb
     limb.set(0, pX.hi());
@@ -449,9 +450,9 @@ public class EcDataOperation extends ModuleOperation {
 
   void handleMul() {
     // Extract inputs
-    final EWord pX = EWord.of(data.slice(0, 32));
-    final EWord pY = EWord.of(data.slice(32, 32));
-    final EWord n = EWord.of(data.slice(64, 32));
+    final EWord pX = EWord.of(rightPaddedCallData.slice(0, 32));
+    final EWord pY = EWord.of(rightPaddedCallData.slice(32, 32));
+    final EWord n = EWord.of(rightPaddedCallData.slice(64, 32));
 
     // Set limb
     limb.set(0, pX.hi());
@@ -504,12 +505,12 @@ public class EcDataOperation extends ModuleOperation {
     for (int accPairings = 1; accPairings <= totalPairings; accPairings++) {
       // Extract inputs
       final int bytesOffset = (accPairings - 1) * 192;
-      final EWord aX = EWord.of(data.slice(bytesOffset, 32));
-      final EWord aY = EWord.of(data.slice(32 + bytesOffset, 32));
-      final EWord bXIm = EWord.of(data.slice(64 + bytesOffset, 32));
-      final EWord bXRe = EWord.of(data.slice(96 + bytesOffset, 32));
-      final EWord bYIm = EWord.of(data.slice(128 + bytesOffset, 32));
-      final EWord bYRe = EWord.of(data.slice(160 + bytesOffset, 32));
+      final EWord aX = EWord.of(rightPaddedCallData.slice(bytesOffset, 32));
+      final EWord aY = EWord.of(rightPaddedCallData.slice(32 + bytesOffset, 32));
+      final EWord bXIm = EWord.of(rightPaddedCallData.slice(64 + bytesOffset, 32));
+      final EWord bXRe = EWord.of(rightPaddedCallData.slice(96 + bytesOffset, 32));
+      final EWord bYIm = EWord.of(rightPaddedCallData.slice(128 + bytesOffset, 32));
+      final EWord bYRe = EWord.of(rightPaddedCallData.slice(160 + bytesOffset, 32));
 
       // Set limb
       final int rowsOffset = (accPairings - 1) * (INDEX_MAX_ECPAIRING_DATA_MIN + 1); // 12

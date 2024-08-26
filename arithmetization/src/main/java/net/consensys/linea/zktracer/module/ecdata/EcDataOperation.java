@@ -117,13 +117,16 @@ public class EcDataOperation extends ModuleOperation {
   private boolean circuitSelectorEcmul;
 
   // pairing-specific
-  private final int totalPairings;
+  @Getter private final int totalPairings;
 
   private final List<Boolean> notOnG2; // counter-constant
   private final List<Boolean> notOnG2Acc; // counter-constant
   private boolean notOnG2AccMax; // index-constant
   private final List<Boolean> isInfinity; // counter-constant
   private final List<Boolean> overallTrivialPairing; // counter-constant
+
+  @Getter private boolean g2MembershipTestRequired;
+  @Getter private boolean acceptablePairOfPointsForPairingCircuit;
 
   private EcDataOperation(
       Wcp wcp,
@@ -652,12 +655,12 @@ public class EcDataOperation extends ModuleOperation {
       // = 1
       // && conditions is necessary since we want IS_ECPAIRING_DATA
       // We care about G2 membership only if ICP = 1
-      boolean g2MembershipTestRequired =
+      g2MembershipTestRequired =
           (notOnG2AccMax
                   ? isLargePoint && !largePointIsAtInfinity && notOnG2.get(i)
                   : isLargePoint && !largePointIsAtInfinity && smallPointIsAtInfinity)
               && internalChecksPassed;
-      boolean acceptablePairOfPointsForPairingCircuit =
+      acceptablePairOfPointsForPairingCircuit =
           precompileFlag == PRC_ECPAIRING
               && successBit
               && !notOnG2AccMax

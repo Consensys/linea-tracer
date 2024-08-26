@@ -78,6 +78,8 @@ public class CreateOobCall extends OobCall {
         .pMiscOobData5(booleanToBytes(hasCode))
         .pMiscOobData6(bigIntegerToBytes(callStackDepth))
         .pMiscOobData7(booleanToBytes(abortingCondition))
-        .pMiscOobData8(booleanToBytes(failureCondition));
+        .pMiscOobData8(booleanToBytes(failureCondition))
+    // TODO: add pMiscOobData9(creatorNonce) when Trace.java is updated
+    ;
   }
 }

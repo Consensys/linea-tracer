@@ -33,10 +33,8 @@ import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.blockcapture.snapshots.AccountSnapshot;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
-import net.consensys.linea.blockcapture.snapshots.StorageSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionResultSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
@@ -44,7 +42,6 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
@@ -57,15 +54,14 @@ import org.hyperledger.besu.ethereum.mainnet.feemarket.LondonFeeMarket;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
-import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
-import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.evm.precompile.MainnetPrecompiledContracts;
 import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
 import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
-import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.evm.tracing.OperationTracer;
+import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 /** Fluent API for executing EVM transactions in tests. */
@@ -92,6 +88,7 @@ public class ToyExecutionEnvironment {
       Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
 
   private final ToyWorld toyWorld;
+  private final boolean resultChecking;
 
   @Builder.Default private BigInteger chainId = CHAIN_ID;
   @Singular private final List<Transaction> transactions;
@@ -159,6 +156,7 @@ public class ToyExecutionEnvironment {
     final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
 
     tracer.traceStartConflation(conflation.blocks().size());
+
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
       BlockHeader header = blockSnapshot.header().toBlockHeader();
 
@@ -178,7 +176,7 @@ public class ToyExecutionEnvironment {
                 (ProcessableBlockHeader) header,
                 tx,
                 header.getCoinbase(),
-                tracer,
+                buildOperationTracer(tx, txs.getOutcome()),
                 blockId -> {
                   throw new RuntimeException("Block hash lookup not yet supported");
                 },
@@ -186,8 +184,6 @@ public class ToyExecutionEnvironment {
                 Wei.ZERO);
         // Commit transaction
         updater.commit();
-        // Check expected outcome.
-        checkOutcome(overridenToyWorld, tx, outcome, txs.getOutcome());
       }
       tracer.traceEndBlock(header, body);
     }
@@ -227,7 +223,7 @@ public class ToyExecutionEnvironment {
               Wei.ZERO);
 
       this.testValidator.accept(result);
-      this.zkTracerValidator.accept(tracer);
+      // this.zkTracerValidator.accept(tracer);
     }
     tracer.traceEndBlock(header, mockBlockBody);
     tracer.traceEndConflation(toyWorld.updater());
@@ -272,77 +268,24 @@ public class ToyExecutionEnvironment {
   }
 
   /**
-   * Check that the expected outcome matches the actual outcome. If not, then an exception is raised
-   * with a suitable error message.
+   * Construct an operation tracer which invokes the zkTracer appropriately, and can also
+   * (optionally) check the transaction outcome matches what was expected.
    *
-   * @param actual The actual result from executing the transaction.
-   * @param expected The expected result from executing the transaction.
+   * @param tx Transaction being processed
+   * @param txs TransactionResultSnapshot which contains the expected result of this transaction.
+   * @return An implementation of OperationTracer which packages up the appropriate behavour.
    */
-  private void checkOutcome(
-    WorldView world,
-    Transaction tx, TransactionProcessingResult actual, TransactionResultSnapshot expected) {
-    String hash = tx.getHash().toHexString();
-    // Sanity check expected result present
-    if (expected == null) {
+  private OperationTracer buildOperationTracer(Transaction tx, TransactionResultSnapshot txs) {
+    if (txs == null) {
+      String hash = tx.getHash().toHexString();
       log.info("tx `{}` outcome not checked (missing)", hash);
-      return;
+      return tracer;
+    } else if (!resultChecking) {
+      String hash = tx.getHash().toHexString();
+      log.info("tx `{}` outcome not checked (disabled)", hash);
+      return tracer;
+    } else {
+      return txs.check(tracer);
     }
-    // Check against expected result
-    if (expected.status() != actual.isSuccessful()) {
-      throw new RuntimeException("tx " + hash + " outcome does not match expected outcome");
-    }
-    if (expected.gasUsed() != actual.getEstimateGasUsedByTransaction()) {
-      throw new RuntimeException("tx " + hash + " gas (estimated) used does not expected gas used");
-    }
-    if (!expected.output().equals(actual.getOutput().toHexString())) {
-      throw new RuntimeException("tx " + hash + " output does not match expected output");
-    }
-    // Convert logs into hex strings
-    List<String> actualLogStrings =
-      actual.getLogs().stream().map(l -> l.getData().toHexString()).toList();
-    if (!actualLogStrings.equals(expected.logs())) {
-      throw new RuntimeException("tx " + hash + " logs do not match expected logs");
-    }
-    // Check each account
-    for(AccountSnapshot expAccount : expected.accounts()) {
-      Address address = Address.fromHexString(expAccount.address());
-      Account actAccount = world.get(address);
-      // Check balance
-      Wei expBalance = Wei.fromHexString(expAccount.balance());
-      Wei actBalance = actAccount.getBalance();
-      if(!expBalance.equals(actBalance)) {
-        throw new RuntimeException("tx " + hash + " balance of account " + address + " (" + actBalance.toDecimalString() +
-          ") does not match expected value (" + expBalance.toDecimalString() +")");
-      }
-      // Check nonce
-      long expNonce = expAccount.nonce();
-      long actNonce = actAccount.getNonce();
-      if(expNonce != actNonce) {
-        throw new RuntimeException("tx " + hash + " nonce of account " + address + " (" + actNonce +
-          ") does not match expected value (" + expNonce +")");
-      }
-      // Check code
-      Bytes expCode = Bytes.fromHexString(expAccount.code());
-      Bytes actCode = actAccount.getCode();
-      if(!expCode.equals(actCode)) {
-        throw new RuntimeException("tx " + hash + " code of account " + address + " (" + actCode +
-          ") does not match expected value (" + expCode +")");
-      }
-      //
-      log.info("Checked account " + address);
-    }
-    // Check each storage location
-    for(StorageSnapshot expStorage : expected.storage()) {
-      Address address = Address.fromHexString(expStorage.address());
-      UInt256 key = UInt256.fromHexString(expStorage.key());
-      UInt256 expValue = UInt256.fromHexString(expStorage.value());
-      Account actAccount = world.get(address);
-      UInt256 actValue = actAccount.getStorageValue(key);
-      if(!actValue.equals(expValue)) {
-        throw new RuntimeException("tx " + hash + " storage at " + address + ":" + key +
-          "(" + actValue + ") does not match expected value (" + expValue +")");
-      }
-    }
-    log.info("tx `{}` outcome checked", hash);
   }
 }

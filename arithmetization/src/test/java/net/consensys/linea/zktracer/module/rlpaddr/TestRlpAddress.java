@@ -23,6 +23,7 @@ import java.util.Random;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironment;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.testing.ToyWorld;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -68,12 +69,7 @@ public class TestRlpAddress {
             .payload(initCode)
             .build();
 
-    ToyExecutionEnvironment.builder()
-        .toyWorld(world.build())
-        .transaction(tx)
-        .testValidator(x -> {})
-        .build()
-        .run();
+    ToyExecutionEnvironmentV2.builder().toyWorld(world.build()).transaction(tx).build().run();
   }
 
   @Test

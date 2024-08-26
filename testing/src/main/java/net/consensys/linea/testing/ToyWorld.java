@@ -109,7 +109,6 @@ public class ToyWorld implements WorldUpdater {
             .balance(balance)
             .build();
 
-    accounts.add(account);
     addressAccountMap.put(address, account);
 
     return authorizedCodeService.processMutableAccount(this, account, address);

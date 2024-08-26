@@ -137,10 +137,23 @@ public class EcDataOperation extends ModuleOperation {
     Preconditions.checkArgument(precompileFlag.isEcdataPrecompile(), "invalid EC type");
 
     this.precompileFlag = precompileFlag;
-    final int paddedCallDataLength = this.precompileFlag == PRC_ECMUL ? 96 : 128;
+    final int paddedCallDataLength =
+        switch (precompileFlag) {
+          case PRC_ECRECOVER -> 128;
+          case PRC_ECADD -> 128;
+          case PRC_ECMUL -> 96;
+          case PRC_ECPAIRING -> {
+            int callDataSize = callData.size();
+            Preconditions.checkArgument(callDataSize % 192 == 0);
+            yield callDataSize;
+          }
+          default -> throw new IllegalArgumentException(
+              "EcDataOperation expects to be called on an elliptic curve precompile, not on "
+                  + precompileFlag.name());
+        };
+
     if (callData.size() < paddedCallDataLength) {
-      // TODO: this is likely right padding, not left padding
-      this.data = leftPadTo(callData, paddedCallDataLength);
+      this.data = rightPadTo(callData, paddedCallDataLength);
     } else {
       // TODO: why keep the entire data rather than data[0:paddedCallDataLength] ?
       this.data = callData;

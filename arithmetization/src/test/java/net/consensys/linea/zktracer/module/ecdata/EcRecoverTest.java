@@ -227,4 +227,34 @@ public class EcRecoverTest {
       boolean expectedSuccessBit) {
     return Arguments.of(description, h, v, r, s, expectedInternalChecksPassed, expectedSuccessBit);
   }
+
+  @Test
+  void testSingleInternalChecksFailEcrecover() {
+    BytecodeCompiler program =
+            BytecodeCompiler.newProgram()
+                    // First place the parameters in memory
+                    .push("1111111111111111111111111111111111111111111111111111111111111111") // h
+                    .push(0)
+                    .op(OpCode.MSTORE)
+                    .push("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff") // v
+                    .push(0x20)
+                    .op(OpCode.MSTORE)
+                    .push("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc") // r
+                    .push(0x40)
+                    .op(OpCode.MSTORE)
+                    .push("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc") // s
+                    .push(0x60)
+                    .op(OpCode.MSTORE)
+                    // Do the call
+                    .push(32) // retSize
+                    .push(0x80) // retOffset
+                    .push(0x80) // argSize
+                    .push(0) // argOffset
+                    .push(1) // address
+                    .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+                    .op(OpCode.STATICCALL);
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+  }
 }

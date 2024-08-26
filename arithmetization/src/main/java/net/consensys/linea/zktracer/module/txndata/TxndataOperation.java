@@ -61,6 +61,7 @@ public class TxndataOperation extends ModuleOperation {
   private static final Bytes EIP_2681_MAX_NONCE = Bytes.minimalBytes(EIP2681_MAX_NONCE);
   private static final int N_ROWS_TX_MAX =
       Math.max(Math.max(NB_ROWS_TYPE_0, NB_ROWS_TYPE_1), NB_ROWS_TYPE_2);
+  private static final int NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST = 6;
   private final List<TxnDataComparisonRecord> callsToEucAndWcp = new ArrayList<>(N_ROWS_TX_MAX);
   private final ArrayList<RlptxnOutgoing> valuesToRlptxn = new ArrayList<>(N_ROWS_TX_MAX);
   private final ArrayList<RlptxrcptOutgoing> valuesToRlpTxrcpt = new ArrayList<>(N_ROWS_TX_MAX);
@@ -88,41 +89,41 @@ public class TxndataOperation extends ModuleOperation {
                 outgoingLowRow6()
                     .multiply(BigInteger.valueOf(tx.getBesuTransaction().getGasLimit()))));
     wcp.callLT(initBalance, row0arg2);
-    this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(initBalance, row0arg2, false));
+    callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(initBalance, row0arg2, false));
 
     // i + sufficient_gas_row_offset
     final Bytes row1arg1 = Bytes.minimalBytes(tx.getBesuTransaction().getGasLimit());
     final Bytes row1arg2 = Bytes.minimalBytes(tx.getUpfrontGasCost());
     wcp.callLT(row1arg1, row1arg2);
-    this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(row1arg1, row1arg2, false));
+    callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(row1arg1, row1arg2, false));
 
     // i + upper_limit_refunds_row_offset
     final Bytes row2arg1 =
         Bytes.minimalBytes(tx.getBesuTransaction().getGasLimit() - tx.getLeftoverGas());
     final Bytes row2arg2 = Bytes.of(MAX_REFUND_QUOTIENT);
     final Bytes refundLimit = euc.callEUC(row2arg1, row2arg2).quotient();
-    this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToEuc(row2arg1, row2arg2, refundLimit));
+    callsToEucAndWcp.add(TxnDataComparisonRecord.callToEuc(row2arg1, row2arg2, refundLimit));
 
     // i + effective_refund_row_offset
     final Bytes refundCounterMax = Bytes.minimalBytes(tx.getRefundCounterMax());
     final boolean getFullRefund = wcp.callLT(refundCounterMax, refundLimit);
-    this.callsToEucAndWcp.add(
+    callsToEucAndWcp.add(
         TxnDataComparisonRecord.callToLt(refundCounterMax, refundLimit, getFullRefund));
 
     // i + detecting_empty_call_data_row_offset
     final Bytes row4arg1 = Bytes.minimalBytes(tx.getBesuTransaction().getPayload().size());
     final boolean nonZeroDataSize = wcp.callISZERO(row4arg1);
-    this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToIsZero(row4arg1, nonZeroDataSize));
+    callsToEucAndWcp.add(TxnDataComparisonRecord.callToIsZero(row4arg1, nonZeroDataSize));
 
     switch (tx.getBesuTransaction().getType()) {
       case FRONTIER -> {
-        for (int i = 5; i < NB_ROWS_TYPE_0; i++) {
-          this.callsToEucAndWcp.add(TxnDataComparisonRecord.empty());
+        for (int i = NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST; i < NB_ROWS_TYPE_0; i++) {
+          callsToEucAndWcp.add(TxnDataComparisonRecord.empty());
         }
       }
       case ACCESS_LIST -> {
-        for (int i = 5; i < NB_ROWS_TYPE_1; i++) {
-          this.callsToEucAndWcp.add(TxnDataComparisonRecord.empty());
+        for (int i = NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST; i < NB_ROWS_TYPE_1; i++) {
+          callsToEucAndWcp.add(TxnDataComparisonRecord.empty());
         }
       }
       case EIP1559 -> {
@@ -131,14 +132,14 @@ public class TxndataOperation extends ModuleOperation {
             bigIntegerToBytes(tx.getBesuTransaction().getMaxFeePerGas().get().getAsBigInteger());
         final Bytes row5arg2 = Bytes.minimalBytes(tx.getBaseFee());
         wcp.callLT(maxFee, row5arg2);
-        this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(maxFee, row5arg2, false));
+        callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(maxFee, row5arg2, false));
 
         // i + maxfee_and_max_priority_fee_row_offset
         final Bytes row6arg2 =
             bigIntegerToBytes(
                 tx.getBesuTransaction().getMaxPriorityFeePerGas().get().getAsBigInteger());
         wcp.callLT(maxFee, row6arg2);
-        this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(maxFee, row6arg2, false));
+        callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(maxFee, row6arg2, false));
 
         // i + computing_effective_gas_price_row_offset
         final Bytes row7arg2 =
@@ -149,7 +150,7 @@ public class TxndataOperation extends ModuleOperation {
                     .getAsBigInteger()
                     .add(BigInteger.valueOf(tx.getBaseFee())));
         final boolean result = wcp.callLT(maxFee, row7arg2);
-        this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(maxFee, row7arg2, result));
+        callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(maxFee, row7arg2, result));
       }
     }
   }
@@ -168,41 +169,41 @@ public class TxndataOperation extends ModuleOperation {
 
   private void setRlptxnValues() {
     // i+0
-    this.valuesToRlptxn.add(
+    valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_0,
             Bytes.EMPTY,
             Bytes.ofUnsignedInt(getTxTypeAsInt(tx.getBesuTransaction().getType()))));
     // i+1
-    this.valuesToRlptxn.add(
+    valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_1,
             tx.isDeployment() ? Bytes.EMPTY : tx.getEffectiveTo().slice(0, 4),
             tx.isDeployment() ? Bytes.EMPTY : lowPart(tx.getEffectiveTo())));
 
     // i+2
-    this.valuesToRlptxn.add(
+    valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_2,
             Bytes.EMPTY,
             Bytes.ofUnsignedLong(tx.getBesuTransaction().getNonce())));
 
     // i+3
-    this.valuesToRlptxn.add(
+    valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_3,
             tx.isDeployment() ? Bytes.of(1) : Bytes.EMPTY,
             bigIntegerToBytes(tx.getBesuTransaction().getValue().getAsBigInteger())));
 
     // i+4
-    this.valuesToRlptxn.add(
+    valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_4,
             Bytes.ofUnsignedLong(tx.getDataCost()),
             Bytes.ofUnsignedLong(tx.getBesuTransaction().getPayload().size())));
 
     // i+5
-    this.valuesToRlptxn.add(
+    valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_5,
             Bytes.EMPTY,
@@ -211,38 +212,38 @@ public class TxndataOperation extends ModuleOperation {
     switch (tx.getBesuTransaction().getType()) {
       case FRONTIER -> {
         // i+6
-        this.valuesToRlptxn.add(
+        valuesToRlptxn.add(
             RlptxnOutgoing.set(
                 (short) TYPE_0_RLP_TXN_PHASE_NUMBER_6,
                 Bytes.EMPTY,
                 Bytes.minimalBytes(tx.getEffectiveGasPrice())));
         for (int i = 7; i < NB_ROWS_TYPE_0 + 1; i++) {
-          this.valuesToRlptxn.add(RlptxnOutgoing.empty());
+          valuesToRlptxn.add(RlptxnOutgoing.empty());
         }
       }
       case ACCESS_LIST -> {
         // i+6
-        this.valuesToRlptxn.add(
+        valuesToRlptxn.add(
             RlptxnOutgoing.set(
                 (short) TYPE_1_RLP_TXN_PHASE_NUMBER_6,
                 Bytes.EMPTY,
                 Bytes.minimalBytes(tx.getEffectiveGasPrice())));
 
         // i+7
-        this.valuesToRlptxn.add(
+        valuesToRlptxn.add(
             RlptxnOutgoing.set(
                 (short) TYPE_1_RLP_TXN_PHASE_NUMBER_7,
                 Bytes.ofUnsignedInt(tx.numberWarmedKey()),
                 Bytes.ofUnsignedInt(tx.numberWarmedAddress())));
 
         for (int i = 8; i < NB_ROWS_TYPE_1 + 1; i++) {
-          this.valuesToRlptxn.add(RlptxnOutgoing.empty());
+          valuesToRlptxn.add(RlptxnOutgoing.empty());
         }
       }
 
       case EIP1559 -> {
         // i+6
-        this.valuesToRlptxn.add(
+        valuesToRlptxn.add(
             RlptxnOutgoing.set(
                 (short) TYPE_2_RLP_TXN_PHASE_NUMBER_6,
                 bigIntegerToBytes(
@@ -250,14 +251,14 @@ public class TxndataOperation extends ModuleOperation {
                 bigIntegerToBytes(outgoingLowRow6())));
 
         // i+7
-        this.valuesToRlptxn.add(
+        valuesToRlptxn.add(
             RlptxnOutgoing.set(
                 (short) TYPE_2_RLP_TXN_PHASE_NUMBER_7,
                 Bytes.ofUnsignedInt(tx.numberWarmedKey()),
                 Bytes.ofUnsignedInt(tx.numberWarmedAddress())));
 
         for (int i = 8; i < NB_ROWS_TYPE_2 + 1; i++) {
-          this.valuesToRlptxn.add(RlptxnOutgoing.empty());
+          valuesToRlptxn.add(RlptxnOutgoing.empty());
         }
       }
     }
@@ -284,8 +285,8 @@ public class TxndataOperation extends ModuleOperation {
 
   public void setCallWcpLastTxOfBlock(final Bytes blockGasLimit) {
     final Bytes arg1 = Bytes.minimalBytes(tx.getAccumulatedGasUsedInBlock());
-    this.wcp.callLEQ(arg1, blockGasLimit);
-    this.callsToEucAndWcp.add(TxnDataComparisonRecord.callToLeq(arg1, blockGasLimit, true));
+    wcp.callLEQ(arg1, blockGasLimit);
+    callsToEucAndWcp.add(TxnDataComparisonRecord.callToLeq(arg1, blockGasLimit, true));
   }
 
   private BigInteger outgoingLowRow6() {
@@ -305,8 +306,8 @@ public class TxndataOperation extends ModuleOperation {
     final boolean isLastTxOfTheBlock =
         tx.getRelativeTransactionNumber() == block.getNbOfTxsInBlock();
     if (isLastTxOfTheBlock) {
-      this.valuesToRlptxn.add(RlptxnOutgoing.empty());
-      this.valuesToRlpTxrcpt.add(RlptxrcptOutgoing.emptyValue());
+      valuesToRlptxn.add(RlptxnOutgoing.empty());
+      valuesToRlpTxrcpt.add(RlptxrcptOutgoing.emptyValue());
     }
 
     final long fromHi = highPart(tx.getSender());
@@ -370,17 +371,17 @@ public class TxndataOperation extends ModuleOperation {
           .gasCumulative(cumulativeGas)
           .statusCode(tx.statusCode())
           .codeFragmentIndex(tx.getCodeFragmentIndex())
-          .phaseRlpTxn(UnsignedByte.of(this.valuesToRlptxn.get(ct).phase()))
-          .outgoingHi(this.valuesToRlptxn.get(ct).outGoingHi())
-          .outgoingLo(this.valuesToRlptxn.get(ct).outGoingLo())
-          .eucFlag(this.callsToEucAndWcp.get(ct).eucFlag())
-          .wcpFlag(this.callsToEucAndWcp.get(ct).wcpFlag())
-          .inst(UnsignedByte.of(this.callsToEucAndWcp.get(ct).instruction()))
-          .argOneLo(this.callsToEucAndWcp.get(ct).arg1())
-          .argTwoLo(this.callsToEucAndWcp.get(ct).arg2())
-          .res(this.callsToEucAndWcp.get(ct).result())
-          .phaseRlpTxnrcpt(UnsignedByte.of(this.valuesToRlpTxrcpt.get(ct).phase()))
-          .outgoingRlpTxnrcpt(Bytes.ofUnsignedLong(this.valuesToRlpTxrcpt.get(ct).outgoing()))
+          .phaseRlpTxn(UnsignedByte.of(valuesToRlptxn.get(ct).phase()))
+          .outgoingHi(valuesToRlptxn.get(ct).outGoingHi())
+          .outgoingLo(valuesToRlptxn.get(ct).outGoingLo())
+          .eucFlag(callsToEucAndWcp.get(ct).eucFlag())
+          .wcpFlag(callsToEucAndWcp.get(ct).wcpFlag())
+          .inst(UnsignedByte.of(callsToEucAndWcp.get(ct).instruction()))
+          .argOneLo(callsToEucAndWcp.get(ct).arg1())
+          .argTwoLo(callsToEucAndWcp.get(ct).arg2())
+          .res(callsToEucAndWcp.get(ct).result())
+          .phaseRlpTxnrcpt(UnsignedByte.of(valuesToRlpTxrcpt.get(ct).phase()))
+          .outgoingRlpTxnrcpt(Bytes.ofUnsignedLong(valuesToRlpTxrcpt.get(ct).outgoing()))
           .validateRow();
     }
   }

@@ -162,7 +162,7 @@ public class EcDataOperation extends ModuleOperation {
     }
 
     if (precompileFlag == PRC_ECPAIRING) {
-      totalPairings = callData.size() / TOTAL_SIZE_ECPAIRING_DATA_MIN;
+      totalPairings = callDataSize / TOTAL_SIZE_ECPAIRING_DATA_MIN;
     } else {
       totalPairings = 0;
     }

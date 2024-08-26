@@ -48,6 +48,7 @@ import static net.consensys.linea.zktracer.module.ecdata.Trace.TOTAL_SIZE_ECRECO
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.util.List;
 
@@ -138,6 +139,7 @@ public class EcDataOperation extends ModuleOperation {
     this.precompileFlag = precompileFlag;
     final int paddedCallDataLength = this.precompileFlag == PRC_ECMUL ? 96 : 128;
     if (callData.size() < paddedCallDataLength) {
+      // TODO: this is likely right padding, not left padding
       this.data = leftPadTo(callData, paddedCallDataLength);
     } else {
       // TODO: why keep the entire data rather than data[0:paddedCallDataLength] ?

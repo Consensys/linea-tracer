@@ -86,19 +86,17 @@ public class EcData implements Module {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
     long previousId = 0;
-
-    // TODO: operations should come in the right order now, no need to sort them. To test.
+    // Sort the operations by id given the fact that the initial data structure is a stacked set
     List<EcDataOperation> sortedOperations =
         this.operations.stream().sorted(Comparator.comparingLong(EcDataOperation::id)).toList();
-
     for (EcDataOperation op : sortedOperations) {
       // TODO: temporary hack, we should have only successful EcData Operations, will be fixed in PR
       //  #748
-      if (op.successBit()) {
-        stamp++;
-        op.trace(trace, stamp, previousId);
-        previousId = op.id();
-      }
+      // if (op.successBit()) {
+      stamp++;
+      op.trace(trace, stamp, previousId);
+      previousId = op.id();
+      // }
     }
   }
 
@@ -116,7 +114,10 @@ public class EcData implements Module {
       case PRC_ECMUL -> ecMulEffectiveCall.addPrecompileLimit(1);
       case PRC_ECRECOVER -> ecRecoverEffectiveCall.addPrecompileLimit(1);
       case PRC_ECPAIRING -> {
-        // TODO @Lorenzo
+        // TODO: @Lorenzo @Olivier complete
+        //  ecPairingG2MembershipCalls.addPrecompileLimit();
+        //  ecPairingMillerLoops.addPrecompileLimit();
+        //  ecPairingFinalExponentiations.addPrecompileLimit();
       }
       default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }

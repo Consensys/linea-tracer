@@ -194,10 +194,7 @@ public class ReturnSection extends TraceSection
       firstImcFragment.callOob(maxCodeSizeOobCall);
 
       // sanity checks
-      // TODO: Olivier should confirm this validation check.
-      Preconditions.checkArgument(
-          Exceptions.invalidCodePrefix(exceptions) == invalidCodePrefixCheckMmuCall.successBit());
-      //      Preconditions.checkArgument(invalidCodePrefixCheckMmuCall.successBit());
+      Preconditions.checkArgument(invalidCodePrefixCheckMmuCall.successBit());
       Preconditions.checkArgument(!maxCodeSizeOobCall.isMaxCodeSizeException());
 
       final ImcFragment secondImcFragment = ImcFragment.empty(hub);

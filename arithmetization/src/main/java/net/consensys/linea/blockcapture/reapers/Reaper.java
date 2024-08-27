@@ -59,10 +59,10 @@ public class Reaper {
   private int txIndex;
 
   /** Collect storage locations read / written by the current transaction */
-  private StorageReaper txStorage = new StorageReaper();
+  private StorageReaper txStorage = null;
 
   /** Collect the account address read / written by the current transaction */
-  private AddressReaper txAddresses = new AddressReaper();
+  private AddressReaper txAddresses = null;
 
   public void enterBlock(final BlockHeader header, final BlockBody body) {
     this.blocks.add(
@@ -71,12 +71,15 @@ public class Reaper {
     txIndex = 0; // reset
   }
 
-  public void enterTransaction(Transaction tx) {
-    this.touchAddress(tx.getSender());
-    tx.getTo().ifPresent(this::touchAddress);
+  public void prepareTransaction(Transaction tx) {
     // Configure tx-local reapers
     this.txStorage = new StorageReaper();
     this.txAddresses = new AddressReaper();
+  }
+
+  public void enterTransaction(Transaction tx) {
+    this.touchAddress(tx.getSender());
+    tx.getTo().ifPresent(this::touchAddress);
   }
 
   public void exitTransaction(
@@ -104,8 +107,8 @@ public class Reaper {
     txSnapshot.setTransactionResult(resultSnapshot);
     // Reset for next transaction
     txIndex++;
-    this.txStorage = new StorageReaper();
-    this.txAddresses = new AddressReaper();
+    this.txStorage = null;
+    this.txAddresses = null;
   }
 
   public void touchAddress(final Address address) {

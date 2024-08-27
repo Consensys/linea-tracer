@@ -15,24 +15,20 @@
 package net.consensys.linea.blockcapture.snapshots;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
+import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
-import org.hyperledger.besu.evm.frame.ExceptionalHaltReason;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.log.Log;
-import org.hyperledger.besu.evm.operation.Operation.OperationResult;
-import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
- * Records details regarding the outcome of a given transaction, such as whether it suceeded or
+ * Records details regarding the outcome of a given transaction, such as whether it succeeded or
  * failed.
  *
  * @param status true if the transaction was successful, false otherwise
@@ -59,56 +55,12 @@ public record TransactionResultSnapshot(
    * @return An implementation of OperationTracer which checks the outcome of this transaction
    *     matches.
    */
-  public OperationTracer check(OperationTracer tracer) {
-    return new TransactionChecker(tracer);
+  public ConflationAwareOperationTracer check() {
+    return new TransactionChecker();
   }
 
   /** Simple wrapper which checks the transaction result matches an expected outcome. */
-  private class TransactionChecker implements OperationTracer {
-    private final OperationTracer tracer;
-
-    public TransactionChecker(OperationTracer tracer) {
-      this.tracer = tracer;
-    }
-
-    @Override
-    public void tracePreExecution(final MessageFrame frame) {
-      this.tracer.tracePreExecution(frame);
-    }
-
-    @Override
-    public void tracePostExecution(
-        final MessageFrame frame, final OperationResult operationResult) {
-      this.tracer.tracePostExecution(frame, operationResult);
-    }
-
-    @Override
-    public void tracePrecompileCall(
-        final MessageFrame frame, final long gasRequirement, final Bytes output) {
-      this.tracer.tracePrecompileCall(frame, gasRequirement, output);
-    }
-
-    @Override
-    public void traceAccountCreationResult(
-        final MessageFrame frame, final Optional<ExceptionalHaltReason> haltReason) {
-      this.tracer.traceAccountCreationResult(frame, haltReason);
-    }
-
-    @Override
-    public void tracePrepareTransaction(final WorldView worldView, final Transaction transaction) {
-      this.tracer.tracePrepareTransaction(worldView, transaction);
-    }
-
-    @Override
-    public void traceStartTransaction(final WorldView worldView, final Transaction transaction) {
-      this.tracer.traceStartTransaction(worldView, transaction);
-    }
-
-    @Override
-    public void traceBeforeRewardTransaction(
-        final WorldView worldView, final Transaction tx, final Wei miningReward) {
-      this.tracer.traceBeforeRewardTransaction(worldView, tx, miningReward);
-    }
+  private class TransactionChecker implements ConflationAwareOperationTracer {
 
     @Override
     public void traceEndTransaction(
@@ -209,21 +161,16 @@ public record TransactionResultSnapshot(
                   + ")");
         }
       }
-      // Finally, continue tracing
-      this.tracer.traceEndTransaction(
-          world, tx, status, output, logs, gasUsed, selfDestructs, timeNs);
     }
 
-    public void traceContextEnter(final MessageFrame frame) {
-      this.tracer.traceContextEnter(frame);
+    @Override
+    public void traceStartConflation(long numBlocksInConflation) {
+      throw new UnsupportedOperationException();
     }
 
-    public void traceContextReEnter(final MessageFrame frame) {
-      this.tracer.traceContextReEnter(frame);
-    }
-
-    public void traceContextExit(final MessageFrame frame) {
-      this.tracer.traceContextExit(frame);
+    @Override
+    public void traceEndConflation(WorldView state) {
+      throw new UnsupportedOperationException();
     }
   }
 }

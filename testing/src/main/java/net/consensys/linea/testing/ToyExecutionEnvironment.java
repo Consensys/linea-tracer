@@ -38,6 +38,7 @@ import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionResultSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -148,13 +149,13 @@ public class ToyExecutionEnvironment {
    */
   private void executeFrom(final ConflationSnapshot conflation) {
     final ToyWorld overridenToyWorld = ToyWorld.of(conflation);
+
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
       for (TransactionSnapshot tx : blockSnapshot.txs()) {
         this.chainId = tx.getChainId();
       }
     }
     final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
-
     tracer.traceStartConflation(conflation.blocks().size());
 
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
@@ -223,7 +224,7 @@ public class ToyExecutionEnvironment {
               Wei.ZERO);
 
       this.testValidator.accept(result);
-      // this.zkTracerValidator.accept(tracer);
+      this.zkTracerValidator.accept(tracer);
     }
     tracer.traceEndBlock(header, mockBlockBody);
     tracer.traceEndConflation(toyWorld.updater());
@@ -285,7 +286,7 @@ public class ToyExecutionEnvironment {
       log.info("tx `{}` outcome not checked (disabled)", hash);
       return tracer;
     } else {
-      return txs.check(tracer);
+      return ConflationAwareOperationTracer.sequence(txs.check(), this.tracer);
     }
   }
 }

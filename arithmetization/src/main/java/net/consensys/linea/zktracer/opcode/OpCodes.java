@@ -16,10 +16,7 @@
 package net.consensys.linea.zktracer.opcode;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;

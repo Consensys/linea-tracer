@@ -45,6 +45,9 @@ public class Create2 extends MmuCall implements RomLexDefer {
                 hub.currentFrame()
                     .frame()
                     .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
+        .exoBytes(
+            Optional.of(
+                hub.romLex().getCodeByMetadata(contract))) // TODO ? What about for failed CREATE2 ?
         .auxId(hub.state().stamps().hub())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))

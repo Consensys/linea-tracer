@@ -108,7 +108,7 @@ public class EcData implements Module {
       case PRC_ECPAIRING -> {
         // TODO: @Olivier @Lorenzo: review
         ecPairingG2MembershipCalls.addPrecompileLimit(
-            ecDataOperation.circuitSelectorG2MembershipCounter());
+            ecDataOperation.circuitSelectorG2MembershipCounter() > 0 ? 1 : 0); // We invoke the circuit only once
         ecPairingMillerLoops.addPrecompileLimit(ecDataOperation.totalPairings());
         ecPairingFinalExponentiations.addPrecompileLimit(
             ecDataOperation.circuitSelectorEcPairingCounter() > 0 ? 1 : 0); // See https://eprint.iacr.org/2008/490.pdf

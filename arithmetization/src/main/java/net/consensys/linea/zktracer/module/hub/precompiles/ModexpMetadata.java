@@ -31,7 +31,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @Getter
 @Accessors(fluent = true)
 public class ModexpMetadata {
-  static final int BBS_MIN_OFFSET = 0x00;
+  public static final int BBS_MIN_OFFSET = 0x00;
   public static final int EBS_MIN_OFFSET = 0x20;
   public static final int MBS_MIN_OFFSET = 0x40;
   public static final int BASE_MIN_OFFSET = 0x60;

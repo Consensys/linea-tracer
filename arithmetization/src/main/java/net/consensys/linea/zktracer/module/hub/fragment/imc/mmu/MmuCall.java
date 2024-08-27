@@ -224,7 +224,6 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(logData.callFrame.contextNumber())
         .sourceRamBytes(Optional.of(logData.ramSourceBytes))
-        .targetId(hub.state.stamps().log()) // TODO/ fix me
         .exoBytes(
             Optional.of(
                 slice(
@@ -235,6 +234,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .size(logData.size)
         .referenceSize(logData.size)
         .setLog();
+
+    // Note: The targetId() is set at the end of the transaction. We don't know now if the LOG will
+    // be reverted or not
+
   }
 
   public static MmuCall codeCopy(final Hub hub) {

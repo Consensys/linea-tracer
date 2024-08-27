@@ -53,10 +53,6 @@ public class EcData implements Module {
   private final EcPairingMillerLoops ecPairingMillerLoops;
   private final EcPairingFinalExponentiations ecPairingFinalExponentiations;
 
-  private int totalPairingsCounter;
-  private int g2MembershipTestRequiredCounter;
-  private int acceptablePairOfPointsForPairingCircuitCounter;
-
   @Getter private EcDataOperation ecDataOperation;
 
   @Override
@@ -105,28 +101,17 @@ public class EcData implements Module {
         EcDataOperation.of(this.wcp, this.ext, id, precompileFlag, callData, returnData);
     this.operations.add(ecDataOperation);
 
-    // TODO: @Lorenzo @Francois how shall we use these counters
-    //  is this the right place to increment or should it be at commit time?
-    //  it this the right place to set the precompile limits?
-
-    /*
-    for (EcDataOperation op : operations) {
-      totalPairingsCounter += op.totalPairings();
-      g2MembershipTestRequiredCounter += op.g2MembershipTestRequired() ? 1 : 0;
-      acceptablePairOfPointsForPairingCircuitCounter +=
-        op.acceptablePairOfPointsForPairingCircuit() ? 1 : 0;
-    }
-    */
-
     switch (ecDataOperation.precompileFlag()) {
       case PRC_ECADD -> ecAddEffectiveCall.addPrecompileLimit(1);
       case PRC_ECMUL -> ecMulEffectiveCall.addPrecompileLimit(1);
       case PRC_ECRECOVER -> ecRecoverEffectiveCall.addPrecompileLimit(1);
       case PRC_ECPAIRING -> {
-        // TODO: @Lorenzo @Francois complete
-        //  ecPairingG2MembershipCalls.addPrecompileLimit();
-        //  ecPairingMillerLoops.addPrecompileLimit();
-        //  ecPairingFinalExponentiations.addPrecompileLimit();
+        // TODO: @Olivier @Lorenzo: review
+        ecPairingG2MembershipCalls.addPrecompileLimit(
+            ecDataOperation.g2MembershipTestRequired() ? 1 : 0);
+        ecPairingMillerLoops.addPrecompileLimit(ecDataOperation.totalPairings());
+        ecPairingFinalExponentiations.addPrecompileLimit(
+            ecDataOperation.acceptablePairOfPointsForPairingCircuit() ? 1 : 0);
       }
       default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }

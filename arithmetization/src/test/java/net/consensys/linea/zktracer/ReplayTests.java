@@ -143,8 +143,9 @@ public class ReplayTests {
         Path targetLtPath = conflatedDirPath.resolve(ltFilePath.getFileName().toString() + ".tmp");
         try {
           Files.move(ltFilePath, targetLtPath, StandardCopyOption.REPLACE_EXISTING);
-          Path finalLtPath = targetLtPath.resolveSibling(
-              targetLtPath.getFileName().toString().replace(".tmp", ""));
+          Path finalLtPath =
+              targetLtPath.resolveSibling(
+                  targetLtPath.getFileName().toString().replace(".tmp", ""));
           Files.move(targetLtPath, finalLtPath, StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
           log.error("Error moving file {}: {}", ltFilePath, e.getMessage());
@@ -173,8 +174,8 @@ public class ReplayTests {
   }
 
   /**
-   * Run replay with the specific file path of a replay file.
-   * The conflated trace will be written to the same directory as the replay file.
+   * Run replay with the specific file path of a replay file. The conflated trace will be written to
+   * the same directory as the replay file.
    */
   @Test
   void replaySpecificFilePath() {
@@ -182,10 +183,10 @@ public class ReplayTests {
   }
 
   /**
-   * Run a bulk replay of multiple replay files specified by a directory.
-   * The conflated traces will be moved to "conflated" directory once replayed.
-   * The replay files will be moved to "replayed" directory once completed.
-   * Note: CORSET_VALIDATOR.validate() is disabled by default for replayBulk
+   * Run a bulk replay of multiple replay files specified by a directory. The conflated traces will
+   * be moved to "conflated" directory once replayed. The replay files will be moved to "replayed"
+   * directory once completed. Note: CORSET_VALIDATOR.validate() is disabled by default for
+   * replayBulk
    */
   @Test
   void replayMultipleReplayFiles() {

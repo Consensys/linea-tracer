@@ -174,11 +174,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     this.instruction = instruction;
   }
 
-  public static MmuCall nop() {
-    return new MmuCall().instruction(-1);
-  }
-
-  public static MmuCall sha3(final Hub hub) {
+  public static MmuCall sha3(final Hub hub, final Bytes hashInput) {
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(
@@ -187,6 +183,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
                     .frame()
                     .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .auxId(hub.state().stamps().hub())
+        .exoBytes(Optional.of(hashInput))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
         .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
@@ -226,17 +223,17 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   public static MmuCall LogX(final Hub hub, final LogData logData) {
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(logData.callFrame.contextNumber())
-        .targetId(hub.state.stamps().log())
-        .sourceOffset(logData.offset)
-        .size(logData.size)
-        .referenceSize(logData.size)
         .sourceRamBytes(Optional.of(logData.ramSourceBytes))
+        .targetId(hub.state.stamps().log()) // TODO/ fix me
         .exoBytes(
             Optional.of(
                 slice(
                     logData.ramSourceBytes,
                     (int) Words.clampedToLong(logData.offset),
                     (int) logData.size)))
+        .sourceOffset(logData.offset)
+        .size(logData.size)
+        .referenceSize(logData.size)
         .setLog();
   }
 
@@ -754,24 +751,21 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       stamps.incrementMmuStamp();
       return trace
           .pMiscMmuFlag(true)
-          .pMiscMmuInst(
-              this.instruction() == -1
-                  ? 0
-                  : this.instruction()) // TODO: WTF I wanted to put -1? Only for debug?
-          .pMiscMmuTgtId(this.targetId())
-          .pMiscMmuSrcId(this.sourceId())
-          .pMiscMmuAuxId(this.auxId())
-          .pMiscMmuSrcOffsetHi(this.sourceOffset().hi())
-          .pMiscMmuSrcOffsetLo(this.sourceOffset().lo())
-          .pMiscMmuTgtOffsetLo(this.targetOffset().lo())
-          .pMiscMmuSize(this.size())
-          .pMiscMmuRefOffset(this.referenceOffset())
-          .pMiscMmuRefSize(this.referenceSize())
-          .pMiscMmuSuccessBit(this.successBit())
-          .pMiscMmuLimb1(this.limb1())
-          .pMiscMmuLimb2(this.limb2())
-          .pMiscMmuExoSum(this.exoSum)
-          .pMiscMmuPhase(this.phase());
+          .pMiscMmuInst(instruction)
+          .pMiscMmuTgtId(targetId)
+          .pMiscMmuSrcId(sourceId)
+          .pMiscMmuAuxId(auxId)
+          .pMiscMmuSrcOffsetHi(sourceOffset.hi())
+          .pMiscMmuSrcOffsetLo(sourceOffset.lo())
+          .pMiscMmuTgtOffsetLo(targetOffset.lo())
+          .pMiscMmuSize(size)
+          .pMiscMmuRefOffset(referenceOffset)
+          .pMiscMmuRefSize(referenceSize)
+          .pMiscMmuSuccessBit(successBit)
+          .pMiscMmuLimb1(limb1)
+          .pMiscMmuLimb2(limb2)
+          .pMiscMmuExoSum(exoSum)
+          .pMiscMmuPhase(phase);
     } else {
       return trace;
     }
@@ -781,7 +775,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (traceMe) {
-      hub.mmu().call(this, hub.callStack());
+      hub.mmu().call(this);
     }
   }
 }

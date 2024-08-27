@@ -123,9 +123,9 @@ public class EcDataOperation extends ModuleOperation {
 
   private final List<Boolean> notOnG2; // counter-constant
   private final List<Boolean> notOnG2Acc; // counter-constant
-  private boolean notOnG2AccMax; // index-constant
+  @Getter private boolean notOnG2AccMax; // index-constant
   private final List<Boolean> isInfinity; // counter-constant
-  private final List<Boolean> overallTrivialPairing; // counter-constant
+  @Getter private final List<Boolean> overallTrivialPairing; // counter-constant
 
   private EcDataOperation(
       Wcp wcp,

@@ -19,11 +19,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -111,7 +107,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   @Setter int codeFragmentIndex = -1;
 
-  @Setter Set<AccountSnapshot> destructedAccountsSnapshot;
+  @Setter Set<AccountSnapshot> destructedAccountsSnapshot = new HashSet<>();
 
   @Getter
   Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap = new HashMap<>();

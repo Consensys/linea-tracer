@@ -76,7 +76,11 @@ public class ReturnSection extends TraceSection
     returnFromDeployment = currentFrame.isDeployment();
 
     Preconditions.checkArgument(
-            returnFromDeployment == hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress()));
+        returnFromDeployment
+            == hub.transients()
+                .conflation()
+                .deploymentInfo()
+                .isDeploying(frame.getContractAddress()));
 
     returnScenarioFragment = new ReturnScenarioFragment();
     final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);

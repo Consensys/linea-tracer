@@ -60,10 +60,6 @@ public class ReturnSection extends TraceSection
   ContextFragment squashParentContextReturnData;
   Address deploymentAddress;
 
-  // For deployments: Besu message frame of the (deployment) context
-  // whose output data becomes the deployed byte code after deployment.
-  private MessageFrame frameOwningTheOutputData;
-
   // TODO: trigger SHAKIRA
 
   public ReturnSection(Hub hub) {
@@ -165,7 +161,9 @@ public class ReturnSection extends TraceSection
     // RETURN_FROM_DEPLOYMENT cases
     if (returnFromDeployment) {
 
-      frameOwningTheOutputData = hub.messageFrame();
+      MessageFrame frame = hub.messageFrame();
+      Preconditions.checkArgument(
+              hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress()));
 
       // TODO: @Olivier and @François: what happens when "re-entering" the root's parent context ?
       //  we may need to improve the triggering of the resolution to also kick in at transaction
@@ -177,7 +175,7 @@ public class ReturnSection extends TraceSection
       hub.defers().scheduleForPostTransaction(this); // inserting the final context row;
 
       squashParentContextReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
-      deploymentAddress = hub.messageFrame().getRecipientAddress();
+      deploymentAddress = frame.getRecipientAddress();
       nonemptyByteCode = mxpCall.mayTriggerNontrivialMmuOperation;
       preDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
       returnScenarioFragment.setScenario(
@@ -185,13 +183,15 @@ public class ReturnSection extends TraceSection
               ? RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT
               : RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WONT_REVERT);
 
-      final Bytes byteCodeSize = hub.messageFrame().getStackItem(1);
+      final Bytes byteCodeSize = frame.getStackItem(1);
       Preconditions.checkArgument(nonemptyByteCode == (!byteCodeSize.isZero()));
 
       // Empty deployments
       if (!nonemptyByteCode) {
         return;
       }
+
+      hub.romLex().callRomLex(frame);
 
       final MmuCall invalidCodePrefixCheckMmuCall = MmuCall.invalidCodePrefix(hub);
       firstImcFragment.callMmu(invalidCodePrefixCheckMmuCall);
@@ -228,7 +228,6 @@ public class ReturnSection extends TraceSection
       //  - triggerHashInfo stuff on the first stack row (automatic AFAICT)
       //  - triggerROMLEX on the deploymentAccountFragment row (see below)
       deploymentAccountFragment.requiresRomlex(true);
-      hub.romLex().callRomLex(frameOwningTheOutputData);
     }
 
     this.addFragment(deploymentAccountFragment);

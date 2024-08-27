@@ -1,7 +1,5 @@
 package net.consensys.linea.zktracer.module.hub.signals;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.Set;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -13,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.Mockito;
 
+/** ensure that OpCode are configured properly */
 class ExceptionsTest {
 
   @ParameterizedTest

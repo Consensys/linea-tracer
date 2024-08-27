@@ -60,6 +60,8 @@ public class ReturnSection extends TraceSection
   ContextFragment squashParentContextReturnData;
   Address deploymentAddress;
 
+  private MessageFrame childFrame;
+
   // TODO: trigger SHAKIRA
 
   public ReturnSection(Hub hub) {
@@ -169,6 +171,7 @@ public class ReturnSection extends TraceSection
               this, hub.callStack().parent()); // post deployment account snapshot
       hub.defers().scheduleForPostRollback(this, currentFrame); // undo deployment
       hub.defers().scheduleForPostTransaction(this); // inserting the final context row;
+      childFrame = hub.messageFrame();
 
       squashParentContextReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
       deploymentAddress = hub.messageFrame().getRecipientAddress();
@@ -222,7 +225,7 @@ public class ReturnSection extends TraceSection
       //  - triggerHashInfo stuff on the first stack row (automatic AFAICT)
       //  - triggerROMLEX on the deploymentAccountFragment row (see below)
       deploymentAccountFragment.requiresRomlex(true);
-      hub.romLex().callRomLex(hub.messageFrame());
+      hub.romLex().callRomLex(childFrame);
     }
 
     this.addFragment(deploymentAccountFragment);
@@ -265,5 +268,9 @@ public class ReturnSection extends TraceSection
   private static short maxNumberOfRows(Hub hub) {
     return (short)
         (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 4 : 7));
+  }
+
+  public MessageFrame getChildFrame() {
+    return childFrame;
   }
 }

@@ -112,7 +112,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   @Setter int codeFragmentIndex = -1;
 
-  @Setter Set<AccountSnapshot> destructedAccountsSnapshot = new HashSet();
+  @Setter Set<AccountSnapshot> destructedAccountsSnapshot = new HashSet<>();
 
   @Getter
   Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap = new HashMap<>();

@@ -111,7 +111,7 @@ public class EcData implements Module {
             ecDataOperation.circuitSelectorG2MembershipCounter());
         ecPairingMillerLoops.addPrecompileLimit(ecDataOperation.totalPairings());
         ecPairingFinalExponentiations.addPrecompileLimit(
-            ecDataOperation.circuitSelectorEcPairingCounter());
+            ecDataOperation.circuitSelectorEcPairingCounter() > 0 ? 1 : 0); // See https://eprint.iacr.org/2008/490.pdf
       }
       default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }

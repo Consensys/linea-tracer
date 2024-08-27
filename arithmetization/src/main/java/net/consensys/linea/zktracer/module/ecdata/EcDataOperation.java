@@ -118,8 +118,8 @@ public class EcDataOperation extends ModuleOperation {
 
   // pairing-specific
   @Getter private final int totalPairings;
-  @Getter private boolean circuitSelectorEcpairing;
-  @Getter private boolean circuitSelectorG2Membership;
+  @Getter private int circuitSelectorEcPairingCounter;
+  @Getter private int circuitSelectorG2MembershipCounter;
 
   private final List<Boolean> notOnG2; // counter-constant
   private final List<Boolean> notOnG2Acc; // counter-constant
@@ -664,8 +664,8 @@ public class EcDataOperation extends ModuleOperation {
               && !notOnG2AccMax
               && !largePointIsAtInfinity
               && !smallPointIsAtInfinity;
-      circuitSelectorEcpairing = acceptablePairOfPointsForPairingCircuit;
-      circuitSelectorG2Membership = g2MembershipTestRequired;
+      circuitSelectorEcPairingCounter += acceptablePairOfPointsForPairingCircuit ? 1 : 0;
+      circuitSelectorG2MembershipCounter += g2MembershipTestRequired ? 1 : 0;
 
       if (precompileFlag != PRC_ECPAIRING || !isData) {
         Preconditions.checkArgument(ct == 0);
@@ -720,8 +720,9 @@ public class EcDataOperation extends ModuleOperation {
           .circuitSelectorEcrecover(circuitSelectorEcrecover)
           .circuitSelectorEcadd(circuitSelectorEcadd)
           .circuitSelectorEcmul(circuitSelectorEcmul)
-          .circuitSelectorEcpairing(circuitSelectorEcpairing)
-          .circuitSelectorG2Membership(circuitSelectorG2Membership)
+          .circuitSelectorEcpairing(
+              acceptablePairOfPointsForPairingCircuit) // = circuitSelectorEcPairing
+          .circuitSelectorG2Membership(g2MembershipTestRequired) // = circuitSelectorG2Membership
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))
           .wcpArg1Lo(wcpArg1Lo.get(i))

@@ -108,10 +108,10 @@ public class EcData implements Module {
       case PRC_ECPAIRING -> {
         // TODO: @Olivier @Lorenzo: review
         ecPairingG2MembershipCalls.addPrecompileLimit(
-            ecDataOperation.circuitSelectorG2Membership() ? 1 : 0);
+            ecDataOperation.circuitSelectorG2MembershipCounter());
         ecPairingMillerLoops.addPrecompileLimit(ecDataOperation.totalPairings());
         ecPairingFinalExponentiations.addPrecompileLimit(
-            ecDataOperation.circuitSelectorEcpairing() ? 1 : 0);
+            ecDataOperation.circuitSelectorEcPairingCounter());
       }
       default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }

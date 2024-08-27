@@ -60,7 +60,9 @@ public class ReturnSection extends TraceSection
   ContextFragment squashParentContextReturnData;
   Address deploymentAddress;
 
-  private MessageFrame childFrame;
+  // For deployments: Besu message frame of the (deployment) context
+  // whose output data becomes the deployed byte code after deployment.
+  private MessageFrame frameOwningTheOutputData;
 
   // TODO: trigger SHAKIRA
 
@@ -163,6 +165,8 @@ public class ReturnSection extends TraceSection
     // RETURN_FROM_DEPLOYMENT cases
     if (returnFromDeployment) {
 
+      frameOwningTheOutputData = hub.messageFrame();
+
       // TODO: @Olivier and @François: what happens when "re-entering" the root's parent context ?
       //  we may need to improve the triggering of the resolution to also kick in at transaction
       //  end for stuff that happens after the root returns ...
@@ -171,7 +175,6 @@ public class ReturnSection extends TraceSection
               this, hub.callStack().parent()); // post deployment account snapshot
       hub.defers().scheduleForPostRollback(this, currentFrame); // undo deployment
       hub.defers().scheduleForPostTransaction(this); // inserting the final context row;
-      childFrame = hub.messageFrame();
 
       squashParentContextReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
       deploymentAddress = hub.messageFrame().getRecipientAddress();
@@ -225,7 +228,7 @@ public class ReturnSection extends TraceSection
       //  - triggerHashInfo stuff on the first stack row (automatic AFAICT)
       //  - triggerROMLEX on the deploymentAccountFragment row (see below)
       deploymentAccountFragment.requiresRomlex(true);
-      hub.romLex().callRomLex(childFrame);
+      hub.romLex().callRomLex(frameOwningTheOutputData);
     }
 
     this.addFragment(deploymentAccountFragment);
@@ -271,6 +274,6 @@ public class ReturnSection extends TraceSection
   }
 
   public MessageFrame getChildFrame() {
-    return childFrame;
+    return frameOwningTheOutputData;
   }
 }

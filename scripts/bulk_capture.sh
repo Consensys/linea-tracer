@@ -36,11 +36,12 @@ full_cmd="mkdir -p $remote_dir; "
 # Variables to track the very first and very last ranges
 very_first=""
 very_last=""
+number_of_ranges=0
+skipped_ranges=0
 
 # Read the range file and process each range
 while IFS= read -r line || [[ -n "$line" ]]; do
     # Debug: Show the current line being processed
-    echo "Debug: Current line: '$line'"
 
     # Skip empty lines
     if [ -z "$line" ]; then
@@ -53,28 +54,27 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     end=$(echo "$line" | cut -d'-' -f2)
 
     # Debug: Show extracted start and end values
-    echo "Debug: Extracted start: '$start', end: '$end'"
 
-    # Check if start and end are properly extracted
-    if [ -z "$start" ] || [ -z "$end" ]; then
-        echo "Debug: Skipping invalid line: '$line'"
+    # Check if start and end ranges are valid
+    if [ -z "$start" ] || [ -z "$end" ] || [ "$start" -gt "$end" ]; then
+        echo "[WARNING]: Skipping invalid range: '$line'"
+        skipped_ranges=$((skipped_ranges + 1))
         continue
     fi
 
     # Track the very first and very last ranges
-    if [ -z "$very_first" ]; then
+    if [ -z "$very_first" ] || [ "$start" -lt "$very_first" ]; then
         very_first="$start"
     fi
-    very_last="$end"
+    if [ -z "$very_last" ] || [ "$end" -gt "$very_last" ]; then
+        very_last="$end"
+    fi
+
+    # Increment the number of ranges
+    number_of_ranges=$((number_of_ranges + 1))
 
     # Set remote filename
     remote_filename="$remote_dir/$start-$end.json.gz"
-
-    # Validate range
-    if [ "$start" -gt "$end" ]; then
-        echo "Invalid range: $start - $end"
-        continue
-    fi
 
     echo "Capturing conflation $start - $end"
     echo "Writing replay to \`$remote_filename\`"
@@ -93,9 +93,9 @@ EOF
     full_cmd+="curl -X POST 'http://localhost:8545' --data '$payload' | jq '.result.capture' -r | jq . | gzip > $remote_filename; echo 'Captured $start-$end'; sleep 3; "
 done < "$range_file"
 
-# Set the compressed file name based on the very first and very last ranges
-compressed_file="/tmp/replays_${very_first}_${very_last}.tar.gz"
-local_compressed_file="replays_${very_first}_${very_last}.tar.gz"
+# Set the compressed file name with the number of ranges context
+compressed_file="/tmp/replays_${number_of_ranges}_conflations_between_${very_first}_and_${very_last}.tar.gz"
+local_compressed_file="replays_${number_of_ranges}_conflations_between_${very_first}_and_${very_last}.tar.gz"
 full_cmd+="cd /tmp; tar -czf $compressed_file replays-$uuid; echo 'Compressed capture_files'; "
 
 # Debug: Show the full command
@@ -118,7 +118,8 @@ mv ./replays-$uuid/* ./replays
 # Remove the extracted folder
 rm -rf ./replays-$uuid
 
-# Remove the local compressed file
+# Remove the local compressed file. Comment out this line to keep the compressed file locally.
 rm $local_compressed_file
 
-echo "All replay files ${very_first}-${very_last} have been processed and downloaded."
+echo "Replay files for ${number_of_ranges} conflations between ${very_first} and ${very_last} have been processed and downloaded."
+echo "Skipped ranges due to invalid configurations: $skipped_ranges."

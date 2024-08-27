@@ -102,11 +102,15 @@ public class EcData implements Module {
     this.operations.add(ecDataOperation);
 
     switch (ecDataOperation.precompileFlag()) {
-      case PRC_ECADD -> ecAddEffectiveCall.addPrecompileLimit(1);
-      case PRC_ECMUL -> ecMulEffectiveCall.addPrecompileLimit(1);
-      case PRC_ECRECOVER -> ecRecoverEffectiveCall.addPrecompileLimit(1);
+      case PRC_ECADD -> ecAddEffectiveCall.addPrecompileLimit(
+          ecDataOperation.internalChecksPassed() ? 1 : 0);
+      case PRC_ECMUL -> ecMulEffectiveCall.addPrecompileLimit(
+          ecDataOperation.internalChecksPassed() ? 1 : 0);
+      case PRC_ECRECOVER -> ecRecoverEffectiveCall.addPrecompileLimit(
+          ecDataOperation.internalChecksPassed() ? 1 : 0);
       case PRC_ECPAIRING -> {
-        // TODO: @Olivier @Lorenzo: review
+        // TODO: check review and see if we should set limits also for the other circuit
+        //  based on the same case analysis
 
         // ecPairingG2MembershipCalls case
         // NOTE: see EC_DATA specs Figure 3.5 for a graphical representation of this case analysis
@@ -122,7 +126,8 @@ public class EcData implements Module {
         // NOT_ON_G2_ACC_MAX to trace
         if (ecDataOperation.internalChecksPassed() && ecDataOperation.notOnG2AccMax()) {
           ecPairingG2MembershipCalls.addPrecompileLimit(1);
-          // The circuit is invoked only once if there is at least one point predicted to be not on G2
+          // The circuit is invoked only once if there is at least one point predicted to be not on
+          // G2
         }
         if (ecDataOperation.internalChecksPassed()
             && !ecDataOperation.notOnG2AccMax()
@@ -138,21 +143,15 @@ public class EcData implements Module {
           // The circuit is invoked as many times as there are points predicted to be on G2
         }
 
-        final boolean predictedToBeValidSetOfPairings =
-            ecDataOperation.circuitSelectorEcPairingCounter() > 0;
-
         // ecPairingMillerLoops case
-        // NOTE: the number of Miller Loops is equal to the number of pairings in a predicted to be
-        // valid set
-        // , 0 otherwise
-        ecPairingMillerLoops.addPrecompileLimit(
-            predictedToBeValidSetOfPairings ? ecDataOperation.totalPairings() : 0);
+        ecPairingMillerLoops.addPrecompileLimit(ecDataOperation.circuitSelectorEcPairingCounter());
+        // TODO: check if trivial pairings need the circuit to be invoked
 
         // ecPairingFinalExponentiation case
-        // NOTE: the number of final exponentiation is just one for a predicted to be valid set
-        // of pairings, 0 otherwise
         ecPairingFinalExponentiations.addPrecompileLimit(
-            predictedToBeValidSetOfPairings ? 1 : 0); // See https://eprint.iacr.org/2008/490.pdf
+            ecDataOperation.circuitSelectorEcPairingCounter() > 0
+                ? 1
+                : 0); // See https://eprint.iacr.org/2008/490.pdf
       }
       default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }

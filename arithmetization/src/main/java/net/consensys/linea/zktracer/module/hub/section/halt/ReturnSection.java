@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section.halt;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.memoryExpansionException;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -59,6 +60,9 @@ public class ReturnSection extends TraceSection
   AccountSnapshot undoingDeploymentAccountSnapshot;
   ContextFragment squashParentContextReturnData;
   Address deploymentAddress;
+
+  boolean successfulMessageCallExpected; // for sanity check
+  boolean successfulDeploymentExpected; // for sanity check
 
   // TODO: trigger SHAKIRA
 
@@ -138,6 +142,7 @@ public class ReturnSection extends TraceSection
 
     // RETURN_FROM_MESSAGE_CALL cases
     if (returnFromMessageCall) {
+      successfulMessageCallExpected = true;
       final boolean messageCallReturnTouchesRam =
           !currentFrame.isRoot()
               && nontrivialMmuOperation // [size ≠ 0] ∧ ¬MXPX
@@ -165,7 +170,7 @@ public class ReturnSection extends TraceSection
 
     // RETURN_FROM_DEPLOYMENT cases
     if (returnFromDeployment) {
-
+      successfulDeploymentExpected = true;
 
       // TODO: @Olivier and @François: what happens when "re-entering" the root's parent context ?
       //  we may need to improve the triggering of the resolution to also kick in at transaction
@@ -215,6 +220,20 @@ public class ReturnSection extends TraceSection
 
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
+
+    // TODO: optional sanity check that may be removed
+    if (returnFromMessageCall) {
+      Bytes topOfTheStack = hub.messageFrame().getStackItem(0);
+      boolean messageCallWasSuccessful = bytesToBoolean(topOfTheStack);
+      Preconditions.checkArgument(messageCallWasSuccessful == successfulMessageCallExpected);
+    }
+
+    // TODO: optional sanity check that may be removed
+    if (returnFromDeployment) {
+      Bytes topOfTheStack = hub.messageFrame().getStackItem(0);
+      boolean deploymentWasSuccess = !topOfTheStack.isZero();
+      Preconditions.checkArgument(deploymentWasSuccess == successfulDeploymentExpected);
+    }
 
     postDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
     final AccountFragment deploymentAccountFragment =

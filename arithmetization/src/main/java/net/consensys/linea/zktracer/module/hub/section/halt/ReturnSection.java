@@ -66,8 +66,13 @@ public class ReturnSection extends TraceSection
     super(hub, maxNumberOfRows(hub));
 
     final CallFrame currentFrame = hub.currentFrame();
+    final MessageFrame frame = hub.messageFrame();
+
     returnFromMessageCall = currentFrame.isMessageCall();
     returnFromDeployment = currentFrame.isDeployment();
+
+    Preconditions.checkArgument(
+            returnFromDeployment == hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress()));
 
     returnScenarioFragment = new ReturnScenarioFragment();
     final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
@@ -161,9 +166,6 @@ public class ReturnSection extends TraceSection
     // RETURN_FROM_DEPLOYMENT cases
     if (returnFromDeployment) {
 
-      MessageFrame frame = hub.messageFrame();
-      Preconditions.checkArgument(
-              hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress()));
 
       // TODO: @Olivier and @François: what happens when "re-entering" the root's parent context ?
       //  we may need to improve the triggering of the resolution to also kick in at transaction
@@ -235,7 +237,7 @@ public class ReturnSection extends TraceSection
 
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
-    // TODO
+
     Preconditions.checkArgument(returnFromDeployment);
     returnScenarioFragment.setScenario(
         nonemptyByteCode

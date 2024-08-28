@@ -109,4 +109,11 @@ public class ReplayTests {
   void incident777zkGethMainnet() {
     replay("7461019-7461030.json.gz");
   }
+
+  // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
+  // instruction
+  @Test
+  void negativeNumberOfMmioInstruction() {
+    replay("6029454-6029459.json.gz");
+  }
 }

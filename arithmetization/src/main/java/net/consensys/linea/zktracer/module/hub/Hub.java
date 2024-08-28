@@ -145,6 +145,10 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Slf4j
 @Accessors(fluent = true)
 public class Hub implements Module {
+
+  // TODO: remove, it's for debugging
+  public int statusSize;
+
   public static final GasProjector GAS_PROJECTOR = new GasProjector();
 
   /** accumulate the trace information for the Hub */
@@ -560,11 +564,11 @@ public class Hub implements Module {
             Wei.of(this.transients.tx().getBesuTransaction().getValue().getAsBigInteger()),
             this.transients.tx().getBesuTransaction().getGasLimit(),
             this.transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY),
-            this.transients.conflation().deploymentInfo().number(toAddress),
+            this.transients.conflation().deploymentInfo().deploymentNumber(toAddress),
             toAddress.isEmpty()
                 ? 0
-                : this.transients.conflation().deploymentInfo().number(toAddress),
-            this.transients.conflation().deploymentInfo().isDeploying(toAddress));
+                : this.transients.conflation().deploymentInfo().deploymentNumber(toAddress),
+            this.transients.conflation().deploymentInfo().getDeploymentStatus(toAddress));
       } else {
         this.callStack.newBedrock(
             this.state.stamps().hub(),
@@ -580,11 +584,11 @@ public class Hub implements Module {
             Wei.of(this.transients.tx().getBesuTransaction().getValue().getAsBigInteger()),
             this.transients.tx().getBesuTransaction().getGasLimit(),
             this.transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY),
-            this.transients.conflation().deploymentInfo().number(toAddress),
+            this.transients.conflation().deploymentInfo().deploymentNumber(toAddress),
             toAddress.isEmpty()
                 ? 0
-                : this.transients.conflation().deploymentInfo().number(toAddress),
-            this.transients.conflation().deploymentInfo().isDeploying(toAddress));
+                : this.transients.conflation().deploymentInfo().deploymentNumber(toAddress),
+            this.transients.conflation().deploymentInfo().getDeploymentStatus(toAddress));
       }
     } else {
       // ...or CALL or CREATE
@@ -594,10 +598,10 @@ public class Hub implements Module {
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
       if (isDeployment) {
-        this.transients.conflation().deploymentInfo().markDeploying(codeAddress);
+        this.transients.conflation().deploymentInfo().newDeploymentAt(codeAddress);
       }
       final int codeDeploymentNumber =
-          this.transients.conflation().deploymentInfo().number(codeAddress);
+          this.transients.conflation().deploymentInfo().deploymentNumber(codeAddress);
 
       final long callDataOffset =
           isDeployment
@@ -632,7 +636,7 @@ public class Hub implements Module {
           callDataOffset,
           callDataSize,
           callDataContextNumber,
-          this.transients.conflation().deploymentInfo().number(codeAddress),
+          this.transients.conflation().deploymentInfo().deploymentNumber(codeAddress),
           codeDeploymentNumber,
           isDeployment);
       this.currentFrame().initializeFrame(frame); // TODO should be done in enter
@@ -655,11 +659,21 @@ public class Hub implements Module {
   @Override
   public void traceContextExit(MessageFrame frame) {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
-    if (frame.getDepth() > 0) {
-      this.transients
+
+    // TODO: this is likely not the right spot to do this
+    //  this should happen
+    if (transients
+        .conflation()
+        .deploymentInfo()
+        .getDeploymentStatus(this.currentFrame().byteCodeAddress())) {
+      transients
           .conflation()
           .deploymentInfo()
-          .unmarkDeploying(this.currentFrame().byteCodeAddress());
+          .markAsNotUnderDeployment(this.currentFrame().byteCodeAddress());
+    }
+
+    // TODO: why only do this at positive depth ?
+    if (frame.getDepth() > 0) {
 
       DeploymentExceptions contextExceptions =
           DeploymentExceptions.fromFrame(this.currentFrame(), frame);
@@ -797,7 +811,7 @@ public class Hub implements Module {
   }
 
   private void handleCreate(Address target) {
-    this.transients.conflation().deploymentInfo().deploy(target);
+    this.transients.conflation().deploymentInfo().newDeploymentAt(target);
   }
 
   public int getCfiByMetaData(
@@ -968,6 +982,7 @@ public class Hub implements Module {
   }
 
   void traceOpcode(MessageFrame frame) {
+
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
           MOD,
@@ -1071,5 +1086,21 @@ public class Hub implements Module {
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {
     return this.callStack.getById(parentFrame.childFramesId().getLast());
+  }
+
+  public final int currentDeploymentNumber() {
+    return deploymentNumberOf(this.messageFrame().getContractAddress());
+  }
+
+  public final int deploymentNumberOf(Address address) {
+    return transients.conflation().deploymentInfo().deploymentNumber(address);
+  }
+
+  public final boolean currentDeploymentStatus() {
+    return deploymentStatusOf(this.messageFrame().getContractAddress());
+  }
+
+  public final boolean deploymentStatusOf(Address address) {
+    return transients.conflation().deploymentInfo().getDeploymentStatus(address);
   }
 }

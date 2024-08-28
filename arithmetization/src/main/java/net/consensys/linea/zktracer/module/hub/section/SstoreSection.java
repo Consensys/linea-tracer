@@ -97,7 +97,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     final State.StorageSlotIdentifier storageSlotIdentifier =
         new State.StorageSlotIdentifier(
             address,
-            hub.transients().conflation().deploymentInfo().number(address),
+            hub.transients().conflation().deploymentInfo().deploymentNumber(address),
             EWord.of(storageKey));
     hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSstore);
 

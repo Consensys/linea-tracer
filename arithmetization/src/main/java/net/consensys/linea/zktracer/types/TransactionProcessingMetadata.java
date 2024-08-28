@@ -69,7 +69,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   /* g in the EYP, defined by g = TG - g0 */
   final long initiallyAvailableGas;
 
-  final Address effectiveTo;
+  final Address effectiveRecipient;
 
   final long effectiveGasPrice;
 
@@ -100,11 +100,11 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   @Accessors(fluent = true)
   @Setter
-  boolean isReceiverPreWarmed = false;
+  boolean isRecipientPreWarmed = false;
 
   @Accessors(fluent = true)
   @Setter
-  boolean isMinerWarmAtEndTx = false;
+  boolean isCoinbaseWarmAtTransactionEnd = false;
 
   @Setter List<Log> logs;
 
@@ -157,7 +157,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
         besuTransaction.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);
     this.initiallyAvailableGas = getInitiallyAvailableGas();
 
-    this.effectiveTo = effectiveToAddress(besuTransaction);
+    this.effectiveRecipient = effectiveToAddress(besuTransaction);
 
     this.effectiveGasPrice = computeEffectiveGasPrice();
   }
@@ -168,7 +168,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
       final boolean minerIsWarmAtFinalisation,
       final int accumulatedGasUsedInBlockAtStartTx) {
 
-    this.isMinerWarmAtEndTx(minerIsWarmAtFinalisation);
+    this.isCoinbaseWarmAtTransactionEnd(minerIsWarmAtFinalisation);
     this.refundCounterMax = refundCounterMax;
     this.setLeftoverGas(leftOverGas);
     this.gasUsed = computeGasUsed();

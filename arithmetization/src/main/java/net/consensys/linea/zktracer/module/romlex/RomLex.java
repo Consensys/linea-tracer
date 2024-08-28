@@ -32,7 +32,9 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
+import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -46,7 +48,7 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
-public class RomLex implements Module, PostOpcodeDefer {
+public class RomLex implements Module, PostOpcodeDefer, ImmediateContextEntryDefer {
   private static final RomChunkComparator ROM_CHUNK_COMPARATOR = new RomChunkComparator();
 
   private final Hub hub;
@@ -138,9 +140,12 @@ public class RomLex implements Module, PostOpcodeDefer {
 
                 final Address calledAddress = tx.getTo().get();
                 final int depNumber =
-                    hub.transients().conflation().deploymentInfo().number(calledAddress);
+                    hub.transients().conflation().deploymentInfo().deploymentNumber(calledAddress);
                 final boolean depStatus =
-                    hub.transients().conflation().deploymentInfo().isDeploying(calledAddress);
+                    hub.transients()
+                        .conflation()
+                        .deploymentInfo()
+                        .getDeploymentStatus(calledAddress);
 
                 final RomChunk chunk =
                     new RomChunk(
@@ -157,15 +162,23 @@ public class RomLex implements Module, PostOpcodeDefer {
   public void callRomLex(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CREATE, CREATE2 -> {
-        hub.defers().scheduleForPostExecution(this);
         final long offset = Words.clampedToLong(frame.getStackItem(1));
         final long length = Words.clampedToLong(frame.getStackItem(2));
+
+        Preconditions.checkArgument(length > 0, "callRomLex expects positive size for CREATE(2)");
+
+        hub.defers().scheduleForImmediateContextEntry(this);
         byteCode = frame.shadowReadMemory(offset, length);
         address = getDeploymentAddress(frame);
       }
 
       case RETURN -> {
         Preconditions.checkArgument(frame.getType() == MessageFrame.Type.CONTRACT_CREATION);
+        Preconditions.checkArgument(
+            hub.transients()
+                .conflation()
+                .deploymentInfo()
+                .getDeploymentStatus(frame.getContractAddress()));
 
         final Bytes code = hub.transients().op().outputData();
 
@@ -174,10 +187,16 @@ public class RomLex implements Module, PostOpcodeDefer {
         }
 
         final boolean depStatus =
-            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
+            hub.transients()
+                .conflation()
+                .deploymentInfo()
+                .getDeploymentStatus(frame.getContractAddress());
         if (depStatus) {
           int depNumber =
-              hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
+              hub.transients()
+                  .conflation()
+                  .deploymentInfo()
+                  .deploymentNumber(frame.getContractAddress());
           final ContractMetadata contractMetadata =
               ContractMetadata.underDeployment(frame.getContractAddress(), depNumber);
 
@@ -189,9 +208,15 @@ public class RomLex implements Module, PostOpcodeDefer {
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
         final Address calledAddress = Words.toAddress(frame.getStackItem(1));
         final boolean depStatus =
-            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
+            hub.transients()
+                .conflation()
+                .deploymentInfo()
+                .getDeploymentStatus(frame.getContractAddress());
         final int depNumber =
-            hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
+            hub.transients()
+                .conflation()
+                .deploymentInfo()
+                .deploymentNumber(frame.getContractAddress());
 
         Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
             .map(AccountState::getCode)
@@ -213,12 +238,18 @@ public class RomLex implements Module, PostOpcodeDefer {
         final Address calledAddress = Words.toAddress(frame.getStackItem(0));
         final long length = Words.clampedToLong(frame.getStackItem(3));
         final boolean isDeploying =
-            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
+            hub.transients()
+                .conflation()
+                .deploymentInfo()
+                .getDeploymentStatus(frame.getContractAddress());
         if (length == 0 || isDeploying) {
           return;
         }
         final int depNumber =
-            hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
+            hub.transients()
+                .conflation()
+                .deploymentInfo()
+                .deploymentNumber(frame.getContractAddress());
 
         Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
             .map(AccountState::getCode)
@@ -243,9 +274,29 @@ public class RomLex implements Module, PostOpcodeDefer {
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     Preconditions.checkArgument(hub.opCode().isCreate());
-    final int depNumber = hub.transients().conflation().deploymentInfo().number(this.address);
+    final int depNumber =
+        hub.transients().conflation().deploymentInfo().deploymentNumber(this.address);
     final ContractMetadata contractMetadata =
         ContractMetadata.underDeployment(this.address, depNumber);
+
+    final RomChunk chunk = new RomChunk(contractMetadata, true, false, this.byteCode);
+    this.chunks.add(chunk);
+    this.createDefers.trigger(contractMetadata);
+  }
+
+  @Override
+  public void resolveUponImmediateContextEntry(Hub hub) {
+    Preconditions.checkArgument(
+        hub.messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION);
+
+    DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
+    final int deploymentNumber = deploymentInfo.deploymentNumber(address);
+    final boolean deploymentStatus = deploymentInfo.getDeploymentStatus(address);
+    final ContractMetadata contractMetadata =
+        ContractMetadata.underDeployment(this.address, deploymentNumber);
+
+    Preconditions.checkArgument(
+        deploymentStatus, "After a CREATE the deployment status should be true");
 
     final RomChunk chunk = new RomChunk(contractMetadata, true, false, this.byteCode);
     this.chunks.add(chunk);

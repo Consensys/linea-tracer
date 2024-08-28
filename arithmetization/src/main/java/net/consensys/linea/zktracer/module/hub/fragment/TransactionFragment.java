@@ -44,7 +44,7 @@ public final class TransactionFragment implements TraceFragment {
   @Override
   public Trace trace(Trace trace) {
     final Transaction tx = transactionProcessingMetadata.getBesuTransaction();
-    final Address to = transactionProcessingMetadata.getEffectiveTo();
+    final Address to = transactionProcessingMetadata.getEffectiveRecipient();
     final Address from = transactionProcessingMetadata.getSender();
     final Address miner = transactionProcessingMetadata.getCoinbase();
 

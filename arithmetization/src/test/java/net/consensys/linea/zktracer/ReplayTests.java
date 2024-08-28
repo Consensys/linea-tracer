@@ -89,7 +89,6 @@ public class ReplayTests {
     replay("start-vs-prepare-tx.json.gz");
   }
 
-  @Disabled // Currently disabled due to #1014
   @Test
   void fatMxp() {
     replay("2492975-2492977.json.gz");
@@ -126,6 +125,16 @@ public class ReplayTests {
   }
 
   @Test
+  void issue1006() {
+    replay("6032696-6032699.json.gz");
+  }
+
+  @Test
+  void issue1004() {
+    replay("6020023-6020029.json.gz");
+  }
+
+  @Test
   void block_6110045() {
     // The purpose of this test is to check the mechanism for spotting divergence between the replay
     // tests and mainnet.  Specifically, this replay has transaction result information embedded
@@ -133,6 +142,7 @@ public class ReplayTests {
     replay("6110045.json.gz");
   }
 
+  @Disabled
   @Test
   void failingCreate2() {
     replay("2250197-2250197.json.gz");

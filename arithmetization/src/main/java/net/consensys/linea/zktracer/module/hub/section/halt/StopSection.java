@@ -54,8 +54,8 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     contextNumber = hub.currentFrame().contextNumber();
     {
       DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
-      deploymentNumber = deploymentInfo.number(address);
-      deploymentStatus = deploymentInfo.isDeploying(address);
+      deploymentNumber = deploymentInfo.deploymentNumber(address);
+      deploymentStatus = deploymentInfo.getDeploymentStatus(address);
     }
     parentContextReturnDataReset = executionProvidesEmptyReturnData(hub);
 

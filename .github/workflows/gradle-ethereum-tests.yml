@@ -52,20 +52,26 @@ jobs:
 #          echo $HOME >> $GITHUB_PATH
 
       - name: Generate block chain reference tests
-        run:  ./gradlew :reference-tests:generateBlockchainReferenceTests
+        run:  ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
 
       - name: Generate general reference tests
-        run:  ./gradlew :reference-tests:generateGeneralStateReferenceTests
+        run:  ./gradlew :reference-tests:generateGeneralStateReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
 
+      - name: Run a single reference test
+        run: ./gradlew :reference-tests:referenceTests --tests "net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583"
+
+      - name: Run general reference tests
+        run: ./gradlew referenceGeneralStateTests
+
+      - name: build
+        run: ./gradlew build
+
       - name: Run all reference tests
         run: ./gradlew referenceTests
-        env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-          CORSET_FLAGS: fields,expand,expand,expand
 

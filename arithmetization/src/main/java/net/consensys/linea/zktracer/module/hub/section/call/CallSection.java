@@ -113,7 +113,6 @@ public class CallSection extends TraceSection
   private AccountSnapshot postRollbackCalleeSnapshot;
   private AccountSnapshot postRollbackCallerSnapshot;
 
-  //
   private PrecompileSubsection precompileSubsection;
 
   public CallSection(Hub hub) {
@@ -208,10 +207,6 @@ public class CallSection extends TraceSection
               () -> {
                 scenarioFragment.setScenario(CALL_EOA_SUCCESS_WONT_REVERT);
               });
-
-      // TODO is world == worldUpdater & what happen if get doesn't work ?
-
-      ;
 
       // TODO is world == worldUpdater & what happen if get
       //  doesn't work ?

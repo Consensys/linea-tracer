@@ -102,6 +102,7 @@ public class BlockchainReferenceTestTools {
         spec.getWorldStateArchive()
             .getMutable(genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash())
             .get();
+    log.info("checking roothash {} is {}", worldState.rootHash(), genesisBlockHeader.getStateRoot());
     assertThat(worldState.rootHash()).isEqualTo(genesisBlockHeader.getStateRoot());
 
     final ProtocolSchedule schedule =
@@ -132,13 +133,15 @@ public class BlockchainReferenceTestTools {
 
         final BlockImportResult importResult =
             blockImporter.importBlock(context, block, validationMode, validationMode);
-
+        log.info("checking block is imported {} equals {}", importResult.isImported(), candidateBlock.isValid());
         assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
       } catch (final RLPException e) {
+        log.info("caugh RLP exception, checking it's invalid {}", candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();
       }
-
-      assertThat(corsetValidator.validate(zkTracer.writeToTmpFile()).isValid()).isTrue();
+      CorsetValidator.Result corsetResult = corsetValidator.validate(zkTracer.writeToTmpFile());
+      log.info("Corset result {}", corsetResult);
+      assertThat(corsetResult.isValid()).isTrue();
     }
 
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());

@@ -87,7 +87,7 @@ public class JsonTestParameters<S, T> {
      */
     public void add(
         final String name, final String fullPath, final S value, final boolean runTest) {
-      log.info("Adding test {}, {}, ({} && {} && {})", name, value, runTest, includes(name), includes(fullPath));
+      log.warn("Adding test {}, {}, ({} && {} && {})", name, value, runTest, includes(name), includes(fullPath));
       testParameters.add(
           new Object[] {name, value, runTest && includes(name) && includes(fullPath)});
     }

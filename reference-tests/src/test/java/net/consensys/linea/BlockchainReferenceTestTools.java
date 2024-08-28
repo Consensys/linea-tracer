@@ -90,7 +90,7 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(final String[] filePath) {
-    Arrays.stream(filePath).forEach( f -> log.info("checking file: {}", f));
+    Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     return PARAMS.generate(
         Arrays.stream(filePath)
             .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
@@ -103,7 +103,8 @@ public class BlockchainReferenceTestTools {
         spec.getWorldStateArchive()
             .getMutable(genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash())
             .get();
-    log.info("checking roothash {} is {}", worldState.rootHash(), genesisBlockHeader.getStateRoot());
+    log.info(
+        "checking roothash {} is {}", worldState.rootHash(), genesisBlockHeader.getStateRoot());
     assertThat(worldState.rootHash()).isEqualTo(genesisBlockHeader.getStateRoot());
 
     final ProtocolSchedule schedule =
@@ -134,7 +135,10 @@ public class BlockchainReferenceTestTools {
 
         final BlockImportResult importResult =
             blockImporter.importBlock(context, block, validationMode, validationMode);
-        log.info("checking block is imported {} equals {}", importResult.isImported(), candidateBlock.isValid());
+        log.info(
+            "checking block is imported {} equals {}",
+            importResult.isImported(),
+            candidateBlock.isValid());
         assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
       } catch (final RLPException e) {
         log.info("caugh RLP exception, checking it's invalid {}", candidateBlock.isValid());

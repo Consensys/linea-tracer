@@ -25,6 +25,7 @@ import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.testing.ToyExecutionEnvironment;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -129,6 +130,21 @@ public class ReplayTests {
     // tests and mainnet.  Specifically, this replay has transaction result information embedded
     // within it.
     replay("6110045.json.gz");
+  }
+
+  @Test
+  void failingCreate2() {
+    replay("2250197-2250197.json.gz");
+  }
+
+  @Test
+  void blockHash1() {
+    replay("8718090.json.gz");
+  }
+
+  @Test
+  void blockHash2() {
+    replay("8718330.json.gz");
   }
 
   // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU

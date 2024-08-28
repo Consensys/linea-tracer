@@ -45,18 +45,18 @@ class ExceptionsTest {
     Mockito.when(frame.stackSize()).thenReturn(7);
     Mockito.when(frame.getStackItem(2)).thenReturn(Bytes.ofUnsignedShort(0));
     Assertions.assertEquals(
-            Set.of(
-                            OpCode.SSTORE,
-                            OpCode.LOG0,
-                            OpCode.LOG1,
-                            OpCode.LOG2,
-                            OpCode.LOG3,
-                            OpCode.LOG4,
-                            OpCode.CREATE,
-                            OpCode.CREATE2,
-                            OpCode.SELFDESTRUCT)
-                    .contains(opCode),
-            Exceptions.isStaticFault(frame, OpCodes.of(opCode)));
+        Set.of(
+                OpCode.SSTORE,
+                OpCode.LOG0,
+                OpCode.LOG1,
+                OpCode.LOG2,
+                OpCode.LOG3,
+                OpCode.LOG4,
+                OpCode.CREATE,
+                OpCode.CREATE2,
+                OpCode.SELFDESTRUCT)
+            .contains(opCode),
+        Exceptions.isStaticFault(frame, OpCodes.of(opCode)));
   }
 
   @ParameterizedTest
@@ -67,18 +67,18 @@ class ExceptionsTest {
     Mockito.when(frame.stackSize()).thenReturn(7);
     Mockito.when(frame.getStackItem(2)).thenReturn(Bytes.ofUnsignedShort(1));
     Assertions.assertEquals(
-            Set.of(
-                            OpCode.SSTORE,
-                            OpCode.LOG0,
-                            OpCode.LOG1,
-                            OpCode.LOG2,
-                            OpCode.LOG3,
-                            OpCode.LOG4,
-                            OpCode.CREATE,
-                            OpCode.CREATE2,
-                            OpCode.SELFDESTRUCT,
-                            OpCode.CALL)
-                    .contains(opCode),
-            Exceptions.isStaticFault(frame, OpCodes.of(opCode)));
+        Set.of(
+                OpCode.SSTORE,
+                OpCode.LOG0,
+                OpCode.LOG1,
+                OpCode.LOG2,
+                OpCode.LOG3,
+                OpCode.LOG4,
+                OpCode.CREATE,
+                OpCode.CREATE2,
+                OpCode.SELFDESTRUCT,
+                OpCode.CALL)
+            .contains(opCode),
+        Exceptions.isStaticFault(frame, OpCodes.of(opCode)));
   }
 }

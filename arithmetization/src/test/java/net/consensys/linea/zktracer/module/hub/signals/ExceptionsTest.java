@@ -44,11 +44,11 @@ class ExceptionsTest {
     // Creating a frame object which simulates a static frame with stack size of 7
     // and with the second item in the stack representing 0.
     MessageFrame frame = Mockito.mock(MessageFrame.class);
-    //when isStatic is called on the mocked frame object, return true
+    // when isStatic is called on the mocked frame object, return true
     Mockito.when(frame.isStatic()).thenReturn(true);
-    //when stackSize is called on the mocked frame object, return 7
+    // when stackSize is called on the mocked frame object, return 7
     Mockito.when(frame.stackSize()).thenReturn(7);
-    //when retrieving the second item of the stack, get bytes representing 0
+    // when retrieving the second item of the stack, get bytes representing 0
     Mockito.when(frame.getStackItem(2)).thenReturn(Bytes.ofUnsignedShort(0));
     Assertions.assertEquals(
         Set.of(

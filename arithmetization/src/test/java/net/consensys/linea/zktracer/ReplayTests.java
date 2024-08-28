@@ -25,6 +25,7 @@ import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.testing.ToyExecutionEnvironment;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -88,6 +89,7 @@ public class ReplayTests {
     replay("start-vs-prepare-tx.json.gz");
   }
 
+  @Disabled("see  #1014")
   @Test
   void fatMxp() {
     replay("2492975-2492977.json.gz");

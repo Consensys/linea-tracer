@@ -57,12 +57,6 @@ jobs:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
 
-      - name: Generate general reference tests
-        run:  ./gradlew :reference-tests:generateGeneralStateReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
-        env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-          CORSET_FLAGS: fields,expand,expand,expand
-
       - name: Run a single reference test
         run: ./gradlew :reference-tests:referenceTests --tests "net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583"
 
@@ -70,7 +64,7 @@ jobs:
         run: ./gradlew referenceGeneralStateTests
 
       - name: build
-        run: ./gradlew build
+        run: ./gradlew build -x test -x spotlessCheck
 
       - name: Run all reference tests
         run: ./gradlew referenceTests

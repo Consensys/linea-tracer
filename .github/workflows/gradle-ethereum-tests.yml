@@ -54,14 +54,20 @@ jobs:
       - name: Generate block chain reference tests
         run:  ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
         env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
+          JAVA_OPTS: -Dorg.gradle.daemon=false -DZKEVM_BIN_ORIGINAL_PATH="zkevm-constraints/zkevm.bin"
           CORSET_FLAGS: fields,expand,expand,expand
+
+      - name: generate make zkevm.bin -B
+        run: ./zkevm-constraints/make zkevm.bin -B
 
       - name: Run a single reference test
         run: ./gradlew :reference-tests:referenceTests --tests "net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583"
 
       - name: Run general reference tests
         run: ./gradlew referenceGeneralStateTests
+        env:
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+          CORSET_FLAGS: fields,expand,expand,expand
 
       - name: Run all reference tests
         run: ./gradlew referenceTests

@@ -74,11 +74,6 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
   }
 
   @Override
-  public void traceStartTransaction(WorldView worldView, Transaction transaction) {
-    this.reaper.enterTransaction(transaction);
-  }
-
-  @Override
   public void traceEndTransaction(
       WorldView world,
       Transaction tx,

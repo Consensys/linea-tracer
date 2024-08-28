@@ -75,9 +75,6 @@ public class Reaper {
     // Configure tx-local reapers
     this.txStorage = new StorageReaper();
     this.txAddresses = new AddressReaper();
-  }
-
-  public void enterTransaction(Transaction tx) {
     this.touchAddress(tx.getSender());
     tx.getTo().ifPresent(this::touchAddress);
   }

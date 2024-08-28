@@ -51,13 +51,13 @@ jobs:
 #          mv corset $HOME
 #          echo $HOME >> $GITHUB_PATH
 
-      - name: Run block chain reference tests
+      - name: Generate block chain reference tests
         run:  ./gradlew :reference-tests:generateBlockchainReferenceTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
 
-      - name: Run general reference tests
+      - name: Generate general reference tests
         run:  ./gradlew :reference-tests:generateGeneralStateReferenceTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false

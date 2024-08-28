@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.gas;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Utils.initArray;
 
 import java.math.BigInteger;
 
@@ -27,53 +28,47 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class GasOperation extends ModuleOperation {
-  @EqualsAndHashCode.Include GasParameters gasParameters;
+  @EqualsAndHashCode.Include GasCall gasCall;
   BigInteger[] wcpArg1Lo;
   BigInteger[] wcpArg2Lo;
   UnsignedByte[] wcpInst;
   boolean[] wcpRes;
   int CT_MAX;
 
-  public GasOperation(GasParameters gasParameters) {
-    this.gasParameters = gasParameters;
-    CT_MAX = gasParameters.ctMax();
+  public GasOperation(GasCall gasCall) {
+    this.gasCall = gasCall;
+    CT_MAX = gasCall.getCtMax();
 
     // init arrays
-    wcpArg1Lo = new BigInteger[CT_MAX + 1];
-    wcpArg2Lo = new BigInteger[CT_MAX + 1];
-    wcpInst = new UnsignedByte[CT_MAX + 1];
+    wcpArg1Lo = initArray(BigInteger.ZERO, CT_MAX + 1);
+    wcpArg2Lo = initArray(BigInteger.ZERO, CT_MAX + 1);
+    wcpInst = initArray(UnsignedByte.of(0), CT_MAX + 1);
     wcpRes = new boolean[CT_MAX + 1];
 
     // row 0
     wcpArg1Lo[0] = BigInteger.ZERO;
-    wcpArg2Lo[0] = gasParameters.gasActual();
+    wcpArg2Lo[0] = gasCall.getGasActual();
     wcpInst[0] = UnsignedByte.of(WCP_INST_LEQ);
     wcpRes[0] = true;
 
     // row 1
     wcpArg1Lo[1] = BigInteger.ZERO;
-    wcpArg2Lo[1] = gasParameters.gasCost();
+    wcpArg2Lo[1] = gasCall.getGasCost();
     wcpInst[1] = UnsignedByte.of(WCP_INST_LEQ);
     wcpRes[1] = true;
 
     // row 2
-    if (gasParameters.oogx()) {
-      wcpArg1Lo[2] = gasParameters.gasActual();
-      wcpArg2Lo[2] = gasParameters.gasCost();
+    if (gasCall.isOogx()) {
+      wcpArg1Lo[2] = gasCall.getGasActual();
+      wcpArg2Lo[2] = gasCall.getGasCost();
       wcpInst[2] = UnsignedByte.of(EVM_INST_LT);
-      wcpRes[2] = gasParameters.oogx();
-    } else {
-      // TODO: init the lists with zeros (or something equivalent) instead
-      wcpArg1Lo[2] = BigInteger.ZERO;
-      wcpArg2Lo[2] = BigInteger.ZERO;
-      wcpInst[2] = UnsignedByte.of(0);
-      wcpRes[2] = false;
+      wcpRes[2] = gasCall.isOogx();
     }
   }
 
   @Override
   protected int computeLineCount() {
-    return gasParameters.ctMax() + 1;
+    return gasCall.getCtMax() + 1;
   }
 
   public void trace(int stamp, Trace trace) {
@@ -84,10 +79,10 @@ public class GasOperation extends ModuleOperation {
           .first(i == 0)
           .ct(i)
           .ctMax(CT_MAX)
-          .gasActual(gasParameters.gasActual().longValue())
-          .gasCost(bigIntegerToBytes(gasParameters.gasCost()))
-          .exceptionsAhoy(gasParameters.xahoy())
-          .outOfGasException(gasParameters.oogx())
+          .gasActual(gasCall.getGasActual().longValue())
+          .gasCost(bigIntegerToBytes(gasCall.getGasCost()))
+          .exceptionsAhoy(gasCall.isXahoy())
+          .outOfGasException(gasCall.isOogx())
           .wcpArg1Lo(bigIntegerToBytes(wcpArg1Lo[i]))
           .wcpArg2Lo(bigIntegerToBytes(wcpArg2Lo[i]))
           .wcpInst(wcpInst[i])

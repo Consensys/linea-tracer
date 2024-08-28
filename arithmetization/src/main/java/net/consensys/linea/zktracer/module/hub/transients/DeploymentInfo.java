@@ -37,7 +37,7 @@ public class DeploymentInfo {
   }
 
   public void deploy(Address address) {
-    this.deploymentNumber.put(address, this.number(address) + 1);
+    this.incrementDeploymentNumber(address);
     this.markDeploying(address);
   }
 
@@ -55,5 +55,14 @@ public class DeploymentInfo {
 
   public final void unmarkDeploying(Address address) {
     this.isDeploying.put(address, false);
+  }
+
+  public void selfDestructAtTransactionEnd(Address address) {
+    this.incrementDeploymentNumber(address);
+    this.unmarkDeploying(address);
+  }
+
+  private void incrementDeploymentNumber(Address address) {
+    this.deploymentNumber.put(address, this.number(address) + 1);
   }
 }

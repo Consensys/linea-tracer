@@ -29,6 +29,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.AttemptedSelfDestruct;
@@ -147,9 +148,7 @@ public class SelfdestructSection extends TraceSection
       List<AttemptedSelfDestruct> attemptedSelfDestructs =
           unexceptionalSelfDestructMap.get(ephemeralAccount);
       attemptedSelfDestructs.add(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()));
-      // TODO: double check that re-adding the list to the map is not necessary, as the list is a
-      //  reference
-      //  unexceptionalSelfDestructMap.put(addressDeploymentNumberKey, hubStampCallFrameValues);
+      // We do not need to put again the list in the map, as it is a reference
     } else {
       unexceptionalSelfDestructMap.put(
           new EphemeralAccount(this.address, this.accountBefore.deploymentNumber()),
@@ -268,6 +267,11 @@ public class SelfdestructSection extends TraceSection
                   accountBeforeSelfDestruct,
                   this.accountAfter.wipe(),
                   DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
+
+      // TODO: is this the right place to call this?
+      final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
+      deploymentInfo.selfDestructAtTransactionEnd(this.recipientAddress);
+      
       this.addFragment(accountWipingFragment);
     } else {
       selfdestructScenarioFragment.setScenario(

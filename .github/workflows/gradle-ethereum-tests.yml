@@ -58,7 +58,7 @@ jobs:
           CORSET_FLAGS: fields,expand,expand,expand
 
       - name: generate make zkevm.bin -B
-        run: ./zkevm-constraints/make zkevm.bin -B
+        run: cd ./zkevm-constraints; make zkevm.bin -B; cd ..
 
       - name: Run a single reference test
         run: ./gradlew :reference-tests:referenceTests --tests "net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583"

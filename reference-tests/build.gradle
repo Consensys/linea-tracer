@@ -83,7 +83,6 @@ tasks.register('referenceTests', Test) {
 
 dependencies {
   testImplementation project(":arithmetization")
-  testImplementation project(":testing")
   testImplementation "${besuArtifactGroup}:besu-datatypes"
   testImplementation "${besuArtifactGroup}:evm"
   testImplementation "${besuArtifactGroup}.internal:config:${besuVersion}"

@@ -63,9 +63,6 @@ jobs:
       - name: Run general reference tests
         run: ./gradlew referenceGeneralStateTests
 
-      - name: build
-        run: ./gradlew build -x test -x spotlessCheck
-
       - name: Run all reference tests
         run: ./gradlew referenceTests
 

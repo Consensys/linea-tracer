@@ -89,7 +89,7 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(final String[] filePath) {
-    Arrays.stream(filePath).forEach( f -> log.error("checking file: {}", f));
+    Arrays.stream(filePath).forEach( f -> System.out.println("checking file: "+ f));
     return PARAMS.generate(
         Arrays.stream(filePath)
             .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
@@ -102,7 +102,7 @@ public class BlockchainReferenceTestTools {
         spec.getWorldStateArchive()
             .getMutable(genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash())
             .get();
-    log.error("checking roothash {} is {}", worldState.rootHash(), genesisBlockHeader.getStateRoot());
+    System.out.println("checking roothash " + worldState.rootHash() + " " + genesisBlockHeader.getStateRoot());
     assertThat(worldState.rootHash()).isEqualTo(genesisBlockHeader.getStateRoot());
 
     final ProtocolSchedule schedule =
@@ -133,14 +133,14 @@ public class BlockchainReferenceTestTools {
 
         final BlockImportResult importResult =
             blockImporter.importBlock(context, block, validationMode, validationMode);
-        log.error("checking block is imported {} equals {}", importResult.isImported(), candidateBlock.isValid());
+        System.out.println("checking block is imported " + importResult.isImported() +"  equals " + candidateBlock.isValid());
         assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
       } catch (final RLPException e) {
-        log.error("caugh RLP exception, checking it's invalid {}", candidateBlock.isValid());
+        System.out.println("caugh RLP exception, checking it's invalid " + candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();
       }
       CorsetValidator.Result corsetResult = corsetValidator.validate(zkTracer.writeToTmpFile());
-      log.error("Corset result {}", corsetResult);
+      System.out.println("Corset result " + corsetResult);
       assertThat(corsetResult.isValid()).isTrue();
     }
 

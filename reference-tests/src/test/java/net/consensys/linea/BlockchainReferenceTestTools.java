@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.ethereum.MainnetBlockValidator;
@@ -38,8 +39,8 @@ import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
-import org.hyperledger.besu.testutil.JsonTestParameters;
 
+@Slf4j
 public class BlockchainReferenceTestTools {
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
@@ -88,6 +89,7 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(final String[] filePath) {
+    Arrays.stream(filePath).forEach( f -> log.info("checking file: {}", f));
     return PARAMS.generate(
         Arrays.stream(filePath)
             .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())

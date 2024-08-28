@@ -110,6 +110,7 @@ public class EcData implements Module {
           ecDataOperation.internalChecksPassed() ? 1 : 0);
       case PRC_ECPAIRING -> {
         // ecPairingG2MembershipCalls case
+        // NOTE: the other precompile limits are managed below
         // NOTE: see EC_DATA specs Figure 3.5 for a graphical representation of this case analysis
         if (!ecDataOperation.internalChecksPassed()) {
           ecPairingG2MembershipCalls.addPrecompileLimit(0);

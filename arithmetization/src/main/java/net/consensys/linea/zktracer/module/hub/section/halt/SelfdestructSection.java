@@ -271,7 +271,7 @@ public class SelfdestructSection extends TraceSection
       // TODO: is this the right place to call this?
       final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
       deploymentInfo.selfDestructAtTransactionEnd(this.recipientAddress);
-      
+
       this.addFragment(accountWipingFragment);
     } else {
       selfdestructScenarioFragment.setScenario(

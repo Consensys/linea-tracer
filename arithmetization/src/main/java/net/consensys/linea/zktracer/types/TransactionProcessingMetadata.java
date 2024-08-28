@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress
 
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -111,7 +112,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   @Setter int codeFragmentIndex = -1;
 
-  @Setter Set<AccountSnapshot> destructedAccountsSnapshot;
+  @Setter Set<AccountSnapshot> destructedAccountsSnapshot = new HashSet<>();
 
   @Getter
   Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap = new HashMap<>();
@@ -146,10 +147,11 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
     this.initialBalance = getInitialBalance(world);
 
-    // Note: Besu's dataCost computation contains the 21_000 transaction cost
+    // Note: Besu's dataCost computation contains
+    // - the 21_000 transaction cost (we deduce it)
+    // - the contract creation cost in case of deployment (we set deployment to false to not add it)
     this.dataCost =
-        ZkTracer.gasCalculator.transactionIntrinsicGasCost(
-                besuTransaction.getPayload(), isDeployment)
+        ZkTracer.gasCalculator.transactionIntrinsicGasCost(besuTransaction.getPayload(), false)
             - GAS_CONST_G_TRANSACTION;
     this.accessListCost =
         besuTransaction.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);

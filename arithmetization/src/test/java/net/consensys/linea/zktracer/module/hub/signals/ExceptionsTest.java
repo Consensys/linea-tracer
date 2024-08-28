@@ -32,6 +32,7 @@ class ExceptionsTest {
   @ParameterizedTest
   @EnumSource(OpCode.class)
   void notStaticContextNoFault(OpCode opCode) {
+    // Creating a frame object which simulates a non-static frame.
     MessageFrame frame = Mockito.mock(MessageFrame.class);
     Mockito.when(frame.isStatic()).thenReturn(false);
     Assertions.assertFalse(Exceptions.isStaticFault(frame, OpCodes.of(opCode)));
@@ -40,9 +41,14 @@ class ExceptionsTest {
   @ParameterizedTest
   @EnumSource(OpCode.class)
   void staticContextNoFaultOnCall(OpCode opCode) {
+    // Creating a frame object which simulates a static frame with stack size of 7
+    // and with the second item in the stack representing 0.
     MessageFrame frame = Mockito.mock(MessageFrame.class);
+    //when isStatic is called on the mocked frame object, return true
     Mockito.when(frame.isStatic()).thenReturn(true);
+    //when stackSize is called on the mocked frame object, return 7
     Mockito.when(frame.stackSize()).thenReturn(7);
+    //when retrieving the second item of the stack, get bytes representing 0
     Mockito.when(frame.getStackItem(2)).thenReturn(Bytes.ofUnsignedShort(0));
     Assertions.assertEquals(
         Set.of(
@@ -62,6 +68,8 @@ class ExceptionsTest {
   @ParameterizedTest
   @EnumSource(OpCode.class)
   void staticContextFaultOnCall(OpCode opCode) {
+    // Creating a frame object which simulates a static frame with stack size of 7
+    // and with the second item in the stack representing 1.
     MessageFrame frame = Mockito.mock(MessageFrame.class);
     Mockito.when(frame.isStatic()).thenReturn(true);
     Mockito.when(frame.stackSize()).thenReturn(7);

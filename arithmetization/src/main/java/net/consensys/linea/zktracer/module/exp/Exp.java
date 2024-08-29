@@ -21,7 +21,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
@@ -43,17 +43,17 @@ public class Exp implements Module {
 
   @Override
   public void enterTransaction() {
-    this.chunks.enter();
+    chunks.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.chunks.pop();
+    chunks.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.chunks.lineCount();
+    return chunks.lineCount();
   }
 
   @Override
@@ -62,7 +62,7 @@ public class Exp implements Module {
   }
 
   public void call(ExpCall expCall) {
-    this.chunks.add(new ExpOperation(expCall, wcp, hub));
+    chunks.add(new ExpOperation(expCall, wcp, hub));
   }
 
   @Override
@@ -71,7 +71,7 @@ public class Exp implements Module {
 
     int stamp = 0;
 
-    for (ExpOperation op : this.chunks) {
+    for (ExpOperation op : chunks.getAll()) {
       stamp += 1;
       op.traceComputation(stamp, trace);
       op.traceMacro(stamp, trace);

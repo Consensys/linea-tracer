@@ -24,7 +24,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -46,16 +46,15 @@ public class Oob implements Module {
   private final Mod mod;
   private final Wcp wcp;
 
-  private OobOperation oobOperation;
-
   @Override
   public String moduleKey() {
     return "OOB";
   }
 
   public void call(OobCall oobCall) {
-    OobOperation oobOperation = new OobOperation(oobCall, hub.messageFrame(), add, mod, wcp, hub);
-    this.oobOperations.add(oobOperation);
+    final OobOperation oobOperation =
+        new OobOperation(oobCall, hub.messageFrame(), add, mod, wcp, hub);
+    oobOperations.add(oobOperation);
   }
 
   @Override
@@ -144,24 +143,25 @@ public class Oob implements Module {
 
   @Override
   public void enterTransaction() {
-    this.oobOperations.enter();
+    oobOperations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.oobOperations.pop();
+    oobOperations.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.oobOperations.stream().mapToInt(OobOperation::nRows).sum();
+    return oobOperations.lineCount();
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     Trace trace = new Trace(buffers);
-    for (int i = 0; i < this.oobOperations.size(); i++) {
-      this.traceChunk(this.oobOperations.get(i), i + 1, trace);
+    int stamp = 0;
+    for (OobOperation oobOperation : oobOperations.getAll()) {
+      traceChunk(oobOperation, ++stamp, trace);
     }
   }
 

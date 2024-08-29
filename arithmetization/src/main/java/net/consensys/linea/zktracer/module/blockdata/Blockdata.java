@@ -55,14 +55,14 @@ public class Blockdata implements Module {
 
   @Override
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
-    this.batchUnderConstruction = true;
-    this.wcp.additionalRows.push(this.wcp.additionalRows.pop() + TIMESTAMP_BYTESIZE);
+    batchUnderConstruction = true;
+    wcp.additionalRows.add(TIMESTAMP_BYTESIZE);
   }
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     final int currentTimestamp = (int) blockHeader.getTimestamp();
-    this.operations.addLast(
+    operations.addLast(
         new BlockdataOperation(
             blockHeader.getCoinbase(),
             currentTimestamp,
@@ -70,15 +70,15 @@ public class Blockdata implements Module {
             blockHeader.getDifficulty().getAsBigInteger(),
             this.txnData.currentBlock().getNbOfTxsInBlock()));
 
-    this.batchUnderConstruction = false;
-    this.wcp.callGT(currentTimestamp, previousTimestamp);
-    this.wcp.additionalRows.push(this.wcp.additionalRows.pop() - TIMESTAMP_BYTESIZE);
-    this.previousTimestamp = currentTimestamp;
+    batchUnderConstruction = false;
+    wcp.callGT(currentTimestamp, previousTimestamp);
+    wcp.additionalRows.add(-TIMESTAMP_BYTESIZE); // Remove what have been done at traceStartBlock
+    previousTimestamp = currentTimestamp;
   }
 
   @Override
   public void traceStartConflation(final long blockCount) {
-    this.batchUnderConstruction = false; // Should be useless, but just to be sure
+    batchUnderConstruction = false; // Should be useless, but just to be sure
   }
 
   @Override
@@ -101,8 +101,8 @@ public class Blockdata implements Module {
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    final long firstBlockNumber = this.operations.getFirst().absoluteBlockNumber();
-    final long chainId = getChainIdFromTransaction(this.rlpTxn.chunkList.get(0).tx());
+    final long firstBlockNumber = operations.getFirst().absoluteBlockNumber();
+    final long chainId = getChainIdFromTransaction(rlpTxn.operations.getLast().tx());
     final Trace trace = new Trace(buffers);
     int relblock = 0;
     for (BlockdataOperation blockData : this.operations) {

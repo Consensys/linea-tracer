@@ -29,7 +29,7 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
@@ -102,7 +102,7 @@ public class RomLex implements Module, PostOpcodeDefer {
   }
 
   public Optional<RomChunk> getChunkByMetadata(final ContractMetadata metadata) {
-    for (RomChunk c : this.chunks) {
+    for (RomChunk c : chunks.getAll()) {
       if (c.metadata().equals(metadata)) {
         return Optional.of(c);
       }
@@ -273,8 +273,8 @@ public class RomLex implements Module, PostOpcodeDefer {
   }
 
   public void determineCodeFragmentIndex() {
-    this.sortedChunks.addAll(this.chunks);
-    this.sortedChunks.sort(ROM_CHUNK_COMPARATOR);
+    sortedChunks.addAll(chunks.getAll());
+    sortedChunks.sort(ROM_CHUNK_COMPARATOR);
   }
 
   @Override

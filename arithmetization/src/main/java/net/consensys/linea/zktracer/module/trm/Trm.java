@@ -21,7 +21,7 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -100,9 +100,8 @@ public class Trm implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (TrmOperation operation : this.operations) {
-      stamp++;
-      operation.trace(trace, stamp);
+    for (TrmOperation operation : operations.getAll()) {
+      operation.trace(trace, ++stamp);
     }
   }
 

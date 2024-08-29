@@ -20,7 +20,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
@@ -85,7 +85,7 @@ public class BlakeModexpData implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (BlakeModexpDataOperation o : operations) {
+    for (BlakeModexpDataOperation o : operations.getAll()) {
       stamp++;
       o.trace(trace, stamp);
     }

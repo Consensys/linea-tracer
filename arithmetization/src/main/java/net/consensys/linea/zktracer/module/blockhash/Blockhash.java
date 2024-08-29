@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -94,9 +94,8 @@ public class Blockhash implements Module {
       If a BLOCK_NUMBER is already called at least two times, no need for additional rows in WCP*/
       final int numberOfCall = this.numberOfCall.getOrDefault(this.opcodeArgument, 0);
       if (numberOfCall < 2) {
-        this.wcp.additionalRows.push(
-            this.wcp.additionalRows.pop()
-                + Math.max(Math.min(LLARGE, this.opcodeArgument.trimLeadingZeros().size()), 1));
+        wcp.additionalRows.add(
+            Math.max(Math.min(LLARGE, this.opcodeArgument.trimLeadingZeros().size()), 1));
         this.numberOfCall.replace(this.opcodeArgument, numberOfCall, numberOfCall + 1);
       }
     }
@@ -123,7 +122,7 @@ public class Blockhash implements Module {
 
   @Override
   public void traceEndConflation(WorldView state) {
-    this.sortedOperations.addAll(this.operations);
+    sortedOperations.addAll(operations.getAll());
     if (!this.sortedOperations.isEmpty()) {
       final BlockhashComparator BLOCKHASH_COMPARATOR = new BlockhashComparator();
       this.sortedOperations.sort(BLOCKHASH_COMPARATOR);
@@ -138,7 +137,7 @@ public class Blockhash implements Module {
 
   @Override
   public int lineCount() {
-    return this.operations.lineCount();
+    return operations.lineCount();
   }
 
   @Override

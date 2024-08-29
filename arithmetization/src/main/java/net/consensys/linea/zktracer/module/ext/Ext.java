@@ -20,7 +20,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -90,7 +90,7 @@ public class Ext implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (ExtOperation operation : this.operations) {
+    for (ExtOperation operation : operations.getAll()) {
       stamp++;
       operation.trace(trace, stamp);
     }
@@ -98,6 +98,6 @@ public class Ext implements Module {
 
   @Override
   public int lineCount() {
-    return this.operations.lineCount();
+    return operations.lineCount();
   }
 }

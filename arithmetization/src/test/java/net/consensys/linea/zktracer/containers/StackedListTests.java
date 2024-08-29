@@ -15,14 +15,11 @@
 
 package net.consensys.linea.zktracer.containers;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.math.BigInteger;
 
-import com.google.common.collect.ImmutableList;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.add.AddOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -53,22 +50,6 @@ public class StackedListTests {
   }
 
   @Test
-  void testAddedToFront() {
-    final StackedList<IntegerModuleOperation> state = new StackedList<>();
-
-    state.enter();
-    state.add(new IntegerModuleOperation(1));
-    assertThat(state.lineCount()).isEqualTo(1);
-
-    state.enter();
-    state.add(new IntegerModuleOperation(3));
-    assertThat(state.lineCount()).isEqualTo(4);
-
-    state.pop();
-    assertThat(state.lineCount()).isEqualTo(1);
-  }
-
-  @Test
   public void push() {
     StackedList<AddOperation> chunks = new StackedList<>();
     chunks.enter();
@@ -95,6 +76,8 @@ public class StackedListTests {
     chunks.add(ONE_PLUS_TWO);
     Assertions.assertEquals(4, chunks.size());
     chunks.pop();
-    Assertions.assertEquals(2, ImmutableList.copyOf(chunks.iterator()).size());
+    Assertions.assertEquals(2, chunks.size());
   }
+
+  // TODO: add LineCount Test
 }

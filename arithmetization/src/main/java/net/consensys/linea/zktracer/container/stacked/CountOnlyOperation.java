@@ -17,24 +17,19 @@ package net.consensys.linea.zktracer.container.stacked;
 
 public class CountOnlyOperation {
 
-  private int countSinceBeginningOfTheConflation;
-  private int thisTransactionCount;
-
-  public CountOnlyOperation() {
-    this.countSinceBeginningOfTheConflation = 0;
-    this.thisTransactionCount = 0;
-  }
+  private int countSinceBeginningOfTheConflation = 0;
+  private int thisTransactionCount = 0;
 
   /**
    * when we enter a transaction, the previous transaction is definitely added to the block and
    * can't be pop
    */
-  public void enterTransaction() {
+  public void enter() {
     countSinceBeginningOfTheConflation += thisTransactionCount;
     thisTransactionCount = 0;
   }
 
-  public void popTransaction() {
+  public void pop() {
     thisTransactionCount = 0;
   }
 
@@ -44,5 +39,10 @@ public class CountOnlyOperation {
 
   public int lineCount() {
     return countSinceBeginningOfTheConflation + thisTransactionCount;
+  }
+
+  public void clear() {
+    countSinceBeginningOfTheConflation = 0;
+    thisTransactionCount = 0;
   }
 }

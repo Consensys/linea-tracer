@@ -63,7 +63,7 @@ public class Mmio implements Module {
   @Override
   public int lineCount() {
     int sum = 0;
-    for (MmuOperation o : mmu.mmuOperations()) {
+    for (MmuOperation o : mmu.mmuOperations().getAll()) {
       sum += o.computeMmioLineCount();
     }
 
@@ -79,7 +79,7 @@ public class Mmio implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (MmuOperation mmuOperation : mmu.mmuOperations()) {
+    for (MmuOperation mmuOperation : mmu.mmuOperations().getAll()) {
       if (mmuOperation.traceMe()) {
 
         final MmuData currentMmuData = mmuOperation.mmuData();

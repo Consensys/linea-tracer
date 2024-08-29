@@ -21,7 +21,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -56,8 +56,7 @@ public class TxnData implements Module {
 
   @Override
   public void traceStartConflation(final long blockCount) {
-    wcp.additionalRows.push(
-        wcp.additionalRows.pop() + 4); /* 4 = byte length of LINEA_BLOCK_GAS_LIMIT */
+    wcp.additionalRows.add(4); /* 4 = byte length of LINEA_BLOCK_GAS_LIMIT */
   }
 
   @Override
@@ -101,7 +100,7 @@ public class TxnData implements Module {
 
     final int absTxNumMax = transactions.size();
 
-    for (TxndataOperation tx : transactions) {
+    for (TxndataOperation tx : transactions.getAll()) {
       tx.traceTx(trace, blocks.get(tx.getTx().getRelativeBlockNumber() - 1), absTxNumMax);
     }
   }

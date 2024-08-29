@@ -21,7 +21,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
@@ -71,7 +71,7 @@ public class Mmu implements Module {
     int mmuStamp = 0;
     int mmioStamp = 0;
 
-    for (MmuOperation mmuOperation : mmuOperations) {
+    for (MmuOperation mmuOperation : mmuOperations.getAll()) {
 
       if (mmuOperation.traceMe()) {
         mmuOperation.getCFI();
@@ -92,6 +92,6 @@ public class Mmu implements Module {
     final MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
     mmuData = mmuInstructions.compute(mmuData);
 
-    this.mmuOperations.add(new MmuOperation(mmuData));
+    mmuOperations.add(new MmuOperation(mmuData));
   }
 }

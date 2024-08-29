@@ -23,7 +23,7 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
@@ -74,17 +74,17 @@ public class Stp implements Module {
 
   @Override
   public void enterTransaction() {
-    this.operations.enter();
+    operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.operations.pop();
+    operations.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.operations.lineCount();
+    return operations.lineCount();
   }
 
   @Override
@@ -97,9 +97,8 @@ public class Stp implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (StpOperation chunk : operations) {
-      stamp++;
-      chunk.trace(trace, stamp);
+    for (StpOperation chunk : operations.getAll()) {
+      chunk.trace(trace, ++stamp);
     }
   }
 }

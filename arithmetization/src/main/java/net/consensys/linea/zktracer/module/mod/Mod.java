@@ -20,7 +20,7 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -59,15 +59,14 @@ public class Mod implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (ModOperation op : this.chunks) {
-      stamp++;
-      op.trace(trace, stamp);
+    for (ModOperation op : chunks.getAll()) {
+      op.trace(trace, ++stamp);
     }
   }
 
   @Override
   public int lineCount() {
-    return this.chunks.lineCount();
+    return chunks.lineCount();
   }
 
   @Override

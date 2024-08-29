@@ -23,12 +23,11 @@ import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LEQbv;
 import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LTbv;
 
 import java.nio.MappedByteBuffer;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -40,7 +39,7 @@ public class Wcp implements Module {
   private final StackedSet<WcpOperation> operations = new StackedSet<>();
 
   /** count the number of rows that could be added after the sequencer counts the number of line */
-  public final Deque<Integer> additionalRows = new ArrayDeque<>();
+  public final CountOnlyOperation additionalRows = new CountOnlyOperation();
 
   private boolean batchUnderConstruction;
 
@@ -56,18 +55,13 @@ public class Wcp implements Module {
   @Override
   public void enterTransaction() {
     this.operations.enter();
-    this.additionalRows.push(this.additionalRows.getFirst());
+    this.additionalRows.enter();
   }
 
   @Override
   public void popTransaction() {
     this.operations.pop();
     this.additionalRows.pop();
-  }
-
-  @Override
-  public void traceStartConflation(final long blockCount) {
-    this.additionalRows.push(0);
   }
 
   @Override
@@ -90,9 +84,8 @@ public class Wcp implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (WcpOperation operation : this.operations) {
-      stamp++;
-      operation.trace(trace, stamp);
+    for (WcpOperation operation : operations.getAll()) {
+      operation.trace(trace, ++stamp);
     }
   }
 
@@ -104,8 +97,8 @@ public class Wcp implements Module {
   @Override
   public int lineCount() {
     return batchUnderConstruction
-        ? this.operations.lineCount() + this.additionalRows.getFirst()
-        : this.operations.lineCount();
+        ? operations.lineCount() + additionalRows.lineCount()
+        : operations.lineCount();
   }
 
   public boolean callLT(final Bytes32 arg1, final Bytes32 arg2) {

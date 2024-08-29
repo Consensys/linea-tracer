@@ -22,7 +22,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
@@ -90,9 +90,8 @@ public class ShakiraData implements Module {
     trace.fillAndValidateRow();
 
     int stamp = 0;
-    for (ShakiraDataOperation operation : operations) {
-      stamp++;
-      operation.trace(trace, stamp);
+    for (ShakiraDataOperation operation : operations.getAll()) {
+      operation.trace(trace, ++stamp);
     }
   }
 }

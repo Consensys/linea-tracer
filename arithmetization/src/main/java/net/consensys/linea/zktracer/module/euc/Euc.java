@@ -23,7 +23,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
@@ -61,7 +61,7 @@ public class Euc implements Module {
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
-    for (EucOperation eucOperation : this.operations) {
+    for (EucOperation eucOperation : operations.getAll()) {
       eucOperation.trace(trace);
     }
   }
@@ -72,11 +72,11 @@ public class Euc implements Module {
     final Bytes quotient = bigIntegerToBytes(dividendBI.divide(divisorBI));
     final Bytes remainder = bigIntegerToBytes(dividendBI.remainder(divisorBI));
 
-    EucOperation operation = new EucOperation(dividend, divisor, quotient, remainder);
+    final EucOperation operation = new EucOperation(dividend, divisor, quotient, remainder);
 
-    final boolean isNew = this.operations.add(operation);
+    final boolean isNew = operations.add(operation);
     if (isNew) {
-      this.wcp.callLT(operation.remainder(), operation.divisor());
+      wcp.callLT(operation.remainder(), operation.divisor());
     }
 
     return operation;

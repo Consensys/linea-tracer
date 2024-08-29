@@ -19,7 +19,7 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -35,12 +35,12 @@ public class Shf implements Module {
 
   @Override
   public void enterTransaction() {
-    this.operations.enter();
+    operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.operations.pop();
+    operations.pop();
   }
 
   @Override
@@ -61,9 +61,8 @@ public class Shf implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (ShfOperation op : this.operations) {
-      stamp++;
-      op.trace(trace, stamp);
+    for (ShfOperation op : operations.getAll()) {
+      op.trace(trace, ++stamp);
     }
   }
 

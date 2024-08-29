@@ -58,7 +58,7 @@ import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
@@ -95,7 +95,7 @@ public class RlpTxn implements Module {
   public static final Bytes BYTES_PREFIX_SHORT_INT = Bytes.of(RLP_PREFIX_INT_SHORT);
   public static final Bytes BYTES_PREFIX_SHORT_LIST = Bytes.of(RLP_PREFIX_LIST_SHORT);
 
-  public final StackedList<RlpTxnChunk> chunkList = new StackedList<>();
+  public final StackedList<RlpTxnChunk> operations = new StackedList<>();
 
   // Used to check the reconstruction of RLPs
   Bytes reconstructedRlpLt;
@@ -104,12 +104,12 @@ public class RlpTxn implements Module {
 
   @Override
   public void enterTransaction() {
-    this.chunkList.enter();
+    this.operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.chunkList.pop();
+    this.operations.pop();
   }
 
   @Override
@@ -117,7 +117,7 @@ public class RlpTxn implements Module {
     final Transaction tx = txMetaData.getBesuTransaction();
     // Contract Creation
     if (tx.getTo().isEmpty() && !tx.getInit().get().isEmpty()) {
-      this.chunkList.add(new RlpTxnChunk(tx, true));
+      this.operations.add(new RlpTxnChunk(tx, true));
     }
 
     // Call to a non-empty smart contract
@@ -125,10 +125,10 @@ public class RlpTxn implements Module {
         && Optional.ofNullable(worldView.get(tx.getTo().orElseThrow()))
             .map(AccountState::hasCode)
             .orElse(false)) {
-      this.chunkList.add(new RlpTxnChunk(tx, true));
+      this.operations.add(new RlpTxnChunk(tx, true));
     } else {
       // Contract doesn't require EVM execution
-      this.chunkList.add(new RlpTxnChunk(tx, false));
+      this.operations.add(new RlpTxnChunk(tx, false));
     }
   }
 
@@ -1096,7 +1096,7 @@ public class RlpTxn implements Module {
 
     builder
         .absTxNum(traceValue.absTxNum)
-        .absTxNumInfiny(this.chunkList.size())
+        .absTxNumInfiny(this.operations.size())
         .acc1(traceValue.acc1)
         .acc2(traceValue.acc2)
         .accBytesize((short) traceValue.accByteSize)
@@ -1202,7 +1202,7 @@ public class RlpTxn implements Module {
 
   @Override
   public int lineCount() {
-    return this.chunkList.lineCount();
+    return operations.lineCount();
   }
 
   @Override
@@ -1214,9 +1214,8 @@ public class RlpTxn implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int absTxNum = 0;
-    for (RlpTxnChunk chunk : this.chunkList) {
-      absTxNum += 1;
-      traceChunk(chunk, absTxNum, trace);
+    for (RlpTxnChunk chunk : operations.getAll()) {
+      traceChunk(chunk, ++absTxNum, trace);
     }
   }
 }

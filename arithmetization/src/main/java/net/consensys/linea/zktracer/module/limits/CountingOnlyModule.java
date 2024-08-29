@@ -32,12 +32,12 @@ public class CountingOnlyModule implements Module {
 
   @Override
   public void enterTransaction() {
-    counts.enterTransaction();
+    counts.enter();
   }
 
   @Override
   public void popTransaction() {
-    counts.popTransaction();
+    counts.pop();
   }
 
   @Override

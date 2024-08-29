@@ -21,7 +21,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -67,7 +67,7 @@ public class Add implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (AddOperation op : this.chunks) {
+    for (AddOperation op : chunks.getAll()) {
       stamp++;
       op.trace(stamp, trace);
     }
@@ -75,11 +75,11 @@ public class Add implements Module {
 
   @Override
   public int lineCount() {
-    return this.chunks.lineCount();
+    return chunks.lineCount();
   }
 
   public BigInteger callADD(Bytes32 arg1, Bytes32 arg2) {
-    this.chunks.add(new AddOperation(OpCode.ADD, arg1, arg2));
+    chunks.add(new AddOperation(OpCode.ADD, arg1, arg2));
     return arg1.toUnsignedBigInteger().add(arg2.toUnsignedBigInteger());
   }
 }

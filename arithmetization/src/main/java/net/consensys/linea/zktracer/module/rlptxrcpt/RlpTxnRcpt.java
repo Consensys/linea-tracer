@@ -34,7 +34,7 @@ import java.util.function.Function;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -770,7 +770,7 @@ public class RlpTxnRcpt implements Module {
 
   @Override
   public int lineCount() {
-    return this.chunkList.lineCount();
+    return chunkList.lineCount();
   }
 
   @Override
@@ -783,12 +783,12 @@ public class RlpTxnRcpt implements Module {
     final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk chunk : this.chunkList) {
+    for (RlpTxrcptChunk chunk : chunkList.getAll()) {
       absLogNumMax += chunk.logs().size();
     }
 
     int absTxNum = 0;
-    for (RlpTxrcptChunk chunk : this.chunkList) {
+    for (RlpTxrcptChunk chunk : chunkList.getAll()) {
       absTxNum += 1;
       traceChunk(chunk, absTxNum, absLogNumMax, trace);
     }

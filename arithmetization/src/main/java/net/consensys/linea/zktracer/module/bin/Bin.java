@@ -20,7 +20,7 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -65,7 +65,7 @@ public class Bin implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (BinOperation op : this.chunks) {
+    for (BinOperation op : chunks.getAll()) {
       stamp++;
       op.traceBinOperation(stamp, trace);
     }

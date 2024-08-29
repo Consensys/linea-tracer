@@ -22,7 +22,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
@@ -85,7 +85,7 @@ public class EcData implements Module {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
     long previousId = 0;
-    for (EcDataOperation op : operations) {
+    for (EcDataOperation op : operations.getAll()) {
       stamp++;
       op.trace(trace, stamp, previousId);
       previousId = op.id();

@@ -20,7 +20,7 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.Module;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
@@ -67,9 +67,11 @@ public class Gas implements Module {
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
-    for (int i = 0; i < this.chunks.size(); i++) {
-      GasOperation gasOperation = this.chunks.get(i);
-      gasOperation.trace(i + 1, trace);
+    int stamp = 0;
+    for (GasOperation gasOperation : this.chunks.getAll()) {
+      // TODO: I thought we don't have stamp for gas anymore ?
+      stamp++;
+      gasOperation.trace(stamp, trace);
     }
   }
 }

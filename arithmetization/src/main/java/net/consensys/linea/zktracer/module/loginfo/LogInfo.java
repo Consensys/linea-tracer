@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.loginfo;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LOG0;
+
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
@@ -34,8 +36,6 @@ public class LogInfo implements Module {
     this.rlpTxnRcpt = rlpTxnRcpt;
   }
 
-  private static final int LOG0 = 0xa0; // TODO why I don't get it from the .lisp ?
-
   @Override
   public String moduleKey() {
     return "LOG_INFO";
@@ -50,7 +50,7 @@ public class LogInfo implements Module {
   @Override
   public int lineCount() {
     int rowSize = 0;
-    for (RlpTxrcptChunk chunk : this.rlpTxnRcpt.getChunkList()) {
+    for (RlpTxrcptChunk chunk : rlpTxnRcpt.getChunkList().getAll()) {
       rowSize += txRowSize(chunk);
     }
     return rowSize;
@@ -66,13 +66,13 @@ public class LogInfo implements Module {
     final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk tx : this.rlpTxnRcpt.chunkList) {
+    for (RlpTxrcptChunk tx : rlpTxnRcpt.chunkList.getAll()) {
       absLogNumMax += tx.logs().size();
     }
 
     int absTxNum = 0;
     int absLogNum = 0;
-    for (RlpTxrcptChunk tx : this.rlpTxnRcpt.chunkList) {
+    for (RlpTxrcptChunk tx : rlpTxnRcpt.chunkList.getAll()) {
       absTxNum += 1;
       if (tx.logs().isEmpty()) {
         traceTxWoLog(absTxNum, absLogNum, absLogNumMax, trace);
@@ -158,7 +158,7 @@ public class LogInfo implements Module {
           .topicHi4(topic4.slice(0, 16))
           .topicLo4(topic4.slice(16, 16))
           .dataSize(log.getData().size())
-          .inst(UnsignedByte.of(LOG0 + nbTopic))
+          .inst(UnsignedByte.of(EVM_INST_LOG0 + nbTopic))
           .isLogX0(nbTopic == 0)
           .isLogX1(nbTopic == 1)
           .isLogX2(nbTopic == 2)

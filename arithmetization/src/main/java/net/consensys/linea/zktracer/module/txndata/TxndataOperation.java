@@ -320,7 +320,7 @@ public class TxndataOperation extends ModuleOperation {
     final Bytes gasLimit = Bytes.minimalBytes(tx.getBesuTransaction().getGasLimit());
     final Bytes gasInitiallyAvailable = Bytes.minimalBytes(tx.getInitiallyAvailableGas());
     final Bytes gasPrice = Bytes.minimalBytes(tx.getEffectiveGasPrice());
-    final Bytes priorityFeePerGas = Bytes.minimalBytes(tx.weiPerGasForMiner());
+    final Bytes priorityFeePerGas = Bytes.minimalBytes(tx.feeRateForCoinbase());
     final Bytes baseFee = block.getBaseFee().get().toMinimalBytes();
     final long coinbaseHi = highPart(block.getCoinbaseAddress());
     final Bytes coinbaseLo = lowPart(block.getCoinbaseAddress());

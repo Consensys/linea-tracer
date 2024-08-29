@@ -136,7 +136,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
       final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
     this.relativeBlockNumber = block.blockNumber();
-    this.coinbase = block.minerAddress();
+    this.coinbase = block.coinbaseAddress();
     this.baseFee = block.baseFee().toLong();
 
     this.besuTransaction = transaction;
@@ -166,10 +166,10 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   public void setPreFinalisationValues(
       final long leftOverGas,
       final long refundCounterMax,
-      final boolean minerIsWarmAtFinalisation,
+      final boolean coinbaseIsWarmAtFinalisation,
       final int accumulatedGasUsedInBlockAtStartTx) {
 
-    this.isCoinbaseWarmAtTransactionEnd(minerIsWarmAtFinalisation);
+    this.isCoinbaseWarmAtTransactionEnd(coinbaseIsWarmAtFinalisation);
     this.refundCounterMax = refundCounterMax;
     this.setLeftoverGas(leftOverGas);
     this.gasUsed = computeGasUsed();
@@ -273,7 +273,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
     return besuTransaction.getGasLimit() - getGasRefunded();
   }
 
-  public long weiPerGasForMiner() {
+  public long feeRateForCoinbase() {
     return switch (besuTransaction.getType()) {
       case FRONTIER, ACCESS_LIST -> effectiveGasPrice;
       case EIP1559 -> effectiveGasPrice - baseFee;
@@ -282,9 +282,9 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
     };
   }
 
-  public Wei getMinerReward() {
+  public Wei getCoinbaseReward() {
     return Wei.of(
-        BigInteger.valueOf(totalGasUsed).multiply(BigInteger.valueOf(weiPerGasForMiner())));
+        BigInteger.valueOf(totalGasUsed).multiply(BigInteger.valueOf(feeRateForCoinbase())));
   }
 
   public Wei getGasRefundInWei() {

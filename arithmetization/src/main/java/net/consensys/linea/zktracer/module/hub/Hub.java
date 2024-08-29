@@ -683,14 +683,14 @@ public class Hub implements Module {
     if (frame.getDepth() == 0) {
       final long leftOverGas = frame.getRemainingGas();
       final long gasRefund = frame.getGasRefund();
-      final boolean minerIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
+      final boolean coinbaseIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
 
       txStack
           .current()
           .setPreFinalisationValues(
               leftOverGas,
               gasRefund,
-              minerIsWarm,
+              coinbaseIsWarm,
               this.txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
       if (this.state.getProcessingPhase() != TX_SKIP) {

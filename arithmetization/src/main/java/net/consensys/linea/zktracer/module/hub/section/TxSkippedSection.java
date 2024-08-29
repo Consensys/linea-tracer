@@ -69,16 +69,16 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
       transients.conflation().deploymentInfo().newDeploymentAtForTxSkip(recipientAddress);
     }
 
-    // Miner account information
-    final Address minerAddress = txMetadata.getCoinbase();
+    // Coinbase account information
+    final Address coinbaseAddress = txMetadata.getCoinbase();
     coinbaseAccountSnapshotBefore =
         AccountSnapshot.fromAccount(
-            world.get(minerAddress),
-            isPrecompile(minerAddress),
+            world.get(coinbaseAddress),
+            isPrecompile(coinbaseAddress),
             transients
                 .conflation()
                 .deploymentInfo()
-                .deploymentNumber(transients.block().minerAddress()),
+                .deploymentNumber(transients.block().coinbaseAddress()),
             false);
   }
 

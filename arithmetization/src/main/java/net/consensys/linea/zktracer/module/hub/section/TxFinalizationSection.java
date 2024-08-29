@@ -233,7 +233,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
       AccountSnapshot coinbaseSnapshotBefore =
           coinbaseSnapshotAfterFinalization
               .deepCopy()
-              .decrementBalanceBy(txMetadata.getMinerReward());
+              .decrementBalanceBy(txMetadata.getCoinbaseReward());
 
       AccountFragment coinbaseAccountFragment =
           hub.factories()
@@ -266,14 +266,14 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
         .equals(recipientSnapshotBeforeFinalization.address());
   }
 
-  private boolean recipientIsMiner() {
+  private boolean recipientIsCoinbase() {
     return this.recipientSnapshotBeforeFinalization
         .address()
         .equals(coinbaseSnapshotBeforeTxFinalization.address());
   }
 
   private boolean addressCollision() {
-    return senderIsCoinbase() || senderIsRecipient() || recipientIsMiner();
+    return senderIsCoinbase() || senderIsRecipient() || recipientIsCoinbase();
   }
 
   private boolean noAddressCollisions() {

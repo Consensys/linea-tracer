@@ -36,7 +36,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
-import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -216,9 +215,15 @@ public class RomLex
         final int foreignDeploymentNumber = hub.deploymentNumberOf(foreignCodeAddress);
         final boolean foreignDeploymentStatus = hub.deploymentStatusOf(foreignCodeAddress);
 
-        checkArgument(length > 0, "EXTCODECOPY should only trigger a ROM_LEX chunk if nonzero size parameter");
-        checkArgument(!foreignDeploymentStatus, "EXTCODECOPY should only trigger a ROM_LEX chunk if its target isn't currently deploying");
-        checkArgument(!frame.getWorldUpdater().getAccount(foreignCodeAddress).isEmpty() && frame.getWorldUpdater().getAccount(foreignCodeAddress).hasCode());
+        checkArgument(
+            length > 0,
+            "EXTCODECOPY should only trigger a ROM_LEX chunk if nonzero size parameter");
+        checkArgument(
+            !foreignDeploymentStatus,
+            "EXTCODECOPY should only trigger a ROM_LEX chunk if its target isn't currently deploying");
+        checkArgument(
+            !frame.getWorldUpdater().getAccount(foreignCodeAddress).isEmpty()
+                && frame.getWorldUpdater().getAccount(foreignCodeAddress).hasCode());
 
         Optional.ofNullable(frame.getWorldUpdater().get(foreignCodeAddress))
             .map(AccountState::getCode)
@@ -227,7 +232,8 @@ public class RomLex
                   if (!byteCode.isEmpty()) {
                     final RomChunk chunk =
                         new RomChunk(
-                            ContractMetadata.make(foreignCodeAddress, foreignDeploymentNumber, false),
+                            ContractMetadata.make(
+                                foreignCodeAddress, foreignDeploymentNumber, false),
                             true,
                             false,
                             byteCode);

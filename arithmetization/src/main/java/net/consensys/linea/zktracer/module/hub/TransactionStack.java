@@ -66,6 +66,7 @@ public class TransactionStack implements StackedContainer {
     final TransactionProcessingMetadata newTx =
         new TransactionProcessingMetadata(
             world, tx, block, relativeTransactionNumber, currentAbsNumber);
+
     this.txs.add(newTx);
   }
 

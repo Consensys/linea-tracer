@@ -485,6 +485,8 @@ public class Hub implements Module {
     state.enter();
     txStack.enterTransaction(world, tx, transients.block());
 
+    defers.scheduleForPostTransaction(txStack.current());
+
     this.enterTransaction();
 
     if (!txStack.current().requiresEvmExecution()) {

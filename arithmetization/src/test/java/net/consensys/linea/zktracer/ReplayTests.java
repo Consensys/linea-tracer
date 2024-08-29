@@ -125,12 +125,12 @@ public class ReplayTests {
 
   @Test
   void issue1006() {
-    replay("6032696-6032699.json.gz");
+    replay("6032696-6032699.json.gz", false);
   }
 
   @Test
   void issue1004() {
-    replay("6020023-6020029.json.gz");
+    replay("6020023-6020029.json.gz", false);
   }
 
   @Test

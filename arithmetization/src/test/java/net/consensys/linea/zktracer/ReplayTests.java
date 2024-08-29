@@ -142,7 +142,6 @@ public class ReplayTests {
     replay("6110045.json.gz");
   }
 
-  @Disabled
   @Test
   void failingCreate2() {
     replay("2250197-2250197.json.gz");
@@ -156,5 +155,12 @@ public class ReplayTests {
   @Test
   void blockHash2() {
     replay("8718330.json.gz");
+  }
+
+  // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
+  // instruction
+  @Test
+  void negativeNumberOfMmioInstruction() {
+    replay("6029454-6029459.json.gz");
   }
 }

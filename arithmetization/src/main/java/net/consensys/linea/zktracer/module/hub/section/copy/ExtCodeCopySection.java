@@ -122,8 +122,10 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
             .accountFragment()
             .makeWithTrm(accountBefore, accountAfter, rawAddress, doingDomSubStamps);
     accountDoingFragment.requiresRomlex(triggerCfi);
+    if (triggerCfi) {
+      hub.romLex().callRomLex(hub.messageFrame());
+    }
     this.addFragment(accountDoingFragment);
-    hub.romLex().callRomLex(hub.messageFrame());
 
     // an EXTCODECOPY section is only scheduled
     // for rollback if it is unexceptional

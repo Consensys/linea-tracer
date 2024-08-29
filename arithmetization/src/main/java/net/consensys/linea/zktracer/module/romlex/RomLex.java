@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer.module.romlex;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
@@ -25,17 +27,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -48,7 +51,8 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
-public class RomLex implements Module, PostOpcodeDefer, ImmediateContextEntryDefer {
+public class RomLex
+    implements Module, PostOpcodeDefer, ImmediateContextEntryDefer, ContextExitDefer {
   private static final RomChunkComparator ROM_CHUNK_COMPARATOR = new RomChunkComparator();
 
   private final Hub hub;
@@ -165,7 +169,7 @@ public class RomLex implements Module, PostOpcodeDefer, ImmediateContextEntryDef
         final long offset = Words.clampedToLong(frame.getStackItem(1));
         final long length = Words.clampedToLong(frame.getStackItem(2));
 
-        Preconditions.checkArgument(length > 0, "callRomLex expects positive size for CREATE(2)");
+        checkArgument(length > 0, "callRomLex expects positive size for CREATE(2)");
 
         hub.defers().scheduleForImmediateContextEntry(this);
         byteCode = frame.shadowReadMemory(offset, length);
@@ -173,36 +177,19 @@ public class RomLex implements Module, PostOpcodeDefer, ImmediateContextEntryDef
       }
 
       case RETURN -> {
-        Preconditions.checkArgument(frame.getType() == MessageFrame.Type.CONTRACT_CREATION);
-        Preconditions.checkArgument(
-            hub.transients()
-                .conflation()
-                .deploymentInfo()
-                .getDeploymentStatus(frame.getContractAddress()));
+        final boolean currentDeploymentStatus = hub.currentDeploymentStatus();
+        final int currentDeploymentNumber = hub.currentDeploymentNumber();
 
-        final Bytes code = hub.transients().op().outputData();
+        checkArgument(frame.getType() == MessageFrame.Type.CONTRACT_CREATION);
+        checkArgument(currentDeploymentStatus);
+        checkArgument(currentDeploymentNumber > 0);
 
-        if (code.isEmpty()) {
-          return;
-        }
+        final long offset = Words.clampedToLong(frame.getStackItem(0));
+        final long length = Words.clampedToLong(frame.getStackItem(1));
+        checkArgument(length > 0, "callRomLex expects positive size for RETURN");
 
-        final boolean depStatus =
-            hub.transients()
-                .conflation()
-                .deploymentInfo()
-                .getDeploymentStatus(frame.getContractAddress());
-        if (depStatus) {
-          int depNumber =
-              hub.transients()
-                  .conflation()
-                  .deploymentInfo()
-                  .deploymentNumber(frame.getContractAddress());
-          final ContractMetadata contractMetadata =
-              ContractMetadata.underDeployment(frame.getContractAddress(), depNumber);
-
-          final RomChunk chunk = new RomChunk(contractMetadata, true, false, code);
-          this.chunks.add(chunk);
-        }
+        byteCode = frame.shadowReadMemory(offset, length);
+        hub.defers().scheduleForContextExit(this, hub.currentFrame().id());
       }
 
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
@@ -272,22 +259,11 @@ public class RomLex implements Module, PostOpcodeDefer, ImmediateContextEntryDef
 
   @Override
   public void resolvePostExecution(
-      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    Preconditions.checkArgument(hub.opCode().isCreate());
-    final int depNumber =
-        hub.transients().conflation().deploymentInfo().deploymentNumber(this.address);
-    final ContractMetadata contractMetadata =
-        ContractMetadata.underDeployment(this.address, depNumber);
-
-    final RomChunk chunk = new RomChunk(contractMetadata, true, false, this.byteCode);
-    this.chunks.add(chunk);
-    this.createDefers.trigger(contractMetadata);
-  }
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {}
 
   @Override
   public void resolveUponImmediateContextEntry(Hub hub) {
-    Preconditions.checkArgument(
-        hub.messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION);
+    checkArgument(hub.messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION);
 
     DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     final int deploymentNumber = deploymentInfo.deploymentNumber(address);
@@ -295,8 +271,7 @@ public class RomLex implements Module, PostOpcodeDefer, ImmediateContextEntryDef
     final ContractMetadata contractMetadata =
         ContractMetadata.underDeployment(this.address, deploymentNumber);
 
-    Preconditions.checkArgument(
-        deploymentStatus, "After a CREATE the deployment status should be true");
+    checkArgument(deploymentStatus, "After a CREATE the deployment status should be true");
 
     final RomChunk chunk = new RomChunk(contractMetadata, true, false, this.byteCode);
     this.chunks.add(chunk);
@@ -351,5 +326,22 @@ public class RomLex implements Module, PostOpcodeDefer, ImmediateContextEntryDef
       cfi += 1;
       traceChunk(chunk, cfi, codeFragmentIndexInfinity, trace);
     }
+  }
+
+  @Override
+  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
+
+    checkArgument(hub.opCode() == RETURN);
+
+    final ContractMetadata contractMetadata =
+        ContractMetadata.make(
+            hub.messageFrame().getContractAddress(),
+            hub.currentDeploymentNumber(),
+            hub.currentDeploymentStatus());
+
+    checkArgument(!hub.currentDeploymentStatus());
+
+    final RomChunk chunk = new RomChunk(contractMetadata, false, true, byteCode);
+    this.chunks.add(chunk);
   }
 }

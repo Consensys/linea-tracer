@@ -146,9 +146,6 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Accessors(fluent = true)
 public class Hub implements Module {
 
-  // TODO: remove, it's for debugging
-  public int statusSize;
-
   public static final GasProjector GAS_PROJECTOR = new GasProjector();
 
   /** accumulate the trace information for the Hub */
@@ -660,17 +657,7 @@ public class Hub implements Module {
   public void traceContextExit(MessageFrame frame) {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
 
-    // TODO: this is likely not the right spot to do this
-    //  this should happen
-    if (transients
-        .conflation()
-        .deploymentInfo()
-        .getDeploymentStatus(this.currentFrame().byteCodeAddress())) {
-      transients
-          .conflation()
-          .deploymentInfo()
-          .markAsNotUnderDeployment(this.currentFrame().byteCodeAddress());
-    }
+    exitDeploymentFromDeploymentInfoPointOfView();
 
     // TODO: why only do this at positive depth ?
     if (frame.getDepth() > 0) {
@@ -682,6 +669,8 @@ public class Hub implements Module {
       if (contextExceptions.any()) {
         this.callStack.revert(this.state.stamps().hub()); // TODO: Duplicate s?
       }
+
+      defers.resolveUponExitingContext(this, currentFrame());
 
       for (Module m : this.modules) {
         m.traceContextExit(frame);
@@ -716,6 +705,25 @@ public class Hub implements Module {
 
     if (frame.getDepth() > 0) {
       this.callStack.exit();
+    }
+  }
+
+  /**
+   * If the current execution context is a deployment context the present method "exits" that
+   * deployment in the sense that it updates the relevant deployment information.
+   */
+  private void exitDeploymentFromDeploymentInfoPointOfView() {
+
+    // sanity check
+    Preconditions.checkArgument(
+        currentDeploymentStatus()
+            == (messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION));
+
+    if (currentDeploymentStatus()) {
+      transients
+          .conflation()
+          .deploymentInfo()
+          .markAsNotUnderDeployment(this.currentFrame().byteCodeAddress());
     }
   }
 

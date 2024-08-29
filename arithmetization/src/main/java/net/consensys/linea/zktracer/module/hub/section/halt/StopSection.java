@@ -50,7 +50,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     hub.defers().scheduleForPostTransaction(this); // always
 
     hubStamp = hub.stamp();
-    address = hub.currentFrame().accountAddress();
+    address = hub.messageFrame().getContractAddress();
     contextNumber = hub.currentFrame().contextNumber();
     {
       DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();

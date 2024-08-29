@@ -671,12 +671,6 @@ public class Hub implements Module {
       if (contextExceptions.any()) {
         this.callStack.revert(this.state.stamps().hub()); // TODO: Duplicate s?
       }
-
-      defers.resolveUponExitingContext(this, currentFrame());
-
-      for (Module m : this.modules) {
-        m.traceContextExit(frame);
-      }
     }
 
     // We take a snapshot before exiting the transaction

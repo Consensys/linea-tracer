@@ -14,10 +14,11 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -39,8 +40,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-
-import static com.google.common.base.Preconditions.*;
 
 public class SelfdestructSection extends TraceSection
     implements PostRollbackDefer, PostTransactionDefer {

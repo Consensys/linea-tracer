@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_TRANSPLANT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.math.BigInteger;
@@ -39,7 +40,6 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -71,7 +71,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
     row2();
@@ -86,7 +86,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     mmuData.outAndBinValues(MmuOutAndBinValues.DEFAULT); // all 0
 
     mmuData.totalLeftZeroesInitials(0);
-    mmuData.totalNonTrivialInitials(Trace.NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION);
+    mmuData.totalNonTrivialInitials(NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION);
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
@@ -203,9 +203,6 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder().sourceContextNumber(hubToMmuValues.sourceId()).build());
-
-    // Setting the source ram bytes
-    mmuData.setSourceRamBytes();
 
     // Setting the list of MMIO instructions
     firstMicroInstruction(mmuData);

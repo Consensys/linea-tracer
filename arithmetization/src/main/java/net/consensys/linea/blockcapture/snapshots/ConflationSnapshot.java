@@ -26,4 +26,7 @@ import java.util.List;
  * @param storage storage cells that will be accessed during the conflation execution
  */
 public record ConflationSnapshot(
-    List<BlockSnapshot> blocks, List<AccountSnapshot> accounts, List<StorageSnapshot> storage) {}
+    List<BlockSnapshot> blocks,
+    List<AccountSnapshot> accounts,
+    List<StorageSnapshot> storage,
+    List<BlockHashSnapshot> blockHashes) {}

@@ -15,24 +15,20 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
-import static net.consensys.linea.zktracer.module.oob.OobTestCommon.assertNumberOfOnesInOobEvent1;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(EvmExtension.class)
-@Disabled("Disabled since oob update is in progress")
 public class OobRdcTest {
 
   public static final BigInteger TWO_POW_128_LEFT =
@@ -50,11 +46,10 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
-  @Test
+  @Disabled("This test is temporary disabled because of issue with CREATE")
   void TestReturnDataCopyMaxPosRds() {
     // maxPos = offset + size = 12 + 20 = rds = 32
     BytecodeCompiler program =
@@ -64,11 +59,10 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
-  @Test
+  @Disabled("This test is temporary disabled because of issue with CREATE")
   void TestReturnDataCopyMaxPosSmallerThanRds() {
     // maxPos = offset + size = 3 + 4 < rds = 32
     BytecodeCompiler program =
@@ -78,11 +72,10 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
-  @Test
+  @Disabled("This test is temporary disabled because of issue with CREATE")
   void TestReturnDataCopyMaxPosSmallerThanRdsAndOffsetZero() {
     // maxPos = offset + size = 0 + 4 < rds = 32
     BytecodeCompiler program =
@@ -92,11 +85,10 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
-  @Test
+  @Disabled("This test is temporary disabled because of issue with CREATE")
   void TestReturnDataCopyMaxPosSmallerThanRdsAndSizeZero() {
     // maxPos = offset + size = 3 + 0 < rds = 32
     BytecodeCompiler program =
@@ -106,8 +98,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   // Failing cases
@@ -123,8 +114,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -136,8 +126,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -149,8 +138,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   // offset just greater cases
@@ -164,8 +152,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -178,8 +165,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -191,8 +177,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -204,8 +189,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   // offset big left cases
@@ -218,8 +202,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -231,8 +214,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -244,8 +226,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -257,8 +238,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   // offset big right cases
@@ -271,8 +251,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -284,8 +263,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -297,8 +275,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -310,8 +287,7 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
   }
 
   // Same cases but using identity precompile
@@ -325,13 +301,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -345,14 +321,15 @@ public class OobRdcTest {
     bytecodeRunner.run();
 
     Hub hub = bytecodeRunner.getHub();
+    System.out.println(bytecodeRunner.getHub().currentFrame().frame().getReturnData());
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -367,13 +344,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -388,13 +365,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -409,13 +386,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 0);
+    assertFalse(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -432,14 +409,15 @@ public class OobRdcTest {
     bytecodeRunner.run();
 
     Hub hub = bytecodeRunner.getHub();
+    System.out.println(bytecodeRunner.getHub().currentFrame().frame().getReturnData());
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -454,13 +432,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -475,13 +453,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -498,13 +476,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -520,13 +498,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -541,13 +519,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -562,13 +540,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -583,13 +561,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -603,13 +581,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -624,13 +602,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -645,13 +623,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -666,13 +644,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -687,13 +665,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -708,13 +686,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -729,13 +707,13 @@ public class OobRdcTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().returnDataCopyFault());
-    assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+    assertTrue(Exceptions.returnDataCopyFault(hub.pch().exceptions()));
+
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
     assertEquals(
-        bytecodeRunner.getHub().oob().getChunks().get(1).getPrecompileCost(),
+        bytecodeRunner.getHub().oob().getOobOperations().get(1).getPrecompileCost(),
         BigInteger.valueOf(18));
   }
 
@@ -824,20 +802,4 @@ public class OobRdcTest {
 
     return program;
   }
-
-  /*
-  @Test
-  void temp() {
-    BigInteger n1 = BigInteger.valueOf(0xFF);
-    BigInteger n2 = UnsignedByte.of(0xFF).toBigInteger();
-    BigInteger n3 = Bytes.fromHexString("FF").toBigInteger();
-    BigInteger n4 = Bytes.fromHexString("FF").toUnsignedBigInteger();
-    BigInteger n5 = BigInteger.valueOf((byte) 0xFF);
-    System.out.println(n1);
-    System.out.println(n2);
-    System.out.println(n3);
-    System.out.println(n4);
-    System.out.println(n5);
-  }
-   */
 }

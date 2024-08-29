@@ -64,6 +64,7 @@ import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.types.BitDecOutput;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -88,7 +89,7 @@ public class RlpTxn implements Module {
 
   @Override
   public String moduleKey() {
-    return "TX_RLP";
+    return "RLP_TXN";
   }
 
   public static final Bytes BYTES_PREFIX_SHORT_INT = Bytes.of(RLP_PREFIX_INT_SHORT);
@@ -112,7 +113,8 @@ public class RlpTxn implements Module {
   }
 
   @Override
-  public void traceStartTx(WorldView worldView, Transaction tx) {
+  public void traceStartTx(WorldView worldView, TransactionProcessingMetadata txMetaData) {
+    final Transaction tx = txMetaData.getBesuTransaction();
     // Contract Creation
     if (tx.getTo().isEmpty() && !tx.getInit().get().isEmpty()) {
       this.chunkList.add(new RlpTxnChunk(tx, true));
@@ -140,7 +142,7 @@ public class RlpTxn implements Module {
     traceValue.requiresEvmExecution = chunk.requireEvmExecution();
     traceValue.codeFragmentIndex =
         chunk.tx().getTo().isEmpty() && chunk.requireEvmExecution()
-            ? this.romLex.getCfiByMetadata(
+            ? this.romLex.getCodeFragmentIndexByMetadata(
                 ContractMetadata.underDeployment(
                     Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()), 1))
             : 0;
@@ -1065,6 +1067,7 @@ public class RlpTxn implements Module {
     traceValue.phaseEnd = phaseEnd;
     traceRow(traceValue, trace);
   }
+
   // Define the Tracer
   private void traceRow(RlpTxnColumnsValue traceValue, Trace builder) {
     // Decrements RLP_BYTESIZE

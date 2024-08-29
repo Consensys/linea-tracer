@@ -17,18 +17,16 @@ package net.consensys.linea.zktracer.module.blockhash;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.BLOCKHASH_MAX_HISTORY;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(EvmExtension.class)
 public class BlockhashTest {
 
-  // @Disabled("in our framework, BLOCKNUMBER is 0 thus breaking the wcp_lower_bound lookup")
+  @Disabled("Not possible to test yet, ToyWorld issue, see #934")
   @Test
   void someBlockhash() {
     BytecodeRunner.of(

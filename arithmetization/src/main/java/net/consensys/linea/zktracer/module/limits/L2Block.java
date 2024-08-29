@@ -25,12 +25,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.module.Module;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
@@ -47,12 +45,13 @@ public class L2Block implements Module {
 
   /** The byte size of the RLP-encoded transaction of the conflation */
   @Getter private final Deque<Integer> sizesRlpEncodedTxs = new ArrayDeque<>();
+
   /** The byte size of the L2->L1 logs messages of the conflation */
   @Getter private final Deque<List<Integer>> l2l1LogSizes = new ArrayDeque<>();
 
   @Override
   public String moduleKey() {
-    return "BLOCK_L1SIZE";
+    return "BLOCK_L1_SIZE";
   }
 
   @Override
@@ -128,20 +127,15 @@ public class L2Block implements Module {
   }
 
   @Override
-  public void traceEndTx(
-      WorldView worldView,
-      Transaction tx,
-      boolean isSuccessful,
-      Bytes output,
-      List<Log> logs,
-      long gasUsed) {
-    for (Log log : logs) {
+  public void traceEndTx(TransactionProcessingMetadata tx) {
+    for (Log log : tx.getLogs()) {
       if (log.getLogger().equals(l2l1Address) && log.getTopics().contains(l2l1Topic)) {
         this.l2l1LogSizes.peek().add(log.getData().size());
       }
     }
 
-    this.sizesRlpEncodedTxs.push(this.sizesRlpEncodedTxs.pop() + tx.encoded().size());
+    this.sizesRlpEncodedTxs.push(
+        this.sizesRlpEncodedTxs.pop() + tx.getBesuTransaction().encoded().size());
   }
 
   public int l2l1LogsCount() {

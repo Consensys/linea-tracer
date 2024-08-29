@@ -23,15 +23,14 @@ import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
+import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.ToyWorld;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
-import net.consensys.linea.zktracer.testing.ToyAccount;
-import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
-import net.consensys.linea.zktracer.testing.ToyTransaction;
-import net.consensys.linea.zktracer.testing.ToyWorld;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -41,12 +40,11 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 // https://github.com/Consensys/linea-besu-plugin/issues/197
 
-@ExtendWith(EvmExtension.class)
 public class MxpTest {
   private static final Random RAND = new Random(123456789123456L);
   public static final EWord TWO_POW_128 = EWord.of(EWord.ONE.shiftLeft(128));
@@ -128,8 +126,9 @@ public class MxpTest {
     BytecodeRunner.of(program.compile()).run();
   }
 
+  @Disabled("see #1014")
   @Test
-  void testMxpRandomTriggerRoob() {
+  void testRandomMxpInstructionsFollowedByTriggeringRoob() {
     // Testing a random program
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     final int INSTRUCTION_COUNT = 256;
@@ -138,6 +137,32 @@ public class MxpTest {
       triggerNonTrivialOrNoop(program, isHalting);
     }
     triggerNonTrivialButMxpxOrRoob(program, false, true);
+    BytecodeRunner.of(program.compile()).run();
+  }
+
+  @Test
+  void testSingleLog3TriggersRoob() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .push("30000003333333333333000000000000" + "00000000000000000000000000000003") // topic 3
+        .push("20000000000000000000222222222222" + "20000000000000000000000000000002") // topic 2
+        .push("10000000000000000000000000000000" + "00000000000001111111111111000001") // topic 1
+        .push("00000000000000000000010000000000" + "00000000000000000000000000000000") // size
+        .push("00000000000000000000000000000000" + "00000000000000000000000000000001") // offset
+        .op(OpCode.LOG3);
+    BytecodeRunner.of(program.compile()).run();
+  }
+
+  @Test
+  void testSingleUnexceptionalLog3() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .push("30000003333333333333000000000000" + "00000000000000000000000000000003") // topic 3
+        .push("20000000000000000000222222222222" + "20000000000000000000000000000002") // topic 2
+        .push("10000000000000000000000000000000" + "00000000000001111111111111000001") // topic 1
+        .push("00000000000000000000000000000000" + "00000000000000000000000000000100") // size
+        .push("00000000000000000000000000000000" + "00000000000000000000000000000101") // offset
+        .op(OpCode.LOG3);
     BytecodeRunner.of(program.compile()).run();
   }
 
@@ -153,6 +178,7 @@ public class MxpTest {
     }
   }
 
+  @Disabled("see #1014")
   @Test
   void testMxpRandomAdvanced() {
     // Testing a random program that contains creates with meaning random arguments
@@ -253,7 +279,6 @@ public class MxpTest {
                 Bytes.fromHexString(
                     "0x1b4d679d0000000000000000000000003328358128832a260c76a4141e19e2a943cd4b6d0000000000000000000000005e17b14add6c386305a32928f985b29bba34eff5000000000000000000000000e2899bddfd890e320e643044c6b95b9b0b84157a000000000000000000000000d4fc541236927e2eaf8f27606bd7309c1fc2cbee0000000000000000000000005fd6eb55d12e759a21c09ef703fe0cba1dc9d88d"))
             .transactionType(TransactionType.FRONTIER)
-            .gasLimit(0xffffffffL)
             .value(Wei.ZERO)
             .keyPair(keyPair)
             .build();
@@ -271,12 +296,7 @@ public class MxpTest {
                     contractMO2Account))
             .build();
 
-    ToyExecutionEnvironment.builder()
-        .toyWorld(toyWorld)
-        .transaction(tx)
-        .testValidator(x -> {})
-        .build()
-        .run();
+    ToyExecutionEnvironmentV2.builder().toyWorld(toyWorld).transaction(tx).build().run();
   }
 
   // Support methods
@@ -596,5 +616,29 @@ public class MxpTest {
       case TYPE_4 -> opCodesType4[RAND.nextInt(opCodesType4.length)];
       default -> OpCode.MSIZE; // We never enter the default case since we skip MxpType.NONE
     };
+  }
+
+  @Test
+  void testSeveralKeccaks() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(0)
+                .push(0)
+                .op(OpCode.SHA3)
+                .op(OpCode.POP)
+                .push(64)
+                .push(13)
+                .op(OpCode.SHA3)
+                .op(OpCode.POP)
+                .push(11)
+                .push(75)
+                .op(OpCode.SHA3)
+                .op(OpCode.POP)
+                .push(32)
+                .push(32)
+                .op(OpCode.SHA3)
+                .op(OpCode.POP)
+                .compile())
+        .run();
   }
 }

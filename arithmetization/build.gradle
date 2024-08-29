@@ -58,15 +58,17 @@ dependencies {
   implementation 'io.tmio:tuweni-bytes'
   implementation 'io.tmio:tuweni-units'
   implementation 'io.tmio:tuweni-toml'
-
   implementation 'org.bouncycastle:bcprov-jdk18on'
   implementation 'org.hibernate.validator:hibernate-validator'
+
+  testImplementation project(path: ':testing')
 
   testImplementation "${besuArtifactGroup}:evm"
   testImplementation "${besuArtifactGroup}:besu-datatypes"
   testImplementation "${besuArtifactGroup}.internal:core:${besuVersion}"
   testImplementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
   testImplementation "${besuArtifactGroup}.internal:core:${besuVersion}"
+  testImplementation "${besuArtifactGroup}.internal:referencetests:${besuVersion}"
 }
 
 configurations {

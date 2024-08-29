@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.hub.transients;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.TransactionStack;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
 /**
  * This class stores data and provide information accessible through the {@link Hub} of various
@@ -28,14 +28,17 @@ import net.consensys.linea.zktracer.module.hub.TransactionStack;
 @Accessors(fluent = true)
 public class Transients {
   private final Hub hub;
+
   /** stores conflation-lived information */
   final Conflation conflation = new Conflation();
+
   /** stores block-lived information */
   final Block block = new Block();
+
   /** provides operation-related information */
   final OperationAncillaries op;
 
-  public TransactionStack.MetaTransaction tx() {
+  public TransactionProcessingMetadata tx() {
     return this.hub.txStack().current();
   }
 

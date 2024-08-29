@@ -17,121 +17,96 @@ package net.consensys.linea.corset;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 
+/**
+ * Responsible for running the command-line <code>corset</code> tool to check that a given trace is
+ * accepted by the zkevm constraints. The <code>corset</code> tool has variables levels of
+ * "expansion" which it can apply before performing the check. Greater levels of expansion imply
+ * more accurate checks (i.e. more realistic compared to the prover). Furthermore, <code>corset
+ * </code> can be configured to use field arithmetic or simply big integers (with the latter option
+ * intended to offer faster but much less precise checking). The default configuration is set to
+ * give good accuracy, but without significant overhead. A greater level can be configured by
+ * enabling the <code>autoConstraints</code>.
+ *
+ * <p>The configuration can be set using the environment variable <code>CORSET_FLAGS</code>. Example
+ * values for this environment variable include <code>fields,expand</code> (sets <code>
+ * fieldArithmetic=true</code> and <code>expansion=0</code>) and <code>fields,expand,expand,
+ * auto</code> (enables <code>fieldArithmetic</code> and <code>autoConstraints</code> and sets
+ * <code>expansion=2</code>). Note, it doesn't make sense to have <code>expand</code> without <code>
+ * fields</code>. Likewise, it doesn't make sense to have <code>auto</code> without <code>expand
+ * </code>.
+ */
 @Slf4j
 public class CorsetValidator {
   public record Result(boolean isValid, File traceFile, String corsetOutput) {}
 
+  /** */
   private static final String ZK_EVM_RELATIVE_PATH = "/zkevm-constraints/zkevm.bin";
 
+  /** Specifies the default zkEVM.bin file to use (including its path). */
   private String defaultZkEvm = null;
-  private String corsetBin;
+
+  /** Interface to existing Rust corset tool. */
+  private final RustCorsetValidator rustCorset;
+
+  /** Interface to Go corset tool. */
+  private final GoCorsetValidator goCorset;
 
   public CorsetValidator() {
-    initCorset();
+    // Construct and initialise Rust corset.
+    this.rustCorset = new RustCorsetValidator();
+    // Construct and initialise Go corset.
+    this.goCorset = new GoCorsetValidator();
+    // Configure default path to the zkevm.bin file.
     initDefaultZkEvm();
   }
 
-  public Result validate(final Path filename) throws RuntimeException {
-    return validate(filename, defaultZkEvm);
+  /**
+   * Attempt to validate a given tracefile against a given set of zkEVM constraints. A default
+   * location for the zkevm.bin file is used.
+   *
+   * @param traceFile The tracefile being validated.
+   * @return A result which tells us whether or not the trace file was accepted, and provides
+   *     additional information for debugging purposes.
+   */
+  public Result validate(final Path traceFile) throws RuntimeException {
+    if (defaultZkEvm == null) {
+      throw new IllegalArgumentException("Default zkevm.bin not set.");
+    }
+    return validate(traceFile, defaultZkEvm);
   }
 
-  public Result validate(final Path filename, final String zkEvmBin) throws RuntimeException {
-    final Process corsetValidationProcess;
-    try {
-      corsetValidationProcess =
-          new ProcessBuilder(
-                  corsetBin,
-                  "check",
-                  "-T",
-                  filename.toAbsolutePath().toString(),
-                  "-q",
-                  "-r",
-                  "-d",
-                  "-s",
-                  "-t",
-                  Optional.ofNullable(System.getenv("CORSET_THREADS")).orElse("2"),
-                  zkEvmBin)
-              .redirectInput(ProcessBuilder.Redirect.INHERIT)
-              .redirectErrorStream(true)
-              .start();
-    } catch (IOException e) {
-      log.error("Corset validation has thrown an exception: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    final String corsetOutput;
-    try {
-      corsetOutput =
-          IOUtils.toString(corsetValidationProcess.getInputStream(), Charset.defaultCharset());
-    } catch (IOException e) {
-      log.error(
-          "Error while catching output corsetValidationProcess: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    try {
-      corsetValidationProcess.waitFor(5, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      log.error("Timeout while validating trace file: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    if (corsetValidationProcess.exitValue() != 0) {
-      log.error("Validation failed: %s".formatted(corsetOutput));
-      return new Result(false, filename.toFile(), corsetOutput);
-    }
-
-    return new Result(true, filename.toFile(), corsetOutput);
-  }
-
-  private void initCorset() {
-    final Process whichCorsetProcess;
-
-    try {
-      whichCorsetProcess = Runtime.getRuntime().exec(new String[] {"which", "corset"});
-    } catch (IOException e) {
-      log.error("Error while searching for corset: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    final String whichCorsetProcessOutput;
-    try {
-      whichCorsetProcessOutput =
-          IOUtils.toString(whichCorsetProcess.getInputStream(), Charset.defaultCharset());
-    } catch (IOException e) {
-      log.error("Error while catching output whichCorsetProcess: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    try {
-      whichCorsetProcess.waitFor(5, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      log.error("Timeout while searching for corset: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
-    }
-
-    if (whichCorsetProcess.exitValue() == 0) {
-      corsetBin = whichCorsetProcessOutput.trim();
-      return;
-    }
-
-    log.warn("Could not find corset executable: %s".formatted(whichCorsetProcessOutput));
-
-    final String homePath = System.getenv("HOME");
-    corsetBin = homePath + "/.cargo/bin/corset";
-    log.warn("Trying to use default corset path: %s".formatted(corsetBin));
-
-    if (!Files.isExecutable(Path.of(corsetBin))) {
-      throw new RuntimeException("Corset is not executable: %s".formatted(corsetBin));
+  /**
+   * Attempt to validate a given tracefile against a given set of zkEVM constraints.
+   *
+   * @param traceFile The tracefile being validated.
+   * @param zkEvmBin The zkEVM constraints file (compiled using corset).
+   * @return A result which tells us whether or not the trace file was accepted, and provides
+   *     additional information for debugging purposes.
+   */
+  public Result validate(final Path traceFile, final String zkEvmBin) {
+    // Generate results from Rust and Go corset tools
+    Result rr = rustCorset.validate(traceFile, zkEvmBin);
+    Result rg = goCorset.validate(traceFile, zkEvmBin);
+    // Sanity check at least one validator is active
+    if (!rustCorset.isActive() && !goCorset.isActive()) {
+      throw new RuntimeException("Neither corset nor go-corset are available");
+    } else if (rustCorset.isActive() && goCorset.isActive() && rg.isValid() != rr.isValid()) {
+      // Both Rust and Go corset are active, but disagree.
+      log.info("Output from Rust and Go tools differs ({} v {})", rr.isValid(), rg.isValid());
+      // Return failing result to force a test failure.
+      return rg.isValid() ? rr : rg;
+    } else if (rustCorset.isActive()) {
+      // Rust corset is active, and Go corset may or may not be.  Eitherway, default to Rust corset
+      // for the source of
+      // truth.
+      return rr;
+    } else {
+      // Only Go corset is active
+      return rg;
     }
   }
 

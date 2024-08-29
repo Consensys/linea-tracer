@@ -24,7 +24,8 @@ import java.io.InputStreamReader;
 import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
+import net.consensys.linea.testing.ToyExecutionEnvironment;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -40,6 +41,8 @@ import org.junit.jupiter.api.Test;
  * | jq '.result.capture' -r
  * | gzip > arithmetization/src/test/resources/replays/my-test-case.json.gz
  * }</pre>
+ *
+ * One can run this command: scripts/capture.pl --start xxx --end yyy --output my-test-case.json.gz
  */
 @Slf4j
 public class ReplayTests {
@@ -48,8 +51,11 @@ public class ReplayTests {
    * net.consensys.linea.blockcapture.BlockCapturer} and execute it as a test.
    *
    * @param filename the file in resources/replays/ containing the replay
+   * @param resultChecking enable checking of transaction results. This should always be enabled.
+   *     However until existing problems are resolved with the replay mechanism, it may be useful to
+   *     disable this for specific tests on a case-by-case basis.
    */
-  public static void replay(String filename) {
+  public static void replay(String filename, boolean resultChecking) {
     final InputStream fileStream =
         ReplayTests.class.getClassLoader().getResourceAsStream("replays/%s".formatted(filename));
     if (fileStream == null) {
@@ -64,8 +70,18 @@ public class ReplayTests {
       throw new RuntimeException(e);
     }
     ToyExecutionEnvironment.builder()
+        .resultChecking(resultChecking)
         .build()
         .replay(new BufferedReader(new InputStreamReader(stream)));
+  }
+
+  /**
+   * Implementation of replay which enables result checking by default.
+   *
+   * @param filename
+   */
+  public static void replay(String filename) {
+    replay(filename, true);
   }
 
   @Test
@@ -73,8 +89,69 @@ public class ReplayTests {
     replay("start-vs-prepare-tx.json.gz");
   }
 
+  @Disabled("see  #1014")
   @Test
   void fatMxp() {
     replay("2492975-2492977.json.gz");
+  }
+
+  @Test
+  void leoFailingRange() {
+    replay("5389571-5389577.json.gz");
+  }
+
+  @Test
+  void failingMmuModexp() {
+    replay("5995162.json.gz");
+  }
+
+  @Test
+  void failRlpAddress() {
+    replay("5995097.json.gz");
+  }
+
+  @Test
+  void rlprcptManyTopicsWoLogData() {
+    replay("6569423.json.gz");
+  }
+
+  @Test
+  void multipleFailingCallToEcrecover() {
+    replay("5000544.json.gz");
+  }
+
+  @Test
+  void incident777zkGethMainnet() {
+    replay("7461019-7461030.json.gz");
+  }
+
+  @Test
+  void block_6110045() {
+    // The purpose of this test is to check the mechanism for spotting divergence between the replay
+    // tests and mainnet.  Specifically, this replay has transaction result information embedded
+    // within it.
+    replay("6110045.json.gz");
+  }
+
+  @Test
+  void failingCreate2() {
+    replay("2250197-2250197.json.gz");
+  }
+
+  @Test
+  void blockHash1() {
+    replay("8718090.json.gz");
+  }
+
+  @Test
+  void blockHash2() {
+    replay("8718330.json.gz");
+  }
+
+  // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
+  // instruction
+  @Test
+  void negativeNumberOfMmioInstruction() {
+    replay("6029454-6029459.json.gz");
   }
 }

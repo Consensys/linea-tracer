@@ -17,17 +17,23 @@ package net.consensys.linea.blockcapture.reapers;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import net.consensys.linea.blockcapture.snapshots.AccountSnapshot;
+import net.consensys.linea.blockcapture.snapshots.BlockHashSnapshot;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.StorageSnapshot;
+import net.consensys.linea.blockcapture.snapshots.TransactionResultSnapshot;
+import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
@@ -39,32 +45,87 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
  * required information to replay a conflation as if it were executed on the blockchain.
  */
 public class Reaper {
-  /** Collect the reads from the state */
-  private final StorageReaper storage = new StorageReaper();
-  /** Collect the addresses read from the state */
-  private final AddressReaper addresses = new AddressReaper();
+  /** Collect storage locations read / written by the entire conflation */
+  private final StorageReaper conflationStorage = new StorageReaper();
+
+  /** Collect the account address read / written by the entire conflation */
+  private final AddressReaper conflationAddresses = new AddressReaper();
+
+  /** Collection all block hashes read during the conflation * */
+  private final BlockHashReaper conflationHashes = new BlockHashReaper();
+
   /** Collect the blocks within a conflation */
   private final List<BlockSnapshot> blocks = new ArrayList<>();
+
+  /**
+   * Transaction index is used to do determine the current transaction being processed within the
+   * current block.
+   */
+  private int txIndex;
+
+  /** Collect storage locations read / written by the current transaction */
+  private StorageReaper txStorage = null;
+
+  /** Collect the account address read / written by the current transaction */
+  private AddressReaper txAddresses = null;
 
   public void enterBlock(final BlockHeader header, final BlockBody body) {
     this.blocks.add(
         BlockSnapshot.of((org.hyperledger.besu.ethereum.core.BlockHeader) header, body));
-    this.addresses.touch(header.getCoinbase());
+    this.conflationAddresses.touch(header.getCoinbase());
+    txIndex = 0; // reset
   }
 
-  public void enterTransaction(Transaction tx) {
+  public void prepareTransaction(Transaction tx) {
+    // Configure tx-local reapers
+    this.txStorage = new StorageReaper();
+    this.txAddresses = new AddressReaper();
     this.touchAddress(tx.getSender());
     tx.getTo().ifPresent(this::touchAddress);
   }
 
-  public void exitTransaction(boolean success) {}
+  public void exitTransaction(
+      WorldView world,
+      boolean status,
+      Bytes output,
+      List<Log> logs,
+      long gasUsed,
+      Set<Address> selfDestructs) {
+    // Identify relevant transaction snapshot
+    TransactionSnapshot txSnapshot = blocks.getLast().txs().get(txIndex);
+    // Convert logs into hex strings
+    List<String> logStrings = logs.stream().map(l -> l.getData().toHexString()).toList();
+    // Convert destructed account addresses into into hex strings
+    List<String> destructStrings = selfDestructs.stream().map(Address::toHexString).toList();
+    // Collapse accounts
+    final List<AccountSnapshot> accounts = this.txAddresses.collapse(world);
+    // Collapse storage
+    final List<StorageSnapshot> storage = txStorage.collapse(world);
+    // Construct the result snapshot
+    TransactionResultSnapshot resultSnapshot =
+        new TransactionResultSnapshot(
+            status, output.toHexString(), logStrings, gasUsed, accounts, storage, destructStrings);
+    // Record the outcome
+    txSnapshot.setTransactionResult(resultSnapshot);
+    // Reset for next transaction
+    txIndex++;
+    this.txStorage = null;
+    this.txAddresses = null;
+  }
 
   public void touchAddress(final Address address) {
-    this.addresses.touch(address);
+    this.conflationAddresses.touch(address);
+    this.txAddresses.touch(address);
   }
 
   public void touchStorage(final Address address, final UInt256 key) {
-    this.storage.touch(address, key);
+    this.conflationStorage.touch(address, key);
+    this.txStorage.touch(address, key);
+  }
+
+  public void touchBlockHash(final long blockNumber, Hash blockHash) {
+    this.conflationHashes.touch(blockNumber, blockHash);
+    // No need to tx local hashes, since they are a global concept.
   }
 
   /**
@@ -76,20 +137,13 @@ public class Reaper {
    * @return a minimal set of information required to replay the conflation within a test framework
    */
   public ConflationSnapshot collapse(final WorldUpdater world) {
-    final List<AccountSnapshot> initialAccounts =
-        this.addresses.collapse().stream()
-            .flatMap(a -> AccountSnapshot.from(a, world).stream())
-            .toList();
-
-    final List<StorageSnapshot> initialStorage = new ArrayList<>();
-    for (Map.Entry<Address, Set<UInt256>> e : this.storage.collapse().entrySet()) {
-      final Address address = e.getKey();
-
-      e.getValue().stream()
-          .flatMap(key -> StorageSnapshot.from(address, key, world).stream())
-          .forEach(initialStorage::add);
-    }
-
-    return new ConflationSnapshot(this.blocks, initialAccounts, initialStorage);
+    // Collapse accounts
+    final List<AccountSnapshot> accounts = this.conflationAddresses.collapse(world);
+    // Collapse storage
+    final List<StorageSnapshot> storage = conflationStorage.collapse(world);
+    // Collapse block hashes
+    final List<BlockHashSnapshot> hashes = conflationHashes.collapse();
+    // Done
+    return new ConflationSnapshot(this.blocks, accounts, storage, hashes);
   }
 }

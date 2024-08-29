@@ -15,10 +15,14 @@
 
 package net.consensys.linea.zktracer.container.stacked;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
+
+@Accessors(fluent = true)
 public class CountOnlyOperation {
 
   private int countSinceBeginningOfTheConflation = 0;
-  private int thisTransactionCount = 0;
+  @Getter private int thisTransactionCount = 0;
 
   /**
    * when we enter a transaction, the previous transaction is definitely added to the block and

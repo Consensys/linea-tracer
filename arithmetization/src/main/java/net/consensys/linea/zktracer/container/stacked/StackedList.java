@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,9 +30,10 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <E> the type of elements stored in the list
  */
+@Accessors(fluent = true)
 public class StackedList<E extends ModuleOperation> {
   private final List<E> operationSinceBeginningOfTheConflation = new ArrayList<>();
-  private final List<E> thisTransactionOperation = new ArrayList<>();
+  @Getter private final List<E> thisTransactionOperation = new ArrayList<>();
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
 
   /**

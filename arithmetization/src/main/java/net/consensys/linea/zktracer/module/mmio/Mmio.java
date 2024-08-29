@@ -35,6 +35,7 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
@@ -44,6 +45,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 public class Mmio implements Module {
   private final Mmu mmu;
+  private final CountOnlyOperation lineCounter = new CountOnlyOperation();
 
   public Mmio(Mmu mmu) {
     this.mmu = mmu;
@@ -55,19 +57,23 @@ public class Mmio implements Module {
   }
 
   @Override
-  public void enterTransaction() {}
+  public void enterTransaction() {
+    lineCounter.enter();
+  }
 
   @Override
-  public void popTransaction() {}
+  public void popTransaction() {
+    lineCounter.pop();
+  }
 
   @Override
   public int lineCount() {
-    int sum = 0;
-    for (MmuOperation o : mmu.mmuOperations().getAll()) {
-      sum += o.computeMmioLineCount();
+    if (lineCounter.thisTransactionCount() == 0) {
+      for (MmuOperation o : mmu.mmuOperations().thisTransactionOperation()) {
+        lineCounter.add(o.mmioLineCount());
+      }
     }
-
-    return sum;
+    return lineCounter.lineCount();
   }
 
   @Override

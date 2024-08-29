@@ -71,8 +71,6 @@ public class MmuOperation extends ModuleOperation {
   private boolean isModexpData;
   private boolean isBlake;
 
-  private int mmioLineCount = -1;
-
   MmuOperation(MmuData mmuData) {
     this.mmuData = mmuData;
   }
@@ -88,12 +86,8 @@ public class MmuOperation extends ModuleOperation {
         : 0;
   }
 
-  public int computeMmioLineCount() {
-    if (mmioLineCount != -1) {
-      return mmioLineCount;
-    }
-
-    mmioLineCount = 0;
+  public int mmioLineCount() {
+    int mmioLineCount = 0;
     if (traceMe()) {
       for (int i = 0; i < mmuData().numberMmioInstructions(); i++) {
         mmioLineCount +=

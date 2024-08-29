@@ -119,7 +119,7 @@ public class TxPreWarmingMacroSection {
                             true,
                             DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0),
                             hub.state.firstAndLastStorageSlotOccurrences.size(),
-                                PRE_WARMING);
+                            PRE_WARMING);
 
                     new TxPrewarmingSection(hub, storageFragment);
                     hub.state.updateOrInsertStorageSlotOccurrence(

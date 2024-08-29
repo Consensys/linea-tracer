@@ -15,11 +15,11 @@
 package net.consensys.linea.zktracer.module.hub.fragment.storage;
 
 public enum StorageFragmentPurpose {
-    SLOAD_DOING,
-    SLOAD_UNDOING,
+  SLOAD_DOING,
+  SLOAD_UNDOING,
 
-    SSTORE_DOING,
-    SSTORE_UNDOING,
+  SSTORE_DOING,
+  SSTORE_UNDOING,
 
-    PRE_WARMING
+  PRE_WARMING
 };

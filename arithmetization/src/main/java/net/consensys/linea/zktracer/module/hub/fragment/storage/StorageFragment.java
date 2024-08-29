@@ -24,7 +24,6 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
@@ -45,18 +44,18 @@ public final class StorageFragment implements TraceFragment {
   private final int blockNumber;
   private final StorageFragmentPurpose purpose; // for debugging purposes
 
-
-
   public Trace trace(Trace trace) {
 
     final HashMap<State.StorageSlotIdentifier, State.StorageFragmentPair> current =
         hubState.firstAndLastStorageSlotOccurrences.get(blockNumber - 1);
 
-    boolean match = current.keySet().stream().anyMatch(key -> key.getAddress().equals(storageSlotIdentifier.getAddress()));
+    boolean match =
+        current.keySet().stream()
+            .anyMatch(key -> key.getAddress().equals(storageSlotIdentifier.getAddress()));
     boolean containsActualStorageSlotIdentifier = current.containsKey(storageSlotIdentifier);
 
-    List<State.StorageSlotIdentifier> sameAddressAsCurrentSsi = current.keySet()
-            .stream()
+    List<State.StorageSlotIdentifier> sameAddressAsCurrentSsi =
+        current.keySet().stream()
             .filter(key -> key.getAddress().equals(storageSlotIdentifier.getAddress()))
             .toList();
 

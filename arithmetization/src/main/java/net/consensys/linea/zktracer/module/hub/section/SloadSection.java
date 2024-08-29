@@ -14,6 +14,9 @@
  */
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SLOAD_DOING;
+import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SLOAD_UNDOING;
+
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
@@ -30,9 +33,6 @@ import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-
-import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SLOAD_DOING;
-import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SLOAD_UNDOING;
 
 @Getter
 public class SloadSection extends TraceSection implements PostRollbackDefer {
@@ -89,8 +89,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
 
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(
-            address, deploymentNumber, EWord.of(storageKey)),
+        new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
         valueOriginal,
         valueCurrent,
         valueCurrent,
@@ -98,7 +97,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
         true,
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
         hub.state.firstAndLastStorageSlotOccurrences.size(),
-            SLOAD_DOING);
+        SLOAD_DOING);
   }
 
   @Override
@@ -117,8 +116,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     final StorageFragment undoingSloadStorageFragment =
         new StorageFragment(
             hub.state,
-            new State.StorageSlotIdentifier(
-                address, deploymentNumber, EWord.of(storageKey)),
+            new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
             valueOriginal,
             valueCurrent,
             valueCurrent,
@@ -126,7 +124,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
             incomingWarmth,
             undoingDomSubStamps,
             hub.state.firstAndLastStorageSlotOccurrences.size(),
-                SLOAD_UNDOING);
+            SLOAD_UNDOING);
 
     this.addFragment(undoingSloadStorageFragment);
   }

@@ -56,7 +56,7 @@ STATICCALL
         .run();
   }
 
-  @Disabled
+  @Test
   void testBreakingCall() {
     // TODO: This test is disabled because it will throw an exception
     BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).op(OpCode.CALL).compile()).run();

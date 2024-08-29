@@ -40,6 +40,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
+import org.bouncycastle.math.ec.ScaleXPointMap;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -103,7 +104,7 @@ public class RomLex
     throw new RuntimeException(
         String.format(
             "RomChunk with address %s, deployment number %s and deploymentStatus %s not found",
-            metadata.address(), metadata.deploymentNumber(), !metadata.underDeployment()));
+            metadata.address(), metadata.deploymentNumber(), metadata.underDeployment()));
   }
 
   public Optional<RomChunk> getChunkByMetadata(final ContractMetadata metadata) {
@@ -188,9 +189,8 @@ public class RomLex
 
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
         final Address calledAddress = Words.toAddress(frame.getStackItem(1));
-        final Address contractAddress = frame.getContractAddress();
-        final int depNumber = hub.deploymentNumberOf(contractAddress);
-        final boolean depStatus = hub.deploymentStatusOf(contractAddress);
+        final int depNumber = hub.deploymentNumberOf(calledAddress);
+        final boolean depStatus = hub.deploymentStatusOf(calledAddress);
 
         Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
             .map(AccountState::getCode)

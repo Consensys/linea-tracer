@@ -60,8 +60,10 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
     incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(accountAddress, storageKey);
     valueOriginal =
-        EWord.of(worldView.get(accountAddress).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
-    valueCurrent = EWord.of(worldView.get(accountAddress).getStorageValue(UInt256.fromBytes(storageKey)));
+        EWord.of(
+            worldView.get(accountAddress).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    valueCurrent =
+        EWord.of(worldView.get(accountAddress).getStorageValue(UInt256.fromBytes(storageKey)));
     exceptions = hub.pch().exceptions();
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
@@ -77,7 +79,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     // Update the First Last time seen map of storage keys
     final State.StorageSlotIdentifier storageSlotIdentifier =
         new State.StorageSlotIdentifier(
-                accountAddress,
+            accountAddress,
             hub.transients().conflation().deploymentInfo().deploymentNumber(accountAddress),
             EWord.of(storageKey));
     hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSload);
@@ -89,7 +91,8 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
 
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
+        new State.StorageSlotIdentifier(
+            accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
         valueOriginal,
         valueCurrent,
         valueCurrent,
@@ -116,7 +119,8 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     final StorageFragment undoingSloadStorageFragment =
         new StorageFragment(
             hub.state,
-            new State.StorageSlotIdentifier(accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
+            new State.StorageSlotIdentifier(
+                accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
             valueOriginal,
             valueCurrent,
             valueCurrent,

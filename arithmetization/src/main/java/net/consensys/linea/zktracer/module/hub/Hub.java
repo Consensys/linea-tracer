@@ -1095,6 +1095,7 @@ public class Hub implements Module {
   public final int deploymentNumberOf(Address address) {
     return transients.conflation().deploymentInfo().deploymentNumber(address);
   }
+
   public final boolean deploymentStatusOf(Address address) {
     return transients.conflation().deploymentInfo().getDeploymentStatus(address);
   }
@@ -1104,9 +1105,11 @@ public class Hub implements Module {
   public final Address bytecodeAddress() {
     return this.messageFrame().getContractAddress();
   }
+
   public final int deploymentNumberOfBytecodeAddress() {
     return deploymentNumberOf(bytecodeAddress());
   }
+
   public final boolean deploymentStatusOfBytecodeAddress() {
     return deploymentStatusOf(bytecodeAddress());
   }
@@ -1117,9 +1120,11 @@ public class Hub implements Module {
   public final Address accountAddress() {
     return this.messageFrame().getRecipientAddress();
   }
+
   public final int deploymentNumberOfAccountAddress() {
     return deploymentNumberOf(this.accountAddress());
   }
+
   public final boolean deploymentStatusOfAccountAddress() {
     return deploymentStatusOf(this.accountAddress());
   }

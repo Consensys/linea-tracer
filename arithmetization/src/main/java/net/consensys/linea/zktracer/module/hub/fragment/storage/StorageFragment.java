@@ -20,7 +20,6 @@ import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.util.HashMap;
-import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

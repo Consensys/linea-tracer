@@ -62,8 +62,8 @@ public class AccountSnapshot {
           account.getBalance(),
           hub.messageFrame().isAddressWarm(address),
           new Bytecode(account.getCode()),
-          hub.transients.conflation().deploymentInfo().deploymentNumber(address),
-          hub.transients.conflation().deploymentInfo().getDeploymentStatus(address));
+          hub.deploymentNumberOf(address),
+          hub.deploymentStatusOf(address));
     } else {
       return new AccountSnapshot(
           address,
@@ -71,8 +71,8 @@ public class AccountSnapshot {
           Wei.ZERO,
           hub.messageFrame().isAddressWarm(address),
           new Bytecode(Bytes.EMPTY),
-          hub.transients.conflation().deploymentInfo().deploymentNumber(address),
-          hub.transients.conflation().deploymentInfo().getDeploymentStatus(address));
+          hub.deploymentNumberOf(address),
+          hub.deploymentStatusOf(address));
     }
   }
 
@@ -86,8 +86,8 @@ public class AccountSnapshot {
           account.getBalance(),
           warmth,
           new Bytecode(account.getCode()),
-          hub.transients.conflation().deploymentInfo().deploymentNumber(address),
-          hub.transients.conflation().deploymentInfo().getDeploymentStatus(address));
+          hub.deploymentNumberOf(address),
+          hub.deploymentStatusOf(address));
     } else {
       return new AccountSnapshot(
           address,
@@ -95,8 +95,8 @@ public class AccountSnapshot {
           Wei.ZERO,
           hub.messageFrame().isAddressWarm(address),
           new Bytecode(Bytes.EMPTY),
-          hub.transients.conflation().deploymentInfo().deploymentNumber(address),
-          hub.transients.conflation().deploymentInfo().getDeploymentStatus(address));
+          hub.deploymentNumberOf(address),
+          hub.deploymentStatusOf(address));
     }
   }
 

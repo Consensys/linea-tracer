@@ -15,12 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.storage;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.util.HashMap;
+import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -34,7 +35,6 @@ import net.consensys.linea.zktracer.types.EWord;
 @Getter
 public final class StorageFragment implements TraceFragment {
   private final State hubState;
-  @Setter private StorageFragmentType type;
   private final State.StorageSlotIdentifier storageSlotIdentifier;
   private final EWord valueOriginal;
   private final EWord valueCurrent;
@@ -43,12 +43,27 @@ public final class StorageFragment implements TraceFragment {
   private final boolean outgoingWarmth;
   private final DomSubStampsSubFragment domSubStampsSubFragment;
   private final int blockNumber;
+  private final StorageFragmentPurpose purpose; // for debugging purposes
+
+
 
   public Trace trace(Trace trace) {
 
     final HashMap<State.StorageSlotIdentifier, State.StorageFragmentPair> current =
         hubState.firstAndLastStorageSlotOccurrences.get(blockNumber - 1);
-    Preconditions.checkArgument(current.containsKey(storageSlotIdentifier));
+
+    boolean match = current.keySet().stream().anyMatch(key -> key.getAddress().equals(storageSlotIdentifier.getAddress()));
+    boolean containsActualStorageSlotIdentifier = current.containsKey(storageSlotIdentifier);
+
+    List<State.StorageSlotIdentifier> sameAddressAsCurrentSsi = current.keySet()
+            .stream()
+            .filter(key -> key.getAddress().equals(storageSlotIdentifier.getAddress()))
+            .toList();
+
+    int x = 42;
+
+    checkArgument(match);
+    checkArgument(containsActualStorageSlotIdentifier);
 
     final boolean isFirstOccurrence =
         current.get(storageSlotIdentifier).getFirstOccurrence() == this;
@@ -56,7 +71,7 @@ public final class StorageFragment implements TraceFragment {
         current.get(storageSlotIdentifier).getFinalOccurrence() == this;
 
     // tracing
-    this.domSubStampsSubFragment.trace(trace);
+    domSubStampsSubFragment.trace(trace);
 
     return trace
         .peekAtStorage(true)

@@ -34,6 +34,9 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_DOING;
+import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_UNDOING;
+
 @Getter
 public class SstoreSection extends TraceSection implements PostRollbackDefer {
 
@@ -46,21 +49,21 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   final EWord valueCurrent;
   final EWord valueNext;
 
-  public SstoreSection(Hub hub, WorldView world) {
+  public SstoreSection(Hub hub, WorldView worldView) {
     super(
         hub,
         (short)
             (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 5 : 4)));
 
-    this.world = world;
-    this.address = hub.messageFrame().getRecipientAddress();
-    this.deploymentNumber = hub.currentFrame().accountDeploymentNumber();
-    this.storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
-    this.incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
-    this.valueOriginal =
-        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
-    this.valueCurrent = EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
-    this.valueNext = EWord.of(hub.messageFrame().getStackItem(1));
+    world = worldView;
+    address = hub.messageFrame().getRecipientAddress();
+    deploymentNumber = hub.deploymentNumberOf(address);
+    storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
+    incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
+    valueOriginal =
+        EWord.of(worldView.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    valueCurrent = EWord.of(worldView.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
+    valueNext = EWord.of(hub.messageFrame().getStackItem(1));
     final short exceptions = hub.pch().exceptions();
 
     final boolean staticContextException = Exceptions.staticFault(exceptions);
@@ -102,7 +105,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSstore);
 
     // set the refundDelta
-    this.commonValues.refundDelta(
+    commonValues.refundDelta(
         Hub.GAS_PROJECTOR
             .of(hub.currentFrame().frame(), hub.opCode())
             .refund()); // TODO should use Besu's value
@@ -113,14 +116,15 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     return new StorageFragment(
         hub.state,
         new State.StorageSlotIdentifier(
-            this.address, this.deploymentNumber, EWord.of(this.storageKey)),
-        this.valueOriginal,
-        this.valueCurrent,
-        this.valueNext,
-        this.incomingWarmth,
+            address, deploymentNumber, EWord.of(storageKey)),
+        valueOriginal,
+        valueCurrent,
+        valueNext,
+        incomingWarmth,
         true,
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
-        hub.state.firstAndLastStorageSlotOccurrences.size());
+        hub.state.firstAndLastStorageSlotOccurrences.size(),
+            SSTORE_DOING);
   }
 
   @Override
@@ -133,18 +137,19 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
         new StorageFragment(
             hub.state,
             new State.StorageSlotIdentifier(
-                this.address, this.deploymentNumber, EWord.of(this.storageKey)),
-            this.valueOriginal,
-            this.valueNext,
-            this.valueCurrent,
+                address, deploymentNumber, EWord.of(storageKey)),
+            valueOriginal,
+            valueNext,
+            valueCurrent,
             true,
-            this.incomingWarmth,
+            incomingWarmth,
             undoingDomSubStamps,
-            hub.state.firstAndLastStorageSlotOccurrences.size());
+            hub.state.firstAndLastStorageSlotOccurrences.size(),
+                SSTORE_UNDOING);
 
     this.addFragment(undoingSstoreStorageFragment);
 
     // undo the refund
-    this.commonValues.refundDelta(0);
+    commonValues.refundDelta(0);
   }
 }

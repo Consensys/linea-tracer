@@ -31,6 +31,9 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SLOAD_DOING;
+import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SLOAD_UNDOING;
+
 @Getter
 public class SloadSection extends TraceSection implements PostRollbackDefer {
 
@@ -43,7 +46,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
   final EWord valueCurrent;
   final short exceptions;
 
-  public SloadSection(Hub hub, WorldView world) {
+  public SloadSection(Hub hub, WorldView worldView) {
     // exceptional case:   1 (stack row) + 5 (non stack rows)
     // unexceptional case: 1 (stack row) + 4 (non stack rows)
     super(
@@ -51,15 +54,15 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
         (short)
             (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 5 : 4)));
 
-    this.world = world;
-    this.address = hub.messageFrame().getRecipientAddress();
-    this.deploymentNumber = hub.currentFrame().accountDeploymentNumber();
-    this.storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
-    this.incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
-    this.valueOriginal =
-        EWord.of(world.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
-    this.valueCurrent = EWord.of(world.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
-    this.exceptions = hub.pch().exceptions();
+    world = worldView;
+    address = hub.messageFrame().getRecipientAddress();
+    deploymentNumber = hub.deploymentNumberOf(address);
+    storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
+    incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
+    valueOriginal =
+        EWord.of(worldView.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    valueCurrent = EWord.of(worldView.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
+    exceptions = hub.pch().exceptions();
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
 
@@ -87,14 +90,15 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     return new StorageFragment(
         hub.state,
         new State.StorageSlotIdentifier(
-            this.address, this.deploymentNumber, EWord.of(this.storageKey)),
-        this.valueOriginal,
-        this.valueCurrent,
-        this.valueCurrent,
-        this.incomingWarmth,
+            address, deploymentNumber, EWord.of(storageKey)),
+        valueOriginal,
+        valueCurrent,
+        valueCurrent,
+        incomingWarmth,
         true,
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
-        hub.state.firstAndLastStorageSlotOccurrences.size());
+        hub.state.firstAndLastStorageSlotOccurrences.size(),
+            SLOAD_DOING);
   }
 
   @Override
@@ -114,19 +118,20 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
         new StorageFragment(
             hub.state,
             new State.StorageSlotIdentifier(
-                this.address, this.deploymentNumber, EWord.of(this.storageKey)),
-            this.valueOriginal,
-            this.valueCurrent,
-            this.valueCurrent,
+                address, deploymentNumber, EWord.of(storageKey)),
+            valueOriginal,
+            valueCurrent,
+            valueCurrent,
             true,
-            this.incomingWarmth,
+            incomingWarmth,
             undoingDomSubStamps,
-            hub.state.firstAndLastStorageSlotOccurrences.size());
+            hub.state.firstAndLastStorageSlotOccurrences.size(),
+                SLOAD_UNDOING);
 
     this.addFragment(undoingSloadStorageFragment);
   }
 
   private boolean undoingRequired() {
-    return Exceptions.outOfGasException(this.exceptions) || Exceptions.none(this.exceptions);
+    return Exceptions.outOfGasException(exceptions) || Exceptions.none(exceptions);
   }
 }

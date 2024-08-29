@@ -78,7 +78,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
   public void deploymentStopSection(Hub hub) {
 
     AccountSnapshot priorEmptyDeployment = AccountSnapshot.canonical(hub, address);
-    AccountSnapshot afterEmptyDeployment = priorEmptyDeployment.deployByteCode(Bytecode.EMPTY);
+    AccountSnapshot afterEmptyDeployment = priorEmptyDeployment.deployByteCode(Bytecode.EMPTY); // TODO: this should be deferred to ContextExit
     AccountFragment doingAccountFragment =
         hub.factories()
             .accountFragment()

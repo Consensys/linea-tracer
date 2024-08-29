@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.PRE_WARMING;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.precompileAddress;
 
@@ -117,7 +118,8 @@ public class TxPreWarmingMacroSection {
                             seenKeys.computeIfAbsent(address, x -> new HashSet<>()).contains(key),
                             true,
                             DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0),
-                            hub.state.firstAndLastStorageSlotOccurrences.size());
+                            hub.state.firstAndLastStorageSlotOccurrences.size(),
+                                PRE_WARMING);
 
                     new TxPrewarmingSection(hub, storageFragment);
                     hub.state.updateOrInsertStorageSlotOccurrence(

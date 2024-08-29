@@ -54,13 +54,6 @@ public final class StorageFragment implements TraceFragment {
             .anyMatch(key -> key.getAddress().equals(storageSlotIdentifier.getAddress()));
     boolean containsActualStorageSlotIdentifier = current.containsKey(storageSlotIdentifier);
 
-    List<State.StorageSlotIdentifier> sameAddressAsCurrentSsi =
-        current.keySet().stream()
-            .filter(key -> key.getAddress().equals(storageSlotIdentifier.getAddress()))
-            .toList();
-
-    int x = 42;
-
     checkArgument(match);
     checkArgument(containsActualStorageSlotIdentifier);
 

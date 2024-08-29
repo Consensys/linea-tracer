@@ -38,8 +38,8 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class SloadSection extends TraceSection implements PostRollbackDefer {
 
   final WorldView world;
-  final Address address;
-  final int deploymentNumber;
+  final Address accountAddress;
+  final int accountAddressDeploymentNumber;
   final Bytes32 storageKey;
   final boolean incomingWarmth;
   final EWord valueOriginal;
@@ -55,13 +55,13 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
             (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 5 : 4)));
 
     world = worldView;
-    address = hub.messageFrame().getRecipientAddress();
-    deploymentNumber = hub.deploymentNumberOf(address);
+    accountAddress = hub.accountAddress();
+    accountAddressDeploymentNumber = hub.deploymentNumberOfAccountAddress();
     storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
-    incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(address, storageKey);
+    incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(accountAddress, storageKey);
     valueOriginal =
-        EWord.of(worldView.get(address).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
-    valueCurrent = EWord.of(worldView.get(address).getStorageValue(UInt256.fromBytes(storageKey)));
+        EWord.of(worldView.get(accountAddress).getOriginalStorageValue(UInt256.fromBytes(storageKey)));
+    valueCurrent = EWord.of(worldView.get(accountAddress).getStorageValue(UInt256.fromBytes(storageKey)));
     exceptions = hub.pch().exceptions();
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
@@ -77,8 +77,8 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     // Update the First Last time seen map of storage keys
     final State.StorageSlotIdentifier storageSlotIdentifier =
         new State.StorageSlotIdentifier(
-            address,
-            hub.transients().conflation().deploymentInfo().deploymentNumber(address),
+                accountAddress,
+            hub.transients().conflation().deploymentInfo().deploymentNumber(accountAddress),
             EWord.of(storageKey));
     hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSload);
 
@@ -89,7 +89,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
 
     return new StorageFragment(
         hub.state,
-        new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
+        new State.StorageSlotIdentifier(accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
         valueOriginal,
         valueCurrent,
         valueCurrent,
@@ -116,7 +116,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     final StorageFragment undoingSloadStorageFragment =
         new StorageFragment(
             hub.state,
-            new State.StorageSlotIdentifier(address, deploymentNumber, EWord.of(storageKey)),
+            new State.StorageSlotIdentifier(accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
             valueOriginal,
             valueCurrent,
             valueCurrent,

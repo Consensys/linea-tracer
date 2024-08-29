@@ -66,7 +66,7 @@ public class TxPreWarmingMacroSection {
                   final int deploymentNumber = deploymentInfo.deploymentNumber(address);
                   Preconditions.checkArgument(
                       !deploymentInfo.getDeploymentStatus(address),
-                      "Deployment status during TX_INIT phase of any address should always be false");
+                      "Deployment status during TX_INIT phase of any accountAddress should always be false");
 
                   final boolean isAccountWarm = seenAddresses.contains(address);
 

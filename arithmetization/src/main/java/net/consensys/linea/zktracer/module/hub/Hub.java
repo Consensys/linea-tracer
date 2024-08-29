@@ -712,10 +712,10 @@ public class Hub implements Module {
 
     // sanity check
     Preconditions.checkArgument(
-        currentDeploymentStatus()
+        deploymentStatusOfBytecodeAddress()
             == (messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION));
 
-    if (currentDeploymentStatus()) {
+    if (deploymentStatusOfBytecodeAddress()) {
       transients
           .conflation()
           .deploymentInfo()
@@ -1092,19 +1092,35 @@ public class Hub implements Module {
     return this.callStack.getById(parentFrame.childFramesId().getLast());
   }
 
-  public final int currentDeploymentNumber() {
-    return deploymentNumberOf(this.messageFrame().getContractAddress());
-  }
-
   public final int deploymentNumberOf(Address address) {
     return transients.conflation().deploymentInfo().deploymentNumber(address);
   }
-
-  public final boolean currentDeploymentStatus() {
-    return deploymentStatusOf(this.messageFrame().getContractAddress());
-  }
-
   public final boolean deploymentStatusOf(Address address) {
     return transients.conflation().deploymentInfo().getDeploymentStatus(address);
+  }
+
+  // methods related to the byte code address
+  // (c in the definition of \Theta in the EYP)
+  public final Address bytecodeAddress() {
+    return this.messageFrame().getContractAddress();
+  }
+  public final int deploymentNumberOfBytecodeAddress() {
+    return deploymentNumberOf(bytecodeAddress());
+  }
+  public final boolean deploymentStatusOfBytecodeAddress() {
+    return deploymentStatusOf(bytecodeAddress());
+  }
+
+  // methods related to the account address
+  // (r in the definition of \Theta in the EYP)
+  // (also I_a in the EYP)
+  public final Address accountAddress() {
+    return this.messageFrame().getRecipientAddress();
+  }
+  public final int deploymentNumberOfAccountAddress() {
+    return deploymentNumberOf(this.accountAddress());
+  }
+  public final boolean deploymentStatusOfAccountAddress() {
+    return deploymentStatusOf(this.accountAddress());
   }
 }

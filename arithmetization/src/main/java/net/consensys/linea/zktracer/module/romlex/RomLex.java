@@ -171,8 +171,8 @@ public class RomLex
       }
 
       case RETURN -> {
-        final boolean currentDeploymentStatus = hub.currentDeploymentStatus();
-        final int currentDeploymentNumber = hub.currentDeploymentNumber();
+        final boolean currentDeploymentStatus = hub.deploymentStatusOfBytecodeAddress();
+        final int currentDeploymentNumber = hub.deploymentNumberOfBytecodeAddress();
 
         checkArgument(frame.getType() == MessageFrame.Type.CONTRACT_CREATION);
         checkArgument(currentDeploymentStatus);
@@ -322,10 +322,10 @@ public class RomLex
     final ContractMetadata contractMetadata =
         ContractMetadata.make(
             hub.messageFrame().getContractAddress(),
-            hub.currentDeploymentNumber(),
-            hub.currentDeploymentStatus());
+            hub.deploymentNumberOfBytecodeAddress(),
+            hub.deploymentStatusOfBytecodeAddress());
 
-    checkArgument(!hub.currentDeploymentStatus());
+    checkArgument(!hub.deploymentStatusOfBytecodeAddress());
 
     final RomChunk chunk = new RomChunk(contractMetadata, false, true, byteCode);
     chunks.add(chunk);

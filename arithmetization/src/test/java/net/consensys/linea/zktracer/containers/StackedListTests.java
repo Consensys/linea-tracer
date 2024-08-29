@@ -78,6 +78,4 @@ public class StackedListTests {
     chunks.pop();
     Assertions.assertEquals(2, chunks.size());
   }
-
-  // TODO: add LineCount Test
 }

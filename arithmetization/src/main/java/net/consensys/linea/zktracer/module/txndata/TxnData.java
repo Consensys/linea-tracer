@@ -19,7 +19,6 @@ import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
@@ -39,8 +38,6 @@ public class TxnData implements Module {
 
   private final List<BlockSnapshot> blocks = new ArrayList<>();
   private final StackedList<TxndataOperation> transactions = new StackedList<>();
-
-  private int endTxCount = 0;
 
   @Override
   public String moduleKey() {
@@ -70,11 +67,6 @@ public class TxnData implements Module {
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
-    endTxCount++;
-    Preconditions.checkArgument(
-        false,
-        String.format(
-            "traceEndTx nb %s, for absTxNum = %s", endTxCount, tx.getAbsoluteTransactionNumber()));
     transactions.add(new TxndataOperation(wcp, euc, tx));
   }
 

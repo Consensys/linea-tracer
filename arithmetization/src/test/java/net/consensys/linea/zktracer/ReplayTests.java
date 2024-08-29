@@ -126,11 +126,6 @@ public class ReplayTests {
   }
 
   @Test
-  void issue1004() {
-    replay("6020023-6020029.json.gz");
-  }
-
-  @Test
   void block_6110045() {
     // The purpose of this test is to check the mechanism for spotting divergence between the replay
     // tests and mainnet.  Specifically, this replay has transaction result information embedded

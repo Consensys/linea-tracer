@@ -114,7 +114,7 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
             false);
 
     // sender account fragment
-    AccountFragment senderAccountFragment =
+    final AccountFragment senderAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
@@ -123,7 +123,7 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
     // recipient account fragment
-    AccountFragment recipientAccountFragment =
+    final AccountFragment recipientAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
@@ -132,7 +132,7 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
     // coinbase account fragment
-    AccountFragment coinbaseAccountFragment =
+    final AccountFragment coinbaseAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
@@ -141,7 +141,7 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
 
     // transaction fragment
-    TransactionFragment transactionFragment = TransactionFragment.prepare(hub.txStack().current());
+    final TransactionFragment transactionFragment = TransactionFragment.prepare(hub.txStack().current());
 
     this.addFragments(
         senderAccountFragment,

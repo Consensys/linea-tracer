@@ -207,7 +207,7 @@ public class CallSection extends TraceSection
                 scenarioFragment.setScenario(CALL_EOA_SUCCESS_WONT_REVERT);
               });
 
-      // TODO is world == worldUpdater & what happen if get
+      // TODO is world == worldUpdater & what happen if get doesn't work ?
       //  doesn't work ?
       // TODO: write a test where the recipient of the call does not exist in the state
     }

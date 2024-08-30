@@ -90,37 +90,37 @@ public class ReplayTests {
 
   @Test
   void fatMxp() {
-    replay("2492975-2492977.json.gz");
+    replay("2492975-2492977.json.gz", false);
   }
 
   @Test
   void leoFailingRange() {
-    replay("5389571-5389577.json.gz");
+    replay("5389571-5389577.json.gz", false);
   }
 
   @Test
   void failingMmuModexp() {
-    replay("5995162.json.gz");
+    replay("5995162.json.gz", false);
   }
 
   @Test
   void failRlpAddress() {
-    replay("5995097.json.gz");
+    replay("5995097.json.gz", false);
   }
 
   @Test
   void rlprcptManyTopicsWoLogData() {
-    replay("6569423.json.gz");
+    replay("6569423.json.gz", false);
   }
 
   @Test
   void multipleFailingCallToEcrecover() {
-    replay("5000544.json.gz");
+    replay("5000544.json.gz", false);
   }
 
   @Test
   void incident777zkGethMainnet() {
-    replay("7461019-7461030.json.gz");
+    replay("7461019-7461030.json.gz", false);
   }
 
   @Test
@@ -138,7 +138,7 @@ public class ReplayTests {
     // The purpose of this test is to check the mechanism for spotting divergence between the replay
     // tests and mainnet.  Specifically, this replay has transaction result information embedded
     // within it.
-    replay("6110045.json.gz");
+    replay("6110045.json.gz", false);
   }
 
   @Test
@@ -148,18 +148,18 @@ public class ReplayTests {
 
   @Test
   void blockHash1() {
-    replay("8718090.json.gz");
+    replay("8718090.json.gz", false);
   }
 
   @Test
   void blockHash2() {
-    replay("8718330.json.gz");
+    replay("8718330.json.gz", false);
   }
 
   // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
   // instruction
   @Test
   void negativeNumberOfMmioInstruction() {
-    replay("6029454-6029459.json.gz");
+    replay("6029454-6029459.json.gz", false);
   }
 }

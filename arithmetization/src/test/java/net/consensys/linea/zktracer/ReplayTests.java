@@ -191,7 +191,7 @@ public class ReplayTests {
    */
   @Test
   void replaySpecificFilePath() {
-    replayAt("./src/test/resources/replays/2492975-2492977.json.gz");
+    replayAt("./2492975-2492977.json.gz");
   }
 
   /**
@@ -202,7 +202,7 @@ public class ReplayTests {
    */
   @Test
   void replayMultipleReplayFiles() {
-    replayBulk("./src/test/resources/replays");
+    replayBulk("./");
   }
 
   @Test

@@ -53,6 +53,7 @@ public final class StorageFragment implements TraceFragment {
             .anyMatch(key -> key.getAddress().equals(storageSlotIdentifier.getAddress()));
     boolean containsActualStorageSlotIdentifier = current.containsKey(storageSlotIdentifier);
 
+    // TODO: maybe remove in the future ?
     checkArgument(match);
     checkArgument(containsActualStorageSlotIdentifier);
 

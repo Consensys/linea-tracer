@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 
 public class BlockhashTest {
 
-  @Disabled("Not possible to test yet, ToyWorld issue, see #934")
   @Test
   void someBlockhash() {
     BytecodeRunner.of(
@@ -141,6 +140,7 @@ public class BlockhashTest {
                 // TODO: add test with different block in the conflated batch
 
                 .compile())
+        .useToyExecutionEnvironmentV2(true)
         .run();
   }
 }

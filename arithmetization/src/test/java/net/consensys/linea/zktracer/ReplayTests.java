@@ -79,22 +79,20 @@ public class ReplayTests {
   }
 
   public static void replayAt(String filePath) {
-    final Path path = Paths.get(filePath);
+    // Convert the relative path to an absolute path
+    Path path = Paths.get(filePath).toAbsolutePath();
+
     if (!Files.exists(path)) {
-      fail("unable to find %s in replay resources".formatted(filePath));
-    }
-    final InputStream stream;
-    try {
-      stream = Files.newInputStream(path);
-    } catch (IOException e) {
-      log.error("while loading {}: {}", filePath, e.getMessage());
-      throw new RuntimeException(e);
+      fail("unable to find %s in replay resources".formatted(path));
     }
 
-    try (GZIPInputStream gzipStream = new GZIPInputStream(stream)) {
+    try (InputStream stream = Files.newInputStream(path);
+        GZIPInputStream gzipStream = new GZIPInputStream(stream)) {
+
       ToyExecutionEnvironment.builder()
           .build()
-          .replay(new BufferedReader(new InputStreamReader(gzipStream)), filePath);
+          .replay(new BufferedReader(new InputStreamReader(gzipStream)), path.toString());
+
     } catch (IOException e) {
       log.error("while processing {}: {}", filePath, e.getMessage());
       throw new RuntimeException(e);

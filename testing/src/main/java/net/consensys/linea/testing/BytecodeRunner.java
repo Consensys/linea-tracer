@@ -117,24 +117,22 @@ public final class BytecodeRunner {
 
     if (useToyExecutionEnvironmentV2) {
       toyExecutionEnvironmentV2 =
-              ToyExecutionEnvironmentV2.builder()
-                      .testValidator(x -> {
-                      })
-                      .toyWorld(toyWorld)
-                      .zkTracerValidator(zkTracerValidator)
-                      .transaction(tx)
-                      .build();
+          ToyExecutionEnvironmentV2.builder()
+              .testValidator(x -> {})
+              .toyWorld(toyWorld)
+              .zkTracerValidator(zkTracerValidator)
+              .transaction(tx)
+              .build();
       toyExecutionEnvironmentV2.run();
 
     } else {
       toyExecutionEnvironment =
-              ToyExecutionEnvironment.builder()
-                      .testValidator(x -> {
-                      })
-                      .toyWorld(toyWorld)
-                      .zkTracerValidator(zkTracerValidator)
-                      .transaction(tx)
-                      .build();
+          ToyExecutionEnvironment.builder()
+              .testValidator(x -> {})
+              .toyWorld(toyWorld)
+              .zkTracerValidator(zkTracerValidator)
+              .transaction(tx)
+              .build();
       toyExecutionEnvironment.run();
     }
   }

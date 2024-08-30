@@ -84,16 +84,15 @@ public class ToyExecutionEnvironmentV2 {
 
   private final ZkTracer tracer = new ZkTracer();
 
-
   public void run() {
     final EVM evm = MainnetEVMs.london(this.chainId, EvmConfiguration.DEFAULT);
     GeneralStateReferenceTestTools.executeTest(
-            this.buildGeneralStateTestCaseSpec(evm),
-            tracer,
-            getMainnetTransactionProcessor(evm),
-            feeMarket,
-            testValidator,
-            zkTracerValidator);
+        this.buildGeneralStateTestCaseSpec(evm),
+        tracer,
+        getMainnetTransactionProcessor(evm),
+        feeMarket,
+        testValidator,
+        zkTracerValidator);
   }
 
   public Hub getHub() {

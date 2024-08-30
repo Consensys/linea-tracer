@@ -93,7 +93,6 @@ public class GeneralStateReferenceTestTools {
     final Wei blobGasPrice =
         feeMarket.blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
 
-
     tracer.traceStartConflation(1);
     tracer.traceStartBlock(blockHeader, blockBody);
     TransactionProcessingResult result = null;

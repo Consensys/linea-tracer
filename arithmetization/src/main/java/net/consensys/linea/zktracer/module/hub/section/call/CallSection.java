@@ -286,8 +286,8 @@ public class CallSection extends TraceSection
           // is decremented by the value transferred. This becomes the initial state
           // of the callee, which is then credited by that value. This can happen
           // only for the SMC case.
-          postOpcodeCallerSnapshot.decrementBalance(value);
-          preOpcodeCalleeSnapshot.decrementBalance(value);
+          postOpcodeCallerSnapshot.decrementBalanceBy(value);
+          preOpcodeCalleeSnapshot.decrementBalanceBy(value);
         }
 
         final Factories factories = hub.factories();
@@ -376,8 +376,8 @@ public class CallSection extends TraceSection
         scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
 
         if (selfCallWithNonzeroValueTransfer) {
-          childContextExitCallerSnapshot.decrementBalance(value);
-          reEntryCalleeSnapshot.decrementBalance(value);
+          childContextExitCallerSnapshot.decrementBalanceBy(value);
+          reEntryCalleeSnapshot.decrementBalanceBy(value);
         }
 
         final AccountFragment postReEntryCallerAccountFragment =
@@ -507,8 +507,8 @@ public class CallSection extends TraceSection
     }
 
     if (selfCallWithNonzeroValueTransfer) {
-      reEntryCallerSnapshot.decrementBalance(value);
-      postRollbackCalleeSnapshot.decrementBalance(value);
+      reEntryCallerSnapshot.decrementBalanceBy(value);
+      postRollbackCalleeSnapshot.decrementBalanceBy(value);
     }
 
     final AccountFragment undoingCallerAccountFragment =

@@ -176,6 +176,7 @@ public class ReplayTests {
         log.error("Error moving file {}: {}", entry, e.getMessage());
       }
     }
+  }
 
   @Test
   void traceTxStartNotTheSameAsTxPrepare() {

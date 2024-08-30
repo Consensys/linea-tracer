@@ -83,7 +83,6 @@ public class ReplayTests {
         .replay(new BufferedReader(new InputStreamReader(stream)));
   }
 
-
   /**
    * Implementation of replay which enables result checking by default.
    *
@@ -91,10 +90,8 @@ public class ReplayTests {
    */
   public static void replay(String filename) {
     replay(filename, true);
-
   }
-  
-  
+
   public static void replayAt(String filePath) {
     // Convert the relative path to an absolute path
     Path path = Paths.get(filePath).toAbsolutePath();

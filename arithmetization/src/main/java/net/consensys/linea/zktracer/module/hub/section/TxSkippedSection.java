@@ -141,7 +141,8 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
 
     // transaction fragment
-    final TransactionFragment transactionFragment = TransactionFragment.prepare(hub.txStack().current());
+    final TransactionFragment transactionFragment =
+        TransactionFragment.prepare(hub.txStack().current());
 
     this.addFragments(
         senderAccountFragment,

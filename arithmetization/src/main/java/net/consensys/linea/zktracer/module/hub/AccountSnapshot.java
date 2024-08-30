@@ -142,13 +142,7 @@ public class AccountSnapshot {
    */
   public AccountSnapshot deepCopy() {
     return new AccountSnapshot(
-        address,
-        nonce,
-        balance,
-        isWarm,
-        code,
-        deploymentNumber,
-        deploymentStatus);
+        address, nonce, balance, isWarm, code, deploymentNumber, deploymentStatus);
   }
 
   public AccountSnapshot wipe() {
@@ -228,7 +222,6 @@ public class AccountSnapshot {
     Preconditions.checkState(
         deploymentStatus, "Deployment status should be true before deploying byte code.");
 
-    return new AccountSnapshot(
-        address, nonce, balance, true, code, deploymentNumber, false);
+    return new AccountSnapshot(address, nonce, balance, true, code, deploymentNumber, false);
   }
 }

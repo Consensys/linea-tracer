@@ -142,18 +142,18 @@ public class AccountSnapshot {
    */
   public AccountSnapshot deepCopy() {
     return new AccountSnapshot(
-        this.address,
-        this.nonce,
-        this.balance,
-        this.isWarm,
-        this.code,
-        this.deploymentNumber,
-        this.deploymentStatus);
+        address,
+        nonce,
+        balance,
+        isWarm,
+        code,
+        deploymentNumber,
+        deploymentStatus);
   }
 
   public AccountSnapshot wipe() {
     return new AccountSnapshot(
-        this.address, 0, Wei.of(0), this.isWarm, Bytecode.EMPTY, this.deploymentNumber + 1, false);
+        address, 0, Wei.of(0), isWarm, Bytecode.EMPTY, deploymentNumber + 1, false);
   }
 
   /**
@@ -165,11 +165,11 @@ public class AccountSnapshot {
    */
   public AccountSnapshot decrementBalanceBy(Wei quantity) {
     Preconditions.checkState(
-        this.balance.greaterOrEqualThan(quantity),
+        balance.greaterOrEqualThan(quantity),
         "Insufficient balance\n     Address: %s\n     Balance: %s\n     Value: %s"
-            .formatted(this.address, this.balance, quantity));
+            .formatted(address, balance, quantity));
 
-    this.balance = this.balance.subtract(quantity);
+    balance = balance.subtract(quantity);
     return this;
   }
 
@@ -181,7 +181,7 @@ public class AccountSnapshot {
    * @return {@code this} with incremented balance
    */
   public AccountSnapshot incrementBalanceBy(Wei quantity) {
-    this.balance = this.balance.add(quantity);
+    balance = balance.add(quantity);
     return this;
   }
 
@@ -219,16 +219,16 @@ public class AccountSnapshot {
   }
 
   public AccountSnapshot setDeploymentInfo(DeploymentInfo deploymentInfo) {
-    this.deploymentNumber(deploymentInfo.deploymentNumber(this.address));
-    this.deploymentStatus(deploymentInfo.getDeploymentStatus(this.address));
+    this.deploymentNumber(deploymentInfo.deploymentNumber(address));
+    this.deploymentStatus(deploymentInfo.getDeploymentStatus(address));
     return this;
   }
 
   public AccountSnapshot deployByteCode(Bytecode code) {
     Preconditions.checkState(
-        this.deploymentStatus, "Deployment status should be true before deploying byte code.");
+        deploymentStatus, "Deployment status should be true before deploying byte code.");
 
     return new AccountSnapshot(
-        this.address, this.nonce, this.balance, true, code, this.deploymentNumber, false);
+        address, nonce, balance, true, code, deploymentNumber, false);
   }
 }

@@ -711,9 +711,22 @@ public class Hub implements Module {
   private void exitDeploymentFromDeploymentInfoPointOfView() {
 
     // sanity check
+    /**
+     * EXPLANATION: the deployment addresses associated with
+     * deployment transactions that get skipped (empty bytecode)
+     * i.e. that are in the TX_SKIP phase immediately transition to "the deployed state"/
+     */
+    if (this.state.processingPhase != TX_SKIP) {
+      Preconditions.checkArgument(
+              deploymentStatusOfBytecodeAddress()
+                      == (messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION),
+              String.format(
+                      "Failed at ABS_TX_NUM = %s, HUB_STAMP = %s, CALL_STACK_DEPTH = %s, opCode = %s",
+                      this.txStack.getCurrentAbsNumber(), this.stamp(), this.messageFrame().getDepth(), this.opCode()));
+    }
+
     Preconditions.checkArgument(
-        deploymentStatusOfBytecodeAddress()
-            == (messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION));
+        this.currentFrame().byteCodeAddress().equals(this.bytecodeAddress()));
 
     if (deploymentStatusOfBytecodeAddress()) {
       transients
@@ -1069,11 +1082,11 @@ public class Hub implements Module {
         }
       }
 
+      case JUMP -> new JumpSection(this);
+
       case CREATE -> new CreateSection(this);
 
       case CALL -> new CallSection(this);
-
-      case JUMP -> new JumpSection(this);
     }
   }
 

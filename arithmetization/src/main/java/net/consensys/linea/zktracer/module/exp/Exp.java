@@ -31,7 +31,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @RequiredArgsConstructor
 public class Exp implements Module {
   /** A list of the operations to trace */
-  private final StackedSet<ExpOperation> chunks = new StackedSet<>();
+  private final StackedSet<ExpOperation> operations = new StackedSet<>();
 
   private final Hub hub;
   private final Wcp wcp;
@@ -43,17 +43,17 @@ public class Exp implements Module {
 
   @Override
   public void enterTransaction() {
-    chunks.enter();
+    operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    chunks.pop();
+    operations.pop();
   }
 
   @Override
   public int lineCount() {
-    return chunks.lineCount();
+    return operations.lineCount();
   }
 
   @Override
@@ -62,7 +62,7 @@ public class Exp implements Module {
   }
 
   public void call(ExpCall expCall) {
-    chunks.add(new ExpOperation(expCall, wcp, hub));
+    operations.add(new ExpOperation(expCall, wcp, hub));
   }
 
   @Override
@@ -71,7 +71,7 @@ public class Exp implements Module {
 
     int stamp = 0;
 
-    for (ExpOperation op : chunks.getAll()) {
+    for (ExpOperation op : operations.getAll()) {
       stamp += 1;
       op.traceComputation(stamp, trace);
       op.traceMacro(stamp, trace);

@@ -49,7 +49,7 @@ public class LogData implements Module {
   @Override
   public int lineCount() {
     int rowSize = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.getChunkList().getAll()) {
+    for (RlpTxrcptChunk tx : rlpTxnRcpt.getOperations().getAll()) {
       rowSize += txRowSize(tx);
     }
     return rowSize;
@@ -81,12 +81,12 @@ public class LogData implements Module {
     final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.chunkList.getAll()) {
+    for (RlpTxrcptChunk tx : rlpTxnRcpt.operations.getAll()) {
       absLogNumMax += tx.logs().size();
     }
 
     int absLogNum = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.chunkList.getAll()) {
+    for (RlpTxrcptChunk tx : rlpTxnRcpt.operations.getAll()) {
       if (!tx.logs().isEmpty()) {
         for (Log log : tx.logs()) {
           absLogNum += 1;

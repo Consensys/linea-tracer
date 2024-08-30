@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.container.stacked;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 
@@ -29,6 +30,7 @@ public class CountOnlyOperation {
    * can't be pop
    */
   public void enter() {
+    Preconditions.checkState(thisTransactionCount >= 0, "thisTransactionCount must be positive");
     countSinceBeginningOfTheConflation += thisTransactionCount;
     thisTransactionCount = 0;
   }
@@ -38,10 +40,18 @@ public class CountOnlyOperation {
   }
 
   public void add(final int operationCount) {
+    Preconditions.checkArgument(operationCount >= 0, "operationCount must be positive");
     thisTransactionCount += operationCount;
   }
 
+  /** Use this function with extreme precaution */
+  public void remove(final int operationCount) {
+    Preconditions.checkArgument(operationCount >= 0, "operationCount must be positive");
+    thisTransactionCount -= operationCount;
+  }
+
   public int lineCount() {
+    Preconditions.checkState(thisTransactionCount >= 0, "thisTransactionCount must be positive");
     return countSinceBeginningOfTheConflation + thisTransactionCount;
   }
 

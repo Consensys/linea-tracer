@@ -72,7 +72,7 @@ public class Blockdata implements Module {
 
     batchUnderConstruction = false;
     wcp.callGT(currentTimestamp, previousTimestamp);
-    wcp.additionalRows.add(-TIMESTAMP_BYTESIZE); // Remove what have been done at traceStartBlock
+    wcp.additionalRows.remove(TIMESTAMP_BYTESIZE); // Remove what have been done at traceStartBlock
     previousTimestamp = currentTimestamp;
   }
 

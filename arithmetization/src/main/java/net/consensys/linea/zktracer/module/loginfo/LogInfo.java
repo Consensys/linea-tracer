@@ -50,7 +50,7 @@ public class LogInfo implements Module {
   @Override
   public int lineCount() {
     int rowSize = 0;
-    for (RlpTxrcptChunk chunk : rlpTxnRcpt.getChunkList().getAll()) {
+    for (RlpTxrcptChunk chunk : rlpTxnRcpt.getOperations().getAll()) {
       rowSize += txRowSize(chunk);
     }
     return rowSize;
@@ -66,13 +66,13 @@ public class LogInfo implements Module {
     final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.chunkList.getAll()) {
+    for (RlpTxrcptChunk tx : rlpTxnRcpt.operations.getAll()) {
       absLogNumMax += tx.logs().size();
     }
 
     int absTxNum = 0;
     int absLogNum = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.chunkList.getAll()) {
+    for (RlpTxrcptChunk tx : rlpTxnRcpt.operations.getAll()) {
       absTxNum += 1;
       if (tx.logs().isEmpty()) {
         traceTxWoLog(absTxNum, absLogNum, absLogNumMax, trace);
@@ -100,7 +100,7 @@ public class LogInfo implements Module {
   public void traceTxWoLog(
       final int absTxNum, final int absLogNum, final int absLogNumMax, Trace trace) {
     trace
-        .absTxnNumMax(this.rlpTxnRcpt.chunkList.size())
+        .absTxnNumMax(this.rlpTxnRcpt.operations.size())
         .absTxnNum(absTxNum)
         .txnEmitsLogs(false)
         .absLogNumMax(absLogNumMax)
@@ -140,7 +140,7 @@ public class LogInfo implements Module {
     final Bytes32 topic4 = nbTopic >= 4 ? log.getTopics().get(3) : Bytes32.ZERO;
     for (int ct = 0; ct < ctMax + 1; ct++) {
       trace
-          .absTxnNumMax(this.rlpTxnRcpt.chunkList.size())
+          .absTxnNumMax(this.rlpTxnRcpt.operations.size())
           .absTxnNum(absTxNum)
           .txnEmitsLogs(true)
           .absLogNumMax(absLogNumMax)

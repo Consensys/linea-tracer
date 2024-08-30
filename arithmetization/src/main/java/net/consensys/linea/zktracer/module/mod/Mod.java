@@ -34,7 +34,7 @@ public class Mod implements Module {
     return "MOD";
   }
 
-  private final StackedSet<ModOperation> chunks = new StackedSet<>();
+  private final StackedSet<ModOperation> operations = new StackedSet<>();
 
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
@@ -42,31 +42,31 @@ public class Mod implements Module {
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
 
-    this.chunks.add(new ModOperation(opCodeData, arg1, arg2));
+    this.operations.add(new ModOperation(opCodeData, arg1, arg2));
   }
 
   @Override
   public void enterTransaction() {
-    this.chunks.enter();
+    operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.chunks.pop();
+    operations.pop();
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (ModOperation op : chunks.getAll()) {
+    for (ModOperation op : operations.getAll()) {
       op.trace(trace, ++stamp);
     }
   }
 
   @Override
   public int lineCount() {
-    return chunks.lineCount();
+    return operations.lineCount();
   }
 
   @Override
@@ -81,7 +81,7 @@ public class Mod implements Module {
    * @param arg2 the dividend
    */
   public BigInteger callDIV(Bytes32 arg1, Bytes32 arg2) {
-    this.chunks.add(new ModOperation(OpCode.DIV, arg1, arg2));
+    this.operations.add(new ModOperation(OpCode.DIV, arg1, arg2));
     return arg1.toUnsignedBigInteger().divide(arg2.toUnsignedBigInteger());
   }
 
@@ -92,7 +92,7 @@ public class Mod implements Module {
    * @param arg2 the module
    */
   public BigInteger callMOD(Bytes32 arg1, Bytes32 arg2) {
-    this.chunks.add(new ModOperation(OpCode.MOD, arg1, arg2));
+    this.operations.add(new ModOperation(OpCode.MOD, arg1, arg2));
     return arg1.toUnsignedBigInteger().mod(arg2.toUnsignedBigInteger());
   }
 }

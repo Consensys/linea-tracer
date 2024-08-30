@@ -32,7 +32,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Add implements Module {
 
   /** A set of the operations to trace */
-  private final StackedSet<AddOperation> chunks = new StackedSet<>();
+  private final StackedSet<AddOperation> operations = new StackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -41,17 +41,17 @@ public class Add implements Module {
 
   @Override
   public void enterTransaction() {
-    this.chunks.enter();
+    operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.chunks.pop();
+    operations.pop();
   }
 
   @Override
   public void tracePreOpcode(MessageFrame frame) {
-    this.chunks.add(
+    operations.add(
         new AddOperation(
             OpCode.of(frame.getCurrentOperation().getOpcode()),
             frame.getStackItem(0),
@@ -67,7 +67,7 @@ public class Add implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (AddOperation op : chunks.getAll()) {
+    for (AddOperation op : operations.getAll()) {
       stamp++;
       op.trace(stamp, trace);
     }
@@ -75,11 +75,11 @@ public class Add implements Module {
 
   @Override
   public int lineCount() {
-    return chunks.lineCount();
+    return operations.lineCount();
   }
 
   public BigInteger callADD(Bytes32 arg1, Bytes32 arg2) {
-    chunks.add(new AddOperation(OpCode.ADD, arg1, arg2));
+    operations.add(new AddOperation(OpCode.ADD, arg1, arg2));
     return arg1.toUnsignedBigInteger().add(arg2.toUnsignedBigInteger());
   }
 }

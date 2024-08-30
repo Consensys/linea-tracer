@@ -41,10 +41,10 @@ public class Wcp implements Module {
   /** count the number of rows that could be added after the sequencer counts the number of line */
   public final CountOnlyOperation additionalRows = new CountOnlyOperation();
 
-  private boolean batchUnderConstruction;
+  private boolean conflationFinished;
 
   public Wcp() {
-    this.batchUnderConstruction = true;
+    conflationFinished = false;
   }
 
   @Override
@@ -54,14 +54,14 @@ public class Wcp implements Module {
 
   @Override
   public void enterTransaction() {
-    this.operations.enter();
-    this.additionalRows.enter();
+    operations.enter();
+    additionalRows.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.operations.pop();
-    this.additionalRows.pop();
+    operations.pop();
+    additionalRows.pop();
   }
 
   @Override
@@ -71,7 +71,7 @@ public class Wcp implements Module {
     final Bytes32 arg2 =
         (opCode != OpCode.ISZERO) ? Bytes32.leftPad(frame.getStackItem(1)) : Bytes32.ZERO;
 
-    this.operations.add(new WcpOperation(opCode.byteValue(), arg1, arg2));
+    operations.add(new WcpOperation(opCode.byteValue(), arg1, arg2));
   }
 
   @Override
@@ -91,14 +91,14 @@ public class Wcp implements Module {
 
   @Override
   public void traceEndConflation(final WorldView state) {
-    this.batchUnderConstruction = false;
+    conflationFinished = true;
   }
 
   @Override
   public int lineCount() {
-    return batchUnderConstruction
-        ? operations.lineCount() + additionalRows.lineCount()
-        : operations.lineCount();
+    return conflationFinished
+        ? operations.lineCount()
+        : operations.lineCount() + additionalRows.lineCount();
   }
 
   public boolean callLT(final Bytes32 arg1, final Bytes32 arg2) {

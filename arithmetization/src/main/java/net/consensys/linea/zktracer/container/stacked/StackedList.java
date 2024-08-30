@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -35,6 +36,7 @@ public class StackedList<E extends ModuleOperation> {
   private final List<E> operationSinceBeginningOfTheConflation = new ArrayList<>();
   @Getter private final List<E> thisTransactionOperation = new ArrayList<>();
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
+  private boolean conflationFinished = false;
 
   /**
    * when we enter a transaction, the previous transaction is definitely added to the block and
@@ -72,13 +74,16 @@ public class StackedList<E extends ModuleOperation> {
   }
 
   public E get(int index) {
-    return getAll().get(index);
+    if (index < operationSinceBeginningOfTheConflation.size()) {
+      return operationSinceBeginningOfTheConflation.get(index);
+    } else {
+      return thisTransactionOperation.get(index - operationSinceBeginningOfTheConflation.size());
+    }
   }
 
   public List<E> getAll() {
-    final List<E> all = new ArrayList<>(operationSinceBeginningOfTheConflation);
-    all.addAll(thisTransactionOperation);
-    return all;
+    Preconditions.checkState(conflationFinished, "Conflation not finished");
+    return operationSinceBeginningOfTheConflation;
   }
 
   public boolean isEmpty() {
@@ -107,5 +112,11 @@ public class StackedList<E extends ModuleOperation> {
     operationSinceBeginningOfTheConflation.clear();
     thisTransactionOperation.clear();
     lineCounter.clear();
+  }
+
+  public void finishConflation() {
+    conflationFinished = true;
+    operationSinceBeginningOfTheConflation.addAll(thisTransactionOperation);
+    thisTransactionOperation.clear();
   }
 }

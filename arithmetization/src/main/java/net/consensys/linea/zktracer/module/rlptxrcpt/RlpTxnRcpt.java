@@ -52,7 +52,7 @@ public class RlpTxnRcpt implements Module {
   private static final Bytes BYTES_RLP_LIST_SHORT = Bytes.minimalBytes(RLP_PREFIX_LIST_SHORT);
 
   private int absLogNum = 0;
-  @Getter public StackedList<RlpTxrcptChunk> chunkList = new StackedList<>();
+  @Getter public StackedList<RlpTxrcptChunk> operations = new StackedList<>();
 
   public RlpTxnRcpt(TxnData txnData) {
     this.txnData = txnData;
@@ -65,12 +65,12 @@ public class RlpTxnRcpt implements Module {
 
   @Override
   public void enterTransaction() {
-    this.chunkList.enter();
+    this.operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.chunkList.pop();
+    this.operations.pop();
   }
 
   @Override
@@ -81,7 +81,7 @@ public class RlpTxnRcpt implements Module {
             txMetaData.statusCode(),
             txMetaData.getAccumulatedGasUsedInBlock(),
             txMetaData.getLogs());
-    this.chunkList.add(chunk);
+    this.operations.add(chunk);
   }
 
   public void traceChunk(final RlpTxrcptChunk chunk, int absTxNum, int absLogNumMax, Trace trace) {
@@ -655,7 +655,7 @@ public class RlpTxnRcpt implements Module {
         .absLogNum(this.absLogNum)
         .absLogNumMax(traceValue.absLogNumMax)
         .absTxNum(traceValue.absTxNum)
-        .absTxNumMax(this.chunkList.size())
+        .absTxNumMax(this.operations.size())
         .acc1(traceValue.acc1)
         .acc2(traceValue.acc2)
         .acc3(traceValue.acc3)
@@ -770,7 +770,7 @@ public class RlpTxnRcpt implements Module {
 
   @Override
   public int lineCount() {
-    return chunkList.lineCount();
+    return operations.lineCount();
   }
 
   @Override
@@ -783,12 +783,12 @@ public class RlpTxnRcpt implements Module {
     final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk chunk : chunkList.getAll()) {
+    for (RlpTxrcptChunk chunk : operations.getAll()) {
       absLogNumMax += chunk.logs().size();
     }
 
     int absTxNum = 0;
-    for (RlpTxrcptChunk chunk : chunkList.getAll()) {
+    for (RlpTxrcptChunk chunk : operations.getAll()) {
       absTxNum += 1;
       traceChunk(chunk, absTxNum, absLogNumMax, trace);
     }

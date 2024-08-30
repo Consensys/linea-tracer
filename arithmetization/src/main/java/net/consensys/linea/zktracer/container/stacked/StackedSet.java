@@ -19,12 +19,16 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Implements a system of nested sets behaving as a single one, where the current context
- * modification can transparently be dropped.
+ * Implements a system of pseudo-stacked squashed sets where {@link
+ * operationSinceBeginningOfTheConflation} represents the set of all operations since the beginning
+ * of the conflation and {@link thisTransactionOperation} represents the operations added by the
+ * last transaction. We can pop only the operations added by last transaction. The line counting is
+ * done by a separate {@link CountOnlyOperation}.
  *
  * @param <E> the type of elements stored in the set
  */
@@ -32,10 +36,13 @@ public class StackedSet<E extends ModuleOperation> {
   private final Set<E> operationSinceBeginningOfTheConflation = new HashSet<>();
   private final Set<E> thisTransactionOperation = new HashSet<>();
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
+  private boolean conflationFinished = false;
 
   /**
-   * when we enter a transaction, the previous transaction is definitely added to the block and
-   * can't be pop
+   * When we enter transaction n, the previous transaction n-1 {@link thisTransactionOperation} (or
+   * an empty set if n == 0) is definitely added to the set of all transactions {@link
+   * operationSinceBeginningOfTheConflation}. We reset {@link thisTransactionOperation} to an empty
+   * set as it now represents the operations added at transaction n.
    */
   public void enter() {
     operationSinceBeginningOfTheConflation.addAll(thisTransactionOperation);
@@ -57,9 +64,8 @@ public class StackedSet<E extends ModuleOperation> {
   }
 
   public Set<E> getAll() {
-    final Set<E> all = new HashSet<>(operationSinceBeginningOfTheConflation);
-    all.addAll(thisTransactionOperation);
-    return all;
+    Preconditions.checkState(conflationFinished, "Conflation not finished");
+    return operationSinceBeginningOfTheConflation;
   }
 
   public boolean isEmpty() {
@@ -103,5 +109,11 @@ public class StackedSet<E extends ModuleOperation> {
     operationSinceBeginningOfTheConflation.clear();
     thisTransactionOperation.clear();
     lineCounter.clear();
+  }
+
+  public void finishConflation() {
+    conflationFinished = true;
+    operationSinceBeginningOfTheConflation.addAll(thisTransactionOperation);
+    thisTransactionOperation.clear();
   }
 }

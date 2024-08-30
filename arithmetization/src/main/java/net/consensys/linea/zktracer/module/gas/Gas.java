@@ -26,7 +26,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Gas implements Module {
   /** A list of the operations to trace */
-  private final StackedList<GasOperation> chunks = new StackedList<>();
+  private final StackedList<GasOperation> operations = new StackedList<>();
 
   @Override
   public String moduleKey() {
@@ -35,17 +35,17 @@ public class Gas implements Module {
 
   @Override
   public void enterTransaction() {
-    this.chunks.enter();
+    this.operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.chunks.pop();
+    this.operations.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.chunks.lineCount();
+    return this.operations.lineCount();
   }
 
   @Override
@@ -56,7 +56,7 @@ public class Gas implements Module {
   @Override
   public void tracePreOpcode(MessageFrame frame) {
     GasParameters gasParameters = extractGasParameters(frame);
-    this.chunks.add(new GasOperation(gasParameters));
+    this.operations.add(new GasOperation(gasParameters));
   }
 
   private GasParameters extractGasParameters(MessageFrame frame) {
@@ -68,7 +68,7 @@ public class Gas implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (GasOperation gasOperation : this.chunks.getAll()) {
+    for (GasOperation gasOperation : this.operations.getAll()) {
       // TODO: I thought we don't have stamp for gas anymore ?
       stamp++;
       gasOperation.trace(stamp, trace);

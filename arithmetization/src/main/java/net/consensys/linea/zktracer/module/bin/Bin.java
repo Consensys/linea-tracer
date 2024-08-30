@@ -30,7 +30,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Bin implements Module {
 
   /** A set of the operations to trace */
-  private final StackedSet<BinOperation> chunks = new StackedSet<>();
+  private final StackedSet<BinOperation> operations = new StackedSet<>();
 
   public Bin() {}
 
@@ -41,12 +41,12 @@ public class Bin implements Module {
 
   @Override
   public void enterTransaction() {
-    this.chunks.enter();
+    operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.chunks.pop();
+    operations.pop();
   }
 
   @Override
@@ -56,7 +56,7 @@ public class Bin implements Module {
     final Bytes32 arg2 =
         opCode == OpCode.NOT ? Bytes32.ZERO : Bytes32.leftPad(frame.getStackItem(1));
 
-    this.chunks.add(
+    operations.add(
         new BinOperation(opCode, BaseBytes.fromBytes32(arg1), BaseBytes.fromBytes32(arg2)));
   }
 
@@ -65,7 +65,7 @@ public class Bin implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (BinOperation op : chunks.getAll()) {
+    for (BinOperation op : operations.getAll()) {
       stamp++;
       op.traceBinOperation(stamp, trace);
     }
@@ -78,6 +78,6 @@ public class Bin implements Module {
 
   @Override
   public int lineCount() {
-    return this.chunks.lineCount();
+    return this.operations.lineCount();
   }
 }

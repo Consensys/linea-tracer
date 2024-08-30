@@ -39,7 +39,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Oob implements Module {
 
   /** A list of the operations to trace */
-  @Getter private final StackedList<OobOperation> oobOperations = new StackedList<>();
+  @Getter private final StackedList<OobOperation> operations = new StackedList<>();
 
   private final Hub hub;
   private final Add add;
@@ -54,7 +54,7 @@ public class Oob implements Module {
   public void call(OobCall oobCall) {
     final OobOperation oobOperation =
         new OobOperation(oobCall, hub.messageFrame(), add, mod, wcp, hub);
-    oobOperations.add(oobOperation);
+    operations.add(oobOperation);
   }
 
   @Override
@@ -143,24 +143,24 @@ public class Oob implements Module {
 
   @Override
   public void enterTransaction() {
-    oobOperations.enter();
+    operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    oobOperations.pop();
+    operations.pop();
   }
 
   @Override
   public int lineCount() {
-    return oobOperations.lineCount();
+    return operations.lineCount();
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (OobOperation oobOperation : oobOperations.getAll()) {
+    for (OobOperation oobOperation : operations.getAll()) {
       traceChunk(oobOperation, ++stamp, trace);
     }
   }

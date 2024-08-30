@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 /** Implementation of a {@link Module} for memory expansion. */
 public class Mxp implements Module {
   /** A list of the operations to trace */
-  private final StackedList<MxpOperation> mxpOperations = new StackedList<>();
+  private final StackedList<MxpOperation> operations = new StackedList<>();
 
   @Override
   public String moduleKey() {
@@ -37,17 +37,17 @@ public class Mxp implements Module {
 
   @Override
   public void enterTransaction() {
-    mxpOperations.enter();
+    operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    mxpOperations.pop();
+    operations.pop();
   }
 
   @Override
   public int lineCount() {
-    return mxpOperations.lineCount();
+    return operations.lineCount();
   }
 
   @Override
@@ -59,12 +59,12 @@ public class Mxp implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (MxpOperation mxpOperation : mxpOperations.getAll()) {
+    for (MxpOperation mxpOperation : operations.getAll()) {
       mxpOperation.trace(++stamp, trace);
     }
   }
 
   public void call(MxpCall mxpCall) {
-    mxpOperations.add(new MxpOperation(mxpCall));
+    operations.add(new MxpOperation(mxpCall));
   }
 }

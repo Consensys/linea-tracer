@@ -92,6 +92,10 @@ public class ReplayTests {
     replay(filename, true);
   }
 
+  /**
+   * Run replay with the specific file path of a replay file. The conflated trace will be written to
+   * the same directory as the replay file. Usage: replayAt("/path/to/your/star-end.json.gz");
+   */
   public static void replayAt(String filePath) {
     final Path path = Paths.get(filePath);
     final InputStream stream;
@@ -185,23 +189,14 @@ public class ReplayTests {
   }
 
   /**
-   * Run replay with the specific file path of a replay file. The conflated trace will be written to
-   * the same directory as the replay file.
-   */
-  @Test
-  void replaySpecificFilePath() {
-    replayAt("2492975-2492977.json.gz");
-  }
-
-  /**
    * Run a bulk replay of multiple replay files specified by a directory. The conflated traces will
    * be moved to "conflated" directory once replayed. The replay files will be moved to "replayed"
    * directory once completed. Note: CORSET_VALIDATOR.validate() is disabled by default for
-   * replayBulk
+   * replayBulk Usage: replayBulk("/path/to/your/directory");
    */
   @Test
   void replayMultipleReplayFiles() {
-    replayBulk("");
+    replayBulk("/");
   }
 
   @Test

@@ -51,6 +51,12 @@ public class StackedList<E extends ModuleOperation> {
     lineCounter.pop();
   }
 
+  public E getFirst() {
+    return operationSinceBeginningOfTheConflation.isEmpty()
+        ? thisTransactionOperation.getFirst()
+        : operationSinceBeginningOfTheConflation.getFirst();
+  }
+
   public E getLast() {
     return thisTransactionOperation.isEmpty()
         ? operationSinceBeginningOfTheConflation.getLast()

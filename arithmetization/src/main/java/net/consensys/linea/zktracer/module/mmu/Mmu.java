@@ -46,17 +46,17 @@ public class Mmu implements Module {
 
   @Override
   public void enterTransaction() {
-    this.mmuOperations.enter();
+    mmuOperations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.mmuOperations.pop();
+    mmuOperations.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.mmuOperations.lineCount();
+    return mmuOperations.lineCount();
   }
 
   @Override

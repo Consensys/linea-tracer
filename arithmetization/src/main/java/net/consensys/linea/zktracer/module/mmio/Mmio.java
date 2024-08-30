@@ -40,6 +40,7 @@ import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.MmuOperation;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -67,18 +68,20 @@ public class Mmio implements Module {
   }
 
   @Override
-  public int lineCount() {
-    if (lineCounter.thisTransactionCount() == 0) {
-      for (MmuOperation o : mmu.mmuOperations().thisTransactionOperation()) {
-        lineCounter.add(o.mmioLineCount());
-      }
+  public void traceEndTx(TransactionProcessingMetadata tx) {
+    for (MmuOperation o : mmu.mmuOperations().thisTransactionOperation()) {
+      lineCounter.add(o.mmioLineCount());
     }
+  }
+
+  @Override
+  public int lineCount() {
     return lineCounter.lineCount();
   }
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+    return Trace.headers(lineCount());
   }
 
   @Override

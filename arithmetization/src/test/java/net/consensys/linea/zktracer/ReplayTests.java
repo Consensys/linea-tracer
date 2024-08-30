@@ -194,7 +194,7 @@ public class ReplayTests {
   @Test
   void replaySpecificFilePath() {
     replayAt(
-        "/home/runner/work/linea-tracer/linea-tracer/arithmetization/src/test/resources/replays/2492975-2492977.json.gz");
+        "2492975-2492977.json.gz");
   }
 
   /**
@@ -206,7 +206,7 @@ public class ReplayTests {
   @Test
   void replayMultipleReplayFiles() {
     replayBulk(
-        "/home/runner/work/linea-tracer/linea-tracer/arithmetization/src/test/resources/replays");
+        "");
   }
 
   @Test

@@ -196,7 +196,7 @@ public class ReplayTests {
    */
   @Test
   void replayMultipleReplayFiles() {
-    replayBulk("/");
+    replayBulk("");
   }
 
   @Test

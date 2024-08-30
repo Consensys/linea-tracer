@@ -196,8 +196,8 @@ public class ReplayTests {
    */
   @Test
   void bulkReplay() {
-    bulkReplay("./src/test/resources/replays");
-    // bulkReplay("");
+    // bulkReplay("./src/test/resources/replays");
+    bulkReplay("");
   }
 
   @Test

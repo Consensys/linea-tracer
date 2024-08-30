@@ -15,21 +15,16 @@
 
 package net.consensys.linea.blockcapture.snapshots;
 
-import java.util.Optional;
+import org.hyperledger.besu.datatypes.Hash;
 
-import org.apache.tuweni.units.bigints.UInt256;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.worldstate.WorldView;
-
-public record StorageSnapshot(String address, String key, String value) {
-  public static Optional<StorageSnapshot> from(
-      Address address, UInt256 key, final WorldView world) {
-    return Optional.ofNullable(world.get(address))
-        .map(
-            account ->
-                new StorageSnapshot(
-                    address.toHexString(),
-                    key.toHexString(),
-                    account.getStorageValue(key).toHexString()));
+/**
+ * Responsible for storing the block hash of a given block.
+ *
+ * @param blockNumber
+ * @param blockHash
+ */
+public record BlockHashSnapshot(long blockNumber, String blockHash) {
+  public static BlockHashSnapshot of(final long blockNumber, final Hash blockHash) {
+    return new BlockHashSnapshot(blockNumber, blockHash.toHexString());
   }
 }

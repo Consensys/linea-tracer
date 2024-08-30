@@ -111,6 +111,10 @@ public class RomLex implements Module, PostOpcodeDefer {
     return Optional.empty();
   }
 
+  public Bytes getCodeByMetadata(final ContractMetadata metadata) {
+    return getChunkByMetadata(metadata).map(RomChunk::byteCode).orElse(Bytes.EMPTY);
+  }
+
   @Override
   public void traceStartTx(WorldView worldView, TransactionProcessingMetadata txMetaData) {
     final Transaction tx = txMetaData.getBesuTransaction();
@@ -161,9 +165,7 @@ public class RomLex implements Module, PostOpcodeDefer {
       }
 
       case RETURN -> {
-        Preconditions.checkArgument(frame.getType() != MessageFrame.Type.CONTRACT_CREATION);
-        Preconditions.checkArgument(
-            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress()));
+        Preconditions.checkArgument(frame.getType() == MessageFrame.Type.CONTRACT_CREATION);
 
         final Bytes code = hub.transients().op().outputData();
 

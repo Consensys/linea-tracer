@@ -94,9 +94,6 @@ public class ReplayTests {
 
   public static void replayAt(String filePath) {
     final Path path = Paths.get(filePath);
-    if (!Files.exists(path)) {
-      fail("unable to find %s in replay resources".formatted(filePath));
-    }
     final InputStream stream;
     try {
       stream = Files.newInputStream(path);
@@ -193,8 +190,7 @@ public class ReplayTests {
    */
   @Test
   void replaySpecificFilePath() {
-    replayAt(
-        "2492975-2492977.json.gz");
+    replayAt("2492975-2492977.json.gz");
   }
 
   /**
@@ -205,8 +201,7 @@ public class ReplayTests {
    */
   @Test
   void replayMultipleReplayFiles() {
-    replayBulk(
-        "");
+    replayBulk("");
   }
 
   @Test

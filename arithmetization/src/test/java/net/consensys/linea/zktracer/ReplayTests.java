@@ -25,7 +25,6 @@ import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.testing.ToyExecutionEnvironment;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -85,67 +84,56 @@ public class ReplayTests {
     replay(filename, true);
   }
 
-  @Disabled
   @Test
   void traceTxStartNotTheSameAsTxPrepare() {
     replay("start-vs-prepare-tx.json.gz");
   }
 
-  @Disabled
   @Test
   void fatMxp() {
     replay("2492975-2492977.json.gz", false);
   }
 
-  @Disabled
   @Test
   void leoFailingRange() {
     replay("5389571-5389577.json.gz", false);
   }
 
-  @Disabled
   @Test
   void failingMmuModexp() {
     replay("5995162.json.gz", false);
   }
 
-  @Disabled
   @Test
   void failRlpAddress() {
     replay("5995097.json.gz", false);
   }
 
-  @Disabled
   @Test
   void rlprcptManyTopicsWoLogData() {
     replay("6569423.json.gz", false);
   }
 
-  @Disabled
   @Test
   void multipleFailingCallToEcrecover() {
     replay("5000544.json.gz", false);
   }
 
-  @Disabled
   @Test
   void incident777zkGethMainnet() {
     replay("7461019-7461030.json.gz", false);
   }
 
-  @Disabled
   @Test
   void issue1006() {
     replay("6032696-6032699.json.gz", false);
   }
 
-  @Disabled
   @Test
   void issue1004() {
     replay("6020023-6020029.json.gz", false);
   }
 
-  @Disabled
   @Test
   void block_6110045() {
     // The purpose of this test is to check the mechanism for spotting divergence between the replay
@@ -154,19 +142,16 @@ public class ReplayTests {
     replay("6110045.json.gz", false);
   }
 
-  @Disabled
   @Test
   void failingCreate2() {
     replay("2250197-2250197.json.gz", false);
   }
 
-  @Disabled
   @Test
   void blockHash1() {
     replay("8718090.json.gz", false);
   }
 
-  @Disabled
   @Test
   void blockHash2() {
     replay("8718330.json.gz", false);
@@ -174,13 +159,13 @@ public class ReplayTests {
 
   // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
   // instruction
-  @Disabled
   @Test
   void negativeNumberOfMmioInstruction() {
     replay("6029454-6029459.json.gz", false);
   }
 
   // Leo's range split up 5104800-5104883
+  ///////////////////////////////////////
   @Test
   void test_5104800_5104809() {
     replay("5104800-5104809.json.gz", false);
@@ -227,6 +212,7 @@ public class ReplayTests {
   }
 
   // Leo's range split up 5105646-5105728
+  ///////////////////////////////////////
   @Test
   void test_5105646_5105649() {
     replay("5105646-5105649.json.gz", false);
@@ -329,6 +315,7 @@ public class ReplayTests {
   }
 
   // Leo's range split up 5118361-5118389
+  ///////////////////////////////////////
   @Test
   void test_5118361_5118369() {
     replay("5118361-5118369.json.gz", false);
@@ -345,6 +332,7 @@ public class ReplayTests {
   }
 
   // Florian's ranges
+  ///////////////////
   @Test
   void test_6871261_6871263() {
     replay("6871261-6871263.json.gz", false);

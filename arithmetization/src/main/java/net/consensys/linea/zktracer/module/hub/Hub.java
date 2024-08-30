@@ -711,11 +711,6 @@ public class Hub implements Module {
   private void exitDeploymentFromDeploymentInfoPointOfView() {
 
     // sanity check
-    /**
-     * EXPLANATION: the deployment addresses associated with
-     * deployment transactions that get skipped (empty bytecode)
-     * i.e. that are in the TX_SKIP phase immediately transition to "the deployed state"/
-     */
     if (this.state.processingPhase != TX_SKIP) {
       Preconditions.checkArgument(
               deploymentStatusOfBytecodeAddress()
@@ -723,6 +718,13 @@ public class Hub implements Module {
               String.format(
                       "Failed at ABS_TX_NUM = %s, HUB_STAMP = %s, CALL_STACK_DEPTH = %s, opCode = %s",
                       this.txStack.getCurrentAbsNumber(), this.stamp(), this.messageFrame().getDepth(), this.opCode()));
+    } else {
+      /**
+       * EXPLANATION: the deployment addresses associated with
+       * deployment transactions that get skipped (empty bytecode)
+       * i.e. that are in the TX_SKIP phase immediately transition to "the deployed state"/
+       */
+      Preconditions.checkArgument(!deploymentStatusOfBytecodeAddress());
     }
 
     Preconditions.checkArgument(

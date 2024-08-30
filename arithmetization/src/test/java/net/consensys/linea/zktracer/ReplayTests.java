@@ -93,20 +93,22 @@ public class ReplayTests {
   }
 
   public static void replayAt(String filePath) {
-    // Convert the relative path to an absolute path
-    Path path = Paths.get(filePath).toAbsolutePath();
-
+    final Path path = Paths.get(filePath);
     if (!Files.exists(path)) {
-      fail("unable to find %s in replay resources".formatted(path));
+      fail("unable to find %s in replay resources".formatted(filePath));
+    }
+    final InputStream stream;
+    try {
+      stream = Files.newInputStream(path);
+    } catch (IOException e) {
+      log.error("while loading {}: {}", filePath, e.getMessage());
+      throw new RuntimeException(e);
     }
 
-    try (InputStream stream = Files.newInputStream(path);
-        GZIPInputStream gzipStream = new GZIPInputStream(stream)) {
-
+    try (GZIPInputStream gzipStream = new GZIPInputStream(stream)) {
       ToyExecutionEnvironment.builder()
           .build()
-          .replay(new BufferedReader(new InputStreamReader(gzipStream)), path.toString());
-
+          .replay(new BufferedReader(new InputStreamReader(gzipStream)), filePath);
     } catch (IOException e) {
       log.error("while processing {}: {}", filePath, e.getMessage());
       throw new RuntimeException(e);
@@ -191,7 +193,8 @@ public class ReplayTests {
    */
   @Test
   void replaySpecificFilePath() {
-    replayAt("src/test/resources/replays/2492975-2492977.json.gz");
+    replayAt(
+        "/home/runner/work/linea-tracer/linea-tracer/arithmetization/src/test/resources/replays/2492975-2492977.json.gz");
   }
 
   /**
@@ -202,7 +205,8 @@ public class ReplayTests {
    */
   @Test
   void replayMultipleReplayFiles() {
-    replayBulk("src/test/resources/replays");
+    replayBulk(
+        "/home/runner/work/linea-tracer/linea-tracer/arithmetization/src/test/resources/replays");
   }
 
   @Test

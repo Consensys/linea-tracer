@@ -54,49 +54,43 @@ public class AccountSnapshot {
    * @return
    */
   public static AccountSnapshot canonical(Hub hub, Address address) {
-    final Account account = hub.messageFrame().getWorldUpdater().getAccount(address);
-    if (account != null) {
-      return new AccountSnapshot(
-          address,
-          account.getNonce(),
-          account.getBalance(),
-          hub.messageFrame().isAddressWarm(address),
-          new Bytecode(account.getCode()),
-          hub.deploymentNumberOf(address),
-          hub.deploymentStatusOf(address));
-    } else {
-      return new AccountSnapshot(
-          address,
-          0,
-          Wei.ZERO,
-          hub.messageFrame().isAddressWarm(address),
-          new Bytecode(Bytes.EMPTY),
-          hub.deploymentNumberOf(address),
-          hub.deploymentStatusOf(address));
-    }
+    return fromArguments(
+        hub.messageFrame().getWorldUpdater(),
+        address,
+        hub.transients.conflation().deploymentInfo(),
+        hub.messageFrame().isAddressWarm(address));
   }
 
   public static AccountSnapshot canonical(
       Hub hub, WorldView world, Address address, boolean warmth) {
-    final Account account = world.get(address);
+    return fromArguments(world, address, hub.transients.conflation().deploymentInfo(), warmth);
+  }
+
+  private static AccountSnapshot fromArguments(
+      final WorldView worldView,
+      final Address address,
+      final DeploymentInfo deploymentInfo,
+      final boolean warmth) {
+
+    final Account account = worldView.get(address);
     if (account != null) {
       return new AccountSnapshot(
-          address,
+          account.getAddress(),
           account.getNonce(),
           account.getBalance(),
           warmth,
           new Bytecode(account.getCode()),
-          hub.deploymentNumberOf(address),
-          hub.deploymentStatusOf(address));
+          deploymentInfo.deploymentNumber(address),
+          deploymentInfo.getDeploymentStatus(address));
     } else {
       return new AccountSnapshot(
           address,
           0,
           Wei.ZERO,
-          hub.messageFrame().isAddressWarm(address),
+          warmth,
           new Bytecode(Bytes.EMPTY),
-          hub.deploymentNumberOf(address),
-          hub.deploymentStatusOf(address));
+          deploymentInfo.deploymentNumber(address),
+          deploymentInfo.getDeploymentStatus(address));
     }
   }
 

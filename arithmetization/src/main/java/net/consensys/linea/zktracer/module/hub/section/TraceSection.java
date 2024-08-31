@@ -56,7 +56,7 @@ public class TraceSection {
 
   /** Default creator specifying the max number of rows the section can contain. */
   public TraceSection(final Hub hub, final short maxNumberOfLines) {
-    hub = hub;
+    this.hub = hub;
     hub.state().stamps().incrementHubStamp();
     commonValues = new CommonFragmentValues(hub);
     fragments = new ArrayList<>(maxNumberOfLines);

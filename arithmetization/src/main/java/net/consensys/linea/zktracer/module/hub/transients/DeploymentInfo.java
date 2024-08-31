@@ -45,14 +45,14 @@ public class DeploymentInfo {
     this.markAsUnderDeployment(address);
   }
 
-  public void newDeploymentAtForTxSkip(Address address) {
+  public void newDeploymentWithoutExecution(Address address) {
     this.incrementDeploymentNumber(address);
     this.markAsNotUnderDeployment(address);
   }
 
   // TODO: @Lorenzo: we will have to use this method in the row that
   //  "actually self destructs" the account
-  public void updateDeploymentInfoForSelfdestructsAtTransactionEnd(Address address) {
+  public void freshDeploymentFollowingSelfdestructAtTransactionEnd(Address address) {
     this.incrementDeploymentNumber(address);
     this.markAsNotUnderDeployment(address);
   }

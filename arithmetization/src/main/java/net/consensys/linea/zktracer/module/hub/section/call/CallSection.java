@@ -175,6 +175,7 @@ public class CallSection extends TraceSection
     } else {
       value = Wei.ZERO;
     }
+
     final CallOobCall oobCall = new CallOobCall();
     firstImcFragment.callOob(oobCall);
 
@@ -443,7 +444,11 @@ public class CallSection extends TraceSection
 
     final CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
 
-    Preconditions.checkArgument(scenario.noLongerUndefined());
+    Preconditions.checkArgument(
+        scenario.noLongerUndefined(),
+        String.format(
+            "Call scenario = %s, HUB_STAMP = %s, successBit = %s",
+            scenarioFragment.getScenario(), this.hubStamp(), isSuccessful));
 
     if (scenario.isPrecompileScenario()) {
       this.addFragments(precompileSubsection.fragments());

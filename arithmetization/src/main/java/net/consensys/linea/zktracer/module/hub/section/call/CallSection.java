@@ -153,7 +153,7 @@ public class CallSection extends TraceSection
     Preconditions.checkArgument(
         stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
 
-    final Address callerAddress = hub.currentFrame().accountAddress();
+    final Address callerAddress = hub.messageFrame().getRecipientAddress();
     preOpcodeCallerSnapshot = canonical(hub, callerAddress);
 
     rawCalleeAddress = hub.currentFrame().frame().getStackItem(1);

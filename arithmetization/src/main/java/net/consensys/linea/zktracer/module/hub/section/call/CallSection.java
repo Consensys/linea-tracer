@@ -170,6 +170,11 @@ public class CallSection extends TraceSection
     Preconditions.checkArgument(Exceptions.none(exceptions));
     hub.currentFrame().childSpanningSection(this);
 
+    if (hub.opCode().callCanTransferValue()) {
+      value = Wei.of(hub.messageFrame().getStackItem(2).toUnsignedBigInteger());
+    } else {
+      value = Wei.ZERO;
+    }
     final CallOobCall oobCall = new CallOobCall();
     firstImcFragment.callOob(oobCall);
 
@@ -219,10 +224,8 @@ public class CallSection extends TraceSection
 
     if (scenarioFragment.getScenario() == CALL_SMC_UNDEFINED) {
       finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);
-      final boolean callCanTransferValue = hub.currentFrame().opCode().callCanTransferValue();
       final boolean isSelfCall = callerAddress.equals(calleeAddress);
-      value = Wei.of(hub.messageFrame().getStackItem(2).toUnsignedBigInteger());
-      selfCallWithNonzeroValueTransfer = isSelfCall && callCanTransferValue && !value.isZero();
+      selfCallWithNonzeroValueTransfer = isSelfCall && !value.isZero();
       hub.romLex().callRomLex(hub.currentFrame().frame());
       hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     }

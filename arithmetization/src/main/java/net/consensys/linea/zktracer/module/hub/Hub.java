@@ -321,7 +321,7 @@ public class Hub implements Module {
                 exp,
                 logData,
                 logInfo,
-                mmu, // WARN: must be called before the MMIO
+                mmu, // WARN: must be traced before the MMIO
                 mmio,
                 mod,
                 mul,
@@ -403,8 +403,6 @@ public class Hub implements Module {
                     euc,
                     ext,
                     gas,
-                    logData,
-                    logInfo,
                     mmio,
                     mmu,
                     mod,
@@ -415,6 +413,8 @@ public class Hub implements Module {
                     rlpAddr,
                     rlpTxn,
                     rlpTxnRcpt,
+                    logData, /* WARN: must be called AFTER rlpTxnRcpt */
+                    logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
                     rom,
                     romLex,
                     shakiraData,

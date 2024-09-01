@@ -20,21 +20,23 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.log.Log;
 
+@RequiredArgsConstructor
 public class LogInfo implements Module {
   private final RlpTxnRcpt rlpTxnRcpt;
-
-  public LogInfo(RlpTxnRcpt rlpTxnRcpt) {
-    this.rlpTxnRcpt = rlpTxnRcpt;
-  }
+  private final CountOnlyOperation lineCounter = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {
@@ -42,18 +44,27 @@ public class LogInfo implements Module {
   }
 
   @Override
-  public void enterTransaction() {}
+  public void enterTransaction() {
+    lineCounter.enter();
+  }
 
   @Override
-  public void popTransaction() {}
+  public void popTransaction() {
+    lineCounter.pop();
+  }
+
+  /* WARN: make sure this is called after rlpTxnRcpt as we need the operation of the current transaction */
+  @Override
+  public void traceEndTx(TransactionProcessingMetadata tx) {
+    Preconditions.checkArgument(
+        rlpTxnRcpt.operations().thisTransactionOperation().size() == 1,
+        "We should have only one transaction receipt operation per transaction");
+    lineCounter.add(lineCountForLogInfo(rlpTxnRcpt.operations().getLast()));
+  }
 
   @Override
   public int lineCount() {
-    int rowSize = 0;
-    for (RlpTxrcptOperation chunk : rlpTxnRcpt.operations().getAll()) {
-      rowSize += txRowSize(chunk);
-    }
-    return rowSize;
+    return lineCounter.lineCount();
   }
 
   @Override
@@ -85,7 +96,7 @@ public class LogInfo implements Module {
     }
   }
 
-  private int txRowSize(RlpTxrcptOperation tx) {
+  private int lineCountForLogInfo(RlpTxrcptOperation tx) {
     int txRowSize = 0;
     if (tx.logs().isEmpty()) {
       return 1;

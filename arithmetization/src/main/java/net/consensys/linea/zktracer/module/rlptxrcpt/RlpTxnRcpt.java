@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.rlptxrcpt;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_INT_LONG;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_INT_SHORT;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
@@ -47,15 +49,16 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogsBloomFilter;
 
 @Accessors(fluent = true)
+@RequiredArgsConstructor
 public class RlpTxnRcpt implements StatefullModule<RlpTxrcptOperation> {
   private static final Bytes BYTES_RLP_INT_SHORT = Bytes.minimalBytes(RLP_PREFIX_INT_SHORT);
   private static final Bytes BYTES_RLP_LIST_SHORT = Bytes.minimalBytes(RLP_PREFIX_LIST_SHORT);
 
-  @Getter private final StackedList<RlpTxrcptOperation> operations = new StackedList<>();
+  @Getter
+  private final StackedList<RlpTxrcptOperation> operations =
+      new StackedList<>(LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH, 1);
 
   private int absLogNum = 0;
-
-  public RlpTxnRcpt() {}
 
   @Override
   public String moduleKey() {
@@ -64,7 +67,7 @@ public class RlpTxnRcpt implements StatefullModule<RlpTxrcptOperation> {
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata txMetaData) {
-    RlpTxrcptOperation operation =
+    final RlpTxrcptOperation operation =
         new RlpTxrcptOperation(
             txMetaData.getBesuTransaction().getType(),
             txMetaData.statusCode(),

@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.rlptxn;
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TX_DATA_NONZERO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TX_DATA_ZERO;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_INT_LONG;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_INT_SHORT;
@@ -57,6 +58,7 @@ import java.util.List;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
@@ -80,14 +82,12 @@ import org.hyperledger.besu.ethereum.rlp.RLPOutput;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+@RequiredArgsConstructor
 public class RlpTxn implements StatefullModule<RlpTxnOperation> {
   private final RomLex romLex;
 
-  private final StackedList<RlpTxnOperation> operations = new StackedList<>();
-
-  public RlpTxn(RomLex _romLex) {
-    this.romLex = _romLex;
-  }
+  private final StackedList<RlpTxnOperation> operations =
+      new StackedList<>(LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH, 1);
 
   @Override
   public String moduleKey() {

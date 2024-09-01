@@ -27,10 +27,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
@@ -50,14 +52,17 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
+@RequiredArgsConstructor
 public class RomLex
-    implements Module, PostOpcodeDefer, ImmediateContextEntryDefer, ContextExitDefer {
-  private static final RomChunkComparator ROM_CHUNK_COMPARATOR = new RomChunkComparator();
+    implements StatelessModule<RomChunk>,
+        PostOpcodeDefer,
+        ImmediateContextEntryDefer,
+        ContextExitDefer {
 
   private final Hub hub;
 
   @Getter private final StackedSet<RomChunk> chunks = new StackedSet<>();
-  @Getter private final List<RomChunk> sortedChunks = new ArrayList<>();
+  @Getter private List<RomChunk> sortedChunks;
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
 
@@ -68,18 +73,9 @@ public class RomLex
     return "ROM_LEX";
   }
 
-  public RomLex(Hub hub) {
-    this.hub = hub;
-  }
-
   @Override
-  public void enterTransaction() {
-    chunks.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    chunks.pop();
+  public StackedSet<RomChunk> operations() {
+    return chunks;
   }
 
   public int getCodeFragmentIndexByMetadata(
@@ -294,7 +290,8 @@ public class RomLex
 
   public void determineCodeFragmentIndex() {
     chunks.finishConflation();
-    sortedChunks.addAll(chunks.getAll());
+    sortedChunks = new ArrayList<>(chunks.getAll());
+    final RomChunkComparator ROM_CHUNK_COMPARATOR = new RomChunkComparator();
     sortedChunks.sort(ROM_CHUNK_COMPARATOR);
   }
 
@@ -303,6 +300,12 @@ public class RomLex
     // WARN: the line count for the RomLex is the *number of code fragments*, not their actual line
     // count – that's for the ROM.
     return chunks.size();
+  }
+
+  @Override
+  public void traceEndConflation(final WorldView state) {
+    Preconditions.checkArgument(
+        chunks.conflationFinished(), "Conflation is done before traceEndConflation for RomLex");
   }
 
   @Override

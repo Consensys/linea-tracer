@@ -23,30 +23,26 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
+@RequiredArgsConstructor
 public class Blockdata implements Module {
   private final Wcp wcp;
   private final TxnData txnData;
   private final RlpTxn rlpTxn;
   private final Deque<BlockdataOperation> operations = new ArrayDeque<>();
-  private boolean batchUnderConstruction;
+  private boolean conflationFinished = false;
   private final int TIMESTAMP_BYTESIZE = 4;
   private int previousTimestamp = 0;
-
-  public Blockdata(Wcp wcp, TxnData txnData, RlpTxn rlpTxn) {
-    this.wcp = wcp;
-    this.txnData = txnData;
-    this.rlpTxn = rlpTxn;
-    this.batchUnderConstruction = true;
-  }
 
   @Override
   public String moduleKey() {
@@ -55,7 +51,6 @@ public class Blockdata implements Module {
 
   @Override
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
-    batchUnderConstruction = true;
     wcp.additionalRows.add(TIMESTAMP_BYTESIZE);
   }
 
@@ -70,15 +65,14 @@ public class Blockdata implements Module {
             blockHeader.getDifficulty().getAsBigInteger(),
             this.txnData.currentBlock().getNbOfTxsInBlock()));
 
-    batchUnderConstruction = false;
     wcp.callGT(currentTimestamp, previousTimestamp);
     wcp.additionalRows.remove(TIMESTAMP_BYTESIZE); // Remove what have been done at traceStartBlock
     previousTimestamp = currentTimestamp;
   }
 
   @Override
-  public void traceStartConflation(final long blockCount) {
-    batchUnderConstruction = false; // Should be useless, but just to be sure
+  public void traceEndConflation(final WorldView state) {
+    conflationFinished = true;
   }
 
   @Override
@@ -89,8 +83,7 @@ public class Blockdata implements Module {
 
   @Override
   public int lineCount() {
-    final int numberOfBlock =
-        this.batchUnderConstruction ? this.operations.size() + 1 : this.operations.size();
+    final int numberOfBlock = conflationFinished ? operations.size() : operations.size() + 1;
     return numberOfBlock * (MAX_CT + 1);
   }
 

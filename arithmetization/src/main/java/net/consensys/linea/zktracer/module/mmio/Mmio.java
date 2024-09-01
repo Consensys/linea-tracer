@@ -29,11 +29,12 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_RAM_TWO_TARGET;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_VANISHES;
 import static net.consensys.linea.zktracer.module.mmio.MmioData.isFastOperation;
-import static net.consensys.linea.zktracer.module.mmio.MmioData.numberOfRowOfMmioInstruction;
+import static net.consensys.linea.zktracer.module.mmio.MmioData.lineCountOfMmioInstruction;
 
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
@@ -44,13 +45,10 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
+@RequiredArgsConstructor
 public class Mmio implements Module {
   private final Mmu mmu;
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
-
-  public Mmio(Mmu mmu) {
-    this.mmu = mmu;
-  }
 
   @Override
   public String moduleKey() {
@@ -147,7 +145,7 @@ public class Mmio implements Module {
     final boolean isRamToRamTwoTarget = (mmioData.instruction() == MMIO_INST_RAM_TO_RAM_TWO_TARGET);
     final boolean isRamVanishes = (mmioData.instruction() == MMIO_INST_RAM_VANISHES);
 
-    for (short ct = 0; ct < numberOfRowOfMmioInstruction(mmioData.instruction()); ct++) {
+    for (short ct = 0; ct < lineCountOfMmioInstruction(mmioData.instruction()); ct++) {
       trace
           .cnA(Bytes.minimalBytes(mmioData.cnA()))
           .cnB(Bytes.minimalBytes(mmioData.cnB()))

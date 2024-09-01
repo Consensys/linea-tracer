@@ -18,7 +18,9 @@ package net.consensys.linea.zktracer.module.mmu;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
@@ -29,34 +31,15 @@ import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Accessors(fluent = true)
+@RequiredArgsConstructor
 public class Mmu implements StatefullModule<MmuOperation> {
   @Getter private final StackedList<MmuOperation> operations = new StackedList<>();
   private final Euc euc;
   private final Wcp wcp;
 
-  public Mmu(final Euc euc, final Wcp wcp) {
-    this.euc = euc;
-    this.wcp = wcp;
-  }
-
   @Override
   public String moduleKey() {
     return "MMU";
-  }
-
-  @Override
-  public void enterTransaction() {
-    operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    operations.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return operations.lineCount();
   }
 
   @Override
@@ -72,7 +55,7 @@ public class Mmu implements StatefullModule<MmuOperation> {
     int mmioStamp = 0;
 
     for (MmuOperation mmuOperation : operations.getAll()) {
-
+      Preconditions.checkState(mmuOperation.traceMe(), "Cannot compute if traceMe is false");
       if (mmuOperation.traceMe()) {
         mmuOperation.getCFI();
         mmuOperation.fillLimb();
@@ -85,6 +68,7 @@ public class Mmu implements StatefullModule<MmuOperation> {
   }
 
   public void call(final MmuCall mmuCall) {
+    Preconditions.checkState(mmuCall.traceMe(), "Shouldn't compute if traceMe is false");
     MmuData mmuData = new MmuData(mmuCall);
     mmuData.hubToMmuValues(
         HubToMmuValues.fromMmuCall(mmuCall, mmuData.exoLimbIsSource(), mmuData.exoLimbIsTarget()));

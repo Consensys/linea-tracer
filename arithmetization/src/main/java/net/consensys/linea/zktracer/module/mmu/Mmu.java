@@ -21,16 +21,16 @@ import java.util.List;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Accessors(fluent = true)
-public class Mmu implements Module {
-  @Getter private final StackedList<MmuOperation> mmuOperations = new StackedList<>();
+public class Mmu implements StatefullModule<MmuOperation> {
+  @Getter private final StackedList<MmuOperation> operations = new StackedList<>();
   private final Euc euc;
   private final Wcp wcp;
 
@@ -46,17 +46,17 @@ public class Mmu implements Module {
 
   @Override
   public void enterTransaction() {
-    mmuOperations.enter();
+    operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    mmuOperations.pop();
+    operations.pop();
   }
 
   @Override
   public int lineCount() {
-    return mmuOperations.lineCount();
+    return operations.lineCount();
   }
 
   @Override
@@ -71,7 +71,7 @@ public class Mmu implements Module {
     int mmuStamp = 0;
     int mmioStamp = 0;
 
-    for (MmuOperation mmuOperation : mmuOperations.getAll()) {
+    for (MmuOperation mmuOperation : operations.getAll()) {
 
       if (mmuOperation.traceMe()) {
         mmuOperation.getCFI();
@@ -92,6 +92,6 @@ public class Mmu implements Module {
     final MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
     mmuData = mmuInstructions.compute(mmuData);
 
-    mmuOperations.add(new MmuOperation(mmuData));
+    operations.add(new MmuOperation(mmuData));
   }
 }

@@ -20,18 +20,17 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
-public class Mul implements Module {
+public class Mul implements StatelessModule<MulOperation> {
   private final Hub hub;
 
-  /** A set of the operations to trace */
   private final StackedSet<MulOperation> operations = new StackedSet<>();
 
   @Override
@@ -49,13 +48,8 @@ public class Mul implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    operations.pop();
+  public StackedSet<MulOperation> operations() {
+    return operations;
   }
 
   @Override
@@ -73,7 +67,7 @@ public class Mul implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (var op : operations.getAll()) {
+    for (MulOperation op : operations.getAll()) {
       op.trace(trace, ++stamp);
     }
     (new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO)).trace(trace, stamp + 1);

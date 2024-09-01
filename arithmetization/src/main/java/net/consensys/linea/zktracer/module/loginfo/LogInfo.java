@@ -21,9 +21,9 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
-import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptChunk;
+import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -50,7 +50,7 @@ public class LogInfo implements Module {
   @Override
   public int lineCount() {
     int rowSize = 0;
-    for (RlpTxrcptChunk chunk : rlpTxnRcpt.getOperations().getAll()) {
+    for (RlpTxrcptOperation chunk : rlpTxnRcpt.operations().getAll()) {
       rowSize += txRowSize(chunk);
     }
     return rowSize;
@@ -66,13 +66,13 @@ public class LogInfo implements Module {
     final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.operations.getAll()) {
+    for (RlpTxrcptOperation tx : rlpTxnRcpt.operations().getAll()) {
       absLogNumMax += tx.logs().size();
     }
 
     int absTxNum = 0;
     int absLogNum = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.operations.getAll()) {
+    for (RlpTxrcptOperation tx : rlpTxnRcpt.operations().getAll()) {
       absTxNum += 1;
       if (tx.logs().isEmpty()) {
         traceTxWoLog(absTxNum, absLogNum, absLogNumMax, trace);
@@ -85,7 +85,7 @@ public class LogInfo implements Module {
     }
   }
 
-  private int txRowSize(RlpTxrcptChunk tx) {
+  private int txRowSize(RlpTxrcptOperation tx) {
     int txRowSize = 0;
     if (tx.logs().isEmpty()) {
       return 1;
@@ -100,7 +100,7 @@ public class LogInfo implements Module {
   public void traceTxWoLog(
       final int absTxNum, final int absLogNum, final int absLogNumMax, Trace trace) {
     trace
-        .absTxnNumMax(this.rlpTxnRcpt.operations.size())
+        .absTxnNumMax(rlpTxnRcpt.operations().size())
         .absTxnNum(absTxNum)
         .txnEmitsLogs(false)
         .absLogNumMax(absLogNumMax)
@@ -140,7 +140,7 @@ public class LogInfo implements Module {
     final Bytes32 topic4 = nbTopic >= 4 ? log.getTopics().get(3) : Bytes32.ZERO;
     for (int ct = 0; ct < ctMax + 1; ct++) {
       trace
-          .absTxnNumMax(this.rlpTxnRcpt.operations.size())
+          .absTxnNumMax(this.rlpTxnRcpt.operations().size())
           .absTxnNum(absTxNum)
           .txnEmitsLogs(true)
           .absLogNumMax(absLogNumMax)

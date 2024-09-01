@@ -20,21 +20,21 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class Mod implements Module {
+public class Mod implements StatelessModule<ModOperation> {
+  private final StackedSet<ModOperation> operations = new StackedSet<>();
+
   @Override
   public String moduleKey() {
     return "MOD";
   }
-
-  private final StackedSet<ModOperation> operations = new StackedSet<>();
 
   @Override
   public void tracePreOpcode(final MessageFrame frame) {
@@ -42,17 +42,7 @@ public class Mod implements Module {
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
 
-    this.operations.add(new ModOperation(opCodeData, arg1, arg2));
-  }
-
-  @Override
-  public void enterTransaction() {
-    operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    operations.pop();
+    operations.add(new ModOperation(opCodeData, arg1, arg2));
   }
 
   @Override
@@ -62,11 +52,6 @@ public class Mod implements Module {
     for (ModOperation op : operations.getAll()) {
       op.trace(trace, ++stamp);
     }
-  }
-
-  @Override
-  public int lineCount() {
-    return operations.lineCount();
   }
 
   @Override
@@ -94,5 +79,10 @@ public class Mod implements Module {
   public BigInteger callMOD(Bytes32 arg1, Bytes32 arg2) {
     this.operations.add(new ModOperation(OpCode.MOD, arg1, arg2));
     return arg1.toUnsignedBigInteger().mod(arg2.toUnsignedBigInteger());
+  }
+
+  @Override
+  public StackedSet<ModOperation> operations() {
+    return operations;
   }
 }

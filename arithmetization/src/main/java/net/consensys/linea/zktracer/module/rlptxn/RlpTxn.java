@@ -58,8 +58,8 @@ import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
@@ -80,8 +80,10 @@ import org.hyperledger.besu.ethereum.rlp.RLPOutput;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class RlpTxn implements Module {
+public class RlpTxn implements StatefullModule<RlpTxnOperation> {
   private final RomLex romLex;
+
+  private final StackedList<RlpTxnOperation> operations = new StackedList<>();
 
   public RlpTxn(RomLex _romLex) {
     this.romLex = _romLex;
@@ -95,29 +97,17 @@ public class RlpTxn implements Module {
   public static final Bytes BYTES_PREFIX_SHORT_INT = Bytes.of(RLP_PREFIX_INT_SHORT);
   public static final Bytes BYTES_PREFIX_SHORT_LIST = Bytes.of(RLP_PREFIX_LIST_SHORT);
 
-  public final StackedList<RlpTxnChunk> operations = new StackedList<>();
-
   // Used to check the reconstruction of RLPs
   Bytes reconstructedRlpLt;
 
   Bytes reconstructedRlpLx;
 
   @Override
-  public void enterTransaction() {
-    this.operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.operations.pop();
-  }
-
-  @Override
   public void traceStartTx(WorldView worldView, TransactionProcessingMetadata txMetaData) {
     final Transaction tx = txMetaData.getBesuTransaction();
     // Contract Creation
     if (tx.getTo().isEmpty() && !tx.getInit().get().isEmpty()) {
-      this.operations.add(new RlpTxnChunk(tx, true));
+      this.operations.add(new RlpTxnOperation(tx, true));
     }
 
     // Call to a non-empty smart contract
@@ -125,14 +115,14 @@ public class RlpTxn implements Module {
         && Optional.ofNullable(worldView.get(tx.getTo().orElseThrow()))
             .map(AccountState::hasCode)
             .orElse(false)) {
-      this.operations.add(new RlpTxnChunk(tx, true));
+      operations.add(new RlpTxnOperation(tx, true));
     } else {
       // Contract doesn't require EVM execution
-      this.operations.add(new RlpTxnChunk(tx, false));
+      operations.add(new RlpTxnOperation(tx, false));
     }
   }
 
-  public void traceChunk(RlpTxnChunk chunk, int absTxNum, Trace trace) {
+  public void traceOperation(RlpTxnOperation chunk, int absTxNum, Trace trace) {
     // Create the local row storage and specify transaction constant columns
     RlpTxnColumnsValue traceValue = new RlpTxnColumnsValue();
     traceValue.resetDataHiLo();
@@ -1096,7 +1086,7 @@ public class RlpTxn implements Module {
 
     builder
         .absTxNum(traceValue.absTxNum)
-        .absTxNumInfiny(this.operations.size())
+        .absTxNumInfiny(operations.size())
         .acc1(traceValue.acc1)
         .acc2(traceValue.acc2)
         .accBytesize((short) traceValue.accByteSize)
@@ -1201,11 +1191,6 @@ public class RlpTxn implements Module {
   }
 
   @Override
-  public int lineCount() {
-    return operations.lineCount();
-  }
-
-  @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
   }
@@ -1214,8 +1199,13 @@ public class RlpTxn implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int absTxNum = 0;
-    for (RlpTxnChunk chunk : operations.getAll()) {
-      traceChunk(chunk, ++absTxNum, trace);
+    for (RlpTxnOperation op : operations.getAll()) {
+      traceOperation(op, ++absTxNum, trace);
     }
+  }
+
+  @Override
+  public StackedList<RlpTxnOperation> operations() {
+    return operations;
   }
 }

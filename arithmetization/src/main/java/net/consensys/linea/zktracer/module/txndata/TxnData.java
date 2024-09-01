@@ -21,8 +21,8 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -31,27 +31,17 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
-public class TxnData implements Module {
+public class TxnData implements StatefullModule<TxndataOperation> {
+  private final StackedList<TxndataOperation> operations = new StackedList<>();
 
   private final Wcp wcp;
   private final Euc euc;
 
   private final List<BlockSnapshot> blocks = new ArrayList<>();
-  private final StackedList<TxndataOperation> transactions = new StackedList<>();
 
   @Override
   public String moduleKey() {
     return "TXN_DATA";
-  }
-
-  @Override
-  public void enterTransaction() {
-    transactions.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    transactions.pop();
   }
 
   @Override
@@ -66,7 +56,7 @@ public class TxnData implements Module {
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
-    transactions.add(new TxndataOperation(wcp, euc, tx));
+    operations.add(new TxndataOperation(wcp, euc, tx));
   }
 
   @Override
@@ -76,9 +66,14 @@ public class TxnData implements Module {
   }
 
   @Override
+  public StackedList<TxndataOperation> operations() {
+    return operations;
+  }
+
+  @Override
   public int lineCount() {
     // The last tx of each block has one more rows
-    return transactions.lineCount() + blocks.size();
+    return operations.lineCount() + blocks.size();
   }
 
   public BlockSnapshot currentBlock() {
@@ -86,21 +81,21 @@ public class TxnData implements Module {
   }
 
   private TxndataOperation currentTx() {
-    return transactions.getLast();
+    return operations.getLast();
   }
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+    return Trace.headers(lineCount());
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
 
-    final int absTxNumMax = transactions.size();
+    final int absTxNumMax = operations.size();
 
-    for (TxndataOperation tx : transactions.getAll()) {
+    for (TxndataOperation tx : operations.getAll()) {
       tx.traceTx(trace, blocks.get(tx.getTx().getRelativeBlockNumber() - 1), absTxNumMax);
     }
   }

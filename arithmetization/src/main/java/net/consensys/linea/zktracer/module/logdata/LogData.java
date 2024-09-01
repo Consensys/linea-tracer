@@ -21,9 +21,9 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
-import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptChunk;
+import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.log.Log;
@@ -49,7 +49,7 @@ public class LogData implements Module {
   @Override
   public int lineCount() {
     int rowSize = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.getOperations().getAll()) {
+    for (RlpTxrcptOperation tx : rlpTxnRcpt.operations().getAll()) {
       rowSize += txRowSize(tx);
     }
     return rowSize;
@@ -60,7 +60,7 @@ public class LogData implements Module {
     return Trace.headers(this.lineCount());
   }
 
-  private int txRowSize(RlpTxrcptChunk tx) {
+  private int txRowSize(RlpTxrcptOperation tx) {
     int txRowSize = 0;
     if (tx.logs().isEmpty()) {
       return 0;
@@ -81,12 +81,12 @@ public class LogData implements Module {
     final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.operations.getAll()) {
+    for (RlpTxrcptOperation tx : rlpTxnRcpt.operations().getAll()) {
       absLogNumMax += tx.logs().size();
     }
 
     int absLogNum = 0;
-    for (RlpTxrcptChunk tx : rlpTxnRcpt.operations.getAll()) {
+    for (RlpTxrcptOperation tx : rlpTxnRcpt.operations().getAll()) {
       if (!tx.logs().isEmpty()) {
         for (Log log : tx.logs()) {
           absLogNum += 1;

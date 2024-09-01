@@ -15,17 +15,15 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import static net.consensys.linea.zktracer.CurveOperations.*;
-
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 
 @Slf4j
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public final class EcPairingFinalExponentiations extends CountingOnlyModule {
+public final class EcPairingFinalExponentiations implements CountingOnlyModule {
 
   private static final int PRECOMPILE_BASE_GAS_FEE = 45_000; // cf EIP-1108
   private static final int PRECOMPILE_MILLER_LOOP_GAS_FEE = 34_000; // cf EIP-1108
@@ -36,10 +34,5 @@ public final class EcPairingFinalExponentiations extends CountingOnlyModule {
   @Override
   public String moduleKey() {
     return "PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS";
-  }
-
-  @Override
-  public void addPrecompileLimit(final int input) {
-    // TODO @Lorenzo
   }
 }

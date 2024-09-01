@@ -18,35 +18,25 @@ package net.consensys.linea.zktracer.module.bin;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
+import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-/** Implementation of a {@link Module} for addition/subtraction. */
-public class Bin implements Module {
+/** Implementation of a {@link Module} for binary operations. */
+@RequiredArgsConstructor
+public class Bin implements StatelessModule<BinOperation> {
 
-  /** A set of the operations to trace */
   private final StackedSet<BinOperation> operations = new StackedSet<>();
-
-  public Bin() {}
 
   @Override
   public String moduleKey() {
     return "BIN";
-  }
-
-  @Override
-  public void enterTransaction() {
-    operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    operations.pop();
   }
 
   @Override
@@ -66,8 +56,7 @@ public class Bin implements Module {
 
     int stamp = 0;
     for (BinOperation op : operations.getAll()) {
-      stamp++;
-      op.traceBinOperation(stamp, trace);
+      op.traceBinOperation(++stamp, trace);
     }
   }
 
@@ -77,7 +66,7 @@ public class Bin implements Module {
   }
 
   @Override
-  public int lineCount() {
-    return this.operations.lineCount();
+  public StackedSet<BinOperation> operations() {
+    return operations;
   }
 }

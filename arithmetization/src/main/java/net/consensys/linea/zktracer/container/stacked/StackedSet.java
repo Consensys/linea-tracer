@@ -20,6 +20,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,11 +34,12 @@ import org.jetbrains.annotations.NotNull;
  *
  * @param <E> the type of elements stored in the set
  */
+@Accessors(fluent = true)
 public class StackedSet<E extends ModuleOperation> {
-  private final Set<E> operationSinceBeginningOfTheConflation = new HashSet<>();
-  private final Set<E> thisTransactionOperation = new HashSet<>();
+  @Getter private final Set<E> operationSinceBeginningOfTheConflation = new HashSet<>();
+  @Getter private final Set<E> thisTransactionOperation = new HashSet<>();
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
-  private boolean conflationFinished = false;
+  @Getter private boolean conflationFinished = false;
 
   /**
    * When we enter transaction n, the previous transaction n-1 {@link thisTransactionOperation} (or

@@ -33,11 +33,11 @@ import java.util.List;
 import java.util.function.Function;
 
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
-import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.types.BitDecOutput;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -46,17 +46,16 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogsBloomFilter;
 
-public class RlpTxnRcpt implements Module {
-  private final TxnData txnData;
+@Accessors(fluent = true)
+public class RlpTxnRcpt implements StatefullModule<RlpTxrcptOperation> {
   private static final Bytes BYTES_RLP_INT_SHORT = Bytes.minimalBytes(RLP_PREFIX_INT_SHORT);
   private static final Bytes BYTES_RLP_LIST_SHORT = Bytes.minimalBytes(RLP_PREFIX_LIST_SHORT);
 
-  private int absLogNum = 0;
-  @Getter public StackedList<RlpTxrcptChunk> operations = new StackedList<>();
+  @Getter private final StackedList<RlpTxrcptOperation> operations = new StackedList<>();
 
-  public RlpTxnRcpt(TxnData txnData) {
-    this.txnData = txnData;
-  }
+  private int absLogNum = 0;
+
+  public RlpTxnRcpt() {}
 
   @Override
   public String moduleKey() {
@@ -64,27 +63,18 @@ public class RlpTxnRcpt implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    this.operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.operations.pop();
-  }
-
-  @Override
   public void traceEndTx(TransactionProcessingMetadata txMetaData) {
-    RlpTxrcptChunk chunk =
-        new RlpTxrcptChunk(
+    RlpTxrcptOperation operation =
+        new RlpTxrcptOperation(
             txMetaData.getBesuTransaction().getType(),
             txMetaData.statusCode(),
             txMetaData.getAccumulatedGasUsedInBlock(),
             txMetaData.getLogs());
-    this.operations.add(chunk);
+    operations.add(operation);
   }
 
-  public void traceChunk(final RlpTxrcptChunk chunk, int absTxNum, int absLogNumMax, Trace trace) {
+  public void traceChunk(
+      final RlpTxrcptOperation chunk, int absTxNum, int absLogNumMax, Trace trace) {
     RlpTxrcptColumns traceValue = new RlpTxrcptColumns();
     traceValue.txrcptSize = txRcptSize(chunk);
     traceValue.absTxNum = absTxNum;
@@ -712,11 +702,11 @@ public class RlpTxnRcpt implements Module {
   /**
    * Calculates the size of the RLP of a transaction receipt WITHOUT its RLP prefix.
    *
-   * @param chunk an instance of {@link RlpTxrcptChunk} containing information pertaining to a
+   * @param chunk an instance of {@link RlpTxrcptOperation} containing information pertaining to a
    *     transaction execution
    * @return the size of the RLP of a transaction receipt WITHOUT its RLP prefix
    */
-  private int txRcptSize(RlpTxrcptChunk chunk) {
+  private int txRcptSize(RlpTxrcptOperation chunk) {
 
     // The encoded status code is always of size 1.
     int size = 1;
@@ -769,11 +759,6 @@ public class RlpTxnRcpt implements Module {
   }
 
   @Override
-  public int lineCount() {
-    return operations.lineCount();
-  }
-
-  @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
   }
@@ -783,14 +768,13 @@ public class RlpTxnRcpt implements Module {
     final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk chunk : operations.getAll()) {
-      absLogNumMax += chunk.logs().size();
+    for (RlpTxrcptOperation op : operations.getAll()) {
+      absLogNumMax += op.logs().size();
     }
 
     int absTxNum = 0;
-    for (RlpTxrcptChunk chunk : operations.getAll()) {
-      absTxNum += 1;
-      traceChunk(chunk, absTxNum, absLogNumMax, trace);
+    for (RlpTxrcptOperation op : operations.getAll()) {
+      traceChunk(op, ++absTxNum, absLogNumMax, trace);
     }
   }
 }

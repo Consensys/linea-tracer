@@ -21,17 +21,17 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Implementation of a {@link Module} for addition/subtraction. */
 @RequiredArgsConstructor
-public class Add implements Module {
+public class Add implements StatelessModule<AddOperation> {
 
-  /** A set of the operations to trace */
   private final StackedSet<AddOperation> operations = new StackedSet<>();
 
   @Override
@@ -40,13 +40,8 @@ public class Add implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    operations.pop();
+  public StackedSet<AddOperation> operations() {
+    return operations;
   }
 
   @Override
@@ -68,14 +63,8 @@ public class Add implements Module {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
     for (AddOperation op : operations.getAll()) {
-      stamp++;
-      op.trace(stamp, trace);
+      op.trace(++stamp, trace);
     }
-  }
-
-  @Override
-  public int lineCount() {
-    return operations.lineCount();
   }
 
   public BigInteger callADD(Bytes32 arg1, Bytes32 arg2) {

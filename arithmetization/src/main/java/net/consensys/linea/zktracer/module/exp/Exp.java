@@ -21,39 +21,23 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Slf4j
 @RequiredArgsConstructor
-public class Exp implements Module {
-  /** A list of the operations to trace */
-  private final StackedSet<ExpOperation> operations = new StackedSet<>();
-
+public class Exp implements StatelessModule<ExpOperation> {
   private final Hub hub;
   private final Wcp wcp;
+
+  private final StackedSet<ExpOperation> operations = new StackedSet<>();
 
   @Override
   public String moduleKey() {
     return "EXP";
-  }
-
-  @Override
-  public void enterTransaction() {
-    operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    operations.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return operations.lineCount();
   }
 
   @Override
@@ -70,12 +54,15 @@ public class Exp implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-
-    for (ExpOperation op : operations.getAll()) {
-      stamp += 1;
-      op.traceComputation(stamp, trace);
-      op.traceMacro(stamp, trace);
-      op.tracePreprocessing(stamp, trace);
+    for (ExpOperation expOp : operations.getAll()) {
+      expOp.traceComputation(++stamp, trace);
+      expOp.traceMacro(stamp, trace);
+      expOp.tracePreprocessing(stamp, trace);
     }
+  }
+
+  @Override
+  public StackedSet<ExpOperation> operations() {
+    return operations;
   }
 }

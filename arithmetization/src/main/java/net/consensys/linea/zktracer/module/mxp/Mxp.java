@@ -19,13 +19,14 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
 /** Implementation of a {@link Module} for memory expansion. */
-public class Mxp implements Module {
-  /** A list of the operations to trace */
+public class Mxp implements StatefullModule<MxpOperation> {
+
   private final StackedList<MxpOperation> operations = new StackedList<>();
 
   @Override
@@ -36,21 +37,6 @@ public class Mxp implements Module {
   public Mxp() {}
 
   @Override
-  public void enterTransaction() {
-    operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    operations.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return operations.lineCount();
-  }
-
-  @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
   }
@@ -59,12 +45,17 @@ public class Mxp implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (MxpOperation mxpOperation : operations.getAll()) {
-      mxpOperation.trace(++stamp, trace);
+    for (MxpOperation op : operations.getAll()) {
+      op.trace(++stamp, trace);
     }
   }
 
   public void call(MxpCall mxpCall) {
     operations.add(new MxpOperation(mxpCall));
+  }
+
+  @Override
+  public StackedList<MxpOperation> operations() {
+    return operations;
   }
 }

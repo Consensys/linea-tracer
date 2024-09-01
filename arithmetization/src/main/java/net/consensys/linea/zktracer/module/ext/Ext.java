@@ -20,8 +20,8 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -30,10 +30,9 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
-public class Ext implements Module {
+public class Ext implements StatelessModule<ExtOperation> {
   private final Hub hub;
 
-  /** A set of the operations to trace */
   private final StackedSet<ExtOperation> operations = new StackedSet<>();
 
   @Override
@@ -42,19 +41,9 @@ public class Ext implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    this.operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.operations.pop();
-  }
-
-  @Override
   public void tracePreOpcode(final MessageFrame frame) {
     final OpCodeData opCode = hub.opCodeData();
-    this.operations.add(
+    operations.add(
         new ExtOperation(
             opCode.mnemonic(),
             Bytes32.leftPad(frame.getStackItem(0)),
@@ -68,7 +57,7 @@ public class Ext implements Module {
     final Bytes32 arg3 = Bytes32.leftPad(_arg3);
     final ExtOperation op = new ExtOperation(opCode, arg1, arg2, arg3);
     final Bytes result = op.compute();
-    this.operations.add(op);
+    operations.add(op);
     return result;
   }
 
@@ -91,13 +80,12 @@ public class Ext implements Module {
 
     int stamp = 0;
     for (ExtOperation operation : operations.getAll()) {
-      stamp++;
-      operation.trace(trace, stamp);
+      operation.trace(trace, ++stamp);
     }
   }
 
   @Override
-  public int lineCount() {
-    return operations.lineCount();
+  public StackedSet<ExtOperation> operations() {
+    return operations;
   }
 }

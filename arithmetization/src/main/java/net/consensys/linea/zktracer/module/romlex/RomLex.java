@@ -30,8 +30,8 @@ import java.util.Optional;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
@@ -107,7 +107,15 @@ public class RomLex
   }
 
   public Optional<RomChunk> getChunkByMetadata(final ContractMetadata metadata) {
-    for (RomChunk c : chunks.getAll()) {
+    // First search in the chunk added in the current transaction
+    for (RomChunk c : chunks.thisTransactionOperation()) {
+      if (c.metadata().equals(metadata)) {
+        return Optional.of(c);
+      }
+    }
+
+    // If not found, search in the chunk added since the beginning of the conflation
+    for (RomChunk c : chunks.operationSinceBeginningOfTheConflation()) {
       if (c.metadata().equals(metadata)) {
         return Optional.of(c);
       }
@@ -285,6 +293,7 @@ public class RomLex
   }
 
   public void determineCodeFragmentIndex() {
+    chunks.finishConflation();
     sortedChunks.addAll(chunks.getAll());
     sortedChunks.sort(ROM_CHUNK_COMPARATOR);
   }
@@ -309,8 +318,7 @@ public class RomLex
 
     int cfi = 0;
     for (RomChunk chunk : sortedChunks) {
-      cfi += 1;
-      traceChunk(chunk, cfi, codeFragmentIndexInfinity, trace);
+      traceChunk(chunk, ++cfi, codeFragmentIndexInfinity, trace);
     }
   }
 

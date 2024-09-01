@@ -25,26 +25,27 @@ import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LTbv;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class Wcp implements Module {
+@RequiredArgsConstructor
+public class Wcp implements StatelessModule<WcpOperation> {
+
   private final StackedSet<WcpOperation> operations = new StackedSet<>();
 
   /** count the number of rows that could be added after the sequencer counts the number of line */
   public final CountOnlyOperation additionalRows = new CountOnlyOperation();
 
-  private boolean conflationFinished;
-
-  public Wcp() {
-    conflationFinished = false;
+  @Override
+  public StackedSet<WcpOperation> operations() {
+    return operations;
   }
 
   @Override
@@ -54,13 +55,13 @@ public class Wcp implements Module {
 
   @Override
   public void enterTransaction() {
-    operations.enter();
+    StatelessModule.super.enterTransaction();
     additionalRows.enter();
   }
 
   @Override
   public void popTransaction() {
-    operations.pop();
+    StatelessModule.super.popTransaction();
     additionalRows.pop();
   }
 
@@ -90,80 +91,75 @@ public class Wcp implements Module {
   }
 
   @Override
-  public void traceEndConflation(final WorldView state) {
-    conflationFinished = true;
-  }
-
-  @Override
   public int lineCount() {
-    return conflationFinished
+    return operations.conflationFinished()
         ? operations.lineCount()
         : operations.lineCount() + additionalRows.lineCount();
   }
 
   public boolean callLT(final Bytes32 arg1, final Bytes32 arg2) {
-    this.operations.add(new WcpOperation(LTbv, arg1, arg2));
+    operations.add(new WcpOperation(LTbv, arg1, arg2));
     return arg1.compareTo(arg2) < 0;
   }
 
   public boolean callLT(final Bytes arg1, final Bytes arg2) {
-    return this.callLT(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
+    return callLT(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 
   public boolean callLT(final long arg1, final long arg2) {
-    return this.callLT(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
+    return callLT(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
   }
 
   public boolean callGT(final Bytes32 arg1, final Bytes32 arg2) {
-    this.operations.add(new WcpOperation(GTbv, arg1, arg2));
+    operations.add(new WcpOperation(GTbv, arg1, arg2));
     return arg1.compareTo(arg2) > 0;
   }
 
   public boolean callGT(final Bytes arg1, final Bytes arg2) {
-    return this.callGT(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
+    return callGT(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 
   public boolean callGT(final int arg1, final int arg2) {
-    return this.callGT(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
+    return callGT(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
   }
 
   public boolean callEQ(final Bytes32 arg1, final Bytes32 arg2) {
-    this.operations.add(new WcpOperation(EQbv, arg1, arg2));
+    operations.add(new WcpOperation(EQbv, arg1, arg2));
     return arg1.compareTo(arg2) == 0;
   }
 
   public boolean callEQ(final Bytes arg1, final Bytes arg2) {
-    return this.callEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
+    return callEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 
   public boolean callISZERO(final Bytes32 arg1) {
-    this.operations.add(new WcpOperation(ISZERObv, arg1, Bytes32.ZERO));
+    operations.add(new WcpOperation(ISZERObv, arg1, Bytes32.ZERO));
     return arg1.isZero();
   }
 
   public boolean callISZERO(final Bytes arg1) {
-    return this.callISZERO(Bytes32.leftPad(arg1));
+    return callISZERO(Bytes32.leftPad(arg1));
   }
 
   public boolean callLEQ(final Bytes32 arg1, final Bytes32 arg2) {
-    this.operations.add(new WcpOperation(LEQbv, arg1, arg2));
+    operations.add(new WcpOperation(LEQbv, arg1, arg2));
     return arg1.compareTo(arg2) <= 0;
   }
 
   public boolean callLEQ(final long arg1, final long arg2) {
-    return this.callLEQ(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
+    return callLEQ(Bytes.ofUnsignedLong(arg1), Bytes.ofUnsignedLong(arg2));
   }
 
   public boolean callLEQ(final Bytes arg1, final Bytes arg2) {
-    return this.callLEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
+    return callLEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 
   public boolean callGEQ(final Bytes32 arg1, final Bytes32 arg2) {
-    this.operations.add(new WcpOperation(GEQbv, arg1, arg2));
+    operations.add(new WcpOperation(GEQbv, arg1, arg2));
     return arg1.compareTo(arg2) >= 0;
   }
 
   public boolean callGEQ(final Bytes arg1, final Bytes arg2) {
-    return this.callGEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
+    return callGEQ(Bytes32.leftPad(arg1), Bytes32.leftPad(arg2));
   }
 }

@@ -19,13 +19,14 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class Shf implements Module {
+public class Shf implements StatelessModule<ShfOperation> {
+
   private final StackedSet<ShfOperation> operations = new StackedSet<>();
 
   @Override
@@ -34,20 +35,10 @@ public class Shf implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    operations.pop();
-  }
-
-  @Override
   public void tracePreOpcode(MessageFrame frame) {
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
-    this.operations.add(
+    operations.add(
         new ShfOperation(OpCode.of(frame.getCurrentOperation().getOpcode()), arg1, arg2));
   }
 
@@ -67,7 +58,7 @@ public class Shf implements Module {
   }
 
   @Override
-  public int lineCount() {
-    return this.operations.lineCount();
+  public StackedSet<ShfOperation> operations() {
+    return operations;
   }
 }

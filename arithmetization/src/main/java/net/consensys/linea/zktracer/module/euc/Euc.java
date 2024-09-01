@@ -23,34 +23,19 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
-public class Euc implements Module {
+public class Euc implements StatelessModule<EucOperation> {
   private final Wcp wcp;
   private final StackedSet<EucOperation> operations = new StackedSet<>();
 
   @Override
   public String moduleKey() {
     return "EUC";
-  }
-
-  @Override
-  public void enterTransaction() {
-    this.operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.operations.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return this.operations.lineCount();
   }
 
   @Override
@@ -80,5 +65,10 @@ public class Euc implements Module {
     }
 
     return operation;
+  }
+
+  @Override
+  public StackedSet<EucOperation> operations() {
+    return operations;
   }
 }

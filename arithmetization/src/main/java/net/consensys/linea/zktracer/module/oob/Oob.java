@@ -21,11 +21,10 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
@@ -34,17 +33,17 @@ import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-@RequiredArgsConstructor
 /** Implementation of a {@link Module} for out of bounds. */
-public class Oob implements Module {
-
-  /** A list of the operations to trace */
-  @Getter private final StackedList<OobOperation> operations = new StackedList<>();
+@RequiredArgsConstructor
+public class Oob implements StatefullModule<OobOperation> {
+  // TODO @Lorenzo why it's not a StateLess module ?
 
   private final Hub hub;
   private final Add add;
   private final Mod mod;
   private final Wcp wcp;
+
+  private final StackedList<OobOperation> operations = new StackedList<>();
 
   @Override
   public String moduleKey() {
@@ -142,30 +141,20 @@ public class Oob implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    operations.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return operations.lineCount();
-  }
-
-  @Override
   public void commit(List<MappedByteBuffer> buffers) {
     Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (OobOperation oobOperation : operations.getAll()) {
-      traceChunk(oobOperation, ++stamp, trace);
+    for (OobOperation op : operations.getAll()) {
+      traceChunk(op, ++stamp, trace);
     }
   }
 
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
+  }
+
+  @Override
+  public StackedList<OobOperation> operations() {
+    return operations;
   }
 }

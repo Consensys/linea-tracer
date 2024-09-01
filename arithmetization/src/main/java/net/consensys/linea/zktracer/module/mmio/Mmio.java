@@ -35,8 +35,8 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.module.mmu.MmuOperation;
@@ -69,7 +69,7 @@ public class Mmio implements Module {
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
-    for (MmuOperation o : mmu.mmuOperations().thisTransactionOperation()) {
+    for (MmuOperation o : mmu.operations().thisTransactionOperation()) {
       lineCounter.add(o.mmioLineCount());
     }
   }
@@ -88,7 +88,7 @@ public class Mmio implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (MmuOperation mmuOperation : mmu.mmuOperations().getAll()) {
+    for (MmuOperation mmuOperation : mmu.operations().getAll()) {
       if (mmuOperation.traceMe()) {
 
         final MmuData currentMmuData = mmuOperation.mmuData();

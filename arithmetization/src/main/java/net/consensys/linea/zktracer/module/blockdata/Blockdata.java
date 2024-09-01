@@ -24,7 +24,7 @@ import java.util.Deque;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -102,7 +102,7 @@ public class Blockdata implements Module {
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final long firstBlockNumber = operations.getFirst().absoluteBlockNumber();
-    final long chainId = getChainIdFromTransaction(rlpTxn.operations.getLast().tx());
+    final long chainId = getChainIdFromTransaction(rlpTxn.operations().getLast().tx());
     final Trace trace = new Trace(buffers);
     int relblock = 0;
     for (BlockdataOperation blockData : this.operations) {

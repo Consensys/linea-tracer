@@ -21,8 +21,8 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -33,25 +33,15 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class Trm implements Module {
+public class Trm implements StatelessModule<TrmOperation> {
+  private final StackedSet<TrmOperation> operations = new StackedSet<>();
+
   static final int MAX_CT = LLARGE;
   static final int PIVOT_BIT_FLIPS_TO_TRUE = 12;
-
-  private final StackedSet<TrmOperation> operations = new StackedSet<>();
 
   @Override
   public String moduleKey() {
     return "TRM";
-  }
-
-  @Override
-  public void enterTransaction() {
-    this.operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.operations.pop();
   }
 
   public Address callTrimming(Bytes32 rawHash) {
@@ -106,7 +96,7 @@ public class Trm implements Module {
   }
 
   @Override
-  public int lineCount() {
-    return this.operations.lineCount();
+  public StackedSet<TrmOperation> operations() {
+    return operations;
   }
 }

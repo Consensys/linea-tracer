@@ -14,9 +14,9 @@
  */
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 
-public class EcPairingG2MembershipCalls extends CountingOnlyModule {
+public class EcPairingG2MembershipCalls implements CountingOnlyModule {
 
   @Override
   public String moduleKey() {
@@ -24,7 +24,7 @@ public class EcPairingG2MembershipCalls extends CountingOnlyModule {
   }
 
   @Override
-  public void addPrecompileLimit(final int input) {
+  public void addPrecompileLimit(final int count) {
     // TODO @LOrenzo
   }
 }

@@ -20,8 +20,8 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
@@ -29,33 +29,19 @@ import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCal
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @RequiredArgsConstructor
-public class BlakeModexpData implements Module {
+public class BlakeModexpData implements StatefullModule<BlakeModexpDataOperation> {
   private final Wcp wcp;
   private final ModexpEffectiveCall modexpEffectiveCall;
   private final BlakeEffectiveCall blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
 
   private final StackedList<BlakeModexpDataOperation> operations = new StackedList<>();
+
   private long previousID = 0;
 
   @Override
   public String moduleKey() {
     return "BLAKE_MODEXP_DATA";
-  }
-
-  @Override
-  public void enterTransaction() {
-    this.operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.operations.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return this.operations.lineCount();
   }
 
   @Override
@@ -86,8 +72,12 @@ public class BlakeModexpData implements Module {
     Trace trace = new Trace(buffers);
     int stamp = 0;
     for (BlakeModexpDataOperation o : operations.getAll()) {
-      stamp++;
-      o.trace(trace, stamp);
+      o.trace(trace, ++stamp);
     }
+  }
+
+  @Override
+  public StackedList<BlakeModexpDataOperation> operations() {
+    return operations;
   }
 }

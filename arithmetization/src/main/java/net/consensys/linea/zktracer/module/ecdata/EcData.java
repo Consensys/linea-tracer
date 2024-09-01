@@ -22,8 +22,8 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
@@ -37,11 +37,12 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
-public class EcData implements Module {
+public class EcData implements StatefullModule<EcDataOperation> {
   public static final Set<Address> EC_PRECOMPILES =
       Set.of(Address.ECREC, Address.ALTBN128_ADD, Address.ALTBN128_MUL, Address.ALTBN128_PAIRING);
 
-  @Getter private final StackedList<EcDataOperation> operations = new StackedList<>();
+  private final StackedList<EcDataOperation> operations = new StackedList<>();
+
   private final Wcp wcp;
   private final Ext ext;
 
@@ -61,21 +62,6 @@ public class EcData implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    this.operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.operations.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return this.operations.lineCount();
-  }
-
-  @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
   }
@@ -86,8 +72,7 @@ public class EcData implements Module {
     int stamp = 0;
     long previousId = 0;
     for (EcDataOperation op : operations.getAll()) {
-      stamp++;
-      op.trace(trace, stamp, previousId);
+      op.trace(trace, ++stamp, previousId);
       previousId = op.id();
     }
   }
@@ -97,9 +82,9 @@ public class EcData implements Module {
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       final Bytes callData,
       final Bytes returnData) {
-    this.ecDataOperation =
+    ecDataOperation =
         EcDataOperation.of(this.wcp, this.ext, id, precompileFlag, callData, returnData);
-    this.operations.add(ecDataOperation);
+    operations.add(ecDataOperation);
 
     switch (ecDataOperation.precompileFlag()) {
       case PRC_ECADD -> ecAddEffectiveCall.addPrecompileLimit(1);
@@ -113,5 +98,10 @@ public class EcData implements Module {
       }
       default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }
+  }
+
+  @Override
+  public StackedList<EcDataOperation> operations() {
+    return operations;
   }
 }

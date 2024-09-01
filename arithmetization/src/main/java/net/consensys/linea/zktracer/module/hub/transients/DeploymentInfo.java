@@ -52,7 +52,7 @@ public class DeploymentInfo {
 
   // TODO: @Lorenzo: we will have to use this method in the row that
   //  "actually self destructs" the account
-  public void freshDeploymentFollowingSelfdestructAtTransactionEnd(Address address) {
+  public void freshDeploymentNumberFinishingSelfdestruct(Address address) {
     this.incrementDeploymentNumber(address);
     this.markAsNotUnderDeployment(address);
   }

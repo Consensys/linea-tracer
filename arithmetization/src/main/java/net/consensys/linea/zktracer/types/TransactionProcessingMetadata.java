@@ -186,7 +186,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
     this.logs = logs;
     for (Address address : selfDestructs) {
       DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
-      deploymentInfo.newDeploymentAt(address); // depNum += 1 and depStatus <- true
+      deploymentInfo.newDeploymentWithExecutionAt(address); // depNum += 1 and depStatus <- true
       deploymentInfo.markAsNotUnderDeployment(address); // depStatus <- false
       this.destructedAccountsSnapshot.add(
           AccountSnapshot.fromAddress(

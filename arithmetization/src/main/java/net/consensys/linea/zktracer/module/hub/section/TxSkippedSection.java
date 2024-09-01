@@ -66,7 +66,7 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
 
     // the updated deployment info appears in the "updated" account fragment
     if (txMetadata.isDeployment()) {
-      transients.conflation().deploymentInfo().newDeploymentWithoutExecution(recipientAddress);
+      transients.conflation().deploymentInfo().newDeploymentSansExecutionAt(recipientAddress);
     }
 
     // Coinbase account information

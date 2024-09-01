@@ -200,12 +200,16 @@ public class CreateSection extends TraceSection
 
       if (failedCreate) {
         scenarioFragment.setScenario(CREATE_FAILURE_CONDITION_WONT_REVERT);
-      }
-      if (emptyInitCode) {
-        scenarioFragment.setScenario(CREATE_EMPTY_INIT_CODE_WONT_REVERT);
+        return;
       }
 
-      return;
+      // this "if" is redundant and could be removed
+      // --- please don't, for now at least
+      if (emptyInitCode) {
+        scenarioFragment.setScenario(CREATE_EMPTY_INIT_CODE_WONT_REVERT);
+        hub.transients().conflation().deploymentInfo().newDeploymentSansExecutionAt(createeAddress);
+        return;
+      }
     }
 
     // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create
@@ -214,6 +218,7 @@ public class CreateSection extends TraceSection
             this, hub.currentFrame()); // To get the success bit of the CREATE(2)
 
     hub.romLex().callRomLex(frame);
+    hub.transients().conflation().deploymentInfo().newDeploymentWithExecutionAt(createeAddress);
 
     // Note: the case CREATE2 has been set before, we need to do it even in the failure case
     if (hub.opCode() == CREATE) {

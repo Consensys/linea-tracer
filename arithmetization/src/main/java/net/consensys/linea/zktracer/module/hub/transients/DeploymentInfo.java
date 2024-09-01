@@ -40,12 +40,12 @@ public class DeploymentInfo {
     return this.getDeploymentNumber(address);
   }
 
-  public void newDeploymentAt(Address address) {
+  public void newDeploymentWithExecutionAt(Address address) {
     this.incrementDeploymentNumber(address);
     this.markAsUnderDeployment(address);
   }
 
-  public void newDeploymentWithoutExecution(Address address) {
+  public void newDeploymentSansExecutionAt(Address address) {
     this.incrementDeploymentNumber(address);
     this.markAsNotUnderDeployment(address);
   }

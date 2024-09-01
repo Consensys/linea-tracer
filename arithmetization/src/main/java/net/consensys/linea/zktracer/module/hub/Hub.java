@@ -545,7 +545,7 @@ public class Hub implements Module {
 
       final boolean isDeployment = transients.tx().getBesuTransaction().getTo().isEmpty();
       if (isDeployment) {
-        transients.conflation().deploymentInfo().newDeploymentAt(recipientAddress);
+        transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(recipientAddress);
       }
 
       final boolean shouldCopyTxCallData = !isDeployment && currentTx.requiresEvmExecution();
@@ -584,7 +584,7 @@ public class Hub implements Module {
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
 
       if (isDeployment) {
-        transients.conflation().deploymentInfo().newDeploymentAt(codeAddress);
+        transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(codeAddress);
       }
 
       final long callDataOffset =
@@ -777,10 +777,6 @@ public class Hub implements Module {
       currentSection.commonValues.gasNext(0);
     }
 
-    if (this.currentFrame().opCode().isCreate() && operationResult.getHaltReason() == null) {
-      this.handleCreate(Words.toAddress(frame.getStackItem(0)));
-    }
-
     defers.resolvePostExecution(this, frame, operationResult);
 
     if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
@@ -818,7 +814,7 @@ public class Hub implements Module {
   }
 
   private void handleCreate(Address target) {
-    transients.conflation().deploymentInfo().newDeploymentAt(target);
+    transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(target);
   }
 
   public int getCfiByMetaData(

@@ -36,10 +36,22 @@ import org.jetbrains.annotations.NotNull;
  */
 @Accessors(fluent = true)
 public class StackedSet<E extends ModuleOperation> {
-  @Getter private final Set<E> operationSinceBeginningOfTheConflation = new HashSet<>();
-  @Getter private final Set<E> thisTransactionOperation = new HashSet<>();
+  @Getter private final Set<E> operationSinceBeginningOfTheConflation;
+  @Getter private final Set<E> thisTransactionOperation;
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   @Getter private boolean conflationFinished = false;
+
+  public StackedSet() {
+    operationSinceBeginningOfTheConflation = new HashSet<>();
+    thisTransactionOperation = new HashSet<>();
+  }
+
+  /** Prefer this constructor as we preallocate more needed memory */
+  public StackedSet(
+      final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
+    operationSinceBeginningOfTheConflation = new HashSet<>(expectedConflationNumberOperations);
+    thisTransactionOperation = new HashSet<>(expectedTransactionNumberOperations);
+  }
 
   /**
    * When we enter transaction n, the previous transaction n-1 {@link thisTransactionOperation} (or

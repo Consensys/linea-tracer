@@ -33,10 +33,22 @@ import org.jetbrains.annotations.NotNull;
  */
 @Accessors(fluent = true)
 public class StackedList<E extends ModuleOperation> {
-  private final List<E> operationSinceBeginningOfTheConflation = new ArrayList<>();
-  @Getter private final List<E> thisTransactionOperation = new ArrayList<>();
+  private final List<E> operationSinceBeginningOfTheConflation;
+  @Getter private final List<E> thisTransactionOperation;
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   private boolean conflationFinished = false;
+
+  public StackedList() {
+    operationSinceBeginningOfTheConflation = new ArrayList<>();
+    thisTransactionOperation = new ArrayList<>();
+  }
+
+  /** Prefer this constructor as we preallocate more needed memory */
+  public StackedList(
+      final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
+    operationSinceBeginningOfTheConflation = new ArrayList<>(expectedConflationNumberOperations);
+    thisTransactionOperation = new ArrayList<>(expectedTransactionNumberOperations);
+  }
 
   /**
    * when we enter a transaction, the previous transaction is definitely added to the block and

@@ -76,7 +76,7 @@ public class RlpTxnRcpt implements StatefullModule<RlpTxrcptOperation> {
     operations.add(operation);
   }
 
-  public void traceChunk(
+  public void traceOperation(
       final RlpTxrcptOperation chunk, int absTxNum, int absLogNumMax, Trace trace) {
     RlpTxrcptColumns traceValue = new RlpTxrcptColumns();
     traceValue.txrcptSize = txRcptSize(chunk);
@@ -777,7 +777,7 @@ public class RlpTxnRcpt implements StatefullModule<RlpTxrcptOperation> {
 
     int absTxNum = 0;
     for (RlpTxrcptOperation op : operations.getAll()) {
-      traceChunk(op, ++absTxNum, absLogNumMax, trace);
+      traceOperation(op, ++absTxNum, absLogNumMax, trace);
     }
   }
 }

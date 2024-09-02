@@ -50,7 +50,6 @@ public class Create2 extends MmuCall implements RomLexDefer {
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
         .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
-        .requiresCFI(true)
         .setKec();
 
     if (!failedCreate) {
@@ -60,7 +59,7 @@ public class Create2 extends MmuCall implements RomLexDefer {
 
   @Override
   public int targetId() {
-    return this.hub.romLex().getCodeFragmentIndexByMetadata(this.contract);
+    return  exoIsRom ? this.hub.romLex().getCodeFragmentIndexByMetadata(this.contract) : 0;
   }
 
   @Override

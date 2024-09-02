@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.containers;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import java.math.BigInteger;
 
 import lombok.RequiredArgsConstructor;
@@ -47,6 +49,22 @@ public class StackedListTests {
     protected int computeLineCount() {
       return x;
     }
+  }
+
+  @Test
+  void testAddedToFront() {
+    final StackedList<IntegerModuleOperation> state = new StackedList<>();
+
+    state.enter();
+    state.add(new IntegerModuleOperation(1));
+    assertThat(state.lineCount()).isEqualTo(1);
+
+    state.enter();
+    state.add(new IntegerModuleOperation(3));
+    assertThat(state.lineCount()).isEqualTo(4);
+
+    state.pop();
+    assertThat(state.lineCount()).isEqualTo(1);
   }
 
   @Test

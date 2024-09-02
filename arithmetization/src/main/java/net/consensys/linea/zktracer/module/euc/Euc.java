@@ -21,7 +21,9 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
@@ -29,9 +31,10 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class Euc implements StatelessModule<EucOperation> {
   private final Wcp wcp;
-  private final StackedSet<EucOperation> operations = new StackedSet<>();
+  @Getter private final StackedSet<EucOperation> operations = new StackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -65,10 +68,5 @@ public class Euc implements StatelessModule<EucOperation> {
     }
 
     return operation;
-  }
-
-  @Override
-  public StackedSet<EucOperation> operations() {
-    return operations;
   }
 }

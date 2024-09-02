@@ -19,6 +19,8 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
@@ -28,6 +30,8 @@ import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
+@Getter
+@Accessors(fluent = true)
 public class Mod implements StatelessModule<ModOperation> {
   private final StackedSet<ModOperation> operations = new StackedSet<>();
 
@@ -79,10 +83,5 @@ public class Mod implements StatelessModule<ModOperation> {
   public BigInteger callMOD(Bytes32 arg1, Bytes32 arg2) {
     this.operations.add(new ModOperation(OpCode.MOD, arg1, arg2));
     return arg1.toUnsignedBigInteger().mod(arg2.toUnsignedBigInteger());
-  }
-
-  @Override
-  public StackedSet<ModOperation> operations() {
-    return operations;
   }
 }

@@ -18,7 +18,9 @@ package net.consensys.linea.zktracer.module.bin;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.module.Module;
@@ -29,6 +31,8 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Implementation of a {@link Module} for binary operations. */
+@Getter
+@Accessors(fluent = true)
 @RequiredArgsConstructor
 public class Bin implements StatelessModule<BinOperation> {
 
@@ -63,10 +67,5 @@ public class Bin implements StatelessModule<BinOperation> {
   @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public StackedSet<BinOperation> operations() {
-    return operations;
   }
 }

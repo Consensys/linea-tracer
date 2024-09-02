@@ -58,7 +58,9 @@ import java.util.List;
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
@@ -83,9 +85,11 @@ import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class RlpTxn implements StatefullModule<RlpTxnOperation> {
   private final RomLex romLex;
 
+  @Getter
   private final StackedList<RlpTxnOperation> operations =
       new StackedList<>(LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH, 1);
 
@@ -1202,10 +1206,5 @@ public class RlpTxn implements StatefullModule<RlpTxnOperation> {
     for (RlpTxnOperation op : operations.getAll()) {
       traceOperation(op, ++absTxNum, trace);
     }
-  }
-
-  @Override
-  public StackedList<RlpTxnOperation> operations() {
-    return operations;
   }
 }

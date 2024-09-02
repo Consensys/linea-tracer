@@ -18,6 +18,9 @@ package net.consensys.linea.zktracer.module.mxp;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
@@ -25,6 +28,9 @@ import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
 /** Implementation of a {@link Module} for memory expansion. */
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
 public class Mxp implements StatefullModule<MxpOperation> {
 
   private final StackedList<MxpOperation> operations = new StackedList<>();
@@ -33,8 +39,6 @@ public class Mxp implements StatefullModule<MxpOperation> {
   public String moduleKey() {
     return "MXP";
   }
-
-  public Mxp() {}
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
@@ -52,10 +56,5 @@ public class Mxp implements StatefullModule<MxpOperation> {
 
   public void call(MxpCall mxpCall) {
     operations.add(new MxpOperation(mxpCall));
-  }
-
-  @Override
-  public StackedList<MxpOperation> operations() {
-    return operations;
   }
 }

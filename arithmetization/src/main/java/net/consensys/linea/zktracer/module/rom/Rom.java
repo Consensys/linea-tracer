@@ -41,7 +41,7 @@ public class Rom implements Module {
 
   @Override
   public int lineCount() {
-    return romLex.chunks().lineCount();
+    return romLex.operations().lineCount();
   }
 
   @Override
@@ -54,8 +54,8 @@ public class Rom implements Module {
     final Trace trace = new Trace(buffers);
 
     int codeFragmentIndex = 0;
-    final int codeFragmentIndexInfinity = romLex.sortedChunks().size();
-    for (RomOperation chunk : romLex.sortedChunks()) {
+    final int codeFragmentIndexInfinity = romLex.sortedOperations().size();
+    for (RomOperation chunk : romLex.sortedOperations()) {
       chunk.trace(trace, ++codeFragmentIndex, codeFragmentIndexInfinity);
     }
   }

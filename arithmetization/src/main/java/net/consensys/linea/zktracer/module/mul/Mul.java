@@ -18,7 +18,9 @@ package net.consensys.linea.zktracer.module.mul;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
@@ -28,10 +30,11 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class Mul implements StatelessModule<MulOperation> {
   private final Hub hub;
 
-  private final StackedSet<MulOperation> operations = new StackedSet<>();
+  @Getter private final StackedSet<MulOperation> operations = new StackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -45,11 +48,6 @@ public class Mul implements StatelessModule<MulOperation> {
     final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
 
     operations.add(new MulOperation(opCode, arg1, arg2));
-  }
-
-  @Override
-  public StackedSet<MulOperation> operations() {
-    return operations;
   }
 
   @Override

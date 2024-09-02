@@ -61,8 +61,8 @@ public class RomLex
 
   private final Hub hub;
 
-  @Getter private final StackedSet<RomOperation> chunks = new StackedSet<>();
-  @Getter private List<RomOperation> sortedChunks;
+  @Getter private final StackedSet<RomOperation> operations = new StackedSet<>();
+  @Getter private List<RomOperation> sortedOperations;
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
 
@@ -73,11 +73,6 @@ public class RomLex
     return "ROM_LEX";
   }
 
-  @Override
-  public StackedSet<RomOperation> operations() {
-    return chunks;
-  }
-
   public int getCodeFragmentIndexByMetadata(
       final Address address, final int deploymentNumber, final boolean depStatus) {
     return getCodeFragmentIndexByMetadata(
@@ -85,12 +80,12 @@ public class RomLex
   }
 
   public int getCodeFragmentIndexByMetadata(final ContractMetadata metadata) {
-    if (sortedChunks.isEmpty()) {
+    if (sortedOperations.isEmpty()) {
       throw new RuntimeException("Chunks have not been sorted yet");
     }
 
-    for (int i = 0; i < sortedChunks.size(); i++) {
-      final RomOperation c = sortedChunks.get(i);
+    for (int i = 0; i < sortedOperations.size(); i++) {
+      final RomOperation c = sortedOperations.get(i);
       if (c.metadata().equals(metadata)) {
         return i + 1;
       }
@@ -104,14 +99,14 @@ public class RomLex
 
   public Optional<RomOperation> getChunkByMetadata(final ContractMetadata metadata) {
     // First search in the chunk added in the current transaction
-    for (RomOperation c : chunks.thisTransactionOperation()) {
+    for (RomOperation c : operations.thisTransactionOperation()) {
       if (c.metadata().equals(metadata)) {
         return Optional.of(c);
       }
     }
 
     // If not found, search in the chunk added since the beginning of the conflation
-    for (RomOperation c : chunks.operationSinceBeginningOfTheConflation()) {
+    for (RomOperation c : operations.operationSinceBeginningOfTheConflation()) {
       if (c.metadata().equals(metadata)) {
         return Optional.of(c);
       }
@@ -134,7 +129,7 @@ public class RomLex
           new RomOperation(
               ContractMetadata.underDeployment(calledAddress, 1), false, false, tx.getInit().get());
 
-      chunks.add(chunk);
+      operations.add(chunk);
     }
 
     // Call to an account with bytecode
@@ -156,7 +151,7 @@ public class RomLex
                         false,
                         code);
 
-                chunks.add(chunk);
+                operations.add(chunk);
               }
             });
   }
@@ -206,7 +201,7 @@ public class RomLex
                             true,
                             false,
                             byteCode);
-                    chunks.add(chunk);
+                    operations.add(chunk);
                   }
                 });
       }
@@ -241,7 +236,7 @@ public class RomLex
                             false,
                             byteCode);
 
-                    chunks.add(chunk);
+                    operations.add(chunk);
                   }
                 });
       }
@@ -264,7 +259,7 @@ public class RomLex
     checkArgument(deploymentStatus, "After a CREATE the deployment status should be true");
 
     final RomOperation chunk = new RomOperation(contractMetadata, true, false, byteCode);
-    chunks.add(chunk);
+    operations.add(chunk);
     createDefers.trigger(contractMetadata);
   }
 
@@ -289,23 +284,23 @@ public class RomLex
   }
 
   public void determineCodeFragmentIndex() {
-    chunks.finishConflation();
-    sortedChunks = new ArrayList<>(chunks.getAll());
+    operations.finishConflation();
+    sortedOperations = new ArrayList<>(operations.getAll());
     final RomOperationComparator ROM_CHUNK_COMPARATOR = new RomOperationComparator();
-    sortedChunks.sort(ROM_CHUNK_COMPARATOR);
+    sortedOperations.sort(ROM_CHUNK_COMPARATOR);
   }
 
   @Override
   public int lineCount() {
     // WARN: the line count for the RomLex is the *number of code fragments*, not their actual line
     // count – that's for the ROM.
-    return chunks.size();
+    return operations.size();
   }
 
   @Override
   public void traceEndConflation(final WorldView state) {
     Preconditions.checkArgument(
-        chunks.conflationFinished(), "Conflation is done before traceEndConflation for RomLex");
+        operations.conflationFinished(), "Conflation is done before traceEndConflation for RomLex");
   }
 
   @Override
@@ -317,10 +312,10 @@ public class RomLex
   public void commit(List<MappedByteBuffer> buffers) {
 
     final Trace trace = new Trace(buffers);
-    final int codeFragmentIndexInfinity = chunks.size();
+    final int codeFragmentIndexInfinity = operations.size();
 
     int cfi = 0;
-    for (RomOperation chunk : sortedChunks) {
+    for (RomOperation chunk : sortedOperations) {
       traceChunk(chunk, ++cfi, codeFragmentIndexInfinity, trace);
     }
   }
@@ -339,6 +334,6 @@ public class RomLex
     checkArgument(!hub.deploymentStatusOfBytecodeAddress());
 
     final RomOperation chunk = new RomOperation(contractMetadata, false, true, byteCode);
-    chunks.add(chunk);
+    operations.add(chunk);
   }
 }

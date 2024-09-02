@@ -25,7 +25,9 @@ import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LTbv;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
@@ -36,17 +38,14 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public class Wcp implements StatelessModule<WcpOperation> {
 
   private final StackedSet<WcpOperation> operations = new StackedSet<>();
 
   /** count the number of rows that could be added after the sequencer counts the number of line */
   public final CountOnlyOperation additionalRows = new CountOnlyOperation();
-
-  @Override
-  public StackedSet<WcpOperation> operations() {
-    return operations;
-  }
 
   @Override
   public String moduleKey() {

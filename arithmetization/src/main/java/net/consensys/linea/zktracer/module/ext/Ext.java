@@ -18,7 +18,9 @@ package net.consensys.linea.zktracer.module.ext;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
@@ -30,10 +32,11 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class Ext implements StatelessModule<ExtOperation> {
   private final Hub hub;
 
-  private final StackedSet<ExtOperation> operations = new StackedSet<>();
+  @Getter private final StackedSet<ExtOperation> operations = new StackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -82,10 +85,5 @@ public class Ext implements StatelessModule<ExtOperation> {
     for (ExtOperation operation : operations.getAll()) {
       operation.trace(trace, ++stamp);
     }
-  }
-
-  @Override
-  public StackedSet<ExtOperation> operations() {
-    return operations;
   }
 }

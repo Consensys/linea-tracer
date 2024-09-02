@@ -19,7 +19,9 @@ import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
@@ -31,8 +33,9 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class TxnData implements StatefullModule<TxndataOperation> {
-  private final StackedList<TxndataOperation> operations = new StackedList<>();
+  @Getter private final StackedList<TxndataOperation> operations = new StackedList<>();
 
   private final Wcp wcp;
   private final Euc euc;
@@ -63,11 +66,6 @@ public class TxnData implements StatefullModule<TxndataOperation> {
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     currentBlock().setNbOfTxsInBlock(currentTx().tx.getRelativeTransactionNumber());
     currentTx().setCallWcpLastTxOfBlock(currentBlock().getBlockGasLimit());
-  }
-
-  @Override
-  public StackedList<TxndataOperation> operations() {
-    return operations;
   }
 
   @Override

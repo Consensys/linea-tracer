@@ -21,7 +21,9 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
@@ -31,12 +33,13 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes32;
 
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class Stp implements StatelessModule<StpOperation> {
 
   private final Wcp wcp;
   private final Mod mod;
 
-  private final StackedSet<StpOperation> operations = new StackedSet<>();
+  @Getter private final StackedSet<StpOperation> operations = new StackedSet<>();
 
   public void call(StpCall stpCall) {
     final StpOperation stpOperation = new StpOperation(stpCall);
@@ -85,10 +88,5 @@ public class Stp implements StatelessModule<StpOperation> {
     for (StpOperation operation : operations.getAll()) {
       operation.trace(trace, ++stamp);
     }
-  }
-
-  @Override
-  public StackedSet<StpOperation> operations() {
-    return operations;
   }
 }

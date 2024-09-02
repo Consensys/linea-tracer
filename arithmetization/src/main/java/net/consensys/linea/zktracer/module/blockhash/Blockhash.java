@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
@@ -35,6 +37,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
+@Getter
+@Accessors(fluent = true)
 public class Blockhash implements StatelessModule<BlockhashOperation> {
   private final Wcp wcp;
   private final StackedSet<BlockhashOperation> operations = new StackedSet<>();
@@ -108,11 +112,6 @@ public class Blockhash implements StatelessModule<BlockhashOperation> {
         blockHashMap.put(this.opcodeArgument, result);
       }
     }
-  }
-
-  @Override
-  public StackedSet<BlockhashOperation> operations() {
-    return operations;
   }
 
   @Override

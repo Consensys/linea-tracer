@@ -21,6 +21,7 @@ import java.util.Set;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
@@ -37,6 +38,8 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public class EcData implements StatefullModule<EcDataOperation> {
   public static final Set<Address> EC_PRECOMPILES =
       Set.of(Address.ECREC, Address.ALTBN128_ADD, Address.ALTBN128_MUL, Address.ALTBN128_PAIRING);
@@ -98,10 +101,5 @@ public class EcData implements StatefullModule<EcDataOperation> {
       }
       default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }
-  }
-
-  @Override
-  public StackedList<EcDataOperation> operations() {
-    return operations;
   }
 }

@@ -37,7 +37,9 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
@@ -57,8 +59,9 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class RlpAddr implements StatelessModule<RlpAddrOperation> {
-  private final StackedSet<RlpAddrOperation> operations = new StackedSet<>();
+  @Getter private final StackedSet<RlpAddrOperation> operations = new StackedSet<>();
 
   private static final Bytes CREATE2_SHIFT = Bytes.minimalBytes(GlobalConstants.CREATE2_SHIFT);
   private static final Bytes INT_SHORT = Bytes.minimalBytes(RLP_PREFIX_INT_SHORT);
@@ -317,10 +320,5 @@ public class RlpAddr implements StatelessModule<RlpAddrOperation> {
     for (RlpAddrOperation op : operations.getAll()) {
       traceOperation(op, ++stamp, trace);
     }
-  }
-
-  @Override
-  public StackedSet<RlpAddrOperation> operations() {
-    return operations;
   }
 }

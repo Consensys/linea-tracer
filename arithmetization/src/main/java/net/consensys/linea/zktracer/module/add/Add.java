@@ -19,7 +19,9 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
@@ -30,6 +32,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Implementation of a {@link Module} for addition/subtraction. */
 @RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public class Add implements StatelessModule<AddOperation> {
 
   private final StackedSet<AddOperation> operations = new StackedSet<>();
@@ -37,11 +41,6 @@ public class Add implements StatelessModule<AddOperation> {
   @Override
   public String moduleKey() {
     return "ADD";
-  }
-
-  @Override
-  public StackedSet<AddOperation> operations() {
-    return operations;
   }
 
   @Override

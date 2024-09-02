@@ -20,9 +20,10 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLAR
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.limits.Keccak;
@@ -31,8 +32,9 @@ import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class ShakiraData implements StatefullModule<ShakiraDataOperation> {
-  private final StackedList<ShakiraDataOperation> operations = new StackedList<>();
+  @Getter private final StackedList<ShakiraDataOperation> operations = new StackedList<>();
   private final Wcp wcp;
 
   private final Sha256Blocks sha256Blocks;
@@ -44,11 +46,6 @@ public class ShakiraData implements StatefullModule<ShakiraDataOperation> {
   @Override
   public String moduleKey() {
     return "SHAKIRA_DATA";
-  }
-
-  @Override
-  public StackedList<ShakiraDataOperation> operations() {
-    return operations;
   }
 
   @Override
@@ -86,9 +83,8 @@ public class ShakiraData implements StatefullModule<ShakiraDataOperation> {
     trace.fillAndValidateRow();
 
     int stamp = 0;
-    for (ModuleOperation operation : operations.getAll()) {
-      final ShakiraDataOperation shakiraDataOperation = (ShakiraDataOperation) operation;
-      shakiraDataOperation.trace(trace, ++stamp);
+    for (ShakiraDataOperation operation : operations.getAll()) {
+      operation.trace(trace, ++stamp);
     }
   }
 }

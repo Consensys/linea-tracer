@@ -30,8 +30,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
-@Accessors(fluent = true)
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class Mmu implements StatefullModule<MmuOperation> {
   @Getter private final StackedList<MmuOperation> operations = new StackedList<>();
   private final Euc euc;

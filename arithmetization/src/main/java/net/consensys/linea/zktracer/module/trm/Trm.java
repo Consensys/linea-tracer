@@ -20,6 +20,8 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLAR
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatelessModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
@@ -33,6 +35,8 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+@Getter
+@Accessors(fluent = true)
 public class Trm implements StatelessModule<TrmOperation> {
   private final StackedSet<TrmOperation> operations = new StackedSet<>();
 
@@ -93,10 +97,5 @@ public class Trm implements StatelessModule<TrmOperation> {
     for (TrmOperation operation : operations.getAll()) {
       operation.trace(trace, ++stamp);
     }
-  }
-
-  @Override
-  public StackedSet<TrmOperation> operations() {
-    return operations;
   }
 }

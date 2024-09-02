@@ -18,7 +18,9 @@ package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
@@ -29,6 +31,8 @@ import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCal
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
 public class BlakeModexpData implements StatefullModule<BlakeModexpDataOperation> {
   private final Wcp wcp;
   private final ModexpEffectiveCall modexpEffectiveCall;
@@ -74,10 +78,5 @@ public class BlakeModexpData implements StatefullModule<BlakeModexpDataOperation
     for (BlakeModexpDataOperation o : operations.getAll()) {
       o.trace(trace, ++stamp);
     }
-  }
-
-  @Override
-  public StackedList<BlakeModexpDataOperation> operations() {
-    return operations;
   }
 }

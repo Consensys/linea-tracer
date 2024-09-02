@@ -21,7 +21,9 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.StatefullModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
@@ -35,6 +37,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Implementation of a {@link Module} for out of bounds. */
 @RequiredArgsConstructor
+@Accessors(fluent = true)
 public class Oob implements StatefullModule<OobOperation> {
   // TODO @Lorenzo why it's not a StateLess module ?
 
@@ -43,7 +46,7 @@ public class Oob implements StatefullModule<OobOperation> {
   private final Mod mod;
   private final Wcp wcp;
 
-  private final StackedList<OobOperation> operations = new StackedList<>();
+  @Getter private final StackedList<OobOperation> operations = new StackedList<>();
 
   @Override
   public String moduleKey() {
@@ -56,6 +59,7 @@ public class Oob implements StatefullModule<OobOperation> {
     operations.add(oobOperation);
   }
 
+  // TODO: to delete @Lorenzo ?
   @Override
   public void tracePreOpcode(MessageFrame frame) { // TODO: maybe move in the hub
     /*
@@ -151,10 +155,5 @@ public class Oob implements StatefullModule<OobOperation> {
 
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public StackedList<OobOperation> operations() {
-    return operations;
   }
 }

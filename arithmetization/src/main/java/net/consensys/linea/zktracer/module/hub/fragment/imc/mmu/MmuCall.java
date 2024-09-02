@@ -135,6 +135,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   protected boolean exoIsEcData = false;
   private int exoSum = 0;
 
+  public boolean requiresCFI = false;
+
   public void dontTraceMe() {
     this.traceMe = false;
   }
@@ -153,7 +155,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public final void setRom() {
-    this.exoIsRom(true).updateExoSum(EXO_SUM_WEIGHT_ROM);
+    this.exoIsRom(true).updateExoSum(EXO_SUM_WEIGHT_ROM).requiresCFI(true);
   }
 
   public final MmuCall setKec() {

@@ -50,6 +50,7 @@ public class Create2 extends MmuCall implements RomLexDefer {
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
         .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .requiresCFI(true)
         .setKec();
 
     if (!failedCreate) {

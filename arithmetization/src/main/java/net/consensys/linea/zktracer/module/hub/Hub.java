@@ -190,7 +190,7 @@ public class Hub implements Module {
 
   @Override
   public int lineCount() {
-    return this.state.lineCount();
+    return state.lineCounter().lineCount();
   }
 
   /** List of all modules of the ZK-evm */
@@ -533,6 +533,9 @@ public class Hub implements Module {
     for (Module m : modules) {
       m.traceEndTx(txStack.current());
     }
+
+    // Compute the line counting of the HUB of the current transaction
+    state.lineCounter().add(state.currentTxTrace().lineCount());
   }
 
   @Override

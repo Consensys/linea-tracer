@@ -661,7 +661,7 @@ public class Hub implements Module {
   public void traceContextExit(MessageFrame frame) {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
 
-    exitDeploymentFromDeploymentInfoPointOfView();
+    exitDeploymentFromDeploymentInfoPov();
 
     // TODO: why only do this at positive depth ?
     if (frame.getDepth() > 0) {
@@ -710,7 +710,7 @@ public class Hub implements Module {
    * If the current execution context is a deployment context the present method "exits" that
    * deployment in the sense that it updates the relevant deployment information.
    */
-  private void exitDeploymentFromDeploymentInfoPointOfView() {
+  private void exitDeploymentFromDeploymentInfoPov() {
 
     // sanity check
     checkArgument(

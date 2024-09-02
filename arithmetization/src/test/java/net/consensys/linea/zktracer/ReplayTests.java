@@ -180,13 +180,13 @@ public class ReplayTests {
     }
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void traceTxStartNotTheSameAsTxPrepare() {
     replay("start-vs-prepare-tx.json.gz");
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void fatMxp() {
     replay("2492975-2492977.json.gz", false);
@@ -203,55 +203,55 @@ public class ReplayTests {
     replayBulk("");
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void leoFailingRange() {
     replay("5389571-5389577.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void failingMmuModexp() {
     replay("5995162.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void failRlpAddress() {
     replay("5995097.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void rlprcptManyTopicsWoLogData() {
     replay("6569423.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void multipleFailingCallToEcrecover() {
     replay("5000544.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void incident777zkGethMainnet() {
     replay("7461019-7461030.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void issue1006() {
     replay("6032696-6032699.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void issue1004() {
     replay("6020023-6020029.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void block_6110045() {
     // The purpose of this test is to check the mechanism for spotting divergence between the replay
@@ -260,19 +260,19 @@ public class ReplayTests {
     replay("6110045.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void failingCreate2() {
     replay("2250197-2250197.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void blockHash1() {
     replay("8718090.json.gz", false);
   }
 
-  @Disabled
+  // @Disabled
   @Test
   void blockHash2() {
     replay("8718330.json.gz", false);
@@ -280,7 +280,7 @@ public class ReplayTests {
 
   // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
   // instruction
-  @Disabled
+  // @Disabled
   @Test
   void negativeNumberOfMmioInstruction() {
     replay("6029454-6029459.json.gz", false);

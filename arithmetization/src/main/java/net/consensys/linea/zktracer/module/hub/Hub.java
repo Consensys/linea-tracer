@@ -303,7 +303,8 @@ public class Hub implements Module {
   private final List<Module> refTableModules;
 
   /** fix this mess */
-  public boolean failureCondition_ArnoldPalmerAlert_ArnoldPalmerAlert_WhoWantsSomeArniePalmies = false;
+  public boolean failureCondition_ArnoldPalmerAlert_ArnoldPalmerAlert_WhoWantsSomeArniePalmies =
+      false;
 
   /**
    * @return a list of all modules for which to generate traces
@@ -542,7 +543,6 @@ public class Hub implements Module {
   public void traceContextEnter(MessageFrame frame) {
     pch.reset();
 
-
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
       final TransactionProcessingMetadata currentTransaction = transients().tx();
@@ -647,7 +647,6 @@ public class Hub implements Module {
         m.traceContextEnter(frame);
       }
     }
-
   }
 
   public void traceContextReEnter(MessageFrame frame) {
@@ -735,7 +734,9 @@ public class Hub implements Module {
           checkArgument(!deploymentStatusOfBytecodeAddress());
         } else {
           // non failure condition
-          checkArgument(deploymentStatusOfBytecodeAddress() == !messageFrame().getCode().getBytes().isEmpty());
+          checkArgument(
+              deploymentStatusOfBytecodeAddress()
+                  == !messageFrame().getCode().getBytes().isEmpty());
         }
       } else {
         checkArgument(!deploymentStatusOfBytecodeAddress());

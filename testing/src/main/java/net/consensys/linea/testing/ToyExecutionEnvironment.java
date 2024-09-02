@@ -26,8 +26,10 @@ import java.io.Reader;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import lombok.Builder;
@@ -53,6 +55,7 @@ import org.hyperledger.besu.ethereum.mainnet.TransactionValidatorFactory;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.FeeMarket;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.LondonFeeMarket;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
+import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
 import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.MainnetEVMs;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
@@ -81,7 +84,7 @@ public class ToyExecutionEnvironment {
   private static final Wei DEFAULT_BASE_FEE = Wei.of(LINEA_BASE_FEE);
 
   private static final GasCalculator gasCalculator = ZkTracer.gasCalculator;
-  public static final Address DEFAULT_MINER_ADDRESS =
+  public static final Address DEFAULT_COINBASE_ADDRESS =
       Address.fromHexString("0xc019ba5e00000000c019ba5e00000000c019ba5e");
   private static final long DEFAULT_BLOCK_NUMBER = 6678980;
   private static final long DEFAULT_TIME_STAMP = 14071789;
@@ -116,9 +119,26 @@ public class ToyExecutionEnvironment {
     }
   }
 
+  public void checkTracer(String inputFilePath) {
+
+    // Generate the output file path based on the input file path
+    Path inputPath = Paths.get(inputFilePath);
+    String outputFileName = inputPath.getFileName().toString().replace(".json.gz", ".lt");
+    Path outputPath = inputPath.getParent().resolve(outputFileName);
+    this.tracer.writeToFile(outputPath);
+    log.info("trace written to `{}`", outputPath);
+    // validation is disabled by default for replayBulk
+    // assertThat(CORSET_VALIDATOR.validate(outputPath).isValid()).isTrue();
+  }
+
   public void run() {
     this.execute();
     this.checkTracer();
+  }
+
+  public void run(String inputFilePath) {
+    this.execute();
+    this.checkTracer(inputFilePath);
   }
 
   /**
@@ -140,6 +160,19 @@ public class ToyExecutionEnvironment {
     this.checkTracer();
   }
 
+  public void replay(final Reader replayFile, String inputFilePath) {
+    Gson gson = new Gson();
+    ConflationSnapshot conflation;
+    try {
+      conflation = gson.fromJson(replayFile, ConflationSnapshot.class);
+    } catch (Exception e) {
+      log.error(e.getMessage());
+      return;
+    }
+    this.executeFrom(conflation);
+    this.checkTracer(inputFilePath);
+  }
+
   /**
    * Loads the states and the conflation defined in a {@link ConflationSnapshot}, mimick the
    * accounts, storage and blocks state as it was on the blockchain before the conflation played
@@ -148,7 +181,17 @@ public class ToyExecutionEnvironment {
    * @param conflation the conflation to replay
    */
   private void executeFrom(final ConflationSnapshot conflation) {
-    final ToyWorld overridenToyWorld = ToyWorld.of(conflation);
+    final ToyWorld toyWorld = ToyWorld.of(conflation);
+    //
+    Map<String, ReferenceTestWorldState.AccountMock> accountMockMap =
+        toyWorld.getAddressAccountMap().entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    entry -> entry.getKey().toHexString(),
+                    entry -> entry.getValue().toAccountMock()));
+
+    ReferenceTestWorldState world =
+        ReferenceTestWorldState.create(accountMockMap, EvmConfiguration.DEFAULT);
 
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
       for (TransactionSnapshot tx : blockSnapshot.txs()) {
@@ -156,31 +199,30 @@ public class ToyExecutionEnvironment {
       }
     }
     final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
+
     tracer.traceStartConflation(conflation.blocks().size());
 
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
-      BlockHeader header = blockSnapshot.header().toBlockHeader();
+      final BlockHeader header = blockSnapshot.header().toBlockHeader();
 
-      BlockBody body =
+      final BlockBody body =
           new BlockBody(
               blockSnapshot.txs().stream().map(TransactionSnapshot::toTransaction).toList(),
               new ArrayList<>());
       tracer.traceStartBlock(header, body);
 
       for (TransactionSnapshot txs : blockSnapshot.txs()) {
-        Transaction tx = txs.toTransaction();
-        WorldUpdater updater = overridenToyWorld.updater();
+        final Transaction tx = txs.toTransaction();
+        final WorldUpdater updater = world.updater();
         // Process transaction leading to expected outcome
-        TransactionProcessingResult outcome =
+        final TransactionProcessingResult outcome =
             transactionProcessor.processTransaction(
                 updater,
                 (ProcessableBlockHeader) header,
                 tx,
                 header.getCoinbase(),
                 buildOperationTracer(tx, txs.getOutcome()),
-                blockId -> {
-                  throw new RuntimeException("Block hash lookup not yet supported");
-                },
+                toyWorld::blockHash,
                 false,
                 Wei.ZERO);
         // Commit transaction
@@ -188,7 +230,7 @@ public class ToyExecutionEnvironment {
       }
       tracer.traceEndBlock(header, body);
     }
-    tracer.traceEndConflation(overridenToyWorld.updater());
+    tracer.traceEndConflation(world.updater());
   }
 
   private void execute() {
@@ -198,7 +240,7 @@ public class ToyExecutionEnvironment {
             .gasLimit(LINEA_BLOCK_GAS_LIMIT)
             .difficulty(Difficulty.of(LINEA_DIFFICULTY))
             .number(DEFAULT_BLOCK_NUMBER)
-            .coinbase(DEFAULT_MINER_ADDRESS)
+            .coinbase(DEFAULT_COINBASE_ADDRESS)
             .timestamp(DEFAULT_TIME_STAMP)
             .parentHash(DEFAULT_HASH)
             .buildBlockHeader();
@@ -243,7 +285,7 @@ public class ToyExecutionEnvironment {
         new MessageCallProcessor(evm, precompileContractRegistry);
 
     final ContractCreationProcessor contractCreationProcessor =
-        new ContractCreationProcessor(evm, false, List.of(), 0);
+        new ContractCreationProcessor(evm, false, List.of(), 1);
 
     return new MainnetTransactionProcessor(
         gasCalculator,
@@ -286,7 +328,7 @@ public class ToyExecutionEnvironment {
       log.info("tx `{}` outcome not checked (disabled)", hash);
       return tracer;
     } else {
-      return ConflationAwareOperationTracer.sequence(txs.check(), this.tracer);
+      return ConflationAwareOperationTracer.sequence(txs.check(), tracer);
     }
   }
 }

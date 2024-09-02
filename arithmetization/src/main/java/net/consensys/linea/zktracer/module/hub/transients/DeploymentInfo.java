@@ -23,7 +23,11 @@ import org.hyperledger.besu.datatypes.Address;
 /** Stores information relative to contract deployment. */
 public class DeploymentInfo {
   private final Map<Address, Integer> deploymentNumber = new HashMap<>();
-  private final Map<Address, Boolean> isDeploying = new HashMap<>();
+  private final Map<Address, Boolean> deploymentStatus = new HashMap<>();
+
+  public int statusSize() {
+    return deploymentStatus.size();
+  }
 
   /**
    * Returns the deployment number of the given address; sets it to zero if it is the first
@@ -32,37 +36,49 @@ public class DeploymentInfo {
    * @param address the address to get information for
    * @return the deployment number for this address
    */
-  public final int number(Address address) {
+  public final int deploymentNumber(Address address) {
+    return this.getDeploymentNumber(address);
+  }
+
+  public void newDeploymentAt(Address address) {
+    this.incrementDeploymentNumber(address);
+    this.markAsUnderDeployment(address);
+  }
+
+  public void newDeploymentAtForTxSkip(Address address) {
+    this.incrementDeploymentNumber(address);
+    this.markAsNotUnderDeployment(address);
+  }
+
+  public void updateDeploymentInfoForSelfdestructsAtTransactionEnd(Address address) {
+    // This is called when a transaction ends and the account is self-destructed
+    this.incrementDeploymentNumber(address);
+    this.markAsNotUnderDeployment(address);
+  }
+
+  private int getDeploymentNumber(Address address) {
     return this.deploymentNumber.getOrDefault(address, 0);
   }
 
   public void deploy(Address address) {
     this.incrementDeploymentNumber(address);
-    this.markDeploying(address);
+    this.markAsUnderDeployment(address);
   }
 
-  public int getDeploymentNumber(Address address) {
-    return this.deploymentNumber.get(address);
-  }
-
-  public final boolean isDeploying(Address address) {
-    return this.isDeploying.getOrDefault(address, false);
-  }
-
-  public final void markDeploying(Address address) {
-    this.isDeploying.put(address, true);
-  }
-
-  public final void unmarkDeploying(Address address) {
-    this.isDeploying.put(address, false);
-  }
-
-  public void selfDestructAtTransactionEnd(Address address) {
-    this.incrementDeploymentNumber(address);
-    this.unmarkDeploying(address);
+  public final boolean getDeploymentStatus(Address address) {
+    return this.deploymentStatus.getOrDefault(address, false);
   }
 
   private void incrementDeploymentNumber(Address address) {
-    this.deploymentNumber.put(address, this.number(address) + 1);
+    int currentDeploymentNumber = getDeploymentNumber(address);
+    deploymentNumber.put(address, currentDeploymentNumber + 1);
+  }
+
+  private void markAsUnderDeployment(Address address) {
+    this.deploymentStatus.put(address, true);
+  }
+
+  public final void markAsNotUnderDeployment(Address address) {
+    this.deploymentStatus.put(address, false);
   }
 }

@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_EXO_WITH_PADDING;
 
+import java.util.Optional;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
@@ -39,10 +41,16 @@ public class ReturnFromDeployment extends MmuCall {
 
     // TODO: get the metaDaa directly from the hub
     final Address contractAddress = hub.currentFrame().frame().getContractAddress();
-    final int depNumber = hub.transients().conflation().deploymentInfo().number(contractAddress);
+    final int depNumber = hub.deploymentNumberOf(contractAddress);
     this.contract = ContractMetadata.underDeployment(contractAddress, depNumber);
 
     this.sourceId(hub.currentFrame().contextNumber())
+        .sourceRamBytes(
+            Optional.of(
+                hub.currentFrame()
+                    .frame()
+                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
+        .exoBytes(Optional.of(hub.romLex().getCodeByMetadata(contract)))
         .auxId(hub.state().stamps().hub())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))

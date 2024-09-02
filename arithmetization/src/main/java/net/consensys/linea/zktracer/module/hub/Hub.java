@@ -556,11 +556,6 @@ public class Hub implements Module {
           value.equals(Wei.of(transients.tx().getBesuTransaction().getValue().getAsBigInteger())));
       checkArgument(frame.getRemainingGas() == transients.tx().getInitiallyAvailableGas());
 
-      if (isDeployment) {
-        // TODO: what happens for TX_SKIP ?
-        transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(recipientAddress);
-      }
-
       final boolean copyTransactionCallData =
           !isDeployment && currentTransaction.requiresEvmExecution();
       if (copyTransactionCallData) {

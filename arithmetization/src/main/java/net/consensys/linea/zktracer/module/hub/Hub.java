@@ -302,6 +302,9 @@ public class Hub implements Module {
   /** reference table modules */
   private final List<Module> refTableModules;
 
+  /** fix this mess */
+  public boolean failureCondition_ArnoldPalmerAlert_ArnoldPalmerAlert_WhoWantsSomeArniePalmies = false;
+
   /**
    * @return a list of all modules for which to generate traces
    */
@@ -539,6 +542,7 @@ public class Hub implements Module {
   public void traceContextEnter(MessageFrame frame) {
     pch.reset();
 
+
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
       final TransactionProcessingMetadata currentTransaction = transients().tx();
@@ -581,6 +585,8 @@ public class Hub implements Module {
           this.deploymentNumberOf(recipientAddress),
           this.deploymentNumberOf(recipientAddress),
           this.deploymentStatusOf(recipientAddress));
+
+      this.currentFrame().initializeFrame(frame);
     }
 
     // internal transaction (CALL) or internal deployment (CREATE)
@@ -632,7 +638,8 @@ public class Hub implements Module {
           callDataOffset,
           callDataSize,
           callDataContextNumber);
-      this.currentFrame().initializeFrame(frame); // TODO should be done in enter
+
+      this.currentFrame().initializeFrame(frame);
 
       defers.resolveUponContextEntry(this);
 
@@ -640,6 +647,7 @@ public class Hub implements Module {
         m.traceContextEnter(frame);
       }
     }
+
   }
 
   public void traceContextReEnter(MessageFrame frame) {
@@ -714,13 +722,21 @@ public class Hub implements Module {
             + String.format(
                 "\n\t\tmessageFrame().getContractAddress() = %s",
                 this.messageFrame().getContractAddress())
-            + "\n\t\t-----");
+            + String.format("\n\t\tCALL_STACK_DEPTH  = %s", messageFrame().getDepth())
+            + String.format("\n\t\tABS_TX_NUM        = %s", txStack.getCurrentAbsNumber())
+            + String.format("\n\t\tHUB_STAMP         = %s", stamp())
+            + String.format("\n\t\tCONTEXT_NUMBER    = %s", currentFrame().contextNumber()));
 
     // sanity check
     if (state.processingPhase != TX_SKIP) {
       if (messageFrame().getType() == CONTRACT_CREATION) {
-        checkArgument(
-            deploymentStatusOfBytecodeAddress() == !messageFrame().getCode().getBytes().isEmpty());
+        // non failure condition
+        if (failureCondition_ArnoldPalmerAlert_ArnoldPalmerAlert_WhoWantsSomeArniePalmies) {
+          checkArgument(!deploymentStatusOfBytecodeAddress());
+        } else {
+          // non failure condition
+          checkArgument(deploymentStatusOfBytecodeAddress() == !messageFrame().getCode().getBytes().isEmpty());
+        }
       } else {
         checkArgument(!deploymentStatusOfBytecodeAddress());
       }
@@ -1012,6 +1028,9 @@ public class Hub implements Module {
   }
 
   void traceOpcode(MessageFrame frame) {
+
+    // TODO: supremely ugly hack, somebody please clean up this mess
+    failureCondition_ArnoldPalmerAlert_ArnoldPalmerAlert_WhoWantsSomeArniePalmies = false;
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,

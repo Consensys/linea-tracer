@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
 
-import com.google.common.base.Preconditions;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;

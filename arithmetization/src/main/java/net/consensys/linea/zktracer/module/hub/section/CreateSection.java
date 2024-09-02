@@ -34,7 +34,6 @@ import static org.hyperledger.besu.crypto.Hash.keccak256;
 
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
@@ -130,8 +129,7 @@ public class CreateSection extends TraceSection
     final StpCall stpCall = new StpCall(hub, mxpCall.getGasMxp());
     imcFragment.callStp(stpCall);
 
-    checkArgument(
-        stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
+    checkArgument(stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
@@ -150,12 +148,12 @@ public class CreateSection extends TraceSection
     checkArgument(oobCall.isAbortingCondition() == aborts.any());
 
     final CallFrame callFrame = hub.currentFrame();
-    final MessageFrame frame = callFrame.frame();
+    final MessageFrame messageFrame = hub.messageFrame();
 
     final Address creatorAddress = callFrame.accountAddress();
     preOpcodeCreatorSnapshot = AccountSnapshot.canonical(hub, creatorAddress);
 
-    final Address createeAddress = getDeploymentAddress(frame);
+    final Address createeAddress = getDeploymentAddress(messageFrame);
     preOpcodeCreateeSnapshot = AccountSnapshot.canonical(hub, createeAddress);
 
     if (aborts.any()) {
@@ -173,7 +171,7 @@ public class CreateSection extends TraceSection
     rlpAddrSubFragment = RlpAddrSubFragment.makeFragment(hub, createeAddress);
 
     final Optional<Account> deploymentAccount =
-        Optional.ofNullable(frame.getWorldUpdater().get(createeAddress));
+        Optional.ofNullable(messageFrame.getWorldUpdater().get(createeAddress));
     final boolean createdAddressHasNonZeroNonce =
         deploymentAccount.map(a -> a.getNonce() != 0).orElse(false);
     final boolean createdAddressHasNonEmptyCode =
@@ -189,7 +187,7 @@ public class CreateSection extends TraceSection
 
       final long offset = Words.clampedToLong(hub.messageFrame().getStackItem(1));
       final long size = Words.clampedToLong(hub.messageFrame().getStackItem(2));
-      final Bytes create2InitCode = frame.shadowReadMemory(offset, size);
+      final Bytes create2InitCode = messageFrame.shadowReadMemory(offset, size);
       final Bytes32 hash = keccak256(create2InitCode);
       final ShakiraDataOperation shakiraDataOperation =
           new ShakiraDataOperation(hub.stamp(), KECCAK, create2InitCode, hash);
@@ -218,7 +216,7 @@ public class CreateSection extends TraceSection
         .scheduleForContextReEntry(
             this, hub.currentFrame()); // To get the success bit of the CREATE(2)
 
-    hub.romLex().callRomLex(frame);
+    hub.romLex().callRomLex(messageFrame);
     hub.transients().conflation().deploymentInfo().newDeploymentWithExecutionAt(createeAddress);
 
     // Note: the case CREATE2 has been set before, we need to do it even in the failure case
@@ -231,7 +229,7 @@ public class CreateSection extends TraceSection
   }
 
   @Override
-  public void resolveUponImmediateContextEntry(Hub hub) {
+  public void resolveUponContextEntry(Hub hub) {
     childEntryCreatorSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreatorSnapshot.address());
     childEntryCreateeSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreateeSnapshot.address());
 

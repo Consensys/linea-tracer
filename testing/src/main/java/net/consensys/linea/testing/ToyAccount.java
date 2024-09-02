@@ -16,12 +16,13 @@
 
 package net.consensys.linea.testing;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.function.Supplier;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import lombok.Builder;
 import org.apache.tuweni.bytes.Bytes;
@@ -35,8 +36,6 @@ import org.hyperledger.besu.evm.ModificationNotAllowedException;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.account.AccountStorageEntry;
 import org.hyperledger.besu.evm.account.MutableAccount;
-
-import static com.google.common.base.Preconditions.*;
 
 public class ToyAccount implements MutableAccount {
   private final Account parent;

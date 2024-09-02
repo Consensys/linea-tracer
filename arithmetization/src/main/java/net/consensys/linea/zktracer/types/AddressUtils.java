@@ -23,7 +23,6 @@ import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;

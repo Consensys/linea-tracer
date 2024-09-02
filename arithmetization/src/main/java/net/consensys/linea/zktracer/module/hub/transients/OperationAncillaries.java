@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;

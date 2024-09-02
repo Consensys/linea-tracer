@@ -15,11 +15,10 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.*;
+
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
-
-import static com.google.common.base.Preconditions.*;
 
 @RequiredArgsConstructor
 public final class EcMulEffectiveCall extends CountingOnlyModule {

@@ -67,7 +67,6 @@ import static org.apache.tuweni.bytes.Bytes.minimalBytes;
 
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

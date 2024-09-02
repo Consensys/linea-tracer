@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.executionProvidesEmptyReturnData;
 import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.readCurrentContextData;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -60,8 +59,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     }
     parentContextReturnDataReset = executionProvidesEmptyReturnData(hub);
 
-    checkArgument(
-        hub.currentFrame().isDeployment() == deploymentStatus); // sanity check
+    checkArgument(hub.currentFrame().isDeployment() == deploymentStatus); // sanity check
 
     // Message call case
     ////////////////////

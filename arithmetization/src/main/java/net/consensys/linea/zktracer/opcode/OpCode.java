@@ -15,10 +15,9 @@
 
 package net.consensys.linea.zktracer.opcode;
 
-import com.google.common.base.Preconditions;
-import net.consensys.linea.zktracer.types.UnsignedByte;
-
 import static com.google.common.base.Preconditions.*;
+
+import net.consensys.linea.zktracer.types.UnsignedByte;
 
 /** Represents the entire set of opcodes that are required by the arithmetization process. */
 public enum OpCode {

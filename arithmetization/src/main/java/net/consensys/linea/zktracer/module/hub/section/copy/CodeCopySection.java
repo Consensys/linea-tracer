@@ -15,7 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.*;
+
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
@@ -29,8 +30,6 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-
-import static com.google.common.base.Preconditions.*;
 
 public class CodeCopySection extends TraceSection {
 

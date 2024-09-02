@@ -23,7 +23,6 @@ import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 import java.util.Map;
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

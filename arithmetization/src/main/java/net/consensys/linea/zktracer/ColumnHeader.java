@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer;
 
-import com.google.common.base.Preconditions;
-
 import static com.google.common.base.Preconditions.*;
 
 public record ColumnHeader(String name, int bytesPerElement, int length) {

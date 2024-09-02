@@ -25,7 +25,6 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;

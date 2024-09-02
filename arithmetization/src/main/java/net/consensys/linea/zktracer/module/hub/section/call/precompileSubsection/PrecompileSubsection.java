@@ -24,7 +24,6 @@ import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -134,10 +133,9 @@ public class PrecompileSubsection
   }
 
   @Override
-  public void resolveUponImmediateContextEntry(Hub hub) {
+  public void resolveUponContextEntry(Hub hub) {
     // Sanity check
-    checkArgument(
-        callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));
+    checkArgument(callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));
     checkArgument(callData.equals(hub.messageFrame().getInputData()));
 
     callerGas = hub.callStack().parent().frame().getRemainingGas();
@@ -145,7 +143,7 @@ public class PrecompileSubsection
     parentReturnDataTarget = hub.currentFrame().returnDataTargetInCaller();
   }
 
-  public void resolveUponExitingContext(Hub hub, CallFrame callFrame) {
+  public void resolveUponContextExit(Hub hub, CallFrame callFrame) {
     returnGas = callFrame.frame().getRemainingGas();
   }
 

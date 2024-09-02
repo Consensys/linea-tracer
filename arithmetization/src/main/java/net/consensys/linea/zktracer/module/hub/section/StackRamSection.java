@@ -24,7 +24,6 @@ import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractCo
 
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
@@ -52,8 +51,7 @@ public class StackRamSection extends TraceSection {
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
-    checkArgument(
-        mxpCall.isMxpx() == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.isMxpx() == Exceptions.memoryExpansionException(exceptions));
 
     // MXPX or OOGX case
     if (mxpCall.isMxpx() || Exceptions.outOfGasException(exceptions)) {

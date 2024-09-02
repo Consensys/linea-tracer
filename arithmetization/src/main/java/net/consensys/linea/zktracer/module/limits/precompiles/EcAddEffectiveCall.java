@@ -15,10 +15,9 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import com.google.common.base.Preconditions;
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
-
 import static com.google.common.base.Preconditions.*;
+
+import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
 
 public final class EcAddEffectiveCall extends CountingOnlyModule {
 

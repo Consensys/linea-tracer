@@ -33,7 +33,6 @@ import static net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffec
 
 import java.math.BigInteger;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;

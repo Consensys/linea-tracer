@@ -15,7 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.*;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -29,8 +30,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-
-import static com.google.common.base.Preconditions.*;
 
 public class LogSection extends TraceSection implements PostRollbackDefer, PostTransactionDefer {
 
@@ -59,8 +58,7 @@ public class LogSection extends TraceSection implements PostRollbackDefer, PostT
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
-    checkArgument(
-        mxpCall.isMxpx() == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.isMxpx() == Exceptions.memoryExpansionException(exceptions));
 
     // MXPX case
     if (mxpCall.isMxpx()) {
@@ -78,8 +76,7 @@ public class LogSection extends TraceSection implements PostRollbackDefer, PostT
     hub.defers().scheduleForPostTransaction(this);
 
     final LogData logData = new LogData(hub);
-    checkArgument(
-        logData.nontrivialLog() == mxpCall.mayTriggerNontrivialMmuOperation);
+    checkArgument(logData.nontrivialLog() == mxpCall.mayTriggerNontrivialMmuOperation);
     mmuCall = (logData.nontrivialLog()) ? MmuCall.LogX(hub, logData) : null;
 
     if (mmuCall != null) {

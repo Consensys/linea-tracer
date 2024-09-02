@@ -15,13 +15,11 @@
 
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
-import com.google.common.base.Preconditions;
-import net.consensys.linea.zktracer.ZkTracer;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
-import org.hyperledger.besu.evm.internal.Words;
-
 import static com.google.common.base.Preconditions.*;
 import static org.hyperledger.besu.evm.internal.Words.*;
+
+import net.consensys.linea.zktracer.ZkTracer;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 
 public abstract class GasProjection {
   GasCalculator gc = ZkTracer.gasCalculator;

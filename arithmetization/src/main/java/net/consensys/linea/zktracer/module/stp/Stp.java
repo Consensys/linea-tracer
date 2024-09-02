@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.types.Conversions.longToBytes32;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.set.StackedSet;

@@ -53,7 +53,6 @@ import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;

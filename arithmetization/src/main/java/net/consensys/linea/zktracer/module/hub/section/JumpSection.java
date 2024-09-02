@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.hub.section;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.*;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;

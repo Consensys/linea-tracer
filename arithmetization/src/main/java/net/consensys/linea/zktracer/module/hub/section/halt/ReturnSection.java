@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.memoryE
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -45,7 +44,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.frame.MessageFrame.Type;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
@@ -86,8 +84,11 @@ public class ReturnSection extends TraceSection
                 .conflation()
                 .deploymentInfo()
                 .getDeploymentStatus(messageFrame.getContractAddress()),
-    String.format("ReturnSection check argument\n\t\tHUB_STAMP = %s\n\t\tMessageFrame.contractAddress = %s\n\t\tCallFrame.byteCodeAddress = %s",
-            hub.stamp(), hub.messageFrame().getContractAddress(), hub.currentFrame().byteCodeAddress()));
+        String.format(
+            "ReturnSection check argument\n\t\tHUB_STAMP = %s\n\t\tMessageFrame.contractAddress = %s\n\t\tCallFrame.byteCodeAddress = %s",
+            hub.stamp(),
+            hub.messageFrame().getContractAddress(),
+            hub.currentFrame().byteCodeAddress()));
 
     returnScenarioFragment = new ReturnScenarioFragment();
     final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);

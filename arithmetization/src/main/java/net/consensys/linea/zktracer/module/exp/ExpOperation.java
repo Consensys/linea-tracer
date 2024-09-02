@@ -34,7 +34,6 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
-import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;

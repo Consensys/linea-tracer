@@ -27,7 +27,6 @@ import static org.hyperledger.besu.evm.internal.Words.clampedMultiply;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;

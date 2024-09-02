@@ -57,7 +57,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
@@ -144,8 +143,10 @@ public class RlpTxn implements Module {
     traceValue.codeFragmentIndex =
         chunk.tx().getTo().isEmpty() && chunk.requireEvmExecution()
             ? this.romLex.getCodeFragmentIndexByMetadata(
-                ContractMetadata.underDeployment(
-                    Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()), 1))
+                ContractMetadata.make(
+                    Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()),
+                    1,
+                    true))
             : 0;
     traceValue.txType = getTxTypeAsInt(chunk.tx().getType());
 
@@ -233,8 +234,7 @@ public class RlpTxn implements Module {
     // Phase GasPrice
     if (traceValue.txType == 0 || traceValue.txType == 1) {
       BigInteger gasPrice = chunk.tx().getGasPrice().orElseThrow().getAsBigInteger();
-      checkArgument(
-          bigIntegerToBytes(gasPrice).size() <= 8, "GasPrice is longer than 8 bytes");
+      checkArgument(bigIntegerToBytes(gasPrice).size() <= 8, "GasPrice is longer than 8 bytes");
       traceValue.dataLo = gasPrice;
       handlePhaseInteger(traceValue, RLP_TXN_PHASE_GAS_PRICE, gasPrice, 8, trace);
     }

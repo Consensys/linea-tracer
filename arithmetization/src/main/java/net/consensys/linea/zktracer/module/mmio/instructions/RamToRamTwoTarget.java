@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.onePartialTo
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.updateTemporaryTargetRam;
 import static net.consensys.linea.zktracer.types.Bytecodes.readLimb;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
 import net.consensys.linea.zktracer.types.Bytes16;

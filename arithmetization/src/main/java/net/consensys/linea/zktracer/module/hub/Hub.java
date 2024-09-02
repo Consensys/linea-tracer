@@ -23,6 +23,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
+import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
@@ -31,7 +32,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -541,30 +541,37 @@ public class Hub implements Module {
 
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
-      final TransactionProcessingMetadata currentTx = transients().tx();
-      final Address recipientAddress = effectiveToAddress(currentTx.getBesuTransaction());
+      final TransactionProcessingMetadata currentTransaction = transients().tx();
+      final Address recipientAddress = frame.getRecipientAddress();
+      final Address senderAddress = frame.getSenderAddress();
+      final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
+      final Wei value = frame.getValue();
+      final long initiallyAvailableGas = frame.getRemainingGas();
 
-      // TODO: we may not have to recompute the recipient address if the frame already provides it ...
-      // TODO: test this on a deployment transaction
-      checkArgument(recipientAddress.equals(frame.getRecipientAddress()));
+      checkArgument(
+          recipientAddress.equals(effectiveToAddress(currentTransaction.getBesuTransaction())));
+      checkArgument(senderAddress.equals(txStack.current().getBesuTransaction().getSender()));
+      checkArgument(isDeployment == transients.tx().getBesuTransaction().getTo().isEmpty());
+      checkArgument(
+          value.equals(Wei.of(transients.tx().getBesuTransaction().getValue().getAsBigInteger())));
+      checkArgument(frame.getRemainingGas() == transients.tx().getInitiallyAvailableGas());
 
-      // TODO: isDeployment should coïncie with (frame.type == CONTRACT_CREATION)
-      final boolean isDeployment = transients.tx().getBesuTransaction().getTo().isEmpty();
       if (isDeployment) {
+        // TODO: what happens for TX_SKIP ?
         transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(recipientAddress);
       }
 
-      final boolean shouldCopyTxCallData = !isDeployment && currentTx.requiresEvmExecution();
-      final int callDataContextNumber = shouldCopyTxCallData ? this.stamp() : 0;
-      if (shouldCopyTxCallData) {
+      final boolean copyTransactionCallData =
+          !isDeployment && currentTransaction.requiresEvmExecution();
+      if (copyTransactionCallData) {
         callStack.newTransactionCallDataContext(
-            callDataContextNumber,
+            callDataContextNumber(copyTransactionCallData),
             transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY));
       }
 
       callStack.newRootContext(
           newChildContextNumber(),
-          txStack.current().getBesuTransaction().getSender(),
+          senderAddress,
           recipientAddress,
           new Bytecode(
               recipientAddress == null
@@ -572,9 +579,9 @@ public class Hub implements Module {
                   : Optional.ofNullable(frame.getWorldUpdater().get(recipientAddress))
                       .map(AccountState::getCode)
                       .orElse(Bytes.EMPTY)),
-          Wei.of(transients.tx().getBesuTransaction().getValue().getAsBigInteger()),
-          transients.tx().getInitiallyAvailableGas(),
-          callDataContextNumber,
+          value,
+          initiallyAvailableGas,
+          callDataContextNumber(copyTransactionCallData),
           transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY),
           this.deploymentNumberOf(recipientAddress),
           this.deploymentNumberOf(recipientAddress),
@@ -584,7 +591,7 @@ public class Hub implements Module {
     // internal transaction (CALL) or internal deployment (CREATE)
     if (frame.getDepth() > 0) {
       final OpCode currentOpCode = callStack.current().opCode();
-      final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
+      final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
 
@@ -632,7 +639,7 @@ public class Hub implements Module {
           callDataContextNumber);
       this.currentFrame().initializeFrame(frame); // TODO should be done in enter
 
-      defers.resolveUponImmediateContextEntry(this);
+      defers.resolveUponContextEntry(this);
 
       for (Module m : modules) {
         m.traceContextEnter(frame);
@@ -643,7 +650,7 @@ public class Hub implements Module {
   public void traceContextReEnter(MessageFrame frame) {
     // Note: the update of the current call frame is made during traceContextExit of the child frame
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
-    defers.resolveAtContextReEntry(this, this.currentFrame());
+    defers.resolveUponContextReEntry(this, this.currentFrame());
     this.unlatchStack(frame, this.currentFrame().childSpanningSection());
   }
 
@@ -685,7 +692,7 @@ public class Hub implements Module {
       }
     }
 
-    defers.resolveUponExitingContext(this, this.currentFrame());
+    defers.resolveUponContextExit(this, this.currentFrame());
     // TODO: verify me please @Olivier
     if (this.currentFrame().opCode() == OpCode.REVERT || Exceptions.any(pch.exceptions())) {
       defers.resolvePostRollback(this, frame, this.currentFrame());
@@ -705,23 +712,35 @@ public class Hub implements Module {
     // sanity check
     checkArgument(
         this.currentFrame().byteCodeAddress().equals(this.bytecodeAddress()),
-        String.format(
-            "currentFrame().byteCodeAddress() = %s\n\t\t messageFrame().getContractAddress() = %s",
-            this.currentFrame().byteCodeAddress(), this.messageFrame().getContractAddress()));
+        "exitDeploymentFromDeploymentInfoPointOfView:"
+            + String.format(
+                "\n\t\tcurrentFrame().byteCodeAddress()    = %s",
+                this.currentFrame().byteCodeAddress())
+            + String.format(
+                "\n\t\tmessageFrame().getContractAddress() = %s",
+                this.messageFrame().getContractAddress())
+            + "\n\t\t-----");
 
     // sanity check
     if (state.processingPhase != TX_SKIP) {
-      checkArgument(
-          deploymentStatusOfBytecodeAddress()
-              == (messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION),
-          String.format(
-              "exitDeploymentFromDeploymentInfoPointOfView at\n\t\tdeployment status of bytecode address = %s\n\t\tmessage frame type = %s\n\t\tABS_TX_NUM = %s\n\t\tHUB_STAMP = %s\n\t\tCALL_STACK_DEPTH = %s\n\t\topCode = %s",
-              deploymentStatusOfBytecodeAddress(),
-              messageFrame().getType(),
-              txStack.getCurrentAbsNumber(),
-              this.stamp(),
-              this.messageFrame().getDepth(),
-              this.opCode()));
+      if (messageFrame().getType() == CONTRACT_CREATION) {
+        checkArgument(
+            deploymentStatusOfBytecodeAddress() == !messageFrame().getCode().getBytes().isEmpty());
+      } else {
+        checkArgument(!deploymentStatusOfBytecodeAddress());
+      }
+      // checkArgument(
+      //     deploymentStatusOfBytecodeAddress()
+      //         == (messageFrame().getType() == CONTRACT_CREATION),
+      //     "exitDeploymentFromDeploymentInfoPointOfView:"
+      //         + String.format("\n\t\tdeployment status of bytecode address = %s",
+      // deploymentStatusOfBytecodeAddress())
+      //         + String.format("\n\t\tmessage frame type = %s", messageFrame().getType())
+      //         + String.format("\n\t\tmessage frame depth = %s", this.messageFrame().getDepth())
+      //         + String.format("\n\t\tabs txn number = %s", txStack.getCurrentAbsNumber())
+      //         + String.format("\n\t\thub stamp = %s", this.stamp())
+      //         + String.format("\n\t\topCode = %s", this.opCode())
+      //         + "\n\t\t-----");
     } else {
       /**
        * EXPLANATION: the deployment addresses associated with deployment transactions that get
@@ -831,6 +850,10 @@ public class Hub implements Module {
     return this.romLex()
         .getCodeFragmentIndexByMetadata(
             ContractMetadata.make(address, deploymentNumber, deploymentStatus));
+  }
+
+  public int callDataContextNumber(final boolean shouldCopyTxCallData) {
+    return shouldCopyTxCallData ? this.stamp() : 0;
   }
 
   public int newChildContextNumber() {
@@ -994,6 +1017,8 @@ public class Hub implements Module {
   }
 
   void traceOpcode(MessageFrame frame) {
+
+    System.out.println(this.opCodeData().instructionFamily());
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,

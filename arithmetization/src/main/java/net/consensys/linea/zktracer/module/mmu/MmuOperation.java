@@ -39,7 +39,6 @@ import static net.consensys.linea.zktracer.types.Conversions.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -168,8 +167,7 @@ public class MmuOperation extends ModuleOperation {
     if (!mmuData.exoBytes().isEmpty()) {
       final boolean exoIsSource = mmuData.exoLimbIsSource();
       final boolean exoIsTarget = mmuData.exoLimbIsTarget();
-      checkArgument(
-          exoIsSource == !exoIsTarget, "ExoLimb is either the source or the target");
+      checkArgument(exoIsSource == !exoIsTarget, "ExoLimb is either the source or the target");
 
       for (MmuToMmioInstruction mmioInst : this.mmuData.mmuToMmioInstructions()) {
         final int offset =

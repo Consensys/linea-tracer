@@ -15,9 +15,10 @@
 
 package net.consensys.linea.zktracer.module.stp;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.math.BigInteger;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -25,8 +26,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
-
-import static com.google.common.base.Preconditions.*;
 
 @Accessors(fluent = true)
 @Getter

@@ -26,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiFunction;
 
-import com.google.common.base.Preconditions;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Factories;
@@ -150,8 +149,7 @@ public class CallSection extends TraceSection
 
     final StpCall stpCall = new StpCall(hub, mxpCall.gasMxp);
     firstImcFragment.callStp(stpCall);
-    checkArgument(
-        stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
+    checkArgument(stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
 
     final Address callerAddress = hub.messageFrame().getRecipientAddress();
     preOpcodeCallerSnapshot = canonical(hub, callerAddress);
@@ -280,7 +278,7 @@ public class CallSection extends TraceSection
   }
 
   @Override
-  public void resolveUponImmediateContextEntry(Hub hub) {
+  public void resolveUponContextEntry(Hub hub) {
     postOpcodeCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
     postOpcodeCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
 
@@ -331,7 +329,7 @@ public class CallSection extends TraceSection
 
   /** Resolution happens as the child context is about to terminate. */
   @Override
-  public void resolveUponExitingContext(Hub hub, CallFrame frame) {
+  public void resolveUponContextExit(Hub hub, CallFrame frame) {
     checkArgument(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED);
 
     childContextExitCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());

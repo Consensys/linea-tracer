@@ -14,15 +14,14 @@
  */
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-
-import static com.google.common.base.Preconditions.*;
 
 public class CallScenarioFragment implements TraceFragment {
 
@@ -72,8 +71,7 @@ public class CallScenarioFragment implements TraceFragment {
           CallScenario.UNDEFINED, CallScenario.CALL_SMC_UNDEFINED, CallScenario.CALL_PRC_UNDEFINED);
 
   public Trace trace(Trace trace) {
-    checkArgument(
-        this.scenario.noLongerUndefined(), "Final Scenario hasn't been set");
+    checkArgument(this.scenario.noLongerUndefined(), "Final Scenario hasn't been set");
     return trace
         .peekAtScenario(true)
         // // CALL scenarios

@@ -15,9 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.math.BigInteger;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -32,8 +33,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-
-import static com.google.common.base.Preconditions.*;
 
 @Getter
 @Setter

@@ -29,8 +29,8 @@ public final class EcAddEffectiveCall extends CountingOnlyModule {
 
   @Override
   public void addPrecompileLimit(final int numberEffectiveCall) {
-    checkArgument(
-        numberEffectiveCall == 1, "can't add more than one effective precompile call at a time");
+    Preconditions.checkArgument(
+        numberEffectiveCall <= 1, "can't add more than one effective precompile call at a time");
     counts.add(numberEffectiveCall);
   }
 }

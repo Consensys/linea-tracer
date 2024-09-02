@@ -21,6 +21,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
@@ -84,6 +92,92 @@ public class ReplayTests {
     replay(filename, true);
   }
 
+  /**
+   * Run replay with the specific file path of a replay file. The conflated trace will be written to
+   * the same directory as the replay file. Usage: replayAt("/path/to/your/star-end.json.gz");
+   */
+  public static void replayAt(String filePath) {
+    final Path path = Paths.get(filePath);
+    final InputStream stream;
+    try {
+      stream = Files.newInputStream(path);
+    } catch (IOException e) {
+      log.error("while loading {}: {}", filePath, e.getMessage());
+      throw new RuntimeException(e);
+    }
+
+    try (GZIPInputStream gzipStream = new GZIPInputStream(stream)) {
+      ToyExecutionEnvironment.builder()
+          .build()
+          .replay(new BufferedReader(new InputStreamReader(gzipStream)), filePath);
+    } catch (IOException e) {
+      log.error("while processing {}: {}", filePath, e.getMessage());
+      throw new RuntimeException(e);
+    }
+  }
+
+  public static void replayBulk(String directory) {
+    Path dirPath = Paths.get(directory);
+    Path conflatedDirPath = Paths.get(directory, "../conflated");
+    Path replayedDirPath = Paths.get(directory, "../replayed");
+    // Create conflated and replayed directories if they do not exist
+    try {
+      if (!Files.exists(conflatedDirPath)) {
+        Files.createDirectory(conflatedDirPath);
+      }
+      if (!Files.exists(replayedDirPath)) {
+        Files.createDirectory(replayedDirPath);
+      }
+    } catch (IOException e) {
+      log.error(
+          "Error creating directories {} or {}: {}",
+          conflatedDirPath,
+          replayedDirPath,
+          e.getMessage());
+      throw new RuntimeException(e);
+    }
+
+    List<Path> files = new ArrayList<>();
+    try (DirectoryStream<Path> stream = Files.newDirectoryStream(dirPath, "*.json.gz")) {
+      for (Path entry : stream) {
+        files.add(entry);
+      }
+    } catch (IOException e) {
+      log.error("Error reading directory {}: {}", directory, e.getMessage());
+      throw new RuntimeException(e);
+    }
+    // Sort files before processing
+    Collections.sort(files);
+    for (Path entry : files) {
+      String filePath = entry.toString();
+      System.out.println("Replaying file: " + filePath);
+      replayAt(filePath);
+      // Move the .lt file to conflated directory with .tmp suffix
+      Path ltFilePath = Paths.get(filePath.replace(".json.gz", ".lt"));
+      if (Files.exists(ltFilePath)) {
+        Path targetLtPath = conflatedDirPath.resolve(ltFilePath.getFileName().toString() + ".tmp");
+        try {
+          Files.move(ltFilePath, targetLtPath, StandardCopyOption.REPLACE_EXISTING);
+          Path finalLtPath =
+              targetLtPath.resolveSibling(
+                  targetLtPath.getFileName().toString().replace(".tmp", ""));
+          Files.move(targetLtPath, finalLtPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+          log.error("Error moving file {}: {}", ltFilePath, e.getMessage());
+        }
+      }
+
+      // Move the .json.gz file to replayed directory
+      Path targetJsonPath = replayedDirPath.resolve(entry.getFileName());
+
+      try {
+        Files.move(entry, targetJsonPath, StandardCopyOption.REPLACE_EXISTING);
+      } catch (IOException e) {
+        log.error("Error moving file {}: {}", entry, e.getMessage());
+      }
+    }
+  }
+
   @Test
   void traceTxStartNotTheSameAsTxPrepare() {
     replay("start-vs-prepare-tx.json.gz");
@@ -91,22 +185,33 @@ public class ReplayTests {
 
   @Test
   void fatMxp() {
-    replay("2492975-2492977.json.gz", false);
+    replay("2492975-2492977.json.gz");
+  }
+
+  /**
+   * Run a bulk replay of multiple replay files specified by a directory. The conflated traces will
+   * be moved to "conflated" directory once replayed. The replay files will be moved to "replayed"
+   * directory once completed. Note: CORSET_VALIDATOR.validate() is disabled by default for
+   * replayBulk Usage: replayBulk("/path/to/your/directory");
+   */
+  @Test
+  void replayMultipleReplayFiles() {
+    replayBulk("");
   }
 
   @Test
   void leoFailingRange() {
-    replay("5389571-5389577.json.gz", false);
+    replay("5389571-5389577.json.gz");
   }
 
   @Test
   void failingMmuModexp() {
-    replay("5995162.json.gz", false);
+    replay("5995162.json.gz");
   }
 
   @Test
   void failRlpAddress() {
-    replay("5995097.json.gz", false);
+    replay("5995097.json.gz");
   }
 
   @Test
@@ -116,17 +221,17 @@ public class ReplayTests {
 
   @Test
   void multipleFailingCallToEcrecover() {
-    replay("5000544.json.gz", false);
+    replay("5000544.json.gz");
   }
 
   @Test
   void incident777zkGethMainnet() {
-    replay("7461019-7461030.json.gz", false);
+    replay("7461019-7461030.json.gz");
   }
 
   @Test
   void issue1006() {
-    replay("6032696-6032699.json.gz", false);
+    replay("6032696-6032699.json.gz");
   }
 
   @Test
@@ -139,29 +244,40 @@ public class ReplayTests {
     // The purpose of this test is to check the mechanism for spotting divergence between the replay
     // tests and mainnet.  Specifically, this replay has transaction result information embedded
     // within it.
-    replay("6110045.json.gz", false);
+    replay("6110045.json.gz");
   }
 
   @Test
   void failingCreate2() {
-    replay("2250197-2250197.json.gz", false);
+    replay("2250197-2250197.json.gz");
   }
 
   @Test
   void blockHash1() {
-    replay("8718090.json.gz", false);
+    replay("8718090.json.gz");
   }
 
   @Test
   void blockHash2() {
-    replay("8718330.json.gz", false);
+    replay("8718330.json.gz");
   }
 
   // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
   // instruction
   @Test
   void negativeNumberOfMmioInstruction() {
-    replay("6029454-6029459.json.gz", false);
+    replay("6029454-6029459.json.gz");
+  }
+
+  @Test
+  void simpleSelfDestruct() {
+    replay("50020-50029.json.gz");
+  }
+
+  // TODO: should be replaced by a unit test triggering a failed CREATE2
+  @Test
+  void failedCreate2() {
+    replay("41640-41649.json.gz");
   }
 
   // Leo's range split up 5104800-5104883

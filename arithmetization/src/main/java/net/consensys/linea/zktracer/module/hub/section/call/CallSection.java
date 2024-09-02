@@ -114,7 +114,6 @@ public class CallSection extends TraceSection
   private AccountSnapshot postRollbackCalleeSnapshot;
   private AccountSnapshot postRollbackCallerSnapshot;
 
-  //
   private PrecompileSubsection precompileSubsection;
 
   public CallSection(Hub hub) {
@@ -216,10 +215,6 @@ public class CallSection extends TraceSection
               });
 
       // TODO is world == worldUpdater & what happen if get doesn't work ?
-
-      ;
-
-      // TODO is world == worldUpdater & what happen if get
       //  doesn't work ?
       // TODO: write a test where the recipient of the call does not exist in the state
     }

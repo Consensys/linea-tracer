@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.Util.max;
 import static net.consensys.linea.zktracer.module.mxp.Trace.CT_MAX_NON_TRIVIAL;
 import static net.consensys.linea.zktracer.module.mxp.Trace.CT_MAX_NON_TRIVIAL_BUT_MXPX;
@@ -346,7 +347,7 @@ public class MxpOperation extends ModuleOperation {
       if (maxOffset1.compareTo(TWO_POW_32) >= 0) {
         acc1 = maxOffset1.subtract(TWO_POW_32);
       } else {
-        Preconditions.checkArgument(maxOffset2.compareTo(TWO_POW_32) >= 0);
+        checkArgument(maxOffset2.compareTo(TWO_POW_32) >= 0);
         acc2 = maxOffset2.subtract(TWO_POW_32);
       }
     } else {

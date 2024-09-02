@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.rlptxn;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TX_DATA_NONZERO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TX_DATA_ZERO;
@@ -217,7 +218,7 @@ public class RlpTxn implements Module {
 
     // Phase ChainId
     if (traceValue.txType == 1 || traceValue.txType == 2) {
-      Preconditions.checkArgument(
+      checkArgument(
           bigIntegerToBytes(chunk.tx().getChainId().orElseThrow()).size() <= 8,
           "ChainId is longer than 8 bytes");
       handlePhaseInteger(
@@ -232,7 +233,7 @@ public class RlpTxn implements Module {
     // Phase GasPrice
     if (traceValue.txType == 0 || traceValue.txType == 1) {
       BigInteger gasPrice = chunk.tx().getGasPrice().orElseThrow().getAsBigInteger();
-      Preconditions.checkArgument(
+      checkArgument(
           bigIntegerToBytes(gasPrice).size() <= 8, "GasPrice is longer than 8 bytes");
       traceValue.dataLo = gasPrice;
       handlePhaseInteger(traceValue, RLP_TXN_PHASE_GAS_PRICE, gasPrice, 8, trace);
@@ -242,7 +243,7 @@ public class RlpTxn implements Module {
     if (traceValue.txType == 2) {
       BigInteger maxPriorityFeePerGas =
           chunk.tx().getMaxPriorityFeePerGas().orElseThrow().getAsBigInteger();
-      Preconditions.checkArgument(
+      checkArgument(
           bigIntegerToBytes(maxPriorityFeePerGas).size() <= 8,
           "Max Priority Fee per Gas is longer than 8 bytes");
       handlePhaseInteger(
@@ -253,7 +254,7 @@ public class RlpTxn implements Module {
     if (traceValue.txType == 2) {
       traceValue.dataHi = chunk.tx().getMaxPriorityFeePerGas().orElseThrow().getAsBigInteger();
       BigInteger maxFeePerGas = chunk.tx().getMaxFeePerGas().orElseThrow().getAsBigInteger();
-      Preconditions.checkArgument(
+      checkArgument(
           bigIntegerToBytes(maxFeePerGas).size() <= 8, "Max Fee per Gas is longer than 8 bytes");
       traceValue.dataLo = maxFeePerGas;
       handlePhaseInteger(traceValue, RLP_TXN_PHASE_MAX_FEE_PER_GAS, maxFeePerGas, 8, trace);
@@ -308,9 +309,9 @@ public class RlpTxn implements Module {
     // Phase S
     handle32BytesInteger(traceValue, RLP_TXN_PHASE_S, chunk.tx().getS(), trace);
 
-    Preconditions.checkArgument(
+    checkArgument(
         this.reconstructedRlpLt.equals(besuRlpLt), "Reconstructed RLP LT and Besu RLP LT differ");
-    Preconditions.checkArgument(
+    checkArgument(
         this.reconstructedRlpLx.equals(besuRlpLx), "Reconstructed RLP LX and Besu RLP LX differ");
   }
 
@@ -595,7 +596,7 @@ public class RlpTxn implements Module {
   private void handlePhaseBeta(RlpTxnColumnsValue traceValue, Transaction tx, Trace trace) {
     final int phase = RLP_TXN_PHASE_BETA;
     final BigInteger V = tx.getV();
-    Preconditions.checkArgument(bigIntegerToBytes(V).size() <= 8, "V is longer than 8 bytes");
+    checkArgument(bigIntegerToBytes(V).size() <= 8, "V is longer than 8 bytes");
     final boolean betaIsZero =
         V.equals(BigInteger.valueOf(27))
             || V.equals(BigInteger.valueOf(28)); // beta = ChainId = 0 iff (V == 27 or V == 28)

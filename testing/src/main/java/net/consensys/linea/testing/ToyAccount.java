@@ -36,6 +36,8 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.account.AccountStorageEntry;
 import org.hyperledger.besu.evm.account.MutableAccount;
 
+import static com.google.common.base.Preconditions.*;
+
 public class ToyAccount implements MutableAccount {
   private final Account parent;
 
@@ -56,7 +58,7 @@ public class ToyAccount implements MutableAccount {
       final long nonce,
       final Wei balance,
       final Bytes code) {
-    Preconditions.checkArgument(nonce >= 0);
+    checkArgument(nonce >= 0);
     this.parent = parent;
     this.address = address;
     this.nonce = nonce;

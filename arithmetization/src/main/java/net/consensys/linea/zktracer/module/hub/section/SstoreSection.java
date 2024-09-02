@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_DOING;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_UNDOING;
 
@@ -89,7 +90,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
       return;
     }
 
-    Preconditions.checkArgument(
+    checkArgument(
         Exceptions.outOfGasException(exceptions) || Exceptions.none(exceptions));
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());

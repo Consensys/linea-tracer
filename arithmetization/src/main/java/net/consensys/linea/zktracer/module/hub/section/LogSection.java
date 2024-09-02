@@ -30,6 +30,8 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+import static com.google.common.base.Preconditions.*;
+
 public class LogSection extends TraceSection implements PostRollbackDefer, PostTransactionDefer {
 
   private MmuCall mmuCall;
@@ -47,7 +49,7 @@ public class LogSection extends TraceSection implements PostRollbackDefer, PostT
 
     // Static Case
     if (hub.currentFrame().frame().isStatic()) {
-      Preconditions.checkArgument(Exceptions.staticFault(exceptions));
+      checkArgument(Exceptions.staticFault(exceptions));
       return;
     }
 
@@ -57,7 +59,7 @@ public class LogSection extends TraceSection implements PostRollbackDefer, PostT
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
-    Preconditions.checkArgument(
+    checkArgument(
         mxpCall.isMxpx() == Exceptions.memoryExpansionException(exceptions));
 
     // MXPX case
@@ -71,12 +73,12 @@ public class LogSection extends TraceSection implements PostRollbackDefer, PostT
     }
 
     // the unexceptional case
-    Preconditions.checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions));
 
     hub.defers().scheduleForPostTransaction(this);
 
     final LogData logData = new LogData(hub);
-    Preconditions.checkArgument(
+    checkArgument(
         logData.nontrivialLog() == mxpCall.mayTriggerNontrivialMmuOperation);
     mmuCall = (logData.nontrivialLog()) ? MmuCall.LogX(hub, logData) : null;
 

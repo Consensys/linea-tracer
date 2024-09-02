@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECADD_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECADD_RESULT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_ECMUL_DATA;
@@ -132,11 +133,11 @@ public class EcDataOperation extends ModuleOperation {
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       Bytes callData,
       Bytes returnData) {
-    Preconditions.checkArgument(precompileFlag.isEcdataPrecompile(), "invalid EC type");
+    checkArgument(precompileFlag.isEcdataPrecompile(), "invalid EC type");
 
     this.precompileFlag = precompileFlag;
     int callDataSize = callData.size();
-    Preconditions.checkArgument(
+    checkArgument(
         callDataSize > 0,
         "EcDataOperation should only be called with nonempty call rightPaddedCallData");
     final int paddedCallDataLength =
@@ -145,7 +146,7 @@ public class EcDataOperation extends ModuleOperation {
           case PRC_ECADD -> TOTAL_SIZE_ECADD_DATA;
           case PRC_ECMUL -> TOTAL_SIZE_ECMUL_DATA;
           case PRC_ECPAIRING -> {
-            Preconditions.checkArgument(callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN == 0);
+            checkArgument(callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN == 0);
             yield callDataSize;
           }
           default -> throw new IllegalArgumentException(
@@ -435,7 +436,7 @@ public class EcDataOperation extends ModuleOperation {
 
     // Extract output
     if (internalChecksPassed && returnData.toArray().length != 0) {
-      Preconditions.checkArgument(returnData.toArray().length == 64);
+      checkArgument(returnData.toArray().length == 64);
       resX = EWord.of(returnData.slice(0, 32));
       resY = EWord.of(returnData.slice(32, 32));
     }
@@ -483,7 +484,7 @@ public class EcDataOperation extends ModuleOperation {
 
     // Extract output
     if (internalChecksPassed && returnData.toArray().length != 0) {
-      Preconditions.checkArgument(returnData.toArray().length == 64);
+      checkArgument(returnData.toArray().length == 64);
       resX = EWord.of(returnData.slice(0, 32));
       resY = EWord.of(returnData.slice(32, 32));
     }
@@ -664,9 +665,9 @@ public class EcDataOperation extends ModuleOperation {
               && !smallPointIsAtInfinity;
 
       if (precompileFlag != PRC_ECPAIRING || !isData) {
-        Preconditions.checkArgument(ct == 0);
+        checkArgument(ct == 0);
       }
-      Preconditions.checkArgument(!(isSmallPoint && isLargePoint));
+      checkArgument(!(isSmallPoint && isLargePoint));
 
       trace
           .stamp(stamp)

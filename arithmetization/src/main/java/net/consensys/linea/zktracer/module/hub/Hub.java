@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
@@ -543,6 +544,11 @@ public class Hub implements Module {
       final TransactionProcessingMetadata currentTx = transients().tx();
       final Address recipientAddress = effectiveToAddress(currentTx.getBesuTransaction());
 
+      // TODO: we may not have to recompute the recipient address if the frame already provides it ...
+      // TODO: test this on a deployment transaction
+      checkArgument(recipientAddress.equals(frame.getRecipientAddress()));
+
+      // TODO: isDeployment should coïncie with (frame.type == CONTRACT_CREATION)
       final boolean isDeployment = transients.tx().getBesuTransaction().getTo().isEmpty();
       if (isDeployment) {
         transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(recipientAddress);
@@ -579,13 +585,13 @@ public class Hub implements Module {
     if (frame.getDepth() > 0) {
       final OpCode currentOpCode = callStack.current().opCode();
       final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
-      final Address codeAddress = frame.getContractAddress();
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
 
-      if (isDeployment) {
-        transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(codeAddress);
-      }
+      // Now done (with more care) in the CREATE section
+      // if (isDeployment) {
+      //   transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(codeAddress);
+      // }
 
       final long callDataOffset =
           isDeployment
@@ -607,22 +613,23 @@ public class Hub implements Module {
 
       final long callDataContextNumber = callStack.current().contextNumber();
 
+      // TODO: the
       callStack.enter(
-          newChildContextNumber(),
-          frame.getRecipientAddress(),
-          frame.getContractAddress(),
-          frame.getRecipientAddress(), // TODO: this is likely false
-          new Bytecode(frame.getCode().getBytes()),
           frameType,
+          newChildContextNumber(),
+          this.deploymentStatusOf(frame.getContractAddress()),
           frame.getValue(),
           frame.getRemainingGas(),
+          frame.getRecipientAddress(),
+          this.deploymentNumberOf(frame.getRecipientAddress()),
+          frame.getContractAddress(),
+          this.deploymentNumberOf(frame.getContractAddress()),
+          new Bytecode(frame.getCode().getBytes()),
+          frame.getSenderAddress(), // TODO: is this better ?
           frame.getInputData(),
           callDataOffset,
           callDataSize,
-          callDataContextNumber,
-          this.transients.conflation().deploymentInfo().deploymentNumber(codeAddress),
-          codeDeploymentNumber,
-          isDeployment);
+          callDataContextNumber);
       this.currentFrame().initializeFrame(frame); // TODO should be done in enter
 
       defers.resolveUponImmediateContextEntry(this);
@@ -696,12 +703,21 @@ public class Hub implements Module {
   private void exitDeploymentFromDeploymentInfoPointOfView() {
 
     // sanity check
+    checkArgument(
+        this.currentFrame().byteCodeAddress().equals(this.bytecodeAddress()),
+        String.format(
+            "currentFrame().byteCodeAddress() = %s\n\t\t messageFrame().getContractAddress() = %s",
+            this.currentFrame().byteCodeAddress(), this.messageFrame().getContractAddress()));
+
+    // sanity check
     if (state.processingPhase != TX_SKIP) {
-      Preconditions.checkArgument(
+      checkArgument(
           deploymentStatusOfBytecodeAddress()
               == (messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION),
           String.format(
-              "Failed at ABS_TX_NUM = %s, HUB_STAMP = %s, CALL_STACK_DEPTH = %s, opCode = %s",
+              "exitDeploymentFromDeploymentInfoPointOfView at\n\t\tdeployment status of bytecode address = %s\n\t\tmessage frame type = %s\n\t\tABS_TX_NUM = %s\n\t\tHUB_STAMP = %s\n\t\tCALL_STACK_DEPTH = %s\n\t\topCode = %s",
+              deploymentStatusOfBytecodeAddress(),
+              messageFrame().getType(),
               txStack.getCurrentAbsNumber(),
               this.stamp(),
               this.messageFrame().getDepth(),
@@ -712,11 +728,8 @@ public class Hub implements Module {
        * skipped (empty bytecode) i.e. that are in the TX_SKIP phase immediately transition to "the
        * deployed state"/
        */
-      Preconditions.checkArgument(!deploymentStatusOfBytecodeAddress());
+      checkArgument(!deploymentStatusOfBytecodeAddress());
     }
-
-    Preconditions.checkArgument(
-        this.currentFrame().byteCodeAddress().equals(this.bytecodeAddress()));
 
     if (deploymentStatusOfBytecodeAddress()) {
       transients
@@ -727,7 +740,7 @@ public class Hub implements Module {
   }
 
   public void tracePreExecution(final MessageFrame frame) {
-    Preconditions.checkArgument(
+    checkArgument(
         this.state().processingPhase == TX_EXEC,
         "There can't be any execution if the HUB is not in execution phase");
 
@@ -735,7 +748,7 @@ public class Hub implements Module {
   }
 
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
-    Preconditions.checkArgument(
+    checkArgument(
         this.state().processingPhase == TX_EXEC,
         "There can't be any execution if the HUB is not in execution phase");
 
@@ -753,7 +766,7 @@ public class Hub implements Module {
     // is added at the end of the section; its purpose is
     // to update the caller / creator context with empty
     // return data.
-    //////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////
     if (exceptional) {
       this.currentTraceSection()
           .addFragments(ContextFragment.executionProvidesEmptyReturnData(this));
@@ -811,10 +824,6 @@ public class Hub implements Module {
       case INVALID -> {}
       default -> {}
     }
-  }
-
-  private void handleCreate(Address target) {
-    transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(target);
   }
 
   public int getCfiByMetaData(

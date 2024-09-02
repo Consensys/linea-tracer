@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.transients;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
@@ -224,7 +225,7 @@ public class OperationAncillaries {
         if (isPrecompile(target)) {
           return MemorySpan.fromStartLength(0, 0);
         }
-        Preconditions.checkArgument(isPrecompile(target)); // useless (?) sanity check
+        checkArgument(isPrecompile(target)); // useless (?) sanity check
         // TODO: this will not work for MODEXP as return data starts at offset
         //  512 - modulusByteSize
         return MemorySpan.fromStartLength(0, frame.getReturnData().size());

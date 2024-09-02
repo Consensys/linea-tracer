@@ -30,6 +30,8 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
+import static com.google.common.base.Preconditions.*;
+
 public class CodeCopySection extends TraceSection {
 
   public CodeCopySection(Hub hub) {
@@ -46,7 +48,7 @@ public class CodeCopySection extends TraceSection {
     imcFragment.callMxp(mxpCall);
 
     final short exceptions = hub.pch().exceptions();
-    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // The MXPX case
     if (mxpCall.mxpx) {
@@ -55,7 +57,7 @@ public class CodeCopySection extends TraceSection {
 
     // The OOGX case
     if (Exceptions.any(exceptions)) {
-      Preconditions.checkArgument(exceptions == Exceptions.OUT_OF_GAS_EXCEPTION);
+      checkArgument(exceptions == Exceptions.OUT_OF_GAS_EXCEPTION);
       return;
     }
 
@@ -69,7 +71,7 @@ public class CodeCopySection extends TraceSection {
     final Account codeAccount = frame.getWorldUpdater().get(codeAddress);
 
     final boolean warmth = frame.isAddressWarm(codeAddress);
-    Preconditions.checkArgument(warmth);
+    checkArgument(warmth);
 
     final AccountSnapshot codeAccountSnapshot =
         AccountSnapshot.fromAccount(

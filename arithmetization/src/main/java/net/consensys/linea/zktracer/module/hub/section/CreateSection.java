@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_ABORT;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_EMPTY_INIT_CODE_WILL_REVERT;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_EMPTY_INIT_CODE_WONT_REVERT;
@@ -118,7 +119,7 @@ public class CreateSection extends TraceSection
 
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
-    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // MXPX case
     if (mxpCall.mxpx) {
@@ -129,7 +130,7 @@ public class CreateSection extends TraceSection
     final StpCall stpCall = new StpCall(hub, mxpCall.getGasMxp());
     imcFragment.callStp(stpCall);
 
-    Preconditions.checkArgument(
+    checkArgument(
         stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
 
     // OOGX case
@@ -139,14 +140,14 @@ public class CreateSection extends TraceSection
     }
 
     // The CREATE(2) is now unexceptional
-    Preconditions.checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions));
     hub.currentFrame().childSpanningSection(this);
 
     final CreateOobCall oobCall = new CreateOobCall();
     imcFragment.callOob(oobCall);
 
     final AbortingConditions aborts = hub.pch().abortingConditions().snapshot();
-    Preconditions.checkArgument(oobCall.isAbortingCondition() == aborts.any());
+    checkArgument(oobCall.isAbortingCondition() == aborts.any());
 
     final CallFrame callFrame = hub.currentFrame();
     final MessageFrame frame = callFrame.frame();
@@ -164,7 +165,7 @@ public class CreateSection extends TraceSection
     }
 
     // The CREATE(2) is now unexceptional and unaborted
-    Preconditions.checkArgument(aborts.none());
+    checkArgument(aborts.none());
     hub.defers().scheduleForImmediateContextEntry(this); // when we add the two account fragments
     hub.defers().scheduleForPostRollback(this, hub.currentFrame()); // in case of Rollback
     hub.defers().scheduleForPostTransaction(this); // when we add the last context row

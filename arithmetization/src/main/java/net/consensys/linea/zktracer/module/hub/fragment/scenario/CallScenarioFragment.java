@@ -22,6 +22,8 @@ import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
+import static com.google.common.base.Preconditions.*;
+
 public class CallScenarioFragment implements TraceFragment {
 
   @Setter @Getter CallScenario scenario;
@@ -70,7 +72,7 @@ public class CallScenarioFragment implements TraceFragment {
           CallScenario.UNDEFINED, CallScenario.CALL_SMC_UNDEFINED, CallScenario.CALL_PRC_UNDEFINED);
 
   public Trace trace(Trace trace) {
-    Preconditions.checkArgument(
+    checkArgument(
         this.scenario.noLongerUndefined(), "Final Scenario hasn't been set");
     return trace
         .peekAtScenario(true)

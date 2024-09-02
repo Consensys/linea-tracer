@@ -26,6 +26,8 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.toml.Toml;
 import org.apache.tuweni.toml.TomlTable;
 
+import static com.google.common.base.Preconditions.*;
+
 public class Utils {
 
   /**
@@ -37,13 +39,13 @@ public class Utils {
    * @return
    */
   public static Bytes leftPadTo(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
+    checkArgument(
         wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     return Bytes.concatenate(Bytes.repeat((byte) 0, wantedSize - input.size()), input);
   }
 
   public static Bytes rightPadTo(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
+    checkArgument(
         wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     return Bytes.concatenate(input, Bytes.repeat((byte) 0, wantedSize - input.size()));
   }
@@ -57,7 +59,7 @@ public class Utils {
    */
   public static BitDecOutput bitDecomposition(int input, int nbStep) {
     final int nbStepMin = 8;
-    Preconditions.checkArgument(
+    checkArgument(
         nbStep >= nbStepMin, "Number of steps must be at least " + nbStepMin);
 
     ArrayList<Boolean> bit = new ArrayList<>(nbStep);

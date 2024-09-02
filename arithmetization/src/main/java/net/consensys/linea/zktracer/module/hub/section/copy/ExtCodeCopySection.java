@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.outOfGasException;
 
 import com.google.common.base.Preconditions;
@@ -70,7 +71,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     imcFragment.callMxp(mxpCall);
 
     final short exceptions = hub.pch().exceptions();
-    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // The MXPX case
     if (mxpCall.mxpx) {
@@ -101,7 +102,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     }
 
     // The unexceptional case
-    Preconditions.checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions));
 
     final boolean triggerMmu = mxpCall.mayTriggerNontrivialMmuOperation;
     if (triggerMmu) {

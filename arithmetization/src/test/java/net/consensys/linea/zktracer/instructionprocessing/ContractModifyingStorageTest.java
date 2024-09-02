@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.rlpcommon.RlpRandEdgeCase.randData;
 
 import java.util.ArrayList;
@@ -87,7 +88,7 @@ public class ContractModifyingStorageTest {
     Address deployedAddress = AddressUtils.effectiveToAddress(tx);
     System.out.println("Deployed address: " + deployedAddress);
 
-    Preconditions.checkArgument(tx.isContractCreation());
+    checkArgument(tx.isContractCreation());
 
     ToyWorld toyWorld = ToyWorld.builder().accounts(List.of(userAccount)).build();
 

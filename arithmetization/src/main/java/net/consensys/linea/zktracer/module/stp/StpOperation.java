@@ -26,6 +26,8 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
+import static com.google.common.base.Preconditions.*;
+
 @Accessors(fluent = true)
 @Getter
 public final class StpOperation extends ModuleOperation {
@@ -60,7 +62,7 @@ public final class StpOperation extends ModuleOperation {
   }
 
   long getGDiff() {
-    Preconditions.checkArgument(!stpCall.outOfGasException());
+    checkArgument(!stpCall.outOfGasException());
     return stpCall.gasActual() - stpCall.upfrontGasCost();
   }
 

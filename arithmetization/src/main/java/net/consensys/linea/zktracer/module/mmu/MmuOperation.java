@@ -18,6 +18,7 @@ the License for the
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_BLAKE;
@@ -167,7 +168,7 @@ public class MmuOperation extends ModuleOperation {
     if (!mmuData.exoBytes().isEmpty()) {
       final boolean exoIsSource = mmuData.exoLimbIsSource();
       final boolean exoIsTarget = mmuData.exoLimbIsTarget();
-      Preconditions.checkArgument(
+      checkArgument(
           exoIsSource == !exoIsTarget, "ExoLimb is either the source or the target");
 
       for (MmuToMmioInstruction mmioInst : this.mmuData.mmuToMmioInstructions()) {

@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.module.hub.fragment.scenario;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
 
 import com.google.common.base.Preconditions;
@@ -43,7 +44,7 @@ public class ReturnScenarioFragment implements TraceFragment {
 
   @Override
   public Trace trace(Trace trace) {
-    Preconditions.checkArgument(!this.scenario.equals(UNDEFINED));
+    checkArgument(!this.scenario.equals(UNDEFINED));
     return trace
         .peekAtScenario(true)
         // // RETURN scenarios

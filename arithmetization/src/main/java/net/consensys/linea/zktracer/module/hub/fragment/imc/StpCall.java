@@ -33,6 +33,8 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
+import static com.google.common.base.Preconditions.*;
+
 @Getter
 @Setter
 @Accessors(fluent = true)
@@ -55,7 +57,7 @@ public class StpCall implements TraceSubFragment {
     this.memoryExpansionGas = memoryExpansionGas;
     this.opCode = hub.opCode();
     this.gasActual = hub.messageFrame().getRemainingGas();
-    Preconditions.checkArgument(this.opCode.isCall() || this.opCode.isCreate());
+    checkArgument(this.opCode.isCall() || this.opCode.isCreate());
 
     if (this.opCode.isCall()) {
       this.stpCallForCalls(hub);

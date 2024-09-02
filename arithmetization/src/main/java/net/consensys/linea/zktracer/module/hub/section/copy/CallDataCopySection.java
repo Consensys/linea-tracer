@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 
 import com.google.common.base.Preconditions;
@@ -47,7 +48,7 @@ public class CallDataCopySection extends TraceSection {
     ////////////////////////////////////
 
     final short exceptions = hub.pch().exceptions();
-    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // The MXPX case
     if (mxpCall.mxpx) {
@@ -56,7 +57,7 @@ public class CallDataCopySection extends TraceSection {
 
     // The OOGX case
     if (Exceptions.any(exceptions)) {
-      Preconditions.checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
       return;
     }
 

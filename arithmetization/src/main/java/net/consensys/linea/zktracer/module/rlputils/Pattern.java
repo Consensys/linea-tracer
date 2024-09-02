@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import com.google.common.base.Preconditions;
 import org.apache.tuweni.bytes.Bytes;
 
+import static com.google.common.base.Preconditions.*;
+
 public class Pattern {
   /**
    * Returns the size of RLP(something) where something is of size inputSize (!=1) (it can be ZERO
@@ -41,7 +43,7 @@ public class Pattern {
 
   public static int innerRlpSize(int rlpSize) {
     // If rlpSize >1, return size(something) where rlpSize = size(RLP(something)).
-    Preconditions.checkArgument(rlpSize >= 2, "rlpSize should be at least 2 to get its inner size");
+    checkArgument(rlpSize >= 2, "rlpSize should be at least 2 to get its inner size");
     int output = rlpSize;
 
     if (rlpSize < 57) {

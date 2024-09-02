@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
@@ -135,9 +136,9 @@ public class PrecompileSubsection
   @Override
   public void resolveUponImmediateContextEntry(Hub hub) {
     // Sanity check
-    Preconditions.checkArgument(
+    checkArgument(
         callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));
-    Preconditions.checkArgument(callData.equals(hub.messageFrame().getInputData()));
+    checkArgument(callData.equals(hub.messageFrame().getInputData()));
 
     callerGas = hub.callStack().parent().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
@@ -175,9 +176,9 @@ public class PrecompileSubsection
 
   public void sanityCheck() {
     if (callSuccess) {
-      Preconditions.checkArgument(precompileScenarioFragment.scenario.isSuccess());
+      checkArgument(precompileScenarioFragment.scenario.isSuccess());
     } else {
-      Preconditions.checkArgument(precompileScenarioFragment.scenario.isFailure());
+      checkArgument(precompileScenarioFragment.scenario.isFailure());
     }
   }
 
@@ -185,7 +186,7 @@ public class PrecompileSubsection
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     // only successful PRC calls should enter here
-    Preconditions.checkArgument(precompileScenarioFragment.scenario() == PRC_SUCCESS_WONT_REVERT);
+    checkArgument(precompileScenarioFragment.scenario() == PRC_SUCCESS_WONT_REVERT);
 
     precompileScenarioFragment.scenario(PRC_SUCCESS_WILL_REVERT);
   }

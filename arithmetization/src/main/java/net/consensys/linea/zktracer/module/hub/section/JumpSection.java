@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.*;
 
 import com.google.common.base.Preconditions;
@@ -57,7 +58,7 @@ public class JumpSection extends TraceSection {
     final boolean deploymentStatus = deploymentInfo.getDeploymentStatus(codeAddress);
 
     final boolean warmth = hub.messageFrame().isAddressWarm(codeAddress);
-    Preconditions.checkArgument(warmth);
+    checkArgument(warmth);
 
     final AccountSnapshot codeAccount = canonical(hub, codeAddress);
 

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 
 import com.google.common.base.Preconditions;
@@ -43,7 +44,7 @@ public class ReturnDataCopySection extends TraceSection {
 
     final short exceptions = hub.pch().exceptions();
     final boolean returnDataCopyException = oobCall.isRdcx();
-    Preconditions.checkArgument(
+    checkArgument(
         returnDataCopyException == Exceptions.returnDataCopyFault(exceptions));
 
     // returnDataCopyException case
@@ -54,7 +55,7 @@ public class ReturnDataCopySection extends TraceSection {
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
 
-    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // memoryExpansionException case
     if (mxpCall.mxpx) {
@@ -63,7 +64,7 @@ public class ReturnDataCopySection extends TraceSection {
 
     // outOfGasException case
     if (Exceptions.any(exceptions)) {
-      Preconditions.checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
       return;
     }
 

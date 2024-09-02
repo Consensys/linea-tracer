@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
@@ -69,7 +70,7 @@ public class TraceSection {
    * @param fragment the fragment to insert
    */
   public final void addFragment(TraceFragment fragment) {
-    Preconditions.checkArgument(!(fragment instanceof CommonFragment));
+    checkArgument(!(fragment instanceof CommonFragment));
     fragments.add(fragment);
   }
 
@@ -130,7 +131,7 @@ public class TraceSection {
         currentPhase == TX_EXEC
             ? hub.getCfiByMetaData(
                 commonValues.callFrame().byteCodeAddress(),
-                commonValues.callFrame().codeDeploymentNumber(),
+                commonValues.callFrame().byteCodeDeploymentNumber(),
                 commonValues.callFrame().isDeployment())
             : 0);
     commonValues.contextNumberNew(computeContextNumberNew());

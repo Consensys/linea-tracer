@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -41,7 +42,7 @@ public class PrecompileCommonOobCall extends OobCall {
 
   public PrecompileCommonOobCall(OobInstruction oobInstruction) {
     super(oobInstruction);
-    Preconditions.checkArgument(oobInstruction.isCommonPrecompile());
+    checkArgument(oobInstruction.isCommonPrecompile());
   }
 
   public boolean getExtractCallData() {

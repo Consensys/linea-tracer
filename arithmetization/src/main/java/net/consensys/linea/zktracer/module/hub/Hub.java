@@ -1018,8 +1018,6 @@ public class Hub implements Module {
 
   void traceOpcode(MessageFrame frame) {
 
-    System.out.println(this.opCodeData().instructionFamily());
-
     switch (this.opCodeData().instructionFamily()) {
       case ADD,
           MOD,

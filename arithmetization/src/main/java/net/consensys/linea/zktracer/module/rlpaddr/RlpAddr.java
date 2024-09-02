@@ -41,7 +41,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -60,7 +60,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class RlpAddr implements StatelessModule<RlpAddrOperation> {
+public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
   @Getter private final StackedSet<RlpAddrOperation> operations = new StackedSet<>();
 
   private static final Bytes CREATE2_SHIFT = Bytes.minimalBytes(GlobalConstants.CREATE2_SHIFT);

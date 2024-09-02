@@ -27,7 +27,7 @@ import java.util.Map;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -39,7 +39,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Getter
 @Accessors(fluent = true)
-public class Blockhash implements StatelessModule<BlockhashOperation> {
+public class Blockhash implements OperationSetModule<BlockhashOperation> {
   private final Wcp wcp;
   private final StackedSet<BlockhashOperation> operations = new StackedSet<>();
 
@@ -116,7 +116,7 @@ public class Blockhash implements StatelessModule<BlockhashOperation> {
 
   @Override
   public void traceEndConflation(WorldView state) {
-    StatelessModule.super.traceEndConflation(state);
+    OperationSetModule.super.traceEndConflation(state);
     sortedOperations = new ArrayList<>(operations.getAll());
     if (!sortedOperations.isEmpty()) {
       final BlockhashComparator BLOCKHASH_COMPARATOR = new BlockhashComparator();

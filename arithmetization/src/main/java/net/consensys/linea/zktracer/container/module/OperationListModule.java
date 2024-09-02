@@ -20,10 +20,10 @@ import net.consensys.linea.zktracer.container.stacked.StackedList;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
- * A {@link StatefullModule} is a {@link Module} that contains ordered {@link ModuleOperation} where
- * we can keep trace of duplicates.
+ * A {@link OperationListModule} is a {@link Module} that contains ordered {@link ModuleOperation}
+ * where we can keep trace of duplicates.
  */
-public interface StatefullModule<E extends ModuleOperation> extends Module {
+public interface OperationListModule<E extends ModuleOperation> extends Module {
   StackedList<E> operations();
 
   @Override

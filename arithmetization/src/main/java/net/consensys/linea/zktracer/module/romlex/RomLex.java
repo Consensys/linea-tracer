@@ -32,7 +32,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
@@ -54,7 +54,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class RomLex
-    implements StatelessModule<RomOperation>,
+    implements OperationSetModule<RomOperation>,
         PostOpcodeDefer,
         ImmediateContextEntryDefer,
         ContextExitDefer {
@@ -99,14 +99,14 @@ public class RomLex
 
   public Optional<RomOperation> getChunkByMetadata(final ContractMetadata metadata) {
     // First search in the chunk added in the current transaction
-    for (RomOperation c : operations.thisTransactionOperation()) {
+    for (RomOperation c : operations.operationsInTransaction()) {
       if (c.metadata().equals(metadata)) {
         return Optional.of(c);
       }
     }
 
     // If not found, search in the chunk added since the beginning of the conflation
-    for (RomOperation c : operations.operationSinceBeginningOfTheConflation()) {
+    for (RomOperation c : operations.operationsCommitedToTheConflation()) {
       if (c.metadata().equals(metadata)) {
         return Optional.of(c);
       }

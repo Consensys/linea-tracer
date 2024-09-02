@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatefullModule;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
@@ -33,7 +33,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class BlakeModexpData implements StatefullModule<BlakeModexpDataOperation> {
+public class BlakeModexpData implements OperationListModule<BlakeModexpDataOperation> {
   private final Wcp wcp;
   private final ModexpEffectiveCall modexpEffectiveCall;
   private final BlakeEffectiveCall blakeEffectiveCall;

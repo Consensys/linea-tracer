@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
-import net.consensys.linea.zktracer.container.module.StatefullModule;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
@@ -31,7 +31,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public class Mxp implements StatefullModule<MxpOperation> {
+public class Mxp implements OperationListModule<MxpOperation> {
 
   private final StackedList<MxpOperation> operations = new StackedList<>();
 

@@ -21,7 +21,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -29,7 +29,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Accessors(fluent = true)
-public class Shf implements StatelessModule<ShfOperation> {
+public class Shf implements OperationSetModule<ShfOperation> {
 
   private final StackedSet<ShfOperation> operations = new StackedSet<>();
 

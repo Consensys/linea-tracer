@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
@@ -34,7 +34,7 @@ import org.apache.tuweni.bytes.Bytes32;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class Stp implements StatelessModule<StpOperation> {
+public class Stp implements OperationSetModule<StpOperation> {
 
   private final Wcp wcp;
   private final Mod mod;

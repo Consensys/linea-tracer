@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -31,7 +31,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class Mul implements StatelessModule<MulOperation> {
+public class Mul implements OperationSetModule<MulOperation> {
   private final Hub hub;
 
   @Getter private final StackedSet<MulOperation> operations = new StackedSet<>();

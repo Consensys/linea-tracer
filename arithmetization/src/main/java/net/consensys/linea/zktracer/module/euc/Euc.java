@@ -25,14 +25,14 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class Euc implements StatelessModule<EucOperation> {
+public class Euc implements OperationSetModule<EucOperation> {
   private final Wcp wcp;
   @Getter private final StackedSet<EucOperation> operations = new StackedSet<>();
 

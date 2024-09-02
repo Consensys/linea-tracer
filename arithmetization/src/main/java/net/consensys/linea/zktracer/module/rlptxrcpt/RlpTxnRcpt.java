@@ -37,7 +37,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatefullModule;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.types.BitDecOutput;
@@ -50,7 +50,7 @@ import org.hyperledger.besu.evm.log.LogsBloomFilter;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public class RlpTxnRcpt implements StatefullModule<RlpTxrcptOperation> {
+public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
   private static final Bytes BYTES_RLP_INT_SHORT = Bytes.minimalBytes(RLP_PREFIX_INT_SHORT);
   private static final Bytes BYTES_RLP_LIST_SHORT = Bytes.minimalBytes(RLP_PREFIX_LIST_SHORT);
 

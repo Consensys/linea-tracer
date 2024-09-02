@@ -22,33 +22,33 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 public class CountOnlyOperation {
 
-  private int countSinceBeginningOfTheConflation = 0;
-  @Getter private int thisTransactionCount = 0;
+  private int countCommitedToTheConflation = 0;
+  @Getter private int countInTransaction = 0;
 
   /**
    * when we enter a transaction, the previous transaction is definitely added to the block and
    * can't be pop
    */
   public void enter() {
-    countSinceBeginningOfTheConflation += thisTransactionCount;
-    thisTransactionCount = 0;
+    countCommitedToTheConflation += countInTransaction;
+    countInTransaction = 0;
   }
 
   public void pop() {
-    thisTransactionCount = 0;
+    countInTransaction = 0;
   }
 
   public void add(final int operationCount) {
     Preconditions.checkArgument(operationCount >= 0, "operationCount must be positive");
-    thisTransactionCount += operationCount;
+    countInTransaction += operationCount;
   }
 
   public int lineCount() {
-    return countSinceBeginningOfTheConflation + thisTransactionCount;
+    return countCommitedToTheConflation + countInTransaction;
   }
 
   public void clear() {
-    countSinceBeginningOfTheConflation = 0;
-    thisTransactionCount = 0;
+    countCommitedToTheConflation = 0;
+    countInTransaction = 0;
   }
 }

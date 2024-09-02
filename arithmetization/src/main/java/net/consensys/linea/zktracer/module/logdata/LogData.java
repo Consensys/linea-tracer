@@ -56,7 +56,7 @@ public class LogData implements Module {
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
     Preconditions.checkArgument(
-        rlpTxnRcpt.operations().thisTransactionOperation().size() == 1,
+        rlpTxnRcpt.operations().operationsInTransaction().size() == 1,
         "We should have only one transaction receipt operation per transaction");
     lineCounter.add(lineCountForLogData(rlpTxnRcpt.operations().getLast()));
   }

@@ -67,7 +67,7 @@ public class Mmio implements Module {
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
-    for (MmuOperation o : mmu.operations().thisTransactionOperation()) {
+    for (MmuOperation o : mmu.operations().operationsInTransaction()) {
       lineCounter.add(o.mmioLineCount());
     }
   }

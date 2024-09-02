@@ -20,10 +20,10 @@ import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
- * A {@link StatelessModule} is a {@link Module} that contains unordered {@link E} where we don't
+ * A {@link OperationSetModule} is a {@link Module} that contains unordered {@link E} where we don't
  * keep trace of duplicates.
  */
-public interface StatelessModule<E extends ModuleOperation> extends Module {
+public interface OperationSetModule<E extends ModuleOperation> extends Module {
 
   StackedSet<E> operations();
 

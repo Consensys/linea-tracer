@@ -23,7 +23,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatefullModule;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -34,7 +34,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class TxnData implements StatefullModule<TxndataOperation> {
+public class TxnData implements OperationListModule<TxndataOperation> {
   @Getter private final StackedList<TxndataOperation> operations = new StackedList<>();
 
   private final Wcp wcp;

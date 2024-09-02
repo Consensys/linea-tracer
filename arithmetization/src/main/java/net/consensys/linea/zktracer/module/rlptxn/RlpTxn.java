@@ -62,7 +62,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatefullModule;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
@@ -86,7 +86,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class RlpTxn implements StatefullModule<RlpTxnOperation> {
+public class RlpTxn implements OperationListModule<RlpTxnOperation> {
   private final RomLex romLex;
 
   @Getter

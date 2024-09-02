@@ -22,7 +22,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -32,7 +32,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Accessors(fluent = true)
-public class Mod implements StatelessModule<ModOperation> {
+public class Mod implements OperationSetModule<ModOperation> {
   private final StackedSet<ModOperation> operations = new StackedSet<>();
 
   @Override

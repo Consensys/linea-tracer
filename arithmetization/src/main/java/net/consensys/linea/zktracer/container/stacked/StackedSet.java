@@ -27,51 +27,51 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Implements a system of pseudo-stacked squashed sets where {@link
- * operationSinceBeginningOfTheConflation} represents the set of all operations since the beginning
- * of the conflation and {@link thisTransactionOperation} represents the operations added by the
- * last transaction. We can pop only the operations added by last transaction. The line counting is
- * done by a separate {@link CountOnlyOperation}.
+ * operationsCommitedToTheConflation} represents the set of all operations since the beginning of
+ * the conflation and {@link operationsInTransaction} represents the operations added by the last
+ * transaction. We can pop only the operations added by last transaction. The line counting is done
+ * by a separate {@link CountOnlyOperation}.
  *
  * @param <E> the type of elements stored in the set
  */
 @Accessors(fluent = true)
 public class StackedSet<E extends ModuleOperation> {
-  @Getter private final Set<E> operationSinceBeginningOfTheConflation;
-  @Getter private final Set<E> thisTransactionOperation;
+  @Getter private final Set<E> operationsCommitedToTheConflation;
+  @Getter private final Set<E> operationsInTransaction;
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   @Getter private boolean conflationFinished = false;
 
   public StackedSet() {
-    operationSinceBeginningOfTheConflation = new HashSet<>();
-    thisTransactionOperation = new HashSet<>();
+    operationsCommitedToTheConflation = new HashSet<>();
+    operationsInTransaction = new HashSet<>();
   }
 
   /** Prefer this constructor as we preallocate more needed memory */
   public StackedSet(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
-    operationSinceBeginningOfTheConflation = new HashSet<>(expectedConflationNumberOperations);
-    thisTransactionOperation = new HashSet<>(expectedTransactionNumberOperations);
+    operationsCommitedToTheConflation = new HashSet<>(expectedConflationNumberOperations);
+    operationsInTransaction = new HashSet<>(expectedTransactionNumberOperations);
   }
 
   /**
-   * When we enter transaction n, the previous transaction n-1 {@link thisTransactionOperation} (or
+   * When we enter transaction n, the previous transaction n-1 {@link operationsInTransaction} (or
    * an empty set if n == 0) is definitely added to the set of all transactions {@link
-   * operationSinceBeginningOfTheConflation}. We reset {@link thisTransactionOperation} to an empty
-   * set as it now represents the operations added at transaction n.
+   * operationsCommitedToTheConflation}. We reset {@link operationsInTransaction} to an empty set as
+   * it now represents the operations added at transaction n.
    */
   public void enter() {
-    operationSinceBeginningOfTheConflation.addAll(thisTransactionOperation);
-    thisTransactionOperation.clear();
+    operationsCommitedToTheConflation.addAll(operationsInTransaction);
+    operationsInTransaction.clear();
     lineCounter.enter();
   }
 
   public void pop() {
-    thisTransactionOperation.clear();
+    operationsInTransaction.clear();
     lineCounter.pop();
   }
 
   public int size() {
-    return thisTransactionOperation.size() + operationSinceBeginningOfTheConflation.size();
+    return operationsInTransaction.size() + operationsCommitedToTheConflation.size();
   }
 
   public int lineCount() {
@@ -80,7 +80,7 @@ public class StackedSet<E extends ModuleOperation> {
 
   public Set<E> getAll() {
     Preconditions.checkState(conflationFinished, "Conflation not finished");
-    return operationSinceBeginningOfTheConflation;
+    return operationsCommitedToTheConflation;
   }
 
   public boolean isEmpty() {
@@ -88,13 +88,12 @@ public class StackedSet<E extends ModuleOperation> {
   }
 
   public boolean contains(Object o) {
-    return thisTransactionOperation.contains(o)
-        || operationSinceBeginningOfTheConflation.contains(o);
+    return operationsInTransaction.contains(o) || operationsCommitedToTheConflation.contains(o);
   }
 
   public boolean add(E e) {
-    if (!operationSinceBeginningOfTheConflation.contains(e)) {
-      final boolean isNew = thisTransactionOperation.add(e);
+    if (!operationsCommitedToTheConflation.contains(e)) {
+      final boolean isNew = operationsInTransaction.add(e);
       if (isNew) {
         lineCounter.add(e.lineCount());
       }
@@ -121,15 +120,15 @@ public class StackedSet<E extends ModuleOperation> {
   }
 
   public void clear() {
-    operationSinceBeginningOfTheConflation.clear();
-    thisTransactionOperation.clear();
+    operationsCommitedToTheConflation.clear();
+    operationsInTransaction.clear();
     lineCounter.clear();
   }
 
   public void finishConflation() {
     conflationFinished = true;
-    operationSinceBeginningOfTheConflation.addAll(thisTransactionOperation);
-    thisTransactionOperation.clear();
+    operationsCommitedToTheConflation.addAll(operationsInTransaction);
+    operationsInTransaction.clear();
     lineCounter.enter(); // this is not mandatory but it is more consistent
   }
 }

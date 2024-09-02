@@ -24,7 +24,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatefullModule;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
@@ -33,7 +33,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class ShakiraData implements StatefullModule<ShakiraDataOperation> {
+public class ShakiraData implements OperationListModule<ShakiraDataOperation> {
   @Getter private final StackedList<ShakiraDataOperation> operations = new StackedList<>();
   private final Wcp wcp;
 

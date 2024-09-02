@@ -25,7 +25,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatefullModule;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -38,7 +38,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 /** Implementation of a {@link Module} for out of bounds. */
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class Oob implements StatefullModule<OobOperation> {
+public class Oob implements OperationListModule<OobOperation> {
   // TODO @Lorenzo why it's not a StateLess module ?
 
   private final Hub hub;

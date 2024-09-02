@@ -23,7 +23,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -37,7 +37,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 @Accessors(fluent = true)
-public class Trm implements StatelessModule<TrmOperation> {
+public class Trm implements OperationSetModule<TrmOperation> {
   private final StackedSet<TrmOperation> operations = new StackedSet<>();
 
   static final int MAX_CT = LLARGE;

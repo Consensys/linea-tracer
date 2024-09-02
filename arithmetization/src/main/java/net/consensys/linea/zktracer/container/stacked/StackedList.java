@@ -27,30 +27,30 @@ import org.jetbrains.annotations.NotNull;
 
 /**
  * Implements a system of pseudo-stacked squashed List where {@link
- * operationSinceBeginningOfTheConflation} represents the List of all operations since the beginning
- * of the conflation and {@link thisTransactionOperation} represents the operations added by the
- * last transaction. We can pop only the operations added by last transaction. The line counting is
- * done by a separate {@link CountOnlyOperation}.
+ * operationsCommitedToTheConflation} represents the List of all operations since the beginning of
+ * the conflation and {@link operationsInTransaction} represents the operations added by the last
+ * transaction. We can pop only the operations added by last transaction. The line counting is done
+ * by a separate {@link CountOnlyOperation}.
  *
  * @param <E> the type of elements stored in the set
  */
 @Accessors(fluent = true)
 public class StackedList<E extends ModuleOperation> {
-  private final List<E> operationSinceBeginningOfTheConflation;
-  @Getter private final List<E> thisTransactionOperation;
+  private final List<E> operationsCommitedToTheConflation;
+  @Getter private final List<E> operationsInTransaction;
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   private boolean conflationFinished = false;
 
   public StackedList() {
-    operationSinceBeginningOfTheConflation = new ArrayList<>();
-    thisTransactionOperation = new ArrayList<>();
+    operationsCommitedToTheConflation = new ArrayList<>();
+    operationsInTransaction = new ArrayList<>();
   }
 
   /** Prefer this constructor as we preallocate more needed memory */
   public StackedList(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
-    operationSinceBeginningOfTheConflation = new ArrayList<>(expectedConflationNumberOperations);
-    thisTransactionOperation = new ArrayList<>(expectedTransactionNumberOperations);
+    operationsCommitedToTheConflation = new ArrayList<>(expectedConflationNumberOperations);
+    operationsInTransaction = new ArrayList<>(expectedTransactionNumberOperations);
   }
 
   /**
@@ -58,30 +58,30 @@ public class StackedList<E extends ModuleOperation> {
    * can't be pop
    */
   public void enter() {
-    operationSinceBeginningOfTheConflation.addAll(thisTransactionOperation);
-    thisTransactionOperation.clear();
+    operationsCommitedToTheConflation.addAll(operationsInTransaction);
+    operationsInTransaction.clear();
     lineCounter.enter();
   }
 
   public void pop() {
-    thisTransactionOperation.clear();
+    operationsInTransaction.clear();
     lineCounter.pop();
   }
 
   public E getFirst() {
-    return operationSinceBeginningOfTheConflation.isEmpty()
-        ? thisTransactionOperation.getFirst()
-        : operationSinceBeginningOfTheConflation.getFirst();
+    return operationsCommitedToTheConflation.isEmpty()
+        ? operationsInTransaction.getFirst()
+        : operationsCommitedToTheConflation.getFirst();
   }
 
   public E getLast() {
-    return thisTransactionOperation.isEmpty()
-        ? operationSinceBeginningOfTheConflation.getLast()
-        : thisTransactionOperation.getLast();
+    return operationsInTransaction.isEmpty()
+        ? operationsCommitedToTheConflation.getLast()
+        : operationsInTransaction.getLast();
   }
 
   public int size() {
-    return thisTransactionOperation.size() + operationSinceBeginningOfTheConflation.size();
+    return operationsInTransaction.size() + operationsCommitedToTheConflation.size();
   }
 
   public int lineCount() {
@@ -89,16 +89,16 @@ public class StackedList<E extends ModuleOperation> {
   }
 
   public E get(int index) {
-    if (index < operationSinceBeginningOfTheConflation.size()) {
-      return operationSinceBeginningOfTheConflation.get(index);
+    if (index < operationsCommitedToTheConflation.size()) {
+      return operationsCommitedToTheConflation.get(index);
     } else {
-      return thisTransactionOperation.get(index - operationSinceBeginningOfTheConflation.size());
+      return operationsInTransaction.get(index - operationsCommitedToTheConflation.size());
     }
   }
 
   public List<E> getAll() {
     Preconditions.checkState(conflationFinished, "Conflation not finished");
-    return operationSinceBeginningOfTheConflation;
+    return operationsCommitedToTheConflation;
   }
 
   public boolean isEmpty() {
@@ -106,13 +106,12 @@ public class StackedList<E extends ModuleOperation> {
   }
 
   public boolean contains(Object o) {
-    return thisTransactionOperation.contains(o)
-        || operationSinceBeginningOfTheConflation.contains(o);
+    return operationsInTransaction.contains(o) || operationsCommitedToTheConflation.contains(o);
   }
 
   public boolean add(E e) {
     lineCounter.add(e.lineCount());
-    return thisTransactionOperation.add(e);
+    return operationsInTransaction.add(e);
   }
 
   public boolean addAll(@NotNull Collection<? extends E> c) {
@@ -124,15 +123,15 @@ public class StackedList<E extends ModuleOperation> {
   }
 
   public void clear() {
-    operationSinceBeginningOfTheConflation.clear();
-    thisTransactionOperation.clear();
+    operationsCommitedToTheConflation.clear();
+    operationsInTransaction.clear();
     lineCounter.clear();
   }
 
   public void finishConflation() {
     conflationFinished = true;
-    operationSinceBeginningOfTheConflation.addAll(thisTransactionOperation);
-    thisTransactionOperation.clear();
+    operationsCommitedToTheConflation.addAll(operationsInTransaction);
+    operationsInTransaction.clear();
     lineCounter.enter(); // this is not mandatory but it is more consistent
   }
 }

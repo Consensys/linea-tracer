@@ -29,7 +29,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.StatelessModule;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -40,7 +40,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class Wcp implements StatelessModule<WcpOperation> {
+public class Wcp implements OperationSetModule<WcpOperation> {
 
   private final StackedSet<WcpOperation> operations = new StackedSet<>();
 
@@ -54,13 +54,13 @@ public class Wcp implements StatelessModule<WcpOperation> {
 
   @Override
   public void enterTransaction() {
-    StatelessModule.super.enterTransaction();
+    OperationSetModule.super.enterTransaction();
     additionalRows.enter();
   }
 
   @Override
   public void popTransaction() {
-    StatelessModule.super.popTransaction();
+    OperationSetModule.super.popTransaction();
     additionalRows.pop();
   }
 

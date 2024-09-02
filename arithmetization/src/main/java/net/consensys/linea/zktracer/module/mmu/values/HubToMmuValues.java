@@ -60,8 +60,8 @@ public class HubToMmuValues {
     this.exoIsKeccak = mmuCall.exoIsKec();
     this.exoIsLog = mmuCall.exoIsLog();
     this.exoIsTxcd = mmuCall.exoIsRlpTxn();
-    this.sourceId = mmuCall.requiresCFI() ? -1 : mmuCall.sourceId();
-    this.targetId = mmuCall.requiresCFI() ? -1 : mmuCall.targetId();
+    this.sourceId = exoIsRom && exoIsSource ? -1 : mmuCall.sourceId();
+    this.targetId = exoIsRom && exoIsTarget ? -1 : mmuCall.targetId();
     this.auxId = mmuCall.auxId();
     this.sourceOffsetHi = mmuCall.sourceOffset().hiBigInt();
     this.sourceOffsetLo = mmuCall.sourceOffset().loBigInt();

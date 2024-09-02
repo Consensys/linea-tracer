@@ -139,7 +139,7 @@ public class MmuOperation extends ModuleOperation {
   }
 
   public void getCFI() {
-    if (mmuData.mmuCall().requiresCFI()) {
+    if (mmuData.hubToMmuValues().exoIsRom()) {
       if (mmuData.exoLimbIsSource()) {
         final int sourceId = mmuData.mmuCall().sourceId();
         mmuData.hubToMmuValues().sourceId(sourceId);

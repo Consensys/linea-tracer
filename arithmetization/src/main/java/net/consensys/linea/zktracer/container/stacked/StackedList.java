@@ -26,10 +26,13 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Implements a system of nested lists behaving as a single one, where the current context
- * modification can transparently be dropped.
+ * Implements a system of pseudo-stacked squashed List where {@link
+ * operationSinceBeginningOfTheConflation} represents the List of all operations since the beginning
+ * of the conflation and {@link thisTransactionOperation} represents the operations added by the
+ * last transaction. We can pop only the operations added by last transaction. The line counting is
+ * done by a separate {@link CountOnlyOperation}.
  *
- * @param <E> the type of elements stored in the list
+ * @param <E> the type of elements stored in the set
  */
 @Accessors(fluent = true)
 public class StackedList<E extends ModuleOperation> {
@@ -130,5 +133,6 @@ public class StackedList<E extends ModuleOperation> {
     conflationFinished = true;
     operationSinceBeginningOfTheConflation.addAll(thisTransactionOperation);
     thisTransactionOperation.clear();
+    lineCounter.enter(); // this is not mandatory but it is more consistent
   }
 }

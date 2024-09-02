@@ -130,5 +130,6 @@ public class StackedSet<E extends ModuleOperation> {
     conflationFinished = true;
     operationSinceBeginningOfTheConflation.addAll(thisTransactionOperation);
     thisTransactionOperation.clear();
+    lineCounter.enter(); // this is not mandatory but it is more consistent
   }
 }

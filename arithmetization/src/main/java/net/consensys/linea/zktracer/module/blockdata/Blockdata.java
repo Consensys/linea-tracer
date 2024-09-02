@@ -32,7 +32,6 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
-import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
 public class Blockdata implements Module {
@@ -41,7 +40,7 @@ public class Blockdata implements Module {
   private final RlpTxn rlpTxn;
   private final Deque<BlockdataOperation> operations = new ArrayDeque<>();
   private boolean conflationFinished = false;
-  private final int TIMESTAMP_BYTESIZE = 4;
+  private static final int TIMESTAMP_BYTESIZE = 4;
   private int previousTimestamp = 0;
 
   @Override
@@ -50,7 +49,7 @@ public class Blockdata implements Module {
   }
 
   @Override
-  public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
+  public void traceStartConflation(final long blockCount) {
     wcp.additionalRows.add(TIMESTAMP_BYTESIZE);
   }
 
@@ -63,10 +62,9 @@ public class Blockdata implements Module {
             currentTimestamp,
             blockHeader.getNumber(),
             blockHeader.getDifficulty().getAsBigInteger(),
-            this.txnData.currentBlock().getNbOfTxsInBlock()));
+            txnData.currentBlock().getNbOfTxsInBlock()));
 
     wcp.callGT(currentTimestamp, previousTimestamp);
-    wcp.additionalRows.remove(TIMESTAMP_BYTESIZE); // Remove what have been done at traceStartBlock
     previousTimestamp = currentTimestamp;
   }
 

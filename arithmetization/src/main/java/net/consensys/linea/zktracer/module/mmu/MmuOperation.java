@@ -79,12 +79,12 @@ public class MmuOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    Preconditions.checkState(traceMe(), "Cannot compute if traceMe is false");
+    checkState(traceMe(), "Cannot compute if traceMe is false");
     return 1 + mmuData.numberMmuPreprocessingRows() + mmuData.numberMmioInstructions();
   }
 
   public int mmioLineCount() {
-    Preconditions.checkState(traceMe(), "Cannot compute if traceMe is false");
+    checkState(traceMe(), "Cannot compute if traceMe is false");
     int mmioLineCount = 0;
     for (int i = 0; i < mmuData().numberMmioInstructions(); i++) {
       mmioLineCount +=

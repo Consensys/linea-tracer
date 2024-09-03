@@ -129,10 +129,10 @@ public class RomLex
     final Transaction tx = txMetaData.getBesuTransaction();
     // Contract creation with InitCode
     if (tx.getInit().isPresent() && !tx.getInit().get().isEmpty()) {
-        final Address deploymentAddress = Address.contractAddress(tx.getSender(), tx.getNonce());
+      final Address deploymentAddress = Address.contractAddress(tx.getSender(), tx.getNonce());
       final RomOperation operation =
           new RomOperation(
-                  ContractMetadata.make(deploymentAddress, 1, true), false, false, tx.getInit().get());
+              ContractMetadata.make(deploymentAddress, 1, true), false, false, tx.getInit().get());
 
       operations.add(operation);
     }
@@ -147,7 +147,8 @@ public class RomLex
 
                 final Address calledAddress = tx.getTo().get();
                 final RomOperation operation =
-                    new RomOperation(ContractMetadata.canonical(hub, calledAddress), true, false, code);
+                    new RomOperation(
+                        ContractMetadata.canonical(hub, calledAddress), true, false, code);
 
                 operations.add(operation);
               }
@@ -261,7 +262,10 @@ public class RomLex
 
   // This is the tracing for ROMLEX module
   private void traceChunk(
-      final RomOperation operation, final int cfi, final int codeFragmentIndexInfinity, Trace trace) {
+      final RomOperation operation,
+      final int cfi,
+      final int codeFragmentIndexInfinity,
+      Trace trace) {
     final Hash codeHash =
         operation.metadata().underDeployment() ? Hash.EMPTY : Hash.hash(operation.byteCode());
     trace

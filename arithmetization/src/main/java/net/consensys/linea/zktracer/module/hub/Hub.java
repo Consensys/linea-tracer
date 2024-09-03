@@ -724,7 +724,7 @@ public class Hub implements Module {
     /**
      * Explanation: if the current address isn't under deployment there is nothing to do.
      *
-     * If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
+     * <p>If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
      * immediately set to the deployed state
      */
     if (messageFrame().getType() != CONTRACT_CREATION || state.processingPhase == TX_SKIP) {
@@ -760,10 +760,7 @@ public class Hub implements Module {
     // from here on out nonempty deployments
 
     // we transition 'nonempty deployments' from 'underDeployment' to 'deployed'
-    transients
-        .conflation()
-        .deploymentInfo()
-        .markAsNotUnderDeployment(bytecodeAddress);
+    transients.conflation().deploymentInfo().markAsNotUnderDeployment(bytecodeAddress);
   }
 
   public void tracePreExecution(final MessageFrame frame) {

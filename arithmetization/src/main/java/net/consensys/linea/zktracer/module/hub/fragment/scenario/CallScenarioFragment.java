@@ -68,8 +68,7 @@ public class CallScenarioFragment implements TraceFragment {
   }
 
   private static final List<CallScenario> illegalTracingScenario =
-      List.of(
-          UNDEFINED, CALL_SMC_UNDEFINED, CALL_PRC_UNDEFINED);
+      List.of(UNDEFINED, CALL_SMC_UNDEFINED, CALL_PRC_UNDEFINED);
 
   public Trace trace(Trace trace) {
     checkArgument(scenario.noLongerUndefined(), "Final Scenario hasn't been set");
@@ -81,21 +80,13 @@ public class CallScenarioFragment implements TraceFragment {
         .pScenarioCallAbortWillRevert(scenario.equals(CALL_ABORT_WILL_REVERT))
         .pScenarioCallAbortWontRevert(scenario.equals(CALL_ABORT_WONT_REVERT))
         .pScenarioCallPrcFailure(scenario.equals(CALL_PRC_FAILURE))
-        .pScenarioCallPrcSuccessCallerWillRevert(
-            scenario.equals(CALL_PRC_SUCCESS_WILL_REVERT))
-        .pScenarioCallPrcSuccessCallerWontRevert(
-            scenario.equals(CALL_PRC_SUCCESS_WONT_REVERT))
-        .pScenarioCallSmcFailureCallerWillRevert(
-            scenario.equals(CALL_SMC_FAILURE_WILL_REVERT))
-        .pScenarioCallSmcFailureCallerWontRevert(
-            scenario.equals(CALL_SMC_FAILURE_WONT_REVERT))
-        .pScenarioCallSmcSuccessCallerWillRevert(
-            scenario.equals(CALL_SMC_SUCCESS_WILL_REVERT))
-        .pScenarioCallSmcSuccessCallerWontRevert(
-            scenario.equals(CALL_SMC_SUCCESS_WONT_REVERT))
-        .pScenarioCallEoaSuccessCallerWillRevert(
-            scenario.equals(CALL_EOA_SUCCESS_WILL_REVERT))
-        .pScenarioCallEoaSuccessCallerWontRevert(
-            scenario.equals(CALL_EOA_SUCCESS_WONT_REVERT));
+        .pScenarioCallPrcSuccessCallerWillRevert(scenario.equals(CALL_PRC_SUCCESS_WILL_REVERT))
+        .pScenarioCallPrcSuccessCallerWontRevert(scenario.equals(CALL_PRC_SUCCESS_WONT_REVERT))
+        .pScenarioCallSmcFailureCallerWillRevert(scenario.equals(CALL_SMC_FAILURE_WILL_REVERT))
+        .pScenarioCallSmcFailureCallerWontRevert(scenario.equals(CALL_SMC_FAILURE_WONT_REVERT))
+        .pScenarioCallSmcSuccessCallerWillRevert(scenario.equals(CALL_SMC_SUCCESS_WILL_REVERT))
+        .pScenarioCallSmcSuccessCallerWontRevert(scenario.equals(CALL_SMC_SUCCESS_WONT_REVERT))
+        .pScenarioCallEoaSuccessCallerWillRevert(scenario.equals(CALL_EOA_SUCCESS_WILL_REVERT))
+        .pScenarioCallEoaSuccessCallerWontRevert(scenario.equals(CALL_EOA_SUCCESS_WONT_REVERT));
   }
 }

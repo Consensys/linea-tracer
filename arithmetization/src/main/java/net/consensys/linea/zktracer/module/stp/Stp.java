@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.types.Conversions.longToBytes32;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;

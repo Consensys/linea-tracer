@@ -58,7 +58,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -137,7 +136,7 @@ public class RlpTxn implements OperationListModule<RlpTxnOperation> {
     traceValue.requiresEvmExecution = chunk.requireEvmExecution();
     traceValue.codeFragmentIndex =
         chunk.tx().getTo().isEmpty() && chunk.requireEvmExecution()
-                ? this.romLex.getCodeFragmentIndexByMetadata(
+            ? this.romLex.getCodeFragmentIndexByMetadata(
                 ContractMetadata.make(
                     Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()),
                     1,

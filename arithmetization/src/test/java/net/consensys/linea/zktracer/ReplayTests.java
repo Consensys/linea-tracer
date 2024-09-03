@@ -33,7 +33,6 @@ import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.testing.ToyExecutionEnvironment;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -93,7 +92,7 @@ public class ReplayTests {
     replay(filename, true);
   }
 
-  @Disabled
+  // @Disabled
   /**
    * Run replay with the specific file path of a replay file. The conflated trace will be written to
    * the same directory as the replay file. Usage: replayAt("/path/to/your/star-end.json.gz");

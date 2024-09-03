@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc;
 
 import static com.google.common.base.Preconditions.*;
-
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_VALUE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;

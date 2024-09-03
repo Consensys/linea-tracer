@@ -21,6 +21,7 @@ import java.util.List;
 
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironment;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.testing.ToyWorld;
 import org.apache.tuweni.bytes.Bytes;
@@ -195,7 +196,7 @@ public class TxSkip {
                     receiverAccount))
             .build();
 
-    ToyExecutionEnvironment.builder()
+    ToyExecutionEnvironmentV2.builder()
         .toyWorld(toyWorld)
         .transactions(txs)
         .zkTracerValidator(

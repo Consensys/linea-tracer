@@ -34,7 +34,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
@@ -189,7 +189,7 @@ public class Hub implements Module {
 
   @Override
   public int lineCount() {
-    return this.state.lineCount();
+    return state.lineCounter().lineCount();
   }
 
   /** List of all modules of the ZK-evm */
@@ -215,7 +215,7 @@ public class Hub implements Module {
   private final Mmio mmio;
 
   private final TxnData txnData = new TxnData(wcp, euc);
-  private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt(txnData);
+  private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
   private final RlpAddr rlpAddr = new RlpAddr(this, trm);
@@ -320,7 +320,7 @@ public class Hub implements Module {
                 exp,
                 logData,
                 logInfo,
-                mmu, // WARN: must be called before the MMIO
+                mmu, // WARN: must be traced before the MMIO
                 mmio,
                 mod,
                 mul,
@@ -402,8 +402,6 @@ public class Hub implements Module {
                     euc,
                     ext,
                     gas,
-                    logData,
-                    logInfo,
                     mmio,
                     mmu,
                     mod,
@@ -414,6 +412,8 @@ public class Hub implements Module {
                     rlpAddr,
                     rlpTxn,
                     rlpTxnRcpt,
+                    logData, /* WARN: must be called AFTER rlpTxnRcpt */
+                    logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
                     rom,
                     romLex,
                     shakiraData,
@@ -524,13 +524,17 @@ public class Hub implements Module {
 
     // TODO: add the following resolution this.defers.resolvePostRollback(this, ...
 
-    this.txStack.current().completeLineaTransaction(this, isSuccessful, logs, selfDestructs);
+    txStack.current().completeLineaTransaction(this, isSuccessful, logs, selfDestructs);
 
+    defers.resolvePostTransaction(this, world, tx, isSuccessful);
+
+    // Warn: we need to call MMIO after resolving the defers
     for (Module m : modules) {
       m.traceEndTx(txStack.current());
     }
 
-    this.defers.resolvePostTransaction(this, world, tx, isSuccessful);
+    // Compute the line counting of the HUB of the current transaction
+    state.lineCounter().add(state.currentTxTrace().lineCount());
   }
 
   @Override

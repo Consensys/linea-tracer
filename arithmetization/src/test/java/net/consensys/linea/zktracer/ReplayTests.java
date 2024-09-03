@@ -279,4 +279,9 @@ public class ReplayTests {
   void failedCreate2() {
     replay("41640-41649.json.gz");
   }
+
+  @Test
+  void blockhashNotFindInReplayFile() {
+    replay("3226470.json.gz");
+  }
 }

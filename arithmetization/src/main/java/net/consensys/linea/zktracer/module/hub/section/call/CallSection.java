@@ -151,7 +151,7 @@ public class CallSection extends TraceSection
     firstImcFragment.callStp(stpCall);
     Preconditions.checkArgument(
         stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions),
-        String.format("OOGX is not the one computed by STP for the call at  CN = %s", hubStamp()));
+        String.format("The STP and the HUB have conflicting predictions of an OOGX\n\t\tHUB_STAMP = %s", hubStamp()));
 
     final Address callerAddress = hub.currentFrame().callerAddress();
     preOpcodeCallerSnapshot = canonical(hub, callerAddress);

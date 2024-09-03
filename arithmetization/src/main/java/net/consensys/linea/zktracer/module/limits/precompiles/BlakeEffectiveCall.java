@@ -15,11 +15,10 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import static com.google.common.base.Preconditions.*;
 
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
-
-public final class BlakeEffectiveCall extends CountingOnlyModule {
+public final class BlakeEffectiveCall implements CountingOnlyModule {
 
   @Override
   public String moduleKey() {

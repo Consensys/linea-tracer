@@ -33,7 +33,7 @@ public class TransactionStack implements StackedContainer {
   private int relativeTransactionNumber;
 
   public TransactionProcessingMetadata current() {
-    return this.txs.get(this.txs.size() - 1);
+    return txs.getLast();
   }
 
   /* WARN: can't be called if currentAbsNumber == 1*/

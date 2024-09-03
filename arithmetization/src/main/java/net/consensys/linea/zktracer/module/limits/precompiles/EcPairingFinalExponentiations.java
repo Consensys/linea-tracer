@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
+import static net.consensys.linea.zktracer.CurveOperations.*;
+
+import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -34,5 +37,12 @@ public final class EcPairingFinalExponentiations implements CountingOnlyModule {
   @Override
   public String moduleKey() {
     return "PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS";
+  }
+
+  @Override
+  public void addPrecompileLimit(final int numberEffectiveCall) {
+    Preconditions.checkArgument(
+        numberEffectiveCall <= 1, "can't add more than one effective precompile call at a time");
+    counts.add(numberEffectiveCall);
   }
 }

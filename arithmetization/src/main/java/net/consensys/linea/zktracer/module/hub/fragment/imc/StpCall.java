@@ -21,7 +21,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CREATE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 import static net.consensys.linea.zktracer.types.EWord.ZERO;
 
 import java.math.BigInteger;
@@ -96,7 +96,7 @@ public class StpCall implements TraceSubFragment {
           default -> throw new IllegalArgumentException(
               "STP module triggered for a non CALL-type instruction");
         };
-    this.warm = frame.isAddressWarm(to) || isPrecompile(to);
+    this.warm = isAddressWarm(frame, to);
 
     final boolean isCALL = opCode.equals(OpCode.CALL);
     final boolean nonzeroValueTransfer = !value.isZero();

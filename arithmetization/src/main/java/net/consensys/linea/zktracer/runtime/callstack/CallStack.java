@@ -87,7 +87,7 @@ public final class CallStack {
     this.callFrames.add(newFrame);
   }
 
-  public void newBedrock(
+  public void newRootContext(
       int hubStamp,
       Address from,
       Address to,
@@ -107,54 +107,6 @@ public final class CallStack {
         from,
         toCode == null ? Bytecode.EMPTY : toCode,
         type,
-        value,
-        gas,
-        callData,
-        0,
-        callData.size(),
-        hubStamp,
-        accountDeploymentNumber,
-        codeDeploymentNumber,
-        codeDeploymentStatus);
-    this.current = this.callFrames.size() - 1;
-  }
-
-  /**
-   * A “mantle” {@link CallFrame} holds the call data for a message call with a non-empty call data
-   *
-   * @param hubStamp
-   * @param from
-   * @param to
-   * @param type
-   * @param toCode
-   * @param value
-   * @param gas
-   * @param callData
-   * @param accountDeploymentNumber
-   * @param codeDeploymentNumber
-   * @param codeDeploymentStatus
-   */
-  public void newMantleAndBedrock(
-      int hubStamp,
-      Address from,
-      Address to,
-      CallFrameType type,
-      Bytecode toCode,
-      Wei value,
-      long gas,
-      Bytes callData,
-      int accountDeploymentNumber,
-      int codeDeploymentNumber,
-      boolean codeDeploymentStatus) {
-    this.depth = -1;
-    this.callFrames.add(new CallFrame(from, callData, hubStamp));
-    this.enter(
-        hubStamp,
-        to,
-        to,
-        from,
-        toCode == null ? Bytecode.EMPTY : toCode,
-        CallFrameType.ROOT,
         value,
         gas,
         callData,

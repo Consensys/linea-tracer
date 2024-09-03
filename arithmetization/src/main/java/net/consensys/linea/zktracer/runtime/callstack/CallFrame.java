@@ -158,8 +158,8 @@ public class CallFrame {
     parent.outputDataSpan(returnDataSource);
   }
 
-  /** Create a MANTLE call frame. */
-  CallFrame(final Address origin, final Bytes callData, final int contextNumber) {
+  /** Create a TRANSACTION_CALL_DATA_HOLDER call frame. */
+  public CallFrame(final Address origin, final Bytes callData, final int contextNumber) {
     this.type = CallFrameType.TRANSACTION_CALL_DATA_HOLDER;
     this.contextNumber = contextNumber;
     this.accountAddress = origin;

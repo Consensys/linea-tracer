@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
-import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
@@ -539,56 +538,39 @@ public class Hub implements Module {
     this.pch.reset();
 
     if (frame.getDepth() == 0) {
-      // Root context
+      // Entering a transaction ...
       final TransactionProcessingMetadata currentTx = transients().tx();
-      final Address toAddress = effectiveToAddress(currentTx.getBesuTransaction());
-      final boolean isDeployment = this.transients.tx().getBesuTransaction().getTo().isEmpty();
+      final Address toAddress = currentTx.getEffectiveRecipient();
 
-      final boolean shouldCopyTxCallData = !isDeployment && currentTx.requiresEvmExecution();
-      // TODO simplify this, the same bedRock context ( = root context ??) seems to be
-      // generated in
-      // both case
-      if (shouldCopyTxCallData) {
-        this.callStack.newMantleAndBedrock(
-            this.state.stamps().hub(),
-            this.transients.tx().getBesuTransaction().getSender(),
-            toAddress,
-            CallFrameType.TRANSACTION_CALL_DATA_HOLDER,
-            new Bytecode(
-                toAddress == null
-                    ? this.transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY)
-                    : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
-                        .map(AccountState::getCode)
-                        .orElse(Bytes.EMPTY)),
-            Wei.of(this.transients.tx().getBesuTransaction().getValue().getAsBigInteger()),
-            this.transients.tx().getBesuTransaction().getGasLimit(),
-            this.transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY),
-            this.transients.conflation().deploymentInfo().deploymentNumber(toAddress),
-            toAddress.isEmpty()
-                ? 0
-                : this.transients.conflation().deploymentInfo().deploymentNumber(toAddress),
-            this.transients.conflation().deploymentInfo().getDeploymentStatus(toAddress));
-      } else {
-        this.callStack.newBedrock(
-            this.state.stamps().hub(),
-            this.txStack.current().getBesuTransaction().getSender(),
-            toAddress,
-            CallFrameType.ROOT,
-            new Bytecode(
-                toAddress == null
-                    ? this.transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY)
-                    : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
-                        .map(AccountState::getCode)
-                        .orElse(Bytes.EMPTY)),
-            Wei.of(this.transients.tx().getBesuTransaction().getValue().getAsBigInteger()),
-            this.transients.tx().getBesuTransaction().getGasLimit(),
-            this.transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY),
-            this.transients.conflation().deploymentInfo().deploymentNumber(toAddress),
-            toAddress.isEmpty()
-                ? 0
-                : this.transients.conflation().deploymentInfo().deploymentNumber(toAddress),
-            this.transients.conflation().deploymentInfo().getDeploymentStatus(toAddress));
-      }
+      // Creating the callFrame where we store the callData
+      final Bytes callData =
+          currentTx.copyTransactionCallData()
+              ? currentTx.getBesuTransaction().getData().get()
+              : Bytes.EMPTY;
+      callStack
+          .callFrames()
+          .add(new CallFrame(currentTx.getSender(), callData, state.stamps().hub()));
+
+      // Entering the ROOT context
+      callStack.newRootContext(
+          state.stamps().hub(),
+          currentTx.getBesuTransaction().getSender(),
+          toAddress,
+          CallFrameType.ROOT,
+          new Bytecode(
+              toAddress == null
+                  ? currentTx.getBesuTransaction().getData().orElse(Bytes.EMPTY)
+                  : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
+                      .map(AccountState::getCode)
+                      .orElse(Bytes.EMPTY)),
+          Wei.of(currentTx.getBesuTransaction().getValue().getAsBigInteger()),
+          currentTx.getBesuTransaction().getGasLimit(),
+          currentTx.getBesuTransaction().getData().orElse(Bytes.EMPTY),
+          transients.conflation().deploymentInfo().deploymentNumber(toAddress),
+          toAddress.isEmpty()
+              ? 0
+              : transients.conflation().deploymentInfo().deploymentNumber(toAddress),
+          transients.conflation().deploymentInfo().getDeploymentStatus(toAddress));
     } else {
       // ...or CALL or CREATE
       final OpCode currentOpCode = callStack.current().opCode();

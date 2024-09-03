@@ -149,7 +149,11 @@ public class CallSection extends TraceSection
 
     final StpCall stpCall = new StpCall(hub, mxpCall.gasMxp);
     firstImcFragment.callStp(stpCall);
-    checkArgument(stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
+   checkArgument(
+        stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions),
+        String.format(
+            "The STP and the HUB have conflicting predictions of an OOGX\n\t\tHUB_STAMP = %s",
+            hubStamp()));
 
     final Address callerAddress = hub.messageFrame().getRecipientAddress();
     preOpcodeCallerSnapshot = canonical(hub, callerAddress);
@@ -168,11 +172,8 @@ public class CallSection extends TraceSection
     checkArgument(Exceptions.none(exceptions));
     hub.currentFrame().childSpanningSection(this);
 
-    if (hub.opCode().callCanTransferValue()) {
-      value = Wei.of(hub.messageFrame().getStackItem(2).toUnsignedBigInteger());
-    } else {
-      value = Wei.ZERO;
-    }
+      value = hub.opCode().callCanTransferValue() ?Wei.of(hub.messageFrame().getStackItem(2).toUnsignedBigInteger())
+      : Wei.ZERO;
 
     final CallOobCall oobCall = new CallOobCall();
     firstImcFragment.callOob(oobCall);

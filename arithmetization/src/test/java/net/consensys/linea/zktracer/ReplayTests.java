@@ -544,4 +544,13 @@ public class ReplayTests {
   void test_7032397_7032402() {
     replay("7032397-7032402.json.gz", false);
   }
+
+  /**
+   * TODO: should be replace by a unit test triggering a STATICCALL to a precompile, without enough
+   * remaining gas if the precompile was considered COLD
+   */
+  @Test
+  void hotOrColdPrecompile() {
+    replay("2019510-2019519.json.gz");
+  }
 }

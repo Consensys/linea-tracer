@@ -279,4 +279,10 @@ public class ReplayTests {
   void failedCreate2() {
     replay("41640-41649.json.gz");
   }
+
+  // CALLDATACOPY in a ROOT context of a deployment transaction
+  @Test
+  void callDataCopyCnNotFound() {
+    replay("67051.json.gz");
+  }
 }

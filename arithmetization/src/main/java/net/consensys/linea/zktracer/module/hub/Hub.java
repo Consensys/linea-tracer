@@ -302,9 +302,11 @@ public class Hub implements Module {
   /** reference table modules */
   private final List<Module> refTableModules;
 
-  /** fix this mess */
-  public boolean failureCondition_ArnoldPalmerAlert_ArnoldPalmerAlert_WhoWantsSomeArniePalmies =
-      false;
+  /**
+   * boolean which remembers whether a {@link CreateSection} detected Failure Condition F. Gets
+   * reset with every new opcode.
+   */
+  public boolean failureConditionForCreates = false;
 
   /**
    * @return a list of all modules for which to generate traces
@@ -660,7 +662,7 @@ public class Hub implements Module {
   public void traceContextExit(MessageFrame frame) {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
 
-    exitDeploymentFromDeploymentInfoPov();
+    exitDeploymentFromDeploymentInfoPov(frame);
 
     // TODO: why only do this at positive depth ?
     if (frame.getDepth() > 0) {
@@ -709,65 +711,56 @@ public class Hub implements Module {
    * If the current execution context is a deployment context the present method "exits" that
    * deployment in the sense that it updates the relevant deployment information.
    */
-  private void exitDeploymentFromDeploymentInfoPov() {
+  private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
 
     // sanity check
-    checkArgument(
-        this.currentFrame().byteCodeAddress().equals(this.bytecodeAddress()),
-        "exitDeploymentFromDeploymentInfoPointOfView:"
-            + String.format(
-                "\n\t\tcurrentFrame().byteCodeAddress()    = %s",
-                this.currentFrame().byteCodeAddress())
-            + String.format(
-                "\n\t\tmessageFrame().getContractAddress() = %s",
-                this.messageFrame().getContractAddress())
-            + String.format("\n\t\tCALL_STACK_DEPTH  = %s", messageFrame().getDepth())
-            + String.format("\n\t\tABS_TX_NUM        = %s", txStack.getCurrentAbsNumber())
-            + String.format("\n\t\tHUB_STAMP         = %s", stamp())
-            + String.format("\n\t\tCONTEXT_NUMBER    = %s", currentFrame().contextNumber()));
+    Address bytecodeAddress = this.currentFrame().byteCodeAddress();
+    checkArgument(bytecodeAddress.equals(frame.getContractAddress()));
+    checkArgument(bytecodeAddress.equals(this.bytecodeAddress()));
 
-    // sanity check
-    if (state.processingPhase != TX_SKIP) {
-      if (messageFrame().getType() == CONTRACT_CREATION) {
-        // non failure condition
-        if (failureCondition_ArnoldPalmerAlert_ArnoldPalmerAlert_WhoWantsSomeArniePalmies) {
-          checkArgument(!deploymentStatusOfBytecodeAddress());
-        } else {
-          // non failure condition
-          checkArgument(
-              deploymentStatusOfBytecodeAddress()
-                  == !messageFrame().getCode().getBytes().isEmpty());
-        }
-      } else {
-        checkArgument(!deploymentStatusOfBytecodeAddress());
-      }
-      // checkArgument(
-      //     deploymentStatusOfBytecodeAddress()
-      //         == (messageFrame().getType() == CONTRACT_CREATION),
-      //     "exitDeploymentFromDeploymentInfoPointOfView:"
-      //         + String.format("\n\t\tdeployment status of bytecode address = %s",
-      // deploymentStatusOfBytecodeAddress())
-      //         + String.format("\n\t\tmessage frame type = %s", messageFrame().getType())
-      //         + String.format("\n\t\tmessage frame depth = %s", this.messageFrame().getDepth())
-      //         + String.format("\n\t\tabs txn number = %s", txStack.getCurrentAbsNumber())
-      //         + String.format("\n\t\thub stamp = %s", this.stamp())
-      //         + String.format("\n\t\topCode = %s", this.opCode())
-      //         + "\n\t\t-----");
-    } else {
-      /**
-       * EXPLANATION: the deployment addresses associated with deployment transactions that get
-       * skipped (empty bytecode) i.e. that are in the TX_SKIP phase immediately transition to "the
-       * deployed state"/
-       */
+    /**
+     * Explanation: if the current address isn't under deployment there is nothing to do.
+     *
+     * If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
+     * immediately set to the deployed state
+     */
+    if (messageFrame().getType() != CONTRACT_CREATION || state.processingPhase == TX_SKIP) {
       checkArgument(!deploymentStatusOfBytecodeAddress());
+      return;
     }
+    // from here on out:
+    // - state.processingPhase != TX_SKIP
+    // - messageFrame.type == CONTRACT_CREATION
 
-    if (deploymentStatusOfBytecodeAddress()) {
-      transients
-          .conflation()
-          .deploymentInfo()
-          .markAsNotUnderDeployment(this.currentFrame().byteCodeAddress());
+    /**
+     * Note: we can't a priori know the deployment status of an address where a CREATE(2) raised the
+     * Failure Condition F. We also do not want to modify its deployment status. Deployment might
+     * still be underway, e.g.
+     *
+     * <p>bytecode A executes CREATE2; bytecode B is the init code; bytecode B executes a CALL to
+     * address A; bytecode A executes exactly the same CREATE2 raising the Failure Condition F for
+     * address B;
+     */
+    if (failureConditionForCreates) {
+      return;
     }
+    // from here on out: no failure condition
+    // we must still distinguish between 'empty' deployments and 'nonempty' ones
+
+    final boolean emptyDeployment = messageFrame().getCode().getBytes().isEmpty();
+
+    // empty deployments are immediately considered as 'deployed' i.e.
+    // deploymentStatus = false
+    checkArgument(deploymentStatusOfBytecodeAddress() == !emptyDeployment);
+
+    if (emptyDeployment) return;
+    // from here on out nonempty deployments
+
+    // we transition 'nonempty deployments' from 'underDeployment' to 'deployed'
+    transients
+        .conflation()
+        .deploymentInfo()
+        .markAsNotUnderDeployment(bytecodeAddress);
   }
 
   public void tracePreExecution(final MessageFrame frame) {
@@ -1031,7 +1024,7 @@ public class Hub implements Module {
   void traceOpcode(MessageFrame frame) {
 
     // TODO: supremely ugly hack, somebody please clean up this mess
-    failureCondition_ArnoldPalmerAlert_ArnoldPalmerAlert_WhoWantsSomeArniePalmies = false;
+    failureConditionForCreates = false;
 
     switch (this.opCodeData().instructionFamily()) {
       case ADD,

@@ -199,7 +199,7 @@ public class CreateSection extends TraceSection
 
       if (failedCreate) {
         scenarioFragment.setScenario(CREATE_FAILURE_CONDITION_WONT_REVERT);
-        hub.failureCondition_ArnoldPalmerAlert_ArnoldPalmerAlert_WhoWantsSomeArniePalmies = true;
+        hub.failureConditionForCreates = true;
         return;
       }
 

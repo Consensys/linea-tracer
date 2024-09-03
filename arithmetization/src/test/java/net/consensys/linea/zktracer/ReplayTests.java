@@ -236,7 +236,7 @@ public class ReplayTests {
 
   @Test
   void issue1004() {
-    replay("6020023-6020029.json.gz", false);
+    replay("6020023-6020029.json.gz");
   }
 
   @Test
@@ -278,5 +278,10 @@ public class ReplayTests {
   @Test
   void failedCreate2() {
     replay("41640-41649.json.gz");
+  }
+
+  @Test
+  void balanceTest() {
+    replay("6020028.json.gz");
   }
 }

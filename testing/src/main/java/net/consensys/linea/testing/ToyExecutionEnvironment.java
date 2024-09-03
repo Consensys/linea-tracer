@@ -35,6 +35,7 @@ import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.blockcapture.BlockCaptureChecker;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionResultSnapshot;
@@ -182,6 +183,7 @@ public class ToyExecutionEnvironment {
    */
   private void executeFrom(final ConflationSnapshot conflation) {
     final ToyWorld toyWorld = ToyWorld.of(conflation);
+    final BlockCaptureChecker checker = new BlockCaptureChecker(conflation);
     //
     Map<String, ReferenceTestWorldState.AccountMock> accountMockMap =
         toyWorld.getAddressAccountMap().entrySet().stream()
@@ -199,7 +201,7 @@ public class ToyExecutionEnvironment {
       }
     }
     final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
-
+    ConflationAwareOperationTracer tracer = ConflationAwareOperationTracer.sequence(this.tracer,checker);
     tracer.traceStartConflation(conflation.blocks().size());
 
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
@@ -221,7 +223,7 @@ public class ToyExecutionEnvironment {
                 (ProcessableBlockHeader) header,
                 tx,
                 header.getCoinbase(),
-                buildOperationTracer(tx, txs.getOutcome()),
+                buildOperationTracer(tx, txs.getOutcome(), tracer),
                 toyWorld::blockHash,
                 false,
                 Wei.ZERO);
@@ -318,7 +320,8 @@ public class ToyExecutionEnvironment {
    * @param txs TransactionResultSnapshot which contains the expected result of this transaction.
    * @return An implementation of OperationTracer which packages up the appropriate behavour.
    */
-  private OperationTracer buildOperationTracer(Transaction tx, TransactionResultSnapshot txs) {
+  private OperationTracer buildOperationTracer(Transaction tx, TransactionResultSnapshot txs,
+                                               ConflationAwareOperationTracer tracer) {
     if (txs == null) {
       String hash = tx.getHash().toHexString();
       log.info("tx `{}` outcome not checked (missing)", hash);

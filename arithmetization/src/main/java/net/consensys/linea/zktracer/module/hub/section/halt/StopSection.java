@@ -14,10 +14,10 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.executionProvidesEmptyReturnData;
 import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.readCurrentContextData;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -50,17 +50,16 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     hub.defers().scheduleForPostTransaction(this); // always
 
     hubStamp = hub.stamp();
-    address = hub.currentFrame().accountAddress();
+    address = hub.messageFrame().getContractAddress();
     contextNumber = hub.currentFrame().contextNumber();
     {
       DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
-      deploymentNumber = deploymentInfo.number(address);
-      deploymentStatus = deploymentInfo.isDeploying(address);
+      deploymentNumber = deploymentInfo.deploymentNumber(address);
+      deploymentStatus = deploymentInfo.getDeploymentStatus(address);
     }
     parentContextReturnDataReset = executionProvidesEmptyReturnData(hub);
 
-    Preconditions.checkArgument(
-        hub.currentFrame().isDeployment() == deploymentStatus); // sanity check
+    checkArgument(hub.currentFrame().isDeployment() == deploymentStatus); // sanity check
 
     // Message call case
     ////////////////////
@@ -78,7 +77,9 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
   public void deploymentStopSection(Hub hub) {
 
     AccountSnapshot priorEmptyDeployment = AccountSnapshot.canonical(hub, address);
-    AccountSnapshot afterEmptyDeployment = priorEmptyDeployment.deployByteCode(Bytecode.EMPTY);
+    AccountSnapshot afterEmptyDeployment =
+        priorEmptyDeployment.deployByteCode(
+            Bytecode.EMPTY); // TODO: this should be deferred to ContextExit
     AccountFragment doingAccountFragment =
         hub.factories()
             .accountFragment()
@@ -105,7 +106,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
       return;
     }
 
-    Preconditions.checkArgument(this.fragments().getLast() instanceof AccountFragment);
+    checkArgument(this.fragments().getLast() instanceof AccountFragment);
 
     AccountFragment lastAccountFragment = (AccountFragment) this.fragments().getLast();
     DomSubStampsSubFragment undoingDomSubStamps =

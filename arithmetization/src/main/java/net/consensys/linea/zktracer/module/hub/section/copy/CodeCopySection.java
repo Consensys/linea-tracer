@@ -15,7 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.*;
+
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
@@ -46,7 +47,7 @@ public class CodeCopySection extends TraceSection {
     imcFragment.callMxp(mxpCall);
 
     final short exceptions = hub.pch().exceptions();
-    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // The MXPX case
     if (mxpCall.mxpx) {
@@ -55,7 +56,7 @@ public class CodeCopySection extends TraceSection {
 
     // The OOGX case
     if (Exceptions.any(exceptions)) {
-      Preconditions.checkArgument(exceptions == Exceptions.OUT_OF_GAS_EXCEPTION);
+      checkArgument(exceptions == Exceptions.OUT_OF_GAS_EXCEPTION);
       return;
     }
 
@@ -69,14 +70,14 @@ public class CodeCopySection extends TraceSection {
     final Account codeAccount = frame.getWorldUpdater().get(codeAddress);
 
     final boolean warmth = frame.isAddressWarm(codeAddress);
-    Preconditions.checkArgument(warmth);
+    checkArgument(warmth);
 
     final AccountSnapshot codeAccountSnapshot =
         AccountSnapshot.fromAccount(
             codeAccount,
             warmth,
-            hub.transients().conflation().deploymentInfo().number(codeAddress),
-            hub.transients().conflation().deploymentInfo().isDeploying(codeAddress));
+            hub.deploymentNumberOf(codeAddress),
+            hub.deploymentStatusOf(codeAddress));
 
     final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0); // Specifics for CODECOPY

@@ -15,9 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.outOfGasException;
+import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -54,9 +55,9 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     final MessageFrame frame = hub.messageFrame();
     rawAddress = frame.getStackItem(0);
     address = Address.extract(Bytes32.leftPad(rawAddress));
-    incomingDeploymentNumber = hub.transients().conflation().deploymentInfo().number(address);
-    incomingDeploymentStatus = hub.transients().conflation().deploymentInfo().isDeploying(address);
-    incomingWarmth = frame.isAddressWarm(address);
+    incomingDeploymentNumber = hub.deploymentNumberOf(address);
+    incomingDeploymentStatus = hub.deploymentStatusOf(address);
+    incomingWarmth = isAddressWarm(frame, address);
     final ImcFragment imcFragment = ImcFragment.empty(hub);
 
     this.addStack(hub);
@@ -70,7 +71,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     imcFragment.callMxp(mxpCall);
 
     final short exceptions = hub.pch().exceptions();
-    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // The MXPX case
     if (mxpCall.mxpx) {
@@ -101,7 +102,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     }
 
     // The unexceptional case
-    Preconditions.checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions));
 
     final boolean triggerMmu = mxpCall.mayTriggerNontrivialMmuOperation;
     if (triggerMmu) {
@@ -114,15 +115,18 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     final boolean foreignAccountHasCode = foreignAccount != null && foreignAccount.hasCode();
     final boolean triggerCfi = triggerMmu && foreignAccountHasCode;
 
-    accountAfter = accountBefore.turnOnWarmth();
+    accountAfter = accountBefore.deepCopy();
+    accountAfter.turnOnWarmth();
 
     final AccountFragment accountDoingFragment =
         hub.factories()
             .accountFragment()
             .makeWithTrm(accountBefore, accountAfter, rawAddress, doingDomSubStamps);
     accountDoingFragment.requiresRomlex(triggerCfi);
+    if (triggerCfi) {
+      hub.romLex().callRomLex(hub.messageFrame());
+    }
     this.addFragment(accountDoingFragment);
-    hub.romLex().callRomLex(hub.messageFrame());
 
     // an EXTCODECOPY section is only scheduled
     // for rollback if it is unexceptional

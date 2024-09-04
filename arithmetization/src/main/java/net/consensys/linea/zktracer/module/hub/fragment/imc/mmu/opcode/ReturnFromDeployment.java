@@ -39,9 +39,9 @@ public class ReturnFromDeployment extends MmuCall {
 
     this.hub = hub;
 
-    // TODO: get the metaDaa directly from the hub
-    final Address contractAddress = hub.currentFrame().frame().getContractAddress();
-    final int depNumber = hub.transients().conflation().deploymentInfo().number(contractAddress);
+    // TODO: get the metaData directly from the hub
+    final Address contractAddress = hub.messageFrame().getContractAddress();
+    final int depNumber = hub.deploymentNumberOf(contractAddress);
     this.contract = ContractMetadata.underDeployment(contractAddress, depNumber);
 
     this.sourceId(hub.currentFrame().contextNumber())

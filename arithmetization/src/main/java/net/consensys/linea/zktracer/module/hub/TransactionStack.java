@@ -18,12 +18,14 @@ package net.consensys.linea.zktracer.module.hub;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+@Getter
 public class TransactionStack implements StackedContainer {
   private final List<TransactionProcessingMetadata> txs =
       new ArrayList<>(200); // TODO: write the allocated memory from .toml file
@@ -31,7 +33,7 @@ public class TransactionStack implements StackedContainer {
   private int relativeTransactionNumber;
 
   public TransactionProcessingMetadata current() {
-    return this.txs.get(this.txs.size() - 1);
+    return txs.getLast();
   }
 
   /* WARN: can't be called if currentAbsNumber == 1*/
@@ -66,13 +68,14 @@ public class TransactionStack implements StackedContainer {
     final TransactionProcessingMetadata newTx =
         new TransactionProcessingMetadata(
             world, tx, block, relativeTransactionNumber, currentAbsNumber);
+
     this.txs.add(newTx);
   }
 
   public void setCodeFragmentIndex(Hub hub) {
     for (TransactionProcessingMetadata tx : this.txs) {
       final int cfi =
-          tx.requiresCfiUpdate() ? hub.getCfiByMetaData(tx.getEffectiveTo(), 1, true) : 0;
+          tx.requiresCfiUpdate() ? hub.getCfiByMetaData(tx.getEffectiveRecipient(), 1, true) : 0;
       tx.setCodeFragmentIndex(cfi);
     }
   }

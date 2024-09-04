@@ -1,5 +1,7 @@
 # Changelog
 ## 0.5.2-beta
+* add a binary search script ([#1073](https://github.com/Consensys/linea-tracer/pull/1073))
+* chore: add more description for bulkReplay ([#1058](https://github.com/Consensys/linea-tracer/pull/1058))
 * Leo's new ranges ([#1051](https://github.com/Consensys/linea-tracer/pull/1051))
 * fix: precompiles are considered COLD when using BESU frame method ([#1079](https://github.com/Consensys/linea-tracer/pull/1079))
 * perf: more efficient data storage structure ([#1034](https://github.com/Consensys/linea-tracer/pull/1034))

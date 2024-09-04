@@ -70,16 +70,8 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
     }
 
     // Coinbase account information
-    final Address coinbaseAddress = txMetadata.getCoinbase();
     coinbaseAccountSnapshotBefore =
-        AccountSnapshot.fromAccount(
-            world.get(coinbaseAddress),
-            isPrecompile(coinbaseAddress),
-            transients
-                .conflation()
-                .deploymentInfo()
-                .deploymentNumber(transients.block().coinbaseAddress()),
-            false);
+        AccountSnapshot.canonical(hub, world, txMetadata.getCoinbase(), false);
   }
 
   @Override

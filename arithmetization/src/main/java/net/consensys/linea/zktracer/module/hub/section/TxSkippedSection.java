@@ -62,10 +62,11 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
     checkArgument(world.get(senderAddress) != null);
     checkArgument(!world.get(senderAddress).hasCode());
 
-    // deployments are local to a transaction
-    checkArgument(hub.deploymentStatusOf(senderAddress));
-    checkArgument(hub.deploymentStatusOf(recipientAddress));
-    checkArgument(hub.deploymentStatusOf(coinbaseAddress));
+    // deployments are local to a transaction, every address should have deploymentStatus == false
+    // at the start of every transaction
+    checkArgument(!hub.deploymentStatusOf(senderAddress));
+    checkArgument(!hub.deploymentStatusOf(recipientAddress));
+    checkArgument(!hub.deploymentStatusOf(coinbaseAddress));
 
     // the updated deployment info appears in the "updated" account fragment
     if (txMetadata.isDeployment()) {

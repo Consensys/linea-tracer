@@ -58,6 +58,15 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
     recipientAccountSnapshotBefore = AccountSnapshot.canonical(hub, recipientAddress);
     coinbaseAccountSnapshotBefore = AccountSnapshot.canonical(hub, coinbaseAddress);
 
+    // sanity check + EIP-3607
+    checkArgument(world.get(senderAddress) != null);
+    checkArgument(!world.get(senderAddress).hasCode());
+
+    // deployments are local to a transaction
+    checkArgument(hub.deploymentStatusOf(senderAddress));
+    checkArgument(hub.deploymentStatusOf(recipientAddress));
+    checkArgument(hub.deploymentStatusOf(coinbaseAddress));
+
     // the updated deployment info appears in the "updated" account fragment
     if (txMetadata.isDeployment()) {
       transients.conflation().deploymentInfo().newDeploymentSansExecutionAt(recipientAddress);

@@ -578,9 +578,11 @@ public class Hub implements Module {
           senderAddress,
           recipientAddress,
           new Bytecode(
-              Optional.ofNullable(frame.getWorldUpdater().get(recipientAddress))
-                  .map(AccountState::getCode)
-                  .orElse(Bytes.EMPTY)),
+              currentTransaction.isDeployment()
+                  ? currentTransaction.getBesuTransaction().getInit().orElse(Bytes.EMPTY)
+                  : Optional.ofNullable(frame.getWorldUpdater().get(recipientAddress))
+                      .map(AccountState::getCode)
+                      .orElse(Bytes.EMPTY)),
           value,
           initiallyAvailableGas,
           callDataContextNumber(copyTransactionCallData),

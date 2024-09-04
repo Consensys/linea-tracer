@@ -143,3 +143,4 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
+          GOCORSET_FLAGS: -wd --air

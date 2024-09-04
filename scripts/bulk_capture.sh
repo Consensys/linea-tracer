@@ -8,7 +8,7 @@
 # 3. check `./replays` folder
 #
 # Set to True if you want to keep the local compressed file after extraction, False if you want to remove it.
-KEEP_LOCAL_COMPRESSED_FILE=False
+KEEP_LOCAL_COMPRESSED_FILE=True
 
 # Help message
 function show_help {

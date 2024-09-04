@@ -21,7 +21,6 @@ import java.util.Random;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.testing.ToyExecutionEnvironment;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.testing.ToyWorld;
@@ -63,10 +62,13 @@ public class TestRlpAddress {
             .sender(senderAccount)
             .keyPair(keyPair)
             .transactionType(TransactionType.FRONTIER)
+            .value(Wei.ONE)
             .gasLimit(1000000L)
             .gasPrice(Wei.of(10L))
             .payload(initCode)
             .build();
+
+    Address deploymentAddress = Address.contractAddress(senderAddress, senderAccount.getNonce());
 
     ToyExecutionEnvironmentV2.builder().toyWorld(world.build()).transaction(tx).build().run();
   }
@@ -134,7 +136,7 @@ public class TestRlpAddress {
             .payload(initCodeReturnContractCode)
             .build();
 
-    ToyExecutionEnvironment.builder()
+    ToyExecutionEnvironmentV2.builder()
         .toyWorld(world.build())
         .transaction(tx)
         .testValidator(x -> {})

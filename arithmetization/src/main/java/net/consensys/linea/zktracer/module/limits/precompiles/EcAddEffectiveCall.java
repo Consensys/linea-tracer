@@ -15,10 +15,11 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import com.google.common.base.Preconditions;
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
+import static com.google.common.base.Preconditions.*;
 
-public final class EcAddEffectiveCall extends CountingOnlyModule {
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+
+public final class EcAddEffectiveCall implements CountingOnlyModule {
 
   @Override
   public String moduleKey() {
@@ -27,7 +28,7 @@ public final class EcAddEffectiveCall extends CountingOnlyModule {
 
   @Override
   public void addPrecompileLimit(final int numberEffectiveCall) {
-    Preconditions.checkArgument(
+    checkArgument(
         numberEffectiveCall <= 1, "can't add more than one effective precompile call at a time");
     counts.add(numberEffectiveCall);
   }

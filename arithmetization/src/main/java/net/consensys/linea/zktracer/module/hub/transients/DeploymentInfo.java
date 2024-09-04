@@ -40,29 +40,23 @@ public class DeploymentInfo {
     return this.getDeploymentNumber(address);
   }
 
-  public void newDeploymentAt(Address address) {
+  public void newDeploymentWithExecutionAt(Address address) {
     this.incrementDeploymentNumber(address);
     this.markAsUnderDeployment(address);
   }
 
-  public void newDeploymentAtForTxSkip(Address address) {
+  public void newDeploymentSansExecutionAt(Address address) {
     this.incrementDeploymentNumber(address);
     this.markAsNotUnderDeployment(address);
   }
 
-  public void updateDeploymentInfoForSelfdestructsAtTransactionEnd(Address address) {
-    // This is called when a transaction ends and the account is self-destructed
+  public void freshDeploymentNumberFinishingSelfdestruct(Address address) {
     this.incrementDeploymentNumber(address);
     this.markAsNotUnderDeployment(address);
   }
 
   private int getDeploymentNumber(Address address) {
     return this.deploymentNumber.getOrDefault(address, 0);
-  }
-
-  public void deploy(Address address) {
-    this.incrementDeploymentNumber(address);
-    this.markAsUnderDeployment(address);
   }
 
   public final boolean getDeploymentStatus(Address address) {

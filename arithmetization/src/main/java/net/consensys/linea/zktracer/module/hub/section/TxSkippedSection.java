@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -54,9 +55,15 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
     final Address recipientAddress = txMetadata.getEffectiveRecipient();
     final Address coinbaseAddress = txMetadata.getCoinbase();
 
-    senderAccountSnapshotBefore = AccountSnapshot.canonical(hub, senderAddress);
-    recipientAccountSnapshotBefore = AccountSnapshot.canonical(hub, recipientAddress);
-    coinbaseAccountSnapshotBefore = AccountSnapshot.canonical(hub, coinbaseAddress);
+    senderAccountSnapshotBefore =
+        AccountSnapshot.canonical(hub, world, senderAddress, isPrecompile(senderAddress));
+    recipientAccountSnapshotBefore =
+        AccountSnapshot.canonical(hub, world, recipientAddress, isPrecompile(recipientAddress));
+    coinbaseAccountSnapshotBefore =
+        AccountSnapshot.canonical(hub, world, coinbaseAddress, isPrecompile(coinbaseAddress));
+
+    // arithmetization restriction
+    checkArgument(!isPrecompile(recipientAddress));
 
     // sanity check + EIP-3607
     checkArgument(world.get(senderAddress) != null);

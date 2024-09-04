@@ -5,7 +5,7 @@
 # 1. Add some ranges to `range.csv` (in the format `start-end`, e.g., `1809818-1809818`).
 # 2. Run `./bulk_capture.sh range.csv range2.csv range3.csv`.
 # 3. The shadow node will capture the replay files and save them in shadownode's `/tmp/replays-uuid` temporarily. Once the capture is finished, the files will be compressed and downloaded all at once.
-# 4. Replay files will be downloaded to the **current working directory** of your terminal (where you ran the script), inside a `./replays` folder.
+# 4. Replay files will be downloaded to the **current working directory** of your terminal (where you ran the script), inside a `./replays` folder. Note that bulk_capture.sh lives in test/resources now.
 # 5. The local compressed file (a `.tar.gz` archive) that stores the replay data will **be kept by default**. If you do not want to keep the compressed file, change the `KEEP_LOCAL_COMPRESSED_FILE` constant to `False`.
 
 # Set to True if you want to keep the local compressed file after extraction, False if you want to remove it.

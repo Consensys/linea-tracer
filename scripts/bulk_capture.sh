@@ -49,6 +49,13 @@ for range_file in "$@"; do
             continue
         fi
 
+        # Validate the format using regex: the line must be in "integer-integer" format
+        if [[ ! "$line" =~ ^[0-9]+-[0-9]+$ ]]; then
+            echo "[WARNING]: Skipping invalid format: '$line'"
+            skipped_ranges=$((skipped_ranges + 1))
+            continue
+        fi
+
         # Extract start and end from the line
         start=$(echo "$line" | cut -d'-' -f1)
         end=$(echo "$line" | cut -d'-' -f2)

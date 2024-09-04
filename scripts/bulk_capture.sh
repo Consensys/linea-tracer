@@ -7,6 +7,8 @@
 # 2. run `./bulk_capture.sh range.csv range2.csv range3.csv`
 # 3. check `./replays` folder
 #
+# Set to True if you want to keep the local compressed file after extraction, False if you want to remove it.
+KEEP_LOCAL_COMPRESSED_FILE=False
 
 # Help message
 function show_help {
@@ -127,8 +129,13 @@ EOF
     # Remove the extracted folder
     rm -rf ./replays-$uuid
 
-    # Remove the local compressed file
-    rm $local_compressed_file
+    # Conditionally remove the local compressed file based on the constant
+    if [ "$KEEP_LOCAL_COMPRESSED_FILE" = False ]; then
+        echo "Removing the local compressed file: $local_compressed_file"
+        rm $local_compressed_file
+    else
+        echo "Keeping the local compressed file: $local_compressed_file"
+    fi
 
     echo "Replay files for ${number_of_ranges} conflations between ${very_first} and ${very_last} have been processed and downloaded from $range_file."
     echo "Skipped ranges due to invalid configurations: $skipped_ranges."

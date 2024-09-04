@@ -52,7 +52,7 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
         AccountSnapshot.fromAccount(
             world.get(senderAddress),
             isPrecompile(senderAddress),
-            transients.conflation().deploymentInfo().deploymentNumber(senderAddress),
+            hub.deploymentNumberOf(senderAddress),
             false);
 
     // Recipiet account information
@@ -61,17 +61,18 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
         AccountSnapshot.fromAccount(
             world.get(recipientAddress),
             isPrecompile(recipientAddress),
-            transients.conflation().deploymentInfo().deploymentNumber(recipientAddress),
+            hub.deploymentNumberOf(recipientAddress),
             false);
 
     // the updated deployment info appears in the "updated" account fragment
     if (txMetadata.isDeployment()) {
-      transients.conflation().deploymentInfo().newDeploymentAtForTxSkip(recipientAddress);
+      transients.conflation().deploymentInfo().newDeploymentSansExecutionAt(recipientAddress);
     }
 
     // Coinbase account information
+    final Address coinbaseAddress = txMetadata.getCoinbase();
     coinbaseAccountSnapshotBefore =
-        AccountSnapshot.canonical(hub, world, txMetadata.getCoinbase(), false);
+        AccountSnapshot.canonical(hub, world, coinbaseAddress, false);
   }
 
   @Override
@@ -88,21 +89,21 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
         AccountSnapshot.fromAccount(
             state.get(senderAddress),
             this.senderAccountSnapshotBefore.isWarm(),
-            hub.transients().conflation().deploymentInfo().deploymentNumber(senderAddress),
+            hub.deploymentNumberOf(senderAddress),
             false);
 
     final AccountSnapshot recipientAccountSnapshotAfter =
         AccountSnapshot.fromAccount(
             state.get(recipientAddress),
             this.recipientAccountSnapshotBefore.isWarm(),
-            hub.transients().conflation().deploymentInfo().deploymentNumber(recipientAddress),
+            hub.deploymentNumberOf(recipientAddress),
             false);
 
     final AccountSnapshot coinbaseAccountSnapshotAfter =
         AccountSnapshot.fromAccount(
             state.get(coinbaseAddress),
             this.coinbaseAccountSnapshotBefore.isWarm(),
-            hub.transients().conflation().deploymentInfo().deploymentNumber(coinbaseAddress),
+            hub.deploymentNumberOf(coinbaseAddress),
             false);
 
     // sender account fragment

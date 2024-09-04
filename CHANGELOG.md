@@ -1,5 +1,6 @@
 # Changelog
 ## 0.5.2-beta
+* fix(callDataCopy): source ID ([#1081](https://github.com/Consensys/linea-tracer/pull/1081))
 * add a binary search script ([#1073](https://github.com/Consensys/linea-tracer/pull/1073))
 * chore: add more description for bulkReplay ([#1058](https://github.com/Consensys/linea-tracer/pull/1058))
 * Leo's new ranges ([#1051](https://github.com/Consensys/linea-tracer/pull/1051))

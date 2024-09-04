@@ -71,8 +71,7 @@ public class TxSkippedSection extends TraceSection implements PostTransactionDef
 
     // Coinbase account information
     final Address coinbaseAddress = txMetadata.getCoinbase();
-    coinbaseAccountSnapshotBefore =
-        AccountSnapshot.canonical(hub, world, coinbaseAddress, false);
+    coinbaseAccountSnapshotBefore = AccountSnapshot.canonical(hub, world, coinbaseAddress, false);
   }
 
   @Override

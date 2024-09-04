@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Usage:
+# 
+# 0. copy `bulk_capture.sh` and `range.csv` to your `src/test/resources` folder. (optional, but this will make your life easier)
+# 1. add some ranges to range.csv
+# 2. run `./bulk_capture.sh range.csv range2.csv range3.csv`
+# 3. check `./replays` folder
+#
+
 # Help message
 function show_help {
     echo "Usage: $0 [--help] [file1.csv file2.csv ...]"

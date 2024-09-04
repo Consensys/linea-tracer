@@ -25,7 +25,7 @@ echo "net.git-fetch-with-cli=true" >> .cargo/config.toml
 cargo install --git ssh://git@github.com/ConsenSys/corset --locked --force
 ```
 
-#### Step 5: Update constraints [submodule](https://github.com/Consensys/zkevm-constraints/)
+#### Step 5: Update constraints [submodule](https://github.com/Consensys/linea-constraints/)
 
 ```shell
 git submodule update --init --recursive
@@ -155,7 +155,7 @@ ______________________________________________________________________
 - JSON files can be debugged with the following command:
 
 ```shell
-corset check -T <JSON_FILE> -v zkevm-constraints/zkevm.bin
+corset check -T <JSON_FILE> -v linea-constraints/zkevm.bin
 ```
 
 ## Disable Corset expansion

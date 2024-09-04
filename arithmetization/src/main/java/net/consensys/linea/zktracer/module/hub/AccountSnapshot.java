@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
+
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
@@ -58,7 +60,7 @@ public class AccountSnapshot {
         hub.messageFrame().getWorldUpdater(),
         address,
         hub.transients.conflation().deploymentInfo(),
-        hub.messageFrame().isAddressWarm(address));
+        isAddressWarm(hub.messageFrame(), address));
   }
 
   public static AccountSnapshot canonical(
@@ -154,7 +156,7 @@ public class AccountSnapshot {
   public AccountSnapshot decrementBalanceBy(Wei quantity) {
     Preconditions.checkState(
         balance.greaterOrEqualThan(quantity),
-        "Insufficient balance\n     Address: %s\n     Balance: %s\n     Value: %s"
+        "Insufficient balance\n\t\tAddress: %s\n\t\tBalance: %s\n\t\tValue: %s"
             .formatted(address, balance, quantity));
 
     balance = balance.subtract(quantity);

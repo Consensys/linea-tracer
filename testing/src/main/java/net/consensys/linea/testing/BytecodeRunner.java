@@ -15,12 +15,13 @@
 
 package net.consensys.linea.testing;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import com.google.common.base.Preconditions;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
@@ -45,7 +46,7 @@ public final class BytecodeRunner {
   ToyExecutionEnvironment toyExecutionEnvironment;
   ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;
 
-  @Setter private boolean useToyExecutionEnvironmentV2 = false;
+  @Setter private boolean useToyExecutionEnvironmentV2 = true;
 
   /**
    * @param byteCode the byte code to test
@@ -82,7 +83,7 @@ public final class BytecodeRunner {
 
   // Ad-hoc senderBalance, gasLimit and accounts
   public void run(Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts) {
-    Preconditions.checkArgument(byteCode != null, "byteCode cannot be empty");
+    checkArgument(byteCode != null, "byteCode cannot be empty");
 
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));

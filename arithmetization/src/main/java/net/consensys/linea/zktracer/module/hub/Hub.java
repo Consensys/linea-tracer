@@ -574,55 +574,26 @@ public class Hub implements Module {
               ? currentTx.getBesuTransaction().getData().get()
               : Bytes.EMPTY;
       callStack.newTransactionCallDataContext(
-        callDataContextNumber(copyTransactionCallData),
+        callDataContextNumber(currentTx.copyTransactionCallData()),
         callData);
-      // Entering the ROOT context
-      callStack.newRootContext(
-          state.stamps().hub(),
-          currentTx.getBesuTransaction().getSender(),
-          toAddress,
-          CallFrameType.ROOT,
-          new Bytecode(
-              toAddress == null
-                  ? currentTx.getBesuTransaction().getData().orElse(Bytes.EMPTY)
-                  : Optional.ofNullable(frame.getWorldUpdater().get(toAddress))
-                      .map(AccountState::getCode)
-                      .orElse(Bytes.EMPTY)),
-          Wei.of(currentTx.getBesuTransaction().getValue().getAsBigInteger()),
-          currentTx.getBesuTransaction().getGasLimit(),
-          currentTx.getBesuTransaction().getData().orElse(Bytes.EMPTY),
-          transients.conflation().deploymentInfo().deploymentNumber(toAddress),
-          toAddress.isEmpty()
-              ? 0
-              : transients.conflation().deploymentInfo().deploymentNumber(toAddress),
-          transients.conflation().deploymentInfo().getDeploymentStatus(toAddress));
-    } else {
-      // ...or CALL or CREATE
-      final boolean copyTransactionCallData =
-          !isDeployment && currentTransaction.requiresEvmExecution();
-      if (copyTransactionCallData) {
-        callStack.newTransactionCallDataContext(
-            callDataContextNumber(copyTransactionCallData),
-            transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY));
-      }
 
       callStack.newRootContext(
-          newChildContextNumber(),
-          senderAddress,
-          recipientAddress,
-          new Bytecode(
-              recipientAddress == null
-                  ? transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY)
-                  : Optional.ofNullable(frame.getWorldUpdater().get(recipientAddress))
-                      .map(AccountState::getCode)
-                      .orElse(Bytes.EMPTY)),
-          value,
-          initiallyAvailableGas,
-          callDataContextNumber(copyTransactionCallData),
-          transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY),
-          this.deploymentNumberOf(recipientAddress),
-          this.deploymentNumberOf(recipientAddress),
-          this.deploymentStatusOf(recipientAddress));
+        newChildContextNumber(),
+        senderAddress,
+        recipientAddress,
+        new Bytecode(
+          recipientAddress == null
+            ? transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY)
+            : Optional.ofNullable(frame.getWorldUpdater().get(recipientAddress))
+            .map(AccountState::getCode)
+            .orElse(Bytes.EMPTY)),
+        value,
+        initiallyAvailableGas,
+        callDataContextNumber(currentTx.copyTransactionCallData()),
+        transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY),
+        this.deploymentNumberOf(recipientAddress),
+        this.deploymentNumberOf(recipientAddress),
+        this.deploymentStatusOf(recipientAddress));
 
       this.currentFrame().initializeFrame(frame);
     }

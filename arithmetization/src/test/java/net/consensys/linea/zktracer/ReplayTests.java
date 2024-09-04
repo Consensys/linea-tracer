@@ -216,7 +216,7 @@ public class ReplayTests {
 
   @Test
   void rlprcptManyTopicsWoLogData() {
-    replay("6569423.json.gz", false);
+    replay("6569423.json.gz");
   }
 
   @Test
@@ -283,5 +283,45 @@ public class ReplayTests {
   @Test
   void balanceTest() {
     replay("6020028.json.gz");
+  }
+
+  @Test
+  void balanceTest_minimised() {
+    replay("6020028.trimmed.json.gz");
+  }
+
+  @Test
+  void balanceTest2() {
+    replay("6569423.json.gz");
+  }
+
+  @Test
+  void balanceTest3() {
+    replay("8718468.json.gz");
+  }
+
+  @Test
+  void balanceTest4() {
+    replay("8718673.json.gz");
+  }
+
+  @Test
+  void balanceTest5() {
+    replay("8724149.json.gz");
+  }
+
+  @Test
+  void gasTest1() {
+    replay("8718376.json.gz");
+  }
+
+  @Test
+  void balanceTests() {
+    replay("8724000-8724149.json.gz");
+  }
+
+  @Test
+  void blockHashTest() {
+    replay("4315803.json.gz");
   }
 }

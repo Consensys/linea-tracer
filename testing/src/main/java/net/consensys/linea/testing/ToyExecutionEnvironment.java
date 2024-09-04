@@ -67,6 +67,7 @@ import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
 import org.hyperledger.besu.evm.processor.MessageCallProcessor;
 import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 /** Fluent API for executing EVM transactions in tests. */
@@ -201,7 +202,8 @@ public class ToyExecutionEnvironment {
       }
     }
     final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
-    ConflationAwareOperationTracer tracer = ConflationAwareOperationTracer.sequence(this.tracer,checker);
+    ConflationAwareOperationTracer tracer = this.tracer; //ConflationAwareOperationTracer.sequence(checker,this.tracer);
+
     tracer.traceStartConflation(conflation.blocks().size());
 
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
@@ -212,7 +214,6 @@ public class ToyExecutionEnvironment {
               blockSnapshot.txs().stream().map(TransactionSnapshot::toTransaction).toList(),
               new ArrayList<>());
       tracer.traceStartBlock(header, body);
-
       for (TransactionSnapshot txs : blockSnapshot.txs()) {
         final Transaction tx = txs.toTransaction();
         final WorldUpdater updater = world.updater();
@@ -233,6 +234,7 @@ public class ToyExecutionEnvironment {
       tracer.traceEndBlock(header, body);
     }
     tracer.traceEndConflation(world.updater());
+    System.out.println("ENDED CONFLATION");
   }
 
   private void execute() {

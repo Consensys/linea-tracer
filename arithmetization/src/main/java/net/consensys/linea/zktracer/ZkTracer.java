@@ -15,6 +15,18 @@
 
 package net.consensys.linea.zktracer;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_BASEFEE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_BLOCKHASH;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_CALLER;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_COINBASE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIFFICULTY;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GASLIMIT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GASPRICE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_NUMBER;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ORIGIN;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_SELFDESTRUCT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_TIMESTAMP;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.PrintWriter;
@@ -39,6 +51,7 @@ import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.DebugMode;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.Utils;
 import org.apache.tuweni.bytes.Bytes;
@@ -216,6 +229,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   public void tracePrepareTransaction(WorldView worldView, Transaction transaction) {
+    System.out.println("----");
+    System.out.println("TX " + transaction.getHash());
+    System.out.println("FROM " + transaction.getSender());
+    System.out.println("TO " + transaction.getTo());
     try {
       hashOfLastTransactionTraced = transaction.getHash();
       this.debugMode.ifPresent(x -> x.tracePrepareTx(worldView, transaction));
@@ -271,6 +288,16 @@ public class ZkTracer implements ConflationAwareOperationTracer {
    */
   @Override
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
+    int opcode = frame.getCurrentOperation().getOpcode();
+    OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    switch(opcode) {
+      case EVM_INST_BLOCKHASH,EVM_INST_SELFDESTRUCT,EVM_INST_CALLER,EVM_INST_ORIGIN,EVM_INST_COINBASE,EVM_INST_BASEFEE,
+        EVM_INST_DIFFICULTY,
+           EVM_INST_NUMBER,EVM_INST_GASLIMIT,EVM_INST_GASPRICE,EVM_INST_TIMESTAMP -> {
+        //throw new RuntimeException("unsupported operation " + opCode.name());
+        System.out.println("PROCESSING: " + opCode.name() + " " + frame.getStackItem(0));
+      }
+    }
     if (frame.getCode().getSize() > 0) {
       try {
         this.hub.tracePostExecution(frame, operationResult);
@@ -283,6 +310,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   @Override
   public void traceContextEnter(MessageFrame frame) {
+    System.out.println(frame.getSenderAddress() + " => " + frame.getContractAddress() + "[" + frame.getRecipientAddress() + "] " +
+      "(gas: " + frame.getRemainingGas() + ")");
     // We only want to trigger on creation of new contexts, not on re-entry in
     // existing contexts
     if (frame.getState() == MessageFrame.State.NOT_STARTED) {

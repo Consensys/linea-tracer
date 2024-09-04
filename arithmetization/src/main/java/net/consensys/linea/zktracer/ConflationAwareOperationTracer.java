@@ -128,6 +128,7 @@ public interface ConflationAwareOperationTracer extends BlockAwareOperationTrace
     @Override
     public void traceBeforeRewardTransaction(
         final WorldView worldView, final Transaction tx, final Wei miningReward) {
+      System.out.println("MINING REWARD: " + miningReward);
       this.tracers.forEach(
           tracer -> tracer.traceBeforeRewardTransaction(worldView, tx, miningReward));
     }

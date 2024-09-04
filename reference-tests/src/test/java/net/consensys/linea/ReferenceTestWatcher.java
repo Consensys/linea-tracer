@@ -59,7 +59,8 @@ public class ReferenceTestWatcher implements TestWatcher {
   private void mapFailedConstraintsToTestsToModule(
       Set<String> failedConstraints,
       List<ModuleToConstraints> constraintToFailingTests,
-      String testName) {
+      String testName
+  ) {
     for (String constraint : failedConstraints) {
       String moduleName = getModuleFromFailedConstraint(constraint);
       if (constraintToFailingTests.stream()
@@ -75,11 +76,15 @@ public class ReferenceTestWatcher implements TestWatcher {
               .toList()
               .getFirst();
 
+      String cleanedConstraintName = constraint;
+      if (cleanedConstraintName.contains(".")) {
+        cleanedConstraintName = cleanedConstraintName.split("\\.")[1];
+      }
       List<String> failedTests =
           new ArrayList<>(
-              moduleMapping.getConstraints().getOrDefault(constraint, Collections.emptyList()));
+              moduleMapping.getConstraints().getOrDefault(cleanedConstraintName, Collections.emptyList()));
       failedTests.add(testName);
-      moduleMapping.getConstraints().put(constraint, failedTests);
+      moduleMapping.getConstraints().put(cleanedConstraintName, failedTests);
     }
   }
 
@@ -171,6 +176,10 @@ public class ReferenceTestWatcher implements TestWatcher {
   }
 
   private String getModuleFromFailedConstraint(String failedConstraint) {
-    return "moduleNamePlaceholder-" + failedConstraint;
+    if (failedConstraint.contains(".")) {
+      return failedConstraint.split("\\.")[0];
+    } else {
+      return failedConstraint.split("-")[0];
+    }
   }
 }

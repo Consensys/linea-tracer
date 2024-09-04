@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class Issue1090Tests {
-  
+
   @Disabled
   @Test
   void issue_1090_block_1809818_1809818() {

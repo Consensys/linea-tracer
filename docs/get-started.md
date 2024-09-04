@@ -31,6 +31,8 @@ cargo install --git ssh://git@github.com/ConsenSys/corset --locked --force
 git submodule update --init --recursive
 ```
 
+Note: Windows user may have to run 'git config core.protectNTFS false' command within the linea-constraints folder to bypass CON.* file names being reserved.
+
 #### Step 6: Install [pre-commit](https://pre-commit.com/)
 
 ```shell

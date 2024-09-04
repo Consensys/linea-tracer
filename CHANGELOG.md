@@ -1,4 +1,5 @@
 # Changelog
+## 0.5.2-beta
 * Leo's new ranges ([#1051](https://github.com/Consensys/linea-tracer/pull/1051))
 * fix: precompiles are considered COLD when using BESU frame method ([#1079](https://github.com/Consensys/linea-tracer/pull/1079))
 * perf: more efficient data storage structure ([#1034](https://github.com/Consensys/linea-tracer/pull/1034))

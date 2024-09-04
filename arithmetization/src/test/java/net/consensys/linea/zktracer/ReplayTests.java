@@ -92,7 +92,6 @@ public class ReplayTests {
     replay(filename, true);
   }
 
-  // @Disabled
   /**
    * Run replay with the specific file path of a replay file. The conflated trace will be written to
    * the same directory as the replay file. Usage: replayAt("/path/to/your/star-end.json.gz");
@@ -179,13 +178,11 @@ public class ReplayTests {
     }
   }
 
-  // @Disabled
   @Test
   void traceTxStartNotTheSameAsTxPrepare() {
     replay("start-vs-prepare-tx.json.gz");
   }
 
-  // @Disabled
   @Test
   void fatMxp() {
     replay("2492975-2492977.json.gz", false);
@@ -268,7 +265,7 @@ public class ReplayTests {
 
   // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
   // instruction
-  // @Disabled
+
   @Test
   void negativeNumberOfMmioInstruction() {
     replay("6029454-6029459.json.gz");
@@ -280,6 +277,7 @@ public class ReplayTests {
   }
 
   // TODO: should be replaced by a unit test triggering a failed CREATE2
+
   @Test
   void failedCreate2() {
     replay("41640-41649.json.gz");
@@ -341,7 +339,6 @@ public class ReplayTests {
     replay("5105646-5105649.json.gz", false);
   }
 
-  // @Disabled
   @Test
   void test_5105650_5105659() {
     replay("5105650-5105659.json.gz", false);
@@ -441,6 +438,7 @@ public class ReplayTests {
 
   // Leo's range split up 5118361-5118389
   ///////////////////////////////////////
+
   @Test
   void test_5118361_5118369() {
     replay("5118361-5118369.json.gz");
@@ -458,6 +456,7 @@ public class ReplayTests {
 
   // Florian's ranges
   ///////////////////
+
   @Test
   void test_6871261_6871263() {
     replay("6871261-6871263.json.gz", false);
@@ -509,6 +508,7 @@ public class ReplayTests {
 
   // TODO: should be replace by a unit test triggering a CALLDATACOPY in a ROOT context of a
   // deployment transaction
+
   @Test
   void callDataCopyCnNotFound() {
     replay("67050-67059.json.gz");

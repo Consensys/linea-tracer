@@ -105,13 +105,13 @@ EOF
         )
 
         # Append the command to full_cmd
-        full_cmd+="curl -X POST 'http://localhost:8545' --data '$payload' | jq '.result.capture' -r | jq . | gzip > $remote_filename; echo 'Captured $start-$end'; sleep 3; "
+        full_cmd+="curl -X POST 'http://localhost:8545' --data '$payload' | jq '.result.capture' -r | jq . | gzip > $remote_filename; echo '[In Shadow Node] Captured $start-$end'; sleep 3; "
     done < "$range_file"
 
     # Set the compressed file name with the number of ranges context
     compressed_file="/tmp/replays_${number_of_ranges}_conflations_between_${very_first}_and_${very_last}.tar.gz"
     local_compressed_file="replays_${number_of_ranges}_conflations_between_${very_first}_and_${very_last}.tar.gz"
-    full_cmd+="cd /tmp; tar -czf $compressed_file replays-$uuid; echo 'Compressed capture_files'; "
+    full_cmd+="cd /tmp; tar -czf $compressed_file replays-$uuid; echo '[In Shadow Node] Compressed $start-$end'; "
 
     # Execute the full command over SSH
     ssh ec2-user@ec2-107-21-85-50.compute-1.amazonaws.com -C "$full_cmd"

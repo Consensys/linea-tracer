@@ -25,10 +25,6 @@ public class DeploymentInfo {
   private final Map<Address, Integer> deploymentNumber = new HashMap<>();
   private final Map<Address, Boolean> deploymentStatus = new HashMap<>();
 
-  public int statusSize() {
-    return deploymentStatus.size();
-  }
-
   /**
    * Returns the deployment number of the given address; sets it to zero if it is the first
    * deployment of this address.

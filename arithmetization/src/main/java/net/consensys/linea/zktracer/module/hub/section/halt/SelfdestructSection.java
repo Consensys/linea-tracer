@@ -275,9 +275,8 @@ public class SelfdestructSection extends TraceSection
                   selfdestructorAccountAfter.wipe(),
                   DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
 
-      // TODO: ensure this is the right place for this call
       final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
-      deploymentInfo.updateDeploymentInfoForSelfdestructsAtTransactionEnd(this.recipientAddress);
+      deploymentInfo.freshDeploymentNumberFinishingSelfdestruct(this.recipientAddress);
 
       this.addFragment(accountWipingFragment);
     } else {

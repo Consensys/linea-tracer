@@ -90,8 +90,8 @@ for range_file in "$@"; do
 
         # Set remote filename
         remote_filename="$remote_dir/$start-$end.json.gz"
-        echo "Capturing conflation $start - $end"
-        echo "Writing replay to \`$remote_filename\`"
+        echo "[In Shadow Node] Capturing conflation $start - $end"
+        echo "[In Shadow Node] Writing replay to \`$remote_filename\`"
 
         # Form payload
         payload=$(cat <<EOF

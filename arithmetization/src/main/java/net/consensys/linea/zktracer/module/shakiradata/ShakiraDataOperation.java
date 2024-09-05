@@ -38,7 +38,6 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
-import org.hyperledger.besu.crypto.Hash;
 
 @Accessors(fluent = true)
 public class ShakiraDataOperation extends ModuleOperation {

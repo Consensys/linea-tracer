@@ -24,6 +24,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHAS
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_SHA2_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_SHA2_RESULT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.KECCAK;
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.RIPEMD;
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.SHA256;
@@ -51,11 +52,11 @@ public class ShakiraDataOperation extends ModuleOperation {
   private Bytes32 result;
 
   public ShakiraDataOperation(
-      final long hubStamp, final HashFunction hashFunction, final Bytes input) {
+      final int hubStamp, final HashFunction hashFunction, final Bytes input) {
     final Bytes32 hash = keccak256(input);
 
     hashType = hashFunction;
-    ID = hubStamp + 1;
+    ID = newIdentifierFromStamp(hubStamp);
     hashInput = input;
     inputSize = input.size();
     lastNBytes = (short) (inputSize % LLARGE == 0 ? LLARGE : inputSize % LLARGE);
@@ -67,7 +68,7 @@ public class ShakiraDataOperation extends ModuleOperation {
   public ShakiraDataOperation(
       final int hubStamp, final HashFunction hashFunction, final Bytes input, final Bytes hash) {
     hashType = hashFunction;
-    ID = hubStamp + 1;
+    ID = newIdentifierFromStamp(hubStamp);
     hashInput = input;
     inputSize = input.size();
     lastNBytes = (short) (inputSize % LLARGE == 0 ? LLARGE : inputSize % LLARGE);

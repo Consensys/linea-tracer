@@ -92,7 +92,6 @@ public class ReplayTests {
     replay(filename, true);
   }
 
-  // @Disabled
   /**
    * Run replay with the specific file path of a replay file. The conflated trace will be written to
    * the same directory as the replay file. Usage: replayAt("/path/to/your/star-end.json.gz");
@@ -179,13 +178,11 @@ public class ReplayTests {
     }
   }
 
-  // @Disabled
   @Test
   void traceTxStartNotTheSameAsTxPrepare() {
     replay("start-vs-prepare-tx.json.gz");
   }
 
-  // @Disabled
   @Test
   void fatMxp() {
     replay("2492975-2492977.json.gz", false);
@@ -203,22 +200,21 @@ public class ReplayTests {
     bulkReplay("");
   }
 
-  // @Disabled
   @Test
   void leoFailingRange() {
-    replay("5389571-5389577.json.gz", false);
+    replay("5389571-5389577.json.gz");
   }
 
   // @Disabled
   @Test
   void failingMmuModexp() {
-    replay("5995162.json.gz", false);
+    replay("5995162.json.gz");
   }
 
   // @Disabled
   @Test
   void failRlpAddress() {
-    replay("5995097.json.gz", false);
+    replay("5995097.json.gz");
   }
 
   // @Disabled
@@ -230,19 +226,19 @@ public class ReplayTests {
   // @Disabled
   @Test
   void multipleFailingCallToEcrecover() {
-    replay("5000544.json.gz", false);
+    replay("5000544.json.gz");
   }
 
   // @Disabled
   @Test
   void incident777zkGethMainnet() {
-    replay("7461019-7461030.json.gz", false);
+    replay("7461019-7461030.json.gz");
   }
 
   // @Disabled
   @Test
   void issue1006() {
-    replay("6032696-6032699.json.gz", false);
+    replay("6032696-6032699.json.gz");
   }
 
   // @Disabled
@@ -257,33 +253,33 @@ public class ReplayTests {
     // The purpose of this test is to check the mechanism for spotting divergence between the replay
     // tests and mainnet.  Specifically, this replay has transaction result information embedded
     // within it.
-    replay("6110045.json.gz", false);
+    replay("6110045.json.gz");
   }
 
   // @Disabled
   @Test
   void failingCreate2() {
-    replay("2250197-2250197.json.gz", false);
+    replay("2250197-2250197.json.gz");
   }
 
   // @Disabled
   @Test
   void blockHash1() {
-    replay("8718090.json.gz", false);
+    replay("8718090.json.gz");
   }
 
   // @Disabled
   @Test
   void blockHash2() {
-    replay("8718330.json.gz", false);
+    replay("8718330.json.gz");
   }
 
   // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
   // instruction
-  // @Disabled
+
   @Test
   void negativeNumberOfMmioInstruction() {
-    replay("6029454-6029459.json.gz", false);
+    replay("6029454-6029459.json.gz");
   }
 
   @Test
@@ -294,7 +290,7 @@ public class ReplayTests {
   // TODO: should be replaced by a unit test triggering a failed CREATE2
   @Test
   void failedCreate2() {
-    replay("41640-41649.json.gz", false);
+    replay("41640-41649.json.gz");
   }
 
   // Leo's range split up 5104800-5104883
@@ -302,13 +298,13 @@ public class ReplayTests {
   // @Disabled
   @Test
   void test_5104800_5104809() {
-    replay("5104800-5104809.json.gz", false);
+    replay("5104800-5104809.json.gz");
   }
 
   // @Disabled
   @Test
   void test_5104810_5104819() {
-    replay("5104810-5104819.json.gz", false);
+    replay("5104810-5104819.json.gz");
   }
 
   // @Disabled
@@ -320,7 +316,7 @@ public class ReplayTests {
   // @Disabled
   @Test
   void test_5104830_5104839() {
-    replay("5104830-5104839.json.gz", false);
+    replay("5104830-5104839.json.gz");
   }
 
   // @Disabled
@@ -332,25 +328,25 @@ public class ReplayTests {
   // @Disabled
   @Test
   void test_5104850_5104859() {
-    replay("5104850-5104859.json.gz", false);
+    replay("5104850-5104859.json.gz");
   }
 
   // @Disabled
   @Test
   void test_5104860_5104869() {
-    replay("5104860-5104869.json.gz", false);
+    replay("5104860-5104869.json.gz");
   }
 
   // @Disabled
   @Test
   void test_5104870_5104879() {
-    replay("5104870-5104879.json.gz", false);
+    replay("5104870-5104879.json.gz");
   }
 
   // @Disabled
   @Test
   void test_5104880_5104883() {
-    replay("5104880-5104883.json.gz", false);
+    replay("5104880-5104883.json.gz");
   }
 
   // Leo's range split up 5105646-5105728
@@ -413,7 +409,7 @@ public class ReplayTests {
   // @Disabled
   @Test
   void test_5106538_5106539() {
-    replay("5106538-5106539.json.gz", false);
+    replay("5106538-5106539.json.gz");
   }
 
   // @Disabled
@@ -437,25 +433,25 @@ public class ReplayTests {
   // @Disabled
   @Test
   void test_5106570_5106579() {
-    replay("5106570-5106579.json.gz", false);
+    replay("5106570-5106579.json.gz");
   }
 
   // @Disabled
   @Test
   void test_5106580_5106589() {
-    replay("5106580-5106589.json.gz", false);
+    replay("5106580-5106589.json.gz");
   }
 
   // @Disabled
   @Test
   void test_5106590_5106599() {
-    replay("5106590-5106599.json.gz", false);
+    replay("5106590-5106599.json.gz");
   }
 
   // @Disabled
   @Test
   void test_5106600_5106609() {
-    replay("5106600-5106609.json.gz", false);
+    replay("5106600-5106609.json.gz");
   }
 
   // @Disabled
@@ -481,7 +477,7 @@ public class ReplayTests {
   // @Disabled
   @Test
   void test_5118361_5118369() {
-    replay("5118361-5118369.json.gz", false);
+    replay("5118361-5118369.json.gz");
   }
 
   // @Disabled
@@ -507,19 +503,19 @@ public class ReplayTests {
   // @Disabled
   @Test
   void test_6930360_6930360() {
-    replay("6930360-6930360.json.gz", false);
+    replay("6930360-6930360.json.gz");
   }
 
   // @Disabled
   @Test
   void test_7040245_7040246() {
-    replay("7040245-7040246.json.gz", false);
+    replay("7040245-7040246.json.gz");
   }
 
   // @Disabled
   @Test
   void test_7037321_7037321() {
-    replay("7037321-7037321.json.gz", false);
+    replay("7037321-7037321.json.gz");
   }
 
   // @Disabled
@@ -531,19 +527,19 @@ public class ReplayTests {
   // @Disabled
   @Test
   void test_7037244_7037244() {
-    replay("7037244-7037244.json.gz", false);
+    replay("7037244-7037244.json.gz");
   }
 
   // @Disabled
   @Test
   void test_7032685_7032688() {
-    replay("7032685-7032688.json.gz", false);
+    replay("7032685-7032688.json.gz");
   }
 
   // @Disabled
   @Test
   void test_7032397_7032402() {
-    replay("7032397-7032402.json.gz", false);
+    replay("7032397-7032402.json.gz");
   }
 
   /**
@@ -556,7 +552,7 @@ public class ReplayTests {
   }
 
   // TODO: should be replace by a unit test triggering a CALLDATACOPY in a ROOT context of a
-  // deployment transaction
+  //  deployment transaction
   @Test
   void callDataCopyCnNotFound() {
     replay("67050-67059.json.gz");

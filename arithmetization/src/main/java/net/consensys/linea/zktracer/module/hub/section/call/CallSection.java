@@ -519,6 +519,8 @@ public class CallSection extends TraceSection
     if (selfCallWithNonzeroValueTransfer) {
       reEntryCallerSnapshot.decrementBalanceBy(value);
       postRollbackCalleeSnapshot.decrementBalanceBy(value);
+      // TODO: postRollbackCalleeSnapshot.incrementBalanceBy(value); makes replay test issue1104b()
+      //  pass, but does not seem the right thing to do
     }
 
     final AccountFragment undoingCallerAccountFragment =

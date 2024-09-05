@@ -90,7 +90,7 @@ public class SelfdestructSection extends TraceSection
 
     recipientAccountBefore =
         selfDestructTargetsItself
-            ? selfdestructorAccountAfter.deepCopy()
+            ? selfdestructorAccountBefore.deepCopy()
             : AccountSnapshot.canonical(hub, recipientAddress);
 
     selfdestructScenarioFragment = new SelfdestructScenarioFragment();

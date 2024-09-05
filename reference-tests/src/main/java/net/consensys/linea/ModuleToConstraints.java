@@ -5,12 +5,8 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Data;
 
-@Data
-public class ModuleToConstraints {
-  private String moduleName;
-  private Map<String, List<String>> constraints;
+public record ModuleToConstraints(String moduleName, Map<String, List<String>> constraints) {
 
   public ModuleToConstraints(
       @JsonProperty("moduleName") String moduleName,
@@ -21,18 +17,17 @@ public class ModuleToConstraints {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || moduleName.getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || moduleName.getClass() != o.getClass()) {
+      return false;
+    }
     return moduleName.equals(o);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(moduleName);
-  }
-
-
-  public Map<String, List<String>> getConstraints() {
-    return constraints;
   }
 }

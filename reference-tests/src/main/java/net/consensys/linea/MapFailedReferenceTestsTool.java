@@ -1,6 +1,5 @@
 package net.consensys.linea;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,22 +11,20 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.json.JsonConverter;
-import org.jetbrains.annotations.NotNull;
 
 @Slf4j
 public class MapFailedReferenceTestsTool {
 
-  public static void mapAndStoreFailedReferenceTest(String testName, List<ILoggingEvent> logEvents) {
-    Set<String> failedConstraints = getFailedConstraints(logEvents);
-
-    String jsonOutputPath = "failedTests.json";
+  public static void mapAndStoreFailedReferenceTest(
+      String testName, List<String> logEventMessages, String jsonOutputPath) {
+    Set<String> failedConstraints = getFailedConstraints(logEventMessages);
     String jsonString = readFailedTestsOutput(jsonOutputPath);
     JsonConverter jsonConverter = JsonConverter.builder().build();
 
@@ -40,12 +37,10 @@ public class MapFailedReferenceTestsTool {
     writeToJsonFile(jsonString, jsonOutputPath);
   }
 
-
   private static void mapFailedConstraintsToTestsToModule(
       Set<String> failedConstraints,
       List<ModuleToConstraints> constraintToFailingTests,
-      String testName
-  ) {
+      String testName) {
     for (String constraint : failedConstraints) {
       String moduleName = getModuleFromFailedConstraint(constraint);
       if (constraintToFailingTests.stream()
@@ -65,15 +60,17 @@ public class MapFailedReferenceTestsTool {
       if (cleanedConstraintName.contains(".")) {
         cleanedConstraintName = cleanedConstraintName.split("\\.")[1];
       }
-      List<String> failedTests =
-          new ArrayList<>(
-              moduleMapping.getConstraints().getOrDefault(cleanedConstraintName, Collections.emptyList()));
+      Set<String> failedTests =
+          new HashSet<>(
+              moduleMapping
+                  .constraints()
+                  .getOrDefault(cleanedConstraintName, Collections.emptyList()));
       failedTests.add(testName);
-      moduleMapping.getConstraints().put(cleanedConstraintName, failedTests);
+      moduleMapping.constraints().put(cleanedConstraintName, failedTests.stream().toList());
     }
   }
 
-  private static List<ModuleToConstraints> getModuleToConstraints(
+  public static List<ModuleToConstraints> getModuleToConstraints(
       String jsonString, JsonConverter jsonConverter) {
     List<ModuleToConstraints> constraintToFailingTests = new ArrayList<>();
     if (!jsonString.isEmpty()) {
@@ -84,18 +81,18 @@ public class MapFailedReferenceTestsTool {
     return constraintToFailingTests;
   }
 
-  private static @NotNull Set<String> getFailedConstraints(List<ILoggingEvent> logEvents) {
+  private static Set<String> getFailedConstraints(List<String> logEventMessages) {
     Set<String> failedConstraints = new HashSet<>();
     // Process the latest log events here
-    for (ILoggingEvent logEvent : logEvents) {
+    for (String eventMessage : logEventMessages) {
       failedConstraints.addAll(
-          extractFailedConstraintsFromException(
-              logEvent.getMessage().replaceAll("\u001B\\[[;\\d]*m", "")));
+          extractFailedConstraintsFromException(eventMessage.replaceAll("\u001B\\[[;\\d]*m", "")));
     }
     return failedConstraints;
   }
 
-  private static String readFailedTestsOutput(String filePath) {
+  @Synchronized
+  public static String readFailedTestsOutput(String filePath) {
     Path path = Paths.get(filePath);
     String jsonString = "";
     try {
@@ -114,21 +111,13 @@ public class MapFailedReferenceTestsTool {
   }
 
   @Synchronized
-  private static void writeToJsonFile(String jsonString, String filePath) {
+  public static void writeToJsonFile(String jsonString, String filePath) {
     // Write the JSON string to a file
     try (FileWriter file = new FileWriter(filePath)) {
       file.write(jsonString);
     } catch (Exception e) {
       log.error("Error - Failed to write failed test output: %s".formatted(e.getMessage()));
     }
-  }
-
-  private Map<String, String> mapFailedConstraintsToTest(
-      String testName, Set<String> failedConstraints) {
-    Map<String, String> failedConstrainsMap = new HashMap<>();
-    failedConstraints.forEach(constraint -> failedConstrainsMap.put(constraint, testName));
-
-    return failedConstrainsMap;
   }
 
   private static List<String> extractFailedConstraintsFromException(String message) {

@@ -7,11 +7,10 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
-import org.slf4j.LoggerFactory;
 
 public class ReferenceTestWatcher implements TestWatcher {
 
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ReferenceTestWatcher.class);
+  public static final String JSON_OUTPUT_PATH = "failedTests.json";
   ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
 
   public ReferenceTestWatcher() {
@@ -24,8 +23,10 @@ public class ReferenceTestWatcher implements TestWatcher {
   @Override
   public void testFailed(ExtensionContext context, Throwable cause) {
     String testName = context.getDisplayName().split(": ")[1];
-    List<ILoggingEvent> logEvents = listAppender.list;
+    List<String> logEventMessages =
+        listAppender.list.stream().map(ILoggingEvent::getMessage).toList();
 
-    MapFailedReferenceTestsTool.mapAndStoreFailedReferenceTest(testName, logEvents);
+    MapFailedReferenceTestsTool.mapAndStoreFailedReferenceTest(
+        testName, logEventMessages, JSON_OUTPUT_PATH);
   }
 }

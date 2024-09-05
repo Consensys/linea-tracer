@@ -16,7 +16,6 @@ package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.ReplayTests.replay;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class Issue1090Tests {
@@ -51,6 +50,12 @@ public class Issue1090Tests {
     replay("1505729-1505729.json.gz", false);
   }
 
+  /**
+   * This is an interesting block: at transaction 13 (which is a CONTRACT_CREATION transaction) the
+   * address being deployed at the ROOT does a DELEGATECALL to 0xa092..., which then CALLs its
+   * CALLER address twice. The CALLER, being under deployment, is seen as having empty bytecode by
+   * the outside world, in particular by 0xa092... .
+   */
   // @Disabled
   @Test
   void issue_1090_block_1507291() {

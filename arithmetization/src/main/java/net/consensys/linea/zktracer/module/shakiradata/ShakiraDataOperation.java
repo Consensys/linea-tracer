@@ -51,7 +51,7 @@ public class ShakiraDataOperation extends ModuleOperation {
   private Bytes32 result;
 
   public ShakiraDataOperation(
-    final long hubStamp, final HashFunction hashFunction, final Bytes input) {
+      final long hubStamp, final HashFunction hashFunction, final Bytes input) {
     final Bytes32 hash = keccak256(input);
 
     hashType = hashFunction;
@@ -65,10 +65,7 @@ public class ShakiraDataOperation extends ModuleOperation {
   }
 
   public ShakiraDataOperation(
-      final int hubStamp,
-      final HashFunction hashFunction,
-      final Bytes input,
-      final Bytes hash) {
+      final int hubStamp, final HashFunction hashFunction, final Bytes input, final Bytes hash) {
     hashType = hashFunction;
     ID = hubStamp + 1;
     hashInput = input;

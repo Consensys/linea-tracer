@@ -114,7 +114,8 @@ public class ReturnSection extends TraceSection
     }
 
     // Note: in case of returnFromMessageCall, we check for outOfGasException.
-    // In case of returnFromDeployment, we check for maxCodeSize & invalidCodePrefixException before OOGX.
+    // In case of returnFromDeployment, we check for maxCodeSize & invalidCodePrefixException before
+    // OOGX.
     if (Exceptions.outOfGasException(exceptions) && returnFromMessageCall) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
       return;

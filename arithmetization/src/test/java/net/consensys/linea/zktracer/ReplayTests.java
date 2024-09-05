@@ -513,7 +513,10 @@ public class ReplayTests {
     replay("67050-67059.json.gz");
   }
 
-  /** TODO: should be replace by a unit test triggering a RETURN during a deployment transaction, where we run OOG when need to pay the gas cost of the code deposit*/
+  /**
+   * TODO: should be replace by a unit test triggering a RETURN during a deployment transaction,
+   * where we run OOG when need to pay the gas cost of the code deposit
+   */
   @Test
   void returnOogxForCodeDepositCost() {
     replay("1002387.json.gz");

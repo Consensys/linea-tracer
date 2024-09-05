@@ -46,7 +46,7 @@ public class ReturnFromDeployment extends MmuCall {
     contract = ContractMetadata.underDeployment(contractAddress, depNumber);
 
     final ShakiraDataOperation shakiraDataOperation =
-      new ShakiraDataOperation(hub.stamp(), KECCAK, hub.romLex().getCodeByMetadata(contract));
+        new ShakiraDataOperation(hub.stamp(), KECCAK, hub.romLex().getCodeByMetadata(contract));
 
     hub.shakiraData().call(shakiraDataOperation);
 

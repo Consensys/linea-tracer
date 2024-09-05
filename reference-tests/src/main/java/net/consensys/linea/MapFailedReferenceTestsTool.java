@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.json.JsonConverter;
+import org.jetbrains.annotations.NotNull;
 
 @Slf4j
 public class MapFailedReferenceTestsTool {
@@ -42,57 +43,79 @@ public class MapFailedReferenceTestsTool {
     String jsonString = readFailedTestsOutput(jsonOutputPath);
     JsonConverter jsonConverter = JsonConverter.builder().build();
 
-    List<ModuleToConstraints> constraintToFailingTests =
-        getModuleToConstraints(jsonString, jsonConverter);
+    List<ModuleToConstraints> modulesToConstraints =
+        getModulesToConstraints(jsonString, jsonConverter);
 
-    mapFailedConstraintsToTestsToModule(failedConstraints, constraintToFailingTests, testName);
+    mapFailedConstraintsToTestsToModule(modulesToConstraints, failedConstraints, testName);
 
-    jsonString = jsonConverter.toJson(constraintToFailingTests);
+    jsonString = jsonConverter.toJson(modulesToConstraints);
     writeToJsonFile(jsonString, jsonOutputPath);
   }
 
   private static void mapFailedConstraintsToTestsToModule(
+      List<ModuleToConstraints> modulesToConstraints,
       Set<String> failedConstraints,
-      List<ModuleToConstraints> constraintToFailingTests,
       String testName) {
     for (String constraint : failedConstraints) {
       String moduleName = getModuleFromFailedConstraint(constraint);
-      if (constraintToFailingTests.stream()
-          .filter(mapping -> mapping.equals(moduleName))
-          .toList()
-          .isEmpty()) {
-        constraintToFailingTests.add(new ModuleToConstraints(moduleName, new HashMap<>()));
-      }
 
-      ModuleToConstraints moduleMapping =
-          constraintToFailingTests.stream()
-              .filter(mapping -> mapping.equals(moduleName))
-              .toList()
-              .getFirst();
+      addModuleIfAbsent(modulesToConstraints, moduleName);
+      ModuleToConstraints moduleMapping = getModule(modulesToConstraints, moduleName);
+      String cleanedConstraintName = getCleanedConstraintName(constraint);
 
-      String cleanedConstraintName = constraint;
-      if (cleanedConstraintName.contains(".")) {
-        cleanedConstraintName = cleanedConstraintName.split("\\.")[1];
-      }
       Set<String> failedTests =
-          new HashSet<>(
-              moduleMapping
-                  .constraints()
-                  .getOrDefault(cleanedConstraintName, Collections.emptyList()));
-      failedTests.add(testName);
+          aggregateFailedTestsForModuleConstraintPair(
+              testName, moduleMapping, cleanedConstraintName);
       moduleMapping.constraints().put(cleanedConstraintName, failedTests.stream().toList());
     }
   }
 
-  public static List<ModuleToConstraints> getModuleToConstraints(
+  private static @NotNull Set<String> aggregateFailedTestsForModuleConstraintPair(
+      String testName, ModuleToConstraints moduleMapping, String cleanedConstraintName) {
+    Set<String> failedTests =
+        new HashSet<>(
+            moduleMapping
+                .constraints()
+                .getOrDefault(cleanedConstraintName, Collections.emptyList()));
+    failedTests.add(testName);
+    return failedTests;
+  }
+
+  private static String getCleanedConstraintName(String constraint) {
+    String cleanedConstraintName = constraint;
+    if (cleanedConstraintName.contains(".")) {
+      cleanedConstraintName = cleanedConstraintName.split("\\.")[1];
+    }
+    return cleanedConstraintName;
+  }
+
+  private static ModuleToConstraints getModule(
+      List<ModuleToConstraints> constraintToFailingTests, String moduleName) {
+    return constraintToFailingTests.stream()
+        .filter(mapping -> mapping.equals(moduleName))
+        .toList()
+        .getFirst();
+  }
+
+  private static void addModuleIfAbsent(
+      List<ModuleToConstraints> constraintToFailingTests, String moduleName) {
+    if (constraintToFailingTests.stream()
+        .filter(mapping -> mapping.equals(moduleName))
+        .toList()
+        .isEmpty()) {
+      constraintToFailingTests.add(new ModuleToConstraints(moduleName, new HashMap<>()));
+    }
+  }
+
+  public static List<ModuleToConstraints> getModulesToConstraints(
       String jsonString, JsonConverter jsonConverter) {
-    List<ModuleToConstraints> constraintToFailingTests = new ArrayList<>();
+    List<ModuleToConstraints> moduleToConstraints = new ArrayList<>();
     if (!jsonString.isEmpty()) {
-      constraintToFailingTests =
+      moduleToConstraints =
           new ArrayList<>(
               Arrays.asList(jsonConverter.fromJson(jsonString, ModuleToConstraints[].class)));
     }
-    return constraintToFailingTests;
+    return moduleToConstraints;
   }
 
   private static Set<String> getFailedConstraints(List<String> logEventMessages) {

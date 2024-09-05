@@ -83,7 +83,6 @@ public class MapFailedReferenceTestsTool {
 
   private static Set<String> getFailedConstraints(List<String> logEventMessages) {
     Set<String> failedConstraints = new HashSet<>();
-    // Process the latest log events here
     for (String eventMessage : logEventMessages) {
       failedConstraints.addAll(
           extractFailedConstraintsFromException(eventMessage.replaceAll("\u001B\\[[;\\d]*m", "")));
@@ -112,7 +111,6 @@ public class MapFailedReferenceTestsTool {
 
   @Synchronized
   public static void writeToJsonFile(String jsonString, String filePath) {
-    // Write the JSON string to a file
     try (FileWriter file = new FileWriter(filePath)) {
       file.write(jsonString);
     } catch (Exception e) {

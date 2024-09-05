@@ -83,8 +83,6 @@ public class ShakiraDataOperation extends ModuleOperation {
   }
 
   void trace(Trace trace, final int stamp) {
-
-    this.result = Bytes32.leftPad(this.computeResult());
     traceData(trace, stamp);
     traceResult(trace, stamp);
   }
@@ -172,14 +170,5 @@ public class ShakiraDataOperation extends ModuleOperation {
             .validateRow();
       }
     }
-  }
-
-  // TODO: this should die, we should use teh result from BESU
-  private Bytes computeResult() {
-    return switch (hashType) {
-      case SHA256 -> Hash.sha256(hashInput);
-      case KECCAK -> Hash.keccak256(hashInput);
-      case RIPEMD -> Hash.ripemd160(hashInput);
-    };
   }
 }

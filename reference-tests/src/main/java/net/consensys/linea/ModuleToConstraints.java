@@ -5,7 +5,9 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 
+@Data
 public class ModuleToConstraints {
   private String moduleName;
   private Map<String, List<String>> constraints;
@@ -29,13 +31,6 @@ public class ModuleToConstraints {
     return Objects.hash(moduleName);
   }
 
-  public String getModuleName() {
-    return moduleName;
-  }
-
-  public void setModuleName(String name) {
-    moduleName = name;
-  }
 
   public Map<String, List<String>> getConstraints() {
     return constraints;

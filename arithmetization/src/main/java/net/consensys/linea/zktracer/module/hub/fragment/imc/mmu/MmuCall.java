@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.Util.slice;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.MODEXP_COMPONENT_BYTE_SIZE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EMPTY_RIPEMD_HI;
@@ -66,7 +67,6 @@ import static org.apache.tuweni.bytes.Bytes.minimalBytes;
 
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -88,6 +88,7 @@ import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.LogData;
+import net.consensys.linea.zktracer.runtime.callstack.CallDataInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
@@ -195,14 +196,11 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall callDataCopy(final Hub hub) {
-    final MemorySpan callDataSegment = hub.currentFrame().callDataInfo().memorySpan();
-
-    final int callDataContextNumber = callDataContextNumber(hub);
-    final CallFrame callFrame = hub.callStack().getByContextNumber(callDataContextNumber);
+    final CallDataInfo callDataInfo = hub.currentFrame().callDataInfo();
 
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
-        .sourceId(callDataContextNumber)
-        .sourceRamBytes(Optional.of(callFrame.callDataInfo().data()))
+        .sourceId((int) callDataInfo.callDataContextNumber())
+        .sourceRamBytes(Optional.ofNullable(callDataInfo.data()))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(
             Optional.of(
@@ -212,16 +210,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
-        .referenceOffset(callDataSegment.offset())
-        .referenceSize(callDataSegment.length());
-  }
-
-  public static int callDataContextNumber(final Hub hub) {
-    final CallFrame currentFrame = hub.callStack().current();
-
-    return currentFrame.isRoot()
-        ? currentFrame.contextNumber() - 1
-        : hub.callStack().parent().contextNumber();
+        .referenceOffset(callDataInfo.memorySpan().offset())
+        .referenceSize(callDataInfo.memorySpan().length());
   }
 
   public static MmuCall LogX(final Hub hub, final LogData logData) {
@@ -390,7 +380,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
     final PrecompileScenarioFragment.PrecompileFlag flag =
         precompileSubsection.precompileScenarioFragment().flag;
-    Preconditions.checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
+    checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
 
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
@@ -409,7 +399,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
     final PrecompileScenarioFragment.PrecompileFlag flag =
         precompileSubsection.precompileScenarioFragment().flag;
-    Preconditions.checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
+    checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
 
     final boolean isShaTwo = flag == PRC_SHA2_256;
 
@@ -437,8 +427,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     final PrecompileScenarioFragment.PrecompileFlag flag =
         precompileSubsection.precompileScenarioFragment().flag;
 
-    Preconditions.checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
-    Preconditions.checkArgument(!precompileSubsection.parentReturnDataTarget.isEmpty());
+    checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
+    checkArgument(!precompileSubsection.parentReturnDataTarget.isEmpty());
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(precompileSubsection.returnDataContextNumber())

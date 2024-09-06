@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
+import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
@@ -23,7 +25,6 @@ import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -96,7 +97,7 @@ public class PrecompileSubsection
     fragments = new ArrayList<>(maxNumberOfLines());
 
     hub.defers().scheduleForImmediateContextEntry(this); // gas & input data, ...
-    hub.defers().scheduleForContextExit(this, exoModuleOperationId());
+    hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame()); // success bit & return data
 
     final PrecompileScenarioFragment.PrecompileFlag precompileFlag =
@@ -133,26 +134,17 @@ public class PrecompileSubsection
   }
 
   @Override
-  public void resolveUponImmediateContextEntry(Hub hub) {
+  public void resolveUponContextEntry(Hub hub) {
     // Sanity check
-    Preconditions.checkArgument(
-        callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));
-    Preconditions.checkArgument(callData.equals(hub.messageFrame().getInputData()));
+    checkArgument(callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));
+    checkArgument(callData.equals(hub.messageFrame().getInputData()));
 
     callerGas = hub.callStack().parent().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
     parentReturnDataTarget = hub.currentFrame().returnDataTargetInCaller();
-
-    // TODO: @françois: I've added this here as I believe that we will want
-    //  to resolve at context exit in all cases and my impression is that
-    //  we weren't doing so currently.
-    //  This actually raises the question if we should pre-emptively schedule
-    //  everything for ContextExit as soon as it has been scheduled for
-    //  ContextEntry ...
-    hub.defers().scheduleForContextExit(this, hub.currentFrame().id());
   }
 
-  public void resolveUponExitingContext(Hub hub, CallFrame callFrame) {
+  public void resolveUponContextExit(Hub hub, CallFrame callFrame) {
     returnGas = callFrame.frame().getRemainingGas();
   }
 
@@ -175,9 +167,9 @@ public class PrecompileSubsection
 
   public void sanityCheck() {
     if (callSuccess) {
-      Preconditions.checkArgument(precompileScenarioFragment.scenario.isSuccess());
+      checkArgument(precompileScenarioFragment.scenario.isSuccess());
     } else {
-      Preconditions.checkArgument(precompileScenarioFragment.scenario.isFailure());
+      checkArgument(precompileScenarioFragment.scenario.isFailure());
     }
   }
 
@@ -185,13 +177,13 @@ public class PrecompileSubsection
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     // only successful PRC calls should enter here
-    Preconditions.checkArgument(precompileScenarioFragment.scenario() == PRC_SUCCESS_WONT_REVERT);
+    checkArgument(precompileScenarioFragment.scenario() == PRC_SUCCESS_WONT_REVERT);
 
     precompileScenarioFragment.scenario(PRC_SUCCESS_WILL_REVERT);
   }
 
   public int exoModuleOperationId() {
-    return callSection.hubStamp() + 1;
+    return newIdentifierFromStamp(callSection.hubStamp());
   }
 
   public int returnDataContextNumber() {

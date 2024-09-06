@@ -69,7 +69,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   /* g in the EYP, defined by g = TG - g0 */
   final long initiallyAvailableGas;
 
-  final Address effectiveTo;
+  final Address effectiveRecipient;
 
   final long effectiveGasPrice;
 
@@ -100,11 +100,11 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   @Accessors(fluent = true)
   @Setter
-  boolean isReceiverPreWarmed = false;
+  boolean isRecipientPreWarmed = false;
 
   @Accessors(fluent = true)
   @Setter
-  boolean isMinerWarmAtEndTx = false;
+  boolean isCoinbaseWarmAtTransactionEnd = false;
 
   @Setter List<Log> logs;
 
@@ -135,7 +135,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
       final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
     this.relativeBlockNumber = block.blockNumber();
-    this.coinbase = block.minerAddress();
+    this.coinbase = block.coinbaseAddress();
     this.baseFee = block.baseFee().toLong();
 
     this.besuTransaction = transaction;
@@ -157,7 +157,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
         besuTransaction.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);
     this.initiallyAvailableGas = getInitiallyAvailableGas();
 
-    this.effectiveTo = effectiveToAddress(besuTransaction);
+    this.effectiveRecipient = effectiveToAddress(besuTransaction);
 
     this.effectiveGasPrice = computeEffectiveGasPrice();
   }
@@ -165,10 +165,10 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   public void setPreFinalisationValues(
       final long leftOverGas,
       final long refundCounterMax,
-      final boolean minerIsWarmAtFinalisation,
+      final boolean coinbaseIsWarmAtFinalisation,
       final int accumulatedGasUsedInBlockAtStartTx) {
 
-    this.isMinerWarmAtEndTx(minerIsWarmAtFinalisation);
+    this.isCoinbaseWarmAtTransactionEnd(coinbaseIsWarmAtFinalisation);
     this.refundCounterMax = refundCounterMax;
     this.setLeftoverGas(leftOverGas);
     this.gasUsed = computeGasUsed();
@@ -184,7 +184,14 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
     this.hubStampTransactionEnd = hub.stamp();
     this.logs = logs;
     for (Address address : selfDestructs) {
-      this.destructedAccountsSnapshot.add(AccountSnapshot.canonical(hub, address));
+      hub.transients()
+          .conflation()
+          .deploymentInfo()
+          .freshDeploymentNumberFinishingSelfdestruct(
+              address); // depNum += 1 and depStatus <- false
+      this.destructedAccountsSnapshot.add(
+          AccountSnapshot.fromAddress(
+              address, true, hub.deploymentNumberOf(address), hub.deploymentStatusOf(address)));
     }
   }
 
@@ -267,7 +274,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
     return besuTransaction.getGasLimit() - getGasRefunded();
   }
 
-  public long weiPerGasForMiner() {
+  public long feeRateForCoinbase() {
     return switch (besuTransaction.getType()) {
       case FRONTIER, ACCESS_LIST -> effectiveGasPrice;
       case EIP1559 -> effectiveGasPrice - baseFee;
@@ -276,9 +283,9 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
     };
   }
 
-  public Wei getMinerReward() {
+  public Wei getCoinbaseReward() {
     return Wei.of(
-        BigInteger.valueOf(totalGasUsed).multiply(BigInteger.valueOf(weiPerGasForMiner())));
+        BigInteger.valueOf(totalGasUsed).multiply(BigInteger.valueOf(feeRateForCoinbase())));
   }
 
   public Wei getGasRefundInWei() {
@@ -303,7 +310,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     for (Map.Entry<EphemeralAccount, List<AttemptedSelfDestruct>> entry :
-        this.unexceptionalSelfDestructMap.entrySet()) {
+        unexceptionalSelfDestructMap.entrySet()) {
 
       EphemeralAccount ephemeralAccount = entry.getKey();
       List<AttemptedSelfDestruct> attemptedSelfDestructs = entry.getValue();

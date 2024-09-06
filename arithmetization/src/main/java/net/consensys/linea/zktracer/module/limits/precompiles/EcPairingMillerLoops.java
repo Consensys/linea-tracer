@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 
-public final class EcPairingMillerLoops extends CountingOnlyModule {
+public final class EcPairingMillerLoops implements CountingOnlyModule {
 
   @Override
   public String moduleKey() {
@@ -25,7 +25,9 @@ public final class EcPairingMillerLoops extends CountingOnlyModule {
   }
 
   @Override
-  public void addPrecompileLimit(final int input) {
-    // TODO @Lorenzo
+  public void addPrecompileLimit(final int numberEffectiveCall) {
+    // Preconditions.checkArgument(numberEffectiveCall <= ?, "can't add more than ? effective
+    // precompile call at a time");
+    counts.add(numberEffectiveCall);
   }
 }

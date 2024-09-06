@@ -15,16 +15,22 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.stacked.list.StackedList;
 import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Gas implements Module {
   /** A list of the operations to trace */
-  private final StackedList<GasOperation> chunks = new StackedList<>();
+  private final StackedList<GasOperation> operations = new StackedList<>();
+
+  // TODO: why a stackedList of GasOperation? It should be a StateLess module no ?
 
   @Override
   public String moduleKey() {
@@ -33,17 +39,17 @@ public class Gas implements Module {
 
   @Override
   public void enterTransaction() {
-    this.chunks.enter();
+    this.operations.enter();
   }
 
   @Override
   public void popTransaction() {
-    this.chunks.pop();
+    this.operations.pop();
   }
 
   @Override
   public int lineCount() {
-    return this.chunks.lineCount();
+    return this.operations.lineCount();
   }
 
   @Override

@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -68,8 +68,11 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
         };
 
     final AccountSnapshot accountSnapshotBefore = AccountSnapshot.canonical(hub, targetAddress);
-    final AccountSnapshot accountSnapshotAfter =
-        accountSnapshotBefore.deepCopy().turnOnWarmth(); // TODO: at postExecDefers ?
+    final AccountSnapshot accountSnapshotAfter = accountSnapshotBefore.deepCopy();
+
+    if (Exceptions.none(exceptions)) {
+      accountSnapshotAfter.turnOnWarmth(); // TODO: use canonical instead at postExecDefers ?
+    }
 
     final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);
@@ -102,13 +105,11 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
 
     // sanity check
     final int deploymentNumberAtRollback =
-        hub.transients().conflation().deploymentInfo().number(targetAddress);
+        hub.transients().conflation().deploymentInfo().deploymentNumber(targetAddress);
     final boolean deploymentStatusAtRollback =
-        hub.transients().conflation().deploymentInfo().isDeploying(targetAddress);
-    Preconditions.checkArgument(
-        deploymentNumberAtRollback == postRollBackAccountSnapshot.deploymentNumber());
-    Preconditions.checkArgument(
-        deploymentStatusAtRollback == postRollBackAccountSnapshot.deploymentStatus());
+        hub.transients().conflation().deploymentInfo().getDeploymentStatus(targetAddress);
+    checkArgument(deploymentNumberAtRollback == postRollBackAccountSnapshot.deploymentNumber());
+    checkArgument(deploymentStatusAtRollback == postRollBackAccountSnapshot.deploymentStatus());
 
     this.addFragment(
         hub.factories()

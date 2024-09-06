@@ -23,6 +23,6 @@ public class Issue1031Tests {
   // @Disabled
   @Test
   void issue_1090_range_10_20() {
-    replay("10-20.json.gz", false);
+    replay("10-20.json.gz");
   }
 }

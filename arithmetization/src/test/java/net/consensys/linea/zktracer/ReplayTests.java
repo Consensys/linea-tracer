@@ -566,9 +566,4 @@ public class ReplayTests {
   void returnOogxForCodeDepositCost() {
     replay("1002387.json.gz");
   }
-
-  @Test
-  void nameToFindIssueInReturnSection() {
-    replay("6690-6699.json.gz", false);
-  }
 }

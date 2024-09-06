@@ -108,7 +108,7 @@ tasks.withType(Test).configureEach {
     showStandardStreams true
 
     // set to false to hide passed standard out and error streams
-    showPassedStandardStreams false
+    showPassedStandardStreams true
 
     // set to false to hide skipped standard out and error streams
     showSkippedStandardStreams true

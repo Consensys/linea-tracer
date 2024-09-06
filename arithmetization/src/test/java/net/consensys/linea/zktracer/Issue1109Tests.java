@@ -16,14 +16,13 @@ package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.ReplayTests.replay;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class Issue1109Tests {
 
-    // @Disabled
-    @Test
-    void issue_1090_block_6690_6699() {
-        replay("6690-6699.json.gz", false);
-    }
+  // @Disabled
+  @Test
+  void issue_1090_block_6690_6699() {
+    replay("6690-6699.json.gz", false);
+  }
 }

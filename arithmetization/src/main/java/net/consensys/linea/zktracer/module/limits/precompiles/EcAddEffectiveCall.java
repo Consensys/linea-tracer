@@ -21,10 +21,12 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+
 @Getter
 @Accessors(fluent = true)
 public final class EcAddEffectiveCall implements CountingOnlyModule {
   private final CountOnlyOperation counts = new CountOnlyOperation();
+
   @Override
   public String moduleKey() {
     return "PRECOMPILE_ECADD_EFFECTIVE_CALLS";

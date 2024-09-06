@@ -23,6 +23,7 @@ import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 @Accessors(fluent = true)
 public class EcPairingG2MembershipCalls implements CountingOnlyModule {
   private final CountOnlyOperation counts = new CountOnlyOperation();
+
   @Override
   public String moduleKey() {
     return "PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS";

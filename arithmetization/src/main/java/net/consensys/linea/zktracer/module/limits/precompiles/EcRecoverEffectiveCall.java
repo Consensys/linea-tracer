@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 @Accessors(fluent = true)
 public final class EcRecoverEffectiveCall implements CountingOnlyModule {
   private final CountOnlyOperation counts = new CountOnlyOperation();
+
   @Override
   public String moduleKey() {
     return "PRECOMPILE_ECRECOVER_EFFECTIVE_CALLS";

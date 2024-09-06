@@ -23,7 +23,8 @@ import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 @Getter
 @Accessors(fluent = true)
 public final class EcPairingMillerLoops implements CountingOnlyModule {
-  private final  CountOnlyOperation counts = new CountOnlyOperation();
+  private final CountOnlyOperation counts = new CountOnlyOperation();
+
   @Override
   public String moduleKey() {
     return "PRECOMPILE_ECPAIRING_MILLER_LOOPS";

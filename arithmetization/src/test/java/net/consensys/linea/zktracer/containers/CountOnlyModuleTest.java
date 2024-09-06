@@ -18,14 +18,12 @@ package net.consensys.linea.zktracer.containers;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import org.junit.jupiter.api.Test;
 
 public class CountOnlyModuleTest {
   @Test
-  void test(){
+  void test() {
     ZkTracer state = new ZkTracer();
     final ModexpEffectiveCall countingOnlyModule = state.getHub().modexpEffectiveCall();
 

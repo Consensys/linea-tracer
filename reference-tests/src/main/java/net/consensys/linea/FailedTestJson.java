@@ -1,19 +1,18 @@
 package net.consensys.linea;
 
-import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FailedTestJson {
   static String fileDirectory = System.getProperty("FAILED_TEST_JSON_DIRECTORY", "../tmp/local/");
-
 
   @Synchronized
   public static String readFailedTestsOutput(String fileName) {

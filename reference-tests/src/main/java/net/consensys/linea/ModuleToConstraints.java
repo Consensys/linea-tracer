@@ -14,14 +14,14 @@
  */
 package net.consensys.linea;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record ModuleToConstraints(String moduleName, Map<String, Set<String>> constraints) {
 
@@ -50,9 +50,7 @@ public record ModuleToConstraints(String moduleName, Map<String, Set<String>> co
 
   @JsonIgnore
   public Set<String> getFailedTests() {
-    return constraints.values().stream()
-        .flatMap(Set::stream)
-        .collect(Collectors.toSet());
+    return constraints.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
   }
 
   @JsonIgnore

@@ -25,7 +25,8 @@ import org.junit.jupiter.api.extension.TestWatcher;
 
 public class ReferenceTestWatcher implements TestWatcher {
 
-  public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests-%s.json".formatted(LocalDate.now().toString());
+  public static final String JSON_OUTPUT_FILENAME =
+      "failedBlockchainReferenceTests-%s.json".formatted(LocalDate.now().toString());
   ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
 
   public ReferenceTestWatcher() {

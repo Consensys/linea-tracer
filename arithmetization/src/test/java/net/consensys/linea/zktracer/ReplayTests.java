@@ -33,6 +33,7 @@ import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.testing.ToyExecutionEnvironment;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,6 +53,7 @@ import org.junit.jupiter.api.Test;
  * One can run this command: scripts/capture.pl --start xxx --end yyy --output my-test-case.json.gz
  */
 @Slf4j
+@Tag("nightly")
 public class ReplayTests {
 
   /**

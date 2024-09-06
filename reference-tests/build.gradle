@@ -49,7 +49,6 @@ tasks.register('referenceBlockchainTests', Test) {
 
   minHeapSize = "4g"
   maxHeapSize = "20g"
-  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
@@ -63,7 +62,6 @@ tasks.register('referenceGeneralStateTests', Test) {
 
   minHeapSize = "4g"
   maxHeapSize = "20g"
-  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
 
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")

@@ -40,10 +40,12 @@ apply plugin: 'com.adarshr.test-logger'
   *   multiple variant of that test are run. The variant is a simple number.
   * - 'root.log.level' and 'evm.log.level': allow to control the log level used during the tests.
   */
-test {
+tasks.withType(Test).configureEach {
+  dependsOn(buildZkevmBin)
+
   minHeapSize = "4g"
   maxHeapSize = "8g"
-  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
+
   jvmArgs = [
     '-XX:-UseGCOverheadLimit',
     // Mockito and jackson-databind do some strange reflection during tests.
@@ -64,9 +66,13 @@ test {
     }
   }
 
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+
   testlogger {
     // pick a theme - mocha, standard, plain, mocha-parallel, standard-parallel or plain-parallel
-    theme 'standard'
+    theme 'standard-parallel'
 
     // set to false to disable detailed failure logs
     showExceptions true
@@ -114,21 +120,14 @@ test {
   useJUnitPlatform()
 }
 
-tasks.test.dependsOn(buildZkevmBin)
-
-tasks.register('unitTests', Test) {
-  description = 'Runs unit tests.'
-
-  minHeapSize = "4g"
-  maxHeapSize = "8g"
-  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
-
+tasks.test.configure {
   useJUnitPlatform {
-    excludeTags("AcceptanceTest")
-    exclude('**/**ReferenceTest*')
+    excludeTags("nightly")
   }
 }
 
-test {
-  exclude('**/**ReferenceTest*')
+tasks.register("nightlyTests", Test) {
+  useJUnitPlatform {
+    includeTags("nightly")
+  }
 }

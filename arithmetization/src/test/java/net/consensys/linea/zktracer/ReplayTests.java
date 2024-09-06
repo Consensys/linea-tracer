@@ -569,6 +569,6 @@ public class ReplayTests {
 
   @Test
   void nameToFindIssueInReturnSection() {
-    replay("6690-6699.json.gz");
+    replay("6690-6699.json.gz", false);
   }
 }

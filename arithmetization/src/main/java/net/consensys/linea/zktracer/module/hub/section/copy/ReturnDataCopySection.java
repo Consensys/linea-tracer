@@ -47,6 +47,7 @@ public class ReturnDataCopySection extends TraceSection {
 
     // returnDataCopyException case
     if (returnDataCopyException) {
+      commonValues.setTracedException(Exceptions.RETURN_DATA_COPY_FAULT);
       return;
     }
 
@@ -57,12 +58,14 @@ public class ReturnDataCopySection extends TraceSection {
 
     // memoryExpansionException case
     if (mxpCall.mxpx) {
+      commonValues.setTracedException(Exceptions.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // outOfGasException case
     if (Exceptions.any(exceptions)) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
       return;
     }
 

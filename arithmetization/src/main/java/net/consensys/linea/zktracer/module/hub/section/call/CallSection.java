@@ -135,6 +135,7 @@ public class CallSection extends TraceSection
 
     // STATICX cases
     if (Exceptions.staticFault(exceptions)) {
+      commonValues.setTracedException(Exceptions.STATIC_FAULT);
       return;
     }
 
@@ -144,6 +145,7 @@ public class CallSection extends TraceSection
 
     // MXPX case
     if (Exceptions.memoryExpansionException(exceptions)) {
+      commonValues.setTracedException(Exceptions.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
@@ -164,6 +166,7 @@ public class CallSection extends TraceSection
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
+      commonValues.setTracedException(Exceptions.OUT_OF_GAS_EXCEPTION);
       this.oogXCall(hub);
       return;
     }

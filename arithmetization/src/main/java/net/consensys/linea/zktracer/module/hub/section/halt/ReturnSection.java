@@ -110,6 +110,7 @@ public class ReturnSection extends TraceSection
     checkArgument(mxpCall.mxpx == memoryExpansionException(exceptions));
 
     if (mxpCall.mxpx) {
+      commonValues.setTracedException(Exceptions.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
@@ -118,6 +119,7 @@ public class ReturnSection extends TraceSection
     // OOGX.
     if (Exceptions.outOfGasException(exceptions) && returnFromMessageCall) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(Exceptions.OUT_OF_GAS_EXCEPTION);
       return;
     }
 
@@ -130,6 +132,7 @@ public class ReturnSection extends TraceSection
     if (triggerOobForMaxCodeSizeException) {
       final OobCall oobCall = new XCallOobCall();
       firstImcFragment.callOob(oobCall);
+      commonValues.setTracedException(Exceptions.CODE_SIZE_OVERFLOW);
       return;
     }
 
@@ -143,12 +146,14 @@ public class ReturnSection extends TraceSection
       firstImcFragment.callMmu(actuallyInvalidCodePrefixMmuCall);
 
       checkArgument(!actuallyInvalidCodePrefixMmuCall.successBit());
+      commonValues.setTracedException(Exceptions.INVALID_CODE_PREFIX);
       return;
     }
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions) && returnFromDeployment) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
       return;
     }
 

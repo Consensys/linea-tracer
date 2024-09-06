@@ -45,6 +45,21 @@ public class Exceptions {
   public static final short INVALID_CODE_PREFIX = 512;
   public static final short CODE_SIZE_OVERFLOW = 2048;
 
+  public static boolean isException(short exception) {
+    return exception == NONE
+        || exception == INVALID_OPCODE
+        || exception == STACK_UNDERFLOW
+        || exception == STACK_OVERFLOW
+        || exception == MEMORY_EXPANSION_EXCEPTION
+        || exception == OUT_OF_GAS_EXCEPTION
+        || exception == RETURN_DATA_COPY_FAULT
+        || exception == JUMP_FAULT
+        || exception == STATIC_FAULT
+        || exception == OUT_OF_SSTORE
+        || exception == INVALID_CODE_PREFIX
+        || exception == CODE_SIZE_OVERFLOW;
+  }
+
   public static boolean stackException(final short bitmask) {
     return stackOverflow(bitmask) || stackUnderflow(bitmask);
   }

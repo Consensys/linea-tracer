@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.common;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 
 import java.math.BigInteger;
@@ -60,6 +61,7 @@ public class CommonFragmentValues {
   @Setter public int numberOfNonStackRows;
   @Setter public boolean TLI;
   @Setter public int codeFragmentIndex = -1;
+  @Getter private short tracedException = Exceptions.NONE;
 
   public CommonFragmentValues(Hub hub) {
     final boolean noStackException = !Exceptions.stackException(hub.pch().exceptions());
@@ -89,6 +91,11 @@ public class CommonFragmentValues {
                     || instructionFamily == InstructionFamily.HALT
                     || instructionFamily == InstructionFamily.INVALID)
                 || exceptionAhoy);
+  }
+
+  public void setTracedException(short exception) {
+    checkArgument(Exceptions.isException(exception));
+    this.tracedException = exception;
   }
 
   static int computePcNew(

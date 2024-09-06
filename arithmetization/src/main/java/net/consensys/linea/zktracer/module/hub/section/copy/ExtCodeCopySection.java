@@ -75,6 +75,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     // The MXPX case
     if (mxpCall.mxpx) {
+      commonValues.setTracedException(Exceptions.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
@@ -98,6 +99,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
               .makeWithTrm(accountBefore, accountBefore, rawAddress, doingDomSubStamps);
 
       this.addFragment(accountReadingFragment);
+      commonValues.setTracedException(Exceptions.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

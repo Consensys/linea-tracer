@@ -51,12 +51,14 @@ public class CodeCopySection extends TraceSection {
 
     // The MXPX case
     if (mxpCall.mxpx) {
+      commonValues.setTracedException(Exceptions.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // The OOGX case
     if (Exceptions.any(exceptions)) {
       checkArgument(exceptions == Exceptions.OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(Exceptions.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

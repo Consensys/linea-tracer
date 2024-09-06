@@ -107,6 +107,7 @@ public class SelfdestructSection extends TraceSection
 
     // STATICX case
     if (Exceptions.staticFault(exceptions)) {
+      commonValues.setTracedException(Exceptions.STATIC_FAULT);
       return;
     }
 
@@ -135,6 +136,7 @@ public class SelfdestructSection extends TraceSection
 
       this.addFragment(recipientFirstAccountFragment);
 
+      commonValues.setTracedException(Exceptions.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

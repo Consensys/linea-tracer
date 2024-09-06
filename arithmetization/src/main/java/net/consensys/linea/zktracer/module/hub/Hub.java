@@ -560,18 +560,17 @@ public class Hub implements Module {
 
       checkArgument(
           recipientAddress.equals(effectiveToAddress(currentTransaction.getBesuTransaction())));
-      checkArgument(senderAddress.equals(txStack.current().getBesuTransaction().getSender()));
-      checkArgument(isDeployment == transients.tx().getBesuTransaction().getTo().isEmpty());
+      checkArgument(senderAddress.equals(currentTransaction.getBesuTransaction().getSender()));
+      checkArgument(isDeployment == currentTransaction.getBesuTransaction().getTo().isEmpty());
       checkArgument(
-          value.equals(Wei.of(transients.tx().getBesuTransaction().getValue().getAsBigInteger())));
-      checkArgument(frame.getRemainingGas() == transients.tx().getInitiallyAvailableGas());
+          value.equals(
+              Wei.of(currentTransaction.getBesuTransaction().getValue().getAsBigInteger())));
+      checkArgument(frame.getRemainingGas() == currentTransaction.getInitiallyAvailableGas());
 
-      final boolean copyTransactionCallData =
-          !isDeployment && currentTransaction.requiresEvmExecution();
+      final boolean copyTransactionCallData = currentTransaction.copyTransactionCallData();
       if (copyTransactionCallData) {
         callStack.newTransactionCallDataContext(
-            callDataContextNumber(copyTransactionCallData),
-            transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY));
+            callDataContextNumber(true), currentTransaction.getBesuTransaction().getData().get());
       }
 
       callStack.newRootContext(
@@ -579,8 +578,8 @@ public class Hub implements Module {
           senderAddress,
           recipientAddress,
           new Bytecode(
-              recipientAddress == null
-                  ? transients.tx().getBesuTransaction().getData().orElse(Bytes.EMPTY)
+              currentTransaction.isDeployment()
+                  ? currentTransaction.getBesuTransaction().getInit().orElse(Bytes.EMPTY)
                   : Optional.ofNullable(frame.getWorldUpdater().get(recipientAddress))
                       .map(AccountState::getCode)
                       .orElse(Bytes.EMPTY)),
@@ -597,22 +596,17 @@ public class Hub implements Module {
 
     // internal transaction (CALL) or internal deployment (CREATE)
     if (frame.getDepth() > 0) {
-      final OpCode currentOpCode = callStack.current().opCode();
+      final OpCode currentOpCode = callStack.currentCallFrame().opCode();
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
-
-      // Now done (with more care) in the CREATE section
-      // if (isDeployment) {
-      //   transients.conflation().deploymentInfo().newDeploymentWithExecutionAt(codeAddress);
-      // }
 
       final long callDataOffset =
           isDeployment
               ? 0
               : Words.clampedToLong(
                   callStack
-                      .current()
+                      .currentCallFrame()
                       .frame()
                       .getStackItem(currentOpCode.callMayNotTransferValue() ? 2 : 3));
 
@@ -621,11 +615,11 @@ public class Hub implements Module {
               ? 0
               : Words.clampedToLong(
                   callStack
-                      .current()
+                      .currentCallFrame()
                       .frame()
                       .getStackItem(currentOpCode.callMayNotTransferValue() ? 3 : 4));
 
-      final long callDataContextNumber = callStack.current().contextNumber();
+      final long callDataContextNumber = callStack.currentCallFrame().contextNumber();
 
       callStack.enter(
           frameType,
@@ -652,13 +646,6 @@ public class Hub implements Module {
         m.traceContextEnter(frame);
       }
     }
-  }
-
-  public void traceContextReEnter(MessageFrame frame) {
-    // Note: the update of the current call frame is made during traceContextExit of the child frame
-    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
-    defers.resolveUponContextReEntry(this, this.currentFrame());
-    this.unlatchStack(frame, this.currentFrame().childSpanningSection());
   }
 
   @Override
@@ -710,6 +697,14 @@ public class Hub implements Module {
     }
   }
 
+  public void traceContextReEnter(MessageFrame frame) {
+    // Note: the update of the currentId call frame is made during traceContextExit of the child
+    // frame
+    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
+    defers.resolveUponContextReEntry(this, this.currentFrame());
+    this.unlatchStack(frame, this.currentFrame().childSpanningSection());
+  }
+
   /**
    * If the current execution context is a deployment context the present method "exits" that
    * deployment in the sense that it updates the relevant deployment information.
@@ -727,10 +722,18 @@ public class Hub implements Module {
      * <p>If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
      * immediately set to the deployed state
      */
-    if (messageFrame().getType() != CONTRACT_CREATION || state.processingPhase == TX_SKIP) {
+    if (state.processingPhase == TX_SKIP) {
       checkArgument(!deploymentStatusOfBytecodeAddress());
       return;
     }
+    /**
+     * We can't say anything if the current frame is a message call: we might have attempted a call
+     * to an address that is undergoing deployment (or a normal one.)
+     */
+    if (frame.getType() == MESSAGE_CALL) {
+      return;
+    }
+
     // from here on out:
     // - state.processingPhase != TX_SKIP
     // - messageFrame.type == CONTRACT_CREATION
@@ -861,19 +864,23 @@ public class Hub implements Module {
     return shouldCopyTxCallData ? this.stamp() : 0;
   }
 
+  public static int newIdentifierFromStamp(int h) {
+    return 1 + h;
+  }
+
   public int newChildContextNumber() {
-    return 1 + this.stamp();
+    return newIdentifierFromStamp(this.stamp());
   }
 
   public CallFrame currentFrame() {
     if (this.callStack().isEmpty()) {
       return CallFrame.EMPTY;
     }
-    return callStack.current();
+    return callStack.currentCallFrame();
   }
 
   public final MessageFrame messageFrame() {
-    final MessageFrame frame = callStack.current().frame();
+    final MessageFrame frame = callStack.currentCallFrame().frame();
     return frame;
   }
 

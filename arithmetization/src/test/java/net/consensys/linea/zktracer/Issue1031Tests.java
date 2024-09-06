@@ -12,21 +12,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.zktracer;
 
-package net.consensys.linea.zktracer.module.limits.precompiles;
+import static net.consensys.linea.zktracer.ReplayTests.replay;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
-import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import org.junit.jupiter.api.Test;
 
-@Getter
-@Accessors(fluent = true)
-public final class BlakeRounds implements CountingOnlyModule {
-  private final CountOnlyOperation counts = new CountOnlyOperation();
+public class Issue1031Tests {
 
-  @Override
-  public String moduleKey() {
-    return "PRECOMPILE_BLAKE_ROUNDS";
+  // @Disabled
+  @Test
+  void issue_1090_range_10_20() {
+    replay("10-20.json.gz");
   }
 }

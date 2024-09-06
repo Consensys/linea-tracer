@@ -57,6 +57,7 @@ public final class StackFragment implements TraceFragment {
   @Setter private boolean validJumpDestination;
   private final boolean willRevert;
   private final State.TxState.Stamps stamps;
+  private final short tracedException;
 
   private StackFragment(
       final Hub hub,
@@ -67,7 +68,8 @@ public final class StackFragment implements TraceFragment {
       DeploymentExceptions contextExceptions,
       GasProjection gp,
       boolean isDeploying,
-      boolean willRevert) {
+      boolean willRevert,
+      short tracedException) {
     this.stack = stack;
     this.stackOps = stackOps;
     this.exceptions = exceptions;
@@ -125,6 +127,7 @@ public final class StackFragment implements TraceFragment {
 
     this.willRevert = willRevert;
     this.stamps = hub.state().stamps();
+    this.tracedException = tracedException;
   }
 
   public static StackFragment prepare(
@@ -135,7 +138,8 @@ public final class StackFragment implements TraceFragment {
       final AbortingConditions aborts,
       final GasProjection gp,
       boolean isDeploying,
-      boolean willRevert) {
+      boolean willRevert,
+      short tracedException) {
     return new StackFragment(
         hub,
         stack,
@@ -145,7 +149,8 @@ public final class StackFragment implements TraceFragment {
         DeploymentExceptions.empty(),
         gp,
         isDeploying,
-        willRevert);
+        willRevert,
+        tracedException);
   }
 
   private boolean traceLog() {
@@ -158,6 +163,7 @@ public final class StackFragment implements TraceFragment {
 
   @Override
   public Trace trace(Trace trace) {
+
     final List<Function<Bytes, Trace>> valHiTracers =
         List.of(
             trace::pStackStackItemValueHi1,
@@ -263,17 +269,17 @@ public final class StackFragment implements TraceFragment {
         .pStackJumpDestinationVettingRequired(
             this.jumpDestinationVettingRequired) // TODO: confirm this
         // Exception flag
-        .pStackOpcx(Exceptions.invalidCodePrefix(exceptions))
-        .pStackSux(Exceptions.stackUnderflow(exceptions))
-        .pStackSox(Exceptions.stackOverflow(exceptions))
-        .pStackMxpx(Exceptions.memoryExpansionException(exceptions))
-        .pStackOogx(Exceptions.outOfGasException(exceptions))
-        .pStackRdcx(Exceptions.returnDataCopyFault(exceptions))
-        .pStackJumpx(Exceptions.jumpFault(exceptions))
-        .pStackStaticx(Exceptions.staticFault(exceptions))
-        .pStackSstorex(Exceptions.outOfSStore(exceptions))
-        .pStackIcpx(contextExceptions.invalidCodePrefix())
-        .pStackMaxcsx(contextExceptions.codeSizeOverflow())
+        .pStackOpcx(tracedException == Exceptions.INVALID_OPCODE)
+        .pStackSux(tracedException == Exceptions.STACK_UNDERFLOW)
+        .pStackSox(tracedException == Exceptions.STACK_OVERFLOW)
+        .pStackMxpx(tracedException == Exceptions.MEMORY_EXPANSION_EXCEPTION)
+        .pStackOogx(tracedException == Exceptions.OUT_OF_GAS_EXCEPTION)
+        .pStackRdcx(tracedException == Exceptions.RETURN_DATA_COPY_FAULT)
+        .pStackJumpx(tracedException == Exceptions.JUMP_FAULT)
+        .pStackStaticx(tracedException == Exceptions.STATIC_FAULT)
+        .pStackSstorex(tracedException == Exceptions.OUT_OF_SSTORE)
+        .pStackIcpx(tracedException == Exceptions.INVALID_CODE_PREFIX)
+        .pStackMaxcsx(tracedException == Exceptions.CODE_SIZE_OVERFLOW)
         // Hash data
         .pStackHashInfoFlag(this.hashInfoFlag)
         .pStackHashInfoKeccakHi(this.hashInfoKeccak.hi())

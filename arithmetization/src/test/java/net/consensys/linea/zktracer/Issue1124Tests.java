@@ -14,15 +14,23 @@
  */
 package net.consensys.linea.zktracer;
 
-import org.junit.jupiter.api.Test;
-
 import static net.consensys.linea.zktracer.ReplayTests.replay;
+
+import org.junit.jupiter.api.Test;
 
 public class Issue1124Tests {
 
-    // @Disabled
-    @Test
-    void issue_1124_range_4323962_4324012() {
-        replay("4323962-4324012.json.gz", false);
-    }
+  // STP constraints were failing for these ranges
+
+  // @Disabled
+  @Test
+  void issue_1124_range_4323962_4324012() {
+    replay("4323962-4324012.json.gz", false);
+  }
+
+  // @Disabled
+  @Test
+  void issue_1124_range_4343434_4343473() {
+    replay("4343434-4343473.json.gz", false);
+  }
 }

@@ -1,8 +1,9 @@
-name: Replay Tests
+name: Nightly Tests
 
 on:
   schedule:
     - cron: "0 22 * * *"
+  workflow_dispatch:
 
 env:
   CARGO_NET_GIT_FETCH_WITH_CLI: true
@@ -49,7 +50,7 @@ jobs:
 #          mv corset $HOME
 #          echo $HOME >> $GITHUB_PATH
 
-      - name: Run Replay tests
+      - name: Run Nightly tests
         run: ./gradlew nightlyTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
@@ -94,7 +95,7 @@ jobs:
         run:
           go install github.com/consensys/go-corset/cmd/go-corset@latest
 
-      - name: Run unit tests
+      - name: Run Nightly tests
         run: GOMEMLIMIT=196GiB ./gradlew nightlyTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false

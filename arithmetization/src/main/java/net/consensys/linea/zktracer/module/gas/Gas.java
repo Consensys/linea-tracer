@@ -15,20 +15,16 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
-import net.consensys.linea.zktracer.module.Module;
 import net.consensys.linea.zktracer.container.module.Module;
-import net.consensys.linea.zktracer.container.stacked.StackedList;
-import org.hyperledger.besu.evm.frame.MessageFrame;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 
 public class Gas implements Module {
   /** A list of the operations to trace */
-  private final StackedList<GasOperation> operations = new StackedList<>();
+  private final StackedSet<GasOperation> operations = new StackedSet<>();
 
   // TODO: why a stackedList of GasOperation? It should be a StateLess module no ?
 
@@ -60,13 +56,13 @@ public class Gas implements Module {
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
-    for (int i = 0; i < this.chunks.size(); i++) {
-      GasOperation gasOperation = this.chunks.get(i);
-      gasOperation.trace(i + 1, trace);
+    int stamp = 0;
+    for (GasOperation gasOperation : this.operations.getAll()) {
+      gasOperation.trace(++stamp, trace);
     }
   }
 
   private void call(GasCall gasCall) {
-    this.chunks.add(new GasOperation(gasCall));
+    this.operations.add(new GasOperation(gasCall));
   }
 }

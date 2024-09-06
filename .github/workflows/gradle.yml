@@ -125,7 +125,7 @@ jobs:
       - name: Setup upterm session
         if: ${{ inputs.tests-with-ssh }}
         uses: lhotari/action-upterm@v1
-      
+
       - uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: |

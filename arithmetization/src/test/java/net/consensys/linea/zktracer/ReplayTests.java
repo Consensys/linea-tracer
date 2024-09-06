@@ -557,4 +557,9 @@ public class ReplayTests {
   void callDataCopyCnNotFound() {
     replay("67050-67059.json.gz");
   }
+
+  @Test
+  void nameToFindIssueInReturnSection() {
+    replay("6690-6699.json.gz", false);
+  }
 }

@@ -203,7 +203,7 @@ public class Hub implements Module {
   private final Blockhash blockhash = new Blockhash(wcp);
   private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
-  private final Gas gas = new Gas();
+  @Getter private final Gas gas = new Gas();
   private final Mul mul = new Mul(this);
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
@@ -344,7 +344,8 @@ public class Hub implements Module {
                 stp,
                 trm,
                 txnData,
-                wcp))
+                wcp,
+                gas))
         .toList();
   }
 
@@ -383,7 +384,8 @@ public class Hub implements Module {
                 trm,
                 txnData,
                 wcp,
-                l2Block),
+                l2Block,
+                gas),
             precompileLimitModules().stream())
         .toList();
   }
@@ -430,7 +432,8 @@ public class Hub implements Module {
                     trm,
                     wcp, /* WARN: must be called BEFORE txnData */
                     txnData,
-                    blockdata /* WARN: must be called AFTER txnData */),
+                    blockdata /* WARN: must be called AFTER txnData */,
+                    gas),
                 precompileLimitModules().stream())
             .toList();
   }

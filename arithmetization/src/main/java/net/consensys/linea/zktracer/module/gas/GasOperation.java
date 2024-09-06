@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -33,17 +34,17 @@ public class GasOperation extends ModuleOperation {
   BigInteger[] wcpArg2Lo;
   UnsignedByte[] wcpInst;
   boolean[] wcpRes;
-  int CT_MAX;
+  int ctMax;
 
   public GasOperation(GasCall gasCall) {
     this.gasCall = gasCall;
-    CT_MAX = gasCall.getCtMax();
+    ctMax = compareGasActualAndGasCost() ? 2 : 1;
 
     // init arrays
-    wcpArg1Lo = initArray(BigInteger.ZERO, CT_MAX + 1);
-    wcpArg2Lo = initArray(BigInteger.ZERO, CT_MAX + 1);
-    wcpInst = initArray(UnsignedByte.of(0), CT_MAX + 1);
-    wcpRes = new boolean[CT_MAX + 1];
+    wcpArg1Lo = initArray(BigInteger.ZERO, ctMax + 1);
+    wcpArg2Lo = initArray(BigInteger.ZERO, ctMax + 1);
+    wcpInst = initArray(UnsignedByte.of(0), ctMax + 1);
+    wcpRes = new boolean[ctMax + 1];
 
     // row 0
     wcpArg1Lo[0] = BigInteger.ZERO;
@@ -58,7 +59,7 @@ public class GasOperation extends ModuleOperation {
     wcpRes[1] = true;
 
     // row 2
-    if (gasCall.isOogx()) {
+    if (compareGasActualAndGasCost()) {
       wcpArg1Lo[2] = gasCall.getGasActual();
       wcpArg2Lo[2] = gasCall.getGasCost();
       wcpInst[2] = UnsignedByte.of(EVM_INST_LT);
@@ -66,19 +67,24 @@ public class GasOperation extends ModuleOperation {
     }
   }
 
+  private boolean compareGasActualAndGasCost() {
+    return !gasCall.isXahoy() || gasCall.isOogx();
+  }
+
   @Override
   protected int computeLineCount() {
-    return gasCall.getCtMax() + 1;
+    return ctMax + 1;
   }
 
   public void trace(int stamp, Trace trace) {
-    for (short i = 0; i < CT_MAX + 1; i++) {
+    checkArgument(stamp > 0, "Stamp must be greater than 0");
+    for (short i = 0; i < ctMax + 1; i++) {
       // TODO: review traced values
       trace
-          .inputsAndOutputsAreMeaningful(stamp != 0)
+          .inputsAndOutputsAreMeaningful(true)
           .first(i == 0)
           .ct(i)
-          .ctMax(CT_MAX)
+          .ctMax(ctMax)
           .gasActual(gasCall.getGasActual().longValue())
           .gasCost(bigIntegerToBytes(gasCall.getGasCost()))
           .exceptionsAhoy(gasCall.isXahoy())

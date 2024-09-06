@@ -52,7 +52,7 @@ public class CommonFragmentValues {
   public final long gasExpected;
   public final long gasActual;
   public final boolean contextMayChange;
-  @Setter long gasCost; // Set at Post Execution
+  @Setter public long gasCost; // Set at Post Execution
   @Setter long gasNext; // Set at Post Execution
   @Setter public long refundDelta = 0; // 0 is default Value, can be modified only by SSTORE section
   @Setter public long gasRefund; // Set at commit time
@@ -89,6 +89,10 @@ public class CommonFragmentValues {
                     || instructionFamily == InstructionFamily.HALT
                     || instructionFamily == InstructionFamily.INVALID)
                 || exceptionAhoy);
+
+    if (contextMayChange) {
+      hub.gas().call(hub, this);
+    }
   }
 
   static int computePcNew(

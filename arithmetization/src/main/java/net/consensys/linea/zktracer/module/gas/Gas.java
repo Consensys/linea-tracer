@@ -15,12 +15,16 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class Gas implements Module {
   /** A list of the operations to trace */
@@ -62,7 +66,16 @@ public class Gas implements Module {
     }
   }
 
-  private void call(GasCall gasCall) {
+  public void call(Hub hub, CommonFragmentValues common) {
+    final GasCall gasCall = new GasCall();
+    gasCall.setGasActual(BigInteger.valueOf(common.gasActual));
+    gasCall.setGasCost(BigInteger.valueOf(common.gasCost));
+    gasCall.setXahoy(common.exceptionAhoy);
+    gasCall.setOogx(Exceptions.outOfGasException(hub.pch().exceptions()));
+    // TODO: this is false, see issue #1118
+    //  we may have to defer post opcode (or post execution) the setting of oogx
+    //  because we will only know which exception, if any, to trace once we have
+    //  processed the instruction in its relevant XxxSection
     this.operations.add(new GasOperation(gasCall));
   }
 }

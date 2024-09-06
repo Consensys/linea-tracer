@@ -23,7 +23,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class GasCall {
-  private int ctMax;
   private BigInteger gasActual;
   private BigInteger gasCost;
   private boolean xahoy;

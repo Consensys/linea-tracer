@@ -35,9 +35,13 @@ public class OpCodes {
   private static Map<Integer, OpCodeData> valueToOpCodeDataMap;
   private static Map<OpCode, OpCodeData> opCodeToOpCodeDataMap;
 
+  static {
+    init();
+  }
+
   /** Loads all opcode metadata from src/main/resources/opcodes.yml. */
   @SneakyThrows(IOException.class)
-  public static void load() {
+  private static void init() {
     JsonNode rootNode =
         YAML_CONVERTER
             .getObjectMapper()
@@ -58,8 +62,8 @@ public class OpCodes {
   /**
    * Get opcode metadata per opcode long value.
    *
-   * @param value opcode long value.
-   * @return an instance of {@link OpCodeData} corresponding to the numeric (long) value.
+   * @param value opcode value.
+   * @return an instance of {@link OpCodeData} corresponding to the numeric value.
    */
   public static OpCodeData of(final int value) {
     if (value < 0 || value > 255) {

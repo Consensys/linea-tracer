@@ -15,9 +15,11 @@
 
 package net.consensys.linea.zktracer.module.rlptxn;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TX_DATA_NONZERO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TX_DATA_ZERO;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_INT_LONG;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_INT_SHORT;
@@ -56,14 +58,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
-import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.types.BitDecOutput;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -79,22 +84,22 @@ import org.hyperledger.besu.ethereum.rlp.RLPOutput;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class RlpTxn implements Module {
+@RequiredArgsConstructor
+@Accessors(fluent = true)
+public class RlpTxn implements OperationListModule<RlpTxnOperation> {
   private final RomLex romLex;
 
-  public RlpTxn(RomLex _romLex) {
-    this.romLex = _romLex;
-  }
+  @Getter
+  private final StackedList<RlpTxnOperation> operations =
+      new StackedList<>(LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH, 1);
 
   @Override
   public String moduleKey() {
-    return "TX_RLP";
+    return "RLP_TXN";
   }
 
   public static final Bytes BYTES_PREFIX_SHORT_INT = Bytes.of(RLP_PREFIX_INT_SHORT);
   public static final Bytes BYTES_PREFIX_SHORT_LIST = Bytes.of(RLP_PREFIX_LIST_SHORT);
-
-  public final StackedList<RlpTxnChunk> chunkList = new StackedList<>();
 
   // Used to check the reconstruction of RLPs
   Bytes reconstructedRlpLt;
@@ -102,20 +107,11 @@ public class RlpTxn implements Module {
   Bytes reconstructedRlpLx;
 
   @Override
-  public void enterTransaction() {
-    this.chunkList.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.chunkList.pop();
-  }
-
-  @Override
-  public void traceStartTx(WorldView worldView, Transaction tx) {
+  public void traceStartTx(WorldView worldView, TransactionProcessingMetadata txMetaData) {
+    final Transaction tx = txMetaData.getBesuTransaction();
     // Contract Creation
     if (tx.getTo().isEmpty() && !tx.getInit().get().isEmpty()) {
-      this.chunkList.add(new RlpTxnChunk(tx, true));
+      this.operations.add(new RlpTxnOperation(tx, true));
     }
 
     // Call to a non-empty smart contract
@@ -123,14 +119,14 @@ public class RlpTxn implements Module {
         && Optional.ofNullable(worldView.get(tx.getTo().orElseThrow()))
             .map(AccountState::hasCode)
             .orElse(false)) {
-      this.chunkList.add(new RlpTxnChunk(tx, true));
+      operations.add(new RlpTxnOperation(tx, true));
     } else {
       // Contract doesn't require EVM execution
-      this.chunkList.add(new RlpTxnChunk(tx, false));
+      operations.add(new RlpTxnOperation(tx, false));
     }
   }
 
-  public void traceChunk(RlpTxnChunk chunk, int absTxNum, Trace trace) {
+  public void traceOperation(RlpTxnOperation chunk, int absTxNum, Trace trace) {
     // Create the local row storage and specify transaction constant columns
     RlpTxnColumnsValue traceValue = new RlpTxnColumnsValue();
     traceValue.resetDataHiLo();
@@ -141,8 +137,10 @@ public class RlpTxn implements Module {
     traceValue.codeFragmentIndex =
         chunk.tx().getTo().isEmpty() && chunk.requireEvmExecution()
             ? this.romLex.getCodeFragmentIndexByMetadata(
-                ContractMetadata.underDeployment(
-                    Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()), 1))
+                ContractMetadata.make(
+                    Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()),
+                    1,
+                    true))
             : 0;
     traceValue.txType = getTxTypeAsInt(chunk.tx().getType());
 
@@ -215,7 +213,7 @@ public class RlpTxn implements Module {
 
     // Phase ChainId
     if (traceValue.txType == 1 || traceValue.txType == 2) {
-      Preconditions.checkArgument(
+      checkArgument(
           bigIntegerToBytes(chunk.tx().getChainId().orElseThrow()).size() <= 8,
           "ChainId is longer than 8 bytes");
       handlePhaseInteger(
@@ -230,8 +228,7 @@ public class RlpTxn implements Module {
     // Phase GasPrice
     if (traceValue.txType == 0 || traceValue.txType == 1) {
       BigInteger gasPrice = chunk.tx().getGasPrice().orElseThrow().getAsBigInteger();
-      Preconditions.checkArgument(
-          bigIntegerToBytes(gasPrice).size() <= 8, "GasPrice is longer than 8 bytes");
+      checkArgument(bigIntegerToBytes(gasPrice).size() <= 8, "GasPrice is longer than 8 bytes");
       traceValue.dataLo = gasPrice;
       handlePhaseInteger(traceValue, RLP_TXN_PHASE_GAS_PRICE, gasPrice, 8, trace);
     }
@@ -240,7 +237,7 @@ public class RlpTxn implements Module {
     if (traceValue.txType == 2) {
       BigInteger maxPriorityFeePerGas =
           chunk.tx().getMaxPriorityFeePerGas().orElseThrow().getAsBigInteger();
-      Preconditions.checkArgument(
+      checkArgument(
           bigIntegerToBytes(maxPriorityFeePerGas).size() <= 8,
           "Max Priority Fee per Gas is longer than 8 bytes");
       handlePhaseInteger(
@@ -251,7 +248,7 @@ public class RlpTxn implements Module {
     if (traceValue.txType == 2) {
       traceValue.dataHi = chunk.tx().getMaxPriorityFeePerGas().orElseThrow().getAsBigInteger();
       BigInteger maxFeePerGas = chunk.tx().getMaxFeePerGas().orElseThrow().getAsBigInteger();
-      Preconditions.checkArgument(
+      checkArgument(
           bigIntegerToBytes(maxFeePerGas).size() <= 8, "Max Fee per Gas is longer than 8 bytes");
       traceValue.dataLo = maxFeePerGas;
       handlePhaseInteger(traceValue, RLP_TXN_PHASE_MAX_FEE_PER_GAS, maxFeePerGas, 8, trace);
@@ -306,9 +303,9 @@ public class RlpTxn implements Module {
     // Phase S
     handle32BytesInteger(traceValue, RLP_TXN_PHASE_S, chunk.tx().getS(), trace);
 
-    Preconditions.checkArgument(
+    checkArgument(
         this.reconstructedRlpLt.equals(besuRlpLt), "Reconstructed RLP LT and Besu RLP LT differ");
-    Preconditions.checkArgument(
+    checkArgument(
         this.reconstructedRlpLx.equals(besuRlpLx), "Reconstructed RLP LX and Besu RLP LX differ");
   }
 
@@ -593,7 +590,7 @@ public class RlpTxn implements Module {
   private void handlePhaseBeta(RlpTxnColumnsValue traceValue, Transaction tx, Trace trace) {
     final int phase = RLP_TXN_PHASE_BETA;
     final BigInteger V = tx.getV();
-    Preconditions.checkArgument(bigIntegerToBytes(V).size() <= 8, "V is longer than 8 bytes");
+    checkArgument(bigIntegerToBytes(V).size() <= 8, "V is longer than 8 bytes");
     final boolean betaIsZero =
         V.equals(BigInteger.valueOf(27))
             || V.equals(BigInteger.valueOf(28)); // beta = ChainId = 0 iff (V == 27 or V == 28)
@@ -1094,7 +1091,7 @@ public class RlpTxn implements Module {
 
     builder
         .absTxNum(traceValue.absTxNum)
-        .absTxNumInfiny(this.chunkList.size())
+        .absTxNumInfiny(operations.size())
         .acc1(traceValue.acc1)
         .acc2(traceValue.acc2)
         .accBytesize((short) traceValue.accByteSize)
@@ -1199,11 +1196,6 @@ public class RlpTxn implements Module {
   }
 
   @Override
-  public int lineCount() {
-    return this.chunkList.lineCount();
-  }
-
-  @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
   }
@@ -1212,9 +1204,8 @@ public class RlpTxn implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int absTxNum = 0;
-    for (RlpTxnChunk chunk : this.chunkList) {
-      absTxNum += 1;
-      traceChunk(chunk, absTxNum, trace);
+    for (RlpTxnOperation op : operations.getAll()) {
+      traceOperation(op, ++absTxNum, trace);
     }
   }
 }

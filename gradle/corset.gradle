@@ -25,8 +25,8 @@ tasks.register('corsetExists') {
 }
 
 tasks.register('buildZkevmBin', Exec) {
-    dependsOn corsetExists
-    workingDir "${project.rootDir}/zkevm-constraints/"
+//    dependsOn corsetExists
+    workingDir "${project.rootDir}/linea-constraints/"
     commandLine 'make', 'zkevm.bin'
 
     //store the output instead of printing to the console

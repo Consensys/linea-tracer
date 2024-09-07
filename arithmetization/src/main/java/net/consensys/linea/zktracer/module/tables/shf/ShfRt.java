@@ -19,14 +19,14 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 public record ShfRt() implements Module {
   @Override
   public String moduleKey() {
-    return "shfRT";
+    return "SHF_REFERENCE_TABLE";
   }
 
   @Override

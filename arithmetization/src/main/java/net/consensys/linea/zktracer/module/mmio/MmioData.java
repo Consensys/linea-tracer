@@ -39,7 +39,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.mmu.ExoSumDecoder;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
@@ -90,7 +89,6 @@ public class MmioData {
   private final int kecId;
   private final int phase;
   private final boolean successBit;
-  private final ExoSumDecoder exoSumDecoder;
   private final boolean targetLimbIsTouchedTwice;
 
   private long indexX;
@@ -112,8 +110,7 @@ public class MmioData {
   public MmioData(
       HubToMmuValues hubToMmuValues,
       MmuToMmioConstantValues mmuToMmioConstantValues,
-      MmuToMmioInstruction mmuToMmioInstruction,
-      ExoSumDecoder exoSumDecoder) {
+      MmuToMmioInstruction mmuToMmioInstruction) {
     this(
         0,
         0,
@@ -149,7 +146,6 @@ public class MmioData {
         mmuToMmioConstantValues.kecId(),
         mmuToMmioConstantValues.phase(),
         mmuToMmioConstantValues.successBit(),
-        exoSumDecoder,
         mmuToMmioInstruction.targetLimbIsTouchedTwice(),
         0,
         new ArrayList<>(LLARGE),
@@ -175,7 +171,7 @@ public class MmioData {
         .contains(mmioInstruction);
   }
 
-  public static int numberOfRowOfMmioInstruction(final int mmioInstruction) {
+  public static int lineCountOfMmioInstruction(final int mmioInstruction) {
     return isFastOperation(mmioInstruction) ? 1 : LLARGE;
   }
 

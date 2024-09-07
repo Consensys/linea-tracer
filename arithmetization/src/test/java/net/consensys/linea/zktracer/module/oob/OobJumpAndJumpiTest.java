@@ -23,21 +23,19 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(EvmExtension.class)
 public class OobJumpAndJumpiTest {
 
   public static final BigInteger TWO_POW_128_MINUS_ONE =
@@ -68,7 +66,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -96,7 +94,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -123,7 +121,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().jumpFault());
+    assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -150,7 +148,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().jumpFault());
+    assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -196,7 +194,7 @@ public class OobJumpAndJumpiTest {
     bytecodeRunner.run();
 
     Hub hub = bytecodeRunner.getHub();
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -246,7 +244,7 @@ public class OobJumpAndJumpiTest {
     bytecodeRunner.run();
 
     Hub hub = bytecodeRunner.getHub();
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -274,7 +272,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -302,7 +300,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -329,7 +327,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().jumpFault());
+    assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -357,7 +355,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertTrue(hub.pch().exceptions().jumpFault());
+    assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -376,7 +374,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -396,7 +394,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -416,7 +414,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -436,7 +434,7 @@ public class OobJumpAndJumpiTest {
 
     Hub hub = bytecodeRunner.getHub();
 
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -487,7 +485,7 @@ public class OobJumpAndJumpiTest {
     bytecodeRunner.run();
 
     Hub hub = bytecodeRunner.getHub();
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   @Test
@@ -542,13 +540,15 @@ public class OobJumpAndJumpiTest {
     bytecodeRunner.run();
 
     Hub hub = bytecodeRunner.getHub();
-    assertFalse(hub.pch().exceptions().jumpFault());
+    assertFalse(Exceptions.jumpFault(hub.pch().exceptions()));
   }
 
   // Support methods
+  private Random random = new Random(1);
+
   private List<Integer> generateJumpDestinations(
       int N_JUMPS, int MAX_JUMPDESTINATION, int SPREADING_FACTOR) {
-    return ThreadLocalRandom.current()
+    return random
         .ints(1, MAX_JUMPDESTINATION)
         .distinct()
         .limit(N_JUMPS)
@@ -560,7 +560,7 @@ public class OobJumpAndJumpiTest {
 
   private List<Integer> generatePermutation(int jumpDestinationsSize) {
     List<Integer> permutation =
-        ThreadLocalRandom.current()
+        random
             .ints(0, jumpDestinationsSize - 1)
             .distinct()
             .limit(jumpDestinationsSize - 1)

@@ -18,6 +18,7 @@ the License for the
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_BLAKE;
@@ -31,18 +32,17 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_EXO_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_RAM_SANS_PADDING;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
-import static net.consensys.linea.zktracer.module.mmio.MmioData.numberOfRowOfMmioInstruction;
+import static net.consensys.linea.zktracer.module.mmio.MmioData.lineCountOfMmioInstruction;
 import static net.consensys.linea.zktracer.types.Bytecodes.readBytes;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.mmio.CallStackReader;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
 import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
@@ -50,12 +50,12 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.mmu.values.RowTypeRecord;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
+@RequiredArgsConstructor
 public class MmuOperation extends ModuleOperation {
   @Getter private final MmuData mmuData;
 
@@ -72,24 +72,25 @@ public class MmuOperation extends ModuleOperation {
   private boolean isModexpZero;
   private boolean isModexpData;
   private boolean isBlake;
-  private final CallStackReader callStackReader;
 
-  MmuOperation(MmuData mmuData, final CallStack callStack) {
-    this.mmuData = mmuData;
-    this.callStackReader = new CallStackReader(callStack);
+  public boolean traceMe() {
+    return mmuData.mmuCall().traceMe();
   }
 
   @Override
   protected int computeLineCount() {
+    checkState(traceMe(), "Cannot compute if traceMe is false");
     return 1 + mmuData.numberMmuPreprocessingRows() + mmuData.numberMmioInstructions();
   }
 
-  public int computeMmioLineCount() {
-    int sum = 0;
+  public int mmioLineCount() {
+    checkState(traceMe(), "Cannot compute if traceMe is false");
+    int mmioLineCount = 0;
     for (int i = 0; i < mmuData().numberMmioInstructions(); i++) {
-      sum += numberOfRowOfMmioInstruction(mmuData.mmuToMmioInstructions().get(i).mmioInstruction());
+      mmioLineCount +=
+          lineCountOfMmioInstruction(mmuData.mmuToMmioInstructions().get(i).mmioInstruction());
     }
-    return sum;
+    return mmioLineCount;
   }
 
   void trace(final int mmuStamp, final int mmioStamp, Trace trace) {
@@ -100,7 +101,7 @@ public class MmuOperation extends ModuleOperation {
     traceMacroRow(mmuStamp, mmioStamp, trace);
 
     // Trace Preprocessing rows
-    tracePreprocessingRows(this.mmuData, mmuStamp, mmioStamp, trace);
+    tracePreprocessingRows(mmuData, mmuStamp, mmioStamp, trace);
 
     // Trace Micro Instructions Rows
     traceMicroRows(mmuStamp, mmioStamp, trace);
@@ -141,20 +142,6 @@ public class MmuOperation extends ModuleOperation {
     }
   }
 
-  public void setExoBytes(ExoSumDecoder exoSumDecoder) {
-    final int exoSum = mmuData.hubToMmuValues().exoSum();
-
-    if (exoSum != 0) {
-      mmuData.exoSumDecoder(exoSumDecoder);
-      final int exoId =
-          (int)
-              (mmuData.exoLimbIsSource()
-                  ? this.mmuData.hubToMmuValues().sourceId()
-                  : this.mmuData.hubToMmuValues().targetId());
-      mmuData.exoBytes(exoSumDecoder.getExoBytes(mmuData.hubToMmuValues(), exoId));
-    }
-  }
-
   public void fillLimb() {
     final int mmuInstruction = mmuData.hubToMmuValues().mmuInstruction();
     // Job already done in the preprocessing only for INVALID_CODE_PREFIX
@@ -170,8 +157,7 @@ public class MmuOperation extends ModuleOperation {
     if (!mmuData.exoBytes().isEmpty()) {
       final boolean exoIsSource = mmuData.exoLimbIsSource();
       final boolean exoIsTarget = mmuData.exoLimbIsTarget();
-      Preconditions.checkArgument(
-          exoIsSource == !exoIsTarget, "ExoLimb is either the source or the target");
+      checkArgument(exoIsSource == !exoIsTarget, "ExoLimb is either the source or the target");
 
       for (MmuToMmioInstruction mmioInst : this.mmuData.mmuToMmioInstructions()) {
         final int offset =
@@ -228,7 +214,7 @@ public class MmuOperation extends ModuleOperation {
     traceFillMmuInstructionFlag(trace);
     traceOutAndBin(trace);
 
-    HubToMmuValues mmuHubInput = mmuData.hubToMmuValues();
+    final HubToMmuValues mmuHubInput = mmuData.hubToMmuValues();
 
     trace
         .stamp(mmuStamp)
@@ -264,8 +250,8 @@ public class MmuOperation extends ModuleOperation {
     for (int i = 1; i <= mmuData().numberMmuPreprocessingRows(); i++) {
       traceFillMmuInstructionFlag(trace);
       traceOutAndBin(trace);
-      MmuEucCallRecord currentMmuEucCallRecord = mmuData.eucCallRecords().get(i - 1);
-      MmuWcpCallRecord currentMmuWcpCallRecord = mmuData.wcpCallRecords().get(i - 1);
+      final MmuEucCallRecord currentMmuEucCallRecord = mmuData.eucCallRecords().get(i - 1);
+      final MmuWcpCallRecord currentMmuWcpCallRecord = mmuData.wcpCallRecords().get(i - 1);
       trace
           .stamp(mmuStamp)
           .mmioStamp(mmioStamp)
@@ -295,7 +281,7 @@ public class MmuOperation extends ModuleOperation {
 
   private List<RowTypeRecord> generateRowTypeList() {
     final int totInit = mmuData().numberMmioInstructions();
-    List<RowTypeRecord> output = new ArrayList<>(totInit);
+    final List<RowTypeRecord> output = new ArrayList<>(totInit);
 
     final int totLeftZeroInit = mmuData.totalLeftZeroesInitials();
     final int totNonTrivialInit = mmuData.totalNonTrivialInitials();

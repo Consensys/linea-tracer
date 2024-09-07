@@ -15,22 +15,12 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.EvmExtension;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(EvmExtension.class)
 public class TestTwoPlusTwo {
-  @Test
-  void testAdd() {
-    BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).push(27).op(OpCode.ADD).compile())
-        .run();
-  }
-
   @Test
   void testAssembler() {
     BytecodeRunner.of(
@@ -65,7 +55,7 @@ STATICCALL
         .run();
   }
 
-  @Disabled
+  @Test
   void testBreakingCall() {
     // TODO: This test is disabled because it will throw an exception
     BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).op(OpCode.CALL).compile()).run();

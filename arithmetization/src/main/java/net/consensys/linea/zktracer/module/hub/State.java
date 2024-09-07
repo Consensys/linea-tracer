@@ -15,34 +15,83 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.Iterator;
+import java.util.*;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.StackedContainer;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.module.hub.State.TxState.Stamps;
-import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
+import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
+import net.consensys.linea.zktracer.types.EWord;
+import org.hyperledger.besu.datatypes.Address;
 
 public class State implements StackedContainer {
-  private final Deque<TxState> state = new ArrayDeque<>(50);
+  private final Deque<TxState> state = new ArrayDeque<>();
+
+  @Getter
+  @Accessors(fluent = true)
+  private final CountOnlyOperation lineCounter = new CountOnlyOperation();
 
   State() {}
 
-  private TxState current() {
-    return this.state.peek();
+  public TxState current() {
+    return state.peek();
   }
 
   public Stamps stamps() {
     return this.current().stamps;
   }
 
+  @Getter @Setter HubProcessingPhase processingPhase;
+
+  @RequiredArgsConstructor
+  @EqualsAndHashCode
+  @Getter
+  public static class StorageSlotIdentifier {
+    final Address address;
+    final int deploymentNumber;
+    final EWord storageKey;
+  }
+
+  public void updateOrInsertStorageSlotOccurrence(
+      StorageSlotIdentifier slotIdentifier, StorageFragment storageFragment) {
+    final HashMap<StorageSlotIdentifier, StorageFragmentPair> current =
+        firstAndLastStorageSlotOccurrences.getLast();
+    if (current.containsKey(slotIdentifier)) {
+      current.get(slotIdentifier).update(storageFragment);
+    } else {
+      current.put(slotIdentifier, new State.StorageFragmentPair(storageFragment));
+    }
+  }
+
+  @Getter
+  public static class StorageFragmentPair {
+    final StorageFragment firstOccurrence;
+    @Setter StorageFragment finalOccurrence;
+
+    public StorageFragmentPair(StorageFragment firstOccurrence) {
+      this.firstOccurrence = firstOccurrence;
+      this.finalOccurrence = firstOccurrence;
+    }
+
+    public void update(StorageFragment current) {
+      setFinalOccurrence(current);
+    }
+  }
+
+  // initialized here
+  public ArrayList<HashMap<StorageSlotIdentifier, StorageFragmentPair>>
+      firstAndLastStorageSlotOccurrences = new ArrayList<>();
+
   /**
    * @return the current transaction trace elements
    */
   TxTrace currentTxTrace() {
-    return this.current().txTrace;
+    return current().txTrace;
   }
 
   /**
@@ -52,7 +101,7 @@ public class State implements StackedContainer {
    * @return the trace builder
    */
   Trace commit(Trace hubTrace) {
-    for (Iterator<TxState> it = this.state.descendingIterator(); it.hasNext(); ) {
+    for (Iterator<TxState> it = state.descendingIterator(); it.hasNext(); ) {
       final TxState txState = it.next();
       txState.txTrace().commit(hubTrace);
     }
@@ -60,88 +109,78 @@ public class State implements StackedContainer {
   }
 
   int txCount() {
-    return this.state.size();
-  }
-
-  /**
-   * @return the cumulated line numbers for all currently traced transactions
-   */
-  int lineCount() {
-    int sum = 0;
-    for (TxState s : this.state) {
-      sum += s.txTrace.lineCount();
-    }
-    return sum;
+    return state.size();
   }
 
   @Override
   public void enter() {
-    if (this.state.isEmpty()) {
-      this.state.push(new TxState());
+    if (state.isEmpty()) {
+      state.push(new TxState());
     } else {
-      this.state.push(this.current().spinOff());
+      state.push(this.current().spinOff());
     }
   }
 
   @Override
   public void pop() {
-    this.state.pop();
+    state.pop();
   }
 
   /** Describes the Hub state during a given transaction. */
   @Accessors(fluent = true)
   @Getter
-  static class TxState {
+  public static class TxState {
     Stamps stamps;
     TxTrace txTrace;
 
     TxState() {
-      this.stamps = new Stamps();
-      this.txTrace = new TxTrace();
+      stamps = new Stamps();
+      txTrace = new TxTrace();
     }
 
     public TxState(Stamps stamps) {
       this.stamps = stamps;
-      this.txTrace = new TxTrace();
+      txTrace = new TxTrace();
     }
 
     TxState spinOff() {
-      return new TxState(this.stamps.spinOff());
+      return new TxState(stamps.snapshot());
     }
 
     /** Stores all the stamps associated to the tracing of a transaction. */
     @Accessors(fluent = true)
     @Getter
     public static class Stamps {
-      private int hub = 0;
-      private int mmu = 0;
-      private int mxp = 0;
-      private int hashInfo = 0;
+      private int hub = 0; // increments during execution
+      private int log = 0; // increments at RunPostTx
+      private int mxp = 0; // increments only at commit time
+      private int mmu = 0; // increments only at commit time
 
       public Stamps() {}
 
-      public Stamps(int hubStamp, int mmuStamp, int mxpStamp, int hashInfoStamp) {
-        this.hub = hubStamp;
-        this.mmu = mmuStamp;
-        this.mxp = mxpStamp;
-        this.hashInfo = hashInfoStamp;
+      public Stamps(final int hubStamp, final int logStamp) {
+        hub = hubStamp;
+        log = logStamp;
       }
 
-      Stamps spinOff() {
-        return new Stamps(this.hub, this.mmu, this.mxp, this.hashInfo);
+      public Stamps snapshot() {
+        return new Stamps(hub, log);
       }
 
-      void incrementHubStamp() {
-        this.hub++;
+      public void incrementHubStamp() {
+        hub++;
       }
 
-      void stampSubmodules(final PlatformController platformController) {
-        if (platformController.signals().mmu()) {
-          this.mmu++;
-        }
-        if (platformController.signals().mxp()) {
-          this.mxp++;
-        }
+      public void incrementMmuStamp() {
+        mmu++;
+      }
+
+      public void incrementMxpStamp() {
+        mxp++;
+      }
+
+      public void incrementLogStamp() {
+        log++;
       }
     }
   }

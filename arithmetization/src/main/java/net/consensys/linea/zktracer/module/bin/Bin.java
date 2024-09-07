@@ -18,25 +18,25 @@ package net.consensys.linea.zktracer.module.bin;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-/** Implementation of a {@link Module} for addition/subtraction. */
-public class Bin implements Module {
-  private final Hub hub;
+/** Implementation of a {@link Module} for binary operations. */
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public class Bin implements OperationSetModule<BinOperation> {
 
-  /** A set of the operations to trace */
-  private final StackedSet<BinOperation> chunks = new StackedSet<>();
-
-  public Bin(final Hub hub) {
-    this.hub = hub;
-  }
+  private final StackedSet<BinOperation> operations = new StackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -44,23 +44,13 @@ public class Bin implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    this.chunks.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.chunks.pop();
-  }
-
-  @Override
   public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = this.hub.opCode();
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
     final Bytes32 arg2 =
         opCode == OpCode.NOT ? Bytes32.ZERO : Bytes32.leftPad(frame.getStackItem(1));
 
-    this.chunks.add(
+    operations.add(
         new BinOperation(opCode, BaseBytes.fromBytes32(arg1), BaseBytes.fromBytes32(arg2)));
   }
 
@@ -69,19 +59,13 @@ public class Bin implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (BinOperation op : this.chunks) {
-      stamp++;
-      op.traceBinOperation(stamp, trace);
+    for (BinOperation op : operations.getAll()) {
+      op.traceBinOperation(++stamp, trace);
     }
   }
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public int lineCount() {
-    return this.chunks.lineCount();
   }
 }

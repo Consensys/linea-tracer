@@ -15,10 +15,17 @@
 
 package net.consensys.linea.zktracer.types;
 
-import java.util.ArrayList;
+import static com.google.common.base.Preconditions.*;
 
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.toml.Toml;
+import org.apache.tuweni.toml.TomlTable;
 
 public class Utils {
 
@@ -31,14 +38,12 @@ public class Utils {
    * @return
    */
   public static Bytes leftPadTo(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
-        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
+    checkArgument(wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     return Bytes.concatenate(Bytes.repeat((byte) 0, wantedSize - input.size()), input);
   }
 
   public static Bytes rightPadTo(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
-        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
+    checkArgument(wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     return Bytes.concatenate(input, Bytes.repeat((byte) 0, wantedSize - input.size()));
   }
 
@@ -51,8 +56,7 @@ public class Utils {
    */
   public static BitDecOutput bitDecomposition(int input, int nbStep) {
     final int nbStepMin = 8;
-    Preconditions.checkArgument(
-        nbStep >= nbStepMin, "Number of steps must be at least " + nbStepMin);
+    checkArgument(nbStep >= nbStepMin, "Number of steps must be at least " + nbStepMin);
 
     ArrayList<Boolean> bit = new ArrayList<>(nbStep);
     ArrayList<Integer> acc = new ArrayList<>(nbStep);
@@ -82,5 +86,30 @@ public class Utils {
       output.bitAccList().add(nbStep - i - 1, bitAcc);
     }
     return output;
+  }
+
+  /**
+   * Adds an offset to a hexadecimal string representation of a number. This method takes a
+   * hexadecimal string and an integer offset, adds the offset to the number represented by the
+   * hexadecimal string, and returns the result as a hexadecimal string.
+   *
+   * @param offset The integer offset to add to the number represented by the hexadecimal string.
+   * @param hexString The hexadecimal string representation of the number to which the offset will
+   *     be added.
+   * @return A hexadecimal string representing the sum of the original number and the offset.
+   */
+  public static String addOffsetToHexString(int offset, String hexString) {
+    return new BigInteger(hexString, 16).add(BigInteger.valueOf(offset)).toString(16);
+  }
+
+  public static Map<String, Integer> computeSpillings() throws IOException {
+    final Map<String, Integer> spillings = new HashMap<>();
+
+    final TomlTable table =
+        Toml.parse(Utils.class.getClassLoader().getResourceAsStream("spillings.toml"))
+            .getTable("spillings");
+    table.toMap().keySet().forEach(k -> spillings.put(k, Math.toIntExact(table.getLong(k))));
+
+    return spillings;
   }
 }

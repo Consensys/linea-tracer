@@ -36,7 +36,6 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ModexpData implements MmuInstruction {
@@ -72,7 +71,7 @@ public class ModexpData implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
     row2();
@@ -248,9 +247,6 @@ public class ModexpData implements MmuInstruction {
             .exoId((int) hubToMmuValues.targetId())
             .build());
 
-    // Setting the source ram bytes
-    mmuData.setSourceRamBytes();
-
     // Left Zeroes
     for (int i = 0; i < initialTotalLeftZeroes; i++) {
       vanishingMicroInstruction(mmuData, i);
@@ -314,7 +310,7 @@ public class ModexpData implements MmuInstruction {
   private void lastMicroInstruction(MmuData mmuData) {
     final int lastMicroInstruction =
         lastLimbSingleSource ? MMIO_INST_RAM_TO_LIMB_ONE_SOURCE : MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
-    final long sourceLimbOffset = middleFirstSourceLimbOffset + initialTotalNonTrivial;
+    final long sourceLimbOffset = middleFirstSourceLimbOffset + initialTotalNonTrivial - 2;
 
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
@@ -322,7 +318,7 @@ public class ModexpData implements MmuInstruction {
             .size(lastLimbByteSize)
             .sourceLimbOffset(sourceLimbOffset)
             .sourceByteOffset(middleSourceByteOffset)
-            .targetLimbOffset(initialTotalLeftZeroes + initialTotalNonTrivial)
+            .targetLimbOffset(initialTotalLeftZeroes + initialTotalNonTrivial - 1)
             .build());
   }
 }

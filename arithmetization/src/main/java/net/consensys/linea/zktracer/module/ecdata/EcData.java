@@ -16,71 +16,52 @@
 package net.consensys.linea.zktracer.module.ecdata;
 
 import java.nio.MappedByteBuffer;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.ext.Ext;
-import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2MembershipCalls;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
+import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
-public class EcData implements Module {
+@Getter
+@Accessors(fluent = true)
+public class EcData implements OperationListModule<EcDataOperation> {
   public static final Set<Address> EC_PRECOMPILES =
-      Set.of(Address.ECREC); // TODO: add later Address.ALTBN128_ADD, Address.ALTBN128_MUL,
-  // Address.ALTBN128_PAIRING);
+      Set.of(Address.ECREC, Address.ALTBN128_ADD, Address.ALTBN128_MUL, Address.ALTBN128_PAIRING);
 
-  @Getter private final StackedSet<EcDataOperation> operations = new StackedSet<>();
-  private final Hub hub;
+  private final StackedList<EcDataOperation> operations = new StackedList<>();
+
   private final Wcp wcp;
   private final Ext ext;
+
+  private final EcAddEffectiveCall ecAddEffectiveCall;
+  private final EcMulEffectiveCall ecMulEffectiveCall;
+  private final EcRecoverEffectiveCall ecRecoverEffectiveCall;
+
+  private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls;
+  private final EcPairingMillerLoops ecPairingMillerLoops;
+  private final EcPairingFinalExponentiations ecPairingFinalExponentiations;
+
+  @Getter private EcDataOperation ecDataOperation;
 
   @Override
   public String moduleKey() {
     return "EC_DATA";
-  }
-
-  @Override
-  public void enterTransaction() {
-    this.operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.operations.pop();
-  }
-
-  @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    final Address target = Words.toAddress(frame.getStackItem(1));
-    if (!EC_PRECOMPILES.contains(target)) {
-      return;
-    }
-    final MemorySpan callDataSource = hub.transients().op().callDataSegment();
-
-    if (target.equals(Address.ALTBN128_PAIRING)
-        && (callDataSource.isEmpty() || callDataSource.length() % 192 != 0)) {
-      return;
-    }
-
-    final Bytes data = hub.transients().op().callData();
-    this.operations.add(
-        EcDataOperation.of(this.wcp, this.ext, 1 + this.hub.stamp(), target.get(19), data));
-  }
-
-  @Override
-  public int lineCount() {
-    return this.operations.lineCount();
   }
 
   @Override
@@ -93,25 +74,80 @@ public class EcData implements Module {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
     long previousId = 0;
-
-    List<EcDataOperation> sortedOperations =
-        this.operations.stream().sorted(Comparator.comparingLong(EcDataOperation::id)).toList();
-
-    for (EcDataOperation op : sortedOperations) {
-      /*
-      System.out.println(
-          "(tracing time) previousId: "
-              + Integer.toHexString(op.previousId())
-              + " -> id: "
-              + Integer.toHexString(op.id())
-              + " , byteDelta: "
-              + Arrays.stream(op.byteDelta()).map(b -> Integer.toHexString(b.toInteger())).toList()
-              + " , diff: "
-              + Integer.toHexString(op.id() - op.previousId() - 1));
-       */
-      stamp++;
-      op.trace(trace, stamp, previousId);
+    for (EcDataOperation op : operations.getAll()) {
+      op.trace(trace, ++stamp, previousId);
       previousId = op.id();
+    }
+  }
+
+  public void callEcData(
+      final int id,
+      final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
+      final Bytes callData,
+      final Bytes returnData) {
+    ecDataOperation =
+        EcDataOperation.of(this.wcp, this.ext, id, precompileFlag, callData, returnData);
+    operations.add(ecDataOperation);
+
+    switch (ecDataOperation.precompileFlag()) {
+      case PRC_ECADD -> ecAddEffectiveCall.addPrecompileLimit(
+          ecDataOperation.internalChecksPassed() ? 1 : 0);
+      case PRC_ECMUL -> ecMulEffectiveCall.addPrecompileLimit(
+          ecDataOperation.internalChecksPassed() ? 1 : 0);
+      case PRC_ECRECOVER -> ecRecoverEffectiveCall.addPrecompileLimit(
+          ecDataOperation.internalChecksPassed() ? 1 : 0);
+      case PRC_ECPAIRING -> {
+        // ecPairingG2MembershipCalls case
+        // NOTE: the other precompile limits are managed below
+        // NOTE: see EC_DATA specs Figure 3.5 for a graphical representation of this case analysis
+        if (!ecDataOperation.internalChecksPassed()) {
+          ecPairingG2MembershipCalls.addPrecompileLimit(0);
+          // The circuit is never invoked in the case of internal checks failing
+        }
+        // NOTE: the && of the conditions may seem not necessary since in the specs
+        // !internalChecksPassed => !notOnG2AccMax
+        // however, in EcDataOperation implementation the notOnG2AccMax takes into consideration
+        // only large points G2 membership
+        // , and it has to be && with internalChecksPassed to compute the actual
+        // NOT_ON_G2_ACC_MAX to trace
+        if (ecDataOperation.internalChecksPassed() && ecDataOperation.notOnG2AccMax()) {
+          ecPairingG2MembershipCalls.addPrecompileLimit(1);
+          // The circuit is invoked only once if there is at least one point predicted to be not on
+          // G2
+        }
+        if (ecDataOperation.internalChecksPassed()
+            && !ecDataOperation.notOnG2AccMax()
+            && ecDataOperation.overallTrivialPairing().getLast()) {
+          ecPairingG2MembershipCalls.addPrecompileLimit(0);
+          // The circuit is never invoked in the case of a trivial pairing
+        }
+        if (ecDataOperation.internalChecksPassed()
+            && !ecDataOperation.notOnG2AccMax()
+            && !ecDataOperation.overallTrivialPairing().getLast()) {
+          ecPairingG2MembershipCalls.addPrecompileLimit(
+              ecDataOperation.circuitSelectorG2MembershipCounter());
+          // The circuit is invoked as many times as there are points predicted to be on G2
+        }
+
+        // NOTE: a similar case analysis to the one above may be done for the other
+        // precompile limits. However, circuitSelectorEcPairingCounter already takes
+        // it into consideration and what follows is enough
+
+        // ecPairingMillerLoops case
+        // NOTE: the pairings that require Miller Loops are the valid ones where
+        // the small point is on C_1, the large point is on G_2, and they are not
+        // points at infinity (valid trivial pairings and valid pairings with the
+        // small point at infinity are excluded from this counting)
+        ecPairingMillerLoops.addPrecompileLimit(ecDataOperation.circuitSelectorEcPairingCounter());
+
+        // ecPairingFinalExponentiation case
+        // NOTE: if at least one Miller Loop is computed, the final exponentiation is 1
+        ecPairingFinalExponentiations.addPrecompileLimit(
+            ecDataOperation.circuitSelectorEcPairingCounter() > 0
+                ? 1
+                : 0); // See https://eprint.iacr.org/2008/490.pdf
+      }
+      default -> throw new IllegalArgumentException("Operation not supported by EcData");
     }
   }
 }

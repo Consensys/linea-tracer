@@ -19,13 +19,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
+import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.ToyWorld;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.EvmExtension;
-import net.consensys.linea.zktracer.testing.ToyAccount;
-import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
-import net.consensys.linea.zktracer.testing.ToyTransaction;
-import net.consensys.linea.zktracer.testing.ToyWorld;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -34,10 +33,8 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /** Ensure that calling a contract with empty code does not generate a virtual STOP trace */
-@ExtendWith(EvmExtension.class)
 public class CallEmptyNoStopTest {
   @Test
   void test() {
@@ -81,7 +78,7 @@ public class CallEmptyNoStopTest {
             .accounts(List.of(senderAccount, receiverAccount, emptyCodeAccount))
             .build();
 
-    ToyExecutionEnvironment.builder()
+    ToyExecutionEnvironmentV2.builder()
         .toyWorld(toyWorld)
         .transaction(tx)
         .zkTracerValidator(

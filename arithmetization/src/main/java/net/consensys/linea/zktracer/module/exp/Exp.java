@@ -18,22 +18,25 @@ package net.consensys.linea.zktracer.module.exp;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForExpPricing;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.exp.ExpCallForModexpLogComputation;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Slf4j
 @RequiredArgsConstructor
-public class Exp implements Module {
-  /** A list of the operations to trace */
-  private final StackedSet<ExpOperation> chunks = new StackedSet<>();
-
+@Accessors(fluent = true)
+public class Exp implements OperationSetModule<ExpOperation> {
+  private final Hub hub;
   private final Wcp wcp;
+
+  @Getter private final StackedSet<ExpOperation> operations = new StackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -41,31 +44,12 @@ public class Exp implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    this.chunks.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.chunks.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return this.chunks.lineCount();
-  }
-
-  @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
   }
 
-  public void callExpLogCall(final ExpCallForExpPricing c) {
-    this.chunks.add(ExpLogOperation.fromExpLogCall(this.wcp, c));
-  }
-
-  public void callModExpLogCall(final ExpCallForModexpLogComputation c) {
-    this.chunks.add(ModexpLogOperation.fromExpLogCall(this.wcp, c));
+  public void call(ExpCall expCall) {
+    operations.add(new ExpOperation(expCall, wcp, hub));
   }
 
   @Override
@@ -73,12 +57,10 @@ public class Exp implements Module {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-
-    for (ExpOperation op : this.chunks) {
-      stamp += 1;
-      op.traceComputation(stamp, trace);
-      op.traceMacro(stamp, trace);
-      op.tracePreprocessing(stamp, trace);
+    for (ExpOperation expOp : operations.getAll()) {
+      expOp.traceComputation(++stamp, trace);
+      expOp.traceMacro(stamp, trace);
+      expOp.tracePreprocessing(stamp, trace);
     }
   }
 }

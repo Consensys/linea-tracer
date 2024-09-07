@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
+
 import java.util.Optional;
 
 import com.google.common.base.Preconditions;
@@ -22,15 +24,18 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.Bytecode;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @AllArgsConstructor
 @Getter
 @Setter
-@Accessors(fluent = true)
+@Accessors(chain = true, fluent = true)
 public class AccountSnapshot {
   private Address address;
   private long nonce;
@@ -40,22 +45,55 @@ public class AccountSnapshot {
   private int deploymentNumber;
   private boolean deploymentStatus;
 
-  public AccountSnapshot decrementBalance(Wei quantity) {
-    Preconditions.checkState(
-        this.balance.greaterOrEqualThan(quantity),
-        "Insufficient balance: %s".formatted(this.balance));
-    this.balance = this.balance.subtract(quantity);
-    return this;
+  // TODO: is there a "canonical" way to take a snapshot fo an account
+  //  where getWorldUpdater().getAccount(address) return null ?
+
+  /**
+   * Canonical way of creating an account snapshot.
+   *
+   * @param hub
+   * @param address
+   * @return
+   */
+  public static AccountSnapshot canonical(Hub hub, Address address) {
+    return fromArguments(
+        hub.messageFrame().getWorldUpdater(),
+        address,
+        hub.transients.conflation().deploymentInfo(),
+        isAddressWarm(hub.messageFrame(), address));
   }
 
-  public AccountSnapshot incrementBalance(Wei quantity) {
-    this.balance = this.balance.add(quantity);
-    return this;
+  public static AccountSnapshot canonical(
+      Hub hub, WorldView world, Address address, boolean warmth) {
+    return fromArguments(world, address, hub.transients.conflation().deploymentInfo(), warmth);
   }
 
-  public AccountSnapshot incrementNonce() {
-    this.nonce++;
-    return this;
+  private static AccountSnapshot fromArguments(
+      final WorldView worldView,
+      final Address address,
+      final DeploymentInfo deploymentInfo,
+      final boolean warmth) {
+
+    final Account account = worldView.get(address);
+    if (account != null) {
+      return new AccountSnapshot(
+          account.getAddress(),
+          account.getNonce(),
+          account.getBalance(),
+          warmth,
+          new Bytecode(account.getCode()),
+          deploymentInfo.deploymentNumber(address),
+          deploymentInfo.getDeploymentStatus(address));
+    } else {
+      return new AccountSnapshot(
+          address,
+          0,
+          Wei.ZERO,
+          warmth,
+          new Bytecode(Bytes.EMPTY),
+          deploymentInfo.deploymentNumber(address),
+          deploymentInfo.getDeploymentStatus(address));
+    }
   }
 
   public static AccountSnapshot fromAccount(
@@ -67,6 +105,12 @@ public class AccountSnapshot {
       boolean isWarm, int deploymentNumber, boolean deploymentStatus) {
     return new AccountSnapshot(
         Address.ZERO, 0, Wei.ZERO, isWarm, Bytecode.EMPTY, deploymentNumber, deploymentStatus);
+  }
+
+  public static AccountSnapshot fromAddress(
+      Address address, boolean isWarm, int deploymentNumber, boolean deploymentStatus) {
+    return new AccountSnapshot(
+        address, 0, Wei.ZERO, isWarm, Bytecode.EMPTY, deploymentNumber, deploymentStatus);
   }
 
   public static AccountSnapshot fromAccount(
@@ -86,71 +130,94 @@ public class AccountSnapshot {
         .orElseGet(() -> AccountSnapshot.empty(isWarm, deploymentNumber, deploymentStatus));
   }
 
-  public AccountSnapshot debit(Wei quantity) {
+  // TODO: confirm with @Tsvetan that this indeed creates a deep copy
+  /**
+   * Creates deep copy of {@code this} {@link AccountSnapshot}.
+   *
+   * @return deep copy of {@code this}
+   */
+  public AccountSnapshot deepCopy() {
     return new AccountSnapshot(
-        this.address,
-        this.nonce + 1,
-        this.balance.subtract(quantity),
-        this.isWarm,
-        this.code,
-        this.deploymentNumber,
-        this.deploymentStatus);
+        address, nonce, balance, isWarm, code, deploymentNumber, deploymentStatus);
   }
 
-  public AccountSnapshot debit(Wei quantity, boolean isWarm) {
+  public AccountSnapshot wipe() {
     return new AccountSnapshot(
-        this.address,
-        this.nonce + 1,
-        this.balance.subtract(quantity),
-        isWarm,
-        this.code,
-        this.deploymentNumber,
-        this.deploymentStatus);
+        address, 0, Wei.of(0), isWarm, Bytecode.EMPTY, deploymentNumber + 1, false);
   }
 
-  public AccountSnapshot deploy(Wei value) {
-    return new AccountSnapshot(
-        this.address,
-        this.nonce + 1,
-        this.balance.add(value),
-        this.isWarm,
-        this.code,
-        this.deploymentNumber + 1,
-        this.deploymentStatus);
-  }
-
-  public AccountSnapshot deploy(Wei value, Bytecode code) {
+  /**
+   * Decrements the balance by {@code quantity}. <b>WARNING:</b> this modifies the underlying {@link
+   * AccountSnapshot}. Be sure to work with a {@link AccountSnapshot#deepCopy} if necessary.
+   *
+   * @param quantity
+   * @return {@code this} with decremented balance
+   */
+  public AccountSnapshot decrementBalanceBy(Wei quantity) {
     Preconditions.checkState(
-        !this.deploymentStatus, "Deployment status should be false before deploying.");
-    return new AccountSnapshot(
-        this.address,
-        this.nonce + 1,
-        this.balance.add(value),
-        true,
-        code,
-        this.deploymentNumber + 1,
-        true);
+        balance.greaterOrEqualThan(quantity),
+        "Insufficient balance\n\t\tAddress: %s\n\t\tBalance: %s\n\t\tValue: %s"
+            .formatted(address, balance, quantity));
+
+    balance = balance.subtract(quantity);
+    return this;
   }
 
-  public AccountSnapshot credit(Wei value) {
-    return new AccountSnapshot(
-        this.address,
-        this.nonce,
-        this.balance.add(value),
-        true,
-        this.code,
-        this.deploymentNumber,
-        this.deploymentStatus);
+  /**
+   * Increments the balance by {@code quantity}. <b>WARNING:</b> this modifies the underlying {@link
+   * AccountSnapshot}. Be sure to work with a {@link AccountSnapshot#deepCopy} if necessary.
+   *
+   * @param quantity
+   * @return {@code this} with incremented balance
+   */
+  public AccountSnapshot incrementBalanceBy(Wei quantity) {
+    balance = balance.add(quantity);
+    return this;
   }
 
-  public AccountSnapshot credit(Wei value, boolean isWarm) {
-    return new AccountSnapshot(
-        this.address,
-        this.nonce,
-        this.balance.add(value),
-        isWarm,
-        this.code,
-        this.deploymentNumber,
-        this.deploymentStatus);
+  /**
+   * Set the warmth to true. <b>WARNING:</b> this modifies the underlying {@link AccountSnapshot}.
+   * Be sure to work with a {@link AccountSnapshot#deepCopy} if necessary.
+   *
+   * @return {@code this} with warmth = true
+   */
+  public AccountSnapshot turnOnWarmth() {
+    return this.setWarmthTo(true);
+  }
+
+  /**
+   * Set the warmth to {@code newWarmth}. <b>WARNING:</b> this modifies the underlying {@link
+   * AccountSnapshot}. Be sure to work with a {@link AccountSnapshot#deepCopy} if necessary.
+   *
+   * @param newWarmth
+   * @return {@code this} with updated warmth
+   */
+  public AccountSnapshot setWarmthTo(boolean newWarmth) {
+    isWarm(newWarmth);
+    return this;
+  }
+
+  /**
+   * Raises the nonce by 1. <b>WARNING:</b> this modifies the underlying {@link AccountSnapshot}. Be
+   * sure to work with a {@link AccountSnapshot#deepCopy} if necessary.
+   *
+   * @return {@code this} with nonce++
+   */
+  public AccountSnapshot raiseNonceByOne() {
+    nonce(nonce + 1);
+    return this;
+  }
+
+  public AccountSnapshot setDeploymentInfo(DeploymentInfo deploymentInfo) {
+    this.deploymentNumber(deploymentInfo.deploymentNumber(address));
+    this.deploymentStatus(deploymentInfo.getDeploymentStatus(address));
+    return this;
+  }
+
+  public AccountSnapshot deployByteCode(Bytecode code) {
+    Preconditions.checkState(
+        deploymentStatus, "Deployment status should be true before deploying byte code.");
+
+    return new AccountSnapshot(address, nonce, balance, true, code, deploymentNumber, false);
   }
 }

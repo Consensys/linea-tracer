@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
+import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
+
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
@@ -39,7 +41,7 @@ public final class SelfDestruct extends GasProjection {
 
   @Override
   public long staticGas() {
-    return GasConstants.G_SELF_DESTRUCT.cost();
+    return GlobalConstants.GAS_CONST_G_SELFDESTRUCT;
   }
 
   @Override
@@ -48,10 +50,10 @@ public final class SelfDestruct extends GasProjection {
       return 0;
     }
 
-    if (frame.isAddressWarm(this.beneficiaryAddress)) {
+    if (isAddressWarm(frame, beneficiaryAddress)) {
       return 0L;
     } else {
-      return GasConstants.G_COLD_ACCOUNT_ACCESS.cost();
+      return GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
     }
   }
 
@@ -66,7 +68,7 @@ public final class SelfDestruct extends GasProjection {
     final Wei balance = frame.getWorldUpdater().get(me).getBalance();
 
     if ((beneficiaryAccount == null || beneficiaryAccount.isEmpty()) && !balance.isZero()) {
-      return GasConstants.G_NEW_ACCOUNT.cost();
+      return GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
     } else {
       return 0L;
     }
@@ -74,6 +76,6 @@ public final class SelfDestruct extends GasProjection {
 
   @Override
   public long refund() {
-    return GasConstants.R_SELF_DESTRUCT.cost();
+    return GlobalConstants.REFUND_CONST_R_SELFDESTRUCT;
   }
 }

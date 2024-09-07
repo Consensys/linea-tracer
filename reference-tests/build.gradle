@@ -49,6 +49,7 @@ tasks.register('referenceBlockchainTests', Test) {
 
   minHeapSize = "4g"
   maxHeapSize = "20g"
+  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
@@ -62,6 +63,7 @@ tasks.register('referenceGeneralStateTests', Test) {
 
   minHeapSize = "4g"
   maxHeapSize = "20g"
+  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
 
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")
@@ -82,7 +84,6 @@ tasks.register('referenceTests', Test) {
 
 
 dependencies {
-  testImplementation project(":arithmetization")
   testImplementation "${besuArtifactGroup}:besu-datatypes"
   testImplementation "${besuArtifactGroup}:evm"
   testImplementation "${besuArtifactGroup}.internal:config:${besuVersion}"
@@ -101,4 +102,7 @@ dependencies {
 
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
   testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
+  implementation project(":arithmetization")
+  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
 }

@@ -20,47 +20,58 @@ import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcpt;
-import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptChunk;
+import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
+import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.log.Log;
 
+@RequiredArgsConstructor
 public class LogData implements Module {
-  private final RlpTxrcpt rlpTxrcpt;
-
-  public LogData(RlpTxrcpt rlpTxrcpt) {
-    this.rlpTxrcpt = rlpTxrcpt;
-  }
+  private final RlpTxnRcpt rlpTxnRcpt;
+  private final CountOnlyOperation lineCounter = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {
-    return "PUB_LOG";
+    return "LOG_DATA";
   }
 
   @Override
-  public void enterTransaction() {}
+  public void enterTransaction() {
+    lineCounter.enter();
+  }
 
   @Override
-  public void popTransaction() {}
+  public void popTransaction() {
+    lineCounter.pop();
+  }
+
+  /* WARN: make sure this is called after rlpTxnRcpt as we need the operation of the current transaction */
+  @Override
+  public void traceEndTx(TransactionProcessingMetadata tx) {
+    Preconditions.checkArgument(
+        rlpTxnRcpt.operations().operationsInTransaction().size() == 1,
+        "We should have only one transaction receipt operation per transaction");
+    lineCounter.add(lineCountForLogData(rlpTxnRcpt.operations().getLast()));
+  }
 
   @Override
   public int lineCount() {
-    int rowSize = 0;
-    for (RlpTxrcptChunk tx : this.rlpTxrcpt.getChunkList()) {
-      rowSize += txRowSize(tx);
-    }
-    return rowSize;
+    return lineCounter.lineCount();
   }
 
   @Override
   public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+    return Trace.headers(lineCount());
   }
 
-  private int txRowSize(RlpTxrcptChunk tx) {
+  private int lineCountForLogData(RlpTxrcptOperation tx) {
     int txRowSize = 0;
     if (tx.logs().isEmpty()) {
       return 0;
@@ -81,12 +92,12 @@ public class LogData implements Module {
     final Trace trace = new Trace(buffers);
 
     int absLogNumMax = 0;
-    for (RlpTxrcptChunk tx : this.rlpTxrcpt.chunkList) {
+    for (RlpTxrcptOperation tx : rlpTxnRcpt.operations().getAll()) {
       absLogNumMax += tx.logs().size();
     }
 
     int absLogNum = 0;
-    for (RlpTxrcptChunk tx : this.rlpTxrcpt.chunkList) {
+    for (RlpTxrcptOperation tx : rlpTxnRcpt.operations().getAll()) {
       if (!tx.logs().isEmpty()) {
         for (Log log : tx.logs()) {
           absLogNum += 1;

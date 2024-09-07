@@ -15,23 +15,32 @@
 
 package net.consensys.linea.zktracer.module.romlex;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
-import static net.consensys.linea.zktracer.types.AddressUtils.getCreate2Address;
-import static net.consensys.linea.zktracer.types.AddressUtils.getCreateAddress;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
+import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
+import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.set.StackedSet;
-import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
+import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
@@ -39,17 +48,21 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
+import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
-public class RomLex implements Module {
-  private static final RomChunkComparator ROM_CHUNK_COMPARATOR = new RomChunkComparator();
+@RequiredArgsConstructor
+public class RomLex
+    implements OperationSetModule<RomOperation>,
+        PostOpcodeDefer,
+        ImmediateContextEntryDefer,
+        ContextExitDefer {
 
   private final Hub hub;
 
-  @Getter private final StackedSet<RomChunk> chunks = new StackedSet<>();
-  @Getter private final List<RomChunk> sortedChunks = new ArrayList<>();
-  @Getter private final Map<Address, RomChunk> addressRomChunkMap = new HashMap<>();
+  @Getter private final StackedSet<RomOperation> operations = new StackedSet<>();
+  @Getter private List<RomOperation> sortedOperations;
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
 
@@ -60,41 +73,42 @@ public class RomLex implements Module {
     return "ROM_LEX";
   }
 
-  public RomLex(Hub hub) {
-    this.hub = hub;
-  }
-
-  @Override
-  public void enterTransaction() {
-    this.chunks.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.chunks.pop();
+  public int getCodeFragmentIndexByMetadata(
+      final Address address, final int deploymentNumber, final boolean depStatus) {
+    return getCodeFragmentIndexByMetadata(
+        ContractMetadata.make(address, deploymentNumber, depStatus));
   }
 
   public int getCodeFragmentIndexByMetadata(final ContractMetadata metadata) {
-    if (this.sortedChunks.isEmpty()) {
+    if (sortedOperations.isEmpty()) {
       throw new RuntimeException("Chunks have not been sorted yet");
     }
 
-    for (int i = 0; i < this.sortedChunks.size(); i++) {
-      final RomChunk c = this.sortedChunks.get(i);
+    for (int i = 0; i < sortedOperations.size(); i++) {
+      final RomOperation c = sortedOperations.get(i);
       if (c.metadata().equals(metadata)) {
         return i + 1;
       }
     }
 
-    throw new RuntimeException("RomChunk not found");
+    throw new RuntimeException(
+        "RomChunk with:"
+            + String.format("\n\t\taddress = %s", metadata.address())
+            + String.format("\n\t\tdeployment number = %s", metadata.deploymentNumber())
+            + String.format("\n\t\tdeployment status = %s", metadata.underDeployment())
+            + "\n\tnot found");
   }
 
-  public Optional<RomChunk> getChunkByMetadata(final ContractMetadata metadata) {
-    if (this.sortedChunks.isEmpty()) {
-      throw new RuntimeException("Chunks have not been sorted yet");
+  public Optional<RomOperation> getChunkByMetadata(final ContractMetadata metadata) {
+    // First search in the chunk added in the current transaction
+    for (RomOperation c : operations.operationsInTransaction()) {
+      if (c.metadata().equals(metadata)) {
+        return Optional.of(c);
+      }
     }
 
-    for (RomChunk c : this.chunks) {
+    // If not found, search in the chunk added since the beginning of the conflation
+    for (RomOperation c : operations.operationsCommitedToTheConflation()) {
       if (c.metadata().equals(metadata)) {
         return Optional.of(c);
       }
@@ -103,17 +117,24 @@ public class RomLex implements Module {
     return Optional.empty();
   }
 
+  public Bytes getCodeByMetadata(final ContractMetadata metadata) {
+    return getChunkByMetadata(metadata).map(RomOperation::byteCode).orElse(Bytes.EMPTY);
+  }
+
+  // TODO: it would maybe make more sense to only implement traceContextEnter
+  //  and distinguish between depth == 0 and depth > 0. Why? So as to not have
+  //  to manually tinker with deployment numbers / statuses.
   @Override
-  public void traceStartTx(WorldView worldView, Transaction tx) {
+  public void traceStartTx(WorldView worldView, TransactionProcessingMetadata txMetaData) {
+    final Transaction tx = txMetaData.getBesuTransaction();
     // Contract creation with InitCode
     if (tx.getInit().isPresent() && !tx.getInit().get().isEmpty()) {
-      final Address calledAddress = Address.contractAddress(tx.getSender(), tx.getNonce());
-      final RomChunk chunk =
-          new RomChunk(
-              ContractMetadata.underDeployment(calledAddress, 1), false, false, tx.getInit().get());
+      final Address deploymentAddress = Address.contractAddress(tx.getSender(), tx.getNonce());
+      final RomOperation operation =
+          new RomOperation(
+              ContractMetadata.make(deploymentAddress, 1, true), false, false, tx.getInit().get());
 
-      this.chunks.add(chunk);
-      this.addressRomChunkMap.put(calledAddress, chunk);
+      operations.add(operation);
     }
 
     // Call to an account with bytecode
@@ -125,109 +146,97 @@ public class RomLex implements Module {
               if (!code.isEmpty()) {
 
                 final Address calledAddress = tx.getTo().get();
-                int depNumber =
-                    hub.transients().conflation().deploymentInfo().number(calledAddress);
-                boolean depStatus =
-                    hub.transients().conflation().deploymentInfo().isDeploying(calledAddress);
+                final RomOperation operation =
+                    new RomOperation(
+                        ContractMetadata.canonical(hub, calledAddress), true, false, code);
 
-                final RomChunk chunk =
-                    new RomChunk(
-                        ContractMetadata.make(calledAddress, depNumber, depStatus),
-                        true,
-                        false,
-                        code);
-
-                this.chunks.add(chunk);
-                this.addressRomChunkMap.put(calledAddress, chunk);
+                operations.add(operation);
               }
             });
   }
 
-  @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    switch (this.hub.opCode()) {
-      case CREATE -> {
-        this.byteCode = this.hub.transients().op().callData();
-        if (!this.byteCode.isEmpty()) {
-          this.address = getCreateAddress(frame);
-        }
+  public void callRomLex(final MessageFrame frame) {
+    switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
+      case CREATE, CREATE2 -> {
+        final long offset = Words.clampedToLong(frame.getStackItem(1));
+        final long length = Words.clampedToLong(frame.getStackItem(2));
+
+        checkArgument(length > 0, "callRomLex expects positive size for CREATE(2)");
+
+        hub.defers().scheduleForImmediateContextEntry(this);
+        byteCode = frame.shadowReadMemory(offset, length);
+        address = getDeploymentAddress(frame);
       }
-      case CREATE2 -> {
-        this.byteCode = this.hub.transients().op().callData();
-        if (!this.byteCode.isEmpty()) {
-          this.address = getCreate2Address(frame);
-        }
-      }
+
       case RETURN -> {
-        final Bytes code = hub.transients().op().returnData();
+        final int currentDeploymentNumber = hub.deploymentNumberOfBytecodeAddress();
+        final boolean currentDeploymentStatus = hub.deploymentStatusOfBytecodeAddress();
 
-        if (code.isEmpty()) {
-          return;
-        }
+        final long offset = Words.clampedToLong(frame.getStackItem(0));
+        final long length = Words.clampedToLong(frame.getStackItem(1));
 
-        final boolean depStatus =
-            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
-        if (depStatus) {
-          int depNumber =
-              hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
-          final ContractMetadata contractMetadata =
-              ContractMetadata.underDeployment(frame.getContractAddress(), depNumber);
+        checkArgument(
+            frame.getType() == MessageFrame.Type.CONTRACT_CREATION
+                && currentDeploymentNumber > 0
+                && currentDeploymentStatus,
+            "callRomLex for RETURN expects the byte code address to be under deployment, yet:"
+                + String.format("\n\t\tframe.getType() = %s", frame.getType())
+                + String.format(
+                    "\n\t\tMessageFrame contract address = %s", frame.getContractAddress())
+                + String.format(
+                    "\n\t\tCallFrame    bytecode address = %s",
+                    hub.currentFrame().byteCodeAddress())
+                + String.format("\n\t\tdeployment number = %s", currentDeploymentNumber)
+                + String.format("\n\t\tdeployment status = %s", currentDeploymentStatus));
+        checkArgument(length > 0, "callRomLex for RETURN expects positive size");
 
-          final RomChunk chunk = new RomChunk(contractMetadata, true, false, code);
-          this.chunks.add(chunk);
-          this.addressRomChunkMap.put(contractMetadata.address(), chunk);
-        }
+        byteCode = frame.shadowReadMemory(offset, length);
+        hub.defers().scheduleForContextExit(this, hub.currentFrame().id());
       }
 
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
-        final Address calledAddress = Words.toAddress(frame.getStackItem(1));
-        final boolean depStatus =
-            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
-        final int depNumber =
-            hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
+        final Address calleeAddress = Words.toAddress(frame.getStackItem(1));
 
-        Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
+        Optional.ofNullable(frame.getWorldUpdater().get(calleeAddress))
             .map(AccountState::getCode)
             .ifPresent(
                 byteCode -> {
                   if (!byteCode.isEmpty()) {
-                    final RomChunk chunk =
-                        new RomChunk(
-                            ContractMetadata.make(calledAddress, depNumber, depStatus),
-                            true,
-                            false,
-                            byteCode);
-                    chunks.add(chunk);
-                    this.addressRomChunkMap.put(calledAddress, chunk);
+                    final RomOperation operation =
+                        new RomOperation(
+                            ContractMetadata.canonical(hub, calleeAddress), true, false, byteCode);
+                    operations.add(operation);
                   }
                 });
       }
 
       case EXTCODECOPY -> {
-        final Address calledAddress = Words.toAddress(frame.getStackItem(0));
+        final Address foreignCodeAddress = Words.toAddress(frame.getStackItem(0));
         final long length = Words.clampedToLong(frame.getStackItem(3));
-        final boolean isDeploying =
-            hub.transients().conflation().deploymentInfo().isDeploying(frame.getContractAddress());
-        if (length == 0 || isDeploying) {
-          return;
-        }
-        final int depNumber =
-            hub.transients().conflation().deploymentInfo().number(frame.getContractAddress());
 
-        Optional.ofNullable(frame.getWorldUpdater().get(calledAddress))
+        checkArgument(
+            length > 0,
+            "EXTCODECOPY should only trigger a ROM_LEX chunk if nonzero size parameter");
+        checkArgument(
+            !hub.deploymentStatusOf(foreignCodeAddress),
+            "EXTCODECOPY should only trigger a ROM_LEX chunk if its target isn't currently deploying");
+        checkArgument(
+            !frame.getWorldUpdater().getAccount(foreignCodeAddress).isEmpty()
+                && frame.getWorldUpdater().getAccount(foreignCodeAddress).hasCode());
+
+        Optional.ofNullable(frame.getWorldUpdater().get(foreignCodeAddress))
             .map(AccountState::getCode)
             .ifPresent(
                 byteCode -> {
                   if (!byteCode.isEmpty()) {
-                    final RomChunk chunk =
-                        new RomChunk(
-                            ContractMetadata.make(calledAddress, depNumber, false),
+                    final RomOperation operation =
+                        new RomOperation(
+                            ContractMetadata.canonical(hub, foreignCodeAddress),
                             true,
                             false,
                             byteCode);
 
-                    this.chunks.add(chunk);
-                    this.addressRomChunkMap.put(calledAddress, chunk);
+                    operations.add(operation);
                   }
                 });
       }
@@ -235,57 +244,63 @@ public class RomLex implements Module {
   }
 
   @Override
-  public void tracePostOpcode(MessageFrame frame) {
-    if (byteCode.isEmpty()) {
-      return;
-    }
-    switch (hub.opCode()) {
-      case CREATE, CREATE2 -> {
-        final int depNumber = hub.transients().conflation().deploymentInfo().number(this.address);
-        final boolean depStatus =
-            hub.transients().conflation().deploymentInfo().isDeploying(this.address);
-        final ContractMetadata contractMetadata =
-            ContractMetadata.make(this.address, depNumber, depStatus);
+  public void resolvePostExecution(
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {}
 
-        final RomChunk chunk = new RomChunk(contractMetadata, true, false, this.byteCode);
-        this.chunks.add(chunk);
-        this.createDefers.trigger(contractMetadata);
-        this.addressRomChunkMap.put(this.address, chunk);
-      }
-    }
+  @Override
+  public void resolveUponContextEntry(Hub hub) {
+    checkArgument(hub.messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION);
+    checkArgument(
+        hub.deploymentStatusOf(address), "After a CREATE the deployment status should be true");
+
+    final ContractMetadata contractMetadata = ContractMetadata.canonical(hub, address);
+
+    final RomOperation operation = new RomOperation(contractMetadata, true, false, byteCode);
+    operations.add(operation);
+    createDefers.trigger(contractMetadata);
   }
 
   // This is the tracing for ROMLEX module
   private void traceChunk(
-      final RomChunk chunk, final int cfi, final int codeFragmentIndexInfinity, Trace trace) {
+      final RomOperation operation,
+      final int cfi,
+      final int codeFragmentIndexInfinity,
+      Trace trace) {
     final Hash codeHash =
-        chunk.metadata().underDeployment() ? Hash.EMPTY : Hash.hash(chunk.byteCode());
+        operation.metadata().underDeployment() ? Hash.EMPTY : Hash.hash(operation.byteCode());
     trace
         .codeFragmentIndex(cfi)
         .codeFragmentIndexInfty(codeFragmentIndexInfinity)
-        .codeSize(chunk.byteCode().size())
-        .addressHi(chunk.metadata().address().slice(0, 4).toLong())
-        .addressLo(chunk.metadata().address().slice(4, LLARGE))
-        .commitToState(chunk.commitToTheState())
-        .deploymentNumber(chunk.metadata().deploymentNumber())
-        .deploymentStatus(chunk.metadata().underDeployment())
-        .readFromState(chunk.readFromTheState())
+        .codeSize(operation.byteCode().size())
+        .addressHi(highPart(operation.metadata().address()))
+        .addressLo(lowPart(operation.metadata().address()))
+        .commitToState(operation.commitToTheState())
+        .deploymentNumber(operation.metadata().deploymentNumber())
+        .deploymentStatus(operation.metadata().underDeployment())
+        .readFromState(operation.readFromTheState())
         .codeHashHi(codeHash.slice(0, LLARGE))
         .codeHashLo(codeHash.slice(LLARGE, LLARGE))
         .validateRow();
   }
 
-  @Override
-  public void traceEndConflation(final WorldView state) {
-    this.sortedChunks.addAll(this.chunks);
-    this.sortedChunks.sort(ROM_CHUNK_COMPARATOR);
+  public void determineCodeFragmentIndex() {
+    operations.finishConflation();
+    sortedOperations = new ArrayList<>(operations.getAll());
+    final RomOperationComparator ROM_CHUNK_COMPARATOR = new RomOperationComparator();
+    sortedOperations.sort(ROM_CHUNK_COMPARATOR);
   }
 
   @Override
   public int lineCount() {
     // WARN: the line count for the RomLex is the *number of code fragments*, not their actual line
     // count – that's for the ROM.
-    return this.chunks.size();
+    return operations.size();
+  }
+
+  @Override
+  public void traceEndConflation(final WorldView state) {
+    Preconditions.checkArgument(
+        operations.conflationFinished(), "Conflation is done before traceEndConflation for RomLex");
   }
 
   @Override
@@ -297,12 +312,24 @@ public class RomLex implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
 
     final Trace trace = new Trace(buffers);
-    final int codeFragmentIndexInfinity = chunks.size();
+    final int codeFragmentIndexInfinity = operations.size();
 
     int cfi = 0;
-    for (RomChunk chunk : sortedChunks) {
-      cfi += 1;
-      traceChunk(chunk, cfi, codeFragmentIndexInfinity, trace);
+    for (RomOperation chunk : sortedOperations) {
+      traceChunk(chunk, ++cfi, codeFragmentIndexInfinity, trace);
     }
+  }
+
+  @Override
+  public void resolveUponContextExit(Hub hub, CallFrame frame) {
+
+    checkArgument(hub.opCode() == RETURN);
+    checkArgument(!hub.deploymentStatusOfBytecodeAddress());
+
+    final ContractMetadata contractMetadata =
+        ContractMetadata.canonical(hub, hub.messageFrame().getContractAddress());
+
+    final RomOperation chunk = new RomOperation(contractMetadata, false, true, byteCode);
+    operations.add(chunk);
   }
 }

@@ -19,7 +19,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.Module;
+import net.consensys.linea.zktracer.container.module.Module;
 
 @RequiredArgsConstructor
 public class L2L1Logs implements Module {
@@ -27,7 +27,7 @@ public class L2L1Logs implements Module {
 
   @Override
   public String moduleKey() {
-    return "BLOCK_L2L1LOGS";
+    return "BLOCK_L2_L1_LOGS";
   }
 
   @Override

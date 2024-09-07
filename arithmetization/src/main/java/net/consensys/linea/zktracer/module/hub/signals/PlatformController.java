@@ -28,31 +28,28 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class PlatformController {
   private final Hub hub;
 
+  // TODO: clean up extraneous signals (OOB, MXP, EXP, ...)
   /** What other modules should be triggered for the current operation */
   @Getter private final Signals signals;
 
   /** The exceptions raised during the execution of the current operation */
-  @Getter private final Exceptions exceptions;
+  @Getter private short exceptions;
 
   /** The aborting conditions raised during the execution of the current operation */
-  @Getter private final AbortingConditions aborts;
-
-  @Getter private final FailureConditions failures;
+  @Getter private final AbortingConditions abortingConditions;
 
   public PlatformController(final Hub hub) {
     this.hub = hub;
-    this.exceptions = new Exceptions(hub);
-    this.aborts = new AbortingConditions();
+    this.exceptions = Exceptions.NONE;
+    this.abortingConditions = new AbortingConditions();
     this.signals = new Signals(this);
-    this.failures = new FailureConditions(hub);
   }
 
   /** Reset all information */
   public void reset() {
     this.signals.reset();
-    this.exceptions.reset();
-    this.aborts.reset();
-    this.failures.reset();
+    this.exceptions = Exceptions.NONE;
+    this.abortingConditions.reset();
   }
 
   /**
@@ -64,12 +61,9 @@ public class PlatformController {
   public void setup(MessageFrame frame) {
     this.reset();
 
-    this.exceptions.prepare(frame, Hub.GAS_PROJECTOR);
-    if (this.exceptions.none()) {
-      this.aborts.prepare(hub);
-      if (aborts.none()) {
-        this.failures.prepare(frame);
-      }
+    this.exceptions |= Exceptions.fromFrame(hub, frame);
+    if (Exceptions.none(this.exceptions)) {
+      this.abortingConditions.prepare(hub);
     }
     this.signals.prepare(frame, this, this.hub);
   }

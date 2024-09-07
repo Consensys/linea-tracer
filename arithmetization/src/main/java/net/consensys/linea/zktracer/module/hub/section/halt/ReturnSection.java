@@ -113,22 +113,22 @@ public class ReturnSection extends TraceSection
       return;
     }
 
+    // Note: in case of returnFromMessageCall, we check for outOfGasException.
+    // In case of returnFromDeployment, we check for maxCodeSize & invalidCodePrefixException before
+    // OOGX.
     if (Exceptions.outOfGasException(exceptions) && returnFromMessageCall) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
       return;
     }
 
     if (Exceptions.any(exceptions)) {
-      // exceptional message calls are dealt with;
-      // if exceptions remain they must be related
-      // to deployments:
       checkArgument(returnFromDeployment);
     }
 
     // maxCodeSizeException case
-    boolean triggerOobForMaxCodeSizeException = Exceptions.codeSizeOverflow(exceptions);
+    final boolean triggerOobForMaxCodeSizeException = Exceptions.codeSizeOverflow(exceptions);
     if (triggerOobForMaxCodeSizeException) {
-      OobCall oobCall = new XCallOobCall();
+      final OobCall oobCall = new XCallOobCall();
       firstImcFragment.callOob(oobCall);
       return;
     }
@@ -146,9 +146,15 @@ public class ReturnSection extends TraceSection
       return;
     }
 
+    // OOGX case
+    if (Exceptions.outOfGasException(exceptions) && returnFromDeployment) {
+      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      return;
+    }
+
     // Unexceptional RETURN's
-    // (we have exceptions ≡ ∅ by the checkArgument)
-    ////////////////////////////////////////////////
+    // (we have exceptions ≡ ∅ by the checkArgument below)
+    //////////////////////////////////////////////////////
 
     checkArgument(Exceptions.none(exceptions));
 
@@ -287,7 +293,7 @@ public class ReturnSection extends TraceSection
                 postDeploymentAccountSnapshot,
                 undoingDeploymentAccountSnapshot,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), hub.callStack().current().revertStamp(), 1));
+                    this.hubStamp(), hub.callStack().currentCallFrame().revertStamp(), 1));
 
     this.addFragment(undoingDeploymentAccountFragment);
   }

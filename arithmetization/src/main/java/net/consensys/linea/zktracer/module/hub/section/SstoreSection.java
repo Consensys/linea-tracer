@@ -15,10 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_DOING;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_UNDOING;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
@@ -89,8 +89,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
       return;
     }
 
-    Preconditions.checkArgument(
-        Exceptions.outOfGasException(exceptions) || Exceptions.none(exceptions));
+    checkArgument(Exceptions.outOfGasException(exceptions) || Exceptions.none(exceptions));
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
 
@@ -133,7 +132,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
     final DomSubStampsSubFragment undoingDomSubStamps =
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-            this.hubStamp(), hub.callStack().current().revertStamp(), 0);
+            this.hubStamp(), hub.callStack().currentCallFrame().revertStamp(), 0);
 
     final StorageFragment undoingSstoreStorageFragment =
         new StorageFragment(

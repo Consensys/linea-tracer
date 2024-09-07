@@ -15,17 +15,18 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 
-public final class BlakeRounds extends CountingOnlyModule {
+@Getter
+@Accessors(fluent = true)
+public final class BlakeRounds implements CountingOnlyModule {
+  private final CountOnlyOperation counts = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {
     return "PRECOMPILE_BLAKE_ROUNDS";
-  }
-
-  @Override
-  public void addPrecompileLimit(final int r) {
-    counts.add(r);
   }
 }

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.types;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
@@ -22,7 +23,6 @@ import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -115,7 +115,7 @@ public class AddressUtils {
 
   public static Address getDeploymentAddress(final MessageFrame frame) {
     final OpCode opcode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    Preconditions.checkArgument(opcode.isCreate(), "Must be called only for CREATE/CREATE2 opcode");
+    checkArgument(opcode.isCreate(), "Must be called only for CREATE/CREATE2 opcode");
     return opcode.equals(OpCode.CREATE) ? getCreateAddress(frame) : getCreate2Address(frame);
   }
 
@@ -131,5 +131,9 @@ public class AddressUtils {
 
   public static Bytes lowPart(Address address) {
     return address.slice(4, LLARGE);
+  }
+
+  public static boolean isAddressWarm(final MessageFrame messageFrame, final Address address) {
+    return messageFrame.isAddressWarm(address) || isPrecompile(address);
   }
 }

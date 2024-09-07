@@ -15,11 +15,17 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 
 @RequiredArgsConstructor
-public final class RipemdBlocks extends CountingOnlyModule {
+@Getter
+@Accessors(fluent = true)
+public final class RipemdBlocks implements CountingOnlyModule {
+  private final CountOnlyOperation counts = new CountOnlyOperation();
   private static final int PRECOMPILE_BASE_GAS_FEE = 600;
   private static final int PRECOMPILE_GAS_FEE_PER_EWORD = 120;
   private static final int RIPEMD160_BLOCKSIZE = 64 * 8;
@@ -33,9 +39,9 @@ public final class RipemdBlocks extends CountingOnlyModule {
   }
 
   @Override
-  public void addPrecompileLimit(final int input) {
-    final int blockCount = numberOfRipemd160locks(input);
-    this.counts.add(blockCount);
+  public void addPrecompileLimit(final int count) {
+    final int blockCount = numberOfRipemd160locks(count);
+    counts.add(blockCount);
   }
 
   private static int numberOfRipemd160locks(final int dataByteLength) {

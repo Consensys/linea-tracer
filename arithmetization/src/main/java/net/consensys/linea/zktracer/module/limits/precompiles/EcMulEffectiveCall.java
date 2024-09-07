@@ -15,12 +15,19 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import com.google.common.base.Preconditions;
-import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
+import static com.google.common.base.Preconditions.*;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+
+@Getter
+@Accessors(fluent = true)
 @RequiredArgsConstructor
-public final class EcMulEffectiveCall extends CountingOnlyModule {
+public final class EcMulEffectiveCall implements CountingOnlyModule {
+  private final CountOnlyOperation counts = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {
@@ -29,8 +36,8 @@ public final class EcMulEffectiveCall extends CountingOnlyModule {
 
   @Override
   public void addPrecompileLimit(final int numberEffectiveCall) {
-    Preconditions.checkArgument(
-        numberEffectiveCall == 1, "can't add more than one effective precompile call at a time");
-    this.counts.add(numberEffectiveCall);
+    checkArgument(
+        numberEffectiveCall <= 1, "can't add more than one effective precompile call at a time");
+    counts.add(numberEffectiveCall);
   }
 }

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_ABORT;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_EMPTY_INIT_CODE_WILL_REVERT;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_EMPTY_INIT_CODE_WONT_REVERT;
@@ -25,15 +26,13 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateSc
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WILL_REVERT;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT;
-import static net.consensys.linea.zktracer.module.shakiradata.HashType.KECCAK;
+import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.KECCAK;
 import static net.consensys.linea.zktracer.opcode.OpCode.CREATE;
 import static net.consensys.linea.zktracer.opcode.OpCode.CREATE2;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
-import static org.hyperledger.besu.crypto.Hash.keccak256;
 
 import java.util.Optional;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
@@ -55,7 +54,6 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.Account;
@@ -118,7 +116,7 @@ public class CreateSection extends TraceSection
 
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
-    Preconditions.checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
+    checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
     // MXPX case
     if (mxpCall.mxpx) {
@@ -129,8 +127,7 @@ public class CreateSection extends TraceSection
     final StpCall stpCall = new StpCall(hub, mxpCall.getGasMxp());
     imcFragment.callStp(stpCall);
 
-    Preconditions.checkArgument(
-        stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
+    checkArgument(stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
@@ -139,22 +136,22 @@ public class CreateSection extends TraceSection
     }
 
     // The CREATE(2) is now unexceptional
-    Preconditions.checkArgument(Exceptions.none(exceptions));
+    checkArgument(Exceptions.none(exceptions));
     hub.currentFrame().childSpanningSection(this);
 
     final CreateOobCall oobCall = new CreateOobCall();
     imcFragment.callOob(oobCall);
 
     final AbortingConditions aborts = hub.pch().abortingConditions().snapshot();
-    Preconditions.checkArgument(oobCall.isAbortingCondition() == aborts.any());
+    checkArgument(oobCall.isAbortingCondition() == aborts.any());
 
     final CallFrame callFrame = hub.currentFrame();
-    final MessageFrame frame = callFrame.frame();
+    final MessageFrame messageFrame = hub.messageFrame();
 
     final Address creatorAddress = callFrame.accountAddress();
     preOpcodeCreatorSnapshot = AccountSnapshot.canonical(hub, creatorAddress);
 
-    final Address createeAddress = getDeploymentAddress(frame);
+    final Address createeAddress = getDeploymentAddress(messageFrame);
     preOpcodeCreateeSnapshot = AccountSnapshot.canonical(hub, createeAddress);
 
     if (aborts.any()) {
@@ -164,7 +161,7 @@ public class CreateSection extends TraceSection
     }
 
     // The CREATE(2) is now unexceptional and unaborted
-    Preconditions.checkArgument(aborts.none());
+    checkArgument(aborts.none());
     hub.defers().scheduleForImmediateContextEntry(this); // when we add the two account fragments
     hub.defers().scheduleForPostRollback(this, hub.currentFrame()); // in case of Rollback
     hub.defers().scheduleForPostTransaction(this); // when we add the last context row
@@ -172,7 +169,7 @@ public class CreateSection extends TraceSection
     rlpAddrSubFragment = RlpAddrSubFragment.makeFragment(hub, createeAddress);
 
     final Optional<Account> deploymentAccount =
-        Optional.ofNullable(frame.getWorldUpdater().get(createeAddress));
+        Optional.ofNullable(messageFrame.getWorldUpdater().get(createeAddress));
     final boolean createdAddressHasNonZeroNonce =
         deploymentAccount.map(a -> a.getNonce() != 0).orElse(false);
     final boolean createdAddressHasNonEmptyCode =
@@ -188,10 +185,9 @@ public class CreateSection extends TraceSection
 
       final long offset = Words.clampedToLong(hub.messageFrame().getStackItem(1));
       final long size = Words.clampedToLong(hub.messageFrame().getStackItem(2));
-      final Bytes create2InitCode = frame.shadowReadMemory(offset, size);
-      final Bytes32 hash = keccak256(create2InitCode);
+      final Bytes create2InitCode = messageFrame.shadowReadMemory(offset, size);
       final ShakiraDataOperation shakiraDataOperation =
-          new ShakiraDataOperation(hub.stamp(), KECCAK, create2InitCode, hash);
+          new ShakiraDataOperation(hub.stamp(), KECCAK, create2InitCode);
       hub.shakiraData().call(shakiraDataOperation);
     }
 
@@ -200,12 +196,17 @@ public class CreateSection extends TraceSection
 
       if (failedCreate) {
         scenarioFragment.setScenario(CREATE_FAILURE_CONDITION_WONT_REVERT);
-      }
-      if (emptyInitCode) {
-        scenarioFragment.setScenario(CREATE_EMPTY_INIT_CODE_WONT_REVERT);
+        hub.failureConditionForCreates = true;
+        return;
       }
 
-      return;
+      // this "if" is redundant and could be removed
+      // --- please don't, for now at least
+      if (emptyInitCode) {
+        scenarioFragment.setScenario(CREATE_EMPTY_INIT_CODE_WONT_REVERT);
+        hub.transients().conflation().deploymentInfo().newDeploymentSansExecutionAt(createeAddress);
+        return;
+      }
     }
 
     // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create
@@ -213,7 +214,8 @@ public class CreateSection extends TraceSection
         .scheduleForContextReEntry(
             this, hub.currentFrame()); // To get the success bit of the CREATE(2)
 
-    hub.romLex().callRomLex(frame);
+    hub.romLex().callRomLex(messageFrame);
+    hub.transients().conflation().deploymentInfo().newDeploymentWithExecutionAt(createeAddress);
 
     // Note: the case CREATE2 has been set before, we need to do it even in the failure case
     if (hub.opCode() == CREATE) {
@@ -225,7 +227,7 @@ public class CreateSection extends TraceSection
   }
 
   @Override
-  public void resolveUponImmediateContextEntry(Hub hub) {
+  public void resolveUponContextEntry(Hub hub) {
     childEntryCreatorSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreatorSnapshot.address());
     childEntryCreateeSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreateeSnapshot.address());
 

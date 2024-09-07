@@ -15,9 +15,15 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import net.consensys.linea.zktracer.module.limits.CountingOnlyModule;
+import lombok.Getter;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 
-public final class EcPairingMillerLoops extends CountingOnlyModule {
+@Getter
+@Accessors(fluent = true)
+public final class EcPairingMillerLoops implements CountingOnlyModule {
+  private final CountOnlyOperation counts = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {
@@ -25,7 +31,9 @@ public final class EcPairingMillerLoops extends CountingOnlyModule {
   }
 
   @Override
-  public void addPrecompileLimit(final int input) {
-    // TODO @Lorenzo
+  public void addPrecompileLimit(final int numberEffectiveCall) {
+    // Preconditions.checkArgument(numberEffectiveCall <= ?, "can't add more than ? effective
+    // precompile call at a time");
+    counts.add(numberEffectiveCall);
   }
 }

@@ -87,10 +87,11 @@ public class SelfdestructSection extends TraceSection
     recipientAddress = Address.extract(Bytes32.leftPad(recipientRawAddress));
 
     selfDestructTargetsItself = addressWhichMaySelfDestruct.equals(recipientAddress);
+    selfdestructorAccountAfter = selfdestructorAccountBefore.deepCopy();
 
     recipientAccountBefore =
         selfDestructTargetsItself
-            ? selfdestructorAccountBefore.deepCopy()
+            ? selfdestructorAccountAfter.deepCopy()
             : AccountSnapshot.canonical(hub, recipientAddress);
 
     selfdestructScenarioFragment = new SelfdestructScenarioFragment();
@@ -170,7 +171,6 @@ public class SelfdestructSection extends TraceSection
     // - The recipient address will become warm (i+3)
     //   * recipientFirstAccountFragment
 
-    selfdestructorAccountAfter = selfdestructorAccountBefore.deepCopy();
     selfdestructorAccountAfter.decrementBalanceBy(selfdestructorAccountBefore.balance());
 
     selfDestroyerFirstAccountFragment =

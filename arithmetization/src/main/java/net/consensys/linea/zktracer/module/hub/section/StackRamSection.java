@@ -20,6 +20,8 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MSTORE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_MSTORE8;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.MEMORY_EXPANSION_EXCEPTION;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 
 import java.util.Optional;
@@ -53,8 +55,15 @@ public class StackRamSection extends TraceSection {
 
     checkArgument(mxpCall.isMxpx() == Exceptions.memoryExpansionException(exceptions));
 
-    // MXPX or OOGX case
-    if (mxpCall.isMxpx() || Exceptions.outOfGasException(exceptions)) {
+    // MXPX case
+    if (mxpCall.isMxpx()) {
+      commonValues.setTracedException(MEMORY_EXPANSION_EXCEPTION);
+      return;
+    }
+
+    // OOGX case
+    if (Exceptions.outOfGasException(exceptions)) {
+      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
       return;
     }
 

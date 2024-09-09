@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.hub.section;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_DOING;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_UNDOING;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_SSTORE;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STATIC_FAULT;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -76,6 +78,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     this.addStackAndFragments(hub, readCurrentContext);
 
     if (staticContextException) {
+      commonValues.setTracedException(STATIC_FAULT);
       return;
     }
 
@@ -86,6 +89,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     miscForSstore.callOob(new SstoreOobCall());
 
     if (sstoreException) {
+      commonValues.setTracedException(OUT_OF_SSTORE);
       return;
     }
 

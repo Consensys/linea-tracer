@@ -16,6 +16,9 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.MEMORY_EXPANSION_EXCEPTION;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STATIC_FAULT;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -49,6 +52,7 @@ public class LogSection extends TraceSection implements PostRollbackDefer, PostT
     // Static Case
     if (hub.currentFrame().frame().isStatic()) {
       checkArgument(Exceptions.staticFault(exceptions));
+      commonValues.setTracedException(STATIC_FAULT);
       return;
     }
 
@@ -62,11 +66,13 @@ public class LogSection extends TraceSection implements PostRollbackDefer, PostT
 
     // MXPX case
     if (mxpCall.isMxpx()) {
+      commonValues.setTracedException(MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
+      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
       return;
     }
 

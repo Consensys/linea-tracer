@@ -16,6 +16,8 @@
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.MEMORY_EXPANSION_EXCEPTION;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -51,14 +53,14 @@ public class CodeCopySection extends TraceSection {
 
     // The MXPX case
     if (mxpCall.mxpx) {
-      commonValues.setTracedException(Exceptions.MEMORY_EXPANSION_EXCEPTION);
+      commonValues.setTracedException(MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // The OOGX case
     if (Exceptions.any(exceptions)) {
-      checkArgument(exceptions == Exceptions.OUT_OF_GAS_EXCEPTION);
-      commonValues.setTracedException(Exceptions.OUT_OF_GAS_EXCEPTION);
+      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
       return;
     }
 

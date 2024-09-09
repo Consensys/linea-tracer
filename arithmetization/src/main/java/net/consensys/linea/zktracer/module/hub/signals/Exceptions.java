@@ -45,21 +45,6 @@ public class Exceptions {
   public static final short INVALID_CODE_PREFIX = 512;
   public static final short CODE_SIZE_OVERFLOW = 2048;
 
-  public static boolean isException(short exception) {
-    return exception == NONE
-        || exception == INVALID_OPCODE
-        || exception == STACK_UNDERFLOW
-        || exception == STACK_OVERFLOW
-        || exception == MEMORY_EXPANSION_EXCEPTION
-        || exception == OUT_OF_GAS_EXCEPTION
-        || exception == RETURN_DATA_COPY_FAULT
-        || exception == JUMP_FAULT
-        || exception == STATIC_FAULT
-        || exception == OUT_OF_SSTORE
-        || exception == INVALID_CODE_PREFIX
-        || exception == CODE_SIZE_OVERFLOW;
-  }
-
   public static boolean stackException(final short bitmask) {
     return stackOverflow(bitmask) || stackUnderflow(bitmask);
   }
@@ -72,10 +57,28 @@ public class Exceptions {
   }
 
   /**
-   * @return true if any exception flag has been raised
+   * @return true if any exception flag has been raised, i.e., at least one exception flag is raised
    */
   public static boolean any(final short bitmask) {
     return !none(bitmask);
+  }
+
+  /**
+   * @return true if the bitmask represents a pure exception, i.e., a single exception flag is
+   *     raised
+   */
+  public static boolean isPure(short bitmask) {
+    return bitmask == INVALID_OPCODE
+        || bitmask == STACK_UNDERFLOW
+        || bitmask == STACK_OVERFLOW
+        || bitmask == MEMORY_EXPANSION_EXCEPTION
+        || bitmask == OUT_OF_GAS_EXCEPTION
+        || bitmask == RETURN_DATA_COPY_FAULT
+        || bitmask == JUMP_FAULT
+        || bitmask == STATIC_FAULT
+        || bitmask == OUT_OF_SSTORE
+        || bitmask == INVALID_CODE_PREFIX
+        || bitmask == CODE_SIZE_OVERFLOW;
   }
 
   /**

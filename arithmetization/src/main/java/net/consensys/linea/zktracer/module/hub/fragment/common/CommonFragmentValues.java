@@ -93,9 +93,9 @@ public class CommonFragmentValues {
                 || exceptionAhoy);
   }
 
-  public void setTracedException(short exception) {
-    checkArgument(Exceptions.isException(exception));
-    this.tracedException = exception;
+  public void setTracedException(short tracedException) {
+    checkArgument(Exceptions.isPure(tracedException) && this.tracedException == Exceptions.NONE);
+    this.tracedException = tracedException;
   }
 
   static int computePcNew(

@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import org.bouncycastle.pqc.crypto.ExchangePair;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor

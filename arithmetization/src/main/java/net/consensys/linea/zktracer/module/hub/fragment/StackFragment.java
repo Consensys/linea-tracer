@@ -15,6 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
+import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
+
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
@@ -42,10 +46,6 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.internal.Words;
-
-import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
-import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
 
 @Accessors(fluent = true)
 public final class StackFragment implements TraceFragment {
@@ -221,8 +221,7 @@ public final class StackFragment implements TraceFragment {
       stampTracers.get(i).apply(Bytes.ofUnsignedLong(op.stackStamp()));
     }
 
-    final InstructionFamily currentInstFamily =
-        stack.getCurrentOpcodeData().instructionFamily();
+    final InstructionFamily currentInstFamily = stack.getCurrentOpcodeData().instructionFamily();
 
     this.tracedExceptionSanityChecks();
 
@@ -232,8 +231,7 @@ public final class StackFragment implements TraceFragment {
         .pStackAlpha(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().alpha()))
         .pStackDelta(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().delta()))
         .pStackNbAdded(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().nbAdded()))
-        .pStackNbRemoved(
-            UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().nbRemoved()))
+        .pStackNbRemoved(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().nbRemoved()))
         .pStackInstruction(Bytes.of(stack.getCurrentOpcodeData().value()))
         .pStackStaticGas(staticGas)
         // Opcode families
@@ -273,8 +271,7 @@ public final class StackFragment implements TraceFragment {
         .pStackStaticFlag(stack.getCurrentOpcodeData().stackSettings().forbiddenInStatic())
         .pStackPushValueHi(pushValue.hi())
         .pStackPushValueLo(pushValue.lo())
-        .pStackJumpDestinationVettingRequired(
-            jumpDestinationVettingRequired) // TODO: confirm this
+        .pStackJumpDestinationVettingRequired(jumpDestinationVettingRequired) // TODO: confirm this
         // Exception flag
         .pStackOpcx(tracedException == INVALID_OPCODE)
         .pStackSux(tracedException == STACK_UNDERFLOW)
@@ -302,7 +299,8 @@ public final class StackFragment implements TraceFragment {
       case INVALID_OPCODE -> checkArgument(Exceptions.invalidOpcode(exceptions));
       case STACK_UNDERFLOW -> checkArgument(Exceptions.stackUnderflow(exceptions));
       case STACK_OVERFLOW -> checkArgument(Exceptions.stackOverflow(exceptions));
-      case MEMORY_EXPANSION_EXCEPTION -> checkArgument(Exceptions.memoryExpansionException(exceptions));
+      case MEMORY_EXPANSION_EXCEPTION -> checkArgument(
+          Exceptions.memoryExpansionException(exceptions));
       case OUT_OF_GAS_EXCEPTION -> checkArgument(Exceptions.outOfGasException(exceptions));
       case RETURN_DATA_COPY_FAULT -> checkArgument(Exceptions.returnDataCopyFault(exceptions));
       case JUMP_FAULT -> checkArgument(Exceptions.jumpFault(exceptions));

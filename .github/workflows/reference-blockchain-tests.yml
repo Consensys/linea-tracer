@@ -5,14 +5,6 @@ on:
     - cron: 0 21 * * *
   workflow_dispatch:
     inputs:
-      failed_tests_file_name:
-        description: File name for filtering failed tests based on previous runs
-        required: false
-        type: string
-      failed_tests_file_path:
-        description: File path for filtering failed tests based on previous runs
-        required: false
-        type: string
       failed_module:
         description: Specific module to filter from failed tests
         required: false
@@ -83,7 +75,6 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
-          FAILED_TESTS_FILE_NAME: ${{ inputs.failed_tests_file_name || '' }}
           FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
           FAILED_MODULE: ${{ inputs.failed_module || '' }}
           FAILED_CONSTRAINT: ${{ inputs.failed_constraint || '' }}

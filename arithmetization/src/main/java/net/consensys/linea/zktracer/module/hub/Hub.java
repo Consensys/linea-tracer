@@ -50,6 +50,7 @@ import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextSection;
@@ -979,10 +980,16 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
-        ((StackFragment) section.fragments().get(i))
-            .stackOps()
-            .get(line.resultColumn() - 1)
-            .value(result);
+        // TODO: the below check is useful in any case (to avoid unchecked cast)
+        //  but is this check hiding some underlying issue somewhere else?
+        //  TestRecursiveCallsWithByteCode was failing before this check
+        TraceFragment fragment = section.fragments().get(i);
+        if (fragment instanceof StackFragment) {
+          ((StackFragment) section.fragments().get(i))
+              .stackOps()
+              .get(line.resultColumn() - 1)
+              .value(result);
+        }
       }
     }
   }

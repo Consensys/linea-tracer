@@ -40,7 +40,6 @@ public class StackOnlySection extends TraceSection {
       commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
       return;
     }
-
     this.addStack(hub);
   }
 }

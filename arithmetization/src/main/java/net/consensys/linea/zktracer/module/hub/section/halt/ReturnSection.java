@@ -42,6 +42,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.XCallOob
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.PureException;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -113,7 +114,7 @@ public class ReturnSection extends TraceSection
     checkArgument(mxpCall.mxpx == memoryExpansionException(exceptions));
 
     if (mxpCall.mxpx) {
-      commonValues.setTracedException(MEMORY_EXPANSION_EXCEPTION);
+      commonValues.setTracedException(PureException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
@@ -122,7 +123,7 @@ public class ReturnSection extends TraceSection
     // OOGX.
     if (Exceptions.outOfGasException(exceptions) && returnFromMessageCall) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
-      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 
@@ -135,7 +136,7 @@ public class ReturnSection extends TraceSection
     if (triggerOobForMaxCodeSizeException) {
       final OobCall oobCall = new XCallOobCall();
       firstImcFragment.callOob(oobCall);
-      commonValues.setTracedException(CODE_SIZE_OVERFLOW);
+      commonValues.setTracedException(PureException.CODE_SIZE_OVERFLOW);
       return;
     }
 
@@ -149,14 +150,14 @@ public class ReturnSection extends TraceSection
       firstImcFragment.callMmu(actuallyInvalidCodePrefixMmuCall);
 
       checkArgument(!actuallyInvalidCodePrefixMmuCall.successBit());
-      commonValues.setTracedException(INVALID_CODE_PREFIX);
+      commonValues.setTracedException(PureException.INVALID_CODE_PREFIX);
       return;
     }
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions) && returnFromDeployment) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
-      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

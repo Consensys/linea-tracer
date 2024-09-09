@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.MEMORY_EXPANSION_EXCEPTION;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -26,6 +25,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.PureException;
 
 public class CallDataCopySection extends TraceSection {
 
@@ -52,14 +52,14 @@ public class CallDataCopySection extends TraceSection {
 
     // The MXPX case
     if (mxpCall.mxpx) {
-      commonValues.setTracedException(MEMORY_EXPANSION_EXCEPTION);
+      commonValues.setTracedException(PureException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // The OOGX case
     if (Exceptions.any(exceptions)) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
-      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

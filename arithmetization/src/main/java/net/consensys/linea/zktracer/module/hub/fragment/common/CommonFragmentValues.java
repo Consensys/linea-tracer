@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.PureException;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -61,7 +62,7 @@ public class CommonFragmentValues {
   @Setter public int numberOfNonStackRows;
   @Setter public boolean TLI;
   @Setter public int codeFragmentIndex = -1;
-  @Getter private short tracedException = Exceptions.NONE;
+  @Getter private PureException tracedException = PureException.NONE;
 
   public CommonFragmentValues(Hub hub) {
     final boolean noStackException = !Exceptions.stackException(hub.pch().exceptions());
@@ -93,8 +94,9 @@ public class CommonFragmentValues {
                 || exceptionAhoy);
   }
 
-  public void setTracedException(short tracedException) {
-    checkArgument(Exceptions.isPure(tracedException) && this.tracedException == Exceptions.NONE);
+  public void setTracedException(PureException tracedException) {
+    checkArgument(
+        tracedException != PureException.NONE && this.tracedException == PureException.NONE);
     this.tracedException = tracedException;
   }
 

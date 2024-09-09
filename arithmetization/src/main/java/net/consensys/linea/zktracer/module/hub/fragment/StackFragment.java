@@ -15,18 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.CODE_SIZE_OVERFLOW;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.INVALID_CODE_PREFIX;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.INVALID_OPCODE;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.JUMP_FAULT;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.MEMORY_EXPANSION_EXCEPTION;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_SSTORE;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.RETURN_DATA_COPY_FAULT;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STACK_OVERFLOW;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STACK_UNDERFLOW;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STATIC_FAULT;
-
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
@@ -42,6 +30,7 @@ import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.PureException;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
@@ -70,7 +59,7 @@ public final class StackFragment implements TraceFragment {
   @Setter private boolean validJumpDestination;
   private final boolean willRevert;
   private final State.TxState.Stamps stamps;
-  private final short tracedException;
+  private final PureException tracedException;
 
   private StackFragment(
       final Hub hub,
@@ -82,7 +71,7 @@ public final class StackFragment implements TraceFragment {
       GasProjection gp,
       boolean isDeploying,
       boolean willRevert,
-      short tracedException) {
+      PureException tracedException) {
     this.stack = stack;
     this.stackOps = stackOps;
     this.exceptions = exceptions;
@@ -152,7 +141,7 @@ public final class StackFragment implements TraceFragment {
       final GasProjection gp,
       boolean isDeploying,
       boolean willRevert,
-      short tracedException) {
+      PureException tracedException) {
     return new StackFragment(
         hub,
         stack,
@@ -234,27 +223,32 @@ public final class StackFragment implements TraceFragment {
 
     // Ensuring: tracedException == SOME_EXCEPTION => Exceptions.someException(exceptions)
     Preconditions.checkArgument(
-        tracedException != INVALID_OPCODE || Exceptions.invalidOpcode(exceptions));
+        tracedException != PureException.INVALID_OPCODE || Exceptions.invalidOpcode(exceptions));
     Preconditions.checkArgument(
-        tracedException != STACK_UNDERFLOW || Exceptions.stackUnderflow(exceptions));
+        tracedException != PureException.STACK_UNDERFLOW || Exceptions.stackUnderflow(exceptions));
     Preconditions.checkArgument(
-        tracedException != STACK_OVERFLOW || Exceptions.stackOverflow(exceptions));
+        tracedException != PureException.STACK_OVERFLOW || Exceptions.stackOverflow(exceptions));
     Preconditions.checkArgument(
-        tracedException != MEMORY_EXPANSION_EXCEPTION
+        tracedException != PureException.MEMORY_EXPANSION_EXCEPTION
             || Exceptions.memoryExpansionException(exceptions));
     Preconditions.checkArgument(
-        tracedException != OUT_OF_GAS_EXCEPTION || Exceptions.outOfGasException(exceptions));
+        tracedException != PureException.OUT_OF_GAS_EXCEPTION
+            || Exceptions.outOfGasException(exceptions));
     Preconditions.checkArgument(
-        tracedException != RETURN_DATA_COPY_FAULT || Exceptions.returnDataCopyFault(exceptions));
-    Preconditions.checkArgument(tracedException != JUMP_FAULT || Exceptions.jumpFault(exceptions));
+        tracedException != PureException.RETURN_DATA_COPY_FAULT
+            || Exceptions.returnDataCopyFault(exceptions));
     Preconditions.checkArgument(
-        tracedException != STATIC_FAULT || Exceptions.staticFault(exceptions));
+        tracedException != PureException.JUMP_FAULT || Exceptions.jumpFault(exceptions));
     Preconditions.checkArgument(
-        tracedException != OUT_OF_SSTORE || Exceptions.outOfSStore(exceptions));
+        tracedException != PureException.STATIC_FAULT || Exceptions.staticFault(exceptions));
     Preconditions.checkArgument(
-        tracedException != INVALID_CODE_PREFIX || Exceptions.invalidCodePrefix(exceptions));
+        tracedException != PureException.OUT_OF_SSTORE || Exceptions.outOfSStore(exceptions));
     Preconditions.checkArgument(
-        tracedException != CODE_SIZE_OVERFLOW || Exceptions.codeSizeOverflow(exceptions));
+        tracedException != PureException.INVALID_CODE_PREFIX
+            || Exceptions.invalidCodePrefix(exceptions));
+    Preconditions.checkArgument(
+        tracedException != PureException.CODE_SIZE_OVERFLOW
+            || Exceptions.codeSizeOverflow(exceptions));
 
     return trace
         .peekAtStack(true)
@@ -306,17 +300,17 @@ public final class StackFragment implements TraceFragment {
         .pStackJumpDestinationVettingRequired(
             this.jumpDestinationVettingRequired) // TODO: confirm this
         // Exception flag
-        .pStackOpcx(tracedException == INVALID_OPCODE)
-        .pStackSux(tracedException == STACK_UNDERFLOW)
-        .pStackSox(tracedException == STACK_OVERFLOW)
-        .pStackMxpx(tracedException == MEMORY_EXPANSION_EXCEPTION)
-        .pStackOogx(tracedException == OUT_OF_GAS_EXCEPTION)
-        .pStackRdcx(tracedException == RETURN_DATA_COPY_FAULT)
-        .pStackJumpx(tracedException == JUMP_FAULT)
-        .pStackStaticx(tracedException == STATIC_FAULT)
-        .pStackSstorex(tracedException == OUT_OF_SSTORE)
-        .pStackIcpx(tracedException == INVALID_CODE_PREFIX)
-        .pStackMaxcsx(tracedException == CODE_SIZE_OVERFLOW)
+        .pStackOpcx(tracedException == PureException.INVALID_OPCODE)
+        .pStackSux(tracedException == PureException.STACK_UNDERFLOW)
+        .pStackSox(tracedException == PureException.STACK_OVERFLOW)
+        .pStackMxpx(tracedException == PureException.MEMORY_EXPANSION_EXCEPTION)
+        .pStackOogx(tracedException == PureException.OUT_OF_GAS_EXCEPTION)
+        .pStackRdcx(tracedException == PureException.RETURN_DATA_COPY_FAULT)
+        .pStackJumpx(tracedException == PureException.JUMP_FAULT)
+        .pStackStaticx(tracedException == PureException.STATIC_FAULT)
+        .pStackSstorex(tracedException == PureException.OUT_OF_SSTORE)
+        .pStackIcpx(tracedException == PureException.INVALID_CODE_PREFIX)
+        .pStackMaxcsx(tracedException == PureException.CODE_SIZE_OVERFLOW)
         // Hash data
         .pStackHashInfoFlag(this.hashInfoFlag)
         .pStackHashInfoKeccakHi(this.hashInfoKeccak.hi())

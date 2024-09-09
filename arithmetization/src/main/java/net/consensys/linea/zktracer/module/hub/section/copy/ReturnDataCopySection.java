@@ -16,9 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.MEMORY_EXPANSION_EXCEPTION;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.RETURN_DATA_COPY_FAULT;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
@@ -28,6 +26,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.ReturnDataCopyOobCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.PureException;
 
 public class ReturnDataCopySection extends TraceSection {
 
@@ -49,7 +48,7 @@ public class ReturnDataCopySection extends TraceSection {
 
     // returnDataCopyException case
     if (returnDataCopyException) {
-      commonValues.setTracedException(RETURN_DATA_COPY_FAULT);
+      commonValues.setTracedException(PureException.RETURN_DATA_COPY_FAULT);
       return;
     }
 
@@ -60,14 +59,14 @@ public class ReturnDataCopySection extends TraceSection {
 
     // memoryExpansionException case
     if (mxpCall.mxpx) {
-      commonValues.setTracedException(MEMORY_EXPANSION_EXCEPTION);
+      commonValues.setTracedException(PureException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // outOfGasException case
     if (Exceptions.any(exceptions)) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
-      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

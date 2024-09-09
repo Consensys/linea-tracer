@@ -18,8 +18,6 @@ package net.consensys.linea.zktracer.module.hub.section;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_DOING;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SSTORE_UNDOING;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_SSTORE;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STATIC_FAULT;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -31,6 +29,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.SstoreOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.PureException;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
@@ -78,7 +77,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     this.addStackAndFragments(hub, readCurrentContext);
 
     if (staticContextException) {
-      commonValues.setTracedException(STATIC_FAULT);
+      commonValues.setTracedException(PureException.STATIC_FAULT);
       return;
     }
 
@@ -89,7 +88,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     miscForSstore.callOob(new SstoreOobCall());
 
     if (sstoreException) {
-      commonValues.setTracedException(OUT_OF_SSTORE);
+      commonValues.setTracedException(PureException.OUT_OF_SSTORE);
       return;
     }
 

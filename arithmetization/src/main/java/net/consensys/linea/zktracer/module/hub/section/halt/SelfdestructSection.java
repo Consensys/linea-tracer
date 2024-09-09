@@ -32,6 +32,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.PureException;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -109,7 +110,7 @@ public class SelfdestructSection extends TraceSection
 
     // STATICX case
     if (Exceptions.staticFault(exceptions)) {
-      commonValues.setTracedException(STATIC_FAULT);
+      commonValues.setTracedException(PureException.STATIC_FAULT);
       return;
     }
 
@@ -138,7 +139,7 @@ public class SelfdestructSection extends TraceSection
 
       this.addFragment(recipientFirstAccountFragment);
 
-      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

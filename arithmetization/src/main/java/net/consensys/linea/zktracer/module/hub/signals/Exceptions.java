@@ -64,24 +64,6 @@ public class Exceptions {
   }
 
   /**
-   * @return true if the bitmask represents a pure exception, i.e., a single exception flag is
-   *     raised
-   */
-  public static boolean isPure(short bitmask) {
-    return bitmask == INVALID_OPCODE
-        || bitmask == STACK_UNDERFLOW
-        || bitmask == STACK_OVERFLOW
-        || bitmask == MEMORY_EXPANSION_EXCEPTION
-        || bitmask == OUT_OF_GAS_EXCEPTION
-        || bitmask == RETURN_DATA_COPY_FAULT
-        || bitmask == JUMP_FAULT
-        || bitmask == STATIC_FAULT
-        || bitmask == OUT_OF_SSTORE
-        || bitmask == INVALID_CODE_PREFIX
-        || bitmask == CODE_SIZE_OVERFLOW;
-  }
-
-  /**
    * @return true if no exception flag has been raised
    */
   public static boolean none(final short bitmask) {

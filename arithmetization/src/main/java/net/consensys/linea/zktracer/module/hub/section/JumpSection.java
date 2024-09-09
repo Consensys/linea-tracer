@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.*;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -28,6 +27,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpiOobCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.PureException;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
@@ -42,7 +42,7 @@ public class JumpSection extends TraceSection {
     this.addStackAndFragments(hub);
 
     if (Exceptions.outOfGasException(hub.pch().exceptions())) {
-      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

@@ -16,8 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.section.copy;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.MEMORY_EXPANSION_EXCEPTION;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.outOfGasException;
 import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 
@@ -31,6 +29,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.PureException;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -77,7 +76,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     // The MXPX case
     if (mxpCall.mxpx) {
-      commonValues.setTracedException(MEMORY_EXPANSION_EXCEPTION);
+      commonValues.setTracedException(PureException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
@@ -101,7 +100,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
               .makeWithTrm(accountBefore, accountBefore, rawAddress, doingDomSubStamps);
 
       this.addFragment(accountReadingFragment);
-      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

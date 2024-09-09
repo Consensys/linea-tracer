@@ -43,8 +43,10 @@ apply plugin: 'com.adarshr.test-logger'
 tasks.withType(Test).configureEach {
   dependsOn(buildZkevmBin)
 
+  boolean isCiServer = System.getenv().containsKey("CI")
+
   minHeapSize = "4g"
-  maxHeapSize = "8g"
+  maxHeapSize = isCiServer ? "64g" : "8g"
 
   jvmArgs = [
     '-XX:-UseGCOverheadLimit',

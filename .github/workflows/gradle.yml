@@ -19,7 +19,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest-128
     steps:
       - name: Install Go
         uses: actions/setup-go@v4

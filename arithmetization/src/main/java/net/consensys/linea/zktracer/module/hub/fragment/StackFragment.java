@@ -15,7 +15,17 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment;
 
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.*;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.CODE_SIZE_OVERFLOW;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.INVALID_CODE_PREFIX;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.INVALID_OPCODE;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.JUMP_FAULT;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.MEMORY_EXPANSION_EXCEPTION;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_SSTORE;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.RETURN_DATA_COPY_FAULT;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STACK_OVERFLOW;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STACK_UNDERFLOW;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STATIC_FAULT;
 
 import java.math.BigInteger;
 import java.util.List;

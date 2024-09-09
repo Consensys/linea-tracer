@@ -15,6 +15,7 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
@@ -24,7 +25,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.function.Consumer;
 
 import com.google.gson.Gson;
 import lombok.Builder;
@@ -38,6 +38,7 @@ import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -47,18 +48,28 @@ import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.chain.BadBlockManager;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.hyperledger.besu.ethereum.core.feemarket.CoinbaseFeePriceCalculator;
+import org.hyperledger.besu.ethereum.mainnet.LondonTargetingGasLimitCalculator;
 import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSpecFactory;
 import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpecBuilder;
+import org.hyperledger.besu.ethereum.mainnet.TransactionValidatorFactory;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.FeeMarket;
+import org.hyperledger.besu.ethereum.mainnet.feemarket.LondonFeeMarket;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
+import org.hyperledger.besu.evm.EVM;
+import org.hyperledger.besu.evm.MainnetEVMs;
 import org.hyperledger.besu.evm.account.MutableAccount;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.operation.BlockHashOperation;
+import org.hyperledger.besu.evm.precompile.MainnetPrecompiledContracts;
+import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
+import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
+import org.hyperledger.besu.evm.processor.MessageCallProcessor;
 import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
@@ -68,6 +79,14 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Builder
 @Slf4j
 public class ReplayExecutionEnvironment {
+  /**
+   * Chain ID for Linea mainnet
+   */
+  public static final BigInteger LINEA_MAINNET = BigInteger.valueOf(59144);
+  /**
+   * Chain ID for Linea sepolia
+   */
+  public static final BigInteger LINEA_SEPOLIA = BigInteger.valueOf(59141);
   /**
    * Used for checking resulting trace files.
    */
@@ -89,7 +108,7 @@ public class ReplayExecutionEnvironment {
 //
 //  @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
 
-  //private static final FeeMarket feeMarket = FeeMarket.london(-1);
+  private static final FeeMarket feeMarket = FeeMarket.london(-1);
   private final ZkTracer tracer = new ZkTracer();
 
   public void checkTracer() {
@@ -120,7 +139,7 @@ public class ReplayExecutionEnvironment {
    *
    * @param replayFile the file containing the conflation
    */
-  public void replay(final Reader replayFile) {
+  public void replay(BigInteger chainId, final Reader replayFile) {
     Gson gson = new Gson();
     ConflationSnapshot conflation;
     try {
@@ -129,11 +148,11 @@ public class ReplayExecutionEnvironment {
       log.error(e.getMessage());
       return;
     }
-    this.executeFrom(conflation);
+    this.executeFrom(chainId, conflation);
     this.checkTracer();
   }
 
-  public void replay(final Reader replayFile, String inputFilePath) {
+  public void replay(BigInteger chainId, final Reader replayFile, String inputFilePath) {
     Gson gson = new Gson();
     ConflationSnapshot conflation;
     try {
@@ -142,7 +161,7 @@ public class ReplayExecutionEnvironment {
       log.error(e.getMessage());
       return;
     }
-    this.executeFrom(conflation);
+    this.executeFrom(chainId, conflation);
     this.checkTracer(inputFilePath);
   }
 
@@ -153,14 +172,14 @@ public class ReplayExecutionEnvironment {
    *
    * @param conflation the conflation to replay
    */
-  private void executeFrom(final ConflationSnapshot conflation) {
+  private void executeFrom(final BigInteger chainId, final ConflationSnapshot conflation) {
     BlockHashOperation.BlockHashLookup blockHashLookup = conflation.toBlockHashLookup();
     ReferenceTestWorldState world =
         ReferenceTestWorldState.create(new HashMap<>(), EvmConfiguration.DEFAULT);
     // Initialise world state from conflation
-    initWorldUpdater(world.updater(),conflation);
+    initWorld(world.updater(),conflation);
     // Construct the transaction processor
-    final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
+    final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor(chainId);
     // Begin
     tracer.traceStartConflation(conflation.blocks().size());
     //
@@ -195,10 +214,12 @@ public class ReplayExecutionEnvironment {
     tracer.traceEndConflation(world.updater());
   }
 
-  private MainnetTransactionProcessor getMainnetTransactionProcessor() {
+  /**
+   * Construct transaction processor a given chain (e.g. 59144 for mainnet, 59141 for sepolia, etc).
+   * @return
+   */
+  private MainnetTransactionProcessor getMainnetTransactionProcessor(BigInteger chainId) {
     EvmConfiguration evmConfig = EvmConfiguration.DEFAULT;
-    // Set Linea Chain ID (mainnet)
-    BigInteger chainId = BigInteger.valueOf(59144);
     // Read genesis config for linea
     GenesisConfigFile configFile = GenesisConfigFile.fromSource(GenesisConfigFile.class.getResource("/linea.json"));
     GenesisConfigOptions options = configFile.getConfigOptions();
@@ -227,6 +248,40 @@ public class ReplayExecutionEnvironment {
     return builder.build(schedule).getTransactionProcessor();
   }
 
+  private MainnetTransactionProcessor getMainnetTransactionProcessorOrig() {
+    BigInteger chainId = BigInteger.valueOf(59144);
+    // Construct EVM for executing transactions.
+    final EVM evm = MainnetEVMs.london(chainId, EvmConfiguration.DEFAULT);
+    //
+    PrecompileContractRegistry precompileContractRegistry = new PrecompileContractRegistry();
+
+    MainnetPrecompiledContracts.populateForIstanbul(
+      precompileContractRegistry, evm.getGasCalculator());
+
+    final MessageCallProcessor messageCallProcessor =
+      new MessageCallProcessor(evm, precompileContractRegistry);
+
+    final ContractCreationProcessor contractCreationProcessor =
+      new ContractCreationProcessor(evm, false, List.of(), 1);
+
+    return new MainnetTransactionProcessor(
+      ZkTracer.gasCalculator,
+      new TransactionValidatorFactory(
+        ZkTracer.gasCalculator,
+        new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0)),
+        new LondonFeeMarket(0L),
+        false,
+        Optional.of(chainId),
+        Set.of(TransactionType.FRONTIER, TransactionType.ACCESS_LIST, TransactionType.EIP1559),
+        GlobalConstants.MAX_CODE_SIZE),
+      contractCreationProcessor,
+      messageCallProcessor,
+      true,
+      false,
+      MAX_STACK_SIZE,
+      feeMarket,
+      CoinbaseFeePriceCalculator.eip1559());
+  }
   public Hub getHub() {
     return tracer.getHub();
   }
@@ -238,7 +293,8 @@ public class ReplayExecutionEnvironment {
    * @param world The world to be initialised.
    * @param conflation The conflation from which to initialise.
    */
-  private static void initWorldUpdater(WorldUpdater world, final ConflationSnapshot conflation) {
+  private static void initWorld(WorldUpdater world, final ConflationSnapshot conflation) {
+    WorldUpdater updater = world.updater();
     for (AccountSnapshot account : conflation.accounts()) {
       // Construct contract address
       Address addr = Address.fromHexString(account.address());
@@ -255,6 +311,8 @@ public class ReplayExecutionEnvironment {
         .getAccount(Words.toAddress(Bytes.fromHexString(s.address())))
         .setStorageValue(UInt256.fromHexString(s.key()), UInt256.fromHexString(s.value()));
     }
+    //
+    world.commit();
   }
 
   /**

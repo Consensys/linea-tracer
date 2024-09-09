@@ -49,8 +49,7 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
       if (Exceptions.any(exceptions)) {
         // the "squash parent return data" context row is all there is
         Preconditions.checkArgument(Exceptions.outOfGasException(exceptions));
-        // NOTE: no other exception beyond OUT_OF_GAS_EXCEPTION are supposed to be managed at this
-        // point
+        // NOTE: no other exception beyond OUT_OF_GAS_EXCEPTION are supposed to be managed here
         commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
         return;
       }

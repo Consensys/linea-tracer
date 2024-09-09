@@ -47,8 +47,9 @@ tasks.register('referenceBlockchainTests', Test) {
 
   dependsOn generateBlockchainReferenceTests
 
+  boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = "4g"
-  maxHeapSize = "20g"
+  maxHeapSize = isCiServer ? "32g" : "8g"
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
@@ -60,8 +61,9 @@ tasks.register('referenceGeneralStateTests', Test) {
 
   dependsOn generateGeneralStateReferenceTests
 
+  boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = "4g"
-  maxHeapSize = "20g"
+  maxHeapSize = isCiServer ? "32g" : "8g"
 
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")
@@ -71,8 +73,9 @@ tasks.register('referenceGeneralStateTests', Test) {
 tasks.register('referenceTests', Test) {
   description = 'Runs ETH reference tests.'
 
+  boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = "4g"
-  maxHeapSize = "20g"
+  maxHeapSize = isCiServer ? "32g" : "8g"
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")

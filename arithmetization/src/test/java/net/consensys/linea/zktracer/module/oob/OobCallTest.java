@@ -103,6 +103,54 @@ public class OobCallTest {
     // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
   }
 
+  /**
+   * Same as {@link #TestRecursiveCallsWithBytecode()} but with an ADD opcode at the end triggering
+   * SUX
+   */
+  @Test
+  void TestRecursiveCallsWithBytecodeFollowedByStackUnderflow() {
+    final BytecodeRunner bytecodeRunner =
+        BytecodeRunner.of(Bytes.fromHexString("60006000600060006000305af101"));
+    bytecodeRunner.run(Wei.fromEth(400), 0xFFFFFFL);
+
+    final Hub hub = bytecodeRunner.getHub();
+
+    assertTrue(Exceptions.none(hub.pch().exceptions()));
+
+    // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+  }
+
+  /**
+   * Same as {@link #TestRecursiveCallsWithBytecode()} but with an ADDRESS opcode at the end
+   * triggering OOGX
+   */
+  @Test
+  void TestRecursiveCallsWithBytecodeFollowedByOutOfGas() {
+    final BytecodeRunner bytecodeRunner =
+        BytecodeRunner.of(Bytes.fromHexString("60006000600060006000305af130"));
+    bytecodeRunner.run(Wei.fromEth(400), 0xFFFFFFL);
+
+    final Hub hub = bytecodeRunner.getHub();
+
+    assertTrue(Exceptions.none(hub.pch().exceptions()));
+
+    // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+  }
+
+  /** Same as {@link #TestRecursiveCallsWithBytecode()} but with an STOP opcode at the end */
+  @Test
+  void TestRecursiveCallsWithBytecodeFollowedByExplicitStop() {
+    final BytecodeRunner bytecodeRunner =
+        BytecodeRunner.of(Bytes.fromHexString("60006000600060006000305af100"));
+    bytecodeRunner.run(Wei.fromEth(400), 0xFFFFFFL);
+
+    final Hub hub = bytecodeRunner.getHub();
+
+    assertTrue(Exceptions.none(hub.pch().exceptions()));
+
+    // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+  }
+
   // Support methods
   private void testCallSendValue(EWord balanceOfCaller, EWord amountToSend) {
     testCallSendValue(balanceOfCaller, amountToSend, 0);

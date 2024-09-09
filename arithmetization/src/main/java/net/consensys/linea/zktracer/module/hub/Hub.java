@@ -984,12 +984,11 @@ public class Hub implements Module {
         //  but is this check hiding some underlying issue somewhere else?
         //  TestRecursiveCallsWithByteCode was failing before this check
         TraceFragment fragment = section.fragments().get(i);
-        if (fragment instanceof StackFragment) {
-          ((StackFragment) section.fragments().get(i))
-              .stackOps()
-              .get(line.resultColumn() - 1)
-              .value(result);
-        }
+        checkArgument(fragment instanceof StackFragment);
+        ((StackFragment) section.fragments().get(i))
+            .stackOps()
+            .get(line.resultColumn() - 1)
+            .value(result);
       }
     }
   }

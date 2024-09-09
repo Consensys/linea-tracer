@@ -23,17 +23,6 @@ on:
         type: string
 
 jobs:
-  get-branch-name:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get branch name
-        run: |
-          echo "Branch: ${github.event.ref}"
-          BRANCH_NAME=${github.event.ref##*/} 
-          echo "Branch name: $BRANCH_NAME"
-    outputs:
-      branch-name: $BRANCH_NAME
-
   ethereum-tests:
     runs-on: ubuntu-latest-128
     steps:
@@ -46,6 +35,11 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
+
+      - name: get-branch-name
+        id: extract_branch
+        run: |  
+            echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -90,7 +84,7 @@ jobs:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
           FAILED_TESTS_FILE_NAME: ${{ inputs.failed_tests_file_name || '' }}
-          FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ inputs.branch-name }}/
+          FAILED_TEST_JSON_DIRECTORY: ${{ inputs.failed_tests_file_path || github.workspace + '/tmp/' + steps.extract_branch.outputs.branch + '/' }}
           FAILED_MODULE: ${{ inputs.failed_module || '' }}
           FAILED_CONSTRAINT: ${{ inputs.failed_constraint || '' }}
 
@@ -98,4 +92,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: my-artifact
-          path: ${{ github.workspace }}/tmp/${{ inputs.branch-name }}/${{ inputs.failed_tests_file_name }}
+          path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/${{ inputs.failed_tests_file_name }}

@@ -29,7 +29,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.PureException;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
@@ -56,13 +56,13 @@ public class StackRamSection extends TraceSection {
 
     // MXPX case
     if (mxpCall.isMxpx()) {
-      commonValues.setTracedException(PureException.MEMORY_EXPANSION_EXCEPTION);
+      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
-      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

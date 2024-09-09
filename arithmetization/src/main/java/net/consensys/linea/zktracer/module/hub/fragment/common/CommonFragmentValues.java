@@ -17,6 +17,9 @@ package net.consensys.linea.zktracer.module.hub.fragment.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.*;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
 
 import java.math.BigInteger;
 
@@ -28,12 +31,13 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.PureException;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.bouncycastle.pqc.crypto.ExchangePair;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
@@ -62,11 +66,11 @@ public class CommonFragmentValues {
   @Setter public int numberOfNonStackRows;
   @Setter public boolean TLI;
   @Setter public int codeFragmentIndex = -1;
-  @Getter private PureException tracedException = PureException.NONE;
+  @Getter private TracedException tracedException;
 
   public CommonFragmentValues(Hub hub) {
-    final boolean noStackException = !Exceptions.stackException(hub.pch().exceptions());
-    final InstructionFamily instructionFamily = hub.opCode().getData().instructionFamily();
+    short exceptions = hub.pch().exceptions();
+    final boolean noStackException = !stackException(exceptions);
 
     this.txMetadata = hub.txStack().current();
     this.hubProcessingPhase = hub.state().getProcessingPhase();
@@ -74,7 +78,7 @@ public class CommonFragmentValues {
     this.callStack = hub.callStack();
     this.stamps = hub.state().stamps();
     this.callFrame = hub.currentFrame();
-    this.exceptionAhoy = Exceptions.any(hub.pch().exceptions());
+    this.exceptionAhoy = any(exceptions);
     // this.contextNumberNew = hub.contextNumberNew(callFrame);
     this.pc = hubProcessingPhase == TX_EXEC ? hub.currentFrame().pc() : 0;
     this.pcNew = computePcNew(hub, pc, noStackException, hub.state.getProcessingPhase() == TX_EXEC);
@@ -85,19 +89,34 @@ public class CommonFragmentValues {
     this.gasExpected = hub.expectedGas();
     this.gasActual = hub.remainingGas();
 
+    final InstructionFamily instructionFamily = hub.opCode().getData().instructionFamily();
     this.contextMayChange =
         hubProcessingPhase == HubProcessingPhase.TX_EXEC
-            && ((instructionFamily == InstructionFamily.CALL
-                    || instructionFamily == InstructionFamily.CREATE
-                    || instructionFamily == InstructionFamily.HALT
-                    || instructionFamily == InstructionFamily.INVALID)
+            && ((instructionFamily == CALL
+                    || instructionFamily == CREATE
+                    || instructionFamily == HALT
+                    || instructionFamily == INVALID)
                 || exceptionAhoy);
+
+    tracedException = noStackException ? TracedException.NONE : TracedException.UNDEFINED;
+
+    if (instructionFamily == INVALID) {
+      checkArgument(Exceptions.invalidOpcode(exceptions));
+      setTracedException(TracedException.INVALID_OPCODE);
+    }
+
+    if (Exceptions.stackUnderflow(exceptions)) {
+      setTracedException(TracedException.STACK_UNDERFLOW);
+    }
+
+    if (Exceptions.stackOverflow(exceptions)) {
+      setTracedException(TracedException.STACK_OVERFLOW);
+    }
   }
 
-  public void setTracedException(PureException tracedException) {
-    checkArgument(
-        tracedException != PureException.NONE && this.tracedException == PureException.NONE);
-    this.tracedException = tracedException;
+  public void setTracedException(TracedException finalTracedException) {
+    checkArgument(tracedException == UNDEFINED);
+    this.tracedException = finalTracedException;
   }
 
   static int computePcNew(

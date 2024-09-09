@@ -51,7 +51,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CreateOo
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.PureException;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
@@ -112,7 +112,7 @@ public class CreateSection extends TraceSection
     // Note: in the static case this imc fragment remains empty
     if (Exceptions.staticFault(exceptions)) {
       scenarioFragment.setScenario(CREATE_EXCEPTION);
-      commonValues.setTracedException(PureException.STATIC_FAULT);
+      commonValues.setTracedException(TracedException.STATIC_FAULT);
       return;
     }
 
@@ -123,7 +123,7 @@ public class CreateSection extends TraceSection
     // MXPX case
     if (mxpCall.mxpx) {
       scenarioFragment.setScenario(CREATE_EXCEPTION);
-      commonValues.setTracedException(PureException.MEMORY_EXPANSION_EXCEPTION);
+      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 

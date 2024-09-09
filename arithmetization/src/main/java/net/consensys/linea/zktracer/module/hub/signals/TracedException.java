@@ -15,7 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.signals;
 
-public enum PureException {
+public enum TracedException {
+  UNDEFINED,
   NONE,
   INVALID_OPCODE,
   STACK_UNDERFLOW,

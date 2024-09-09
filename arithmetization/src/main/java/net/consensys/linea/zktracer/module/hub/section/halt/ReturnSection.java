@@ -39,7 +39,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.XCallOob
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.PureException;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -111,7 +111,7 @@ public class ReturnSection extends TraceSection
     checkArgument(mxpCall.mxpx == memoryExpansionException(exceptions));
 
     if (mxpCall.mxpx) {
-      commonValues.setTracedException(PureException.MEMORY_EXPANSION_EXCEPTION);
+      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
@@ -120,7 +120,7 @@ public class ReturnSection extends TraceSection
     // OOGX.
     if (Exceptions.outOfGasException(exceptions) && returnFromMessageCall) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
-      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 
@@ -133,7 +133,7 @@ public class ReturnSection extends TraceSection
     if (triggerOobForMaxCodeSizeException) {
       final OobCall oobCall = new XCallOobCall();
       firstImcFragment.callOob(oobCall);
-      commonValues.setTracedException(PureException.CODE_SIZE_OVERFLOW);
+      commonValues.setTracedException(TracedException.CODE_SIZE_OVERFLOW);
       return;
     }
 
@@ -147,14 +147,14 @@ public class ReturnSection extends TraceSection
       firstImcFragment.callMmu(actuallyInvalidCodePrefixMmuCall);
 
       checkArgument(!actuallyInvalidCodePrefixMmuCall.successBit());
-      commonValues.setTracedException(PureException.INVALID_CODE_PREFIX);
+      commonValues.setTracedException(TracedException.INVALID_CODE_PREFIX);
       return;
     }
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions) && returnFromDeployment) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
-      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

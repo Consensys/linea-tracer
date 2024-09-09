@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.PureException;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 
 public class StackOnlySection extends TraceSection {
   public StackOnlySection(Hub hub) {
@@ -28,15 +28,15 @@ public class StackOnlySection extends TraceSection {
     final short exceptions = hub.pch().exceptions();
 
     if (Exceptions.stackUnderflow(exceptions)) {
-      commonValues.setTracedException(PureException.STACK_UNDERFLOW);
+      commonValues.setTracedException(TracedException.STACK_UNDERFLOW);
       return;
     }
     if (Exceptions.stackOverflow(exceptions)) {
-      commonValues.setTracedException(PureException.STACK_OVERFLOW);
+      commonValues.setTracedException(TracedException.STACK_OVERFLOW);
       return;
     }
     if (Exceptions.outOfGasException(exceptions)) {
-      commonValues.setTracedException(PureException.OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
   }

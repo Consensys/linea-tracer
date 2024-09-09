@@ -16,7 +16,6 @@ package net.consensys.linea.zktracer.module.hub.section.halt;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.STATIC_FAULT;
 
 import java.util.List;
 import java.util.Map;

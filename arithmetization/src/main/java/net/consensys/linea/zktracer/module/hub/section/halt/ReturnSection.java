@@ -16,9 +16,6 @@ package net.consensys.linea.zktracer.module.hub.section.halt;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.CODE_SIZE_OVERFLOW;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.INVALID_CODE_PREFIX;
-import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.MEMORY_EXPANSION_EXCEPTION;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.memoryExpansionException;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;

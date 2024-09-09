@@ -35,10 +35,10 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import net.consensys.linea.testing.ReplayExecutionEnvironment;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
 /**
  * Replays are captured on a fully (not snapshot) synchronized Besu node running the plugin:

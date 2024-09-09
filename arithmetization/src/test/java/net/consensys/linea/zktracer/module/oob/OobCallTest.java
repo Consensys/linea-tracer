@@ -24,7 +24,6 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
-import net.consensys.linea.testing.ToyWorld;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.types.EWord;

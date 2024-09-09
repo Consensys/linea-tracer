@@ -52,6 +52,10 @@ class ExampleTxTest {
     Transaction tx =
         ToyTransaction.builder().sender(senderAccount).to(receiverAccount).keyPair(keyPair).build();
 
-    ToyExecutionEnvironmentV2.builder().accounts(List.of(senderAccount, receiverAccount)).transaction(tx).build().run();
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(senderAccount, receiverAccount))
+        .transaction(tx)
+        .build()
+        .run();
   }
 }

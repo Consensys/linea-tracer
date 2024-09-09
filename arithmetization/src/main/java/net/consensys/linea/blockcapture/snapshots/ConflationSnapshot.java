@@ -38,6 +38,7 @@ public record ConflationSnapshot(
 
   /**
    * Construct a block hash map for any block hashes embedded in this conflation.
+   *
    * @return
    */
   public BlockHashLookup toBlockHashLookup() {
@@ -64,13 +65,13 @@ public record ConflationSnapshot(
 
     @Override
     public Hash apply(Long blockNumber) {
-        // Sanity check we found the hash
-        if (!this.blockHashCache.containsKey(blockNumber)) {
-          // Missing for some reason
-          throw new IllegalArgumentException("missing hash of block " + blockNumber);
-        }
-        // Yes, we have it.
-        return this.blockHashCache.get(blockNumber);
+      // Sanity check we found the hash
+      if (!this.blockHashCache.containsKey(blockNumber)) {
+        // Missing for some reason
+        throw new IllegalArgumentException("missing hash of block " + blockNumber);
+      }
+      // Yes, we have it.
+      return this.blockHashCache.get(blockNumber);
     }
   }
 }

@@ -27,7 +27,6 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
-import net.consensys.linea.testing.ToyWorld;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;

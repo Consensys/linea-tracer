@@ -79,36 +79,25 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Builder
 @Slf4j
 public class ReplayExecutionEnvironment {
-  /**
-   * Chain ID for Linea mainnet
-   */
+  /** Chain ID for Linea mainnet */
   public static final BigInteger LINEA_MAINNET = BigInteger.valueOf(59144);
-  /**
-   * Chain ID for Linea sepolia
-   */
+
+  /** Chain ID for Linea sepolia */
   public static final BigInteger LINEA_SEPOLIA = BigInteger.valueOf(59141);
-  /**
-   * Used for checking resulting trace files.
-   */
+
+  /** Used for checking resulting trace files. */
   private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
+
   /**
-   * Determines whether transaction results should be checked against expected results embedded in replay files.
-   * This gives an additional level of assurance that the tests properly reflect mainnet (or e.g. sepolia as
-   * appropriate).  When this is set to false, replay tests will not fail even if the tx outcome differs from what
-   * actually occurred on the relevant chain (e.g. mainnet).  Such scenarios have arisen, for example, when
-   * <code>ZkTracer</code> has an unexpected side-effect on tx execution (which it never should).
+   * Determines whether transaction results should be checked against expected results embedded in
+   * replay files. This gives an additional level of assurance that the tests properly reflect
+   * mainnet (or e.g. sepolia as appropriate). When this is set to false, replay tests will not fail
+   * even if the tx outcome differs from what actually occurred on the relevant chain (e.g.
+   * mainnet). Such scenarios have arisen, for example, when <code>ZkTracer</code> has an unexpected
+   * side-effect on tx execution (which it never should).
    */
   private final boolean txResultChecking;
 
-//  /**
-//   * A function applied to the {@link TransactionProcessingResult} of each transaction; by default,
-//   * asserts that the transaction is successful.
-//   */
-//  @Builder.Default private final Consumer<TransactionProcessingResult> testValidator = x -> {};
-//
-//  @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
-
-  private static final FeeMarket feeMarket = FeeMarket.london(-1);
   private final ZkTracer tracer = new ZkTracer();
 
   public void checkTracer() {
@@ -177,9 +166,10 @@ public class ReplayExecutionEnvironment {
     ReferenceTestWorldState world =
         ReferenceTestWorldState.create(new HashMap<>(), EvmConfiguration.DEFAULT);
     // Initialise world state from conflation
-    initWorld(world.updater(),conflation);
+    initWorld(world.updater(), conflation);
     // Construct the transaction processor
-    final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor(chainId);
+    final MainnetTransactionProcessor transactionProcessor =
+        getMainnetTransactionProcessor(chainId);
     // Begin
     tracer.traceStartConflation(conflation.blocks().size());
     //
@@ -216,31 +206,35 @@ public class ReplayExecutionEnvironment {
 
   /**
    * Construct transaction processor a given chain (e.g. 59144 for mainnet, 59141 for sepolia, etc).
+   *
    * @return
    */
   private MainnetTransactionProcessor getMainnetTransactionProcessor(BigInteger chainId) {
     EvmConfiguration evmConfig = EvmConfiguration.DEFAULT;
     // Read genesis config for linea
-    GenesisConfigFile configFile = GenesisConfigFile.fromSource(GenesisConfigFile.class.getResource("/linea.json"));
+    GenesisConfigFile configFile =
+        GenesisConfigFile.fromSource(GenesisConfigFile.class.getResource("/linea.json"));
     GenesisConfigOptions options = configFile.getConfigOptions();
     BadBlockManager badBlockManager = new BadBlockManager();
     // Create the schedule
-    ProtocolSchedule schedule = MainnetProtocolSchedule.fromConfig(
-      options,
-      MiningParameters.MINING_DISABLED,
-      badBlockManager,
-      false,
-      new NoOpMetricsSystem()
-    );
+    ProtocolSchedule schedule =
+        MainnetProtocolSchedule.fromConfig(
+            options,
+            MiningParameters.MINING_DISABLED,
+            badBlockManager,
+            false,
+            new NoOpMetricsSystem());
     // Create
-    ProtocolSpecBuilder builder = new MainnetProtocolSpecFactory(
-      Optional.of(chainId),
-      true,
-      OptionalLong.empty(),
-      evmConfig,
-      MiningParameters.MINING_DISABLED,
-      false,
-      new NoOpMetricsSystem()).londonDefinition(options); //.lineaOpCodesDefinition(options);
+    ProtocolSpecBuilder builder =
+        new MainnetProtocolSpecFactory(
+                Optional.of(chainId),
+                true,
+                OptionalLong.empty(),
+                evmConfig,
+                MiningParameters.MINING_DISABLED,
+                false,
+                new NoOpMetricsSystem())
+            .londonDefinition(options); // .lineaOpCodesDefinition(options);
     //
     builder.privacyParameters(PrivacyParameters.DEFAULT);
     builder.badBlocksManager(badBlockManager);
@@ -248,40 +242,6 @@ public class ReplayExecutionEnvironment {
     return builder.build(schedule).getTransactionProcessor();
   }
 
-  private MainnetTransactionProcessor getMainnetTransactionProcessorOrig() {
-    BigInteger chainId = BigInteger.valueOf(59144);
-    // Construct EVM for executing transactions.
-    final EVM evm = MainnetEVMs.london(chainId, EvmConfiguration.DEFAULT);
-    //
-    PrecompileContractRegistry precompileContractRegistry = new PrecompileContractRegistry();
-
-    MainnetPrecompiledContracts.populateForIstanbul(
-      precompileContractRegistry, evm.getGasCalculator());
-
-    final MessageCallProcessor messageCallProcessor =
-      new MessageCallProcessor(evm, precompileContractRegistry);
-
-    final ContractCreationProcessor contractCreationProcessor =
-      new ContractCreationProcessor(evm, false, List.of(), 1);
-
-    return new MainnetTransactionProcessor(
-      ZkTracer.gasCalculator,
-      new TransactionValidatorFactory(
-        ZkTracer.gasCalculator,
-        new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0)),
-        new LondonFeeMarket(0L),
-        false,
-        Optional.of(chainId),
-        Set.of(TransactionType.FRONTIER, TransactionType.ACCESS_LIST, TransactionType.EIP1559),
-        GlobalConstants.MAX_CODE_SIZE),
-      contractCreationProcessor,
-      messageCallProcessor,
-      true,
-      false,
-      MAX_STACK_SIZE,
-      feeMarket,
-      CoinbaseFeePriceCalculator.eip1559());
-  }
   public Hub getHub() {
     return tracer.getHub();
   }
@@ -300,16 +260,16 @@ public class ReplayExecutionEnvironment {
       Address addr = Address.fromHexString(account.address());
       // Create account
       MutableAccount acc =
-        world.createAccount(
-          Words.toAddress(addr), account.nonce(), Wei.fromHexString(account.balance()));
+          world.createAccount(
+              Words.toAddress(addr), account.nonce(), Wei.fromHexString(account.balance()));
       // Update code
       acc.setCode(Bytes.fromHexString(account.code()));
     }
     // Initialise storage
     for (StorageSnapshot s : conflation.storage()) {
       world
-        .getAccount(Words.toAddress(Bytes.fromHexString(s.address())))
-        .setStorageValue(UInt256.fromHexString(s.key()), UInt256.fromHexString(s.value()));
+          .getAccount(Words.toAddress(Bytes.fromHexString(s.address())))
+          .setStorageValue(UInt256.fromHexString(s.key()), UInt256.fromHexString(s.value()));
     }
     //
     world.commit();

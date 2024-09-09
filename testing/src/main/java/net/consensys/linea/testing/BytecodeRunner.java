@@ -112,12 +112,12 @@ public final class BytecodeRunner {
     accounts.addAll(additionalAccounts);
 
     toyExecutionEnvironmentV2 =
-          ToyExecutionEnvironmentV2.builder()
-              .testValidator(x -> {})
-              .accounts(accounts)
-              .zkTracerValidator(zkTracerValidator)
-              .transaction(tx)
-              .build();
+        ToyExecutionEnvironmentV2.builder()
+            .testValidator(x -> {})
+            .accounts(accounts)
+            .zkTracerValidator(zkTracerValidator)
+            .transaction(tx)
+            .build();
     toyExecutionEnvironmentV2.run();
   }
 

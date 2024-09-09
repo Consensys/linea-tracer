@@ -24,7 +24,6 @@ import java.util.Random;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
-import net.consensys.linea.testing.ToyWorld;
 import net.consensys.linea.zktracer.types.AddressUtils;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -196,8 +195,11 @@ public class ContractModifyingStorageTest {
             .value(Wei.fromEth(3))
             .build());
 
-    ToyExecutionEnvironmentV2.builder().accounts(List.of(account1, account2, account3, account4, account5))
-      .transactions(txList).build().run();
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(account1, account2, account3, account4, account5))
+        .transactions(txList)
+        .build()
+        .run();
   }
 
   // Temporary support function

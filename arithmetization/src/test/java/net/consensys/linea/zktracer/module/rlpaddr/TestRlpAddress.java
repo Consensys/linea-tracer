@@ -24,7 +24,6 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
-import net.consensys.linea.testing.ToyWorld;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -41,7 +40,7 @@ public class TestRlpAddress {
 
   @Test
   void randDeployment() {
-    //final ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
+    // final ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
 
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -69,7 +68,11 @@ public class TestRlpAddress {
 
     Address deploymentAddress = Address.contractAddress(senderAddress, senderAccount.getNonce());
 
-    ToyExecutionEnvironmentV2.builder().accounts(List.of(senderAccount)).transaction(tx).build().run();
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(senderAccount))
+        .transaction(tx)
+        .build()
+        .run();
   }
 
   @Test
@@ -132,7 +135,7 @@ public class TestRlpAddress {
             .build();
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount,contractAccount))
+        .accounts(List.of(senderAccount, contractAccount))
         .transaction(tx)
         .testValidator(x -> {})
         .build()

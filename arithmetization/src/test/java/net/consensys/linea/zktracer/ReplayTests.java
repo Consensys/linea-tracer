@@ -93,6 +93,7 @@ public class ReplayTests {
 
   /**
    * Implementation of replay for tests running on a given chain, with result checking enabled.
+   *
    * @param chainId Chain for testing (e.g. mainnet or sepolia, etc)
    * @param filename Name of replay file
    */
@@ -188,12 +189,12 @@ public class ReplayTests {
 
   @Test
   void traceTxStartNotTheSameAsTxPrepare() {
-    replay(LINEA_MAINNET,"start-vs-prepare-tx.json.gz");
+    replay(LINEA_MAINNET, "start-vs-prepare-tx.json.gz");
   }
 
   @Test
   void fatMxp() {
-    replay(LINEA_MAINNET,"2492975-2492977.json.gz", false);
+    replay(LINEA_MAINNET, "2492975-2492977.json.gz");
   }
 
   /**
@@ -205,81 +206,81 @@ public class ReplayTests {
   @Test
   void bulkReplay() {
     // bulkReplay("./src/test/resources/replays");
-    bulkReplay(LINEA_MAINNET,"");
+    bulkReplay(LINEA_MAINNET, "");
   }
 
   @Test
   void leoFailingRange() {
-    replay(LINEA_MAINNET,"5389571-5389577.json.gz");
+    replay(LINEA_MAINNET, "5389571-5389577.json.gz");
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void failingMmuModexp() {
-    replay(LINEA_MAINNET,"5995162.json.gz");
+    replay(LINEA_MAINNET, "5995162.json.gz");
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void failRlpAddress() {
-    replay(LINEA_MAINNET,"5995097.json.gz");
+    replay(LINEA_MAINNET, "5995097.json.gz");
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void rlprcptManyTopicsWoLogData() {
-    replay(LINEA_MAINNET,"6569423.json.gz", false);
+    replay(LINEA_MAINNET, "6569423.json.gz", false);
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void multipleFailingCallToEcrecover() {
-    replay(LINEA_MAINNET,"5000544.json.gz");
+    replay(LINEA_MAINNET, "5000544.json.gz");
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void incident777zkGethMainnet() {
-    replay(LINEA_MAINNET,"7461019-7461030.json.gz");
+    replay(LINEA_MAINNET, "7461019-7461030.json.gz");
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void issue1006() {
-    replay(LINEA_MAINNET,"6032696-6032699.json.gz");
+    replay(LINEA_MAINNET, "6032696-6032699.json.gz");
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void issue1004() {
-    replay(LINEA_MAINNET,"6020023-6020029.json.gz", false);
+    replay(LINEA_MAINNET, "6020023-6020029.json.gz", false);
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void block_6110045() {
     // The purpose of this test is to check the mechanism for spotting divergence between the replay
     // tests and mainnet.  Specifically, this replay has transaction result information embedded
     // within it.
-    replay(LINEA_MAINNET,"6110045.json.gz");
+    replay(LINEA_MAINNET, "6110045.json.gz");
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void failingCreate2() {
-    replay(LINEA_MAINNET,"2250197-2250197.json.gz");
+    replay(LINEA_MAINNET, "2250197-2250197.json.gz");
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void blockHash1() {
-    replay(LINEA_MAINNET,"8718090.json.gz");
+    replay(LINEA_MAINNET, "8718090.json.gz");
   }
 
-  // // @Disabled
+  // @Disabled
   @Test
   void blockHash2() {
-    replay(LINEA_MAINNET,"8718330.json.gz");
+    replay(LINEA_MAINNET, "8718330.json.gz");
   }
 
   // TODO: should be replaced by a unit test triggering AnyToRamWithPadding (mixed case) MMU
@@ -288,24 +289,24 @@ public class ReplayTests {
   // @Disabled
   @Test
   void negativeNumberOfMmioInstruction() {
-    replay(LINEA_MAINNET,"6029454-6029459.json.gz");
+    replay(LINEA_MAINNET, "6029454-6029459.json.gz");
   }
 
   @Test
   void simpleSelfDestruct() {
-    replay(LINEA_MAINNET,"50020-50029.json.gz", false);
+    replay(LINEA_MAINNET, "50020-50029.json.gz", false);
   }
 
   // TODO: should be replaced by a unit test triggering a failed CREATE2
   @Test
   void failedCreate2() {
-    replay(LINEA_MAINNET,"41640-41649.json.gz");
+    replay(LINEA_MAINNET, "41640-41649.json.gz");
   }
 
   @Disabled() // Unknown Problem
   @Test
   void largeInitCode() {
-    replay(LINEA_SEPOLIA,"3318494.sepolia.json.gz", true);
+    replay(LINEA_SEPOLIA, "3318494.sepolia.json.gz");
   }
 
   // Leo's range split up 5104800-5104883
@@ -313,7 +314,7 @@ public class ReplayTests {
   // @Disabled
   @Test
   void test_5104800_5104809() {
-    replay(LINEA_MAINNET,"5104800-5104809.json.gz");
+    replay(LINEA_MAINNET, "5104800-5104809.json.gz");
   }
 
   // @Disabled

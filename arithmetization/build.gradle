@@ -90,11 +90,11 @@ tasks.register("replayTests", Test) {
   boolean isCiServer = System.getenv().containsKey("CI")
   maxHeapSize = isCiServer ? "32g" : "8g"
 
-//  systemProperty("junit.jupiter.execution.parallel.enabled", true)
-//  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
-//  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
-//  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
-//  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", 4)
+  //  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  //  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+  //  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+  //  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+  //  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism", 4)
 
 
   useJUnitPlatform {

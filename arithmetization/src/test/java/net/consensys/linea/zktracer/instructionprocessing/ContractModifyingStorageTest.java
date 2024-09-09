@@ -89,10 +89,8 @@ public class ContractModifyingStorageTest {
 
     checkArgument(tx.isContractCreation());
 
-    ToyWorld toyWorld = ToyWorld.builder().accounts(List.of(userAccount)).build();
-
     ToyExecutionEnvironmentV2 toyExecutionEnvironment =
-        ToyExecutionEnvironmentV2.builder().toyWorld(toyWorld).transaction(tx).build();
+        ToyExecutionEnvironmentV2.builder().accounts(List.of(userAccount)).transaction(tx).build();
 
     toyExecutionEnvironment.run();
   }
@@ -122,10 +120,8 @@ public class ContractModifyingStorageTest {
             .keyPair(keyPair)
             .build();
 
-    ToyWorld toyWorld = ToyWorld.builder().accounts(List.of(userAccount)).build();
-
     ToyExecutionEnvironmentV2 toyExecutionEnvironment =
-        ToyExecutionEnvironmentV2.builder().toyWorld(toyWorld).transaction(tx).build();
+        ToyExecutionEnvironmentV2.builder().accounts(List.of(userAccount)).transaction(tx).build();
 
     // TODO: add transaction to invoke function
 
@@ -136,7 +132,6 @@ public class ContractModifyingStorageTest {
 
   @Test
   void temporaryTest() {
-    ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
     List<Transaction> txList = new ArrayList<>();
 
     KeyPair keyPair1 = new SECP256K1().generateKeyPair();
@@ -167,7 +162,6 @@ public class ContractModifyingStorageTest {
     ToyAccount account5 = buildAnAccount(Address.extract(Hash.hash(pk5.getEncodedBytes())), 7);
 
     Bytes initCode = randData(true);
-    world.accounts(List.of(account1, account2, account3, account4, account5));
 
     // TODO: deployment transaction fails in our ToyWorld
     /*
@@ -202,7 +196,8 @@ public class ContractModifyingStorageTest {
             .value(Wei.fromEth(3))
             .build());
 
-    ToyExecutionEnvironmentV2.builder().toyWorld(world.build()).transactions(txList).build().run();
+    ToyExecutionEnvironmentV2.builder().accounts(List.of(account1, account2, account3, account4, account5))
+      .transactions(txList).build().run();
   }
 
   // Temporary support function

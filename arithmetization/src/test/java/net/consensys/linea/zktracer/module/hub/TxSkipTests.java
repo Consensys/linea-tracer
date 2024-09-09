@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import static net.consensys.linea.testing.ToyExecutionEnvironment.DEFAULT_COINBASE_ADDRESS;
+import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS;
 
 import java.util.List;
 
@@ -179,23 +179,18 @@ public class TxSkipTests {
             // TODO:  deploymentWithEmptyInitAndUselessAccessList
             );
 
-    ToyWorld toyWorld =
-        ToyWorld.builder()
-            .accounts(
-                List.of(
-                    coinbaseAccount,
-                    senderAccount1,
-                    senderAccount2,
-                    senderAccount3,
-                    senderAccount4,
-                    senderAccount5,
-                    senderAccount6,
-                    senderAccount7,
-                    receiverAccount))
-            .build();
-
     ToyExecutionEnvironmentV2.builder()
-        .toyWorld(toyWorld)
+      .accounts(
+        List.of(
+          coinbaseAccount,
+          senderAccount1,
+          senderAccount2,
+          senderAccount3,
+          senderAccount4,
+          senderAccount5,
+          senderAccount6,
+          senderAccount7,
+          receiverAccount))
         .transactions(txs)
         .zkTracerValidator(
             zkTracer -> {

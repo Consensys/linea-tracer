@@ -158,14 +158,9 @@ public class OobCallTest {
             .keyPair(keyPair)
             .build();
 
-    final ToyWorld toyWorld =
-        ToyWorld.builder()
-            .accounts(List.of(userAccount, contractCallerAccount, contractCalleeAccount))
-            .build();
-
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder()
-            .toyWorld(toyWorld)
+            .accounts(List.of(userAccount, contractCallerAccount, contractCalleeAccount))
             .transaction(tx)
             .testValidator(x -> {})
             .build();
@@ -218,12 +213,9 @@ public class OobCallTest {
             .keyPair(keyPair)
             .build();
 
-    final ToyWorld toyWorld =
-        ToyWorld.builder().accounts(List.of(userAccount, contractCallerAccount)).build();
-
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder()
-            .toyWorld(toyWorld)
+            .accounts(List.of(userAccount, contractCallerAccount))
             .transaction(tx)
             .testValidator(x -> {})
             .build();

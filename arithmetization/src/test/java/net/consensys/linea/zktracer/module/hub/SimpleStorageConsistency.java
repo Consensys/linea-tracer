@@ -138,13 +138,8 @@ public class SimpleStorageConsistency {
 
     final List<Transaction> txs = List.of(simpleWarm, stupidWarm, noWarm);
 
-    ToyWorld toyWorld =
-        ToyWorld.builder()
-            .accounts(List.of(receiverAccount, senderAccount1, senderAccount2, senderAccount3))
-            .build();
-
     ToyExecutionEnvironmentV2.builder()
-        .toyWorld(toyWorld)
+        .accounts(List.of(receiverAccount, senderAccount1, senderAccount2, senderAccount3))
         .transactions(txs)
         .zkTracerValidator(zkTracer -> {})
         .build()

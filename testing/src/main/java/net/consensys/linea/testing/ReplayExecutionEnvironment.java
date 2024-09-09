@@ -15,10 +15,6 @@
 
 package net.consensys.linea.testing;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BASE_FEE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BLOCK_GAS_LIMIT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_DIFFICULTY;
-import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
@@ -29,83 +25,71 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import com.google.gson.Gson;
 import lombok.Builder;
-import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.blockcapture.snapshots.AccountSnapshot;
 import net.consensys.linea.blockcapture.snapshots.BlockSnapshot;
 import net.consensys.linea.blockcapture.snapshots.ConflationSnapshot;
+import net.consensys.linea.blockcapture.snapshots.StorageSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionResultSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.units.bigints.UInt256;
+import org.hyperledger.besu.config.GenesisConfigFile;
+import org.hyperledger.besu.config.GenesisConfigOptions;
 import org.hyperledger.besu.datatypes.*;
+import org.hyperledger.besu.ethereum.chain.BadBlockManager;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.hyperledger.besu.ethereum.core.feemarket.CoinbaseFeePriceCalculator;
-import org.hyperledger.besu.ethereum.mainnet.LondonTargetingGasLimitCalculator;
+import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSchedule;
+import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSpecFactory;
 import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
-import org.hyperledger.besu.ethereum.mainnet.TransactionValidatorFactory;
+import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
+import org.hyperledger.besu.ethereum.mainnet.ProtocolSpecBuilder;
 import org.hyperledger.besu.ethereum.mainnet.feemarket.FeeMarket;
-import org.hyperledger.besu.ethereum.mainnet.feemarket.LondonFeeMarket;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
-import org.hyperledger.besu.evm.EVM;
-import org.hyperledger.besu.evm.MainnetEVMs;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import org.hyperledger.besu.evm.account.MutableAccount;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
-import org.hyperledger.besu.evm.precompile.MainnetPrecompiledContracts;
-import org.hyperledger.besu.evm.precompile.PrecompileContractRegistry;
-import org.hyperledger.besu.evm.processor.ContractCreationProcessor;
-import org.hyperledger.besu.evm.processor.MessageCallProcessor;
+import org.hyperledger.besu.evm.internal.Words;
+import org.hyperledger.besu.evm.operation.BlockHashOperation;
 import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
+import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
-/** Fluent API for executing EVM transactions in tests. */
+/** Responsible for executing EVM transactions in replay tests. */
 @Builder
 @Slf4j
-public class ToyExecutionEnvironment {
-  public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
-  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
-
-  private static final Address DEFAULT_SENDER_ADDRESS = Address.fromHexString("0xe8f1b89");
-  private static final Wei DEFAULT_VALUE = Wei.ZERO;
-  private static final Bytes DEFAULT_INPUT_DATA = Bytes.EMPTY;
-  private static final Bytes DEFAULT_BYTECODE = Bytes.EMPTY;
-  private static final long DEFAULT_GAS_LIMIT = 1_000_000;
-  private static final ToyWorld DEFAULT_TOY_WORLD = ToyWorld.empty();
-  private static final Wei DEFAULT_BASE_FEE = Wei.of(LINEA_BASE_FEE);
-
-  private static final GasCalculator gasCalculator = ZkTracer.gasCalculator;
-  public static final Address DEFAULT_COINBASE_ADDRESS =
-      Address.fromHexString("0xc019ba5e00000000c019ba5e00000000c019ba5e");
-  private static final long DEFAULT_BLOCK_NUMBER = 6678980;
-  private static final long DEFAULT_TIME_STAMP = 14071789;
-  private static final Hash DEFAULT_HASH =
-      Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
-
-  private final ToyWorld toyWorld;
-  private final boolean resultChecking;
-
-  @Builder.Default private BigInteger chainId = CHAIN_ID;
-  @Singular private final List<Transaction> transactions;
-
+public class ReplayExecutionEnvironment {
   /**
-   * A function applied to the {@link TransactionProcessingResult} of each transaction; by default,
-   * asserts that the transaction is successful.
+   * Used for checking resulting trace files.
    */
-  @Builder.Default private final Consumer<TransactionProcessingResult> testValidator = x -> {};
+  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
+  /**
+   * Determines whether transaction results should be checked against expected results embedded in replay files.
+   * This gives an additional level of assurance that the tests properly reflect mainnet (or e.g. sepolia as
+   * appropriate).  When this is set to false, replay tests will not fail even if the tx outcome differs from what
+   * actually occurred on the relevant chain (e.g. mainnet).  Such scenarios have arisen, for example, when
+   * <code>ZkTracer</code> has an unexpected side-effect on tx execution (which it never should).
+   */
+  private final boolean txResultChecking;
 
-  @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
+//  /**
+//   * A function applied to the {@link TransactionProcessingResult} of each transaction; by default,
+//   * asserts that the transaction is successful.
+//   */
+//  @Builder.Default private final Consumer<TransactionProcessingResult> testValidator = x -> {};
+//
+//  @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
 
-  private static final FeeMarket feeMarket = FeeMarket.london(-1);
+  //private static final FeeMarket feeMarket = FeeMarket.london(-1);
   private final ZkTracer tracer = new ZkTracer();
 
   public void checkTracer() {
@@ -120,7 +104,6 @@ public class ToyExecutionEnvironment {
   }
 
   public void checkTracer(String inputFilePath) {
-
     // Generate the output file path based on the input file path
     Path inputPath = Paths.get(inputFilePath);
     String outputFileName = inputPath.getFileName().toString().replace(".json.gz", ".lt");
@@ -129,16 +112,6 @@ public class ToyExecutionEnvironment {
     log.info("trace written to `{}`", outputPath);
     // validation is disabled by default for replayBulk
     // assertThat(CORSET_VALIDATOR.validate(outputPath).isValid()).isTrue();
-  }
-
-  public void run() {
-    this.execute();
-    this.checkTracer();
-  }
-
-  public void run(String inputFilePath) {
-    this.execute();
-    this.checkTracer(inputFilePath);
   }
 
   /**
@@ -181,27 +154,16 @@ public class ToyExecutionEnvironment {
    * @param conflation the conflation to replay
    */
   private void executeFrom(final ConflationSnapshot conflation) {
-    final ToyWorld toyWorld = ToyWorld.of(conflation);
-    //
-    Map<String, ReferenceTestWorldState.AccountMock> accountMockMap =
-        toyWorld.getAddressAccountMap().entrySet().stream()
-            .collect(
-                Collectors.toMap(
-                    entry -> entry.getKey().toHexString(),
-                    entry -> entry.getValue().toAccountMock()));
-
+    BlockHashOperation.BlockHashLookup blockHashLookup = conflation.toBlockHashLookup();
     ReferenceTestWorldState world =
-        ReferenceTestWorldState.create(accountMockMap, EvmConfiguration.DEFAULT);
-
-    for (BlockSnapshot blockSnapshot : conflation.blocks()) {
-      for (TransactionSnapshot tx : blockSnapshot.txs()) {
-        this.chainId = tx.getChainId();
-      }
-    }
+        ReferenceTestWorldState.create(new HashMap<>(), EvmConfiguration.DEFAULT);
+    // Initialise world state from conflation
+    initWorldUpdater(world.updater(),conflation);
+    // Construct the transaction processor
     final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
-
+    // Begin
     tracer.traceStartConflation(conflation.blocks().size());
-
+    //
     for (BlockSnapshot blockSnapshot : conflation.blocks()) {
       final BlockHeader header = blockSnapshot.header().toBlockHeader();
 
@@ -222,7 +184,7 @@ public class ToyExecutionEnvironment {
                 tx,
                 header.getCoinbase(),
                 buildOperationTracer(tx, txs.getOutcome()),
-                toyWorld::blockHash,
+                blockHashLookup,
                 false,
                 Wei.ZERO);
         // Commit transaction
@@ -233,81 +195,66 @@ public class ToyExecutionEnvironment {
     tracer.traceEndConflation(world.updater());
   }
 
-  private void execute() {
-    BlockHeader header =
-        BlockHeaderBuilder.createDefault()
-            .baseFee(DEFAULT_BASE_FEE)
-            .gasLimit(LINEA_BLOCK_GAS_LIMIT)
-            .difficulty(Difficulty.of(LINEA_DIFFICULTY))
-            .number(DEFAULT_BLOCK_NUMBER)
-            .coinbase(DEFAULT_COINBASE_ADDRESS)
-            .timestamp(DEFAULT_TIME_STAMP)
-            .parentHash(DEFAULT_HASH)
-            .buildBlockHeader();
-    BlockBody mockBlockBody = new BlockBody(transactions, new ArrayList<>());
-
-    final MainnetTransactionProcessor transactionProcessor = getMainnetTransactionProcessor();
-
-    tracer.traceStartConflation(1);
-    tracer.traceStartBlock(header, mockBlockBody);
-
-    for (Transaction tx : mockBlockBody.getTransactions()) {
-      final TransactionProcessingResult result =
-          transactionProcessor.processTransaction(
-              toyWorld.updater(),
-              (ProcessableBlockHeader) header,
-              tx,
-              header.getCoinbase(),
-              tracer,
-              blockId -> {
-                throw new RuntimeException("Block hash lookup not yet supported");
-              },
-              false,
-              Wei.ZERO);
-
-      this.testValidator.accept(result);
-      this.zkTracerValidator.accept(tracer);
-    }
-    tracer.traceEndBlock(header, mockBlockBody);
-    tracer.traceEndConflation(toyWorld.updater());
-  }
-
   private MainnetTransactionProcessor getMainnetTransactionProcessor() {
-    // Construct EVM for executing transactions.
-    final EVM evm = MainnetEVMs.london(this.chainId, EvmConfiguration.DEFAULT);
+    EvmConfiguration evmConfig = EvmConfiguration.DEFAULT;
+    // Set Linea Chain ID (mainnet)
+    BigInteger chainId = BigInteger.valueOf(59144);
+    // Read genesis config for linea
+    GenesisConfigFile configFile = GenesisConfigFile.fromSource(GenesisConfigFile.class.getResource("/linea.json"));
+    GenesisConfigOptions options = configFile.getConfigOptions();
+    BadBlockManager badBlockManager = new BadBlockManager();
+    // Create the schedule
+    ProtocolSchedule schedule = MainnetProtocolSchedule.fromConfig(
+      options,
+      MiningParameters.MINING_DISABLED,
+      badBlockManager,
+      false,
+      new NoOpMetricsSystem()
+    );
+    // Create
+    ProtocolSpecBuilder builder = new MainnetProtocolSpecFactory(
+      Optional.of(chainId),
+      true,
+      OptionalLong.empty(),
+      evmConfig,
+      MiningParameters.MINING_DISABLED,
+      false,
+      new NoOpMetricsSystem()).londonDefinition(options); //.lineaOpCodesDefinition(options);
     //
-    PrecompileContractRegistry precompileContractRegistry = new PrecompileContractRegistry();
-
-    MainnetPrecompiledContracts.populateForIstanbul(
-        precompileContractRegistry, evm.getGasCalculator());
-
-    final MessageCallProcessor messageCallProcessor =
-        new MessageCallProcessor(evm, precompileContractRegistry);
-
-    final ContractCreationProcessor contractCreationProcessor =
-        new ContractCreationProcessor(evm, false, List.of(), 1);
-
-    return new MainnetTransactionProcessor(
-        gasCalculator,
-        new TransactionValidatorFactory(
-            gasCalculator,
-            new LondonTargetingGasLimitCalculator(0L, new LondonFeeMarket(0)),
-            new LondonFeeMarket(0L),
-            false,
-            Optional.of(this.chainId),
-            Set.of(TransactionType.FRONTIER, TransactionType.ACCESS_LIST, TransactionType.EIP1559),
-            GlobalConstants.MAX_CODE_SIZE),
-        contractCreationProcessor,
-        messageCallProcessor,
-        true,
-        false,
-        MAX_STACK_SIZE,
-        feeMarket,
-        CoinbaseFeePriceCalculator.eip1559());
+    builder.privacyParameters(PrivacyParameters.DEFAULT);
+    builder.badBlocksManager(badBlockManager);
+    //
+    return builder.build(schedule).getTransactionProcessor();
   }
 
   public Hub getHub() {
     return tracer.getHub();
+  }
+
+  /**
+   * Initialise a world updater given a conflation. Observe this can be applied to any WorldUpdater,
+   * such as SimpleWorld.
+   *
+   * @param world The world to be initialised.
+   * @param conflation The conflation from which to initialise.
+   */
+  private static void initWorldUpdater(WorldUpdater world, final ConflationSnapshot conflation) {
+    for (AccountSnapshot account : conflation.accounts()) {
+      // Construct contract address
+      Address addr = Address.fromHexString(account.address());
+      // Create account
+      MutableAccount acc =
+        world.createAccount(
+          Words.toAddress(addr), account.nonce(), Wei.fromHexString(account.balance()));
+      // Update code
+      acc.setCode(Bytes.fromHexString(account.code()));
+    }
+    // Initialise storage
+    for (StorageSnapshot s : conflation.storage()) {
+      world
+        .getAccount(Words.toAddress(Bytes.fromHexString(s.address())))
+        .setStorageValue(UInt256.fromHexString(s.key()), UInt256.fromHexString(s.value()));
+    }
   }
 
   /**
@@ -323,7 +270,7 @@ public class ToyExecutionEnvironment {
       String hash = tx.getHash().toHexString();
       log.info("tx `{}` outcome not checked (missing)", hash);
       return tracer;
-    } else if (!resultChecking) {
+    } else if (!txResultChecking) {
       String hash = tx.getHash().toHexString();
       log.info("tx `{}` outcome not checked (disabled)", hash);
       return tracer;

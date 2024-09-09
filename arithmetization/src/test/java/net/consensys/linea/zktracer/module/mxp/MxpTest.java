@@ -283,20 +283,16 @@ public class MxpTest {
             .keyPair(keyPair)
             .build();
 
-    ToyWorld toyWorld =
-        ToyWorld.builder()
-            .accounts(
-                List.of(
+    List<ToyAccount> accounts = List.of(
                     userAccount,
                     contractAAccount,
                     contractBAccount,
                     contractCAccount,
                     contractDAccount,
                     contractMO1Account,
-                    contractMO2Account))
-            .build();
+                    contractMO2Account);
 
-    ToyExecutionEnvironmentV2.builder().toyWorld(toyWorld).transaction(tx).build().run();
+    ToyExecutionEnvironmentV2.builder().accounts(accounts).transaction(tx).build().run();
   }
 
   // Support methods

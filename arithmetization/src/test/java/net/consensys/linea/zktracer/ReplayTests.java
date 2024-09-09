@@ -32,9 +32,9 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.testing.ToyExecutionEnvironment;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import net.consensys.linea.testing.ReplayExecutionEnvironment;
 
 /**
  * Replays are captured on a fully (not snapshot) synchronized Besu node running the plugin:
@@ -80,8 +80,8 @@ public class ReplayTests {
       log.error("while loading {}: {}", filename, e.getMessage());
       throw new RuntimeException(e);
     }
-    ToyExecutionEnvironment.builder()
-        .resultChecking(resultChecking)
+    ReplayExecutionEnvironment.builder()
+        .txResultChecking(resultChecking)
         .build()
         .replay(new BufferedReader(new InputStreamReader(stream)));
   }
@@ -110,7 +110,7 @@ public class ReplayTests {
     }
 
     try (GZIPInputStream gzipStream = new GZIPInputStream(stream)) {
-      ToyExecutionEnvironment.builder()
+      ReplayExecutionEnvironment.builder()
           .build()
           .replay(new BufferedReader(new InputStreamReader(gzipStream)), filePath);
     } catch (IOException e) {

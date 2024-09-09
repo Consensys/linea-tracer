@@ -49,7 +49,7 @@ public class StpTest {
 
   @Test
   void testCall() {
-    ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
+    List<ToyAccount> world = new ArrayList<>();
     List<Transaction> txList = new ArrayList<>();
 
     for (int i = 0; i < NB_CALL; i++) {
@@ -65,7 +65,7 @@ public class StpTest {
     }
 
     ToyExecutionEnvironmentV2.builder()
-        .toyWorld(world.build())
+        .accounts(world)
         .transactions(txList)
         .testValidator(x -> {})
         .build()
@@ -74,7 +74,7 @@ public class StpTest {
 
   @Test
   void testCreate() {
-    ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
+    List<ToyAccount> world = new ArrayList<>();
     List<Transaction> txList = new ArrayList<>();
 
     for (int i = 0; i < NB_CREATE; i++) {
@@ -88,7 +88,7 @@ public class StpTest {
     }
 
     ToyExecutionEnvironmentV2.builder()
-        .toyWorld(world.build())
+        .accounts(world)
         .transactions(txList)
         .testValidator(x -> {})
         .build()
@@ -122,7 +122,7 @@ public class StpTest {
       BigInteger value,
       long gasCall,
       long gasLimit,
-      ToyWorld.ToyWorldBuilder world) {
+      List<ToyAccount> world) {
 
     // Create the sender account
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -130,14 +130,14 @@ public class StpTest {
         Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
     final ToyAccount senderAccount =
         ToyAccount.builder().balance(balance).nonce(1).address(senderAddress).build();
-    world.account(senderAccount);
+    world.add(senderAccount);
 
     // Create the callee account and address
     final Address calleeAddress = Address.wrap(Bytes.random(20));
     final ToyAccount calleeAccount =
         ToyAccount.builder().nonce(1).balance(Wei.ONE).address(calleeAddress).build();
     if (toExist) {
-      world.account(calleeAccount);
+      world.add(calleeAccount);
     }
 
     // Create the to account, which contains the bytecode to execute
@@ -149,7 +149,7 @@ public class StpTest {
             .balance(Wei.ONE)
             .code(codeCall(opcode, calleeAddress, value, gasCall))
             .build();
-    world.account(toAccount);
+    world.add(toAccount);
 
     AccessListEntry entry = AccessListEntry.createAccessListEntry(senderAddress, List.of());
     if (toWarm) {
@@ -193,7 +193,7 @@ public class StpTest {
     };
   }
 
-  final Transaction txCreate(ToyWorld.ToyWorldBuilder world) {
+  final Transaction txCreate(List<ToyAccount> world) {
     // create sender account
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -205,7 +205,7 @@ public class StpTest {
             .nonce(Math.abs(RAND.nextInt()))
             .address(senderAddress)
             .build();
-    world.account(senderAccount);
+    world.add(senderAccount);
 
     // create to account
     final Address to = Address.wrap(Bytes.random(20));
@@ -222,7 +222,7 @@ public class StpTest {
                     .op(OpCode.CREATE)
                     .compile())
             .build();
-    world.account(toAccount);
+    world.add(toAccount);
 
     final long gasLimit = RAND.nextLong(21000, 1000000L);
     return ToyTransaction.builder()
@@ -235,7 +235,7 @@ public class StpTest {
         .build();
   }
 
-  final Transaction txCreate2(ToyWorld.ToyWorldBuilder world) {
+  final Transaction txCreate2(List<ToyAccount> world) {
     // create senderAccount
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -247,7 +247,7 @@ public class StpTest {
             .nonce(Math.abs(RAND.nextInt()))
             .address(senderAddress)
             .build();
-    world.account(senderAccount);
+    world.add(senderAccount);
 
     // create to account
     final Address to = Address.wrap(Bytes.random(20));
@@ -265,7 +265,7 @@ public class StpTest {
                     .op(OpCode.CREATE)
                     .compile())
             .build();
-    world.account(toAccount);
+    world.add(toAccount);
 
     final long gasLimit = RAND.nextLong(21000, 1000000L);
     return ToyTransaction.builder()

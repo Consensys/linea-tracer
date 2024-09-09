@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -230,6 +231,30 @@ public final class StackFragment implements TraceFragment {
 
     final InstructionFamily currentInstFamily =
         this.stack.getCurrentOpcodeData().instructionFamily();
+
+    // Ensuring: tracedException == SOME_EXCEPTION => Exceptions.someException(exceptions)
+    Preconditions.checkArgument(
+        tracedException != INVALID_OPCODE || Exceptions.invalidOpcode(exceptions));
+    Preconditions.checkArgument(
+        tracedException != STACK_UNDERFLOW || Exceptions.stackUnderflow(exceptions));
+    Preconditions.checkArgument(
+        tracedException != STACK_OVERFLOW || Exceptions.stackOverflow(exceptions));
+    Preconditions.checkArgument(
+        tracedException != MEMORY_EXPANSION_EXCEPTION
+            || Exceptions.memoryExpansionException(exceptions));
+    Preconditions.checkArgument(
+        tracedException != OUT_OF_GAS_EXCEPTION || Exceptions.outOfGasException(exceptions));
+    Preconditions.checkArgument(
+        tracedException != RETURN_DATA_COPY_FAULT || Exceptions.returnDataCopyFault(exceptions));
+    Preconditions.checkArgument(tracedException != JUMP_FAULT || Exceptions.jumpFault(exceptions));
+    Preconditions.checkArgument(
+        tracedException != STATIC_FAULT || Exceptions.staticFault(exceptions));
+    Preconditions.checkArgument(
+        tracedException != OUT_OF_SSTORE || Exceptions.outOfSStore(exceptions));
+    Preconditions.checkArgument(
+        tracedException != INVALID_CODE_PREFIX || Exceptions.invalidCodePrefix(exceptions));
+    Preconditions.checkArgument(
+        tracedException != CODE_SIZE_OVERFLOW || Exceptions.codeSizeOverflow(exceptions));
 
     return trace
         .peekAtStack(true)

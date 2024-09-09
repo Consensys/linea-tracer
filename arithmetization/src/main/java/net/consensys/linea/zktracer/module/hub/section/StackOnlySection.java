@@ -26,6 +26,8 @@ public class StackOnlySection extends TraceSection {
   public StackOnlySection(Hub hub) {
     super(hub, (short) (hub.opCode().getData().stackSettings().twoLineInstruction() ? 2 : 1));
 
+    this.addStack(hub);
+
     final short exceptions = hub.pch().exceptions();
 
     if (Exceptions.stackUnderflow(exceptions)) {
@@ -40,6 +42,5 @@ public class StackOnlySection extends TraceSection {
       commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
       return;
     }
-    this.addStack(hub);
   }
 }

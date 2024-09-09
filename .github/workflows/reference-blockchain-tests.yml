@@ -90,7 +90,7 @@ jobs:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
           FAILED_TESTS_FILE_NAME: ${{ inputs.failed_tests_file_name || '' }}
-          FAILED_TEST_JSON_DIRECTORY: ${{ ../tmp/${{ inputs.branch-name }}/ || '' }}
+          FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ inputs.branch-name }}/
           FAILED_MODULE: ${{ inputs.failed_module || '' }}
           FAILED_CONSTRAINT: ${{ inputs.failed_constraint || '' }}
 
@@ -98,4 +98,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: my-artifact
-          path: ../tmp/${{ inputs.branch-name }}/${{ inputs.failed_tests_file_name }}
+          path: ${{ github.workspace }}/tmp/${{ inputs.branch-name }}/${{ inputs.failed_tests_file_name }}

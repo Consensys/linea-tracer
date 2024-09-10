@@ -1,3 +1,6 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 /*
  * Copyright Consensys Software Inc.
  *
@@ -56,6 +59,22 @@ tasks.register('referenceBlockchainTests', Test) {
   minHeapSize = "4g"
   maxHeapSize = "20g"
   maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
+
+  testLogging {
+    events = [
+      //TestLogEvent.STARTED,
+      //TestLogEvent.PASSED,
+      TestLogEvent.FAILED,
+      TestLogEvent.SKIPPED,
+      TestLogEvent.STANDARD_ERROR
+    ]
+    exceptionFormat TestExceptionFormat.FULL
+    showCauses true
+    showExceptions true
+    showStackTraces true
+    // set showStandardStreams if you need to see test logs
+    showStandardStreams false
+  }
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")

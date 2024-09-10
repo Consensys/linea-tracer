@@ -91,13 +91,14 @@ tasks.register('referenceTests', Test) {
   }
 }
 
-test {
+tasks.withType(Test).configureEach {
   testLogging {
     events = []
-    showStackTraces = false
-    showStandardStreams = false
-    showExceptions = false
-    showCauses = false
+    showCauses false
+    showExceptions false
+    showStackTraces false
+    // set showStandardStreams if you need to see test logs
+    showStandardStreams false
   }
 }
 

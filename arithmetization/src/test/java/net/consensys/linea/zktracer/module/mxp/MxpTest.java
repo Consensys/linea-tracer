@@ -28,7 +28,6 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
-import net.consensys.linea.testing.ToyWorld;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.EWord;
@@ -41,9 +40,12 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 // https://github.com/Consensys/linea-besu-plugin/issues/197
 
+@Execution(ExecutionMode.SAME_THREAD)
 public class MxpTest {
   private static final Random RAND = new Random(123456789123456L);
   public static final EWord TWO_POW_128 = EWord.of(EWord.ONE.shiftLeft(128));
@@ -280,20 +282,17 @@ public class MxpTest {
             .keyPair(keyPair)
             .build();
 
-    ToyWorld toyWorld =
-        ToyWorld.builder()
-            .accounts(
-                List.of(
-                    userAccount,
-                    contractAAccount,
-                    contractBAccount,
-                    contractCAccount,
-                    contractDAccount,
-                    contractMO1Account,
-                    contractMO2Account))
-            .build();
+    List<ToyAccount> accounts =
+        List.of(
+            userAccount,
+            contractAAccount,
+            contractBAccount,
+            contractCAccount,
+            contractDAccount,
+            contractMO1Account,
+            contractMO2Account);
 
-    ToyExecutionEnvironmentV2.builder().toyWorld(toyWorld).transaction(tx).build().run();
+    ToyExecutionEnvironmentV2.builder().accounts(accounts).transaction(tx).build().run();
   }
 
   // Support methods

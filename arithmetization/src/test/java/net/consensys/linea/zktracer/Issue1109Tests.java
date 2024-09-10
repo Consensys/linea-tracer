@@ -14,15 +14,18 @@
  */
 package net.consensys.linea.zktracer;
 
+import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
 import static net.consensys.linea.zktracer.ReplayTests.replay;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("nightly")
 public class Issue1109Tests {
 
   // @Disabled
   @Test
   void issue_1090_block_6690_6699() {
-    replay("6690-6699.json.gz", false);
+    replay(LINEA_MAINNET, "6690-6699.json.gz", false);
   }
 }

@@ -128,6 +128,12 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
     AccountFragment last;
     int dom;
     int sub;
+    public TransactAccountFirstAndLast(AccountFragment first, AccountFragment last, int dom, int sub) {
+      this.first = first;
+      this.last = last;
+      this.dom = dom;
+      this.sub = sub;
+    }
   }
   @Getter
   Map<Address, TransactAccountFirstAndLast> transactAccountFirstAndLastMap = new HashMap<>();

@@ -108,6 +108,8 @@ public final class AccountFragment
     isDeployment = newState.deploymentStatus();
     this.addressToTrim = addressToTrim;
     this.domSubStampsSubFragment = domSubStampsSubFragment;
+    // Updating the map
+    updateAccountFirstAndLast();
 
     // This allows us to properly fill EXISTS_INFTY, DEPLOYMENT_NUMBER_INFTY and CODE_FRAGMENT_INDEX
     hub.defers().scheduleForPostConflation(this);
@@ -185,30 +187,8 @@ public final class AccountFragment
       markedForSelfDestruct = false;
       markedForSelfDestructNew = false;
     }
-    // Setting the post transaction first and last value
-    // Initialise the Account First and Last map
-    // Todo: Check if this is buggy
-    final Map<Address, TransactionProcessingMetadata.TransactAccountFirstAndLast> txnAccountFirstAndLastMap =
-            transactionProcessingMetadata.getTransactAccountFirstAndLastMap();
-    if (!txnAccountFirstAndLastMap.containsKey(oldState.address())) {
-      TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast = new TransactionProcessingMetadata.TransactAccountFirstAndLast();
-      txnFirstAndLast.setFirst(this);
-      txnFirstAndLast.setLast(this);
-      txnFirstAndLast.setDom(this.domSubStampsSubFragment.domStamp());
-      txnFirstAndLast.setSub(this.domSubStampsSubFragment.subStamp());
-      txnAccountFirstAndLastMap.put(oldState.address(), txnFirstAndLast);
-    } else {
-      TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast = txnAccountFirstAndLastMap.get(oldState.address());
-      // Replace condition
-      if (txnFirstAndLast.getDom() < this.domSubStampsSubFragment.domStamp() ||
-              (txnFirstAndLast.getDom() == this.domSubStampsSubFragment.domStamp() &&
-                      txnFirstAndLast.getSub() > this.domSubStampsSubFragment.subStamp())) {
-        txnFirstAndLast.setLast(this);
-        txnFirstAndLast.setDom(this.domSubStampsSubFragment.domStamp());
-        txnFirstAndLast.setSub(this.domSubStampsSubFragment.subStamp());
-        txnAccountFirstAndLastMap.put(oldState.address(), txnFirstAndLast);
-      }
-    }
+    updateAccountFirstAndLast();
+
   }
 
   @Override
@@ -222,4 +202,30 @@ public final class AccountFragment
                     ContractMetadata.make(oldState.address(), deploymentNumber, isDeployment))
             : 0;
   }
+  public void updateAccountFirstAndLast() {
+    // Setting the post transaction first and last value
+    // Initialise the Account First and Last map
+    final Map<Address, TransactionProcessingMetadata.TransactAccountFirstAndLast> txnAccountFirstAndLastMap =
+            this. transactionProcessingMetadata.getTransactAccountFirstAndLastMap();
+    if (!txnAccountFirstAndLastMap.containsKey(oldState.address())) {
+      TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast =
+              new TransactionProcessingMetadata.TransactAccountFirstAndLast(this, this, this.domSubStampsSubFragment.domStamp(),
+                      this.domSubStampsSubFragment.subStamp());
+      txnAccountFirstAndLastMap.put(oldState.address(), txnFirstAndLast);
+    } else {
+      TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast = txnAccountFirstAndLastMap.get(oldState.address());
+      // Replace condition
+      if (txnFirstAndLast.getDom() < this.domSubStampsSubFragment.domStamp() ||
+              (txnFirstAndLast.getDom() == this.domSubStampsSubFragment.domStamp() &&
+                      txnFirstAndLast.getSub() > this.domSubStampsSubFragment.subStamp())) {
+        txnFirstAndLast.setLast(this);
+        txnFirstAndLast.setDom(this.domSubStampsSubFragment.domStamp());
+        txnFirstAndLast.setSub(this.domSubStampsSubFragment.subStamp());
+        txnAccountFirstAndLastMap.put(oldState.address(), txnFirstAndLast);
+      }
+    }
+
+  }
 }
+
+

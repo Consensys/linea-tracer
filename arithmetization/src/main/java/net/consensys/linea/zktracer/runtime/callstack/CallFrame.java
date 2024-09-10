@@ -318,12 +318,13 @@ public class CallFrame {
             });
   }
 
-  public void revert(CallStack callStack, int revertStamp) {
+  public void setRevertStamps
+    (CallStack callStack, int revertStamp) {
     if (selfReverts) {
-      throw new IllegalStateException("a context can not self-revert twice");
+      throw new IllegalStateException(String.format("a context can not self-revert twice, it already reverts at %n, can't revert again at %n", this.revertStamp, revertStamp));
     }
     selfReverts = true;
-    revertStamp = revertStamp;
+    this.revertStamp = revertStamp;
     this.revertChildren(callStack, revertStamp);
   }
 

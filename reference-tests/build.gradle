@@ -60,22 +60,6 @@ tasks.register('referenceBlockchainTests', Test) {
   maxHeapSize = "20g"
   maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
 
-  testLogging {
-    events = [
-      //TestLogEvent.STARTED,
-      //TestLogEvent.PASSED,
-//      TestLogEvent.FAILED,
-//      TestLogEvent.SKIPPED,
-      TestLogEvent.STANDARD_ERROR
-    ]
-    exceptionFormat TestExceptionFormat.FULL
-    showCauses true
-    showExceptions true
-    showStackTraces true
-    // set showStandardStreams if you need to see test logs
-    showStandardStreams false
-  }
-
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
   }

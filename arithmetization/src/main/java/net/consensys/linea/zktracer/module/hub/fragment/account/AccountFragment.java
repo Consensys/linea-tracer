@@ -39,6 +39,7 @@ import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -170,7 +171,7 @@ public final class AccountFragment
 
   @Override
   public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+          Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final Map<TransactionProcessingMetadata.EphemeralAccount, Integer> effectiveSelfDestructMap =
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
     final TransactionProcessingMetadata.EphemeralAccount ephemeralAccount =
@@ -183,6 +184,30 @@ public final class AccountFragment
     } else {
       markedForSelfDestruct = false;
       markedForSelfDestructNew = false;
+    }
+    // Setting the post transaction first and last value
+    // Initialise the Account First and Last map
+    // Todo: Check if this is buggy
+    final Map<Address, TransactionProcessingMetadata.TransactAccountFirstAndLast> txnAccountFirstAndLastMap =
+            transactionProcessingMetadata.getTransactAccountFirstAndLastMap();
+    if (!txnAccountFirstAndLastMap.containsKey(oldState.address())) {
+      TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast = new TransactionProcessingMetadata.TransactAccountFirstAndLast();
+      txnFirstAndLast.setFirst(this);
+      txnFirstAndLast.setLast(this);
+      txnFirstAndLast.setDom(this.domSubStampsSubFragment.domStamp());
+      txnFirstAndLast.setSub(this.domSubStampsSubFragment.subStamp());
+      txnAccountFirstAndLastMap.put(oldState.address(), txnFirstAndLast);
+    } else {
+      TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast = txnAccountFirstAndLastMap.get(oldState.address());
+      // Replace condition
+      if (txnFirstAndLast.getDom() < this.domSubStampsSubFragment.domStamp() ||
+              (txnFirstAndLast.getDom() == this.domSubStampsSubFragment.domStamp() &&
+                      txnFirstAndLast.getSub() > this.domSubStampsSubFragment.subStamp())) {
+        txnFirstAndLast.setLast(this);
+        txnFirstAndLast.setDom(this.domSubStampsSubFragment.domStamp());
+        txnFirstAndLast.setSub(this.domSubStampsSubFragment.subStamp());
+        txnAccountFirstAndLastMap.put(oldState.address(), txnFirstAndLast);
+      }
     }
   }
 

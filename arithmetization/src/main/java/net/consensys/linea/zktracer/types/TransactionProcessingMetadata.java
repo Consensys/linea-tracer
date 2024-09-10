@@ -33,6 +33,8 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -118,6 +120,17 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap = new HashMap<>();
 
   @Getter Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
+
+  // Map for the first and last account occurance
+  @Getter @Setter
+  public static class TransactAccountFirstAndLast {
+    AccountFragment first;
+    AccountFragment last;
+    int dom;
+    int sub;
+  }
+  @Getter
+  Map<Address, TransactAccountFirstAndLast> transactAccountFirstAndLastMap = new HashMap<>();
 
   // Ephermeral accounts are both accounts that have been deployed on-chain
   // and accounts that live for a limited time

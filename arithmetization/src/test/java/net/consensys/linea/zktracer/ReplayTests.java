@@ -585,6 +585,6 @@ public class ReplayTests {
 
   @Test
   void modexpTriggeringNonAlignedFirstLimbSingleSourceMmuModexp() {
-    replay("3108622-3108633.json.gz", false);
+    replay(LINEA_MAINNET, "3108622-3108633.json.gz", false);
   }
 }

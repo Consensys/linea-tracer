@@ -302,7 +302,16 @@ public class OobOperation extends ModuleOperation {
     final int cdsIndex = opCode.callCanTransferValue() ? 4 : 3;
     final int returnAtCapacityIndex = opCode.callCanTransferValue() ? 6 : 5;
 
-    final BigInteger calleeGas = ((PrecompileCommonOobCall) oobCall).getCalleeGas();
+    BigInteger calleeGas = BigInteger.ZERO;
+    if (oobCall instanceof PrecompileCommonOobCall) {
+     calleeGas = ((PrecompileCommonOobCall) oobCall).getCalleeGas();
+    }
+    if (oobCall instanceof ModexpPricingOobCall) {
+      calleeGas = ((ModexpPricingOobCall) oobCall).getCallGas();
+    }
+    if (oobCall instanceof Blake2fParamsOobCall) {
+      calleeGas = ((Blake2fParamsOobCall) oobCall).getCallGas();
+    }
 
     final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
     // Note that this check will disappear since it will be the MXP module taking care of it
@@ -418,7 +427,7 @@ public class OobOperation extends ModuleOperation {
         case OOB_INST_MODEXP_PRICING -> {
           int maxMbsBbs = max(mbs.intValue(), bbs.intValue());
           final ModexpPricingOobCall prcModexpPricingOobCall = (ModexpPricingOobCall) oobCall;
-          prcModexpPricingOobCall.setCallGas(calleeGas);
+          // prcModexpPricingOobCall.setCallGas(calleeGas);
           prcModexpPricingOobCall.setReturnAtCapacity(returnAtCapacity);
           prcModexpPricingOobCall.setExponentLog(exponentLog);
           prcModexpPricingOobCall.setMaxMbsBbs(maxMbsBbs);

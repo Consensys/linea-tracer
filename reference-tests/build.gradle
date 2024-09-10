@@ -31,6 +31,9 @@ tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   refTestJsonParamsExcludedPath = "BlockchainTests/InvalidBlocks/bcExpectSection" // exclude test for test filling tool
   refTestNamePrefix = "BlockchainReferenceTest"
   generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/blockchain"
+  failedTestsFilePath = System.getenv('FAILED_TESTS_FILE_PATH') ?: "failedBlockchainReferenceTests.json"
+  failedModule = System.getenv('FAILED_MODULE') ?: ""
+  failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
 }
 
 tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
@@ -40,6 +43,9 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
   refTestJsonParamsExcludedPath = ""
   refTestNamePrefix = "GeneralStateReferenceTest"
   generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/generalstate"
+  failedTestsFilePath = System.getenv('FAILED_TESTS_FILE_PATH') ?: ""
+  failedModule = System.getenv('FAILED_MODULE') ?: ""
+  failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
 }
 
 tasks.register('referenceBlockchainTests', Test) {
@@ -47,9 +53,9 @@ tasks.register('referenceBlockchainTests', Test) {
 
   dependsOn generateBlockchainReferenceTests
 
+  boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = "4g"
-  maxHeapSize = "20g"
-  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
+  maxHeapSize = isCiServer ? "32g" : "8g"
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
@@ -61,9 +67,9 @@ tasks.register('referenceGeneralStateTests', Test) {
 
   dependsOn generateGeneralStateReferenceTests
 
+  boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = "4g"
-  maxHeapSize = "20g"
-  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
+  maxHeapSize = isCiServer ? "32g" : "8g"
 
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")
@@ -73,8 +79,9 @@ tasks.register('referenceGeneralStateTests', Test) {
 tasks.register('referenceTests', Test) {
   description = 'Runs ETH reference tests.'
 
+  boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = "4g"
-  maxHeapSize = "20g"
+  maxHeapSize = isCiServer ? "32g" : "8g"
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")

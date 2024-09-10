@@ -55,6 +55,7 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
+          NIGHTLY_TESTS_PARALLELISM: 4
 
       - name: Upload test report
         if: always()

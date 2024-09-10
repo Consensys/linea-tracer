@@ -590,6 +590,6 @@ public class ReplayTests {
 
   @Test
   void mainnet1339346ContextRevertTwice() {
-    replay("1339346.json.gz", false);
+    replay(LINEA_MAINNET, "1339346.json.gz", false);
   }
 }

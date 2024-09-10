@@ -304,7 +304,7 @@ public class OobOperation extends ModuleOperation {
 
     BigInteger calleeGas = BigInteger.ZERO;
     if (oobCall instanceof PrecompileCommonOobCall) {
-     calleeGas = ((PrecompileCommonOobCall) oobCall).getCalleeGas();
+      calleeGas = ((PrecompileCommonOobCall) oobCall).getCalleeGas();
     }
     if (oobCall instanceof ModexpPricingOobCall) {
       calleeGas = ((ModexpPricingOobCall) oobCall).getCallGas();

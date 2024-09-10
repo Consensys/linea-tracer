@@ -91,6 +91,15 @@ tasks.register('referenceTests', Test) {
   }
 }
 
+test {
+  testlogger {
+    showCauses false
+    showExceptions false
+    showStackTraces true
+    // set showStandardStreams if you need to see test logs
+    showStandardStreams false
+  }
+}
 
 dependencies {
   testImplementation "${besuArtifactGroup}:besu-datatypes"

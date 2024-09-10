@@ -14,17 +14,15 @@
  */
 package net.consensys.linea.zktracer;
 
-import org.junit.jupiter.api.Test;
-
-import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
 import static net.consensys.linea.zktracer.ReplayTests.replay;
-import static org.web3j.tx.ChainIdLong.SEPOLIA;
+
+import org.junit.jupiter.api.Test;
 
 public class Issue1145Tests {
 
-    @Test
-    public void issue_1145_block_3318494_ReturnPrecondition() {
-        replay(LINEA_SEPOLIA, "3318494.sepolia.json.gz", false);
-    }
+  @Test
+  public void issue_1145_block_3318494_ReturnPrecondition() {
+    replay(LINEA_SEPOLIA, "3318494.sepolia.json.gz", false);
+  }
 }

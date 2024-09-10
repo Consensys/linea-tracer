@@ -125,7 +125,7 @@ tasks.register('unitTests', Test) {
 
   useJUnitPlatform {
     excludeTags("AcceptanceTest")
-    exclude('**/**ReferenceTest*')
+//    exclude('**/**ReferenceTest*')
   }
 }
 

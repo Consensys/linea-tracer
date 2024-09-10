@@ -69,6 +69,7 @@ public class CommonFragmentValues {
 
   public CommonFragmentValues(Hub hub) {
     short exceptions = hub.pch().exceptions();
+    final boolean noException = none(exceptions);
     final boolean noStackException = !stackException(exceptions);
 
     this.txMetadata = hub.txStack().current();
@@ -97,7 +98,7 @@ public class CommonFragmentValues {
                     || instructionFamily == INVALID)
                 || exceptionAhoy);
 
-    tracedException = noStackException ? TracedException.NONE : TracedException.UNDEFINED;
+    tracedException = noException ? TracedException.NONE : TracedException.UNDEFINED;
 
     if (instructionFamily == INVALID) {
       checkArgument(Exceptions.invalidOpcode(exceptions));
@@ -113,9 +114,9 @@ public class CommonFragmentValues {
     }
   }
 
-  public void setTracedException(TracedException finalTracedException) {
-    checkArgument(tracedException == UNDEFINED);
-    this.tracedException = finalTracedException;
+  public void setTracedException(TracedException tracedException) {
+    checkArgument(this.tracedException == UNDEFINED);
+    this.tracedException = tracedException;
   }
 
   static int computePcNew(

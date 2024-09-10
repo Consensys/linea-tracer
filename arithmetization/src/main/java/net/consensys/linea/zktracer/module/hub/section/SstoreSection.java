@@ -94,6 +94,10 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
 
     checkArgument(Exceptions.outOfGasException(exceptions) || Exceptions.none(exceptions));
 
+    if (Exceptions.outOfGasException(exceptions)) {
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
+    }
+
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
 
     // STORAGE fragment (for doing)

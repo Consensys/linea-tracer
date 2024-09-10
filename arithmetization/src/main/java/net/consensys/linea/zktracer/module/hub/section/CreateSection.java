@@ -135,6 +135,7 @@ public class CreateSection extends TraceSection
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
       scenarioFragment.setScenario(CREATE_EXCEPTION);
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

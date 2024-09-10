@@ -293,7 +293,6 @@ public final class StackFragment implements TraceFragment {
   }
 
   private void tracedExceptionSanityChecks() {
-
     switch (tracedException) {
       case NONE -> checkArgument(Exceptions.none(exceptions));
       case INVALID_OPCODE -> checkArgument(Exceptions.invalidOpcode(exceptions));

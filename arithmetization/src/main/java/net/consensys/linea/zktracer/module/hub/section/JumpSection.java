@@ -46,6 +46,10 @@ public class JumpSection extends TraceSection {
       return;
     }
 
+    if (Exceptions.jumpFault(hub.pch().exceptions())) {
+      commonValues.setTracedException(TracedException.JUMP_FAULT);
+    }
+
     // CONTEXT fragment
     ///////////////////
     final ContextFragment contextRowCurrentContext = ContextFragment.readCurrentContextData(hub);

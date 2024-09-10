@@ -103,19 +103,49 @@ public class CommonFragmentValues {
     if (instructionFamily == INVALID) {
       checkArgument(Exceptions.invalidOpcode(exceptions));
       setTracedException(TracedException.INVALID_OPCODE);
+      return;
     }
 
+    final OpCode opCode = hub.opCode();
     if (Exceptions.stackUnderflow(exceptions)) {
+      checkArgument(opCode.mayTriggerStackUnderflow());
       setTracedException(TracedException.STACK_UNDERFLOW);
+      return;
     }
 
     if (Exceptions.stackOverflow(exceptions)) {
+      checkArgument(opCode.mayTriggerStackOverflow());
       setTracedException(TracedException.STACK_OVERFLOW);
+      return;
+    }
+
+    if (Exceptions.staticFault(exceptions)) {
+      checkArgument(opCode.mayTriggerStaticException());
+      setTracedException(TracedException.STATIC_FAULT);
+      return;
+    }
+
+    // TODO: for these instruction families we set the traced exception manually (check they are all
+    // we need)
+    if (instructionFamily.isAnyOf(COPY, CALL, CREATE, HALT)) {
+      return;
+    }
+
+    if (Exceptions.memoryExpansionException(exceptions)) {
+      checkArgument(opCode.mayTriggerMemoryExpansionException());
+      setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
+      return;
+    }
+
+    if (Exceptions.outOfGasException(exceptions)) {
+      setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
     }
   }
 
   public void setTracedException(TracedException tracedException) {
-    checkArgument(this.tracedException == UNDEFINED);
+    // TODO: the second condition should be removed and we should just avoid setting the same value
+    //  twice
+    checkArgument(this.tracedException == UNDEFINED || this.tracedException == tracedException);
     this.tracedException = tracedException;
   }
 

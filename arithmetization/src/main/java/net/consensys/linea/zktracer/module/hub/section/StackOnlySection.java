@@ -16,28 +16,11 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 
 public class StackOnlySection extends TraceSection {
   public StackOnlySection(Hub hub) {
     super(hub, (short) (hub.opCode().getData().stackSettings().twoLineInstruction() ? 2 : 1));
 
     this.addStack(hub);
-
-    final short exceptions = hub.pch().exceptions();
-
-    if (Exceptions.stackUnderflow(exceptions)) {
-      commonValues.setTracedException(TracedException.STACK_UNDERFLOW);
-      return;
-    }
-    if (Exceptions.stackOverflow(exceptions)) {
-      commonValues.setTracedException(TracedException.STACK_OVERFLOW);
-      return;
-    }
-    if (Exceptions.outOfGasException(exceptions)) {
-      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
-      return;
-    }
   }
 }

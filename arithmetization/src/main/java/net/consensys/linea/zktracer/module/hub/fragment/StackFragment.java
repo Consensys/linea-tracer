@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.hub.DeploymentExceptions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
@@ -62,7 +63,7 @@ public final class StackFragment implements TraceFragment {
   @Setter private boolean validJumpDestination;
   private final boolean willRevert;
   private final State.TxState.Stamps stamps;
-  private final TracedException tracedException;
+  private final CommonFragmentValues commonFragmentValues;
 
   private StackFragment(
       final Hub hub,
@@ -74,7 +75,7 @@ public final class StackFragment implements TraceFragment {
       GasProjection gp,
       boolean isDeploying,
       boolean willRevert,
-      TracedException tracedException) {
+      CommonFragmentValues commonFragmentValues) {
     this.stack = stack;
     this.stackOps = stackOps;
     this.exceptions = exceptions;
@@ -132,7 +133,7 @@ public final class StackFragment implements TraceFragment {
 
     this.willRevert = willRevert;
     this.stamps = hub.state().stamps();
-    this.tracedException = tracedException;
+    this.commonFragmentValues = commonFragmentValues;
   }
 
   public static StackFragment prepare(
@@ -144,7 +145,7 @@ public final class StackFragment implements TraceFragment {
       final GasProjection gp,
       boolean isDeploying,
       boolean willRevert,
-      TracedException tracedException) {
+      CommonFragmentValues commonFragmentValues) {
     return new StackFragment(
         hub,
         stack,
@@ -155,7 +156,7 @@ public final class StackFragment implements TraceFragment {
         gp,
         isDeploying,
         willRevert,
-        tracedException);
+        commonFragmentValues);
   }
 
   private boolean traceLog() {
@@ -223,7 +224,15 @@ public final class StackFragment implements TraceFragment {
 
     final InstructionFamily currentInstFamily = stack.getCurrentOpcodeData().instructionFamily();
 
-    this.tracedExceptionSanityChecks();
+    TracedException tracedException = commonFragmentValues.tracedException();
+
+    // TODO: here only for debugging, remove it
+    if (tracedException == UNDEFINED) {
+      System.out.println(currentInstFamily);
+      System.out.println(this.opCode);
+    }
+
+    this.tracedExceptionSanityChecks(tracedException);
 
     return trace
         .peekAtStack(true)
@@ -292,7 +301,7 @@ public final class StackFragment implements TraceFragment {
     ;
   }
 
-  private void tracedExceptionSanityChecks() {
+  private void tracedExceptionSanityChecks(TracedException tracedException) {
     switch (tracedException) {
       case NONE -> checkArgument(Exceptions.none(exceptions));
       case INVALID_OPCODE -> checkArgument(Exceptions.invalidOpcode(exceptions));
@@ -307,7 +316,8 @@ public final class StackFragment implements TraceFragment {
       case OUT_OF_SSTORE -> checkArgument(Exceptions.outOfSStore(exceptions));
       case INVALID_CODE_PREFIX -> checkArgument(Exceptions.invalidCodePrefix(exceptions));
       case CODE_SIZE_OVERFLOW -> checkArgument(Exceptions.codeSizeOverflow(exceptions));
-      case UNDEFINED -> throw new RuntimeException("tracedException remained UNDEFINED");
+      case UNDEFINED -> throw new RuntimeException(
+          "tracedException remained UNDEFINED but exceptions was " + exceptions);
     }
   }
 }

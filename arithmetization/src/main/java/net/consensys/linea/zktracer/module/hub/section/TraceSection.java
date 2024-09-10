@@ -188,7 +188,7 @@ public class TraceSection {
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
                 f.isDeployment(),
                 f.willRevert(),
-                commonValues.tracedException()));
+                commonValues));
       }
     } else {
       for (StackLine line : f.pending().lines()) {
@@ -202,7 +202,7 @@ public class TraceSection {
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
                 f.isDeployment(),
                 f.willRevert(),
-                commonValues.tracedException()));
+                commonValues));
       }
     }
     return r;

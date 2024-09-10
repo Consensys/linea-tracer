@@ -99,16 +99,16 @@ test {
     showFailed true
 
     // enable to see standard out and error streams inline with the test results
-    showStandardStreams true
+    showStandardStreams false
 
     // set to false to hide passed standard out and error streams
     showPassedStandardStreams false
 
     // set to false to hide skipped standard out and error streams
-    showSkippedStandardStreams true
+    showSkippedStandardStreams false
 
     // set to false to hide failed standard out and error streams
-    showFailedStandardStreams true
+    showFailedStandardStreams false
   }
 
   useJUnitPlatform()

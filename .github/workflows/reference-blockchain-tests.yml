@@ -17,31 +17,30 @@ on:
 jobs:
   ethereum-tests:
     runs-on: ubuntu-latest-128
+    strategy:
+      matrix:
+        java-version: [21]
+      fail-fast: false
     steps:
       - uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: |
             ${{ secrets.CONSTRAINTS_SSH_KEY }}
-
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
           submodules: recursive
-
       - name: get-branch-name
         id: extract_branch
         run: |  
             echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: 21
           distribution: temurin
-
       - name: Install Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
-
       # The asset URL for the latest release can be found with:
       # curl -L -H "Accept: application/vnd.github+json"  \
       #     -H "Authorization: Bearer YOUR_GH_API_TOKEN" \
@@ -60,16 +59,13 @@ jobs:
       #          tar xzf corset.tar.gz
       #          mv corset $HOME
       #          echo $HOME >> $GITHUB_PATH
-
       - name: Generate block chain reference tests
         run:  ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false -DZKEVM_BIN_ORIGINAL_PATH="linea-constraints/zkevm.bin"
           CORSET_FLAGS: fields,expand,expand,expand
-
       - name: generate zkevm.bin
         run: cd ./linea-constraints; make zkevm.bin -B; cd ..
-
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests
         env:
@@ -78,7 +74,6 @@ jobs:
           FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
           FAILED_MODULE: ${{ inputs.failed_module || '' }}
           FAILED_CONSTRAINT: ${{ inputs.failed_constraint || '' }}
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

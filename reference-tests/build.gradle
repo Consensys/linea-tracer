@@ -64,8 +64,8 @@ tasks.register('referenceBlockchainTests', Test) {
     events = [
       //TestLogEvent.STARTED,
       //TestLogEvent.PASSED,
-      TestLogEvent.FAILED,
-      TestLogEvent.SKIPPED,
+//      TestLogEvent.FAILED,
+//      TestLogEvent.SKIPPED,
       TestLogEvent.STANDARD_ERROR
     ]
     exceptionFormat TestExceptionFormat.FULL

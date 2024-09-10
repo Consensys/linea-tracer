@@ -129,6 +129,6 @@ tasks.register('unitTests', Test) {
   }
 }
 
-test {
-  exclude('**/**ReferenceTest*')
-}
+//test {
+//  exclude('**/**ReferenceTest*')
+//}

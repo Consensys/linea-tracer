@@ -13,6 +13,10 @@ on:
         description: Specific module constrain pair to filter from failed tests
         required: false
         type: string
+      commit:
+        description: Commit to download artifact from
+        required: false
+        type: string
 
 jobs:
   ethereum-tests:
@@ -66,12 +70,15 @@ jobs:
         id: date
         run: |
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-      - name: Download branches artifact
-        uses: actions/download-artifact@v4
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v6
         continue-on-error: true
         with:
           name: failedBlockchainReferenceTests-${{ steps.date.outputs.date }}.json
           path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          commit: ${{ inputs.commit || '' }}
+          if_no_artifact_found: ignore
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests
         timeout-minutes: 2

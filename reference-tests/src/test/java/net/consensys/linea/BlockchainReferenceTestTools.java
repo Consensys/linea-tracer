@@ -24,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -116,28 +115,6 @@ public class BlockchainReferenceTestTools {
     }
   }
 
-  public static Set<String> getRecordedFailedTestsFromJson(
-      String failedTestsOutput, String failedModule, String failedConstraint) {
-    if (!failedTestsOutput.isEmpty()) {
-      Set<String> failedTests = new HashSet<>();
-      String jsonString = readFailedTestsOutput(failedTestsOutput);
-      JsonConverter jsonConverter = JsonConverter.builder().build();
-      List<ModuleToConstraints> modulesToConstraints =
-          getModulesToConstraints(jsonString, jsonConverter);
-
-      if (failedModule.isEmpty()) {
-        return failedTests;
-      } else {
-        ModuleToConstraints filteredFailedTests = getModule(modulesToConstraints, failedModule);
-        if (!failedConstraint.isEmpty()) {
-          return filteredFailedTests.getFailedTests(failedConstraint);
-        }
-        return filteredFailedTests.getFailedTests();
-      }
-    }
-    return Collections.emptySet();
-  }
-
   public static Collection<Object[]> generateTestParametersForConfig(final String[] filePath) {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     return PARAMS.generate(
@@ -147,10 +124,7 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(
-      final String[] filePath,
-      String failedTestsFilePath,
-      String failedModule,
-      String failedConstraint) {
+      final String[] filePath, String failedModule, String failedConstraint) {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     Collection<Object[]> params =
         PARAMS.generate(
@@ -158,8 +132,7 @@ public class BlockchainReferenceTestTools {
                 .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
                 .toList());
 
-    Set<String> failedTests =
-        getRecordedFailedTestsFromJson(failedTestsFilePath, failedModule, failedConstraint);
+    Set<String> failedTests = getRecordedFailedTestsFromJson(failedModule, failedConstraint);
     params.forEach(param -> markTestToRun(param, failedTests));
 
     return params;

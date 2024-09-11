@@ -1048,8 +1048,7 @@ public class Hub implements Module {
           MACHINE_STATE,
           PUSH_POP,
           DUP,
-          SWAP,
-          INVALID -> new StackOnlySection(this);
+          SWAP -> new StackOnlySection(this);
       case MUL -> {
         switch (this.opCode()) {
           case OpCode.EXP -> new ExpSection(this);
@@ -1124,6 +1123,7 @@ public class Hub implements Module {
       case CREATE -> new CreateSection(this);
 
       case CALL -> new CallSection(this);
+      case INVALID -> new EarlyExceptionSection(this);
     }
   }
 

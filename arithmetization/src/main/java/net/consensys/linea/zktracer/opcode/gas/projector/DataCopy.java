@@ -27,14 +27,14 @@ import org.hyperledger.besu.evm.internal.Words;
 @Slf4j
 public final class DataCopy extends GasProjection {
   private final MessageFrame frame;
-  private long destOffset = 0;
-  private long len = 0;
+  private long targetOffset = 0;
+  private long size = 0;
 
   public DataCopy(MessageFrame frame, OpCode opCode) {
     this.frame = frame;
     if (frame.stackSize() > 2) {
-      destOffset = clampedToLong(frame.getStackItem(0));
-      len = clampedToLong(frame.getStackItem(2));
+      targetOffset = clampedToLong(frame.getStackItem(0));
+      size = clampedToLong(frame.getStackItem(2));
     }
   }
 
@@ -45,16 +45,16 @@ public final class DataCopy extends GasProjection {
 
   @Override
   public long memoryExpansion() {
-    return gc.memoryExpansionGasCost(frame, destOffset, len);
+    return gc.memoryExpansionGasCost(frame, targetOffset, size);
   }
 
   @Override
   public long linearPerWord() {
-    return linearCost(GAS_CONST_G_COPY, len, WORD_SIZE);
+    return linearCost(GAS_CONST_G_COPY, size, WORD_SIZE);
   }
 
   @Override
   public long largestOffset() {
-    return len == 0 ? 0 : Words.clampedAdd(destOffset, len);
+    return size == 0 ? 0 : Words.clampedAdd(targetOffset, size);
   }
 }

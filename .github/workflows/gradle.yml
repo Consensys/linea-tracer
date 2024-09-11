@@ -62,6 +62,7 @@ jobs:
 
 
   tests:
+    needs: [ build, spotless ]
     runs-on: ubuntu-latest-128
     steps:
       - name: Setup upterm session
@@ -128,6 +129,7 @@ jobs:
           path: arithmetization/build/reports/tests/**/*
 
   go-corset-tests:
+    needs: [ build, spotless ]
     runs-on: ubuntu-latest-128
     continue-on-error: true    
     steps:
@@ -168,11 +170,11 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd -b1024 --air
+          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
 
       - name: Run replay tests
         run: GOMEMLIMIT=196GiB ./gradlew :arithmetization:replayTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd -b1024 --air
+          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air

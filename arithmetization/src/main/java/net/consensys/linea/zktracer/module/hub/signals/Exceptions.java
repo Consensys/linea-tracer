@@ -43,7 +43,7 @@ public class Exceptions {
       128; // trying to execute non-static instruction in a static context
   public static final short OUT_OF_SSTORE = 256; // not enough gas to execute an SSTORE
   public static final short INVALID_CODE_PREFIX = 512;
-  public static final short CODE_SIZE_OVERFLOW = 2048;
+  public static final short MAX_CODE_SIZE_EXCEPTION = 2048;
 
   public static boolean stackException(final short bitmask) {
     return stackOverflow(bitmask) || stackUnderflow(bitmask);
@@ -110,8 +110,8 @@ public class Exceptions {
     return (bitmask & INVALID_CODE_PREFIX) != 0;
   }
 
-  public static boolean codeSizeOverflow(final short bitmask) {
-    return (bitmask & CODE_SIZE_OVERFLOW) != 0;
+  public static boolean maxCodeSizeException(final short bitmask) {
+    return (bitmask & MAX_CODE_SIZE_EXCEPTION) != 0;
   }
 
   private static boolean isInvalidOpcode(final OpCode opCode) {
@@ -243,7 +243,7 @@ public class Exceptions {
       return STATIC_FAULT;
     }
     if (isCodeSizeOverflow(frame)) {
-      return CODE_SIZE_OVERFLOW;
+      return MAX_CODE_SIZE_EXCEPTION;
     }
 
     final GasProjector gp = Hub.GAS_PROJECTOR;

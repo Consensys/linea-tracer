@@ -31,7 +31,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -136,8 +135,6 @@ public class SelfdestructSection extends TraceSection
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
       this.addFragment(recipientFirstAccountFragment);
-
-      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

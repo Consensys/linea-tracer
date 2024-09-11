@@ -28,7 +28,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -53,14 +52,12 @@ public class CodeCopySection extends TraceSection {
 
     // The MXPX case
     if (mxpCall.mxpx) {
-      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // The OOGX case
     if (Exceptions.any(exceptions)) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
-      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.ReturnDataCopyOobCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 
 public class ReturnDataCopySection extends TraceSection {
 
@@ -48,7 +47,6 @@ public class ReturnDataCopySection extends TraceSection {
 
     // returnDataCopyException case
     if (returnDataCopyException) {
-      commonValues.setTracedException(TracedException.RETURN_DATA_COPY_FAULT);
       return;
     }
 
@@ -59,14 +57,12 @@ public class ReturnDataCopySection extends TraceSection {
 
     // memoryExpansionException case
     if (mxpCall.mxpx) {
-      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // outOfGasException case
     if (Exceptions.any(exceptions)) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
-      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

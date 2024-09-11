@@ -292,7 +292,7 @@ public final class StackFragment implements TraceFragment {
         .pStackStaticx(tracedException == STATIC_FAULT)
         .pStackSstorex(tracedException == OUT_OF_SSTORE)
         .pStackIcpx(tracedException == INVALID_CODE_PREFIX)
-        .pStackMaxcsx(tracedException == CODE_SIZE_OVERFLOW)
+        .pStackMaxcsx(tracedException == MAX_CODE_SIZE_EXCEPTION)
         // Hash data
         .pStackHashInfoFlag(hashInfoFlag)
         .pStackHashInfoKeccakHi(hashInfoKeccak.hi())
@@ -315,7 +315,7 @@ public final class StackFragment implements TraceFragment {
       case STATIC_FAULT -> checkArgument(Exceptions.staticFault(exceptions));
       case OUT_OF_SSTORE -> checkArgument(Exceptions.outOfSStore(exceptions));
       case INVALID_CODE_PREFIX -> checkArgument(Exceptions.invalidCodePrefix(exceptions));
-      case CODE_SIZE_OVERFLOW -> checkArgument(Exceptions.codeSizeOverflow(exceptions));
+      case MAX_CODE_SIZE_EXCEPTION -> checkArgument(Exceptions.maxCodeSizeException(exceptions));
       case UNDEFINED -> throw new RuntimeException(
           "tracedException remained UNDEFINED but exceptions was " + exceptions);
     }

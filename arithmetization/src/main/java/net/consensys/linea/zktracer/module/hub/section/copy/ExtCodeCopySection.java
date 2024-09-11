@@ -29,7 +29,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -76,7 +75,6 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
 
     // The MXPX case
     if (mxpCall.mxpx) {
-      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
@@ -100,7 +98,6 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
               .makeWithTrm(accountBefore, accountBefore, rawAddress, doingDomSubStamps);
 
       this.addFragment(accountReadingFragment);
-      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

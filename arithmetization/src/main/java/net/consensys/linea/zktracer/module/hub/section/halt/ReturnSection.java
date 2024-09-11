@@ -129,11 +129,11 @@ public class ReturnSection extends TraceSection
     }
 
     // maxCodeSizeException case
-    final boolean triggerOobForMaxCodeSizeException = Exceptions.codeSizeOverflow(exceptions);
+    final boolean triggerOobForMaxCodeSizeException = Exceptions.maxCodeSizeException(exceptions);
     if (triggerOobForMaxCodeSizeException) {
       final OobCall oobCall = new XCallOobCall();
       firstImcFragment.callOob(oobCall);
-      commonValues.setTracedException(TracedException.CODE_SIZE_OVERFLOW);
+      commonValues.setTracedException(TracedException.MAX_CODE_SIZE_EXCEPTION);
       return;
     }
 

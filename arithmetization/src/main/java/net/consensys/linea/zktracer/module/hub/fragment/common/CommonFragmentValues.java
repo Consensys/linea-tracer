@@ -65,11 +65,11 @@ public class CommonFragmentValues {
   @Setter public int numberOfNonStackRows;
   @Setter public boolean TLI;
   @Setter public int codeFragmentIndex = -1;
-  @Getter private TracedException tracedException;
+  @Getter private TracedException tracedException = UNDEFINED;
 
   public CommonFragmentValues(Hub hub) {
     short exceptions = hub.pch().exceptions();
-    final boolean noException = none(exceptions);
+    ;
     final boolean noStackException = !stackException(exceptions);
 
     this.txMetadata = hub.txStack().current();
@@ -98,7 +98,10 @@ public class CommonFragmentValues {
                     || instructionFamily == INVALID)
                 || exceptionAhoy);
 
-    tracedException = noException ? TracedException.NONE : TracedException.UNDEFINED;
+    if (none(exceptions)) {
+      tracedException = TracedException.NONE;
+      return;
+    }
 
     final OpCode opCode = hub.opCode();
 
@@ -108,8 +111,22 @@ public class CommonFragmentValues {
       return;
     }
 
-    // For these instruction families we set the traced exception below manually
-    if (instructionFamily.isAnyOf(COPY, CALL, CREATE, HALT, STORAGE)) {
+    // RETURNDATACOPY opcode specific exception
+    if (opCode == OpCode.RETURNDATACOPY && Exceptions.returnDataCopyFault(exceptions)) {
+      setTracedException(TracedException.RETURN_DATA_COPY_FAULT);
+      return;
+    }
+
+    // SSTORE opcode specific exception
+    if (opCode == OpCode.SSTORE && Exceptions.outOfSStore(exceptions)) {
+      setTracedException(TracedException.OUT_OF_SSTORE);
+      return;
+    }
+
+    // For RETURN, in case none of the above exceptions is the traced one,
+    // we have a complex logic to determine the traced exception that is
+    // implemented in the instruction processing
+    if (opCode == OpCode.RETURN) {
       return;
     }
 
@@ -121,6 +138,12 @@ public class CommonFragmentValues {
 
     if (Exceptions.outOfGasException(exceptions)) {
       setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
+      return;
+    }
+
+    // JUMP instruction family specific exception
+    if (instructionFamily == InstructionFamily.JUMP && Exceptions.jumpFault(exceptions)) {
+      setTracedException(TracedException.JUMP_FAULT);
     }
   }
 

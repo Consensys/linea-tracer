@@ -48,7 +48,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFra
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.*;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
@@ -146,7 +145,6 @@ public class CallSection extends TraceSection
 
     // MXPX case
     if (Exceptions.memoryExpansionException(exceptions)) {
-      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
@@ -167,7 +165,6 @@ public class CallSection extends TraceSection
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
-      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       this.oogXCall(hub);
       return;
     }

@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.KECCAK;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -54,6 +56,12 @@ public class KeccakSection extends TraceSection implements PostOpcodeDefer {
       hashInput = hub.currentFrame().frame().shadowReadMemory(offset, size);
       final MmuCall mmuCall = MmuCall.sha3(hub, hashInput);
       imcFragment.callMmu(mmuCall);
+    }
+
+    final short exceptions = hub.pch().exceptions();
+    if (Exceptions.any(exceptions)) {
+      checkArgument(Exceptions.outOfGasException(exceptions));
+      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
     }
   }
 

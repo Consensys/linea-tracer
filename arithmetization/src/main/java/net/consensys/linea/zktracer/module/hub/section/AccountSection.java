@@ -74,7 +74,7 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
 
     if (Exceptions.none(exceptions)) {
       accountSnapshotAfter.turnOnWarmth(); // TODO: use canonical instead at postExecDefers ?
-    }
+    } //TODO @Lorenzo : where do we set the tracedException ? 
 
     final DomSubStampsSubFragment doingDomSubStamps =
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0);

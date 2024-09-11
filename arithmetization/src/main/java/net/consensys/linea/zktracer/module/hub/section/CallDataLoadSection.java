@@ -15,9 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.readCurrentContextData;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -84,6 +86,10 @@ public class CallDataLoadSection extends TraceSection {
 
         imcFragment.callMmu(call);
       }
+    }
+      else {
+      checkArgument(Exceptions.outOfGasException(exception));
+      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
     }
 
     this.addFragment(imcFragment);

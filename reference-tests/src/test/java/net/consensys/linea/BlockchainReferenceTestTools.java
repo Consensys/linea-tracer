@@ -108,6 +108,9 @@ public class BlockchainReferenceTestTools {
       return failedTests;
     } else {
       ModuleToConstraints filteredFailedTests = getModule(modulesToConstraints, failedModule);
+      if (filteredFailedTests == null) {
+        return failedTests;
+      }
       if (!failedConstraint.isEmpty()) {
         return filteredFailedTests.getFailedTests(failedConstraint);
       }

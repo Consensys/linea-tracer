@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -62,14 +63,13 @@ public class MapFailedReferenceTestsTool {
       ModuleToConstraints moduleMapping = getModule(modulesToConstraints, moduleName);
       String cleanedConstraintName = getCleanedConstraintName(constraint);
 
-      Set<String> failedTests =
-          aggregateFailedTestsForModuleConstraintPair(
-              testName, moduleMapping, cleanedConstraintName);
+      Set<String> failedTests = aggregateFailedTestsForModuleConstraintPair(
+          testName, Objects.requireNonNull(moduleMapping), cleanedConstraintName);
       moduleMapping.constraints().put(cleanedConstraintName, failedTests);
     }
   }
 
-  private static @NotNull Set<String> aggregateFailedTestsForModuleConstraintPair(
+  private static Set<String> aggregateFailedTestsForModuleConstraintPair(
       String testName, ModuleToConstraints moduleMapping, String cleanedConstraintName) {
     Set<String> failedTests =
         new HashSet<>(
@@ -90,10 +90,15 @@ public class MapFailedReferenceTestsTool {
 
   public static ModuleToConstraints getModule(
       List<ModuleToConstraints> constraintToFailingTests, String moduleName) {
-    return constraintToFailingTests.stream()
+    List<ModuleToConstraints> modules = constraintToFailingTests.stream()
         .filter(mapping -> mapping.equals(moduleName))
-        .toList()
-        .getFirst();
+        .toList();
+
+    if (modules.isEmpty()) {
+      return null;
+    } else {
+      return modules.getFirst();
+    }
   }
 
   private static void addModuleIfAbsent(

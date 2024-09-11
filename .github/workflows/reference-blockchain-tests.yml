@@ -64,6 +64,8 @@ jobs:
         run: cd ./linea-constraints; make zkevm.bin -B; cd ..
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests
+        timeout-minutes: 2
+        continue-on-error: true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand

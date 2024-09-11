@@ -68,6 +68,7 @@ jobs:
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Download branches artifact
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: failedBlockchainReferenceTests-${{ steps.date.outputs.date }}.json
           path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/

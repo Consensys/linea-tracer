@@ -79,4 +79,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: failedBlockchainReferenceTests-${{ steps.date.outputs.date }}.json
-          path: tmp/${{ steps.extract_branch.outputs.branch }}
+          path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/

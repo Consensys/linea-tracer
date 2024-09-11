@@ -27,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FailedTestJson {
   static String fileDirectory = System.getProperty("FAILED_TEST_JSON_DIRECTORY", "../tmp/local/");
+  static String fileDirectory = setFileDirectory();
 
   @Synchronized
   public static String readFailedTestsOutput(String fileName) {
@@ -65,5 +66,13 @@ public class FailedTestJson {
     } catch (Exception e) {
       log.error("Error - Failed to write failed test output: %s".formatted(e.getMessage()));
     }
+  }
+
+  private static String setFileDirectory() {
+    String jsonDirectory = System.getenv("FAILED_TEST_JSON_DIRECTORY");
+    if (jsonDirectory.isEmpty()) {
+      return "../tmp/local/";
+    }
+    return jsonDirectory;
   }
 }

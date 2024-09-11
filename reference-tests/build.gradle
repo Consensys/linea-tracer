@@ -68,7 +68,7 @@ tasks.register('referenceGeneralStateTests', Test) {
   dependsOn generateGeneralStateReferenceTests
 
   minHeapSize = "4g"
-  maxHeapSize = "20g"
+  maxHeapSize = "120g"
   maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
 
   useJUnitPlatform {

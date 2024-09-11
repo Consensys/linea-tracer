@@ -72,6 +72,7 @@ jobs:
           echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v6
+        if: ${{ inputs.failed_module != '' }}
         continue-on-error: true
         with:
           name: failedBlockchainReferenceTests-${{ steps.date.outputs.date }}.json

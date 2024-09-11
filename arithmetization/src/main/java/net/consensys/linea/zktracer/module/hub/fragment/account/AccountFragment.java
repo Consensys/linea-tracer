@@ -208,19 +208,20 @@ public final class AccountFragment
     final Map<Address, TransactionProcessingMetadata.TransactAccountFirstAndLast> txnAccountFirstAndLastMap =
             this. transactionProcessingMetadata.getTransactAccountFirstAndLastMap();
     if (!txnAccountFirstAndLastMap.containsKey(oldState.address())) {
+      int dom = this.domSubStampsSubFragment.domStamp();
+      int sub = this.domSubStampsSubFragment.subStamp();
       TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast =
-              new TransactionProcessingMetadata.TransactAccountFirstAndLast(this, this, this.domSubStampsSubFragment.domStamp(),
-                      this.domSubStampsSubFragment.subStamp());
+              new TransactionProcessingMetadata.TransactAccountFirstAndLast(this, this, dom, sub, dom, sub);
       txnAccountFirstAndLastMap.put(oldState.address(), txnFirstAndLast);
     } else {
       TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast = txnAccountFirstAndLastMap.get(oldState.address());
       // Replace condition
-      if (txnFirstAndLast.getDom() < this.domSubStampsSubFragment.domStamp() ||
-              (txnFirstAndLast.getDom() == this.domSubStampsSubFragment.domStamp() &&
-                      txnFirstAndLast.getSub() > this.domSubStampsSubFragment.subStamp())) {
+      if (TransactionProcessingMetadata.TransactAccountFirstAndLast.strictlySmallerStamps(
+              txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(),
+              this.domSubStampsSubFragment.domStamp(), this.domSubStampsSubFragment.subStamp())) {
         txnFirstAndLast.setLast(this);
-        txnFirstAndLast.setDom(this.domSubStampsSubFragment.domStamp());
-        txnFirstAndLast.setSub(this.domSubStampsSubFragment.subStamp());
+        txnFirstAndLast.setLastDom(this.domSubStampsSubFragment.domStamp());
+        txnFirstAndLast.setLastSub(this.domSubStampsSubFragment.subStamp());
         txnAccountFirstAndLastMap.put(oldState.address(), txnFirstAndLast);
       }
     }

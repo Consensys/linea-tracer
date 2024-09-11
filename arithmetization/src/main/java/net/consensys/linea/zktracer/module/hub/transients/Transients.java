@@ -16,9 +16,16 @@
 package net.consensys.linea.zktracer.module.hub.transients;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hyperledger.besu.datatypes.Address;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class stores data and provide information accessible through the {@link Hub} of various
@@ -37,6 +44,24 @@ public class Transients {
 
   /** provides operation-related information */
   final OperationAncillaries op;
+
+
+
+  @Getter
+  Map<AddrBlockPair, TransactionProcessingMetadata.TransactAccountFirstAndLast> txnAccountFirstLastBlockMap = new HashMap<>();
+
+  public static class AddrBlockPair {
+    @Getter
+    private Address address;
+    @Getter
+    private int blockNumber;
+
+    public AddrBlockPair(Address addr, int blockNumber) {
+      this.address = addr;
+      this.blockNumber = blockNumber;
+    }
+  }
+
 
   public TransactionProcessingMetadata tx() {
     return this.hub.txStack().current();

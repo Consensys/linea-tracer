@@ -26,13 +26,11 @@ import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
 import java.nio.MappedByteBuffer;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -50,6 +48,7 @@ import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextSection;
@@ -128,6 +127,7 @@ import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -485,11 +485,13 @@ public class Hub implements Module {
     for (Module m : modules) {
       m.traceEndBlock(blockHeader, blockBody);
     }
+    updateBlockMap();
   }
 
   public void traceStartTransaction(final WorldView world, final Transaction tx) {
     pch.reset();
     state.enter();
+    var myBlock = transients.block();
     txStack.enterTransaction(world, tx, transients.block());
 
     defers.scheduleForPostTransaction(txStack.current());
@@ -1162,4 +1164,55 @@ public class Hub implements Module {
   public final boolean deploymentStatusOfAccountAddress() {
     return deploymentStatusOf(this.accountAddress());
   }
+
+
+
+  public void updateBlockMap() {
+    Map<Transients.AddrBlockPair, TransactionProcessingMetadata.TransactAccountFirstAndLast> blockMap = transients.txnAccountFirstLastBlockMap();
+    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+    for (int i = 0; i < txn.size(); i++) {
+      TransactionProcessingMetadata metadata = txn.get(i);
+      if (metadata.getRelativeBlockNumber() == transients.block().blockNumber())
+      {
+        int blockNumber = transients.block().blockNumber();
+        Map<Address, TransactionProcessingMetadata. TransactAccountFirstAndLast> localMap = metadata.getTransactAccountFirstAndLastMap();
+        for (Address addr:localMap.keySet()) {
+          TransactionProcessingMetadata.TransactAccountFirstAndLast localInfo = localMap.get(addr);
+          Transients.AddrBlockPair pairAddrBlock = new Transients.AddrBlockPair(addr, blockNumber);
+          // localValue exists for sure because addr belongs to the keySet of the local map
+          TransactionProcessingMetadata.TransactAccountFirstAndLast localValue = localMap.get(addr);
+          if (!blockMap.containsKey(pairAddrBlock)) {
+            // the pair is not present in the map
+            blockMap.put(pairAddrBlock, localValue);
+          } else {
+            TransactionProcessingMetadata.TransactAccountFirstAndLast blockValue = blockMap.get(pairAddrBlock);
+            // update the first part of the blockValue
+            if (TransactionProcessingMetadata.TransactAccountFirstAndLast.strictlySmallerStamps(
+                    localValue.getFirstDom(), localValue.getFirstSub(), blockValue.getFirstDom(), blockValue.getFirstSub())) {
+              // chronologically checks that localValue.First is before blockValue.First
+              // localValue comes chronologically before, and should be the first value of the map.
+              blockValue.setFirst(localValue.getFirst());
+              blockValue.setFirstDom(localValue.getFirstDom());
+              blockValue.setFirstSub(localValue.getFirstSub());
+
+            // update the last part of the blockValue
+            if (TransactionProcessingMetadata.TransactAccountFirstAndLast.strictlySmallerStamps(
+                    blockValue.getLastDom(), blockValue.getLastSub(), localValue.getLastDom(), localValue.getLastSub())) {
+              // chronologically checks that blockValue.Last is before localValue.Last
+              // localValue comes chronologically after, and should be the final value of the map.
+              blockValue.setLast(localValue.getLast());
+              blockValue.setLastDom(localValue.getLastDom());
+              blockValue.setLastSub(localValue.getLastSub());
+            }
+            blockMap.put(pairAddrBlock, blockValue);
+          }
+        }
+
+      }
+    }
+  }
+
 }
+}
+
+

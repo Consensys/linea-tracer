@@ -126,13 +126,20 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   public static class TransactAccountFirstAndLast {
     AccountFragment first;
     AccountFragment last;
-    int dom;
-    int sub;
-    public TransactAccountFirstAndLast(AccountFragment first, AccountFragment last, int dom, int sub) {
+    int firstDom, firstSub;
+    int lastDom, lastSub;
+    public TransactAccountFirstAndLast(AccountFragment first, AccountFragment last, int firstDom, int firstSub, int lastDom, int lastSub) {
       this.first = first;
       this.last = last;
-      this.dom = dom;
-      this.sub = sub;
+      this.firstDom = firstDom;
+      this.firstSub = firstSub;
+      this.lastDom = lastDom;
+      this.lastSub = lastSub;
+    }
+    public static boolean strictlySmallerStamps(int firstDom, int firstSub, int lastDom, int lastSub) {
+        return firstDom < lastDom ||
+                (firstDom == lastDom &&
+                        firstSub > lastSub);
     }
   }
   @Getter

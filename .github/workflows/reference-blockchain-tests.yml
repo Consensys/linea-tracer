@@ -72,8 +72,11 @@ jobs:
           FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
           FAILED_MODULE: ${{ inputs.failed_module || '' }}
           FAILED_CONSTRAINT: ${{ inputs.failed_constraint || '' }}
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: my-artifact
-          path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/${{ inputs.failed_tests_file_name }}
+          name: failedBlockchainReferenceTests-${{ steps.date.outputs.date }}.json
+          path: tmp/${{ steps.extract_branch.outputs.branch }}

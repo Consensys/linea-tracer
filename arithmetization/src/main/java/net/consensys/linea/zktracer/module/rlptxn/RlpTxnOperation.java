@@ -29,11 +29,11 @@ import org.hyperledger.besu.datatypes.Transaction;
 @Getter
 public final class RlpTxnOperation extends ModuleOperation {
   private final Transaction tx;
-  private final boolean requireEvmExecution;
+  private final boolean requiresEvmExecution;
 
-  public RlpTxnOperation(Transaction tx, boolean requireEvmExecution) {
-    this.tx = tx;
-    this.requireEvmExecution = requireEvmExecution;
+  public RlpTxnOperation(Transaction transaction, boolean requiresEvmExecution) {
+    this.tx = transaction;
+    this.requiresEvmExecution = requiresEvmExecution;
   }
 
   @Override

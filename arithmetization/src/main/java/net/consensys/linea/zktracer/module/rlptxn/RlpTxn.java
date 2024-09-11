@@ -133,9 +133,9 @@ public class RlpTxn implements OperationListModule<RlpTxnOperation> {
     traceValue.addrHi = bigIntegerToBytes(BigInteger.ZERO);
     traceValue.addrLo = bigIntegerToBytes(BigInteger.ZERO);
     traceValue.absTxNum = absTxNum;
-    traceValue.requiresEvmExecution = chunk.requireEvmExecution();
+    traceValue.requiresEvmExecution = chunk.requiresEvmExecution();
     traceValue.codeFragmentIndex =
-        chunk.tx().getTo().isEmpty() && chunk.requireEvmExecution()
+        chunk.tx().getTo().isEmpty() && chunk.requiresEvmExecution()
             ? this.romLex.getCodeFragmentIndexByMetadata(
                 ContractMetadata.make(
                     Address.contractAddress(chunk.tx().getSender(), chunk.tx().getNonce()),

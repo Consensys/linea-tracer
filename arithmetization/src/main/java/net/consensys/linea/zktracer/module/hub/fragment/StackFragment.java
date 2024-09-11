@@ -317,7 +317,8 @@ public final class StackFragment implements TraceFragment {
       case INVALID_CODE_PREFIX -> checkArgument(Exceptions.invalidCodePrefix(exceptions));
       case MAX_CODE_SIZE_EXCEPTION -> checkArgument(Exceptions.maxCodeSizeException(exceptions));
       case UNDEFINED -> throw new RuntimeException(
-          "tracedException remained UNDEFINED but exceptions was " + exceptions);
+          "tracedException remained UNDEFINED but "
+              + Exceptions.prettyStringOf(this.opCode, exceptions));
     }
   }
 }

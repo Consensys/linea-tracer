@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.hub.signals;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EIP_3541_MARKER;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_CODE_SIZE;
 
+import java.util.function.Consumer;
+
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -320,5 +322,51 @@ public class Exceptions {
       return INVALID_CODE_PREFIX;
     }
     return NONE;
+  }
+
+  public static String prettyStringOf(OpCode opCode, final short bitmask) {
+    StringBuilder sb = new StringBuilder();
+    Consumer<String> appendLine = (s) -> sb.append(s).append(System.lineSeparator());
+    appendLine.accept("");
+    appendLine.accept("underlying OpCode: " + opCode.name());
+    appendLine.accept("raw exceptions:");
+    if (none(bitmask)) {
+      appendLine.accept("NONE");
+      return sb.toString();
+    }
+    if (invalidOpcode(bitmask)) {
+      appendLine.accept("INVALID_OPCODE");
+    }
+    if (stackUnderflow(bitmask)) {
+      appendLine.accept("STACK_UNDERFLOW");
+    }
+    if (stackOverflow(bitmask)) {
+      appendLine.accept("STACK_OVERFLOW");
+    }
+    if (memoryExpansionException(bitmask)) {
+      appendLine.accept("MEMORY_EXPANSION_EXCEPTION");
+    }
+    if (outOfGasException(bitmask)) {
+      appendLine.accept("OUT_OF_GAS_EXCEPTION");
+    }
+    if (returnDataCopyFault(bitmask)) {
+      appendLine.accept("RETURN_DATA_COPY_FAULT");
+    }
+    if (jumpFault(bitmask)) {
+      appendLine.accept("JUMP_FAULT");
+    }
+    if (staticFault(bitmask)) {
+      appendLine.accept("STATIC_FAULT");
+    }
+    if (outOfSStore(bitmask)) {
+      appendLine.accept("OUT_OF_SSTORE");
+    }
+    if (invalidCodePrefix(bitmask)) {
+      appendLine.accept("INVALID_CODE_PREFIX");
+    }
+    if (maxCodeSizeException(bitmask)) {
+      appendLine.accept("MAX_CODE_SIZE_EXCEPTION");
+    }
+    return sb.toString();
   }
 }

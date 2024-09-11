@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.Bytecode;
 import org.hyperledger.besu.datatypes.Address;
@@ -51,7 +52,8 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
     final short exceptions = hub.pch().exceptions();
     checkArgument(
         Exceptions.none(exceptions),
-        "STOP is incapable of triggering an exception but exceptions = " + exceptions);
+        "STOP is incapable of triggering an exception but "
+            + Exceptions.prettyStringOf(OpCode.STOP, exceptions));
 
     hub.defers().scheduleForPostTransaction(this); // always
 

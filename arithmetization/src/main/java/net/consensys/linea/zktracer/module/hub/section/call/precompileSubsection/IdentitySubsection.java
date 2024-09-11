@@ -35,7 +35,7 @@ public class IdentitySubsection extends PrecompileSubsection {
   public IdentitySubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
 
-    long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
+    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     oobCall = new PrecompileCommonOobCall(OOB_INST_IDENTITY, calleeGas);
     firstImcFragment.callOob(oobCall);
 

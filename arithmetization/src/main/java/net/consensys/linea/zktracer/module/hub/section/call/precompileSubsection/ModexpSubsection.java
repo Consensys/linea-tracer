@@ -119,7 +119,7 @@ public class ModexpSubsection extends PrecompileSubsection {
 
     final ImcFragment sixthImcFragment = ImcFragment.empty(hub);
     fragments().add(sixthImcFragment);
-    long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
+    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     sixthOobCall = new ModexpPricingOobCall(calleeGas);
     sixthImcFragment.callOob(sixthOobCall);
 

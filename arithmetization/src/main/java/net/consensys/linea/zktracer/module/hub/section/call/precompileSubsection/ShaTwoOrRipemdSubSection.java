@@ -37,7 +37,7 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
   public ShaTwoOrRipemdSubSection(Hub hub, CallSection callSection) {
     super(hub, callSection);
 
-    long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
+    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     oobCall =
         switch (flag()) {
           case PRC_SHA2_256 -> new PrecompileCommonOobCall(OOB_INST_SHA2, calleeGas);

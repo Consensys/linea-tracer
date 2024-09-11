@@ -68,7 +68,7 @@ public class BlakeSubsection extends PrecompileSubsection {
     secondImcFragment = ImcFragment.empty(hub);
     fragments.add(secondImcFragment);
 
-    long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
+    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     blake2fParamsOobCall = new Blake2fParamsOobCall(calleeGas);
     secondImcFragment.callOob(blake2fParamsOobCall);
 

@@ -35,7 +35,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
   public EllipticCurvePrecompileSubsection(Hub hub, CallSection callSection) {
     super(hub, callSection);
 
-    long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
+    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     oobCall =
         switch (flag()) {
           case PRC_ECRECOVER -> new PrecompileCommonOobCall(OOB_INST_ECRECOVER, calleeGas);

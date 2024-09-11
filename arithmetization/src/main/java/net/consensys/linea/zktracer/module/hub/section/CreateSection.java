@@ -112,7 +112,6 @@ public class CreateSection extends TraceSection
     // Note: in the static case this imc fragment remains empty
     if (Exceptions.staticFault(exceptions)) {
       scenarioFragment.setScenario(CREATE_EXCEPTION);
-      commonValues.setTracedException(TracedException.STATIC_FAULT);
       return;
     }
 

@@ -136,7 +136,6 @@ public class CallSection extends TraceSection
 
     // STATICX cases
     if (Exceptions.staticFault(exceptions)) {
-      commonValues.setTracedException(TracedException.STATIC_FAULT);
       return;
     }
 

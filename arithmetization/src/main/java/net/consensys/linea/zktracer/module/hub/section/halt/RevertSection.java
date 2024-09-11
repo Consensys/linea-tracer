@@ -23,6 +23,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 
 public class RevertSection extends TraceSection {
 
@@ -46,11 +47,19 @@ public class RevertSection extends TraceSection {
     imcFragment.callMxp(mxpCall);
     checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
 
-    // The XAHOY case
-    /////////////////
-    if (Exceptions.any(exceptions)) {
+    if (Exceptions.memoryExpansionException(exceptions)) {
+      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
+
+    if (Exceptions.outOfGasException(exceptions)) {
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
+      return;
+    }
+
+    // The XAHOY case
+    /////////////////
+    checkArgument(Exceptions.none(exceptions));
 
     final boolean triggerMmu =
         (Exceptions.none(exceptions))

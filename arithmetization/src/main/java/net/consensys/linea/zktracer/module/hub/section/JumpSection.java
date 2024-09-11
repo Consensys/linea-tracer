@@ -42,7 +42,6 @@ public class JumpSection extends TraceSection {
     this.addStackAndFragments(hub);
 
     if (Exceptions.outOfGasException(hub.pch().exceptions())) {
-      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

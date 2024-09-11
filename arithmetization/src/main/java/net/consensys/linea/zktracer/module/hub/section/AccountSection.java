@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
@@ -49,8 +48,6 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
       if (Exceptions.any(exceptions)) {
         // the "squash parent return data" context row is all there is
         Preconditions.checkArgument(Exceptions.outOfGasException(exceptions));
-        // NOTE: no other exception beyond OUT_OF_GAS_EXCEPTION are supposed to be managed here
-        commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
         return;
       }
 

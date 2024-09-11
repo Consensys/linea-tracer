@@ -100,9 +100,7 @@ public class CommonFragmentValues {
 
     tracedException = noException ? TracedException.NONE : TracedException.UNDEFINED;
 
-    if (instructionFamily == INVALID) {
-      checkArgument(Exceptions.invalidOpcode(exceptions));
-      setTracedException(TracedException.INVALID_OPCODE);
+    if (hubProcessingPhase != TX_EXEC) {
       return;
     }
 
@@ -119,15 +117,20 @@ public class CommonFragmentValues {
       return;
     }
 
+    if (instructionFamily == INVALID) {
+      checkArgument(Exceptions.invalidOpcode(exceptions));
+      setTracedException(TracedException.INVALID_OPCODE);
+      return;
+    }
+
     if (Exceptions.staticFault(exceptions)) {
       checkArgument(opCode.mayTriggerStaticException());
       setTracedException(TracedException.STATIC_FAULT);
       return;
     }
 
-    // TODO: for these instruction families we set the traced exception manually (check they are all
-    // we need)
-    if (instructionFamily.isAnyOf(COPY, CALL, CREATE, HALT)) {
+    // For these instruction families we set the traced exception below manually
+    if (instructionFamily.isAnyOf(COPY, CALL, CREATE, HALT, STORAGE)) {
       return;
     }
 
@@ -145,7 +148,8 @@ public class CommonFragmentValues {
   public void setTracedException(TracedException tracedException) {
     // TODO: the second condition should be removed and we should just avoid setting the same value
     //  twice
-    checkArgument(this.tracedException == UNDEFINED || this.tracedException == tracedException);
+    checkArgument(
+        this.tracedException == UNDEFINED); // || this.tracedException == tracedException);
     this.tracedException = tracedException;
   }
 

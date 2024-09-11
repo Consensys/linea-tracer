@@ -109,7 +109,6 @@ public class SelfdestructSection extends TraceSection
 
     // STATICX case
     if (Exceptions.staticFault(exceptions)) {
-      commonValues.setTracedException(TracedException.STATIC_FAULT);
       return;
     }
 

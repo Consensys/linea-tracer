@@ -77,7 +77,6 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     this.addStackAndFragments(hub, readCurrentContext);
 
     if (staticContextException) {
-      commonValues.setTracedException(TracedException.STATIC_FAULT);
       return;
     }
 

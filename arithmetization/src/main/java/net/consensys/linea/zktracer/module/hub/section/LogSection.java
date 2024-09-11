@@ -25,7 +25,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.runtime.LogData;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -50,7 +49,6 @@ public class LogSection extends TraceSection implements PostRollbackDefer, PostT
     // Static Case
     if (hub.currentFrame().frame().isStatic()) {
       checkArgument(Exceptions.staticFault(exceptions));
-      commonValues.setTracedException(TracedException.STATIC_FAULT);
       return;
     }
 
@@ -64,13 +62,11 @@ public class LogSection extends TraceSection implements PostRollbackDefer, PostT
 
     // MXPX case
     if (mxpCall.isMxpx()) {
-      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
-      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 

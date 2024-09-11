@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
@@ -85,6 +86,10 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSload);
 
     this.addStackAndFragments(hub, readCurrentContext, miscFragmentForSload, doingSload);
+
+    if (Exceptions.outOfGasException(exceptions)) {
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
+    }
   }
 
   private StorageFragment doingSload(Hub hub) {

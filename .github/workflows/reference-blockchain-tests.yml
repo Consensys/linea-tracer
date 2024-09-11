@@ -82,7 +82,6 @@ jobs:
           if_no_artifact_found: ignore
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests
-        timeout-minutes: 2
         continue-on-error: true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false

@@ -31,7 +31,6 @@ import java.util.regex.Pattern;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.json.JsonConverter;
-import org.jetbrains.annotations.NotNull;
 
 @Slf4j
 public class MapFailedReferenceTestsTool {
@@ -63,8 +62,9 @@ public class MapFailedReferenceTestsTool {
       ModuleToConstraints moduleMapping = getModule(modulesToConstraints, moduleName);
       String cleanedConstraintName = getCleanedConstraintName(constraint);
 
-      Set<String> failedTests = aggregateFailedTestsForModuleConstraintPair(
-          testName, Objects.requireNonNull(moduleMapping), cleanedConstraintName);
+      Set<String> failedTests =
+          aggregateFailedTestsForModuleConstraintPair(
+              testName, Objects.requireNonNull(moduleMapping), cleanedConstraintName);
       moduleMapping.constraints().put(cleanedConstraintName, failedTests);
     }
   }
@@ -90,9 +90,8 @@ public class MapFailedReferenceTestsTool {
 
   public static ModuleToConstraints getModule(
       List<ModuleToConstraints> constraintToFailingTests, String moduleName) {
-    List<ModuleToConstraints> modules = constraintToFailingTests.stream()
-        .filter(mapping -> mapping.equals(moduleName))
-        .toList();
+    List<ModuleToConstraints> modules =
+        constraintToFailingTests.stream().filter(mapping -> mapping.equals(moduleName)).toList();
 
     if (modules.isEmpty()) {
       return null;

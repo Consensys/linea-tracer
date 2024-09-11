@@ -26,7 +26,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FailedTestJson {
-  static String fileDirectory = System.getProperty("FAILED_TEST_JSON_DIRECTORY", "../tmp/local/");
   static String fileDirectory = setFileDirectory();
 
   @Synchronized

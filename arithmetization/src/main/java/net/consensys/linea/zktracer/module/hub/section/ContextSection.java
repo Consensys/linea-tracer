@@ -15,12 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
-
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class ContextSection extends TraceSection {
   public ContextSection(Hub hub) {
@@ -28,11 +24,5 @@ public class ContextSection extends TraceSection {
 
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     this.addStackAndFragments(hub, currentContext);
-
-    final short exceptions = hub.pch().exceptions();
-    if (Exceptions.any(exceptions)) {
-      checkArgument(Exceptions.outOfGasException(exceptions));
-      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
-    }
   }
 }

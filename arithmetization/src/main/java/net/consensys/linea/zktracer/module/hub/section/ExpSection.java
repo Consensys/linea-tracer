@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;

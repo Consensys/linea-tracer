@@ -31,12 +31,6 @@ public class EarlyExceptionSection extends TraceSection {
 
     final short exceptions = hub.pch().exceptions();
 
-    if (hub.opCode().getData().instructionFamily() == INVALID) {
-      checkArgument(Exceptions.invalidOpcode(exceptions));
-      commonValues.setTracedException(TracedException.INVALID_OPCODE);
-      return;
-    }
-
     final OpCode opCode = hub.opCode();
     if (Exceptions.stackUnderflow(exceptions)) {
       checkArgument(opCode.mayTriggerStackUnderflow());
@@ -50,10 +44,9 @@ public class EarlyExceptionSection extends TraceSection {
       return;
     }
 
-    if (Exceptions.staticFault(exceptions)) {
-      checkArgument(opCode.mayTriggerStaticException());
-      commonValues.setTracedException(TracedException.STATIC_FAULT);
-      return;
+    if (hub.opCode().getData().instructionFamily() == INVALID) {
+      checkArgument(Exceptions.invalidOpcode(exceptions));
+      commonValues.setTracedException(TracedException.INVALID_OPCODE);
     }
   }
 }

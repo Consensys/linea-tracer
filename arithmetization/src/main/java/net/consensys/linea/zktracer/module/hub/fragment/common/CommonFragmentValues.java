@@ -102,6 +102,12 @@ public class CommonFragmentValues {
 
     final OpCode opCode = hub.opCode();
 
+    if (Exceptions.staticFault(exceptions)) {
+      checkArgument(opCode.mayTriggerStaticException());
+      setTracedException(TracedException.STATIC_FAULT);
+      return;
+    }
+
     // For these instruction families we set the traced exception below manually
     if (instructionFamily.isAnyOf(COPY, CALL, CREATE, HALT, STORAGE)) {
       return;

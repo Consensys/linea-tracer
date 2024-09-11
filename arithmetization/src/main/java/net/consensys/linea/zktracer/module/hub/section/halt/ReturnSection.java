@@ -161,7 +161,6 @@ public class ReturnSection extends TraceSection
     // Unexceptional RETURN's
     // (we have exceptions ≡ ∅ by the checkArgument below)
     //////////////////////////////////////////////////////
-
     checkArgument(Exceptions.none(exceptions));
 
     // RETURN_FROM_MESSAGE_CALL cases

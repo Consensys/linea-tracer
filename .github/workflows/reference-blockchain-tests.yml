@@ -62,6 +62,11 @@ jobs:
           CORSET_FLAGS: fields,expand,expand,expand
       - name: generate zkevm.bin
         run: cd ./linea-constraints; make zkevm.bin -B; cd ..
+      - name: Download branches artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: failedBlockchainReferenceTests-${{ steps.date.outputs.date }}.json
+          path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests
         timeout-minutes: 2

@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,22 +16,44 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.INVALID;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
+import net.consensys.linea.zktracer.opcode.OpCode;
 
-public class StackOnlySection extends TraceSection {
-  public StackOnlySection(Hub hub) {
+public class EarlyExceptionSection extends TraceSection {
+  public EarlyExceptionSection(Hub hub) {
     super(hub, (short) (hub.opCode().getData().stackSettings().twoLineInstruction() ? 2 : 1));
 
     this.addStack(hub);
 
     final short exceptions = hub.pch().exceptions();
-    if (Exceptions.any(exceptions)) {
-      checkArgument(Exceptions.outOfGasException(exceptions));
-      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
+
+    if (hub.opCode().getData().instructionFamily() == INVALID) {
+      checkArgument(Exceptions.invalidOpcode(exceptions));
+      commonValues.setTracedException(TracedException.INVALID_OPCODE);
+      return;
+    }
+
+    final OpCode opCode = hub.opCode();
+    if (Exceptions.stackUnderflow(exceptions)) {
+      checkArgument(opCode.mayTriggerStackUnderflow());
+      commonValues.setTracedException(TracedException.STACK_UNDERFLOW);
+      return;
+    }
+
+    if (Exceptions.stackOverflow(exceptions)) {
+      checkArgument(opCode.mayTriggerStackOverflow());
+      commonValues.setTracedException(TracedException.STACK_OVERFLOW);
+      return;
+    }
+
+    if (Exceptions.staticFault(exceptions)) {
+      checkArgument(opCode.mayTriggerStaticException());
+      commonValues.setTracedException(TracedException.STATIC_FAULT);
+      return;
     }
   }
 }

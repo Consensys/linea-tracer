@@ -100,30 +100,7 @@ public class CommonFragmentValues {
 
     tracedException = noException ? TracedException.NONE : TracedException.UNDEFINED;
 
-    if (instructionFamily == INVALID) {
-      checkArgument(Exceptions.invalidOpcode(exceptions));
-      setTracedException(TracedException.INVALID_OPCODE);
-      return;
-    }
-
     final OpCode opCode = hub.opCode();
-    if (Exceptions.stackUnderflow(exceptions)) {
-      checkArgument(opCode.mayTriggerStackUnderflow());
-      setTracedException(TracedException.STACK_UNDERFLOW);
-      return;
-    }
-
-    if (Exceptions.stackOverflow(exceptions)) {
-      checkArgument(opCode.mayTriggerStackOverflow());
-      setTracedException(TracedException.STACK_OVERFLOW);
-      return;
-    }
-
-    if (Exceptions.staticFault(exceptions)) {
-      checkArgument(opCode.mayTriggerStaticException());
-      setTracedException(TracedException.STATIC_FAULT);
-      return;
-    }
 
     // TODO: for these instruction families we set the traced exception manually (check they are all
     // we need)

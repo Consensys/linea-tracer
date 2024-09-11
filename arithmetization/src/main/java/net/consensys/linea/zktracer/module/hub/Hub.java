@@ -59,6 +59,7 @@ import net.consensys.linea.zktracer.module.hub.section.ExpSection;
 import net.consensys.linea.zktracer.module.hub.section.JumpSection;
 import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
 import net.consensys.linea.zktracer.module.hub.section.LogSection;
+import net.consensys.linea.zktracer.module.hub.section.EarlyExceptionSection;
 import net.consensys.linea.zktracer.module.hub.section.SloadSection;
 import net.consensys.linea.zktracer.module.hub.section.SstoreSection;
 import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
@@ -1010,7 +1011,7 @@ public class Hub implements Module {
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
 
-      new StackOnlySection(this);
+      new EarlyExceptionSection(this);
     }
   }
 

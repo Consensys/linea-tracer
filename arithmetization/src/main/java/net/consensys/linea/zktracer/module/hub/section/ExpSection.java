@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
@@ -30,5 +33,11 @@ public class ExpSection extends TraceSection {
     final ExpCall expCall = new ExplogExpCall();
     final ImcFragment miscFragment = ImcFragment.empty(hub).callExp(expCall);
     this.addStackAndFragments(hub, miscFragment);
+
+    final short exceptions = hub.pch().exceptions();
+    if (Exceptions.any(exceptions)) {
+      checkArgument(Exceptions.outOfGasException(exceptions));
+      commonValues.setTracedException(OUT_OF_GAS_EXCEPTION);
+    }
   }
 }

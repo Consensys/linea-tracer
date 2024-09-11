@@ -658,7 +658,7 @@ public class Hub implements Module {
     // TODO: why only do this at positive depth ?
     if (frame.getDepth() > 0) {
 
-      DeploymentExceptions contextExceptions =
+      final DeploymentExceptions contextExceptions =
           DeploymentExceptions.fromFrame(this.currentFrame(), frame);
       this.currentTraceSection().setContextExceptions(contextExceptions);
     }

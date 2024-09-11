@@ -15,10 +15,11 @@
 
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COPY;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
@@ -26,18 +27,14 @@ import org.hyperledger.besu.evm.internal.Words;
 @Slf4j
 public final class DataCopy extends GasProjection {
   private final MessageFrame frame;
-  private long offset = 0;
+  private long destOffset = 0;
   private long len = 0;
 
   public DataCopy(MessageFrame frame, OpCode opCode) {
     this.frame = frame;
     if (frame.stackSize() > 2) {
-      if (opCode == OpCode.CODECOPY) {
-        this.offset = clampedToLong(frame.getStackItem(0));
-      } else {
-        this.offset = clampedToLong(frame.getStackItem(1));
-      }
-      this.len = clampedToLong(frame.getStackItem(2));
+      destOffset = clampedToLong(frame.getStackItem(0));
+      len = clampedToLong(frame.getStackItem(2));
     }
   }
 
@@ -48,16 +45,16 @@ public final class DataCopy extends GasProjection {
 
   @Override
   public long memoryExpansion() {
-    return gc.memoryExpansionGasCost(frame, this.offset, this.len);
+    return gc.memoryExpansionGasCost(frame, destOffset, len);
   }
 
   @Override
   public long linearPerWord() {
-    return linearCost(GlobalConstants.GAS_CONST_G_COPY, this.len, 32);
+    return linearCost(GAS_CONST_G_COPY, len, WORD_SIZE);
   }
 
   @Override
   public long largestOffset() {
-    return this.len == 0 ? 0 : Words.clampedAdd(this.offset, this.len);
+    return len == 0 ? 0 : Words.clampedAdd(destOffset, len);
   }
 }

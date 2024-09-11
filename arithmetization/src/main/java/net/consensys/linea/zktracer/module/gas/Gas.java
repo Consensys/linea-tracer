@@ -23,10 +23,12 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.operation.Operation;
 
-public class Gas implements Module {
+public class Gas implements Module, PostOpcodeDefer {
   /** A list of the operations to trace */
   private final StackedSet<GasOperation> operations = new StackedSet<>();
 
@@ -66,16 +68,27 @@ public class Gas implements Module {
     }
   }
 
-  public void call(Hub hub, CommonFragmentValues common) {
-    final GasCall gasCall = new GasCall();
-    gasCall.setGasActual(BigInteger.valueOf(common.gasActual));
-    gasCall.setGasCost(BigInteger.valueOf(common.gasCost));
-    gasCall.setXahoy(common.exceptionAhoy);
-    gasCall.setOogx(Exceptions.outOfGasException(hub.pch().exceptions()));
-    // TODO: this is false, see issue #1118
-    //  we may have to defer post opcode (or post execution) the setting of oogx
-    //  because we will only know which exception, if any, to trace once we have
-    //  processed the instruction in its relevant XxxSection
+  private CommonFragmentValues commonValues;
+  private GasCall gasCall;
+
+  public void call(Hub hub, CommonFragmentValues commonValues) {
+    this.commonValues = commonValues;
+    gasCall = new GasCall();
+    gasCall.setGasActual(BigInteger.valueOf(commonValues.gasActual));
+    gasCall.setGasCost(BigInteger.valueOf(commonValues.gasCost));
+    gasCall.setXahoy(commonValues.exceptionAhoy);
+    // The only missing piece is the OOGX field
+    // Certain instruction families do not follow the standard order for deciding which exception to
+    // trace
+    // So the information will only be available after the instruction is executed
+    hub.defers().scheduleForPostExecution(this);
+  }
+
+  @Override
+  public void resolvePostExecution(
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    // TODO: add after merge gasCall.setOogx(commonValues.tracedException ==
+    // TracedException.OUT_OF_GAS_EXCEPTION);
     this.operations.add(new GasOperation(gasCall));
   }
 }

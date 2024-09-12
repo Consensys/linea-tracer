@@ -17,9 +17,11 @@ package net.consensys.linea.zktracer;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
 import static net.consensys.linea.zktracer.ReplayTests.replay;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 /** Insufficient balance at some address */
+@Tag("replay")
 public class Issue1116Tests {
 
   // @Disabled

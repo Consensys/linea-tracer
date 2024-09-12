@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
 import static net.consensys.linea.zktracer.ReplayTests.replay;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 // @Tag("nightly")
@@ -38,6 +39,7 @@ import org.junit.jupiter.api.Test;
  *
  * <p><a href="https://github.com/Consensys/linea-tracer/issues/1153">Related GitHub issue</a>
  */
+@Tag("replay")
 public class Issue1136Tests {
   @Test
   void issue_1136_block_3110546() {

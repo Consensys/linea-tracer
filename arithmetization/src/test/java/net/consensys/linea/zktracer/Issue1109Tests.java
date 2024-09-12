@@ -20,10 +20,9 @@ import static net.consensys.linea.zktracer.ReplayTests.replay;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-@Tag("nightly")
+@Tag("replay")
 public class Issue1109Tests {
 
-  // @Disabled
   @Test
   void issue_1090_block_6690_6699() {
     replay(LINEA_MAINNET, "6690-6699.json.gz", false);

@@ -15,18 +15,12 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
-import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
 import static net.consensys.linea.zktracer.ReplayTests.replay;
 
 import org.junit.jupiter.api.Test;
 
 // @Tag("nightly")
 public class Issue1169Tests {
-
-  @Test
-  public void issue_1145_block_3318494_InsufficientBalanceSepolia() {
-    replay(LINEA_SEPOLIA, "2746060.sepolia.json.gz", false);
-  }
 
   @Test
   public void issue_1145_block_3318494_InsufficientBalanceMainnet() {

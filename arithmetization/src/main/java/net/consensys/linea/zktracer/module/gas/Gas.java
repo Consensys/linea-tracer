@@ -19,8 +19,10 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
@@ -29,11 +31,13 @@ import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 
-public class Gas implements Module, PostOpcodeDefer {
+@Accessors(fluent = true)
+public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   /** A list of the operations to trace */
-  private final StackedSet<GasOperation> operations = new StackedSet<>();
+  @Getter private final StackedSet<GasOperation> operations = new StackedSet<>();
 
-  // TODO: why a stackedList of GasOperation? It should be a StateLess module no ?
+  private CommonFragmentValues commonValues;
+  private GasCall gasCall;
 
   @Override
   public String moduleKey() {
@@ -41,36 +45,9 @@ public class Gas implements Module, PostOpcodeDefer {
   }
 
   @Override
-  public void enterTransaction() {
-    this.operations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.operations.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return this.operations.lineCount();
-  }
-
-  @Override
   public List<ColumnHeader> columnsHeaders() {
-    return null;
+    return Trace.headers(this.lineCount());
   }
-
-  @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-    int stamp = 0;
-    for (GasOperation gasOperation : this.operations.getAll()) {
-      gasOperation.trace(++stamp, trace);
-    }
-  }
-
-  private CommonFragmentValues commonValues;
-  private GasCall gasCall;
 
   public void call(Hub hub, CommonFragmentValues commonValues) {
     this.commonValues = commonValues;
@@ -83,6 +60,15 @@ public class Gas implements Module, PostOpcodeDefer {
     // trace
     // So the information will only be available after the instruction is executed
     hub.defers().scheduleForPostExecution(this);
+  }
+
+  @Override
+  public void commit(List<MappedByteBuffer> buffers) {
+    final Trace trace = new Trace(buffers);
+    int stamp = 0;
+    for (GasOperation gasOperation : this.operations.getAll()) {
+      gasOperation.trace(++stamp, trace);
+    }
   }
 
   @Override

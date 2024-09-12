@@ -68,8 +68,7 @@ public class CommonFragmentValues {
   @Getter private TracedException tracedException = UNDEFINED;
 
   public CommonFragmentValues(Hub hub) {
-    short exceptions = hub.pch().exceptions();
-    ;
+    final short exceptions = hub.pch().exceptions();
     final boolean noStackException = !stackException(exceptions);
 
     this.txMetadata = hub.txStack().current();

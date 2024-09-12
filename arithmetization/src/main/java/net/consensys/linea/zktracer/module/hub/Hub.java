@@ -1170,47 +1170,44 @@ public class Hub implements Module {
   public void updateBlockMap() {
     Map<Transients.AddrBlockPair, TransactionProcessingMetadata.TransactAccountFirstAndLast> blockMap = transients.txnAccountFirstLastBlockMap();
     List<TransactionProcessingMetadata> txn = txStack.getTxs();
-    for (int i = 0; i < txn.size(); i++) {
-      TransactionProcessingMetadata metadata = txn.get(i);
-      if (metadata.getRelativeBlockNumber() == transients.block().blockNumber())
-      {
-        int blockNumber = transients.block().blockNumber();
-        Map<Address, TransactionProcessingMetadata. TransactAccountFirstAndLast> localMap = metadata.getTransactAccountFirstAndLastMap();
-        for (Address addr:localMap.keySet()) {
-          TransactionProcessingMetadata.TransactAccountFirstAndLast localInfo = localMap.get(addr);
-          Transients.AddrBlockPair pairAddrBlock = new Transients.AddrBlockPair(addr, blockNumber);
-          // localValue exists for sure because addr belongs to the keySet of the local map
-          TransactionProcessingMetadata.TransactAccountFirstAndLast localValue = localMap.get(addr);
-          if (!blockMap.containsKey(pairAddrBlock)) {
-            // the pair is not present in the map
-            blockMap.put(pairAddrBlock, localValue);
-          } else {
-            TransactionProcessingMetadata.TransactAccountFirstAndLast blockValue = blockMap.get(pairAddrBlock);
-            // update the first part of the blockValue
-            if (TransactionProcessingMetadata.TransactAccountFirstAndLast.strictlySmallerStamps(
-                    localValue.getFirstDom(), localValue.getFirstSub(), blockValue.getFirstDom(), blockValue.getFirstSub())) {
-              // chronologically checks that localValue.First is before blockValue.First
-              // localValue comes chronologically before, and should be the first value of the map.
-              blockValue.setFirst(localValue.getFirst());
-              blockValue.setFirstDom(localValue.getFirstDom());
-              blockValue.setFirstSub(localValue.getFirstSub());
+      for (TransactionProcessingMetadata metadata : txn) {
+          if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
+              int blockNumber = transients.block().blockNumber();
+              Map<Address, TransactionProcessingMetadata.TransactAccountFirstAndLast> localMap = metadata.getTransactAccountFirstAndLastMap();
+              for (Address addr : localMap.keySet()) {
+                  Transients.AddrBlockPair pairAddrBlock = new Transients.AddrBlockPair(addr, blockNumber);
+                  // localValue exists for sure because addr belongs to the keySet of the local map
+                  TransactionProcessingMetadata.TransactAccountFirstAndLast localValue = localMap.get(addr);
+                  if (!blockMap.containsKey(pairAddrBlock)) {
+                      // the pair is not present in the map
+                      blockMap.put(pairAddrBlock, localValue);
+                  } else {
+                      TransactionProcessingMetadata.TransactAccountFirstAndLast blockValue = blockMap.get(pairAddrBlock);
+                      // update the first part of the blockValue
+                      if (TransactionProcessingMetadata.TransactAccountFirstAndLast.strictlySmallerStamps(
+                              localValue.getFirstDom(), localValue.getFirstSub(), blockValue.getFirstDom(), blockValue.getFirstSub())) {
+                          // chronologically checks that localValue.First is before blockValue.First
+                          // localValue comes chronologically before, and should be the first value of the map.
+                          blockValue.setFirst(localValue.getFirst());
+                          blockValue.setFirstDom(localValue.getFirstDom());
+                          blockValue.setFirstSub(localValue.getFirstSub());
 
-            // update the last part of the blockValue
-            if (TransactionProcessingMetadata.TransactAccountFirstAndLast.strictlySmallerStamps(
-                    blockValue.getLastDom(), blockValue.getLastSub(), localValue.getLastDom(), localValue.getLastSub())) {
-              // chronologically checks that blockValue.Last is before localValue.Last
-              // localValue comes chronologically after, and should be the final value of the map.
-              blockValue.setLast(localValue.getLast());
-              blockValue.setLastDom(localValue.getLastDom());
-              blockValue.setLastSub(localValue.getLastSub());
-            }
-            blockMap.put(pairAddrBlock, blockValue);
+                          // update the last part of the blockValue
+                          if (TransactionProcessingMetadata.TransactAccountFirstAndLast.strictlySmallerStamps(
+                                  blockValue.getLastDom(), blockValue.getLastSub(), localValue.getLastDom(), localValue.getLastSub())) {
+                              // chronologically checks that blockValue.Last is before localValue.Last
+                              // localValue comes chronologically after, and should be the final value of the map.
+                              blockValue.setLast(localValue.getLast());
+                              blockValue.setLastDom(localValue.getLastDom());
+                              blockValue.setLastSub(localValue.getLastSub());
+                          }
+                          blockMap.put(pairAddrBlock, blockValue);
+                      }
+                  }
+
+              }
           }
-        }
-
       }
-    }
-  }
 
 }
 }

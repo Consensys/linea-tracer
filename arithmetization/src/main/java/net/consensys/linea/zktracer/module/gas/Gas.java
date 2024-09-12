@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.container.stacked.StackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 
@@ -87,8 +88,7 @@ public class Gas implements Module, PostOpcodeDefer {
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    // TODO: add after merge gasCall.setOogx(commonValues.tracedException ==
-    // TracedException.OUT_OF_GAS_EXCEPTION);
+    gasCall.setOogx(commonValues.tracedException() == TracedException.OUT_OF_GAS_EXCEPTION);
     this.operations.add(new GasOperation(gasCall));
   }
 }

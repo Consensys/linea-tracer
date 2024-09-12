@@ -49,12 +49,12 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
     return Trace.headers(this.lineCount());
   }
 
-  public void call(Hub hub, CommonFragmentValues commonValues) {
+  public void call(GasCall gasCall, Hub hub, CommonFragmentValues commonValues) {
     this.commonValues = commonValues;
-    gasCall = new GasCall();
-    gasCall.setGasActual(BigInteger.valueOf(commonValues.gasActual));
-    gasCall.setGasCost(BigInteger.valueOf(commonValues.gasCost));
-    gasCall.setXahoy(commonValues.exceptionAhoy);
+    this.gasCall = gasCall;
+    this.gasCall.setGasActual(BigInteger.valueOf(commonValues.gasActual));
+    this.gasCall.setGasCost(BigInteger.valueOf(commonValues.gasCost));
+    this.gasCall.setXahoy(commonValues.exceptionAhoy);
     // The only missing piece is the OOGX field
     // Certain instruction families do not follow the standard order for deciding which exception to
     // trace

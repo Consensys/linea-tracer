@@ -27,6 +27,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.gas.GasCall;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.State;
@@ -96,6 +97,11 @@ public class CommonFragmentValues {
                     || instructionFamily == HALT
                     || instructionFamily == INVALID)
                 || exceptionAhoy);
+
+    if (contextMayChange) {
+      // Trigger the gas module in case contextMayChange is true
+      hub.gas().call(new GasCall(), hub, this);
+    }
 
     if (none(exceptions)) {
       tracedException = TracedException.NONE;

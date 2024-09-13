@@ -83,6 +83,7 @@ jobs:
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests
         continue-on-error: true
+        timeout-minutes: 180
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand

@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
-import static net.consensys.linea.zktracer.ReplayTests.replay;
+import static net.consensys.linea.zktracer.ReplayTooling.replay;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

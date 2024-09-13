@@ -15,13 +15,24 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
-import static net.consensys.linea.zktracer.ReplayTests.replay;
+import static net.consensys.linea.zktracer.ReplayTooling.replay;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("replay")
 public class Issue1090Tests {
+
+  /**
+   * This is an interesting block: at transaction 13 (which is a CONTRACT_CREATION transaction) the
+   * address being deployed at the ROOT does a DELEGATECALL to 0xa092..., which then CALLs its
+   * CALLER address twice. The CALLER, being under deployment, is seen as having empty bytecode by
+   * the outside world, in particular by 0xa092... .
+   */
+  @Test
+  void issue_1090_block_1507291() {
+    replay(LINEA_MAINNET, "1507291-1507291.json.gz", false);
+  }
 
   @Tag("nightly")
   @Test
@@ -51,18 +62,6 @@ public class Issue1090Tests {
   @Test
   void issue_1090_block_1505729() {
     replay(LINEA_MAINNET, "1505729-1505729.json.gz", false);
-  }
-
-  /**
-   * This is an interesting block: at transaction 13 (which is a CONTRACT_CREATION transaction) the
-   * address being deployed at the ROOT does a DELEGATECALL to 0xa092..., which then CALLs its
-   * CALLER address twice. The CALLER, being under deployment, is seen as having empty bytecode by
-   * the outside world, in particular by 0xa092... .
-   */
-  // @Disabled
-  @Test
-  void issue_1090_block_1507291() {
-    replay(LINEA_MAINNET, "1507291-1507291.json.gz", false);
   }
 
   @Tag("nightly")

@@ -76,7 +76,7 @@ jobs:
           commit: ${{ inputs.commit || '' }}
           if_no_artifact_found: ignore
       - name: Run reference blockchain tests
-        run: ./gradlew referenceBlockchainTests --continue --no-daemon -Dorg.gradle.parallel=true -x spotlessCheck
+        run: ./gradlew referenceBlockchainTests --continue -Dorg.gradle.parallel=true -x spotlessCheck
         continue-on-error: true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false

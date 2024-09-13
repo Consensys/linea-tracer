@@ -78,6 +78,7 @@ import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
+import net.consensys.linea.zktracer.module.hub.transients.StateManagerMetadata;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
@@ -157,6 +158,9 @@ public class Hub implements Module {
 
   /** provides phase-related volatile information */
   @Getter Transients transients = new Transients(this);
+
+  /** Block and conflation-level metadata for computing columns relevant to the state manager.**/
+  @Getter static StateManagerMetadata stateManagerMetadata = new StateManagerMetadata();
 
   /**
    * Long-lived states, not used in tracing per se but keeping track of data of the associated
@@ -1168,7 +1172,7 @@ public class Hub implements Module {
 
 
   public void updateBlockMap() {
-    Map<Transients.AddrBlockPair, TransactionProcessingMetadata.TransactAccountFirstAndLast> blockMap = transients.txnAccountFirstLastBlockMap();
+    Map<Transients.AddrBlockPair, TransactionProcessingMetadata.TransactAccountFirstAndLast> blockMap = Hub.stateManagerMetadata().getTxnAccountFirstLastBlockMap();;
     List<TransactionProcessingMetadata> txn = txStack.getTxs();
       for (TransactionProcessingMetadata metadata : txn) {
           if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {

@@ -47,8 +47,7 @@ public class Transients {
 
 
 
-  @Getter
-  Map<AddrBlockPair, TransactionProcessingMetadata.TransactAccountFirstAndLast> txnAccountFirstLastBlockMap = new HashMap<>();
+
 
   public static class AddrBlockPair {
     @Getter

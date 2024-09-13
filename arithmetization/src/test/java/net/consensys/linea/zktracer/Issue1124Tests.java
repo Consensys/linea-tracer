@@ -20,9 +20,7 @@ import static net.consensys.linea.zktracer.ReplayTests.replay;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/**
- * STP constraints were failing for these ranges
-  */
+/** STP constraints were failing for these ranges */
 @Tag("replay")
 public class Issue1124Tests {
 

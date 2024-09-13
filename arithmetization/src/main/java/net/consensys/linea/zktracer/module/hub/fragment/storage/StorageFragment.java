@@ -40,6 +40,7 @@ public final class StorageFragment implements TraceFragment {
   private final EWord valueNext;
   private final boolean incomingWarmth;
   private final boolean outgoingWarmth;
+  @Getter
   private final DomSubStampsSubFragment domSubStampsSubFragment;
   private final int blockNumber;
   private final StorageFragmentPurpose purpose; // for debugging purposes

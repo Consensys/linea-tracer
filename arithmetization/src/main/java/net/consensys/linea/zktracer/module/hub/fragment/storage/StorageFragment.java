@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
 @RequiredArgsConstructor
 @Getter
@@ -42,6 +43,8 @@ public final class StorageFragment implements TraceFragment {
   private final DomSubStampsSubFragment domSubStampsSubFragment;
   private final int blockNumber;
   private final StorageFragmentPurpose purpose; // for debugging purposes
+
+  final TransactionProcessingMetadata transactionProcessingMetadata;
 
   public Trace trace(Trace trace) {
 

@@ -125,7 +125,8 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
         true,
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
         hub.state.firstAndLastStorageSlotOccurrences.size(),
-        SSTORE_DOING);
+        SSTORE_DOING,
+            hub.txStack().current());
   }
 
   @Override
@@ -146,7 +147,8 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
             incomingWarmth,
             undoingDomSubStamps,
             hub.state.firstAndLastStorageSlotOccurrences.size(),
-            SSTORE_UNDOING);
+            SSTORE_UNDOING,
+                hub.txStack().current());
 
     this.addFragment(undoingSstoreStorageFragment);
 

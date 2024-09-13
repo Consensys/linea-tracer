@@ -43,11 +43,6 @@ apply plugin: 'com.adarshr.test-logger'
 tasks.withType(Test).configureEach {
   dependsOn(buildZkevmBin)
 
-  systemProperties["junit.jupiter.execution.timeout.default"] = "5 m" // 5 minutes
-  systemProperties["junit.jupiter.execution.parallel.enabled"] = true
-  systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
-  systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
-
   minHeapSize = "4g"
   maxHeapSize = "8g"
 

@@ -33,8 +33,8 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
@@ -121,14 +121,15 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   @Getter Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
 
-  // Map for the first and last account occurance
+ /* FragmentFirstAndLast stores the first and last fragments relevant to the state manager in the
+ * current transaction segment (they will be either account fragments or storage fragments). */
   @Getter @Setter
-  public static class TransactFragmentFirstAndLast<TraceFragment> {
+  public static class FragmentFirstAndLast<TraceFragment> {
     TraceFragment first;
     TraceFragment last;
     int firstDom, firstSub;
     int lastDom, lastSub;
-    public TransactFragmentFirstAndLast(TraceFragment first, TraceFragment last, int firstDom, int firstSub, int lastDom, int lastSub) {
+    public FragmentFirstAndLast(TraceFragment first, TraceFragment last, int firstDom, int firstSub, int lastDom, int lastSub) {
       this.first = first;
       this.last = last;
       this.firstDom = firstDom;
@@ -145,9 +146,12 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
 
 
-
+  // Map for the first and last account occurrence
   @Getter
-  Map<Address, TransactFragmentFirstAndLast<AccountFragment>> transactAccountFirstAndLastMap = new HashMap<>();
+  Map<Address, FragmentFirstAndLast<AccountFragment>> accountFirstAndLastMap = new HashMap<>();
+  // Map for the first and last storage occurrence
+  @Getter
+  Map<Address, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap = new HashMap<>();
 
 
   // Ephermeral accounts are both accounts that have been deployed on-chain

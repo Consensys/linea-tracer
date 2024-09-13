@@ -30,7 +30,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -128,7 +127,6 @@ import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -1172,23 +1170,23 @@ public class Hub implements Module {
 
 
   public void updateBlockMap() {
-    Map<Transients.AddrBlockPair, TransactionProcessingMetadata.TransactFragmentFirstAndLast<AccountFragment>> blockMap = Hub.stateManagerMetadata().getTxnAccountFirstLastBlockMap();;
+    Map<Transients.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> blockMap = Hub.stateManagerMetadata().getTxnAccountFirstLastBlockMap();;
     List<TransactionProcessingMetadata> txn = txStack.getTxs();
       for (TransactionProcessingMetadata metadata : txn) {
           if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
               int blockNumber = transients.block().blockNumber();
-              Map<Address, TransactionProcessingMetadata.TransactFragmentFirstAndLast<AccountFragment>> localMap = metadata.getTransactAccountFirstAndLastMap();
+              Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> localMap = metadata.getAccountFirstAndLastMap();
               for (Address addr : localMap.keySet()) {
                   Transients.AddrBlockPair pairAddrBlock = new Transients.AddrBlockPair(addr, blockNumber);
                   // localValue exists for sure because addr belongs to the keySet of the local map
-                  TransactionProcessingMetadata.TransactFragmentFirstAndLast<AccountFragment> localValue = localMap.get(addr);
+                  TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValue = localMap.get(addr);
                   if (!blockMap.containsKey(pairAddrBlock)) {
                       // the pair is not present in the map
                       blockMap.put(pairAddrBlock, localValue);
                   } else {
-                      TransactionProcessingMetadata.TransactFragmentFirstAndLast<AccountFragment> blockValue = blockMap.get(pairAddrBlock);
+                      TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue = blockMap.get(pairAddrBlock);
                       // update the first part of the blockValue
-                      if (TransactionProcessingMetadata.TransactFragmentFirstAndLast.strictlySmallerStamps(
+                      if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
                               localValue.getFirstDom(), localValue.getFirstSub(), blockValue.getFirstDom(), blockValue.getFirstSub())) {
                           // chronologically checks that localValue.First is before blockValue.First
                           // localValue comes chronologically before, and should be the first value of the map.
@@ -1197,7 +1195,7 @@ public class Hub implements Module {
                           blockValue.setFirstSub(localValue.getFirstSub());
 
                           // update the last part of the blockValue
-                          if (TransactionProcessingMetadata.TransactFragmentFirstAndLast.strictlySmallerStamps(
+                          if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
                                   blockValue.getLastDom(), blockValue.getLastSub(), localValue.getLastDom(), localValue.getLastSub())) {
                               // chronologically checks that blockValue.Last is before localValue.Last
                               // localValue comes chronologically after, and should be the final value of the map.

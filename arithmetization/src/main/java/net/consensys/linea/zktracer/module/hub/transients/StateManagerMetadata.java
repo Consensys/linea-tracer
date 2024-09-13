@@ -10,5 +10,5 @@ import java.util.Map;
 public class StateManagerMetadata
 {
     @Getter
-    Map<Transients.AddrBlockPair, TransactionProcessingMetadata.TransactFragmentFirstAndLast<AccountFragment>> txnAccountFirstLastBlockMap = new HashMap<>();
+    Map<Transients.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstLastBlockMap = new HashMap<>();
 }

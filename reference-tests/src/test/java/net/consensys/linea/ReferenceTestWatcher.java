@@ -14,7 +14,6 @@
  */
 package net.consensys.linea;
 
-import java.time.LocalDate;
 import java.util.List;
 
 import ch.qos.logback.classic.Logger;

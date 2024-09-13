@@ -83,10 +83,12 @@ tasks.check.dependsOn(checkSpdxHeader)
 
 allprojects {
   afterEvaluate {
-    def spotless = tasks.named('spotlessCheck')
-    tasks.withType(JavaCompile).tap {
-      configureEach {
-        finalizedBy(spotless, checkSpdxHeader)
+    if (project.path != ':reference-tests') {
+      def spotless = tasks.named('spotlessCheck')
+      tasks.withType(JavaCompile).tap {
+        configureEach {
+          finalizedBy(spotless, checkSpdxHeader)
+        }
       }
     }
   }

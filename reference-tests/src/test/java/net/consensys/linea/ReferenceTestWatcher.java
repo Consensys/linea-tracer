@@ -19,12 +19,10 @@ import java.util.List;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.slf4j.LoggerFactory;
 
-@Slf4j
 public class ReferenceTestWatcher implements TestWatcher {
 
   public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests.json";

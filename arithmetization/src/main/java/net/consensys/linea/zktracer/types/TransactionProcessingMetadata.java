@@ -142,6 +142,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
                 (firstDom == lastDom &&
                         firstSub > lastSub);
     }
+
   }
 
 
@@ -152,6 +153,32 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   // Map for the first and last storage occurrence
   @Getter
   Map<Address, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap = new HashMap<>();
+
+  public void updateAccountFirstAndLast(AccountFragment fragment) {
+        // Setting the post transaction first and last value
+        // Initialise the Account First and Last map
+        final Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstAndLastMap =
+                getAccountFirstAndLastMap();
+        if (!txnAccountFirstAndLastMap.containsKey(fragment.oldState().address())) {
+            int dom = fragment.domSubStampsSubFragment().domStamp();
+            int sub = fragment.domSubStampsSubFragment().subStamp();
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
+                    new FragmentFirstAndLast<AccountFragment>(fragment, fragment, dom, sub, dom, sub);
+            txnAccountFirstAndLastMap.put(fragment.oldState().address(), txnFirstAndLast);
+        } else {
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> txnFirstAndLast = txnAccountFirstAndLastMap.get(fragment.oldState().address());
+            // Replace condition
+            if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
+                    txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(),
+                    fragment.domSubStampsSubFragment().domStamp(), fragment.domSubStampsSubFragment().subStamp())) {
+                txnFirstAndLast.setLast(fragment);
+                txnFirstAndLast.setLastDom(fragment.domSubStampsSubFragment().domStamp());
+                txnFirstAndLast.setLastSub(fragment.domSubStampsSubFragment().subStamp());
+                txnAccountFirstAndLastMap.put(fragment.oldState().address(), txnFirstAndLast);
+            }
+        }
+
+    }
 
 
   // Ephermeral accounts are both accounts that have been deployed on-chain

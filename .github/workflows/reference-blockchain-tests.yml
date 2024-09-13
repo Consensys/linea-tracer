@@ -66,16 +66,12 @@ jobs:
           CORSET_FLAGS: fields,expand,expand,expand
       - name: generate zkevm.bin
         run: cd ./linea-constraints; make zkevm.bin -B; cd ..
-      - name: Get current date
-        id: date
-        run: |
-          echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v6
         if: ${{ inputs.failed_module != '' }}
         continue-on-error: true
         with:
-          name: failedBlockchainReferenceTests-${{ steps.date.outputs.date }}.json
+          name: failedBlockchainReferenceTests.json
           path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           commit: ${{ inputs.commit || '' }}
@@ -93,5 +89,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: failedBlockchainReferenceTests-${{ steps.date.outputs.date }}.json
+          name: failedBlockchainReferenceTests.json
           path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/

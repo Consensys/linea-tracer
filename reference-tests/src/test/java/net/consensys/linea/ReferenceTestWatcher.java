@@ -14,8 +14,6 @@
  */
 package net.consensys.linea;
 
-import ch.qos.logback.classic.LoggerContext;
-import java.time.Duration;
 import java.util.List;
 
 import ch.qos.logback.classic.Logger;
@@ -32,11 +30,8 @@ public class ReferenceTestWatcher implements TestWatcher {
   public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests.json";
   ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
 
-  private static final int LOGBACK_POLL_ATTEMPTS = 25;
-  private static final Duration LOGBACK_POLL_DELAY = Duration.ofMillis(10);
-
   public ReferenceTestWatcher() {
-    Logger logger = getLogbackLogger();
+    Logger logger = (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
     listAppender.setContext(logger.getLoggerContext());
     listAppender.start();
     logger.addAppender(listAppender);
@@ -50,22 +45,5 @@ public class ReferenceTestWatcher implements TestWatcher {
 
     MapFailedReferenceTestsTool.mapAndStoreFailedReferenceTest(
         testName, logEventMessages, JSON_OUTPUT_FILENAME);
-  }
-
-  private static Logger getLogbackLogger() {
-    try {
-      org.slf4j.Logger slf4jLogger = null;
-      for (int i = 0; i < LOGBACK_POLL_ATTEMPTS; i++) {
-        slf4jLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
-        if (slf4jLogger instanceof Logger logbackLogger) {
-          return logbackLogger;
-        }
-        Thread.sleep(LOGBACK_POLL_DELAY);
-      }
-      log.error("SLF4J never returned a Logback logger. Last returned = " + slf4jLogger);
-    } catch (InterruptedException ex) {
-      log.error("Thread interrupted while polling for Logback logger", ex);
-    }
-    throw new Error("unreachable code");
   }
 }

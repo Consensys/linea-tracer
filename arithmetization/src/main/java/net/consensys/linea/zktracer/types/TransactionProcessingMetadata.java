@@ -33,7 +33,7 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
-import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
@@ -123,12 +123,12 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   // Map for the first and last account occurance
   @Getter @Setter
-  public static class TransactAccountFirstAndLast {
-    AccountFragment first;
-    AccountFragment last;
+  public static class TransactFragmentFirstAndLast<TraceFragment> {
+    TraceFragment first;
+    TraceFragment last;
     int firstDom, firstSub;
     int lastDom, lastSub;
-    public TransactAccountFirstAndLast(AccountFragment first, AccountFragment last, int firstDom, int firstSub, int lastDom, int lastSub) {
+    public TransactFragmentFirstAndLast(TraceFragment first, TraceFragment last, int firstDom, int firstSub, int lastDom, int lastSub) {
       this.first = first;
       this.last = last;
       this.firstDom = firstDom;
@@ -142,8 +142,13 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
                         firstSub > lastSub);
     }
   }
+
+
+
+
   @Getter
-  Map<Address, TransactAccountFirstAndLast> transactAccountFirstAndLastMap = new HashMap<>();
+  Map<Address, TransactFragmentFirstAndLast<AccountFragment>> transactAccountFirstAndLastMap = new HashMap<>();
+
 
   // Ephermeral accounts are both accounts that have been deployed on-chain
   // and accounts that live for a limited time

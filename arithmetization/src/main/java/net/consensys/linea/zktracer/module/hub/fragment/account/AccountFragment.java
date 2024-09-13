@@ -203,18 +203,18 @@ public final class AccountFragment
   public void updateAccountFirstAndLast() {
     // Setting the post transaction first and last value
     // Initialise the Account First and Last map
-    final Map<Address, TransactionProcessingMetadata.TransactAccountFirstAndLast> txnAccountFirstAndLastMap =
+    final Map<Address, TransactionProcessingMetadata.TransactFragmentFirstAndLast<AccountFragment>> txnAccountFirstAndLastMap =
             this. transactionProcessingMetadata.getTransactAccountFirstAndLastMap();
     if (!txnAccountFirstAndLastMap.containsKey(oldState.address())) {
       int dom = this.domSubStampsSubFragment.domStamp();
       int sub = this.domSubStampsSubFragment.subStamp();
-      TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast =
-              new TransactionProcessingMetadata.TransactAccountFirstAndLast(this, this, dom, sub, dom, sub);
+      TransactionProcessingMetadata.TransactFragmentFirstAndLast<AccountFragment> txnFirstAndLast =
+              new TransactionProcessingMetadata.TransactFragmentFirstAndLast<>(this, this, dom, sub, dom, sub);
       txnAccountFirstAndLastMap.put(oldState.address(), txnFirstAndLast);
     } else {
-      TransactionProcessingMetadata.TransactAccountFirstAndLast txnFirstAndLast = txnAccountFirstAndLastMap.get(oldState.address());
+      TransactionProcessingMetadata.TransactFragmentFirstAndLast<AccountFragment> txnFirstAndLast = txnAccountFirstAndLastMap.get(oldState.address());
       // Replace condition
-      if (TransactionProcessingMetadata.TransactAccountFirstAndLast.strictlySmallerStamps(
+      if (TransactionProcessingMetadata.TransactFragmentFirstAndLast.strictlySmallerStamps(
               txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(),
               this.domSubStampsSubFragment.domStamp(), this.domSubStampsSubFragment.subStamp())) {
         txnFirstAndLast.setLast(this);

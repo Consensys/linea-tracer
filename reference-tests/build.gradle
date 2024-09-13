@@ -51,6 +51,10 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
 
+  systemProperties["junit.jupiter.execution.timeout.default"] = "5 m" // 5 minutes
+  systemProperties["junit.jupiter.execution.parallel.enabled"] = true
+  systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
+  systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
   maxParallelForks = Runtime.getRuntime().availableProcessors()
 
   dependsOn generateBlockchainReferenceTests

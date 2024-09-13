@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
+import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
@@ -50,10 +51,12 @@ import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextSection;
 import net.consensys.linea.zktracer.module.hub.section.CreateSection;
+import net.consensys.linea.zktracer.module.hub.section.EarlyExceptionSection;
 import net.consensys.linea.zktracer.module.hub.section.ExpSection;
 import net.consensys.linea.zktracer.module.hub.section.JumpSection;
 import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
@@ -657,13 +660,9 @@ public class Hub implements Module {
     // TODO: why only do this at positive depth ?
     if (frame.getDepth() > 0) {
 
-      DeploymentExceptions contextExceptions =
+      final DeploymentExceptions contextExceptions =
           DeploymentExceptions.fromFrame(this.currentFrame(), frame);
       this.currentTraceSection().setContextExceptions(contextExceptions);
-
-      if (contextExceptions.any()) {
-        callStack.revert(state.stamps().hub()); // TODO: Duplicate s?
-      }
     }
 
     // We take a snapshot before exiting the transaction
@@ -688,7 +687,7 @@ public class Hub implements Module {
 
     defers.resolveUponContextExit(this, this.currentFrame());
     // TODO: verify me please @Olivier
-    if (this.currentFrame().opCode() == OpCode.REVERT || Exceptions.any(pch.exceptions())) {
+    if (this.currentFrame().opCode() == REVERT || Exceptions.any(pch.exceptions())) {
       defers.resolvePostRollback(this, frame, this.currentFrame());
     }
 
@@ -979,6 +978,11 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
+        // TODO: the below check is useful in any case (to avoid unchecked cast)
+        //  but is this check hiding some underlying issue somewhere else?
+        //  TestRecursiveCallsWithByteCode was failing before this check
+        TraceFragment fragment = section.fragments().get(i);
+        checkArgument(fragment instanceof StackFragment);
         ((StackFragment) section.fragments().get(i))
             .stackOps()
             .get(line.resultColumn() - 1)
@@ -993,18 +997,18 @@ public class Hub implements Module {
     this.handleStack(frame);
     this.triggerModules(frame);
 
-    if (Exceptions.any(this.pch().exceptions()) || this.currentFrame().opCode() == OpCode.REVERT) {
-      callStack.revert(state.stamps().hub());
-    }
-
-    if (this.currentFrame().stack().isOk()) {
+    if (currentFrame().stack().isOk()) {
       this.traceOpcode(frame);
     } else {
 
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
 
-      new StackOnlySection(this);
+      new EarlyExceptionSection(this);
+    }
+
+    if (Exceptions.any(pch().exceptions()) || opCode() == REVERT) {
+      currentFrame().setRevertStamps(callStack, stamp());
     }
   }
 
@@ -1044,8 +1048,7 @@ public class Hub implements Module {
           MACHINE_STATE,
           PUSH_POP,
           DUP,
-          SWAP,
-          INVALID -> new StackOnlySection(this);
+          SWAP -> new StackOnlySection(this);
       case MUL -> {
         switch (this.opCode()) {
           case OpCode.EXP -> new ExpSection(this);
@@ -1065,7 +1068,7 @@ public class Hub implements Module {
         // and in all other cases becomes return data of the caller iff the present
         // context is a message call context
         final boolean outputDataBecomesParentReturnData =
-            (this.opCode() == OpCode.REVERT || this.currentFrame().isMessageCall());
+            (this.opCode() == REVERT || this.currentFrame().isMessageCall());
 
         if (outputDataBecomesParentReturnData) {
           parentFrame.returnData(outputData);
@@ -1120,6 +1123,7 @@ public class Hub implements Module {
       case CREATE -> new CreateSection(this);
 
       case CALL -> new CallSection(this);
+      case INVALID -> new EarlyExceptionSection(this);
     }
   }
 

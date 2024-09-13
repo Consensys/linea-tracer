@@ -12,43 +12,19 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.zktracer;
 
-package net.consensys.linea.zktracer.opcode;
+import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
+import static net.consensys.linea.zktracer.ReplayTests.replay;
 
-/** All the instruction families, as used by the hub. */
-public enum InstructionFamily {
-  ADD,
-  MOD,
-  MUL,
-  EXT,
-  WCP,
-  BIN,
-  SHF,
-  KEC,
-  CONTEXT,
-  ACCOUNT,
-  COPY,
-  TRANSACTION,
-  BATCH,
-  STACK_RAM,
-  STORAGE,
-  JUMP,
-  MACHINE_STATE,
-  PUSH_POP,
-  DUP,
-  SWAP,
-  LOG,
-  CREATE,
-  CALL,
-  HALT,
-  INVALID;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-  public boolean isAnyOf(InstructionFamily... families) {
-    for (InstructionFamily family : families) {
-      if (this == family) {
-        return true;
-      }
-    }
-    return false;
+@Tag("nightly")
+public class Issue1145Tests {
+
+  @Test
+  public void issue_1145_block_3318494_ReturnPrecondition() {
+    replay(LINEA_SEPOLIA, "3318494.sepolia.json.gz", false);
   }
 }

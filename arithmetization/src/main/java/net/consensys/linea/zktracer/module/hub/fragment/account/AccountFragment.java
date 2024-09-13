@@ -187,8 +187,6 @@ public final class AccountFragment
       markedForSelfDestruct = false;
       markedForSelfDestructNew = false;
     }
-    updateAccountFirstAndLast();
-
   }
 
   @Override

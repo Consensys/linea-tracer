@@ -69,7 +69,6 @@ jobs:
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v6
         if: ${{ inputs.failed_module != '' }}
-        continue-on-error: true
         with:
           name: failedBlockchainReferenceTests.json
           path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
@@ -77,9 +76,8 @@ jobs:
           commit: ${{ inputs.commit || '' }}
           if_no_artifact_found: ignore
       - name: Run reference blockchain tests
-        run: ./gradlew referenceBlockchainTests
+        run: ./gradlew referenceBlockchainTests -Dorg.gradle.parallel=true -x spotlessCheck
         continue-on-error: true
-        timeout-minutes: 180
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand

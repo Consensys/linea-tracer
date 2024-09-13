@@ -51,25 +51,35 @@ public class GasOperation extends ModuleOperation {
     wcpArg1Lo[0] = BigInteger.ZERO;
     wcpArg2Lo[0] = gasCall.getGasActual();
     wcpInst[0] = UnsignedByte.of(WCP_INST_LEQ);
-    wcpRes[0] = true;
-    checkArgument(wcp.callLEQ(0, gasCall.getGasActual().longValue()));
+    final boolean gasActualIsNonNegative = wcp.callLEQ(0, gasCall.getGasActual().longValue());
+    wcpRes[0] = gasActualIsNonNegative; // true
+    checkArgument(gasActualIsNonNegative);
 
     // row 1
     wcpArg1Lo[1] = BigInteger.ZERO;
     wcpArg2Lo[1] = gasCall.getGasCost();
     wcpInst[1] = UnsignedByte.of(WCP_INST_LEQ);
-    wcpRes[1] = true;
-    checkArgument(wcp.callLEQ(0, gasCall.getGasCost().longValue()));
+    final boolean gasCostIsNonNegative = wcp.callLEQ(0, gasCall.getGasCost().longValue());
+    wcpRes[1] = gasCostIsNonNegative; // true
+    checkArgument(gasCostIsNonNegative);
 
     // row 2
     if (compareGasActualAndGasCost()) {
       wcpArg1Lo[2] = gasCall.getGasActual();
       wcpArg2Lo[2] = gasCall.getGasCost();
       wcpInst[2] = UnsignedByte.of(EVM_INST_LT);
-      wcpRes[2] = gasCall.isOogx();
-      checkArgument(
-          gasCall.isOogx()
-              == wcp.callLT(gasCall.getGasActual().longValue(), gasCall.getGasCost().longValue()));
+      final boolean gasActualLTGasCost =
+          wcp.callLT(gasCall.getGasActual().longValue(), gasCall.getGasCost().longValue());
+      wcpRes[2] = gasActualLTGasCost; // == gasCall.isOogx()
+
+      System.out.println(gasCall.isOogx());
+      System.out.println(gasCall.getGasActual().longValue());
+      System.out.println(gasCall.getGasCost().longValue());
+      System.out.println(
+          wcp.callLT(gasCall.getGasActual().longValue(), gasCall.getGasCost().longValue()));
+      System.out.println("###");
+
+      checkArgument(gasCall.isOogx() == gasActualLTGasCost);
     }
   }
 

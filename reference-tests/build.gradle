@@ -51,11 +51,13 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
 
+  maxParallelForks = Runtime.getRuntime().availableProcessors()
+
   dependsOn generateBlockchainReferenceTests
 
   boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = "4g"
-  maxHeapSize = isCiServer ? "120g" : "8g"
+  maxHeapSize = isCiServer ? "32g" : "8g"
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
@@ -88,7 +90,6 @@ tasks.register('referenceTests', Test) {
     includeTags("GeneralStateReferenceTest")
   }
 }
-
 
 dependencies {
   testImplementation "${besuArtifactGroup}:besu-datatypes"

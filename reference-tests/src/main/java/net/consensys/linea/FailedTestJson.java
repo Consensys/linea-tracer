@@ -69,7 +69,7 @@ public class FailedTestJson {
 
   private static String setFileDirectory() {
     String jsonDirectory = System.getenv("FAILED_TEST_JSON_DIRECTORY");
-    if (jsonDirectory.isEmpty()) {
+    if (jsonDirectory == null || jsonDirectory.isEmpty()) {
       return "../tmp/local/";
     }
     return jsonDirectory;

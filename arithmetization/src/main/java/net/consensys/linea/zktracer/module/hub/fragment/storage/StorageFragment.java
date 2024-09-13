@@ -45,6 +45,8 @@ public final class StorageFragment implements TraceFragment {
   private final int blockNumber;
   private final StorageFragmentPurpose purpose; // for debugging purposes
 
+  private final int deploymentNumber;
+
   final TransactionProcessingMetadata transactionProcessingMetadata;
 
   public Trace trace(Trace trace) {

@@ -121,6 +121,7 @@ public class TxPreWarmingMacroSection {
                             DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0),
                             hub.state.firstAndLastStorageSlotOccurrences.size(),
                             PRE_WARMING,
+                                deploymentNumber, // Arijit — check that it is computed properly beforehand.
                                 txnMetadata);
 
                     new TxPrewarmingSection(hub, storageFragment);

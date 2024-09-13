@@ -103,6 +103,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
         hub.state.firstAndLastStorageSlotOccurrences.size(),
         SLOAD_DOING,
+            accountAddressDeploymentNumber, // Arijit — check that it is computed properly beforehand.
             txnMetadata);
     TransactionProcessingMetadata.AddrStorageKeyPair mapKey = new TransactionProcessingMetadata.AddrStorageKeyPair(accountAddress, EWord.of(storageKey));
     txnMetadata.updateStorageFirstAndLast(newFragment, mapKey);
@@ -137,6 +138,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
             undoingDomSubStamps,
             hub.state.firstAndLastStorageSlotOccurrences.size(),
             SLOAD_UNDOING,
+                accountAddressDeploymentNumber, // Arijit — check that it is computed properly beforehand.
                 txnMetadata);
 
     this.addFragment(undoingSloadStorageFragment);

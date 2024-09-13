@@ -85,7 +85,7 @@ jobs:
         run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
 
       - name: Run reference blockchain tests
-        run: ./gradlew referenceBlockchainTests
+        run: ./gradlew referenceBlockchainTests -x spotlessCheck
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           ZKEVM_BIN: zkevm_for_reference_tests.bin

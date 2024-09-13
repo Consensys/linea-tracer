@@ -59,7 +59,7 @@ jobs:
         run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
 
       - name: Run general reference tests
-        run: ./gradlew referenceGeneralStateTests
+        run: ./gradlew referenceGeneralStateTests -x spotlessCheck
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           ZKEVM_BIN: zkevm_for_reference_tests.bin

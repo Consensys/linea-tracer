@@ -107,6 +107,7 @@ public class TxPreWarmingMacroSection {
                         new State.StorageSlotIdentifier(
                             address, deploymentInfo.deploymentNumber(address), EWord.of(k));
 
+                    TransactionProcessingMetadata txnMetadata = hub.txStack().current();
                     final StorageFragment storageFragment =
                         new StorageFragment(
                             hub.state,
@@ -120,13 +121,17 @@ public class TxPreWarmingMacroSection {
                             DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0),
                             hub.state.firstAndLastStorageSlotOccurrences.size(),
                             PRE_WARMING,
-                                hub.txStack().current());
+                                txnMetadata);
 
                     new TxPrewarmingSection(hub, storageFragment);
                     hub.state.updateOrInsertStorageSlotOccurrence(
                         storageSlotIdentifier, storageFragment);
-
                     seenKeys.get(address).add(key);
+
+                    TransactionProcessingMetadata.AddrStorageKeyPair mapKey = new TransactionProcessingMetadata.AddrStorageKeyPair(address, EWord.of(key));
+                    txnMetadata.updateStorageFirstAndLast(storageFragment, mapKey);
+
+
                   }
                 }
 

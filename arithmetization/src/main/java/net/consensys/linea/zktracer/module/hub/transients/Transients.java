@@ -46,22 +46,6 @@ public class Transients {
   final OperationAncillaries op;
 
 
-
-
-
-  public static class AddrBlockPair {
-    @Getter
-    private Address address;
-    @Getter
-    private int blockNumber;
-
-    public AddrBlockPair(Address addr, int blockNumber) {
-      this.address = addr;
-      this.blockNumber = blockNumber;
-    }
-  }
-
-
   public TransactionProcessingMetadata tx() {
     return this.hub.txStack().current();
   }

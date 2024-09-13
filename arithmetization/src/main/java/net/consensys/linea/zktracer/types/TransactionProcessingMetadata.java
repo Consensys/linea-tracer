@@ -145,6 +145,17 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   }
 
+    public static class AddrStorageKeyPair {
+        @Getter
+        private Address address;
+        @Getter
+        private EWord storageKey;
+
+        public AddrStorageKeyPair(Address addr, EWord storageKey) {
+            this.address = addr;
+            this.storageKey = storageKey;
+        }
+    }
 
 
   // Map for the first and last account occurrence
@@ -152,7 +163,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   Map<Address, FragmentFirstAndLast<AccountFragment>> accountFirstAndLastMap = new HashMap<>();
   // Map for the first and last storage occurrence
   @Getter
-  Map<Address, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap = new HashMap<>();
+  Map<AddrStorageKeyPair, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap = new HashMap<>();
 
   public void updateAccountFirstAndLast(AccountFragment fragment) {
         // Setting the post transaction first and last value
@@ -179,6 +190,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
         }
 
     }
+
 
 
   // Ephermeral accounts are both accounts that have been deployed on-chain

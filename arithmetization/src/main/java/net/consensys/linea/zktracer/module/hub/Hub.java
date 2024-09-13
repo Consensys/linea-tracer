@@ -1170,14 +1170,14 @@ public class Hub implements Module {
 
 
   public void updateBlockMap() {
-    Map<Transients.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> blockMap = Hub.stateManagerMetadata().getTxnAccountFirstLastBlockMap();;
+    Map<StateManagerMetadata.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> blockMap = Hub.stateManagerMetadata().getTxnAccountFirstLastBlockMap();;
     List<TransactionProcessingMetadata> txn = txStack.getTxs();
       for (TransactionProcessingMetadata metadata : txn) {
           if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
               int blockNumber = transients.block().blockNumber();
               Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> localMap = metadata.getAccountFirstAndLastMap();
               for (Address addr : localMap.keySet()) {
-                  Transients.AddrBlockPair pairAddrBlock = new Transients.AddrBlockPair(addr, blockNumber);
+                StateManagerMetadata.AddrBlockPair pairAddrBlock = new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
                   // localValue exists for sure because addr belongs to the keySet of the local map
                   TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValue = localMap.get(addr);
                   if (!blockMap.containsKey(pairAddrBlock)) {

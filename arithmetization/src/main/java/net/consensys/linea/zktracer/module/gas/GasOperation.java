@@ -25,18 +25,19 @@ import java.math.BigInteger;
 
 import lombok.EqualsAndHashCode;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class GasOperation extends ModuleOperation {
   @EqualsAndHashCode.Include GasCall gasCall;
-  BigInteger[] wcpArg1Lo;
-  BigInteger[] wcpArg2Lo;
-  UnsignedByte[] wcpInst;
-  boolean[] wcpRes;
-  int ctMax;
+  private final BigInteger[] wcpArg1Lo;
+  private final BigInteger[] wcpArg2Lo;
+  private final UnsignedByte[] wcpInst;
+  private final boolean[] wcpRes;
+  private final int ctMax;
 
-  public GasOperation(GasCall gasCall) {
+  public GasOperation(GasCall gasCall, Wcp wcp) {
     this.gasCall = gasCall;
     ctMax = compareGasActualAndGasCost() ? 2 : 1;
 
@@ -51,12 +52,14 @@ public class GasOperation extends ModuleOperation {
     wcpArg2Lo[0] = gasCall.getGasActual();
     wcpInst[0] = UnsignedByte.of(WCP_INST_LEQ);
     wcpRes[0] = true;
+    checkArgument(wcp.callLEQ(0, gasCall.getGasActual().longValue()));
 
     // row 1
     wcpArg1Lo[1] = BigInteger.ZERO;
     wcpArg2Lo[1] = gasCall.getGasCost();
     wcpInst[1] = UnsignedByte.of(WCP_INST_LEQ);
     wcpRes[1] = true;
+    checkArgument(wcp.callLEQ(0, gasCall.getGasCost().longValue()));
 
     // row 2
     if (compareGasActualAndGasCost()) {
@@ -64,6 +67,9 @@ public class GasOperation extends ModuleOperation {
       wcpArg2Lo[2] = gasCall.getGasCost();
       wcpInst[2] = UnsignedByte.of(EVM_INST_LT);
       wcpRes[2] = gasCall.isOogx();
+      checkArgument(
+          gasCall.isOogx()
+              == wcp.callLT(gasCall.getGasActual().longValue(), gasCall.getGasCost().longValue()));
     }
   }
 
@@ -76,10 +82,8 @@ public class GasOperation extends ModuleOperation {
     return ctMax + 1;
   }
 
-  public void trace(int stamp, Trace trace) {
-    checkArgument(stamp > 0, "Stamp must be greater than 0");
+  public void trace(Trace trace) {
     for (short i = 0; i < ctMax + 1; i++) {
-      // TODO: review traced values
       trace
           .inputsAndOutputsAreMeaningful(true)
           .first(i == 0)

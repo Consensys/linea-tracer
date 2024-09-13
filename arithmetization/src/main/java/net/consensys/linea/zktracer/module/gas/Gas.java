@@ -20,6 +20,7 @@ import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
@@ -28,9 +29,11 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 
+@RequiredArgsConstructor
 @Accessors(fluent = true)
 public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   /** A list of the operations to trace */
@@ -38,6 +41,7 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
 
   private CommonFragmentValues commonValues;
   private GasCall gasCall;
+  private final Wcp wcp;
 
   @Override
   public String moduleKey() {
@@ -53,7 +57,7 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
     this.commonValues = commonValues;
     this.gasCall = gasCall;
     this.gasCall.setGasActual(BigInteger.valueOf(commonValues.gasActual));
-    this.gasCall.setGasCost(BigInteger.valueOf(commonValues.gasCost));
+    this.gasCall.setGasCost(BigInteger.valueOf(commonValues.gasCost()));
     this.gasCall.setXahoy(commonValues.exceptionAhoy);
     // The only missing piece is the OOGX field
     // Certain instruction families do not follow the standard order for deciding which exception to
@@ -65,9 +69,8 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
-    int stamp = 0;
     for (GasOperation gasOperation : this.operations.getAll()) {
-      gasOperation.trace(++stamp, trace);
+      gasOperation.trace(trace);
     }
   }
 
@@ -75,6 +78,6 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     gasCall.setOogx(commonValues.tracedException() == TracedException.OUT_OF_GAS_EXCEPTION);
-    this.operations.add(new GasOperation(gasCall));
+    this.operations.add(new GasOperation(gasCall, wcp));
   }
 }

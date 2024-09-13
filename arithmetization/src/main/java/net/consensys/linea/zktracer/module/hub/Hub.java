@@ -206,7 +206,7 @@ public class Hub implements Module {
   private final Blockhash blockhash = new Blockhash(wcp);
   private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
-  @Getter private final Gas gas = new Gas();
+  @Getter private final Gas gas = new Gas(wcp);
   private final Mul mul = new Mul(this);
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
@@ -329,6 +329,7 @@ public class Hub implements Module {
                 ext,
                 euc,
                 exp,
+                gas,
                 logData,
                 logInfo,
                 mmu, // WARN: must be traced before the MMIO
@@ -347,8 +348,7 @@ public class Hub implements Module {
                 stp,
                 trm,
                 txnData,
-                wcp,
-                gas))
+                wcp))
         .toList();
   }
 
@@ -370,6 +370,7 @@ public class Hub implements Module {
                 ext,
                 ecData,
                 euc,
+                gas,
                 mmu,
                 mmio,
                 logData,
@@ -387,8 +388,7 @@ public class Hub implements Module {
                 trm,
                 txnData,
                 wcp,
-                l2Block,
-                gas),
+                l2Block),
             precompileLimitModules().stream())
         .toList();
   }
@@ -435,8 +435,7 @@ public class Hub implements Module {
                     trm,
                     wcp, /* WARN: must be called BEFORE txnData */
                     txnData,
-                    blockdata /* WARN: must be called AFTER txnData */,
-                    gas),
+                    blockdata /* WARN: must be called AFTER txnData */),
                 precompileLimitModules().stream())
             .toList();
   }

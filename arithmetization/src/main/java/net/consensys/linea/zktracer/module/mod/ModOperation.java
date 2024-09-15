@@ -127,8 +127,9 @@ public class ModOperation extends ModuleOperation {
   }
 
   private UInt256 absoluteValueIfSignedInst(Bytes32 arg) {
-    if (isSigned) {
-      return UInt256.valueOf(arg.toBigInteger().abs());
+    if (this.isSigned()) {
+      Bytes argBytes = Bytes.of(arg.toArray());
+      return UInt256.valueOf(argBytes.toBigInteger().abs());
     }
     return UInt256.fromBytes(arg);
   }

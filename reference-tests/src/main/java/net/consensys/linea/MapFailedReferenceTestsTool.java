@@ -39,16 +39,18 @@ public class MapFailedReferenceTestsTool {
   public static void mapAndStoreFailedReferenceTest(
       String testName, List<String> logEventMessages, String jsonOutputFilename) {
     Set<String> failedConstraints = getFailedConstraints(logEventMessages);
-    String jsonString = readFailedTestsOutput(jsonOutputFilename);
-    JsonConverter jsonConverter = JsonConverter.builder().build();
+    if (!failedConstraints.isEmpty()) {
+      String jsonString = readFailedTestsOutput(jsonOutputFilename);
+      JsonConverter jsonConverter = JsonConverter.builder().build();
 
-    List<ModuleToConstraints> modulesToConstraints =
-        getModulesToConstraints(jsonString, jsonConverter);
+      List<ModuleToConstraints> modulesToConstraints =
+          getModulesToConstraints(jsonString, jsonConverter);
 
-    mapFailedConstraintsToTestsToModule(modulesToConstraints, failedConstraints, testName);
+      mapFailedConstraintsToTestsToModule(modulesToConstraints, failedConstraints, testName);
 
-    jsonString = jsonConverter.toJson(modulesToConstraints);
-    writeToJsonFile(jsonString, jsonOutputFilename);
+      jsonString = jsonConverter.toJson(modulesToConstraints);
+      writeToJsonFile(jsonString, jsonOutputFilename);
+    }
   }
 
   private static void mapFailedConstraintsToTestsToModule(

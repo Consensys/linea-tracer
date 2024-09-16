@@ -35,7 +35,7 @@ public class ReferenceTestWatcher implements TestWatcher {
   ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
 
   public ReferenceTestWatcher() {
-    Logger logger = getLogbackLogger(ReferenceTestWatcher.class); //(Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    Logger logger = getLogbackLogger(); //(Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
     listAppender.setContext(logger.getLoggerContext());
     listAppender.start();
     logger.addAppender(listAppender);
@@ -52,11 +52,11 @@ public class ReferenceTestWatcher implements TestWatcher {
   }
 
 
-  private static ch.qos.logback.classic.Logger getLogbackLogger(Class<?> cl) {
+  private static ch.qos.logback.classic.Logger getLogbackLogger() {
     try {
       org.slf4j.Logger slf4jLogger = null;
       for (int i = 0; i < LOGBACK_POLL_ATTEMPTS; i++) {
-        slf4jLogger = LoggerFactory.getLogger(cl);
+        slf4jLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
         if (slf4jLogger instanceof ch.qos.logback.classic.Logger logbackLogger) {
           return logbackLogger;
         }

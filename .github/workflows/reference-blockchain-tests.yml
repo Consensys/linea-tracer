@@ -2,7 +2,7 @@ name: Daily Reference Blockchain Tests
 
 on:
   schedule:
-    - cron: 0 21 * * *
+    - cron: 0 21 * * 1-5
   workflow_dispatch:
     inputs:
       failed_module:
@@ -62,10 +62,10 @@ jobs:
       - name: Generate block chain reference tests
         run:  ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
         env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false -DZKEVM_BIN_ORIGINAL_PATH="linea-constraints/zkevm.bin"
+          JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
       - name: generate zkevm.bin
-        run: cd ./linea-constraints; make zkevm.bin -B; cd ..
+        run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v6
         if: ${{ inputs.failed_module != '' }}
@@ -77,9 +77,9 @@ jobs:
           if_no_artifact_found: ignore
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests -x spotlessCheck
-        continue-on-error: true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
+          ZKEVM_BIN: zkevm_for_reference_tests.bin
           CORSET_FLAGS: fields,expand,expand,expand
           FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
           FAILED_MODULE: ${{ inputs.failed_module || '' }}

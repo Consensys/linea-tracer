@@ -38,7 +38,9 @@ import org.junit.jupiter.api.Test;
  * <p><a href="https://github.com/Consensys/linea-tracer/issues/1153">Related GitHub issue</a>
  */
 @Tag("replay")
+@Tag("nightly")
 public class Issue1136Tests {
+
   @Test
   void issue_1136_block_3110546() {
     replay(LINEA_SEPOLIA, "3110546.sepolia.json.gz");

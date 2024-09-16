@@ -596,4 +596,9 @@ public class ReplayTests {
   void mainnet1339346ContextRevertTwice() {
     replay(LINEA_MAINNET, "1339346.json.gz", false);
   }
+
+  @Test
+  void rlpTxnSignatureConstraint() {
+    replay(LINEA_SEPOLIA, "254238-254283.json.gz", false);
+  }
 }

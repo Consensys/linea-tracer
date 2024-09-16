@@ -599,6 +599,6 @@ public class ReplayTests {
 
   @Test
   void issue1123() {
-    replay("8043758.json.gz");
+    replay(LINEA_MAINNET, "8043758.json.gz");
   }
 }

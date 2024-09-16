@@ -113,6 +113,7 @@ public class CallSection extends TraceSection
   private AccountSnapshot postRollbackCalleeSnapshot;
   private AccountSnapshot postRollbackCallerSnapshot;
 
+  public StpCall stpCall;
   private PrecompileSubsection precompileSubsection;
 
   public CallSection(Hub hub) {
@@ -147,7 +148,7 @@ public class CallSection extends TraceSection
       return;
     }
 
-    final StpCall stpCall = new StpCall(hub, mxpCall.gasMxp);
+    stpCall = new StpCall(hub, mxpCall.gasMxp);
     firstImcFragment.callStp(stpCall);
     checkArgument(
         stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions),
@@ -423,8 +424,7 @@ public class CallSection extends TraceSection
       case CALL_EOA_SUCCESS_WONT_REVERT -> completeEoaSuccessWillRevert(factory);
       case CALL_SMC_FAILURE_WONT_REVERT -> completeSmcFailureWillRevert(factory);
       case CALL_SMC_SUCCESS_WONT_REVERT,
-          CALL_PRC_SUCCESS_WONT_REVERT -> completeSmcSuccessWillRevertOrPrcSuccessWillRevert(
-          factory);
+          CALL_PRC_SUCCESS_WONT_REVERT -> completeSmcOrPrcSuccessWillRevert(factory);
       case CALL_PRC_FAILURE -> {
         // Note: no undoing required
         //  - account snapshots were taken with value transfers undone
@@ -507,7 +507,7 @@ public class CallSection extends TraceSection
     this.addFragment(undoingCalleeWarmthAccountFragment);
   }
 
-  private void completeSmcSuccessWillRevertOrPrcSuccessWillRevert(Factories factory) {
+  private void completeSmcOrPrcSuccessWillRevert(Factories factory) {
 
     final CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
     if (callScenario == CALL_SMC_SUCCESS_WONT_REVERT) {

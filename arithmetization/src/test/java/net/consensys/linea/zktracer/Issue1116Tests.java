@@ -12,43 +12,19 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.zktracer;
 
-package net.consensys.linea.zktracer.opcode;
+import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
+import static net.consensys.linea.zktracer.ReplayTests.replay;
 
-/** All the instruction families, as used by the hub. */
-public enum InstructionFamily {
-  ADD,
-  MOD,
-  MUL,
-  EXT,
-  WCP,
-  BIN,
-  SHF,
-  KEC,
-  CONTEXT,
-  ACCOUNT,
-  COPY,
-  TRANSACTION,
-  BATCH,
-  STACK_RAM,
-  STORAGE,
-  JUMP,
-  MACHINE_STATE,
-  PUSH_POP,
-  DUP,
-  SWAP,
-  LOG,
-  CREATE,
-  CALL,
-  HALT,
-  INVALID;
+import org.junit.jupiter.api.Test;
 
-  public boolean isAnyOf(InstructionFamily... families) {
-    for (InstructionFamily family : families) {
-      if (this == family) {
-        return true;
-      }
-    }
-    return false;
+/** Insufficient balance at some address */
+public class Issue1116Tests {
+
+  // @Disabled
+  @Test
+  void issue_1116_block_8019521() {
+    replay(LINEA_MAINNET, "8019521-8019521.json.gz", false);
   }
 }

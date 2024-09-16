@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import lombok.Getter;
+import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -44,7 +45,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class SelfdestructSection extends TraceSection
-    implements PostRollbackDefer, PostTransactionDefer {
+    implements PostRollbackDefer, PostTransactionDefer, ConflationAwareOperationTracer {
 
   final int id;
   final int hubStamp;
@@ -67,9 +68,13 @@ public class SelfdestructSection extends TraceSection
   final boolean selfDestructTargetsItself;
   @Getter boolean selfDestructWasReverted = false;
 
+  private final Hub hub;
+
   public SelfdestructSection(Hub hub) {
     // up to 8 = 1 + 7 rows
     super(hub, (short) 8);
+
+    this.hub = hub;
 
     // Init
     id = hub.currentFrame().id();
@@ -92,7 +97,7 @@ public class SelfdestructSection extends TraceSection
 
     recipientAccountBefore =
         selfDestructTargetsItself
-            ? selfdestructorAccountAfter.deepCopy()
+            ? selfdestructorAccountBefore.deepCopy()
             : AccountSnapshot.canonical(hub, recipientAddress);
 
     selfdestructScenarioFragment = new SelfdestructScenarioFragment();
@@ -289,4 +294,22 @@ public class SelfdestructSection extends TraceSection
               .SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
     }
   }
+
+  @Override
+  public void traceStartConflation(long numBlocksInConflation) {}
+
+  @Override
+  public void traceEndConflation(WorldView state) {}
+
+  @Override
+  public void traceContextExit(final MessageFrame frame) {
+    selfdestructorAccountAfter = AccountSnapshot.canonical(hub, addressWhichMaySelfDestruct);
+    recipientAccountAfter =
+        selfDestructTargetsItself
+            ? selfdestructorAccountAfter.deepCopy()
+            : AccountSnapshot.canonical(hub, recipientAddress);
+  }
+
+  // as an alternative, use @Override public void traceContextReEnter(final MessageFrame frame) {}
+  // instead of traceContextExit
 }

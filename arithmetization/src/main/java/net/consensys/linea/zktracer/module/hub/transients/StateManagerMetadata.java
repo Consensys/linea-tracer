@@ -23,4 +23,7 @@ public class StateManagerMetadata
     }
     @Getter
     Map<AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstLastBlockMap = new HashMap<>();
+
+    @Getter
+    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstLastConflationMap = new HashMap<>();
 }

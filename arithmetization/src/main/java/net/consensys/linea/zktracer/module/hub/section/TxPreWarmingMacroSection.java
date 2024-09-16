@@ -128,7 +128,7 @@ public class TxPreWarmingMacroSection {
                     hub.state.updateOrInsertStorageSlotOccurrence(
                         storageSlotIdentifier, storageFragment);
                     seenKeys.get(address).add(key);
-
+                    // update storage txn map values for the state manager as new storage fragment is created
                     TransactionProcessingMetadata.AddrStorageKeyPair mapKey = new TransactionProcessingMetadata.AddrStorageKeyPair(address, EWord.of(key));
                     txnMetadata.updateStorageFirstAndLast(storageFragment, mapKey);
 

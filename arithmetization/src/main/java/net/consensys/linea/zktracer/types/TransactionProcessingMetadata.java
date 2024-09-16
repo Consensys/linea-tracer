@@ -164,16 +164,15 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   // Map for the first and last storage occurrence
   @Getter
   Map<AddrStorageKeyPair, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap = new HashMap<>();
-
+  // Todo: Create a generic method which can handle AccountFragment and StorageFragment
   public void updateAccountFirstAndLast(AccountFragment fragment) {
         // Setting the post transaction first and last value
-        // Initialise the Account First and Last map
       int dom = fragment.domSubStampsSubFragment().domStamp();
       int sub = fragment.domSubStampsSubFragment().subStamp();
 
       Address key = fragment.oldState().address();
 
-
+      // Initialise the Account First and Last map
       final Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstAndLastMap =
                 getAccountFirstAndLastMap();
         if (!txnAccountFirstAndLastMap.containsKey(key)) {
@@ -195,11 +194,11 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
     }
     public void updateStorageFirstAndLast(StorageFragment fragment, AddrStorageKeyPair key) {
         // Setting the post transaction first and last value
-        // Initialise the Account First and Last map
         int dom = fragment.getDomSubStampsSubFragment().domStamp();
         int sub = fragment.getDomSubStampsSubFragment().subStamp();
 
 
+        // Initialise the Storage First and Last map
         final Map<AddrStorageKeyPair, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>> txnStorageFirstAndLastMap =
                 getStorageFirstAndLastMap();
         if (!txnStorageFirstAndLastMap.containsKey(key)) {

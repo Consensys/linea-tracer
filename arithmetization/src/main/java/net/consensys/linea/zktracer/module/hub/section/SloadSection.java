@@ -105,6 +105,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
         SLOAD_DOING,
             accountAddressDeploymentNumber, // Arijit — check that it is computed properly beforehand.
             txnMetadata);
+    // update storage txn map values for the state manager as new storage fragment is created
     TransactionProcessingMetadata.AddrStorageKeyPair mapKey = new TransactionProcessingMetadata.AddrStorageKeyPair(accountAddress, EWord.of(storageKey));
     txnMetadata.updateStorageFirstAndLast(newFragment, mapKey);
     return newFragment;
@@ -142,6 +143,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
                 txnMetadata);
 
     this.addFragment(undoingSloadStorageFragment);
+    // update storage txn map values for the state manager as new storage fragment is created
     TransactionProcessingMetadata.AddrStorageKeyPair mapKey = new TransactionProcessingMetadata.AddrStorageKeyPair(accountAddress, EWord.of(storageKey));
     txnMetadata.updateStorageFirstAndLast(undoingSloadStorageFragment, mapKey);
   }

@@ -156,8 +156,10 @@ public class AccountSnapshot {
   public AccountSnapshot decrementBalanceBy(Wei quantity) {
     Preconditions.checkState(
         balance.greaterOrEqualThan(quantity),
-        "Insufficient balance\n\t\tAddress: %s\n\t\tBalance: %s\n\t\tValue: %s"
-            .formatted(address, balance, quantity));
+        "Insufficient balance"
+            + String.format("\n\t\tAddress: %s", address)
+            + String.format("\n\t\tBalance: %s", balance)
+            + String.format("\n\t\tValue:   %s", quantity));
 
     balance = balance.subtract(quantity);
     return this;
@@ -219,5 +221,10 @@ public class AccountSnapshot {
         deploymentStatus, "Deployment status should be true before deploying byte code.");
 
     return new AccountSnapshot(address, nonce, balance, true, code, deploymentNumber, false);
+  }
+
+  public AccountSnapshot copyDeploymentInfoFrom(AccountSnapshot snapshot) {
+    return this.deploymentNumber(snapshot.deploymentNumber)
+        .deploymentStatus(snapshot.deploymentStatus);
   }
 }

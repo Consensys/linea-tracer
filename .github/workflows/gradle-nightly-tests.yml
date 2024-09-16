@@ -2,7 +2,7 @@ name: Nightly Tests
 
 on:
   schedule:
-    - cron: "0 22 * * *"
+    - cron: "0 22 * * 1-5"
   workflow_dispatch:
 
 env:
@@ -101,4 +101,4 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd -b1024 --air
+          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air

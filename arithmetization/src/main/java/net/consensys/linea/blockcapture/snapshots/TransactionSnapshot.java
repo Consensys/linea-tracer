@@ -15,6 +15,7 @@
 
 package net.consensys.linea.blockcapture.snapshots;
 
+import static net.consensys.linea.zktracer.types.TransactionUtils.getChainIdFromTransaction;
 import static org.hyperledger.besu.ethereum.core.Transaction.REPLAY_PROTECTED_V_BASE;
 import static org.hyperledger.besu.ethereum.core.Transaction.REPLAY_PROTECTED_V_MIN;
 import static org.hyperledger.besu.ethereum.core.Transaction.REPLAY_UNPROTECTED_V_BASE;
@@ -81,7 +82,7 @@ public class TransactionSnapshot {
     this.maxFeePerGas = tx.getMaxFeePerGas().map(Quantity::toHexString);
     this.maxFeePerBlobGas = tx.getMaxFeePerBlobGas().map(Quantity::toHexString);
     this.gasLimit = tx.getGasLimit();
-    this.chainId = tx.getChainId().orElse(CHAIN_ID);
+    this.chainId = BigInteger.valueOf(getChainIdFromTransaction(tx));
     this.accessList =
         tx.getAccessList().map(l -> l.stream().map(AccessListEntrySnapshot::from).toList());
   }

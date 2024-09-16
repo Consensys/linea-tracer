@@ -21,6 +21,7 @@ import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Map.entry;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EIP2681_MAX_NONCE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ADD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIV;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_EQ;
@@ -805,7 +806,7 @@ public class OobOperation extends ModuleOperation {
             BigInteger.ZERO,
             createOobCall.getCreatorNonce(),
             BigInteger.ZERO,
-            (BigInteger.valueOf(2).pow(64)).subtract(BigInteger.valueOf(1))); // TODO: use constant
+            BigInteger.valueOf(EIP2681_MAX_NONCE));
 
     // Set aborting condition
     createOobCall.setAbortingCondition(

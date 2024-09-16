@@ -173,7 +173,7 @@ public class ReplayTests {
 
   @Test
   void modexpTriggeringNonAlignedFirstLimbSingleSourceMmuModexp() {
-    replay(LINEA_MAINNET, "3108622-3108633.json.gz", false);
+    replay(LINEA_MAINNET, "3108622-3108633.json.gz");
   }
 
   /**
@@ -182,6 +182,12 @@ public class ReplayTests {
    */
   @Test
   void mainnet1339346ContextRevertTwice() {
-    replay(LINEA_MAINNET, "1339346.json.gz", false);
+    replay(LINEA_MAINNET, "1339346.json.gz");
+  }
+
+  @Disabled("#1173")
+  @Test
+  void legacyTxWithoutChainID() {
+    replay(LINEA_SEPOLIA, "254251.sepolia.json.gz");
   }
 }

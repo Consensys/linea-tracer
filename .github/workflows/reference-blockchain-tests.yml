@@ -77,6 +77,7 @@ jobs:
           if_no_artifact_found: ignore
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests -x spotlessCheck
+        timeout-minutes: 180
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           ZKEVM_BIN: zkevm_for_reference_tests.bin

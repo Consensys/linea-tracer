@@ -194,9 +194,10 @@ public class SelfdestructSection extends TraceSection
     recipientFirstAccountFragment =
         hub.factories()
             .accountFragment()
-            .make(
+            .makeWithTrm(
                 recipientAccountBefore,
                 recipientAccountAfter,
+                recipientAddressUntrimmed,
                 DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
 
     this.addFragment(selfdestructorFirstAccountFragment);

@@ -179,7 +179,8 @@ public class AccountSnapshot {
 
   /**
    * {@link AccountSnapshot#setBalanceToZero()} changes the balance of the AccountSnapshot to be
-   * zero.
+   * zero. <b>WARNING:</b> this modifies the underlying {@link AccountSnapshot}. Be sure to work
+   * with a {@link AccountSnapshot#deepCopy} if necessary.
    *
    * @return
    */

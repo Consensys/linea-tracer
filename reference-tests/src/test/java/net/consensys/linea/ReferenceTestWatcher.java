@@ -14,7 +14,8 @@
  */
 package net.consensys.linea;
 
-import static org.assertj.core.api.Fail.fail;
+
+import static org.junit.jupiter.api.Assumptions.abort;
 
 import java.time.Duration;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import lombok.Synchronized;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.slf4j.LoggerFactory;
@@ -52,6 +54,7 @@ public class ReferenceTestWatcher implements TestWatcher {
   }
 
 
+  @Synchronized
   private static ch.qos.logback.classic.Logger getLogbackLogger() {
     try {
       org.slf4j.Logger slf4jLogger = null;
@@ -62,9 +65,9 @@ public class ReferenceTestWatcher implements TestWatcher {
         }
         Thread.sleep(LOGBACK_POLL_DELAY);
       }
-      fail("SLF4J never returned a Logback logger. Last returned = " + slf4jLogger);
+      abort("SLF4J never returned a Logback logger. Last returned = " + slf4jLogger);
     } catch (InterruptedException ex) {
-      fail("Thread interrupted while polling for Logback logger", ex);
+      abort("Thread interrupted while polling for Logback logger - " + ex);
     }
     throw new Error("unreachable code");
   }

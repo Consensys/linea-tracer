@@ -68,7 +68,7 @@ tasks.register('referenceBlockchainTests', Test) {
   boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = isCiServer ? "8g" :"4g"
   maxHeapSize = isCiServer ? "16g" : "8g"
-  jvmArgs '-Xmx512m', '-Xms128m', "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap"
+  jvmArgs '-Xmx512m', '-Xms128m'
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")

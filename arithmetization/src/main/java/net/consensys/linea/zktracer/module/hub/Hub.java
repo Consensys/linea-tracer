@@ -345,9 +345,7 @@ public class Hub implements Module {
                 stp,
                 trm,
                 txnData,
-                wcp
-                // l2Block
-                ),
+                wcp),
             refTableModules.stream())
         .toList();
   }

@@ -131,7 +131,7 @@ public class SelfdestructSection extends TraceSection
               .makeWithTrm(
                   recipientAccountBefore,
                   recipientAccountBefore,
-                      recipientAddressUntrimmed,
+                  recipientAddressUntrimmed,
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
       this.addFragment(recipientFirstAccountFragment);

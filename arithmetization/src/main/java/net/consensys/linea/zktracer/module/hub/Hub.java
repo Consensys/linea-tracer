@@ -365,6 +365,7 @@ public class Hub implements Module {
                 romLex,
                 add,
                 bin,
+                blakeModexpData,
                 blockdata,
                 blockhash,
                 ext,
@@ -384,12 +385,14 @@ public class Hub implements Module {
                 rlpTxn,
                 rlpTxnRcpt,
                 rom,
+                shakiraData,
                 shf,
+                stp,
                 trm,
                 txnData,
                 wcp,
                 l2Block),
-            precompileLimitModules().stream())
+            Stream.concat(precompileLimitModules().stream(), refTableModules.stream()))
         .toList();
   }
 

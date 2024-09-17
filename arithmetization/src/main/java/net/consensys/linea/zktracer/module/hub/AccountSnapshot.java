@@ -178,6 +178,18 @@ public class AccountSnapshot {
   }
 
   /**
+   * {@link AccountSnapshot#setBalanceToZero()} changes the balance of the AccountSnapshot to be
+   * zero. <b>WARNING:</b> this modifies the underlying {@link AccountSnapshot}. Be sure to work
+   * with a {@link AccountSnapshot#deepCopy} if necessary.
+   *
+   * @return
+   */
+  public AccountSnapshot setBalanceToZero() {
+    balance = Wei.ZERO;
+    return this;
+  }
+
+  /**
    * Set the warmth to true. <b>WARNING:</b> this modifies the underlying {@link AccountSnapshot}.
    * Be sure to work with a {@link AccountSnapshot#deepCopy} if necessary.
    *
@@ -221,5 +233,10 @@ public class AccountSnapshot {
         deploymentStatus, "Deployment status should be true before deploying byte code.");
 
     return new AccountSnapshot(address, nonce, balance, true, code, deploymentNumber, false);
+  }
+
+  public AccountSnapshot copyDeploymentInfoFrom(AccountSnapshot snapshot) {
+    return this.deploymentNumber(snapshot.deploymentNumber)
+        .deploymentStatus(snapshot.deploymentStatus);
   }
 }

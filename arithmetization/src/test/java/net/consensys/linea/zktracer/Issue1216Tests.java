@@ -17,11 +17,30 @@ package net.consensys.linea.zktracer;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
 import static net.consensys.linea.zktracer.ReplayTests.replay;
 
+import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 public class Issue1216Tests {
 
+  /**
+   * When constructing the "before" {@link AccountSnapshot} of the recipient account (i.e. the heir
+   * of the SELFDESTRUCT) we are using either
+   *
+   * <p>(1) {@link AccountSnapshot#canonical(Hub, Address)} of the (trimmed) recipient address or
+   *
+   * <p>(2) {@link AccountSnapshot#deepCopy()} of the "after" version of the self destructor.
+   *
+   * <p>The first method the right approach when the (trimmed) recipient address is different from
+   * the address of the account undergoing SELFDESTRUCT. The second method has to be used when the
+   * two coincide.
+   *
+   * <p>The issue in the SEPOLIA block 2392659 was that {@link AccountSnapshot#deepCopy()} was
+   * blowing up with a NPE since the "after" version of the self destructor didn't exist yet in the
+   * code. This was solved in issue #1216.
+   */
   @Tag("nightly")
   @Tag("replay")
   @Test

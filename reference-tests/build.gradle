@@ -24,6 +24,12 @@ apply from: rootProject.file("gradle/dependency-management.gradle")
 apply from: rootProject.file('gradle/common-dependencies.gradle')
 apply from: rootProject.file("gradle/lint.gradle")
 
+configurations.configureEach {
+  exclude module: 'log4j-api'
+  exclude module: 'log4j-core'
+  exclude module: 'log4j-slf4j2-impl'
+}
+
 tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   refTestTemplateFilePath = "src/test/resources/templates/BlockchainReferenceTest.java.template"
   refTests = "src/test/resources/ethereum-tests/BlockchainTests"

@@ -123,8 +123,6 @@ public class SelfdestructSection extends TraceSection
                   selfdestructorAccountBefore,
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
-      this.addFragment(selfdestructorFirstAccountFragment);
-
       recipientFirstAccountFragment =
           hub.factories()
               .accountFragment()
@@ -134,6 +132,7 @@ public class SelfdestructSection extends TraceSection
                   recipientAddressUntrimmed,
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
+      this.addFragment(selfdestructorFirstAccountFragment);
       this.addFragment(recipientFirstAccountFragment);
       return;
     }
@@ -171,10 +170,19 @@ public class SelfdestructSection extends TraceSection
     //   * recipientFirstAccountFragment
 
     selfdestructorAccountAfter = selfdestructorAccountBefore.deepCopy().setBalanceToZero();
-    recipientAccountBefore =
-        selfdestructTargetsItself
-            ? selfdestructorAccountAfter.deepCopy()
-            : AccountSnapshot.canonical(hub, recipientAddress);
+
+    if (selfdestructTargetsItself) {
+      recipientAccountBefore = selfdestructorAccountAfter.deepCopy();
+      recipientAccountAfter = recipientAccountBefore.deepCopy();
+    } else {
+      recipientAccountBefore = AccountSnapshot.canonical(hub, recipientAddress);
+      recipientAccountAfter =
+          recipientAccountBefore
+              .deepCopy()
+              .incrementBalanceBy(selfdestructorAccountBefore.balance())
+              .turnOnWarmth();
+    }
+    checkArgument(recipientAccountAfter.isWarm());
 
     selfdestructorFirstAccountFragment =
         hub.factories()
@@ -183,18 +191,6 @@ public class SelfdestructSection extends TraceSection
                 selfdestructorAccountBefore,
                 selfdestructorAccountAfter,
                 DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
-    this.addFragment(selfdestructorFirstAccountFragment);
-
-    recipientAccountAfter =
-        selfdestructTargetsItself
-            ? selfdestructorAccountAfter.deepCopy()
-            : recipientAccountBefore
-                .deepCopy()
-                .incrementBalanceBy(selfdestructorAccountBefore.balance())
-                .turnOnWarmth();
-
-    checkArgument(recipientAccountAfter.isWarm());
-
     recipientFirstAccountFragment =
         hub.factories()
             .accountFragment()
@@ -203,6 +199,7 @@ public class SelfdestructSection extends TraceSection
                 recipientAccountAfter,
                 DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
 
+    this.addFragment(selfdestructorFirstAccountFragment);
     this.addFragment(recipientFirstAccountFragment);
   }
 
@@ -218,7 +215,6 @@ public class SelfdestructSection extends TraceSection
                 selfdestructorAccountBefore,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     hubStamp, callFrame.revertStamp(), 2));
-    this.addFragment(selfDestroyerUndoingAccountFragment);
 
     final AccountFragment recipientUndoingAccountFragment =
         hub.factories()
@@ -228,6 +224,7 @@ public class SelfdestructSection extends TraceSection
                 recipientAccountBefore,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     hubStamp, callFrame.revertStamp(), 3));
+    this.addFragment(selfDestroyerUndoingAccountFragment);
     this.addFragment(recipientUndoingAccountFragment);
 
     ContextFragment squashParentContextReturnData =

@@ -178,6 +178,17 @@ public class AccountSnapshot {
   }
 
   /**
+   * {@link AccountSnapshot#setBalanceToZero()} changes the balance of the AccountSnapshot to be
+   * zero.
+   *
+   * @return
+   */
+  public AccountSnapshot setBalanceToZero() {
+    balance = Wei.ZERO;
+    return this;
+  }
+
+  /**
    * Set the warmth to true. <b>WARNING:</b> this modifies the underlying {@link AccountSnapshot}.
    * Be sure to work with a {@link AccountSnapshot#deepCopy} if necessary.
    *

@@ -14,32 +14,18 @@
  */
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
+import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
 import static net.consensys.linea.zktracer.ReplayTests.replay;
 
-import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** This range broke the MOD module's mod.set-absolute-values constraint. */
-public class Issue1180Tests {
+public class Issue1216Tests {
 
   @Tag("nightly")
   @Tag("replay")
   @Test
-  void split_range_2321470_2321479() {
-    replay(LINEA_MAINNET, "2321470-2321479.json.gz");
-  }
-
-  @Test
-  void failingSmodInstructionTest() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
-    program
-        .push("ffffffffffffffffffffffffffffffffffffffffffffffffffdc633cace676d7")
-        .push("0000000000000000000000000000000000000000000000000000000000000000")
-        .op(OpCode.SDIV);
-    BytecodeRunner.of(program.compile()).run();
+  void issue_1216_sepolia_block_2392659() {
+    replay(LINEA_SEPOLIA, "2392659.json.gz", false);
   }
 }

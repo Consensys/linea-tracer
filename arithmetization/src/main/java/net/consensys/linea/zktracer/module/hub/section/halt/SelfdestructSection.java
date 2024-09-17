@@ -57,14 +57,14 @@ public class SelfdestructSection extends TraceSection
   AccountSnapshot selfdestructorAccountBefore;
   AccountSnapshot selfdestructorAccountAfter;
 
-  final Bytes recipientRawAddress;
+  final Bytes recipientAddressUntrimmed;
   final Address recipientAddress;
-  AccountFragment selfDestroyerFirstAccountFragment;
+  AccountFragment selfdestructorFirstAccountFragment;
   AccountFragment recipientFirstAccountFragment;
   AccountSnapshot recipientAccountBefore;
   AccountSnapshot recipientAccountAfter;
 
-  final boolean selfDestructTargetsItself;
+  final boolean selfdestructTargetsItself;
   @Getter boolean selfDestructWasReverted = false;
 
   public SelfdestructSection(Hub hub) {
@@ -84,15 +84,10 @@ public class SelfdestructSection extends TraceSection
     selfdestructorAccountBefore = AccountSnapshot.canonical(hub, addressWhichMaySelfDestruct);
 
     // Recipient
-    recipientRawAddress = frame.getStackItem(0);
-    recipientAddress = Address.extract(Bytes32.leftPad(recipientRawAddress));
+    recipientAddressUntrimmed = frame.getStackItem(0);
+    recipientAddress = Address.extract(Bytes32.leftPad(recipientAddressUntrimmed));
 
-    selfDestructTargetsItself = addressWhichMaySelfDestruct.equals(recipientAddress);
-
-    recipientAccountBefore =
-        selfDestructTargetsItself
-            ? selfdestructorAccountAfter.deepCopy()
-            : AccountSnapshot.canonical(hub, recipientAddress);
+    selfdestructTargetsItself = addressWhichMaySelfDestruct.equals(recipientAddress);
 
     selfdestructScenarioFragment = new SelfdestructScenarioFragment();
     // SCN fragment
@@ -115,7 +110,12 @@ public class SelfdestructSection extends TraceSection
     if (Exceptions.any(exceptions)) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
 
-      selfDestroyerFirstAccountFragment =
+      recipientAccountBefore =
+          selfdestructTargetsItself
+              ? selfdestructorAccountBefore
+              : AccountSnapshot.canonical(hub, recipientAddress);
+
+      selfdestructorFirstAccountFragment =
           hub.factories()
               .accountFragment()
               .make(
@@ -123,7 +123,7 @@ public class SelfdestructSection extends TraceSection
                   selfdestructorAccountBefore,
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
-      this.addFragment(selfDestroyerFirstAccountFragment);
+      this.addFragment(selfdestructorFirstAccountFragment);
 
       recipientFirstAccountFragment =
           hub.factories()
@@ -131,7 +131,7 @@ public class SelfdestructSection extends TraceSection
               .makeWithTrm(
                   recipientAccountBefore,
                   recipientAccountBefore,
-                  recipientRawAddress,
+                      recipientAddressUntrimmed,
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
       this.addFragment(recipientFirstAccountFragment);
@@ -163,27 +163,30 @@ public class SelfdestructSection extends TraceSection
 
     // Modify the current account and the recipient account
     // - The current account has its balance reduced to 0 (i+2)
-    //   * selfDestroyerFirstAccountFragment
+    //   * selfdestructorFirstAccountFragment
     // - The recipient account, if it is not the current account, receive that balance (+= balance),
     // otherwise remains 0 (i+3)
     //   * recipientFirstAccountFragment
     // - The recipient address will become warm (i+3)
     //   * recipientFirstAccountFragment
 
-    selfdestructorAccountAfter = selfdestructorAccountBefore.deepCopy();
-    selfdestructorAccountAfter.decrementBalanceBy(selfdestructorAccountBefore.balance());
+    selfdestructorAccountAfter = selfdestructorAccountBefore.deepCopy().setBalanceToZero();
+    recipientAccountBefore =
+        selfdestructTargetsItself
+            ? selfdestructorAccountAfter.deepCopy()
+            : AccountSnapshot.canonical(hub, recipientAddress);
 
-    selfDestroyerFirstAccountFragment =
+    selfdestructorFirstAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
                 selfdestructorAccountBefore,
                 selfdestructorAccountAfter,
                 DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
-    this.addFragment(selfDestroyerFirstAccountFragment);
+    this.addFragment(selfdestructorFirstAccountFragment);
 
     recipientAccountAfter =
-        selfDestructTargetsItself
+        selfdestructTargetsItself
             ? selfdestructorAccountAfter.deepCopy()
             : recipientAccountBefore
                 .deepCopy()
@@ -205,7 +208,7 @@ public class SelfdestructSection extends TraceSection
 
   @Override
   public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
-    // Undo the modifications we applied to selfDestroyerFirstAccountFragment and
+    // Undo the modifications we applied to selfdestructorFirstAccountFragment and
     // recipientFirstAccountFragment
     final AccountFragment selfDestroyerUndoingAccountFragment =
         hub.factories()

@@ -3,7 +3,6 @@ name: reference tests
 on:
   schedule:
     - cron: "0 23 * * 1-5"
-  pull_request:
   workflow_dispatch:
 
 env:
@@ -55,7 +54,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: unit-test-report
+          name: ethereum-tests-report
           path: reference-tests/build/reports/tests/**/*
 
 
@@ -111,5 +110,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: unit-test-report
+          name: ethereum-tests-go-corset-report
           path: reference-tests/build/reports/tests/**/*

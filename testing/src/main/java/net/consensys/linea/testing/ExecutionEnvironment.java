@@ -56,10 +56,11 @@ public class ExecutionEnvironment {
       traceFilePath = Files.createTempFile(null, ".lt");
       zkTracer.writeToFile(traceFilePath);
       final Path finalTraceFilePath = traceFilePath;
-      logger.ifPresent(log -> log.info("trace written to {}", finalTraceFilePath));
+      logger.ifPresent(log -> log.debug("trace written to {}", finalTraceFilePath));
       CorsetValidator.Result corsetValidationResult = corsetValidator.validate(traceFilePath);
-      logger.ifPresent(log -> log.info("Corset validation result {}", corsetValidationResult));
-      assertThat(corsetValidationResult.isValid()).isTrue();
+      assertThat(corsetValidationResult.isValid())
+          .withFailMessage("Corset validation result {}", corsetValidationResult)
+          .isTrue();
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
@@ -68,7 +69,7 @@ public class ExecutionEnvironment {
           boolean traceFileDeleted = traceFilePath.toFile().delete();
           final Path finalTraceFilePath = traceFilePath;
           logger.ifPresent(
-              log -> log.info("trace file {} deleted {}", finalTraceFilePath, traceFileDeleted));
+              log -> log.debug("trace file {} deleted {}", finalTraceFilePath, traceFileDeleted));
         }
       }
     }

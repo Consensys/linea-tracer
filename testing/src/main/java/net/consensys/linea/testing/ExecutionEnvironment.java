@@ -21,7 +21,16 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
 
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.config.GenesisConfigFile;
+import org.hyperledger.besu.config.GenesisConfigOptions;
+import org.hyperledger.besu.consensus.clique.CliqueForksSchedulesFactory;
+import org.hyperledger.besu.consensus.clique.CliqueProtocolSchedule;
+import org.hyperledger.besu.crypto.KeyPair;
+import org.hyperledger.besu.crypto.SignatureAlgorithm;
+import org.hyperledger.besu.crypto.SignatureAlgorithmFactory;
+import org.hyperledger.besu.cryptoservices.KeyPairSecurityModule;
+import org.hyperledger.besu.cryptoservices.NodeKey;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.chain.BadBlockManager;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
@@ -30,7 +39,6 @@ import org.hyperledger.besu.ethereum.core.Difficulty;
 import org.hyperledger.besu.ethereum.core.MiningParameters;
 import org.hyperledger.besu.ethereum.core.PrivacyParameters;
 import org.hyperledger.besu.ethereum.mainnet.MainnetBlockHeaderFunctions;
-import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSpecFactory;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
@@ -61,10 +69,15 @@ public class ExecutionEnvironment {
 
   public static ProtocolSpec getProtocolSpec(BigInteger chainId) {
     BadBlockManager badBlockManager = new BadBlockManager();
+    final GenesisConfigOptions genesisConfigOptions = GENESIS_CONFIG.getConfigOptions();
 
     ProtocolSchedule schedule =
-        MainnetProtocolSchedule.fromConfig(
-            GENESIS_CONFIG.getConfigOptions(),
+        CliqueProtocolSchedule.create(
+            genesisConfigOptions,
+            CliqueForksSchedulesFactory.create(genesisConfigOptions),
+            createNodeKey(),
+            false,
+            EvmConfiguration.DEFAULT,
             MiningParameters.MINING_DISABLED,
             badBlockManager,
             false,
@@ -85,5 +98,16 @@ public class ExecutionEnvironment {
     builder.privacyParameters(PrivacyParameters.DEFAULT);
     builder.badBlocksManager(badBlockManager);
     return builder.build(schedule);
+  }
+
+  private static NodeKey createNodeKey() {
+    final Bytes32 keyPairPrvKey =
+        Bytes32.fromHexString("0xf7a58d5e755d51fa2f6206e91dd574597c73248aaf946ec1964b8c6268d6207b");
+    final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithmFactory.getInstance();
+    final KeyPair keyPair =
+        signatureAlgorithm.createKeyPair(signatureAlgorithm.createPrivateKey(keyPairPrvKey));
+    final KeyPairSecurityModule keyPairSecurityModule = new KeyPairSecurityModule(keyPair);
+
+    return new NodeKey(keyPairSecurityModule);
   }
 }

@@ -12,20 +12,25 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer;
+package net.consensys.linea.replaytests;
 
+import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
-import static net.consensys.linea.zktracer.ReplayTooling.replay;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+/** STP constraints were failing for these ranges */
 @Tag("replay")
-public class Issue1031Tests {
+public class Issue1124Tests {
 
-  // @Disabled
   @Test
-  void issue_1090_range_10_20() {
-    replay(LINEA_MAINNET, "10-20.json.gz");
+  void issue_1124_range_4323962_4324012() {
+    replay(LINEA_MAINNET, "4323962-4324012.json.gz", false);
+  }
+
+  @Test
+  void issue_1124_range_4343434_4343473() {
+    replay(LINEA_MAINNET, "4343434-4343473.json.gz", false);
   }
 }

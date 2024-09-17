@@ -73,6 +73,7 @@ public class ReplayTests {
 
   // @Disabled
   @Test
+  @Tag("nightly")
   void incident777zkGethMainnet() {
     replay(LINEA_MAINNET, "7461019-7461030.json.gz");
   }
@@ -168,6 +169,7 @@ public class ReplayTests {
   }
 
   @Test
+  @Tag("nightly")
   void modexpTriggeringNonAlignedFirstLimbSingleSourceMmuModexp() {
     replay(LINEA_MAINNET, "3108622-3108633.json.gz");
   }

@@ -173,7 +173,7 @@ jobs:
           GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
 
       - name: Run replay tests
-        run: GOMEMLIMIT=196GiB ./gradlew :arithmetization:replayTests
+        run: GOMEMLIMIT=196GiB ./gradlew :arithmetization:fastReplayTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable

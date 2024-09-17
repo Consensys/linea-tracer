@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 /** STP constraints were failing for these ranges */
 @Tag("replay")
+@Tag("nightly")
 public class Issue1124Tests {
 
   @Test

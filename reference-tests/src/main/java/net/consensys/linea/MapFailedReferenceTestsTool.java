@@ -53,6 +53,7 @@ public class MapFailedReferenceTestsTool {
     }
   }
 
+  @Synchronized
   private static void mapFailedConstraintsToTestsToModule(
       List<ModuleToConstraints> modulesToConstraints,
       Set<String> failedConstraints,
@@ -112,6 +113,7 @@ public class MapFailedReferenceTestsTool {
     }
   }
 
+  @Synchronized
   public static List<ModuleToConstraints> getModulesToConstraints(
       String jsonString, JsonConverter jsonConverter) {
     List<ModuleToConstraints> moduleToConstraints = new ArrayList<>();

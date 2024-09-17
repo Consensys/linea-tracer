@@ -15,10 +15,17 @@
 
 package net.consensys.linea.testing;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.OptionalLong;
 
+import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.config.GenesisConfigFile;
 import org.hyperledger.besu.ethereum.chain.BadBlockManager;
 import org.hyperledger.besu.ethereum.core.MiningParameters;
@@ -30,22 +37,47 @@ import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpecBuilder;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
+import org.slf4j.Logger;
 
 public class ExecutionEnvironment {
   static GenesisConfigFile GENESIS_CONFIG =
       GenesisConfigFile.fromSource(GenesisConfigFile.class.getResource("/linea.json"));
 
+  public static void checkTracer(
+      ZkTracer zkTracer, CorsetValidator corsetValidator, Optional<Logger> logger) {
+    Path traceFilePath = null;
+    try {
+      traceFilePath = Files.createTempFile(null, ".lt");
+      zkTracer.writeToFile(traceFilePath);
+      final Path finalTraceFilePath = traceFilePath;
+      logger.ifPresent(log -> log.info("trace written to {}", finalTraceFilePath));
+      CorsetValidator.Result corsetValidationResult = corsetValidator.validate(traceFilePath);
+      logger.ifPresent(log -> log.info("Corset validation result {}", corsetValidationResult));
+      assertThat(corsetValidationResult.isValid()).isTrue();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    } finally {
+      if (traceFilePath != null) {
+        if (System.getenv("PRESERVE_TRACE_FILES") == null) {
+          boolean traceFileDeleted = traceFilePath.toFile().delete();
+          final Path finalTraceFilePath = traceFilePath;
+          logger.ifPresent(
+              log -> log.info("trace file {} deleted {}", finalTraceFilePath, traceFileDeleted));
+        }
+      }
+    }
+  }
+
+  public static ProtocolSchedule getProtocolSchedule() {
+    return MainnetProtocolSchedule.fromConfig(
+        GENESIS_CONFIG.getConfigOptions(),
+        MiningParameters.MINING_DISABLED,
+        new BadBlockManager(),
+        false,
+        new NoOpMetricsSystem());
+  }
+
   public static ProtocolSpec getProtocolSpec(BigInteger chainId) {
-    BadBlockManager badBlockManager = new BadBlockManager();
-
-    ProtocolSchedule schedule =
-        MainnetProtocolSchedule.fromConfig(
-            GENESIS_CONFIG.getConfigOptions(),
-            MiningParameters.MINING_DISABLED,
-            badBlockManager,
-            false,
-            new NoOpMetricsSystem());
-
     ProtocolSpecBuilder builder =
         new MainnetProtocolSpecFactory(
                 Optional.of(chainId),
@@ -58,8 +90,9 @@ public class ExecutionEnvironment {
             .londonDefinition(GENESIS_CONFIG.getConfigOptions());
     // .lineaOpCodesDefinition(GENESIS_CONFIG.getConfigOptions());
 
-    builder.privacyParameters(PrivacyParameters.DEFAULT);
-    builder.badBlocksManager(badBlockManager);
-    return builder.build(schedule);
+    return builder
+        .privacyParameters(PrivacyParameters.DEFAULT)
+        .badBlocksManager(new BadBlockManager())
+        .build(getProtocolSchedule());
   }
 }

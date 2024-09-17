@@ -55,7 +55,7 @@ tasks.register('referenceBlockchainTests', Test) {
   systemProperties["junit.jupiter.execution.parallel.enabled"] = true
   systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
   systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
-  maxParallelForks = Runtime.getRuntime().availableProcessors()
+  maxParallelForks = (int) (Runtime.getRuntime().availableProcessors() / 2)
 
   dependsOn generateBlockchainReferenceTests
 

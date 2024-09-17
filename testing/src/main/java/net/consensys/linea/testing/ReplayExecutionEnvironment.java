@@ -120,6 +120,11 @@ public class ReplayExecutionEnvironment {
     this.checkTracer(inputFilePath);
   }
 
+  public void replay(BigInteger chainId, ConflationSnapshot conflation) {
+    this.executeFrom(chainId, conflation);
+    ExecutionEnvironment.checkTracer(tracer, CORSET_VALIDATOR, Optional.of(log));
+  }
+
   /**
    * Loads the states and the conflation defined in a {@link ConflationSnapshot}, mimick the
    * accounts, storage and blocks state as it was on the blockchain before the conflation played

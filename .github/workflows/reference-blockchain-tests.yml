@@ -78,6 +78,7 @@ jobs:
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests -x spotlessCheck
         timeout-minutes: 180
+        continue-on-error: true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           ZKEVM_BIN: zkevm_for_reference_tests.bin

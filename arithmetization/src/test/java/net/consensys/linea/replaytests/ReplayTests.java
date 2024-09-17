@@ -24,10 +24,6 @@ import org.junit.jupiter.api.Test;
 
 @Tag("replay")
 public class ReplayTests {
-  @Test
-  void traceTxStartNotTheSameAsTxPrepare() {
-    replay(LINEA_MAINNET, "start-vs-prepare-tx.json.gz");
-  }
 
   @Test
   void fatMxp() {

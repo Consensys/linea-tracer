@@ -141,7 +141,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
     this.writeToFile(traceFile);
     return traceFile;
-
   }
 
   public void writeToFile(final Path filename) {

@@ -100,12 +100,13 @@ public class Blockdata implements Module {
     for (RlpTxnOperation tx : rlpTxn.operations().getAll()) {
       try {
         chainId = getChainIdFromTransaction(tx.tx());
+        return;
       } catch (Exception e) {
         continue;
       }
-      if (chainId != -1) {
-        break;
-      }
+    }
+    if (chainId == -1) {
+      throw new RuntimeException("No chainId found in the batch");
     }
 
     final Trace trace = new Trace(buffers);

@@ -316,19 +316,17 @@ public class Hub implements Module {
    */
   public List<Module> getModulesToTrace() {
     return Stream.concat(
-            refTableModules.stream(),
-            // Modules
             Stream.of(
                 this,
                 add,
                 bin,
                 blakeModexpData,
-                ecData,
                 blockdata,
                 blockhash,
+                ecData,
+                exp,
                 ext,
                 euc,
-                exp,
                 logData,
                 logInfo,
                 mmu, // WARN: must be traced before the MMIO
@@ -347,7 +345,8 @@ public class Hub implements Module {
                 stp,
                 trm,
                 txnData,
-                wcp))
+                wcp),
+            refTableModules.stream())
         .toList();
   }
 
@@ -361,42 +360,43 @@ public class Hub implements Module {
     return Stream.concat(
             Stream.of(
                 this,
-                romLex,
                 add,
                 bin,
                 blakeModexpData,
                 blockdata,
                 blockhash,
-                ext,
                 ecData,
+                exp,
+                ext,
                 euc,
-                mmu,
-                mmio,
                 logData,
                 logInfo,
+                mmu,
+                mmio,
                 mod,
                 mul,
                 mxp,
                 oob,
-                exp,
                 rlpAddr,
                 rlpTxn,
                 rlpTxnRcpt,
                 rom,
+                romLex,
                 shakiraData,
                 shf,
                 stp,
                 trm,
                 txnData,
                 wcp,
-                l2Block),
-            precompileLimitModules().stream())
+                l2Block,
+                l2L1Logs),
+            Stream.concat(refTableModules.stream(), precompileLimitModules().stream()))
         .toList();
   }
 
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    l2L1Logs = new L2L1Logs(l2Block); // TODO: we never use it, to delete ?
+    l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     blockdata = new Blockdata(wcp, txnData, rlpTxn);

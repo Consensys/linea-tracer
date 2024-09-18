@@ -101,7 +101,7 @@ jobs:
       - name: Run General State Reference Tests
         run: GOMEMLIMIT=196GiB ./gradlew referenceGeneralStateTests
         env:
-          REFERENCE_TESTS_PARALLELISM: 10
+          REFERENCE_TESTS_PARALLELISM: 2
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air

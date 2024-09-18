@@ -978,9 +978,11 @@ public class Trace {
       filled.set(16);
     }
 
-    if (b >= 4294967296L) {
+    if (b >= 1099511627776L) {
+      // 1099511627776 = 2^40
       throw new IllegalArgumentException("gasExpected has invalid value (" + b + ")");
     }
+    gasExpected.put((byte) (b >> 32));
     gasExpected.put((byte) (b >> 24));
     gasExpected.put((byte) (b >> 16));
     gasExpected.put((byte) (b >> 8));

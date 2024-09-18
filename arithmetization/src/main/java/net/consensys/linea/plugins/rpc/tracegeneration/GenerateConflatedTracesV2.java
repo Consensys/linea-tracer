@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import com.google.common.base.Stopwatch;
 import lombok.SneakyThrows;
@@ -123,7 +124,8 @@ public class GenerateConflatedTracesV2 {
         tracer.writeToTmpFile(tracesOutputPath, origTraceFileName + ".", TRACE_TEMP_FILE_EXTENSION);
     // After trace writing is complete, rename the file by removing the .tmp prefix, indicating
     // the file is complete and should not be corrupted due to trace writing issues.
-    final Path finalizedTraceFilePath = Files.move(tmpTraceFilePath, origTraceFilePath);
+    final Path finalizedTraceFilePath =
+        Files.move(tmpTraceFilePath, origTraceFilePath, StandardCopyOption.ATOMIC_MOVE);
 
     return finalizedTraceFilePath.toAbsolutePath().toString();
   }

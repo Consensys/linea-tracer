@@ -72,7 +72,7 @@ jobs:
         timeout-minutes: 180
         continue-on-error: true
         env:
-          REFERENCE_TESTS_PARALLELISM: 10
+          REFERENCE_TESTS_PARALLELISM: 20
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
           FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/

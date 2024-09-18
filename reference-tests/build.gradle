@@ -56,13 +56,6 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
-
-  systemProperties["junit.jupiter.execution.timeout.default"] = "5 m" // 5 minutes
-  systemProperties["junit.jupiter.execution.parallel.enabled"] = true
-  systemProperties["junit.jupiter.execution.parallel.mode.default"] = "concurrent"
-  systemProperties["junit.jupiter.execution.parallel.mode.classes.default"] = "concurrent"
-  maxParallelForks = Runtime.getRuntime().availableProcessors()
-
   dependsOn generateBlockchainReferenceTests
 
   boolean isCiServer = System.getenv().containsKey("CI")
@@ -82,6 +75,10 @@ tasks.register('referenceGeneralStateTests', Test) {
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")
   }
+
+  boolean isCiServer = System.getenv().containsKey("CI")
+  minHeapSize = "4g"
+  maxHeapSize = isCiServer ? "32g" : "8g"
 }
 
 [
@@ -99,10 +96,6 @@ tasks.register('referenceGeneralStateTests', Test) {
     systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
     systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
       System.getenv().getOrDefault("REFERENCE_TESTS_PARALLELISM", "1").toInteger())
-
-    boolean isCiServer = System.getenv().containsKey("CI")
-    minHeapSize = "4g"
-    maxHeapSize = isCiServer ? "32g" : "8g"
   }
 }
 

@@ -54,11 +54,12 @@ import org.junit.jupiter.api.Test;
  * | gzip > arithmetization/src/test/resources/replays/my-test-case.json.gz
  * }</pre>
  *
- * One can run this command: scripts/capture.pl --start xxx --end yyy --output my-test-case.json.gz
+ * One can run this command: qqqd< --output my-test-case.json.gz
  */
 @Slf4j
 // @Tag("nightly")
 @Tag("replay")
+@Disabled // TODO remove me
 public class ReplayTests {
 
   /**

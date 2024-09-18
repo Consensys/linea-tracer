@@ -104,8 +104,8 @@ public class StackedSet<E extends ModuleOperation> {
     } else {
       log.trace(
           "Operation of type {} was already in operationsCommitedToTheConflation hashset, reference is ",
-          e.getClass().getName(), e
-          );
+          e.getClass().getName(),
+          e);
     }
     return false;
   }

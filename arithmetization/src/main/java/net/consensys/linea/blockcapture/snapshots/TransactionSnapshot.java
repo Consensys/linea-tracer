@@ -55,8 +55,6 @@ public class TransactionSnapshot {
   @Getter private final Optional<List<AccessListEntrySnapshot>> accessList;
   @Getter @Setter private TransactionResultSnapshot outcome;
 
-  public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
-
   /**
    * Construct an initial snapshot from a given transaction. Observe that this is not yet complete
    * since it doesn't include the transaction outcomes.
@@ -81,7 +79,7 @@ public class TransactionSnapshot {
     this.maxFeePerGas = tx.getMaxFeePerGas().map(Quantity::toHexString);
     this.maxFeePerBlobGas = tx.getMaxFeePerBlobGas().map(Quantity::toHexString);
     this.gasLimit = tx.getGasLimit();
-    this.chainId = tx.getChainId().orElse(CHAIN_ID);
+    this.chainId = tx.getChainId().orElse(null);
     this.accessList =
         tx.getAccessList().map(l -> l.stream().map(AccessListEntrySnapshot::from).toList());
   }
@@ -105,14 +103,6 @@ public class TransactionSnapshot {
     BigInteger s = Bytes.fromHexStringLenient(this.s).toUnsignedBigInteger();
     BigInteger v = Bytes.fromHexStringLenient(this.v).toUnsignedBigInteger();
 
-    if (this.type == TransactionType.FRONTIER) {
-      if (v.compareTo(REPLAY_PROTECTED_V_MIN) > 0) {
-        v = v.subtract(REPLAY_PROTECTED_V_BASE).subtract(chainId.multiply(BigInteger.TWO));
-      } else {
-        v = v.subtract(REPLAY_UNPROTECTED_V_BASE);
-      }
-    }
-
     final var tx =
         Transaction.builder()
             .type(this.type)
@@ -120,11 +110,22 @@ public class TransactionSnapshot {
             .nonce(this.nonce)
             .value(Wei.fromHexString(this.value))
             .payload(Bytes.fromHexString(this.payload))
-            .chainId(this.chainId)
-            .gasLimit(this.gasLimit)
-            .signature(
-                SignatureAlgorithmFactory.getInstance().createSignature(r, s, v.byteValueExact()));
-
+            .gasLimit(this.gasLimit);
+    // Set the chainID (if it makes sense to do so).
+    if (this.type != TransactionType.FRONTIER || v.compareTo(REPLAY_PROTECTED_V_MIN) > 0) {
+      tx.chainId(this.chainId);
+    }
+    // Update v for legacy transactions
+    if (this.type == TransactionType.FRONTIER) {
+      if (v.compareTo(REPLAY_PROTECTED_V_MIN) > 0) {
+        v = v.subtract(REPLAY_PROTECTED_V_BASE).subtract(chainId.multiply(BigInteger.TWO));
+      } else {
+        v = v.subtract(REPLAY_UNPROTECTED_V_BASE);
+      }
+    }
+    // Set transaction signature
+    tx.signature(SignatureAlgorithmFactory.getInstance().createSignature(r, s, v.byteValueExact()));
+    //
     this.to.ifPresent(to -> tx.to(Words.toAddress(Bytes.fromHexString(to))));
     this.gasPrice.ifPresent(gasPrice -> tx.gasPrice(Wei.fromHexString(gasPrice)));
     this.maxPriorityFeePerGas.ifPresent(

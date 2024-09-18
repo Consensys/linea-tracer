@@ -22,14 +22,29 @@ public class StateManagerMetadata
             this.blockNumber = blockNumber;
         }
     }
+    public static class AddrStorageKeyBlockNumTuple {
+        @Getter
+        private TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair;
+        @Getter
+        private int blockNumber;
+
+        public AddrStorageKeyBlockNumTuple(TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair, int blockNumber) {
+            this.addrStorageKeyPair = addrStorageKeyPair;
+            this.blockNumber = blockNumber;
+        }
+    }
     @Getter
-    Map<AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstLastBlockMap = new HashMap<>();
+    Map<AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> accountFirstLastBlockMap = new HashMap<>();
 
     @Getter
-    Map<AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>> txnStorageFirstLastBlockMap = new HashMap<>();
+    Map<AddrStorageKeyBlockNumTuple, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>> storageFirstLastBlockMap = new HashMap<>();
 
     @Getter
-    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstLastConflationMap = new HashMap<>();
+    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> accountFirstLastConflationMap = new HashMap<>();
+
+    @Getter
+    Map<TransactionProcessingMetadata.AddrStorageKeyPair, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+            storageFirstLastConflationMap = new HashMap<>();
 
     @Getter
     Map<AddrBlockPair, Integer> minDeplNoBlock = new HashMap<>();

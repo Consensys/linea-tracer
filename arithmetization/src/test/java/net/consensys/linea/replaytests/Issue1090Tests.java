@@ -31,7 +31,7 @@ public class Issue1090Tests {
    */
   @Test
   void issue_1090_block_1507291() {
-    replay(LINEA_MAINNET, "1507291-1507291.json.gz", false);
+    replay(LINEA_MAINNET, "1507291-1507291.json.gz");
   }
 
   @Tag("nightly")

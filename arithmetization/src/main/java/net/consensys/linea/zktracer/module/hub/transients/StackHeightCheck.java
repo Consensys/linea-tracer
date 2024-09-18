@@ -14,12 +14,22 @@
  */
 package net.consensys.linea.zktracer.module.hub.transients;
 
-import lombok.RequiredArgsConstructor;
+import lombok.EqualsAndHashCode;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 
-@RequiredArgsConstructor
+import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
+
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class StackHeightCheck extends ModuleOperation {
-    final int comparison;
+    static int SHIFT_FACTOR = 11;
+    static int LT_SHIFT_FACTOR = SHIFT_FACTOR << 1;
+    static int GT_SHIFT_FACTOR = LT_SHIFT_FACTOR + 1;
+    static int SHIFTED_MAX_STACK_HEIGHT = MAX_STACK_SIZE << SHIFT_FACTOR;
+    static int CHECK_USES_LT = 1 << LT_SHIFT_FACTOR;
+    static int CHECK_USES_GT = 1 << GT_SHIFT_FACTOR;
+
+    @EqualsAndHashCode.Include final int comparison;
 
     @Override
     protected int computeLineCount() {
@@ -27,9 +37,12 @@ public class StackHeightCheck extends ModuleOperation {
     }
 
     public StackHeightCheck(int height, int delta) {
-        this.comparison = 0;
+        checkArgument(0 <= height && height <= MAX_STACK_SIZE && 0 <= delta && delta <= 17);
+        comparison = CHECK_USES_LT | height << SHIFT_FACTOR | delta;
     }
-    public StackHeightCheck(int height, int delta, int alpha) {
-        this.comparison = 0;
+
+    public StackHeightCheck(int heightNew) {
+        checkArgument(0 <= heightNew && heightNew <= MAX_STACK_SIZE);
+        comparison = CHECK_USES_GT | SHIFTED_MAX_STACK_HEIGHT | heightNew;
     }
 }

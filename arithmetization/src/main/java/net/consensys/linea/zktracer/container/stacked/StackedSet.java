@@ -22,7 +22,6 @@ import java.util.Set;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -37,7 +36,6 @@ import org.slf4j.LoggerFactory;
  *
  * @param <E> the type of elements stored in the set
  */
-@Slf4j
 @Accessors(fluent = true)
 public class StackedSet<E extends ModuleOperation> {
   private static final Logger log = LoggerFactory.getLogger(StackedSet.class);

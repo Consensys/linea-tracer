@@ -14,7 +14,6 @@
  */
 package net.consensys.linea;
 
-
 import static org.junit.jupiter.api.Assumptions.abort;
 
 import java.time.Duration;
@@ -37,7 +36,8 @@ public class ReferenceTestWatcher implements TestWatcher {
   ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
 
   public ReferenceTestWatcher() {
-    Logger logger = getLogbackLogger(); //(Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
+    Logger logger =
+        getLogbackLogger(); // (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
     listAppender.setContext(logger.getLoggerContext());
     listAppender.start();
     logger.addAppender(listAppender);
@@ -52,7 +52,6 @@ public class ReferenceTestWatcher implements TestWatcher {
     MapFailedReferenceTestsTool.mapAndStoreFailedReferenceTest(
         testName, logEventMessages, JSON_OUTPUT_FILENAME);
   }
-
 
   @Synchronized
   private static ch.qos.logback.classic.Logger getLogbackLogger() {

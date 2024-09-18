@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
@@ -99,9 +100,10 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Set<String> getRecordedFailedTestsFromJson(
-      String failedModule, String failedConstraint) {
+      String failedModule, String failedConstraint)
+      throws ExecutionException, InterruptedException {
     Set<String> failedTests = new HashSet<>();
-    String jsonString = readFailedTestsOutput(JSON_OUTPUT_FILENAME);
+    String jsonString = readFailedTestsOutput(JSON_OUTPUT_FILENAME).get();
     JsonConverter jsonConverter = JsonConverter.builder().build();
     List<ModuleToConstraints> modulesToConstraints =
         getModulesToConstraints(jsonString, jsonConverter);
@@ -129,7 +131,8 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(
-      final String[] filePath, String failedModule, String failedConstraint) {
+      final String[] filePath, String failedModule, String failedConstraint)
+      throws ExecutionException, InterruptedException {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     Collection<Object[]> params =
         PARAMS.generate(

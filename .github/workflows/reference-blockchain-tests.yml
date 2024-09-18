@@ -20,7 +20,7 @@ on:
 
 jobs:
   ethereum-tests:
-    runs-on: ubuntu-latest-32
+    runs-on: ubuntu-latest-128
     steps:
       - uses: webfactory/ssh-agent@v0.7.0
         with:
@@ -69,10 +69,10 @@ jobs:
           if_no_artifact_found: ignore
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests -x spotlessCheck
-        timeout-minutes: 400
+        timeout-minutes: 180
         continue-on-error: true
         env:
-          REFERENCE_TESTS_PARALLELISM: 10
+          REFERENCE_TESTS_PARALLELISM: 20
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
           FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/

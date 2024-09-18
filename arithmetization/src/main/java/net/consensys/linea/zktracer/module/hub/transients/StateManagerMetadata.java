@@ -26,4 +26,22 @@ public class StateManagerMetadata
 
     @Getter
     Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstLastConflationMap = new HashMap<>();
+
+    @Getter
+    Map<AddrBlockPair, Integer> minDeplNoBlock = new HashMap<>();
+    @Getter
+    Map<AddrBlockPair, Integer> maxDeplNoBlock = new HashMap<>();
+    public void updateDeplNoBlockMaps(Address address, int blockNumber, int currentDeplNo) {
+        AddrBlockPair addrBlockPair = new AddrBlockPair(address, blockNumber);
+        if (minDeplNoBlock.containsKey(addrBlockPair)) {
+            // the maps already contain deployment info for this address, and this is not the first one in the block
+            // since it is not the first, we do not update the minDeplNoBlock
+            // but we update the maxDeplNoBlock
+            maxDeplNoBlock.put(addrBlockPair, currentDeplNo);
+        } else {
+            // this is the first time we have a deployment at this address in the block
+            minDeplNoBlock.put(addrBlockPair, currentDeplNo);
+            maxDeplNoBlock.put(addrBlockPair, currentDeplNo);
+        }
+    }
 }

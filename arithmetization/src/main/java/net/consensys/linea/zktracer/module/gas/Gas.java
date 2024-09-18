@@ -56,13 +56,6 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   public void call(GasCall gasCall, Hub hub, CommonFragmentValues commonValues) {
     this.commonValues = commonValues;
     this.gasCall = gasCall;
-    this.gasCall.setGasActual(BigInteger.valueOf(commonValues.gasActual));
-    this.gasCall.setGasCost(BigInteger.valueOf(commonValues.gasCost()));
-    this.gasCall.setXahoy(commonValues.exceptionAhoy);
-    // The only missing piece is the OOGX field
-    // Certain instruction families do not follow the standard order for deciding which exception to
-    // trace
-    // So the information will only be available after the instruction is executed
     hub.defers().scheduleForPostExecution(this);
   }
 
@@ -77,6 +70,9 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    gasCall.setGasActual(BigInteger.valueOf(commonValues.gasActual));
+    gasCall.setGasCost(BigInteger.valueOf(commonValues.gasCost()));
+    gasCall.setXahoy(commonValues.exceptionAhoy);
     gasCall.setOogx(commonValues.tracedException() == TracedException.OUT_OF_GAS_EXCEPTION);
     this.operations.add(new GasOperation(gasCall, wcp));
   }

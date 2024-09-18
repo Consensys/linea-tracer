@@ -810,7 +810,7 @@ public class Hub implements Module {
     //    + are we getting the correct cost (i.e. excluding the 63/64-th's) ?
     //  * make sure this aligns with exception handling of the zkevm
     //  * write a method `final boolean requiresGasCost()` (huge switch case)
-    if ((!memoryExpansionException & outOfGasException) || unexceptional) {
+    if ((!memoryExpansionException && outOfGasException) || unexceptional) {
       currentSection.commonValues.gasCost(gasCost);
       currentSection.commonValues.gasNext(
           unexceptional ? currentSection.commonValues.gasActual - gasCost : 0);

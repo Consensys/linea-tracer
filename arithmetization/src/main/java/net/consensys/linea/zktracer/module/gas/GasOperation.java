@@ -71,14 +71,6 @@ public class GasOperation extends ModuleOperation {
       final boolean gasActualLTGasCost =
           wcp.callLT(gasCall.getGasActual().longValue(), gasCall.getGasCost().longValue());
       wcpRes[2] = gasActualLTGasCost; // == gasCall.isOogx()
-
-      System.out.println(gasCall.isOogx());
-      System.out.println(gasCall.getGasActual().longValue());
-      System.out.println(gasCall.getGasCost().longValue());
-      System.out.println(
-          wcp.callLT(gasCall.getGasActual().longValue(), gasCall.getGasCost().longValue()));
-      System.out.println("###");
-
       checkArgument(gasCall.isOogx() == gasActualLTGasCost);
     }
   }

@@ -36,13 +36,24 @@ public class StackHeightCheck extends ModuleOperation {
     return 0;
   }
 
+  /**
+   * This constructor creates a {@link StackHeightCheck} for stack underflow detection.
+   *
+   * @param height stack height pre opcode execution
+   * @param delta greatest depth at which touched stack items
+   */
   public StackHeightCheck(int height, int delta) {
     checkArgument(0 <= height && height <= MAX_STACK_SIZE && 0 <= delta && delta <= 17);
     comparison = CHECK_USES_LT | height << SHIFT_FACTOR | delta;
   }
 
+  /**
+   * This constructor creates a {@link StackHeightCheck} for stack overflow detection.
+   *
+   * @param heightNew stack height post opcode execution
+   */
   public StackHeightCheck(int heightNew) {
-    checkArgument(0 <= heightNew && heightNew <= MAX_STACK_SIZE);
+    checkArgument(0 <= heightNew && heightNew <= MAX_STACK_SIZE + 1);
     comparison = CHECK_USES_GT | SHIFTED_MAX_STACK_HEIGHT | heightNew;
   }
 }

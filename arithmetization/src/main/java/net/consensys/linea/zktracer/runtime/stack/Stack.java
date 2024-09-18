@@ -376,8 +376,8 @@ public class Stack {
     }
 
     // stack underflow checks happen for every opcode
-    StackHeightCheck checkForUnderflow = new StackHeightCheck(height, delta);
-    boolean isNewCheckForStackUnderflow =
+    final StackHeightCheck checkForUnderflow = new StackHeightCheck(height, delta);
+    final boolean isNewCheckForStackUnderflow =
         hub.transients().conflation().stackHeightChecks().add(checkForUnderflow);
     if (isNewCheckForStackUnderflow) {
       hub.wcp().callLT(height, delta);
@@ -385,8 +385,8 @@ public class Stack {
 
     // stack overflow checks happen only if no stack underflow was detected
     if (!this.isUnderflow()) {
-      StackHeightCheck checkForOverflow = new StackHeightCheck(heightNew);
-      boolean isNewCheckForStackOverflow =
+      final StackHeightCheck checkForOverflow = new StackHeightCheck(heightNew);
+      final boolean isNewCheckForStackOverflow =
           hub.transients().conflation().stackHeightChecks().add(checkForOverflow);
       if (isNewCheckForStackOverflow) {
         hub.wcp().callGT(heightNew, MAX_STACK_SIZE);

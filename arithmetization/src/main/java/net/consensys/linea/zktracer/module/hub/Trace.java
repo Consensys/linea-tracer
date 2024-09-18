@@ -341,7 +341,7 @@ public class Trace {
             length),
         new ColumnHeader("hub.GAS_ACTUAL", 4, length),
         new ColumnHeader("hub.GAS_COST", 8, length),
-        new ColumnHeader("hub.GAS_EXPECTED", 4, length),
+        new ColumnHeader("hub.GAS_EXPECTED", 5, length),
         new ColumnHeader("hub.GAS_LIMIT", 8, length),
         new ColumnHeader("hub.GAS_NEXT", 4, length),
         new ColumnHeader("hub.GAS_PRICE", 8, length),

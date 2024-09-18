@@ -125,7 +125,8 @@ public class GenerateConflatedTracesV2 {
         tracer.writeToTmpFile(tracesOutputPath, origTraceFileName + ".", TRACE_TEMP_FILE_EXTENSION);
     // After trace writing is complete, rename the file by removing the .tmp prefix, indicating
     // the file is complete and should not be corrupted due to trace writing issues.
-    final Path finalizedTraceFilePath = Files.move(tmpTraceFilePath, origTraceFilePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.COPY_ATTRIBUTES);
+    final Path finalizedTraceFilePath =
+        Files.move(tmpTraceFilePath, origTraceFilePath, StandardCopyOption.ATOMIC_MOVE);
 
     return finalizedTraceFilePath.toAbsolutePath().toString();
   }

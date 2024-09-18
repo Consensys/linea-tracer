@@ -131,7 +131,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public Path writeToTmpFile(final Path rootDir, final String prefix, final String suffix) {
     try {
       FileAttribute<Set<PosixFilePermission>> perms =
-              PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("-rw-r--r--"));
+          PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-r--r--"));
       final Path traceFile = Files.createTempFile(rootDir, prefix, suffix, perms);
       this.writeToFile(traceFile);
       return traceFile;

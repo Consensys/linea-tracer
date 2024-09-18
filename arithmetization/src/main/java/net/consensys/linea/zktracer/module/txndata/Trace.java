@@ -250,6 +250,7 @@ public class Trace {
   public static final int LINEA_CHAIN_ID = 0xe708;
   public static final int LINEA_DIFFICULTY = 0x2;
   public static final int LINEA_GOERLI_CHAIN_ID = 0xe704;
+  public static final int LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH = 0xc8;
   public static final int LINEA_SEPOLIA_CHAIN_ID = 0xe705;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
@@ -376,15 +377,15 @@ public class Trace {
   public static final int WCP_INST_LEQ = 0xf;
   public static final int WORD_SIZE = 0x20;
   public static final int WORD_SIZE_MO = 0x1f;
-  public static final int comparaison___computing_effective_gas_price_row_offset = 0x8;
-  public static final int comparaison___detecting_empty_call_data_row_offset = 0x5;
-  public static final int comparaison___effective_refund_row_offset = 0x4;
-  public static final int comparaison___initial_balance_row_offset = 0x1;
-  public static final int comparaison___max_fee_and_basefee_row_offset = 0x6;
-  public static final int comparaison___maxfee_and_max_priority_fee_row_offset = 0x7;
-  public static final int comparaison___nonce_row_offset = 0x0;
-  public static final int comparaison___sufficient_gas_row_offset = 0x2;
-  public static final int comparaison___upper_limit_refunds_row_offset = 0x3;
+  public static final int comparison___computing_effective_gas_price_row_offset = 0x8;
+  public static final int comparison___detecting_empty_call_data_row_offset = 0x5;
+  public static final int comparison___effective_refund_row_offset = 0x4;
+  public static final int comparison___initial_balance_row_offset = 0x1;
+  public static final int comparison___max_fee_and_basefee_row_offset = 0x6;
+  public static final int comparison___maxfee_and_max_priority_fee_row_offset = 0x7;
+  public static final int comparison___nonce_row_offset = 0x0;
+  public static final int comparison___sufficient_gas_row_offset = 0x2;
+  public static final int comparison___upper_limit_refunds_row_offset = 0x3;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -460,7 +461,7 @@ public class Trace {
         new ColumnHeader("txndata.GAS_LIMIT", 8, length),
         new ColumnHeader("txndata.GAS_PRICE", 8, length),
         new ColumnHeader("txndata.INIT_CODE_SIZE", 4, length),
-        new ColumnHeader("txndata.INITIAL_BALANCE", 16, length),
+        new ColumnHeader("txndata.INITIAL_BALANCE", 17, length),
         new ColumnHeader("txndata.INST", 1, length),
         new ColumnHeader("txndata.IS_DEP", 1, length),
         new ColumnHeader("txndata.IS_LAST_TX_OF_BLOCK", 1, length),
@@ -994,12 +995,12 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if (bs.bitLength() > 128) {
+    if (bs.bitLength() > 132) {
       throw new IllegalArgumentException(
           "initialBalance has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
-    for (int i = bs.size(); i < 16; i++) {
+    for (int i = bs.size(); i < 17; i++) {
       initialBalance.put((byte) 0);
     }
     // Write bytes
@@ -1745,7 +1746,7 @@ public class Trace {
     }
 
     if (!filled.get(20)) {
-      initialBalance.position(initialBalance.position() + 16);
+      initialBalance.position(initialBalance.position() + 17);
     }
 
     if (!filled.get(22)) {

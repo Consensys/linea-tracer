@@ -466,6 +466,8 @@ public class Hub implements Module {
     romLex.determineCodeFragmentIndex();
     txStack.setCodeFragmentIndex(this);
     defers.resolvePostConflation(this, world);
+    // update the conflation level map for the state manager
+    updateConflationMap();
 
     for (Module m : modules) {
       m.traceEndConflation(world);
@@ -487,6 +489,7 @@ public class Hub implements Module {
     for (Module m : modules) {
       m.traceEndBlock(blockHeader, blockBody);
     }
+    // update the block level map for the state manager
     updateBlockMap();
   }
 
@@ -1170,12 +1173,14 @@ public class Hub implements Module {
 
 
   public void updateBlockMap() {
-    Map<StateManagerMetadata.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> blockMap = Hub.stateManagerMetadata().getTxnAccountFirstLastBlockMap();;
+    Map<StateManagerMetadata.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> blockMap
+            = Hub.stateManagerMetadata().getTxnAccountFirstLastBlockMap();
     List<TransactionProcessingMetadata> txn = txStack.getTxs();
       for (TransactionProcessingMetadata metadata : txn) {
           if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
               int blockNumber = transients.block().blockNumber();
-              Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> localMap = metadata.getAccountFirstAndLastMap();
+              Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> localMap
+                      = metadata.getAccountFirstAndLastMap();
               for (Address addr : localMap.keySet()) {
                 StateManagerMetadata.AddrBlockPair pairAddrBlock = new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
                   // localValue exists for sure because addr belongs to the keySet of the local map
@@ -1212,6 +1217,49 @@ public class Hub implements Module {
       }
 
 }
+
+
+// Update the conflation level map for the state manager
+public void updateConflationMap() {
+  Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> conflationMap
+          = Hub.stateManagerMetadata().getTxnAccountFirstLastConflationMap();
+  List<TransactionProcessingMetadata> txn = txStack.getTxs();
+  Map<StateManagerMetadata.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> blockMap
+                = Hub.stateManagerMetadata().getTxnAccountFirstLastBlockMap();
+  for (TransactionProcessingMetadata metadata : txn) {
+    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnMap = metadata.getAccountFirstAndLastMap();
+    for (Address addr : txnMap.keySet()) {
+      // Update the first value of the conflation map
+      // We update the value of the conflation map with the earliest value of the block map
+      for (int i = 0; i < transients.block().blockNumber(); i++) {
+        StateManagerMetadata.AddrBlockPair pairAddrBlock = new StateManagerMetadata.AddrBlockPair(addr, i);
+        if (blockMap.containsKey(pairAddrBlock)) {
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue = blockMap.get(pairAddrBlock);
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> conflationValue =
+                  new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>
+                          (blockValue.getFirst(), null, blockValue.getFirstDom(), blockValue.getFirstSub(), 0, 0);
+          conflationMap.put(addr, conflationValue);
+          break;
+        }
+      }
+      // Update the last value of the conflation map
+      // We update the last value for the conflation map with the latest blockMap's  last values,
+      // if some address is not present in the last block, we ignore the corresponding account
+      StateManagerMetadata.AddrBlockPair pairAddrBlockLast = new StateManagerMetadata.AddrBlockPair(addr, transients.block().blockNumber());
+      if (blockMap.containsKey(pairAddrBlockLast)) {
+        TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValueLast = blockMap.get(pairAddrBlockLast);
+        TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> conflationValueLast =
+                new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>
+                        (null, blockValueLast.getLast(), 0, 0, blockValueLast.getLastDom(), blockValueLast.getLastSub());
+      }
+    }
+  }
+
+  }
+
+
+
 }
+
 
 

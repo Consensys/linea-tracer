@@ -2,6 +2,7 @@ package net.consensys.linea.zktracer.module.hub.transients;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 
@@ -23,6 +24,9 @@ public class StateManagerMetadata
     }
     @Getter
     Map<AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstLastBlockMap = new HashMap<>();
+
+    @Getter
+    Map<AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>> txnStorageFirstLastBlockMap = new HashMap<>();
 
     @Getter
     Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstLastConflationMap = new HashMap<>();

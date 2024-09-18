@@ -74,13 +74,15 @@ jobs:
         env:
           REFERENCE_TESTS_PARALLELISM: 10
           JAVA_OPTS: -Dorg.gradle.daemon=false
+          ZKEVM_BIN: zkevm_for_reference_tests.bin
           CORSET_FLAGS: fields,expand,expand,expand
-          FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
+          FAILED_TESTS_FILE_NAME: ${{ inputs.failed_tests_file_name || '' }}
+          FAILED_TEST_JSON_DIRECTORY: ${{ ../tmp/${{ inputs.branch-name }}/ || '' }}
           FAILED_MODULE: ${{ inputs.failed_module || '' }}
           FAILED_CONSTRAINT: ${{ inputs.failed_constraint || '' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: failedBlockchainReferenceTests.json
-          path: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
+          name: my-artifact
+          path: ../tmp/${{ inputs.branch-name }}/${{ inputs.failed_tests_file_name }}

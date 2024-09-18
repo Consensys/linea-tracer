@@ -22,12 +22,8 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class StackHeightCheck extends ModuleOperation {
-  private final static int SHIFT_FACTOR = 11;
-  private final static int LT_SHIFT_FACTOR = SHIFT_FACTOR << 1;
-  private final static int GT_SHIFT_FACTOR = LT_SHIFT_FACTOR + 1;
-  private final static int SHIFTED_MAX_STACK_HEIGHT = MAX_STACK_SIZE << SHIFT_FACTOR;
-  private final static int CHECK_USES_LT = 1 << LT_SHIFT_FACTOR;
-  private final static int CHECK_USES_GT = 1 << GT_SHIFT_FACTOR;
+  private static final int SHIFT_FACTOR =
+      8; // 5 would suffice but 8 makes it a byte shift, not sure if it matters
 
   @EqualsAndHashCode.Include final int comparison;
 
@@ -44,7 +40,7 @@ public class StackHeightCheck extends ModuleOperation {
    */
   public StackHeightCheck(int height, int delta) {
     checkArgument(0 <= height && height <= MAX_STACK_SIZE && 0 <= delta && delta <= 17);
-    comparison = CHECK_USES_LT | height << SHIFT_FACTOR | delta;
+    comparison = height << SHIFT_FACTOR | delta;
   }
 
   /**
@@ -54,6 +50,6 @@ public class StackHeightCheck extends ModuleOperation {
    */
   public StackHeightCheck(int heightNew) {
     checkArgument(0 <= heightNew && heightNew <= MAX_STACK_SIZE + 1);
-    comparison = CHECK_USES_GT | SHIFTED_MAX_STACK_HEIGHT | heightNew;
+    comparison = heightNew;
   }
 }

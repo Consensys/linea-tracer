@@ -378,18 +378,20 @@ public class Stack {
     // stack underflow checks happen for every opcode
     final StackHeightCheck checkForUnderflow = new StackHeightCheck(height, delta);
     final boolean isNewCheckForStackUnderflow =
-        hub.transients().conflation().stackHeightChecks().add(checkForUnderflow);
+        hub.transients().conflation().stackHeightChecksForStackUnderflows().add(checkForUnderflow);
     if (isNewCheckForStackUnderflow) {
-      hub.wcp().callLT(height, delta);
+      final boolean underflowDetected = hub.wcp().callLT(height, delta);
+      Preconditions.checkArgument(underflowDetected == (status == Status.UNDERFLOW));
     }
 
     // stack overflow checks happen only if no stack underflow was detected
     if (!this.isUnderflow()) {
       final StackHeightCheck checkForOverflow = new StackHeightCheck(heightNew);
       final boolean isNewCheckForStackOverflow =
-          hub.transients().conflation().stackHeightChecks().add(checkForOverflow);
+          hub.transients().conflation().stackHeightChecksForStackOverflows().add(checkForOverflow);
       if (isNewCheckForStackOverflow) {
-        hub.wcp().callGT(heightNew, MAX_STACK_SIZE);
+        final boolean overflowDetected = hub.wcp().callGT(heightNew, MAX_STACK_SIZE);
+        Preconditions.checkArgument(overflowDetected == (status == Status.OVERFLOW));
       }
     }
 

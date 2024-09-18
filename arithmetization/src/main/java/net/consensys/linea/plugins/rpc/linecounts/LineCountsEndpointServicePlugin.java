@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.plugins.rpc.counters;
+package net.consensys.linea.plugins.rpc.linecounts;
 
 import com.google.auto.service.AutoService;
 import net.consensys.linea.plugins.AbstractLineaSharedOptionsPlugin;
@@ -26,10 +26,10 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
  *
  * <p>The CountersEndpointServicePlugin registers an RPC endpoint named
  * 'getTracesCountersByBlockNumberV0' under the 'rollup' namespace. When this endpoint is called,
- * returns trace counters based on the provided request parameters. See {@link GenerateCountersV2}
+ * returns trace counters based on the provided request parameters. See {@link GenerateLineCountsV2}
  */
 @AutoService(BesuPlugin.class)
-public class CountersEndpointServicePlugin extends AbstractLineaSharedOptionsPlugin {
+public class LineCountsEndpointServicePlugin extends AbstractLineaSharedOptionsPlugin {
   private BesuContext besuContext;
   private RpcEndpointService rpcEndpointService;
 
@@ -54,7 +54,13 @@ public class CountersEndpointServicePlugin extends AbstractLineaSharedOptionsPlu
   @Override
   public void beforeExternalServices() {
     super.beforeExternalServices();
-    GenerateCountersV2 method = new GenerateCountersV2(besuContext);
+
+    final LineCountsEndpointConfiguration endpointConfiguration =
+        (LineCountsEndpointConfiguration)
+            getConfigurationByKey(LineCountsEndpointCliOptions.CONFIG_KEY).optionsConfig();
+
+    final GenerateLineCountsV2 method =
+        new GenerateLineCountsV2(besuContext, endpointConfiguration);
     createAndRegister(method, rpcEndpointService);
   }
 
@@ -65,7 +71,7 @@ public class CountersEndpointServicePlugin extends AbstractLineaSharedOptionsPlu
    * @param rpcEndpointService the RpcEndpointService to be registered.
    */
   private void createAndRegister(
-      final GenerateCountersV2 method, final RpcEndpointService rpcEndpointService) {
+      final GenerateLineCountsV2 method, final RpcEndpointService rpcEndpointService) {
     rpcEndpointService.registerRPCEndpoint(
         method.getNamespace(), method.getName(), method::execute);
   }

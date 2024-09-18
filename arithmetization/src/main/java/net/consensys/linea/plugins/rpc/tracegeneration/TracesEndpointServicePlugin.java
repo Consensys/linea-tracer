@@ -72,7 +72,12 @@ public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
   public void beforeExternalServices() {
     super.beforeExternalServices();
 
-    final Optional<Path> tracesOutputPath = initTracesOutputPath();
+    final TracesEndpointConfiguration endpointConfiguration =
+        (TracesEndpointConfiguration)
+            getConfigurationByKey(TracesEndpointCliOptions.CONFIG_KEY).optionsConfig();
+
+    final Optional<Path> tracesOutputPath =
+        initTracesOutputPath(endpointConfiguration.tracesOutputPath());
     if (tracesOutputPath.isEmpty()) {
       throw new TraceOutputException(
           "Traces output path is null, please specify a valid path with %s CLI option or in a toml config file"
@@ -80,17 +85,13 @@ public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
     }
 
     final GenerateConflatedTracesV2 method =
-        new GenerateConflatedTracesV2(besuContext, tracesOutputPath.get());
+        new GenerateConflatedTracesV2(besuContext, endpointConfiguration);
 
     createAndRegister(method, rpcEndpointService);
   }
 
-  private Optional<Path> initTracesOutputPath() {
-    final TracesEndpointConfiguration pluginConfig =
-        (TracesEndpointConfiguration)
-            getConfigurationByKey(TracesEndpointCliOptions.CONFIG_KEY).optionsConfig();
-
-    final Optional<Path> tracesOutputPath = Optional.of(Paths.get(pluginConfig.tracesOutputPath()));
+  private Optional<Path> initTracesOutputPath(final String tracesOutputPathOption) {
+    final Optional<Path> tracesOutputPath = Optional.of(Paths.get(tracesOutputPathOption));
 
     try {
       Files.createDirectories(tracesOutputPath.get());

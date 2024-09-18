@@ -129,15 +129,19 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   public Path writeToTmpFile(final Path rootDir, final String prefix, final String suffix) {
+    final Path traceFile;
     try {
       FileAttribute<Set<PosixFilePermission>> perms =
           PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-r--r--"));
-      final Path traceFile = Files.createTempFile(rootDir, prefix, suffix, perms);
-      this.writeToFile(traceFile);
-      return traceFile;
+      traceFile = Files.createTempFile(rootDir, prefix, suffix, perms);
     } catch (IOException e) {
+      log.error("Error while creating tmp file {} {} {}", rootDir, prefix, suffix);
       throw new RuntimeException(e);
     }
+
+    this.writeToFile(traceFile);
+    return traceFile;
+
   }
 
   public void writeToFile(final Path filename) {
@@ -172,6 +176,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         m.commit(buffers);
       }
     } catch (IOException e) {
+      log.error("Error while writing to the file {}", filename);
       throw new RuntimeException(e);
     }
   }

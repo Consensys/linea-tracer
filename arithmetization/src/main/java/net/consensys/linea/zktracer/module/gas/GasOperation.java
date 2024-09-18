@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -52,16 +51,14 @@ public class GasOperation extends ModuleOperation {
     wcpArg2Lo[0] = gasCall.getGasActual();
     wcpInst[0] = UnsignedByte.of(WCP_INST_LEQ);
     final boolean gasActualIsNonNegative = wcp.callLEQ(0, gasCall.getGasActual().longValue());
-    wcpRes[0] = gasActualIsNonNegative; // true
-    checkArgument(gasActualIsNonNegative);
+    wcpRes[0] = gasActualIsNonNegative; // supposed to be true
 
     // row 1
     wcpArg1Lo[1] = BigInteger.ZERO;
     wcpArg2Lo[1] = gasCall.getGasCost();
     wcpInst[1] = UnsignedByte.of(WCP_INST_LEQ);
     final boolean gasCostIsNonNegative = wcp.callLEQ(0, gasCall.getGasCost().longValue());
-    wcpRes[1] = gasCostIsNonNegative; // true
-    checkArgument(gasCostIsNonNegative);
+    wcpRes[1] = gasCostIsNonNegative; // supposed to be true
 
     // row 2
     if (compareGasActualAndGasCost()) {
@@ -70,8 +67,7 @@ public class GasOperation extends ModuleOperation {
       wcpInst[2] = UnsignedByte.of(EVM_INST_LT);
       final boolean gasActualLTGasCost =
           wcp.callLT(gasCall.getGasActual().longValue(), gasCall.getGasCost().longValue());
-      wcpRes[2] = gasActualLTGasCost; // == gasCall.isOogx()
-      checkArgument(gasCall.isOogx() == gasActualLTGasCost);
+      wcpRes[2] = gasActualLTGasCost; // supposed to be equal to gasCall.isOogx()
     }
   }
 

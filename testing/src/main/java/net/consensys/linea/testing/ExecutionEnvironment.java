@@ -24,6 +24,7 @@ import java.util.OptionalLong;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.config.GenesisConfigFile;
 import org.hyperledger.besu.config.GenesisConfigOptions;
+import org.hyperledger.besu.consensus.clique.CliqueBlockHeaderFunctions;
 import org.hyperledger.besu.consensus.clique.CliqueForksSchedulesFactory;
 import org.hyperledger.besu.consensus.clique.CliqueProtocolSchedule;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -38,7 +39,6 @@ import org.hyperledger.besu.ethereum.core.BlockHeaderBuilder;
 import org.hyperledger.besu.ethereum.core.Difficulty;
 import org.hyperledger.besu.ethereum.core.MiningParameters;
 import org.hyperledger.besu.ethereum.core.PrivacyParameters;
-import org.hyperledger.besu.ethereum.mainnet.MainnetBlockHeaderFunctions;
 import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSpecFactory;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
@@ -58,7 +58,7 @@ public class ExecutionEnvironment {
                 .number(parentBlockHeader.get().getNumber() + 1)
                 .timestamp(parentBlockHeader.get().getTimestamp() + 100)
                 .parentHash(parentBlockHeader.get().getHash())
-                .blockHeaderFunctions(new MainnetBlockHeaderFunctions())
+                .blockHeaderFunctions(new CliqueBlockHeaderFunctions())
             : BlockHeaderBuilder.createDefault();
 
     return blockHeaderBuilder

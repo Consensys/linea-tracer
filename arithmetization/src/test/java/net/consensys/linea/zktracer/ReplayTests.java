@@ -253,7 +253,7 @@ public class ReplayTests {
   // @Disabled
   @Test
   void issue1004() {
-    replay(LINEA_MAINNET, "6020023-6020029.json.gz", false);
+    replay(LINEA_MAINNET, "6020023-6020029.json.gz");
   }
 
   // @Disabled

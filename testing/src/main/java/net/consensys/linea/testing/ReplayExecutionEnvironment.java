@@ -40,6 +40,7 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt256;
+import org.hyperledger.besu.consensus.clique.CliqueHelpers;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
@@ -52,7 +53,6 @@ import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.operation.BlockHashOperation;
 import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
-import org.hyperledger.besu.plugin.data.BlockHeader;
 
 /** Responsible for executing EVM transactions in replay tests. */
 @Builder
@@ -173,9 +173,9 @@ public class ReplayExecutionEnvironment {
         final TransactionProcessingResult outcome =
             transactionProcessor.processTransaction(
                 updater,
-                (ProcessableBlockHeader) header,
+                header,
                 tx,
-                header.getCoinbase(),
+                CliqueHelpers.getProposerOfBlock(header),
                 buildOperationTracer(tx, txs.getOutcome()),
                 blockHashLookup,
                 false,

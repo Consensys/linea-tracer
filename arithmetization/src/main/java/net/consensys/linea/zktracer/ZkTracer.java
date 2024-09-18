@@ -129,14 +129,23 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   public Path writeToTmpFile(final Path rootDir, final String prefix, final String suffix) {
-    final Path traceFile;
+    Path traceFile;
     try {
       FileAttribute<Set<PosixFilePermission>> perms =
           PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-r--r--"));
       traceFile = Files.createTempFile(rootDir, prefix, suffix, perms);
     } catch (IOException e) {
-      log.error("Error while creating tmp file {} {} {}", rootDir, prefix, suffix);
-      throw new RuntimeException(e);
+      log.error(
+          "Error while creating tmp file {} {} {}. Trying without setting the permissions",
+          rootDir,
+          prefix,
+          suffix);
+      try {
+        traceFile = Files.createTempFile(rootDir, prefix, suffix);
+      } catch (IOException f) {
+        log.error("Still Failing while creating tmp file {} {} {}", rootDir, prefix, suffix);
+        throw new RuntimeException(e);
+      }
     }
 
     this.writeToFile(traceFile);

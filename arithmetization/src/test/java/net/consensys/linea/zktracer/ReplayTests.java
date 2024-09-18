@@ -599,11 +599,12 @@ public class ReplayTests {
 
   /**
    * The first transaction of this block doesn't have a chainId and have a ridiculously small R and
-   * S signature, see @Link{<a
-   * href="https://medium.com/patronum-labs/nicks-method-ethereum-keyless-execution-168a6659479c">...</a>}
+   * S signature, see <a
+   * href="https://medium.com/patronum-labs/nicks-method-ethereum-keyless-execution-168a6659479c">Nick's
+   * method</a>
    */
   @Test
   void legacyTxWithoutChainIDAndSmallSignature() {
-    replay(LINEA_SEPOLIA, "254251.sepolia.json.gz");
+    replay(LINEA_SEPOLIA, "254251.sepolia.json.gz", false);
   }
 }

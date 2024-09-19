@@ -161,7 +161,7 @@ public class Hub implements Module {
   /** provides phase-related volatile information */
   @Getter Transients transients = new Transients(this);
 
-  /** Block and conflation-level metadata for computing columns relevant to the state manager.**/
+  /** Block and conflation-level metadata for computing columns relevant to the state manager.* */
   @Getter static StateManagerMetadata stateManagerMetadata = new StateManagerMetadata();
 
   /**
@@ -1192,189 +1192,238 @@ public class Hub implements Module {
     return deploymentStatusOf(this.accountAddress());
   }
 
-
-
   public void updateBlockMap() {
-    Map<StateManagerMetadata.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> blockMapAccount
-            = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
+    Map<
+            StateManagerMetadata.AddrBlockPair,
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+        blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
 
-    Map<StateManagerMetadata.AddrStorageKeyBlockNumTuple, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>> blockMapStorage
-            = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
+    Map<
+            StateManagerMetadata.AddrStorageKeyBlockNumTuple,
+            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+        blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
 
     List<TransactionProcessingMetadata> txn = txStack.getTxs();
 
     for (TransactionProcessingMetadata metadata : txn) {
-          if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
-              int blockNumber = transients.block().blockNumber();
-              Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> localMapAccount
-                      = metadata.getAccountFirstAndLastMap();
+      if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
+        int blockNumber = transients.block().blockNumber();
+        Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+            localMapAccount = metadata.getAccountFirstAndLastMap();
 
-              Map<TransactionProcessingMetadata.AddrStorageKeyPair, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
-                    localMapStorage = metadata.getStorageFirstAndLastMap();
+        Map<
+                TransactionProcessingMetadata.AddrStorageKeyPair,
+                TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+            localMapStorage = metadata.getStorageFirstAndLastMap();
 
-              // Update the block map for the account
-              for (Address addr : localMapAccount.keySet()) {
-                StateManagerMetadata.AddrBlockPair pairAddrBlock = new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
+        // Update the block map for the account
+        for (Address addr : localMapAccount.keySet()) {
+          StateManagerMetadata.AddrBlockPair pairAddrBlock =
+              new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
 
-                // localValue exists for sure because addr belongs to the keySet of the local map
-                  TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValueAccount = localMapAccount.get(addr);
-                  if (!blockMapAccount.containsKey(pairAddrBlock)) {
-                      // the pair is not present in the map
-                      blockMapAccount.put(pairAddrBlock, localValueAccount);
-                  } else {
-                      TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue = blockMapAccount.get(pairAddrBlock);
-                      // update the first part of the blockValue
-                      // Todo: Refactor and remove code duplication
-                      if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                              localValueAccount.getFirstDom(), localValueAccount.getFirstSub(), blockValue.getFirstDom(), blockValue.getFirstSub())) {
-                          // chronologically checks that localValue.First is before blockValue.First
-                          // localValue comes chronologically before, and should be the first value of the map.
-                          blockValue.setFirst(localValueAccount.getFirst());
-                          blockValue.setFirstDom(localValueAccount.getFirstDom());
-                          blockValue.setFirstSub(localValueAccount.getFirstSub());
+          // localValue exists for sure because addr belongs to the keySet of the local map
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValueAccount =
+              localMapAccount.get(addr);
+          if (!blockMapAccount.containsKey(pairAddrBlock)) {
+            // the pair is not present in the map
+            blockMapAccount.put(pairAddrBlock, localValueAccount);
+          } else {
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
+                blockMapAccount.get(pairAddrBlock);
+            // update the first part of the blockValue
+            // Todo: Refactor and remove code duplication
+            if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
+                localValueAccount.getFirstDom(),
+                localValueAccount.getFirstSub(),
+                blockValue.getFirstDom(),
+                blockValue.getFirstSub())) {
+              // chronologically checks that localValue.First is before blockValue.First
+              // localValue comes chronologically before, and should be the first value of the map.
+              blockValue.setFirst(localValueAccount.getFirst());
+              blockValue.setFirstDom(localValueAccount.getFirstDom());
+              blockValue.setFirstSub(localValueAccount.getFirstSub());
 
-                          // update the last part of the blockValue
-                          if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                                  blockValue.getLastDom(), blockValue.getLastSub(), localValueAccount.getLastDom(), localValueAccount.getLastSub())) {
-                              // chronologically checks that blockValue.Last is before localValue.Last
-                              // localValue comes chronologically after, and should be the final value of the map.
-                              blockValue.setLast(localValueAccount.getLast());
-                              blockValue.setLastDom(localValueAccount.getLastDom());
-                              blockValue.setLastSub(localValueAccount.getLastSub());
-                          }
-                          blockMapAccount.put(pairAddrBlock, blockValue);
-                      }
-                  }
-
+              // update the last part of the blockValue
+              if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
+                  blockValue.getLastDom(),
+                  blockValue.getLastSub(),
+                  localValueAccount.getLastDom(),
+                  localValueAccount.getLastSub())) {
+                // chronologically checks that blockValue.Last is before localValue.Last
+                // localValue comes chronologically after, and should be the final value of the map.
+                blockValue.setLast(localValueAccount.getLast());
+                blockValue.setLastDom(localValueAccount.getLastDom());
+                blockValue.setLastSub(localValueAccount.getLastSub());
               }
-              // Update the block map for storage
-            for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair : localMapStorage.keySet()) {
-
-              StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
-                      new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, blockNumber);
-
-              // localValue exists for sure because addr belongs to the keySet of the local map
-              TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> localValueStorage =
-                      localMapStorage.get(addrStorageKeyPair);
-
-              if (!blockMapStorage.containsKey(addrStorageBlockTuple)) {
-                // the pair is not present in the map
-                blockMapStorage.put(addrStorageBlockTuple, localValueStorage);
-              } else {
-                TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorage = blockMapStorage.get(addrStorageBlockTuple);
-                // update the first part of the blockValue
-                if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                        localValueStorage.getFirstDom(), localValueStorage.getFirstSub(), blockValueStorage.getFirstDom(), blockValueStorage.getFirstSub())) {
-                  // chronologically checks that localValue.First is before blockValue.First
-                  // localValue comes chronologically before, and should be the first value of the map.
-                  blockValueStorage.setFirst(localValueStorage.getFirst());
-                  blockValueStorage.setFirstDom(localValueStorage.getFirstDom());
-                  blockValueStorage.setFirstSub(localValueStorage.getFirstSub());
-
-                  // update the last part of the blockValue
-                  if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                          blockValueStorage.getLastDom(), blockValueStorage.getLastSub(), localValueStorage.getLastDom(), localValueStorage.getLastSub())) {
-                    // chronologically checks that blockValue.Last is before localValue.Last
-                    // localValue comes chronologically after, and should be the final value of the map.
-                    blockValueStorage.setLast(localValueStorage.getLast());
-                    blockValueStorage.setLastDom(localValueStorage.getLastDom());
-                    blockValueStorage.setLastSub(localValueStorage.getLastSub());
-                  }
-                  blockMapStorage.put(addrStorageBlockTuple, blockValueStorage);
-                }
-              }
+              blockMapAccount.put(pairAddrBlock, blockValue);
             }
           }
-      }
+        }
+        // Update the block map for storage
+        for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair :
+            localMapStorage.keySet()) {
 
-}
+          StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
+              new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, blockNumber);
 
+          // localValue exists for sure because addr belongs to the keySet of the local map
+          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> localValueStorage =
+              localMapStorage.get(addrStorageKeyPair);
 
-// Update the conflation level map for the state manager
-public void updateConflationMap() {
-  Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-          conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
+          if (!blockMapStorage.containsKey(addrStorageBlockTuple)) {
+            // the pair is not present in the map
+            blockMapStorage.put(addrStorageBlockTuple, localValueStorage);
+          } else {
+            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorage =
+                blockMapStorage.get(addrStorageBlockTuple);
+            // update the first part of the blockValue
+            if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
+                localValueStorage.getFirstDom(),
+                localValueStorage.getFirstSub(),
+                blockValueStorage.getFirstDom(),
+                blockValueStorage.getFirstSub())) {
+              // chronologically checks that localValue.First is before blockValue.First
+              // localValue comes chronologically before, and should be the first value of the map.
+              blockValueStorage.setFirst(localValueStorage.getFirst());
+              blockValueStorage.setFirstDom(localValueStorage.getFirstDom());
+              blockValueStorage.setFirstSub(localValueStorage.getFirstSub());
 
-  Map<TransactionProcessingMetadata.AddrStorageKeyPair, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-          conflationMapStorage = Hub.stateManagerMetadata().getStorageFirstLastConflationMap();
-
-  List<TransactionProcessingMetadata> txn = txStack.getTxs();
-
-  Map<StateManagerMetadata.AddrBlockPair, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-          blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
-
-  Map<StateManagerMetadata. AddrStorageKeyBlockNumTuple, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
-          blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
-
-  for (TransactionProcessingMetadata metadata : txn) {
-
-    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnMapAccount = metadata.getAccountFirstAndLastMap();
-
-    Map<TransactionProcessingMetadata. AddrStorageKeyPair, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
-            txnMapStorage = metadata.getStorageFirstAndLastMap();
-    for (Address addr : txnMapAccount.keySet()) {
-      // Update the first value of the conflation map for Account
-      // We update the value of the conflation map with the earliest value of the block map
-      for (int i = 0; i < transients.block().blockNumber(); i++) {
-        StateManagerMetadata.AddrBlockPair pairAddrBlock = new StateManagerMetadata.AddrBlockPair(addr, i);
-        if (blockMapAccount.containsKey(pairAddrBlock)) {
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue = blockMapAccount.get(pairAddrBlock);
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> conflationValue =
-                  new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>
-                          (blockValue.getFirst(), null, blockValue.getFirstDom(), blockValue.getFirstSub(), 0, 0);
-          conflationMapAccount.put(addr, conflationValue);
-          break;
+              // update the last part of the blockValue
+              if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
+                  blockValueStorage.getLastDom(),
+                  blockValueStorage.getLastSub(),
+                  localValueStorage.getLastDom(),
+                  localValueStorage.getLastSub())) {
+                // chronologically checks that blockValue.Last is before localValue.Last
+                // localValue comes chronologically after, and should be the final value of the map.
+                blockValueStorage.setLast(localValueStorage.getLast());
+                blockValueStorage.setLastDom(localValueStorage.getLastDom());
+                blockValueStorage.setLastSub(localValueStorage.getLastSub());
+              }
+              blockMapStorage.put(addrStorageBlockTuple, blockValueStorage);
+            }
+          }
         }
       }
-      // Update the last value of the conflation map
-      // We update the last value for the conflation map with the latest blockMap's  last values,
-      // if some address is not present in the last block, we ignore the corresponding account
-      StateManagerMetadata.AddrBlockPair pairAddrBlockLast = new StateManagerMetadata.AddrBlockPair(addr, transients.block().blockNumber());
-      if (blockMapAccount.containsKey(pairAddrBlockLast)) {
-        TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValueLast = blockMapAccount.get(pairAddrBlockLast);
-        TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> conflationValueLast =
-                new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>
-                        (null, blockValueLast.getLast(), 0, 0, blockValueLast.getLastDom(), blockValueLast.getLastSub());
-        conflationMapAccount.put(addr, conflationValueLast);
-      }
     }
-    // Doing similar update for the storage map
-    for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair : txnMapStorage.keySet()) {
-      // Update the first value of the conflation map for Account
-      // We update the value of the conflation map with the earliest value of the block map
-      for (int i = 0; i < transients.block().blockNumber(); i++) {
-        StateManagerMetadata. AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
-                new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, i);
+  }
 
-        if (blockMapStorage.containsKey(addrStorageBlockTuple)) {
-          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorage = blockMapStorage.get(addrStorageBlockTuple);
-          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> conflationValueStorage =
-                  new TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>
-                          (blockValueStorage.getFirst(), null, blockValueStorage.getFirstDom(), blockValueStorage.getFirstSub(), 0, 0);
-          conflationMapStorage.put(addrStorageKeyPair, conflationValueStorage);
-          break;
+  // Update the conflation level map for the state manager
+  public void updateConflationMap() {
+    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+        conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
+
+    Map<
+            TransactionProcessingMetadata.AddrStorageKeyPair,
+            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+        conflationMapStorage = Hub.stateManagerMetadata().getStorageFirstLastConflationMap();
+
+    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+
+    Map<
+            StateManagerMetadata.AddrBlockPair,
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+        blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
+
+    Map<
+            StateManagerMetadata.AddrStorageKeyBlockNumTuple,
+            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+        blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
+
+    for (TransactionProcessingMetadata metadata : txn) {
+
+      Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+          txnMapAccount = metadata.getAccountFirstAndLastMap();
+
+      Map<
+              TransactionProcessingMetadata.AddrStorageKeyPair,
+              TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+          txnMapStorage = metadata.getStorageFirstAndLastMap();
+      for (Address addr : txnMapAccount.keySet()) {
+        // Update the first value of the conflation map for Account
+        // We update the value of the conflation map with the earliest value of the block map
+        for (int i = 0; i < transients.block().blockNumber(); i++) {
+          StateManagerMetadata.AddrBlockPair pairAddrBlock =
+              new StateManagerMetadata.AddrBlockPair(addr, i);
+          if (blockMapAccount.containsKey(pairAddrBlock)) {
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
+                blockMapAccount.get(pairAddrBlock);
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> conflationValue =
+                new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>(
+                    blockValue.getFirst(),
+                    null,
+                    blockValue.getFirstDom(),
+                    blockValue.getFirstSub(),
+                    0,
+                    0);
+            conflationMapAccount.put(addr, conflationValue);
+            break;
+          }
+        }
+        // Update the last value of the conflation map
+        // We update the last value for the conflation map with the latest blockMap's  last values,
+        // if some address is not present in the last block, we ignore the corresponding account
+        StateManagerMetadata.AddrBlockPair pairAddrBlockLast =
+            new StateManagerMetadata.AddrBlockPair(addr, transients.block().blockNumber());
+        if (blockMapAccount.containsKey(pairAddrBlockLast)) {
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValueLast =
+              blockMapAccount.get(pairAddrBlockLast);
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> conflationValueLast =
+              new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>(
+                  null,
+                  blockValueLast.getLast(),
+                  0,
+                  0,
+                  blockValueLast.getLastDom(),
+                  blockValueLast.getLastSub());
+          conflationMapAccount.put(addr, conflationValueLast);
         }
       }
-      // Update the last value of the conflation map for storage
-      // We update the last value for the conflation map with the latest blockMap's  last values,
-      // if some address is not present in the last block, we ignore the corresponding account
-      StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTupleLast = new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, transients.block().blockNumber());
-      if (blockMapStorage.containsKey(addrStorageBlockTupleLast)) {
-        TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorageLast = blockMapStorage.get(addrStorageBlockTupleLast);
-        TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> conflationValueLast =
-                new TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>
-                        (null, blockValueStorageLast.getLast(), 0, 0, blockValueStorageLast.getLastDom(), blockValueStorageLast.getLastSub());
-        conflationMapStorage.put(addrStorageKeyPair, conflationValueLast);
+      // Doing similar update for the storage map
+      for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair :
+          txnMapStorage.keySet()) {
+        // Update the first value of the conflation map for Account
+        // We update the value of the conflation map with the earliest value of the block map
+        for (int i = 0; i < transients.block().blockNumber(); i++) {
+          StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
+              new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, i);
+
+          if (blockMapStorage.containsKey(addrStorageBlockTuple)) {
+            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorage =
+                blockMapStorage.get(addrStorageBlockTuple);
+            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>
+                conflationValueStorage =
+                    new TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>(
+                        blockValueStorage.getFirst(),
+                        null,
+                        blockValueStorage.getFirstDom(),
+                        blockValueStorage.getFirstSub(),
+                        0,
+                        0);
+            conflationMapStorage.put(addrStorageKeyPair, conflationValueStorage);
+            break;
+          }
+        }
+        // Update the last value of the conflation map for storage
+        // We update the last value for the conflation map with the latest blockMap's  last values,
+        // if some address is not present in the last block, we ignore the corresponding account
+        StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTupleLast =
+            new StateManagerMetadata.AddrStorageKeyBlockNumTuple(
+                addrStorageKeyPair, transients.block().blockNumber());
+        if (blockMapStorage.containsKey(addrStorageBlockTupleLast)) {
+          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>
+              blockValueStorageLast = blockMapStorage.get(addrStorageBlockTupleLast);
+          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> conflationValueLast =
+              new TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>(
+                  null,
+                  blockValueStorageLast.getLast(),
+                  0,
+                  0,
+                  blockValueStorageLast.getLastDom(),
+                  blockValueStorageLast.getLastSub());
+          conflationMapStorage.put(addrStorageKeyPair, conflationValueLast);
+        }
       }
     }
-
   }
-
-  }
-
-
-
 }
-
-
-

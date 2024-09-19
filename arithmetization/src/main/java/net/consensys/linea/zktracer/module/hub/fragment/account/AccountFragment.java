@@ -39,7 +39,6 @@ import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -57,8 +56,7 @@ public final class AccountFragment
   @Setter private boolean requiresRomlex;
   private int codeFragmentIndex;
   private final Optional<Bytes> addressToTrim;
-  @Getter
-  private final DomSubStampsSubFragment domSubStampsSubFragment;
+  @Getter private final DomSubStampsSubFragment domSubStampsSubFragment;
   @Setter private RlpAddrSubFragment rlpAddrSubFragment;
   private boolean markedForSelfDestruct;
   private boolean markedForSelfDestructNew;
@@ -112,7 +110,9 @@ public final class AccountFragment
     // Updating the map
     transactionProcessingMetadata.updateAccountFirstAndLast(this);
     // update the minDeplMoBlock and maxDeplNoBlock maps
-    Hub.stateManagerMetadata().updateDeplNoBlockMaps(oldState.address(),
+    Hub.stateManagerMetadata()
+        .updateDeplNoBlockMaps(
+            oldState.address(),
             transactionProcessingMetadata.getRelativeBlockNumber(),
             deploymentNumber);
 
@@ -178,7 +178,7 @@ public final class AccountFragment
 
   @Override
   public void resolvePostTransaction(
-          Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final Map<TransactionProcessingMetadata.EphemeralAccount, Integer> effectiveSelfDestructMap =
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
     final TransactionProcessingMetadata.EphemeralAccount ephemeralAccount =
@@ -205,7 +205,4 @@ public final class AccountFragment
                     ContractMetadata.make(oldState.address(), deploymentNumber, isDeployment))
             : 0;
   }
-
 }
-
-

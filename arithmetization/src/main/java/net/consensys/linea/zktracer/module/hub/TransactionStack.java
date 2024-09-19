@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
-import lombok.Setter;
 import net.consensys.linea.zktracer.container.StackedContainer;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -31,6 +30,7 @@ public class TransactionStack implements StackedContainer {
   @Getter
   private final List<TransactionProcessingMetadata> txs =
       new ArrayList<>(200); // TODO: write the allocated memory from .toml file
+
   private int currentAbsNumber;
   private int relativeTransactionNumber;
 

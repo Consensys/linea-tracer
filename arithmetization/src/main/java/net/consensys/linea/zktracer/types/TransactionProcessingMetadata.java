@@ -121,15 +121,23 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   @Getter Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
 
- /* FragmentFirstAndLast stores the first and last fragments relevant to the state manager in the
- * current transaction segment (they will be either account fragments or storage fragments). */
-  @Getter @Setter
+  /* FragmentFirstAndLast stores the first and last fragments relevant to the state manager in the
+   * current transaction segment (they will be either account fragments or storage fragments). */
+  @Getter
+  @Setter
   public static class FragmentFirstAndLast<TraceFragment> {
     TraceFragment first;
     TraceFragment last;
     int firstDom, firstSub;
     int lastDom, lastSub;
-    public FragmentFirstAndLast(TraceFragment first, TraceFragment last, int firstDom, int firstSub, int lastDom, int lastSub) {
+
+    public FragmentFirstAndLast(
+        TraceFragment first,
+        TraceFragment last,
+        int firstDom,
+        int firstSub,
+        int lastDom,
+        int lastSub) {
       this.first = first;
       this.last = last;
       this.firstDom = firstDom;
@@ -137,89 +145,87 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
       this.lastDom = lastDom;
       this.lastSub = lastSub;
     }
-    public static boolean strictlySmallerStamps(int firstDom, int firstSub, int lastDom, int lastSub) {
-        return firstDom < lastDom ||
-                (firstDom == lastDom &&
-                        firstSub > lastSub);
-    }
 
+    public static boolean strictlySmallerStamps(
+        int firstDom, int firstSub, int lastDom, int lastSub) {
+      return firstDom < lastDom || (firstDom == lastDom && firstSub > lastSub);
+    }
   }
 
-    public static class AddrStorageKeyPair {
-        @Getter
-        private Address address;
-        @Getter
-        private EWord storageKey;
+  public static class AddrStorageKeyPair {
+    @Getter private Address address;
+    @Getter private EWord storageKey;
 
-        public AddrStorageKeyPair(Address addr, EWord storageKey) {
-            this.address = addr;
-            this.storageKey = storageKey;
-        }
+    public AddrStorageKeyPair(Address addr, EWord storageKey) {
+      this.address = addr;
+      this.storageKey = storageKey;
     }
-
+  }
 
   // Map for the first and last account occurrence
   @Getter
   Map<Address, FragmentFirstAndLast<AccountFragment>> accountFirstAndLastMap = new HashMap<>();
+
   // Map for the first and last storage occurrence
   @Getter
-  Map<AddrStorageKeyPair, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap = new HashMap<>();
+  Map<AddrStorageKeyPair, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap =
+      new HashMap<>();
+
   // Todo: Create a generic method which can handle AccountFragment and StorageFragment
   public void updateAccountFirstAndLast(AccountFragment fragment) {
-        // Setting the post transaction first and last value
-      int dom = fragment.domSubStampsSubFragment().domStamp();
-      int sub = fragment.domSubStampsSubFragment().subStamp();
+    // Setting the post transaction first and last value
+    int dom = fragment.domSubStampsSubFragment().domStamp();
+    int sub = fragment.domSubStampsSubFragment().subStamp();
 
-      Address key = fragment.oldState().address();
+    Address key = fragment.oldState().address();
 
-      // Initialise the Account First and Last map
-      final Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>> txnAccountFirstAndLastMap =
-                getAccountFirstAndLastMap();
-        if (!txnAccountFirstAndLastMap.containsKey(key)) {
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
-                    new FragmentFirstAndLast<AccountFragment>(fragment, fragment, dom, sub, dom, sub);
-            txnAccountFirstAndLastMap.put(key, txnFirstAndLast);
-        } else {
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> txnFirstAndLast = txnAccountFirstAndLastMap.get(key);
-            // Replace condition
-            if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                    txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(),
-                    dom, sub)) {
-                txnFirstAndLast.setLast(fragment);
-                txnFirstAndLast.setLastDom(dom);
-                txnFirstAndLast.setLastSub(sub);
-                txnAccountFirstAndLastMap.put(key, txnFirstAndLast);
-            }
-        }
+    // Initialise the Account First and Last map
+    final Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+        txnAccountFirstAndLastMap = getAccountFirstAndLastMap();
+    if (!txnAccountFirstAndLastMap.containsKey(key)) {
+      TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
+          new FragmentFirstAndLast<AccountFragment>(fragment, fragment, dom, sub, dom, sub);
+      txnAccountFirstAndLastMap.put(key, txnFirstAndLast);
+    } else {
+      TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
+          txnAccountFirstAndLastMap.get(key);
+      // Replace condition
+      if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
+          txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(), dom, sub)) {
+        txnFirstAndLast.setLast(fragment);
+        txnFirstAndLast.setLastDom(dom);
+        txnFirstAndLast.setLastSub(sub);
+        txnAccountFirstAndLastMap.put(key, txnFirstAndLast);
+      }
     }
-    public void updateStorageFirstAndLast(StorageFragment fragment, AddrStorageKeyPair key) {
-        // Setting the post transaction first and last value
-        int dom = fragment.getDomSubStampsSubFragment().domStamp();
-        int sub = fragment.getDomSubStampsSubFragment().subStamp();
+  }
 
+  public void updateStorageFirstAndLast(StorageFragment fragment, AddrStorageKeyPair key) {
+    // Setting the post transaction first and last value
+    int dom = fragment.getDomSubStampsSubFragment().domStamp();
+    int sub = fragment.getDomSubStampsSubFragment().subStamp();
 
-        // Initialise the Storage First and Last map
-        final Map<AddrStorageKeyPair, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>> txnStorageFirstAndLastMap =
-                getStorageFirstAndLastMap();
-        if (!txnStorageFirstAndLastMap.containsKey(key)) {
-            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> txnFirstAndLast =
-                    new FragmentFirstAndLast<StorageFragment>(fragment, fragment, dom, sub, dom, sub);
-            txnStorageFirstAndLastMap.put(key, txnFirstAndLast);
-        } else {
-            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> txnFirstAndLast = txnStorageFirstAndLastMap.get(key);
-            // Replace condition
-            if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                    txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(),
-                    dom, sub)) {
-                txnFirstAndLast.setLast(fragment);
-                txnFirstAndLast.setLastDom(dom);
-                txnFirstAndLast.setLastSub(sub);
-                txnStorageFirstAndLastMap.put(key, txnFirstAndLast);
-            }
-        }
-
+    // Initialise the Storage First and Last map
+    final Map<
+            AddrStorageKeyPair, TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+        txnStorageFirstAndLastMap = getStorageFirstAndLastMap();
+    if (!txnStorageFirstAndLastMap.containsKey(key)) {
+      TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> txnFirstAndLast =
+          new FragmentFirstAndLast<StorageFragment>(fragment, fragment, dom, sub, dom, sub);
+      txnStorageFirstAndLastMap.put(key, txnFirstAndLast);
+    } else {
+      TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> txnFirstAndLast =
+          txnStorageFirstAndLastMap.get(key);
+      // Replace condition
+      if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
+          txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(), dom, sub)) {
+        txnFirstAndLast.setLast(fragment);
+        txnFirstAndLast.setLastDom(dom);
+        txnFirstAndLast.setLastSub(sub);
+        txnStorageFirstAndLastMap.put(key, txnFirstAndLast);
+      }
     }
-
+  }
 
   // Ephermeral accounts are both accounts that have been deployed on-chain
   // and accounts that live for a limited time

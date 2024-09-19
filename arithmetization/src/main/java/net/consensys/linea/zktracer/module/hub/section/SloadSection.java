@@ -91,25 +91,27 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
   private StorageFragment doingSload(Hub hub) {
 
     TransactionProcessingMetadata txnMetadata = hub.txStack().current();
-    StorageFragment newFragment = new StorageFragment(
-        hub.state,
-        new State.StorageSlotIdentifier(
-            accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
-        valueOriginal,
-        valueCurrent,
-        valueCurrent,
-        incomingWarmth,
-        true,
-        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
-        hub.state.firstAndLastStorageSlotOccurrences.size(),
-        SLOAD_DOING,
-            accountAddressDeploymentNumber, // Arijit — check that it is computed properly beforehand.
+    StorageFragment newFragment =
+        new StorageFragment(
+            hub.state,
+            new State.StorageSlotIdentifier(
+                accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
+            valueOriginal,
+            valueCurrent,
+            valueCurrent,
+            incomingWarmth,
+            true,
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
+            hub.state.firstAndLastStorageSlotOccurrences.size(),
+            SLOAD_DOING,
+            accountAddressDeploymentNumber, // Arijit — check that it is computed properly
+            // beforehand.
             txnMetadata);
     // update storage txn map values for the state manager as new storage fragment is created
-    TransactionProcessingMetadata.AddrStorageKeyPair mapKey = new TransactionProcessingMetadata.AddrStorageKeyPair(accountAddress, EWord.of(storageKey));
+    TransactionProcessingMetadata.AddrStorageKeyPair mapKey =
+        new TransactionProcessingMetadata.AddrStorageKeyPair(accountAddress, EWord.of(storageKey));
     txnMetadata.updateStorageFirstAndLast(newFragment, mapKey);
     return newFragment;
-
   }
 
   @Override
@@ -139,12 +141,14 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
             undoingDomSubStamps,
             hub.state.firstAndLastStorageSlotOccurrences.size(),
             SLOAD_UNDOING,
-                accountAddressDeploymentNumber, // Arijit — check that it is computed properly beforehand.
-                txnMetadata);
+            accountAddressDeploymentNumber, // Arijit — check that it is computed properly
+            // beforehand.
+            txnMetadata);
 
     this.addFragment(undoingSloadStorageFragment);
     // update storage txn map values for the state manager as new storage fragment is created
-    TransactionProcessingMetadata.AddrStorageKeyPair mapKey = new TransactionProcessingMetadata.AddrStorageKeyPair(accountAddress, EWord.of(storageKey));
+    TransactionProcessingMetadata.AddrStorageKeyPair mapKey =
+        new TransactionProcessingMetadata.AddrStorageKeyPair(accountAddress, EWord.of(storageKey));
     txnMetadata.updateStorageFirstAndLast(undoingSloadStorageFragment, mapKey);
   }
 

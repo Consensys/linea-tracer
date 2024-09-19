@@ -90,7 +90,7 @@ public final class AbortingConditions {
             final Address myAddress = hub.currentFrame().accountAddress();
             final long creatorNonce =
                 hub.messageFrame().getWorldUpdater().get(myAddress).getNonce();
-            yield creatorNonce >= EIP2681_MAX_NONCE;
+            yield Long.compareUnsigned(EIP2681_MAX_NONCE, creatorNonce) < 0;
           }
 
           default -> false;

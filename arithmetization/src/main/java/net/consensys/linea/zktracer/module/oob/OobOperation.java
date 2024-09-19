@@ -58,6 +58,7 @@ import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
+import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
@@ -806,7 +807,7 @@ public class OobOperation extends ModuleOperation {
             BigInteger.ZERO,
             createOobCall.getCreatorNonce(),
             BigInteger.ZERO,
-            BigInteger.valueOf(EIP2681_MAX_NONCE));
+            longToUnsignedBigInteger(EIP2681_MAX_NONCE));
 
     // Set aborting condition
     createOobCall.setAbortingCondition(

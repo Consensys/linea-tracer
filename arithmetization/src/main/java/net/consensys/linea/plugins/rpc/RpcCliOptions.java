@@ -12,36 +12,36 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.plugins.rpc.linecounts;
+package net.consensys.linea.plugins.rpc;
 
 import com.google.common.base.MoreObjects;
 import net.consensys.linea.plugins.LineaCliOptions;
 import picocli.CommandLine;
 
-class LineCountsEndpointCliOptions implements LineaCliOptions {
+public class RpcCliOptions implements LineaCliOptions {
 
-  static final String CONFIG_KEY = "line-counts-endpoint-config";
+  public static final String CONFIG_KEY = "line-counts-endpoint-config";
 
-  static final String LINE_COUNTS_CONCURRENT_REQUESTS_LIMIT =
-      "--plugin-linea-line-counts-concurrent-requests-limit";
+  static final String RPC_CONCURRENT_REQUESTS_LIMIT =
+      "--plugin-linea-rpc-concurrent-requests-limit";
 
   @CommandLine.Option(
       required = true,
-      names = {LINE_COUNTS_CONCURRENT_REQUESTS_LIMIT},
+      names = {RPC_CONCURRENT_REQUESTS_LIMIT},
       hidden = true,
       paramLabel = "<REQUEST_COUNT_LIMIT>",
       description = "Number of allowed concurrent requests")
   private int concurrentRequestsLimit = 1;
 
-  private LineCountsEndpointCliOptions() {}
+  private RpcCliOptions() {}
 
   /**
    * Create Linea cli options.
    *
    * @return the Linea cli options
    */
-  static LineCountsEndpointCliOptions create() {
-    return new LineCountsEndpointCliOptions();
+  static RpcCliOptions create() {
+    return new RpcCliOptions();
   }
 
   /**
@@ -50,8 +50,8 @@ class LineCountsEndpointCliOptions implements LineaCliOptions {
    * @param config the config
    * @return the Linea cli options
    */
-  static LineCountsEndpointCliOptions fromConfig(final LineCountsEndpointConfiguration config) {
-    final LineCountsEndpointCliOptions options = create();
+  static RpcCliOptions fromConfig(final RpcConfiguration config) {
+    final RpcCliOptions options = create();
     options.concurrentRequestsLimit = config.concurrentRequestsLimit();
     return options;
   }
@@ -62,16 +62,14 @@ class LineCountsEndpointCliOptions implements LineaCliOptions {
    * @return the Linea factory configuration
    */
   @Override
-  public LineCountsEndpointConfiguration toDomainObject() {
-    return LineCountsEndpointConfiguration.builder()
-        .concurrentRequestsLimit(concurrentRequestsLimit)
-        .build();
+  public RpcConfiguration toDomainObject() {
+    return RpcConfiguration.builder().concurrentRequestsLimit(concurrentRequestsLimit).build();
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add(LINE_COUNTS_CONCURRENT_REQUESTS_LIMIT, concurrentRequestsLimit)
+        .add(RPC_CONCURRENT_REQUESTS_LIMIT, concurrentRequestsLimit)
         .toString();
   }
 }

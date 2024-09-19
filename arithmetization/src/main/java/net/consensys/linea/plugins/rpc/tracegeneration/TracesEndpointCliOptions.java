@@ -36,14 +36,6 @@ class TracesEndpointCliOptions implements LineaCliOptions {
       description = "Path to where traces will be written")
   private String tracesOutputPath = null;
 
-  @CommandLine.Option(
-      required = true,
-      names = {CONFLATED_TRACE_GENERATION_CONCURRENT_REQUESTS_LIMIT},
-      hidden = true,
-      paramLabel = "<REQUEST_COUNT_LIMIT>",
-      description = "Number of allowed concurrent requests")
-  private int concurrentRequestsLimit = 1;
-
   private TracesEndpointCliOptions() {}
 
   /**
@@ -64,7 +56,6 @@ class TracesEndpointCliOptions implements LineaCliOptions {
   static TracesEndpointCliOptions fromConfig(final TracesEndpointConfiguration config) {
     final TracesEndpointCliOptions options = create();
     options.tracesOutputPath = config.tracesOutputPath();
-    options.concurrentRequestsLimit = config.concurrentRequestsLimit();
     return options;
   }
 
@@ -75,17 +66,13 @@ class TracesEndpointCliOptions implements LineaCliOptions {
    */
   @Override
   public TracesEndpointConfiguration toDomainObject() {
-    return TracesEndpointConfiguration.builder()
-        .tracesOutputPath(tracesOutputPath)
-        .concurrentRequestsLimit(concurrentRequestsLimit)
-        .build();
+    return TracesEndpointConfiguration.builder().tracesOutputPath(tracesOutputPath).build();
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
         .add(CONFLATED_TRACE_GENERATION_TRACES_OUTPUT_PATH, tracesOutputPath)
-        .add(CONFLATED_TRACE_GENERATION_CONCURRENT_REQUESTS_LIMIT, concurrentRequestsLimit)
         .toString();
   }
 }

@@ -24,8 +24,9 @@ import java.nio.file.StandardCopyOption;
 import com.google.common.base.Stopwatch;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
-import net.consensys.linea.plugins.rpc.Requests;
+import net.consensys.linea.plugins.rpc.Validator;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.BesuContext;
@@ -40,22 +41,23 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
  */
 @Slf4j
 public class GenerateConflatedTracesV2 {
+  static final String REQUEST_LIMIT_KEY = "trace-request-limit";
+
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
   private static final String TRACE_FILE_EXTENSION = ".lt";
   private static final String TRACE_TEMP_FILE_EXTENSION = ".lt.tmp";
 
-  private final RequestLimiter<PluginRpcRequest, TraceFile> requestLimiter;
+  private final RequestLimiter requestLimiter;
 
   private final Path tracesOutputPath;
-  private TraceService traceService;
+  private final TraceService traceService;
 
   public GenerateConflatedTracesV2(
-      final BesuContext besuContext, final TracesEndpointConfiguration endpointConfiguration) {
-    this.traceService = Requests.getTraceService(besuContext);
-    this.requestLimiter =
-        RequestLimiter.<PluginRpcRequest, TraceFile>builder()
-            .concurrentRequestsCount(endpointConfiguration.concurrentRequestsLimit())
-            .build();
+      final BesuContext besuContext,
+      final RequestLimiter requestLimiter,
+      final TracesEndpointConfiguration endpointConfiguration) {
+    this.traceService = BesuServiceProvider.getTraceService(besuContext);
+    this.requestLimiter = requestLimiter;
 
     this.tracesOutputPath = Paths.get(endpointConfiguration.tracesOutputPath());
   }
@@ -83,7 +85,7 @@ public class GenerateConflatedTracesV2 {
 
     final Object[] rawParams = request.getParams();
 
-    Requests.validatePluginRpcRequestParams(rawParams);
+    Validator.validatePluginRpcRequestParams(rawParams);
 
     TraceRequestParams params =
         CONVERTER.fromJson(CONVERTER.toJson(rawParams[0]), TraceRequestParams.class);

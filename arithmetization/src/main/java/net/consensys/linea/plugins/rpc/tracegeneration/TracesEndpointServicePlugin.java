@@ -25,8 +25,13 @@ import java.util.Optional;
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.AbstractLineaOptionsPlugin;
+import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.LineaOptionsPluginConfiguration;
 import net.consensys.linea.plugins.exception.TraceOutputException;
+import net.consensys.linea.plugins.rpc.RequestLimiter;
+import net.consensys.linea.plugins.rpc.RequestLimiterDispatcher;
+import net.consensys.linea.plugins.rpc.RpcCliOptions;
+import net.consensys.linea.plugins.rpc.RpcConfiguration;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;
@@ -59,13 +64,7 @@ public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
   public void register(final BesuContext context) {
     super.register(context);
     besuContext = context;
-    rpcEndpointService =
-        context
-            .getService(RpcEndpointService.class)
-            .orElseThrow(
-                () ->
-                    new RuntimeException(
-                        "Failed to obtain RpcEndpointService from the BesuContext."));
+    rpcEndpointService = BesuServiceProvider.getRpcEndpointService(context);
   }
 
   @Override
@@ -84,8 +83,16 @@ public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
               .formatted(TracesEndpointCliOptions.CONFLATED_TRACE_GENERATION_TRACES_OUTPUT_PATH));
     }
 
+    final RpcConfiguration rpcConfiguration =
+        (RpcConfiguration) getConfigurationByKey(RpcCliOptions.CONFIG_KEY).optionsConfig();
+
+    RequestLimiterDispatcher.setLimiter(
+        GenerateConflatedTracesV2.REQUEST_LIMIT_KEY, rpcConfiguration.concurrentRequestsLimit());
+    final RequestLimiter reqLimiter =
+        RequestLimiterDispatcher.getLimiter(GenerateConflatedTracesV2.REQUEST_LIMIT_KEY);
+
     final GenerateConflatedTracesV2 method =
-        new GenerateConflatedTracesV2(besuContext, endpointConfiguration);
+        new GenerateConflatedTracesV2(besuContext, reqLimiter, endpointConfiguration);
 
     createAndRegister(method, rpcEndpointService);
   }

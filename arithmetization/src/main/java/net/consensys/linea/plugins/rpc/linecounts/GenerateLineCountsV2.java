@@ -22,8 +22,9 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
-import net.consensys.linea.plugins.rpc.Requests;
+import net.consensys.linea.plugins.rpc.Validator;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.BesuContext;
@@ -34,22 +35,20 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 @Slf4j
 @RequiredArgsConstructor
 public class GenerateLineCountsV2 {
+  static final String REQUEST_LIMIT_KEY = "trace-request-limit";
+
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
   private static final int CACHE_SIZE = 10_000;
   private static final Cache<Long, Map<String, Integer>> CACHE =
       CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
 
-  private final RequestLimiter<PluginRpcRequest, LineCounts> requestLimiter;
+  private final RequestLimiter requestLimiter;
 
   private TraceService traceService;
 
-  public GenerateLineCountsV2(
-      final BesuContext besuContext, final LineCountsEndpointConfiguration endpointConfiguration) {
-    this.traceService = Requests.getTraceService(besuContext);
-    this.requestLimiter =
-        RequestLimiter.<PluginRpcRequest, LineCounts>builder()
-            .concurrentRequestsCount(endpointConfiguration.concurrentRequestsLimit())
-            .build();
+  public GenerateLineCountsV2(final BesuContext besuContext, final RequestLimiter requestLimiter) {
+    this.traceService = BesuServiceProvider.getTraceService(besuContext);
+    this.requestLimiter = requestLimiter;
   }
 
   public String getNamespace() {
@@ -79,7 +78,7 @@ public class GenerateLineCountsV2 {
 
     final Object[] rawParams = request.getParams();
 
-    Requests.validatePluginRpcRequestParams(rawParams);
+    Validator.validatePluginRpcRequestParams(rawParams);
 
     final LineCountsRequestParams params =
         CONVERTER.fromJson(CONVERTER.toJson(rawParams[0]), LineCountsRequestParams.class);

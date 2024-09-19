@@ -23,7 +23,7 @@ import org.hyperledger.besu.ethereum.api.jsonrpc.internal.response.RpcErrorType;
 import org.hyperledger.besu.plugin.services.exception.PluginRpcEndpointException;
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
-public class RequestLimiter<T extends PluginRpcRequest, R> {
+public class RequestLimiter {
 
   private final Semaphore semaphore;
 
@@ -32,7 +32,7 @@ public class RequestLimiter<T extends PluginRpcRequest, R> {
     this.semaphore = new Semaphore(concurrentRequestsCount);
   }
 
-  public R execute(T request, Function<T, R> processingFunc) {
+  public <T extends PluginRpcRequest, R> R execute(T request, Function<T, R> processingFunc) {
     if (!semaphore.tryAcquire()) {
       throw new PluginRpcEndpointException(
           RpcErrorType.INVALID_REQUEST,

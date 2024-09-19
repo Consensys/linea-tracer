@@ -157,7 +157,7 @@ public class Wcp implements Module {
   }
 
   public boolean callEQ(final Bytes32 arg1, final Bytes32 arg2) {
-    leqOperations.add(new WcpOperation(EQbv, arg1, arg2));
+    eqOperations.add(new WcpOperation(EQbv, arg1, arg2));
     return arg1.compareTo(arg2) == 0;
   }
 

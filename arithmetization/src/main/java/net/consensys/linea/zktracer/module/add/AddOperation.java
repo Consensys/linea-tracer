@@ -34,7 +34,7 @@ public final class AddOperation extends ModuleOperation {
   @EqualsAndHashCode.Include private final OpCode opCode;
   @EqualsAndHashCode.Include private final Bytes32 arg1;
   @EqualsAndHashCode.Include private final Bytes32 arg2;
-  private final BaseBytes res;
+  private BaseBytes res;
   private int ctMax;
 
   /**
@@ -62,10 +62,10 @@ public final class AddOperation extends ModuleOperation {
     this.opCode = opCode;
     this.arg1 = Bytes32.leftPad(arg1);
     this.arg2 = Bytes32.leftPad(arg2);
-    this.res = Adder.addSub(this.opCode, this.arg1, this.arg2);
   }
 
   private int computeCtMax() {
+    res = Adder.addSub(opCode, arg1, arg2);
     return Math.max(
         1,
         Math.max(res.getHigh().trimLeadingZeros().size(), res.getLow().trimLeadingZeros().size())

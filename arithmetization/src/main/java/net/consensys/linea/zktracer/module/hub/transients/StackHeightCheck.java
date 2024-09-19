@@ -29,7 +29,7 @@ public class StackHeightCheck extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return 0;
+    throw new UnsupportedOperationException("Shouldn't be called");
   }
 
   /**

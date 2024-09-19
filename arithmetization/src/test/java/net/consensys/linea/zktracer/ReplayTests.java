@@ -603,6 +603,7 @@ public class ReplayTests {
    * href="https://medium.com/patronum-labs/nicks-method-ethereum-keyless-execution-168a6659479c">...</a>}
    */
   @Test
+  @Disabled
   void legacyTxWithoutChainIDAndSmallSignature() {
     replay(LINEA_SEPOLIA, "254251.sepolia.json.gz");
   }

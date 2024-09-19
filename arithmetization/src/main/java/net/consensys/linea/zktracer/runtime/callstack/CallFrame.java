@@ -104,7 +104,7 @@ public class CallFrame {
   @Getter @Setter private int pc;
   @Getter @Setter private OpCode opCode = OpCode.STOP;
   @Getter @Setter private OpCodeData opCodeData = OpCodes.of(OpCode.STOP);
-  @Getter private MessageFrame frame;
+  @Getter private MessageFrame frame; // TODO: can we make this final ?
 
   /** the ether amount given to this frame. */
   @Getter private Wei value = Wei.fromHexString("0xBadF00d"); // Marker for debugging
@@ -318,21 +318,20 @@ public class CallFrame {
             });
   }
 
-  public void revert(CallStack callStack, int revertStamp) {
+  public void setRevertStamps(CallStack callStack, int currentStamp) {
     if (selfReverts) {
-      throw new IllegalStateException("a context can not self-revert twice");
+      throw new IllegalStateException(
+          String.format(
+              "a context can not self-revert twice, it already reverts at %s, can't revert again at %s",
+              revertStamp, currentStamp));
     }
     selfReverts = true;
-    revertStamp = revertStamp;
+    revertStamp = currentStamp;
     this.revertChildren(callStack, revertStamp);
   }
 
   public boolean willRevert() {
     return selfReverts() || getsReverted();
-  }
-
-  public boolean hasReverted() {
-    return selfReverts || getsReverted;
   }
 
   public void initializeFrame(final MessageFrame frame) {

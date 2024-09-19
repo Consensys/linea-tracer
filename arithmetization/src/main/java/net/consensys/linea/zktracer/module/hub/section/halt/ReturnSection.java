@@ -39,6 +39,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.XCallOob
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -110,26 +111,29 @@ public class ReturnSection extends TraceSection
     checkArgument(mxpCall.mxpx == memoryExpansionException(exceptions));
 
     if (mxpCall.mxpx) {
+      commonValues.setTracedException(TracedException.MEMORY_EXPANSION_EXCEPTION);
       return;
     }
 
+    // Note: in case of returnFromMessageCall, we check for outOfGasException.
+    // In case of returnFromDeployment, we check for maxCodeSize & invalidCodePrefixException before
+    // OOGX.
     if (Exceptions.outOfGasException(exceptions) && returnFromMessageCall) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 
     if (Exceptions.any(exceptions)) {
-      // exceptional message calls are dealt with;
-      // if exceptions remain they must be related
-      // to deployments:
       checkArgument(returnFromDeployment);
     }
 
     // maxCodeSizeException case
-    boolean triggerOobForMaxCodeSizeException = Exceptions.codeSizeOverflow(exceptions);
+    final boolean triggerOobForMaxCodeSizeException = Exceptions.maxCodeSizeException(exceptions);
     if (triggerOobForMaxCodeSizeException) {
-      OobCall oobCall = new XCallOobCall();
+      final OobCall oobCall = new XCallOobCall();
       firstImcFragment.callOob(oobCall);
+      commonValues.setTracedException(TracedException.MAX_CODE_SIZE_EXCEPTION);
       return;
     }
 
@@ -143,13 +147,20 @@ public class ReturnSection extends TraceSection
       firstImcFragment.callMmu(actuallyInvalidCodePrefixMmuCall);
 
       checkArgument(!actuallyInvalidCodePrefixMmuCall.successBit());
+      commonValues.setTracedException(TracedException.INVALID_CODE_PREFIX);
+      return;
+    }
+
+    // OOGX case
+    if (Exceptions.outOfGasException(exceptions) && returnFromDeployment) {
+      checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
+      commonValues.setTracedException(TracedException.OUT_OF_GAS_EXCEPTION);
       return;
     }
 
     // Unexceptional RETURN's
-    // (we have exceptions ≡ ∅ by the checkArgument)
-    ////////////////////////////////////////////////
-
+    // (we have exceptions ≡ ∅ by the checkArgument below)
+    //////////////////////////////////////////////////////
     checkArgument(Exceptions.none(exceptions));
 
     // RETURN_FROM_MESSAGE_CALL cases
@@ -287,7 +298,7 @@ public class ReturnSection extends TraceSection
                 postDeploymentAccountSnapshot,
                 undoingDeploymentAccountSnapshot,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), hub.callStack().current().revertStamp(), 1));
+                    this.hubStamp(), hub.callStack().currentCallFrame().revertStamp(), 1));
 
     this.addFragment(undoingDeploymentAccountFragment);
   }

@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
+import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
@@ -53,6 +54,7 @@ import net.consensys.linea.zktracer.module.hub.section.AccountSection;
 import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.ContextSection;
 import net.consensys.linea.zktracer.module.hub.section.CreateSection;
+import net.consensys.linea.zktracer.module.hub.section.EarlyExceptionSection;
 import net.consensys.linea.zktracer.module.hub.section.ExpSection;
 import net.consensys.linea.zktracer.module.hub.section.JumpSection;
 import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
@@ -316,19 +318,17 @@ public class Hub implements Module {
    */
   public List<Module> getModulesToTrace() {
     return Stream.concat(
-            refTableModules.stream(),
-            // Modules
             Stream.of(
                 this,
                 add,
                 bin,
                 blakeModexpData,
-                ecData,
                 blockdata,
                 blockhash,
+                ecData,
+                exp,
                 ext,
                 euc,
-                exp,
                 logData,
                 logInfo,
                 mmu, // WARN: must be traced before the MMIO
@@ -347,7 +347,8 @@ public class Hub implements Module {
                 stp,
                 trm,
                 txnData,
-                wcp))
+                wcp),
+            refTableModules.stream())
         .toList();
   }
 
@@ -361,39 +362,43 @@ public class Hub implements Module {
     return Stream.concat(
             Stream.of(
                 this,
-                romLex,
                 add,
                 bin,
+                blakeModexpData,
                 blockdata,
                 blockhash,
-                ext,
                 ecData,
+                exp,
+                ext,
                 euc,
-                mmu,
-                mmio,
                 logData,
                 logInfo,
+                mmu,
+                mmio,
                 mod,
                 mul,
                 mxp,
                 oob,
-                exp,
                 rlpAddr,
                 rlpTxn,
                 rlpTxnRcpt,
                 rom,
+                romLex,
+                shakiraData,
                 shf,
+                stp,
                 trm,
                 txnData,
                 wcp,
-                l2Block),
-            precompileLimitModules().stream())
+                l2Block,
+                l2L1Logs),
+            Stream.concat(refTableModules.stream(), precompileLimitModules().stream()))
         .toList();
   }
 
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    l2L1Logs = new L2L1Logs(l2Block); // TODO: we never use it, to delete ?
+    l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     blockdata = new Blockdata(wcp, txnData, rlpTxn);
@@ -604,7 +609,7 @@ public class Hub implements Module {
 
     // internal transaction (CALL) or internal deployment (CREATE)
     if (frame.getDepth() > 0) {
-      final OpCode currentOpCode = callStack.current().opCode();
+      final OpCode currentOpCode = callStack.currentCallFrame().opCode();
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
@@ -614,7 +619,7 @@ public class Hub implements Module {
               ? 0
               : Words.clampedToLong(
                   callStack
-                      .current()
+                      .currentCallFrame()
                       .frame()
                       .getStackItem(currentOpCode.callMayNotTransferValue() ? 2 : 3));
 
@@ -623,11 +628,11 @@ public class Hub implements Module {
               ? 0
               : Words.clampedToLong(
                   callStack
-                      .current()
+                      .currentCallFrame()
                       .frame()
                       .getStackItem(currentOpCode.callMayNotTransferValue() ? 3 : 4));
 
-      final long callDataContextNumber = callStack.current().contextNumber();
+      final long callDataContextNumber = callStack.currentCallFrame().contextNumber();
 
       callStack.enter(
           frameType,
@@ -656,13 +661,6 @@ public class Hub implements Module {
     }
   }
 
-  public void traceContextReEnter(MessageFrame frame) {
-    // Note: the update of the current call frame is made during traceContextExit of the child frame
-    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
-    defers.resolveUponContextReEntry(this, this.currentFrame());
-    this.unlatchStack(frame, this.currentFrame().childSpanningSection());
-  }
-
   @Override
   public void traceContextExit(MessageFrame frame) {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
@@ -672,13 +670,9 @@ public class Hub implements Module {
     // TODO: why only do this at positive depth ?
     if (frame.getDepth() > 0) {
 
-      DeploymentExceptions contextExceptions =
+      final DeploymentExceptions contextExceptions =
           DeploymentExceptions.fromFrame(this.currentFrame(), frame);
       this.currentTraceSection().setContextExceptions(contextExceptions);
-
-      if (contextExceptions.any()) {
-        callStack.revert(state.stamps().hub()); // TODO: Duplicate s?
-      }
     }
 
     // We take a snapshot before exiting the transaction
@@ -703,13 +697,21 @@ public class Hub implements Module {
 
     defers.resolveUponContextExit(this, this.currentFrame());
     // TODO: verify me please @Olivier
-    if (this.currentFrame().opCode() == OpCode.REVERT || Exceptions.any(pch.exceptions())) {
+    if (this.currentFrame().opCode() == REVERT || Exceptions.any(pch.exceptions())) {
       defers.resolvePostRollback(this, frame, this.currentFrame());
     }
 
     if (frame.getDepth() > 0) {
       callStack.exit();
     }
+  }
+
+  public void traceContextReEnter(MessageFrame frame) {
+    // Note: the update of the currentId call frame is made during traceContextExit of the child
+    // frame
+    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
+    defers.resolveUponContextReEntry(this, this.currentFrame());
+    this.unlatchStack(frame, this.currentFrame().childSpanningSection());
   }
 
   /**
@@ -729,10 +731,18 @@ public class Hub implements Module {
      * <p>If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
      * immediately set to the deployed state
      */
-    if (messageFrame().getType() != CONTRACT_CREATION || state.processingPhase == TX_SKIP) {
+    if (state.processingPhase == TX_SKIP) {
       checkArgument(!deploymentStatusOfBytecodeAddress());
       return;
     }
+    /**
+     * We can't say anything if the current frame is a message call: we might have attempted a call
+     * to an address that is undergoing deployment (or a normal one.)
+     */
+    if (frame.getType() == MESSAGE_CALL) {
+      return;
+    }
+
     // from here on out:
     // - state.processingPhase != TX_SKIP
     // - messageFrame.type == CONTRACT_CREATION
@@ -863,19 +873,23 @@ public class Hub implements Module {
     return shouldCopyTxCallData ? this.stamp() : 0;
   }
 
+  public static int newIdentifierFromStamp(int h) {
+    return 1 + h;
+  }
+
   public int newChildContextNumber() {
-    return 1 + this.stamp();
+    return newIdentifierFromStamp(this.stamp());
   }
 
   public CallFrame currentFrame() {
     if (this.callStack().isEmpty()) {
       return CallFrame.EMPTY;
     }
-    return callStack.current();
+    return callStack.currentCallFrame();
   }
 
   public final MessageFrame messageFrame() {
-    final MessageFrame frame = callStack.current().frame();
+    final MessageFrame frame = callStack.currentCallFrame().frame();
     return frame;
   }
 
@@ -974,6 +988,11 @@ public class Hub implements Module {
         }
 
         // This works because we are certain that the stack chunks are the first.
+        // TODO: the below check is useful in any case (to avoid unchecked cast)
+        //  but is this check hiding some underlying issue somewhere else?
+        //  TestRecursiveCallsWithByteCode was failing before this check
+        TraceFragment fragment = section.fragments().get(i);
+        checkArgument(fragment instanceof StackFragment);
         ((StackFragment) section.fragments().get(i))
             .stackOps()
             .get(line.resultColumn() - 1)
@@ -988,18 +1007,18 @@ public class Hub implements Module {
     this.handleStack(frame);
     this.triggerModules(frame);
 
-    if (Exceptions.any(this.pch().exceptions()) || this.currentFrame().opCode() == OpCode.REVERT) {
-      callStack.revert(state.stamps().hub());
-    }
-
-    if (this.currentFrame().stack().isOk()) {
+    if (currentFrame().stack().isOk()) {
       this.traceOpcode(frame);
     } else {
 
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
 
-      new StackOnlySection(this);
+      new EarlyExceptionSection(this);
+    }
+
+    if (Exceptions.any(pch().exceptions()) || opCode() == REVERT) {
+      currentFrame().setRevertStamps(callStack, stamp());
     }
   }
 
@@ -1039,8 +1058,7 @@ public class Hub implements Module {
           MACHINE_STATE,
           PUSH_POP,
           DUP,
-          SWAP,
-          INVALID -> new StackOnlySection(this);
+          SWAP -> new StackOnlySection(this);
       case MUL -> {
         switch (this.opCode()) {
           case OpCode.EXP -> new ExpSection(this);
@@ -1060,7 +1078,7 @@ public class Hub implements Module {
         // and in all other cases becomes return data of the caller iff the present
         // context is a message call context
         final boolean outputDataBecomesParentReturnData =
-            (this.opCode() == OpCode.REVERT || this.currentFrame().isMessageCall());
+            (this.opCode() == REVERT || this.currentFrame().isMessageCall());
 
         if (outputDataBecomesParentReturnData) {
           parentFrame.returnData(outputData);
@@ -1115,6 +1133,7 @@ public class Hub implements Module {
       case CREATE -> new CreateSection(this);
 
       case CALL -> new CallSection(this);
+      case INVALID -> new EarlyExceptionSection(this);
     }
   }
 

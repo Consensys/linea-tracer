@@ -5,6 +5,14 @@ on:
     branches:
       - main
   pull_request:
+  workflow_dispatch:
+    inputs:
+      tests-with-ssh:
+        description: Run tests with ability to ssh into environment
+        required: false
+        type: boolean
+        default: false
+
 
 env:
   CARGO_NET_GIT_FETCH_WITH_CLI: true
@@ -39,9 +47,28 @@ jobs:
           name: distributions
           path: arithmetization/build/libs
 
+  spotless:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: spotless
+        run: ./gradlew --no-daemon --parallel clean spotlessCheck
+
+
   tests:
+    needs: [ build, spotless ]
     runs-on: ubuntu-latest-128
     steps:
+      - name: Setup upterm session
+        if: ${{ inputs.tests-with-ssh }}
+        uses: lhotari/action-upterm@v1
+
       - uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: |
@@ -86,30 +113,29 @@ jobs:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
 
+      - name: Run Replay tests
+        run: ./gradlew :arithmetization:fastReplayTests --stacktrace
+        env:
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+          CORSET_FLAGS: fields,expand,expand,expand
+          REPLAY_TESTS_PARALLELISM: 4
+
       - name: Upload test report
         if: always()
         uses: actions/upload-artifact@v3
         with:
           name: unit-test-report
-          path: arithmetization/build/reports/tests/
-
-  spotless:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 21
-      - name: spotless
-        run: ./gradlew --no-daemon --parallel clean spotlessCheck
+          path: arithmetization/build/reports/tests/**/*
 
   go-corset-tests:
+    needs: [ build, spotless ]
     runs-on: ubuntu-latest-128
-    continue-on-error: true    
+    continue-on-error: true
     steps:
+      - name: Setup upterm session
+        if: ${{ inputs.tests-with-ssh }}
+        uses: lhotari/action-upterm@v1
+
       - uses: webfactory/ssh-agent@v0.7.0
         with:
           ssh-private-key: |
@@ -143,4 +169,11 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd -b1024 --air
+          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
+
+      - name: Run replay tests
+        run: GOMEMLIMIT=196GiB ./gradlew :arithmetization:fastReplayTests
+        env:
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+          CORSET_FLAGS: disable
+          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air

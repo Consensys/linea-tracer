@@ -1,4 +1,106 @@
 # Changelog
+
+## 0.6.0-rc4
+*  Fix file permission ([#1243](https://github.com/Consensys/linea-tracer/pull/1168))
+
+## 0.6.0-rc3
+* chore: preliminary selection of nightly tests ([#1176](https://github.com/Consensys/linea-tracer/pull/1176))
+* Add a trace log on existing operations ([#1237](https://github.com/Consensys/linea-tracer/pull/1237))
+* count L2L1Logs ([#1234](https://github.com/Consensys/linea-tracer/pull/1234))
+* Fix for legacy transactions with chainID ([#1231](https://github.com/Consensys/linea-tracer/pull/1231))
+* Show only failing tests in CI output ([#1217](https://github.com/Consensys/linea-tracer/pull/1217))
+* alphabetical ordering ([#1228](https://github.com/Consensys/linea-tracer/pull/1228))
+* Some optimizations for CI and Reference tests ([#1168](https://github.com/Consensys/linea-tracer/pull/1168))
+
+
+
+## 0.6.0-rc2
+* fix(oob): update constraints ([#1224](https://github.com/Consensys/linea-tracer/pull/1224))
+* added ranges from issue ([#1225](https://github.com/Consensys/linea-tracer/pull/1225))
+* Fix for NPE in `SelfdestructSection` ([#1221](https://github.com/Consensys/linea-tracer/pull/1221))
+* Update README.md ([#1206](https://github.com/Consensys/linea-tracer/pull/1206))
+* reintegrate ref table in module to count ([#1215](https://github.com/Consensys/linea-tracer/pull/1215))
+* typo in RlpTxn for small signature ([#1208](https://github.com/Consensys/linea-tracer/pull/1208))
+* update constraints ([#1219](https://github.com/Consensys/linea-tracer/pull/1219))
+* fix(exp): remove not necessary computation ([#1204](https://github.com/Consensys/linea-tracer/pull/1204))
+* [README] fix broken link ([#1207](https://github.com/Consensys/linea-tracer/pull/1207))
+* [996] Add features to write multi block tests ([#1178](https://github.com/Consensys/linea-tracer/pull/1178))
+* 1126 oob issue ([#1134](https://github.com/Consensys/linea-tracer/pull/1134))
+* Fix #1200 ([#1201](https://github.com/Consensys/linea-tracer/pull/1201))
+* update constraints ([#1199](https://github.com/Consensys/linea-tracer/pull/1199))
+* Set daily workflows to only execute on weekdays ([#1179](https://github.com/Consensys/linea-tracer/pull/1179))
+* build: build a separate zkevm.bin for reference tests ([#1177](https://github.com/Consensys/linea-tracer/pull/1177))
+* Rectification of `AccountSnapshot`'s for some of the `CallSection` after care methods ([#1174](https://github.com/Consensys/linea-tracer/pull/1174))
+* add PRC_DATA module to moduleToCount ([#1186](https://github.com/Consensys/linea-tracer/pull/1186))
+* `MOD` constraint failure on mainnet ([#1181](https://github.com/Consensys/linea-tracer/pull/1181))
+* fix: add validations to block number params of trace generation and line counting JSON-RPC endpoints ([#1191](https://github.com/Consensys/linea-tracer/pull/1191))
+* update constraints ([#1184](https://github.com/Consensys/linea-tracer/pull/1184))
+* feat: use .tmp file extension while writing a conflated trace in order to indicate that the trace is incomplete if it stays with the .tmp extension ([#1170](https://github.com/Consensys/linea-tracer/pull/1170))
+* feat: exceptions vs tracedexceptions ([#1133](https://github.com/Consensys/linea-tracer/pull/1133))
+* Fixed `RETURN` pricing ([#1166](https://github.com/Consensys/linea-tracer/pull/1166))
+* fix(ecAddTest): remove comment ([#1165](https://github.com/Consensys/linea-tracer/pull/1165))
+
+## 0.6.0-rc1
+* Refactor ReplayExecutionEnviroment and ToyExecutionEnvironment ([#1159](https://github.com/Consensys/linea-tracer/pull/1159))
+* chore: make spotless and checkSPDXHeader a mandatory step after compilation in order to avoid not passing through the linting process ([#1161](https://github.com/Consensys/linea-tracer/pull/1161))
+* Enable reporting in `go-corset` ([#1150](https://github.com/Consensys/linea-tracer/pull/1150)) to get more information about failing constraints.
+* Set besuVersion=24.9-delivery32 ([#1157](https://github.com/Consensys/linea-tracer/pull/1157))
+* regenerate Trace.java for the HUB
+* delete deleted columns
+* fix: block-1339346-context-revert-twice ([#1151](https://github.com/Consensys/linea-tracer/pull/1151))
+* fix: delete duplicate of setting revertStamp + set the revertStamp at the right moment
+* fix(copy instruction) take destOffset to compute memoryExpension, not source offset
+* Fixed failing precondition for ECRECOVER call ([#1154](https://github.com/Consensys/linea-tracer/pull/1154))
+* fix: Modexp fix
+* Fix(oob): fixed size parameter in OOB_INST_DEPLOYMENT
+* feat: tidy up `ToyExecutionEnvironment` and remove `ToyWorld` ([#1143](https://github.com/Consensys/linea-tracer/pull/1143))This tidies up the `ToyExecutionEnvironment` in several ways.  Firstly, it updates the manner in which the `MainnetTransactionProcessor` is created by reusing as much from BESU as possible; secondly, it removes`ToyWorld` altogether (as this is no longer needed); finally, it removes`ToyExecutionEnvironment.execute()` since this is no longer being used.
+* Support Mainnet vs Sepolia Tests This adds support for distinguishing between Mainnet and Sepolia tests. This is helpful for the odds cases where we want a replay which was inteded for sepolia.
+* Remove `getMainnetTransactionProcessorOrig()`. This removes the now redundant (original) method for getting the mainnet transaction processor.
+* Fix broken replay test.`modexpTriggeringNonAlignedFirstLimbSingleSourceMmuModexp` was missing the chain identifier.  I'm assuming LINEA_MAINNET for now.
+* chore: switch to ubuntu-22.04-16core github runner on the tests stage ([#973](https://github.com/Consensys/linea-tracer/pull/973))
+* Update Linea-Besu to 24.9-delivery30 ([#1131](https://github.com/Consensys/linea-tracer/pull/1131))
+* fix failing mmu constraints ([#1123](https://github.com/Consensys/linea-tracer/pull/1123))
+* Add nightly tests tag and improve ci test run time
+* fix env
+* Tag issue tests as nightly
+* separate unit tests and replay tests
+* enable concurrent replay tests
+* 1049 filter and run reference tests + GHA ([#1132](https://github.com/Consensys/linea-tracer/pull/1132))
+* Added failedTestsFilePath, failedModule and failedConstraint to filter reference blockchain tests.
+* Added new GHA workflow for automatically running blockchain tests each evening and storing the results arfifact
+* Added header
+* Increase threads for `corset` on Github CI ([#1144](https://github.com/Consensys/linea-tracer/pull/1144))
+  This changes the default number of threads to be used when running `RustCorsetValidator` from `2` to the number of available cores. The ability to override this using `CORSET_THREADS` remains.
+* [997] Migrate Stp and OobCall test to v2 ([#1115](https://github.com/Consensys/linea-tracer/pull/1115))
+* Migrate TxSkip test to V2 ([#1080](https://github.com/Consensys/linea-tracer/pull/1080))
+* fix(hub:skip): coinbase snapshot if not yet in the world at start tx
+* fix after merger Added single range ... that isn't problematic ([#1128](https://github.com/Consensys/linea-tracer/pull/1128))
+* Debugging 6690-6699 ([#1110](https://github.com/Consensys/linea-tracer/pull/1110))
+* Range 10-20 ([#1129](https://github.com/Consensys/linea-tracer/pull/1129))
+* test: new (unexceptional) range
+* fix CountOnlyModule ([#1120](https://github.com/Consensys/linea-tracer/pull/1120))
+* 1049 - Reference test tool ([#1108](https://github.com/Consensys/linea-tracer/pull/1108))
+* Created TestWatcher to intercept failing reference tests and record the failing module and constraint
+* Updated template to include ReferenceTestWatcher
+* Updated linea-constraints submodule up to kebab-case refactor 2a49dae
+* Implemented getModuleFromFailedConstraint() and removed module from constraint name
+* Separated mapping and read/write logic from watcher
+* Added tests for MapFailedReferenceTestsTool and made fixes to the tool
+* Remove comments
+* Added header to new files
+* Improved readability and names of methods
+
+## 0.5.3-beta
+* fix(return): OOGX for return for deployment + call SHAKIRA for return + cleaning ([#1105](https://github.com/Consensys/linea-tracer/pull/1105))
+* Failing tests file ([#1098](https://github.com/Consensys/linea-tracer/pull/1098))
+* fix(oob): inst modexp pircing f of max ([#1107](https://github.com/Consensys/linea-tracer/pull/1107))
+* chore: add validation and usage for bulk capture ([#1096](https://github.com/Consensys/linea-tracer/pull/1096))
+* TX_SKIP: canonical snapshots + preconditions ([#1094](https://github.com/Consensys/linea-tracer/pull/1094))
+* feat: update replay tests with tx outcomes ([#1091](https://github.com/Consensys/linea-tracer/pull/1091))
+* Tweak Memory Settings for Go Corset
+* fix(selfdestruct): invoke selfDestructAtTransactionEnd ([#1022](https://github.com/Consensys/linea-tracer/pull/1022))
+* Renaming zkevm-constraints to linea-constraints + .gitmodules update ([#1083](https://github.com/Consensys/linea-tracer/pull/1083))
+
 ## 0.5.2-beta
 * fix(callDataCopy): source ID ([#1081](https://github.com/Consensys/linea-tracer/pull/1081))
 * add a binary search script ([#1073](https://github.com/Consensys/linea-tracer/pull/1073))

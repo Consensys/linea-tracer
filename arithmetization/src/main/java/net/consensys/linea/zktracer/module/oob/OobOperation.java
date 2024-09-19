@@ -21,7 +21,6 @@ import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Map.entry;
-import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ADD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIV;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_EQ;
@@ -67,7 +66,6 @@ import java.util.Map;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -288,7 +286,7 @@ public class OobOperation extends ModuleOperation {
       }
       case OOB_INST_DEPLOYMENT -> {
         final DeploymentOobCall deploymentOobCall = (DeploymentOobCall) oobCall;
-        deploymentOobCall.setSize(EWord.of(frame.getStackItem(0)));
+        deploymentOobCall.setSize(EWord.of(frame.getStackItem(1)));
         setDeployment(deploymentOobCall);
       }
     }
@@ -304,19 +302,16 @@ public class OobOperation extends ModuleOperation {
     final int cdsIndex = opCode.callCanTransferValue() ? 4 : 3;
     final int returnAtCapacityIndex = opCode.callCanTransferValue() ? 6 : 5;
 
-    final boolean transfersValue = opCode.callCanTransferValue() && !frame.getStackItem(2).isZero();
-
-    // shameless copy from gasAvailableForChildCall found in TangerineWhistleGasCalculator
-    // TODO: @Olivier and @François: find out whether frame.getRemainingGas was already
-    //  decremented by the upfront cost. If not we must replace remainingGas with the
-    //  decremented version
-    long remainingGas = frame.getRemainingGas();
-    long gasCap =
-        Words.unsignedMin(
-            allButOneSixtyFourth(remainingGas), Words.clampedToLong(frame.getStackItem(0)));
-    long callGasLong =
-        transfersValue ? gasCap + ZkTracer.gasCalculator.getAdditionalCallStipend() : gasCap;
-    final BigInteger callGas = BigInteger.valueOf(callGasLong);
+    BigInteger calleeGas = BigInteger.ZERO;
+    if (oobCall instanceof PrecompileCommonOobCall) {
+      calleeGas = ((PrecompileCommonOobCall) oobCall).getCalleeGas();
+    }
+    if (oobCall instanceof ModexpPricingOobCall) {
+      calleeGas = ((ModexpPricingOobCall) oobCall).getCallGas();
+    }
+    if (oobCall instanceof Blake2fParamsOobCall) {
+      calleeGas = ((Blake2fParamsOobCall) oobCall).getCallGas();
+    }
 
     final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
     // Note that this check will disappear since it will be the MXP module taking care of it
@@ -331,7 +326,7 @@ public class OobOperation extends ModuleOperation {
     if (isCommonPrecompile()) {
       PrecompileCommonOobCall commonOobCall = (PrecompileCommonOobCall) oobCall;
 
-      commonOobCall.setCallGas(callGas);
+      commonOobCall.setCalleeGas(calleeGas);
       commonOobCall.setCds(cds);
       commonOobCall.setReturnAtCapacity(returnAtCapacity);
       setPrcCommon(commonOobCall);
@@ -432,7 +427,7 @@ public class OobOperation extends ModuleOperation {
         case OOB_INST_MODEXP_PRICING -> {
           int maxMbsBbs = max(mbs.intValue(), bbs.intValue());
           final ModexpPricingOobCall prcModexpPricingOobCall = (ModexpPricingOobCall) oobCall;
-          prcModexpPricingOobCall.setCallGas(callGas);
+          // prcModexpPricingOobCall.setCallGas(calleeGas);
           prcModexpPricingOobCall.setReturnAtCapacity(returnAtCapacity);
           prcModexpPricingOobCall.setExponentLog(exponentLog);
           prcModexpPricingOobCall.setMaxMbsBbs(maxMbsBbs);
@@ -465,7 +460,7 @@ public class OobOperation extends ModuleOperation {
           final BigInteger blakeF = BigInteger.valueOf(toUnsignedInt(callData.get(212)));
 
           final Blake2fParamsOobCall prcBlake2FParamsOobCall = (Blake2fParamsOobCall) oobCall;
-          prcBlake2FParamsOobCall.setCallGas(callGas);
+          prcBlake2FParamsOobCall.setCallGas(calleeGas);
           prcBlake2FParamsOobCall.setBlakeR(blakeR);
           prcBlake2FParamsOobCall.setBlakeF(blakeF);
 
@@ -542,10 +537,11 @@ public class OobOperation extends ModuleOperation {
 
   private boolean callToLT(
       int k, BigInteger arg1Hi, BigInteger arg1Lo, BigInteger arg2Hi, BigInteger arg2Lo) {
-    checkArgument(arg1Hi.bitLength() / 8 <= 16);
-    checkArgument(arg1Lo.bitLength() / 8 <= 16);
-    checkArgument(arg2Hi.bitLength() / 8 <= 16);
-    checkArgument(arg2Lo.bitLength() / 8 <= 16);
+    // 128 = 8 * 16
+    checkArgument(arg1Hi.bitLength() <= 128);
+    checkArgument(arg1Lo.bitLength() <= 128);
+    checkArgument(arg2Hi.bitLength() <= 128);
+    checkArgument(arg2Lo.bitLength() <= 128);
     final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
     final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = false;
@@ -849,7 +845,7 @@ public class OobOperation extends ModuleOperation {
     // row i + 2
     final boolean insufficientGas =
         callToLT(
-            2, BigInteger.ZERO, prcCommonOobCall.getCallGas(), BigInteger.ZERO, precompileCost);
+            2, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
@@ -857,7 +853,7 @@ public class OobOperation extends ModuleOperation {
 
     // Set returnGas
     final BigInteger returnGas =
-        hubSuccess ? prcCommonOobCall.getCallGas().subtract(precompileCost) : BigInteger.ZERO;
+        hubSuccess ? prcCommonOobCall.getCalleeGas().subtract(precompileCost) : BigInteger.ZERO;
     prcCommonOobCall.setReturnGas(returnGas);
   }
 
@@ -885,7 +881,7 @@ public class OobOperation extends ModuleOperation {
     // row i + 3
     final boolean insufficientGas =
         callToLT(
-            3, BigInteger.ZERO, prcCommonOobCall.getCallGas(), BigInteger.ZERO, precompileCost);
+            3, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
@@ -893,7 +889,7 @@ public class OobOperation extends ModuleOperation {
 
     // Set returnGas
     final BigInteger returnGas =
-        hubSuccess ? prcCommonOobCall.getCallGas().subtract(precompileCost) : BigInteger.ZERO;
+        hubSuccess ? prcCommonOobCall.getCalleeGas().subtract(precompileCost) : BigInteger.ZERO;
     prcCommonOobCall.setReturnGas(returnGas);
   }
 
@@ -925,7 +921,7 @@ public class OobOperation extends ModuleOperation {
     if (isMultipleOf192) {
       insufficientGas =
           callToLT(
-              4, BigInteger.ZERO, prcCommonOobCall.getCallGas(), BigInteger.ZERO, precompileCost);
+              4, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
     } else {
       noCall(4);
     }
@@ -936,7 +932,7 @@ public class OobOperation extends ModuleOperation {
 
     // Set returnGas
     final BigInteger returnGas =
-        hubSuccess ? prcCommonOobCall.getCallGas().subtract(precompileCost) : BigInteger.ZERO;
+        hubSuccess ? prcCommonOobCall.getCalleeGas().subtract(precompileCost) : BigInteger.ZERO;
     prcCommonOobCall.setReturnGas(returnGas);
   }
 
@@ -1074,16 +1070,14 @@ public class OobOperation extends ModuleOperation {
         callToISZERO(1, BigInteger.ZERO, prcModexpPricingOobCall.getExponentLog());
 
     // row i + 2
-    final BigInteger fOfMax =
+    final BigInteger ceilingOfMaxDividedBy8 =
         callToDIV(
             2,
             BigInteger.ZERO,
-            BigInteger.valueOf(
-                (long) prcModexpPricingOobCall.getMaxMbsBbs()
-                        * prcModexpPricingOobCall.getMaxMbsBbs()
-                    + 7),
+            BigInteger.valueOf((long) prcModexpPricingOobCall.getMaxMbsBbs() + 7),
             BigInteger.ZERO,
             BigInteger.valueOf(8));
+    final BigInteger fOfMax = ceilingOfMaxDividedBy8.multiply(ceilingOfMaxDividedBy8);
 
     // row i + 3
     BigInteger bigNumerator;

@@ -1,0 +1,86 @@
+name: Daily Reference Blockchain Tests
+
+on:
+  schedule:
+    - cron: 0 21 * * 1-5
+  workflow_dispatch:
+    inputs:
+      failed_tests_file_name:
+        description: File name for filtering failed tests based on previous runs
+        required: false
+        type: string
+      failed_tests_file_path:
+        description: File path for filtering failed tests based on previous runs
+        required: false
+        type: string
+      failed_module:
+        description: Specific module to filter from failed tests
+        required: false
+        type: string
+      failed_constraint:
+        description: Specific module constrain pair to filter from failed tests
+        required: false
+        type: string
+
+jobs:
+  get-branch-name:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get branch name
+        run: |
+          echo "Branch: ${github.event.ref}"
+          BRANCH_NAME=${github.event.ref##*/} 
+          echo "Branch name: $BRANCH_NAME"
+    outputs:
+      branch-name: $BRANCH_NAME
+
+  ethereum-tests:
+    runs-on: ubuntu-latest-128
+    steps:
+      - uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.CONSTRAINTS_SSH_KEY }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          java-version: 21
+          distribution: temurin
+
+      - name: Install Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+
+      - name: Install Corset
+        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.13 --locked --force
+
+      - name: Generate block chain reference tests
+        run:  ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
+        env:
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+          CORSET_FLAGS: fields,expand,expand,expand
+
+      - name: generate zkevm.bin
+        run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
+
+      - name: Run reference blockchain tests
+        run: ./gradlew referenceBlockchainTests -x spotlessCheck
+        env:
+          REFERENCE_TESTS_PARALLELISM: 10
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+          CORSET_FLAGS: fields,expand,expand,expand
+          FAILED_TESTS_FILE_NAME: ${{ inputs.failed_tests_file_name || '' }}
+          FAILED_TEST_JSON_DIRECTORY: ${{ ../tmp/${{ inputs.branch-name }}/ || '' }}
+          FAILED_MODULE: ${{ inputs.failed_module || '' }}
+          FAILED_CONSTRAINT: ${{ inputs.failed_constraint || '' }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-artifact
+          path: ../tmp/${{ inputs.branch-name }}/${{ inputs.failed_tests_file_name }}

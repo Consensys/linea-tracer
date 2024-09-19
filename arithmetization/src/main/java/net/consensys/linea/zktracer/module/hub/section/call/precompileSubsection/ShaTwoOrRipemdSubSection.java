@@ -20,8 +20,8 @@ import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstru
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_SHA2;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
-import static net.consensys.linea.zktracer.module.shakiradata.HashType.RIPEMD;
-import static net.consensys.linea.zktracer.module.shakiradata.HashType.SHA256;
+import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.RIPEMD;
+import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.SHA256;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
@@ -37,10 +37,11 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
   public ShaTwoOrRipemdSubSection(Hub hub, CallSection callSection) {
     super(hub, callSection);
 
+    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     oobCall =
         switch (flag()) {
-          case PRC_SHA2_256 -> new PrecompileCommonOobCall(OOB_INST_SHA2);
-          case PRC_RIPEMD_160 -> new PrecompileCommonOobCall(OOB_INST_RIPEMD);
+          case PRC_SHA2_256 -> new PrecompileCommonOobCall(OOB_INST_SHA2, calleeGas);
+          case PRC_RIPEMD_160 -> new PrecompileCommonOobCall(OOB_INST_RIPEMD, calleeGas);
           default -> throw new IllegalArgumentException(
               String.format(
                   "Precompile address %s not supported by constructor", this.flag().toString()));

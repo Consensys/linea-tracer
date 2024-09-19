@@ -1,7 +1,7 @@
 # Linea tracer (zkEVM)
 
 This repository hosts a Linea tracing implementation for 
-[Hyperledger Besu](https://github.com/hyperledger/besu) based on an 
+[Besu](https://github.com/hyperledger/besu) based on an 
  implementation in Go.
 
 Tracing refers to the process of extracting data from the execution of an EVM client in order to construct large matrices known as execution traces. Execution traces are subject to the constraint system specified in the [linea-specification](https://github.com/Consensys/linea-specification) repo and implemented in the [linea-constraints](https://github.com/Consensys/linea-constraints) repo.
@@ -56,7 +56,7 @@ Before contributing, ensure you're familiar with:
 
 - Our [Linea contribution guide](https://github.com/Consensys/linea-monorepo/blob/main/docs/contribute.md)
 - Our [Linea code of conduct](https://github.com/Consensys/linea-monorepo/blob/main/docs/code-of-conduct.md)
-- The [Besu contribution guide](https://github.com/Consensys/linea-monorepo/blob/main/https://wiki.hyperledger.org/display/BESU/Coding+Conventions), for Besu:Linea related contributions
+- The [Besu contribution guide](https://wiki.hyperledger.org/display/BESU/Coding+Conventions), for Besu:Linea related contributions
 - Our [Security policy](https://github.com/Consensys/linea-monorepo/blob/main/docs/security.md)
 
 

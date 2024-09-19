@@ -31,6 +31,9 @@ tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   refTestJsonParamsExcludedPath = "BlockchainTests/InvalidBlocks/bcExpectSection" // exclude test for test filling tool
   refTestNamePrefix = "BlockchainReferenceTest"
   generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/blockchain"
+  failedTestsFilePath = System.getenv('FAILED_TESTS_FILE_PATH') ?: "failedBlockchainReferenceTests.json"
+  failedModule = System.getenv('FAILED_MODULE') ?: ""
+  failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
 }
 
 tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
@@ -40,16 +43,14 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
   refTestJsonParamsExcludedPath = ""
   refTestNamePrefix = "GeneralStateReferenceTest"
   generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/generalstate"
+  failedTestsFilePath = System.getenv('FAILED_TESTS_FILE_PATH') ?: ""
+  failedModule = System.getenv('FAILED_MODULE') ?: ""
+  failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
 }
 
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
-
   dependsOn generateBlockchainReferenceTests
-
-  minHeapSize = "4g"
-  maxHeapSize = "20g"
-  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
@@ -58,33 +59,36 @@ tasks.register('referenceBlockchainTests', Test) {
 
 tasks.register('referenceGeneralStateTests', Test) {
   description = 'Runs ETH reference general state tests.'
-
   dependsOn generateGeneralStateReferenceTests
 
-  minHeapSize = "4g"
-  maxHeapSize = "20g"
-  maxParallelForks = Runtime.getRuntime().availableProcessors().intdiv(2) ?: 1
-
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")
   }
 }
 
-tasks.register('referenceTests', Test) {
-  description = 'Runs ETH reference tests.'
+[
+  tasks.named("referenceGeneralStateTests"),
+  tasks.named("referenceBlockchainTests"),
+].forEach {
+  it.configure {
+    dependsOn buildReferenceTestsZkevmBin
+    environment.put("ZKEVM_BIN", "zkevm_for_reference_tests.bin")
 
-  minHeapSize = "4g"
-  maxHeapSize = "20g"
+    systemProperty("junit.jupiter.execution.timeout.default", "5 m")  // 5 minutes
+    systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+    systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+    systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+      System.getenv().getOrDefault("REFERENCE_TESTS_PARALLELISM", "1").toInteger())
 
-  useJUnitPlatform {
-    includeTags("BlockchainReferenceTest")
-    includeTags("GeneralStateReferenceTest")
+    boolean isCiServer = System.getenv().containsKey("CI")
+    minHeapSize = "4g"
+    maxHeapSize = isCiServer ? "32g" : "8g"
   }
 }
-
 
 dependencies {
-  testImplementation project(":arithmetization")
   testImplementation "${besuArtifactGroup}:besu-datatypes"
   testImplementation "${besuArtifactGroup}:evm"
   testImplementation "${besuArtifactGroup}.internal:config:${besuVersion}"
@@ -103,4 +107,8 @@ dependencies {
 
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
   testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
+  implementation project(":arithmetization")
+  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+  testImplementation project(path: ':testing')
 }

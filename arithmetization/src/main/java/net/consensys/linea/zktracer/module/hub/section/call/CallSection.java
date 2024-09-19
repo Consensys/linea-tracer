@@ -113,6 +113,7 @@ public class CallSection extends TraceSection
   private AccountSnapshot postRollbackCalleeSnapshot;
   private AccountSnapshot postRollbackCallerSnapshot;
 
+  public StpCall stpCall;
   private PrecompileSubsection precompileSubsection;
 
   public CallSection(Hub hub) {
@@ -147,7 +148,7 @@ public class CallSection extends TraceSection
       return;
     }
 
-    final StpCall stpCall = new StpCall(hub, mxpCall.gasMxp);
+    stpCall = new StpCall(hub, mxpCall.gasMxp);
     firstImcFragment.callStp(stpCall);
     checkArgument(
         stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions),
@@ -417,14 +418,16 @@ public class CallSection extends TraceSection
     postRollbackCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
     postRollbackCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
 
+    final boolean selfCall =
+        postOpcodeCalleeSnapshot.address().equals(postOpcodeCallerSnapshot.address());
+
     final CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
     switch (callScenario) {
       case CALL_ABORT_WONT_REVERT -> completeAbortWillRevert(factory);
       case CALL_EOA_SUCCESS_WONT_REVERT -> completeEoaSuccessWillRevert(factory);
       case CALL_SMC_FAILURE_WONT_REVERT -> completeSmcFailureWillRevert(factory);
       case CALL_SMC_SUCCESS_WONT_REVERT,
-          CALL_PRC_SUCCESS_WONT_REVERT -> completeSmcSuccessWillRevertOrPrcSuccessWillRevert(
-          factory);
+          CALL_PRC_SUCCESS_WONT_REVERT -> completeSmcOrPrcSuccessWillRevert(factory);
       case CALL_PRC_FAILURE -> {
         // Note: no undoing required
         //  - account snapshots were taken with value transfers undone
@@ -470,12 +473,22 @@ public class CallSection extends TraceSection
   private void completeEoaSuccessWillRevert(Factories factory) {
     scenarioFragment.setScenario(CALL_EOA_SUCCESS_WILL_REVERT);
 
+    final AccountSnapshot callerRightBeforeRollBack =
+        postOpcodeCallerSnapshot.deepCopy().copyDeploymentInfoFrom(postRollbackCallerSnapshot);
+    final AccountSnapshot callerRightAfterRollBack =
+        preOpcodeCallerSnapshot.deepCopy().copyDeploymentInfoFrom(postRollbackCallerSnapshot);
+
+    final AccountSnapshot calleeRightBeforeRollBack =
+        postOpcodeCalleeSnapshot.deepCopy().copyDeploymentInfoFrom(postRollbackCalleeSnapshot);
+    final AccountSnapshot calleeRightAfterRollBack =
+        preOpcodeCalleeSnapshot.deepCopy().copyDeploymentInfoFrom(postRollbackCalleeSnapshot);
+
     final AccountFragment undoingCallerAccountFragment =
         factory
             .accountFragment()
             .make(
-                postOpcodeCallerSnapshot,
-                postRollbackCallerSnapshot,
+                callerRightBeforeRollBack,
+                callerRightAfterRollBack,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 2));
 
@@ -483,8 +496,8 @@ public class CallSection extends TraceSection
         factory
             .accountFragment()
             .make(
-                postOpcodeCalleeSnapshot,
-                postRollbackCalleeSnapshot,
+                calleeRightBeforeRollBack,
+                calleeRightAfterRollBack,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 3));
 
@@ -507,7 +520,7 @@ public class CallSection extends TraceSection
     this.addFragment(undoingCalleeWarmthAccountFragment);
   }
 
-  private void completeSmcSuccessWillRevertOrPrcSuccessWillRevert(Factories factory) {
+  private void completeSmcOrPrcSuccessWillRevert(Factories factory) {
 
     final CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
     if (callScenario == CALL_SMC_SUCCESS_WONT_REVERT) {
@@ -516,25 +529,30 @@ public class CallSection extends TraceSection
       scenarioFragment.setScenario(CALL_PRC_SUCCESS_WILL_REVERT);
     }
 
-    if (selfCallWithNonzeroValueTransfer) {
-      reEntryCallerSnapshot.decrementBalanceBy(value);
-      postRollbackCalleeSnapshot.decrementBalanceBy(value);
-    }
+    final AccountSnapshot callerRightBeforeRollBack =
+        postOpcodeCallerSnapshot.deepCopy().copyDeploymentInfoFrom(postRollbackCallerSnapshot);
+    final AccountSnapshot callerRightAfterRollBack =
+        preOpcodeCallerSnapshot.deepCopy().copyDeploymentInfoFrom(postRollbackCallerSnapshot);
+
+    final AccountSnapshot calleeRightBeforeRollBack =
+        postOpcodeCalleeSnapshot.deepCopy().copyDeploymentInfoFrom(postRollbackCalleeSnapshot);
+    final AccountSnapshot calleeRightAfterRollBack =
+        preOpcodeCalleeSnapshot.deepCopy().copyDeploymentInfoFrom(postRollbackCalleeSnapshot);
 
     final AccountFragment undoingCallerAccountFragment =
         factory
             .accountFragment()
             .make(
-                reEntryCallerSnapshot,
-                postRollbackCallerSnapshot,
+                callerRightBeforeRollBack,
+                callerRightAfterRollBack,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 2));
     final AccountFragment undoingCalleeAccountFragment =
         factory
             .accountFragment()
             .make(
-                reEntryCalleeSnapshot,
-                postRollbackCalleeSnapshot,
+                calleeRightBeforeRollBack,
+                calleeRightAfterRollBack,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 3));
 

@@ -50,12 +50,12 @@ public class WcpOperation extends ModuleOperation {
   public static final byte GEQbv = (byte) WCP_INST_GEQ;
   static final byte LTbv = (byte) EVM_INST_LT;
   static final byte GTbv = (byte) EVM_INST_GT;
-  private static final byte SLTbv = (byte) EVM_INST_SLT;
-  private static final byte SGTbv = (byte) EVM_INST_SGT;
+  static final byte SLTbv = (byte) EVM_INST_SLT;
+  static final byte SGTbv = (byte) EVM_INST_SGT;
   static final byte EQbv = (byte) EVM_INST_EQ;
   static final byte ISZERObv = (byte) EVM_INST_ISZERO;
 
-  @EqualsAndHashCode.Include private final byte wcpInst;
+  private final byte wcpInst;
   @EqualsAndHashCode.Include private final Bytes32 arg1;
   @EqualsAndHashCode.Include private final Bytes32 arg2;
   final int ctMax;

@@ -47,7 +47,7 @@ jobs:
           name: distributions
           path: arithmetization/build/libs
 
-      - name: spotless
+      - name: Run spotless
         run: ./gradlew --no-daemon --parallel clean spotlessCheck
 
   tests:

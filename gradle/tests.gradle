@@ -68,7 +68,7 @@ tasks.withType(Test).configureEach {
 
   testlogger {
     // pick a theme - mocha, standard, plain, mocha-parallel, standard-parallel or plain-parallel
-    theme 'standard-parallel'
+    theme 'plain-parallel'
 
     // set to false to disable detailed failure logs
     showExceptions true

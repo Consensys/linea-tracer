@@ -125,9 +125,6 @@ tasks.test.configure {
 }
 
 tasks.register("fastReplayTests", Test) {
-  boolean isCiServer = System.getenv().containsKey("CI")
-  maxHeapSize = isCiServer ? "32g" : "8g"
-
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")

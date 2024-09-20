@@ -20,9 +20,9 @@ import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINN
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Tag("nightly")
+@Tag("replay")
 public class Issue1264Tests {
-  @Tag("nightly")
-  @Tag("replay")
   @Test
   void issue_1216_mainnet_2321460_2321556() {
     replay(LINEA_MAINNET, "2321460-2321556.json.gz");

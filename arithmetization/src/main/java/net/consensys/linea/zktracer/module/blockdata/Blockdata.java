@@ -93,14 +93,23 @@ public class Blockdata implements Module {
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    final long firstBlockNumber = operations.getFirst().absoluteBlockNumber();
+    final Trace trace = new Trace(buffers);
 
+    final long firstBlockNumber = operations.getFirst().absoluteBlockNumber();
+    final long chainId = getChainIdFromConflation();
+    int relblock = 0;
+    for (BlockdataOperation blockData : operations) {
+      blockData.trace(trace, ++relblock, firstBlockNumber, chainId);
+    }
+  }
+
+  private long getChainIdFromConflation() {
     // TODO: this doesn't work if all transaction of the batch are WO ChainId
     long chainId = -1;
     for (RlpTxnOperation tx : rlpTxn.operations().getAll()) {
       try {
         chainId = getChainIdFromTransaction(tx.tx());
-        return;
+        break;
       } catch (Exception e) {
         continue;
       }
@@ -108,12 +117,6 @@ public class Blockdata implements Module {
     if (chainId == -1) {
       throw new RuntimeException("No chainId found in the batch");
     }
-
-    final Trace trace = new Trace(buffers);
-    int relblock = 0;
-    for (BlockdataOperation blockData : this.operations) {
-      relblock += 1;
-      blockData.trace(trace, relblock, firstBlockNumber, chainId);
-    }
+    return chainId;
   }
 }

@@ -18,19 +18,13 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 
 import lombok.EqualsAndHashCode;
-import net.consensys.linea.zktracer.container.ModuleOperation;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
-public class StackHeightCheck extends ModuleOperation {
-  private static final int SHIFT_FACTOR =
+public class StackHeightCheck {
+  private static final Integer SHIFT_FACTOR =
       8; // 5 would suffice but 8 makes it a byte shift, not sure if it matters
 
   @EqualsAndHashCode.Include final int comparison;
-
-  @Override
-  protected int computeLineCount() {
-    throw new UnsupportedOperationException("Shouldn't be called");
-  }
 
   /**
    * This constructor creates a {@link StackHeightCheck} for stack underflow detection.

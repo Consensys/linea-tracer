@@ -62,4 +62,9 @@ public class Issue1260WcpIssues {
   void eight() {
     replay(LINEA_MAINNET, "5081894.json.gz");
   }
+
+  @Test
+  void all() {
+    replay(LINEA_MAINNET, "5081887-5081894.json.gz");
+  }
 }

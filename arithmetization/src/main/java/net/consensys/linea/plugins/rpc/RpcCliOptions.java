@@ -20,7 +20,7 @@ import picocli.CommandLine;
 
 public class RpcCliOptions implements LineaCliOptions {
 
-  public static final String CONFIG_KEY = "line-counts-endpoint-config";
+  public static final String CONFIG_KEY = "rpc-config";
 
   static final String RPC_CONCURRENT_REQUESTS_LIMIT =
       "--plugin-linea-rpc-concurrent-requests-limit";
@@ -40,7 +40,7 @@ public class RpcCliOptions implements LineaCliOptions {
    *
    * @return the Linea cli options
    */
-  static RpcCliOptions create() {
+  public static RpcCliOptions create() {
     return new RpcCliOptions();
   }
 

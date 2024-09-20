@@ -20,6 +20,7 @@ import org.hyperledger.besu.plugin.services.BesuService;
 import org.hyperledger.besu.plugin.services.PicoCLIOptions;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;
 import org.hyperledger.besu.plugin.services.TraceService;
+import org.hyperledger.besu.plugin.services.sync.SynchronizationService;
 
 public class BesuServiceProvider {
 
@@ -49,5 +50,9 @@ public class BesuServiceProvider {
 
   public static RpcEndpointService getRpcEndpointService(final BesuContext context) {
     return getBesuService(context, RpcEndpointService.class);
+  }
+
+  public static SynchronizationService getSynchronizationService(final BesuContext context) {
+    return getBesuService(context, SynchronizationService.class);
   }
 }

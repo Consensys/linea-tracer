@@ -42,8 +42,8 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
  * GenerateConflatedTracesV2} to generate conflated file traces. This class provides an RPC endpoint
  * named 'generateConflatedTracesToFileV0' under the 'rollup' namespace.
  */
-@AutoService(BesuPlugin.class)
 @Slf4j
+@AutoService(BesuPlugin.class)
 public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
   private BesuContext besuContext;
   private RpcEndpointService rpcEndpointService;
@@ -86,10 +86,12 @@ public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
     final RpcConfiguration rpcConfiguration =
         (RpcConfiguration) getConfigurationByKey(RpcCliOptions.CONFIG_KEY).optionsConfig();
 
-    RequestLimiterDispatcher.setLimiter(
-        GenerateConflatedTracesV2.REQUEST_LIMIT_KEY, rpcConfiguration.concurrentRequestsLimit());
+    RequestLimiterDispatcher.setLimiterIfMissing(
+        RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY,
+        rpcConfiguration.concurrentRequestsLimit());
     final RequestLimiter reqLimiter =
-        RequestLimiterDispatcher.getLimiter(GenerateConflatedTracesV2.REQUEST_LIMIT_KEY);
+        RequestLimiterDispatcher.getLimiter(
+            RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY);
 
     final GenerateConflatedTracesV2 method =
         new GenerateConflatedTracesV2(besuContext, reqLimiter, endpointConfiguration);

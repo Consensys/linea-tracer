@@ -16,11 +16,11 @@
 package net.consensys.linea.plugins.rpc.linecounts;
 
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
@@ -33,10 +33,7 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** This class is used to generate trace counters. */
 @Slf4j
-@RequiredArgsConstructor
 public class GenerateLineCountsV2 {
-  static final String REQUEST_LIMIT_KEY = "trace-request-limit";
-
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
   private static final int CACHE_SIZE = 10_000;
   private static final Cache<Long, Map<String, Integer>> CACHE =
@@ -44,10 +41,11 @@ public class GenerateLineCountsV2 {
 
   private final RequestLimiter requestLimiter;
 
+  private final BesuContext besuContext;
   private TraceService traceService;
 
-  public GenerateLineCountsV2(final BesuContext besuContext, final RequestLimiter requestLimiter) {
-    this.traceService = BesuServiceProvider.getTraceService(besuContext);
+  public GenerateLineCountsV2(final BesuContext context, final RequestLimiter requestLimiter) {
+    this.besuContext = context;
     this.requestLimiter = requestLimiter;
   }
 
@@ -75,6 +73,9 @@ public class GenerateLineCountsV2 {
 
   private LineCounts getLineCounts(PluginRpcRequest request) {
     final Stopwatch sw = Stopwatch.createStarted();
+
+    this.traceService =
+        Optional.ofNullable(traceService).orElse(BesuServiceProvider.getTraceService(besuContext));
 
     final Object[] rawParams = request.getParams();
 

@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package net.consensys.linea.plugins.rpc.tracegeneration;
 
 import com.google.common.base.MoreObjects;

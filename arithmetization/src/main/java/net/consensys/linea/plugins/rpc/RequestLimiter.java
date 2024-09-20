@@ -15,6 +15,7 @@
 
 package net.consensys.linea.plugins.rpc;
 
+import java.util.Optional;
 import java.util.concurrent.Semaphore;
 import java.util.function.Function;
 
@@ -42,9 +43,19 @@ public class RequestLimiter {
     try {
       return processingFunc.apply(request);
     } catch (Exception ex) {
-      throw new PluginRpcEndpointException(RpcErrorType.PLUGIN_INTERNAL_ERROR, ex.getMessage());
+      final Optional<String> message = Optional.ofNullable(ex.getMessage());
+      final boolean blockNotFound =
+          message.map(s -> s.toLowerCase().contains("block not found")).orElse(false);
+
+      throw new PluginRpcEndpointException(
+          blockNotFound ? RpcErrorType.BLOCK_NOT_FOUND : RpcErrorType.PLUGIN_INTERNAL_ERROR,
+          ex.getMessage());
     } finally {
       semaphore.release();
     }
+  }
+
+  public boolean isNodeAtMaxCapacity() {
+    return semaphore.availablePermits() == 0;
   }
 }

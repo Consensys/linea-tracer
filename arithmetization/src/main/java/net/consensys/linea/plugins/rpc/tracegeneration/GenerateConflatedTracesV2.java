@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Optional;
 
 import com.google.common.base.Stopwatch;
 import lombok.SneakyThrows;
@@ -41,8 +42,6 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
  */
 @Slf4j
 public class GenerateConflatedTracesV2 {
-  static final String REQUEST_LIMIT_KEY = "trace-request-limit";
-
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
   private static final String TRACE_FILE_EXTENSION = ".lt";
   private static final String TRACE_TEMP_FILE_EXTENSION = ".lt.tmp";
@@ -50,13 +49,14 @@ public class GenerateConflatedTracesV2 {
   private final RequestLimiter requestLimiter;
 
   private final Path tracesOutputPath;
-  private final TraceService traceService;
+  private final BesuContext besuContext;
+  private TraceService traceService;
 
   public GenerateConflatedTracesV2(
       final BesuContext besuContext,
       final RequestLimiter requestLimiter,
       final TracesEndpointConfiguration endpointConfiguration) {
-    this.traceService = BesuServiceProvider.getTraceService(besuContext);
+    this.besuContext = besuContext;
     this.requestLimiter = requestLimiter;
 
     this.tracesOutputPath = Paths.get(endpointConfiguration.tracesOutputPath());
@@ -82,6 +82,9 @@ public class GenerateConflatedTracesV2 {
 
   private TraceFile generateTraceFile(PluginRpcRequest request) {
     Stopwatch sw = Stopwatch.createStarted();
+
+    this.traceService =
+        Optional.ofNullable(traceService).orElse(BesuServiceProvider.getTraceService(besuContext));
 
     final Object[] rawParams = request.getParams();
 

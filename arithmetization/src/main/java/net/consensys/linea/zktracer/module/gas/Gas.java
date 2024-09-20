@@ -26,7 +26,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class Gas implements Module {
   /** A list of the operations to trace */
-  private final ModuleOperationStackedList<GasOperation> operations = new ModuleOperationStackedList<>();
+  private final ModuleOperationStackedList<GasOperation> operations =
+      new ModuleOperationStackedList<>();
 
   // TODO: why a stackedList of GasOperation? It should be a StateLess module no ?
 

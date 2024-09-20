@@ -34,7 +34,10 @@ import org.apache.tuweni.bytes.Bytes;
 @Accessors(fluent = true)
 public class Euc implements OperationSetModule<EucOperation> {
   private final Wcp wcp;
-  @Getter private final ModuleOperationStackedSet<EucOperation> operations = new ModuleOperationStackedSet<>();
+
+  @Getter
+  private final ModuleOperationStackedSet<EucOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {

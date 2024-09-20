@@ -41,7 +41,8 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Accessors(fluent = true)
 public class Blockhash implements OperationSetModule<BlockhashOperation> {
   private final Wcp wcp;
-  private final ModuleOperationStackedSet<BlockhashOperation> operations = new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<BlockhashOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   List<BlockhashOperation> sortedOperations;
 

@@ -61,7 +61,10 @@ public class RomLex
 
   private final Hub hub;
 
-  @Getter private final ModuleOperationStackedSet<RomOperation> operations = new ModuleOperationStackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<RomOperation> operations =
+      new ModuleOperationStackedSet<>();
+
   @Getter private List<RomOperation> sortedOperations;
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;

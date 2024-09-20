@@ -39,7 +39,9 @@ public class Stp implements OperationSetModule<StpOperation> {
   private final Wcp wcp;
   private final Mod mod;
 
-  @Getter private final ModuleOperationStackedSet<StpOperation> operations = new ModuleOperationStackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<StpOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   public void call(StpCall stpCall) {
     final StpOperation stpOperation = new StpOperation(stpCall);

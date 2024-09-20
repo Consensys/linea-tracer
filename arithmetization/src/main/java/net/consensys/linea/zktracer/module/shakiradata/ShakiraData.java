@@ -34,7 +34,10 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class ShakiraData implements OperationListModule<ShakiraDataOperation> {
-  @Getter private final ModuleOperationStackedList<ShakiraDataOperation> operations = new ModuleOperationStackedList<>();
+  @Getter
+  private final ModuleOperationStackedList<ShakiraDataOperation> operations =
+      new ModuleOperationStackedList<>();
+
   private final Wcp wcp;
 
   private final Sha256Blocks sha256Blocks;

@@ -35,7 +35,9 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class TxnData implements OperationListModule<TxndataOperation> {
-  @Getter private final ModuleOperationStackedList<TxndataOperation> operations = new ModuleOperationStackedList<>();
+  @Getter
+  private final ModuleOperationStackedList<TxndataOperation> operations =
+      new ModuleOperationStackedList<>();
 
   private final Wcp wcp;
   private final Euc euc;

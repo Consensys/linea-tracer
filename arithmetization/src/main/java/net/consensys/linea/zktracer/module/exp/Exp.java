@@ -36,7 +36,9 @@ public class Exp implements OperationSetModule<ExpOperation> {
   private final Hub hub;
   private final Wcp wcp;
 
-  @Getter private final ModuleOperationStackedSet<ExpOperation> operations = new ModuleOperationStackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<ExpOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {

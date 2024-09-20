@@ -44,7 +44,8 @@ public class EcData implements OperationListModule<EcDataOperation> {
   public static final Set<Address> EC_PRECOMPILES =
       Set.of(Address.ECREC, Address.ALTBN128_ADD, Address.ALTBN128_MUL, Address.ALTBN128_PAIRING);
 
-  private final ModuleOperationStackedList<EcDataOperation> operations = new ModuleOperationStackedList<>();
+  private final ModuleOperationStackedList<EcDataOperation> operations =
+      new ModuleOperationStackedList<>();
 
   private final Wcp wcp;
   private final Ext ext;

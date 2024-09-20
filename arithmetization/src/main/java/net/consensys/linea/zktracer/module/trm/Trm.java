@@ -38,7 +38,8 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Getter
 @Accessors(fluent = true)
 public class Trm implements OperationSetModule<TrmOperation> {
-  private final ModuleOperationStackedSet<TrmOperation> operations = new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<TrmOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   static final int MAX_CT = LLARGE;
   static final int PIVOT_BIT_FLIPS_TO_TRUE = 12;

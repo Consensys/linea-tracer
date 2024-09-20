@@ -31,7 +31,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 public class Shf implements OperationSetModule<ShfOperation> {
 
-  private final ModuleOperationStackedSet<ShfOperation> operations = new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<ShfOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {

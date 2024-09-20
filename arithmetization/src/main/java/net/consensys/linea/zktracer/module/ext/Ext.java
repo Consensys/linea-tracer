@@ -36,7 +36,9 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Ext implements OperationSetModule<ExtOperation> {
   private final Hub hub;
 
-  @Getter private final ModuleOperationStackedSet<ExtOperation> operations = new ModuleOperationStackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<ExtOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {

@@ -33,7 +33,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Getter
 @Accessors(fluent = true)
 public class Mod implements OperationSetModule<ModOperation> {
-  private final ModuleOperationStackedSet<ModOperation> operations = new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<ModOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {

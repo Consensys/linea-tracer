@@ -34,7 +34,9 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Mul implements OperationSetModule<MulOperation> {
   private final Hub hub;
 
-  @Getter private final ModuleOperationStackedSet<MulOperation> operations = new ModuleOperationStackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<MulOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {

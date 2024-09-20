@@ -33,7 +33,10 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class Mmu implements OperationListModule<MmuOperation> {
-  @Getter private final ModuleOperationStackedList<MmuOperation> operations = new ModuleOperationStackedList<>();
+  @Getter
+  private final ModuleOperationStackedList<MmuOperation> operations =
+      new ModuleOperationStackedList<>();
+
   private final Euc euc;
   private final Wcp wcp;
 

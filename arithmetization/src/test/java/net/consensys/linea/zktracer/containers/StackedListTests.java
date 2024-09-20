@@ -53,7 +53,8 @@ public class StackedListTests {
 
   @Test
   void testAddedToFront() {
-    final ModuleOperationStackedList<IntegerModuleOperation> state = new ModuleOperationStackedList<>();
+    final ModuleOperationStackedList<IntegerModuleOperation> state =
+        new ModuleOperationStackedList<>();
 
     state.enter();
     state.add(new IntegerModuleOperation(1));

@@ -33,7 +33,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 @RequiredArgsConstructor
 public class Mxp implements OperationListModule<MxpOperation> {
 
-  private final ModuleOperationStackedList<MxpOperation> operations = new ModuleOperationStackedList<>();
+  private final ModuleOperationStackedList<MxpOperation> operations =
+      new ModuleOperationStackedList<>();
 
   @Override
   public String moduleKey() {

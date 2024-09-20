@@ -46,7 +46,9 @@ public class Oob implements OperationListModule<OobOperation> {
   private final Mod mod;
   private final Wcp wcp;
 
-  @Getter private final ModuleOperationStackedList<OobOperation> operations = new ModuleOperationStackedList<>();
+  @Getter
+  private final ModuleOperationStackedList<OobOperation> operations =
+      new ModuleOperationStackedList<>();
 
   @Override
   public String moduleKey() {

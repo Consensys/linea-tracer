@@ -41,14 +41,22 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @RequiredArgsConstructor
 public class Wcp implements Module {
 
-  private final ModuleOperationStackedSet<WcpOperation> ltOperations = new ModuleOperationStackedSet<>();
-  private final ModuleOperationStackedSet<WcpOperation> leqOperations = new ModuleOperationStackedSet<>();
-  private final ModuleOperationStackedSet<WcpOperation> gtOperations = new ModuleOperationStackedSet<>();
-  private final ModuleOperationStackedSet<WcpOperation> geqOperations = new ModuleOperationStackedSet<>();
-  private final ModuleOperationStackedSet<WcpOperation> sltOperations = new ModuleOperationStackedSet<>();
-  private final ModuleOperationStackedSet<WcpOperation> sgtOperations = new ModuleOperationStackedSet<>();
-  private final ModuleOperationStackedSet<WcpOperation> eqOperations = new ModuleOperationStackedSet<>();
-  private final ModuleOperationStackedSet<WcpOperation> isZeroOperations = new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<WcpOperation> ltOperations =
+      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<WcpOperation> leqOperations =
+      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<WcpOperation> gtOperations =
+      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<WcpOperation> geqOperations =
+      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<WcpOperation> sltOperations =
+      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<WcpOperation> sgtOperations =
+      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<WcpOperation> eqOperations =
+      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedSet<WcpOperation> isZeroOperations =
+      new ModuleOperationStackedSet<>();
 
   /**
    * For perf, we split the WcpOperations into different StackedSet in order to - have smaller

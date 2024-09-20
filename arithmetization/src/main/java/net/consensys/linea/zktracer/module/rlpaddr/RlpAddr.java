@@ -61,7 +61,9 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
-  @Getter private final ModuleOperationStackedSet<RlpAddrOperation> operations = new ModuleOperationStackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<RlpAddrOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   private static final Bytes CREATE2_SHIFT = Bytes.minimalBytes(GlobalConstants.CREATE2_SHIFT);
   private static final Bytes INT_SHORT = Bytes.minimalBytes(RLP_PREFIX_INT_SHORT);

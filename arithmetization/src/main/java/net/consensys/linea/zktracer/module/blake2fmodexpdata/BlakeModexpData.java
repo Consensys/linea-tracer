@@ -39,7 +39,8 @@ public class BlakeModexpData implements OperationListModule<BlakeModexpDataOpera
   private final BlakeEffectiveCall blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
 
-  private final ModuleOperationStackedList<BlakeModexpDataOperation> operations = new ModuleOperationStackedList<>();
+  private final ModuleOperationStackedList<BlakeModexpDataOperation> operations =
+      new ModuleOperationStackedList<>();
 
   private long previousID = 0;
 

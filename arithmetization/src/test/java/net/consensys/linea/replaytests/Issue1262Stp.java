@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 @Tag("replay")
 public class Issue1262Stp {
   @Test
-  void leoFailingRange() {
-    replay(LINEA_MAINNET, "5070155-5010199.json.gz");
+  void stpFails() {
+    replay(LINEA_MAINNET, "5070155-5070199.json.gz");
   }
 }

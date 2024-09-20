@@ -214,13 +214,16 @@ public class MmioData {
   }
 
   public void oneToOnePadded(
-      final Bytes16 sourceBytes, final short sourceOffsetTrigger, final short size) {
+      final Bytes16 sourceBytes,
+      final short sourceOffsetTrigger,
+      final short targetByteOffsetTrigger,
+      final short size) {
 
     for (short ct = 0; ct < LLARGE; ct++) {
 
       bit1.add(ct, plateau(sourceOffsetTrigger, ct));
       bit2.add(ct, plateau(sourceOffsetTrigger + size, ct));
-      bit3.add(ct, plateau(size, ct));
+      bit3.add(ct, plateau(targetByteOffsetTrigger + size, ct));
     }
     acc1 = isolateChunk(sourceBytes, bit1, bit2);
     pow2561 = power(bit3);
@@ -241,13 +244,14 @@ public class MmioData {
       final Bytes16 sourceBytes1,
       final Bytes16 sourceBytes2,
       final short sourceOffsetTrigger,
+      final short targetOffsetTrigger,
       final short size) {
 
     for (short ct = 0; ct < LLARGE; ct++) {
       bit1.add(ct, plateau(sourceOffsetTrigger, ct));
       bit2.add(ct, plateau(sourceOffsetTrigger + size - LLARGE, ct));
-      bit3.add(ct, plateau(LLARGE - sourceOffsetTrigger, ct));
-      bit4.add(ct, plateau(size, ct));
+      bit3.add(ct, plateau(targetOffsetTrigger + LLARGE - sourceOffsetTrigger, ct));
+      bit4.add(ct, plateau(targetOffsetTrigger + size, ct));
     }
     acc1 = isolateSuffix(sourceBytes1, bit1);
     acc2 = isolatePrefix(sourceBytes2, bit2);

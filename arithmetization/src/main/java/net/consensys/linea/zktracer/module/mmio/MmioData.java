@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer.module.mmio;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGEMO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_TO_RAM_ONE_TARGET;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_TO_RAM_TRANSPLANT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_TO_RAM_TWO_TARGET;
@@ -219,8 +221,13 @@ public class MmioData {
       final short targetByteOffsetTrigger,
       final short size) {
 
-    for (short ct = 0; ct < LLARGE; ct++) {
+    checkArgument(sourceOffsetTrigger <= LLARGEMO);
+    checkArgument(size <= LLARGE);
+    checkArgument(sourceOffsetTrigger + size - 1 <= LLARGEMO);
+    checkArgument(targetByteOffsetTrigger <= LLARGEMO);
+    checkArgument(targetByteOffsetTrigger + size - 1 <= LLARGEMO);
 
+    for (short ct = 0; ct < LLARGE; ct++) {
       bit1.add(ct, plateau(sourceOffsetTrigger, ct));
       bit2.add(ct, plateau(sourceOffsetTrigger + size, ct));
       bit3.add(ct, plateau(targetByteOffsetTrigger + size, ct));
@@ -246,6 +253,12 @@ public class MmioData {
       final short sourceOffsetTrigger,
       final short targetOffsetTrigger,
       final short size) {
+
+    checkArgument(sourceOffsetTrigger <= LLARGEMO);
+    checkArgument(size <= LLARGE);
+    checkArgument(sourceOffsetTrigger + size - 1 > LLARGEMO);
+    checkArgument(targetOffsetTrigger <= LLARGEMO);
+    checkArgument(targetOffsetTrigger + size - 1 <= LLARGEMO);
 
     for (short ct = 0; ct < LLARGE; ct++) {
       bit1.add(ct, plateau(sourceOffsetTrigger, ct));

@@ -217,20 +217,20 @@ public class MmioData {
 
   public void oneToOnePadded(
       final Bytes16 sourceBytes,
-      final short sourceOffsetTrigger,
-      final short targetByteOffsetTrigger,
+      final short sourceByteOffset,
+      final short targetByteOffset,
       final short size) {
 
-    checkArgument(sourceOffsetTrigger <= LLARGEMO);
-    checkArgument(size <= LLARGE);
-    checkArgument(sourceOffsetTrigger + size - 1 <= LLARGEMO);
-    checkArgument(targetByteOffsetTrigger <= LLARGEMO);
-    checkArgument(targetByteOffsetTrigger + size - 1 <= LLARGEMO);
+    checkArgument(0 <= sourceByteOffset && sourceByteOffset <= LLARGEMO);
+    checkArgument(0 < size && size <= LLARGE);
+    checkArgument(sourceByteOffset + size - 1 <= LLARGEMO);
+    checkArgument(0 <= targetByteOffset && targetByteOffset <= LLARGEMO);
+    checkArgument(targetByteOffset + size - 1 <= LLARGEMO);
 
     for (short ct = 0; ct < LLARGE; ct++) {
-      bit1.add(ct, plateau(sourceOffsetTrigger, ct));
-      bit2.add(ct, plateau(sourceOffsetTrigger + size, ct));
-      bit3.add(ct, plateau(targetByteOffsetTrigger + size, ct));
+      bit1.add(ct, plateau(sourceByteOffset, ct));
+      bit2.add(ct, plateau(sourceByteOffset + size, ct));
+      bit3.add(ct, plateau(targetByteOffset + size, ct));
     }
     acc1 = isolateChunk(sourceBytes, bit1, bit2);
     pow2561 = power(bit3);
@@ -250,21 +250,21 @@ public class MmioData {
   public void twoToOnePadded(
       final Bytes16 sourceBytes1,
       final Bytes16 sourceBytes2,
-      final short sourceOffsetTrigger,
-      final short targetOffsetTrigger,
+      final short sourceByteOffset,
+      final short targetByteOffset,
       final short size) {
 
-    checkArgument(sourceOffsetTrigger <= LLARGEMO);
-    checkArgument(size <= LLARGE);
-    checkArgument(sourceOffsetTrigger + size - 1 > LLARGEMO);
-    checkArgument(targetOffsetTrigger <= LLARGEMO);
-    checkArgument(targetOffsetTrigger + size - 1 <= LLARGEMO);
+    checkArgument(0 <= sourceByteOffset && sourceByteOffset <= LLARGEMO);
+    checkArgument(0 < size && size <= LLARGE);
+    checkArgument(sourceByteOffset + size - 1 > LLARGEMO);
+    checkArgument(0 <= targetByteOffset && targetByteOffset <= LLARGEMO);
+    checkArgument(targetByteOffset + size - 1 <= LLARGEMO);
 
     for (short ct = 0; ct < LLARGE; ct++) {
-      bit1.add(ct, plateau(sourceOffsetTrigger, ct));
-      bit2.add(ct, plateau(sourceOffsetTrigger + size - LLARGE, ct));
-      bit3.add(ct, plateau(targetOffsetTrigger + LLARGE - sourceOffsetTrigger, ct));
-      bit4.add(ct, plateau(targetOffsetTrigger + size, ct));
+      bit1.add(ct, plateau(sourceByteOffset, ct));
+      bit2.add(ct, plateau(sourceByteOffset + size - LLARGE, ct));
+      bit3.add(ct, plateau(targetByteOffset + LLARGE - sourceByteOffset, ct));
+      bit4.add(ct, plateau(targetByteOffset + size, ct));
     }
     acc1 = isolateSuffix(sourceBytes1, bit1);
     acc2 = isolatePrefix(sourceBytes2, bit2);

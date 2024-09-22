@@ -18,9 +18,18 @@ import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @Tag("replay")
 public class ReplayTests {
@@ -187,5 +196,44 @@ public class ReplayTests {
   @Test
   void legacyTxWithoutChainID() {
     replay(LINEA_SEPOLIA, "254251.sepolia.json.gz");
+  }
+
+  static List<Arguments> blockNumbers = new ArrayList<>();
+
+  @ParameterizedTest
+  @MethodSource("replayBlockTestSource")
+  void replayBlockTest(int blockNumber) {
+    // TODO: fix issue with paths
+    File file = new File("arithmetization/src/test/resources/replays/" + blockNumber + ".json.gz");
+    if (!file.exists()) {
+      String command = "./scripts/capture.pl --start " + blockNumber;
+      try {
+        // Execute the command
+        Process process = Runtime.getRuntime().exec(command);
+        process.waitFor();
+      } catch (InterruptedException | IOException e) {
+        e.printStackTrace();
+      }
+    }
+    // replay(LINEA_MAINNET, blockNumber + ".json.gz");
+    System.out.println("Replaying block " + blockNumber);
+  }
+
+  static Stream<Arguments> replayBlockTestSource() {
+    // Example of how to add a range
+    add(2435888, 2435889);
+    // Example of how to add a single block
+    add(2435890);
+    return blockNumbers.stream();
+  }
+
+  private static void add(int start, int end) {
+    for (int i = start; i <= end; i++) {
+      blockNumbers.add(Arguments.of(i));
+    }
+  }
+
+  private static void add(int start) {
+    blockNumbers.add(Arguments.of(start));
   }
 }

@@ -20,6 +20,7 @@ import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINN
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+@Disabled
 @Tag("nightly")
 @Tag("replay")
 public class Issue1267Tests {

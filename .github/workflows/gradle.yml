@@ -22,16 +22,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
 
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: temurin
@@ -42,7 +42,7 @@ jobs:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
       - name: Store distribution artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: distributions
           path: arithmetization/build/libs
@@ -64,7 +64,7 @@ jobs:
             ${{ secrets.CONSTRAINTS_SSH_KEY }}
 
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: false
 
@@ -72,7 +72,7 @@ jobs:
         run: git submodule update --init --recursive linea-constraints
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: temurin
@@ -114,7 +114,7 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: unit-test-report
           path: arithmetization/build/reports/tests/**/*
@@ -133,7 +133,7 @@ jobs:
           ssh-private-key: |
             ${{ secrets.CONSTRAINTS_SSH_KEY }}
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           submodules: false
 
@@ -141,7 +141,7 @@ jobs:
         run: git submodule update --init --recursive linea-constraints
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: temurin
@@ -153,7 +153,7 @@ jobs:
         run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.13 --locked --force
 
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
 
       - name: Install Go Corset
         run:

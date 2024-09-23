@@ -129,7 +129,7 @@ public class Issue1280Tests {
   /** failing range */
   @Test
   void issue1280_range_4065365_4065369() {
-    replay(LINEA_MAINNET, "4065365-4065369.json.gz");
+    replay(LINEA_MAINNET, "4065365-4065369.json.gz", false);
   }
 
   @Test

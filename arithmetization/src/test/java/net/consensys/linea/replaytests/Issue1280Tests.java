@@ -126,7 +126,7 @@ public class Issue1280Tests {
     replay(LINEA_MAINNET, "4065360-4065364.json.gz");
   }
 
-  /** failing range */
+  /** this range fails if you use the default resultChecking == true */
   @Test
   void issue1280_range_4065365_4065369() {
     replay(LINEA_MAINNET, "4065365-4065369.json.gz", false);

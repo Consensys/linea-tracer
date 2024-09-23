@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
+import java.util.concurrent.CompletableFuture;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
@@ -99,27 +99,28 @@ public class BlockchainReferenceTestTools {
     // utility class
   }
 
-  public static Set<String> getRecordedFailedTestsFromJson(
-      String failedModule, String failedConstraint)
-      throws ExecutionException, InterruptedException {
+  public static CompletableFuture<Set<String>> getRecordedFailedTestsFromJson(
+      String failedModule, String failedConstraint) {
     Set<String> failedTests = new HashSet<>();
-    String jsonString = readFailedTestsOutput(JSON_OUTPUT_FILENAME).get();
-    JsonConverter jsonConverter = JsonConverter.builder().build();
-    List<ModuleToConstraints> modulesToConstraints =
-        getModulesToConstraints(jsonString, jsonConverter);
-
     if (failedModule.isEmpty()) {
-      return failedTests;
-    } else {
-      ModuleToConstraints filteredFailedTests = getModule(modulesToConstraints, failedModule);
-      if (filteredFailedTests == null) {
-        return failedTests;
-      }
-      if (!failedConstraint.isEmpty()) {
-        return filteredFailedTests.getFailedTests(failedConstraint);
-      }
-      return filteredFailedTests.getFailedTests();
+      return CompletableFuture.completedFuture(failedTests);
     }
+    JsonConverter jsonConverter = JsonConverter.builder().build();
+    CompletableFuture<List<ModuleToConstraints>> modulesToConstraintsFutures =
+        readFailedTestsOutput(JSON_OUTPUT_FILENAME)
+            .thenApply(jsonString -> getModulesToConstraints(jsonString, jsonConverter));
+
+    return modulesToConstraintsFutures.thenApply(
+        modulesToConstraints -> {
+          ModuleToConstraints filteredFailedTests = getModule(modulesToConstraints, failedModule);
+          if (filteredFailedTests == null) {
+            return failedTests;
+          }
+          if (!failedConstraint.isEmpty()) {
+            return filteredFailedTests.getFailedTests(failedConstraint);
+          }
+          return filteredFailedTests.getFailedTests();
+        });
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(final String[] filePath) {
@@ -131,8 +132,7 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(
-      final String[] filePath, String failedModule, String failedConstraint)
-      throws ExecutionException, InterruptedException {
+      final String[] filePath, String failedModule, String failedConstraint) {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     Collection<Object[]> params =
         PARAMS.generate(
@@ -140,8 +140,11 @@ public class BlockchainReferenceTestTools {
                 .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
                 .toList());
 
-    Set<String> failedTests = getRecordedFailedTestsFromJson(failedModule, failedConstraint);
-    params.forEach(param -> markTestToRun(param, failedTests));
+    getRecordedFailedTestsFromJson(failedModule, failedConstraint)
+        .thenAccept(
+            failedTests -> {
+              params.forEach(param -> markTestToRun(param, failedTests));
+            });
 
     return params;
   }

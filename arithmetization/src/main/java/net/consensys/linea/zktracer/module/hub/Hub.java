@@ -447,6 +447,8 @@ public class Hub implements Module {
 
   @Override
   public void enterTransaction() {
+    transients.conflation().stackHeightChecksForStackUnderflows().enter();
+    transients.conflation().stackHeightChecksForStackOverflows().enter();
     for (Module m : modules) {
       m.enterTransaction();
     }
@@ -456,6 +458,8 @@ public class Hub implements Module {
   public void popTransaction() {
     txStack.pop();
     state.pop();
+    transients.conflation().stackHeightChecksForStackUnderflows().pop();
+    transients.conflation().stackHeightChecksForStackOverflows().pop();
     for (Module m : modules) {
       m.popTransaction();
     }

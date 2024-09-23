@@ -200,23 +200,24 @@ public class ReplayTests {
 
   static List<Arguments> blockNumbers = new ArrayList<>();
 
+  @Disabled
   @ParameterizedTest
   @MethodSource("replayBlockTestSource")
   void replayBlockTest(int blockNumber) {
-    // TODO: fix issue with paths
-    File file = new File("arithmetization/src/test/resources/replays/" + blockNumber + ".json.gz");
+    File file =
+        new File("../arithmetization/src/test/resources/replays/" + blockNumber + ".json.gz");
     if (!file.exists()) {
-      String command = "./scripts/capture.pl --start " + blockNumber;
+      String[] cmd = {"./scripts/capture.pl", "--start", String.valueOf(blockNumber)};
       try {
-        // Execute the command
-        Process process = Runtime.getRuntime().exec(command);
+        ProcessBuilder processBuilder = new ProcessBuilder(cmd);
+        processBuilder.directory(new File("../"));
+        Process process = processBuilder.start();
         process.waitFor();
       } catch (InterruptedException | IOException e) {
         e.printStackTrace();
       }
     }
-    // replay(LINEA_MAINNET, blockNumber + ".json.gz");
-    System.out.println("Replaying block " + blockNumber);
+    replay(LINEA_MAINNET, blockNumber + ".json.gz");
   }
 
   static Stream<Arguments> replayBlockTestSource() {

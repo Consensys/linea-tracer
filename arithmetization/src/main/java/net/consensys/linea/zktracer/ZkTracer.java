@@ -183,6 +183,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         }
         m.commit(buffers);
       }
+      file.getChannel().force(false);
     } catch (IOException e) {
       log.error("Error while writing to the file {}", filename);
       throw new RuntimeException(e);

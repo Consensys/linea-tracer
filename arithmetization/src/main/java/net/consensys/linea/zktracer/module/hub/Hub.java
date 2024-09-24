@@ -484,6 +484,8 @@ public class Hub implements Module {
     for (Module m : modules) {
       m.traceEndConflation(world);
     }
+    // Print all the account maps
+    printAccountMaps();
   }
 
   @Override
@@ -1428,6 +1430,66 @@ public class Hub implements Module {
           conflationMapStorage.put(addrStorageKeyPair, conflationValueLast);
         }
       }
+    }
+  }
+
+  // Print all the account maps
+  public void printAccountMaps() {
+    // Print txnMaps
+    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+    for (var metadata : txn) {
+      Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+          txnMapAccount = metadata.getAccountFirstAndLastMap();
+      for (Address addr : txnMapAccount.keySet()) {
+        var txnValue = txnMapAccount.get(addr);
+        System.out.println(
+            "txn level map: addr: "
+                + addr
+                + ": first dom: "
+                + txnValue.getFirstDom()
+                + ", first sub: "
+                + txnValue.getFirstSub()
+                + ": last dom: "
+                + txnValue.getLastDom()
+                + ", last sub: "
+                + txnValue.getLastSub());
+      }
+    }
+
+    // Print blockMaps
+    var blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
+    for (var addrBlockPair : blockMapAccount.keySet()) {
+      var blockValue = blockMapAccount.get(addrBlockPair);
+      System.out.println(
+          "block level map: addr: "
+              + addrBlockPair.getAddress()
+              + ": block: "
+              + addrBlockPair.getBlockNumber()
+              + ": first dom: "
+              + blockValue.getFirstDom()
+              + ", first sub: "
+              + blockValue.getFirstSub()
+              + ": last dom: "
+              + blockValue.getLastDom()
+              + ", last sub: "
+              + blockValue.getLastSub());
+    }
+
+    // Print conflationMaps
+    var conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
+    for (var addr : conflationMapAccount.keySet()) {
+      var conflationValue = conflationMapAccount.get(addr);
+      System.out.println(
+          "conflation level map: addr: "
+              + addr
+              + ": first dom: "
+              + conflationValue.getFirstDom()
+              + ", first sub: "
+              + conflationValue.getFirstSub()
+              + ": last dom: "
+              + conflationValue.getLastDom()
+              + ", last sub: "
+              + conflationValue.getLastSub());
     }
   }
 }

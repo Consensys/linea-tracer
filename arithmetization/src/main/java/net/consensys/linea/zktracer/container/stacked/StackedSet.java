@@ -59,8 +59,8 @@ public class StackedSet<E> {
     operationsInTransaction().clear();
   }
 
-  public boolean add(E e) {
-    return operationsInTransaction().add(e);
+  public void add(E e) {
+    operationsInTransaction().add(e);
   }
 
   void deleteDuplicate() {

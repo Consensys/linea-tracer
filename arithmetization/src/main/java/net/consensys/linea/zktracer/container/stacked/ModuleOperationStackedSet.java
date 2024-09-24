@@ -82,6 +82,9 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   public int lineCount() {
     super.deleteDuplicate();
     duplicateAlreadyRemoved = true;
+    for (var operation : operationsInTransaction()) {
+      lineCounter.add(operation.lineCount());
+    }
     return lineCounter.lineCount();
   }
 
@@ -98,20 +101,14 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
     return operationsInTransaction().contains(o) || operationsCommitedToTheConflation().contains(o);
   }
 
-  public boolean add(E e) {
-    if (!operationsCommitedToTheConflation().contains(e)) {
-      final boolean isNew = operationsInTransaction().add(e);
-      if (isNew) {
-        lineCounter.add(e.lineCount());
-      }
-      return isNew;
-    } else {
+  public void add(E e) {
+    final boolean isNew = operationsInTransaction().add(e);
+    if (!isNew) {
       log.trace(
           "Operation of type {} was already in operationsCommitedToTheConflation hashset, reference is ",
           e.getClass().getName(),
           e);
     }
-    return false;
   }
 
   public boolean containsAll(@NotNull Collection<?> c) {
@@ -123,12 +120,10 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
     return true;
   }
 
-  public boolean addAll(@NotNull Collection<? extends E> c) {
-    boolean r = false;
+  public void addAll(@NotNull Collection<? extends E> c) {
     for (var x : c) {
-      r |= add(x);
+      add(x);
     }
-    return r;
   }
 
   public void clear() {

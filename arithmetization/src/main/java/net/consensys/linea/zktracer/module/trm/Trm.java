@@ -59,33 +59,6 @@ public class Trm implements OperationSetModule<TrmOperation> {
     return callTrimming(addressPadded);
   }
 
-  //TODO: check if this is still needed, as we should trigger it when creating Acc fragment in Warming Phase
-  @Override
-  public void traceStartTx(WorldView world, TransactionProcessingMetadata txMetaData) {
-    // Add effective receiver Address
-    operations.add(new TrmOperation(EWord.of(txMetaData.getEffectiveRecipient())));
-
-    // Add Address in AccessList to warm
-    final Transaction tx = txMetaData.getBesuTransaction();
-    final TransactionType txType = tx.getType();
-
-    switch (txType) {
-      case ACCESS_LIST, EIP1559 -> {
-        if (tx.getAccessList().isPresent()) {
-          for (AccessListEntry entry : tx.getAccessList().get()) {
-            operations.add(new TrmOperation(EWord.of(entry.address())));
-          }
-        }
-      }
-      case FRONTIER -> {
-        return;
-      }
-      default -> {
-        throw new IllegalStateException("TransactionType not supported: " + txType);
-      }
-    }
-  }
-
   @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());

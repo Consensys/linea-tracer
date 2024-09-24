@@ -55,10 +55,11 @@ public class Trm implements OperationSetModule<TrmOperation> {
   }
 
   public Address callTrimming(Bytes addressToTrim) {
-    Bytes32 addressPadded = Bytes32.leftPad(addressToTrim);
+    final Bytes32 addressPadded = Bytes32.leftPad(addressToTrim);
     return callTrimming(addressPadded);
   }
 
+  //TODO: check if this is still needed, as we should trigger it when creating Acc fragment in Warming Phase
   @Override
   public void traceStartTx(WorldView world, TransactionProcessingMetadata txMetaData) {
     // Add effective receiver Address

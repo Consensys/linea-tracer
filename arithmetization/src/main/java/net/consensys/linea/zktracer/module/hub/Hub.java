@@ -880,21 +880,17 @@ public class Hub implements Module {
   }
 
   public CallFrame currentFrame() {
-    if (this.callStack().isEmpty()) {
-      return CallFrame.EMPTY;
-    }
-    return callStack.currentCallFrame();
+    return callStack().isEmpty() ? CallFrame.EMPTY : callStack.currentCallFrame();
   }
 
   public final MessageFrame messageFrame() {
-    final MessageFrame frame = callStack.currentCallFrame().frame();
-    return frame;
+    return callStack.currentCallFrame().frame();
   }
 
   private void handleStack(MessageFrame frame) {
     this.currentFrame()
         .stack()
-        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * state.stamps().hub());
+        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * stamp());
   }
 
   void triggerModules(MessageFrame frame) {
@@ -921,24 +917,6 @@ public class Hub implements Module {
     }
     if (pch.signals().shf()) {
       shf.tracePreOpcode(frame);
-    }
-    if (pch.signals().mxp()) {
-      mxp.tracePreOpcode(frame);
-    }
-    if (pch.signals().oob()) {
-      oob.tracePreOpcode(frame);
-    }
-    if (pch.signals().stp()) {
-      stp.tracePreOpcode(frame);
-    }
-    if (pch.signals().exp()) {
-      exp.tracePreOpcode(frame);
-    }
-    if (pch.signals().trm()) {
-      trm.tracePreOpcode(frame);
-    }
-    if (pch.signals().hashInfo()) {
-      // TODO: this.hashInfo.tracePreOpcode(frame);
     }
     if (pch.signals().blockhash()) {
       blockhash.tracePreOpcode(frame);
@@ -1008,10 +986,8 @@ public class Hub implements Module {
     if (currentFrame().stack().isOk()) {
       this.traceOpcode(frame);
     } else {
-
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
-
       new EarlyExceptionSection(this);
     }
 

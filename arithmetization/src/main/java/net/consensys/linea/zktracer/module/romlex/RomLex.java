@@ -264,7 +264,7 @@ public class RomLex
   }
 
   // This is the tracing for ROMLEX module
-  private void traceChunk(
+  private void traceOperation(
       final RomOperation operation,
       final int cfi,
       final int codeFragmentIndexInfinity,
@@ -318,8 +318,8 @@ public class RomLex
     final int codeFragmentIndexInfinity = operations.size();
 
     int cfi = 0;
-    for (RomOperation chunk : sortedOperations) {
-      traceChunk(chunk, ++cfi, codeFragmentIndexInfinity, trace);
+    for (RomOperation operation : sortedOperations) {
+      traceOperation(operation, ++cfi, codeFragmentIndexInfinity, trace);
     }
   }
 

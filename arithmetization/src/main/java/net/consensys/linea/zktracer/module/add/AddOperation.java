@@ -34,8 +34,8 @@ public final class AddOperation extends ModuleOperation {
   @EqualsAndHashCode.Include private final OpCode opCode;
   @EqualsAndHashCode.Include private final Bytes32 arg1;
   @EqualsAndHashCode.Include private final Bytes32 arg2;
-  private BaseBytes res;
-  private int ctMax;
+  private final BaseBytes res;
+  private final int ctMax;
 
   /**
    * Returns the appropriate state of the overflow bit depending on the position within the cycle.
@@ -62,16 +62,13 @@ public final class AddOperation extends ModuleOperation {
     this.opCode = opCode;
     this.arg1 = Bytes32.leftPad(arg1);
     this.arg2 = Bytes32.leftPad(arg2);
+    this.res = Adder.addSub(opCode, this.arg1, this.arg2);
+    this.ctMax = Math.max(
+            1,
+            Math.max(res.getHigh().trimLeadingZeros().size(), res.getLow().trimLeadingZeros().size())
+                    - 1);
   }
-
-  private int computeCtMax() {
-    res = Adder.addSub(opCode, arg1, arg2);
-    return Math.max(
-        1,
-        Math.max(res.getHigh().trimLeadingZeros().size(), res.getLow().trimLeadingZeros().size())
-            - 1);
-  }
-
+  
   void trace(int stamp, Trace trace) {
     final Bytes16 arg1Hi = Bytes16.wrap(arg1.slice(0, 16));
     final Bytes16 arg1Lo = Bytes16.wrap(arg1.slice(16));
@@ -132,7 +129,6 @@ public final class AddOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    ctMax = computeCtMax();
     return ctMax + 1;
   }
 }

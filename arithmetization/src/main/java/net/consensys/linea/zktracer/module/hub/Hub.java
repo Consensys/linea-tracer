@@ -203,7 +203,7 @@ public class Hub implements Module {
 
   private final Add add = new Add();
   private final Bin bin = new Bin();
-  private final Blockhash blockhash = new Blockhash(wcp);
+  private final Blockhash blockhash = new Blockhash(this, wcp);
   private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   private final Gas gas = new Gas();
@@ -828,35 +828,6 @@ public class Hub implements Module {
 
     if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
       this.unlatchStack(frame);
-    }
-
-    switch (this.opCodeData().instructionFamily()) {
-      case ADD -> {}
-      case MOD -> {}
-      case MUL -> {}
-      case EXT -> {}
-      case WCP -> {}
-      case BIN -> {}
-      case SHF -> {}
-      case KEC -> {}
-      case CONTEXT -> {}
-      case ACCOUNT -> {}
-      case COPY -> {}
-      case TRANSACTION -> {}
-      case BATCH -> blockhash.tracePostOpcode(frame);
-      case STACK_RAM -> {}
-      case STORAGE -> {}
-      case JUMP -> {}
-      case MACHINE_STATE -> {}
-      case PUSH_POP -> {}
-      case DUP -> {}
-      case SWAP -> {}
-      case LOG -> {}
-      case CREATE -> romLex.tracePostOpcode(frame);
-      case CALL -> {}
-      case HALT -> {}
-      case INVALID -> {}
-      default -> {}
     }
   }
 

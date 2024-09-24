@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -48,16 +47,12 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class RomLex
-    implements OperationSetModule<RomOperation>,
-        PostOpcodeDefer,
-        ImmediateContextEntryDefer,
-        ContextExitDefer {
+    implements OperationSetModule<RomOperation>, ImmediateContextEntryDefer, ContextExitDefer {
 
   private final Hub hub;
 
@@ -245,10 +240,6 @@ public class RomLex
       }
     }
   }
-
-  @Override
-  public void resolvePostExecution(
-      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {}
 
   @Override
   public void resolveUponContextEntry(Hub hub) {

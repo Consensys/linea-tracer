@@ -18,7 +18,7 @@ package net.consensys.linea;
 import static net.consensys.linea.FailedTestJson.readFailedTestsOutput;
 import static net.consensys.linea.MapFailedReferenceTestsTool.getModule;
 import static net.consensys.linea.MapFailedReferenceTestsTool.getModulesToConstraints;
-import static net.consensys.linea.ReferenceTestWatcher.JSON_OUTPUT_FILENAME;
+import static net.consensys.linea.ReferenceTestWatcher.JSON_INPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Paths;
@@ -107,7 +107,7 @@ public class BlockchainReferenceTestTools {
     }
     JsonConverter jsonConverter = JsonConverter.builder().build();
     CompletableFuture<List<ModuleToConstraints>> modulesToConstraintsFutures =
-        readFailedTestsOutput(JSON_OUTPUT_FILENAME)
+        readFailedTestsOutput(JSON_INPUT_FILENAME)
             .thenApply(jsonString -> getModulesToConstraints(jsonString, jsonConverter));
 
     return modulesToConstraintsFutures.thenApply(

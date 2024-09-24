@@ -41,7 +41,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   private static final Logger log = LoggerFactory.getLogger(ModuleOperationStackedSet.class);
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   @Getter private boolean conflationFinished = false;
-  private boolean duplicateAlreadyRemoved = false;
+  private boolean duplicateAlreadyRemoved = false; // TODO: add documentation about this
 
   public ModuleOperationStackedSet() {
     super();
@@ -62,7 +62,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
    */
   public void enter() {
     if (!duplicateAlreadyRemoved) {
-      deleteDuplicate();
+      lineCount();
     }
     operationsCommitedToTheConflation().addAll(operationsInTransaction());
     operationsInTransaction().clear();
@@ -101,7 +101,11 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
     return operationsInTransaction().contains(o) || operationsCommitedToTheConflation().contains(o);
   }
 
-  public void add(E e) {
+  /**
+   * Warn: as we only check if it's a new operation for the current transaction, it could return
+   * true even if this operation is part of the conflation's already commited operations
+   */
+  public boolean add(E e) {
     final boolean isNew = operationsInTransaction().add(e);
     if (!isNew) {
       log.trace(
@@ -109,6 +113,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
           e.getClass().getName(),
           e);
     }
+    return isNew;
   }
 
   public boolean containsAll(@NotNull Collection<?> c) {
@@ -134,6 +139,9 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
 
   public void finishConflation() {
     conflationFinished = true;
+    if (!duplicateAlreadyRemoved) {
+      lineCount();
+    }
     operationsCommitedToTheConflation().addAll(operationsInTransaction());
     operationsInTransaction().clear();
     lineCounter.enter(); // this is not mandatory but it is more consistent

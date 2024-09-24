@@ -59,8 +59,12 @@ public class StackedSet<E> {
     operationsInTransaction().clear();
   }
 
-  public void add(E e) {
-    operationsInTransaction().add(e);
+  /**
+   * Warn: as we only check if it's a new operation for the current transaction, it could return
+   * true even if this operation is part of the conflation's already commited operations
+   */
+  public boolean add(E e) {
+    return operationsInTransaction().add(e);
   }
 
   void deleteDuplicate() {

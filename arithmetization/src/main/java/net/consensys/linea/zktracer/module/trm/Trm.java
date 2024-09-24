@@ -44,14 +44,13 @@ public class Trm implements OperationSetModule<TrmOperation> {
     return "TRM";
   }
 
-  public Address callTrimming(Bytes32 rawHash) {
-    operations.add(new TrmOperation(EWord.of(rawHash)));
-    return Address.extract(rawHash);
+  public Address callTrimming(Bytes32 rawAddress) {
+    operations.add(new TrmOperation(EWord.of(rawAddress)));
+    return Address.extract(rawAddress);
   }
 
-  public Address callTrimming(Bytes addressToTrim) {
-    final Bytes32 addressPadded = Bytes32.leftPad(addressToTrim);
-    return callTrimming(addressPadded);
+  public Address callTrimming(Bytes rawAddress) {
+    return callTrimming(Bytes32.leftPad(rawAddress));
   }
 
   @Override

@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
 package net.consensys.linea.plugins.rpc.tracegeneration;
 
 import com.google.common.base.MoreObjects;
@@ -24,6 +25,9 @@ class TracesEndpointCliOptions implements LineaCliOptions {
 
   static final String CONFLATED_TRACE_GENERATION_TRACES_OUTPUT_PATH =
       "--plugin-linea-conflated-trace-generation-traces-output-path";
+
+  static final String CONFLATED_TRACE_GENERATION_CONCURRENT_REQUESTS_LIMIT =
+      "--plugin-linea-conflated-trace-generation-concurrent-requests-limit";
 
   @CommandLine.Option(
       required = true,

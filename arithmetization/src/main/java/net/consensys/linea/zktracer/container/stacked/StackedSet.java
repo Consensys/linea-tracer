@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer.container.stacked;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import lombok.Getter;
@@ -24,18 +26,19 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @Getter
 public class StackedSet<E> {
-  private final Set<E> operationsCommitedToTheConflation;
+  private static final int EXPECTED_PROPORTION_OF_DUPLICATE = 1; // TODO: find me !
+  private final ArrayList<E> operationsCommitedToTheConflation;
   private final Set<E> operationsInTransaction;
 
   public StackedSet() {
-    operationsCommitedToTheConflation = new HashSet<>();
+    operationsCommitedToTheConflation = new ArrayList<>();
     operationsInTransaction = new HashSet<>();
   }
 
   /** Prefer this constructor as we preallocate more needed memory */
   public StackedSet(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
-    operationsCommitedToTheConflation = new HashSet<>(expectedConflationNumberOperations);
+    operationsCommitedToTheConflation = new ArrayList<>(expectedConflationNumberOperations);
     operationsInTransaction = new HashSet<>(expectedTransactionNumberOperations);
   }
 
@@ -47,6 +50,7 @@ public class StackedSet<E> {
    * ModuleOperationStackedSet#operationsInTransaction()} is further reset to be empty.
    */
   public void enter() {
+    deleteDuplicate();
     operationsCommitedToTheConflation().addAll(operationsInTransaction());
     operationsInTransaction().clear();
   }
@@ -56,9 +60,17 @@ public class StackedSet<E> {
   }
 
   public boolean add(E e) {
-    if (!operationsCommitedToTheConflation().contains(e)) {
-      return operationsInTransaction().add(e);
+    return operationsInTransaction().add(e);
+  }
+
+  void deleteDuplicate() {
+    final List<E> toRemove =
+        new ArrayList<>(operationsInTransaction().size() * EXPECTED_PROPORTION_OF_DUPLICATE);
+    for (E e : operationsInTransaction()) {
+      if (operationsCommitedToTheConflation().contains(e)) {
+        toRemove.add(e);
+      }
     }
-    return false;
+    toRemove.forEach(operationsInTransaction()::remove);
   }
 }

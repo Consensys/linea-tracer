@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.container.stacked;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -41,6 +41,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   private static final Logger log = LoggerFactory.getLogger(ModuleOperationStackedSet.class);
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   @Getter private boolean conflationFinished = false;
+  private boolean duplicateAlreadyRemoved = false;
 
   public ModuleOperationStackedSet() {
     super();
@@ -60,8 +61,13 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
    * ModuleOperationStackedSet#operationsInTransaction()} is further reset to be empty.
    */
   public void enter() {
-    super.enter();
+    if (!duplicateAlreadyRemoved) {
+      deleteDuplicate();
+    }
+    operationsCommitedToTheConflation().addAll(operationsInTransaction());
+    operationsInTransaction().clear();
     lineCounter.enter();
+    duplicateAlreadyRemoved = false;
   }
 
   public void pop() {
@@ -74,10 +80,12 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   }
 
   public int lineCount() {
+    super.deleteDuplicate();
+    duplicateAlreadyRemoved = true;
     return lineCounter.lineCount();
   }
 
-  public Set<E> getAll() {
+  public ArrayList<E> getAll() {
     Preconditions.checkState(conflationFinished, "Conflation not finished");
     return operationsCommitedToTheConflation();
   }

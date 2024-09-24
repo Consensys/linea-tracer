@@ -61,10 +61,36 @@ public class StackedSetTests {
 
     chunks.enter();
     chunks.add(ONE_PLUS_ONE);
-    Assertions.assertEquals(1, chunks.size());
+    Assertions.assertEquals(2, chunks.size());
     chunks.add(ONE_PLUS_TWO);
+    Assertions.assertEquals(3, chunks.size());
+    chunks.pop();
+    Assertions.assertEquals(1, chunks.size());
+  }
+
+  @Test
+  public void deleteDuplicate() {
+    ModuleOperationStackedSet<AddOperation> chunks = new ModuleOperationStackedSet<>();
+    chunks.enter();
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_ONE);
+    Assertions.assertEquals(1, chunks.size());
+
+    chunks.enter();
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_TWO);
+    Assertions.assertEquals(3, chunks.size());
+    chunks.lineCount();
     Assertions.assertEquals(2, chunks.size());
     chunks.pop();
     Assertions.assertEquals(1, chunks.size());
+
+    chunks.enter();
+    Assertions.assertEquals(1, chunks.size());
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_TWO);
+    Assertions.assertEquals(3, chunks.size());
+    chunks.enter();
+    Assertions.assertEquals(2, chunks.size());
   }
 }

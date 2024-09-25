@@ -24,7 +24,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class StackedSetTests {
+public class ModuleOperationStackedSetTests {
 
   private static final AddOperation ONE_PLUS_ONE =
       new AddOperation(
@@ -92,5 +92,21 @@ public class StackedSetTests {
     Assertions.assertEquals(3, chunks.size());
     chunks.enter();
     Assertions.assertEquals(2, chunks.size());
+  }
+
+  @Test
+  public void lineCount() {
+    ModuleOperationStackedSet<AddOperation> chunks = new ModuleOperationStackedSet<>();
+    chunks.enter();
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_ONE);
+    Assertions.assertEquals(2, chunks.lineCount());
+    chunks.enter();
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_TWO);
+    chunks.add(ONE_PLUS_TWO);
+    Assertions.assertEquals(4, chunks.lineCount());
+    chunks.pop();
+    Assertions.assertEquals(2, chunks.lineCount());
   }
 }

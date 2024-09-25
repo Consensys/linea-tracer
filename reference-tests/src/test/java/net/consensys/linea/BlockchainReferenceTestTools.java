@@ -17,9 +17,6 @@ package net.consensys.linea;
 
 import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.getModule;
-import static net.consensys.linea.FailedTestJson.readFailedTestsOutput;
-import static net.consensys.linea.MapFailedReferenceTestsTool.getModule;
-import static net.consensys.linea.MapFailedReferenceTestsTool.getModulesToConstraints;
 import static net.consensys.linea.ReferenceTestWatcher.JSON_INPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 

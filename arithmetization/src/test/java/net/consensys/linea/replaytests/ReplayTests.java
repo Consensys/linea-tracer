@@ -14,14 +14,14 @@
  */
 package net.consensys.linea.replaytests;
 
+import static net.consensys.linea.replaytests.ReplayTestTools.BLOCK_NUMBERS;
+import static net.consensys.linea.replaytests.ReplayTestTools.add;
 import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Disabled;
@@ -203,9 +203,6 @@ public class ReplayTests {
     replay(LINEA_MAINNET, "4323985.json.gz");
   }
 
-  // Parametrized replay tests
-  static List<Arguments> blockNumbers = new ArrayList<>();
-
   @Disabled
   @ParameterizedTest
   @MethodSource("replayBlockTestSource")
@@ -231,16 +228,6 @@ public class ReplayTests {
     add(2435888, 2435889);
     // Example of how to add a single block
     add(2435890);
-    return blockNumbers.stream();
-  }
-
-  private static void add(int start, int end) {
-    for (int i = start; i <= end; i++) {
-      blockNumbers.add(Arguments.of(i));
-    }
-  }
-
-  private static void add(int start) {
-    blockNumbers.add(Arguments.of(start));
+    return BLOCK_NUMBERS.stream();
   }
 }

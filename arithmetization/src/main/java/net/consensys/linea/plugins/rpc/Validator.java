@@ -12,21 +12,20 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.replaytests;
 
-import static net.consensys.linea.replaytests.ReplayTestTools.replayAt;
-import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
+package net.consensys.linea.plugins.rpc;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import java.security.InvalidParameterException;
 
-/** Failing block for ADD ?! */
-@Tag("nightly")
-@Tag("replay")
-public class Issue1274Tests {
+public class Validator {
 
-  @Test
-  void issue_1274_mainnet_block_7734306() {
-    replayAt(LINEA_MAINNET, "7734306.json.gz");
+  public static void validatePluginRpcRequestParams(final Object[] rawParams) {
+    // params size should be one, because we expect an object containing all the needed request
+    // parameters.
+    if (rawParams.length != 1) {
+      throw new InvalidParameterException(
+          "Expected a single params object in the params array but got %d"
+              .formatted(rawParams.length));
+    }
   }
 }

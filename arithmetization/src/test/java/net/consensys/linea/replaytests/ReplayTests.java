@@ -237,4 +237,9 @@ public class ReplayTests {
   private static void add(int start) {
     blockNumbers.add(Arguments.of(start));
   }
+
+  @Test
+  void incorrectCreationCapture() {
+    replay(LINEA_MAINNET, "4323985.json.gz");
+  }
 }

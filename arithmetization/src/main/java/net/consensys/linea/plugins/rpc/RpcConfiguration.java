@@ -12,21 +12,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.replaytests;
 
-import static net.consensys.linea.replaytests.ReplayTestTools.replayAt;
-import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
+package net.consensys.linea.plugins.rpc;
 
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import lombok.Builder;
+import net.consensys.linea.plugins.LineaOptionsConfiguration;
 
-/** Failing block for ADD ?! */
-@Tag("nightly")
-@Tag("replay")
-public class Issue1274Tests {
-
-  @Test
-  void issue_1274_mainnet_block_7734306() {
-    replayAt(LINEA_MAINNET, "7734306.json.gz");
-  }
-}
+/** The Linea tracer configuration private to this repo. */
+@Builder(toBuilder = true)
+public record RpcConfiguration(int concurrentRequestsLimit) implements LineaOptionsConfiguration {}

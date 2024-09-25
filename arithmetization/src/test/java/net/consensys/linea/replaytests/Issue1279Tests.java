@@ -14,19 +14,18 @@
  */
 package net.consensys.linea.replaytests;
 
-import static net.consensys.linea.replaytests.ReplayTestTools.replayAt;
+import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-/** Failing block for ADD ?! */
 @Tag("nightly")
 @Tag("replay")
-public class Issue1274Tests {
+public class Issue1279Tests {
 
   @Test
-  void issue_1274_mainnet_block_7734306() {
-    replayAt(LINEA_MAINNET, "7734306.json.gz");
+  void issue_1274_mainnet_block_7768557() {
+    replay(LINEA_MAINNET, "7768557-7768557.json.gz");
   }
 }

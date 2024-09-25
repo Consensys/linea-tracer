@@ -198,6 +198,12 @@ public class ReplayTests {
     replay(LINEA_SEPOLIA, "254251.sepolia.json.gz");
   }
 
+  @Test
+  void incorrectCreationCapture() {
+    replay(LINEA_MAINNET, "4323985.json.gz");
+  }
+
+  // Parametrized replay tests
   static List<Arguments> blockNumbers = new ArrayList<>();
 
   @Disabled
@@ -236,10 +242,5 @@ public class ReplayTests {
 
   private static void add(int start) {
     blockNumbers.add(Arguments.of(start));
-  }
-
-  @Test
-  void incorrectCreationCapture() {
-    replay(LINEA_MAINNET, "4323985.json.gz");
   }
 }

@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.container.stacked;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import lombok.Getter;
@@ -26,7 +25,6 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @Getter
 public class StackedSet<E> {
-  private static final int EXPECTED_PROPORTION_OF_DUPLICATE = 1; // TODO: find me !
   private final ArrayList<E> operationsCommitedToTheConflation;
   private final Set<E> operationsInTransaction;
 
@@ -50,7 +48,6 @@ public class StackedSet<E> {
    * ModuleOperationStackedSet#operationsInTransaction()} is further reset to be empty.
    */
   public void enter() {
-    deleteDuplicate();
     operationsCommitedToTheConflation().addAll(operationsInTransaction());
     operationsInTransaction().clear();
   }
@@ -59,22 +56,10 @@ public class StackedSet<E> {
     operationsInTransaction().clear();
   }
 
-  /**
-   * Warn: as we only check if it's a new operation for the current transaction, it could return
-   * true even if this operation is part of the conflation's already commited operations
-   */
   public boolean add(E e) {
-    return operationsInTransaction().add(e);
-  }
-
-  void deleteDuplicate() {
-    final List<E> toRemove =
-        new ArrayList<>(operationsInTransaction().size() * EXPECTED_PROPORTION_OF_DUPLICATE);
-    for (E e : operationsInTransaction()) {
-      if (operationsCommitedToTheConflation().contains(e)) {
-        toRemove.add(e);
-      }
+    if (!operationsCommitedToTheConflation().contains(e)) {
+      return operationsInTransaction().add(e);
     }
-    toRemove.forEach(operationsInTransaction()::remove);
+    return false;
   }
 }

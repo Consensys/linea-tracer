@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.container.stacked;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 @Accessors(fluent = true)
 public class ModuleOperationStackedSet<E extends ModuleOperation> extends StackedSet<E> {
+  private static final int EXPECTED_PROPORTION_OF_DUPLICATE = 1; // TODO: find me !
   private static final Logger log = LoggerFactory.getLogger(ModuleOperationStackedSet.class);
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   @Getter private boolean conflationFinished = false;
@@ -47,7 +49,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
     super();
   }
 
-  /** Prefer this constructor as we preallocate more needed memory */
+  /** Prefer this constructor as we preallocate more necessary memory */
   public ModuleOperationStackedSet(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
     super(expectedConflationNumberOperations, expectedTransactionNumberOperations);
@@ -60,16 +62,17 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
    * ModuleOperationStackedSet#operationsCommitedToTheConflation()}. {@link
    * ModuleOperationStackedSet#operationsInTransaction()} is further reset to be empty.
    */
+  @Override
   public void enter() {
     if (!duplicateAlreadyRemoved) {
       lineCount();
     }
-    operationsCommitedToTheConflation().addAll(operationsInTransaction());
-    operationsInTransaction().clear();
+    super.enter();
     lineCounter.enter();
     duplicateAlreadyRemoved = false;
   }
 
+  @Override
   public void pop() {
     super.pop();
     lineCounter.pop();
@@ -80,7 +83,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   }
 
   public int lineCount() {
-    super.deleteDuplicate();
+    deleteDuplicates();
     duplicateAlreadyRemoved = true;
     for (var operation : operationsInTransaction()) {
       lineCounter.add(operation.lineCount());
@@ -105,11 +108,12 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
    * Warn: as we only check if it's a new operation for the current transaction, it could return
    * true even if this operation is part of the conflation's already commited operations
    */
+  @Override
   public boolean add(E e) {
     final boolean isNew = operationsInTransaction().add(e);
     if (!isNew) {
       log.trace(
-          "Operation of type {} was already in operationsCommitedToTheConflation hashset, reference is ",
+          "Operation of type {} was already in operationsInTransaction hashset, reference is ",
           e.getClass().getName(),
           e);
     }
@@ -145,5 +149,16 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
     operationsCommitedToTheConflation().addAll(operationsInTransaction());
     operationsInTransaction().clear();
     lineCounter.enter(); // this is not mandatory but it is more consistent
+  }
+
+  void deleteDuplicates() {
+    final List<E> toRemove =
+        new ArrayList<>(operationsInTransaction().size() * EXPECTED_PROPORTION_OF_DUPLICATE);
+    for (E e : operationsInTransaction()) {
+      if (operationsCommitedToTheConflation().contains(e)) {
+        toRemove.add(e);
+      }
+    }
+    toRemove.forEach(operationsInTransaction()::remove);
   }
 }

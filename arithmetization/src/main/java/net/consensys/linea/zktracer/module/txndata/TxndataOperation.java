@@ -39,6 +39,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
+import static org.hyperledger.besu.datatypes.TransactionType.*;
 import static org.web3j.crypto.transaction.type.TransactionType.EIP1559;
 
 import java.math.BigInteger;
@@ -66,6 +67,7 @@ public class TxndataOperation extends ModuleOperation {
   private final List<TxnDataComparisonRecord> callsToEucAndWcp = new ArrayList<>(N_ROWS_TX_MAX);
   private final ArrayList<RlptxnOutgoing> valuesToRlptxn = new ArrayList<>(N_ROWS_TX_MAX);
   private final ArrayList<RlptxrcptOutgoing> valuesToRlpTxrcpt = new ArrayList<>(N_ROWS_TX_MAX);
+  private static final Bytes BYTES_MAX_REFUND_QUOTIENT = Bytes.of(MAX_REFUND_QUOTIENT);
 
   public TxndataOperation(Wcp wcp, Euc euc, TransactionProcessingMetadata tx) {
     this.wcp = wcp;
@@ -102,12 +104,11 @@ public class TxndataOperation extends ModuleOperation {
     // row 3: computing upper limit for refunds
     final Bytes gasConsumedByTransactionExecution =
         Bytes.minimalBytes(tx.getBesuTransaction().getGasLimit() - tx.getLeftoverGas());
-    final Bytes maxRefundQuotient = Bytes.of(MAX_REFUND_QUOTIENT);
     final Bytes refundLimit =
-        euc.callEUC(gasConsumedByTransactionExecution, maxRefundQuotient).quotient();
+        euc.callEUC(gasConsumedByTransactionExecution, BYTES_MAX_REFUND_QUOTIENT).quotient();
     callsToEucAndWcp.add(
         TxnDataComparisonRecord.callToEuc(
-            gasConsumedByTransactionExecution, maxRefundQuotient, refundLimit));
+            gasConsumedByTransactionExecution, BYTES_MAX_REFUND_QUOTIENT, refundLimit));
 
     // row 4: comparing accrued refunds to the upper limit of refunds
     final Bytes accruedRefunds = Bytes.minimalBytes(tx.getRefundCounterMax());
@@ -121,10 +122,10 @@ public class TxndataOperation extends ModuleOperation {
     callsToEucAndWcp.add(TxnDataComparisonRecord.callToIszero(payloadSize, payloadIsEmpty));
 
     // row 6: comparing the maximal gas price against the base fee
-    TransactionType type = tx.getBesuTransaction().getType();
+    final TransactionType type = tx.getBesuTransaction().getType();
     final Bytes baseFee = Bytes.minimalBytes(tx.getBaseFee());
-    if (type == TransactionType.FRONTIER || type == TransactionType.ACCESS_LIST) {
-      Bytes gasPriceBytes =
+    if (type == FRONTIER || type == ACCESS_LIST) {
+      final Bytes gasPriceBytes =
           bigIntegerToBytes(tx.getBesuTransaction().getGasPrice().get().getAsBigInteger());
       wcp.callLEQ(baseFee, gasPriceBytes);
       callsToEucAndWcp.add(TxnDataComparisonRecord.callToLeq(baseFee, gasPriceBytes, true));
@@ -373,8 +374,8 @@ public class TxndataOperation extends ModuleOperation {
           .blockGasLimit(block.getBlockGasLimit())
           .callDataSize(callDataSize)
           .initCodeSize(initCodeSize)
-          .type0(tx.getBesuTransaction().getType() == TransactionType.FRONTIER)
-          .type1(tx.getBesuTransaction().getType() == TransactionType.ACCESS_LIST)
+          .type0(tx.getBesuTransaction().getType() == FRONTIER)
+          .type1(tx.getBesuTransaction().getType() == ACCESS_LIST)
           .type2(tx.getBesuTransaction().getType() == TransactionType.EIP1559)
           .requiresEvmExecution(tx.requiresEvmExecution())
           .copyTxcd(tx.copyTransactionCallData())

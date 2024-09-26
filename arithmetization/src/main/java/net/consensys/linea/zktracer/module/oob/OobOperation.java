@@ -96,6 +96,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -269,8 +270,8 @@ public class OobOperation extends ModuleOperation {
         final Address deploymentAddress = getDeploymentAddress(frame);
         final Account deployedAccount = frame.getWorldUpdater().get(deploymentAddress);
 
-        long nonce = (deployedAccount != null) ? deployedAccount.getNonce() : 0;
-        boolean hasCode = deployedAccount != null && deployedAccount.hasCode();
+        final long nonce = (deployedAccount != null) ? deployedAccount.getNonce() : 0;
+        final boolean hasCode = deployedAccount != null && deployedAccount.hasCode();
 
         final CreateOobCall createOobCall = (CreateOobCall) oobCall;
         createOobCall.setValue(EWord.of(frame.getStackItem(0)));
@@ -278,7 +279,7 @@ public class OobOperation extends ModuleOperation {
         createOobCall.setNonce(BigInteger.valueOf(nonce));
         createOobCall.setHasCode(hasCode);
         createOobCall.setCallStackDepth(BigInteger.valueOf(frame.getDepth()));
-        createOobCall.setCreatorNonce(BigInteger.valueOf(creatorAccount.getNonce()));
+        createOobCall.setCreatorNonce(longToUnsignedBigInteger(creatorAccount.getNonce()));
         setCreate(createOobCall);
       }
       case OOB_INST_SSTORE -> {
@@ -480,8 +481,8 @@ public class OobOperation extends ModuleOperation {
     checkArgument(arg1Lo.bitLength() / 8 <= 16);
     checkArgument(arg2Hi.bitLength() / 8 <= 16);
     checkArgument(arg2Lo.bitLength() / 8 <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
-    final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
+    final Bytes32 arg1 = EWord.of(arg1Hi, arg1Lo);
+    final Bytes32 arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = true;
     modFlag[k] = false;
     wcpFlag[k] = false;

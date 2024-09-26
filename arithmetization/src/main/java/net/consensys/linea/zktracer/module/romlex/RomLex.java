@@ -33,11 +33,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -48,20 +47,19 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
-import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class RomLex
-    implements OperationSetModule<RomOperation>,
-        PostOpcodeDefer,
-        ImmediateContextEntryDefer,
-        ContextExitDefer {
+    implements OperationSetModule<RomOperation>, ImmediateContextEntryDefer, ContextExitDefer {
 
   private final Hub hub;
 
-  @Getter private final StackedSet<RomOperation> operations = new StackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<RomOperation> operations =
+      new ModuleOperationStackedSet<>();
+
   @Getter private List<RomOperation> sortedOperations;
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
@@ -244,10 +242,6 @@ public class RomLex
   }
 
   @Override
-  public void resolvePostExecution(
-      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {}
-
-  @Override
   public void resolveUponContextEntry(Hub hub) {
     checkArgument(hub.messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION);
     checkArgument(
@@ -261,7 +255,7 @@ public class RomLex
   }
 
   // This is the tracing for ROMLEX module
-  private void traceChunk(
+  private void traceOperation(
       final RomOperation operation,
       final int cfi,
       final int codeFragmentIndexInfinity,
@@ -315,8 +309,8 @@ public class RomLex
     final int codeFragmentIndexInfinity = operations.size();
 
     int cfi = 0;
-    for (RomOperation chunk : sortedOperations) {
-      traceChunk(chunk, ++cfi, codeFragmentIndexInfinity, trace);
+    for (RomOperation operation : sortedOperations) {
+      traceOperation(operation, ++cfi, codeFragmentIndexInfinity, trace);
     }
   }
 

@@ -203,7 +203,7 @@ public class Hub implements Module {
 
   private final Add add = new Add();
   private final Bin bin = new Bin();
-  private final Blockhash blockhash = new Blockhash(wcp);
+  private final Blockhash blockhash = new Blockhash(this, wcp);
   private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   private final Gas gas = new Gas();
@@ -316,19 +316,17 @@ public class Hub implements Module {
    */
   public List<Module> getModulesToTrace() {
     return Stream.concat(
-            refTableModules.stream(),
-            // Modules
             Stream.of(
                 this,
                 add,
                 bin,
                 blakeModexpData,
-                ecData,
                 blockdata,
                 blockhash,
+                ecData,
+                exp,
                 ext,
                 euc,
-                exp,
                 logData,
                 logInfo,
                 mmu, // WARN: must be traced before the MMIO
@@ -347,7 +345,8 @@ public class Hub implements Module {
                 stp,
                 trm,
                 txnData,
-                wcp))
+                wcp),
+            refTableModules.stream())
         .toList();
   }
 
@@ -361,42 +360,44 @@ public class Hub implements Module {
     return Stream.concat(
             Stream.of(
                 this,
-                romLex,
                 add,
                 bin,
                 blakeModexpData,
                 blockdata,
                 blockhash,
-                ext,
                 ecData,
+                exp,
+                ext,
                 euc,
-                mmu,
-                mmio,
+                gas,
                 logData,
                 logInfo,
+                mmu,
+                mmio,
                 mod,
                 mul,
                 mxp,
                 oob,
-                exp,
                 rlpAddr,
                 rlpTxn,
                 rlpTxnRcpt,
                 rom,
+                romLex,
                 shakiraData,
                 shf,
                 stp,
                 trm,
                 txnData,
                 wcp,
-                l2Block),
-            precompileLimitModules().stream())
+                l2Block,
+                l2L1Logs),
+            Stream.concat(refTableModules.stream(), precompileLimitModules().stream()))
         .toList();
   }
 
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    l2L1Logs = new L2L1Logs(l2Block); // TODO: we never use it, to delete ?
+    l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     blockdata = new Blockdata(wcp, txnData, rlpTxn);
@@ -443,6 +444,8 @@ public class Hub implements Module {
 
   @Override
   public void enterTransaction() {
+    transients.conflation().stackHeightChecksForStackUnderflows().enter();
+    transients.conflation().stackHeightChecksForStackOverflows().enter();
     for (Module m : modules) {
       m.enterTransaction();
     }
@@ -452,6 +455,8 @@ public class Hub implements Module {
   public void popTransaction() {
     txStack.pop();
     state.pop();
+    transients.conflation().stackHeightChecksForStackUnderflows().pop();
+    transients.conflation().stackHeightChecksForStackOverflows().pop();
     for (Module m : modules) {
       m.popTransaction();
     }
@@ -707,67 +712,6 @@ public class Hub implements Module {
     this.unlatchStack(frame, this.currentFrame().childSpanningSection());
   }
 
-  /**
-   * If the current execution context is a deployment context the present method "exits" that
-   * deployment in the sense that it updates the relevant deployment information.
-   */
-  private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
-
-    // sanity check
-    Address bytecodeAddress = this.currentFrame().byteCodeAddress();
-    checkArgument(bytecodeAddress.equals(frame.getContractAddress()));
-    checkArgument(bytecodeAddress.equals(this.bytecodeAddress()));
-
-    /**
-     * Explanation: if the current address isn't under deployment there is nothing to do.
-     *
-     * <p>If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
-     * immediately set to the deployed state
-     */
-    if (state.processingPhase == TX_SKIP) {
-      checkArgument(!deploymentStatusOfBytecodeAddress());
-      return;
-    }
-    /**
-     * We can't say anything if the current frame is a message call: we might have attempted a call
-     * to an address that is undergoing deployment (or a normal one.)
-     */
-    if (frame.getType() == MESSAGE_CALL) {
-      return;
-    }
-
-    // from here on out:
-    // - state.processingPhase != TX_SKIP
-    // - messageFrame.type == CONTRACT_CREATION
-
-    /**
-     * Note: we can't a priori know the deployment status of an address where a CREATE(2) raised the
-     * Failure Condition F. We also do not want to modify its deployment status. Deployment might
-     * still be underway, e.g.
-     *
-     * <p>bytecode A executes CREATE2; bytecode B is the init code; bytecode B executes a CALL to
-     * address A; bytecode A executes exactly the same CREATE2 raising the Failure Condition F for
-     * address B;
-     */
-    if (failureConditionForCreates) {
-      return;
-    }
-    // from here on out: no failure condition
-    // we must still distinguish between 'empty' deployments and 'nonempty' ones
-
-    final boolean emptyDeployment = messageFrame().getCode().getBytes().isEmpty();
-
-    // empty deployments are immediately considered as 'deployed' i.e.
-    // deploymentStatus = false
-    checkArgument(deploymentStatusOfBytecodeAddress() == !emptyDeployment);
-
-    if (emptyDeployment) return;
-    // from here on out nonempty deployments
-
-    // we transition 'nonempty deployments' from 'underDeployment' to 'deployed'
-    transients.conflation().deploymentInfo().markAsNotUnderDeployment(bytecodeAddress);
-  }
-
   public void tracePreExecution(final MessageFrame frame) {
     checkArgument(
         this.state().processingPhase == TX_EXEC,
@@ -824,35 +768,67 @@ public class Hub implements Module {
     if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
       this.unlatchStack(frame);
     }
+  }
 
-    switch (this.opCodeData().instructionFamily()) {
-      case ADD -> {}
-      case MOD -> {}
-      case MUL -> {}
-      case EXT -> {}
-      case WCP -> {}
-      case BIN -> {}
-      case SHF -> {}
-      case KEC -> {}
-      case CONTEXT -> {}
-      case ACCOUNT -> {}
-      case COPY -> {}
-      case TRANSACTION -> {}
-      case BATCH -> blockhash.tracePostOpcode(frame);
-      case STACK_RAM -> {}
-      case STORAGE -> {}
-      case JUMP -> {}
-      case MACHINE_STATE -> {}
-      case PUSH_POP -> {}
-      case DUP -> {}
-      case SWAP -> {}
-      case LOG -> {}
-      case CREATE -> romLex.tracePostOpcode(frame);
-      case CALL -> {}
-      case HALT -> {}
-      case INVALID -> {}
-      default -> {}
+  /**
+   * If the current execution context is a deployment context the present method "exits" that
+   * deployment in the sense that it updates the relevant deployment information.
+   */
+  private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
+
+    // sanity check
+    final Address bytecodeAddress = this.currentFrame().byteCodeAddress();
+    checkArgument(bytecodeAddress.equals(frame.getContractAddress()));
+    checkArgument(bytecodeAddress.equals(this.bytecodeAddress()));
+
+    /**
+     * Explanation: if the current address isn't under deployment there is nothing to do.
+     *
+     * <p>If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
+     * immediately set to the deployed state
+     */
+    if (state.processingPhase == TX_SKIP) {
+      checkArgument(!deploymentStatusOfBytecodeAddress());
+      return;
     }
+    /**
+     * We can't say anything if the current frame is a message call: we might have attempted a call
+     * to an address that is undergoing deployment (or a normal one.)
+     */
+    if (frame.getType() == MESSAGE_CALL) {
+      return;
+    }
+
+    // from here on out:
+    // - state.processingPhase != TX_SKIP
+    // - messageFrame.type == CONTRACT_CREATION
+
+    /**
+     * Note: we can't a priori know the deployment status of an address where a CREATE(2) raised the
+     * Failure Condition F. We also do not want to modify its deployment status. Deployment might
+     * still be underway, e.g.
+     *
+     * <p>bytecode A executes CREATE2; bytecode B is the init code; bytecode B executes a CALL to
+     * address A; bytecode A executes exactly the same CREATE2 raising the Failure Condition F for
+     * address B;
+     */
+    if (failureConditionForCreates) {
+      return;
+    }
+    // from here on out: no failure condition
+    // we must still distinguish between 'empty' deployments and 'nonempty' ones
+
+    final boolean emptyDeployment = messageFrame().getCode().getBytes().isEmpty();
+
+    // empty deployments are immediately considered as 'deployed' i.e.
+    // deploymentStatus = false
+    checkArgument(deploymentStatusOfBytecodeAddress() == !emptyDeployment);
+
+    if (emptyDeployment) return;
+    // from here on out nonempty deployments
+
+    // we transition 'nonempty deployments' from 'underDeployment' to 'deployed'
+    transients.conflation().deploymentInfo().markAsNotUnderDeployment(bytecodeAddress);
   }
 
   public int getCfiByMetaData(
@@ -875,21 +851,17 @@ public class Hub implements Module {
   }
 
   public CallFrame currentFrame() {
-    if (this.callStack().isEmpty()) {
-      return CallFrame.EMPTY;
-    }
-    return callStack.currentCallFrame();
+    return callStack().isEmpty() ? CallFrame.EMPTY : callStack.currentCallFrame();
   }
 
   public final MessageFrame messageFrame() {
-    final MessageFrame frame = callStack.currentCallFrame().frame();
-    return frame;
+    return callStack.currentCallFrame().frame();
   }
 
   private void handleStack(MessageFrame frame) {
     this.currentFrame()
         .stack()
-        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * state.stamps().hub());
+        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * stamp());
   }
 
   void triggerModules(MessageFrame frame) {
@@ -916,24 +888,6 @@ public class Hub implements Module {
     }
     if (pch.signals().shf()) {
       shf.tracePreOpcode(frame);
-    }
-    if (pch.signals().mxp()) {
-      mxp.tracePreOpcode(frame);
-    }
-    if (pch.signals().oob()) {
-      oob.tracePreOpcode(frame);
-    }
-    if (pch.signals().stp()) {
-      stp.tracePreOpcode(frame);
-    }
-    if (pch.signals().exp()) {
-      exp.tracePreOpcode(frame);
-    }
-    if (pch.signals().trm()) {
-      trm.tracePreOpcode(frame);
-    }
-    if (pch.signals().hashInfo()) {
-      // TODO: this.hashInfo.tracePreOpcode(frame);
     }
     if (pch.signals().blockhash()) {
       blockhash.tracePreOpcode(frame);
@@ -1003,10 +957,8 @@ public class Hub implements Module {
     if (currentFrame().stack().isOk()) {
       this.traceOpcode(frame);
     } else {
-
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
-
       new EarlyExceptionSection(this);
     }
 

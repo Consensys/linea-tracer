@@ -21,6 +21,7 @@ import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Map.entry;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EIP2681_MAX_NONCE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ADD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIV;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_EQ;
@@ -57,6 +58,7 @@ import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
+import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
@@ -94,6 +96,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -267,8 +270,8 @@ public class OobOperation extends ModuleOperation {
         final Address deploymentAddress = getDeploymentAddress(frame);
         final Account deployedAccount = frame.getWorldUpdater().get(deploymentAddress);
 
-        long nonce = (deployedAccount != null) ? deployedAccount.getNonce() : 0;
-        boolean hasCode = deployedAccount != null && deployedAccount.hasCode();
+        final long nonce = (deployedAccount != null) ? deployedAccount.getNonce() : 0;
+        final boolean hasCode = deployedAccount != null && deployedAccount.hasCode();
 
         final CreateOobCall createOobCall = (CreateOobCall) oobCall;
         createOobCall.setValue(EWord.of(frame.getStackItem(0)));
@@ -276,7 +279,7 @@ public class OobOperation extends ModuleOperation {
         createOobCall.setNonce(BigInteger.valueOf(nonce));
         createOobCall.setHasCode(hasCode);
         createOobCall.setCallStackDepth(BigInteger.valueOf(frame.getDepth()));
-        createOobCall.setCreatorNonce(BigInteger.valueOf(creatorAccount.getNonce()));
+        createOobCall.setCreatorNonce(longToUnsignedBigInteger(creatorAccount.getNonce()));
         setCreate(createOobCall);
       }
       case OOB_INST_SSTORE -> {
@@ -478,8 +481,8 @@ public class OobOperation extends ModuleOperation {
     checkArgument(arg1Lo.bitLength() / 8 <= 16);
     checkArgument(arg2Hi.bitLength() / 8 <= 16);
     checkArgument(arg2Lo.bitLength() / 8 <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
-    final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
+    final Bytes32 arg1 = EWord.of(arg1Hi, arg1Lo);
+    final Bytes32 arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = true;
     modFlag[k] = false;
     wcpFlag[k] = false;
@@ -805,7 +808,7 @@ public class OobOperation extends ModuleOperation {
             BigInteger.ZERO,
             createOobCall.getCreatorNonce(),
             BigInteger.ZERO,
-            (BigInteger.valueOf(2).pow(64)).subtract(BigInteger.valueOf(1))); // TODO: use constant
+            longToUnsignedBigInteger(EIP2681_MAX_NONCE));
 
     // Set aborting condition
     createOobCall.setAbortingCondition(

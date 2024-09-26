@@ -24,6 +24,9 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -126,13 +129,27 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   public Path writeToTmpFile(final Path rootDir, final String prefix, final String suffix) {
+    Path traceFile;
     try {
-      final Path traceFile = Files.createTempFile(rootDir, prefix, suffix);
-      this.writeToFile(traceFile);
-      return traceFile;
+      FileAttribute<Set<PosixFilePermission>> perms =
+          PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-r--r--"));
+      traceFile = Files.createTempFile(rootDir, prefix, suffix, perms);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      log.error(
+          "Error while creating tmp file {} {} {}. Trying without setting the permissions",
+          rootDir,
+          prefix,
+          suffix);
+      try {
+        traceFile = Files.createTempFile(rootDir, prefix, suffix);
+      } catch (IOException f) {
+        log.error("Still Failing while creating tmp file {} {} {}", rootDir, prefix, suffix);
+        throw new RuntimeException(e);
+      }
     }
+
+    this.writeToFile(traceFile);
+    return traceFile;
   }
 
   public void writeToFile(final Path filename) {
@@ -167,6 +184,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         m.commit(buffers);
       }
     } catch (IOException e) {
+      log.error("Error while writing to the file {}", filename);
       throw new RuntimeException(e);
     }
   }

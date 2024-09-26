@@ -21,10 +21,11 @@ import java.math.BigInteger;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.container.stacked.StackedList;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.add.AddOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -32,14 +33,14 @@ public class StackedListTests {
   private static final AddOperation ONE_PLUS_ONE =
       new AddOperation(
           OpCode.ADD,
-          Bytes.wrap(BigInteger.ONE.toByteArray()),
-          Bytes.wrap(BigInteger.ONE.toByteArray()));
+          Bytes32.leftPad(Bytes.wrap(BigInteger.ONE.toByteArray())),
+          Bytes32.leftPad(Bytes.wrap(BigInteger.ONE.toByteArray())));
 
   private static final AddOperation ONE_PLUS_TWO =
       new AddOperation(
           OpCode.ADD,
-          Bytes.wrap(BigInteger.ONE.toByteArray()),
-          Bytes.wrap(BigInteger.TWO.toByteArray()));
+          Bytes32.leftPad(Bytes.wrap(BigInteger.ONE.toByteArray())),
+          Bytes32.leftPad(Bytes.wrap(BigInteger.TWO.toByteArray())));
 
   @RequiredArgsConstructor
   private static class IntegerModuleOperation extends ModuleOperation {
@@ -53,7 +54,8 @@ public class StackedListTests {
 
   @Test
   void testAddedToFront() {
-    final StackedList<IntegerModuleOperation> state = new StackedList<>();
+    final ModuleOperationStackedList<IntegerModuleOperation> state =
+        new ModuleOperationStackedList<>();
 
     state.enter();
     state.add(new IntegerModuleOperation(1));
@@ -69,7 +71,7 @@ public class StackedListTests {
 
   @Test
   public void push() {
-    StackedList<AddOperation> chunks = new StackedList<>();
+    ModuleOperationStackedList<AddOperation> chunks = new ModuleOperationStackedList<>();
     chunks.enter();
 
     chunks.add(ONE_PLUS_ONE);
@@ -82,7 +84,7 @@ public class StackedListTests {
 
   @Test
   public void multiplePushPop() {
-    StackedList<AddOperation> chunks = new StackedList<>();
+    ModuleOperationStackedList<AddOperation> chunks = new ModuleOperationStackedList<>();
     chunks.enter();
     chunks.add(ONE_PLUS_ONE);
     chunks.add(ONE_PLUS_ONE);

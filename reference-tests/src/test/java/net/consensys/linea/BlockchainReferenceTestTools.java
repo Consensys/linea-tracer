@@ -15,24 +15,26 @@
 
 package net.consensys.linea;
 
-import static net.consensys.linea.FailedTestJson.readFailedTestsOutput;
-import static net.consensys.linea.MapFailedReferenceTestsTool.getModule;
-import static net.consensys.linea.MapFailedReferenceTestsTool.getModulesToConstraints;
-import static net.consensys.linea.ReferenceTestWatcher.JSON_OUTPUT_FILENAME;
+import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.getModule;
+import static net.consensys.linea.ReferenceTestWatcher.JSON_INPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.testing.ExecutionEnvironment;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.ethereum.MainnetBlockValidator;
 import org.hyperledger.besu.ethereum.ProtocolContext;
 import org.hyperledger.besu.ethereum.chain.MutableBlockchain;
@@ -65,7 +67,7 @@ public class BlockchainReferenceTestTools {
                     testName + "[" + eip + "]", fullPath, spec, NETWORKS_TO_RUN.contains(eip));
               });
 
-  private static final CorsetValidator corsetValidator = new CorsetValidator();
+  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
 
   static {
     if (NETWORKS_TO_RUN.isEmpty()) {
@@ -97,45 +99,29 @@ public class BlockchainReferenceTestTools {
     // utility class
   }
 
-  public static Set<String> getRecordedFailedTestsFromJson(
+  public static CompletableFuture<Set<String>> getRecordedFailedTestsFromJson(
       String failedModule, String failedConstraint) {
     Set<String> failedTests = new HashSet<>();
-    String jsonString = readFailedTestsOutput(JSON_OUTPUT_FILENAME);
-    JsonConverter jsonConverter = JsonConverter.builder().build();
-    List<ModuleToConstraints> modulesToConstraints =
-        getModulesToConstraints(jsonString, jsonConverter);
-
     if (failedModule.isEmpty()) {
-      return failedTests;
-    } else {
-      ModuleToConstraints filteredFailedTests = getModule(modulesToConstraints, failedModule);
-      if (!failedConstraint.isEmpty()) {
-        return filteredFailedTests.getFailedTests(failedConstraint);
-      }
-      return filteredFailedTests.getFailedTests();
+      return CompletableFuture.completedFuture(failedTests);
     }
-  }
 
-  public static Set<String> getRecordedFailedTestsFromJson(
-      String failedTestsOutput, String failedModule, String failedConstraint) {
-    if (!failedTestsOutput.isEmpty()) {
-      Set<String> failedTests = new HashSet<>();
-      String jsonString = readFailedTestsOutput(failedTestsOutput);
-      JsonConverter jsonConverter = JsonConverter.builder().build();
-      List<ModuleToConstraints> modulesToConstraints =
-          getModulesToConstraints(jsonString, jsonConverter);
+    CompletableFuture<BlockchainReferenceTestOutcome> modulesToConstraintsFutures =
+        readBlockchainReferenceTestsOutput(JSON_INPUT_FILENAME)
+            .thenApply(ReferenceTestOutcomeRecorderTool::getBlockchainReferenceTestOutcome);
 
-      if (failedModule.isEmpty()) {
-        return failedTests;
-      } else {
-        ModuleToConstraints filteredFailedTests = getModule(modulesToConstraints, failedModule);
-        if (!failedConstraint.isEmpty()) {
-          return filteredFailedTests.getFailedTests(failedConstraint);
-        }
-        return filteredFailedTests.getFailedTests();
-      }
-    }
-    return Collections.emptySet();
+    return modulesToConstraintsFutures.thenApply(
+        blockchainReferenceTestOutcome -> {
+          ModuleToConstraints filteredFailedTests =
+              getModule(blockchainReferenceTestOutcome.modulesToConstraints(), failedModule);
+          if (filteredFailedTests == null) {
+            return failedTests;
+          }
+          if (!failedConstraint.isEmpty()) {
+            return filteredFailedTests.getFailedTests(failedConstraint);
+          }
+          return filteredFailedTests.getFailedTests();
+        });
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(final String[] filePath) {
@@ -147,10 +133,8 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(
-      final String[] filePath,
-      String failedTestsFilePath,
-      String failedModule,
-      String failedConstraint) {
+      final String[] filePath, String failedModule, String failedConstraint)
+      throws ExecutionException, InterruptedException {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     Collection<Object[]> params =
         PARAMS.generate(
@@ -158,16 +142,24 @@ public class BlockchainReferenceTestTools {
                 .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
                 .toList());
 
-    Set<String> failedTests =
-        getRecordedFailedTestsFromJson(failedTestsFilePath, failedModule, failedConstraint);
-    params.forEach(param -> markTestToRun(param, failedTests));
-
-    return params;
+    return getRecordedFailedTestsFromJson(failedModule, failedConstraint)
+        .thenApply(
+            failedTests -> {
+              List<Object[]> modifiedParams = new ArrayList<>();
+              for (Object[] param : params) {
+                Object[] modifiedParam = markTestToRun(param, failedTests);
+                modifiedParams.add(modifiedParam);
+              }
+              return modifiedParams;
+            })
+        .get();
   }
 
-  public static void markTestToRun(Object[] params, Set<String> failedTests) {
-    String testName = (String) params[0];
-    params[2] = failedTests.contains(testName);
+  public static Object[] markTestToRun(Object[] param, Set<String> failedTests) {
+    String testName = (String) param[0];
+    param[2] = failedTests.contains(testName);
+
+    return param;
   }
 
   public static void executeTest(final BlockchainReferenceTestCaseSpec spec) {
@@ -217,9 +209,7 @@ public class BlockchainReferenceTestTools {
         log.info("caugh RLP exception, checking it's invalid {}", candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();
       }
-      CorsetValidator.Result corsetResult = corsetValidator.validate(zkTracer.writeToTmpFile());
-      log.info("Corset result {}", corsetResult);
-      assertThat(corsetResult.isValid()).isTrue();
+      ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
     }
 
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());

@@ -1,5 +1,9 @@
+import org.web3j.solidity.gradle.plugin.EVMVersion
+import org.web3j.solidity.gradle.plugin.OutputComponent
+
 plugins {
   id "common-plugins"
+  id "org.web3j" version "4.12.2"
 }
 
 apply from: rootProject.file("gradle/corset.gradle")
@@ -30,4 +34,24 @@ dependencies {
   implementation 'org.mockito:mockito-core'
   implementation 'org.mockito:mockito-junit-jupiter'
   implementation 'org.assertj:assertj-core'
+}
+
+nodeSetup{
+  mustRunAfter(spotlessBash, spotlessGroovy, spotlessSol
+    )
+}
+
+solidity {
+  outputComponents = [
+    OutputComponent.BIN,
+    OutputComponent.ABI,
+    OutputComponent.ASM_JSON
+  ]
+  optimizeRuns = 500
+  evmVersion = EVMVersion.LONDON
+  prettyJson = true
+}
+
+web3j {
+  generatedPackageName = "net.consensys.linea.testing.generated"
 }

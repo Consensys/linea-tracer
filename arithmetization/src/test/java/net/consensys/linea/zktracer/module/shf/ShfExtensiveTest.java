@@ -32,6 +32,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class ShfExtensiveTest {
 
+  // This test should be executed only occasionally since very long. We will batch test cases as
+  // described below
   @ParameterizedTest
   @MethodSource("shfExtensiveTestSource")
   void shfExtensiveTest(String shift, String value, OpCode opCode) {
@@ -48,7 +50,6 @@ public class ShfExtensiveTest {
           arguments.add(Arguments.of(shift, value, OpCode.SHL));
           arguments.add(Arguments.of(shift, value, OpCode.SHR));
           arguments.add(Arguments.of(shift, value, OpCode.SAR));
-
           // Adding additional cases for SAR
           for (String XY : XYs) {
             String mask = XY + "00".repeat(31);
@@ -62,6 +63,17 @@ public class ShfExtensiveTest {
     return arguments.stream();
   }
 
+  // TODO: splits tests into:
+  //  - SHL
+  //  - SHR
+  //  - SAR
+  //  - SAR with mask
+  //  The program should consist in a concatenation of all the possible shifts for a given value and
+  //  opCode
+  //  It means that shift is not a parameter anymore since all shifts are tested within the same
+  //  program.
+
+  // Inputs and support methods
   static final String[] shifts =
       Stream.concat(
               IntStream.rangeClosed(0, 257) // Generates numbers 0 to 257
@@ -103,6 +115,7 @@ public class ShfExtensiveTest {
     return String.join("", java.util.Arrays.asList(v).reversed());
   }
 
+  // Testing support methods
   @Test
   void testValue() {
     Assertions.assertEquals(

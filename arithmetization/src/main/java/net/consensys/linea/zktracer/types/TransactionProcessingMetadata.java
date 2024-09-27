@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -152,6 +153,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
     }
   }
 
+  @EqualsAndHashCode
   public static class AddrStorageKeyPair {
     @Getter private Address address;
     @Getter private EWord storageKey;

@@ -37,6 +37,7 @@ public class StateManagerMetadata {
     }
   }
 
+  @EqualsAndHashCode
   public static class AddrStorageKeyBlockNumTuple {
     @Getter private TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair;
     @Getter private int blockNumber;

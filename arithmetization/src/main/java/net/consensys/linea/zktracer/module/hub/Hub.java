@@ -479,13 +479,16 @@ public class Hub implements Module {
     txStack.setCodeFragmentIndex(this);
     defers.resolvePostConflation(this, world);
     // update the conflation level map for the state manager
-    updateConflationMap();
+    updateConflationMapAccount();
+    updateConflationMapStorage();
 
     for (Module m : modules) {
       m.traceEndConflation(world);
     }
     // Print all the account maps
     printAccountMaps();
+    // Print all the storage map
+    printStorageMaps();
   }
 
   @Override
@@ -1262,7 +1265,7 @@ public class Hub implements Module {
   }
 
   // Update the conflation level map for the state manager
-  public void updateConflationMap() {
+  public void updateConflationMapAccount() {
     Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
         conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
 
@@ -1321,78 +1324,61 @@ public class Hub implements Module {
   }
 
   public void updateConflationMapStorage() {
-    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-        conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
-
     Map<
             TransactionProcessingMetadata.AddrStorageKeyPair,
             TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
         conflationMapStorage = Hub.stateManagerMetadata().getStorageFirstLastConflationMap();
 
     List<TransactionProcessingMetadata> txn = txStack.getTxs();
-
-    Map<
-            StateManagerMetadata.AddrBlockPair,
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-        blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
-
+    HashSet<TransactionProcessingMetadata.AddrStorageKeyPair> allStorage =
+        new HashSet<TransactionProcessingMetadata.AddrStorageKeyPair>();
     Map<
             StateManagerMetadata.AddrStorageKeyBlockNumTuple,
             TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
         blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
-
     for (TransactionProcessingMetadata metadata : txn) {
-
-      Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-          txnMapAccount = metadata.getAccountFirstAndLastMap();
 
       Map<
               TransactionProcessingMetadata.AddrStorageKeyPair,
               TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
           txnMapStorage = metadata.getStorageFirstAndLastMap();
-      // Doing similar update for the storage map
-      for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair :
-          txnMapStorage.keySet()) {
-        // Update the first value of the conflation map for Account
-        // We update the value of the conflation map with the earliest value of the block map
-        for (int i = 0; i < transients.block().blockNumber(); i++) {
-          StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
-              new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, i);
 
-          if (blockMapStorage.containsKey(addrStorageBlockTuple)) {
-            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorage =
-                blockMapStorage.get(addrStorageBlockTuple);
-            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>
-                conflationValueStorage =
-                    new TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>(
-                        blockValueStorage.getFirst(),
-                        null,
-                        blockValueStorage.getFirstDom(),
-                        blockValueStorage.getFirstSub(),
-                        0,
-                        0);
-            conflationMapStorage.put(addrStorageKeyPair, conflationValueStorage);
-            break;
-          }
+      allStorage.addAll(txnMapStorage.keySet());
+    }
+
+    for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair : allStorage) {
+      TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> firstValue = null;
+      // Update the first value of the conflation map for Storage
+      // We update the value of the conflation map with the earliest value of the block map
+      for (int i = 1; i <= transients.block().blockNumber(); i++) {
+        StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
+            new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, i);
+        if (blockMapStorage.containsKey(addrStorageBlockTuple)) {
+          firstValue = blockMapStorage.get(addrStorageBlockTuple);
+          conflationMapStorage.put(addrStorageKeyPair, firstValue);
+          break;
         }
-        // Update the last value of the conflation map for storage
-        // We update the last value for the conflation map with the latest blockMap's  last values,
-        // if some address is not present in the last block, we ignore the corresponding account
-        StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTupleLast =
-            new StateManagerMetadata.AddrStorageKeyBlockNumTuple(
-                addrStorageKeyPair, transients.block().blockNumber());
-        if (blockMapStorage.containsKey(addrStorageBlockTupleLast)) {
-          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>
-              blockValueStorageLast = blockMapStorage.get(addrStorageBlockTupleLast);
-          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> conflationValueLast =
+      }
+      // Update the last value of the conflation map
+      // We update the last value for the conflation map with the latest blockMap's last values,
+      // if some address is not present in the last block, we ignore the corresponding account
+      for (int i = transients.block().blockNumber(); i >= 1; i--) {
+        StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
+            new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, i);
+        if (blockMapStorage.containsKey(addrStorageBlockTuple)) {
+          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValue =
+              blockMapStorage.get(addrStorageBlockTuple);
+
+          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> updatedValue =
               new TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>(
-                  null,
-                  blockValueStorageLast.getLast(),
-                  0,
-                  0,
-                  blockValueStorageLast.getLastDom(),
-                  blockValueStorageLast.getLastSub());
-          conflationMapStorage.put(addrStorageKeyPair, conflationValueLast);
+                  firstValue.getFirst(),
+                  blockValue.getLast(),
+                  firstValue.getFirstDom(),
+                  firstValue.getFirstSub(),
+                  blockValue.getLastDom(),
+                  blockValue.getLastSub());
+          conflationMapStorage.put(addrStorageKeyPair, updatedValue);
+          break;
         }
       }
     }
@@ -1408,7 +1394,7 @@ public class Hub implements Module {
       for (Address addr : txnMapAccount.keySet()) {
         var txnValue = txnMapAccount.get(addr);
         System.out.println(
-            "txn level map: addr: "
+            "Account: txn level map: addr: "
                 + addr
                 + ": first dom: "
                 + txnValue.getFirstDom()
@@ -1426,7 +1412,7 @@ public class Hub implements Module {
     for (var addrBlockPair : blockMapAccount.keySet()) {
       var blockValue = blockMapAccount.get(addrBlockPair);
       System.out.println(
-          "block level map: addr: "
+          "Account: block level map: addr: "
               + addrBlockPair.getAddress()
               + ": block: "
               + addrBlockPair.getBlockNumber()
@@ -1445,8 +1431,76 @@ public class Hub implements Module {
     for (Address addr : conflationMapAccount.keySet()) {
       var conflationValue = conflationMapAccount.get(addr);
       System.out.println(
-          "conflation level map: addr: "
+          "Account: conflation level map: addr: "
               + addr
+              + ": first dom: "
+              + conflationValue.getFirstDom()
+              + ", first sub: "
+              + conflationValue.getFirstSub()
+              + ": last dom: "
+              + conflationValue.getLastDom()
+              + ", last sub: "
+              + conflationValue.getLastSub());
+    }
+  }
+
+  // Print all the storage maps
+  public void printStorageMaps() {
+    // Print txnMaps
+    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+    for (var metadata : txn) {
+      Map<
+              TransactionProcessingMetadata.AddrStorageKeyPair,
+              TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
+          txnMapStorage = metadata.getStorageFirstAndLastMap();
+      for (TransactionProcessingMetadata.AddrStorageKeyPair addrKeyPair : txnMapStorage.keySet()) {
+        var txnValue = txnMapStorage.get(addrKeyPair);
+        System.out.println(
+            "Storage: txn level map: addr: "
+                + addrKeyPair.getAddress()
+                + ": storage key: "
+                + addrKeyPair.getStorageKey()
+                + ": first dom: "
+                + txnValue.getFirstDom()
+                + ", first sub: "
+                + txnValue.getFirstSub()
+                + ": last dom: "
+                + txnValue.getLastDom()
+                + ", last sub: "
+                + txnValue.getLastSub());
+      }
+    }
+
+    // Print blockMaps
+    var blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
+    for (var addrKeyBlockTuple : blockMapStorage.keySet()) {
+      var blockValue = blockMapStorage.get(addrKeyBlockTuple);
+      System.out.println(
+          "Storage: block level map: addr: "
+              + addrKeyBlockTuple.getAddrStorageKeyPair().getAddress()
+              + ": key: "
+              + addrKeyBlockTuple.getAddrStorageKeyPair().getStorageKey()
+              + ": block: "
+              + addrKeyBlockTuple.getBlockNumber()
+              + ": first dom: "
+              + blockValue.getFirstDom()
+              + ", first sub: "
+              + blockValue.getFirstSub()
+              + ": last dom: "
+              + blockValue.getLastDom()
+              + ", last sub: "
+              + blockValue.getLastSub());
+    }
+
+    // Print conflationMaps
+    var conflationMapStorage = Hub.stateManagerMetadata().getStorageFirstLastConflationMap();
+    for (var addrKeyPair : conflationMapStorage.keySet()) {
+      var conflationValue = conflationMapStorage.get(addrKeyPair);
+      System.out.println(
+          "Storage: conflation level map: addr: "
+              + addrKeyPair.getAddress()
+              + ": storage key: "
+              + addrKeyPair.getStorageKey()
               + ": first dom: "
               + conflationValue.getFirstDom()
               + ", first sub: "

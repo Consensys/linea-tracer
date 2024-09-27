@@ -75,9 +75,10 @@ public class InvalidCodePrefix implements MmuInstruction {
             .remainder(rem)
             .build());
 
-    final int offset = (int) (LLARGE * initialSourceLimbOffset + initialSourceByteOffset);
-    final boolean offsetOutOfBond = offset >= mmuData.sourceRamBytes().size();
-    microLimb = offsetOutOfBond ? Bytes.of(0) : Bytes.of(mmuData.sourceRamBytes().get(offset));
+    final long offset = mmuData.hubToMmuValues().sourceOffsetLo().longValueExact();
+    final boolean offsetIsOutOfBonds = offset >= mmuData.sourceRamBytes().size();
+    microLimb =
+        offsetIsOutOfBonds ? Bytes.of(0) : Bytes.of(mmuData.sourceRamBytes().get((int) offset));
     final Bytes arg1 = microLimb;
     final Bytes arg2 = Bytes.of(EIP_3541_MARKER);
     final boolean result = wcp.callEQ(arg1, arg2);

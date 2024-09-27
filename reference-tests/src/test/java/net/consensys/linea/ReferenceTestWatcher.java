@@ -14,6 +14,7 @@
  */
 package net.consensys.linea;
 
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.incrementSuccessRate;
 import static org.junit.jupiter.api.Assumptions.abort;
 
 import java.time.Duration;
@@ -32,6 +33,7 @@ public class ReferenceTestWatcher implements TestWatcher {
   private static final int LOGBACK_POLL_ATTEMPTS = 100;
   private static final Duration LOGBACK_POLL_DELAY = Duration.ofMillis(10);
 
+  public static final String JSON_INPUT_FILENAME = "failedBlockchainReferenceTests-input.json";
   public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests.json";
   ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
 
@@ -48,8 +50,13 @@ public class ReferenceTestWatcher implements TestWatcher {
     List<String> logEventMessages =
         listAppender.list.stream().map(ILoggingEvent::getMessage).toList();
 
-    MapFailedReferenceTestsTool.mapAndStoreFailedReferenceTest(
+    ReferenceTestOutcomeRecorderTool.mapAndStoreFailedReferenceTest(
         testName, logEventMessages, JSON_OUTPUT_FILENAME);
+  }
+
+  @Override
+  public void testSuccessful(ExtensionContext context) {
+    incrementSuccessRate(JSON_OUTPUT_FILENAME);
   }
 
   @Synchronized

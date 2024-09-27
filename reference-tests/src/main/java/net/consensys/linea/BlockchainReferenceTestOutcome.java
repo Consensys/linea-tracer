@@ -12,13 +12,12 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea;
 
-package net.consensys.linea.plugins.readiness;
+import java.util.List;
 
-import lombok.Builder;
-import net.consensys.linea.plugins.LineaOptionsConfiguration;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-/** The Linea tracer configuration private to this repo. */
-@Builder(toBuilder = true)
-public record TracerReadinessConfiguration(String serverHost, int serverPort, int maxBlocksBehind)
-    implements LineaOptionsConfiguration {}
+@JsonPropertyOrder({"failedCounter", "successCounter", "modules"})
+public record BlockchainReferenceTestOutcome(
+    int failedCounter, int successCounter, List<ModuleToConstraints> modulesToConstraints) {}

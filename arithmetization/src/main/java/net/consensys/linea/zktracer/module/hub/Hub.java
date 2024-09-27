@@ -1266,6 +1266,64 @@ public class Hub implements Module {
     Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
         conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
 
+    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+    HashSet<Address> allAccounts = new HashSet<Address>();
+
+    Map<
+            StateManagerMetadata.AddrBlockPair,
+            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+        blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
+
+    for (TransactionProcessingMetadata metadata : txn) {
+
+      Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+          txnMapAccount = metadata.getAccountFirstAndLastMap();
+
+      allAccounts.addAll(txnMapAccount.keySet());
+    }
+
+    for (Address addr : allAccounts) {
+      TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> firstValue = null;
+      // Update the first value of the conflation map for Account
+      // We update the value of the conflation map with the earliest value of the block map
+      for (int i = 1; i <= transients.block().blockNumber(); i++) {
+        StateManagerMetadata.AddrBlockPair pairAddrBlock =
+            new StateManagerMetadata.AddrBlockPair(addr, i);
+        if (blockMapAccount.containsKey(pairAddrBlock)) {
+          firstValue = blockMapAccount.get(pairAddrBlock);
+          conflationMapAccount.put(addr, firstValue);
+          break;
+        }
+      }
+      // Update the last value of the conflation map
+      // We update the last value for the conflation map with the latest blockMap's last values,
+      // if some address is not present in the last block, we ignore the corresponding account
+      for (int i = transients.block().blockNumber(); i >= 1; i--) {
+        StateManagerMetadata.AddrBlockPair pairAddrBlock =
+            new StateManagerMetadata.AddrBlockPair(addr, i);
+        if (blockMapAccount.containsKey(pairAddrBlock)) {
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
+              blockMapAccount.get(pairAddrBlock);
+
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> updatedValue =
+              new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>(
+                  firstValue.getFirst(),
+                  blockValue.getLast(),
+                  firstValue.getFirstDom(),
+                  firstValue.getFirstSub(),
+                  blockValue.getLastDom(),
+                  blockValue.getLastSub());
+          conflationMapAccount.put(addr, updatedValue);
+          break;
+        }
+      }
+    }
+  }
+
+  public void updateConflationMapStorage() {
+    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+        conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
+
     Map<
             TransactionProcessingMetadata.AddrStorageKeyPair,
             TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
@@ -1292,46 +1350,6 @@ public class Hub implements Module {
               TransactionProcessingMetadata.AddrStorageKeyPair,
               TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
           txnMapStorage = metadata.getStorageFirstAndLastMap();
-      for (Address addr : txnMapAccount.keySet()) {
-        // Update the first value of the conflation map for Account
-        // We update the value of the conflation map with the earliest value of the block map
-        for (int i = 0; i < transients.block().blockNumber(); i++) {
-          StateManagerMetadata.AddrBlockPair pairAddrBlock =
-              new StateManagerMetadata.AddrBlockPair(addr, i);
-          if (blockMapAccount.containsKey(pairAddrBlock)) {
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
-                blockMapAccount.get(pairAddrBlock);
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> conflationValue =
-                new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>(
-                    blockValue.getFirst(),
-                    null,
-                    blockValue.getFirstDom(),
-                    blockValue.getFirstSub(),
-                    0,
-                    0);
-            conflationMapAccount.put(addr, conflationValue);
-            break;
-          }
-        }
-        // Update the last value of the conflation map
-        // We update the last value for the conflation map with the latest blockMap's  last values,
-        // if some address is not present in the last block, we ignore the corresponding account
-        StateManagerMetadata.AddrBlockPair pairAddrBlockLast =
-            new StateManagerMetadata.AddrBlockPair(addr, transients.block().blockNumber());
-        if (blockMapAccount.containsKey(pairAddrBlockLast)) {
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValueLast =
-              blockMapAccount.get(pairAddrBlockLast);
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> conflationValueLast =
-              new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>(
-                  null,
-                  blockValueLast.getLast(),
-                  0,
-                  0,
-                  blockValueLast.getLastDom(),
-                  blockValueLast.getLastSub());
-          conflationMapAccount.put(addr, conflationValueLast);
-        }
-      }
       // Doing similar update for the storage map
       for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair :
           txnMapStorage.keySet()) {
@@ -1424,7 +1442,7 @@ public class Hub implements Module {
 
     // Print conflationMaps
     var conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
-    for (var addr : conflationMapAccount.keySet()) {
+    for (Address addr : conflationMapAccount.keySet()) {
       var conflationValue = conflationMapAccount.get(addr);
       System.out.println(
           "conflation level map: addr: "

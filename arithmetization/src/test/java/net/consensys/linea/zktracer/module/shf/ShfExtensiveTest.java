@@ -21,10 +21,13 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import lombok.Getter;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,49 +35,66 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class ShfExtensiveTest {
 
-  // This test should be executed only occasionally since very long. We will batch test cases as
-  // described below
-  @ParameterizedTest
-  @MethodSource("shfExtensiveTestSource")
-  void shfExtensiveTest(String shift, String value, OpCode opCode) {
-    BytecodeRunner.of(BytecodeCompiler.newProgram().push(value).push(shift).op(opCode).compile())
-        .run();
-  }
+  @Getter private static Stream<Arguments> shfTestSource;
+  @Getter private static Stream<Arguments> shfWithMaskTestSource;
 
-  private static Stream<Arguments> shfExtensiveTestSource() {
-    List<Arguments> arguments = new ArrayList<>();
-    for (String shift : shifts) {
-      for (int k = 0; k < 32; k++) {
-        for (int l = 1; l <= 8; l++) {
-          String value = value(k, l);
-          arguments.add(Arguments.of(shift, value, OpCode.SHL));
-          arguments.add(Arguments.of(shift, value, OpCode.SHR));
-          arguments.add(Arguments.of(shift, value, OpCode.SAR));
-          // Adding additional cases for SAR
-          for (String XY : XYs) {
-            String mask = XY + "00".repeat(31);
-            String maskXorValue =
-                String.format("%064X", new BigInteger(mask, 16).xor(new BigInteger(value, 16)));
-            arguments.add(Arguments.of(shift, maskXorValue, OpCode.SAR));
-          }
+  @BeforeAll
+  public static void init() {
+    List<Arguments> shfTestSourceList = new ArrayList<>();
+    List<Arguments> shfWithMaskTestSourceList = new ArrayList<>();
+    for (int k = 0; k < 32; k++) {
+      for (int l = 1; l <= 8; l++) {
+        String value = value(k, l);
+        shfTestSourceList.add(Arguments.of(value));
+        for (String XY : XYs) {
+          String mask = XY + "00".repeat(31);
+          String maskXorValue =
+              String.format("%064X", new BigInteger(mask, 16).xor(new BigInteger(value, 16)));
+          shfWithMaskTestSourceList.add(Arguments.of(maskXorValue));
         }
       }
     }
-    return arguments.stream();
+    shfTestSource = shfTestSourceList.stream();
+    shfWithMaskTestSource = shfWithMaskTestSourceList.stream();
   }
 
-  // TODO: splits tests into:
-  //  - SHL
-  //  - SHR
-  //  - SAR
-  //  - SAR with mask
-  //  The program should consist in a concatenation of all the possible shifts for a given value and
-  //  opCode
-  //  It means that shift is not a parameter anymore since all shifts are tested within the same
-  //  program.
+  @ParameterizedTest
+  @MethodSource("getShfTestSource")
+  void shlTest(String value) {
+    shfProgramOf(value, OpCode.SHL).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("getShfTestSource")
+  void shrTest(String value) {
+    shfProgramOf(value, OpCode.SHR).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("getShfTestSource")
+  void sarTest(String value) {
+    shfProgramOf(value, OpCode.SAR).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("getShfWithMaskTestSource")
+  void sarWithMaskTest(String value) {
+    shfProgramOf(value, OpCode.SAR).run();
+  }
 
   // Inputs and support methods
-  static final String[] shifts =
+
+  //  Creates a program that concatenates shifts operations (with different relevant shift values)
+  //  for a given value and opcode
+  private BytecodeRunner shfProgramOf(String value, OpCode opCode) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    for (String shift : SHIFTS) {
+      program.push(value).push(shift).op(opCode);
+    }
+    return BytecodeRunner.of(program.compile());
+  }
+
+  static final String[] SHIFTS =
       Stream.concat(
               IntStream.rangeClosed(0, 257) // Generates numbers 0 to 257
                   .mapToObj(BigInteger::valueOf),
@@ -93,7 +113,7 @@ public class ShfExtensiveTest {
           .map(bigInteger -> bigInteger.toString(16))
           .toArray(String[]::new);
 
-  static final String[] p = {
+  static final String[] P = {
     "DF", "D5", "A2", "E7", "6E", "9D", "3A", "20",
     "96", "2D", "17", "48", "19", "7F", "0D", "4C",
     "FF", "3D", "57", "A4", "A8", "87", "45", "B9",
@@ -105,7 +125,7 @@ public class ShfExtensiveTest {
   public static String value(int k, int l) {
     String[] v = new String[32];
     // 0 to k - 1
-    if (k >= 0) System.arraycopy(p, 0, v, 0, k);
+    if (k >= 0) System.arraycopy(P, 0, v, 0, k);
     // k
     v[k] = String.format("%02X", (1 << l) - 1);
     // k + 1 to 31
@@ -120,5 +140,38 @@ public class ShfExtensiveTest {
   void testValue() {
     Assertions.assertEquals(
         "0000000000000000000000003F573DFF4C0D7F1948172D96203A9D6EE7A2D5DF", value(19, 6));
+  }
+
+  // ###################################################################################################################
+
+  // This test should be executed only occasionally since very long. Run below batched tests instead
+  @Disabled
+  @ParameterizedTest
+  @MethodSource("shfExtensiveTestSource")
+  void shfExtensiveTest(String shift, String value, OpCode opCode) {
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(value).push(shift).op(opCode).compile())
+        .run();
+  }
+
+  private static Stream<Arguments> shfExtensiveTestSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (String shift : SHIFTS) {
+      for (int k = 0; k < 32; k++) {
+        for (int l = 1; l <= 8; l++) {
+          String value = value(k, l);
+          arguments.add(Arguments.of(shift, value, OpCode.SHL));
+          arguments.add(Arguments.of(shift, value, OpCode.SHR));
+          arguments.add(Arguments.of(shift, value, OpCode.SAR));
+          // Adding additional cases for SAR
+          for (String XY : XYs) {
+            String mask = XY + "00".repeat(31);
+            String maskXorValue =
+                String.format("%064X", new BigInteger(mask, 16).xor(new BigInteger(value, 16)));
+            arguments.add(Arguments.of(shift, maskXorValue, OpCode.SAR));
+          }
+        }
+      }
+    }
+    return arguments.stream();
   }
 }

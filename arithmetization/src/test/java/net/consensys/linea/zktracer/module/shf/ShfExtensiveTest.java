@@ -84,16 +84,6 @@ public class ShfExtensiveTest {
 
   // Inputs and support methods
 
-  //  Creates a program that concatenates shifts operations (with different relevant shift values)
-  //  for a given value and opcode
-  private BytecodeRunner shfProgramOf(String value, OpCode opCode) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
-    for (String shift : SHIFTS) {
-      program.push(value).push(shift).op(opCode);
-    }
-    return BytecodeRunner.of(program.compile());
-  }
-
   static final String[] SHIFTS =
       Stream.concat(
               IntStream.rangeClosed(0, 257) // Generates numbers 0 to 257
@@ -121,6 +111,16 @@ public class ShfExtensiveTest {
   }; // big-endian (from the least significant byte to the most significant byte)
 
   static final String[] XYs = new String[] {"80", "90", "A0", "B0", "C0", "D0", "E0", "F0"};
+
+  //  Creates a program that concatenates shifts operations (with different relevant shift values)
+  //  for a given value and opcode
+  private BytecodeRunner shfProgramOf(String value, OpCode opCode) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    for (String shift : SHIFTS) {
+      program.push(value).push(shift).op(opCode);
+    }
+    return BytecodeRunner.of(program.compile());
+  }
 
   public static String value(int k, int l) {
     String[] v = new String[32];

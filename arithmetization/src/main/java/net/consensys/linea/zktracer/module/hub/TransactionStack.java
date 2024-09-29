@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +30,9 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Getter
 public class TransactionStack implements StackedContainer {
   private final List<TransactionProcessingMetadata> txs =
-      new ArrayList<>(200); // TODO: write the allocated memory from .toml file
+      new ArrayList<>(
+          LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH); // TODO: write the allocated memory from .toml
+  // file
   private int currentAbsNumber;
   private int relativeTransactionNumber;
 

@@ -496,6 +496,12 @@ public class Hub implements Module {
     for (Module m : modules) {
       m.traceEndBlock(blockHeader, blockBody);
     }
+
+    checkArgument(
+        blockHeader.getGasUsed() == txStack.current().getAccumulatedGasUsedInBlock(),
+        "Gas used in block header %s does not match accumulated gas used in block %s",
+        blockHeader.getGasUsed(),
+        txStack.current().getAccumulatedGasUsedInBlock());
   }
 
   public void traceStartTransaction(final WorldView world, final Transaction tx) {

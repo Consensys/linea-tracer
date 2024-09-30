@@ -35,12 +35,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class ShfExtensiveTest {
 
-  @Getter private static Stream<Arguments> shfTestSource;
+  private static final List<Arguments> shfTestSourceList = new ArrayList<>();
   @Getter private static Stream<Arguments> shfWithMaskTestSource;
 
   @BeforeAll
   public static void init() {
-    List<Arguments> shfTestSourceList = new ArrayList<>();
     List<Arguments> shfWithMaskTestSourceList = new ArrayList<>();
     for (int k = 0; k < 32; k++) {
       for (int l = 1; l <= 8; l++) {
@@ -54,8 +53,12 @@ public class ShfExtensiveTest {
         }
       }
     }
-    shfTestSource = shfTestSourceList.stream();
     shfWithMaskTestSource = shfWithMaskTestSourceList.stream();
+    // shfWithMaskTestSource inputs are used only once, so it is fine to generate the corresponding
+    // stream here.
+    // Note that whenever a stream is used, it is also consumed,
+    // that is why in the case of shfTestSourceList inputs,
+    // we generate a new stream every time it is needed.
   }
 
   @ParameterizedTest
@@ -80,6 +83,11 @@ public class ShfExtensiveTest {
   @MethodSource("getShfWithMaskTestSource")
   void sarWithMaskTest(String value, int k, int l, String XY) {
     shfProgramOf(value, OpCode.SAR).run();
+  }
+
+  private static Stream<Arguments> getShfTestSource() {
+    return shfTestSourceList.stream();
+    // A new stream is generated whenever it is necessary, starting from the same list
   }
 
   // Inputs and support methods

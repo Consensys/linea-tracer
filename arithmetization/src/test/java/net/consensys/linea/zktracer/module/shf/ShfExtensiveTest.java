@@ -22,6 +22,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -33,6 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@Accessors(fluent = true)
 public class ShfExtensiveTest {
 
   private static final List<Arguments> shfTestSourceList = new ArrayList<>();
@@ -62,30 +64,30 @@ public class ShfExtensiveTest {
   }
 
   @ParameterizedTest
-  @MethodSource("getShfTestSource")
+  @MethodSource("shfTestSource")
   void shlTest(String value, int k, int l) {
     shfProgramOf(value, OpCode.SHL).run();
   }
 
   @ParameterizedTest
-  @MethodSource("getShfTestSource")
+  @MethodSource("shfTestSource")
   void shrTest(String value, int k, int l) {
     shfProgramOf(value, OpCode.SHR).run();
   }
 
   @ParameterizedTest
-  @MethodSource("getShfTestSource")
+  @MethodSource("shfTestSource")
   void sarTest(String value, int k, int l) {
     shfProgramOf(value, OpCode.SAR).run();
   }
 
   @ParameterizedTest
-  @MethodSource("getShfWithMaskTestSource")
+  @MethodSource("shfWithMaskTestSource")
   void sarWithMaskTest(String value, int k, int l, String XY) {
     shfProgramOf(value, OpCode.SAR).run();
   }
 
-  private static Stream<Arguments> getShfTestSource() {
+  private static Stream<Arguments> shfTestSource() {
     return shfTestSourceList.stream();
     // A new stream is generated whenever it is necessary, starting from the same list
   }

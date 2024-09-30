@@ -29,12 +29,14 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @Accessors(fluent = true)
+@Tag("weekly")
 public class ShfExtensiveTest {
 
   private static final List<Arguments> shfTestSourceList = new ArrayList<>();

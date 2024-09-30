@@ -214,7 +214,7 @@ public class Exceptions {
       return false;
     }
     final long offset = clampedToLong(frame.getStackItem(0));
-    if (offset > frame.memoryByteSize()) {
+    if (offset >= frame.memoryByteSize()) {
       return false;
     }
     final byte firstByte = frame.shadowReadMemory(offset, 1).get(0);

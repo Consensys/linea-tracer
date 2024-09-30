@@ -72,10 +72,16 @@ public class TransactionStack implements StackedContainer {
     this.txs.add(newTx);
   }
 
+  // @françois what replaces this for message calls to smart contracts ?
   public void setCodeFragmentIndex(Hub hub) {
     for (TransactionProcessingMetadata tx : this.txs) {
       final int cfi =
-          tx.requiresCfiUpdate() ? hub.getCfiByMetaData(tx.getEffectiveRecipient(), 1, true) : 0;
+          tx.requiresCfiUpdate()
+              ? hub.getCfiByMetaData(
+                  tx.getEffectiveRecipient(),
+                  tx.getRecipientAddressDeploymentNumber(),
+                  tx.isRecipientAddressDeploymentStatus())
+              : 0;
       tx.setCodeFragmentIndex(cfi);
     }
   }

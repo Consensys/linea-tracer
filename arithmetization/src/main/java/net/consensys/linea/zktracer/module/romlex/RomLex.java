@@ -130,7 +130,7 @@ public class RomLex
       final Address deploymentAddress = Address.contractAddress(tx.getSender(), tx.getNonce());
       final RomOperation operation =
           new RomOperation(
-              ContractMetadata.make(deploymentAddress, 1, true), false, false, tx.getInit().get());
+              ContractMetadata.canonical(hub, deploymentAddress), false, false, tx.getInit().get());
 
       operations.add(operation);
     }
@@ -238,7 +238,23 @@ public class RomLex
                   }
                 });
       }
+
+      default -> throw new RuntimeException(
+          String.format(
+              "%s does not trigger the creation of ROM_LEX",
+              OpCode.of(frame.getCurrentOperation().getOpcode())));
     }
+  }
+
+  public void callRomLexForSelfdestruct(final Address addressWhichWillSelfdestruct) {
+
+    final RomOperation operation =
+        new RomOperation(
+            ContractMetadata.canonical(hub, addressWhichWillSelfdestruct),
+            false,
+            false,
+            Bytes.EMPTY);
+    operations.add(operation);
   }
 
   @Override

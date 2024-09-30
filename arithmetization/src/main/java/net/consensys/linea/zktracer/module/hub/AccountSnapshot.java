@@ -141,9 +141,17 @@ public class AccountSnapshot {
         address, nonce, balance, isWarm, code, deploymentNumber, deploymentStatus);
   }
 
-  public AccountSnapshot wipe() {
+  //
+  public AccountSnapshot wipe(DeploymentInfo deploymentInfo) {
+    Preconditions.checkArgument(!deploymentInfo.getDeploymentStatus(address));
     return new AccountSnapshot(
-        address, 0, Wei.of(0), isWarm, Bytecode.EMPTY, deploymentNumber + 1, false);
+        address,
+        0,
+        Wei.of(0),
+        isWarm,
+        Bytecode.EMPTY,
+        deploymentInfo.deploymentNumber(address),
+        deploymentInfo.getDeploymentStatus(address));
   }
 
   /**

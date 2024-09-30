@@ -53,6 +53,8 @@ public class TransactionProcessingMetadata {
   final long baseFee;
 
   final boolean isDeployment;
+  @Setter int recipientAddressDeploymentNumber;
+  @Setter boolean recipientAddressDeploymentStatus;
 
   @Accessors(fluent = true)
   final boolean requiresEvmExecution;
@@ -160,6 +162,11 @@ public class TransactionProcessingMetadata {
     this.effectiveGasPrice = computeEffectiveGasPrice();
   }
 
+  public void captureInitialRecipientAddressDeploymentInfoValues(Hub hub) {
+    recipientAddressDeploymentNumber = hub.deploymentNumberOf(effectiveRecipient);
+    recipientAddressDeploymentStatus = hub.deploymentStatusOf(effectiveRecipient);
+  }
+
   public void setPreFinalisationValues(
       final long leftOverGas,
       final long refundCounterMax,
@@ -190,6 +197,9 @@ public class TransactionProcessingMetadata {
       destructedAccountsSnapshot.add(
           AccountSnapshot.fromAddress(
               address, true, hub.deploymentNumberOf(address), hub.deploymentStatusOf(address)));
+
+      // registering the "fresh new deployment number" (that doesn't correspond to any deployment)
+      hub.romLex().callRomLexForSelfdestruct(address);
     }
 
     determineSelfDestructTimeStamp();

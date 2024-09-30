@@ -31,7 +31,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.AttemptedSelfDestruct;
@@ -272,16 +271,17 @@ public class SelfdestructSection extends TraceSection
           SelfdestructScenarioFragment.SelfdestructScenario
               .SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
 
+      // the hub's defers.resolvePostTransaction() gets called after the
+      // hub's completeLineaTransaction which in turn calls
+      // freshDeploymentNumberFinishingSelfdestruct()
+      // which raises the deployment number and sets the deployment status to false
       AccountFragment accountWipingFragment =
           hub.factories()
               .accountFragment()
               .make(
                   accountBeforeSelfDestruct,
-                  selfdestructorAccountAfter.wipe(),
+                  selfdestructorAccountAfter.wipe(hub.transients().conflation().deploymentInfo()),
                   DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
-
-      final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
-      deploymentInfo.freshDeploymentNumberFinishingSelfdestruct(addressWhichMaySelfDestruct);
 
       this.addFragment(accountWipingFragment);
     } else {

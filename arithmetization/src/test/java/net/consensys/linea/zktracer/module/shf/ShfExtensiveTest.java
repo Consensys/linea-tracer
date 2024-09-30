@@ -45,12 +45,12 @@ public class ShfExtensiveTest {
     for (int k = 0; k < 32; k++) {
       for (int l = 1; l <= 8; l++) {
         String value = value(k, l);
-        shfTestSourceList.add(Arguments.of(value));
+        shfTestSourceList.add(Arguments.of(value, k, l));
         for (String XY : XYs) {
           String mask = XY + "00".repeat(31);
           String maskXorValue =
               String.format("%064X", new BigInteger(mask, 16).xor(new BigInteger(value, 16)));
-          shfWithMaskTestSourceList.add(Arguments.of(maskXorValue));
+          shfWithMaskTestSourceList.add(Arguments.of(maskXorValue, k, l, XY));
         }
       }
     }
@@ -60,25 +60,25 @@ public class ShfExtensiveTest {
 
   @ParameterizedTest
   @MethodSource("getShfTestSource")
-  void shlTest(String value) {
+  void shlTest(String value, int k, int l) {
     shfProgramOf(value, OpCode.SHL).run();
   }
 
   @ParameterizedTest
   @MethodSource("getShfTestSource")
-  void shrTest(String value) {
+  void shrTest(String value, int k, int l) {
     shfProgramOf(value, OpCode.SHR).run();
   }
 
   @ParameterizedTest
   @MethodSource("getShfTestSource")
-  void sarTest(String value) {
+  void sarTest(String value, int k, int l) {
     shfProgramOf(value, OpCode.SAR).run();
   }
 
   @ParameterizedTest
   @MethodSource("getShfWithMaskTestSource")
-  void sarWithMaskTest(String value) {
+  void sarWithMaskTest(String value, int k, int l, String XY) {
     shfProgramOf(value, OpCode.SAR).run();
   }
 

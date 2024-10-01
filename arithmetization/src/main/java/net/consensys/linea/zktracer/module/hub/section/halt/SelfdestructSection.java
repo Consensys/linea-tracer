@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section.halt;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -136,7 +137,7 @@ public class SelfdestructSection extends TraceSection
     }
 
     // Unexceptional case
-    final Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
+    final Map<EphemeralAccount, ArrayList<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
         hub.txStack().current().getUnexceptionalSelfDestructMap();
 
     final EphemeralAccount ephemeralAccount =
@@ -144,15 +145,14 @@ public class SelfdestructSection extends TraceSection
             addressWhichMaySelfDestruct, selfdestructorAccountBefore.deploymentNumber());
 
     if (unexceptionalSelfDestructMap.containsKey(ephemeralAccount)) {
-      List<AttemptedSelfDestruct> attemptedSelfDestructs =
-          unexceptionalSelfDestructMap.get(ephemeralAccount);
-      attemptedSelfDestructs.add(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()));
-      // We do not need to put again the list in the map, as it is a reference
+      unexceptionalSelfDestructMap
+          .get(ephemeralAccount)
+          .add(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()));
     } else {
       unexceptionalSelfDestructMap.put(
           new EphemeralAccount(
               addressWhichMaySelfDestruct, selfdestructorAccountBefore.deploymentNumber()),
-          List.of(new AttemptedSelfDestruct(hubStamp, hub.currentFrame())));
+          new ArrayList<>(List.of(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()))));
     }
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());

@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.romlex;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
@@ -240,9 +241,7 @@ public class RomLex
       }
 
       default -> throw new RuntimeException(
-          String.format(
-              "%s does not trigger the creation of ROM_LEX",
-              OpCode.of(frame.getCurrentOperation().getOpcode())));
+          String.format("%s does not trigger the creation of ROM_LEX", getOpCode(frame)));
     }
   }
 

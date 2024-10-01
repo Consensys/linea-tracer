@@ -245,9 +245,9 @@ public class SelfdestructSection extends TraceSection
       return;
     }
 
-    Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
+    final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
-    EphemeralAccount ephemeralAccount =
+    final EphemeralAccount ephemeralAccount =
         new EphemeralAccount(
             addressWhichMaySelfDestruct, selfdestructorAccountAfter.deploymentNumber());
 
@@ -259,7 +259,7 @@ public class SelfdestructSection extends TraceSection
 
     checkArgument(hubStamp >= selfDestructTime);
 
-    AccountSnapshot accountBeforeSelfDestruct =
+    final AccountSnapshot accountBeforeSelfDestruct =
         transactionProcessingMetadata.getDestructedAccountsSnapshot().stream()
             .filter(
                 accountSnapshot -> accountSnapshot.address().equals(addressWhichMaySelfDestruct))
@@ -275,7 +275,7 @@ public class SelfdestructSection extends TraceSection
       // hub's completeLineaTransaction which in turn calls
       // freshDeploymentNumberFinishingSelfdestruct()
       // which raises the deployment number and sets the deployment status to false
-      AccountFragment accountWipingFragment =
+      final AccountFragment accountWipingFragment =
           hub.factories()
               .accountFragment()
               .make(

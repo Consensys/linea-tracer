@@ -128,7 +128,7 @@ public class TransactionProcessingMetadata {
   public record AttemptedSelfDestruct(int hubStamp, CallFrame callFrame) {}
 
   public TransactionProcessingMetadata(
-    final Hub hub,
+      final Hub hub,
       final WorldView world,
       final Transaction transaction,
       final Block block,
@@ -164,7 +164,6 @@ public class TransactionProcessingMetadata {
 
     recipientAddressDeploymentNumber = hub.deploymentNumberOf(effectiveRecipient);
     recipientAddressDeploymentStatus = hub.deploymentStatusOf(effectiveRecipient);
-
   }
 
   public void setPreFinalisationValues(

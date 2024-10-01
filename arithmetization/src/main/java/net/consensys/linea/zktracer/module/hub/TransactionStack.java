@@ -27,22 +27,22 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 public class TransactionStack implements StackedContainer {
-  private final List<TransactionProcessingMetadata> txs =
+  private final List<TransactionProcessingMetadata> transactions =
       new ArrayList<>(200); // TODO: write the allocated memory from .toml file
   private int currentAbsNumber;
   private int relativeTransactionNumber;
 
   public TransactionProcessingMetadata current() {
-    return txs.getLast();
+    return transactions.getLast();
   }
 
   /* WARN: can't be called if currentAbsNumber == 1*/
   public TransactionProcessingMetadata previous() {
-    return this.txs.get(this.txs.size() - 2);
+    return this.transactions.get(this.transactions.size() - 2);
   }
 
   public TransactionProcessingMetadata getByAbsoluteTransactionNumber(final int id) {
-    return this.txs.get(id - 1);
+    return this.transactions.get(id - 1);
   }
 
   @Override
@@ -53,7 +53,7 @@ public class TransactionStack implements StackedContainer {
 
   @Override
   public void pop() {
-    this.txs.remove(this.current());
+    this.transactions.remove(this.current());
     this.currentAbsNumber -= 1;
     this.relativeTransactionNumber -= 1;
   }
@@ -62,19 +62,20 @@ public class TransactionStack implements StackedContainer {
     this.relativeTransactionNumber = 0;
   }
 
-  public void enterTransaction(final Hub hub, final WorldView world, final Transaction tx, Block block) {
+  public void enterTransaction(
+      final Hub hub, final WorldView world, final Transaction tx, Block block) {
     this.enter();
 
     final TransactionProcessingMetadata newTx =
-        new TransactionProcessingMetadata(hub,
-            world, tx, block, relativeTransactionNumber, currentAbsNumber);
+        new TransactionProcessingMetadata(
+            hub, world, tx, block, relativeTransactionNumber, currentAbsNumber);
 
-    this.txs.add(newTx);
+    transactions.add(newTx);
   }
 
   // @françois what replaces this for message calls to smart contracts ?
   public void setCodeFragmentIndex(Hub hub) {
-    for (TransactionProcessingMetadata tx : this.txs) {
+    for (TransactionProcessingMetadata tx : transactions) {
       final int cfi =
           tx.requiresCfiUpdate()
               ? hub.getCfiByMetaData(

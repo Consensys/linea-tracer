@@ -518,8 +518,6 @@ public class Hub implements Module {
       new TxInitializationSection(this, world);
     }
 
-    transactionProcessingMetadata.captureInitialRecipientAddressDeploymentInfoValues(this);
-
     /*
      * TODO: the ID = 0 (universal parent context) context should
      *  1. be shared by all transactions in a conflation (OK)

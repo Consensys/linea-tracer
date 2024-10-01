@@ -44,15 +44,13 @@ nodeSetup{
     )
 }
 
+
+
 solidity {
-  outputComponents = [
-    OutputComponent.BIN,
-    OutputComponent.ABI,
-    OutputComponent.ASM_JSON
-  ]
-  optimizeRuns = 500
-  evmVersion = EVMVersion.LONDON
+  optimize = false
   prettyJson = true
+  evmVersion = EVMVersion.LONDON
+
 }
 
 web3j {

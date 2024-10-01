@@ -245,17 +245,6 @@ public class RomLex
     }
   }
 
-  public void callRomLexForSelfdestruct(final Address addressWhichWillSelfdestruct) {
-
-    final RomOperation operation =
-        new RomOperation(
-            ContractMetadata.canonical(hub, addressWhichWillSelfdestruct),
-            false,
-            false,
-            Bytes.EMPTY);
-    operations.add(operation);
-  }
-
   @Override
   public void resolveUponContextEntry(Hub hub) {
     checkArgument(hub.messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION);

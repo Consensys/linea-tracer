@@ -196,9 +196,6 @@ public class TransactionProcessingMetadata {
       destructedAccountsSnapshot.add(
           AccountSnapshot.fromAddress(
               address, true, hub.deploymentNumberOf(address), hub.deploymentStatusOf(address)));
-
-      // registering the "fresh new deployment number" (that doesn't correspond to any deployment)
-      hub.romLex().callRomLexForSelfdestruct(address);
     }
 
     determineSelfDestructTimeStamp();

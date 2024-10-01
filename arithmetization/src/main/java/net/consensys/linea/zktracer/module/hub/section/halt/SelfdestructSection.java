@@ -34,8 +34,6 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.AttemptedSelfDestruct;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.EphemeralAccount;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -138,10 +136,10 @@ public class SelfdestructSection extends TraceSection
     }
 
     // Unexceptional case
-    Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
+    final Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
         hub.txStack().current().getUnexceptionalSelfDestructMap();
 
-    EphemeralAccount ephemeralAccount =
+    final EphemeralAccount ephemeralAccount =
         new EphemeralAccount(
             addressWhichMaySelfDestruct, selfdestructorAccountBefore.deploymentNumber());
 

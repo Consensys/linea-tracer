@@ -32,9 +32,10 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
+import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
-import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -118,12 +119,6 @@ public class TransactionProcessingMetadata {
       new HashMap<>();
 
   @Getter final Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
-
-  // Ephermeral accounts are both accounts that have been deployed on-chain
-  // and accounts that live for a limited time
-  public record EphemeralAccount(Address address, int deploymentNumber) {}
-
-  public record AttemptedSelfDestruct(int hubStamp, CallFrame callFrame) {}
 
   public TransactionProcessingMetadata(
       final WorldView world,

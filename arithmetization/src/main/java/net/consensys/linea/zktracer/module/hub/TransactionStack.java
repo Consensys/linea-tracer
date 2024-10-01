@@ -79,8 +79,8 @@ public class TransactionStack implements StackedContainer {
           tx.requiresCfiUpdate()
               ? hub.getCfiByMetaData(
                   tx.getEffectiveRecipient(),
-                  tx.getRecipientAddressDeploymentNumber(),
-                  tx.isRecipientAddressDeploymentStatus())
+                  tx.getUpdatedRecipientAddressDeploymentNumberAtTransactionStart(),
+                  tx.isUpdatedRecipientAddressDeploymentStatusAtTransactionStart())
               : 0;
       tx.setCodeFragmentIndex(cfi);
     }

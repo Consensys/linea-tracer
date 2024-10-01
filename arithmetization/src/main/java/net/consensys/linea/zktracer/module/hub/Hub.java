@@ -518,7 +518,10 @@ public class Hub implements Module {
       new TxInitializationSection(this, world);
     }
 
-    transactionProcessingMetadata.captureInitialRecipientAddressDeploymentInfoValues(this);
+    // Note: for deployment transactions the deployment number / status were updated during the
+    // initialization phase. We are thus capturing the respective XXX_NEW's
+    transactionProcessingMetadata
+        .captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(this);
 
     /*
      * TODO: the ID = 0 (universal parent context) context should

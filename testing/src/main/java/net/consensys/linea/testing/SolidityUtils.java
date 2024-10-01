@@ -22,6 +22,8 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.log.LogTopic;
+import org.web3j.protocol.core.methods.response.Log;
 import org.web3j.tx.Contract;
 
 public class SolidityUtils {
@@ -44,5 +46,19 @@ public class SolidityUtils {
       throw new RuntimeException(e);
     }
     throw new RuntimeException("Could not find contract bytecode");
+  }
+
+  public static Log fromBesuLog(org.hyperledger.besu.evm.log.Log log) {
+    return new Log(
+        false,
+        "",
+        "",
+        "",
+        "",
+        "",
+        log.getLogger().toHexString(),
+        log.getData().toHexString(),
+        "",
+        log.getTopics().stream().map(LogTopic::toHexString).toList());
   }
 }

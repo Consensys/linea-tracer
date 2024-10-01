@@ -16,6 +16,8 @@
 package net.consensys.linea.zktracer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.util.Collections;
@@ -37,7 +39,9 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
+import org.hyperledger.besu.evm.log.Log;
 import org.junit.jupiter.api.Test;
+import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
@@ -107,6 +111,22 @@ public class ExampleSolidityTest {
           // One event from the snippet
           // One event from the framework entrypoint about contract call
           assertEquals(result.getLogs().size(), 2);
+          for (Log log : result.getLogs()) {
+            String logTopic = log.getTopics().getFirst().toHexString();
+            if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
+              TestSnippet_Events.DataNoIndexesEventResponse response =
+                  TestSnippet_Events.getDataNoIndexesEventFromLog(SolidityUtils.fromBesuLog(log));
+              assertEquals(response.singleInt, BigInteger.valueOf(123456));
+            } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
+                .equals(logTopic)) {
+              FrameworkEntrypoint.CallExecutedEventResponse response =
+                  FrameworkEntrypoint.getCallExecutedEventFromLog(SolidityUtils.fromBesuLog(log));
+              assertTrue(response.isSuccess);
+              assertEquals(response.destination, snippetAccount.getAddress().toHexString());
+            } else {
+              fail();
+            }
+          }
         };
 
     ToyExecutionEnvironmentV2.builder()
@@ -152,8 +172,10 @@ public class ExampleSolidityTest {
     Consumer<TransactionProcessingResult> resultValidator =
         (TransactionProcessingResult result) -> {
           assertEquals(result.getLogs().size(), 1);
-          assertEquals(
-              result.getLogs().get(0).getData().toBigInteger(), BigInteger.valueOf(123456));
+          TestSnippet_Events.DataNoIndexesEventResponse response =
+              TestSnippet_Events.getDataNoIndexesEventFromLog(
+                  SolidityUtils.fromBesuLog(result.getLogs().getFirst()));
+          assertEquals(response.singleInt, BigInteger.valueOf(123456));
         };
 
     ToyExecutionEnvironmentV2.builder()

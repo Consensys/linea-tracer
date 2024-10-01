@@ -500,7 +500,7 @@ public class Hub implements Module {
   public void traceStartTransaction(final WorldView world, final Transaction tx) {
     pch.reset();
     state.enter();
-    txStack.enterTransaction(this, world, tx, transients.block());
+    txStack.enterTransaction(world, tx, transients.block());
 
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
 
@@ -517,6 +517,8 @@ public class Hub implements Module {
       state.setProcessingPhase(TX_INIT);
       new TxInitializationSection(this, world);
     }
+
+    transactionProcessingMetadata.captureInitialRecipientAddressDeploymentInfoValues(this);
 
     /*
      * TODO: the ID = 0 (universal parent context) context should

@@ -53,8 +53,8 @@ public class TransactionProcessingMetadata {
   final long baseFee;
 
   final boolean isDeployment;
-  final int recipientAddressDeploymentNumber;
-  final boolean recipientAddressDeploymentStatus;
+  int recipientAddressDeploymentNumber;
+  boolean recipientAddressDeploymentStatus;
 
   @Accessors(fluent = true)
   final boolean requiresEvmExecution;
@@ -128,7 +128,6 @@ public class TransactionProcessingMetadata {
   public record AttemptedSelfDestruct(int hubStamp, CallFrame callFrame) {}
 
   public TransactionProcessingMetadata(
-      final Hub hub,
       final WorldView world,
       final Transaction transaction,
       final Block block,
@@ -161,9 +160,6 @@ public class TransactionProcessingMetadata {
     effectiveRecipient = effectiveToAddress(besuTransaction);
 
     effectiveGasPrice = computeEffectiveGasPrice();
-
-    recipientAddressDeploymentNumber = hub.deploymentNumberOf(effectiveRecipient);
-    recipientAddressDeploymentStatus = hub.deploymentStatusOf(effectiveRecipient);
   }
 
   public void setPreFinalisationValues(
@@ -329,5 +325,10 @@ public class TransactionProcessingMetadata {
         }
       }
     }
+  }
+
+  public void captureInitialRecipientAddressDeploymentInfoValues(Hub hub) {
+    recipientAddressDeploymentNumber = hub.deploymentNumberOf(effectiveRecipient);
+    recipientAddressDeploymentStatus = hub.deploymentStatusOf(effectiveRecipient);
   }
 }

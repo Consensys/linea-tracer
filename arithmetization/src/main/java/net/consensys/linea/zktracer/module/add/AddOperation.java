@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.add;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -27,6 +28,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 
+@Slf4j
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public final class AddOperation extends ModuleOperation {
   private static final UInt256 TWO_TO_THE_128 = UInt256.ONE.shiftLeft(128);
@@ -35,7 +37,8 @@ public final class AddOperation extends ModuleOperation {
   @EqualsAndHashCode.Include private final Bytes32 arg1;
   @EqualsAndHashCode.Include private final Bytes32 arg2;
   private BaseBytes res;
-  private int ctMax;
+  private int ctMax =
+      -1; // initialize ctmax with an impossible value to know whether or not it was computed.
 
   /**
    * Returns the appropriate state of the overflow bit depending on the position within the cycle.
@@ -99,7 +102,6 @@ public final class AddOperation extends ModuleOperation {
         overflowHi = true;
       }
     }
-
     // Set OverFlowLo
     Bytes32 addRes;
     if (opCode == OpCode.ADD) {
@@ -132,7 +134,20 @@ public final class AddOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    ctMax = computeCtMax();
+    if (ctMax == -1) {
+      ctMax = computeCtMax();
+    } else {
+      int newCtMax = computeCtMax();
+      if (newCtMax != ctMax) {
+        throw new RuntimeException(
+            "ctmax was computed twice and had different values, old: "
+                + ctMax
+                + " new: "
+                + newCtMax);
+      }
+      log.error(
+          "ctmax was computed twice and had different values, old: " + ctMax + " new: " + newCtMax);
+    }
     return ctMax + 1;
   }
 }

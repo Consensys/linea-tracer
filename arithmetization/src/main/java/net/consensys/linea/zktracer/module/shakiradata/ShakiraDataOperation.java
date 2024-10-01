@@ -173,4 +173,30 @@ public class ShakiraDataOperation extends ModuleOperation {
       }
     }
   }
+
+  @Override
+  public String toString() {
+    return "ShakiraDataOperation{"
+        + "hashType="
+        + hashType
+        + ", hashInput="
+        + bytesToHex(hashInput.toArray())
+        + ", ID="
+        + ID
+        + ", inputSize="
+        + inputSize
+        + ", lastNBytes="
+        + lastNBytes
+        + ", indexMaxData="
+        + indexMaxData
+        + '}';
+  }
+
+  public static String bytesToHex(byte[] bytes) {
+    StringBuilder sb = new StringBuilder();
+    for (byte b : bytes) {
+      sb.append(String.format("%02X ", b));
+    }
+    return sb.toString().trim();
+  }
 }

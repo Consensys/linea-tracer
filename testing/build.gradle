@@ -39,9 +39,8 @@ dependencies {
   implementation 'org.assertj:assertj-core'
 }
 
-nodeSetup{
-  mustRunAfter(spotlessBash, spotlessGroovy, spotlessSol
-    )
+nodeSetup {
+  mustRunAfter(spotlessBash, spotlessGroovy, spotlessSol)
 }
 
 

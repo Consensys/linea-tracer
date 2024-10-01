@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +40,6 @@ import org.junit.jupiter.api.Test;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ExampleSolidityTest {
 
@@ -75,11 +75,12 @@ public class ExampleSolidityTest {
             .keyPair(keyPair)
             .build();
 
-    Consumer<TransactionProcessingResult> resultValidator = (TransactionProcessingResult result) -> {
-      assertEquals(result.getLogs().size(), 1);
-      assertEquals(result.getLogs().get(0).getData().toBigInteger(), BigInteger.valueOf(123456));
-    };
-
+    Consumer<TransactionProcessingResult> resultValidator =
+        (TransactionProcessingResult result) -> {
+          assertEquals(result.getLogs().size(), 1);
+          assertEquals(
+              result.getLogs().get(0).getData().toBigInteger(), BigInteger.valueOf(123456));
+        };
 
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(senderAccount, contractAccount))
@@ -92,7 +93,8 @@ public class ExampleSolidityTest {
   @Test
   void test2() {
     KeyPair senderkeyPair = new SECP256K1().generateKeyPair();
-    Address senderAddress = Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
+    Address senderAddress =
+        Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();

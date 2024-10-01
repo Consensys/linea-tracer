@@ -50,7 +50,6 @@ solidity {
   optimize = false
   prettyJson = true
   evmVersion = EVMVersion.LONDON
-
 }
 
 web3j {

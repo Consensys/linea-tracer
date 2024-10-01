@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.types;
 
 import java.util.Objects;
+import java.util.concurrent.*;
 
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Hash;
@@ -23,14 +24,17 @@ import org.hyperledger.besu.evm.Code;
 
 /** This class is intended to store a bytecode and its memoized hash. */
 public final class Bytecode {
+  /** initializing the executor service before creating the EMPTY bytecode. */
+  private static final ExecutorService executorService = Executors.newCachedThreadPool();
+
   /** The empty bytecode. */
   public static Bytecode EMPTY = new Bytecode(Bytes.EMPTY);
 
   /** The bytecode. */
   private final Bytes bytecode;
 
-  /** The bytecode hash; is null by default and computed & memoized on the fly when required. */
-  private Hash hash;
+  /** The bytecode hash; precomputed & memoized asynchronously. */
+  private Future<Hash> hash;
 
   /**
    * Create an instance from {@link Bytes}.
@@ -39,6 +43,7 @@ public final class Bytecode {
    */
   public Bytecode(Bytes bytes) {
     this.bytecode = Objects.requireNonNullElse(bytes, Bytes.EMPTY);
+    hash = executorService.submit(() -> computeCodeHash());
   }
 
   /**
@@ -48,7 +53,7 @@ public final class Bytecode {
    */
   public Bytecode(Code code) {
     this.bytecode = code.getBytes();
-    this.hash = code.getCodeHash();
+    this.hash = CompletableFuture.completedFuture(code.getCodeHash());
   }
 
   /**
@@ -84,13 +89,18 @@ public final class Bytecode {
    * @return the bytecode hash
    */
   public Hash getCodeHash() {
-    if (this.hash == null) {
-      if (this.bytecode.isEmpty()) {
-        this.hash = Hash.EMPTY;
-      } else {
-        this.hash = Hash.hash(this.bytecode);
-      }
+    try {
+      return hash.get();
+    } catch (Exception e) {
+      return computeCodeHash();
     }
-    return this.hash;
+  }
+
+  private Hash computeCodeHash() {
+    if (this.bytecode.isEmpty()) {
+      return Hash.EMPTY;
+    } else {
+      return Hash.hash(this.bytecode);
+    }
   }
 }

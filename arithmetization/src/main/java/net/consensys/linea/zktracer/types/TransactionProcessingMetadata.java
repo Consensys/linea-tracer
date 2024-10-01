@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -118,7 +117,7 @@ public class TransactionProcessingMetadata {
   @Setter Set<AccountSnapshot> destructedAccountsSnapshot = new HashSet<>();
 
   @Getter
-  final Map<EphemeralAccount, ArrayList<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
+  final Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
       new HashMap<>();
 
   @Getter final Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
@@ -304,7 +303,7 @@ public class TransactionProcessingMetadata {
   }
 
   private void determineSelfDestructTimeStamp() {
-    for (Map.Entry<EphemeralAccount, ArrayList<AttemptedSelfDestruct>> entry :
+    for (Map.Entry<EphemeralAccount, List<AttemptedSelfDestruct>> entry :
         unexceptionalSelfDestructMap.entrySet()) {
 
       final EphemeralAccount ephemeralAccount = entry.getKey();

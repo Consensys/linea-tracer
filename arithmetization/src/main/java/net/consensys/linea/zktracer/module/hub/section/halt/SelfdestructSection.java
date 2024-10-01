@@ -136,7 +136,7 @@ public class SelfdestructSection extends TraceSection
     }
 
     // Unexceptional case
-    final Map<EphemeralAccount, ArrayList<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
+    final Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
         hub.txStack().current().getUnexceptionalSelfDestructMap();
 
     final EphemeralAccount ephemeralAccount =

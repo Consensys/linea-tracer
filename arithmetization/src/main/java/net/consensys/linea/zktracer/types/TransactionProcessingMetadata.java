@@ -55,6 +55,8 @@ public class TransactionProcessingMetadata {
   final long baseFee;
 
   final boolean isDeployment;
+  int updatedRecipientAddressDeploymentNumberAtTransactionStart;
+  boolean updatedRecipientAddressDeploymentStatusAtTransactionStart;
 
   @Accessors(fluent = true)
   final boolean requiresEvmExecution;
@@ -319,5 +321,12 @@ public class TransactionProcessingMetadata {
         }
       }
     }
+  }
+
+  public void captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(Hub hub) {
+    updatedRecipientAddressDeploymentNumberAtTransactionStart =
+        hub.deploymentNumberOf(effectiveRecipient);
+    updatedRecipientAddressDeploymentStatusAtTransactionStart =
+        hub.deploymentStatusOf(effectiveRecipient);
   }
 }

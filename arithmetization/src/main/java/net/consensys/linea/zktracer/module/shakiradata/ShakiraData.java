@@ -23,6 +23,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
@@ -33,6 +34,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
+@Slf4j
 public class ShakiraData implements OperationListModule<ShakiraDataOperation> {
   @Getter
   private final ModuleOperationStackedList<ShakiraDataOperation> operations =
@@ -72,7 +74,10 @@ public class ShakiraData implements OperationListModule<ShakiraDataOperation> {
 
     switch (operation.hashType()) {
       case SHA256 -> sha256Blocks.addPrecompileLimit(operation.inputSize());
-      case KECCAK -> keccak.addPrecompileLimit(operation.inputSize());
+      case KECCAK -> {
+        log.info("Handling shakira data {}", operation);
+        keccak.addPrecompileLimit(operation.inputSize());
+      }
       case RIPEMD -> ripemdBlocks.addPrecompileLimit(operation.inputSize());
       default -> throw new IllegalArgumentException("Precompile type not supported by SHAKIRA");
     }
@@ -89,5 +94,23 @@ public class ShakiraData implements OperationListModule<ShakiraDataOperation> {
     for (ShakiraDataOperation operation : operations.getAll()) {
       operation.trace(trace, ++stamp);
     }
+  }
+
+  @Override
+  public String toString() {
+    return "ShakiraData{"
+        + "operations="
+        + operations.operationsInTransaction()
+        + ", wcp="
+        + wcp
+        + ", sha256Blocks="
+        + sha256Blocks
+        + ", keccak="
+        + keccak
+        + ", ripemdBlocks="
+        + ripemdBlocks
+        + ", previousID="
+        + previousID
+        + '}';
   }
 }

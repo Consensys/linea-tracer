@@ -16,8 +16,19 @@
 package net.consensys.linea.zktracer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.mockito.Mockito;
 
 public class ZkTracerTest {
 
@@ -25,5 +36,29 @@ public class ZkTracerTest {
   public void createNewTracer() {
     final ZkTracer zkTracer = new ZkTracer();
     assertThat(zkTracer.isExtendedTracing()).isTrue();
+  }
+
+  @Test
+  void writeToFileTest(@TempDir Path tempDir) throws Exception {
+    ZkTracer zkTracer = new ZkTracer();
+
+    // Mock the Hub and other modules as needed
+    Hub mockHub = Mockito.mock(Hub.class);
+    Add mockAdd = Mockito.mock(Add.class);
+
+    // Prepare test data and expectations
+    when(mockHub.getModulesToTrace()).thenReturn(List.of(mockAdd));
+
+    // Specify the file to write to
+    Path testFile = tempDir.resolve("testTrace.lt");
+
+    // Actual test
+    zkTracer.writeToFile(testFile);
+
+    // Verify the file was created
+    assertTrue(Files.exists(testFile));
+
+    // Verify the file content or size as expected, depending on what writeToFile should do
+    assertNotEquals(0, Files.size(testFile));
   }
 }

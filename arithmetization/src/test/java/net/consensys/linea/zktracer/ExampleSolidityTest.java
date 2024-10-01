@@ -26,6 +26,7 @@ import net.consensys.linea.testing.SolidityUtils;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
 import net.consensys.linea.testing.generated.TestStorage;
 import org.apache.tuweni.bytes.Bytes;
@@ -38,13 +39,86 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
 
 public class ExampleSolidityTest {
 
   @Test
-  void test() {
+  void test_with_framework_entrypoint() {
+    KeyPair keyPair = new SECP256K1().generateKeyPair();
+    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+
+    ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+
+    ToyAccount frameworkEntrypointAccount =
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x22222"))
+            .balance(Wei.ONE)
+            .nonce(5)
+            .code(SolidityUtils.getContractByteCode(FrameworkEntrypoint.class))
+            .build();
+
+    ToyAccount snippetAccount =
+        ToyAccount.builder()
+            .address(Address.fromHexString("0x11111"))
+            .balance(Wei.ONE)
+            .nonce(6)
+            .code(SolidityUtils.getContractByteCode(TestSnippet_Events.class))
+            .build();
+
+    Function snippetFunction =
+        new Function(
+            TestSnippet_Events.FUNC_EMITDATANOINDEXES,
+            List.of(new Uint256(BigInteger.valueOf(123456))),
+            Collections.emptyList());
+
+    FrameworkEntrypoint.ContractCall snippetContractCall =
+        new FrameworkEntrypoint.ContractCall(
+            /*Address*/ snippetAccount.getAddress().toHexString(),
+            /*calldata*/ Bytes.fromHexStringLenient(FunctionEncoder.encode(snippetFunction))
+                .toArray(),
+            /*gasLimit*/ BigInteger.ZERO,
+            /*value*/ BigInteger.ZERO,
+            /*callType*/ BigInteger.ZERO);
+
+    List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall);
+
+    Function frameworkEntryPointFunction =
+        new Function(
+            FrameworkEntrypoint.FUNC_EXECUTECALLS,
+            List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
+            Collections.emptyList());
+    Bytes txPayload =
+        Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+
+    Transaction tx =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(frameworkEntrypointAccount)
+            .payload(txPayload)
+            .keyPair(keyPair)
+            .build();
+
+    Consumer<TransactionProcessingResult> resultValidator =
+        (TransactionProcessingResult result) -> {
+          // One event from the snippet
+          // One event from the framework entrypoint about contract call
+          assertEquals(result.getLogs().size(), 2);
+        };
+
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(senderAccount, frameworkEntrypointAccount, snippetAccount))
+        .transaction(tx)
+        .testValidator(resultValidator)
+        .build()
+        .run();
+  }
+
+  @Test
+  void test_snippet_independently() {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -91,7 +165,7 @@ public class ExampleSolidityTest {
   }
 
   @Test
-  void test2() {
+  void test_contract_not_related_to_testing_framework() {
     KeyPair senderkeyPair = new SECP256K1().generateKeyPair();
     Address senderAddress =
         Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));

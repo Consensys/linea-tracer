@@ -501,9 +501,9 @@ public class Hub implements Module {
   public void traceStartTransaction(final WorldView world, final Transaction tx) {
     pch.reset();
     state.enter();
-    txStack.enterTransaction(world, tx, transients.block());
+    txStack.enterTransaction(this, world, tx, transients.block());
 
-    TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
+    final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
 
     this.enterTransaction();
 

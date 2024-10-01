@@ -62,11 +62,11 @@ public class TransactionStack implements StackedContainer {
     this.relativeTransactionNumber = 0;
   }
 
-  public void enterTransaction(final WorldView world, final Transaction tx, Block block) {
+  public void enterTransaction(final Hub hub, final WorldView world, final Transaction tx, Block block) {
     this.enter();
 
     final TransactionProcessingMetadata newTx =
-        new TransactionProcessingMetadata(
+        new TransactionProcessingMetadata(hub,
             world, tx, block, relativeTransactionNumber, currentAbsNumber);
 
     this.txs.add(newTx);

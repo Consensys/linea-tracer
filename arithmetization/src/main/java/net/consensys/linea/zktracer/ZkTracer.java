@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
@@ -91,8 +92,9 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   public ZkTracer(
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chainId);
-    this.chainId = chainId;
+    BigInteger nonnegativeChainId = chainId.abs();
+    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), nonnegativeChainId);
+    this.chainId = nonnegativeChainId;
     for (Module m : this.hub.getModulesToCount()) {
       if (!spillings.containsKey(m.moduleKey())) {
         throw new IllegalStateException(

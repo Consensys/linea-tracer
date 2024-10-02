@@ -15,10 +15,12 @@
 
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
+@Slf4j
 public final class SLoad extends GasProjection {
   private final MessageFrame frame;
   private UInt256 key = null;
@@ -32,6 +34,7 @@ public final class SLoad extends GasProjection {
 
   @Override
   public long storageWarmth() {
+    log.info("Checking storage for {}. Storage is: {}", key, frame.getWarmedUpStorage().cellSet());
     if (key == null) {
       return 0;
     } else {

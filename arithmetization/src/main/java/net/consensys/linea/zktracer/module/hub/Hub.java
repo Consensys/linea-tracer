@@ -730,6 +730,9 @@ public class Hub implements Module {
         this.state().processingPhase == TX_EXEC,
         "There can't be any execution if the HUB is not in execution phase");
 
+    log.info(
+        "warmedUpStorage when entering tracePostExecution {}",
+        frame.getWarmedUpStorage().cellSet());
     final long gasCost = operationResult.getGasCost();
     final TraceSection currentSection = state.currentTxTrace().currentSection();
 

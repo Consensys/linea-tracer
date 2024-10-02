@@ -398,7 +398,10 @@ public class Hub implements Module {
         .toList();
   }
 
-  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic, final BigInteger nonnegativeChainId) {
+  public Hub(
+      final Address l2l1ContractAddress,
+      final Bytes l2l1Topic,
+      final BigInteger nonnegativeChainId) {
     Preconditions.checkState(nonnegativeChainId.signum() >= 0);
     chainId = nonnegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));

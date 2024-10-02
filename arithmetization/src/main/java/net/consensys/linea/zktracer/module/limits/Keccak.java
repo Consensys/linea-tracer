@@ -21,7 +21,6 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
@@ -31,7 +30,6 @@ import org.hyperledger.besu.datatypes.Hash;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-@Slf4j
 public class Keccak implements CountingOnlyModule {
   private final CountOnlyOperation counts = new CountOnlyOperation();
   private static final int ADDRESS_BYTES = Address.SIZE;
@@ -53,11 +51,6 @@ public class Keccak implements CountingOnlyModule {
   @Override
   public void addPrecompileLimit(final int count) {
     final int blockCount = numberOfKeccakBloc(count);
-    log.info(
-        "Adding Keccak: count={} -> blockCount={} from={}",
-        count,
-        blockCount,
-        Thread.currentThread().getStackTrace()[3].getClassName());
     counts.add(blockCount);
   }
 

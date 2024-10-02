@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.replaytests;
 
+import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.replaytests.ReplayTestTools.replayAt;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
 
@@ -27,6 +28,6 @@ public class Issue1274Tests {
 
   @Test
   void issue_1274_mainnet_block_7734306() {
-    replayAt(LINEA_MAINNET, "7734306.json.gz");
+    replay(LINEA_MAINNET, "7734306.json.gz");
   }
 }

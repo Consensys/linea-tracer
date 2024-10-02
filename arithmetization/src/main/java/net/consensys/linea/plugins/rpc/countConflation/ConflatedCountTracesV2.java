@@ -95,7 +95,7 @@ public class ConflatedCountTracesV2 {
         tracer);
 
     Map<String, Integer> counts = tracer.getModulesLineCount();
-    log.info("[TRACING] trace for {}-{} computed in {}", fromBlock, toBlock, sw);
+    log.info("[TRACING] counting lines for conflated blocks {}-{} computed in {}", fromBlock, toBlock, sw);
     sw.reset().start();
 
     return new ConflatedLineCounts(

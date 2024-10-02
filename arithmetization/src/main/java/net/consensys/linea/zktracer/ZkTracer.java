@@ -91,7 +91,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   public ZkTracer(
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic());
+    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chainId);
     this.chainId = chainId;
     for (Module m : this.hub.getModulesToCount()) {
       if (!spillings.containsKey(m.moduleKey())) {

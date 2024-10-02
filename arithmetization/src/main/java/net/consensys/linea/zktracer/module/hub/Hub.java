@@ -731,7 +731,8 @@ public class Hub implements Module {
         "There can't be any execution if the HUB is not in execution phase");
 
     log.info(
-        "warmedUpStorage when entering tracePostExecution {}",
+        "warmedUpStorage when entering tracePostExecution for tx from {}, {}",
+        frame.getOriginatorAddress(),
         frame.getWarmedUpStorage().cellSet());
     final long gasCost = operationResult.getGasCost();
     final TraceSection currentSection = state.currentTxTrace().currentSection();

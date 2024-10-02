@@ -82,11 +82,13 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
   public ZkTracer() {
-    this(LineaL1L2BridgeSharedConfiguration.EMPTY, Bytes.fromHexString("c0ffee").toBigInteger());
+    this(
+        LineaL1L2BridgeSharedConfiguration.EMPTY,
+        Bytes.fromHexString("c0ffee").toBigInteger().abs());
   }
 
-  public ZkTracer(BigInteger chainId) {
-    this(LineaL1L2BridgeSharedConfiguration.EMPTY, chainId);
+  public ZkTracer(BigInteger nonnegativeChainId) {
+    this(LineaL1L2BridgeSharedConfiguration.EMPTY, nonnegativeChainId);
   }
 
   public ZkTracer(

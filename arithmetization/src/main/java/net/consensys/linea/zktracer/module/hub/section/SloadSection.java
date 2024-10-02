@@ -18,7 +18,6 @@ import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFr
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.SLOAD_UNDOING;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -36,7 +35,6 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-@Slf4j
 public class SloadSection extends TraceSection implements PostRollbackDefer {
 
   final WorldView world;
@@ -60,11 +58,6 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     accountAddress = hub.accountAddress();
     accountAddressDeploymentNumber = hub.deploymentNumberOfAccountAddress();
     storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
-    log.info(
-        "Checking storage for {}-{}. Storage is: {}",
-        accountAddress,
-        storageKey,
-        hub.messageFrame().getWarmedUpStorage().cellSet());
     incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(accountAddress, storageKey);
     valueOriginal =
         EWord.of(

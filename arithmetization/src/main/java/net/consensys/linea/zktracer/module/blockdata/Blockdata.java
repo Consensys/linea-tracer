@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.blockdata;
 
 import static net.consensys.linea.zktracer.module.blockdata.Trace.MAX_CT;
-import static net.consensys.linea.zktracer.types.TransactionUtils.getChainIdFromTransaction;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
@@ -28,7 +27,6 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
-import net.consensys.linea.zktracer.module.rlptxn.RlpTxnOperation;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.worldstate.WorldView;

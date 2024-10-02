@@ -15,7 +15,6 @@
 package net.consensys.linea.replaytests;
 
 import static net.consensys.linea.replaytests.ReplayTestTools.replay;
-import static net.consensys.linea.replaytests.ReplayTestTools.replayAt;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
 
 import org.junit.jupiter.api.Tag;

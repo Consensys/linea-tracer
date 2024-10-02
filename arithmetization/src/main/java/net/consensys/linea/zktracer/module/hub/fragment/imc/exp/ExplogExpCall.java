@@ -19,10 +19,12 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
+@Accessors(fluent = true)
 @Getter
 @Setter
 public class ExplogExpCall implements ExpCall {

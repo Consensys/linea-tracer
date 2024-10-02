@@ -38,7 +38,7 @@ tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   refTestNamePrefix = "BlockchainReferenceTest"
   generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/blockchain"
   failedTestsFilePath = System.getenv('FAILED_TEST_JSON_DIRECTORY') ?: "../tmp/local/"
-  failedModule = System.getenv('FAILED_MODULE') ?: ""
+  failedModule = System.getenv('FAILED_MODULE') ?: "txndata"
   failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
 }
 

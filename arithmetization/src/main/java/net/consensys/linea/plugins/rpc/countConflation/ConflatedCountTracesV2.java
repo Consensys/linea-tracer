@@ -55,7 +55,7 @@ public class ConflatedCountTracesV2 {
   }
 
   public String getName() {
-    return "ConflatedCountTracesV2";
+    return "getConflatedTracesCountersV2";
   }
 
   /**

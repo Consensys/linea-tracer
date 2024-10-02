@@ -178,12 +178,12 @@ public class BlockchainReferenceTestTools {
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
 
+    final ZkTracer zkTracer = new ZkTracer(schedule.getChainId().get());
+
     for (var candidateBlock : spec.getCandidateBlocks()) {
       if (!candidateBlock.isExecutable()) {
         return;
       }
-
-      final ZkTracer zkTracer = new ZkTracer();
 
       try {
         final Block block = candidateBlock.getBlock();
@@ -209,8 +209,9 @@ public class BlockchainReferenceTestTools {
         log.info("caugh RLP exception, checking it's invalid {}", candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();
       }
-      ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
     }
+
+    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
 
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
   }

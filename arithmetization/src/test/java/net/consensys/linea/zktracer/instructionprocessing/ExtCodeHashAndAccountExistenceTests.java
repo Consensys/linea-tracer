@@ -14,13 +14,12 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
-
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 public class ExtCodeHashAndAccountExistenceTests {
   /**
@@ -33,7 +32,11 @@ public class ExtCodeHashAndAccountExistenceTests {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push(1)
+            .op(DUP1)
             .op(EXTCODEHASH) // will return 0
+            .op(POP)
+            .op(EXTCODESIZE) // will return 0
+            /* next phase */
             .push(0)
             .push(0)
             .push(0)
@@ -43,20 +46,25 @@ public class ExtCodeHashAndAccountExistenceTests {
             .push(3000) // gas for ECRECOVER
             .op(CALL)
             .push(1)
+            .op(DUP1)
             .op(EXTCODEHASH) // will return KECCAK(())
+            .op(POP)
+            .op(EXTCODESIZE) // will return 0
             .compile();
     BytecodeRunner.of(bytecode).run();
   }
 
-    /**
-     * same as above with ECRECOVER swapped for some random address (nice!)
-     */
+  /** same as above with ECRECOVER swapped for some random address (nice!) */
   @Test
   void extcodehashForRandomAddressBeforeAndAfterTransfer() {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push(69)
+            .op(DUP1)
             .op(EXTCODEHASH) // will return 0
+            .op(POP)
+            .op(EXTCODESIZE) // will return 0
+            /* next phase */
             .push(0)
             .push(0)
             .push(0)
@@ -66,7 +74,10 @@ public class ExtCodeHashAndAccountExistenceTests {
             .push(0) // gas: none required, immediate STOP
             .op(CALL)
             .push(69)
+            .op(DUP1)
             .op(EXTCODEHASH) // will return KECCAK(())
+            .op(POP)
+            .op(EXTCODESIZE) // will return 0
             .compile();
     BytecodeRunner.of(bytecode).run();
   }
@@ -81,12 +92,19 @@ public class ExtCodeHashAndAccountExistenceTests {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push("6ff1019c622e4641f86f4bb7232b7901b8d20db6")
+            .op(DUP1)
             .op(EXTCODEHASH) // will return 0
+            .op(POP)
+            .op(EXTCODESIZE) // will return 0
+            /* next phase */
             .push(0) // size
             .push(0) // offset
             .push(0) // value
             .op(CREATE)
+            .op(DUP1)
             .op(EXTCODEHASH) // will return KECCAK(())
+            .op(POP)
+            .op(EXTCODESIZE) // will return 0
             .compile();
     BytecodeRunner.of(bytecode).run();
   }
@@ -101,7 +119,11 @@ public class ExtCodeHashAndAccountExistenceTests {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push("6ff1019c622e4641f86f4bb7232b7901b8d20db6")
+            .op(DUP1)
             .op(EXTCODEHASH) // will return 0
+            .op(POP)
+            .op(EXTCODESIZE) // will return 0
+            /* next phase */
             .push("30803f3b00000000000000000000000000000000000000000000000000000000")
             .push(0)
             .op(MSTORE)
@@ -109,7 +131,11 @@ public class ExtCodeHashAndAccountExistenceTests {
             .push(0) // offset
             .push(0) // value
             .op(CREATE) // the EXTCODEHASH will return KECCAK(())
+            .op(CREATE)
+            .op(DUP1)
             .op(EXTCODEHASH) // will return KECCAK(())
+            .op(POP)
+            .op(EXTCODESIZE) // will return 0
             .compile();
     BytecodeRunner.of(bytecode).run();
   }
@@ -127,6 +153,8 @@ public class ExtCodeHashAndAccountExistenceTests {
         BytecodeCompiler.newProgram()
             .push("6ff1019c622e4641f86f4bb7232b7901b8d20db6")
             .op(EXTCODEHASH) // will return 0
+            .op(POP)
+            /* next phase */
             .push("30803f3b60016000F30000000000000000000000000000000000000000000000")
             .push(0)
             .op(MSTORE)
@@ -134,8 +162,26 @@ public class ExtCodeHashAndAccountExistenceTests {
             .push(0) // offset
             .push(0) // value
             .op(CREATE) // during deployment EXTCODEHASH will return KECCAK(())
-            .op(EXTCODEHASH) // deployment success leaves address on the stack; will return
+            .op(CREATE)
+            .op(DUP1)
+            .op(EXTCODEHASH) // deployment success leaves address on the stack; will return //
             // KECCAK(0x00)
+            .op(POP)
+            .op(EXTCODESIZE) // will return 1
+            .compile();
+    BytecodeRunner.of(bytecode).run();
+  }
+
+  @Test
+  void extcodehashOfOneself() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .op(ADDRESS)
+            .op(DUP1)
+            .op(EXTCODEHASH) // will ???
+            .op(POP)
+            .op(EXTCODESIZE) // will return 6
+            .op(JUMPDEST) //
             .compile();
     BytecodeRunner.of(bytecode).run();
   }

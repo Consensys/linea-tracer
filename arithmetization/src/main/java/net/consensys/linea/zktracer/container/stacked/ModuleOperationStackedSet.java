@@ -15,14 +15,13 @@
 
 package net.consensys.linea.zktracer.container.stacked;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -95,7 +94,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   }
 
   public ArrayList<E> getAll() {
-    Preconditions.checkState(conflationFinished, "Conflation not finished");
+    checkState(conflationFinished, "Conflation not finished");
     return operationsCommitedToTheConflation();
   }
 
@@ -113,6 +112,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
    */
   @Override
   public boolean add(E e) {
+    checkState(!conflationFinished, "Can't add operations if the conflation is finished");
     final boolean isNew = operationsInTransaction().add(e);
     if (!isNew) {
       log.trace(

@@ -75,14 +75,10 @@ jobs:
 
       - name: Install Go
         uses: actions/setup-go@v4
-        with:
-          go-version: 1.23.1
 
       - name: Install Go Corset
         run:
           go install github.com/consensys/go-corset/cmd/go-corset@latest
-        with:
-          go-version: 1.23.1
 
       - name: Run Weekly tests
         run: GOMEMLIMIT=196GiB ./gradlew weeklyTests

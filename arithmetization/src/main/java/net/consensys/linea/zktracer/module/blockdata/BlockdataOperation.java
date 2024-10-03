@@ -90,7 +90,7 @@ public class BlockdataOperation extends ModuleOperation {
         trace.inst(UnsignedByte.of(EVM_INST_GASLIMIT)).wcpFlag(false);
       }
       case 5 -> {
-        data = Bytes32.fromHexStringLenient(chainId.toString(16));
+        data = Bytes32.leftPad(bigIntegerToBytes(chainId));
         trace.inst(UnsignedByte.of(EVM_INST_CHAINID)).wcpFlag(false);
       }
       case 6 -> {

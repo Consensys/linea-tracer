@@ -49,11 +49,11 @@ import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @Getter
+@Accessors(fluent = true)
 public class ExpOperation extends ModuleOperation {
-  @EqualsAndHashCode.Include
-  @Accessors(fluent = true)
-  ExpCall expCall;
+  @EqualsAndHashCode.Include ExpCall expCall;
 
   protected short pComputationPltJmp = 0;
   protected Bytes pComputationRawAcc; // (last row) paired with RawByte

@@ -15,13 +15,7 @@
 
 package net.consensys.linea.zktracer.module.exp;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_INST_EXPLOG;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EXP_INST_MODEXPLOG;
-
 import java.util.Comparator;
-
-import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
 
 public class ExpOperationComparator implements Comparator<ExpOperation> {
   @Override
@@ -32,37 +26,6 @@ public class ExpOperationComparator implements Comparator<ExpOperation> {
       return instructionComp;
     }
 
-    if (op1.expCall.expInstruction() == EXP_INST_EXPLOG) {
-      final ExplogExpCall o1 = (ExplogExpCall) op1.expCall();
-      final ExplogExpCall o2 = (ExplogExpCall) op2.expCall();
-
-      final int dynCostComp = Long.compare(o1.dynCost(), o2.dynCost());
-      if (dynCostComp != 0) {
-        return dynCostComp;
-      }
-      return o1.exponent().compareTo(o2.exponent());
-    }
-
-    if (op1.expCall.expInstruction() == EXP_INST_MODEXPLOG) {
-      final ModexpLogExpCall o1 = (ModexpLogExpCall) op1.expCall();
-      final ModexpLogExpCall o2 = (ModexpLogExpCall) op2.expCall();
-
-      final int cdsCutoffComp = Integer.compare(o1.getCdsCutoff(), o2.getCdsCutoff());
-      if (cdsCutoffComp != 0) {
-        return cdsCutoffComp;
-      }
-      final int ebsCutoffComp = Integer.compare(o1.getEbsCutoff(), o2.getEbsCutoff());
-      if (ebsCutoffComp != 0) {
-        return ebsCutoffComp;
-      }
-      final int leadLogComp = o1.getLeadLog().compareTo(o2.getLeadLog());
-      if (leadLogComp != 0) {
-        return leadLogComp;
-      }
-
-      return o1.getRawLeadingWord().compareTo(o2.getRawLeadingWord());
-    }
-
-    throw new IllegalStateException("Unknown instruction type");
+    return op1.expCall.compareTo(op2.expCall);
   }
 }

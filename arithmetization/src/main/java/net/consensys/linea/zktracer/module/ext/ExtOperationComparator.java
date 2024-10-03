@@ -33,7 +33,7 @@ public class ExtOperationComparator implements Comparator<ExtOperation> {
     // Third, sort by Arg2
     final int arg2Comp = op1.arg2().getBytes32().compareTo(op2.arg2().getBytes32());
     if (arg2Comp != 0) {
-      return arg1Comp;
+      return arg2Comp;
     }
     // Fourth, sort by Arg3
     return op1.arg3().getBytes32().compareTo(op2.arg3().getBytes32());

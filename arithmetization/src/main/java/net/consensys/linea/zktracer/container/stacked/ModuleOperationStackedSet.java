@@ -18,6 +18,9 @@ package net.consensys.linea.zktracer.container.stacked;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -160,5 +163,11 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
       }
     }
     toRemove.forEach(operationsInTransaction()::remove);
+  }
+
+  public List<E> sortOperations(Comparator<E> comparator) {
+    final List<E> sortedOperations = new ArrayList<>(getAll());
+    sortedOperations.sort(comparator);
+    return sortedOperations;
   }
 }

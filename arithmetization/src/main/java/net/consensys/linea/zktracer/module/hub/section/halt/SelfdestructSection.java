@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section.halt;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -31,11 +32,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.AttemptedSelfDestruct;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata.EphemeralAccount;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -138,23 +136,22 @@ public class SelfdestructSection extends TraceSection
     }
 
     // Unexceptional case
-    Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
+    final Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
         hub.txStack().current().getUnexceptionalSelfDestructMap();
 
-    EphemeralAccount ephemeralAccount =
+    final EphemeralAccount ephemeralAccount =
         new EphemeralAccount(
             addressWhichMaySelfDestruct, selfdestructorAccountBefore.deploymentNumber());
 
     if (unexceptionalSelfDestructMap.containsKey(ephemeralAccount)) {
-      List<AttemptedSelfDestruct> attemptedSelfDestructs =
-          unexceptionalSelfDestructMap.get(ephemeralAccount);
-      attemptedSelfDestructs.add(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()));
-      // We do not need to put again the list in the map, as it is a reference
+      unexceptionalSelfDestructMap
+          .get(ephemeralAccount)
+          .add(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()));
     } else {
       unexceptionalSelfDestructMap.put(
           new EphemeralAccount(
               addressWhichMaySelfDestruct, selfdestructorAccountBefore.deploymentNumber()),
-          List.of(new AttemptedSelfDestruct(hubStamp, hub.currentFrame())));
+          new ArrayList<>(List.of(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()))));
     }
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
@@ -246,9 +243,9 @@ public class SelfdestructSection extends TraceSection
       return;
     }
 
-    Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
+    final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
-    EphemeralAccount ephemeralAccount =
+    final EphemeralAccount ephemeralAccount =
         new EphemeralAccount(
             addressWhichMaySelfDestruct, selfdestructorAccountAfter.deploymentNumber());
 
@@ -260,7 +257,7 @@ public class SelfdestructSection extends TraceSection
 
     checkArgument(hubStamp >= selfDestructTime);
 
-    AccountSnapshot accountBeforeSelfDestruct =
+    final AccountSnapshot accountBeforeSelfDestruct =
         transactionProcessingMetadata.getDestructedAccountsSnapshot().stream()
             .filter(
                 accountSnapshot -> accountSnapshot.address().equals(addressWhichMaySelfDestruct))
@@ -272,16 +269,17 @@ public class SelfdestructSection extends TraceSection
           SelfdestructScenarioFragment.SelfdestructScenario
               .SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
 
-      AccountFragment accountWipingFragment =
+      // the hub's defers.resolvePostTransaction() gets called after the
+      // hub's completeLineaTransaction which in turn calls
+      // freshDeploymentNumberFinishingSelfdestruct()
+      // which raises the deployment number and sets the deployment status to false
+      final AccountFragment accountWipingFragment =
           hub.factories()
               .accountFragment()
               .make(
                   accountBeforeSelfDestruct,
-                  selfdestructorAccountAfter.wipe(),
+                  selfdestructorAccountAfter.wipe(hub.transients().conflation().deploymentInfo()),
                   DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
-
-      final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
-      deploymentInfo.freshDeploymentNumberFinishingSelfdestruct(addressWhichMaySelfDestruct);
 
       this.addFragment(accountWipingFragment);
     } else {

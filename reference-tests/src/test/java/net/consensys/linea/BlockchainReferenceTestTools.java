@@ -178,7 +178,11 @@ public class BlockchainReferenceTestTools {
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
 
-    final ZkTracer zkTracer = new ZkTracer(schedule.getChainId().get());
+    final ZkTracer zkTracer =
+        schedule.getChainId().isPresent()
+            ? new ZkTracer(schedule.getChainId().get())
+            : new ZkTracer();
+
     zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
 
     for (var candidateBlock : spec.getCandidateBlocks()) {

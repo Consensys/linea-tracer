@@ -55,12 +55,14 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 public class ZkTracer implements ConflationAwareOperationTracer {
+  private static final BigInteger DUMMY_CHAIN_ID = Bytes.fromHexString("c0ffee").toBigInteger();
+
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
   private static final Map<String, Integer> spillings;
 
-  public final BigInteger chainId;
+  @Getter private final BigInteger chainId;
 
   static {
     try {
@@ -82,7 +84,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
   public ZkTracer() {
-    this(LineaL1L2BridgeSharedConfiguration.EMPTY, Bytes.fromHexString("c0ffee").toBigInteger());
+    this(LineaL1L2BridgeSharedConfiguration.EMPTY, DUMMY_CHAIN_ID);
   }
 
   public ZkTracer(BigInteger chainId) {
@@ -108,6 +110,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     // <<<< CHANGE ME <<<<
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
+  }
+
+  public boolean isDummyChainId() {
+    return chainId.equals(DUMMY_CHAIN_ID);
   }
 
   public void writeToFile(final Path filename) {

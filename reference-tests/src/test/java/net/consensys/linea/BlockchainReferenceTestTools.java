@@ -20,6 +20,7 @@ import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.getModule;
 import static net.consensys.linea.ReferenceTestWatcher.JSON_INPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -178,15 +179,20 @@ public class BlockchainReferenceTestTools {
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
 
+    final BigInteger nonnegativeChainId = schedule.getChainId().get().abs();
+
+    final ZkTracer zkTracer = new ZkTracer(nonnegativeChainId);
+    zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
+
     for (var candidateBlock : spec.getCandidateBlocks()) {
       if (!candidateBlock.isExecutable()) {
         return;
       }
 
-      final ZkTracer zkTracer = new ZkTracer();
-
       try {
         final Block block = candidateBlock.getBlock();
+
+        zkTracer.traceStartBlock(block.getHeader());
 
         final ProtocolSpec protocolSpec = schedule.getByBlockHeader(block.getHeader());
 
@@ -205,12 +211,17 @@ public class BlockchainReferenceTestTools {
             importResult.isImported(),
             candidateBlock.isValid());
         assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
+
+        zkTracer.traceEndBlock(block.getHeader(), block.getBody());
       } catch (final RLPException e) {
-        log.info("caugh RLP exception, checking it's invalid {}", candidateBlock.isValid());
+        log.info("caught RLP exception, checking it's invalid {}", candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();
       }
-      ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
     }
+
+    zkTracer.traceEndConflation(worldState);
+
+    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
 
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
   }

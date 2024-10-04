@@ -32,9 +32,10 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
+import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
-import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -53,6 +54,8 @@ public class TransactionProcessingMetadata {
   final long baseFee;
 
   final boolean isDeployment;
+  int updatedRecipientAddressDeploymentNumberAtTransactionStart;
+  boolean updatedRecipientAddressDeploymentStatusAtTransactionStart;
 
   @Accessors(fluent = true)
   final boolean requiresEvmExecution;
@@ -119,12 +122,6 @@ public class TransactionProcessingMetadata {
 
   @Getter final Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
 
-  // Ephermeral accounts are both accounts that have been deployed on-chain
-  // and accounts that live for a limited time
-  public record EphemeralAccount(Address address, int deploymentNumber) {}
-
-  public record AttemptedSelfDestruct(int hubStamp, CallFrame callFrame) {}
-
   public TransactionProcessingMetadata(
       final WorldView world,
       final Transaction transaction,
@@ -132,32 +129,32 @@ public class TransactionProcessingMetadata {
       final int relativeTransactionNumber,
       final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
-    this.relativeBlockNumber = block.blockNumber();
-    this.coinbase = block.coinbaseAddress();
-    this.baseFee = block.baseFee().toLong();
+    relativeBlockNumber = block.blockNumber();
+    coinbase = block.coinbaseAddress();
+    baseFee = block.baseFee().toLong();
 
-    this.besuTransaction = transaction;
+    besuTransaction = transaction;
     this.relativeTransactionNumber = relativeTransactionNumber;
 
-    this.isDeployment = transaction.getTo().isEmpty();
-    this.requiresEvmExecution = computeRequiresEvmExecution(world);
-    this.copyTransactionCallData = computeCopyCallData();
+    isDeployment = transaction.getTo().isEmpty();
+    requiresEvmExecution = computeRequiresEvmExecution(world);
+    copyTransactionCallData = computeCopyCallData();
 
-    this.initialBalance = getInitialBalance(world);
+    initialBalance = getInitialBalance(world);
 
     // Note: Besu's dataCost computation contains
     // - the 21_000 transaction cost (we deduce it)
     // - the contract creation cost in case of deployment (we set deployment to false to not add it)
-    this.dataCost =
+    dataCost =
         ZkTracer.gasCalculator.transactionIntrinsicGasCost(besuTransaction.getPayload(), false)
             - GAS_CONST_G_TRANSACTION;
-    this.accessListCost =
+    accessListCost =
         besuTransaction.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);
-    this.initiallyAvailableGas = getInitiallyAvailableGas();
+    initiallyAvailableGas = getInitiallyAvailableGas();
 
-    this.effectiveRecipient = effectiveToAddress(besuTransaction);
+    effectiveRecipient = effectiveToAddress(besuTransaction);
 
-    this.effectiveGasPrice = computeEffectiveGasPrice();
+    effectiveGasPrice = computeEffectiveGasPrice();
   }
 
   public void setPreFinalisationValues(
@@ -166,14 +163,14 @@ public class TransactionProcessingMetadata {
       final boolean coinbaseIsWarmAtFinalisation,
       final int accumulatedGasUsedInBlockAtStartTx) {
 
-    this.isCoinbaseWarmAtTransactionEnd(coinbaseIsWarmAtFinalisation);
+    isCoinbaseWarmAtTransactionEnd(coinbaseIsWarmAtFinalisation);
     this.refundCounterMax = refundCounterMax;
-    this.setLeftoverGas(leftOverGas);
-    this.gasUsed = computeGasUsed();
-    this.refundEffective = computeRefundEffective();
-    this.gasRefunded = computeRefunded();
-    this.totalGasUsed = computeTotalGasUsed();
-    this.accumulatedGasUsedInBlock = (int) (accumulatedGasUsedInBlockAtStartTx + totalGasUsed);
+    setLeftoverGas(leftOverGas);
+    gasUsed = computeGasUsed();
+    refundEffective = computeRefundEffective();
+    gasRefunded = computeRefunded();
+    totalGasUsed = computeTotalGasUsed();
+    accumulatedGasUsedInBlock = (int) (accumulatedGasUsedInBlockAtStartTx + totalGasUsed);
   }
 
   public void completeLineaTransaction(
@@ -206,7 +203,7 @@ public class TransactionProcessingMetadata {
           .orElse(false);
     }
 
-    return !this.besuTransaction.getInit().get().isEmpty();
+    return !besuTransaction.getInit().get().isEmpty();
   }
 
   private BigInteger getInitialBalance(WorldView world) {
@@ -226,7 +223,7 @@ public class TransactionProcessingMetadata {
   }
 
   private long computeRefundEffective() {
-    final long maxRefundableAmount = this.getGasUsed() / MAX_REFUND_QUOTIENT;
+    final long maxRefundableAmount = getGasUsed() / MAX_REFUND_QUOTIENT;
     return Math.min(maxRefundableAmount, refundCounterMax);
   }
 
@@ -266,7 +263,7 @@ public class TransactionProcessingMetadata {
 
   /* g* in the EYP */
   public long computeRefunded() {
-    return leftoverGas + this.refundEffective;
+    return leftoverGas + refundEffective;
   }
 
   /* Tg - g* in the EYP */
@@ -292,14 +289,14 @@ public class TransactionProcessingMetadata {
   }
 
   public int numberWarmedAddress() {
-    return this.besuTransaction.getAccessList().isPresent()
-        ? this.besuTransaction.getAccessList().get().size()
+    return besuTransaction.getAccessList().isPresent()
+        ? besuTransaction.getAccessList().get().size()
         : 0;
   }
 
   public int numberWarmedKey() {
-    return this.besuTransaction.getAccessList().isPresent()
-        ? this.besuTransaction.getAccessList().get().stream()
+    return besuTransaction.getAccessList().isPresent()
+        ? besuTransaction.getAccessList().get().stream()
             .mapToInt(accessListEntry -> accessListEntry.storageKeys().size())
             .sum()
         : 0;
@@ -323,5 +320,12 @@ public class TransactionProcessingMetadata {
         }
       }
     }
+  }
+
+  public void captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(Hub hub) {
+    updatedRecipientAddressDeploymentNumberAtTransactionStart =
+        hub.deploymentNumberOf(effectiveRecipient);
+    updatedRecipientAddressDeploymentStatusAtTransactionStart =
+        hub.deploymentStatusOf(effectiveRecipient);
   }
 }

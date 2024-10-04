@@ -26,6 +26,7 @@ import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -195,6 +197,8 @@ public class Hub implements Module {
   public int lineCount() {
     return state.lineCounter().lineCount();
   }
+
+  @Getter private final BigInteger chainId;
 
   /** List of all modules of the ZK-evm */
   // stateless modules
@@ -394,12 +398,17 @@ public class Hub implements Module {
         .toList();
   }
 
-  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
+  public Hub(
+      final Address l2l1ContractAddress,
+      final Bytes l2l1Topic,
+      final BigInteger nonnegativeChainId) {
+    Preconditions.checkState(nonnegativeChainId.signum() >= 0);
+    chainId = nonnegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
-    blockdata = new Blockdata(wcp, txnData, rlpTxn);
+    blockdata = new Blockdata(wcp, txnData, rlpTxn, chainId);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -411,7 +420,7 @@ public class Hub implements Module {
                     add,
                     bin,
                     blakeModexpData,
-                    blockhash,
+                    blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
                     ecData,
                     euc,
                     ext,
@@ -502,19 +511,26 @@ public class Hub implements Module {
     state.enter();
     txStack.enterTransaction(world, tx, transients.block());
 
+    final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
+
     this.enterTransaction();
 
-    if (!txStack.current().requiresEvmExecution()) {
+    if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
-      new TxSkippedSection(this, world, txStack.current(), transients);
+      new TxSkippedSection(this, world, transactionProcessingMetadata, transients);
     } else {
-      if (txStack.current().requiresPrewarming()) {
+      if (transactionProcessingMetadata.requiresPrewarming()) {
         state.setProcessingPhase(TX_WARM);
         new TxPreWarmingMacroSection(world, this);
       }
       state.setProcessingPhase(TX_INIT);
       new TxInitializationSection(this, world);
     }
+
+    // Note: for deployment transactions the deployment number / status were updated during the
+    // initialization phase. We are thus capturing the respective XXX_NEW's
+    transactionProcessingMetadata
+        .captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(this);
 
     /*
      * TODO: the ID = 0 (universal parent context) context should
@@ -525,7 +541,7 @@ public class Hub implements Module {
     callStack.getById(0).universalParentReturnDataContextNumber(this.stamp() + 1);
 
     for (Module m : modules) {
-      m.traceStartTx(world, txStack.current());
+      m.traceStartTx(world, transactionProcessingMetadata);
     }
   }
 

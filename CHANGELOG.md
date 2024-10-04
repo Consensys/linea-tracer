@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.8.0-rc2
+* fix: adding the `chainId` to the HUB and BLOCK_DATA modules ([#1359](https://github.com/Consensys/linea-tracer/pull/1359))
+* fix: confusion between call and callee gas for BLAKE ([#1366](https://github.com/Consensys/linea-tracer/pull/1366))
+* feat: make the trace deterministic ([#1346](https://github.com/Consensys/linea-tracer/pull/1346))
+* feat: blockchain reference tests switch to go-corset ([#1358](https://github.com/Consensys/linea-tracer/pull/1358))
+* fix: resolve broken nightly test ([#1361](https://github.com/Consensys/linea-tracer/pull/1361))
+* fix: tracing all blocks in the reference test vectors ([#1350](https://github.com/Consensys/linea-tracer/pull/1350))
+* fix: nightly tests ([#1355](https://github.com/Consensys/linea-tracer/pull/1355))
+
+## 0.8.0-rc1
+* feat: update Linea Besu to 24.10-delivery34 ([#1354](https://github.com/Consensys/linea-tracer/pull/1354))
+* fix: remove RpcCliOptions from AbstractLineaSharedOptionsPlugin in order not to make it visible for external plugins ([#1348](https://github.com/Consensys/linea-tracer/pull/1348))
+* refactor: extract all trace writing logic in one place to be re-used and more consistent ([#1344](https://github.com/Consensys/linea-tracer/pull/1344))
+* fix: convert --plugin-linea-rpc-concurrent-requests-limit option to be a private option ([#1342](https://github.com/Consensys/linea-tracer/pull/1342))
+* fix(selfdestruct): immutable map ([#1337](https://github.com/Consensys/linea-tracer/pull/1337))
+* feat(replayTest): parametric ([#1273](https://github.com/Consensys/linea-tracer/pull/1273))
+* test(shf): add extensive test ([#1320](https://github.com/Consensys/linea-tracer/pull/1320))
+* chore: disable running spotlessCheck after compilation phase ([#1339](https://github.com/Consensys/linea-tracer/pull/1339))
+* fix(SELFDESTRUCT): fixed deloyment number double increments + assumptions about initial values ([#1336](https://github.com/Consensys/linea-tracer/pull/1336))
+* Add CI job for weekly tests ([#1329](https://github.com/Consensys/linea-tracer/pull/1329))
+* fix(invalidCodePrefix): make it work ([#1330](https://github.com/Consensys/linea-tracer/pull/1330))
+
 ## 0.7.0-rc1
 * chore: don't postTxDefers TrasactionMetaData ([#1325](https://github.com/Consensys/linea-tracer/pull/1325))
 * chore: upgrade Linea Besu to 24.9-delivery33 ([#1328](https://github.com/Consensys/linea-tracer/pull/1328))

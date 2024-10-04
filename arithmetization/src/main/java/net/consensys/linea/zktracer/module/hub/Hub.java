@@ -50,7 +50,6 @@ import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.section.AccountSection;
@@ -1158,7 +1157,7 @@ public class Hub implements Module {
             TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
         blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
 
-    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
 
     for (TransactionProcessingMetadata metadata : txn) {
       if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
@@ -1268,7 +1267,7 @@ public class Hub implements Module {
     Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
         conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
 
-    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
     HashSet<Address> allAccounts = new HashSet<Address>();
 
     Map<
@@ -1328,7 +1327,7 @@ public class Hub implements Module {
             TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
         conflationMapStorage = Hub.stateManagerMetadata().getStorageFirstLastConflationMap();
 
-    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
     HashSet<TransactionProcessingMetadata.AddrStorageKeyPair> allStorage =
         new HashSet<TransactionProcessingMetadata.AddrStorageKeyPair>();
     Map<
@@ -1386,7 +1385,7 @@ public class Hub implements Module {
   // Print all the account maps
   public void printAccountMaps() {
     // Print txnMaps
-    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
     for (var metadata : txn) {
       Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
           txnMapAccount = metadata.getAccountFirstAndLastMap();
@@ -1446,7 +1445,7 @@ public class Hub implements Module {
   // Print all the storage maps
   public void printStorageMaps() {
     // Print txnMaps
-    List<TransactionProcessingMetadata> txn = txStack.getTxs();
+    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
     for (var metadata : txn) {
       Map<
               TransactionProcessingMetadata.AddrStorageKeyPair,

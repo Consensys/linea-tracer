@@ -33,7 +33,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
@@ -232,7 +231,6 @@ public class TransactionProcessingMetadata {
       }
     }
   }
-
 
   public TransactionProcessingMetadata(
       final WorldView world,

@@ -34,7 +34,6 @@ public class ReferenceTestOutcomeRecorderToolTest {
   private final String prefix1 = "constraints failed: ";
   private final String prefix2 = "failing constraint ";
 
-
   @BeforeEach
   void setup() {
     File outputJsonFile = new File(TEST_OUTPUT_JSON);

@@ -50,7 +50,7 @@ import org.web3j.abi.datatypes.generated.Uint256;
 public class ExampleSolidityTest {
 
   @Test
-  void test_with_framework_entrypoint() {
+  void testWithFrameworkEntrypoint() {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -138,7 +138,7 @@ public class ExampleSolidityTest {
   }
 
   @Test
-  void test_snippet_independently() {
+  void testSnippetIndependently() {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -187,7 +187,7 @@ public class ExampleSolidityTest {
   }
 
   @Test
-  void test_contract_not_related_to_testing_framework() {
+  void testContractNotRelatedToTestingFramework() {
     KeyPair senderkeyPair = new SECP256K1().generateKeyPair();
     Address senderAddress =
         Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));

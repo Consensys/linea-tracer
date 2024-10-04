@@ -114,11 +114,15 @@ public class ExtCodeHashAndAccountExistenceTests {
    * 0, the second one (during deployment) returns KECCAK(()) and the final one returns KECCAK(())
    * again (no deployment occurred)
    *
-   * <p> The init code 30803f3b represents
-   * <p> ADDRESS
-   * <p> DUP1
-   * <p> EXTCODEHASH
-   * <p> EXTCODESIZE
+   * <p>The init code 30803f3b represents
+   *
+   * <p>ADDRESS
+   *
+   * <p>DUP1
+   *
+   * <p>EXTCODEHASH
+   *
+   * <p>EXTCODESIZE
    */
   @Test
   void extcodexxxBeforeDuringAndAfterDeploymentDeployingEmtpyByteCode() {
@@ -152,16 +156,24 @@ public class ExtCodeHashAndAccountExistenceTests {
    * ≡ 0xbc36789e7a1e281436464229828f817d6612f7b477d66591ff96a9e064bcc98a
    *
    * <p>The initialization code is ADDRESS DUP1 EXTCODEHASH EXTCODESIZE PUSH1 0x01 PUSH1 0x00 RETURN
-   * <p> The init code 30803f3b represents
-   * <p> ADDRESS
-   * <p> DUP1
-   * <p> EXTCODEHASH
-   * <p> EXTCODESIZE
-   * <p> PUSH1 0x01
-   * <p> PUSH1 0x00
-   * <p> RETURN
    *
-   * <p> This deploys the following bytecode: 0x00
+   * <p>The init code 30803f3b represents
+   *
+   * <p>ADDRESS
+   *
+   * <p>DUP1
+   *
+   * <p>EXTCODEHASH
+   *
+   * <p>EXTCODESIZE
+   *
+   * <p>PUSH1 0x01
+   *
+   * <p>PUSH1 0x00
+   *
+   * <p>RETURN
+   *
+   * <p>This deploys the following bytecode: 0x00
    */
   @Test
   void extcodexxxBeforeDuringAndAfterDeploymentDeployingSingleZeroByte() {
@@ -188,16 +200,15 @@ public class ExtCodeHashAndAccountExistenceTests {
     BytecodeRunner.of(bytecode).run();
   }
 
-  /**
-   * Invoke EXTCODEHASH/EXTCODESIZE of oneself.
-   */
+  /** Invoke EXTCODEHASH/EXTCODESIZE of oneself. */
   @Test
   void extcodexxxOfOneself() {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .op(ADDRESS)
             .op(DUP1)
-            .op(EXTCODEHASH) // will return the hash of this bytecode: 0xbf7a46cb41fab751743c9e3095b9c59ba90ffbb09fce50456cec83b24935eaed
+            .op(EXTCODEHASH) // will return the hash of this bytecode:
+            // 0xbf7a46cb41fab751743c9e3095b9c59ba90ffbb09fce50456cec83b24935eaed
             .op(POP)
             .op(EXTCODESIZE) // will return 6
             .op(JUMPDEST) //

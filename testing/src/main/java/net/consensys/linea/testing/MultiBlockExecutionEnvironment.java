@@ -75,8 +75,10 @@ public class MultiBlockExecutionEnvironment {
   }
 
   public void run() {
-    this.executeFrom(ToyExecutionEnvironmentV2.CHAIN_ID, this.buildConflationSnapshot());
-    ExecutionEnvironment.checkTracer(tracer, CORSET_VALIDATOR, Optional.of(log));
+    ReplayExecutionEnvironment.builder()
+        .useCoinbaseAddressFromBlockHeader(true)
+        .build()
+        .replay(ToyExecutionEnvironmentV2.CHAIN_ID, this.buildConflationSnapshot());
   }
 
   private ConflationSnapshot buildConflationSnapshot() {

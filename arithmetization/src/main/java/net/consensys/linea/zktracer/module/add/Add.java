@@ -49,8 +49,8 @@ public class Add implements OperationSetModule<AddOperation> {
     operations.add(
         new AddOperation(
             OpCode.of(frame.getCurrentOperation().getOpcode()),
-            frame.getStackItem(0),
-            frame.getStackItem(1)));
+            Bytes32.leftPad(frame.getStackItem(0)),
+            Bytes32.leftPad(frame.getStackItem(1))));
   }
 
   @Override
@@ -62,7 +62,7 @@ public class Add implements OperationSetModule<AddOperation> {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (AddOperation op : operations.getAll()) {
+    for (AddOperation op : sortOperations(new AddOperationComparator())) {
       op.trace(++stamp, trace);
     }
   }

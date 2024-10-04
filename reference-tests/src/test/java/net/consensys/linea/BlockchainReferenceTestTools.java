@@ -15,13 +15,14 @@
 
 package net.consensys.linea;
 
-import static net.consensys.linea.FailedTestJson.readFailedTestsOutput;
-import static net.consensys.linea.MapFailedReferenceTestsTool.getModule;
-import static net.consensys.linea.MapFailedReferenceTestsTool.getModulesToConstraints;
-import static net.consensys.linea.ReferenceTestWatcher.JSON_OUTPUT_FILENAME;
+import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.getModule;
+import static net.consensys.linea.ReferenceTestWatcher.JSON_INPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigInteger;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,12 +30,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.testing.ExecutionEnvironment;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.ethereum.MainnetBlockValidator;
 import org.hyperledger.besu.ethereum.ProtocolContext;
 import org.hyperledger.besu.ethereum.chain.MutableBlockchain;
@@ -105,14 +106,15 @@ public class BlockchainReferenceTestTools {
     if (failedModule.isEmpty()) {
       return CompletableFuture.completedFuture(failedTests);
     }
-    JsonConverter jsonConverter = JsonConverter.builder().build();
-    CompletableFuture<List<ModuleToConstraints>> modulesToConstraintsFutures =
-        readFailedTestsOutput(JSON_OUTPUT_FILENAME)
-            .thenApply(jsonString -> getModulesToConstraints(jsonString, jsonConverter));
+
+    CompletableFuture<BlockchainReferenceTestOutcome> modulesToConstraintsFutures =
+        readBlockchainReferenceTestsOutput(JSON_INPUT_FILENAME)
+            .thenApply(ReferenceTestOutcomeRecorderTool::getBlockchainReferenceTestOutcome);
 
     return modulesToConstraintsFutures.thenApply(
-        modulesToConstraints -> {
-          ModuleToConstraints filteredFailedTests = getModule(modulesToConstraints, failedModule);
+        blockchainReferenceTestOutcome -> {
+          ModuleToConstraints filteredFailedTests =
+              getModule(blockchainReferenceTestOutcome.modulesToConstraints(), failedModule);
           if (filteredFailedTests == null) {
             return failedTests;
           }
@@ -132,7 +134,8 @@ public class BlockchainReferenceTestTools {
   }
 
   public static Collection<Object[]> generateTestParametersForConfig(
-      final String[] filePath, String failedModule, String failedConstraint) {
+      final String[] filePath, String failedModule, String failedConstraint)
+      throws ExecutionException, InterruptedException {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     Collection<Object[]> params =
         PARAMS.generate(
@@ -140,18 +143,24 @@ public class BlockchainReferenceTestTools {
                 .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
                 .toList());
 
-    getRecordedFailedTestsFromJson(failedModule, failedConstraint)
-        .thenAccept(
+    return getRecordedFailedTestsFromJson(failedModule, failedConstraint)
+        .thenApply(
             failedTests -> {
-              params.forEach(param -> markTestToRun(param, failedTests));
-            });
-
-    return params;
+              List<Object[]> modifiedParams = new ArrayList<>();
+              for (Object[] param : params) {
+                Object[] modifiedParam = markTestToRun(param, failedTests);
+                modifiedParams.add(modifiedParam);
+              }
+              return modifiedParams;
+            })
+        .get();
   }
 
-  public static void markTestToRun(Object[] params, Set<String> failedTests) {
-    String testName = (String) params[0];
-    params[2] = failedTests.contains(testName);
+  public static Object[] markTestToRun(Object[] param, Set<String> failedTests) {
+    String testName = (String) param[0];
+    param[2] = failedTests.contains(testName);
+
+    return param;
   }
 
   public static void executeTest(final BlockchainReferenceTestCaseSpec spec) {
@@ -170,15 +179,20 @@ public class BlockchainReferenceTestTools {
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
 
+    final BigInteger nonnegativeChainId = schedule.getChainId().get().abs();
+
+    final ZkTracer zkTracer = new ZkTracer(nonnegativeChainId);
+    zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
+
     for (var candidateBlock : spec.getCandidateBlocks()) {
       if (!candidateBlock.isExecutable()) {
         return;
       }
 
-      final ZkTracer zkTracer = new ZkTracer();
-
       try {
         final Block block = candidateBlock.getBlock();
+
+        zkTracer.traceStartBlock(block.getHeader());
 
         final ProtocolSpec protocolSpec = schedule.getByBlockHeader(block.getHeader());
 
@@ -197,12 +211,17 @@ public class BlockchainReferenceTestTools {
             importResult.isImported(),
             candidateBlock.isValid());
         assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
+
+        zkTracer.traceEndBlock(block.getHeader(), block.getBody());
       } catch (final RLPException e) {
-        log.info("caugh RLP exception, checking it's invalid {}", candidateBlock.isValid());
+        log.info("caught RLP exception, checking it's invalid {}", candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();
       }
-      ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
     }
+
+    zkTracer.traceEndConflation(worldState);
+
+    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
 
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
   }

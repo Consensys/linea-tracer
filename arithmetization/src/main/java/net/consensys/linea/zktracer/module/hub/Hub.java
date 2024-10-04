@@ -26,10 +26,12 @@ import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.*;
 import java.util.stream.Stream;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -199,6 +201,8 @@ public class Hub implements Module {
   public int lineCount() {
     return state.lineCounter().lineCount();
   }
+
+  @Getter private final BigInteger chainId;
 
   /** List of all modules of the ZK-evm */
   // stateless modules
@@ -398,12 +402,17 @@ public class Hub implements Module {
         .toList();
   }
 
-  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic) {
+  public Hub(
+      final Address l2l1ContractAddress,
+      final Bytes l2l1Topic,
+      final BigInteger nonnegativeChainId) {
+    Preconditions.checkState(nonnegativeChainId.signum() >= 0);
+    chainId = nonnegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
-    blockdata = new Blockdata(wcp, txnData, rlpTxn);
+    blockdata = new Blockdata(wcp, txnData, rlpTxn, chainId);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -415,7 +424,7 @@ public class Hub implements Module {
                     add,
                     bin,
                     blakeModexpData,
-                    blockhash,
+                    blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
                     ecData,
                     euc,
                     ext,
@@ -516,21 +525,26 @@ public class Hub implements Module {
     var myBlock = transients.block();
     txStack.enterTransaction(world, tx, transients.block());
 
-    defers.scheduleForPostTransaction(txStack.current());
+    final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
 
     this.enterTransaction();
 
-    if (!txStack.current().requiresEvmExecution()) {
+    if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
-      new TxSkippedSection(this, world, txStack.current(), transients);
+      new TxSkippedSection(this, world, transactionProcessingMetadata, transients);
     } else {
-      if (txStack.current().requiresPrewarming()) {
+      if (transactionProcessingMetadata.requiresPrewarming()) {
         state.setProcessingPhase(TX_WARM);
         new TxPreWarmingMacroSection(world, this);
       }
       state.setProcessingPhase(TX_INIT);
       new TxInitializationSection(this, world);
     }
+
+    // Note: for deployment transactions the deployment number / status were updated during the
+    // initialization phase. We are thus capturing the respective XXX_NEW's
+    transactionProcessingMetadata
+        .captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(this);
 
     /*
      * TODO: the ID = 0 (universal parent context) context should
@@ -541,7 +555,7 @@ public class Hub implements Module {
     callStack.getById(0).universalParentReturnDataContextNumber(this.stamp() + 1);
 
     for (Module m : modules) {
-      m.traceStartTx(world, txStack.current());
+      m.traceStartTx(world, transactionProcessingMetadata);
     }
   }
 
@@ -678,14 +692,6 @@ public class Hub implements Module {
 
     exitDeploymentFromDeploymentInfoPov(frame);
 
-    // TODO: why only do this at positive depth ?
-    if (frame.getDepth() > 0) {
-
-      final DeploymentExceptions contextExceptions =
-          DeploymentExceptions.fromFrame(this.currentFrame(), frame);
-      this.currentTraceSection().setContextExceptions(contextExceptions);
-    }
-
     // We take a snapshot before exiting the transaction
     if (frame.getDepth() == 0) {
       final long leftOverGas = frame.getRemainingGas();
@@ -723,67 +729,6 @@ public class Hub implements Module {
     this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
     defers.resolveUponContextReEntry(this, this.currentFrame());
     this.unlatchStack(frame, this.currentFrame().childSpanningSection());
-  }
-
-  /**
-   * If the current execution context is a deployment context the present method "exits" that
-   * deployment in the sense that it updates the relevant deployment information.
-   */
-  private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
-
-    // sanity check
-    Address bytecodeAddress = this.currentFrame().byteCodeAddress();
-    checkArgument(bytecodeAddress.equals(frame.getContractAddress()));
-    checkArgument(bytecodeAddress.equals(this.bytecodeAddress()));
-
-    /**
-     * Explanation: if the current address isn't under deployment there is nothing to do.
-     *
-     * <p>If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
-     * immediately set to the deployed state
-     */
-    if (state.processingPhase == TX_SKIP) {
-      checkArgument(!deploymentStatusOfBytecodeAddress());
-      return;
-    }
-    /**
-     * We can't say anything if the current frame is a message call: we might have attempted a call
-     * to an address that is undergoing deployment (or a normal one.)
-     */
-    if (frame.getType() == MESSAGE_CALL) {
-      return;
-    }
-
-    // from here on out:
-    // - state.processingPhase != TX_SKIP
-    // - messageFrame.type == CONTRACT_CREATION
-
-    /**
-     * Note: we can't a priori know the deployment status of an address where a CREATE(2) raised the
-     * Failure Condition F. We also do not want to modify its deployment status. Deployment might
-     * still be underway, e.g.
-     *
-     * <p>bytecode A executes CREATE2; bytecode B is the init code; bytecode B executes a CALL to
-     * address A; bytecode A executes exactly the same CREATE2 raising the Failure Condition F for
-     * address B;
-     */
-    if (failureConditionForCreates) {
-      return;
-    }
-    // from here on out: no failure condition
-    // we must still distinguish between 'empty' deployments and 'nonempty' ones
-
-    final boolean emptyDeployment = messageFrame().getCode().getBytes().isEmpty();
-
-    // empty deployments are immediately considered as 'deployed' i.e.
-    // deploymentStatus = false
-    checkArgument(deploymentStatusOfBytecodeAddress() == !emptyDeployment);
-
-    if (emptyDeployment) return;
-    // from here on out nonempty deployments
-
-    // we transition 'nonempty deployments' from 'underDeployment' to 'deployed'
-    transients.conflation().deploymentInfo().markAsNotUnderDeployment(bytecodeAddress);
   }
 
   public void tracePreExecution(final MessageFrame frame) {
@@ -840,8 +785,69 @@ public class Hub implements Module {
     defers.resolvePostExecution(this, frame, operationResult);
 
     if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
-      this.unlatchStack(frame);
+      this.unlatchStack(frame, currentSection);
     }
+  }
+
+  /**
+   * If the current execution context is a deployment context the present method "exits" that
+   * deployment in the sense that it updates the relevant deployment information.
+   */
+  private void exitDeploymentFromDeploymentInfoPov(MessageFrame frame) {
+
+    // sanity check
+    final Address bytecodeAddress = this.currentFrame().byteCodeAddress();
+    checkArgument(bytecodeAddress.equals(frame.getContractAddress()));
+    checkArgument(bytecodeAddress.equals(this.bytecodeAddress()));
+
+    /**
+     * Explanation: if the current address isn't under deployment there is nothing to do.
+     *
+     * <p>If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
+     * immediately set to the deployed state
+     */
+    if (state.processingPhase == TX_SKIP) {
+      checkArgument(!deploymentStatusOfBytecodeAddress());
+      return;
+    }
+    /**
+     * We can't say anything if the current frame is a message call: we might have attempted a call
+     * to an address that is undergoing deployment (or a normal one.)
+     */
+    if (frame.getType() == MESSAGE_CALL) {
+      return;
+    }
+
+    // from here on out:
+    // - state.processingPhase != TX_SKIP
+    // - messageFrame.type == CONTRACT_CREATION
+
+    /**
+     * Note: we can't a priori know the deployment status of an address where a CREATE(2) raised the
+     * Failure Condition F. We also do not want to modify its deployment status. Deployment might
+     * still be underway, e.g.
+     *
+     * <p>bytecode A executes CREATE2; bytecode B is the init code; bytecode B executes a CALL to
+     * address A; bytecode A executes exactly the same CREATE2 raising the Failure Condition F for
+     * address B;
+     */
+    if (failureConditionForCreates) {
+      return;
+    }
+    // from here on out: no failure condition
+    // we must still distinguish between 'empty' deployments and 'nonempty' ones
+
+    final boolean emptyDeployment = messageFrame().getCode().getBytes().isEmpty();
+
+    // empty deployments are immediately considered as 'deployed' i.e.
+    // deploymentStatus = false
+    checkArgument(deploymentStatusOfBytecodeAddress() == !emptyDeployment);
+
+    if (emptyDeployment) return;
+    // from here on out nonempty deployments
+
+    // we transition 'nonempty deployments' from 'underDeployment' to 'deployed'
+    transients.conflation().deploymentInfo().markAsNotUnderDeployment(bytecodeAddress);
   }
 
   public int getCfiByMetaData(
@@ -927,10 +933,6 @@ public class Hub implements Module {
     state.currentTxTrace().add(section);
   }
 
-  private void unlatchStack(MessageFrame frame) {
-    this.unlatchStack(frame, this.currentTraceSection());
-  }
-
   public void unlatchStack(MessageFrame frame, TraceSection section) {
     if (this.currentFrame().pending() == null) {
       return;
@@ -943,16 +945,13 @@ public class Hub implements Module {
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
         // Only pop from the stack if no exceptions have been encountered
+        // TODO: when we call this from contextReenter, pch.exceptions is not the one from the
+        // caller/creater ?
         if (Exceptions.none(pch.exceptions())) {
           result = frame.getStackItem(0).copy();
         }
 
         // This works because we are certain that the stack chunks are the first.
-        // TODO: the below check is useful in any case (to avoid unchecked cast)
-        //  but is this check hiding some underlying issue somewhere else?
-        //  TestRecursiveCallsWithByteCode was failing before this check
-        TraceFragment fragment = section.fragments().get(i);
-        checkArgument(fragment instanceof StackFragment);
         ((StackFragment) section.fragments().get(i))
             .stackOps()
             .get(line.resultColumn() - 1)

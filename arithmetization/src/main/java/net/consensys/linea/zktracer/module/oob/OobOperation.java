@@ -30,6 +30,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_MOD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_CODE_SIZE;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.*;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_CDS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_PARAMS;
@@ -55,6 +56,7 @@ import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SHA2;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SSTORE;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_XCALL;
 import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
+import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
@@ -96,6 +98,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -269,8 +272,8 @@ public class OobOperation extends ModuleOperation {
         final Address deploymentAddress = getDeploymentAddress(frame);
         final Account deployedAccount = frame.getWorldUpdater().get(deploymentAddress);
 
-        long nonce = (deployedAccount != null) ? deployedAccount.getNonce() : 0;
-        boolean hasCode = deployedAccount != null && deployedAccount.hasCode();
+        final long nonce = (deployedAccount != null) ? deployedAccount.getNonce() : 0;
+        final boolean hasCode = deployedAccount != null && deployedAccount.hasCode();
 
         final CreateOobCall createOobCall = (CreateOobCall) oobCall;
         createOobCall.setValue(EWord.of(frame.getStackItem(0)));
@@ -278,7 +281,7 @@ public class OobOperation extends ModuleOperation {
         createOobCall.setNonce(BigInteger.valueOf(nonce));
         createOobCall.setHasCode(hasCode);
         createOobCall.setCallStackDepth(BigInteger.valueOf(frame.getDepth()));
-        createOobCall.setCreatorNonce(BigInteger.valueOf(creatorAccount.getNonce()));
+        createOobCall.setCreatorNonce(longToUnsignedBigInteger(creatorAccount.getNonce()));
         setCreate(createOobCall);
       }
       case OOB_INST_SSTORE -> {
@@ -295,7 +298,7 @@ public class OobOperation extends ModuleOperation {
   }
 
   public void populateColumnsForPrecompile(MessageFrame frame) {
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    final OpCode opCode = getOpCode(frame);
     final long argsOffset =
         Words.clampedToLong(
             opCode.callCanTransferValue()
@@ -312,7 +315,7 @@ public class OobOperation extends ModuleOperation {
       calleeGas = ((ModexpPricingOobCall) oobCall).getCallGas();
     }
     if (oobCall instanceof Blake2fParamsOobCall) {
-      calleeGas = ((Blake2fParamsOobCall) oobCall).getCallGas();
+      calleeGas = ((Blake2fParamsOobCall) oobCall).getCalleeGas();
     }
 
     final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
@@ -456,13 +459,12 @@ public class OobOperation extends ModuleOperation {
           setBlake2FCds(prcBlake2FCdsCall);
         }
         case OOB_INST_BLAKE_PARAMS -> {
-          Bytes callData = frame.shadowReadMemory(argsOffset, 213);
+          final Bytes callData = frame.shadowReadMemory(argsOffset, 213);
           final BigInteger blakeR = callData.slice(0, 4).toUnsignedBigInteger();
-
           final BigInteger blakeF = BigInteger.valueOf(toUnsignedInt(callData.get(212)));
 
           final Blake2fParamsOobCall prcBlake2FParamsOobCall = (Blake2fParamsOobCall) oobCall;
-          prcBlake2FParamsOobCall.setCallGas(calleeGas);
+          prcBlake2FParamsOobCall.setCalleeGas(calleeGas);
           prcBlake2FParamsOobCall.setBlakeR(blakeR);
           prcBlake2FParamsOobCall.setBlakeF(blakeF);
 
@@ -480,8 +482,8 @@ public class OobOperation extends ModuleOperation {
     checkArgument(arg1Lo.bitLength() / 8 <= 16);
     checkArgument(arg2Hi.bitLength() / 8 <= 16);
     checkArgument(arg2Lo.bitLength() / 8 <= 16);
-    final EWord arg1 = EWord.of(arg1Hi, arg1Lo);
-    final EWord arg2 = EWord.of(arg2Hi, arg2Lo);
+    final Bytes32 arg1 = EWord.of(arg1Hi, arg1Lo);
+    final Bytes32 arg2 = EWord.of(arg2Hi, arg2Lo);
     addFlag[k] = true;
     modFlag[k] = false;
     wcpFlag[k] = false;
@@ -554,7 +556,7 @@ public class OobOperation extends ModuleOperation {
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = arg2Hi;
     outgoingData4[k] = arg2Lo;
-    boolean r = wcp.callLT(arg1, arg2);
+    final boolean r = wcp.callLT(arg1, arg2);
     outgoingResLo[k] = booleanToBigInteger(r);
     return r;
   }
@@ -575,7 +577,7 @@ public class OobOperation extends ModuleOperation {
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = arg2Hi;
     outgoingData4[k] = arg2Lo;
-    boolean r = wcp.callGT(arg1, arg2);
+    final boolean r = wcp.callGT(arg1, arg2);
     outgoingResLo[k] = booleanToBigInteger(r);
     return r;
   }
@@ -592,7 +594,7 @@ public class OobOperation extends ModuleOperation {
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = BigInteger.ZERO;
     outgoingData4[k] = BigInteger.ZERO;
-    boolean r = wcp.callISZERO(arg1);
+    final boolean r = wcp.callISZERO(arg1);
     outgoingResLo[k] = booleanToBigInteger(r);
     return r;
   }
@@ -613,7 +615,7 @@ public class OobOperation extends ModuleOperation {
     outgoingData2[k] = arg1Lo;
     outgoingData3[k] = arg2Hi;
     outgoingData4[k] = arg2Lo;
-    boolean r = wcp.callEQ(arg1, arg2);
+    final boolean r = wcp.callEQ(arg1, arg2);
     outgoingResLo[k] = booleanToBigInteger(r);
     return r;
   }
@@ -733,7 +735,7 @@ public class OobOperation extends ModuleOperation {
         callToLT(
             0,
             BigInteger.ZERO,
-            BigInteger.valueOf(24576),
+            BigInteger.valueOf(MAX_CODE_SIZE),
             deploymentOobCall.sizeHi(),
             deploymentOobCall.sizeLo());
 
@@ -1181,7 +1183,7 @@ public class OobOperation extends ModuleOperation {
         !callToLT(
             0,
             BigInteger.ZERO,
-            prcBlake2FParamsOobCall.getCallGas(),
+            prcBlake2FParamsOobCall.getCalleeGas(),
             BigInteger.ZERO,
             prcBlake2FParamsOobCall.getBlakeR()); // = ramSuccess
 
@@ -1201,7 +1203,7 @@ public class OobOperation extends ModuleOperation {
     // Set returnGas
     final BigInteger returnGas =
         ramSuccess
-            ? (prcBlake2FParamsOobCall.getCallGas().subtract(prcBlake2FParamsOobCall.getBlakeR()))
+            ? (prcBlake2FParamsOobCall.getCalleeGas().subtract(prcBlake2FParamsOobCall.getBlakeR()))
             : BigInteger.ZERO;
 
     prcBlake2FParamsOobCall.setReturnGas(returnGas);

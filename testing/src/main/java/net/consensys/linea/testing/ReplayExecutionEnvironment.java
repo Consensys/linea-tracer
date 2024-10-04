@@ -85,6 +85,13 @@ public class ReplayExecutionEnvironment {
    */
   private final boolean txResultChecking;
 
+  /**
+   * Setting this to true will disable the clique consensus protocol for parsing coinbase address
+   * from block header. This is needed for manual tests like the Multi Block tests which do not have
+   * encoded coinbase address in the block header.
+   */
+  @Builder.Default private final boolean useCoinbaseAddressFromBlockHeader = false;
+
   private final ZkTracer zkTracer = new ZkTracer();
 
   public void checkTracer(String inputFilePath) {
@@ -155,7 +162,8 @@ public class ReplayExecutionEnvironment {
       tracer = ConflationAwareOperationTracer.sequence(tracer, capturer);
     }
     // Execute the conflation
-    executeFrom(chainId, conflation, tracer, this.txResultChecking);
+    executeFrom(
+        chainId, conflation, tracer, this.txResultChecking, this.useCoinbaseAddressFromBlockHeader);
     //
     if (debugBlockCapturer) {
       writeCaptureToFile(conflation, capturer);
@@ -166,7 +174,8 @@ public class ReplayExecutionEnvironment {
       final BigInteger chainId,
       final ConflationSnapshot conflation,
       final ConflationAwareOperationTracer tracer,
-      final boolean txResultChecking) {
+      final boolean txResultChecking,
+      final boolean useCoinbaseAddressFromBlockHeader) {
     BlockHashOperation.BlockHashLookup blockHashLookup = conflation.toBlockHashLookup();
     // Initialise world state from conflation
     MutableWorldState world = initWorld(conflation);
@@ -194,7 +203,9 @@ public class ReplayExecutionEnvironment {
                 updater,
                 header,
                 tx,
-                CliqueHelpers.getProposerOfBlock(header),
+                useCoinbaseAddressFromBlockHeader
+                    ? header.getCoinbase()
+                    : CliqueHelpers.getProposerOfBlock(header),
                 buildOperationTracer(tx, txs.getOutcome(), tracer, txResultChecking),
                 blockHashLookup,
                 false,

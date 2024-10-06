@@ -51,6 +51,7 @@ public class ShfExtensiveTest {
         shfTestSourceList.add(Arguments.of(value, k, l));
         for (String XY : XYs) {
           String mask = XY + "00".repeat(31);
+          // TODO: Likely no need to format it as 64 hex characters
           String maskXorValue =
               String.format("%064X", new BigInteger(mask, 16).xor(new BigInteger(value, 16)));
           shfWithMaskTestSourceList.add(Arguments.of(maskXorValue, k, l, XY));
@@ -177,6 +178,7 @@ public class ShfExtensiveTest {
           // Adding additional cases for SAR
           for (String XY : XYs) {
             String mask = XY + "00".repeat(31);
+            // TODO: Likely no need to format it as 64 hex characters
             String maskXorValue =
                 String.format("%064X", new BigInteger(mask, 16).xor(new BigInteger(value, 16)));
             arguments.add(Arguments.of(shift, maskXorValue, OpCode.SAR));

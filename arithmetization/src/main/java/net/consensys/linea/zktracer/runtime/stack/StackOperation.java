@@ -50,7 +50,11 @@ public final class StackOperation {
    */
   @Getter private final int stackStamp;
 
-  StackOperation() {
+  /** Singleton ``empty stack operation'' object. */
+  public static final StackOperation EmptyStackOperation = new StackOperation();
+
+  /** private constructor for singleton definition in {@link StackOperation#EmptyStackOperation} */
+  private StackOperation() {
     this.height = 0;
     this.value = Bytes.EMPTY;
     this.action = Action.NONE;

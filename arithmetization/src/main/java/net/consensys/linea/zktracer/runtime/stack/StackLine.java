@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.runtime.stack;
 
+import static net.consensys.linea.zktracer.runtime.stack.StackOperation.EmptyStackOperation;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -65,7 +67,7 @@ public final class StackLine {
   public List<StackOperation> asStackOperations() {
     StackOperation[] r =
         new StackOperation[] {
-          new StackOperation(), new StackOperation(), new StackOperation(), new StackOperation()
+          EmptyStackOperation, EmptyStackOperation, EmptyStackOperation, EmptyStackOperation
         };
     for (IndexedStackOperation item : this.items) {
       r[item.i()] = item.it();

@@ -29,7 +29,7 @@ import org.apache.tuweni.bytes.Bytes;
  * metadata, in a {@link StackContext}.
  */
 @Accessors(fluent = true)
-public final class StackOperation {
+public final class StackItem {
   private static final Bytes MARKER = Bytes.fromHexString("0xDEADBEEF");
 
   /**
@@ -51,33 +51,33 @@ public final class StackOperation {
   @Getter private final int stackStamp;
 
   /** Singleton ``empty stack operation'' object. */
-  public static final StackOperation EmptyStackOperation = new StackOperation();
+  @Getter private static final StackItem EMPTY_STACK_ITEM = new StackItem();
 
-  /** private constructor for singleton definition in {@link StackOperation#EmptyStackOperation} */
-  private StackOperation() {
+  /** private constructor for singleton definition in {@link StackItem#EMPTY_STACK_ITEM} */
+  private StackItem() {
     this.height = 0;
     this.value = Bytes.EMPTY;
     this.action = Action.NONE;
     this.stackStamp = 0;
   }
 
-  StackOperation(int height, Bytes value, Action action, int stackStamp) {
+  StackItem(int height, Bytes value, Action action, int stackStamp) {
     this.height = height;
     this.value = value;
     this.action = action;
     this.stackStamp = stackStamp;
   }
 
-  public static StackOperation pop(int height, Bytes value, int stackStamp) {
-    return new StackOperation(height, value, Action.POP, stackStamp);
+  public static StackItem pop(int height, Bytes value, int stackStamp) {
+    return new StackItem(height, value, Action.POP, stackStamp);
   }
 
-  public static StackOperation push(int height, int stackStamp) {
-    return new StackOperation(
+  public static StackItem push(int height, int stackStamp) {
+    return new StackItem(
         height, MARKER /* marker value, erased on unlatching */, Action.PUSH, stackStamp);
   }
 
-  public static StackOperation pushImmediate(int height, Bytes val, int stackStamp) {
-    return new StackOperation(height, val.copy(), Action.PUSH, stackStamp);
+  public static StackItem pushImmediate(int height, Bytes val, int stackStamp) {
+    return new StackItem(height, val.copy(), Action.PUSH, stackStamp);
   }
 }

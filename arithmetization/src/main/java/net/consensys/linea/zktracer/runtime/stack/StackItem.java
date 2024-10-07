@@ -51,7 +51,11 @@ public final class StackItem {
   @Getter private final int stackStamp;
 
   /** Singleton ``empty stack operation'' object. */
-  @Getter private static final StackItem EMPTY_STACK_ITEM = new StackItem();
+  private static final StackItem EMPTY_STACK_ITEM = new StackItem();
+
+  public static StackItem empty() {
+    return EMPTY_STACK_ITEM;
+  }
 
   /** private constructor for singleton definition in {@link StackItem#EMPTY_STACK_ITEM} */
   private StackItem() {

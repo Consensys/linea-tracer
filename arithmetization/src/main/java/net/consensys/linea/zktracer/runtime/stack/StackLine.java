@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.runtime.stack;
 
+import static net.consensys.linea.zktracer.runtime.stack.StackItem.*;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -63,7 +65,7 @@ public final class StackLine {
    * @return a consolidated 4-elements array of the {@link StackItem} – or no-ops
    */
   public List<StackItem> asStackItems() {
-    StackItem emptyStackItem = StackItem.EMPTY_STACK_ITEM();
+    StackItem emptyStackItem = empty();
     StackItem[] r =
         new StackItem[] {emptyStackItem, emptyStackItem, emptyStackItem, emptyStackItem};
     for (IndexedStackOperation item : items) {

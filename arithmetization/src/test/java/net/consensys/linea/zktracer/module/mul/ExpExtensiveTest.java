@@ -80,46 +80,57 @@ public class ExpExtensiveTest {
 
   // Tests
   @ParameterizedTest
-  @MethodSource("expWithEvenBaseAndTinyExponentTestSource")
-  public void expWithEvenBaseAndTinyExponentTest(String base, String exponent) {
-    BytecodeRunner.of(
-            BytecodeCompiler.newProgram().push(exponent).push(base).op(OpCode.EXP).compile())
-        .run();
+  @MethodSource("expWithEvenBaseAndSpecialExponentTestSource")
+  public void expWithEvenBaseAndSpecialExponentTest(String base, String exponent) {
+    expProgramOf(base, exponent).run();
   }
 
-  static Stream<Arguments> expWithEvenBaseAndTinyExponentTestSource() {
-    List<Arguments> arguments = new ArrayList<>();
-    // Example of inputs
-    for (String base : EVEN_BASE) {
-      arguments.add(Arguments.of(base, TINY_EXPONENTS[69]));
-    }
-    return arguments.stream();
+  static Stream<Arguments> expWithEvenBaseAndSpecialExponentTestSource() {
+    return generateSource(EVEN_BASE, SPECIAL_EXPONENTS);
   }
 
-  // Support tests
   @ParameterizedTest
-  @MethodSource("checkInputsSource")
-  public void checkInputs(String value, String length, String description) {}
+  @MethodSource("expWithSimpleOddBaseAndSpecialExponentTestSource")
+  public void expWithSimpleOddBaseAndSpecialExponentTest(String base, String exponent) {
+    expProgramOf(base, exponent).run();
+  }
 
-  static Stream<Arguments> checkInputsSource() {
+  static Stream<Arguments> expWithSimpleOddBaseAndSpecialExponentTestSource() {
+    return generateSource(SIMPLE_ODD_BASE, SPECIAL_EXPONENTS);
+  }
+
+  @ParameterizedTest
+  @MethodSource("expWithSimpleOddBaseAndComplexExponentTestSource")
+  public void expWithSimpleOddBaseAndComplesExponentTest(String base, String exponent) {
+    expProgramOf(base, exponent).run();
+  }
+
+  static Stream<Arguments> expWithSimpleOddBaseAndComplexExponentTestSource() {
+    return generateSource(SIMPLE_ODD_BASE, COMPLEX_EXPONENTS);
+  }
+
+  @ParameterizedTest
+  @MethodSource("expWithOtherOddBaseAndComplexExponentTestSource")
+  public void expWithOtherOddBaseAndComplexExponentTest(String base, String exponent) {
+    expProgramOf(base, exponent).run();
+  }
+
+  static Stream<Arguments> expWithOtherOddBaseAndComplexExponentTestSource() {
+    return generateSource(OTHER_ODD_BASE, COMPLEX_EXPONENTS);
+  }
+
+  // Support methods
+  private BytecodeRunner expProgramOf(String base, String exponent) {
+    return BytecodeRunner.of(
+        BytecodeCompiler.newProgram().push(exponent).push(base).op(OpCode.EXP).compile());
+  }
+
+  static Stream<Arguments> generateSource(String[] bases, String[] exponents) {
     List<Arguments> arguments = new ArrayList<>();
-    for (String value : EVEN_BASE) {
-      arguments.add(Arguments.of(value, value.length() / 2, "Even base"));
-    }
-    for (String value : SIMPLE_ODD_BASE) {
-      arguments.add(Arguments.of(value, value.length() / 2, "Simple odd base"));
-    }
-    for (String value : OTHER_ODD_BASE) {
-      arguments.add(Arguments.of(value, value.length() / 2, "Other odd base"));
-    }
-    for (String value : COMPLEX_EXPONENTS) {
-      arguments.add(Arguments.of(value, value.length() / 2, "Complex exponent"));
-    }
-    for (String value : TINY_EXPONENTS) {
-      arguments.add(Arguments.of(value, value.length() / 2, "Tiny exponent"));
-    }
-    for (String value : THRESHOLD_EXPONENTS) {
-      arguments.add(Arguments.of(value, value.length() / 2, "Threshold exponent"));
+    for (String base : bases) {
+      for (String exponent : exponents) {
+        arguments.add(Arguments.of(base, exponent));
+      }
     }
     return arguments.stream();
   }

@@ -101,7 +101,7 @@ public class ExpExtensiveTest {
 
   @ParameterizedTest
   @MethodSource("expWithSimpleOddBaseAndComplexExponentTestSource")
-  public void expWithSimpleOddBaseAndComplesExponentTest(String base, String exponent) {
+  public void expWithSimpleOddBaseAndComplexExponentTest(String base, String exponent) {
     expProgramOf(base, exponent).run();
   }
 

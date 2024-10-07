@@ -145,7 +145,7 @@ public final class StackFragment implements TraceFragment {
     return new StackFragment(
         hub,
         stack,
-            stackItems,
+        stackItems,
         exceptions,
         aborts,
         gp,

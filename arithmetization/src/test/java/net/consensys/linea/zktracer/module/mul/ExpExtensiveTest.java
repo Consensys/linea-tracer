@@ -80,6 +80,16 @@ public class ExpExtensiveTest {
 
   // Tests
   @ParameterizedTest
+  @MethodSource("expWithEvenBaseAndComplexExponentTestSource")
+  public void expWithEvenBaseAndComplexExponentTest(String base, String exponent) {
+    expProgramOf(base, exponent).run();
+  }
+
+  static Stream<Arguments> expWithEvenBaseAndComplexExponentTestSource() {
+    return generateSource(EVEN_BASE, COMPLEX_EXPONENTS);
+  }
+
+  @ParameterizedTest
   @MethodSource("expWithEvenBaseAndSpecialExponentTestSource")
   public void expWithEvenBaseAndSpecialExponentTest(String base, String exponent) {
     expProgramOf(base, exponent).run();
@@ -87,16 +97,6 @@ public class ExpExtensiveTest {
 
   static Stream<Arguments> expWithEvenBaseAndSpecialExponentTestSource() {
     return generateSource(EVEN_BASE, SPECIAL_EXPONENTS);
-  }
-
-  @ParameterizedTest
-  @MethodSource("expWithSimpleOddBaseAndSpecialExponentTestSource")
-  public void expWithSimpleOddBaseAndSpecialExponentTest(String base, String exponent) {
-    expProgramOf(base, exponent).run();
-  }
-
-  static Stream<Arguments> expWithSimpleOddBaseAndSpecialExponentTestSource() {
-    return generateSource(SIMPLE_ODD_BASE, SPECIAL_EXPONENTS);
   }
 
   @ParameterizedTest
@@ -110,6 +110,16 @@ public class ExpExtensiveTest {
   }
 
   @ParameterizedTest
+  @MethodSource("expWithSimpleOddBaseAndSpecialExponentTestSource")
+  public void expWithSimpleOddBaseAndSpecialExponentTest(String base, String exponent) {
+    expProgramOf(base, exponent).run();
+  }
+
+  static Stream<Arguments> expWithSimpleOddBaseAndSpecialExponentTestSource() {
+    return generateSource(SIMPLE_ODD_BASE, SPECIAL_EXPONENTS);
+  }
+
+  @ParameterizedTest
   @MethodSource("expWithOtherOddBaseAndComplexExponentTestSource")
   public void expWithOtherOddBaseAndComplexExponentTest(String base, String exponent) {
     expProgramOf(base, exponent).run();
@@ -117,6 +127,16 @@ public class ExpExtensiveTest {
 
   static Stream<Arguments> expWithOtherOddBaseAndComplexExponentTestSource() {
     return generateSource(OTHER_ODD_BASE, COMPLEX_EXPONENTS);
+  }
+
+  @ParameterizedTest
+  @MethodSource("expWithOtherOddBaseAndSpecialExponentTestSource")
+  public void expWithOtherOddBaseAndSpecialExponentTest(String base, String exponent) {
+    expProgramOf(base, exponent).run();
+  }
+
+  static Stream<Arguments> expWithOtherOddBaseAndSpecialExponentTestSource() {
+    return generateSource(OTHER_ODD_BASE, SPECIAL_EXPONENTS);
   }
 
   // Support methods

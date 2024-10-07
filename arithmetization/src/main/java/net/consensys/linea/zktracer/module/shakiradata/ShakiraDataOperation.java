@@ -29,7 +29,6 @@ import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.KECCA
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.RIPEMD;
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.SHA256;
 import static net.consensys.linea.zktracer.module.shakiradata.Trace.INDEX_MAX_RESULT;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToHex;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
 

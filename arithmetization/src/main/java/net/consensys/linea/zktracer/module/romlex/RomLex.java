@@ -60,7 +60,7 @@ public class RomLex
       new ModuleOperationStackedSet<>();
 
   @Getter private List<RomOperation> sortedOperations;
-  Map<ContractMetadata, List<RomOperation>> lookup = new HashMap<>();
+  Map<ContractMetadata, Integer> precomputedNbOfOperationsPerMetadata = new HashMap<>();
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
 
@@ -82,7 +82,7 @@ public class RomLex
       throw new RuntimeException("Chunks have not been sorted yet");
     }
 
-    List<RomOperation> romOps = lookup.get(metadata);
+    Integer romOps = precomputedNbOfOperationsPerMetadata.get(metadata);
     if (romOps == null) {
       throw new RuntimeException(
           "RomChunk with:"
@@ -91,7 +91,7 @@ public class RomLex
               + String.format("\n\t\tdeployment status = %s", metadata.underDeployment())
               + "\n\tnot found");
     }
-    return romOps.size();
+    return romOps;
   }
 
   public Optional<RomOperation> getChunkByMetadata(final ContractMetadata metadata) {
@@ -283,7 +283,7 @@ public class RomLex
     final RomOperationComparator ROM_CHUNK_COMPARATOR = new RomOperationComparator();
     sortedOperations.sort(ROM_CHUNK_COMPARATOR);
     for (RomOperation romOperation : sortedOperations) {
-      lookup.computeIfAbsent(romOperation.metadata(), r -> new ArrayList<>()).add(romOperation);
+      precomputedNbOfOperationsPerMetadata.merge(romOperation.metadata(), 1, Integer::sum);
     }
   }
 

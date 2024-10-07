@@ -29,6 +29,7 @@ import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.KECCA
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.RIPEMD;
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.SHA256;
 import static net.consensys.linea.zktracer.module.shakiradata.Trace.INDEX_MAX_RESULT;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToHex;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
 
@@ -190,13 +191,5 @@ public class ShakiraDataOperation extends ModuleOperation {
         + ", indexMaxData="
         + indexMaxData
         + '}';
-  }
-
-  public static String bytesToHex(byte[] bytes) {
-    StringBuilder sb = new StringBuilder();
-    for (byte b : bytes) {
-      sb.append(String.format("%02X ", b));
-    }
-    return sb.toString().trim();
   }
 }

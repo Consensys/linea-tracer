@@ -15,6 +15,9 @@ package net.consensys.linea.zktracer.module.mul;
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import static net.consensys.linea.zktracer.module.HexStringUtils.and;
+import static net.consensys.linea.zktracer.module.HexStringUtils.rightShift;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -25,6 +28,7 @@ import java.util.stream.Stream;
 import lombok.experimental.Accessors;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.zktracer.module.HexStringUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -33,16 +37,16 @@ import org.junit.jupiter.params.provider.MethodSource;
 @Accessors(fluent = true)
 public class ExpExtensiveTest {
   // Test vectors
-  static final String P_1 = "F076B857FA9947C1F9EC558262C72704099CA8CD325566F73FB99238102ED171";
-  static final String P_2 = "C809C9170CA6FAEC82D43EE6754DBAD01D198ECAE0823BAC23CA30C7F0C9657D";
+  static final String P_1 = "f076b857fa9947c1f9ec558262c72704099ca8cd325566f73fb99238102ed171";
+  static final String P_2 = "c809c9170ca6faec82d43ee6754dbad01d198ecae0823bac23ca30c7f0c9657d";
 
   static final String[] EVEN_BASE =
-      IntStream.rangeClosed(1, 256).mapToObj(ExpExtensiveTest::evenBase).toArray(String[]::new);
+      IntStream.rangeClosed(1, 256).mapToObj(HexStringUtils::even).toArray(String[]::new);
 
   static final String[] SIMPLE_ODD_BASE =
       IntStream.rangeClosed(0, 32)
           .map(i -> i * 8) // Generates 0, 8, 16, ..., 256
-          .mapToObj(ExpExtensiveTest::oddBase)
+          .mapToObj(HexStringUtils::odd)
           .toArray(String[]::new);
 
   static final String[] OTHER_ODD_BASE =
@@ -118,24 +122,5 @@ public class ExpExtensiveTest {
       arguments.add(Arguments.of(value, value.length() / 2, "Threshold exponent"));
     }
     return arguments.stream();
-  }
-
-  // Support methods
-  private static String evenBase(int n) {
-    return new BigInteger("1".repeat(256 - n) + "0".repeat(n), 2).toString(16);
-  }
-
-  private static String oddBase(int n) {
-    return new BigInteger("0".repeat(256 - n) + "1".repeat(n), 2).toString(16);
-  }
-
-  private static String rightShift(String value, int n) {
-    // TODO: Likely no need to format it as 64 hex characters
-    return String.format("%064X", new BigInteger(value, 16).shiftRight(n));
-  }
-
-  private static String and(String value, String mask) {
-    // TODO: Likely no need to format it as 64 hex characters
-    return String.format("%064X", new BigInteger(value, 16).and(new BigInteger(mask, 16)));
   }
 }

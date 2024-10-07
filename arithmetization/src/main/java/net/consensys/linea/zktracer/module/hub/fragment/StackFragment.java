@@ -38,9 +38,8 @@ import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
-import net.consensys.linea.zktracer.runtime.stack.Action;
 import net.consensys.linea.zktracer.runtime.stack.Stack;
-import net.consensys.linea.zktracer.runtime.stack.StackOperation;
+import net.consensys.linea.zktracer.runtime.stack.StackItem;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -50,7 +49,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @Accessors(fluent = true)
 public final class StackFragment implements TraceFragment {
   private final Stack stack;
-  @Getter private final List<StackOperation> stackOps;
+  @Getter private final List<StackItem> stackOps;
   private final short exceptions;
   private final long staticGas;
   @Setter public boolean hashInfoFlag;
@@ -66,7 +65,7 @@ public final class StackFragment implements TraceFragment {
   private StackFragment(
       final Hub hub,
       Stack stack,
-      List<StackOperation> stackOps,
+      List<StackItem> stackOps,
       short exceptions,
       AbortingConditions aborts,
       GasProjection gp,
@@ -135,7 +134,7 @@ public final class StackFragment implements TraceFragment {
   public static StackFragment prepare(
       final Hub hub,
       final Stack stack,
-      final List<StackOperation> stackOperations,
+      final List<StackItem> stackItems,
       final short exceptions,
       final AbortingConditions aborts,
       final GasProjection gp,
@@ -145,7 +144,7 @@ public final class StackFragment implements TraceFragment {
     return new StackFragment(
         hub,
         stack,
-        stackOperations,
+        stackItems,
         exceptions,
         aborts,
         gp,
@@ -213,7 +212,7 @@ public final class StackFragment implements TraceFragment {
       heightTracers.get(i).apply(Bytes.ofUnsignedShort(op.height()));
       valLoTracers.get(i).apply(eValue.lo());
       valHiTracers.get(i).apply(eValue.hi());
-      popTracers.get(i).apply(op.action() == Action.POP);
+      popTracers.get(i).apply(op.action() == Stack.POP);
       stampTracers.get(i).apply(Bytes.ofUnsignedLong(op.stackStamp()));
     }
 

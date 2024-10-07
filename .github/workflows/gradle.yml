@@ -19,7 +19,7 @@ env:
 
 jobs:
   build:
-    runs-on: [self-hosted, Linux, X64, medium]
+    runs-on: [self-hosted, Linux, X64, large]
     steps:
       - name: Install Go
         uses: actions/setup-go@v4
@@ -54,7 +54,7 @@ jobs:
 
   tests:
     needs: [ build ]
-    runs-on: [self-hosted, Linux, X64, medium]
+    runs-on: [self-hosted, Linux, X64, large]
     steps:
       - name: Setup upterm session
         if: ${{ inputs.tests-with-ssh }}
@@ -123,7 +123,7 @@ jobs:
 
   go-corset-tests:
     needs: [ build ]
-    runs-on: [self-hosted, Linux, X64, medium]
+    runs-on: [self-hosted, Linux, X64, large]
     continue-on-error: true
     steps:
       - name: Setup upterm session

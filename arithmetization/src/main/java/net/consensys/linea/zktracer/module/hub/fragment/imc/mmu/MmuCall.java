@@ -62,7 +62,6 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.Precompi
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
-import static net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall.PROVER_MAX_INPUT_BYTE_SIZE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.apache.tuweni.bytes.Bytes.minimalBytes;
@@ -710,7 +709,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
           .sourceId(modexpSubsection.callSection.hubStamp())
           .sourceRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
           .targetId(modexpSubsection.exoModuleOperationId())
-          .exoBytes(Optional.of(leftPadTo(modExpMetadata.base(), PROVER_MAX_INPUT_BYTE_SIZE)))
+          .exoBytes(Optional.of(leftPadTo(modExpMetadata.base(), MODEXP_COMPONENT_BYTE_SIZE)))
           .sourceOffset(EWord.of(BASE_MIN_OFFSET))
           .size(modExpMetadata.bbs().toInt())
           .referenceOffset(modexpSubsection.callDataMemorySpan.offset())
@@ -732,7 +731,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
           .sourceId(modexpSubsection.callSection.hubStamp())
           .sourceRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
           .targetId(modexpSubsection.exoModuleOperationId())
-          .exoBytes(Optional.of(leftPadTo(modExpMetadata.exp(), PROVER_MAX_INPUT_BYTE_SIZE)))
+          .exoBytes(Optional.of(leftPadTo(modExpMetadata.exp(), MODEXP_COMPONENT_BYTE_SIZE)))
           .sourceOffset(EWord.of(BASE_MIN_OFFSET + modExpMetadata.bbs().toInt()))
           .size(modExpMetadata.ebs().toInt())
           .referenceOffset(modexpSubsection.callDataMemorySpan.offset())
@@ -753,7 +752,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceId(modexpSubsection.callSection.hubStamp())
         .sourceRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
         .targetId(modexpSubsection.exoModuleOperationId())
-        .exoBytes(Optional.of(leftPadTo(modExpMetadata.mod(), PROVER_MAX_INPUT_BYTE_SIZE)))
+        .exoBytes(Optional.of(leftPadTo(modExpMetadata.mod(), MODEXP_COMPONENT_BYTE_SIZE)))
         .sourceOffset(
             EWord.of(BASE_MIN_OFFSET + modExpMetadata.bbs().toInt() + modExpMetadata.ebs().toInt()))
         .size(modExpMetadata.mbs().toInt())
@@ -767,7 +766,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, final ModexpSubsection modexpSubsection, final ModexpMetadata modExpMetadata) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(modexpSubsection.exoModuleOperationId())
-        .exoBytes(Optional.of(leftPadTo(modexpSubsection.returnData(), PROVER_MAX_INPUT_BYTE_SIZE)))
+        .exoBytes(Optional.of(leftPadTo(modexpSubsection.returnData(), MODEXP_COMPONENT_BYTE_SIZE)))
         .targetId(modexpSubsection.returnDataContextNumber())
         .targetRamBytes(Optional.of(Bytes.EMPTY))
         .size(MODEXP_COMPONENT_BYTE_SIZE)

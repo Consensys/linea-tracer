@@ -32,8 +32,7 @@ import org.junit.jupiter.api.Test;
 
 public class ReferenceTestOutcomeRecorderToolTest {
 
-  private final String prefix1 = "constraints failed: ";
-  private final String prefix2 = "failing constraint ";
+  private final String JSON_OUTPUT_FILENAME_TEST = "JSON_OUTPUT_FILENAME_TEST.json";
 
   @BeforeEach
   void setup() {
@@ -45,41 +44,37 @@ public class ReferenceTestOutcomeRecorderToolTest {
 
   @Test
   void multipleModulesAreStoredCorrectly() {
-    String testName = "test1";
-
     String module1 = "blockdata";
-    String constraint1 = module1 + ".value-constraints";
 
     String module2 = "txndata";
-    String constraint2 = module2 + "-into-blockdata";
 
     List<String> modules = List.of(module1, module2);
 
-    String dummyEvent = createDummyLogEventMessage(List.of(constraint1), prefix1);
-    String dummyEvent2 = createDummyLogEventMessage(List.of(constraint2), prefix2);
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult("test1", TestState.FAILED,
+            Map.of("Constraint", Set.of(module1, module2)));
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult("test2", TestState.FAILED,
+            Map.of("Constraint", Set.of(module1)));
+    ReferenceTestOutcomeRecorderTool.writeToJsonFile(JSON_OUTPUT_FILENAME_TEST);
 
-    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName,TestState.FAILED,
-            Map.of("Constraint", Set.of(dummyEvent, dummyEvent2)));
+    readBlockchainReferenceTestsOutput(JSON_OUTPUT_FILENAME_TEST)
+            .thenApply(
+                    jsonString -> {
+                      BlockchainReferenceTestOutcome blockchainReferenceTestOutcome =
+                              parseBlockchainReferenceTestOutcome(jsonString);
 
-    ReferenceTestOutcomeRecorderTool.writeToJsonFile();
+                      ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>> modulesToConstraints =
+                              blockchainReferenceTestOutcome.modulesToConstraintsToTests();
 
-    readBlockchainReferenceTestsOutput(JSON_OUTPUT_FILENAME)
-        .thenApply(
-            jsonString -> {
-              BlockchainReferenceTestOutcome blockchainReferenceTestOutcome =
-                  parseBlockchainReferenceTestOutcome(jsonString);
-
-              ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>> modulesToConstraints =
-                  blockchainReferenceTestOutcome.modulesToConstraintsToTests();
-
-              assertThat(modulesToConstraints.size()).isEqualTo(modules.size());
-              assertThat(modulesToConstraints.keySet()).isEqualTo(Set.of(module1,module2));
-              return null;
-            });
+                      assertThat(modulesToConstraints.size()).isEqualTo(modules.size());
+                      assertThat(modulesToConstraints.keySet()).isEqualTo(Set.of(module1, module2));
+                      assertThat(modulesToConstraints.get(module1)).isEqualTo(Set.of("test1", "test2"));
+                      assertThat(modulesToConstraints.get(module2)).isEqualTo(Set.of("test1"));
+                      return null;
+                    });
   }
 
   @Test
-  public void extractConstraints(){
+  public void extractConstraints() {
     String message = "\u001B[1m\u001B[31mrlptxrcpt.phase3\u001B[39m\u001B[0m failed:\n" +
             "\u001B[1m\u001B[97m                        \u001B[39m\u001B[0m16                                                                            17                                                                            \u001B[1m\u001B[31m18  \u001B[39m\u001B[0m19                                                                            20                                                                            \n" +
             "\u001B[1m\u001B[97m ACC_SIZE               \u001B[39m\u001B[0m2                                                                             3                                                                             \u001B[1m\u001B[31m4   \u001B[39m\u001B[0m0                                                                             0                                                                             \n" +
@@ -144,88 +139,9 @@ public class ReferenceTestOutcomeRecorderToolTest {
             "]";
 
     Map<String, Set<String>> res = ReferenceTestOutcomeRecorderTool.extractConstraints(message);
-    assertThat(res.size()).isEqualTo(3);
+    assertThat(res.size()).isEqualTo(2);
+    assertThat(res.get("txndata")).isEqualTo(Set.of("wcp", "rlptxrcpt", "cumulative-gas"));
+    assertThat(res.get("rlptxrcpt")).isEqualTo(Set.of("phase3", "phase-transition"));
   }
 
-//  @Test
-//  void multipleConstraintsInSameModuleAreStoredCorrectly() {
-//    String testName = "test1";
-//
-//    String module1 = "blockdata";
-//    String constraint1 = module1 + ".value-constraints";
-//    String constraint2 = module1 + ".horizontal-byte-dec";
-//
-//    List<String> constraints = List.of(constraint1, constraint2);
-//
-//    String dummyEvent = createDummyLogEventMessage(constraints, prefix1);
-//
-//    mapAndStoreFailedReferenceTest(testName, List.of(dummyEvent), TEST_OUTPUT_JSON);
-//
-//    readBlockchainReferenceTestsOutput(TEST_OUTPUT_JSON)
-//        .thenCompose(
-//            jsonString -> {
-//              BlockchainReferenceTestOutcome blockchainReferenceTestOutcome =
-//                  getBlockchainReferenceTestOutcome(jsonString);
-//
-//              List<ModuleToConstraints> modulesToConstraints =
-//                  blockchainReferenceTestOutcome.modulesToConstraints();
-//
-//              assertThat(modulesToConstraints.size()).isEqualTo(1);
-//
-//              Map<String, Set<String>> failedConstraints =
-//                  modulesToConstraints.getFirst().constraints();
-//              assertThat(failedConstraints.size()).isEqualTo(constraints.size());
-//              assertThat(failedConstraints.get("value-constraints")).isEqualTo(Set.of("test1"));
-//              assertThat(failedConstraints.get("horizontal-byte-dec")).isEqualTo(Set.of("test1"));
-//              return null;
-//            });
-//  }
-//
-//  @Test
-//  void multipleFailedTestsWithSameConstraintAreStoredCorrectly() {
-//    String testName1 = "test1";
-//    String testName2 = "test2";
-//    String testName3 = "test3";
-//
-//    String module1 = "blockdata";
-//    String constraint1 = module1 + ".value-constraints";
-//
-//    List<String> constraints = List.of(constraint1);
-//    List<String> modules = List.of(module1);
-//    List<String> tests = List.of(testName1, testName2, testName3);
-//
-//    String dummyEvent = createDummyLogEventMessage(constraints, prefix1);
-//
-//    mapAndStoreFailedReferenceTest(testName1, List.of(dummyEvent), TEST_OUTPUT_JSON);
-//    mapAndStoreFailedReferenceTest(testName2, List.of(dummyEvent), TEST_OUTPUT_JSON);
-//    mapAndStoreFailedReferenceTest(testName3, List.of(dummyEvent), TEST_OUTPUT_JSON);
-//    mapAndStoreFailedReferenceTest(testName3, List.of(dummyEvent), TEST_OUTPUT_JSON);
-//    mapAndStoreFailedReferenceTest(testName3, List.of(dummyEvent), TEST_OUTPUT_JSON);
-//
-//    readBlockchainReferenceTestsOutput(TEST_OUTPUT_JSON)
-//        .thenCompose(
-//            jsonString -> {
-//              BlockchainReferenceTestOutcome blockchainReferenceTestOutcome =
-//                  getBlockchainReferenceTestOutcome(jsonString);
-//
-//              List<ModuleToConstraints> modulesToConstraints =
-//                  blockchainReferenceTestOutcome.modulesToConstraints();
-//
-//              assertThat(modulesToConstraints.size()).isEqualTo(modules.size());
-//              Set<String> failedTests =
-//                  modulesToConstraints.getFirst().constraints().get("value-constraints");
-//              assertThat(failedTests.size()).isEqualTo(tests.size());
-//              return null;
-//            });
-//  }
-//
-  private String createDummyLogEventMessage(List<String> failedConstraints, String prefix) {
-    String concatenatedConstraints =
-        failedConstraints.stream()
-            .map(
-                s -> s + (failedConstraints.indexOf(s) == failedConstraints.size() - 1 ? "" : ", "))
-            .collect(Collectors.joining());
-
-    return prefix + concatenatedConstraints;
-  }
 }

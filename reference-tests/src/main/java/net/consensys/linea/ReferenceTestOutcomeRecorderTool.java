@@ -39,20 +39,15 @@ public class ReferenceTestOutcomeRecorderTool {
 
   public static void mapAndStoreTestResult(
           String testName, TestState success, Map<String, Set<String>> failedConstraints) {
-    switch (success){
-      case FAILED ->{
-        if (failedConstraints.isEmpty()) {
-
-          testOutcomes.failedCounter().incrementAndGet();
-          for (Map.Entry<String, Set<String>> failedConstraint : failedConstraints.entrySet()) {
-
-            String moduleName = failedConstraint.getKey();
-
-            for (String constraint : failedConstraint.getValue()) {
-              ConcurrentMap<String, ConcurrentSkipListSet<String>> constraintsToTests =
-                      testOutcomes.modulesToConstraintsToTests().computeIfAbsent(moduleName, m -> new ConcurrentHashMap<>());
-              constraintsToTests.computeIfAbsent(constraint, m -> new ConcurrentSkipListSet<>()).add(testName);
-            }
+    switch (success) {
+      case FAILED -> {
+        testOutcomes.failedCounter().incrementAndGet();
+        for (Map.Entry<String, Set<String>> failedConstraint : failedConstraints.entrySet()) {
+          String moduleName = failedConstraint.getKey();
+          for (String constraint : failedConstraint.getValue()) {
+            ConcurrentMap<String, ConcurrentSkipListSet<String>> constraintsToTests =
+                    testOutcomes.modulesToConstraintsToTests().computeIfAbsent(moduleName, m -> new ConcurrentHashMap<>());
+            constraintsToTests.computeIfAbsent(constraint, m -> new ConcurrentSkipListSet<>()).add(testName);
           }
         }
       }
@@ -96,11 +91,16 @@ public class ReferenceTestOutcomeRecorderTool {
 
   @Synchronized
   public static CompletableFuture<Void> writeToJsonFile() {
+    return writeToJsonFile(JSON_OUTPUT_FILENAME);
+  }
+
+  @Synchronized
+  public static CompletableFuture<Void> writeToJsonFile(String name) {
     String fileDirectory = setFileDirectory();
     String jsonString = jsonConverter.toJson(testOutcomes);
     return CompletableFuture.runAsync(
             () -> {
-              try (FileWriter file = new FileWriter(fileDirectory + JSON_OUTPUT_FILENAME)) {
+              try (FileWriter file = new FileWriter(fileDirectory + name)) {
                 file.write(jsonString);
               } catch (Exception e) {
                 log.error("Error - Failed to write failed test output: %s".formatted(e.getMessage()));

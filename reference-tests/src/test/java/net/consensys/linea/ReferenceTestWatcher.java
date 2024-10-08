@@ -27,6 +27,9 @@ import static net.consensys.linea.TestState.*;
 import static net.consensys.linea.testing.ExecutionEnvironment.CORSET_VALIDATION_RESULT;
 
 public class ReferenceTestWatcher implements TestWatcher {
+  private static final String ASSERTION_FAILED = "ASSERTION_FAILED";
+  private static final String UNCATEGORIZED_EXCEPTION = "UNCATEGORIZED_EXCEPTION";
+
   @Override
   public void testFailed(ExtensionContext context, Throwable cause) {
     String testName = context.getDisplayName().split(": ")[1];
@@ -37,7 +40,11 @@ public class ReferenceTestWatcher implements TestWatcher {
         if(cause.getMessage().contains(CORSET_VALIDATION_RESULT)){
           String constraints = cause.getMessage().replaceFirst(CORSET_VALIDATION_RESULT, "");
           logEventMessages = ReferenceTestOutcomeRecorderTool.extractConstraints(constraints);
+        } else {
+          logEventMessages.put(ASSERTION_FAILED, Set.of(cause.getMessage()));
         }
+      } else {
+        logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage()));
       }
     }
 

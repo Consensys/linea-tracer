@@ -93,7 +93,7 @@ public class MmuOperation extends ModuleOperation {
     return mmioLineCount;
   }
 
-  void trace(final int mmuStamp, final int mmioStamp, Trace trace) {
+  int trace(final int mmuStamp, final int mmioStamp, Trace trace) {
 
     setInstructionFlag();
 
@@ -104,7 +104,9 @@ public class MmuOperation extends ModuleOperation {
     tracePreprocessingRows(mmuData, mmuStamp, mmioStamp, trace);
 
     // Trace Micro Instructions Rows
-    traceMicroRows(mmuStamp, mmioStamp, trace);
+    final int finalMmioStamp = traceMicroRows(mmuStamp, mmioStamp, trace);
+
+    return finalMmioStamp;
   }
 
   private void setInstructionFlag() {
@@ -337,7 +339,7 @@ public class MmuOperation extends ModuleOperation {
     return output;
   }
 
-  private void traceMicroRows(final long mmuStamp, int mmioStamp, Trace trace) {
+  private int traceMicroRows(final long mmuStamp, int mmioStamp, Trace trace) {
     final List<RowTypeRecord> rowType = generateRowTypeList();
     final HubToMmuValues mmuHubInput = mmuData.hubToMmuValues();
 
@@ -345,7 +347,7 @@ public class MmuOperation extends ModuleOperation {
 
     final MmuToMmioConstantValues mmioConstantValues = mmuData.mmuToMmioConstantValues();
 
-    for (int i = 0; i < mmuData().numberMmioInstructions(); i++) {
+    for (int i = 0; i < mmuData().mmuToMmioInstructions().size(); i++) {
       mmioStamp += 1;
       traceFillMmuInstructionFlag(trace);
       traceOutAndBin(trace);
@@ -390,5 +392,6 @@ public class MmuOperation extends ModuleOperation {
           .pMicroTotalSize(Bytes.minimalBytes(mmioConstantValues.totalSize()))
           .fillAndValidateRow();
     }
+    return mmioStamp;
   }
 }

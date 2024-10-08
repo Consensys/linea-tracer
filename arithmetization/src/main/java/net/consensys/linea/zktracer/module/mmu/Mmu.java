@@ -59,14 +59,10 @@ public class Mmu implements OperationListModule<MmuOperation> {
 
     for (MmuOperation mmuOperation : operations.getAll()) {
       Preconditions.checkState(mmuOperation.traceMe(), "Cannot compute if traceMe is false");
-      if (mmuOperation.traceMe()) {
-        mmuOperation.getCFI();
-        mmuOperation.fillLimb();
+      mmuOperation.getCFI();
+      mmuOperation.fillLimb();
 
-        mmuStamp += 1;
-        mmuOperation.trace(mmuStamp, mmioStamp, trace);
-        mmioStamp += mmuOperation.mmuData().numberMmioInstructions();
-      }
+      mmioStamp = mmuOperation.trace(++mmuStamp, mmioStamp, trace);
     }
   }
 

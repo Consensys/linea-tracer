@@ -76,14 +76,14 @@ public class HexStringUtils {
   }
 
   /**
-   * Generates a hexadecimal odd value with the specified number of trailing ones (other digits are
+   * Generates a hexadecimal odd value with the specified number of leading zeros (other digits are
    * zeros).
    *
-   * @param nTrailingOnes the number of trailing ones
+   * @param nLeadingZeros the number of leading zeros
    * @return the resulting hexadecimal value
    */
-  public static String odd(int nTrailingOnes) {
-    return new BigInteger("0".repeat(256 - nTrailingOnes) + "1".repeat(nTrailingOnes), 2)
+  public static String odd(int nLeadingZeros) {
+    return new BigInteger("0".repeat(nLeadingZeros) + "1".repeat(256 - nLeadingZeros), 2)
         .toString(16);
   }
 }

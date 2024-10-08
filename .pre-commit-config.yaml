@@ -9,7 +9,7 @@ repos:
       - id: check-yaml
       - id: check-xml
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: 3.5.3
+    rev: v3.5.3
     hooks:
       - id: commitizen
         stages: [ commit-msg ]

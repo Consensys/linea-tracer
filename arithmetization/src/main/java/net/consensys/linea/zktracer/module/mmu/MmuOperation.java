@@ -20,6 +20,7 @@ package net.consensys.linea.zktracer.module.mmu;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_VANISHES;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_BLAKE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_EXO_TO_RAM_TRANSPLANTS;
@@ -104,9 +105,7 @@ public class MmuOperation extends ModuleOperation {
     tracePreprocessingRows(mmuData, mmuStamp, mmioStamp, trace);
 
     // Trace Micro Instructions Rows
-    final int finalMmioStamp = traceMicroRows(mmuStamp, mmioStamp, trace);
-
-    return finalMmioStamp;
+    return traceMicroRows(mmuStamp, mmioStamp, trace);
   }
 
   private void setInstructionFlag() {
@@ -161,7 +160,13 @@ public class MmuOperation extends ModuleOperation {
       final boolean exoIsTarget = mmuData.exoLimbIsTarget();
       checkArgument(exoIsSource == !exoIsTarget, "ExoLimb is either the source or the target");
 
-      for (MmuToMmioInstruction mmioInst : this.mmuData.mmuToMmioInstructions()) {
+      for (MmuToMmioInstruction mmioInst : mmuData.mmuToMmioInstructions()) {
+
+        // Limb remains zero for LIMB_VANISHES instructions
+        if (mmioInst.mmioInstruction() == MMIO_INST_LIMB_VANISHES) {
+          return;
+        }
+
         final int offset =
             (int)
                 (exoIsSource
@@ -197,7 +202,7 @@ public class MmuOperation extends ModuleOperation {
   }
 
   private void traceOutAndBin(Trace trace) {
-    MmuOutAndBinValues mmuOutAndBinRecord = mmuData.outAndBinValues();
+    final MmuOutAndBinValues mmuOutAndBinRecord = mmuData.outAndBinValues();
 
     trace
         .out1(Bytes.minimalBytes(mmuOutAndBinRecord.out1()))

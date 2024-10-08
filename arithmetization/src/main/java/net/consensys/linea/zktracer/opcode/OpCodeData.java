@@ -77,6 +77,14 @@ public record OpCodeData(
     return this.instructionFamily == InstructionFamily.HALT;
   }
 
+  public boolean isCall() {
+    return this.instructionFamily == InstructionFamily.CALL;
+  }
+
+  public boolean isCreate() {
+    return this.instructionFamily == InstructionFamily.CREATE;
+  }
+
   /**
    * Returns whether this instruction belong to the INVALID family.
    *

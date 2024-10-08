@@ -16,8 +16,7 @@
 package net.consensys.linea;
 
 import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.getModule;
-import static net.consensys.linea.ReferenceTestWatcher.JSON_INPUT_FILENAME;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigInteger;
@@ -30,7 +29,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
@@ -108,20 +110,20 @@ public class BlockchainReferenceTestTools {
     }
 
     CompletableFuture<BlockchainReferenceTestOutcome> modulesToConstraintsFutures =
-        readBlockchainReferenceTestsOutput(JSON_INPUT_FILENAME)
-            .thenApply(ReferenceTestOutcomeRecorderTool::getBlockchainReferenceTestOutcome);
+        readBlockchainReferenceTestsOutput(JSON_OUTPUT_FILENAME)
+            .thenApply(ReferenceTestOutcomeRecorderTool::parseBlockchainReferenceTestOutcome);
 
     return modulesToConstraintsFutures.thenApply(
         blockchainReferenceTestOutcome -> {
-          ModuleToConstraints filteredFailedTests =
-              getModule(blockchainReferenceTestOutcome.modulesToConstraints(), failedModule);
+          ConcurrentMap<String, ConcurrentSkipListSet<String>> filteredFailedTests =
+              blockchainReferenceTestOutcome.modulesToConstraintsToTests().get(failedModule);
           if (filteredFailedTests == null) {
             return failedTests;
           }
           if (!failedConstraint.isEmpty()) {
-            return filteredFailedTests.getFailedTests(failedConstraint);
+            return filteredFailedTests.get(failedConstraint);
           }
-          return filteredFailedTests.getFailedTests();
+          return filteredFailedTests.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
         });
   }
 
@@ -169,6 +171,7 @@ public class BlockchainReferenceTestTools {
         spec.getWorldStateArchive()
             .getMutable(genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash())
             .get();
+
     log.info(
         "checking roothash {} is {}", worldState.rootHash(), genesisBlockHeader.getStateRoot());
     assertThat(worldState.rootHash()).isEqualTo(genesisBlockHeader.getStateRoot());
@@ -221,9 +224,9 @@ public class BlockchainReferenceTestTools {
 
     zkTracer.traceEndConflation(worldState);
 
-    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
-
-    assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
+    String result = ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
+    assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash())
+            .withFailMessage("Constraint failed: " + result);
   }
 
   private static MainnetBlockImporter getMainnetBlockImporter(

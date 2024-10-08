@@ -54,10 +54,11 @@ import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
 import org.slf4j.Logger;
 
 public class ExecutionEnvironment {
+  public static final String CORSET_VALIDATION_RESULT = "Corset validation result: ";
   static GenesisConfigFile GENESIS_CONFIG =
       GenesisConfigFile.fromSource(GenesisConfigFile.class.getResource("/linea.json"));
 
-  public static void checkTracer(
+  public static String checkTracer(
       ZkTracer zkTracer, CorsetValidator corsetValidator, Optional<Logger> logger) {
     Path traceFilePath = null;
     try {
@@ -67,8 +68,9 @@ public class ExecutionEnvironment {
       logger.ifPresent(log -> log.debug("trace written to {}", finalTraceFilePath));
       CorsetValidator.Result corsetValidationResult = corsetValidator.validate(traceFilePath);
       assertThat(corsetValidationResult.isValid())
-          .withFailMessage("Corset validation result: %s", corsetValidationResult.toString())
+          .withFailMessage(CORSET_VALIDATION_RESULT + "%s", corsetValidationResult.corsetOutput())
           .isTrue();
+      return corsetValidationResult.corsetOutput();
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {

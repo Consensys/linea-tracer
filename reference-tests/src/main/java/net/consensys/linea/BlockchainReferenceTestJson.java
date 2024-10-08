@@ -25,16 +25,17 @@ import java.util.concurrent.CompletableFuture;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
+
 @Slf4j
 public class BlockchainReferenceTestJson {
-  static String fileDirectory = setFileDirectory();
 
   @Synchronized
   public static CompletableFuture<String> readBlockchainReferenceTestsOutput(String fileName) {
     return CompletableFuture.supplyAsync(
         () -> {
-          Path directoryPath = Paths.get(fileDirectory);
-          Path filePath = Paths.get(fileDirectory + fileName);
+          Path directoryPath = Paths.get(JSON_OUTPUT_FILENAME);
+          Path filePath = Paths.get(JSON_OUTPUT_FILENAME + fileName);
           String jsonString = "";
 
           try {
@@ -63,23 +64,4 @@ public class BlockchainReferenceTestJson {
         });
   }
 
-  @Synchronized
-  public static CompletableFuture<Void> writeToJsonFile(String jsonString, String fileName) {
-    return CompletableFuture.runAsync(
-        () -> {
-          try (FileWriter file = new FileWriter(fileDirectory + fileName)) {
-            file.write(jsonString);
-          } catch (Exception e) {
-            log.error("Error - Failed to write failed test output: %s".formatted(e.getMessage()));
-          }
-        });
-  }
-
-  private static String setFileDirectory() {
-    String jsonDirectory = System.getenv("FAILED_TEST_JSON_DIRECTORY");
-    if (jsonDirectory == null || jsonDirectory.isEmpty()) {
-      return "../tmp/local/";
-    }
-    return jsonDirectory;
-  }
 }

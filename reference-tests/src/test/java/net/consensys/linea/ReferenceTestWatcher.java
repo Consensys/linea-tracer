@@ -14,66 +14,55 @@
  */
 package net.consensys.linea;
 
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.incrementSuccessRate;
-import static org.junit.jupiter.api.Assumptions.abort;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-import java.time.Duration;
-import java.util.List;
-
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.read.ListAppender;
-import lombok.Synchronized;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
-import org.slf4j.LoggerFactory;
+import org.opentest4j.AssertionFailedError;
+
+import static net.consensys.linea.TestState.*;
+import static net.consensys.linea.testing.ExecutionEnvironment.CORSET_VALIDATION_RESULT;
 
 public class ReferenceTestWatcher implements TestWatcher {
-
-  private static final int LOGBACK_POLL_ATTEMPTS = 100;
-  private static final Duration LOGBACK_POLL_DELAY = Duration.ofMillis(10);
-
-  public static final String JSON_INPUT_FILENAME = "failedBlockchainReferenceTests-input.json";
-  public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests.json";
-  ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-
-  public ReferenceTestWatcher() {
-    Logger logger = getLogbackLogger();
-    listAppender.setContext(logger.getLoggerContext());
-    listAppender.start();
-    logger.addAppender(listAppender);
-  }
-
   @Override
   public void testFailed(ExtensionContext context, Throwable cause) {
     String testName = context.getDisplayName().split(": ")[1];
-    List<String> logEventMessages =
-        listAppender.list.stream().map(ILoggingEvent::getMessage).toList();
 
-    ReferenceTestOutcomeRecorderTool.mapAndStoreFailedReferenceTest(
-        testName, logEventMessages, JSON_OUTPUT_FILENAME);
+    Map<String, Set<String>> logEventMessages = new HashMap<>();
+    if (cause != null && cause instanceof AssertionFailedError){
+      if(((AssertionFailedError) cause).getActual() != null){
+        if(cause.getMessage().contains(CORSET_VALIDATION_RESULT)){
+          String constraints = cause.getMessage().replaceFirst(CORSET_VALIDATION_RESULT, "");
+          logEventMessages = ReferenceTestOutcomeRecorderTool.extractConstraints(constraints);
+        }
+      }
+    }
+
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
+            testName, FAILED, logEventMessages);
   }
 
   @Override
   public void testSuccessful(ExtensionContext context) {
-    incrementSuccessRate(JSON_OUTPUT_FILENAME);
+    String testName = context.getDisplayName().split(": ")[1];
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
+            testName, SUCCESS, Map.of());
   }
 
-  @Synchronized
-  private static Logger getLogbackLogger() {
-    try {
-      org.slf4j.Logger slf4jLogger = null;
-      for (int i = 0; i < LOGBACK_POLL_ATTEMPTS; i++) {
-        slf4jLogger = LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
-        if (slf4jLogger instanceof ch.qos.logback.classic.Logger logbackLogger) {
-          return logbackLogger;
-        }
-        Thread.sleep(LOGBACK_POLL_DELAY);
-      }
-      abort("SLF4J never returned a Logback logger. Last returned = " + slf4jLogger);
-    } catch (InterruptedException ex) {
-      abort("Thread interrupted while polling for Logback logger - " + ex);
-    }
-    throw new Error("unreachable code");
+  @Override
+  public void testDisabled(ExtensionContext context, Optional<String> reason) {
+    String testName = context.getDisplayName().split(": ")[1];
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
+            testName, DISABLED, Map.of());
   }
+  @Override
+  public void testAborted(ExtensionContext context, Throwable cause) {
+    String testName = context.getDisplayName().split(": ")[1];
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
+            testName, ABORTED, Map.of());
+  }
+
 }

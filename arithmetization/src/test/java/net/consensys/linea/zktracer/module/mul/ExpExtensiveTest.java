@@ -30,9 +30,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.HexStringUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -88,1002 +86,2211 @@ public class ExpExtensiveTest {
   static final String[] EXPONENTS =
       Stream.of(COMPLEX_EXPONENTS, SPECIAL_EXPONENTS).flatMap(Stream::of).toArray(String[]::new);
 
+  static final List<Arguments> EXPONENTS_LIST = Stream.of(EXPONENTS).map(Arguments::of).toList();
+
   // Note that flatMap(Stream::of) converts stream of String[] to stream of String
 
   // This is not an actual test, but just a utility to generate test cases
-  @Disabled
+  // @Disabled
   @Test
   public void generateTestCases() {
     for (int i = 0; i < BASES.length; i++) {
       System.out.println(
-          "@TestFactory\n"
-              + "Stream<DynamicTest> expDynamicTestForBase_"
+          "@ParameterizedTest\n"
+              + "@MethodSource(\"expTestForBaseSource\")\n"
+              + "void expTestForBase_"
               + BASES[i]
-              + "() {\n"
-              + "    return expDynamicTestGeneratorForBase(BASES["
+              + "(String exponent) {\n"
+              + "    expProgramOf(BASES["
               + i
-              + "]);\n"
+              + "], exponent).run();\n"
               + "}\n");
     }
-    System.out.println("test cases generated");
   }
 
-  // For a given base, create a dynamic test for each exponent
-  Stream<DynamicTest> expDynamicTestGeneratorForBase(String base) {
-    return Stream.of(EXPONENTS)
-        .map(
-            exponent ->
-                DynamicTest.dynamicTest(
-                    base + ", " + exponent,
-                    () -> {
-                      expProgramOf(base, exponent).run();
-                    }));
+  private static Stream<Arguments> expTestForBaseSource() {
+    return EXPONENTS_LIST.stream();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe() {
-    return expDynamicTestGeneratorForBase(BASES[0]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe(
+      String exponent) {
+    expProgramOf(BASES[0], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc() {
-    return expDynamicTestGeneratorForBase(BASES[1]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc(
+      String exponent) {
+    expProgramOf(BASES[1], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8() {
-    return expDynamicTestGeneratorForBase(BASES[2]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8(
+      String exponent) {
+    expProgramOf(BASES[2], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0() {
-    return expDynamicTestGeneratorForBase(BASES[3]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0(
+      String exponent) {
+    expProgramOf(BASES[3], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0() {
-    return expDynamicTestGeneratorForBase(BASES[4]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0(
+      String exponent) {
+    expProgramOf(BASES[4], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0() {
-    return expDynamicTestGeneratorForBase(BASES[5]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0(
+      String exponent) {
+    expProgramOf(BASES[5], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80() {
-    return expDynamicTestGeneratorForBase(BASES[6]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80(
+      String exponent) {
+    expProgramOf(BASES[6], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00() {
-    return expDynamicTestGeneratorForBase(BASES[7]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00(
+      String exponent) {
+    expProgramOf(BASES[7], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe00() {
-    return expDynamicTestGeneratorForBase(BASES[8]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe00(
+      String exponent) {
+    expProgramOf(BASES[8], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc00() {
-    return expDynamicTestGeneratorForBase(BASES[9]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc00(
+      String exponent) {
+    expProgramOf(BASES[9], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff800() {
-    return expDynamicTestGeneratorForBase(BASES[10]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff800(
+      String exponent) {
+    expProgramOf(BASES[10], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000() {
-    return expDynamicTestGeneratorForBase(BASES[11]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000(
+      String exponent) {
+    expProgramOf(BASES[11], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe000() {
-    return expDynamicTestGeneratorForBase(BASES[12]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe000(
+      String exponent) {
+    expProgramOf(BASES[12], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc000() {
-    return expDynamicTestGeneratorForBase(BASES[13]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc000(
+      String exponent) {
+    expProgramOf(BASES[13], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8000() {
-    return expDynamicTestGeneratorForBase(BASES[14]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff8000(
+      String exponent) {
+    expProgramOf(BASES[14], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000() {
-    return expDynamicTestGeneratorForBase(BASES[15]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000(
+      String exponent) {
+    expProgramOf(BASES[15], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0000() {
-    return expDynamicTestGeneratorForBase(BASES[16]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0000(
+      String exponent) {
+    expProgramOf(BASES[16], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0000() {
-    return expDynamicTestGeneratorForBase(BASES[17]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0000(
+      String exponent) {
+    expProgramOf(BASES[17], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80000() {
-    return expDynamicTestGeneratorForBase(BASES[18]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff80000(
+      String exponent) {
+    expProgramOf(BASES[18], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000() {
-    return expDynamicTestGeneratorForBase(BASES[19]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000(
+      String exponent) {
+    expProgramOf(BASES[19], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe00000() {
-    return expDynamicTestGeneratorForBase(BASES[20]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe00000(
+      String exponent) {
+    expProgramOf(BASES[20], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc00000() {
-    return expDynamicTestGeneratorForBase(BASES[21]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc00000(
+      String exponent) {
+    expProgramOf(BASES[21], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff800000() {
-    return expDynamicTestGeneratorForBase(BASES[22]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff800000(
+      String exponent) {
+    expProgramOf(BASES[22], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000() {
-    return expDynamicTestGeneratorForBase(BASES[23]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff000000(
+      String exponent) {
+    expProgramOf(BASES[23], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffe000000() {
-    return expDynamicTestGeneratorForBase(BASES[24]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffe000000(
+      String exponent) {
+    expProgramOf(BASES[24], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffc000000() {
-    return expDynamicTestGeneratorForBase(BASES[25]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffffc000000(
+      String exponent) {
+    expProgramOf(BASES[25], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffff8000000() {
-    return expDynamicTestGeneratorForBase(BASES[26]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffff8000000(
+      String exponent) {
+    expProgramOf(BASES[26], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000() {
-    return expDynamicTestGeneratorForBase(BASES[27]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000(
+      String exponent) {
+    expProgramOf(BASES[27], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0000000() {
-    return expDynamicTestGeneratorForBase(BASES[28]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffe0000000(
+      String exponent) {
+    expProgramOf(BASES[28], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0000000() {
-    return expDynamicTestGeneratorForBase(BASES[29]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0000000(
+      String exponent) {
+    expProgramOf(BASES[29], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffff80000000() {
-    return expDynamicTestGeneratorForBase(BASES[30]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffff80000000(
+      String exponent) {
+    expProgramOf(BASES[30], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000() {
-    return expDynamicTestGeneratorForBase(BASES[31]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000(
+      String exponent) {
+    expProgramOf(BASES[31], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffe00000000() {
-    return expDynamicTestGeneratorForBase(BASES[32]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffe00000000(
+      String exponent) {
+    expProgramOf(BASES[32], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffc00000000() {
-    return expDynamicTestGeneratorForBase(BASES[33]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffffc00000000(
+      String exponent) {
+    expProgramOf(BASES[33], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffff800000000() {
-    return expDynamicTestGeneratorForBase(BASES[34]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffff800000000(
+      String exponent) {
+    expProgramOf(BASES[34], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000() {
-    return expDynamicTestGeneratorForBase(BASES[35]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffff000000000(
+      String exponent) {
+    expProgramOf(BASES[35], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffe000000000() {
-    return expDynamicTestGeneratorForBase(BASES[36]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffe000000000(
+      String exponent) {
+    expProgramOf(BASES[36], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffc000000000() {
-    return expDynamicTestGeneratorForBase(BASES[37]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffc000000000(
+      String exponent) {
+    expProgramOf(BASES[37], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffff8000000000() {
-    return expDynamicTestGeneratorForBase(BASES[38]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffff8000000000(
+      String exponent) {
+    expProgramOf(BASES[38], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000() {
-    return expDynamicTestGeneratorForBase(BASES[39]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffff0000000000(
+      String exponent) {
+    expProgramOf(BASES[39], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffe0000000000() {
-    return expDynamicTestGeneratorForBase(BASES[40]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffe0000000000(
+      String exponent) {
+    expProgramOf(BASES[40], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffc0000000000() {
-    return expDynamicTestGeneratorForBase(BASES[41]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffffc0000000000(
+      String exponent) {
+    expProgramOf(BASES[41], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffff80000000000() {
-    return expDynamicTestGeneratorForBase(BASES[42]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffff80000000000(
+      String exponent) {
+    expProgramOf(BASES[42], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000() {
-    return expDynamicTestGeneratorForBase(BASES[43]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000(
+      String exponent) {
+    expProgramOf(BASES[43], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffe00000000000() {
-    return expDynamicTestGeneratorForBase(BASES[44]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffe00000000000(
+      String exponent) {
+    expProgramOf(BASES[44], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffc00000000000() {
-    return expDynamicTestGeneratorForBase(BASES[45]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffc00000000000(
+      String exponent) {
+    expProgramOf(BASES[45], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffff800000000000() {
-    return expDynamicTestGeneratorForBase(BASES[46]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffff800000000000(
+      String exponent) {
+    expProgramOf(BASES[46], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[47]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000(
+      String exponent) {
+    expProgramOf(BASES[47], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffe000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[48]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffe000000000000(
+      String exponent) {
+    expProgramOf(BASES[48], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffc000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[49]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffffc000000000000(
+      String exponent) {
+    expProgramOf(BASES[49], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffff8000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[50]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffff8000000000000(
+      String exponent) {
+    expProgramOf(BASES[50], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[51]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffff0000000000000(
+      String exponent) {
+    expProgramOf(BASES[51], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffe0000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[52]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffe0000000000000(
+      String exponent) {
+    expProgramOf(BASES[52], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffc0000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[53]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffc0000000000000(
+      String exponent) {
+    expProgramOf(BASES[53], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffff80000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[54]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffff80000000000000(
+      String exponent) {
+    expProgramOf(BASES[54], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[55]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000(
+      String exponent) {
+    expProgramOf(BASES[55], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffe00000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[56]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffe00000000000000(
+      String exponent) {
+    expProgramOf(BASES[56], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffc00000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[57]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffffc00000000000000(
+      String exponent) {
+    expProgramOf(BASES[57], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffff800000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[58]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffff800000000000000(
+      String exponent) {
+    expProgramOf(BASES[58], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffff000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[59]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffff000000000000000(
+      String exponent) {
+    expProgramOf(BASES[59], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffe000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[60]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffe000000000000000(
+      String exponent) {
+    expProgramOf(BASES[60], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffc000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[61]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffc000000000000000(
+      String exponent) {
+    expProgramOf(BASES[61], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffff8000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[62]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffff8000000000000000(
+      String exponent) {
+    expProgramOf(BASES[62], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[63]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffff0000000000000000(
+      String exponent) {
+    expProgramOf(BASES[63], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffe0000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[64]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffe0000000000000000(
+      String exponent) {
+    expProgramOf(BASES[64], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffc0000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[65]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffffc0000000000000000(
+      String exponent) {
+    expProgramOf(BASES[65], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffff80000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[66]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffff80000000000000000(
+      String exponent) {
+    expProgramOf(BASES[66], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffff00000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[67]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffff00000000000000000(
+      String exponent) {
+    expProgramOf(BASES[67], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffe00000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[68]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffe00000000000000000(
+      String exponent) {
+    expProgramOf(BASES[68], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffc00000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[69]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffc00000000000000000(
+      String exponent) {
+    expProgramOf(BASES[69], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffff800000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[70]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffff800000000000000000(
+      String exponent) {
+    expProgramOf(BASES[70], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffff000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[71]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffff000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[71], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffe000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[72]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffe000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[72], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffffc000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[73]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffffc000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[73], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffff8000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[74]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffff8000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[74], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffff0000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[75]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffff0000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[75], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffe0000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[76]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffe0000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[76], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffffc0000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[77]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffc0000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[77], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffff80000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[78]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffff80000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[78], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffff00000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[79]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffff00000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[79], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffe00000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[80]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffe00000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[80], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffffc00000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[81]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffffc00000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[81], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffff800000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[82]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffff800000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[82], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffff000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[83]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffff000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[83], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffe000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[84]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffe000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[84], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffffc000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[85]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffc000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[85], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffff8000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[86]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffff8000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[86], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffff0000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[87]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffff0000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[87], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffe0000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[88]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffe0000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[88], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffffc0000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[89]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffffc0000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[89], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffff80000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[90]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffff80000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[90], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffff00000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[91]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffff00000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[91], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffe00000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[92]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffe00000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[92], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffffc00000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[93]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffc00000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[93], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffff800000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[94]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffff800000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[94], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffff000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[95]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffff000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[95], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffe000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[96]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffe000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[96], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffffc000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[97]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffffc000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[97], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffff8000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[98]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffff8000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[98], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffff0000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[99]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffff0000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[99], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffe0000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[100]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffe0000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[100], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffffc0000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[101]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffc0000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[101], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffff80000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[102]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffff80000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[102], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffff00000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[103]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffff00000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[103], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffe00000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[104]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffe00000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[104], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffffc00000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[105]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffffc00000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[105], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffff800000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[106]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffff800000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[106], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffff000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[107]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffff000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[107], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffe000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[108]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffe000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[108], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffffc000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[109]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffc000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[109], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffff8000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[110]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffff8000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[110], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffff0000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[111]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffff0000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[111], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffe0000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[112]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffe0000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[112], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffffc0000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[113]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffffc0000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[113], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffff80000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[114]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffff80000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[114], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffff00000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[115]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffff00000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[115], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffe00000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[116]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffe00000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[116], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffffc00000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[117]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffc00000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[117], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffff800000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[118]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffff800000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[118], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffff000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[119]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffff000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[119], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffe000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[120]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffe000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[120], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffffc000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[121]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffffc000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[121], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffff8000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[122]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffff8000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[122], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffff0000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[123]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffff0000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[123], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffe0000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[124]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffe0000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[124], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffffc0000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[125]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffc0000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[125], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffff80000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[126]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffff80000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[126], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffff00000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[127]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffff00000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[127], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffe00000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[128]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffe00000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[128], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffffc00000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[129]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffffc00000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[129], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffff800000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[130]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffff800000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[130], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffff000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[131]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffff000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[131], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffe000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[132]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffe000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[132], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffffc000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[133]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffc000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[133], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffff8000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[134]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffff8000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[134], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffff0000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[135]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffff0000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[135], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffe0000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[136]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffe0000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[136], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffffc0000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[137]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffffc0000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[137], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffff80000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[138]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffff80000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[138], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffff00000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[139]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffff00000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[139], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffe00000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[140]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffe00000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[140], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffffc00000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[141]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffc00000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[141], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffff800000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[142]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffff800000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[142], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffff000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[143]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffff000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[143], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffe000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[144]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffe000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[144], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffffc000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[145]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffffc000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[145], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffff8000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[146]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffff8000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[146], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffff0000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[147]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffff0000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[147], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffe0000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[148]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffe0000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[148], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffffc0000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[149]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffc0000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[149], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffff80000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[150]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffff80000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[150], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffff00000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[151]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffff00000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[151], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffe00000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[152]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffe00000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[152], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffffc00000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[153]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffffc00000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[153], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffff800000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[154]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffff800000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[154], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffff000000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[155]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffff000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[155], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffe000000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[156]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffe000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[156], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffffc000000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[157]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffc000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[157], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffff8000000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[158]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffff8000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[158], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_ffffffffffffffffffffffff0000000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[159]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffff0000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[159], exponent).run();
   }
 
-  @TestFactory
-  Stream<DynamicTest>
-      expDynamicTestForBase_fffffffffffffffffffffffe0000000000000000000000000000000000000000() {
-    return expDynamicTestGeneratorForBase(BASES[160]);
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffe0000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[160], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffffc0000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[161], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffff80000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[162], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffff00000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[163], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffe00000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[164], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffc00000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[165], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffff800000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[166], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffff000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[167], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffe000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[168], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffffc000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[169], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffff8000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[170], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffff0000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[171], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffe0000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[172], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffc0000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[173], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffff80000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[174], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffff00000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[175], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffe00000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[176], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffffc00000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[177], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffff800000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[178], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffff000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[179], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffe000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[180], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffc000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[181], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffff8000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[182], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffff0000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[183], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffe0000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[184], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffffc0000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[185], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffff80000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[186], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffff00000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[187], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffe00000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[188], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffc00000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[189], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffff800000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[190], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffff000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[191], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffe000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[192], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffffc000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[193], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffff8000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[194], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffff0000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[195], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffe0000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[196], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffc0000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[197], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffff80000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[198], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffff00000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[199], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffe00000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[200], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffffc00000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[201], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffff800000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[202], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffff000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[203], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffe000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[204], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffc000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[205], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffff8000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[206], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffff0000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[207], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffe0000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[208], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffffc0000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[209], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffff80000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[210], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffff00000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[211], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffe00000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[212], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffc00000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[213], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffff800000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[214], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffff000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[215], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffe000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[216], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffffc000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[217], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffff8000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[218], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffff0000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[219], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffe0000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[220], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffc0000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[221], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffff80000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[222], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffff00000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[223], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffe00000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[224], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffffc00000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[225], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffff800000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[226], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffff000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[227], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffe000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[228], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffc000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[229], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffff8000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[230], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffff0000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[231], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffe0000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[232], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffffc0000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[233], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffff80000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[234], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffff00000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[235], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffe00000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[236], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffc00000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[237], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffff800000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[238], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffff000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[239], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffe000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[240], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fffc000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[241], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fff8000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[242], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fff0000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[243], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffe0000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[244], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffc0000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[245], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ff80000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[246], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ff00000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[247], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fe00000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[248], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fc00000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[249], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_f800000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[250], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_f000000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[251], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_e000000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[252], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_c000000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[253], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_8000000000000000000000000000000000000000000000000000000000000000(
+      String exponent) {
+    expProgramOf(BASES[254], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_0(String exponent) {
+    expProgramOf(BASES[255], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff(
+      String exponent) {
+    expProgramOf(BASES[256], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff(
+      String exponent) {
+    expProgramOf(BASES[257], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff(
+      String exponent) {
+    expProgramOf(BASES[258], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[259], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[260], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[261], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[262], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[263], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[264], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[265], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[266], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[267], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[268], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[269], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[270], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[271], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[272], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[273], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[274], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[275], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[276], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[277], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[278], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffffff(String exponent) {
+    expProgramOf(BASES[279], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffffff(String exponent) {
+    expProgramOf(BASES[280], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffffff(String exponent) {
+    expProgramOf(BASES[281], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffffff(String exponent) {
+    expProgramOf(BASES[282], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffffff(String exponent) {
+    expProgramOf(BASES[283], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffffff(String exponent) {
+    expProgramOf(BASES[284], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffffff(String exponent) {
+    expProgramOf(BASES[285], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ffff(String exponent) {
+    expProgramOf(BASES[286], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ff(String exponent) {
+    expProgramOf(BASES[287], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_f076b857fa9947c1f9ec558262c72704099ca8cd325566f73fb99238102ed171(
+      String exponent) {
+    expProgramOf(BASES[288], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_76b857fa9947c1f9ec558262c72704099ca8cd325566f73fb99238102ed171(
+      String exponent) {
+    expProgramOf(BASES[289], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_b857fa9947c1f9ec558262c72704099ca8cd325566f73fb99238102ed171(
+      String exponent) {
+    expProgramOf(BASES[290], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_57fa9947c1f9ec558262c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[291], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_fa9947c1f9ec558262c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[292], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_9947c1f9ec558262c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[293], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_47c1f9ec558262c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[294], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_c1f9ec558262c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[295], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_f9ec558262c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[296], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_ec558262c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[297], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_558262c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[298], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_8262c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[299], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_62c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[300], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_c72704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[301], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_2704099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[302], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_4099ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[303], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_99ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[304], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_9ca8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[305], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_a8cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[306], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_cd325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[307], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_325566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[308], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_5566f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[309], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_66f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[310], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_f73fb99238102ed171(String exponent) {
+    expProgramOf(BASES[311], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_3fb99238102ed171(String exponent) {
+    expProgramOf(BASES[312], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_b99238102ed171(String exponent) {
+    expProgramOf(BASES[313], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_9238102ed171(String exponent) {
+    expProgramOf(BASES[314], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_38102ed171(String exponent) {
+    expProgramOf(BASES[315], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_102ed171(String exponent) {
+    expProgramOf(BASES[316], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_2ed171(String exponent) {
+    expProgramOf(BASES[317], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_d171(String exponent) {
+    expProgramOf(BASES[318], exponent).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("expTestForBaseSource")
+  void expTestForBase_71(String exponent) {
+    expProgramOf(BASES[319], exponent).run();
   }
 
   // Disabled tests due to length of time to run

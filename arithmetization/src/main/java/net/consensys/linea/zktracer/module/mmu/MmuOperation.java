@@ -163,18 +163,16 @@ public class MmuOperation extends ModuleOperation {
       for (MmuToMmioInstruction mmioInst : mmuData.mmuToMmioInstructions()) {
 
         // Limb remains zero for LIMB_VANISHES instructions
-        if (mmioInst.mmioInstruction() == MMIO_INST_LIMB_VANISHES) {
-          return;
+        if (mmioInst.mmioInstruction() != MMIO_INST_LIMB_VANISHES) {
+          final int offset =
+              (int)
+                  (exoIsSource
+                      ? mmioInst.sourceLimbOffset() * LLARGE + mmioInst.sourceByteOffset()
+                      : mmioInst.targetLimbOffset() * LLARGE + mmioInst.targetByteOffset());
+          final int sizeToExtract = mmioInst.size() == 0 ? LLARGE : mmioInst.size();
+          final Bytes16 exoLimb = readBytes(mmuData.exoBytes(), offset, sizeToExtract);
+          mmioInst.limb(exoLimb);
         }
-
-        final int offset =
-            (int)
-                (exoIsSource
-                    ? mmioInst.sourceLimbOffset() * LLARGE + mmioInst.sourceByteOffset()
-                    : mmioInst.targetLimbOffset() * LLARGE + mmioInst.targetByteOffset());
-        final int sizeToExtract = mmioInst.size() == 0 ? LLARGE : mmioInst.size();
-        final Bytes16 exoLimb = readBytes(mmuData.exoBytes(), offset, sizeToExtract);
-        mmioInst.limb(exoLimb);
       }
     }
   }

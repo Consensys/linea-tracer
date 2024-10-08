@@ -144,7 +144,7 @@ public class ModexpSubsection extends PrecompileSubsection {
     }
 
     modexpMetaData.rawResult(returnData);
-    hub.blakeModexpData().callModexp(modexpMetaData, this.exoModuleOperationId());
+    hub.blakeModexpData().callModexp(modexpMetaData, exoModuleOperationId());
 
     fragments().add(seventhImcFragment);
     if (modexpMetaData.extractModulus()) {

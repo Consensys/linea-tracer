@@ -15,7 +15,9 @@
 
 package net.consensys.linea.zktracer.types;
 
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
+
 import org.apache.tuweni.bytes.Bytes;
 
 public class Bytecodes {
@@ -27,10 +29,11 @@ public class Bytecodes {
 
     final long dataLengthToExtract = Math.min(sizeToRead, data.size() - offset);
 
-    return Bytes16.rightPad(data.slice((int) offset, (int) dataLengthToExtract));
+    return Bytes16.leftPad(
+        rightPadTo(data.slice((int) offset, (int) dataLengthToExtract), sizeToRead));
   }
 
   public static Bytes16 readLimb(final Bytes data, final long limbOffset) {
-    return readBytes(data, GlobalConstants.LLARGE * limbOffset, GlobalConstants.LLARGE);
+    return readBytes(data, LLARGE * limbOffset, LLARGE);
   }
 }

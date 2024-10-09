@@ -47,7 +47,12 @@ public class ReferenceTestOutcomeRecorderTool {
           for (String constraint : failedConstraint.getValue()) {
             ConcurrentMap<String, ConcurrentSkipListSet<String>> constraintsToTests =
                     testOutcomes.modulesToConstraintsToTests().computeIfAbsent(moduleName, m -> new ConcurrentHashMap<>());
-            constraintsToTests.computeIfAbsent(constraint, m -> new ConcurrentSkipListSet<>()).add(testName);
+            ConcurrentSkipListSet<String> failingTests = constraintsToTests.computeIfAbsent(constraint, m -> new ConcurrentSkipListSet<>());
+            int size = failingTests.size();
+            failingTests.add(testName);
+            if(failingTests.size() == size){
+              log.warn("Duplicate name found... {}", failedConstraint);
+            }
           }
         }
       }

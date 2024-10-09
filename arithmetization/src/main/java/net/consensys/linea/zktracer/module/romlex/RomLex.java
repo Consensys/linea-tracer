@@ -60,7 +60,7 @@ public class RomLex
       new ModuleOperationStackedSet<>();
 
   @Getter private List<RomOperation> sortedOperations;
-  Map<ContractMetadata, Integer> precomputedNbOfOperationsPerMetadata = new HashMap<>();
+  Map<ContractMetadata, Integer> cfiMetadataCorrespondance = new HashMap<>();
   private Bytes byteCode = Bytes.EMPTY;
   private Address address = Address.ZERO;
 
@@ -82,7 +82,7 @@ public class RomLex
       throw new RuntimeException("Chunks have not been sorted yet");
     }
 
-    Integer romOps = precomputedNbOfOperationsPerMetadata.get(metadata);
+    Integer romOps = cfiMetadataCorrespondance.get(metadata);
     if (romOps == null) {
       throw new RuntimeException(
           "RomChunk with:"
@@ -283,7 +283,7 @@ public class RomLex
     final RomOperationComparator ROM_CHUNK_COMPARATOR = new RomOperationComparator();
     sortedOperations.sort(ROM_CHUNK_COMPARATOR);
     for (RomOperation romOperation : sortedOperations) {
-      precomputedNbOfOperationsPerMetadata.merge(romOperation.metadata(), 1, Integer::sum);
+      cfiMetadataCorrespondance.merge(romOperation.metadata(), 1, Integer::sum);
     }
   }
 

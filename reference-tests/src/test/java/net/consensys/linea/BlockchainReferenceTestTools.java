@@ -123,7 +123,9 @@ public class BlockchainReferenceTestTools {
           if (!failedConstraint.isEmpty()) {
             return filteredFailedTests.get(failedConstraint);
           }
-          return filteredFailedTests.values().stream().flatMap(Set::stream).collect(Collectors.toSet());
+          return filteredFailedTests.values().stream()
+              .flatMap(Set::stream)
+              .collect(Collectors.toSet());
         });
   }
 
@@ -225,8 +227,9 @@ public class BlockchainReferenceTestTools {
     zkTracer.traceEndConflation(worldState);
 
     String result = ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
-    assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash())
-            .withFailMessage("Constraint failed: " + result);
+    assertThat(blockchain.getChainHeadHash())
+        .isEqualTo(spec.getLastBlockHash())
+        .withFailMessage("Constraint failed: " + result);
   }
 
   private static MainnetBlockImporter getMainnetBlockImporter(

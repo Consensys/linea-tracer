@@ -14,12 +14,12 @@
  */
 package net.consensys.linea;
 
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.writeToJsonFile;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
-
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.writeToJsonFile;
 
 @Slf4j
 public class ReferenceTestOutcomeWritter implements LauncherSessionListener {

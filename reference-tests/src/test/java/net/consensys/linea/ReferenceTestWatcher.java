@@ -14,6 +14,9 @@
  */
 package net.consensys.linea;
 
+import static net.consensys.linea.TestState.*;
+import static net.consensys.linea.testing.ExecutionEnvironment.CORSET_VALIDATION_RESULT;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -23,9 +26,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.opentest4j.AssertionFailedError;
-
-import static net.consensys.linea.TestState.*;
-import static net.consensys.linea.testing.ExecutionEnvironment.CORSET_VALIDATION_RESULT;
 
 public class ReferenceTestWatcher implements TestWatcher {
   private static final String ASSERTION_FAILED = "ASSERTION_FAILED";
@@ -43,8 +43,8 @@ public class ReferenceTestWatcher implements TestWatcher {
   @NotNull
   private static Map<String, Set<String>> getLogEventMessages(Throwable cause) {
     Map<String, Set<String>> logEventMessages = new HashMap<>();
-    if (cause != null){
-      if( cause instanceof AssertionFailedError) {
+    if (cause != null) {
+      if (cause instanceof AssertionFailedError) {
         if (((AssertionFailedError) cause).getActual() != null) {
           if (cause.getMessage().contains(CORSET_VALIDATION_RESULT)) {
             String constraints = cause.getMessage().replaceFirst(CORSET_VALIDATION_RESULT, "");
@@ -55,8 +55,7 @@ public class ReferenceTestWatcher implements TestWatcher {
         } else {
           logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage()));
         }
-      }
-      else {
+      } else {
         logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage()));
       }
     }
@@ -66,21 +65,18 @@ public class ReferenceTestWatcher implements TestWatcher {
   @Override
   public void testSuccessful(ExtensionContext context) {
     String testName = context.getDisplayName().split(": ")[1];
-    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
-            testName, SUCCESS, Map.of());
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, SUCCESS, Map.of());
   }
 
   @Override
   public void testDisabled(ExtensionContext context, Optional<String> reason) {
     String testName = context.getDisplayName().split(": ")[1];
-    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
-            testName, DISABLED, Map.of());
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, DISABLED, Map.of());
   }
+
   @Override
   public void testAborted(ExtensionContext context, Throwable cause) {
     String testName = context.getDisplayName().split(": ")[1];
-    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
-            testName, ABORTED, Map.of());
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, ABORTED, Map.of());
   }
-
 }

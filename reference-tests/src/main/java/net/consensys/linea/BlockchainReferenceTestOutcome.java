@@ -14,9 +14,6 @@
  */
 package net.consensys.linea;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,9 +22,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 @JsonPropertyOrder({"failedCounter", "successCounter", "modules"})
 public record BlockchainReferenceTestOutcome(
-        AtomicInteger failedCounter,
-        AtomicInteger successCounter,
-        AtomicInteger disabledCounter,
-        AtomicInteger abortedCounter,
-        ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>> modulesToConstraintsToTests) {
-}
+    AtomicInteger failedCounter,
+    AtomicInteger successCounter,
+    AtomicInteger disabledCounter,
+    AtomicInteger abortedCounter,
+    ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
+        modulesToConstraintsToTests) {}

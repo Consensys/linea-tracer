@@ -20,6 +20,7 @@ env:
 jobs:
   build:
     runs-on: [self-hosted, Linux, X64, large]
+    timeout-minutes: 1440 # TODO: remove this once ExpExtensiveTest execution is completed
     steps:
       - name: Install Go
         uses: actions/setup-go@v4

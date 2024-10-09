@@ -142,7 +142,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   private MmuCall updateExoSum(final int exoValue) {
-    this.exoSum += exoValue;
+    exoSum += exoValue;
     return this;
   }
 
@@ -445,7 +445,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, PrecompileSubsection precompileSubsection) {
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
-        .sourceId(precompileSubsection.callSection.hubStamp())
+        .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry
         .sourceRamBytes(Optional.of(precompileSubsection.callerMemorySnapshot))
         .targetId(precompileSubsection.exoModuleOperationId())
         .targetRamBytes(Optional.of(Bytes.EMPTY))

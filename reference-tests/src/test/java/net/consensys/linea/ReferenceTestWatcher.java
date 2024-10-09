@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.opentest4j.AssertionFailedError;
@@ -34,22 +35,32 @@ public class ReferenceTestWatcher implements TestWatcher {
   public void testFailed(ExtensionContext context, Throwable cause) {
     String testName = context.getDisplayName().split(": ")[1];
 
+    Map<String, Set<String>> logEventMessages = getLogEventMessages(cause);
+
+    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, FAILED, logEventMessages);
+  }
+
+  @NotNull
+  private static Map<String, Set<String>> getLogEventMessages(Throwable cause) {
     Map<String, Set<String>> logEventMessages = new HashMap<>();
-    if (cause != null && cause instanceof AssertionFailedError){
-      if(((AssertionFailedError) cause).getActual() != null){
-        if(cause.getMessage().contains(CORSET_VALIDATION_RESULT)){
-          String constraints = cause.getMessage().replaceFirst(CORSET_VALIDATION_RESULT, "");
-          logEventMessages = ReferenceTestOutcomeRecorderTool.extractConstraints(constraints);
+    if (cause != null){
+      if( cause instanceof AssertionFailedError) {
+        if (((AssertionFailedError) cause).getActual() != null) {
+          if (cause.getMessage().contains(CORSET_VALIDATION_RESULT)) {
+            String constraints = cause.getMessage().replaceFirst(CORSET_VALIDATION_RESULT, "");
+            logEventMessages = ReferenceTestOutcomeRecorderTool.extractConstraints(constraints);
+          } else {
+            logEventMessages.put(ASSERTION_FAILED, Set.of(cause.getMessage()));
+          }
         } else {
-          logEventMessages.put(ASSERTION_FAILED, Set.of(cause.getMessage()));
+          logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage()));
         }
-      } else {
+      }
+      else {
         logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage()));
       }
     }
-
-    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
-            testName, FAILED, logEventMessages);
+    return logEventMessages;
   }
 
   @Override

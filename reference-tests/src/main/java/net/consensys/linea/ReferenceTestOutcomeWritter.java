@@ -31,7 +31,17 @@ public class ReferenceTestOutcomeWritter implements LauncherSessionListener {
 
   @Override
   public void launcherSessionClosed(LauncherSession session) {
-    writeToJsonFile();
-    log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
+    try {
+      //waiting 5s so that logs get cleaned.
+      Thread.sleep(5000);
+      log.info("Reference test will be written to file {}\\{}", setFileDirectory(), JSON_OUTPUT_FILENAME);
+      Thread.sleep(2000);
+      writeToJsonFile();
+      Thread.sleep(5000);
+      log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
+
+    } catch (InterruptedException e) {
+      throw new RuntimeException("Error while writng results", e);
+    }
   }
 }

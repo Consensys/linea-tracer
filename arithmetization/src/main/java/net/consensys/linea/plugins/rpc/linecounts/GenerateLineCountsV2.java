@@ -44,7 +44,7 @@ public class GenerateLineCountsV2 {
   private final RequestLimiter requestLimiter;
 
   private final BesuContext besuContext;
-  private final Path modulesToCountConfigFilePath;
+  private Path modulesToCountConfigFilePath;
   private TraceService traceService;
 
   public GenerateLineCountsV2(
@@ -53,8 +53,11 @@ public class GenerateLineCountsV2 {
       final LineCountsEndpointConfiguration endpointConfiguration) {
     this.besuContext = context;
     this.requestLimiter = requestLimiter;
-    this.modulesToCountConfigFilePath =
-        Paths.get(endpointConfiguration.modulesToCountConfigFilePath());
+
+    if (endpointConfiguration.modulesToCountConfigFilePath() != null) {
+      this.modulesToCountConfigFilePath =
+          Paths.get(endpointConfiguration.modulesToCountConfigFilePath());
+    }
   }
 
   public String getNamespace() {

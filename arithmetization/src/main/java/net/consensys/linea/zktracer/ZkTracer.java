@@ -62,7 +62,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   private static final Map<String, Integer> spillings;
 
-  private static Set<String> configuredModulesToCount;
+  private static Set<String> configuredModuleKeysToCount;
 
   static {
     try {
@@ -107,15 +107,14 @@ public class ZkTracer implements ConflationAwareOperationTracer {
       Path modulesToCountConfig) {
     final BigInteger nonNegativeChainId = chainId.abs();
 
-    Set<String> configuredLineCountModuleKeys =
-        getConfiguredLineCountModuleKeys(modulesToCountConfig);
+    configuredModuleKeysToCount = getConfiguredLineCountModuleKeys(modulesToCountConfig);
 
     this.hub =
         new Hub(
             bridgeConfiguration.contract(),
             bridgeConfiguration.topic(),
             nonNegativeChainId,
-            configuredModulesToCount);
+            configuredModuleKeysToCount);
     for (Module m : this.hub.modulesToCount()) {
       if (!spillings.containsKey(m.moduleKey())) {
         throw new IllegalStateException(
@@ -134,8 +133,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   private Set<String> getConfiguredLineCountModuleKeys(final Path modulesToCountConfig) {
-    if (configuredModulesToCount != null) {
-      return configuredModulesToCount;
+    if (configuredModuleKeysToCount != null) {
+      return configuredModuleKeysToCount;
     }
 
     if (modulesToCountConfig != null) {
@@ -184,6 +183,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         }
         m.commit(buffers);
       }
+      file.getChannel().force(false);
     } catch (IOException e) {
       log.error("Error while writing to the file {}", filename);
       throw new RuntimeException(e);

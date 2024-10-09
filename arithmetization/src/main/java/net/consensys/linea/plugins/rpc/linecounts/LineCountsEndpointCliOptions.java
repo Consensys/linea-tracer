@@ -27,7 +27,6 @@ class LineCountsEndpointCliOptions implements LineaCliOptions {
       "--plugin-linea-line-counts-modules-to-count-config-file-path";
 
   @CommandLine.Option(
-      required = true,
       names = {MODULES_TO_COUNT_CONFIG_FILE_PATH},
       hidden = true,
       paramLabel = "<PATH>",

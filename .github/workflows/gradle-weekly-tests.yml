@@ -10,7 +10,7 @@ env:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, medium]
     steps:
       - uses: webfactory/ssh-agent@v0.7.0
         with:
@@ -32,7 +32,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.13 --locked --force
+        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.14 --locked --force
 
       - name: Run Weekly tests
         run: ./gradlew weeklyTests
@@ -49,7 +49,7 @@ jobs:
           path: build/reports/tests/**/*
 
   go-corset-tests:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, X64, medium]
     continue-on-error: true    
     steps:
       - uses: webfactory/ssh-agent@v0.7.0
@@ -71,10 +71,12 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.13 --locked --force
+        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.14 --locked --force
 
       - name: Install Go
         uses: actions/setup-go@v4
+        with:
+          go-version: 1.23.1
 
       - name: Install Go Corset
         run:

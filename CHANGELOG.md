@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.8.0-rc4
+* Introduction of an EMPTY_STACK_ITEM singleton and associated factory ([#1383](https://github.com/Consensys/linea-tracer/pull/1383))
+* Improve StackOperation memory footprint ([#1376](https://github.com/Consensys/linea-tracer/pull/1376))
+* Reference Test Watcher - Extend to parse failing constraint ([#1375](https://github.com/Consensys/linea-tracer/pull/1375))
+
+## 0.8.0-rc3
+* fix: temporarily disable max block behind check on tracer readiness endpoint due to infrequent sync status updates
+  ([#1378](https://github.com/Consensys/linea-tracer/pull/1378))
+* feat: EXTCODEHASH / EXTCODESIZE tests in relation to account existence ([#1372](https://github.com/Consensys/linea-tracer/pull/1372))
+* chore: update Corset to `v9.7.14` ([#1369](https://github.com/Consensys/linea-tracer/pull/1369))
+* feat: store Testing Framework Solidity and Yul ([#1052](https://github.com/Consensys/linea-tracer/pull/1052))
+* feat: use coinbase address from block header for multi block tests ([#1365](https://github.com/Consensys/linea-tracer/pull/1365))
+
+## 0.8.0-rc2
+* fix: adding the `chainId` to the HUB and BLOCK_DATA modules ([#1359](https://github.com/Consensys/linea-tracer/pull/1359))
+* fix: confusion between call and callee gas for BLAKE ([#1366](https://github.com/Consensys/linea-tracer/pull/1366))
+* feat: make the trace deterministic ([#1346](https://github.com/Consensys/linea-tracer/pull/1346))
+* feat: blockchain reference tests switch to go-corset ([#1358](https://github.com/Consensys/linea-tracer/pull/1358))
+* fix: resolve broken nightly test ([#1361](https://github.com/Consensys/linea-tracer/pull/1361))
+* fix: tracing all blocks in the reference test vectors ([#1350](https://github.com/Consensys/linea-tracer/pull/1350))
+* fix: nightly tests ([#1355](https://github.com/Consensys/linea-tracer/pull/1355))
+
 ## 0.8.0-rc1
 * feat: update Linea Besu to 24.10-delivery34 ([#1354](https://github.com/Consensys/linea-tracer/pull/1354))
 * fix: remove RpcCliOptions from AbstractLineaSharedOptionsPlugin in order not to make it visible for external plugins ([#1348](https://github.com/Consensys/linea-tracer/pull/1348))

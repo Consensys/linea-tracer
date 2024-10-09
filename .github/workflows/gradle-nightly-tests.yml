@@ -10,7 +10,7 @@ env:
 
 jobs:
   nightly-tests:
-    runs-on: ubuntu-latest-128
+    runs-on: [self-hosted, Linux, X64, xxlarge]
     steps:
       - uses: webfactory/ssh-agent@v0.7.0
         with:
@@ -31,10 +31,12 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.13 --locked --force
+        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.14 --locked --force
 
       - name: Install Go
         uses: actions/setup-go@v4
+        with:
+          go-version: 1.23.1
 
       - name: Install Go Corset
         run:

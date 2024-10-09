@@ -50,10 +50,10 @@ public class ReferenceTestWatcher implements TestWatcher {
             String constraints = cause.getMessage().replaceFirst(CORSET_VALIDATION_RESULT, "");
             logEventMessages = ReferenceTestOutcomeRecorderTool.extractConstraints(constraints);
           } else {
-            logEventMessages.put(ASSERTION_FAILED, Set.of(cause.getMessage()));
+            logEventMessages.put(ASSERTION_FAILED, Set.of(cause.getMessage().split("\n")[0]));
           }
         } else {
-          logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage()));
+          logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage().split("\n")[0]));
         }
       } else {
         logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage()));

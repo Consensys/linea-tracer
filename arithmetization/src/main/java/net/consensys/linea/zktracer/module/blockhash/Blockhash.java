@@ -107,10 +107,6 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
 
-    if (Exceptions.any(hub.pch().exceptions())) {
-      return;
-    }
-
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     if (opCode == OpCode.BLOCKHASH) {
       final Bytes32 result = Bytes32.leftPad(frame.getStackItem(0));

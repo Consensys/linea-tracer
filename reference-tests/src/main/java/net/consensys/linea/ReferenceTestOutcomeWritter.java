@@ -14,11 +14,11 @@
  */
 package net.consensys.linea;
 
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.*;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
-
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.*;
 
 @Slf4j
 public class ReferenceTestOutcomeWritter implements LauncherSessionListener {

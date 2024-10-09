@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import static com.google.common.base.Preconditions.*;
+import static java.util.Map.entry;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
@@ -30,6 +31,7 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -177,6 +179,8 @@ public class Hub implements Module {
   /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch = new PlatformController(this);
 
+  @Getter private final List<Module> modulesToCount;
+
   @Override
   public String moduleKey() {
     return "HUB";
@@ -259,6 +263,9 @@ public class Hub implements Module {
 
   private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
   private final BlakeRounds blakeRounds = new BlakeRounds();
+  private final BinRt binRt = new BinRt();
+  private final InstructionDecoder instDecoder = new InstructionDecoder();
+  private final ShfRt shfRt = new ShfRt();
 
   private List<Module> precompileLimitModules() {
 
@@ -307,6 +314,8 @@ public class Hub implements Module {
 
   /** reference table modules */
   private final List<Module> refTableModules;
+
+  @Getter private final Map<String, Module> lineCountModuleMap;
 
   /**
    * boolean which remembers whether a {@link CreateSection} detected Failure Condition F. Gets
@@ -359,7 +368,7 @@ public class Hub implements Module {
    *
    * @return the modules to count
    */
-  public List<Module> getModulesToCount() {
+  public List<Module> getDefaultModulesToCount() {
     return Stream.concat(
             Stream.of(
                 this,
@@ -401,7 +410,8 @@ public class Hub implements Module {
   public Hub(
       final Address l2l1ContractAddress,
       final Bytes l2l1Topic,
-      final BigInteger nonnegativeChainId) {
+      final BigInteger nonnegativeChainId,
+      final List<Module> configuredModulesToCount) {
     Preconditions.checkState(nonnegativeChainId.signum() >= 0);
     chainId = nonnegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
@@ -412,7 +422,9 @@ public class Hub implements Module {
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
-    refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
+    refTableModules = List.of(binRt, instDecoder, shfRt);
+
+    lineCountModuleMap = initLineCountModuleMap();
 
     modules =
         Stream.concat(
@@ -448,6 +460,61 @@ public class Hub implements Module {
                     blockdata /* WARN: must be called AFTER txnData */),
                 precompileLimitModules().stream())
             .toList();
+
+    modulesToCount =
+        configuredModulesToCount != null ? configuredModulesToCount : getDefaultModulesToCount();
+  }
+
+  private Map<String, Module> initLineCountModuleMap() {
+    return Map.ofEntries(
+        entry(add.moduleKey(), add),
+        entry(bin.moduleKey(), bin),
+        entry(blakeModexpData.moduleKey(), blakeModexpData),
+        entry(blockdata.moduleKey(), blockdata),
+        entry(blockhash.moduleKey(), blockhash),
+        entry(ecData.moduleKey(), ecData),
+        entry(exp.moduleKey(), exp),
+        entry(ext.moduleKey(), ext),
+        entry(euc.moduleKey(), euc),
+        entry(gas.moduleKey(), gas),
+        entry(logData.moduleKey(), logData),
+        entry(logInfo.moduleKey(), logInfo),
+        entry(mmu.moduleKey(), mmu),
+        entry(mmio.moduleKey(), mmio),
+        entry(mod.moduleKey(), mod),
+        entry(mul.moduleKey(), mul),
+        entry(mxp.moduleKey(), mxp),
+        entry(oob.moduleKey(), oob),
+        entry(rlpAddr.moduleKey(), rlpAddr),
+        entry(rlpTxn.moduleKey(), rlpTxn),
+        entry(rlpTxnRcpt.moduleKey(), rlpTxnRcpt),
+        entry(rom.moduleKey(), rom),
+        entry(romLex.moduleKey(), romLex),
+        entry(shakiraData.moduleKey(), shakiraData),
+        entry(shf.moduleKey(), shf),
+        entry(stp.moduleKey(), stp),
+        entry(trm.moduleKey(), trm),
+        entry(txnData.moduleKey(), txnData),
+        entry(wcp.moduleKey(), wcp),
+        entry(l2Block.moduleKey(), l2Block),
+        entry(l2L1Logs.moduleKey(), l2L1Logs),
+        // Reference Tables
+        entry(binRt.moduleKey(), binRt),
+        entry(instDecoder.moduleKey(), instDecoder),
+        entry(shfRt.moduleKey(), shfRt),
+        // Precompile Limit Modules
+        entry(keccak.moduleKey(), keccak),
+        entry(sha256Blocks.moduleKey(), sha256Blocks),
+        entry(ecAddEffectiveCall.moduleKey(), ecAddEffectiveCall),
+        entry(ecMulEffectiveCall.moduleKey(), ecMulEffectiveCall),
+        entry(ecRecoverEffectiveCall.moduleKey(), ecRecoverEffectiveCall),
+        entry(ecPairingG2MembershipCalls.moduleKey(), ecPairingG2MembershipCalls),
+        entry(ecPairingMillerLoops.moduleKey(), ecPairingMillerLoops),
+        entry(ecPairingFinalExponentiations.moduleKey(), ecPairingFinalExponentiations),
+        entry(modexpEffectiveCall.moduleKey(), modexpEffectiveCall),
+        entry(ripemdBlocks.moduleKey(), ripemdBlocks),
+        entry(blakeEffectiveCall.moduleKey(), blakeEffectiveCall),
+        entry(blakeRounds.moduleKey(), blakeRounds));
   }
 
   @Override

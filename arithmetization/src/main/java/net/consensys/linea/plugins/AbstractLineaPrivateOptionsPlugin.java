@@ -31,11 +31,19 @@ public abstract class AbstractLineaPrivateOptionsPlugin extends AbstractLineaSha
 
   @Override
   public Map<String, LineaOptionsPluginConfiguration> getLineaPluginConfigMap() {
-    final var configMap = new HashMap<>(super.getLineaPluginConfigMap());
+    Map<String, LineaOptionsPluginConfiguration> configMap =
+        new HashMap<>(super.getLineaPluginConfigMap());
 
     final RpcCliOptions rpcCliOptions = RpcCliOptions.create();
     configMap.put(RpcCliOptions.CONFIG_KEY, rpcCliOptions.asPluginConfig());
 
+    configMap = getPrivateLineaPluginConfigMap(configMap);
+
+    return configMap;
+  }
+
+  public Map<String, LineaOptionsPluginConfiguration> getPrivateLineaPluginConfigMap(
+      Map<String, LineaOptionsPluginConfiguration> configMap) {
     return configMap;
   }
 

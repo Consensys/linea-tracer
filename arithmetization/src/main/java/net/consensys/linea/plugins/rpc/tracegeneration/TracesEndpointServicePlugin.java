@@ -47,10 +47,12 @@ public class TracesEndpointServicePlugin extends AbstractLineaPrivateOptionsPlug
   private RpcEndpointService rpcEndpointService;
 
   @Override
-  public Map<String, LineaOptionsPluginConfiguration> getLineaPluginConfigMap() {
+  public Map<String, LineaOptionsPluginConfiguration> getPrivateLineaPluginConfigMap(
+      Map<String, LineaOptionsPluginConfiguration> configMap) {
     final TracesEndpointCliOptions tracesEndpointCliOptions = TracesEndpointCliOptions.create();
+    configMap.put(TracesEndpointCliOptions.CONFIG_KEY, tracesEndpointCliOptions.asPluginConfig());
 
-    return Map.of(TracesEndpointCliOptions.CONFIG_KEY, tracesEndpointCliOptions.asPluginConfig());
+    return configMap;
   }
 
   /**

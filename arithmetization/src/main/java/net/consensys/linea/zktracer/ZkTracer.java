@@ -60,6 +60,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   private static final Map<String, Integer> spillings;
 
+  private static List<Module> modulesToCount;
+
   static {
     try {
       // Load spillings configured in src/main/resources/spillings.toml.
@@ -79,22 +81,38 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   /** Accumulate all the exceptions that happened at tracing time. */
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
+  public ZkTracer(final Path modulesToCountConfigFilePath) {}
+
   public ZkTracer() {
     this(
         LineaL1L2BridgeSharedConfiguration.EMPTY,
-        Bytes.fromHexString("c0ffee").toBigInteger().abs());
+        Bytes.fromHexString("c0ffee").toBigInteger().abs(),
+        null);
   }
 
   public ZkTracer(BigInteger nonnegativeChainId) {
-    this(LineaL1L2BridgeSharedConfiguration.EMPTY, nonnegativeChainId);
+    this(LineaL1L2BridgeSharedConfiguration.EMPTY, nonnegativeChainId, null);
   }
 
   public ZkTracer(
-      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    BigInteger nonnegativeChainId = chainId.abs();
+      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
+      BigInteger chainId,
+      Path modulesToCountConfig) {
+    final BigInteger nonNegativeChainId = chainId.abs();
+
+    final Optional<Path> modulesToCountConfigFilePath = Optional.ofNullable(modulesToCountConfig);
+    if (modulesToCountConfigFilePath.isPresent() && modulesToCount == null) {
+      // Process TOML file
+
+    }
+
     this.hub =
-        new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), nonnegativeChainId);
-    for (Module m : this.hub.getModulesToCount()) {
+        new Hub(
+            bridgeConfiguration.contract(),
+            bridgeConfiguration.topic(),
+            nonNegativeChainId,
+            modulesToCount);
+    for (Module m : this.hub.modulesToCount()) {
       if (!spillings.containsKey(m.moduleKey())) {
         throw new IllegalStateException(
             "Spilling for module " + m.moduleKey() + " not defined in spillings.toml");
@@ -319,7 +337,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     maybeThrowTracingExceptions();
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
 
-    hub.getModulesToCount()
+    hub.modulesToCount()
         .forEach(
             m ->
                 modulesLineCount.put(

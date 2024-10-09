@@ -110,6 +110,7 @@ public class ReferenceTestOutcomeRecorderTool {
   public static CompletableFuture<Void> writeToJsonFile(String name) {
     String fileDirectory = setFileDirectory();
     String jsonString = jsonConverter.toJson(testOutcomes);
+    log.info(jsonString);
     return CompletableFuture.runAsync(
         () -> {
           try (FileWriter file = new FileWriter(fileDirectory + name)) {

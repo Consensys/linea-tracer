@@ -20,6 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 
+import java.util.concurrent.ExecutionException;
+
 @Slf4j
 public class ReferenceTestOutcomeWritter implements LauncherSessionListener {
 
@@ -36,11 +38,11 @@ public class ReferenceTestOutcomeWritter implements LauncherSessionListener {
       Thread.sleep(5000);
       log.info("Reference test will be written to file {}\\{}", setFileDirectory(), JSON_OUTPUT_FILENAME);
       Thread.sleep(2000);
-      writeToJsonFile();
+      writeToJsonFile().get();
       Thread.sleep(5000);
       log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
 
-    } catch (InterruptedException e) {
+    } catch (InterruptedException | ExecutionException e) {
       throw new RuntimeException("Error while writng results", e);
     }
   }

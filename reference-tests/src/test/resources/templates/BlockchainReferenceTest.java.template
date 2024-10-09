@@ -18,6 +18,7 @@ package net.consensys.linea.generated.blockchain;
 import static net.consensys.linea.BlockchainReferenceTestTools.executeTest;
 import static net.consensys.linea.BlockchainReferenceTestTools.generateTestParametersForConfig;
 
+import java.util.Collection;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
@@ -49,15 +50,14 @@ public class %%TESTS_NAME%% {
 
   public static Stream<Arguments> getTestParametersForConfig()
         throws ExecutionException, InterruptedException {
-    if (FAILED_MODULE.isEmpty()) {
-    return generateTestParametersForConfig(TEST_CONFIG_FILE_DIR_PATH).stream().map(params ->
-        Arguments.of(params[0], params[1], params[2])
-        );
-    } else {
-      return generateTestParametersForConfig(TEST_CONFIG_FILE_DIR_PATH, FAILED_MODULE, FAILED_CONSTRAINT).stream().map(params ->
-          Arguments.of(params[0], params[1], params[2])
-      );
+Collection<Object[]> testParameters = FAILED_MODULE.isEmpty()
+        ? generateTestParametersForConfig(TEST_CONFIG_FILE_DIR_PATH)
+        : generateTestParametersForConfig(TEST_CONFIG_FILE_DIR_PATH, FAILED_MODULE, FAILED_CONSTRAINT);
+    Collection<Object[]> filteredTestParameters = testParameters.stream().filter(params -> (Boolean) params[2]).toList();
+    if (filteredTestParameters.isEmpty()) {
+      return Stream.of(Arguments.of("%%TESTS_NAME%%", null, false));
     }
+    return filteredTestParameters.stream().map(params -> Arguments.of(params[0], params[1], params[2]));
   }
 
   @ParameterizedTest(name = "Name: {0}")

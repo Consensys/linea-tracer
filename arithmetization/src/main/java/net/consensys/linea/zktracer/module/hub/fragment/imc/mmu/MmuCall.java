@@ -706,7 +706,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, final ModexpSubsection modexpSubsection, final ModexpMetadata modExpMetadata) {
     if (modExpMetadata.extractBase()) {
       return new MmuCall(hub, MMU_INST_MODEXP_DATA)
-          .sourceId(modexpSubsection.callSection.hubStamp())
+          .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry
           .sourceRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
           .targetId(modexpSubsection.exoModuleOperationId())
           .exoBytes(Optional.of(leftPadTo(modExpMetadata.base(), MODEXP_COMPONENT_BYTE_SIZE)))
@@ -728,7 +728,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, final ModexpSubsection modexpSubsection, final ModexpMetadata modExpMetadata) {
     if (modExpMetadata.extractExponent()) {
       return new MmuCall(hub, MMU_INST_MODEXP_DATA)
-          .sourceId(modexpSubsection.callSection.hubStamp())
+          .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry
           .sourceRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
           .targetId(modexpSubsection.exoModuleOperationId())
           .exoBytes(Optional.of(leftPadTo(modExpMetadata.exp(), MODEXP_COMPONENT_BYTE_SIZE)))
@@ -749,7 +749,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   public static MmuCall forModexpExtractModulus(
       final Hub hub, final ModexpSubsection modexpSubsection, final ModexpMetadata modExpMetadata) {
     return new MmuCall(hub, MMU_INST_MODEXP_DATA)
-        .sourceId(modexpSubsection.callSection.hubStamp())
+        .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry
         .sourceRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
         .targetId(modexpSubsection.exoModuleOperationId())
         .exoBytes(Optional.of(leftPadTo(modExpMetadata.mod(), MODEXP_COMPONENT_BYTE_SIZE)))

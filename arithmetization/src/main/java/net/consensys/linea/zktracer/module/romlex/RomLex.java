@@ -82,8 +82,6 @@ public class RomLex
       throw new RuntimeException("Chunks have not been sorted yet");
     }
 
-
-
     Integer romOps = cfiMetadataCorrespondance.get(metadata);
     if (romOps == null) {
       throw new RuntimeException(
@@ -286,7 +284,7 @@ public class RomLex
     sortedOperations.sort(ROM_CHUNK_COMPARATOR);
     for (int i = 0; i < sortedOperations.size(); i++) {
       final RomOperation romOperation = sortedOperations.get(i);
-      cfiMetadataCorrespondance.put(romOperation.metadata(), i+1);
+      cfiMetadataCorrespondance.put(romOperation.metadata(), i + 1);
     }
   }
 

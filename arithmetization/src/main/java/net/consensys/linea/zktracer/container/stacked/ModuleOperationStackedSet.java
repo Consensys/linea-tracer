@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
  */
 @Accessors(fluent = true)
 public class ModuleOperationStackedSet<E extends ModuleOperation> extends StackedSet<E> {
-  private static final int EXPECTED_PROPORTION_OF_DUPLICATE = 1; // TODO: find me !
   private static final Logger log = LoggerFactory.getLogger(ModuleOperationStackedSet.class);
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   @Getter private boolean conflationFinished = false;

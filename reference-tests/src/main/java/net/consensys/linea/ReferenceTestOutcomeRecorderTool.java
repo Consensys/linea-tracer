@@ -34,7 +34,7 @@ public class ReferenceTestOutcomeRecorderTool {
 
   public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests.json";
   public static JsonConverter jsonConverter = JsonConverter.builder().build();
-  public static BlockchainReferenceTestOutcome testOutcomes = new BlockchainReferenceTestOutcome(new AtomicInteger(0),
+  public static volatile BlockchainReferenceTestOutcome testOutcomes = new BlockchainReferenceTestOutcome(new AtomicInteger(0),
           new AtomicInteger(0), new AtomicInteger(0), new AtomicInteger(0), new ConcurrentHashMap<>());
 
   public static void mapAndStoreTestResult(

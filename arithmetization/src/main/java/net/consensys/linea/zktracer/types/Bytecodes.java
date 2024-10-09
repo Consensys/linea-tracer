@@ -22,18 +22,20 @@ import org.apache.tuweni.bytes.Bytes;
 
 public class Bytecodes {
 
-  public static Bytes16 readBytes(final Bytes data, final long offset, final int sizeToRead) {
-    if (offset >= data.size()) {
+  public static Bytes16 readBytes(
+      final Bytes data, final long sourceOffset, final int size, final int targetOffset) {
+    if (sourceOffset >= data.size()) {
       return Bytes16.ZERO;
     }
 
-    final long dataLengthToExtract = Math.min(sizeToRead, data.size() - offset);
+    final long dataLengthToExtract = Math.min(size, data.size() - sourceOffset);
 
     return Bytes16.leftPad(
-        rightPadTo(data.slice((int) offset, (int) dataLengthToExtract), sizeToRead));
+        rightPadTo(
+            data.slice((int) sourceOffset, (int) dataLengthToExtract), LLARGE - targetOffset));
   }
 
   public static Bytes16 readLimb(final Bytes data, final long limbOffset) {
-    return readBytes(data, LLARGE * limbOffset, LLARGE);
+    return readBytes(data, LLARGE * limbOffset, LLARGE, 0);
   }
 }

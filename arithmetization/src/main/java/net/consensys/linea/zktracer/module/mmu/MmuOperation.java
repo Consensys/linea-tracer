@@ -170,7 +170,8 @@ public class MmuOperation extends ModuleOperation {
                       ? mmioInst.sourceLimbOffset() * LLARGE + mmioInst.sourceByteOffset()
                       : mmioInst.targetLimbOffset() * LLARGE + mmioInst.targetByteOffset());
           final int sizeToExtract = mmioInst.size() == 0 ? LLARGE : mmioInst.size();
-          final Bytes16 exoLimb = readBytes(mmuData.exoBytes(), offset, sizeToExtract);
+          final Bytes16 exoLimb =
+              readBytes(mmuData.exoBytes(), offset, sizeToExtract, mmioInst.targetByteOffset());
           mmioInst.limb(exoLimb);
         }
       }

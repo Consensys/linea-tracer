@@ -19,13 +19,11 @@ env:
 
 jobs:
   build:
-    runs-on: [self-hosted, Linux, X64, large]
+    runs-on: ubuntu-latest
     timeout-minutes: 1440 # TODO: remove this once ExpExtensiveTest execution is completed
     steps:
       - name: Install Go
         uses: actions/setup-go@v4
-        with:
-          go-version: 1.23.1
 
       - name: Set up GCC
         uses: egor-tensin/setup-gcc@v1
@@ -55,7 +53,7 @@ jobs:
 
   tests:
     needs: [ build ]
-    runs-on: [self-hosted, Linux, X64, large]
+    runs-on: ubuntu-latest-32
     steps:
       - name: Setup upterm session
         if: ${{ inputs.tests-with-ssh }}
@@ -108,7 +106,7 @@ jobs:
 
   go-corset-tests:
     needs: [ build ]
-    runs-on: [self-hosted, Linux, X64, large]
+    runs-on: ubuntu-latest-32
     continue-on-error: true
     steps:
       - name: Setup upterm session
@@ -141,8 +139,6 @@ jobs:
 
       - name: Install Go
         uses: actions/setup-go@v4
-        with:
-          go-version: 1.23.1
 
       - name: Install Go Corset
         run:

@@ -113,7 +113,7 @@ public class ReferenceTestOutcomeRecorderTool {
             });
   }
 
-  private static String setFileDirectory() {
+  static String setFileDirectory() {
     String jsonDirectory = System.getenv("FAILED_TEST_JSON_DIRECTORY");
     if (jsonDirectory == null || jsonDirectory.isEmpty()) {
       return "../tmp/local/";

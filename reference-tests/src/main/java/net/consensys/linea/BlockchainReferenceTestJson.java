@@ -26,16 +26,18 @@ import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.setFileDirectory;
 
 @Slf4j
 public class BlockchainReferenceTestJson {
 
   @Synchronized
   public static CompletableFuture<String> readBlockchainReferenceTestsOutput(String fileName) {
+    String fileDirectory = setFileDirectory();
     return CompletableFuture.supplyAsync(
         () -> {
-          Path directoryPath = Paths.get(JSON_OUTPUT_FILENAME);
-          Path filePath = Paths.get(JSON_OUTPUT_FILENAME + fileName);
+          Path directoryPath = Paths.get(fileDirectory);
+          Path filePath = directoryPath.resolve(fileName);
           String jsonString = "";
 
           try {

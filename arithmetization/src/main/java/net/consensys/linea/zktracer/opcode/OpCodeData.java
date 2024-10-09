@@ -21,6 +21,8 @@ import net.consensys.linea.zktracer.opcode.gas.Billing;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.opcode.stack.StackSettings;
 
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
+
 /**
  * Contains the {@link OpCode} and its related metadata.
  *
@@ -35,8 +37,6 @@ import net.consensys.linea.zktracer.opcode.stack.StackSettings;
 public record OpCodeData(
     OpCode mnemonic,
     int value,
-    boolean pushFlag,
-    boolean jumpFlag,
     InstructionFamily instructionFamily,
     StackSettings stackSettings,
     RamSettings ramSettings,
@@ -48,15 +48,15 @@ public record OpCodeData(
    * @return number of arguments supported by the given opcode.
    */
   public int numberOfArguments() {
-    return this.stackSettings.nbRemoved();
+    return stackSettings.nbRemoved();
   }
 
   public RamSettings ramSettings() {
-    return Objects.requireNonNullElse(this.ramSettings, RamSettings.DEFAULT);
+    return Objects.requireNonNullElse(ramSettings, RamSettings.DEFAULT);
   }
 
   public Billing billing() {
-    return Objects.requireNonNullElse(this.billing, Billing.DEFAULT);
+    return Objects.requireNonNullElse(billing, Billing.DEFAULT);
   }
 
   /**
@@ -65,7 +65,15 @@ public record OpCodeData(
    * @return <code>true</code> if this opcode is a <code>PUSHx</code>
    */
   public boolean isPush() {
-    return (0x60 <= this.value) && (this.value < 0x80);
+    return (0x60 <= value) && (value < 0x80);
+  }
+
+  public boolean isJumpDest() {
+    return value == 0x5b;
+  }
+
+  public boolean isJump() {
+    return instructionFamily == JUMP;
   }
 
   /**
@@ -74,15 +82,19 @@ public record OpCodeData(
    * @return true if {@link InstructionFamily} is HALT
    */
   public boolean isHalt() {
-    return this.instructionFamily == InstructionFamily.HALT;
+    return instructionFamily == HALT;
   }
 
   public boolean isCall() {
-    return this.instructionFamily == InstructionFamily.CALL;
+    return instructionFamily == CALL;
   }
 
   public boolean isCreate() {
-    return this.instructionFamily == InstructionFamily.CREATE;
+    return instructionFamily == CREATE;
+  }
+
+  public boolean isLog() {
+    return instructionFamily == LOG;
   }
 
   /**
@@ -91,7 +103,7 @@ public record OpCodeData(
    * @return true if {@link InstructionFamily} is INVALID
    */
   public boolean isInvalid() {
-    return this.instructionFamily == InstructionFamily.INVALID;
+    return instructionFamily == INVALID;
   }
 
   public boolean isMxp() {

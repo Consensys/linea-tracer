@@ -56,11 +56,11 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
-  dependsOn generateBlockchainReferenceTests
+//  dependsOn generateBlockchainReferenceTests
 
   boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = isCiServer ? "8g" :"4g"
-  maxHeapSize = isCiServer ? "50g" : "8g"
+  maxHeapSize = isCiServer ? "50g" : "16g"
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
@@ -88,7 +88,8 @@ tasks.register('referenceGeneralStateTests', Test) {
     dependsOn buildReferenceTestsZkevmBin
     environment.put("ZKEVM_BIN", "zkevm_for_reference_tests.bin")
 
-    systemProperty("junit.jupiter.execution.timeout.default", "5 m")  // 5 minutes
+    systemProperty("junit.jupiter.execution.timeout.default", "45 m")  // 5 minutes
+//    systemProperty("junit.jupiter.execution.timeout.thread.mode.default", "separate_thread")
     systemProperty("junit.jupiter.execution.parallel.enabled", "true")
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
     systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")

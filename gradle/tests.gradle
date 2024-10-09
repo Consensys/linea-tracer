@@ -48,6 +48,13 @@ tasks.withType(Test).configureEach {
 
   jvmArgs = [
     '-XX:-UseGCOverheadLimit',
+//    '-XX:InitiatingHeapOccupancyPercent=70',
+    '-XX:+PrintGC',
+//    '-XX:+PrintGCDetails',
+//    '-XX:+UnlockExperimentalVMOptions',
+//    '-XX:+UseZGC',
+//    '-XX:+HeapDumpOnOutOfMemoryError',
+//    '-Dfile.encoding=UTF-8',
     // Mockito and jackson-databind do some strange reflection during tests.
     // This suppresses an illegal access warning.
     '--add-opens',

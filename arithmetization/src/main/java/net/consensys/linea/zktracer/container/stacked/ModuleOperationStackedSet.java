@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import lombok.Getter;
@@ -155,14 +156,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   }
 
   void deleteDuplicates() {
-    final List<E> toRemove =
-        new ArrayList<>(operationsInTransaction().size() * EXPECTED_PROPORTION_OF_DUPLICATE);
-    for (E e : operationsInTransaction()) {
-      if (operationsCommitedToTheConflation().contains(e)) {
-        toRemove.add(e);
-      }
-    }
-    toRemove.forEach(operationsInTransaction()::remove);
+    operationsInTransaction().removeIf(e -> operationsCommitedToTheConflation().contains(e));
   }
 
   public List<E> sortOperations(Comparator<E> comparator) {

@@ -33,7 +33,7 @@ public class StackedSet<E> {
     operationsInTransaction = new HashSet<>();
   }
 
-  /** Prefer this constructor as we preallocate more needed memory */
+  /** Prefer this constructor as we preallocate more necessary memory */
   public StackedSet(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
     operationsCommitedToTheConflation = new ArrayList<>(expectedConflationNumberOperations);

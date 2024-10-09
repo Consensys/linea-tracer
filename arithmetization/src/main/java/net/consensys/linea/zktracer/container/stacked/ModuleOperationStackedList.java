@@ -48,7 +48,7 @@ public class ModuleOperationStackedList<E extends ModuleOperation> {
     operationsInTransaction = new ArrayList<>();
   }
 
-  /** Prefer this constructor as we preallocate more needed memory */
+  /** Prefer this constructor as we preallocate more necessary memory */
   public ModuleOperationStackedList(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
     operationsCommitedToTheConflation = new ArrayList<>(expectedConflationNumberOperations);

@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -105,6 +106,11 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+
+    if (Exceptions.any(hub.pch().exceptions())) {
+      return;
+    }
+
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     if (opCode == OpCode.BLOCKHASH) {
       final Bytes32 result = Bytes32.leftPad(frame.getStackItem(0));

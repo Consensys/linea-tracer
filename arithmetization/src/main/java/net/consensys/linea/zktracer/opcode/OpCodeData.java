@@ -15,13 +15,13 @@
 
 package net.consensys.linea.zktracer.opcode;
 
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
+
 import java.util.Objects;
 
 import net.consensys.linea.zktracer.opcode.gas.Billing;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.opcode.stack.StackSettings;
-
-import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
 
 /**
  * Contains the {@link OpCode} and its related metadata.

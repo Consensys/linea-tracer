@@ -219,7 +219,7 @@ public enum OpCode {
   }
 
   public boolean isLog() {
-        return getData().isLog();
+    return getData().isLog();
   }
 
   /** Returns whether the {@link OpCode} entails a contract creation. */

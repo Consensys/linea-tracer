@@ -410,10 +410,10 @@ public class Hub implements Module {
   public Hub(
       final Address l2l1ContractAddress,
       final Bytes l2l1Topic,
-      final BigInteger nonnegativeChainId,
-      final List<Module> configuredModulesToCount) {
-    Preconditions.checkState(nonnegativeChainId.signum() >= 0);
-    chainId = nonnegativeChainId;
+      final BigInteger nonNegativeChainId,
+      final Set<String> configuredModuleKeysToCount) {
+    Preconditions.checkState(nonNegativeChainId.signum() >= 0);
+    chainId = nonNegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
@@ -462,7 +462,9 @@ public class Hub implements Module {
             .toList();
 
     modulesToCount =
-        configuredModulesToCount != null ? configuredModulesToCount : getDefaultModulesToCount();
+        configuredModuleKeysToCount != null
+            ? configuredModuleKeysToCount.stream().map(lineCountModuleMap::get).toList()
+            : getDefaultModulesToCount();
   }
 
   private Map<String, Module> initLineCountModuleMap() {

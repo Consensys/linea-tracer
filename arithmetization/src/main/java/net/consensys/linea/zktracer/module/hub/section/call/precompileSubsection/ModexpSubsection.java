@@ -136,7 +136,7 @@ public class ModexpSubsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity check
-    checkArgument(callSuccess == sixthOobCall.isRamSuccess());
+    checkArgument(!callSuccess || sixthOobCall.isRamSuccess());
 
     if (!callSuccess) {
       precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);

@@ -81,7 +81,7 @@ public class ReferenceTestWatcher implements TestWatcher {
   }
 
   private static String formatAssertionError(Throwable cause) {
-    return cause.getMessage().replaceAll("\n", "").substring(0, Math.min(100, cause.getMessage().length()));
+    return cause.getMessage().replaceAll("\n", "").substring(0, Math.min(100, cause.getMessage().length()-3));
   }
 
   @Override

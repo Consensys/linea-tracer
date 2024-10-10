@@ -30,6 +30,17 @@ import org.junit.platform.launcher.LauncherSessionListener;
 public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
 
   @Override
+  public void launcherSessionOpened(LauncherSession session) {
+    String fileDirectory = setFileDirectory();
+    log.info("Results summary will be written to {}", fileDirectory);
+    try {
+      Files.createDirectories(Path.of(fileDirectory));
+    } catch (IOException e) {
+      log.error("Error: can't create folder {}", fileDirectory);
+    }
+  }
+
+  @Override
   public void launcherSessionClosed(LauncherSession session) {
     try {
       String directory = setFileDirectory();
@@ -40,7 +51,7 @@ public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
           "Path exists: {}, file exist: {}",
           Paths.get(directory).toFile().exists(),
           Paths.get(directory).resolve(JSON_OUTPUT_FILENAME).toFile().exists());
-    } catch (InterruptedException | ExecutionException e) {
+    } catch (Exception e) {
       log.error("Error while writing results");
       throw new RuntimeException("Error while writing results", e);
     }

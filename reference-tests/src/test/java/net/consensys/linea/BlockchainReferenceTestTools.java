@@ -191,17 +191,18 @@ public class BlockchainReferenceTestTools {
     zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
 
     for (var candidateBlock : spec.getCandidateBlocks()) {
-      if (!candidateBlock.isExecutable()
-          || candidateBlock.getBlock().getBody().getTransactions().isEmpty()) {
-        return;
-      }
+      Assumptions.assumeTrue(
+              candidateBlock.isExecutable(),
+              "Skipping the test because the block is not executable");
+      Assumptions.assumeTrue(
+              candidateBlock.getBlock().getBody().getTransactions().size() > 0,
+              "Skipping the test because the block has no transaction");
+
 
       try {
         final Block block = candidateBlock.getBlock();
 
-        Assumptions.assumeTrue(
-            block.getBody().getTransactions().size() > 0,
-            "Skipping the test because the block has no transaction");
+
 
         zkTracer.traceStartBlock(block.getHeader());
 

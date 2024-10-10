@@ -199,7 +199,9 @@ public class BlockchainReferenceTestTools {
       try {
         final Block block = candidateBlock.getBlock();
 
-        Assumptions.assumeTrue(block.getBody().getTransactions().size() > 0, "Skipping the test because the block has no transaction");
+        Assumptions.assumeTrue(
+            block.getBody().getTransactions().size() > 0,
+            "Skipping the test because the block has no transaction");
 
         zkTracer.traceStartBlock(block.getHeader());
 
@@ -219,7 +221,12 @@ public class BlockchainReferenceTestTools {
             "checking block is imported {} equals {}",
             importResult.isImported(),
             candidateBlock.isValid());
-        assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
+        assertThat(importResult.isImported())
+            .isEqualTo(candidateBlock.isValid())
+            .withFailMessage(
+                "checking block is imported {} while expected {}",
+                importResult.isImported(),
+                candidateBlock.isValid());
 
         zkTracer.traceEndBlock(block.getHeader(), block.getBody());
       } catch (final RLPException e) {

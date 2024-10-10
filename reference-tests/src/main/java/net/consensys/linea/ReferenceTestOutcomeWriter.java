@@ -16,15 +16,15 @@ package net.consensys.linea;
 
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.*;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.platform.launcher.LauncherSession;
-import org.junit.platform.launcher.LauncherSessionListener;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
+
+import lombok.extern.slf4j.Slf4j;
+import org.junit.platform.launcher.LauncherSession;
+import org.junit.platform.launcher.LauncherSessionListener;
 
 @Slf4j
 public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
@@ -43,11 +43,14 @@ public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
   @Override
   public void launcherSessionClosed(LauncherSession session) {
     try {
-      String directory =  setFileDirectory();
+      String directory = setFileDirectory();
       log.info("Reference test will be written to file {}\\{}", directory, JSON_OUTPUT_FILENAME);
       writeToJsonFile().get();
       log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
-      log.info("Path exists: {}, file exist: {}", Paths.get(directory).toFile().exists(), Paths.get(directory).resolve(JSON_OUTPUT_FILENAME).toFile().exists());
+      log.info(
+          "Path exists: {}, file exist: {}",
+          Paths.get(directory).toFile().exists(),
+          Paths.get(directory).resolve(JSON_OUTPUT_FILENAME).toFile().exists());
     } catch (InterruptedException | ExecutionException e) {
       log.error("Error while writing results");
       throw new RuntimeException("Error while writing results", e);

@@ -65,15 +65,15 @@ public class ReferenceTestWatcher implements TestWatcher {
   @NotNull
   private static Set<String> getValue(Throwable cause) {
     String[] lines = cause.getMessage().split("\n");
-    if(lines[0].isEmpty() && lines.length > 1){
+    if (lines[0].isEmpty() && lines.length > 1) {
       return Set.of(lines[1] + " " + firstLineaClassIfPresent(lines));
     }
     return Set.of(lines[0]);
   }
 
   private static String firstLineaClassIfPresent(String[] lines) {
-    for(int i = 2; i< lines.length; i++){
-      if(lines[i].contains("linea")) {
+    for (int i = 2; i < lines.length; i++) {
+      if (lines[i].contains("linea")) {
         return lines[i];
       }
     }
@@ -81,7 +81,10 @@ public class ReferenceTestWatcher implements TestWatcher {
   }
 
   private static String formatAssertionError(Throwable cause) {
-    return cause.getMessage().replaceAll("\n", "").substring(0, Math.min(100, cause.getMessage().length()-3));
+    return cause
+        .getMessage()
+        .replaceAll("\n", "")
+        .substring(0, Math.min(100, cause.getMessage().length() - 3));
   }
 
   @Override

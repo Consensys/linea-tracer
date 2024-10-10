@@ -1,106 +1,43 @@
 # Linea plugins
 
-## Shared components
-### Profitability calculator
-The profitability calculator is a shared component, that is used to check if a tx is profitable.
-It is applied, with different configuration to:
-1. `linea_estimateGas` endpoint
-2. Tx validation for the txpool
-3. Tx selection during block creation
+### Line Counts - LineCountsEndpointServicePlugin
 
-#### CLI Options
+#### `linea_getBlockTracesCountersV2`
 
-| Option Name              | Default Value | Command Line Argument                     |
-|--------------------------|---------------|-------------------------------------------|
-| L1_VERIFICATION_GAS_COST | 1_200_000     | `--plugin-linea-verification-gas-cost`    |
-| L1_VERIFICATION_CAPACITY | 90_000        | `--plugin-linea-verification-capacity`    |
-| L1_L2_GAS_PRICE_RATIO    | 15            | `--plugin-linea-gas-price-ratio`          |
-| L2_GAS_PRICE_ADJUSTMENT  | 0 wei         | `--plugin-linea-gas-price-adjustment`     |
-| MIN_MARGIN               | 1.0           | `--plugin-linea-min-margin`               |
-| ESTIMATE_GAS_MIN_MARGIN  | 1.0           | `--plugin-linea-estimate-gas-min-margin`  |
-| TX_POOL_MIN_MARGIN       | 0.5           | `--plugin-linea-tx-pool-min-margin`       |
-| UNPROFITABLE_CACHE_SIZE  | 100_000       | `--plugin-linea-unprofitable-cache-size`  |
-| UNPROFITABLE_RETRY_LIMIT | 10            | `--plugin-linea-unprofitable-retry-limit` |
-| TX_POOL_ENABLE_CHECK_API     | true          | `--plugin-linea-tx-pool-profitability-check-api-enabled`  |
-| TX_POOL_ENABLE_CHECK_P2P     | false         | `--plugin-linea-tx-pool-profitability-check-p2p-enabled`  |
+The `LineCountsEndpointServicePlugin` registers an RPC endpoint named `getBlockTracesCountersV2`
+under the `linea` namespace. When this endpoint is called, returns trace counters based on the provided request
+parameters.
 
-### L1 L2 Bridge
+#### Plugin Parameters
 
-#### CLI Options
+- Introduces the `plugin-linea-line-counts-modules-to-count-config-file-path` plugin CLI parameter to set the path of a
+  module limits TOML file from which in can read all the included module keys and calculate line counts only for those modules.
+- When `plugin-linea-line-counts-modules-to-count-config-file-path` is not provided it returns line counts for all
+  modules that are intended for counting.
 
-| Option Name                  | Default Value | Command Line Argument                       |
-|------------------------------|---------------|---------------------------------------------|
-| L1L2_BRIDGE_CONTRACT_ADDRESS |               | `--plugin-linea-l1l2-bridge-contract`       |
-| L1L2_BRIDGE_LOG_TOPIC        |               | `--plugin-linea-l1l2-bridge-topic`          |
+#### RPC Request Parameters
 
-## Sequencer
-### Transaction Selection - LineaTransactionSelectorPlugin
-
-This plugin extends the standard transaction selection protocols employed by Besu for block creation.
-It leverages the TransactionSelectionService to manage and customize the process of transaction selection.
-This includes setting limits such as `TraceLineLimit`, `maxBlockGas`, and `maxCallData`, and check the profitability
-of a transaction.
-
-
-#### CLI Options
-
-| Option Name                      | Default Value        | Command Line Argument                             |
-|----------------------------------|----------------------|---------------------------------------------------|
-| MAX_BLOCK_CALLDATA_SIZE          | 70000                | `--plugin-linea-max-block-calldata-size`          |
-| MODULE_LIMIT_FILE_PATH           | moduleLimitFile.toml | `--plugin-linea-module-limit-file-path`           |
-| OVER_LINE_COUNT_LIMIT_CACHE_SIZE | 10_000               | `--plugin-linea-over-line-count-limit-cache-size` |
-| MAX_GAS_PER_BLOCK                | 30_000_000L          | `--plugin-linea-max-block-gas`                    |
-
-
-### Transaction validation - LineaTransactionValidatorPlugin
-
-This plugin extends the default transaction validation rules for adding transactions to the
-transaction pool. It leverages the PluginTransactionValidatorService to manage and customize the
-process of transaction validation. This includes, for example, setting a deny list of addresses
-that are not allowed to add transactions to the pool.
-
-#### CLI Options
-
-| Option Name             | Default Value     | Command Line Argument                 |
-|-------------------------|-------------------|---------------------------------------|
-| DENY_LIST_PATH          | lineaDenyList.txt | `--plugin-linea-deny-list-path`       |
-| MAX_TX_GAS_LIMIT_OPTION | 30_000_000        | `--plugin-linea-max-tx-gas-limit`     |
-| MAX_TX_CALLDATA_SIZE    | 60_000            | `--plugin-linea-max-tx-calldata-size` |
-
-## RPC
-
-### Linea Estimate Gas
-#### `linea_estimateGas`
-
-This endpoint simulates a transaction and returns the estimated gas used ( as the standard `eth_estimateGas`) plus the estimated gas price to be used when submitting the tx.
-
-#### Parameters
-
-same as `eth_estimateGas`
-
-### Counters - CountersEndpointServicePlugin
-#### `rollup_getTracesCountersByBlockNumberV0`
-
-The CountersEndpointServicePlugin registers an RPC endpoint named `getTracesCountersByBlockNumberV0`
-under the `rollup` namespace. When this endpoint is called, returns trace counters based on the provided request parameters.
-
-#### Parameters
-
-  - `blockNumber`: _string_ - The block number
-
-  - `tracerVersion`: _string_ - The tracer version. It will return an error if the
-requested version is different from the tracer runtime
+- `blockNumber`: _string_ - The block number
+- `expectedTracesEngineVersion`: _string_ - The tracer version. It will return an error if the
+  requested version is different from the tracer runtime
 
 ### Trace generation - TracesEndpointServicePlugin
 
-This plugin registers an RPC endpoint named `generateConflatedTracesToFileV0` under the `rollup` namespace.
+#### `linea_generateConflatedTracesToFileV2`
+
+This plugin registers an RPC endpoint named `generateConflatedTracesToFileV2` under the `linea` namespace.
 The endpoint generates conflated file traces.
 
-#### Parameters
+#### Plugin Parameters
 
-- `fromBlock`: _string_ - the fromBlock number
-- `toBlock`: _string_ - The toBlock number
-- `tracerVersion`: _string_ - The tracer version. It will return an error if the
+- Introduces `plugin-linea-continuous-tracing-traces-output-path` plugin CLI parameter to determine the output
+  directory of the generated trace `.lt` files.
+
+#### RPC Request Parameters
+
+- `startBlockNumber`: _string_ - the fromBlock number
+- `endBlockNumber`: _string_ - The toBlock number
+- `expectedTracesEngineVersion`: _string_ - The tracer version. It will return an error if the
   requested version is different from the tracer runtime
 
 ## Continuous Tracing

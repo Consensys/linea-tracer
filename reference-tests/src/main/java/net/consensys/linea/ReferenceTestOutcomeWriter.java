@@ -20,26 +20,29 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 
+import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
-public class ReferenceTestOutcomeWritter implements LauncherSessionListener {
+public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
 
-  @Override
-  public void launcherSessionOpened(LauncherSession session) {
-    String fileDirectory = setFileDirectory();
-    log.info("Results summary will be written to {}", fileDirectory);
-  }
+//  @Override
+//  public void launcherSessionOpened(LauncherSession session) {
+//    String fileDirectory = setFileDirectory();
+//    log.info("Results summary will be written to {}", fileDirectory);
+//  }
 
   @Override
   public void launcherSessionClosed(LauncherSession session) {
     try {
-      log.info("Reference test will be written to file {}\\{}", setFileDirectory(), JSON_OUTPUT_FILENAME);
-      writeToJsonFile().get();
+      String directory =  setFileDirectory();
+      log.info("Reference test will be written to file {}\\{}", directory, JSON_OUTPUT_FILENAME);
+      Void result = writeToJsonFile().get();
       log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
-
+      log.info("Path exists: {}, file exist: {}", Paths.get(directory).toFile().exists(), Paths.get(directory).resolve(JSON_OUTPUT_FILENAME).toFile().exists());
     } catch (InterruptedException | ExecutionException e) {
-      throw new RuntimeException("Error while writng results", e);
+      log.error("Error while writing results");
+      throw new RuntimeException("Error while writing results", e);
     }
   }
 }

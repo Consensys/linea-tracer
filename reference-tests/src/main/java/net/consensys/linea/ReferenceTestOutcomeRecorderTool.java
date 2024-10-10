@@ -109,7 +109,7 @@ public class ReferenceTestOutcomeRecorderTool {
   @Synchronized
   public static CompletableFuture<Void> writeToJsonFile(String name) {
     String fileDirectory = setFileDirectory();
-    log.info("writting results summary to {}", fileDirectory);
+    log.info("writing results summary to {}", fileDirectory);
     String jsonString = jsonConverter.toJson(testOutcomes);
     log.info(jsonString);
     return CompletableFuture.runAsync(
@@ -117,7 +117,7 @@ public class ReferenceTestOutcomeRecorderTool {
           try (FileWriter file = new FileWriter(fileDirectory + name)) {
             file.write(jsonString);
           } catch (Exception e) {
-            log.error("Error - Failed to write failed test output: %s".formatted(e.getMessage()));
+            log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));
           }
         });
   }

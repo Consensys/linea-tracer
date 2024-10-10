@@ -113,7 +113,7 @@ public class ReferenceTestOutcomeRecorderTool {
             if (matcher.find()) {
               String module = matcher.group(1);
               String constraint = matcher.group(2);
-              pairs.computeIfAbsent(module.trim(), p -> new HashSet<>()).add(constraint.trim());
+              pairs.computeIfAbsent("Expanding " + module.trim(), p -> new HashSet<>()).add(constraint.trim());
             } else {
               pairs.computeIfAbsent("UNKNOWN", p -> new HashSet<>()).add("UNKNOWN");
             }

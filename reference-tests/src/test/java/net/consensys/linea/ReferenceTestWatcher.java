@@ -22,11 +22,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.opentest4j.AssertionFailedError;
 
+@Slf4j
 public class ReferenceTestWatcher implements TestWatcher {
   private static final String ASSERTION_FAILED = "ASSERTION_FAILED";
   private static final String UNCATEGORIZED_EXCEPTION = "UNCATEGORIZED_EXCEPTION";
@@ -34,13 +36,12 @@ public class ReferenceTestWatcher implements TestWatcher {
   @Override
   public void testFailed(ExtensionContext context, Throwable cause) {
     String testName = context.getDisplayName().split(": ")[1];
-
+    log.info("Adding failure for {}", testName);
     Map<String, Set<String>> logEventMessages = getLogEventMessages(cause);
-
     ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, FAILED, logEventMessages);
+    log.info("Failure added for {}", testName);
   }
 
-  @NotNull
   private static Map<String, Set<String>> getLogEventMessages(Throwable cause) {
     Map<String, Set<String>> logEventMessages = new HashMap<>();
     if (cause != null) {
@@ -62,7 +63,6 @@ public class ReferenceTestWatcher implements TestWatcher {
     return logEventMessages;
   }
 
-  @NotNull
   private static Set<String> getValue(Throwable cause) {
     String[] lines = cause.getMessage().split("\n");
     if (lines[0].isEmpty() && lines.length > 1) {

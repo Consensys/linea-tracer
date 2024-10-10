@@ -35,6 +35,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RIGHT_PADDED_WORD_EXTRACTION;
 import static net.consensys.linea.zktracer.module.mmio.MmioData.lineCountOfMmioInstruction;
 import static net.consensys.linea.zktracer.types.Bytecodes.readBytes;
+import static net.consensys.linea.zktracer.types.Bytecodes.readLimb;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.util.ArrayList;
@@ -164,18 +165,19 @@ public class MmuOperation extends ModuleOperation {
 
         // Limb remains zero for LIMB_VANISHES instructions
         if (mmioInst.mmioInstruction() != MMIO_INST_LIMB_VANISHES) {
-          final int offset =
-              (int)
-                  (exoIsSource
-                      ? mmioInst.sourceLimbOffset() * LLARGE + mmioInst.sourceByteOffset()
-                      : mmioInst.targetLimbOffset() * LLARGE + mmioInst.targetByteOffset());
-          final int sizeToExtract = mmioInst.size() == 0 ? LLARGE : mmioInst.size();
-          final int exoByteOffset =
-              exoIsSource ? mmioInst.sourceByteOffset() : mmioInst.targetByteOffset();
-          final Bytes16 exoLimb =
-              readBytes(mmuData.exoBytes(), offset, sizeToExtract, exoByteOffset);
-          ;
-          mmioInst.limb(exoLimb);
+
+          if (exoIsSource) {
+            mmioInst.limb(readLimb(mmuData.exoBytes(), mmioInst.sourceLimbOffset()));
+          } else {
+            final int offset =
+                (int) mmioInst.targetLimbOffset() * LLARGE + mmioInst.targetByteOffset();
+            final int sizeToExtract = mmioInst.size() == 0 ? LLARGE : mmioInst.size();
+            final int exoByteOffset = mmioInst.targetByteOffset();
+            final Bytes16 exoLimb =
+                readBytes(mmuData.exoBytes(), offset, sizeToExtract, exoByteOffset);
+            ;
+            mmioInst.limb(exoLimb);
+          }
         }
       }
     }

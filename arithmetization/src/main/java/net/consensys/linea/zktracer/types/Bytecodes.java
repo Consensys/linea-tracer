@@ -23,7 +23,7 @@ import org.apache.tuweni.bytes.Bytes;
 public class Bytecodes {
 
   public static Bytes16 readBytes(
-      final Bytes data, final long sourceOffset, final int size, final int targetOffset) {
+      final Bytes data, final long sourceOffset, final int size, final int exoByteOffset) {
     if (sourceOffset >= data.size()) {
       return Bytes16.ZERO;
     }
@@ -32,7 +32,7 @@ public class Bytecodes {
 
     return Bytes16.leftPad(
         rightPadTo(
-            data.slice((int) sourceOffset, (int) dataLengthToExtract), LLARGE - targetOffset));
+            data.slice((int) sourceOffset, (int) dataLengthToExtract), LLARGE - exoByteOffset));
   }
 
   public static Bytes16 readLimb(final Bytes data, final long limbOffset) {

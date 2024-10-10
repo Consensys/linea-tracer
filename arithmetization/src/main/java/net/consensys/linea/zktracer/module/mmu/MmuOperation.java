@@ -170,17 +170,15 @@ public class MmuOperation extends ModuleOperation {
                       ? mmioInst.sourceLimbOffset() * LLARGE + mmioInst.sourceByteOffset()
                       : mmioInst.targetLimbOffset() * LLARGE + mmioInst.targetByteOffset());
           final int sizeToExtract = mmioInst.size() == 0 ? LLARGE : mmioInst.size();
+          final int exoByteOffset =
+              exoIsSource ? mmioInst.sourceByteOffset() : mmioInst.targetByteOffset();
           final Bytes16 exoLimb =
-              readBytes(mmuData.exoBytes(), offset, sizeToExtract, mmioInst.targetByteOffset());
+              readBytes(mmuData.exoBytes(), offset, sizeToExtract, exoByteOffset);
+          ;
           mmioInst.limb(exoLimb);
         }
       }
     }
-  }
-
-  private boolean exoLimbIsSource() {
-    return List.of(MMU_INST_ANY_TO_RAM_WITH_PADDING, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .contains(this.mmuData.hubToMmuValues().mmuInstruction());
   }
 
   private void traceFillMmuInstructionFlag(Trace trace) {

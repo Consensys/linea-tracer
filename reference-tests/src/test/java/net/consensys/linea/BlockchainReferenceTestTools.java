@@ -53,6 +53,7 @@ import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseS
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
 import org.hyperledger.besu.testutil.JsonTestParameters;
+import org.junit.jupiter.api.Assumptions;
 
 @Slf4j
 public class BlockchainReferenceTestTools {
@@ -196,6 +197,8 @@ public class BlockchainReferenceTestTools {
 
       try {
         final Block block = candidateBlock.getBlock();
+
+        Assumptions.assumeTrue(block.getBody().getTransactions().size() > 0, "Skipping the test because the block has no transaction");
 
         zkTracer.traceStartBlock(block.getHeader());
 

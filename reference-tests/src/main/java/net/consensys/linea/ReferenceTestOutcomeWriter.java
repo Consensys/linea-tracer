@@ -37,7 +37,7 @@ public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
     try {
       String directory =  setFileDirectory();
       log.info("Reference test will be written to file {}\\{}", directory, JSON_OUTPUT_FILENAME);
-      Void result = writeToJsonFile().get();
+      writeToJsonFile().get();
       log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
       log.info("Path exists: {}, file exist: {}", Paths.get(directory).toFile().exists(), Paths.get(directory).resolve(JSON_OUTPUT_FILENAME).toFile().exists());
     } catch (InterruptedException | ExecutionException e) {

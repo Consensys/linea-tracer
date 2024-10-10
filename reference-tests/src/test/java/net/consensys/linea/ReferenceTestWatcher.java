@@ -56,10 +56,28 @@ public class ReferenceTestWatcher implements TestWatcher {
           logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage().split("\n")[0]));
         }
       } else {
-        logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage().split("\n")[0]));
+        logEventMessages.put(UNCATEGORIZED_EXCEPTION, getValue(cause));
       }
     }
     return logEventMessages;
+  }
+
+  @NotNull
+  private static Set<String> getValue(Throwable cause) {
+    String[] lines = cause.getMessage().split("\n");
+    if(lines[0].isEmpty() && lines.length > 1){
+      return Set.of(lines[1] + " " + firstLineaClassIfPresent(lines));
+    }
+    return Set.of(lines[0]);
+  }
+
+  private static String firstLineaClassIfPresent(String[] lines) {
+    for(int i = 2; i< lines.length; i++){
+      if(lines[i].contains("linea")) {
+        return lines[i];
+      }
+    }
+    return "";
   }
 
   private static String formatAssertionError(Throwable cause) {

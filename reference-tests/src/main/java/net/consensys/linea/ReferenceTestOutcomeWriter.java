@@ -20,17 +20,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
 public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
 
-//  @Override
-//  public void launcherSessionOpened(LauncherSession session) {
-//    String fileDirectory = setFileDirectory();
-//    log.info("Results summary will be written to {}", fileDirectory);
-//  }
+  @Override
+  public void launcherSessionOpened(LauncherSession session) {
+    String fileDirectory = setFileDirectory();
+    log.info("Results summary will be written to {}", fileDirectory);
+    try {
+      Files.createDirectories(Path.of(fileDirectory));
+    } catch (IOException e) {
+      throw new RuntimeException("Can't create folder - fails fast.", e);
+    }
+  }
 
   @Override
   public void launcherSessionClosed(LauncherSession session) {

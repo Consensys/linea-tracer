@@ -15,6 +15,8 @@
 package net.consensys.linea;
 
 import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -115,6 +117,7 @@ public class ReferenceTestOutcomeRecorderTool {
     return CompletableFuture.runAsync(
         () -> {
           try (FileWriter file = new FileWriter(fileDirectory + name)) {
+            Files.createDirectories(Path.of(fileDirectory));
             file.write(jsonString);
           } catch (Exception e) {
             log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));

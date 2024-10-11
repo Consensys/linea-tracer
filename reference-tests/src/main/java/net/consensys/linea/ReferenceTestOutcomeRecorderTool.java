@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.json.JsonConverter;
@@ -179,18 +180,18 @@ public class ReferenceTestOutcomeRecorderTool {
       throw new RuntimeException("Error while writing results", e);
     }
   }
-
+  static ObjectMapper objectMapper = new ObjectMapper();
   @Synchronized
   private static CompletableFuture<Void> writeToJsonFileInternal(String name) {
     String fileDirectory = setFileDirectory();
     log.info("writing results summary to {}", fileDirectory + "/" + name);
-    String jsonString = jsonConverter.toJson(testOutcomes);
-    log.info(jsonString);
+//    String jsonString = jsonConverter.toJson(testOutcomes);
+//    log.info(jsonString);
     return CompletableFuture.runAsync(
             () -> {
               try (FileWriter file = new FileWriter(fileDirectory + name)) {
                 Files.createDirectories(Path.of(fileDirectory));
-                file.write(jsonString);
+                objectMapper.writeValue(file, testOutcomes);
               } catch (Exception e) {
                 log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));
               }

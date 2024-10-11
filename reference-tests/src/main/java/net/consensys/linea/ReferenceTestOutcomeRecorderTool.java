@@ -127,6 +127,7 @@ public class ReferenceTestOutcomeRecorderTool {
           }
         }
       } else {
+        log.info("can't extract contraint, setting UNKNOWN for {}", message);
         pairs.computeIfAbsent("UNKNOWN", p -> new HashSet<>()).add("UNKNOWN");
       }
     }

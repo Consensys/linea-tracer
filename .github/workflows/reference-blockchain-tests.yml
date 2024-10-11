@@ -20,7 +20,7 @@ on:
 
 jobs:
   blockchain-reference-tests:
-    runs-on: [ubuntu-latest-128]
+    runs-on: [ubuntu-latest-256]
     steps:
       - uses: webfactory/ssh-agent@v0.7.0
         with:
@@ -76,7 +76,7 @@ jobs:
         continue-on-error: true
         env:
           REFERENCE_TESTS_PARALLELISM: 10
-          JAVA_OPTS: -Dorg.gradle.daemon=false -Xmx112G
+          JAVA_OPTS: -Dorg.gradle.daemon=false -Xmx222G
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
           FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/

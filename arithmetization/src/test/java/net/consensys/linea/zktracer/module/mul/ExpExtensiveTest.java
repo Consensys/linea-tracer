@@ -30,12 +30,14 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.HexStringUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @Accessors(fluent = true)
+@Tag("weekly")
 public class ExpExtensiveTest {
   // Test vectors
   static final String P_1 = "f076b857fa9947c1f9ec558262c72704099ca8cd325566f73fb99238102ed171";

@@ -132,7 +132,7 @@ public class ReferenceTestOutcomeRecorderTool {
   public static void writeToJsonFile(int count) {
     try {
       String directory = setFileDirectory();
-      log.info("Reference test will be written to file {}\\{}", directory, JSON_OUTPUT_FILENAME);
+      log.info("Reference test will be written to file {} \\ {}", directory, JSON_OUTPUT_FILENAME);
       writeToJsonFile(JSON_OUTPUT_FILENAME+"_"+count);
       log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
       log.info(
@@ -148,7 +148,7 @@ public class ReferenceTestOutcomeRecorderTool {
   @Synchronized
   public static CompletableFuture<Void> writeToJsonFile(String name) {
     String fileDirectory = setFileDirectory();
-    log.info("writing results summary to {}", fileDirectory);
+    log.info("writing results summary to {}", fileDirectory + "/" + name);
     String jsonString = jsonConverter.toJson(testOutcomes);
     log.info(jsonString);
     return CompletableFuture.runAsync(

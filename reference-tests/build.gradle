@@ -56,7 +56,7 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
-  dependsOn generateBlockchainReferenceTests
+//  dependsOn generateBlockchainReferenceTests
 
   boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = isCiServer ? "8g" :"4g"
@@ -69,7 +69,7 @@ tasks.register('referenceBlockchainTests', Test) {
 
 tasks.register('referenceGeneralStateTests', Test) {
   description = 'Runs ETH reference general state tests.'
-  dependsOn generateGeneralStateReferenceTests
+//  dependsOn generateGeneralStateReferenceTests
 
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")

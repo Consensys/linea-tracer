@@ -62,8 +62,9 @@ public class ExecutionEnvironment {
     Path traceFilePath = null;
     try {
       traceFilePath = Files.createTempFile(null, ".lt");
-      zkTracer.writeToFile(traceFilePath);
       final Path finalTraceFilePath = traceFilePath;
+      logger.ifPresent(log -> log.debug("writing trace to {}", finalTraceFilePath));
+      zkTracer.writeToFile(traceFilePath);
       logger.ifPresent(log -> log.debug("trace written to {}", finalTraceFilePath));
       CorsetValidator.Result corsetValidationResult = corsetValidator.validate(traceFilePath);
       assertThat(corsetValidationResult.isValid())

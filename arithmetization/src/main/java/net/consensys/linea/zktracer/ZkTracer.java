@@ -268,12 +268,15 @@ public class ZkTracer implements ConflationAwareOperationTracer {
       }
     }
   }
+  static int counter = 0;
 
   @Override
   public void traceContextEnter(MessageFrame frame) {
     // We only want to trigger on creation of new contexts, not on re-entry in
     // existing contexts
+    counter += 1;
     if (frame.getState() == MessageFrame.State.NOT_STARTED) {
+      log.info("Message frame not started, invoking hub.traceContextEnter, {}", counter);
       try {
         this.hub.traceContextEnter(frame);
         this.debugMode.ifPresent(x -> x.traceContextEnter(frame));

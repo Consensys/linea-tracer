@@ -86,24 +86,30 @@ public class ReferenceTestOutcomeRecorderTool {
   public static Map<String, Set<String>> extractConstraints(String message) {
     Map<String, Set<String>> pairs = new HashMap<>();
     String cleaned =
-            message
-                    .substring(message.indexOf("constraints failed:") + "constraints failed:".length())
-                    .replaceAll(("\\[[0-9]+m"), " ")
+            message.replaceAll(("\\[[0-9]+m"), " ")
                     .replace(']', ' ')
                     .trim();
 
+    //case where corset sends constraint failed and the list of constraints
     if (message.contains("constraints failed:")) {
+      cleaned = cleaned.substring(message.indexOf("constraints failed:") + "constraints failed:".length());
       String[] constraints = cleaned.split(",");
       for (int i = 0; i < constraints.length; i++) {
-        String[] pair;
-        if (constraints[i].contains("-into-")) {
-          pair = constraints[i].split("-into-");
-        } else {
-          pair = constraints[i].split("\\.");
-        }
-        pairs.computeIfAbsent(pair[0].trim(), p -> new HashSet<>()).add(pair[1].trim());
+        getPairFromString(constraints[i], pairs);
       }
-    } else {
+    } else if( message.contains("failing constraint")){
+      //case where corset sends failing constraint with constraints one by one
+      String[] lines = cleaned.split("\\n");
+      for (int i = 0; i < lines.length; i++) {
+        if(lines[i].contains("failing constraint")){
+          String line = lines[i].substring(lines[i].indexOf("failing constraint") + "failing constraint".length());
+          line = line.replace(':',' ');
+          getPairFromString(line, pairs);
+        }
+      }
+    }
+    else {
+      //case where corset can't expend the trace
       if (message.contains("Error: while expanding ")) {
         String[] lines = cleaned.split("\\n");
         for (int i = 0; i < lines.length; i++) {
@@ -120,7 +126,6 @@ public class ReferenceTestOutcomeRecorderTool {
             }
           }
         }
-
       } else {
         pairs.computeIfAbsent("UNKNOWN", p -> new HashSet<>()).add("UNKNOWN");
       }
@@ -128,12 +133,22 @@ public class ReferenceTestOutcomeRecorderTool {
     return pairs;
   }
 
+  private static void getPairFromString(String constraint, Map<String, Set<String>> pairs) {
+    String[] pair;
+    if (constraint.contains("-into-")) {
+      pair = constraint.split("-into-");
+    } else {
+      pair = constraint.split("\\.");
+    }
+    pairs.computeIfAbsent(pair[0].trim(), p -> new HashSet<>()).add(pair[1].trim());
+  }
+
   @Synchronized
-  public static void writeToJsonFile(int count) {
+  public static void writeToJsonFile(String name) {
     try {
       String directory = setFileDirectory();
       log.info("Reference test will be written to file {} \\ {}", directory, JSON_OUTPUT_FILENAME);
-      writeToJsonFile(JSON_OUTPUT_FILENAME+"_"+count);
+      writeToJsonFileInternal(name);
       log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
       log.info(
               "Path exists: {}, file exist: {}",
@@ -146,7 +161,7 @@ public class ReferenceTestOutcomeRecorderTool {
   }
 
   @Synchronized
-  public static CompletableFuture<Void> writeToJsonFile(String name) {
+  private static CompletableFuture<Void> writeToJsonFileInternal(String name) {
     String fileDirectory = setFileDirectory();
     log.info("writing results summary to {}", fileDirectory + "/" + name);
     String jsonString = jsonConverter.toJson(testOutcomes);

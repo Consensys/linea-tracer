@@ -14,6 +14,7 @@
  */
 package net.consensys.linea;
 
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.writeToJsonFile;
 import static net.consensys.linea.TestState.*;
 import static net.consensys.linea.testing.ExecutionEnvironment.CORSET_VALIDATION_RESULT;
@@ -43,9 +44,9 @@ public class ReferenceTestWatcher implements TestWatcher {
     ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, FAILED, logEventMessages);
     log.info("Failure added for {}", testName);
     int count = counter.incrementAndGet();
-    if(count%100 == 0){
+    if(count%1000 == 0){
       log.info("intermediary persistence after {} failures", count);
-      writeToJsonFile(count);
+      writeToJsonFile(JSON_OUTPUT_FILENAME+"_"+count);
     }
   }
 

@@ -39,6 +39,8 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.FiniteList;
 import net.consensys.linea.zktracer.types.Utils;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.toml.Toml;
+import org.apache.tuweni.toml.TomlTable;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.PendingTransaction;
@@ -60,6 +62,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   private static final Map<String, Integer> spillings;
 
+  private static Set<String> configuredModuleKeysToCount;
+
   static {
     try {
       // Load spillings configured in src/main/resources/spillings.toml.
@@ -79,22 +83,39 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   /** Accumulate all the exceptions that happened at tracing time. */
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
+  public ZkTracer(final Path modulesToCountConfigFilePath) {
+    this(
+        LineaL1L2BridgeSharedConfiguration.EMPTY,
+        Bytes.fromHexString("c0ffee").toBigInteger().abs(),
+        modulesToCountConfigFilePath);
+  }
+
   public ZkTracer() {
     this(
         LineaL1L2BridgeSharedConfiguration.EMPTY,
-        Bytes.fromHexString("c0ffee").toBigInteger().abs());
+        Bytes.fromHexString("c0ffee").toBigInteger().abs(),
+        null);
   }
 
-  public ZkTracer(BigInteger nonnegativeChainId) {
-    this(LineaL1L2BridgeSharedConfiguration.EMPTY, nonnegativeChainId);
+  public ZkTracer(BigInteger nonNegativeChainId) {
+    this(LineaL1L2BridgeSharedConfiguration.EMPTY, nonNegativeChainId, null);
   }
 
   public ZkTracer(
-      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    BigInteger nonnegativeChainId = chainId.abs();
+      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
+      BigInteger chainId,
+      Path modulesToCountConfig) {
+    final BigInteger nonNegativeChainId = chainId.abs();
+
+    configuredModuleKeysToCount = getConfiguredLineCountModuleKeys(modulesToCountConfig);
+
     this.hub =
-        new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), nonnegativeChainId);
-    for (Module m : this.hub.getModulesToCount()) {
+        new Hub(
+            bridgeConfiguration.contract(),
+            bridgeConfiguration.topic(),
+            nonNegativeChainId,
+            configuredModuleKeysToCount);
+    for (Module m : this.hub.modulesToCount()) {
       if (!spillings.containsKey(m.moduleKey())) {
         throw new IllegalStateException(
             "Spilling for module " + m.moduleKey() + " not defined in spillings.toml");
@@ -109,6 +130,26 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     // <<<< CHANGE ME <<<<
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
+  }
+
+  private Set<String> getConfiguredLineCountModuleKeys(final Path modulesToCountConfig) {
+    if (configuredModuleKeysToCount != null) {
+      return configuredModuleKeysToCount;
+    }
+
+    if (modulesToCountConfig != null) {
+      // Process TOML file
+      final Optional<TomlTable> table;
+      try {
+        table = Optional.ofNullable(Toml.parse(modulesToCountConfig).getTable("traces-limits"));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+
+      return table.map(TomlTable::keySet).orElse(null);
+    }
+
+    return null;
   }
 
   public void writeToFile(final Path filename) {
@@ -320,7 +361,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     maybeThrowTracingExceptions();
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
 
-    hub.getModulesToCount()
+    hub.modulesToCount()
         .forEach(
             m ->
                 modulesLineCount.put(

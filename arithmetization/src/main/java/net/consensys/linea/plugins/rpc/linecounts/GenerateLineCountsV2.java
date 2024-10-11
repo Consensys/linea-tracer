@@ -15,6 +15,8 @@
 
 package net.consensys.linea.plugins.rpc.linecounts;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Optional;
 
@@ -42,11 +44,20 @@ public class GenerateLineCountsV2 {
   private final RequestLimiter requestLimiter;
 
   private final BesuContext besuContext;
+  private Path modulesToCountConfigFilePath;
   private TraceService traceService;
 
-  public GenerateLineCountsV2(final BesuContext context, final RequestLimiter requestLimiter) {
+  public GenerateLineCountsV2(
+      final BesuContext context,
+      final RequestLimiter requestLimiter,
+      final LineCountsEndpointConfiguration endpointConfiguration) {
     this.besuContext = context;
     this.requestLimiter = requestLimiter;
+
+    if (endpointConfiguration.modulesToCountConfigFilePath() != null) {
+      this.modulesToCountConfigFilePath =
+          Paths.get(endpointConfiguration.modulesToCountConfigFilePath());
+    }
   }
 
   public String getNamespace() {
@@ -97,7 +108,7 @@ public class GenerateLineCountsV2 {
                 .computeIfAbsent(
                     requestedBlockNumber,
                     blockNumber -> {
-                      final ZkTracer tracer = new ZkTracer();
+                      final ZkTracer tracer = new ZkTracer(modulesToCountConfigFilePath);
                       traceService.trace(
                           blockNumber,
                           blockNumber,

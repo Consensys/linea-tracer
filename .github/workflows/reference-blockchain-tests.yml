@@ -20,7 +20,7 @@ on:
 
 jobs:
   blockchain-reference-tests:
-    runs-on: [ubuntu-latest-256]
+    runs-on: [ubuntu-latest-128]
     steps:
       - uses: webfactory/ssh-agent@v0.7.0
         with:

@@ -14,6 +14,7 @@
  */
 package net.consensys.linea;
 
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.writeToJsonFile;
 import static net.consensys.linea.TestState.*;
 import static net.consensys.linea.testing.ExecutionEnvironment.CORSET_VALIDATION_RESULT;
 
@@ -21,9 +22,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 import org.opentest4j.AssertionFailedError;
@@ -33,6 +34,7 @@ public class ReferenceTestWatcher implements TestWatcher {
   private static final String ASSERTION_FAILED = "ASSERTION_FAILED";
   private static final String UNCATEGORIZED_EXCEPTION = "UNCATEGORIZED_EXCEPTION";
 
+  private static volatile AtomicInteger counter = new AtomicInteger(0);
   @Override
   public void testFailed(ExtensionContext context, Throwable cause) {
     String testName = context.getDisplayName().split(": ")[1];
@@ -40,6 +42,11 @@ public class ReferenceTestWatcher implements TestWatcher {
     Map<String, Set<String>> logEventMessages = getLogEventMessages(cause);
     ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, FAILED, logEventMessages);
     log.info("Failure added for {}", testName);
+    int count = counter.incrementAndGet();
+    if(count%100 == 0){
+      log.info("intermediary persistence after {} failures", count);
+      writeToJsonFile(count);
+    }
   }
 
   private static Map<String, Set<String>> getLogEventMessages(Throwable cause) {

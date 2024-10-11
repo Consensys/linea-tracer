@@ -17,6 +17,7 @@ package net.consensys.linea;
 import java.io.FileWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -128,8 +129,20 @@ public class ReferenceTestOutcomeRecorderTool {
   }
 
   @Synchronized
-  public static CompletableFuture<Void> writeToJsonFile() {
-    return writeToJsonFile(JSON_OUTPUT_FILENAME);
+  public static void writeToJsonFile(int count) {
+    try {
+      String directory = setFileDirectory();
+      log.info("Reference test will be written to file {}\\{}", directory, JSON_OUTPUT_FILENAME);
+      writeToJsonFile(JSON_OUTPUT_FILENAME+"_"+count);
+      log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
+      log.info(
+              "Path exists: {}, file exist: {}",
+              Paths.get(directory).toFile().exists(),
+              Paths.get(directory).resolve(JSON_OUTPUT_FILENAME).toFile().exists());
+    } catch (Exception e) {
+      log.error("Error while writing results");
+      throw new RuntimeException("Error while writing results", e);
+    }
   }
 
   @Synchronized

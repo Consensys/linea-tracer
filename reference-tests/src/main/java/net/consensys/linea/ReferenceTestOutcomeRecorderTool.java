@@ -14,7 +14,10 @@
  */
 package net.consensys.linea;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,6 +30,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
@@ -190,13 +195,69 @@ public class ReferenceTestOutcomeRecorderTool {
 //    log.info(jsonString);
     return CompletableFuture.runAsync(
             () -> {
-              try (FileWriter file = new FileWriter(fileDirectory + name)) {
+//              try (FileWriter file = new FileWriter(fileDirectory + name)) {
+//                Files.createDirectories(Path.of(fileDirectory));
+//                ReferenceTestOutcomeRecorderTool.writeToJsonStream(ReferenceTestOutcomeRecorderTool.testOutcomes, setFileDirectory()+"/test.json");
+//                objectMapper.writeValue(file, testOutcomes);
+//              } catch (Exception e) {
+//                log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));
+//              }
+              try {
                 Files.createDirectories(Path.of(fileDirectory));
-                objectMapper.writeValue(file, testOutcomes);
+                ReferenceTestOutcomeRecorderTool.writeToJsonStream(ReferenceTestOutcomeRecorderTool.testOutcomes, fileDirectory + name);
               } catch (Exception e) {
                 log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));
               }
             });
+  }
+
+
+  // Method to stream the BlockchainReferenceTestOutcome to JSON
+  public static void writeToJsonStream(BlockchainReferenceTestOutcome outcome, String filePath) throws IOException {
+    JsonFactory jsonFactory = new JsonFactory();
+    FileOutputStream fos = new FileOutputStream(new File(filePath));
+    JsonGenerator jsonGenerator = jsonFactory.createGenerator(fos);
+
+    // Start writing the object manually
+    jsonGenerator.writeStartObject(); // Start root object
+
+    jsonGenerator.writeNumberField("failedCounter", outcome.failedCounter().get());
+    jsonGenerator.writeNumberField("successCounter", outcome.successCounter().get());
+    jsonGenerator.writeNumberField("disabledCounter", outcome.disabledCounter().get());
+    jsonGenerator.writeNumberField("abortedCounter", outcome.abortedCounter().get());
+
+    // Start writing modulesToConstraintsToTests map
+    jsonGenerator.writeFieldName("modulesToConstraintsToTests");
+    jsonGenerator.writeStartObject(); // Start map
+
+    for (ConcurrentMap.Entry<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>> moduleEntry :
+            outcome.modulesToConstraintsToTests().entrySet()) {
+      jsonGenerator.writeFieldName(moduleEntry.getKey()); // Module name
+
+      jsonGenerator.writeStartObject(); // Start nested map for constraints
+      for (ConcurrentMap.Entry<String, ConcurrentSkipListSet<String>> constraintEntry :
+              moduleEntry.getValue().entrySet()) {
+
+        jsonGenerator.writeFieldName(constraintEntry.getKey()); // Constraint name
+
+        // Write the test set (ConcurrentSkipListSet)
+        jsonGenerator.writeStartArray();
+        for (String test : constraintEntry.getValue()) {
+          jsonGenerator.writeString(test);
+        }
+        jsonGenerator.writeEndArray();
+      }
+      jsonGenerator.writeEndObject(); // End nested map for constraints
+    }
+
+    jsonGenerator.writeEndObject(); // End modulesToConstraintsToTests map
+    jsonGenerator.writeEndObject(); // End root object
+
+    // Close resources
+    jsonGenerator.close();
+    fos.close();
+
+    System.out.println("JSON streamed to file successfully.");
   }
 
   static String setFileDirectory() {

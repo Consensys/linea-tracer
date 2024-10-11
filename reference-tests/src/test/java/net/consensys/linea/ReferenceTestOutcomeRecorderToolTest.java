@@ -15,11 +15,11 @@
 package net.consensys.linea;
 
 import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.*;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.parseBlockchainReferenceTestOutcome;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -143,21 +143,5 @@ public class ReferenceTestOutcomeRecorderToolTest {
     assertThat(res.size()).isEqualTo(2);
     assertThat(res.get("txndata")).isEqualTo(Set.of("wcp", "rlptxrcpt", "cumulative-gas"));
     assertThat(res.get("rlptxrcpt")).isEqualTo(Set.of("phase3", "phase-transition"));
-  }
-
-  @Test
-  void writeToJsonStream() throws IOException {
-    String module1 = "blockdata";
-
-    String module2 = "txndata";
-
-    List<String> modules = List.of(module1, module2);
-
-    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
-            "test1", TestState.FAILED, Map.of("Constraint", Set.of(module1, module2)));
-    ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(
-            "test2", TestState.FAILED, Map.of("Constraint", Set.of(module1)));
-
-    ReferenceTestOutcomeRecorderTool.writeToJsonStream(ReferenceTestOutcomeRecorderTool.testOutcomes, setFileDirectory()+"/test.json");
   }
 }

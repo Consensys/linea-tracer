@@ -168,7 +168,7 @@ public class ReferenceTestOutcomeRecorderTool {
     try {
       String directory = setFileDirectory();
       log.info("Reference test will be written to file {} \\ {}", directory, JSON_OUTPUT_FILENAME);
-      writeToJsonFileInternal(name);
+      writeToJsonFileInternal(name).get();
       log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
       log.info(
               "Path exists: {}, file exist: {}",

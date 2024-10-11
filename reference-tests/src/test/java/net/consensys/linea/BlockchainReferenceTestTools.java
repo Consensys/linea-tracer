@@ -16,6 +16,7 @@
 package net.consensys.linea;
 
 import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_INPUT_FILENAME;
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -111,7 +112,7 @@ public class BlockchainReferenceTestTools {
     }
 
     CompletableFuture<BlockchainReferenceTestOutcome> modulesToConstraintsFutures =
-        readBlockchainReferenceTestsOutput(JSON_OUTPUT_FILENAME)
+        readBlockchainReferenceTestsOutput(JSON_INPUT_FILENAME)
             .thenApply(ReferenceTestOutcomeRecorderTool::parseBlockchainReferenceTestOutcome);
 
     return modulesToConstraintsFutures.thenApply(

@@ -35,6 +35,7 @@ import net.consensys.linea.zktracer.json.JsonConverter;
 @Slf4j
 public class ReferenceTestOutcomeRecorderTool {
 
+  public static final String JSON_INPUT_FILENAME = "failedBlockchainReferenceTests-input.json";
   public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests.json";
   public static JsonConverter jsonConverter = JsonConverter.builder().build();
   public static volatile BlockchainReferenceTestOutcome testOutcomes =

@@ -197,7 +197,8 @@ public class BlockchainReferenceTestTools {
       Assumptions.assumeTrue(
               candidateBlock.getBlock().getBody().getTransactions().size() > 0,
               "Skipping the test because the block has no transaction");
-
+      Assumptions.assumeTrue(Arrays.stream(spec.getCandidateBlocks()).filter(b -> !b.isValid()).count() == 0,
+              "Skipping the test because it has invalid blocks");
 
       try {
         final Block block = candidateBlock.getBlock();

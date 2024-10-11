@@ -19,6 +19,7 @@ import static net.consensys.linea.GeneralStateReferenceTestTools.executeTest;
 import static net.consensys.linea.GeneralStateReferenceTestTools.generateTestParametersForConfig;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseEipSpec;
@@ -39,9 +40,13 @@ public class %%TESTS_NAME%% {
   private static final String[] TEST_CONFIG_FILE_DIR_PATH = new String[] {%%TESTS_FILE%%};
 
   public static Stream<Arguments> getTestParametersForConfig() {
-    return generateTestParametersForConfig(TEST_CONFIG_FILE_DIR_PATH).stream().map(params ->
-        Arguments.of(params[0], params[1], params[2])
-        );
+    Collection<Object[]> testParameters = generateTestParametersForConfig(TEST_CONFIG_FILE_DIR_PATH)
+        .stream().filter(params -> (Boolean) params[2]).toList();
+    if (testParameters.isEmpty()) {
+      return Stream.of(Arguments.of("%%TESTS_NAME%%", null, false));
+    } else {
+      return testParameters.stream().map(params -> Arguments.of(params[0], params[1], params[2]));
+    }
   }
 
   @ParameterizedTest(name = "Name: {0}")

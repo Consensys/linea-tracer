@@ -42,6 +42,6 @@ public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
 
   @Override
   public void launcherSessionClosed(LauncherSession session) {
-    writeToJsonFile(JSON_OUTPUT_FILENAME + "_full");
+    writeToJsonFile("full_" + JSON_OUTPUT_FILENAME);
   }
 }

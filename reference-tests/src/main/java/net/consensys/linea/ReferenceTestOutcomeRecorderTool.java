@@ -126,8 +126,27 @@ public class ReferenceTestOutcomeRecorderTool {
             }
           }
         }
+      } else if (message.contains("lookup ")) {
+        String regex = "\"lookup \"(.*)\" failed";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(message);
+        if (matcher.find()) {
+          String module = "LOOKUP";
+          String constraint = matcher.group(1);
+          pairs.computeIfAbsent(module.trim(), p -> new HashSet<>()).add(constraint.trim());
+        }
+      } else if (message.contains("out-of-bounds")) {
+        String regex = "column (.*) is out-of-bounds";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(message);
+        if (matcher.find()) {
+          String[] group = matcher.group(1).split("\\.");
+          String module = group[0];
+          String constraint = group[1];
+          pairs.computeIfAbsent(module.trim(), p -> new HashSet<>()).add(constraint.trim());
+        }
       } else {
-        log.info("can't extract contraint, setting UNKNOWN for {}", message);
+        log.info("can't extract constraint, setting UNKNOWN for {}", message);
         pairs.computeIfAbsent("UNKNOWN", p -> new HashSet<>()).add("UNKNOWN");
       }
     }

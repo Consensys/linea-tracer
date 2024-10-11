@@ -46,7 +46,7 @@ public class ReferenceTestWatcher implements TestWatcher {
     int count = counter.incrementAndGet();
     if(count%1000 == 0){
       log.info("intermediary persistence after {} failures", count);
-      writeToJsonFile(JSON_OUTPUT_FILENAME+"_"+count);
+      writeToJsonFile(count + "_" + JSON_OUTPUT_FILENAME);
     }
   }
 

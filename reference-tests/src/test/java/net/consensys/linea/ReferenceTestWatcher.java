@@ -44,11 +44,6 @@ public class ReferenceTestWatcher implements TestWatcher {
     Map<String, Set<String>> logEventMessages = getLogEventMessages(cause);
     ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, FAILED, logEventMessages);
     log.info("Failure added for {}", testName);
-    int count = counter.incrementAndGet();
-    if (count % 1000 == 0) {
-      log.info("intermediary persistence after {} failures", count);
-      writeToJsonFile(count + "_" + JSON_OUTPUT_FILENAME);
-    }
   }
 
   private static Map<String, Set<String>> getLogEventMessages(Throwable cause) {

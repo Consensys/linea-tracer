@@ -44,10 +44,10 @@ public class ReferenceTestWatcher implements TestWatcher {
     ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, FAILED, logEventMessages);
     log.info("Failure added for {}", testName);
     int count = counter.incrementAndGet();
-//    if(count%1000 == 0){
-//      log.info("intermediary persistence after {} failures", count);
-//      writeToJsonFile(count + "_" + JSON_OUTPUT_FILENAME);
-//    }
+    if(count%1000 == 0){
+      log.info("intermediary persistence after {} failures", count);
+      writeToJsonFile(count + "_" + JSON_OUTPUT_FILENAME);
+    }
   }
 
   private static Map<String, Set<String>> getLogEventMessages(Throwable cause) {

@@ -15,6 +15,7 @@
 package net.consensys.linea;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -186,12 +187,15 @@ public class ReferenceTestOutcomeRecorderTool {
   private static CompletableFuture<Void> writeToJsonFileInternal(String name) {
     String fileDirectory = setFileDirectory();
     log.info("writing results summary to {}", fileDirectory + "/" + name);
-//    String jsonString = jsonConverter.toJson(testOutcomes);
-//    log.info(jsonString);
+    try {
+      Files.createDirectories(Path.of(fileDirectory));
+    } catch (IOException e) {
+      log.error("Error - Failed to create test directory output: %s".formatted(e.getMessage()));
+      throw new RuntimeException(e);
+    }
     return CompletableFuture.runAsync(
             () -> {
               try (FileWriter file = new FileWriter(fileDirectory + name)) {
-                Files.createDirectories(Path.of(fileDirectory));
                 objectMapper.writeValue(file, testOutcomes);
               } catch (Exception e) {
                 log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));

@@ -63,7 +63,7 @@ public class ReferenceTestOutcomeRecorderToolTest {
 
               ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
                   modulesToConstraints =
-                      blockchainReferenceTestOutcome.modulesToConstraintsToTests();
+                      blockchainReferenceTestOutcome.getModulesToConstraintsToTests();
 
               assertThat(modulesToConstraints.size()).isEqualTo(modules.size());
               assertThat(modulesToConstraints.keySet()).isEqualTo(Set.of(module1, module2));

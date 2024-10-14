@@ -40,27 +40,27 @@ public class ReferenceTestOutcomeRecorderTool {
   public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests.json";
   public static JsonConverter jsonConverter = JsonConverter.builder().build();
   public static volatile BlockchainReferenceTestOutcome testOutcomes =
-          new BlockchainReferenceTestOutcome(
-                  new AtomicInteger(0),
-                  new AtomicInteger(0),
-                  new AtomicInteger(0),
-                  new AtomicInteger(0),
-                  new ConcurrentHashMap<>());
+      new BlockchainReferenceTestOutcome(
+          new AtomicInteger(0),
+          new AtomicInteger(0),
+          new AtomicInteger(0),
+          new AtomicInteger(0),
+          new ConcurrentHashMap<>());
 
   public static void mapAndStoreTestResult(
-          String testName, TestState success, Map<String, Set<String>> failedConstraints) {
+      String testName, TestState success, Map<String, Set<String>> failedConstraints) {
     switch (success) {
       case FAILED -> {
-        testOutcomes.failedCounter().incrementAndGet();
+        testOutcomes.getFailedCounter().incrementAndGet();
         for (Map.Entry<String, Set<String>> failedConstraint : failedConstraints.entrySet()) {
           String moduleName = failedConstraint.getKey();
           for (String constraint : failedConstraint.getValue()) {
             ConcurrentMap<String, ConcurrentSkipListSet<String>> constraintsToTests =
-                    testOutcomes
-                            .modulesToConstraintsToTests()
-                            .computeIfAbsent(moduleName, m -> new ConcurrentHashMap<>());
+                testOutcomes
+                    .getModulesToConstraintsToTests()
+                    .computeIfAbsent(moduleName, m -> new ConcurrentHashMap<>());
             ConcurrentSkipListSet<String> failingTests =
-                    constraintsToTests.computeIfAbsent(constraint, m -> new ConcurrentSkipListSet<>());
+                constraintsToTests.computeIfAbsent(constraint, m -> new ConcurrentSkipListSet<>());
             int size = failingTests.size();
             failingTests.add(testName);
             if (failingTests.size() == size) {
@@ -69,18 +69,18 @@ public class ReferenceTestOutcomeRecorderTool {
           }
         }
       }
-      case SUCCESS -> testOutcomes.successCounter().incrementAndGet();
-      case ABORTED -> testOutcomes.abortedCounter().incrementAndGet();
-      case DISABLED -> testOutcomes.disabledCounter().incrementAndGet();
+      case SUCCESS -> testOutcomes.getSuccessCounter().incrementAndGet();
+      case ABORTED -> testOutcomes.getAbortedCounter().incrementAndGet();
+      case DISABLED -> testOutcomes.getDisabledCounter().incrementAndGet();
     }
   }
 
   @Synchronized
   public static BlockchainReferenceTestOutcome parseBlockchainReferenceTestOutcome(
-          String jsonString) {
+      String jsonString) {
     if (!jsonString.isEmpty()) {
       BlockchainReferenceTestOutcome blockchainReferenceTestOutcome =
-              jsonConverter.fromJson(jsonString, BlockchainReferenceTestOutcome.class);
+          jsonConverter.fromJson(jsonString, BlockchainReferenceTestOutcome.class);
       return blockchainReferenceTestOutcome;
     }
     throw new RuntimeException("invalid JSON");
@@ -88,31 +88,31 @@ public class ReferenceTestOutcomeRecorderTool {
 
   public static Map<String, Set<String>> extractConstraints(String message) {
     Map<String, Set<String>> pairs = new HashMap<>();
-    String cleaned =
-            message.replaceAll(("\\[[0-9]+m"), " ")
-                    .replace(']', ' ')
-                    .trim();
+    String cleaned = message.replaceAll(("\\[[0-9]+m"), " ").replace(']', ' ').trim();
 
-    //case where corset sends constraint failed and the list of constraints
+    // case where corset sends constraint failed and the list of constraints
     if (message.contains("constraints failed:")) {
-      cleaned = cleaned.substring(message.indexOf("constraints failed:") + "constraints failed:".length());
+      cleaned =
+          cleaned.substring(
+              message.indexOf("constraints failed:") + "constraints failed:".length());
       String[] constraints = cleaned.split(",");
       for (int i = 0; i < constraints.length; i++) {
         getPairFromString(constraints[i], pairs);
       }
-    } else if( message.contains("failing constraint")){
-      //case where corset sends failing constraint with constraints one by one
+    } else if (message.contains("failing constraint")) {
+      // case where corset sends failing constraint with constraints one by one
       String[] lines = cleaned.split("\\n");
       for (int i = 0; i < lines.length; i++) {
-        if(lines[i].contains("failing constraint")){
-          String line = lines[i].substring(lines[i].indexOf("failing constraint") + "failing constraint".length());
-          line = line.replace(':',' ');
+        if (lines[i].contains("failing constraint")) {
+          String line =
+              lines[i].substring(
+                  lines[i].indexOf("failing constraint") + "failing constraint".length());
+          line = line.replace(':', ' ');
           getPairFromString(line, pairs);
         }
       }
-    }
-    else {
-      //case where corset can't expend the trace
+    } else {
+      // case where corset can't expend the trace
       if (message.contains("Error: while expanding ")) {
         String[] lines = cleaned.split("\\n");
         for (int i = 0; i < lines.length; i++) {
@@ -123,7 +123,9 @@ public class ReferenceTestOutcomeRecorderTool {
             if (matcher.find()) {
               String module = matcher.group(1);
               String constraint = matcher.group(2);
-              pairs.computeIfAbsent("Expanding " + module.trim(), p -> new HashSet<>()).add(constraint.trim());
+              pairs
+                  .computeIfAbsent("Expanding " + module.trim(), p -> new HashSet<>())
+                  .add(constraint.trim());
             } else {
               pairs.computeIfAbsent("UNKNOWN", p -> new HashSet<>()).add("UNKNOWN");
             }
@@ -174,15 +176,17 @@ public class ReferenceTestOutcomeRecorderTool {
       writeToJsonFileInternal(name).get();
       log.info("Reference test results written to file {}", JSON_OUTPUT_FILENAME);
       log.info(
-              "Path exists: {}, file exist: {}",
-              Paths.get(directory).toFile().exists(),
-              Paths.get(directory).resolve(JSON_OUTPUT_FILENAME).toFile().exists());
+          "Path exists: {}, file exist: {}",
+          Paths.get(directory).toFile().exists(),
+          Paths.get(directory).resolve(JSON_OUTPUT_FILENAME).toFile().exists());
     } catch (Exception e) {
       log.error("Error while writing results");
       throw new RuntimeException("Error while writing results", e);
     }
   }
+
   static ObjectMapper objectMapper = new ObjectMapper();
+
   @Synchronized
   private static CompletableFuture<Void> writeToJsonFileInternal(String name) {
     String fileDirectory = setFileDirectory();
@@ -194,13 +198,13 @@ public class ReferenceTestOutcomeRecorderTool {
       throw new RuntimeException(e);
     }
     return CompletableFuture.runAsync(
-            () -> {
-              try (FileWriter file = new FileWriter(fileDirectory + name)) {
-                objectMapper.writeValue(file, testOutcomes);
-              } catch (Exception e) {
-                log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));
-              }
-            });
+        () -> {
+          try (FileWriter file = new FileWriter(fileDirectory + name)) {
+            objectMapper.writeValue(file, testOutcomes);
+          } catch (Exception e) {
+            log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));
+          }
+        });
   }
 
   static String setFileDirectory() {

@@ -58,7 +58,7 @@ public class ExecutionEnvironment {
   static GenesisConfigFile GENESIS_CONFIG =
       GenesisConfigFile.fromSource(GenesisConfigFile.class.getResource("/linea.json"));
 
-  public static String checkTracer(
+  public static void checkTracer(
       ZkTracer zkTracer, CorsetValidator corsetValidator, Optional<Logger> logger) {
     Path traceFilePath = null;
     try {
@@ -70,7 +70,6 @@ public class ExecutionEnvironment {
       assertThat(corsetValidationResult.isValid())
           .withFailMessage(CORSET_VALIDATION_RESULT + "%s", corsetValidationResult.corsetOutput())
           .isTrue();
-      return corsetValidationResult.corsetOutput();
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {

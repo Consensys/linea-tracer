@@ -36,6 +36,7 @@ public class ReferenceTestWatcher implements TestWatcher {
   private static final String UNCATEGORIZED_EXCEPTION = "UNCATEGORIZED_EXCEPTION";
 
   private static volatile AtomicInteger counter = new AtomicInteger(0);
+
   @Override
   public void testFailed(ExtensionContext context, Throwable cause) {
     String testName = context.getDisplayName().split(": ")[1];
@@ -44,7 +45,7 @@ public class ReferenceTestWatcher implements TestWatcher {
     ReferenceTestOutcomeRecorderTool.mapAndStoreTestResult(testName, FAILED, logEventMessages);
     log.info("Failure added for {}", testName);
     int count = counter.incrementAndGet();
-    if(count%1000 == 0){
+    if (count % 1000 == 0) {
       log.info("intermediary persistence after {} failures", count);
       writeToJsonFile(count + "_" + JSON_OUTPUT_FILENAME);
     }
@@ -72,11 +73,22 @@ public class ReferenceTestWatcher implements TestWatcher {
   }
 
   private static Set<String> getValue(Throwable cause) {
-    String[] lines = cause.getMessage().split("\n");
-    if (lines[0].isEmpty() && lines.length > 1) {
-      return Set.of(lines[1] + " " + firstLineaClassIfPresent(lines));
+
+    if (cause.getMessage() != null) {
+      String[] lines = cause.getMessage().split("\n");
+      if (lines[0].isEmpty() && lines.length > 1) {
+        return Set.of(lines[1] + " " + firstLineaClassIfPresent(lines));
+      }
+      return Set.of(lines[0]);
+    } else if (cause.getStackTrace() != null) {
+      StackTraceElement[] lines = cause.getStackTrace();
+      for (int i = 0; i < lines.length; i++) {
+        if (lines[i].getClassName().contains("linea")) {
+          return Set.of(lines[i].toString());
+        }
+      }
     }
-    return Set.of(lines[0]);
+    return Set.of(UNCATEGORIZED_EXCEPTION);
   }
 
   private static String firstLineaClassIfPresent(String[] lines) {

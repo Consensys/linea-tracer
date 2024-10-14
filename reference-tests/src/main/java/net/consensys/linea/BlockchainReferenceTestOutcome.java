@@ -19,12 +19,23 @@ import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@JsonPropertyOrder({"failedCounter", "successCounter", "modules"})
-public record BlockchainReferenceTestOutcome(
-    AtomicInteger failedCounter,
-    AtomicInteger successCounter,
-    AtomicInteger disabledCounter,
-    AtomicInteger abortedCounter,
-    ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
-        modulesToConstraintsToTests) {}
+@Getter
+@AllArgsConstructor
+@JsonPropertyOrder({
+  "failedCounter",
+  "successCounter",
+  "disabledCounter",
+  "abortedCounter",
+  "modules"
+})
+public class BlockchainReferenceTestOutcome {
+  private final AtomicInteger failedCounter;
+  private final AtomicInteger successCounter;
+  private final AtomicInteger disabledCounter;
+  private final AtomicInteger abortedCounter;
+  private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
+      modulesToConstraintsToTests;
+}

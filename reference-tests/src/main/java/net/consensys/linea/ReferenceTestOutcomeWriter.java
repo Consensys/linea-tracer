@@ -16,29 +16,12 @@ package net.consensys.linea;
 
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.ExecutionException;
-
 import lombok.extern.slf4j.Slf4j;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 
 @Slf4j
 public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
-
-//  @Override
-//  public void launcherSessionOpened(LauncherSession session) {
-//    String fileDirectory = setFileDirectory();
-//    log.info("Results summary will be written to {}", fileDirectory);
-//    try {
-//      Files.createDirectories(Path.of(fileDirectory));
-//    } catch (IOException e) {
-//      log.error("Error: can't create folder {}", fileDirectory);
-//    }
-//  }
 
   @Override
   public void launcherSessionClosed(LauncherSession session) {

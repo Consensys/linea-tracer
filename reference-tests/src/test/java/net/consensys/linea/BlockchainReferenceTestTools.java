@@ -17,7 +17,6 @@ package net.consensys.linea;
 
 import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_INPUT_FILENAME;
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigInteger;
@@ -118,7 +117,7 @@ public class BlockchainReferenceTestTools {
     return modulesToConstraintsFutures.thenApply(
         blockchainReferenceTestOutcome -> {
           ConcurrentMap<String, ConcurrentSkipListSet<String>> filteredFailedTests =
-              blockchainReferenceTestOutcome.modulesToConstraintsToTests().get(failedModule);
+              blockchainReferenceTestOutcome.getModulesToConstraintsToTests().get(failedModule);
           if (filteredFailedTests == null) {
             return failedTests;
           }
@@ -193,18 +192,16 @@ public class BlockchainReferenceTestTools {
 
     for (var candidateBlock : spec.getCandidateBlocks()) {
       Assumptions.assumeTrue(
-              candidateBlock.isExecutable(),
-              "Skipping the test because the block is not executable");
+          candidateBlock.isExecutable(), "Skipping the test because the block is not executable");
       Assumptions.assumeTrue(
-              candidateBlock.getBlock().getBody().getTransactions().size() > 0,
-              "Skipping the test because the block has no transaction");
-      Assumptions.assumeTrue(Arrays.stream(spec.getCandidateBlocks()).filter(b -> !b.isValid()).count() == 0,
-              "Skipping the test because it has invalid blocks");
+          candidateBlock.getBlock().getBody().getTransactions().size() > 0,
+          "Skipping the test because the block has no transaction");
+      Assumptions.assumeTrue(
+          Arrays.stream(spec.getCandidateBlocks()).filter(b -> !b.isValid()).count() == 0,
+          "Skipping the test because it has invalid blocks");
 
       try {
         final Block block = candidateBlock.getBlock();
-
-
 
         zkTracer.traceStartBlock(block.getHeader());
 
@@ -240,10 +237,8 @@ public class BlockchainReferenceTestTools {
 
     zkTracer.traceEndConflation(worldState);
 
-    String result = ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
-    assertThat(blockchain.getChainHeadHash())
-        .isEqualTo(spec.getLastBlockHash())
-        .withFailMessage("Constraint failed: " + result);
+    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
+    assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
   }
 
   private static MainnetBlockImporter getMainnetBlockImporter(

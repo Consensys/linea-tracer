@@ -32,10 +32,10 @@ import lombok.Getter;
   "modules"
 })
 public class BlockchainReferenceTestOutcome {
-  private final AtomicInteger failedCounter;
-  private final AtomicInteger successCounter;
-  private final AtomicInteger disabledCounter;
-  private final AtomicInteger abortedCounter;
+  private final int failedCounter;
+  private final int successCounter;
+  private final int disabledCounter;
+  private final int abortedCounter;
   private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
       modulesToConstraintsToTests;
 }

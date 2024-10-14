@@ -39,25 +39,24 @@ public class ReferenceTestOutcomeRecorderTool {
   public static final String JSON_INPUT_FILENAME = "failedBlockchainReferenceTests-input.json";
   public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests.json";
   public static JsonConverter jsonConverter = JsonConverter.builder().build();
-  public static volatile BlockchainReferenceTestOutcome testOutcomes =
-      new BlockchainReferenceTestOutcome(
-          new AtomicInteger(0),
-          new AtomicInteger(0),
-          new AtomicInteger(0),
-          new AtomicInteger(0),
-          new ConcurrentHashMap<>());
-
+  private static volatile AtomicInteger failedCounter = new AtomicInteger(0);
+  private static volatile AtomicInteger successCounter = new AtomicInteger(0);
+  private static volatile AtomicInteger disabledCounter = new AtomicInteger(0);
+  private static volatile AtomicInteger abortedCounter = new AtomicInteger(0);
+  private static volatile ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
+          modulesToConstraintsToTests = new ConcurrentHashMap<>();
+ 
+          
   public static void mapAndStoreTestResult(
       String testName, TestState success, Map<String, Set<String>> failedConstraints) {
     switch (success) {
       case FAILED -> {
-        testOutcomes.getFailedCounter().incrementAndGet();
+        failedCounter.incrementAndGet();
         for (Map.Entry<String, Set<String>> failedConstraint : failedConstraints.entrySet()) {
           String moduleName = failedConstraint.getKey();
           for (String constraint : failedConstraint.getValue()) {
             ConcurrentMap<String, ConcurrentSkipListSet<String>> constraintsToTests =
-                testOutcomes
-                    .getModulesToConstraintsToTests()
+                    modulesToConstraintsToTests
                     .computeIfAbsent(moduleName, m -> new ConcurrentHashMap<>());
             ConcurrentSkipListSet<String> failingTests =
                 constraintsToTests.computeIfAbsent(constraint, m -> new ConcurrentSkipListSet<>());
@@ -69,9 +68,9 @@ public class ReferenceTestOutcomeRecorderTool {
           }
         }
       }
-      case SUCCESS -> testOutcomes.getSuccessCounter().incrementAndGet();
-      case ABORTED -> testOutcomes.getAbortedCounter().incrementAndGet();
-      case DISABLED -> testOutcomes.getDisabledCounter().incrementAndGet();
+      case SUCCESS -> successCounter.incrementAndGet();
+      case ABORTED -> abortedCounter.incrementAndGet();
+      case DISABLED -> disabledCounter.incrementAndGet();
     }
   }
 
@@ -200,7 +199,14 @@ public class ReferenceTestOutcomeRecorderTool {
     return CompletableFuture.runAsync(
         () -> {
           try (FileWriter file = new FileWriter(fileDirectory + name)) {
-            objectMapper.writeValue(file, testOutcomes);
+            objectMapper.writeValue(file,
+                    new BlockchainReferenceTestOutcome(
+                            failedCounter.get(),
+                            successCounter.get(),
+                            disabledCounter.get(),
+                            abortedCounter.get(),
+                            modulesToConstraintsToTests
+            ));
           } catch (Exception e) {
             log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));
           }

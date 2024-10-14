@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import net.consensys.linea.testing.SolidityUtils;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -297,37 +299,51 @@ public class ExampleSolidityTest {
         .run();
   }
 
+  @NoArgsConstructor
+  class TestContext {
+    static final int numberOfAccounts = 3;
+    @Getter
+    ToyAccount frameworkEntryPointAccount, yulSnippetsAccount;
+    ToyAccount[] initialAccounts;
+    KeyPair[] initialKeyPairs;
+    public void initializeTestContext() {
+      // initialize vectors
+      initialAccounts = new ToyAccount[numberOfAccounts];
+      initialKeyPairs = new KeyPair[numberOfAccounts];
+      // initialize the testing framework entry point account
+      frameworkEntryPointAccount =
+              ToyAccount.builder()
+                      .address(Address.fromHexString("0x22222"))
+                      .balance(Wei.ONE)
+                      .nonce(5)
+                      .code(SolidityUtils.getContractByteCode(FrameworkEntrypoint.class))
+                      .build();
+      // initialize the .yul snippets account
+      // load the .yul bytecode
+      String dynamicBytecodeYul = "0x610007610143565b63a770741d8114610038576397deb47b811461004557630dd2602c81146100515763d40e607a811461007257600080fd5b610040610091565b61008b565b60005460005260206000f35b6004356024356100618183610131565b61006b81836100b7565b505061008b565b60043561007e81610138565b61008881836100f4565b50505b5061016c565b7f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef600055565b7f577269746528616464726573732c75696e743235362c75696e74323536290000604051818152601e8120308585828460606020a4505050505050565b7f5265616428616464726573732c75696e743235362c75696e7432353629202020604051818152601d8120308585828460606020a4505050505050565b8181555050565b600081549050919050565b60007c010000000000000000000000000000000000000000000000000000000060003504905090565b";
+      yulSnippetsAccount =
+              ToyAccount.builder()
+                      .address(Address.fromHexString("0x11111"))
+                      .balance(Wei.ONE)
+                      .nonce(6)
+                      .code(Bytes.fromHexStringLenient(dynamicBytecodeYul))
+                      .build();
+      // generate extra accounts
+      KeyPair keyPair = new SECP256K1().generateKeyPair();
+      Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+      ToyAccount senderAccount =
+              ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+      // add to arrays
+      initialAccounts[0] = senderAccount;
+      initialKeyPairs[0] = keyPair;
+    }
+  }
+
   @Test
   void testYulModifiedWrite() {
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
-
-    ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
-
-    ToyAccount frameworkEntrypointAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x22222"))
-            .balance(Wei.ONE)
-            .nonce(5)
-            .code(SolidityUtils.getContractByteCode(FrameworkEntrypoint.class))
-            .build();
-
-    String dynamicBytecodeYul = "0x610007610143565b63a770741d8114610038576397deb47b811461004557630dd2602c81146100515763d40e607a811461007257600080fd5b610040610091565b61008b565b60005460005260206000f35b6004356024356100618183610131565b61006b81836100b7565b505061008b565b60043561007e81610138565b61008881836100f4565b50505b5061016c565b7f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef600055565b7f577269746528616464726573732c75696e743235362c75696e74323536290000604051818152601e8120308585828460606020a4505050505050565b7f5265616428616464726573732c75696e743235362c75696e7432353629202020604051818152601d8120308585828460606020a4505050505050565b8181555050565b600081549050919050565b60007c010000000000000000000000000000000000000000000000000000000060003504905090565b";
-
-    ToyAccount yulAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x11111"))
-            .balance(Wei.ONE)
-            .nonce(6)
-            .code(Bytes.fromHexStringLenient(dynamicBytecodeYul))
-            .build();
-
-
-    //org.web3j.abi.datatypes.Type
-    // ArrayList<org.web3j.abi.datatypes.Type> inputParams = new ArrayList<>();
-    // var inputParams = List.of(new Uint256(BigInteger.valueOf(123456)));
-
+    // initialize the test context
+    TestContext context = new TestContext();
+    context.initializeTestContext();
 
     List<org.web3j.abi.datatypes.Uint> inputParams = new ArrayList<>();
     inputParams.addLast(new Uint256(BigInteger.valueOf(1)));
@@ -338,7 +354,7 @@ public class ExampleSolidityTest {
     var encoding = FunctionEncoder.encode(yulFunction);
     FrameworkEntrypoint.ContractCall snippetContractCall =
         new FrameworkEntrypoint.ContractCall(
-            /*Address*/ yulAccount.getAddress().toHexString(),
+            /*Address*/ context.getYulSnippetsAccount().getAddress().toHexString(),
             /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
             /*gasLimit*/ BigInteger.ZERO,
             /*value*/ BigInteger.ZERO,
@@ -353,7 +369,7 @@ public class ExampleSolidityTest {
     var encoding2 = FunctionEncoder.encode(yulFunction2);
     FrameworkEntrypoint.ContractCall snippetContractCall2 =
             new FrameworkEntrypoint.ContractCall(
-                    /*Address*/ yulAccount.getAddress().toHexString(),
+                    /*Address*/ context.getYulSnippetsAccount().getAddress().toHexString(),
                     /*calldata*/ Bytes.fromHexStringLenient(encoding2).toArray(),
                     /*gasLimit*/ BigInteger.ZERO,
                     /*value*/ BigInteger.ZERO,
@@ -371,10 +387,10 @@ public class ExampleSolidityTest {
 
     Transaction tx =
         ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(frameworkEntrypointAccount)
+            .sender(context.initialAccounts[0])
+            .to(context.frameworkEntryPointAccount)
             .payload(txPayload)
-            .keyPair(keyPair)
+            .keyPair(context.initialKeyPairs[0])
             .gasLimit(500000L)
             .build();
 
@@ -394,15 +410,23 @@ public class ExampleSolidityTest {
               FrameworkEntrypoint.CallExecutedEventResponse response =
                   FrameworkEntrypoint.getCallExecutedEventFromLog(SolidityUtils.fromBesuLog(log));
               assertTrue(response.isSuccess);
-              assertEquals(response.destination, yulAccount.getAddress().toHexString());
-            } else {
-              //fail();
+              assertEquals(response.destination, context.yulSnippetsAccount.getAddress().toHexString());
+              continue;
             }
+            if (writeEventSignature.equals(logTopic)) {
+              // write event
+              continue;
+            }
+            if (readEventSignature.equals(logTopic)) {
+              // read event
+              continue;
+            }
+            fail();
           }
         };
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, frameworkEntrypointAccount, yulAccount))
+        .accounts(List.of(context.initialAccounts[0], context.frameworkEntryPointAccount, context.yulSnippetsAccount))
         .transaction(tx)
         .testValidator(resultValidator)
         .build()

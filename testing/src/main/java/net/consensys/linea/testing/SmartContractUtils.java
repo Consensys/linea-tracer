@@ -55,4 +55,36 @@ public class SmartContractUtils {
     }
     throw new RuntimeException("Could not find contract bytecode");
   }
+
+  /**
+   * The yul contracts under testing/src/main/yul are compiled using the solidity compiler via the
+   * yul plugin This method reads the output of the solidity compiler output file and returns the
+   * deployed or runtime bytecode for yul contract.
+   *
+   * @param yulFileName: The yul contract filename along with .yul suffix
+   * @return The depolyed or runtime bytecode for the yul contract
+   */
+  public static Bytes getYulContractByteCode(final String yulFileName) {
+    if (!yulFileName.contains(".yul")) {
+      throw new IllegalArgumentException("Yul file name should contain the suffix: .yul");
+    }
+    String yulFileNameWithoutSuffix = yulFileName.replace(".yul", "");
+    String contractResourcePath = "yul/%s.json".formatted(yulFileNameWithoutSuffix);
+    URL contractResourceURL = classLoader.getResource(contractResourcePath);
+    try {
+      JsonNode jsonRoot = objectMapper.readTree(contractResourceURL);
+      String byteCode =
+          jsonRoot
+              .get("contracts")
+              .get(yulFileName)
+              .get(yulFileNameWithoutSuffix)
+              .get("evm")
+              .get("deployedBytecode")
+              .get("object")
+              .asText();
+      return Bytes.fromHexStringLenient(byteCode);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
 }

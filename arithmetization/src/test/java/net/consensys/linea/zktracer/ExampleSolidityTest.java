@@ -243,14 +243,15 @@ public class ExampleSolidityTest {
             .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
             .build();
 
-    String dynamicBytecodeYul =
-        "6000803560e01c8063a770741d146025576397deb47b14601c5780fd5b80602091548152f35b7f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef60005500";
+    //    String dynamicBytecodeYul =
+    //
+    // "6000803560e01c8063a770741d146025576397deb47b14601c5780fd5b80602091548152f35b7f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef60005500";
     ToyAccount yulAccount =
         ToyAccount.builder()
             .address(Address.fromHexString("0x11111"))
             .balance(Wei.ONE)
             .nonce(6)
-            .code(Bytes.fromHexStringLenient(dynamicBytecodeYul))
+            .code(SmartContractUtils.getYulContractByteCode("DynamicBytecode.yul"))
             .build();
 
     Function yulFunction = new Function("Write", Collections.emptyList(), Collections.emptyList());

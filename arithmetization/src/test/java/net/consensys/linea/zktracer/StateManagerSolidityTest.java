@@ -19,8 +19,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
-import net.consensys.linea.testing.generated.TestSnippet_Events;
-import net.consensys.linea.testing.generated.TestStorage;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -48,7 +46,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class StateManagerSolidityTest {
   TestContext testContext;
-  Transaction writeToStorage(ToyAccount sender, ToyAccount destination, Long key, Long value) {
+  // destination must be our .yul smart contract
+  Transaction writeToStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key, Long value) {
     List<org.web3j.abi.datatypes.Uint> inputParams = new ArrayList<>();
     inputParams.addLast(new Uint256(BigInteger.valueOf(key)));
     inputParams.addLast(new Uint256(BigInteger.valueOf(value)));
@@ -57,7 +56,7 @@ public class StateManagerSolidityTest {
     var encoding = FunctionEncoder.encode(yulFunction);
     FrameworkEntrypoint.ContractCall snippetContractCall =
             new FrameworkEntrypoint.ContractCall(
-                    /*Address*/ this.testContext.getYulSnippetsAccount().getAddress().toHexString(),
+                    /*Address*/ destination.getAddress().toHexString(),
                     /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
                     /*gasLimit*/ BigInteger.ZERO,
                     /*value*/ BigInteger.ZERO,
@@ -74,10 +73,47 @@ public class StateManagerSolidityTest {
 
     Transaction tx =
             ToyTransaction.builder()
-                    .sender(this.testContext.initialAccounts[0])
+                    .sender(sender)
                     .to(this.testContext.frameworkEntryPointAccount)
                     .payload(txPayload)
-                    .keyPair(this.testContext.initialKeyPairs[0])
+                    .keyPair(senderKeyPair)
+                    .gasLimit(TestContext.gasLimit)
+                    .build();
+    return tx;
+  }
+
+  // destination must be our .yul smart contract
+  Transaction readFromStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key) {
+    List<org.web3j.abi.datatypes.Uint> inputParams2 = new ArrayList<>();
+    List<TypeReference<?>> outputParams2 = new ArrayList<>();
+    inputParams2.addLast(new Uint256(BigInteger.valueOf(1)));
+    Function yulFunction2 = new Function("readFromStorage", Collections.unmodifiableList(inputParams2), outputParams2);
+
+
+    var encoding2 = FunctionEncoder.encode(yulFunction2);
+    FrameworkEntrypoint.ContractCall snippetContractCall =
+            new FrameworkEntrypoint.ContractCall(
+                    /*Address*/ destination.getAddress().toHexString(),
+                    /*calldata*/ Bytes.fromHexStringLenient(encoding2).toArray(),
+                    /*gasLimit*/ BigInteger.ZERO,
+                    /*value*/ BigInteger.ZERO,
+                    /*callType*/ BigInteger.ZERO);
+
+    List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall);
+    Function frameworkEntryPointFunction =
+            new Function(
+                    FrameworkEntrypoint.FUNC_EXECUTECALLS,
+                    List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
+                    Collections.emptyList());
+    Bytes txPayload =
+            Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+
+    Transaction tx =
+            ToyTransaction.builder()
+                    .sender(sender)
+                    .to(this.testContext.frameworkEntryPointAccount)
+                    .payload(txPayload)
+                    .keyPair(senderKeyPair)
                     .gasLimit(TestContext.gasLimit)
                     .build();
     return tx;
@@ -89,7 +125,7 @@ public class StateManagerSolidityTest {
     static final Long gasLimit = 500000L;
     static final int numberOfAccounts = 3;
     @Getter
-    ToyAccount frameworkEntryPointAccount, yulSnippetsAccount;
+    ToyAccount frameworkEntryPointAccount;
     ToyAccount[] initialAccounts;
     KeyPair[] initialKeyPairs;
     public void initializeTestContext() {
@@ -106,13 +142,12 @@ public class StateManagerSolidityTest {
                       .build();
       // initialize the .yul snippets account
       // load the .yul bytecode
-      String dynamicBytecodeYul = "0x610007610143565b63a770741d8114610038576397deb47b811461004557630dd2602c81146100515763d40e607a811461007257600080fd5b610040610091565b61008b565b60005460005260206000f35b6004356024356100618183610131565b61006b81836100b7565b505061008b565b60043561007e81610138565b61008881836100f4565b50505b5061016c565b7f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef600055565b7f577269746528616464726573732c75696e743235362c75696e74323536290000604051818152601e8120308585828460606020a4505050505050565b7f5265616428616464726573732c75696e743235362c75696e7432353629202020604051818152601d8120308585828460606020a4505050505050565b8181555050565b600081549050919050565b60007c010000000000000000000000000000000000000000000000000000000060003504905090565b";
-      yulSnippetsAccount =
+      initialAccounts[0] =
               ToyAccount.builder()
                       .address(Address.fromHexString("0x11111"))
                       .balance(Wei.ONE)
                       .nonce(6)
-                      .code(Bytes.fromHexStringLenient(dynamicBytecodeYul))
+                      .code(SmartContractUtils.getYulContractByteCode("YulContract.yul"))
                       .build();
       // generate extra accounts
       KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -120,8 +155,8 @@ public class StateManagerSolidityTest {
       ToyAccount senderAccount =
               ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
       // add to arrays
-      initialAccounts[0] = senderAccount;
-      initialKeyPairs[0] = keyPair;
+      initialAccounts[1] = senderAccount;
+      initialKeyPairs[1] = keyPair;
     }
   }
 
@@ -132,32 +167,6 @@ public class StateManagerSolidityTest {
     // initialize the test context
     this.testContext = new TestContext();
     this.testContext.initializeTestContext();
-
-
-
-
-    List<org.web3j.abi.datatypes.Uint> inputParams2 = new ArrayList<>();
-    List<TypeReference<?>> outputParams2 = new ArrayList<>();
-    inputParams2.addLast(new Uint256(BigInteger.valueOf(1)));
-    Function yulFunction2 = new Function("readFromStorage", Collections.unmodifiableList(inputParams2), outputParams2);
-
-
-    var encoding2 = FunctionEncoder.encode(yulFunction2);
-    FrameworkEntrypoint.ContractCall snippetContractCall2 =
-            new FrameworkEntrypoint.ContractCall(
-                    /*Address*/ this.testContext.getYulSnippetsAccount().getAddress().toHexString(),
-                    /*calldata*/ Bytes.fromHexStringLenient(encoding2).toArray(),
-                    /*gasLimit*/ BigInteger.ZERO,
-                    /*value*/ BigInteger.ZERO,
-                    /*callType*/ BigInteger.ZERO);
-
-    /*
-    ContractCalls contractCalls = ContractCalls.builder()
-            .call(snippetContractCall)
-            .call(snippetContractCall2)
-            .build();
-     */
-    List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall2);
 
 
 
@@ -178,7 +187,7 @@ public class StateManagerSolidityTest {
               FrameworkEntrypoint.CallExecutedEventResponse response =
                   FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
               assertTrue(response.isSuccess);
-              assertEquals(response.destination, this.testContext.yulSnippetsAccount.getAddress().toHexString());
+              assertEquals(response.destination, this.testContext.initialAccounts[0].getAddress().toHexString());
               continue;
             }
             if (writeEventSignature.equals(logTopic)) {
@@ -194,8 +203,9 @@ public class StateManagerSolidityTest {
         };
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.frameworkEntryPointAccount, this.testContext.yulSnippetsAccount))
-        .transaction(writeToStorage(testContext.initialAccounts[0], testContext.initialAccounts[1], 123L, 1L))
+        .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.initialAccounts[1], this.testContext.frameworkEntryPointAccount))
+        .transaction(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L))
+        //    .transaction(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L))
         .testValidator(resultValidator)
         .build()
         .run();

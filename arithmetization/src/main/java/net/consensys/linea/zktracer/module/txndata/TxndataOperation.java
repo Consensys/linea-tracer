@@ -40,7 +40,6 @@ import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 import static org.hyperledger.besu.datatypes.TransactionType.*;
-import static org.web3j.crypto.transaction.type.TransactionType.EIP1559;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -53,6 +52,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.TransactionType;
 
 public class TxndataOperation extends ModuleOperation {
@@ -79,8 +79,10 @@ public class TxndataOperation extends ModuleOperation {
 
   private void setCallsToEucAndWcp() {
 
+    Transaction besuTx = tx.getBesuTransaction();
+
     // row 0: nonce VS. EIP-2681 max nonce
-    final Bytes nonce = Bytes.minimalBytes(tx.getBesuTransaction().getNonce());
+    final Bytes nonce = Bytes.minimalBytes(besuTx.getNonce());
     wcp.callLT(nonce, EIP_2681_MAX_NONCE);
     callsToEucAndWcp.add(TxnDataComparisonRecord.callToLt(nonce, EIP_2681_MAX_NONCE, true));
 
@@ -89,21 +91,19 @@ public class TxndataOperation extends ModuleOperation {
     final BigInteger value = tx.getBesuTransaction().getValue().getAsBigInteger();
     final Bytes upfrontWeiCost =
         bigIntegerToBytes(
-            value.add(
-                outgoingLowRow6()
-                    .multiply(BigInteger.valueOf(tx.getBesuTransaction().getGasLimit()))));
+            value.add(outgoingLowRow6().multiply(BigInteger.valueOf(besuTx.getGasLimit()))));
     wcp.callLEQ(upfrontWeiCost, initialBalance);
     callsToEucAndWcp.add(TxnDataComparisonRecord.callToLeq(upfrontWeiCost, initialBalance, true));
 
     // row 2: gasLimit covers the upfront gas cost
-    final Bytes gasLimit = Bytes.minimalBytes(tx.getBesuTransaction().getGasLimit());
+    final Bytes gasLimit = Bytes.minimalBytes(besuTx.getGasLimit());
     final Bytes upfrontGasCost = Bytes.minimalBytes(tx.getUpfrontGasCost());
     wcp.callLEQ(upfrontGasCost, gasLimit);
     callsToEucAndWcp.add(TxnDataComparisonRecord.callToLeq(upfrontGasCost, gasLimit, true));
 
     // row 3: computing upper limit for refunds
     final Bytes gasConsumedByTransactionExecution =
-        Bytes.minimalBytes(tx.getBesuTransaction().getGasLimit() - tx.getLeftoverGas());
+        Bytes.minimalBytes(besuTx.getGasLimit() - tx.getLeftoverGas());
     final Bytes refundLimit =
         euc.callEUC(gasConsumedByTransactionExecution, BYTES_MAX_REFUND_QUOTIENT).quotient();
     callsToEucAndWcp.add(
@@ -117,16 +117,15 @@ public class TxndataOperation extends ModuleOperation {
         TxnDataComparisonRecord.callToLt(accruedRefunds, refundLimit, getFullRefund));
 
     // row 5: detecting empty payload
-    final Bytes payloadSize = Bytes.minimalBytes(tx.getBesuTransaction().getPayload().size());
+    final Bytes payloadSize = Bytes.minimalBytes(besuTx.getPayload().size());
     final boolean payloadIsEmpty = wcp.callISZERO(payloadSize);
     callsToEucAndWcp.add(TxnDataComparisonRecord.callToIszero(payloadSize, payloadIsEmpty));
 
     // row 6: comparing the maximal gas price against the base fee
-    final TransactionType type = tx.getBesuTransaction().getType();
+    final TransactionType type = besuTx.getType();
     final Bytes baseFee = Bytes.minimalBytes(tx.getBaseFee());
     if (type == FRONTIER || type == ACCESS_LIST) {
-      final Bytes gasPriceBytes =
-          bigIntegerToBytes(tx.getBesuTransaction().getGasPrice().get().getAsBigInteger());
+      final Bytes gasPriceBytes = bigIntegerToBytes(besuTx.getGasPrice().get().getAsBigInteger());
       wcp.callLEQ(baseFee, gasPriceBytes);
       callsToEucAndWcp.add(TxnDataComparisonRecord.callToLeq(baseFee, gasPriceBytes, true));
     }
@@ -146,13 +145,13 @@ public class TxndataOperation extends ModuleOperation {
 
         // row 6: comparing the maximal gas price against the base fee
         final Bytes maxFeePerGas =
-            bigIntegerToBytes(tx.getBesuTransaction().getMaxFeePerGas().get().getAsBigInteger());
+            bigIntegerToBytes(besuTx.getMaxFeePerGas().get().getAsBigInteger());
         wcp.callLEQ(baseFee, maxFeePerGas);
         callsToEucAndWcp.add(TxnDataComparisonRecord.callToLeq(baseFee, maxFeePerGas, true));
 
         // row 7: comparing max fee to the max priority fee
         final BigInteger maxPriorityFeePerGas =
-            tx.getBesuTransaction().getMaxPriorityFeePerGas().get().getAsBigInteger();
+            besuTx.getMaxPriorityFeePerGas().get().getAsBigInteger();
         wcp.callLEQ(bigIntegerToBytes(maxPriorityFeePerGas), maxFeePerGas);
         callsToEucAndWcp.add(
             TxnDataComparisonRecord.callToLeq(
@@ -182,12 +181,15 @@ public class TxndataOperation extends ModuleOperation {
   }
 
   private void setRlptxnValues() {
+
+    Transaction besuTx = tx.getBesuTransaction();
+
     // i+0
     valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_0,
             Bytes.EMPTY,
-            Bytes.ofUnsignedInt(getTxTypeAsInt(tx.getBesuTransaction().getType()))));
+            Bytes.ofUnsignedInt(getTxTypeAsInt(besuTx.getType()))));
     // i+1
     valuesToRlptxn.add(
         RlptxnOutgoing.set(
@@ -200,30 +202,30 @@ public class TxndataOperation extends ModuleOperation {
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_2,
             Bytes.EMPTY,
-            Bytes.ofUnsignedLong(tx.getBesuTransaction().getNonce())));
+            Bytes.ofUnsignedLong(besuTx.getNonce())));
 
     // i+3
     valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_3,
             tx.isDeployment() ? Bytes.of(1) : Bytes.EMPTY,
-            bigIntegerToBytes(tx.getBesuTransaction().getValue().getAsBigInteger())));
+            bigIntegerToBytes(besuTx.getValue().getAsBigInteger())));
 
     // i+4
     valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_4,
             Bytes.ofUnsignedLong(tx.getDataCost()),
-            Bytes.ofUnsignedLong(tx.getBesuTransaction().getPayload().size())));
+            Bytes.ofUnsignedLong(besuTx.getPayload().size())));
 
     // i+5
     valuesToRlptxn.add(
         RlptxnOutgoing.set(
             (short) COMMON_RLP_TXN_PHASE_NUMBER_5,
             Bytes.EMPTY,
-            Bytes.ofUnsignedLong(tx.getBesuTransaction().getGasLimit())));
+            Bytes.ofUnsignedLong(besuTx.getGasLimit())));
 
-    switch (tx.getBesuTransaction().getType()) {
+    switch (besuTx.getType()) {
       case FRONTIER -> {
         // i+6
         valuesToRlptxn.add(
@@ -260,8 +262,7 @@ public class TxndataOperation extends ModuleOperation {
         valuesToRlptxn.add(
             RlptxnOutgoing.set(
                 (short) TYPE_2_RLP_TXN_PHASE_NUMBER_6,
-                bigIntegerToBytes(
-                    tx.getBesuTransaction().getMaxPriorityFeePerGas().get().getAsBigInteger()),
+                bigIntegerToBytes(besuTx.getMaxPriorityFeePerGas().get().getAsBigInteger()),
                 bigIntegerToBytes(outgoingLowRow6())));
 
         // i+7
@@ -304,11 +305,13 @@ public class TxndataOperation extends ModuleOperation {
   }
 
   private BigInteger outgoingLowRow6() {
-    return switch (tx.getBesuTransaction().getType()) {
-      case FRONTIER, ACCESS_LIST -> tx.getBesuTransaction().getGasPrice().get().getAsBigInteger();
-      case EIP1559 -> tx.getBesuTransaction().getMaxFeePerGas().get().getAsBigInteger();
-      default -> throw new RuntimeException(
-          "Transaction type not supported:" + tx.getBesuTransaction().getType());
+
+    Transaction besuTx = tx.getBesuTransaction();
+
+    return switch (besuTx.getType()) {
+      case FRONTIER, ACCESS_LIST -> besuTx.getGasPrice().get().getAsBigInteger();
+      case EIP1559 -> besuTx.getMaxFeePerGas().get().getAsBigInteger();
+      default -> throw new RuntimeException("Transaction type not supported:" + besuTx.getType());
     };
   }
 
@@ -324,22 +327,23 @@ public class TxndataOperation extends ModuleOperation {
       valuesToRlpTxrcpt.add(RlptxrcptOutgoing.emptyValue());
     }
 
+    final Transaction besuTx = tx.getBesuTransaction();
     final long fromHi = highPart(tx.getSender());
     final Bytes fromLo = lowPart(tx.getSender());
-    final Bytes nonce = Bytes.ofUnsignedLong(tx.getBesuTransaction().getNonce());
+    final Bytes nonce = Bytes.ofUnsignedLong(besuTx.getNonce());
     final Bytes initialBalance = bigIntegerToBytes(tx.getInitialBalance());
-    final Bytes value = bigIntegerToBytes(tx.getBesuTransaction().getValue().getAsBigInteger());
+    final Bytes value = bigIntegerToBytes(besuTx.getValue().getAsBigInteger());
     final long toHi = highPart(tx.getEffectiveRecipient());
     final Bytes toLo = lowPart(tx.getEffectiveRecipient());
-    final Bytes gasLimit = Bytes.minimalBytes(tx.getBesuTransaction().getGasLimit());
+    final Bytes gasLimit = Bytes.minimalBytes(besuTx.getGasLimit());
     final Bytes gasInitiallyAvailable = Bytes.minimalBytes(tx.getInitiallyAvailableGas());
     final Bytes gasPrice = Bytes.minimalBytes(tx.getEffectiveGasPrice());
     final Bytes priorityFeePerGas = Bytes.minimalBytes(tx.feeRateForCoinbase());
     final Bytes baseFee = block.getBaseFee().get().toMinimalBytes();
     final long coinbaseHi = highPart(block.getCoinbaseAddress());
     final Bytes coinbaseLo = lowPart(block.getCoinbaseAddress());
-    final int callDataSize = tx.isDeployment() ? 0 : tx.getBesuTransaction().getPayload().size();
-    final int initCodeSize = tx.isDeployment() ? tx.getBesuTransaction().getPayload().size() : 0;
+    final int callDataSize = tx.isDeployment() ? 0 : besuTx.getPayload().size();
+    final int initCodeSize = tx.isDeployment() ? besuTx.getPayload().size() : 0;
     final Bytes gasLeftOver = Bytes.minimalBytes(tx.getLeftoverGas());
     final Bytes refundCounter = Bytes.minimalBytes(tx.getRefundCounterMax());
     final Bytes refundEffective = Bytes.minimalBytes(tx.getGasRefunded());
@@ -374,9 +378,9 @@ public class TxndataOperation extends ModuleOperation {
           .blockGasLimit(block.getBlockGasLimit())
           .callDataSize(callDataSize)
           .initCodeSize(initCodeSize)
-          .type0(tx.getBesuTransaction().getType() == FRONTIER)
-          .type1(tx.getBesuTransaction().getType() == ACCESS_LIST)
-          .type2(tx.getBesuTransaction().getType() == TransactionType.EIP1559)
+          .type0(besuTx.getType() == FRONTIER)
+          .type1(besuTx.getType() == ACCESS_LIST)
+          .type2(besuTx.getType() == EIP1559)
           .requiresEvmExecution(tx.requiresEvmExecution())
           .copyTxcd(tx.copyTransactionCallData())
           .gasLeftover(gasLeftOver)

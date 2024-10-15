@@ -25,7 +25,7 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class StackedSetTests {
+public class ModuleOperationStackedSetTests {
 
   private static final AddOperation ONE_PLUS_ONE =
       new AddOperation(
@@ -62,10 +62,52 @@ public class StackedSetTests {
 
     chunks.enter();
     chunks.add(ONE_PLUS_ONE);
-    Assertions.assertEquals(1, chunks.size());
+    Assertions.assertEquals(2, chunks.size());
     chunks.add(ONE_PLUS_TWO);
+    Assertions.assertEquals(3, chunks.size());
+    chunks.pop();
+    Assertions.assertEquals(1, chunks.size());
+  }
+
+  @Test
+  public void deleteDuplicate() {
+    ModuleOperationStackedSet<AddOperation> chunks = new ModuleOperationStackedSet<>();
+    chunks.enter();
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_ONE);
+    Assertions.assertEquals(1, chunks.size());
+
+    chunks.enter();
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_TWO);
+    Assertions.assertEquals(3, chunks.size());
+    chunks.lineCount();
     Assertions.assertEquals(2, chunks.size());
     chunks.pop();
     Assertions.assertEquals(1, chunks.size());
+
+    chunks.enter();
+    Assertions.assertEquals(1, chunks.size());
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_TWO);
+    Assertions.assertEquals(3, chunks.size());
+    chunks.enter();
+    Assertions.assertEquals(2, chunks.size());
+  }
+
+  @Test
+  public void lineCount() {
+    ModuleOperationStackedSet<AddOperation> chunks = new ModuleOperationStackedSet<>();
+    chunks.enter();
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_ONE);
+    Assertions.assertEquals(2, chunks.lineCount());
+    chunks.enter();
+    chunks.add(ONE_PLUS_ONE);
+    chunks.add(ONE_PLUS_TWO);
+    chunks.add(ONE_PLUS_TWO);
+    Assertions.assertEquals(4, chunks.lineCount());
+    chunks.pop();
+    Assertions.assertEquals(2, chunks.lineCount());
   }
 }

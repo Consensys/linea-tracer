@@ -15,13 +15,13 @@
 
 package net.consensys.linea.zktracer.container.stacked;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -44,12 +44,13 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   private static final Logger log = LoggerFactory.getLogger(ModuleOperationStackedSet.class);
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   @Getter private boolean conflationFinished = false;
+  private boolean duplicateAlreadyRemoved = false; // TODO: add documentation about this
 
   public ModuleOperationStackedSet() {
     super();
   }
 
-  /** Prefer this constructor as we preallocate more needed memory */
+  /** Prefer this constructor as we preallocate more necessary memory */
   public ModuleOperationStackedSet(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
     super(expectedConflationNumberOperations, expectedTransactionNumberOperations);
@@ -62,11 +63,17 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
    * ModuleOperationStackedSet#operationsCommitedToTheConflation()}. {@link
    * ModuleOperationStackedSet#operationsInTransaction()} is further reset to be empty.
    */
+  @Override
   public void enter() {
+    if (!duplicateAlreadyRemoved) {
+      lineCount();
+    }
     super.enter();
     lineCounter.enter();
+    duplicateAlreadyRemoved = false;
   }
 
+  @Override
   public void pop() {
     super.pop();
     lineCounter.pop();
@@ -77,11 +84,16 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   }
 
   public int lineCount() {
+    deleteDuplicates();
+    duplicateAlreadyRemoved = true;
+    for (var operation : operationsInTransaction()) {
+      lineCounter.add(operation.lineCount());
+    }
     return lineCounter.lineCount();
   }
 
-  public Set<E> getAll() {
-    Preconditions.checkState(conflationFinished, "Conflation not finished");
+  public ArrayList<E> getAll() {
+    checkState(conflationFinished, "Conflation not finished");
     return operationsCommitedToTheConflation();
   }
 
@@ -93,20 +105,21 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
     return operationsInTransaction().contains(o) || operationsCommitedToTheConflation().contains(o);
   }
 
+  /**
+   * Warn: as we only check if it's a new operation for the current transaction, it could return
+   * true even if this operation is part of the conflation's already commited operations
+   */
+  @Override
   public boolean add(E e) {
-    if (!operationsCommitedToTheConflation().contains(e)) {
-      final boolean isNew = operationsInTransaction().add(e);
-      if (isNew) {
-        lineCounter.add(e.lineCount());
-      }
-      return isNew;
-    } else {
+    checkState(!conflationFinished, "Can't add operations if the conflation is finished");
+    final boolean isNew = operationsInTransaction().add(e);
+    if (!isNew) {
       log.trace(
-          "Operation of type {} was already in operationsCommitedToTheConflation hashset, reference is ",
+          "Operation of type {} was already in operationsInTransaction hashset, reference is ",
           e.getClass().getName(),
           e);
     }
-    return false;
+    return isNew;
   }
 
   public boolean containsAll(@NotNull Collection<?> c) {
@@ -118,12 +131,10 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
     return true;
   }
 
-  public boolean addAll(@NotNull Collection<? extends E> c) {
-    boolean r = false;
+  public void addAll(@NotNull Collection<? extends E> c) {
     for (var x : c) {
-      r |= add(x);
+      add(x);
     }
-    return r;
   }
 
   public void clear() {
@@ -134,9 +145,16 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
 
   public void finishConflation() {
     conflationFinished = true;
+    if (!duplicateAlreadyRemoved) {
+      lineCount();
+    }
     operationsCommitedToTheConflation().addAll(operationsInTransaction());
     operationsInTransaction().clear();
     lineCounter.enter(); // this is not mandatory but it is more consistent
+  }
+
+  void deleteDuplicates() {
+    operationsInTransaction().removeIf(e -> operationsCommitedToTheConflation().contains(e));
   }
 
   public List<E> sortOperations(Comparator<E> comparator) {

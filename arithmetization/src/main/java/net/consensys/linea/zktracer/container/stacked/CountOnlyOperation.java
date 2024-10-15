@@ -29,7 +29,7 @@ public class CountOnlyOperation {
 
   /**
    * when we enter a transaction, the previous transaction is definitely added to the block and
-   * can't be pop
+   * can't be popped
    */
   public void enter() {
     countCommitedToTheConflation += countInTransaction;

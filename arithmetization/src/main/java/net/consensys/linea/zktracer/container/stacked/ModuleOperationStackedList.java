@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.container.stacked;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,7 +49,7 @@ public class ModuleOperationStackedList<E extends ModuleOperation> {
     operationsInTransaction = new ArrayList<>();
   }
 
-  /** Prefer this constructor as we preallocate more needed memory */
+  /** Prefer this constructor as we preallocate more necessary memory */
   public ModuleOperationStackedList(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
     operationsCommitedToTheConflation = new ArrayList<>(expectedConflationNumberOperations);
@@ -111,6 +113,7 @@ public class ModuleOperationStackedList<E extends ModuleOperation> {
   }
 
   public boolean add(E e) {
+    checkState(!conflationFinished, "Can't add operations if the conflation is finished");
     lineCounter.add(e.lineCount());
     return operationsInTransaction.add(e);
   }

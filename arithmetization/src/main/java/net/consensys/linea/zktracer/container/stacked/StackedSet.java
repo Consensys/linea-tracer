@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.container.stacked;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,18 +25,18 @@ import lombok.experimental.Accessors;
 @Accessors(fluent = true)
 @Getter
 public class StackedSet<E> {
-  private final Set<E> operationsCommitedToTheConflation;
+  private final ArrayList<E> operationsCommitedToTheConflation;
   private final Set<E> operationsInTransaction;
 
   public StackedSet() {
-    operationsCommitedToTheConflation = new HashSet<>();
+    operationsCommitedToTheConflation = new ArrayList<>();
     operationsInTransaction = new HashSet<>();
   }
 
-  /** Prefer this constructor as we preallocate more needed memory */
+  /** Prefer this constructor as we preallocate more necessary memory */
   public StackedSet(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
-    operationsCommitedToTheConflation = new HashSet<>(expectedConflationNumberOperations);
+    operationsCommitedToTheConflation = new ArrayList<>(expectedConflationNumberOperations);
     operationsInTransaction = new HashSet<>(expectedTransactionNumberOperations);
   }
 

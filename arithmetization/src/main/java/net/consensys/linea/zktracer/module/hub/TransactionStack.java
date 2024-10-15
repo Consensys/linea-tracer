@@ -87,7 +87,7 @@ public class TransactionStack implements StackedContainer {
     }
   }
 
-  public int getAccumulativeGasUsedInBlockBeforeTxStart() {
+  public long getAccumulativeGasUsedInBlockBeforeTxStart() {
     return this.relativeTransactionNumber == 1 ? 0 : this.previous().getAccumulatedGasUsedInBlock();
   }
 }

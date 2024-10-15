@@ -38,9 +38,8 @@ import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
-import net.consensys.linea.zktracer.runtime.stack.Action;
 import net.consensys.linea.zktracer.runtime.stack.Stack;
-import net.consensys.linea.zktracer.runtime.stack.StackOperation;
+import net.consensys.linea.zktracer.runtime.stack.StackItem;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -50,7 +49,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @Accessors(fluent = true)
 public final class StackFragment implements TraceFragment {
   private final Stack stack;
-  @Getter private final List<StackOperation> stackOps;
+  @Getter private final List<StackItem> stackOps;
   private final short exceptions;
   private final long staticGas;
   @Setter public boolean hashInfoFlag;
@@ -66,7 +65,7 @@ public final class StackFragment implements TraceFragment {
   private StackFragment(
       final Hub hub,
       Stack stack,
-      List<StackOperation> stackOps,
+      List<StackItem> stackOps,
       short exceptions,
       AbortingConditions aborts,
       GasProjection gp,
@@ -135,7 +134,7 @@ public final class StackFragment implements TraceFragment {
   public static StackFragment prepare(
       final Hub hub,
       final Stack stack,
-      final List<StackOperation> stackOperations,
+      final List<StackItem> stackItems,
       final short exceptions,
       final AbortingConditions aborts,
       final GasProjection gp,
@@ -145,7 +144,7 @@ public final class StackFragment implements TraceFragment {
     return new StackFragment(
         hub,
         stack,
-        stackOperations,
+        stackItems,
         exceptions,
         aborts,
         gp,
@@ -186,14 +185,14 @@ public final class StackFragment implements TraceFragment {
             trace::pStackStackItemPop3,
             trace::pStackStackItemPop4);
 
-    final List<Function<Bytes, Trace>> heightTracers =
+    final List<Function<Short, Trace>> heightTracers =
         List.of(
             trace::pStackStackItemHeight1,
             trace::pStackStackItemHeight2,
             trace::pStackStackItemHeight3,
             trace::pStackStackItemHeight4);
 
-    final List<Function<Bytes, Trace>> stampTracers =
+    final List<Function<Integer, Trace>> stampTracers =
         List.of(
             trace::pStackStackItemStamp1,
             trace::pStackStackItemStamp2,
@@ -210,11 +209,11 @@ public final class StackFragment implements TraceFragment {
         pushValue = eValue;
       }
 
-      heightTracers.get(i).apply(Bytes.ofUnsignedShort(op.height()));
-      valLoTracers.get(i).apply(eValue.lo());
+      heightTracers.get(i).apply(op.height());
       valHiTracers.get(i).apply(eValue.hi());
-      popTracers.get(i).apply(op.action() == Action.POP);
-      stampTracers.get(i).apply(Bytes.ofUnsignedLong(op.stackStamp()));
+      valLoTracers.get(i).apply(eValue.lo());
+      popTracers.get(i).apply(op.action() == Stack.POP);
+      stampTracers.get(i).apply(op.stackStamp());
     }
 
     final InstructionFamily currentInstFamily = stack.getCurrentOpcodeData().instructionFamily();

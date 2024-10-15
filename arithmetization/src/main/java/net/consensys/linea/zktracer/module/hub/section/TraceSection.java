@@ -37,6 +37,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.internal.Words;
@@ -158,13 +159,14 @@ public class TraceSection {
 
   private List<TraceFragment> makeStackFragments(final Hub hub, CallFrame f) {
     final List<TraceFragment> r = new ArrayList<>(2);
+    Stack snapshot = f.stack().snapshot();
     if (f.pending().lines().isEmpty()) {
       for (int i = 0; i < (f.opCodeData().stackSettings().twoLineInstruction() ? 2 : 1); i++) {
         r.add(
             StackFragment.prepare(
                 hub,
-                f.stack().snapshot(),
-                new StackLine().asStackOperations(),
+                snapshot,
+                new StackLine().asStackItems(),
                 hub.pch().exceptions(),
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
@@ -177,8 +179,8 @@ public class TraceSection {
         r.add(
             StackFragment.prepare(
                 hub,
-                f.stack().snapshot(),
-                line.asStackOperations(),
+                snapshot,
+                line.asStackItems(),
                 hub.pch().exceptions(),
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),

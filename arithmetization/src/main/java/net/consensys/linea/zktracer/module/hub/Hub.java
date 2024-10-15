@@ -658,6 +658,9 @@ public class Hub implements Module {
 
       final long callDataContextNumber = callStack.currentCallFrame().contextNumber();
 
+      currentFrame().rememberGasNextBeforePausing();
+      currentFrame().pauseCurrentFrame();
+
       callStack.enter(
           frameType,
           newChildContextNumber(),
@@ -879,7 +882,7 @@ public class Hub implements Module {
   private void handleStack(MessageFrame frame) {
     this.currentFrame()
         .stack()
-        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * stamp());
+        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * (stamp() + 1));
   }
 
   void triggerModules(MessageFrame frame) {
@@ -989,9 +992,15 @@ public class Hub implements Module {
   }
 
   public long expectedGas() {
-    return this.state().getProcessingPhase() == TX_EXEC
-        ? this.currentFrame().frame().getRemainingGas()
-        : 0;
+
+    if (this.state().getProcessingPhase() != TX_EXEC) return 0;
+
+    if (this.currentFrame().executionPaused()) {
+      currentFrame().unpauseCurrentFrame();
+      return currentFrame().lastValidGasNext();
+    }
+
+    return this.currentFrame().frame().getRemainingGas();
   }
 
   public int cumulatedTxCount() {

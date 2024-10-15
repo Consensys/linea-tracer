@@ -210,13 +210,6 @@ public final class StackFragment implements TraceFragment {
       }
 
       heightTracers.get(i).apply(op.height());
-      // if (i == 3) {
-      //   trace.pStackStackItemValueHi4(eValue.hi());
-      //   trace.pStackStackItemValueLo4(eValue.lo());
-      // } else {
-      //   valHiTracers.get(i).apply(eValue.hi());
-      //   valLoTracers.get(i).apply(eValue.lo());
-      // }
       valHiTracers.get(i).apply(eValue.hi());
       valLoTracers.get(i).apply(eValue.lo());
       popTracers.get(i).apply(op.action() == Stack.POP);

@@ -15,11 +15,15 @@
 
 package net.consensys.linea.zktracer;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
+
 import net.consensys.linea.testing.SmartContractUtils;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -40,16 +44,11 @@ import org.hyperledger.besu.evm.log.Log;
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
-import org.web3j.tx.Contract;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ExampleSolidityTest {
-  TestContext testContext;
 
   @Test
   void testWithFrameworkEntrypoint() {
@@ -57,86 +56,86 @@ public class ExampleSolidityTest {
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+            ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount frameworkEntrypointAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x22222"))
-            .balance(Wei.ONE)
-            .nonce(5)
-            .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x22222"))
+                    .balance(Wei.ONE)
+                    .nonce(5)
+                    .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
+                    .build();
 
     ToyAccount snippetAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x11111"))
-            .balance(Wei.ONE)
-            .nonce(6)
-            .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x11111"))
+                    .balance(Wei.ONE)
+                    .nonce(6)
+                    .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
+                    .build();
 
     Function snippetFunction =
-        new Function(
-            TestSnippet_Events.FUNC_EMITDATANOINDEXES,
-            List.of(new Uint256(BigInteger.valueOf(123456))),
-            Collections.emptyList());
+            new Function(
+                    TestSnippet_Events.FUNC_EMITDATANOINDEXES,
+                    List.of(new Uint256(BigInteger.valueOf(123456))),
+                    Collections.emptyList());
 
     FrameworkEntrypoint.ContractCall snippetContractCall =
-        new FrameworkEntrypoint.ContractCall(
-            /*Address*/ snippetAccount.getAddress().toHexString(),
-            /*calldata*/ Bytes.fromHexStringLenient(FunctionEncoder.encode(snippetFunction))
-                .toArray(),
-            /*gasLimit*/ BigInteger.ZERO,
-            /*value*/ BigInteger.ZERO,
-            /*callType*/ BigInteger.ZERO);
+            new FrameworkEntrypoint.ContractCall(
+                    /*Address*/ snippetAccount.getAddress().toHexString(),
+                    /*calldata*/ Bytes.fromHexStringLenient(FunctionEncoder.encode(snippetFunction))
+                    .toArray(),
+                    /*gasLimit*/ BigInteger.ZERO,
+                    /*value*/ BigInteger.ZERO,
+                    /*callType*/ BigInteger.ZERO);
 
     List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall);
 
     Function frameworkEntryPointFunction =
-        new Function(
-            FrameworkEntrypoint.FUNC_EXECUTECALLS,
-            List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
-            Collections.emptyList());
+            new Function(
+                    FrameworkEntrypoint.FUNC_EXECUTECALLS,
+                    List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
+                    Collections.emptyList());
     Bytes txPayload =
-        Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+            Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
 
     Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(frameworkEntrypointAccount)
-            .payload(txPayload)
-            .keyPair(keyPair)
-            .build();
+            ToyTransaction.builder()
+                    .sender(senderAccount)
+                    .to(frameworkEntrypointAccount)
+                    .payload(txPayload)
+                    .keyPair(keyPair)
+                    .build();
 
     Consumer<TransactionProcessingResult> resultValidator =
-        (TransactionProcessingResult result) -> {
-          // One event from the snippet
-          // One event from the framework entrypoint about contract call
-          assertEquals(result.getLogs().size(), 2);
-          for (Log log : result.getLogs()) {
-            String logTopic = log.getTopics().getFirst().toHexString();
-            if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
-              TestSnippet_Events.DataNoIndexesEventResponse response =
-                  TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
-              assertEquals(response.singleInt, BigInteger.valueOf(123456));
-            } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
-                .equals(logTopic)) {
-              FrameworkEntrypoint.CallExecutedEventResponse response =
-                  FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
-              assertTrue(response.isSuccess);
-              assertEquals(response.destination, snippetAccount.getAddress().toHexString());
-            } else {
-              fail();
-            }
-          }
-        };
+            (TransactionProcessingResult result) -> {
+              // One event from the snippet
+              // One event from the framework entrypoint about contract call
+              assertEquals(result.getLogs().size(), 2);
+              for (Log log : result.getLogs()) {
+                String logTopic = log.getTopics().getFirst().toHexString();
+                if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
+                  TestSnippet_Events.DataNoIndexesEventResponse response =
+                          TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
+                  assertEquals(response.singleInt, BigInteger.valueOf(123456));
+                } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
+                        .equals(logTopic)) {
+                  FrameworkEntrypoint.CallExecutedEventResponse response =
+                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
+                  assertTrue(response.isSuccess);
+                  assertEquals(response.destination, snippetAccount.getAddress().toHexString());
+                } else {
+                  fail();
+                }
+              }
+            };
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, frameworkEntrypointAccount, snippetAccount))
-        .transaction(tx)
-        .testValidator(resultValidator)
-        .build()
-        .run();
+            .accounts(List.of(senderAccount, frameworkEntrypointAccount, snippetAccount))
+            .transaction(tx)
+            .testValidator(resultValidator)
+            .build()
+            .run();
   }
 
   @Test
@@ -145,165 +144,165 @@ public class ExampleSolidityTest {
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+            ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount contractAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x11111"))
-            .balance(Wei.ONE)
-            .nonce(6)
-            .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x11111"))
+                    .balance(Wei.ONE)
+                    .nonce(6)
+                    .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
+                    .build();
 
     Function function =
-        new Function(
-            TestSnippet_Events.FUNC_EMITDATANOINDEXES,
-            List.of(new Uint256(BigInteger.valueOf(123456))),
-            Collections.emptyList());
+            new Function(
+                    TestSnippet_Events.FUNC_EMITDATANOINDEXES,
+                    List.of(new Uint256(BigInteger.valueOf(123456))),
+                    Collections.emptyList());
     String encodedFunction = FunctionEncoder.encode(function);
     Bytes txPayload = Bytes.fromHexStringLenient(encodedFunction);
 
     Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(contractAccount)
-            .payload(txPayload)
-            .keyPair(keyPair)
-            .build();
+            ToyTransaction.builder()
+                    .sender(senderAccount)
+                    .to(contractAccount)
+                    .payload(txPayload)
+                    .keyPair(keyPair)
+                    .build();
 
     Consumer<TransactionProcessingResult> resultValidator =
-        (TransactionProcessingResult result) -> {
-          assertEquals(result.getLogs().size(), 1);
-          TestSnippet_Events.DataNoIndexesEventResponse response =
-              TestSnippet_Events.getDataNoIndexesEventFromLog(
-                  Web3jUtils.fromBesuLog(result.getLogs().getFirst()));
-          assertEquals(response.singleInt, BigInteger.valueOf(123456));
-        };
+            (TransactionProcessingResult result) -> {
+              assertEquals(result.getLogs().size(), 1);
+              TestSnippet_Events.DataNoIndexesEventResponse response =
+                      TestSnippet_Events.getDataNoIndexesEventFromLog(
+                              Web3jUtils.fromBesuLog(result.getLogs().getFirst()));
+              assertEquals(response.singleInt, BigInteger.valueOf(123456));
+            };
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, contractAccount))
-        .transaction(tx)
-        .testValidator(resultValidator)
-        .build()
-        .run();
+            .accounts(List.of(senderAccount, contractAccount))
+            .transaction(tx)
+            .testValidator(resultValidator)
+            .build()
+            .run();
   }
 
   @Test
   void testContractNotRelatedToTestingFramework() {
     KeyPair senderkeyPair = new SECP256K1().generateKeyPair();
     Address senderAddress =
-        Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
+            Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+            ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount contractAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x11111"))
-            .balance(Wei.ONE)
-            .nonce(6)
-            .code(SmartContractUtils.getSolidityContractByteCode(TestStorage.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x11111"))
+                    .balance(Wei.ONE)
+                    .nonce(6)
+                    .code(SmartContractUtils.getSolidityContractByteCode(TestStorage.class))
+                    .build();
 
     Function function =
-        new Function(
-            TestStorage.FUNC_STORE,
-            List.of(new Uint256(BigInteger.valueOf(3))),
-            Collections.emptyList());
+            new Function(
+                    TestStorage.FUNC_STORE,
+                    List.of(new Uint256(BigInteger.valueOf(3))),
+                    Collections.emptyList());
     String encodedFunction = FunctionEncoder.encode(function);
     Bytes txPayload = Bytes.fromHexStringLenient(encodedFunction);
     Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(contractAccount)
-            .payload(txPayload)
-            .keyPair(senderkeyPair)
-            .build();
+            ToyTransaction.builder()
+                    .sender(senderAccount)
+                    .to(contractAccount)
+                    .payload(txPayload)
+                    .keyPair(senderkeyPair)
+                    .build();
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, contractAccount))
-        .transaction(tx)
-        .build()
-        .run();
+            .accounts(List.of(senderAccount, contractAccount))
+            .transaction(tx)
+            .build()
+            .run();
   }
 
   @Test
   void testYul() {
     KeyPair senderkeyPair = new SECP256K1().generateKeyPair();
     Address senderAddress =
-        Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
+            Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+            ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount frameworkEntrypointAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x22222"))
-            .balance(Wei.ONE)
-            .nonce(5)
-            .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x22222"))
+                    .balance(Wei.ONE)
+                    .nonce(5)
+                    .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
+                    .build();
+
     ToyAccount yulAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x11111"))
-            .balance(Wei.ONE)
-            .nonce(6)
-            .code(SmartContractUtils.getYulContractByteCode("DynamicBytecode.yul"))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x11111"))
+                    .balance(Wei.ONE)
+                    .nonce(6)
+                    .code(SmartContractUtils.getYulContractByteCode("DynamicBytecode.yul"))
+                    .build();
 
     Function yulFunction = new Function("Write", Collections.emptyList(), Collections.emptyList());
 
     String encodedContractCall = FunctionEncoder.encode(yulFunction);
 
     FrameworkEntrypoint.ContractCall yulContractCall =
-        new FrameworkEntrypoint.ContractCall(
-            /*Address*/ yulAccount.getAddress().toHexString(),
-            /*calldata*/ Bytes.fromHexStringLenient(encodedContractCall).toArray(),
-            /*gasLimit*/ BigInteger.ZERO,
-            /*value*/ BigInteger.ZERO,
-            /*callType*/ BigInteger.ZERO);
+            new FrameworkEntrypoint.ContractCall(
+                    /*Address*/ yulAccount.getAddress().toHexString(),
+                    /*calldata*/ Bytes.fromHexStringLenient(encodedContractCall).toArray(),
+                    /*gasLimit*/ BigInteger.ZERO,
+                    /*value*/ BigInteger.ZERO,
+                    /*callType*/ BigInteger.ZERO);
 
     List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(yulContractCall);
 
     Function frameworkEntryPointFunction =
-        new Function(
-            FrameworkEntrypoint.FUNC_EXECUTECALLS,
-            List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
-            Collections.emptyList());
+            new Function(
+                    FrameworkEntrypoint.FUNC_EXECUTECALLS,
+                    List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
+                    Collections.emptyList());
     Bytes txPayload =
-        Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+            Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
 
     Consumer<TransactionProcessingResult> resultValidator =
-        (TransactionProcessingResult result) -> {
-          assertEquals(result.getLogs().size(), 1);
-          for (Log log : result.getLogs()) {
-            String logTopic = log.getTopics().getFirst().toHexString();
-            if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT).equals(logTopic)) {
-              FrameworkEntrypoint.CallExecutedEventResponse response =
-                  FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
-              assertTrue(response.isSuccess);
-              assertEquals(response.destination, yulAccount.getAddress().toHexString());
-            } else {
-              fail();
-            }
-          }
-        };
+            (TransactionProcessingResult result) -> {
+              assertEquals(result.getLogs().size(), 1);
+              for (Log log : result.getLogs()) {
+                String logTopic = log.getTopics().getFirst().toHexString();
+                if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT).equals(logTopic)) {
+                  FrameworkEntrypoint.CallExecutedEventResponse response =
+                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
+                  assertTrue(response.isSuccess);
+                  assertEquals(response.destination, yulAccount.getAddress().toHexString());
+                } else {
+                  fail();
+                }
+              }
+            };
 
     Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(frameworkEntrypointAccount)
-            .payload(txPayload)
-            .keyPair(senderkeyPair)
-            .gasLimit(500000L)
-            .build();
+            ToyTransaction.builder()
+                    .sender(senderAccount)
+                    .to(frameworkEntrypointAccount)
+                    .payload(txPayload)
+                    .keyPair(senderkeyPair)
+                    .gasLimit(500000L)
+                    .build();
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, yulAccount, frameworkEntrypointAccount))
-        .transaction(tx)
-        .testValidator(resultValidator)
-        .build()
-        .run();
+            .accounts(List.of(senderAccount, yulAccount, frameworkEntrypointAccount))
+            .transaction(tx)
+            .testValidator(resultValidator)
+            .build()
+            .run();
   }
 }
-

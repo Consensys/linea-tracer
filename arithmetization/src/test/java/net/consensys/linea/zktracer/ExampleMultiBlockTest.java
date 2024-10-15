@@ -17,10 +17,7 @@ package net.consensys.linea.zktracer;
 
 import java.util.List;
 
-import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
-import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -32,7 +29,6 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
-import net.consensys.linea.testing.SolidityUtils;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
 import net.consensys.linea.testing.generated.TestStorage;
@@ -230,7 +226,7 @@ class ExampleMultiBlockTest {
                     .address(Address.fromHexString("0x22222"))
                     .balance(Wei.of(1000))
                     .nonce(6)
-                    .code(SolidityUtils.getContractByteCode(FrameworkEntrypoint.class))
+                    .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
                     .build();
 
     ToyAccount snippetAccount =
@@ -238,7 +234,7 @@ class ExampleMultiBlockTest {
                     .address(Address.fromHexString("0x11111"))
                     .balance(Wei.of(1000))
                     .nonce(7)
-                    .code(SolidityUtils.getContractByteCode(TestSnippet_Events.class))
+                    .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
                     .build();
 
     Function snippetFunction =
@@ -316,12 +312,12 @@ class ExampleMultiBlockTest {
                 String logTopic = log.getTopics().getFirst().toHexString();
                 if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
                   TestSnippet_Events.DataNoIndexesEventResponse response =
-                          TestSnippet_Events.getDataNoIndexesEventFromLog(SolidityUtils.fromBesuLog(log));
+                          TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
                   assertEquals(response.singleInt, BigInteger.valueOf(123456));
                 } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
                         .equals(logTopic)) {
                   FrameworkEntrypoint.CallExecutedEventResponse response =
-                          FrameworkEntrypoint.getCallExecutedEventFromLog(SolidityUtils.fromBesuLog(log));
+                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
                   assertTrue(response.isSuccess);
                   assertEquals(response.destination, snippetAccount.getAddress().toHexString());
                 } else {

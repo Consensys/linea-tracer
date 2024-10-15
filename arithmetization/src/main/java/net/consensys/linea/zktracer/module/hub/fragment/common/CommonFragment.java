@@ -93,8 +93,14 @@ public final class CommonFragment implements TraceFragment {
         .codeFragmentIndex(commonFragmentValues.codeFragmentIndex)
         .programCounter(commonFragmentValues.pc)
         .programCounterNew(commonFragmentValues.pcNew)
-        .height(commonFragmentValues.hubProcessingPhase == HubProcessingPhase.TX_EXEC ? commonFragmentValues.height : 0)
-        .heightNew(commonFragmentValues.hubProcessingPhase == HubProcessingPhase.TX_EXEC ? commonFragmentValues.heightNew : 0)
+        .height(
+            commonFragmentValues.hubProcessingPhase == HubProcessingPhase.TX_EXEC
+                ? commonFragmentValues.height
+                : 0)
+        .heightNew(
+            commonFragmentValues.hubProcessingPhase == HubProcessingPhase.TX_EXEC
+                ? commonFragmentValues.heightNew
+                : 0)
         // peeking flags are traced in the respective fragments
         .gasExpected(Bytes.ofUnsignedLong(commonFragmentValues.gasExpected))
         .gasActual(Bytes.ofUnsignedLong(commonFragmentValues.gasActual))

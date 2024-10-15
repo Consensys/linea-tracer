@@ -56,13 +56,23 @@ public class ReferenceTestWatcher implements TestWatcher {
             logEventMessages.put(ASSERTION_FAILED, Set.of(formatAssertionError(cause)));
           }
         } else {
-          logEventMessages.put(UNCATEGORIZED_EXCEPTION, Set.of(cause.getMessage().split("\n")[0]));
+          logEventMessages.put(getCauseKey(cause), Set.of(cause.getMessage().split("\n")[0]));
         }
       } else {
-        logEventMessages.put(UNCATEGORIZED_EXCEPTION, getValue(cause));
+        logEventMessages.put(getCauseKey(cause), getValue(cause));
       }
     }
     return logEventMessages;
+  }
+
+  private static String getCauseKey(Throwable cause) {
+    if (cause.getCause() != null) {
+      return getCauseKey(cause.getCause());
+    }
+    if (cause != null) {
+      return cause.getClass().getSimpleName();
+    }
+    return UNCATEGORIZED_EXCEPTION;
   }
 
   private static Set<String> getValue(Throwable cause) {

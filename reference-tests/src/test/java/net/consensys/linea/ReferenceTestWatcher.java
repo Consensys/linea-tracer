@@ -14,8 +14,6 @@
  */
 package net.consensys.linea;
 
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_OUTPUT_FILENAME;
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.writeToJsonFile;
 import static net.consensys.linea.TestState.*;
 import static net.consensys.linea.testing.ExecutionEnvironment.CORSET_VALIDATION_RESULT;
 

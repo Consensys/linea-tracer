@@ -43,10 +43,10 @@ public class ReferenceTestOutcomeRecorderTool {
   private static volatile AtomicInteger successCounter = new AtomicInteger(0);
   private static volatile AtomicInteger disabledCounter = new AtomicInteger(0);
   private static volatile AtomicInteger abortedCounter = new AtomicInteger(0);
-  private static volatile ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
-          modulesToConstraintsToTests = new ConcurrentHashMap<>();
- 
-          
+  private static volatile ConcurrentMap<
+          String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
+      modulesToConstraintsToTests = new ConcurrentHashMap<>();
+
   public static void mapAndStoreTestResult(
       String testName, TestState success, Map<String, Set<String>> failedConstraints) {
     switch (success) {
@@ -56,8 +56,8 @@ public class ReferenceTestOutcomeRecorderTool {
           String moduleName = failedConstraint.getKey();
           for (String constraint : failedConstraint.getValue()) {
             ConcurrentMap<String, ConcurrentSkipListSet<String>> constraintsToTests =
-                    modulesToConstraintsToTests
-                    .computeIfAbsent(moduleName, m -> new ConcurrentHashMap<>());
+                modulesToConstraintsToTests.computeIfAbsent(
+                    moduleName, m -> new ConcurrentHashMap<>());
             ConcurrentSkipListSet<String> failingTests =
                 constraintsToTests.computeIfAbsent(constraint, m -> new ConcurrentSkipListSet<>());
             int size = failingTests.size();
@@ -199,14 +199,14 @@ public class ReferenceTestOutcomeRecorderTool {
     return CompletableFuture.runAsync(
         () -> {
           try (FileWriter file = new FileWriter(fileDirectory + name)) {
-            objectMapper.writeValue(file,
-                    new BlockchainReferenceTestOutcome(
-                            failedCounter.get(),
-                            successCounter.get(),
-                            disabledCounter.get(),
-                            abortedCounter.get(),
-                            modulesToConstraintsToTests
-            ));
+            objectMapper.writeValue(
+                file,
+                new BlockchainReferenceTestOutcome(
+                    failedCounter.get(),
+                    successCounter.get(),
+                    disabledCounter.get(),
+                    abortedCounter.get(),
+                    modulesToConstraintsToTests));
           } catch (Exception e) {
             log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));
           }

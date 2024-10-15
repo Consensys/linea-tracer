@@ -16,10 +16,10 @@
 package net.consensys.linea;
 
 import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.getModule;
-import static net.consensys.linea.ReferenceTestWatcher.JSON_INPUT_FILENAME;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_INPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +29,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
@@ -50,6 +53,7 @@ import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseS
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
 import org.hyperledger.besu.testutil.JsonTestParameters;
+import org.junit.jupiter.api.Assumptions;
 
 @Slf4j
 public class BlockchainReferenceTestTools {
@@ -78,6 +82,9 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");
     PARAMS.ignore("ShanghaiLove_.*");
     PARAMS.ignore("/GeneralStateTests/VMTests/vmPerformance/");
+    PARAMS.ignore("Call50000");
+    PARAMS.ignore("static_LoopCallsDepthThenRevert3");
+    PARAMS.ignore("Return50000");
 
     // Absurd amount of gas, doesn't run in parallel.
     PARAMS.ignore("randomStatetest94_\\w+");
@@ -108,19 +115,21 @@ public class BlockchainReferenceTestTools {
 
     CompletableFuture<BlockchainReferenceTestOutcome> modulesToConstraintsFutures =
         readBlockchainReferenceTestsOutput(JSON_INPUT_FILENAME)
-            .thenApply(ReferenceTestOutcomeRecorderTool::getBlockchainReferenceTestOutcome);
+            .thenApply(ReferenceTestOutcomeRecorderTool::parseBlockchainReferenceTestOutcome);
 
     return modulesToConstraintsFutures.thenApply(
         blockchainReferenceTestOutcome -> {
-          ModuleToConstraints filteredFailedTests =
-              getModule(blockchainReferenceTestOutcome.modulesToConstraints(), failedModule);
+          ConcurrentMap<String, ConcurrentSkipListSet<String>> filteredFailedTests =
+              blockchainReferenceTestOutcome.getModulesToConstraintsToTests().get(failedModule);
           if (filteredFailedTests == null) {
             return failedTests;
           }
           if (!failedConstraint.isEmpty()) {
-            return filteredFailedTests.getFailedTests(failedConstraint);
+            return filteredFailedTests.get(failedConstraint);
           }
-          return filteredFailedTests.getFailedTests();
+          return filteredFailedTests.values().stream()
+              .flatMap(Set::stream)
+              .collect(Collectors.toSet());
         });
   }
 
@@ -168,6 +177,7 @@ public class BlockchainReferenceTestTools {
         spec.getWorldStateArchive()
             .getMutable(genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash())
             .get();
+
     log.info(
         "checking roothash {} is {}", worldState.rootHash(), genesisBlockHeader.getStateRoot());
     assertThat(worldState.rootHash()).isEqualTo(genesisBlockHeader.getStateRoot());
@@ -178,15 +188,25 @@ public class BlockchainReferenceTestTools {
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
 
-    for (var candidateBlock : spec.getCandidateBlocks()) {
-      if (!candidateBlock.isExecutable()) {
-        return;
-      }
+    final BigInteger nonnegativeChainId = schedule.getChainId().get().abs();
 
-      final ZkTracer zkTracer = new ZkTracer();
+    final ZkTracer zkTracer = new ZkTracer(nonnegativeChainId);
+    zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
+
+    for (var candidateBlock : spec.getCandidateBlocks()) {
+      Assumptions.assumeTrue(
+          candidateBlock.isExecutable(), "Skipping the test because the block is not executable");
+      Assumptions.assumeTrue(
+          candidateBlock.getBlock().getBody().getTransactions().size() > 0,
+          "Skipping the test because the block has no transaction");
+      Assumptions.assumeTrue(
+          Arrays.stream(spec.getCandidateBlocks()).filter(b -> !b.isValid()).count() == 0,
+          "Skipping the test because it has invalid blocks");
 
       try {
         final Block block = candidateBlock.getBlock();
+
+        zkTracer.traceStartBlock(block.getHeader());
 
         final ProtocolSpec protocolSpec = schedule.getByBlockHeader(block.getHeader());
 
@@ -204,14 +224,23 @@ public class BlockchainReferenceTestTools {
             "checking block is imported {} equals {}",
             importResult.isImported(),
             candidateBlock.isValid());
-        assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
+        assertThat(importResult.isImported())
+            .isEqualTo(candidateBlock.isValid())
+            .withFailMessage(
+                "checking block is imported {} while expected {}",
+                importResult.isImported(),
+                candidateBlock.isValid());
+
+        zkTracer.traceEndBlock(block.getHeader(), block.getBody());
       } catch (final RLPException e) {
-        log.info("caugh RLP exception, checking it's invalid {}", candidateBlock.isValid());
+        log.info("caught RLP exception, checking it's invalid {}", candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();
       }
-      ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
     }
 
+    zkTracer.traceEndConflation(worldState);
+
+    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
   }
 

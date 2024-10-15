@@ -1,5 +1,10 @@
+import org.web3j.solidity.gradle.plugin.EVMVersion
+import org.web3j.gradle.plugin.GenerateContractWrappers
+
 plugins {
   id "common-plugins"
+  id "org.web3j" version "4.12.2"
+  id "linea.yul-plugin"
 }
 
 apply from: rootProject.file("gradle/corset.gradle")
@@ -33,4 +38,27 @@ dependencies {
   implementation 'org.mockito:mockito-core'
   implementation 'org.mockito:mockito-junit-jupiter'
   implementation 'org.assertj:assertj-core'
+}
+
+nodeSetup {
+  mustRunAfter(spotlessBash, spotlessGroovy, spotlessSol)
+}
+
+tasks.withType(GenerateContractWrappers.class).configureEach {
+  mustRunAfter(processResources)
+}
+
+web3j {
+  generatedPackageName = "net.consensys.linea.testing.generated"
+}
+
+solidity {
+  optimize = false
+  prettyJson = true
+  evmVersion = EVMVersion.LONDON
+}
+
+yul {
+  solcVersion = "0.8.19"
+  compilerJsonTemplatePath = "src/main/resources/templates/compiler_yul.json.template"
 }

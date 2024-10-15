@@ -19,6 +19,8 @@ import static net.consensys.linea.zktracer.module.Util.boolToInt;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMEDIUM;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.bytestheta.BaseTheta;
 import net.consensys.linea.zktracer.bytestheta.BytesArray;
@@ -26,17 +28,17 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.ext.calculator.AbstractExtCalculator;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 
+@Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ExtOperation extends ModuleOperation {
 
-  @EqualsAndHashCode.Include private final OpCode opCode;
-  @EqualsAndHashCode.Include private final BaseBytes arg1;
-  @EqualsAndHashCode.Include private final BaseBytes arg2;
-  @EqualsAndHashCode.Include private final BaseBytes arg3;
+  @EqualsAndHashCode.Include @Getter private final OpCode opCode;
+  @EqualsAndHashCode.Include @Getter private final BaseBytes arg1;
+  @EqualsAndHashCode.Include @Getter private final BaseBytes arg2;
+  @EqualsAndHashCode.Include @Getter private final BaseBytes arg3;
   private final boolean isOneLineInstruction;
 
   private BaseTheta result;
@@ -270,13 +272,13 @@ public class ExtOperation extends ModuleOperation {
           .ofJ(this.overflowJ[i])
           .ofI(this.overflowI[i])
           .ofRes(this.overflowRes[i])
-          .ct(Bytes.of(i))
-          .inst(Bytes.of(this.opCode.byteValue()))
+          .ct(i)
+          .inst(UnsignedByte.of(this.opCode.byteValue()))
           .oli(this.isOneLineInstruction)
           .bit1(this.getBit1())
           .bit2(this.getBit2())
           .bit3(this.getBit3())
-          .stamp(Bytes.ofUnsignedLong(stamp))
+          .stamp(stamp)
           .validateRow();
     }
   }

@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.8.0-rc4
+* Introduction of an EMPTY_STACK_ITEM singleton and associated factory ([#1383](https://github.com/Consensys/linea-tracer/pull/1383))
+* Improve StackOperation memory footprint ([#1376](https://github.com/Consensys/linea-tracer/pull/1376))
+* Reference Test Watcher - Extend to parse failing constraint ([#1375](https://github.com/Consensys/linea-tracer/pull/1375))
+
+## 0.8.0-rc3
+* fix: temporarily disable max block behind check on tracer readiness endpoint due to infrequent sync status updates
+  ([#1378](https://github.com/Consensys/linea-tracer/pull/1378))
+* feat: EXTCODEHASH / EXTCODESIZE tests in relation to account existence ([#1372](https://github.com/Consensys/linea-tracer/pull/1372))
+* chore: update Corset to `v9.7.14` ([#1369](https://github.com/Consensys/linea-tracer/pull/1369))
+* feat: store Testing Framework Solidity and Yul ([#1052](https://github.com/Consensys/linea-tracer/pull/1052))
+* feat: use coinbase address from block header for multi block tests ([#1365](https://github.com/Consensys/linea-tracer/pull/1365))
+
+## 0.8.0-rc2
+* fix: adding the `chainId` to the HUB and BLOCK_DATA modules ([#1359](https://github.com/Consensys/linea-tracer/pull/1359))
+* fix: confusion between call and callee gas for BLAKE ([#1366](https://github.com/Consensys/linea-tracer/pull/1366))
+* feat: make the trace deterministic ([#1346](https://github.com/Consensys/linea-tracer/pull/1346))
+* feat: blockchain reference tests switch to go-corset ([#1358](https://github.com/Consensys/linea-tracer/pull/1358))
+* fix: resolve broken nightly test ([#1361](https://github.com/Consensys/linea-tracer/pull/1361))
+* fix: tracing all blocks in the reference test vectors ([#1350](https://github.com/Consensys/linea-tracer/pull/1350))
+* fix: nightly tests ([#1355](https://github.com/Consensys/linea-tracer/pull/1355))
+
+## 0.8.0-rc1
+* feat: update Linea Besu to 24.10-delivery34 ([#1354](https://github.com/Consensys/linea-tracer/pull/1354))
+* fix: remove RpcCliOptions from AbstractLineaSharedOptionsPlugin in order not to make it visible for external plugins ([#1348](https://github.com/Consensys/linea-tracer/pull/1348))
+* refactor: extract all trace writing logic in one place to be re-used and more consistent ([#1344](https://github.com/Consensys/linea-tracer/pull/1344))
+* fix: convert --plugin-linea-rpc-concurrent-requests-limit option to be a private option ([#1342](https://github.com/Consensys/linea-tracer/pull/1342))
+* fix(selfdestruct): immutable map ([#1337](https://github.com/Consensys/linea-tracer/pull/1337))
+* feat(replayTest): parametric ([#1273](https://github.com/Consensys/linea-tracer/pull/1273))
+* test(shf): add extensive test ([#1320](https://github.com/Consensys/linea-tracer/pull/1320))
+* chore: disable running spotlessCheck after compilation phase ([#1339](https://github.com/Consensys/linea-tracer/pull/1339))
+* fix(SELFDESTRUCT): fixed deloyment number double increments + assumptions about initial values ([#1336](https://github.com/Consensys/linea-tracer/pull/1336))
+* Add CI job for weekly tests ([#1329](https://github.com/Consensys/linea-tracer/pull/1329))
+* fix(invalidCodePrefix): make it work ([#1330](https://github.com/Consensys/linea-tracer/pull/1330))
+
+## 0.7.0-rc1
+* chore: don't postTxDefers TrasactionMetaData ([#1325](https://github.com/Consensys/linea-tracer/pull/1325))
+* chore: upgrade Linea Besu to 24.9-delivery33 ([#1328](https://github.com/Consensys/linea-tracer/pull/1328))
+* fix(ReturnSection): max code size ([#1313](https://github.com/Consensys/linea-tracer/pull/1313))
+* fix(mmu): invalidCodePrefix with empty memory ([#1310](https://github.com/Consensys/linea-tracer/pull/1310))
+* fix: implemented update to TXN_DATA ([#1318](https://github.com/Consensys/linea-tracer/pull/1318))
+* feat: implement support for maxBlocksBehind threshold check in TracerReadinessPlugin ([#1305](https://github.com/Consensys/linea-tracer/pull/1305))
+* fix: fix for broken replay files ([#1308](https://github.com/Consensys/linea-tracer/pull/1308))
+
 ## 0.6.0-rc8
 * Homogenize creation add operation ([#1314](https://github.com/Consensys/linea-tracer/pull/1314))
 * Blockchain reference tests report - success and failure counters ([#1311](https://github.com/Consensys/linea-tracer/pull/1311))

@@ -19,5 +19,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 
 /** This interface defines the API required to execute a call to the EXP module. */
 public interface ExpCall extends TraceSubFragment {
-  public int expInstruction();
+  int expInstruction();
+
+  int compareTo(ExpCall o);
 }

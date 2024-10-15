@@ -48,6 +48,7 @@ tasks.withType(Test).configureEach {
 
   jvmArgs = [
     '-XX:-UseGCOverheadLimit',
+    '-XX:+PrintGC',
     // Mockito and jackson-databind do some strange reflection during tests.
     // This suppresses an illegal access warning.
     '--add-opens',
@@ -98,7 +99,7 @@ tasks.withType(Test).configureEach {
     showSkipped false
 
     // set to false to hide failed tests
-    showFailed false
+    showFailed true
 
     // enable to see standard out and error streams inline with the test results
     showStandardStreams true
@@ -110,7 +111,7 @@ tasks.withType(Test).configureEach {
     showSkippedStandardStreams false
 
     // set to false to hide failed standard out and error streams
-    showFailedStandardStreams false
+    showFailedStandardStreams true
   }
 
   useJUnitPlatform()
@@ -121,6 +122,7 @@ tasks.test.configure {
   useJUnitPlatform {
     excludeTags("nightly")
     excludeTags("replay")
+    excludeTags("weekly")
   }
 }
 
@@ -136,6 +138,7 @@ tasks.register("fastReplayTests", Test) {
   useJUnitPlatform {
     includeTags("replay")
     excludeTags("nightly")
+    excludeTags("weekly")
   }
 }
 
@@ -171,5 +174,20 @@ tasks.register("nightlyTests", Test) {
 
   useJUnitPlatform {
     includeTags("nightly")
+  }
+}
+
+tasks.register("weeklyTests", Test) {
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+          System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "1").toInteger())
+
+  useJUnitPlatform {
+    excludeTags("nightly")
+    excludeTags("replay")
+    includeTags("weekly")
   }
 }

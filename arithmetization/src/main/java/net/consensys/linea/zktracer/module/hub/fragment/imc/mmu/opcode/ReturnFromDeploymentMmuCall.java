@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.internal.Words;
@@ -37,7 +38,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @Accessors(fluent = true)
 public class ReturnFromDeploymentMmuCall extends MmuCall {
   private final Hub hub;
-  private final ContractMetadata contract;
+  private ContractMetadata contract;
   @Getter private final Bytes32 hashResult;
 
   public ReturnFromDeploymentMmuCall(final Hub hub) {
@@ -47,10 +48,10 @@ public class ReturnFromDeploymentMmuCall extends MmuCall {
 
     final Address contractAddress = hub.messageFrame().getContractAddress();
     final int depNumber = hub.deploymentNumberOf(contractAddress);
-    contract = ContractMetadata.underDeployment(contractAddress, depNumber);
+    contract = ContractMetadata.make(contractAddress, depNumber, false);
 
     final ShakiraDataOperation shakiraDataOperation =
-        new ShakiraDataOperation(hub.stamp(), hub.romLex().getCodeByMetadata(contract));
+        new ShakiraDataOperation(hub.stamp(), hub.romLex().byteCode());
     hub.shakiraData().call(shakiraDataOperation);
 
     hashResult = shakiraDataOperation.result();
@@ -61,7 +62,6 @@ public class ReturnFromDeploymentMmuCall extends MmuCall {
                 hub.currentFrame()
                     .frame()
                     .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
-        .exoBytes(Optional.of(hub.romLex().getCodeByMetadata(contract)))
         .auxId(hub.state().stamps().hub())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
@@ -72,6 +72,11 @@ public class ReturnFromDeploymentMmuCall extends MmuCall {
 
   @Override
   public int targetId() {
-    return this.hub.romLex().getCodeFragmentIndexByMetadata(this.contract);
+    return hub.romLex().getCodeFragmentIndexByMetadata(contract);
+  }
+
+  @Override
+  public Optional<Bytes> exoBytes() {
+    return Optional.of(hub.romLex().getCodeByMetadata(contract));
   }
 }

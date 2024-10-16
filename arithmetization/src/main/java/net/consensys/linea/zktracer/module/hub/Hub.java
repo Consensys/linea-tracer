@@ -734,7 +734,12 @@ public class Hub implements Module {
         this.state().processingPhase == TX_EXEC,
         "There can't be any execution if the HUB is not in execution phase");
 
-    final long gasCost = operationResult.getGasCost();
+    final long gasCost =
+        switch (opCodeData().instructionFamily()) {
+          case HALT, CALL, CREATE -> GAS_PROJECTOR.of(frame, opCode()).total();
+          default -> operationResult.getGasCost();
+        };
+
     final TraceSection currentSection = state.currentTxTrace().currentSection();
 
     final short exceptions = this.pch().exceptions();

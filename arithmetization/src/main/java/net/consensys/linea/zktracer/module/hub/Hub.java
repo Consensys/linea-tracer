@@ -23,8 +23,6 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
-import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
-import static net.consensys.linea.zktracer.opcode.InstructionFamily.ADD;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
@@ -86,7 +84,6 @@ import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
-import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
@@ -737,65 +734,19 @@ public class Hub implements Module {
         this.state().processingPhase == TX_EXEC,
         "There can't be any execution if the HUB is not in execution phase");
 
-    final long gasCost = operationResult.getGasCost();
     final TraceSection currentSection = state.currentTxTrace().currentSection();
-
-    final short exceptions = this.pch().exceptions();
-
-    final boolean memoryExpansionException = Exceptions.memoryExpansionException(exceptions);
-    final boolean outOfGasException = Exceptions.outOfGasException(exceptions);
-    final boolean unexceptional = Exceptions.none(exceptions);
-    final boolean exceptional = Exceptions.any(exceptions);
 
     // NOTE: whenever there is an exception, a context row
     // is added at the end of the section; its purpose is
     // to update the caller / creator context with empty
     // return data.
     ///////////////////////////////////////////////////////
-    if (exceptional) {
+    if (isExceptional()) {
       this.currentTraceSection()
           .addFragments(ContextFragment.executionProvidesEmptyReturnData(this));
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
     }
-
-    // TODO:
-    //  * complete this for CREATE's and CALL's
-    //    + are we getting the correct cost (i.e. excluding the 63/64-th's) ?
-    //  * make sure this aligns with exception handling of the zkevm
-    //  * write a method `final boolean requiresGasCost()` (huge switch case)
-    long gasCostToTrace =
-        switch (opCodeData().instructionFamily()) {
-          case ADD,
-              MUL,
-              MOD,
-              EXT,
-              WCP,
-              BIN,
-              SHF,
-              CONTEXT,
-              ACCOUNT,
-              TRANSACTION,
-              BATCH,
-              JUMP,
-              MACHINE_STATE,
-              PUSH_POP,
-              DUP,
-              SWAP,
-              INVALID -> gasCost;
-          case KEC, COPY, STACK_RAM, STORAGE, LOG, HALT -> (instructionRaisesOogxOrIsUnexceptional()
-              ? gasCost
-              : 0);
-          case CREATE, CALL -> {
-            // TODO: this won't work
-            yield instructionRaisesOogxOrIsUnexceptional() ? gasCost : 0;
-          }
-        };
-
-    currentSection.commonValues.gasCost(gasCostToTrace);
-
-    currentSection.commonValues.gasNext(
-        instructionIsUnexceptional() ? currentSection.commonValues.gasActual - gasCost : 0);
 
     defers.resolvePostExecution(this, frame, operationResult);
 
@@ -804,13 +755,17 @@ public class Hub implements Module {
     }
   }
 
-  private boolean instructionIsUnexceptional() {
+  public boolean isUnexceptional() {
     return currentTraceSection().commonValues.tracedException() == NONE;
   }
 
-  private boolean instructionRaisesOogxOrIsUnexceptional() {
-    final TracedException tracedException = currentTraceSection().commonValues.tracedException();
-    return tracedException == OUT_OF_GAS_EXCEPTION || instructionIsUnexceptional();
+  public boolean isExceptional() {
+    return !isUnexceptional();
+  }
+
+  public boolean raisesOogxOrIsUnexceptional() {
+    return currentTraceSection().commonValues.tracedException() == OUT_OF_GAS_EXCEPTION
+        || isUnexceptional();
   }
 
   /**
@@ -1011,18 +966,6 @@ public class Hub implements Module {
     return this.state().getProcessingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()
         : 0;
-  }
-
-  public long expectedGas() {
-
-    if (this.state().getProcessingPhase() != TX_EXEC) return 0;
-
-    if (this.currentFrame().executionPaused()) {
-      currentFrame().unpauseCurrentFrame();
-      return currentFrame().lastValidGasNext();
-    }
-
-    return this.currentFrame().frame().getRemainingGas();
   }
 
   public int cumulatedTxCount() {

@@ -119,6 +119,44 @@ public class StateManagerSolidityTest {
     return tx;
   }
 
+  // destination must be our .yul smart contract
+  Transaction selfDestruct(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, ToyAccount recipient) {
+    List<org.web3j.abi.datatypes.Address> inputParams = new ArrayList<>();
+    List<TypeReference<?>> outputParams = new ArrayList<>();
+    String recipientAddressString = recipient.getAddress().toHexString();
+    inputParams.addLast(new org.web3j.abi.datatypes.Address(recipientAddressString));
+    Function yulFunction = new Function("selfDestruct", Collections.unmodifiableList(inputParams), outputParams);
+
+
+    var encoding = FunctionEncoder.encode(yulFunction);
+    FrameworkEntrypoint.ContractCall snippetContractCall =
+            new FrameworkEntrypoint.ContractCall(
+                    /*Address*/ destination.getAddress().toHexString(),
+                    /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
+                    /*gasLimit*/ BigInteger.ZERO,
+                    /*value*/ BigInteger.ZERO,
+                    /*callType*/ BigInteger.ONE); // Normal call, not a delegate call as it is the default
+
+    List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall);
+    Function frameworkEntryPointFunction =
+            new Function(
+                    FrameworkEntrypoint.FUNC_EXECUTECALLS,
+                    List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
+                    Collections.emptyList());
+    Bytes txPayload =
+            Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+
+    Transaction tx =
+            ToyTransaction.builder()
+                    .sender(sender)
+                    .to(this.testContext.frameworkEntryPointAccount)
+                    .payload(txPayload)
+                    .keyPair(senderKeyPair)
+                    .gasLimit(TestContext.gasLimit)
+                    .build();
+    return tx;
+  }
+
 
   @NoArgsConstructor
   class TestContext {
@@ -183,6 +221,7 @@ public class StateManagerSolidityTest {
             String callEventSignature = EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT);
             String writeEventSignature = EventEncoder.encode(FrameworkEntrypoint.WRITE_EVENT);
             String readEventSignature = EventEncoder.encode(FrameworkEntrypoint.READ_EVENT);
+            String destructEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTDESTROYED_EVENT);
             if (callEventSignature.equals(logTopic)) {
               FrameworkEntrypoint.CallExecutedEventResponse response =
                   FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
@@ -198,15 +237,20 @@ public class StateManagerSolidityTest {
               // read event
               continue;
             }
+            if (destructEventSignature.equals(logTopic)) {
+              // self destruct
+              continue;
+            }
             fail();
           }
         };
 
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.initialAccounts[1], this.testContext.frameworkEntryPointAccount))
-        .transaction(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L))
+        //.transaction(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L))
         //    .transaction(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L))
-        .testValidator(resultValidator)
+            .transaction(selfDestruct(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], testContext.frameworkEntryPointAccount))
+            .testValidator(resultValidator)
         .build()
         .run();
     System.out.println("Done");

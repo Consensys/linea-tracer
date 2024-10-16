@@ -25,6 +25,7 @@ abstract class TraceFilesTask extends Exec {
     arguments.addAll(files.get().collect({"linea-constraints/${it}"}))
 
     workingDir project.rootDir
+    executable"which corset"
     executable "corset"
     args arguments
 

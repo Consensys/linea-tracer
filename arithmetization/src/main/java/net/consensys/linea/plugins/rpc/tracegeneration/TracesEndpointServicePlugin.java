@@ -24,9 +24,12 @@ import java.util.Optional;
 
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.plugins.AbstractLineaOptionsPlugin;
+import net.consensys.linea.plugins.AbstractLineaPrivateOptionsPlugin;
+import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.LineaOptionsPluginConfiguration;
 import net.consensys.linea.plugins.exception.TraceOutputException;
+import net.consensys.linea.plugins.rpc.RequestLimiter;
+import net.consensys.linea.plugins.rpc.RequestLimiterDispatcher;
 import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;
@@ -37,9 +40,9 @@ import org.hyperledger.besu.plugin.services.RpcEndpointService;
  * GenerateConflatedTracesV2} to generate conflated file traces. This class provides an RPC endpoint
  * named 'generateConflatedTracesToFileV0' under the 'rollup' namespace.
  */
-@AutoService(BesuPlugin.class)
 @Slf4j
-public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
+@AutoService(BesuPlugin.class)
+public class TracesEndpointServicePlugin extends AbstractLineaPrivateOptionsPlugin {
   private BesuContext besuContext;
   private RpcEndpointService rpcEndpointService;
 
@@ -59,38 +62,40 @@ public class TracesEndpointServicePlugin extends AbstractLineaOptionsPlugin {
   public void register(final BesuContext context) {
     super.register(context);
     besuContext = context;
-    rpcEndpointService =
-        context
-            .getService(RpcEndpointService.class)
-            .orElseThrow(
-                () ->
-                    new RuntimeException(
-                        "Failed to obtain RpcEndpointService from the BesuContext."));
+    rpcEndpointService = BesuServiceProvider.getRpcEndpointService(context);
   }
 
   @Override
   public void beforeExternalServices() {
     super.beforeExternalServices();
 
-    final Optional<Path> tracesOutputPath = initTracesOutputPath();
+    final TracesEndpointConfiguration endpointConfiguration =
+        (TracesEndpointConfiguration)
+            getConfigurationByKey(TracesEndpointCliOptions.CONFIG_KEY).optionsConfig();
+
+    final Optional<Path> tracesOutputPath =
+        initTracesOutputPath(endpointConfiguration.tracesOutputPath());
     if (tracesOutputPath.isEmpty()) {
       throw new TraceOutputException(
           "Traces output path is null, please specify a valid path with %s CLI option or in a toml config file"
               .formatted(TracesEndpointCliOptions.CONFLATED_TRACE_GENERATION_TRACES_OUTPUT_PATH));
     }
 
+    RequestLimiterDispatcher.setLimiterIfMissing(
+        RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY,
+        rpcConfiguration().concurrentRequestsLimit());
+    final RequestLimiter reqLimiter =
+        RequestLimiterDispatcher.getLimiter(
+            RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY);
+
     final GenerateConflatedTracesV2 method =
-        new GenerateConflatedTracesV2(besuContext, tracesOutputPath.get());
+        new GenerateConflatedTracesV2(besuContext, reqLimiter, endpointConfiguration);
 
     createAndRegister(method, rpcEndpointService);
   }
 
-  private Optional<Path> initTracesOutputPath() {
-    final TracesEndpointConfiguration pluginConfig =
-        (TracesEndpointConfiguration)
-            getConfigurationByKey(TracesEndpointCliOptions.CONFIG_KEY).optionsConfig();
-
-    final Optional<Path> tracesOutputPath = Optional.of(Paths.get(pluginConfig.tracesOutputPath()));
+  private Optional<Path> initTracesOutputPath(final String tracesOutputPathOption) {
+    final Optional<Path> tracesOutputPath = Optional.of(Paths.get(tracesOutputPathOption));
 
     try {
       Files.createDirectories(tracesOutputPath.get());

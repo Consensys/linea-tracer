@@ -27,7 +27,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.gas.GasCall;
+import net.consensys.linea.zktracer.module.gas.GasParameters;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.State;
@@ -82,8 +82,8 @@ public class CommonFragmentValues {
     // this.contextNumberNew = hub.contextNumberNew(callFrame);
     this.pc = hubProcessingPhase == TX_EXEC ? hub.currentFrame().pc() : 0;
     this.pcNew = computePcNew(hub, pc, noStackException, hub.state.getProcessingPhase() == TX_EXEC);
-    this.height = (short) callFrame.stack().getHeight();
-    this.heightNew = (short) callFrame.stack().getHeightNew();
+    this.height = callFrame.stack().getHeight();
+    this.heightNew = callFrame.stack().getHeightNew();
 
     // TODO: partial solution, will not work in general
     this.gasExpected = hub.expectedGas();
@@ -100,7 +100,7 @@ public class CommonFragmentValues {
 
     if (contextMayChange) {
       // Trigger the gas module in case contextMayChange is true
-      hub.gas().call(new GasCall(), hub, this);
+      hub.gas().call(new GasParameters(), hub, this);
     }
 
     if (none(exceptions)) {

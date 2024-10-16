@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -36,7 +36,9 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class Ext implements OperationSetModule<ExtOperation> {
   private final Hub hub;
 
-  @Getter private final StackedSet<ExtOperation> operations = new StackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<ExtOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -82,7 +84,7 @@ public class Ext implements OperationSetModule<ExtOperation> {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (ExtOperation operation : operations.getAll()) {
+    for (ExtOperation operation : operations.sortOperations(new ExtOperationComparator())) {
       operation.trace(trace, ++stamp);
     }
   }

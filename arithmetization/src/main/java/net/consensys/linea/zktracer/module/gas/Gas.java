@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
@@ -37,10 +37,12 @@ import org.hyperledger.besu.evm.operation.Operation;
 @Accessors(fluent = true)
 public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   /** A list of the operations to trace */
-  @Getter private final StackedSet<GasOperation> operations = new StackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<GasOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   private CommonFragmentValues commonValues;
-  private GasCall gasCall;
+  private GasParameters gasParameters;
   private final Wcp wcp;
 
   @Override
@@ -53,16 +55,16 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
     return Trace.headers(this.lineCount());
   }
 
-  public void call(GasCall gasCall, Hub hub, CommonFragmentValues commonValues) {
+  public void call(GasParameters gasParameters, Hub hub, CommonFragmentValues commonValues) {
     this.commonValues = commonValues;
-    this.gasCall = gasCall;
+    this.gasParameters = gasParameters;
     hub.defers().scheduleForPostExecution(this);
   }
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
-    for (GasOperation gasOperation : this.operations.getAll()) {
+    for (GasOperation gasOperation : operations.sortOperations(new GasOperationComparator())) {
       gasOperation.trace(trace);
     }
   }
@@ -70,10 +72,10 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    gasCall.setGasActual(BigInteger.valueOf(commonValues.gasActual));
-    gasCall.setGasCost(BigInteger.valueOf(commonValues.gasCost()));
-    gasCall.setXahoy(commonValues.exceptionAhoy);
-    gasCall.setOogx(commonValues.tracedException() == TracedException.OUT_OF_GAS_EXCEPTION);
-    this.operations.add(new GasOperation(gasCall, wcp));
+    gasParameters.gasActual(BigInteger.valueOf(commonValues.gasActual));
+    gasParameters.gasCost(BigInteger.valueOf(commonValues.gasCost()));
+    gasParameters.xahoy(commonValues.exceptionAhoy);
+    gasParameters.oogx(commonValues.tracedException() == TracedException.OUT_OF_GAS_EXCEPTION);
+    this.operations.add(new GasOperation(gasParameters, wcp));
   }
 }

@@ -23,21 +23,24 @@ import static net.consensys.linea.zktracer.types.Utils.initArray;
 import java.math.BigInteger;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
+@Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class GasOperation extends ModuleOperation {
-  @EqualsAndHashCode.Include GasCall gasCall;
-  private final BigInteger[] wcpArg1Lo;
-  private final BigInteger[] wcpArg2Lo;
-  private final UnsignedByte[] wcpInst;
-  private final boolean[] wcpRes;
-  private final int ctMax;
+  @EqualsAndHashCode.Include @Getter GasParameters gasParameters;
+  BigInteger[] wcpArg1Lo;
+  BigInteger[] wcpArg2Lo;
+  UnsignedByte[] wcpInst;
+  boolean[] wcpRes;
+  int ctMax;
 
-  public GasOperation(GasCall gasCall, Wcp wcp) {
-    this.gasCall = gasCall;
+  public GasOperation(GasParameters gasParameters, Wcp wcp) {
+    this.gasParameters = gasParameters;
     ctMax = compareGasActualAndGasCost() ? 2 : 1;
 
     // init arrays
@@ -48,31 +51,31 @@ public class GasOperation extends ModuleOperation {
 
     // row 0
     wcpArg1Lo[0] = BigInteger.ZERO;
-    wcpArg2Lo[0] = gasCall.getGasActual();
+    wcpArg2Lo[0] = gasParameters.gasActual();
     wcpInst[0] = UnsignedByte.of(WCP_INST_LEQ);
-    final boolean gasActualIsNonNegative = wcp.callLEQ(0, gasCall.getGasActual().longValue());
+    final boolean gasActualIsNonNegative = wcp.callLEQ(0, gasParameters.gasActual().longValue());
     wcpRes[0] = gasActualIsNonNegative; // supposed to be true
 
     // row 1
     wcpArg1Lo[1] = BigInteger.ZERO;
-    wcpArg2Lo[1] = gasCall.getGasCost();
+    wcpArg2Lo[1] = gasParameters.gasCost();
     wcpInst[1] = UnsignedByte.of(WCP_INST_LEQ);
-    final boolean gasCostIsNonNegative = wcp.callLEQ(0, gasCall.getGasCost().longValue());
+    final boolean gasCostIsNonNegative = wcp.callLEQ(0, gasParameters.gasCost().longValue());
     wcpRes[1] = gasCostIsNonNegative; // supposed to be true
 
     // row 2
     if (compareGasActualAndGasCost()) {
-      wcpArg1Lo[2] = gasCall.getGasActual();
-      wcpArg2Lo[2] = gasCall.getGasCost();
+      wcpArg1Lo[2] = gasParameters.gasActual();
+      wcpArg2Lo[2] = gasParameters.gasCost();
       wcpInst[2] = UnsignedByte.of(EVM_INST_LT);
       final boolean gasActualLTGasCost =
-          wcp.callLT(gasCall.getGasActual().longValue(), gasCall.getGasCost().longValue());
-      wcpRes[2] = gasActualLTGasCost; // supposed to be equal to gasCall.isOogx()
+          wcp.callLT(gasParameters.gasActual().longValue(), gasParameters.gasCost().longValue());
+      wcpRes[2] = gasActualLTGasCost; // supposed to be equal to gasParameters.isOogx()
     }
   }
 
   private boolean compareGasActualAndGasCost() {
-    return !gasCall.isXahoy() || gasCall.isOogx();
+    return !gasParameters.xahoy() || gasParameters.oogx();
   }
 
   @Override
@@ -87,10 +90,10 @@ public class GasOperation extends ModuleOperation {
           .first(i == 0)
           .ct(i)
           .ctMax(ctMax)
-          .gasActual(gasCall.getGasActual().longValue())
-          .gasCost(bigIntegerToBytes(gasCall.getGasCost()))
-          .exceptionsAhoy(gasCall.isXahoy())
-          .outOfGasException(gasCall.isOogx())
+          .gasActual(bigIntegerToBytes(gasParameters.gasActual()))
+          .gasCost(bigIntegerToBytes(gasParameters.gasCost()))
+          .exceptionsAhoy(gasParameters.xahoy())
+          .outOfGasException(gasParameters.oogx())
           .wcpArg1Lo(bigIntegerToBytes(wcpArg1Lo[i]))
           .wcpArg2Lo(bigIntegerToBytes(wcpArg2Lo[i]))
           .wcpInst(wcpInst[i])

@@ -25,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
-import net.consensys.linea.zktracer.container.stacked.StackedList;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
@@ -34,7 +34,10 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class ShakiraData implements OperationListModule<ShakiraDataOperation> {
-  @Getter private final StackedList<ShakiraDataOperation> operations = new StackedList<>();
+  @Getter
+  private final ModuleOperationStackedList<ShakiraDataOperation> operations =
+      new ModuleOperationStackedList<>();
+
   private final Wcp wcp;
 
   private final Sha256Blocks sha256Blocks;
@@ -86,5 +89,23 @@ public class ShakiraData implements OperationListModule<ShakiraDataOperation> {
     for (ShakiraDataOperation operation : operations.getAll()) {
       operation.trace(trace, ++stamp);
     }
+  }
+
+  @Override
+  public String toString() {
+    return "ShakiraData{"
+        + "operations="
+        + operations.operationsInTransaction()
+        + ", wcp="
+        + wcp
+        + ", sha256Blocks="
+        + sha256Blocks
+        + ", keccak="
+        + keccak
+        + ", ripemdBlocks="
+        + ripemdBlocks
+        + ", previousID="
+        + previousID
+        + '}';
   }
 }

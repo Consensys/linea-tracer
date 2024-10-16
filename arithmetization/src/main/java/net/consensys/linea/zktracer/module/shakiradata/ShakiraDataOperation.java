@@ -29,6 +29,7 @@ import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.KECCA
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.RIPEMD;
 import static net.consensys.linea.zktracer.module.shakiradata.HashFunction.SHA256;
 import static net.consensys.linea.zktracer.module.shakiradata.Trace.INDEX_MAX_RESULT;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToHex;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
 
@@ -48,13 +49,16 @@ public class ShakiraDataOperation extends ModuleOperation {
   @Getter private final int inputSize;
   @Getter private final short lastNBytes;
   private final int indexMaxData;
-  private Bytes32 result;
+  @Getter private Bytes32 result;
 
-  public ShakiraDataOperation(
-      final int hubStamp, final HashFunction hashFunction, final Bytes input) {
+  /**
+   * This constructor is used ONLY when we want to KECCAK the input, and it's not trivial to get the
+   * result from Besu. Prefer the other constructor when we give the hash result
+   */
+  public ShakiraDataOperation(final int hubStamp, final Bytes input) {
     final Bytes32 hash = keccak256(input);
 
-    hashType = hashFunction;
+    hashType = KECCAK;
     ID = newIdentifierFromStamp(hubStamp);
     hashInput = input;
     inputSize = input.size();
@@ -169,5 +173,23 @@ public class ShakiraDataOperation extends ModuleOperation {
             .validateRow();
       }
     }
+  }
+
+  @Override
+  public String toString() {
+    return "ShakiraDataOperation{"
+        + "hashType="
+        + hashType
+        + ", hashInput="
+        + bytesToHex(hashInput.toArray())
+        + ", ID="
+        + ID
+        + ", inputSize="
+        + inputSize
+        + ", lastNBytes="
+        + lastNBytes
+        + ", indexMaxData="
+        + indexMaxData
+        + '}';
   }
 }

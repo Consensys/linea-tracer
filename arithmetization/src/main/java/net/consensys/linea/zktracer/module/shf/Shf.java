@@ -22,7 +22,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -31,7 +31,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 public class Shf implements OperationSetModule<ShfOperation> {
 
-  private final StackedSet<ShfOperation> operations = new StackedSet<>();
+  private final ModuleOperationStackedSet<ShfOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -56,13 +57,8 @@ public class Shf implements OperationSetModule<ShfOperation> {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (ShfOperation op : operations.getAll()) {
+    for (ShfOperation op : operations.sortOperations(new ShfOperationComparator())) {
       op.trace(trace, ++stamp);
     }
-  }
-
-  @Override
-  public StackedSet<ShfOperation> operations() {
-    return operations;
   }
 }

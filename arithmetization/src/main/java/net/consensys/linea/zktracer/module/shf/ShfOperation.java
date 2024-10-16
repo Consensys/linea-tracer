@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.Bytes16;
@@ -31,12 +33,13 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
+@Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 final class ShfOperation extends ModuleOperation {
 
-  @EqualsAndHashCode.Include private final OpCode opCode;
-  @EqualsAndHashCode.Include private final Bytes32 arg1;
-  @EqualsAndHashCode.Include private final Bytes32 arg2;
+  @EqualsAndHashCode.Include @Getter private final OpCode opCode;
+  @EqualsAndHashCode.Include @Getter private final Bytes32 arg1;
+  @EqualsAndHashCode.Include @Getter private final Bytes32 arg2;
   private final boolean isOneLineInstruction;
   private boolean isNegative;
   private boolean isShiftRight;
@@ -185,16 +188,16 @@ final class ShfOperation extends ModuleOperation {
           .ones(arg2HiByteChunks.ones())
           .leftAlignedSuffixLow(arg2LoByteChunks.la())
           .rightAlignedPrefixLow(arg2LoByteChunks.ra())
-          .shb3Hi(Bytes.ofUnsignedInt(this.shb.getShbHi()[0][i].toInteger()))
-          .shb3Lo(Bytes.ofUnsignedInt(this.shb.getShbLo()[0][i].toInteger()))
-          .shb4Hi(Bytes.ofUnsignedInt(this.shb.getShbHi()[4 - 3][i].toInteger()))
-          .shb4Lo(Bytes.ofUnsignedInt(this.shb.getShbLo()[4 - 3][i].toInteger()))
-          .shb5Hi(Bytes.ofUnsignedInt(this.shb.getShbHi()[5 - 3][i].toInteger()))
-          .shb5Lo(Bytes.ofUnsignedInt(this.shb.getShbLo()[5 - 3][i].toInteger()))
-          .shb6Hi(Bytes.ofUnsignedInt(this.shb.getShbHi()[6 - 3][i].toInteger()))
-          .shb6Lo(Bytes.ofUnsignedInt(this.shb.getShbLo()[6 - 3][i].toInteger()))
-          .shb7Hi(Bytes.ofUnsignedInt(this.shb.getShbHi()[7 - 3][i].toInteger()))
-          .shb7Lo(Bytes.ofUnsignedInt(this.shb.getShbLo()[7 - 3][i].toInteger()))
+          .shb3Hi(shb.getShbHi()[0][i])
+          .shb3Lo(shb.getShbLo()[0][i])
+          .shb4Hi(shb.getShbHi()[4 - 3][i])
+          .shb4Lo(shb.getShbLo()[4 - 3][i])
+          .shb5Hi(shb.getShbHi()[5 - 3][i])
+          .shb5Lo(shb.getShbLo()[5 - 3][i])
+          .shb6Hi(shb.getShbHi()[6 - 3][i])
+          .shb6Lo(shb.getShbLo()[6 - 3][i])
+          .shb7Hi(shb.getShbHi()[7 - 3][i])
+          .shb7Lo(shb.getShbLo()[7 - 3][i])
           .shiftDirection(this.isShiftRight)
           .iomf(true)
           .shiftStamp((short) stamp)

@@ -33,9 +33,9 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.ReturnFromDeploymentMmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.DeploymentOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.XCallOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
@@ -63,16 +63,14 @@ public class ReturnSection extends TraceSection
   ContextFragment squashParentContextReturnData;
   Address deploymentAddress;
 
-  boolean successfulMessageCallExpected; // for sanity check
-  boolean successfulDeploymentExpected; // for sanity check
-
-  // TODO: trigger SHAKIRA
+  boolean successfulMessageCallExpected = false; // for sanity check
+  boolean successfulDeploymentExpected = false; // for sanity check
 
   public ReturnSection(Hub hub) {
     super(hub, maxNumberOfRows(hub));
 
     final CallFrame callFrame = hub.currentFrame();
-    final MessageFrame messageFrame = hub.messageFrame();
+    final MessageFrame messageFrame = callFrame.frame();
 
     returnFromMessageCall = callFrame.isMessageCall();
     returnFromDeployment = callFrame.isDeployment();
@@ -84,12 +82,7 @@ public class ReturnSection extends TraceSection
             == hub.transients()
                 .conflation()
                 .deploymentInfo()
-                .getDeploymentStatus(messageFrame.getContractAddress()),
-        String.format(
-            "ReturnSection check argument\n\t\tHUB_STAMP = %s\n\t\tMessageFrame.contractAddress = %s\n\t\tCallFrame.byteCodeAddress = %s",
-            hub.stamp(),
-            hub.messageFrame().getContractAddress(),
-            hub.currentFrame().byteCodeAddress()));
+                .getDeploymentStatus(messageFrame.getContractAddress()));
 
     returnScenarioFragment = new ReturnScenarioFragment();
     final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
@@ -97,10 +90,8 @@ public class ReturnSection extends TraceSection
     final MxpCall mxpCall = new MxpCall(hub);
     firstImcFragment.callMxp(mxpCall);
 
-    this.addStack(hub);
-    this.addFragment(returnScenarioFragment);
-    this.addFragment(currentContextFragment);
-    this.addFragment(firstImcFragment);
+    this.addStackAndFragments(
+        hub, returnScenarioFragment, currentContextFragment, firstImcFragment);
 
     final short exceptions = hub.pch().exceptions();
 
@@ -131,7 +122,7 @@ public class ReturnSection extends TraceSection
     // maxCodeSizeException case
     final boolean triggerOobForMaxCodeSizeException = Exceptions.maxCodeSizeException(exceptions);
     if (triggerOobForMaxCodeSizeException) {
-      final OobCall oobCall = new XCallOobCall();
+      final OobCall oobCall = new DeploymentOobCall();
       firstImcFragment.callOob(oobCall);
       commonValues.setTracedException(TracedException.MAX_CODE_SIZE_EXCEPTION);
       return;
@@ -236,8 +227,11 @@ public class ReturnSection extends TraceSection
       final ImcFragment secondImcFragment = ImcFragment.empty(hub);
       this.addFragment(secondImcFragment);
 
-      final MmuCall nonemptyDeploymentMmuCall = MmuCall.returnFromDeployment(hub);
+      final ReturnFromDeploymentMmuCall nonemptyDeploymentMmuCall =
+          MmuCall.returnFromDeployment(hub);
       secondImcFragment.callMmu(nonemptyDeploymentMmuCall);
+
+      triggerHashInfo(nonemptyDeploymentMmuCall.hashResult());
     }
   }
 
@@ -246,14 +240,14 @@ public class ReturnSection extends TraceSection
 
     // TODO: optional sanity check that may be removed
     if (returnFromMessageCall) {
-      Bytes topOfTheStack = hub.messageFrame().getStackItem(0);
+      final Bytes topOfTheStack = hub.messageFrame().getStackItem(0);
       boolean messageCallWasSuccessful = bytesToBoolean(topOfTheStack);
       checkArgument(messageCallWasSuccessful == successfulMessageCallExpected);
     }
 
     // TODO: optional sanity check that may be removed
     if (returnFromDeployment) {
-      Bytes topOfTheStack = hub.messageFrame().getStackItem(0);
+      final Bytes topOfTheStack = hub.messageFrame().getStackItem(0);
       boolean deploymentWasSuccess = !topOfTheStack.isZero();
       checkArgument(deploymentWasSuccess == successfulDeploymentExpected);
     }
@@ -268,9 +262,6 @@ public class ReturnSection extends TraceSection
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     if (nonemptyByteCode) {
-      // TODO: we require the
-      //  - triggerHashInfo stuff on the first stack row (automatic AFAICT)
-      //  - triggerROMLEX on the deploymentAccountFragment row (see below)
       deploymentAccountFragment.requiresRomlex(true);
     }
 

@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.blockdata;
 
-import static net.consensys.linea.zktracer.module.blockdata.Trace.MAX_CT;
-import static net.consensys.linea.zktracer.types.TransactionUtils.getChainIdFromTransaction;
+import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_FOR_BLOCKDATA;
 
+import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -38,6 +38,7 @@ public class Blockdata implements Module {
   private final Wcp wcp;
   private final TxnData txnData;
   private final RlpTxn rlpTxn;
+  private final BigInteger chainId;
   private final Deque<BlockdataOperation> operations = new ArrayDeque<>();
   private boolean conflationFinished = false;
   private static final int TIMESTAMP_BYTESIZE = 4;
@@ -82,7 +83,7 @@ public class Blockdata implements Module {
   @Override
   public int lineCount() {
     final int numberOfBlock = conflationFinished ? operations.size() : operations.size() + 1;
-    return numberOfBlock * (MAX_CT + 1);
+    return numberOfBlock * (CT_MAX_FOR_BLOCKDATA + 1);
   }
 
   @Override
@@ -92,13 +93,12 @@ public class Blockdata implements Module {
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    final long firstBlockNumber = operations.getFirst().absoluteBlockNumber();
-    final long chainId = getChainIdFromTransaction(rlpTxn.operations().getLast().tx());
     final Trace trace = new Trace(buffers);
+
+    final long firstBlockNumber = operations.getFirst().absoluteBlockNumber();
     int relblock = 0;
-    for (BlockdataOperation blockData : this.operations) {
-      relblock += 1;
-      blockData.trace(trace, relblock, firstBlockNumber, chainId);
+    for (BlockdataOperation blockData : operations) {
+      blockData.trace(trace, ++relblock, firstBlockNumber, chainId);
     }
   }
 }

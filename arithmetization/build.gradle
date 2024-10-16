@@ -44,13 +44,15 @@ dependencies {
   implementation "${besuArtifactGroup}:plugin-api"
   implementation "${besuArtifactGroup}:besu-datatypes"
   implementation "${besuArtifactGroup}.internal:api:${besuVersion}"
+  implementation "${besuArtifactGroup}.internal:clique:${besuVersion}"
   implementation "${besuArtifactGroup}.internal:core:${besuVersion}"
   implementation "${besuArtifactGroup}.internal:rlp:${besuVersion}"
   implementation "${besuArtifactGroup}.internal:algorithms:${besuVersion}"
 
   implementation 'info.picocli:picocli'
 
-  compileOnly 'io.vertx:vertx-core'
+  implementation 'io.vertx:vertx-core'
+  implementation 'io.vertx:vertx-web'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
@@ -79,26 +81,3 @@ configurations {
 
 apply from: rootProject.file("gradle/dist.gradle")
 apply from: rootProject.file("gradle/publishing.gradle")
-
-tasks.test.configure {
-  useJUnitPlatform {
-    excludeTags("replay")
-  }
-}
-
-tasks.register("replayTests", Test) {
-  boolean isCiServer = System.getenv().containsKey("CI")
-  maxHeapSize = isCiServer ? "32g" : "8g"
-
-  systemProperty("junit.jupiter.execution.parallel.enabled", true)
-  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
-  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
-  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
-  println(System.getenv().get("REPLAY_TESTS_PARALLELISM"))
-  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
-    System.getenv().getOrDefault("REPLAY_TESTS_PARALLELISM", "1").toInteger())
-
-  useJUnitPlatform {
-    includeTags("replay")
-  }
-}

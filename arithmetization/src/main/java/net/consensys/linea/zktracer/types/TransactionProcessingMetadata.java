@@ -32,10 +32,10 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
+import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
-import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -43,7 +43,7 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public class TransactionProcessingMetadata implements PostTransactionDefer {
+public class TransactionProcessingMetadata {
 
   final int absoluteTransactionNumber;
   final int relativeTransactionNumber;
@@ -54,6 +54,8 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   final long baseFee;
 
   final boolean isDeployment;
+  int updatedRecipientAddressDeploymentNumberAtTransactionStart;
+  boolean updatedRecipientAddressDeploymentStatusAtTransactionStart;
 
   @Accessors(fluent = true)
   final boolean requiresEvmExecution;
@@ -92,7 +94,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   @Setter int hubStampTransactionEnd;
 
-  @Setter int accumulatedGasUsedInBlock = -1;
+  @Setter long accumulatedGasUsedInBlock = -1;
 
   @Accessors(fluent = true)
   @Setter
@@ -115,17 +117,10 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   @Setter Set<AccountSnapshot> destructedAccountsSnapshot = new HashSet<>();
 
   @Getter
-  Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap = new HashMap<>();
+  final Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
+      new HashMap<>();
 
-  @Getter Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
-
-  // Ephermeral accounts are both accounts that have been deployed on-chain
-  // and accounts that live for a limited time
-  public record EphemeralAccount(Address address, int deploymentNumber) {}
-  ;
-
-  public record AttemptedSelfDestruct(int hubStamp, CallFrame callFrame) {}
-  ;
+  @Getter final Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
 
   public TransactionProcessingMetadata(
       final WorldView world,
@@ -134,54 +129,54 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
       final int relativeTransactionNumber,
       final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
-    this.relativeBlockNumber = block.blockNumber();
-    this.coinbase = block.coinbaseAddress();
-    this.baseFee = block.baseFee().toLong();
+    relativeBlockNumber = block.blockNumber();
+    coinbase = block.coinbaseAddress();
+    baseFee = block.baseFee().toLong();
 
-    this.besuTransaction = transaction;
+    besuTransaction = transaction;
     this.relativeTransactionNumber = relativeTransactionNumber;
 
-    this.isDeployment = transaction.getTo().isEmpty();
-    this.requiresEvmExecution = computeRequiresEvmExecution(world);
-    this.copyTransactionCallData = computeCopyCallData();
+    isDeployment = transaction.getTo().isEmpty();
+    requiresEvmExecution = computeRequiresEvmExecution(world);
+    copyTransactionCallData = computeCopyCallData();
 
-    this.initialBalance = getInitialBalance(world);
+    initialBalance = getInitialBalance(world);
 
     // Note: Besu's dataCost computation contains
     // - the 21_000 transaction cost (we deduce it)
     // - the contract creation cost in case of deployment (we set deployment to false to not add it)
-    this.dataCost =
+    dataCost =
         ZkTracer.gasCalculator.transactionIntrinsicGasCost(besuTransaction.getPayload(), false)
             - GAS_CONST_G_TRANSACTION;
-    this.accessListCost =
+    accessListCost =
         besuTransaction.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);
-    this.initiallyAvailableGas = getInitiallyAvailableGas();
+    initiallyAvailableGas = getInitiallyAvailableGas();
 
-    this.effectiveRecipient = effectiveToAddress(besuTransaction);
+    effectiveRecipient = effectiveToAddress(besuTransaction);
 
-    this.effectiveGasPrice = computeEffectiveGasPrice();
+    effectiveGasPrice = computeEffectiveGasPrice();
   }
 
   public void setPreFinalisationValues(
       final long leftOverGas,
       final long refundCounterMax,
       final boolean coinbaseIsWarmAtFinalisation,
-      final int accumulatedGasUsedInBlockAtStartTx) {
+      final long accumulatedGasUsedInBlockAtStartTx) {
 
-    this.isCoinbaseWarmAtTransactionEnd(coinbaseIsWarmAtFinalisation);
+    isCoinbaseWarmAtTransactionEnd(coinbaseIsWarmAtFinalisation);
     this.refundCounterMax = refundCounterMax;
-    this.setLeftoverGas(leftOverGas);
-    this.gasUsed = computeGasUsed();
-    this.refundEffective = computeRefundEffective();
-    this.gasRefunded = computeRefunded();
-    this.totalGasUsed = computeTotalGasUsed();
-    this.accumulatedGasUsedInBlock = (int) (accumulatedGasUsedInBlockAtStartTx + totalGasUsed);
+    setLeftoverGas(leftOverGas);
+    gasUsed = computeGasUsed();
+    refundEffective = computeRefundEffective();
+    gasRefunded = computeRefunded();
+    totalGasUsed = computeTotalGasUsed();
+    accumulatedGasUsedInBlock = accumulatedGasUsedInBlockAtStartTx + totalGasUsed;
   }
 
   public void completeLineaTransaction(
       Hub hub, final boolean statusCode, final List<Log> logs, final Set<Address> selfDestructs) {
     this.statusCode = statusCode;
-    this.hubStampTransactionEnd = hub.stamp();
+    hubStampTransactionEnd = hub.stamp();
     this.logs = logs;
     for (Address address : selfDestructs) {
       hub.transients()
@@ -189,10 +184,12 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
           .deploymentInfo()
           .freshDeploymentNumberFinishingSelfdestruct(
               address); // depNum += 1 and depStatus <- false
-      this.destructedAccountsSnapshot.add(
+      destructedAccountsSnapshot.add(
           AccountSnapshot.fromAddress(
               address, true, hub.deploymentNumberOf(address), hub.deploymentStatusOf(address)));
     }
+
+    determineSelfDestructTimeStamp();
   }
 
   private boolean computeCopyCallData() {
@@ -206,7 +203,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
           .orElse(false);
     }
 
-    return !this.besuTransaction.getInit().get().isEmpty();
+    return !besuTransaction.getInit().get().isEmpty();
   }
 
   private BigInteger getInitialBalance(WorldView world) {
@@ -226,7 +223,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   }
 
   private long computeRefundEffective() {
-    final long maxRefundableAmount = this.getGasUsed() / MAX_REFUND_QUOTIENT;
+    final long maxRefundableAmount = getGasUsed() / MAX_REFUND_QUOTIENT;
     return Math.min(maxRefundableAmount, refundCounterMax);
   }
 
@@ -266,7 +263,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   /* g* in the EYP */
   public long computeRefunded() {
-    return leftoverGas + this.refundEffective;
+    return leftoverGas + refundEffective;
   }
 
   /* Tg - g* in the EYP */
@@ -276,8 +273,7 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
 
   public long feeRateForCoinbase() {
     return switch (besuTransaction.getType()) {
-      case FRONTIER, ACCESS_LIST -> effectiveGasPrice;
-      case EIP1559 -> effectiveGasPrice - baseFee;
+      case FRONTIER, ACCESS_LIST, EIP1559 -> effectiveGasPrice - baseFee;
       default -> throw new IllegalStateException(
           "Transaction Type not supported: " + besuTransaction.getType());
     };
@@ -293,38 +289,43 @@ public class TransactionProcessingMetadata implements PostTransactionDefer {
   }
 
   public int numberWarmedAddress() {
-    return this.besuTransaction.getAccessList().isPresent()
-        ? this.besuTransaction.getAccessList().get().size()
+    return besuTransaction.getAccessList().isPresent()
+        ? besuTransaction.getAccessList().get().size()
         : 0;
   }
 
   public int numberWarmedKey() {
-    return this.besuTransaction.getAccessList().isPresent()
-        ? this.besuTransaction.getAccessList().get().stream()
+    return besuTransaction.getAccessList().isPresent()
+        ? besuTransaction.getAccessList().get().stream()
             .mapToInt(accessListEntry -> accessListEntry.storageKeys().size())
             .sum()
         : 0;
   }
 
-  @Override
-  public void resolvePostTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+  private void determineSelfDestructTimeStamp() {
     for (Map.Entry<EphemeralAccount, List<AttemptedSelfDestruct>> entry :
         unexceptionalSelfDestructMap.entrySet()) {
 
-      EphemeralAccount ephemeralAccount = entry.getKey();
-      List<AttemptedSelfDestruct> attemptedSelfDestructs = entry.getValue();
+      final EphemeralAccount ephemeralAccount = entry.getKey();
+      final List<AttemptedSelfDestruct> attemptedSelfDestructs = entry.getValue();
 
       // For each address, deployment number, we find selfDestructTime as
       // the time in which the first unexceptional and un-reverted SELFDESTRUCT occurs
       // Then we add this value in a new map
       for (AttemptedSelfDestruct attemptedSelfDestruct : attemptedSelfDestructs) {
         if (attemptedSelfDestruct.callFrame().revertStamp() == 0) {
-          int selfDestructTime = attemptedSelfDestruct.hubStamp();
-          this.effectiveSelfDestructMap.put(ephemeralAccount, selfDestructTime);
+          final int selfDestructTime = attemptedSelfDestruct.hubStamp();
+          effectiveSelfDestructMap.put(ephemeralAccount, selfDestructTime);
           break;
         }
       }
     }
+  }
+
+  public void captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(Hub hub) {
+    updatedRecipientAddressDeploymentNumberAtTransactionStart =
+        hub.deploymentNumberOf(effectiveRecipient);
+    updatedRecipientAddressDeploymentStatusAtTransactionStart =
+        hub.deploymentStatusOf(effectiveRecipient);
   }
 }

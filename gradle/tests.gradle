@@ -48,6 +48,7 @@ tasks.withType(Test).configureEach {
 
   jvmArgs = [
     '-XX:-UseGCOverheadLimit',
+    '-XX:+PrintGC',
     // Mockito and jackson-databind do some strange reflection during tests.
     // This suppresses an illegal access warning.
     '--add-opens',
@@ -68,7 +69,7 @@ tasks.withType(Test).configureEach {
 
   testlogger {
     // pick a theme - mocha, standard, plain, mocha-parallel, standard-parallel or plain-parallel
-    theme 'standard-parallel'
+    theme 'plain-parallel'
 
     // set to false to disable detailed failure logs
     showExceptions true
@@ -92,10 +93,10 @@ tasks.withType(Test).configureEach {
     showSimpleNames false
 
     // set to false to hide passed tests
-    showPassed true
+    showPassed false
 
     // set to false to hide skipped tests
-    showSkipped true
+    showSkipped false
 
     // set to false to hide failed tests
     showFailed true
@@ -104,10 +105,10 @@ tasks.withType(Test).configureEach {
     showStandardStreams true
 
     // set to false to hide passed standard out and error streams
-    showPassedStandardStreams true
+    showPassedStandardStreams false
 
     // set to false to hide skipped standard out and error streams
-    showSkippedStandardStreams true
+    showSkippedStandardStreams false
 
     // set to false to hide failed standard out and error streams
     showFailedStandardStreams true
@@ -120,6 +121,43 @@ tasks.test.configure {
   maxParallelForks = Runtime.getRuntime().availableProcessors()
   useJUnitPlatform {
     excludeTags("nightly")
+    excludeTags("replay")
+    excludeTags("weekly")
+  }
+}
+
+tasks.register("fastReplayTests", Test) {
+  if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
+    systemProperty("junit.jupiter.execution.parallel.enabled", true)
+    systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+    systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+      System.getenv().get("REPLAY_TESTS_PARALLELISM").toInteger())
+  }
+  useJUnitPlatform {
+    includeTags("replay")
+    excludeTags("nightly")
+    excludeTags("weekly")
+  }
+}
+
+tasks.register("nightlyReplayTests", Test) {
+  boolean isCiServer = System.getenv().containsKey("CI")
+  maxHeapSize = isCiServer ? "32g" : "8g"
+
+  if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
+    systemProperty("junit.jupiter.execution.parallel.enabled", true)
+    systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+    systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+      System.getenv().get("REPLAY_TESTS_PARALLELISM").toInteger())
+  }
+
+  useJUnitPlatform {
+    includeTags("replay")
+    includeTags("nightly")
   }
 }
 
@@ -136,5 +174,20 @@ tasks.register("nightlyTests", Test) {
 
   useJUnitPlatform {
     includeTags("nightly")
+  }
+}
+
+tasks.register("weeklyTests", Test) {
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+          System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "1").toInteger())
+
+  useJUnitPlatform {
+    excludeTags("nightly")
+    excludeTags("replay")
+    includeTags("weekly")
   }
 }

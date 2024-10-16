@@ -24,21 +24,17 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
-import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 @Accessors(fluent = true)
 public class Trm implements OperationSetModule<TrmOperation> {
-  private final StackedSet<TrmOperation> operations = new StackedSet<>();
+  private final ModuleOperationStackedSet<TrmOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   static final int MAX_CT = LLARGE;
   static final int PIVOT_BIT_FLIPS_TO_TRUE = 12;
@@ -48,40 +44,13 @@ public class Trm implements OperationSetModule<TrmOperation> {
     return "TRM";
   }
 
-  public Address callTrimming(Bytes32 rawHash) {
-    operations.add(new TrmOperation(EWord.of(rawHash)));
-    return Address.extract(rawHash);
+  public Address callTrimming(Bytes32 rawAddress) {
+    operations.add(new TrmOperation(EWord.of(rawAddress)));
+    return Address.extract(rawAddress);
   }
 
-  public Address callTrimming(Bytes addressToTrim) {
-    Bytes32 addressPadded = Bytes32.leftPad(addressToTrim);
-    return callTrimming(addressPadded);
-  }
-
-  @Override
-  public void traceStartTx(WorldView world, TransactionProcessingMetadata txMetaData) {
-    // Add effective receiver Address
-    operations.add(new TrmOperation(EWord.of(txMetaData.getEffectiveRecipient())));
-
-    // Add Address in AccessList to warm
-    final Transaction tx = txMetaData.getBesuTransaction();
-    final TransactionType txType = tx.getType();
-
-    switch (txType) {
-      case ACCESS_LIST, EIP1559 -> {
-        if (tx.getAccessList().isPresent()) {
-          for (AccessListEntry entry : tx.getAccessList().get()) {
-            operations.add(new TrmOperation(EWord.of(entry.address())));
-          }
-        }
-      }
-      case FRONTIER -> {
-        return;
-      }
-      default -> {
-        throw new IllegalStateException("TransactionType not supported: " + txType);
-      }
-    }
+  public Address callTrimming(Bytes rawAddress) {
+    return callTrimming(Bytes32.leftPad(rawAddress));
   }
 
   @Override
@@ -94,7 +63,7 @@ public class Trm implements OperationSetModule<TrmOperation> {
     final Trace trace = new Trace(buffers);
 
     int stamp = 0;
-    for (TrmOperation operation : operations.getAll()) {
+    for (TrmOperation operation : operations.sortOperations(new TrmOperationComparator())) {
       operation.trace(trace, ++stamp);
     }
   }

@@ -42,7 +42,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.StackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
@@ -61,7 +61,9 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
-  @Getter private final StackedSet<RlpAddrOperation> operations = new StackedSet<>();
+  @Getter
+  private final ModuleOperationStackedSet<RlpAddrOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   private static final Bytes CREATE2_SHIFT = Bytes.minimalBytes(GlobalConstants.CREATE2_SHIFT);
   private static final Bytes INT_SHORT = Bytes.minimalBytes(RLP_PREFIX_INT_SHORT);
@@ -91,6 +93,7 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
     }
   }
 
+  // TODO : this should die, make sure we trigger it in the right place
   @Override
   public void tracePreOpcode(MessageFrame frame) {
     final OpCode opcode = hub.opCode();
@@ -317,7 +320,7 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     int stamp = 0;
-    for (RlpAddrOperation op : operations.getAll()) {
+    for (RlpAddrOperation op : operations.sortOperations(new RlpAddrOperationComparator())) {
       traceOperation(op, ++stamp, trace);
     }
   }

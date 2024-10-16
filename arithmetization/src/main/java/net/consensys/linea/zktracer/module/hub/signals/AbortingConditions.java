@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -30,65 +31,73 @@ import org.hyperledger.besu.datatypes.Wei;
 public final class AbortingConditions {
   private boolean callStackOverflow;
   private boolean insufficientBalance;
+  private boolean maxNonceReached;
 
   /**
    * @param callStackOverflow too many nested contexts
    * @param insufficientBalance trying to give more ETH than the caller has
+   * @param maxNonceReached the nonce of the creator account is too high (EIP-2681)
    */
-  public AbortingConditions(boolean callStackOverflow, boolean insufficientBalance) {
+  public AbortingConditions(
+      boolean callStackOverflow, boolean insufficientBalance, boolean maxNonceReached) {
     this.callStackOverflow = callStackOverflow;
     this.insufficientBalance = insufficientBalance;
-  }
-
-  public static AbortingConditions of(Hub hub) {
-    AbortingConditions r = new AbortingConditions();
-    r.prepare(hub);
-    return r;
+    this.maxNonceReached = maxNonceReached;
   }
 
   public void reset() {
-    this.callStackOverflow = false;
-    this.insufficientBalance = false;
+    callStackOverflow = false;
+    insufficientBalance = false;
+    maxNonceReached = false;
   }
 
   public void prepare(Hub hub) {
-    this.callStackOverflow = hub.callStack().wouldOverflow();
+    callStackOverflow = hub.callStack().wouldOverflow();
     if (this.callStackOverflow) {
       return;
     }
 
-    this.insufficientBalance =
-        switch (hub.currentFrame().opCode()) {
-          case CALL, CALLCODE -> {
-            if (Exceptions.none(hub.pch().exceptions())) {
-              final Address myAddress = hub.currentFrame().accountAddress();
-              final Wei myBalance =
-                  hub.messageFrame().getWorldUpdater().get(myAddress).getBalance();
-              final Wei value = Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(2)));
+    final OpCode currentOp = hub.opCode();
 
-              yield value.greaterThan(myBalance);
-            } else {
-              yield false;
-            }
+    insufficientBalance =
+        switch (currentOp) {
+          case CALL, CALLCODE -> {
+            final Address myAddress = hub.currentFrame().accountAddress();
+            final Wei myBalance = hub.messageFrame().getWorldUpdater().get(myAddress).getBalance();
+            final Wei value = Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(2)));
+
+            yield value.greaterThan(myBalance);
           }
           case CREATE, CREATE2 -> {
-            if (Exceptions.none(hub.pch().exceptions())) {
-              final Address myAddress = hub.currentFrame().accountAddress();
-              final Wei myBalance =
-                  hub.messageFrame().getWorldUpdater().get(myAddress).getBalance();
-              final Wei value = Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(0)));
+            final Address myAddress = hub.currentFrame().accountAddress();
+            final Wei myBalance = hub.messageFrame().getWorldUpdater().get(myAddress).getBalance();
+            final Wei value = Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(0)));
 
-              yield value.greaterThan(myBalance);
-            } else {
-              yield false;
-            }
+            yield value.greaterThan(myBalance);
           }
+          default -> false;
+        };
+
+    if (insufficientBalance) {
+      return;
+    }
+
+    maxNonceReached =
+        switch (currentOp) {
+          case CREATE, CREATE2 -> {
+            final Address myAddress = hub.currentFrame().accountAddress();
+            final long creatorNonce =
+                hub.messageFrame().getWorldUpdater().get(myAddress).getNonce();
+            // The nonce is a (signed) long for BESU so EIP2681_MAX_NONCE == -1
+            yield creatorNonce == -1;
+          }
+
           default -> false;
         };
   }
 
   public AbortingConditions snapshot() {
-    return new AbortingConditions(this.callStackOverflow, this.insufficientBalance);
+    return new AbortingConditions(callStackOverflow, insufficientBalance, maxNonceReached);
   }
 
   public boolean none() {
@@ -96,6 +105,6 @@ public final class AbortingConditions {
   }
 
   public boolean any() {
-    return this.callStackOverflow || this.insufficientBalance;
+    return callStackOverflow || insufficientBalance || maxNonceReached;
   }
 }

@@ -47,23 +47,12 @@ jobs:
           name: distributions
           path: arithmetization/build/libs
 
-  spotless:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 21
-      - name: spotless
+      - name: Run spotless
         run: ./gradlew --no-daemon --parallel clean spotlessCheck
 
-
   tests:
-    needs: [ build, spotless ]
-    runs-on: ubuntu-latest-128
+    needs: [ build ]
+    runs-on: ubuntu-latest-32
     steps:
       - name: Setup upterm session
         if: ${{ inputs.tests-with-ssh }}
@@ -77,7 +66,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          submodules: recursive
+          submodules: false
+
+      - name: Get Submodules
+        run: git submodule update --init --recursive linea-constraints
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -88,24 +80,8 @@ jobs:
       - name: Install Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
-      # The asset URL for the latest release can be found with:
-      # curl -L -H "Accept: application/vnd.github+json"  \
-      #     -H "Authorization: Bearer YOUR_GH_API_TOKEN" \
-      #     -H "X-GitHub-Api-Version: 2022-11-28" \
-      #     https://api.github.com/repos/ConsenSys/corset/releases/latest
-      # | jq '.assets[] | select(.name|endswith("x86_64-unknown-linux-musl.tar.gz")) | .url'
       - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.13 --locked --force
-#        run: |
-#          curl -L \
-#          -H "Accept: application/octet-stream" \
-#          -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-#          -H "X-GitHub-Api-Version: 2022-11-28" \
-#          -o corset.tar.gz \
-#          https://api.github.com/repos/Consensys/corset/releases/assets/151396061
-#          tar xzf corset.tar.gz
-#          mv corset $HOME
-#          echo $HOME >> $GITHUB_PATH
+        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
 
       - name: Run unit tests
         run: ./gradlew :arithmetization:test --stacktrace
@@ -114,11 +90,11 @@ jobs:
           CORSET_FLAGS: fields,expand,expand,expand
 
       - name: Run Replay tests
-        run: ./gradlew :arithmetization:replayTests --stacktrace
+        run: ./gradlew :arithmetization:fastReplayTests --stacktrace
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
-          REPLAY_TESTS_PARALLELISM: 4
+          REPLAY_TESTS_PARALLELISM: 2
 
       - name: Upload test report
         if: always()
@@ -128,9 +104,9 @@ jobs:
           path: arithmetization/build/reports/tests/**/*
 
   go-corset-tests:
-    needs: [ build, spotless ]
-    runs-on: ubuntu-latest-128
-    continue-on-error: true    
+    needs: [ build ]
+    runs-on: ubuntu-latest-32
+    continue-on-error: true
     steps:
       - name: Setup upterm session
         if: ${{ inputs.tests-with-ssh }}
@@ -143,7 +119,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
-          submodules: recursive
+          submodules: false
+
+      - name: Get Submodules
+        run: git submodule update --init --recursive linea-constraints
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
@@ -155,7 +134,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.13 --locked --force
+        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
 
       - name: Install Go
         uses: actions/setup-go@v4
@@ -165,15 +144,22 @@ jobs:
           go install github.com/consensys/go-corset/cmd/go-corset@latest
 
       - name: Run unit tests
-        run: GOMEMLIMIT=196GiB ./gradlew :arithmetization:test
+        run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:test
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
+          GOCORSET_FLAGS: -b1024 -wd --ansi-escapes=false --report --air
 
       - name: Run replay tests
-        run: GOMEMLIMIT=196GiB ./gradlew :arithmetization:replayTests
+        run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:fastReplayTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
+          GOCORSET_FLAGS: -b1024 -wd --ansi-escapes=false --report --air
+
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: go-corset-tests-report
+          path: arithmetization/build/reports/tests/**/*

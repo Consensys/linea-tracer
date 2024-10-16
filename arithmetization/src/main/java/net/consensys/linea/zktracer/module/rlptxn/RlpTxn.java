@@ -63,7 +63,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
-import net.consensys.linea.zktracer.container.stacked.StackedList;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
@@ -90,8 +90,8 @@ public class RlpTxn implements OperationListModule<RlpTxnOperation> {
   private final RomLex romLex;
 
   @Getter
-  private final StackedList<RlpTxnOperation> operations =
-      new StackedList<>(LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH, 1);
+  private final ModuleOperationStackedList<RlpTxnOperation> operations =
+      new ModuleOperationStackedList<>(LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH, 1);
 
   @Override
   public String moduleKey() {
@@ -593,7 +593,7 @@ public class RlpTxn implements OperationListModule<RlpTxnOperation> {
     checkArgument(bigIntegerToBytes(V).size() <= 8, "V is longer than 8 bytes");
     final boolean betaIsZero =
         V.equals(BigInteger.valueOf(27))
-            || V.equals(BigInteger.valueOf(28)); // beta = ChainId = 0 iff (V == 27 or V == 28)
+            || V.equals(BigInteger.valueOf(28)); // beta = 0 iff (V == 27 or V == 28)
 
     // Rlp(w)
     rlpInt(

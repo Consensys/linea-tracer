@@ -195,6 +195,9 @@ public class BlockchainReferenceTestTools {
 
     for (var candidateBlock : spec.getCandidateBlocks()) {
       Assumptions.assumeTrue(
+          candidateBlock.areAllTransactionsValid(),
+          "Skipping the test because the block is not executable");
+      Assumptions.assumeTrue(
           candidateBlock.isExecutable(), "Skipping the test because the block is not executable");
       Assumptions.assumeTrue(
           candidateBlock.getBlock().getBody().getTransactions().size() > 0,

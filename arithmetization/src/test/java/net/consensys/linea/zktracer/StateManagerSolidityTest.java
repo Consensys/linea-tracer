@@ -73,15 +73,21 @@ public class StateManagerSolidityTest {
     Bytes txPayload =
             Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
 
-    Transaction tx =
-            ToyTransaction.builder()
-                    .sender(sender)
-                    .to(this.testContext.frameworkEntryPointAccount)
-                    .payload(txPayload)
-                    .keyPair(senderKeyPair)
-                    .gasLimit(TestContext.gasLimit)
-                    .build();
-    TestContext.txNonce = tx.getNonce();
+
+    ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
+            .sender(sender)
+            .to(this.testContext.frameworkEntryPointAccount)
+            .payload(txPayload)
+            .keyPair(senderKeyPair)
+            .gasLimit(TestContext.gasLimit);
+
+    if (TestContext.txNonce != null) {
+      tempTx = tempTx.nonce(++TestContext.txNonce);
+    }
+    Transaction tx = tempTx.build();
+    if (TestContext.txNonce == null) {
+      TestContext.txNonce = tx.getNonce();
+    }
     return tx;
   }
 
@@ -111,15 +117,20 @@ public class StateManagerSolidityTest {
     Bytes txPayload =
             Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
 
-    Transaction tx =
-            ToyTransaction.builder()
-                    .sender(sender)
-                    .to(this.testContext.frameworkEntryPointAccount)
-                    .payload(txPayload)
-                    .keyPair(senderKeyPair)
-                    .nonce(++TestContext.txNonce)
-                    .gasLimit(TestContext.gasLimit)
-                    .build();
+    ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
+            .sender(sender)
+            .to(this.testContext.frameworkEntryPointAccount)
+            .payload(txPayload)
+            .keyPair(senderKeyPair)
+            .gasLimit(TestContext.gasLimit);
+
+    if (TestContext.txNonce != null) {
+      tempTx = tempTx.nonce(++TestContext.txNonce);
+    }
+    Transaction tx = tempTx.build();
+    if (TestContext.txNonce == null) {
+      TestContext.txNonce = tx.getNonce();
+    }
     return tx;
   }
 
@@ -149,23 +160,28 @@ public class StateManagerSolidityTest {
                     Collections.emptyList());
     Bytes txPayload =
             Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+    
+    ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
+            .sender(sender)
+            .to(this.testContext.frameworkEntryPointAccount)
+            .payload(txPayload)
+            .keyPair(senderKeyPair)
+            .gasLimit(TestContext.gasLimit);
 
-    Transaction tx =
-            ToyTransaction.builder()
-                    .sender(sender)
-                    .to(this.testContext.frameworkEntryPointAccount)
-                    .payload(txPayload)
-                    .keyPair(senderKeyPair)
-                    .nonce(++TestContext.txNonce)
-                    .gasLimit(TestContext.gasLimit)
-                    .build();
+    if (TestContext.txNonce != null) {
+      tempTx = tempTx.nonce(++TestContext.txNonce);
+    }
+    Transaction tx = tempTx.build();
+    if (TestContext.txNonce == null) {
+      TestContext.txNonce = tx.getNonce();
+    }
     return tx;
   }
 
 
   @NoArgsConstructor
   class TestContext {
-    static Long txNonce;
+    static Long txNonce = null;
     static final Long gasLimit = 500000L;
     static final int numberOfAccounts = 3;
     @Getter

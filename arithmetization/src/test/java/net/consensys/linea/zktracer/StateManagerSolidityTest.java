@@ -81,6 +81,7 @@ public class StateManagerSolidityTest {
                     .keyPair(senderKeyPair)
                     .gasLimit(TestContext.gasLimit)
                     .build();
+    TestContext.txNonce = tx.getNonce();
     return tx;
   }
 
@@ -88,7 +89,7 @@ public class StateManagerSolidityTest {
   Transaction readFromStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key) {
     List<org.web3j.abi.datatypes.Uint> inputParams2 = new ArrayList<>();
     List<TypeReference<?>> outputParams2 = new ArrayList<>();
-    inputParams2.addLast(new Uint256(BigInteger.valueOf(1)));
+    inputParams2.addLast(new Uint256(BigInteger.valueOf(key)));
     Function yulFunction2 = new Function("readFromStorage", Collections.unmodifiableList(inputParams2), outputParams2);
 
 
@@ -116,6 +117,7 @@ public class StateManagerSolidityTest {
                     .to(this.testContext.frameworkEntryPointAccount)
                     .payload(txPayload)
                     .keyPair(senderKeyPair)
+                    .nonce(++TestContext.txNonce)
                     .gasLimit(TestContext.gasLimit)
                     .build();
     return tx;
@@ -154,6 +156,7 @@ public class StateManagerSolidityTest {
                     .to(this.testContext.frameworkEntryPointAccount)
                     .payload(txPayload)
                     .keyPair(senderKeyPair)
+                    .nonce(++TestContext.txNonce)
                     .gasLimit(TestContext.gasLimit)
                     .build();
     return tx;
@@ -162,6 +165,7 @@ public class StateManagerSolidityTest {
 
   @NoArgsConstructor
   class TestContext {
+    static Long txNonce;
     static final Long gasLimit = 500000L;
     static final int numberOfAccounts = 3;
     @Getter
@@ -283,6 +287,7 @@ public class StateManagerSolidityTest {
             .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.initialAccounts[1], this.testContext.frameworkEntryPointAccount))
             .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L)))
             .addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L)))
+            .addBlock(List.of(selfDestruct(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], testContext.frameworkEntryPointAccount)))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();

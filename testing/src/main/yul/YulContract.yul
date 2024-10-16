@@ -48,6 +48,18 @@ object "YulContract" {
                 logValuesRead(x, y)
             }
 
+            case 0x3f5a0bdd // selfDestruct
+            {
+                // Load the first argument (recipient) from calldata
+                let recipient := calldataload(0x04)
+
+                 // log the call before self destructing
+                logSelfDestruct(recipient)
+
+                // call the self-destruct function
+                selfDestruct(recipient)
+            }
+
             default {
                 // if the function signature sent does not match any
                 // of the contract functions, revert
@@ -64,7 +76,7 @@ object "YulContract" {
             // Function to log two uint256 values for the write storage operation, along with the contract address
            function logValuesWrite(x, y) {
                 // Define an event signature to generate logs for storage operations
-                let eventSignature := "Write(address,uint256,uint256)" //Hex for "Write(address,uint256,uint256)", signature length is 30 characters (thus 30 bytes)
+                let eventSignature := "Write(address,uint256,uint256)" // The signature is "Write(address,uint256,uint256)", signature length is 30 characters (thus 30 bytes)
 
                 let memStart := mload(0x40) // get the free memory pointer
                 mstore(memStart, eventSignature)
@@ -98,6 +110,20 @@ object "YulContract" {
                 log4(0x20, 0x60, eventSignatureHash, contractAddress, x, y)
            }
 
+            // Function to log the self destruction of the contract
+           function logSelfDestruct(recipient) {
+                // Define an event signature to generate logs for storage operations
+                let eventSignature := "ContractDestroyed(address)"
+
+                let memStart := mload(0x40) // get the free memory pointer
+                mstore(memStart, eventSignature)
+
+                let eventSignatureHash := keccak256(memStart, 26) // 26 bytes is the string length, expected output 3ab1d7915d663a46c292b8f01ac13567c748cff5213cb3652695882b5f9b2e0f
+
+                // call the inbuilt logging function
+                log2(0x20, 0x60, eventSignatureHash, recipient)
+           }
+
             // 0x0dd2602cce131b717885742cf4e9a79978d80b588950101dc8619106202b5fd5
             // function signature: first 4 bytes 0x0dd2602c
             // example of call: [["Addr",0x0dd2602c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001,0,0,0]]
@@ -116,6 +142,19 @@ object "YulContract" {
                 // Use verbatim to include raw bytecode for reading the value stored at x
                 // 54 corresponds to SLOAD
                 y := verbatim_1i_1o(hex"54", x)
+            }
+
+            /**
+            * @notice Selfdestructs and sends remaining ETH to a payable address.
+            * @dev Keep in mind you need to compile and target London EVM version - this doesn't work for repeat addresses on Cancun etc.
+            * @param _fundAddress The deploying contract's address.
+            * example of call: [["Addr",0x3f5a0bdd0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4,0,0,0]]
+            * (replace the argument 5b38da6a701c568545dcfcb03fcb875f56beddc4 with the intended recipient, as needed)
+            **/
+            function selfDestruct(recipient) {
+                // There is a weird bug with selfdestruct(recipient), so we replace that with verbatim
+                // Use verbatim to include the selfdestruct opcode (0xff)
+                verbatim_1i_0o(hex"ff", recipient)
             }
 
             // Return the function selector: the first 4 bytes of the call data

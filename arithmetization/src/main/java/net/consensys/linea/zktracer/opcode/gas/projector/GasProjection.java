@@ -70,11 +70,11 @@ public abstract class GasProjection {
     return 0;
   }
 
-  public long rawStipend() {
+  public long gasPaidOutOfPocket() {
     return 0;
   }
 
-  public long extraStipend() {
+  public long stipend() {
     return 0;
   }
 
@@ -100,7 +100,15 @@ public abstract class GasProjection {
     return 0;
   }
 
-  public final long total() {
+  /**
+   * {@link GasProjection#upfrontGasCost()} computes the upfront gas cost of instructions, that is,
+   * the gas cost that determines whether an <b>OUT_OF_GAS_EXCEPTION</b> occurred. This cost
+   * purposefully <i>excludes</i> the gas paid "out of pocket" to child contexts in case of
+   * <b>CALL</b>-type or <b>CREATE</b>-type instructions.
+   *
+   * @return
+   */
+  public final long upfrontGasCost() {
     return staticGas()
         + expGas()
         + memoryExpansion()
@@ -112,5 +120,9 @@ public abstract class GasProjection {
         + storageWarmth()
         + sStoreValue()
         + deploymentCost();
+  }
+
+  public final long childGasAllowance() {
+    return gasPaidOutOfPocket() + stipend();
   }
 }

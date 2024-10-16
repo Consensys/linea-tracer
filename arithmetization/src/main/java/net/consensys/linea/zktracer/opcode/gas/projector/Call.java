@@ -106,7 +106,7 @@ public class Call extends GasProjection {
   }
 
   @Override
-  public long rawStipend() {
+  public long gasPaidOutOfPocket() {
     if (this.isInvalid()) {
       return 0;
     }
@@ -116,14 +116,14 @@ public class Call extends GasProjection {
       return 0L;
     } else {
       final long remaining = frame.getRemainingGas() - cost;
-      final long weird = remaining - remaining / 64;
+      final long sixtyThreeSixtyFourths = remaining - remaining / 64;
 
-      return Math.min(weird, stipend);
+      return Math.min(sixtyThreeSixtyFourths, stipend);
     }
   }
 
   @Override
-  public long extraStipend() {
+  public long stipend() {
     if (this.isInvalid() || this.value.isZero()) {
       return 0;
     }

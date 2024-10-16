@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romlex.RomLexDefer;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.internal.Words;
 
 /**
@@ -45,7 +46,6 @@ public class Create2 extends MmuCall implements RomLexDefer {
                 hub.currentFrame()
                     .frame()
                     .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
-        .exoBytes(Optional.of(hub.romLex().getCodeByMetadata(contract)))
         .auxId(hub.state().stamps().hub())
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
@@ -63,7 +63,12 @@ public class Create2 extends MmuCall implements RomLexDefer {
   }
 
   @Override
+  public Optional<Bytes> exoBytes() {
+    return Optional.of(hub.romLex().getCodeByMetadata(contract));
+  }
+
+  @Override
   public void updateContractMetadata(ContractMetadata metadata) {
-    this.contract = metadata;
+    contract = metadata;
   }
 }

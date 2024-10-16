@@ -15,10 +15,11 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -58,7 +59,7 @@ public class Mmu implements OperationListModule<MmuOperation> {
     int mmioStamp = 0;
 
     for (MmuOperation mmuOperation : operations.getAll()) {
-      Preconditions.checkState(mmuOperation.traceMe(), "Cannot compute if traceMe is false");
+      checkState(mmuOperation.traceMe(), "Cannot compute if traceMe is false");
       mmuOperation.getCFI();
       mmuOperation.fillLimb();
 
@@ -67,7 +68,7 @@ public class Mmu implements OperationListModule<MmuOperation> {
   }
 
   public void call(final MmuCall mmuCall) {
-    Preconditions.checkState(mmuCall.traceMe(), "Shouldn't compute if traceMe is false");
+    checkState(mmuCall.traceMe(), "Shouldn't compute if traceMe is false");
     MmuData mmuData = new MmuData(mmuCall);
     mmuData.hubToMmuValues(
         HubToMmuValues.fromMmuCall(mmuCall, mmuData.exoLimbIsSource(), mmuData.exoLimbIsTarget()));

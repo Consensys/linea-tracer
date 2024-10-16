@@ -48,7 +48,8 @@ public class CommonFragmentValues {
   public final State.TxState.Stamps stamps; // for MMU and MXP stamps
   @Setter public int logStamp = -1;
   @Getter final CallFrame callFrame;
-  public final boolean exceptionAhoy;
+  public final short exceptions;
+  public final boolean contextMayChange;
   @Setter public int contextNumberNew;
   public final int pc;
   public final int pcNew;
@@ -56,7 +57,6 @@ public class CommonFragmentValues {
   final short heightNew;
   public final long gasExpected;
   public final long gasActual;
-  public final boolean contextMayChange;
   @Setter long gasCost; // Set at Post Execution
   @Setter long gasNext; // Set at Post Execution
   @Setter public long refundDelta = 0; // 0 is default Value, can be modified only by SSTORE section
@@ -77,7 +77,7 @@ public class CommonFragmentValues {
     this.callStack = hub.callStack();
     this.stamps = hub.state().stamps();
     this.callFrame = hub.currentFrame();
-    this.exceptionAhoy = any(exceptions);
+    this.exceptions = exceptions;
     // this.contextNumberNew = hub.contextNumberNew(callFrame);
     this.pc = hubProcessingPhase == TX_EXEC ? hub.currentFrame().pc() : 0;
     this.pcNew = computePcNew(hub, pc, noStackException, hub.state.getProcessingPhase() == TX_EXEC);
@@ -95,7 +95,7 @@ public class CommonFragmentValues {
                     || instructionFamily == CREATE
                     || instructionFamily == HALT
                     || instructionFamily == INVALID)
-                || exceptionAhoy);
+                || any(this.exceptions));
 
     if (none(exceptions)) {
       tracedException = TracedException.NONE;

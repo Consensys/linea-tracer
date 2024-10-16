@@ -94,15 +94,20 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   }
 
   public boolean add(E e) {
-    if (!operationsCommitedToTheConflation().contains(e)) {
-      final boolean isNew = operationsInTransaction().add(e);
-      if (isNew) {
+    if (!operationsInTransaction().contains(e)) {
+      if (!operationsCommitedToTheConflation().contains(e)) {
+        operationsInTransaction().add(e);
         lineCounter.add(e.lineCount());
+        return true;
+      } else {
+        log.trace(
+            "Operation of type {} was already in operationsCommitedToTheConflation hashset, reference is ",
+            e.getClass().getName(),
+            e);
       }
-      return isNew;
     } else {
       log.trace(
-          "Operation of type {} was already in operationsCommitedToTheConflation hashset, reference is ",
+          "Operation of type {} was already in the current transaction hashset, reference is ",
           e.getClass().getName(),
           e);
     }

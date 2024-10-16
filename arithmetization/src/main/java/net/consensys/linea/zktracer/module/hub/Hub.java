@@ -22,6 +22,9 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.ADD;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
@@ -83,6 +86,7 @@ import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
@@ -755,27 +759,58 @@ public class Hub implements Module {
       this.squashParentFrameReturnData();
     }
 
-    // Setting gas cost IN MOST CASES
     // TODO:
     //  * complete this for CREATE's and CALL's
     //    + are we getting the correct cost (i.e. excluding the 63/64-th's) ?
     //  * make sure this aligns with exception handling of the zkevm
     //  * write a method `final boolean requiresGasCost()` (huge switch case)
-    if ((!memoryExpansionException & outOfGasException) || unexceptional) {
-      currentSection.commonValues.gasCost(gasCost);
-      currentSection.commonValues.gasNext(
-          unexceptional ? currentSection.commonValues.gasActual - gasCost : 0);
-    } else {
-      currentSection.commonValues.gasCost(
-          0); // TODO: fill with correct values --- make sure this works in all cases
-      currentSection.commonValues.gasNext(0);
-    }
+    long gasCostToTrace =
+        switch (opCodeData().instructionFamily()) {
+          case ADD,
+              MUL,
+              MOD,
+              EXT,
+              WCP,
+              BIN,
+              SHF,
+              CONTEXT,
+              ACCOUNT,
+              TRANSACTION,
+              BATCH,
+              JUMP,
+              MACHINE_STATE,
+              PUSH_POP,
+              DUP,
+              SWAP,
+              INVALID -> gasCost;
+          case KEC, COPY, STACK_RAM, STORAGE, LOG, HALT -> (instructionRaisesOogxOrIsUnexceptional()
+              ? gasCost
+              : 0);
+          case CREATE, CALL -> {
+            // TODO: this won't work
+            yield instructionRaisesOogxOrIsUnexceptional() ? gasCost : 0;
+          }
+        };
+
+    currentSection.commonValues.gasCost(gasCostToTrace);
+
+    currentSection.commonValues.gasNext(
+        instructionIsUnexceptional() ? currentSection.commonValues.gasActual - gasCost : 0);
 
     defers.resolvePostExecution(this, frame, operationResult);
 
     if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
       this.unlatchStack(frame, currentSection);
     }
+  }
+
+  private boolean instructionIsUnexceptional() {
+    return currentTraceSection().commonValues.tracedException() == NONE;
+  }
+
+  private boolean instructionRaisesOogxOrIsUnexceptional() {
+    final TracedException tracedException = currentTraceSection().commonValues.tracedException();
+    return tracedException == OUT_OF_GAS_EXCEPTION || instructionIsUnexceptional();
   }
 
   /**

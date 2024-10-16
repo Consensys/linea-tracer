@@ -116,9 +116,9 @@ public class Call extends GasProjection {
       return 0L;
     } else {
       final long remaining = frame.getRemainingGas() - cost;
-      final long weird = remaining - remaining / 64;
+      final long sixtyThreeSixtyFourths = remaining - remaining / 64;
 
-      return Math.min(weird, stipend);
+      return Math.min(sixtyThreeSixtyFourths, stipend);
     }
   }
 

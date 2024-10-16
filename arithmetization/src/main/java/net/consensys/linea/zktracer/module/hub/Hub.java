@@ -736,7 +736,7 @@ public class Hub implements Module {
 
     final long gasCost =
         switch (opCodeData().instructionFamily()) {
-          case HALT, CALL, CREATE -> GAS_PROJECTOR.of(frame, opCode()).total();
+          case HALT, CALL, CREATE -> GAS_PROJECTOR.of(frame, opCode()).upfrontGasCost();
           default -> operationResult.getGasCost();
         };
 

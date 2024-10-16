@@ -100,7 +100,7 @@ public abstract class GasProjection {
     return 0;
   }
 
-  public final long total() {
+  public final long upfrontGasCost() {
     return staticGas()
         + expGas()
         + memoryExpansion()
@@ -112,5 +112,13 @@ public abstract class GasProjection {
         + storageWarmth()
         + sStoreValue()
         + deploymentCost();
+  }
+
+  public final long paidOutOfPocket() {
+    return rawStipend();
+  }
+
+  public final long childContextAllowance() {
+    return rawStipend() + extraStipend();
   }
 }

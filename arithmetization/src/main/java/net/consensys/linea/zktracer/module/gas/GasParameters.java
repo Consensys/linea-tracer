@@ -17,18 +17,13 @@ package net.consensys.linea.zktracer.module.gas;
 
 import java.math.BigInteger;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.experimental.Accessors;
-
-@Getter
-@Setter
-@Accessors(fluent = true)
-public class GasParameters {
-  BigInteger gasActual;
-  BigInteger gasCost;
-  boolean xahoy;
-  boolean oogx;
+public record GasParameters(
+    int ctMax, // TODO @Lorenzo this shouldn't be in gasParameters, because it shouldn't be in the
+    // EqualAndHAsh, it's a consequence of oogx and xahoy
+    BigInteger gasActual,
+    BigInteger gasCost,
+    boolean xahoy,
+    boolean oogx) {
 
   public int compareTo(GasParameters other) {
     if (oogx() != other.oogx()) {

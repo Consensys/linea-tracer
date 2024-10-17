@@ -20,9 +20,11 @@ import java.util.Set;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 
 @Accessors(fluent = true)
 @Getter
+@Slf4j
 public class StackedSet<E> {
   private final Set<E> operationsCommitedToTheConflation;
   private final Set<E> operationsInTransaction;
@@ -47,8 +49,21 @@ public class StackedSet<E> {
    * ModuleOperationStackedSet#operationsInTransaction()} is further reset to be empty.
    */
   public void enter() {
+    log.info("**** Operation "+getOperationtype()+ " ****");
+    log.info("Number of operations in conflated traces without this transaction "+operationsCommitedToTheConflation().size());
     operationsCommitedToTheConflation().addAll(operationsInTransaction());
+    log.info("Number of operations in current committed transaction "+ operationsInTransaction().size());
+    log.info("Number of operations in conflated traces with this transaction "+operationsCommitedToTheConflation().size());
     operationsInTransaction().clear();
+  }
+
+  private String getOperationtype() {
+    if (!operationsCommitedToTheConflation.isEmpty()) {
+      E element = operationsCommitedToTheConflation.iterator().next();
+      return element.getClass().getName();
+    } else {
+      return "Empty";
+    }
   }
 
   public void pop() {

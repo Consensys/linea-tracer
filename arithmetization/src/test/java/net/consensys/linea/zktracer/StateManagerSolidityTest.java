@@ -19,6 +19,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
+import net.consensys.linea.testing.generated.StateManagerEvents;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
 import net.consensys.linea.testing.generated.TestingBase;
 import org.apache.tuweni.bytes.Bytes;
@@ -301,8 +302,8 @@ public class StateManagerSolidityTest {
               //assertEquals(result.getLogs().size(), 2);
               for (Log log : result.getLogs()) {
                 String callEventSignature = EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT);
-                String writeEventSignature = EventEncoder.encode(FrameworkEntrypoint.WRITE_EVENT);
-                String readEventSignature = EventEncoder.encode(FrameworkEntrypoint.READ_EVENT);
+                String writeEventSignature = EventEncoder.encode(StateManagerEvents.WRITE_EVENT);
+                String readEventSignature = EventEncoder.encode(StateManagerEvents.READ_EVENT);
                 String destroyedEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTDESTROYED_EVENT);
                 String createdEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTCREATED_EVENT);
                 String logTopic = log.getTopics().getFirst().toHexString();

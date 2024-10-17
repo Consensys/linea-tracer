@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
+import net.consensys.linea.testing.generated.TestingBase;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -34,11 +35,15 @@ import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.DynamicArray;
+import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.Type;
+import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
@@ -160,7 +165,81 @@ public class StateManagerSolidityTest {
                     Collections.emptyList());
     Bytes txPayload =
             Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
-    
+
+    ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
+            .sender(sender)
+            .to(this.testContext.frameworkEntryPointAccount)
+            .payload(txPayload)
+            .keyPair(senderKeyPair)
+            .gasLimit(TestContext.gasLimit);
+
+    if (TestContext.txNonce != null) {
+      tempTx = tempTx.nonce(++TestContext.txNonce);
+    }
+    Transaction tx = tempTx.build();
+    if (TestContext.txNonce == null) {
+      TestContext.txNonce = tx.getNonce();
+    }
+    return tx;
+  }
+
+  // destination must be our .yul smart contract
+  Transaction deployWithCreate2(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination) {
+    Bytes salt = Bytes.fromHexStringLenient("0x0000000000000000000000000000000000000000000000000000000000000002");
+    //Bytes salt32 = new org.web3j.abi.datatypes.generated.Bytes32(Bytes.fromHexStringLenient("0x0000000000000000000000000000000000000000000000000000000000000001"));
+    //Bytes yulContractBytes = SmartContractUtils.getYulContractByteCode("YulContract.yul");
+    //Bytes yulContractBytes = Bytes.fromHexStringLenient("0x6101d06100106000396101d06000f3fe6100076101a6565b63a770741d8114610043576397deb47b811461005057630dd2602c811461005c5763d40e607a811461007d57633f5a0bdd811461009a57600080fd5b61004b6100b7565b6100b1565b60005460005260206000f35b60043560243561006c818361018f565b61007681836100dd565b50506100b1565b60043561008981610196565b610093818361011a565b50506100b1565b6004356100a681610157565b6100af816101a1565b505b506101cf565b7f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef600055565b7f577269746528616464726573732c75696e743235362c75696e74323536290000604051818152601e8120308585828460606020a4505050505050565b7f5265616428616464726573732c75696e743235362c75696e7432353629202020604051818152601d8120308585828460606020a4505050505050565b7f436f6e747261637444657374726f796564286164647265737329000000000000604051818152601a8120838160606020a250505050565b8181555050565b600081549050919050565b80ff50565b60007c010000000000000000000000000000000000000000000000000000000060003504905090565b");
+    Bytes yulContractBytes = Bytes.fromHexStringLenient("0x6101398061000e6000396000f3fe6000803560e01c8063a770741d146100ac57806397deb47b146100a35780630dd2602c14610066578063d40e607a1461005657633f5a0bdd1461003f5780fd5b5061005460043561004f81610106565b610136565b005b50506100546004358054906100d4565b5050602435600435818155601e6040517f577269746528616464726573732c75696e743235362c75696e74323536290000815220309060606020a4005b60208280548152f35b50507f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef600055005b601d6040517f5265616428616464726573732c75696e743235362c75696e7432353629202020815220309060606020a4565b601a6040517f436f6e747261637444657374726f79656428616464726573732900000000000081522060606020a2565bff56");
+    List<org.web3j.abi.datatypes.DynamicBytes> inputParams = new ArrayList<>();
+    // List<org.web3j.abi.datatypes.Address> outputParams = new ArrayList<>();
+    List<TypeReference<?>> outputParams = new ArrayList<>();
+    //TypeReference< org.web3j.abi.datatypes.Address> outputAddr = new org.web3j.abi.datatypes.Address(BigInteger.valueOf(0L));
+    //outputParams.addLast(TypeReference< org.web3j.abi.datatypes.Address>);
+
+    inputParams.addLast(new org.web3j.abi.datatypes.DynamicBytes(salt.toArray()));
+    inputParams.addLast(new org.web3j.abi.datatypes.DynamicBytes(yulContractBytes.toArray()));
+
+    Function create2Function = new Function("deployWithCreate2", Collections.unmodifiableList(inputParams), outputParams);
+    var encoding = FunctionEncoder.encode(create2Function);
+
+    /*
+    new Function(
+            FUNC_DEPLOYWITHCREATE2,
+            Arrays.<Type>asList(new org.web3j.abi.datatypes.generated.Bytes32(_salt),
+                    new org.web3j.abi.datatypes.DynamicBytes(_bytecode)),
+            Collections.<TypeReference<?>>emptyList());*/
+
+    Function create2FunctionAux =
+            new Function(
+                    FrameworkEntrypoint.FUNC_DEPLOYWITHCREATE2,
+                    Arrays.asList(new org.web3j.abi.datatypes.generated.Bytes32(salt.toArray()),
+                            new org.web3j.abi.datatypes.DynamicBytes(yulContractBytes.toArray())),
+                    Collections.emptyList());
+
+    var encoding3 = FunctionEncoder.encode(create2FunctionAux);
+
+    FrameworkEntrypoint.ContractCall snippetContractCall =
+            new FrameworkEntrypoint.ContractCall(
+                    /*Address*/ destination.getAddress().toHexString(),
+                    /*calldata*/ Bytes.fromHexStringLenient(encoding3).toArray(),
+                    /*gasLimit*/ BigInteger.ZERO,
+                    /*value*/ BigInteger.ZERO,
+                    /*callType*/ BigInteger.ONE); // Normal call, not a delegate call as it is the default
+
+
+    List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall);
+    Function frameworkEntryPointFunction =
+            new Function(
+                    FrameworkEntrypoint.FUNC_EXECUTECALLS,
+                    List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
+                    Collections.emptyList());
+
+
+
+    var encodinggg = FunctionEncoder.encode(create2FunctionAux);
+    Bytes txPayload =
+            Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+
     ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
             .sender(sender)
             .to(this.testContext.frameworkEntryPointAccount)
@@ -242,6 +321,7 @@ public class StateManagerSolidityTest {
                 String writeEventSignature = EventEncoder.encode(FrameworkEntrypoint.WRITE_EVENT);
                 String readEventSignature = EventEncoder.encode(FrameworkEntrypoint.READ_EVENT);
                 String destroyedEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTDESTROYED_EVENT);
+                String createdEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTCREATED_EVENT);
                 String logTopic = log.getTopics().getFirst().toHexString();
                 if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
                   TestSnippet_Events.DataNoIndexesEventResponse response =
@@ -252,9 +332,9 @@ public class StateManagerSolidityTest {
                   FrameworkEntrypoint.CallExecutedEventResponse response =
                           FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
                   assertTrue(response.isSuccess);
-                  assertEquals(response.destination, this.testContext.initialAccounts[0].getAddress().toHexString());
+                  assertEquals(response.destination, this.testContext.frameworkEntryPointAccount.getAddress().toHexString());
                 } else {
-                    if (!(logTopic.equals(callEventSignature) || logTopic.equals(writeEventSignature) || logTopic.equals(readEventSignature) || logTopic.equals(destroyedEventSignature))) {
+                    if (!(logTopic.equals(callEventSignature) || logTopic.equals(writeEventSignature) || logTopic.equals(readEventSignature) || logTopic.equals(destroyedEventSignature) || logTopic.equals(createdEventSignature))) {
                       fail();
                     }
                 }
@@ -301,9 +381,10 @@ public class StateManagerSolidityTest {
      */
     MultiBlockExecutionEnvironment.builder()
             .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.initialAccounts[1], this.testContext.frameworkEntryPointAccount))
-            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L)))
-            .addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L)))
-            .addBlock(List.of(selfDestruct(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], testContext.frameworkEntryPointAccount)))
+            //.addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L)))
+            //.addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L)))
+            //.addBlock(List.of(selfDestruct(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], testContext.frameworkEntryPointAccount)))
+            .addBlock(List.of(deployWithCreate2(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.frameworkEntryPointAccount)))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();

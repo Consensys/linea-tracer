@@ -57,7 +57,7 @@ public final class AccountFragment
   @Setter private boolean requiresRomlex;
   private int codeFragmentIndex;
   private final Optional<Bytes> addressToTrim;
-  private final DomSubStampsSubFragment domSubStampsSubFragment;
+  @Getter private final DomSubStampsSubFragment domSubStampsSubFragment;
   @Setter private RlpAddrSubFragment rlpAddrSubFragment;
   private boolean markedForSelfDestruct;
   private boolean markedForSelfDestructNew;
@@ -108,6 +108,14 @@ public final class AccountFragment
     isDeployment = newState.deploymentStatus();
     this.addressToTrim = addressToTrim;
     this.domSubStampsSubFragment = domSubStampsSubFragment;
+    // Updating the map
+    transactionProcessingMetadata.updateAccountFirstAndLast(this);
+    // update the minDeplMoBlock and maxDeplNoBlock maps
+    Hub.stateManagerMetadata()
+        .updateDeplNoBlockMaps(
+            oldState.address(),
+            transactionProcessingMetadata.getRelativeBlockNumber(),
+            deploymentNumber);
 
     // This allows us to properly fill EXISTS_INFTY, DEPLOYMENT_NUMBER_INFTY and CODE_FRAGMENT_INDEX
     hub.defers().scheduleForPostConflation(this);

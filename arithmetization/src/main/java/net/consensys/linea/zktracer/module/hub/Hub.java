@@ -781,8 +781,17 @@ public class Hub implements Module {
       return;
     }
 
+    if (returnFromDeployment(frame)) {
+      checkState(
+              besuGasCost == lineaGasCostExcludingDeploymentCost,
+              "besuGasCost: %d, lineaGasCostExcludingDeploymentCost: %d",
+              besuGasCost,
+              lineaGasCostExcludingDeploymentCost);
+      return;
+    }
+
     // TODO: same check but for CALL and CREATE's
-    if (!opCode().isCall() && !opCode().isCreate() && !returnFromDeployment(frame)) {
+    if (!opCode().isCall() && !opCode().isCreate()) {
       checkState(
           besuGasCost == lineaGasCost,
           "besuGasCost: %d, lineaGasCost: %d",
@@ -790,13 +799,6 @@ public class Hub implements Module {
           lineaGasCost);
     }
 
-    if (returnFromDeployment(frame)) {
-      checkState(
-          besuGasCost == lineaGasCostExcludingDeploymentCost,
-          "besuGasCost: %d, lineaGasCostExcludingDeploymentCost: %d",
-          besuGasCost,
-          lineaGasCostExcludingDeploymentCost);
-    }
   }
 
   public boolean isUnexceptional() {

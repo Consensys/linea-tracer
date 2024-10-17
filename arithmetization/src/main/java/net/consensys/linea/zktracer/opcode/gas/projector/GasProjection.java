@@ -109,17 +109,20 @@ public abstract class GasProjection {
    * @return
    */
   public final long upfrontGasCost() {
+    return gasCostExcludingDeploymentCost() + deploymentCost();
+  }
+
+  public final long gasCostExcludingDeploymentCost() {
     return staticGas()
-        + expGas()
-        + memoryExpansion()
-        + accountAccess()
-        + accountCreation()
-        + transferValue()
-        + linearPerWord()
-        + linearPerByte()
-        + storageWarmth()
-        + sStoreValue()
-        + deploymentCost();
+            + expGas()
+            + memoryExpansion()
+            + accountAccess()
+            + accountCreation()
+            + transferValue()
+            + linearPerWord()
+            + linearPerByte()
+            + storageWarmth()
+            + sStoreValue();
   }
 
   public final long childGasAllowance() {

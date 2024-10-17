@@ -58,8 +58,9 @@ public class CommonFragmentValues {
   final short heightNew;
   public final long gasExpected;
   public final long gasActual;
-  @Setter long gasCost;
-  @Setter long gasNext = 0;
+  @Getter final long gasCost;
+  final long gasNext;
+  @Getter final long gasCostExcluduingDeploymentCost;
   @Setter public long refundDelta = 0; // 0 is default Value, can be modified only by SSTORE section
   @Setter public long gasRefund; // Set at commit time
   @Setter public long gasRefundNew; // Set at commit time
@@ -93,6 +94,7 @@ public class CommonFragmentValues {
     this.gasActual = isExec ? computeGasRemaining() : 0;
     this.gasCost = isExec ? computeGasCost() : 0;
     this.gasNext = isExec ? computeGasNext() : 0;
+    this.gasCostExcluduingDeploymentCost = isExec ? computeGasCostExcludingDeploymentCost() : 0;
 
     final InstructionFamily instructionFamily = hub.opCode().getData().instructionFamily();
     this.contextMayChange =
@@ -212,8 +214,11 @@ public class CommonFragmentValues {
   }
 
   private long computeGasCost() {
-
     return Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).upfrontGasCost();
+  }
+
+  private long computeGasCostExcludingDeploymentCost() {
+    return Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasCostExcludingDeploymentCost();
   }
 
   public long computeGasNext() {

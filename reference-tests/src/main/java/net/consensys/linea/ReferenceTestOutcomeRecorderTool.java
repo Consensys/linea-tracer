@@ -36,8 +36,14 @@ import net.consensys.linea.zktracer.json.JsonConverter;
 @Slf4j
 public class ReferenceTestOutcomeRecorderTool {
 
-  public static final String JSON_INPUT_FILENAME = "failedBlockchainReferenceTests-input.json";
-  public static final String JSON_OUTPUT_FILENAME = "failedBlockchainReferenceTests.json";
+  public static final String JSON_INPUT_FILENAME =
+      System.getenv()
+          .getOrDefault(
+              "REFERENCE_TEST_OUTCOME_INPUT_FILE", "failedBlockchainReferenceTests-input.json");
+  public static final String JSON_OUTPUT_FILENAME =
+      System.getenv()
+          .getOrDefault(
+              "REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "failedBlockchainReferenceTests.json");
   public static JsonConverter jsonConverter = JsonConverter.builder().build();
   private static volatile AtomicInteger failedCounter = new AtomicInteger(0);
   private static volatile AtomicInteger successCounter = new AtomicInteger(0);
@@ -198,7 +204,7 @@ public class ReferenceTestOutcomeRecorderTool {
     }
     return CompletableFuture.runAsync(
         () -> {
-          try (FileWriter file = new FileWriter(fileDirectory + name)) {
+          try (FileWriter file = new FileWriter(Path.of(fileDirectory, name).toString())) {
             objectMapper.writeValue(
                 file,
                 new BlockchainReferenceTestOutcome(

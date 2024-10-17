@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -74,7 +75,7 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
     gasParameters.gasActual(BigInteger.valueOf(commonValues.gasActual));
     gasParameters.gasCost(BigInteger.valueOf(commonValues.gasCost()));
-    gasParameters.xahoy(commonValues.exceptionAhoy);
+    gasParameters.xahoy(Exceptions.any(commonValues.exceptions));
     gasParameters.oogx(commonValues.tracedException() == TracedException.OUT_OF_GAS_EXCEPTION);
     this.operations.add(new GasOperation(gasParameters, wcp));
   }

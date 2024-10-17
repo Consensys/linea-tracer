@@ -25,9 +25,9 @@ import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 public abstract class GasProjection {
   GasCalculator gc = ZkTracer.gasCalculator;
 
-  long linearCost(long a, long x, long unit) {
+  long linearCost(long costPerUnit, long size, long unit) {
     checkArgument((unit == 1) || (unit == WORD_SIZE));
-    return clampedMultiply(a, (clampedAdd(x, unit) - 1) / unit);
+    return clampedMultiply(costPerUnit, clampedAdd(size, unit - 1) / unit);
   }
 
   public long staticGas() {
@@ -114,15 +114,15 @@ public abstract class GasProjection {
 
   public final long gasCostExcludingDeploymentCost() {
     return staticGas()
-            + expGas()
-            + memoryExpansion()
-            + accountAccess()
-            + accountCreation()
-            + transferValue()
-            + linearPerWord()
-            + linearPerByte()
-            + storageWarmth()
-            + sStoreValue();
+        + expGas()
+        + memoryExpansion()
+        + accountAccess()
+        + accountCreation()
+        + transferValue()
+        + linearPerWord()
+        + linearPerByte()
+        + storageWarmth()
+        + sStoreValue();
   }
 
   public final long childGasAllowance() {

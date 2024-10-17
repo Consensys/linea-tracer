@@ -139,7 +139,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.AccountState;
-import org.hyperledger.besu.evm.frame.ExceptionalHaltReason;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
@@ -784,11 +783,19 @@ public class Hub implements Module {
 
     // TODO: same check but for CALL and CREATE's
     if (!opCode().isCall() && !opCode().isCreate() && !returnFromDeployment(frame)) {
-      checkState(besuGasCost == lineaGasCost);
+      checkState(
+          besuGasCost == lineaGasCost,
+          "besuGasCost: %d, lineaGasCost: %d",
+          besuGasCost,
+          lineaGasCost);
     }
 
     if (returnFromDeployment(frame)) {
-      checkState(besuGasCost == lineaGasCostExcludingDeploymentCost);
+      checkState(
+          besuGasCost == lineaGasCostExcludingDeploymentCost,
+          "besuGasCost: %d, lineaGasCostExcludingDeploymentCost: %d",
+          besuGasCost,
+          lineaGasCostExcludingDeploymentCost);
     }
   }
 

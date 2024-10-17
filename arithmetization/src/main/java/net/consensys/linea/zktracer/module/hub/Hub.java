@@ -783,10 +783,10 @@ public class Hub implements Module {
 
     if (returnFromDeployment(frame)) {
       checkState(
-              besuGasCost == lineaGasCostExcludingDeploymentCost,
-              "besuGasCost: %d, lineaGasCostExcludingDeploymentCost: %d",
-              besuGasCost,
-              lineaGasCostExcludingDeploymentCost);
+          besuGasCost == lineaGasCostExcludingDeploymentCost,
+          "besuGasCost: %d, lineaGasCostExcludingDeploymentCost: %d",
+          besuGasCost,
+          lineaGasCostExcludingDeploymentCost);
       return;
     }
 
@@ -798,7 +798,6 @@ public class Hub implements Module {
           besuGasCost,
           lineaGasCost);
     }
-
   }
 
   public boolean isUnexceptional() {

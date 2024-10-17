@@ -111,15 +111,15 @@ public class Call extends GasProjection {
       return 0;
     }
 
-    final long cost = memoryExpansion() + accountAccess() + accountCreation() + transferValue();
-    if (cost > frame.getRemainingGas()) {
+    final long upfrontGasCost =
+        memoryExpansion() + accountAccess() + accountCreation() + transferValue();
+    if (upfrontGasCost > frame.getRemainingGas()) {
       return 0L;
-    } else {
-      final long remaining = frame.getRemainingGas() - cost;
-      final long sixtyThreeSixtyFourths = remaining - remaining / 64;
-
-      return Math.min(sixtyThreeSixtyFourths, stipend);
     }
+
+    final long remaining = frame.getRemainingGas() - upfrontGasCost;
+    final long sixtyThreeSixtyFourthsOfRemaining = remaining - remaining / 64;
+    return Math.min(sixtyThreeSixtyFourthsOfRemaining, stipend);
   }
 
   @Override

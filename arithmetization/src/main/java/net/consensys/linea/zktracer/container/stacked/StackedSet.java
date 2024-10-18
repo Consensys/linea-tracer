@@ -50,18 +50,21 @@ public class StackedSet<E> {
    */
   public void enter() {
     log.info("**** Operation "+getOperationtype()+ " ****");
-    log.info("Number of operations in conflated traces without this transaction "+operationsCommitedToTheConflation().size());
+    log.info("Number of operations in conflated traces without the previous transaction "+operationsCommitedToTheConflation().size());
     operationsCommitedToTheConflation().addAll(operationsInTransaction());
-    log.info("Number of operations in current committed transaction "+ operationsInTransaction().size());
-    log.info("Number of operations in conflated traces with this transaction "+operationsCommitedToTheConflation().size());
+    log.info("Number of operations in the previous transaction "+ operationsInTransaction().size());
+    log.info("Number of operations in conflated traces with the previous transaction "+operationsCommitedToTheConflation().size());
     operationsInTransaction().clear();
   }
 
   private String getOperationtype() {
     if (!operationsCommitedToTheConflation.isEmpty()) {
-      E element = operationsCommitedToTheConflation.iterator().next();
-      return element.getClass().getName();
-    } else {
+      E conf_elt = operationsCommitedToTheConflation.iterator().next();
+      return conf_elt.getClass().getName();
+    } else  if (!operationsInTransaction.isEmpty()) {
+      E tx_elt = operationsInTransaction.iterator().next();
+      return tx_elt.getClass().getName();
+    } else{
       return "Empty";
     }
   }

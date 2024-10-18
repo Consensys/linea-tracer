@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
-import static net.consensys.linea.zktracer.module.HexStringUtils.middleFF;
-import static net.consensys.linea.zktracer.module.HexStringUtils.trailingFF;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -31,42 +28,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class RomTest {
 
   @ParameterizedTest
-  @MethodSource("trailingFFRomTestSource")
-  void trailingFFRomTest(String value) {
+  @MethodSource("jFFWithPushKSource")
+  void jFFWithPushK(int j, int k) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    program.push(value);
+    program.incompletePush(k, "ff".repeat(j));
     BytecodeRunner.of(program.compile()).run();
   }
 
-  private static Stream<Arguments> trailingFFRomTestSource() {
-    List<Arguments> arguments = new ArrayList<>();
+  private static Stream<Arguments> jFFWithPushKSource() {
+    List<Arguments> trailingFFRomTestSourceList = new ArrayList<>();
     for (int k = 1; k <= 32; k++) {
-      for (int l = 0; l <= k; l++) {
-        String value = trailingFF(k, l);
-        arguments.add(Arguments.of(value));
+      for (int j = 0; j <= k; j++) {
+        trailingFFRomTestSourceList.add(Arguments.of(j, k));
       }
     }
-    return arguments.stream();
-  }
-
-  @ParameterizedTest
-  @MethodSource("middleFFRomTestSource")
-  void middleFFRomTest(String value) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
-    program.push(value);
-    BytecodeRunner.of(program.compile()).run();
-  }
-
-  private static Stream<Arguments> middleFFRomTestSource() {
-    List<Arguments> arguments = new ArrayList<>();
-    for (int k = 1; k <= 32; k++) {
-      for (int a = 0; a <= k; a++) {
-        for (int b = 0; a + b <= k; b++) {
-          String value = middleFF(a, b, k - (a + b));
-          arguments.add(Arguments.of(value));
-        }
-      }
-    }
-    return arguments.stream();
+    return trailingFFRomTestSourceList.stream();
   }
 }

@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -28,14 +29,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class RomTest {
 
   @ParameterizedTest
-  @MethodSource("jFFWithPushKSource")
-  void jFFWithPushK(int j, int k) {
+  @MethodSource("jFFWithPushKRomTestSource")
+  void jFFWithPushKRomTest(int j, int k) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program.incompletePush(k, "ff".repeat(j));
     BytecodeRunner.of(program.compile()).run();
   }
 
-  private static Stream<Arguments> jFFWithPushKSource() {
+  private static Stream<Arguments> jFFWithPushKRomTestSource() {
     List<Arguments> trailingFFRomTestSourceList = new ArrayList<>();
     for (int k = 1; k <= 32; k++) {
       for (int j = 0; j <= k; j++) {
@@ -43,5 +44,16 @@ public class RomTest {
       }
     }
     return trailingFFRomTestSourceList.stream();
+  }
+
+  @Test
+  void jJUMPDESTWithPushKRomTest() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    for (int k = 1; k <= 32; k++) {
+      for (int j = 0; j <= k; j++) {
+        program.incompletePush(k, "5b".repeat(j));
+      }
+    }
+    BytecodeRunner.of(program.compile()).run();
   }
 }

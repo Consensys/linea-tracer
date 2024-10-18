@@ -38,7 +38,7 @@ public class CodeCopy extends MmuCall {
     this.hub = hub;
     this.contract = hub.currentFrame().metadata();
 
-    this.exoBytes(Optional.of(hub.romLex().getCodeByMetadata(contract)))
+    this.exoBytes(Optional.of(hub.currentFrame().code().bytecode()))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(
             Optional.of(
@@ -54,6 +54,6 @@ public class CodeCopy extends MmuCall {
 
   @Override
   public int sourceId() {
-    return this.hub.romLex().getCodeFragmentIndexByMetadata(this.contract);
+    return hub.romLex().getCodeFragmentIndexByMetadata(contract);
   }
 }

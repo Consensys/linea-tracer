@@ -16,9 +16,11 @@
 package net.consensys.linea.zktracer.module.rom;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
+import kotlin.Pair;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.junit.jupiter.api.Test;
@@ -29,14 +31,14 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class RomTest {
 
   @ParameterizedTest
-  @MethodSource("jFFWithPushKRomTestSource")
-  void jFFWithPushKRomTest(int j, int k) {
+  @MethodSource("incompletePushRomTestSource")
+  void incompletePushRomTest(int j, int k) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program.incompletePush(k, "ff".repeat(j));
     BytecodeRunner.of(program.compile()).run();
   }
 
-  private static Stream<Arguments> jFFWithPushKRomTestSource() {
+  private static Stream<Arguments> incompletePushRomTestSource() {
     List<Arguments> trailingFFRomTestSourceList = new ArrayList<>();
     for (int k = 1; k <= 32; k++) {
       for (int j = 0; j <= k; j++) {
@@ -47,13 +49,22 @@ public class RomTest {
   }
 
   @Test
-  void jJUMPDESTWithPushKRomTest() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+  void randomConcatenationOfIncompletePushesRomTest() {
+    List<Pair<Integer, Integer>> permutationOfKAndJPairs = new ArrayList<>();
     for (int k = 1; k <= 32; k++) {
       for (int j = 0; j <= k; j++) {
-        program.incompletePush(k, "5b".repeat(j));
+        permutationOfKAndJPairs.add(new Pair<>(k, j));
       }
     }
+    Collections.shuffle(permutationOfKAndJPairs);
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    for (Pair<Integer, Integer> kAndJPair : permutationOfKAndJPairs) {
+      int k = kAndJPair.getFirst();
+      int j = kAndJPair.getSecond();
+      program.incompletePush(k, "5b".repeat(j));
+    }
+
     BytecodeRunner.of(program.compile()).run();
   }
 }

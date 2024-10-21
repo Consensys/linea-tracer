@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.exceptions;
 
-import static net.consensys.linea.zktracer.module.hub.signals.TracedException.STACK_UNDERFLOW;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.STACK_OVERFLOW;
 import static net.consensys.linea.zktracer.opcode.OpCodes.opCodeToOpCodeDataMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,36 +30,34 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class StackUnderflowExceptionTest {
+public class StackOverflowExceptionTest {
 
   @ParameterizedTest
-  @MethodSource("stackUnderflowExceptionSource")
-  void stackUnderflowExceptionTest(
-      OpCode opCode, int nPushes, boolean triggersStackUnderflowExceptions) {
+  @MethodSource("stackOverflowExceptionSource")
+  void stackOverflowExceptionTest(OpCode opCode, int alpha, int delta) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    for (int i = 0; i < nPushes; i++) {
+    for (int i = 0; i < 1024; i++) {
       program.push(0);
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
 
-    // the number of pushed arguments is less than the number of arguments required by the opcode
+    // the opcode pushes more arguments than the stack can handle
 
-    if (triggersStackUnderflowExceptions) {
-      assertEquals(
-          STACK_UNDERFLOW,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+    assertEquals(
+        STACK_OVERFLOW,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 
-  static Stream<Arguments> stackUnderflowExceptionSource() {
+  static Stream<Arguments> stackOverflowExceptionSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (OpCodeData opCodeData : opCodeToOpCodeDataMap.values()) {
       OpCode opCode = opCodeData.mnemonic();
+      int alpha = opCodeData.stackSettings().alpha(); // number of items pushed onto the stack
       int delta = opCodeData.stackSettings().delta(); // number of items popped from the stack
-      for (int nPushes = 0; nPushes <= delta; nPushes++) {
-        arguments.add(Arguments.of(opCode, nPushes, nPushes < delta));
+      if (alpha > delta) {
+        arguments.add(Arguments.of(opCode, alpha, delta));
       }
     }
     return arguments.stream();

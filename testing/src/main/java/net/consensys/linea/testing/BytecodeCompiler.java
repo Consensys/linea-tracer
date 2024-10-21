@@ -292,6 +292,7 @@ public class BytecodeCompiler {
    * @return current instance
    */
   public BytecodeCompiler incompletePush(final int w, String x) {
-    return this.incompletePush(w, bigIntegerToBytes(new BigInteger(x.isEmpty() ? "0" : x, 16)).toArray());
+    return this.incompletePush(
+        w, bigIntegerToBytes(new BigInteger(x.isEmpty() ? "0" : x, 16)).toArray());
   }
 }

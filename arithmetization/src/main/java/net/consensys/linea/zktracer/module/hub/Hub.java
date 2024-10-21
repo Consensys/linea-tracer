@@ -950,7 +950,7 @@ public class Hub implements Module {
     return this.currentFrame().opCode();
   }
 
-  TraceSection currentTraceSection() {
+  public TraceSection currentTraceSection() {
     return state.currentTxTrace().currentSection();
   }
 

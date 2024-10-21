@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
@@ -42,6 +43,17 @@ public class TxTrace {
    */
   public TraceSection currentSection() {
     return this.trace.get(this.size() - 1);
+  }
+
+  /**
+   * Returns the previous trace section, i.e., the one before the most recent.
+   *
+   * @return the previous trace section
+   * @throws IllegalArgumentException if there are fewer than two sections in the trace
+   */
+  public TraceSection previousSection() {
+    Preconditions.checkArgument(trace.size() > 1);
+    return this.trace.get(this.size() - 2);
   }
 
   /**

@@ -47,7 +47,7 @@ public class StackUnderflowExceptionTest {
     if (triggersStackUnderflowExceptions) {
       assertEquals(
           STACK_UNDERFLOW,
-          bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     }
   }
 

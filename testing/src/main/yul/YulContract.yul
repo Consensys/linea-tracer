@@ -1,4 +1,4 @@
-object "YulContract" {
+object "StateManagerSnippets" {
     code {
         // return the bytecode of the contract
         datacopy(0x00, dataoffset("runtime"), datasize("runtime"))
@@ -21,43 +21,102 @@ object "YulContract" {
                 return (0x00,0x20)
             }
 
-            case 0x0dd2602c // writeToStorage()
+            case 0xacf07154 // writeToStorage()
             {
                 // Load the first argument (x) from calldata
                 let x := calldataload(0x04)
 
-                // Load the second argument (y) from calldata
+                // Load the second argument (y) from calldata, 0x20 is 32 bytes
                 let y := calldataload(0x24)
 
+                // get the revertFlag
+                let revertFlag := calldataload(0x44)
+
                 // call the writeToStorage function
-                writeToStorage(x, y)
+                writeToStorage(x, y, revertFlag)
 
                 // log the call
                 logValuesWrite(x, y)
+
+                // check the revert flag, and if true, perform a revert
+                if eq(revertFlag, 0x01) {
+                    revertWithError()
+                }
             }
 
-            case 0xd40e607a // readFromStorage()
+            case 0x2d97bf10 // readFromStorage()
             {
                 // Load the first argument (x) from calldata
                 let x := calldataload(0x04)
 
+                // get the revertFlag
+                let revertFlag := calldataload(0x24)
+
                 // call the readFromStorage function
-                let y := readFromStorage(x)
+                let y := readFromStorage(x, revertFlag)
 
                 // log the call
                 logValuesRead(x, y)
+
+                // check the revert flag, and if true, perform a revert
+                if eq(revertFlag, 0x01) {
+                    revertWithError()
+                }
             }
 
-            case 0x3f5a0bdd // selfDestruct
+            case 0x3f5a0bdd // selfDestruct()
             {
                 // Load the first argument (recipient) from calldata
                 let recipient := calldataload(0x04)
 
-                 // log the call before self destructing
+                // get the revertFlag
+                let revertFlag := calldataload(0x24)
+
+                // log the call before self destructing
                 logSelfDestruct(recipient)
 
-                // call the self-destruct function
-                selfDestruct(recipient)
+                // call the self-destruct function if the revert is not present
+                // not the best way to revert, but the self destruct does not allow for a revert afterwards
+                // unless the revert flag is pushed outside, after the end of the contract call
+                if eq(revertFlag, 0x00) {
+                    selfDestruct(recipient, revertFlag)
+                }
+
+                // check the revert flag, and if true, perform a revert
+                if eq(revertFlag, 0x01) {
+                    revertWithError()
+                }
+            }
+
+            case 0x2b261e94 // transferTo(), transfer to a specific address
+            {
+                // Load the recipient address from calldata
+                let recipient := calldataload(0x04)
+
+                // get the amount
+                let amount := calldataload(0x24)
+
+                // get the revertFlag
+                let revertFlag := calldataload(0x44)
+
+                // address of the sender contract
+                let senderAddress := address()
+
+                // perform the transfer
+                transferTo(senderAddress, recipient, amount)
+
+                // log the call
+                logTransfer(senderAddress, recipient, amount)
+
+                // check the revert flag, and if true, perform a revert
+                if eq(revertFlag, 0x01) {
+                    revertWithError()
+                }
+            }
+
+            case 0xf1f1f1f1 {
+                // I will use 0xf1f1f1f1 as hardcoded calldata for the call opcode in case of a transfer
+                logReceive()
             }
 
             default {
@@ -110,6 +169,21 @@ object "YulContract" {
                 log4(0x20, 0x60, eventSignatureHash, contractAddress, x, y)
            }
 
+           // Function to log a transfer
+           function logTransfer(sender, recipient, amount) {
+                // Define an event signature to generate logs for storage operations
+                let eventSignature := "PayETH(address,address,uint256)"
+
+                let memStart := mload(0x40) // get the free memory pointer
+                mstore(memStart, eventSignature)
+
+                let eventSignatureHash := keccak256(memStart, 31) // 31 bytes is the string length, expected output 86486637435fcc400fa51609bdb9068db32be14298e016223d7b7ffdae7998ff
+
+
+                // call the inbuilt logging function
+                log4(0x20, 0x60, eventSignatureHash, sender, recipient, amount)
+           }
+
             // Function to log the self destruction of the contract
            function logSelfDestruct(recipient) {
                 // Define an event signature to generate logs for storage operations
@@ -124,34 +198,47 @@ object "YulContract" {
                 log2(0x20, 0x60, eventSignatureHash, recipient)
            }
 
-            // 0x0dd2602cce131b717885742cf4e9a79978d80b588950101dc8619106202b5fd5
-            // function signature: first 4 bytes 0x0dd2602c
-            // example of call: [["Addr",0x0dd2602c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001,0,0,0]]
-            // writeToStorage(uint256,uint256) is the unhashed function signature
-            function writeToStorage(x, y) {
+           function logReceive() {
+                // Define an event signature to generate a log when the .yul contract receives ETH
+                let eventSignature := "RecETH(address,uint256)"
+
+                let memStart := mload(0x40) // get the free memory pointer
+                mstore(memStart, eventSignature)
+
+                let eventSignatureHash := keccak256(memStart, 23) // 23 bytes is the string length, expected output e1b5c1e280a4d97847c2d5c3006bd406609f68889f3d868ed3250aa10a8629aa
+
+                let currentAddress := address()
+                // call the inbuilt logging function
+                log2(0x20, 0x60, eventSignatureHash, currentAddress)
+           }
+
+            // 0xacf071542e5c4e6701a11ffbc7a8f8e63ef5fdc6871e5d1ee4e7bc956a8d23ac
+            // function signature: first 4 bytes 0xacf07154
+            // example of call: [["Addr",0xacf07154000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001,0,0,0]]
+            // writeToStorage(uint256,uint256,bool) is the unhashed function signature
+            function writeToStorage(x, y, revertFlag) {
                 // Use verbatim to include raw bytecode for storing y at storage key x
                 // 55 corresponds to SSTORE
                 verbatim_2i_0o(hex"55", x, y)
             }
 
-            // d40e607a2e462b02b78a86a129a210a71054c4774d1e5b71932b4e61bbd12df6
-            // function signature: first 4 bytes 0xd40e607a
-            // example of call: [["Addr",0xd40e607a0000000000000000000000000000000000000000000000000000000000000001,0,0,0]]
-            // readFromStorage(uint256) is the unhashed function signature
-            function readFromStorage(x) -> y{
+            // 0x2d97bf1001ed6a98a40186556bfeee30afccf7c13d4d24f6eb6e48b668210fc8
+            // function signature: first 4 bytes 0x2d97bf10
+            // example of call: [["Addr",0x2d97bf1000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001,0,0,0]]
+            // readFromStorage(uint256,bool) is the unhashed function signature
+            function readFromStorage(x, revertFlag) -> y{
                 // Use verbatim to include raw bytecode for reading the value stored at x
                 // 54 corresponds to SLOAD
                 y := verbatim_1i_1o(hex"54", x)
             }
 
-            /**
-            * @notice Selfdestructs and sends remaining ETH to a payable address.
-            * @dev Keep in mind you need to compile and target London EVM version - this doesn't work for repeat addresses on Cancun etc.
-            * @param _fundAddress The deploying contract's address.
-            * example of call: [["Addr",0x3f5a0bdd0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc4,0,0,0]]
-            * (replace the argument 5b38da6a701c568545dcfcb03fcb875f56beddc4 with the intended recipient, as needed)
-            **/
-            function selfDestruct(recipient) {
+
+            // @notice Selfdestructs and sends remaining ETH to a payable address.
+            // @dev Keep in mind you need to compile and target London EVM version - this doesn't work for repeat addresses on Cancun etc.
+            // example of call: [["Addr",0xeba7ff7f0000000000000000000000005b38da6a701c568545dcfcb03fcb875f56beddc40000000000000000000000000000000000000000000000000000000000000001,0,0,0]]
+            // (replace the argument 5b38da6a701c568545dcfcb03fcb875f56beddc4 with the intended recipient, as needed)
+            // function signature selfDestruct(address,bool)—eba7ff7f626dacfd4408d6e720f444f37df3477e2719d8610a3837a6f8b9400e
+            function selfDestruct(recipient, revertFlag) {
                 // There is a weird bug with selfdestruct(recipient), so we replace that with verbatim
                 // Use verbatim to include the selfdestruct opcode (0xff)
                 verbatim_1i_0o(hex"ff", recipient)
@@ -177,6 +264,34 @@ object "YulContract" {
                 if iszero(call(gas(), caller(), amount, 0, 0, 0, 0)) {
                     revert(0,0)
                 }
+            }
+
+            // Transfer ether to the recipient address
+            // function signature transferTo(address,uint256,bool)—hash 0x2b261e94b0c8d2a13b0379d0e6facd43b4bd12e1d1b944f2ee6288c0a278d838
+            // function selector 0x2b261e94
+            // call example:
+            function transferTo(recipient, amount, revertFlag) {
+                // hardcoding f1f1f1f1 as custom calldata in case of a transfer
+                let formedCallData := mload(0x40)
+                let functionSelector := 0xf1f1f1f100000000000000000000000000000000000000000000000000000000
+                mstore(formedCallData, functionSelector)
+                if iszero(call(gas(), recipient, amount, formedCallData, 0x20, 0, 0)) {
+                    revert(0,0)
+                }
+            }
+
+            // Function to revert with an error message
+            function revertWithError() {
+            // Define the error message in hexadecimal
+            let errorMessage := "Reverting"
+
+            // Allocate memory for the error message
+            let errorMessageSize := 0x20  // 32 bytes
+            let errorMessageOffset := mload(0x40)  // Load the free memory pointer
+            mstore(errorMessageOffset, errorMessage)
+
+            // Revert with the error message
+            revert(errorMessageOffset, errorMessageSize)
             }
         }
     }

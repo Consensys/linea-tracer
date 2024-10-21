@@ -72,7 +72,13 @@ public class ExecutionEnvironment {
           .isTrue();
     } catch (IOException e) {
       throw new RuntimeException(e);
-    } finally {
+    } catch (IllegalArgumentException e) {
+      if (e.getMessage().contains("has invalid value") || e.getMessage().contains("has invalid width")) {
+       throw new ColumnWidthMismatchException(e.getMessage(), e);
+      }
+      throw e;
+    }
+      finally {
       if (traceFilePath != null) {
         if (System.getenv("PRESERVE_TRACE_FILES") == null) {
           boolean traceFileDeleted = traceFilePath.toFile().delete();
@@ -146,3 +152,4 @@ public class ExecutionEnvironment {
     return new NodeKey(keyPairSecurityModule);
   }
 }
+

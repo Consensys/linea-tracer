@@ -15,7 +15,7 @@
 
 package net.consensys.linea.testing;
 
-public final class ColumnWidthMismatchException extends IllegalArgumentException{
+public final class ColumnWidthMismatchException extends IllegalArgumentException {
   public ColumnWidthMismatchException(String message, IllegalArgumentException cause) {
     super(message, cause);
   }

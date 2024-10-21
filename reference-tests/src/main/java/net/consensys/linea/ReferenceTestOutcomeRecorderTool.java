@@ -100,9 +100,9 @@ public class ReferenceTestOutcomeRecorderTool {
       List<String> lines = cleaned.lines().toList();
       for (String line : lines) {
         if (line.contains("constraints failed:")) {
-          String[] failingConstraints = line
-              .substring(line.indexOf("constraints failed:") + "constraints failed:".length())
-              .split(",");
+          String[] failingConstraints =
+              line.substring(line.indexOf("constraints failed:") + "constraints failed:".length())
+                  .split(",");
           for (String constraint : failingConstraints) {
             getPairFromString(constraint, pairs);
           }
@@ -123,7 +123,7 @@ public class ReferenceTestOutcomeRecorderTool {
       // case where corset can't expend the trace
       if (message.contains("Error: while expanding ")) {
         List<String> lines = cleaned.lines().toList();
-        for(String line : lines) {
+        for (String line : lines) {
           if (line.contains("reading data for")) {
             String regex = "for\\s+(\\w+)\\s+\\.\\s+(\\w+)";
             Pattern pattern = Pattern.compile(regex);

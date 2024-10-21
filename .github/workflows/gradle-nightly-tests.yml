@@ -31,7 +31,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.14 --locked --force
+        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
 
       - name: Install Go
         uses: actions/setup-go@v4
@@ -41,7 +41,7 @@ jobs:
           go install github.com/consensys/go-corset/cmd/go-corset@latest
 
       - name: Run Nightly tests
-        run: GOMEMLIMIT=196GiB ./gradlew nightlyTests
+        run: GOMEMLIMIT=100GiB ./gradlew nightlyTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable

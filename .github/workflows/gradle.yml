@@ -81,7 +81,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.14 --locked --force
+        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
 
       - name: Run unit tests
         run: ./gradlew :arithmetization:test --stacktrace
@@ -134,7 +134,7 @@ jobs:
         uses: actions-rust-lang/setup-rust-toolchain@v1
 
       - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.14 --locked --force
+        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
 
       - name: Install Go
         uses: actions/setup-go@v4
@@ -144,18 +144,18 @@ jobs:
           go install github.com/consensys/go-corset/cmd/go-corset@latest
 
       - name: Run unit tests
-        run: GOMEMLIMIT=32GiB ./gradlew :arithmetization:test
+        run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:test
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
+          GOCORSET_FLAGS: -b1024 -wd --ansi-escapes=false --report --air
 
       - name: Run replay tests
-        run: GOMEMLIMIT=32GiB ./gradlew :arithmetization:fastReplayTests
+        run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:fastReplayTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
+          GOCORSET_FLAGS: -b1024 -wd --ansi-escapes=false --report --air
 
       - name: Upload test report
         if: always()

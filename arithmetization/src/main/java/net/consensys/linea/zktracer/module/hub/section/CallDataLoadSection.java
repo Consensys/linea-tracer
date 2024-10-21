@@ -32,6 +32,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
@@ -66,15 +68,19 @@ public class CallDataLoadSection extends TraceSection {
                         Words.clampedToInt(sourceOffset),
                         Words.clampedToInt(sourceOffset) + WORD_SIZE)));
 
+        final CallFrame callDataCallFrame = hub.callStack().getByContextNumber(callDataCN);
+
         final MmuCall call =
             new MmuCall(hub, MMU_INST_RIGHT_PADDED_WORD_EXTRACTION)
                 .sourceId((int) callDataCN)
                 .sourceRamBytes(
                     Optional.of(
-                        extractContiguousLimbsFromMemory(
-                            hub.callStack().getByContextNumber(callDataCN).frame(),
-                            MemorySpan.fromStartLength(
-                                clampedToLong(sourceOffset) + callDataOffset, WORD_SIZE))))
+                        callDataCallFrame.type() == CallFrameType.TRANSACTION_CALL_DATA_HOLDER
+                            ? callDataCallFrame.callDataInfo().data()
+                            : extractContiguousLimbsFromMemory(
+                                callDataCallFrame.frame(),
+                                MemorySpan.fromStartLength(
+                                    clampedToLong(sourceOffset) + callDataOffset, WORD_SIZE))))
                 .sourceOffset(sourceOffset)
                 .referenceOffset(callDataOffset)
                 .referenceSize(callDataSize)

@@ -40,15 +40,19 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 // https://github.com/Consensys/linea-besu-plugin/issues/197
 
 @Execution(ExecutionMode.SAME_THREAD)
 public class MxpTest {
-  private static final Random RAND = new Random(123456789123456L);
+  private Random RAND;
   public static final EWord TWO_POW_128 = EWord.of(EWord.ONE.shiftLeft(128));
   public static final EWord TWO_POW_32 = EWord.of(EWord.ONE.shiftLeft(32));
 
@@ -73,6 +77,13 @@ public class MxpTest {
   // instead of TestMxpRandom
 
   final OpCode[] opCodesHalting = new OpCode[] {OpCode.RETURN, OpCode.REVERT};
+
+  @BeforeEach
+  void init() {
+    // The random generator is re-initialized before each test so to do not make them
+    // order-dependent
+    RAND = new Random(123456789123456L);
+  }
 
   @Test
   void testMxpMinimalNonEmptyReturn() {
@@ -181,16 +192,40 @@ public class MxpTest {
 
   @Test
   void testMxpRandomAdvanced() {
-    // Testing a random program that contains creates with meaning random arguments
-    Bytes INIT = getRandomINITForCreate(); // This is the value given as an argument to CREATE
+    // Testing a random program that contains creates with meaningful random arguments
+    Bytes INIT = getRandomINITForCreate(256); // This is the value given as an argument to CREATE
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    int instructionCount = 256;
-    for (int i = 0; i < instructionCount; i++) {
-      boolean isHalting = i == instructionCount - 1;
+    int INSTRUCTION_COUNT = 256;
+    for (int i = 0; i < INSTRUCTION_COUNT; i++) {
+      boolean isHalting = i == INSTRUCTION_COUNT - 1;
       triggerNonTrivialOrNoop(program, isHalting, INIT);
     }
     BytecodeRunner.of(program.compile()).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("testMxpRandomAdvancedSource")
+  void testMxpRandomAdvancedWithFixedSeed(
+      long SEED, int INSTRUCTION_COUNT_INIT, int INSTRUCTION_COUNT) {
+    // Overwrite the class-level random generator with a new one with a fixed seed
+    RAND = new Random(SEED);
+    // Testing a random program that contains creates with meaningful random arguments
+    Bytes INIT =
+        getRandomINITForCreate(
+            INSTRUCTION_COUNT_INIT); // This is the value given as an argument to CREATE
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    for (int i = 0; i < INSTRUCTION_COUNT; i++) {
+      boolean isHalting = i == INSTRUCTION_COUNT - 1;
+      triggerNonTrivialOrNoop(program, isHalting, INIT);
+    }
+    BytecodeRunner.of(program.compile()).run();
+  }
+
+  private static Stream<Arguments> testMxpRandomAdvancedSource() {
+    // Failing test cases
+    return Stream.of(Arguments.of(166L, 3, 2), Arguments.of(44L, 3, 3), Arguments.of(244L, 5, 5));
   }
 
   @Test
@@ -302,8 +337,7 @@ public class MxpTest {
   }
 
   // Support methods
-  private Bytes getRandomINITForCreate() {
-    final int INSTRUCTION_COUNT_INIT = 256;
+  private Bytes getRandomINITForCreate(final int INSTRUCTION_COUNT_INIT) {
     BytecodeCompiler INIT = BytecodeCompiler.newProgram();
     for (int i = 0; i < INSTRUCTION_COUNT_INIT; i++) {
       boolean isHalting = i == INSTRUCTION_COUNT_INIT - 1;
@@ -548,9 +582,7 @@ public class MxpTest {
   }
 
   private boolean isRoob(MxpType randomMxpType, EWord size1, EWord offset1) {
-
     final boolean condition4And5 = offset1.compareTo(TWO_POW_128) >= 0 && !size1.isZero();
-
     return switch (randomMxpType) {
       case TYPE_2, TYPE_3 -> offset1.compareTo(TWO_POW_128) >= 0;
       case TYPE_4 -> size1.compareTo(TWO_POW_128) >= 0 || condition4And5;

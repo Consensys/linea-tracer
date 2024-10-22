@@ -103,7 +103,7 @@ object "StateManagerSnippets" {
                 let senderAddress := address()
 
                 // perform the transfer
-                transferTo(senderAddress, recipient, amount)
+                transferTo(recipient, amount, revertFlag)
 
                 // log the call
                 logTransfer(senderAddress, recipient, amount)
@@ -208,8 +208,9 @@ object "StateManagerSnippets" {
                 let eventSignatureHash := keccak256(memStart, 23) // 23 bytes is the string length, expected output e1b5c1e280a4d97847c2d5c3006bd406609f68889f3d868ed3250aa10a8629aa
 
                 let currentAddress := address()
+                let amount := callvalue()
                 // call the inbuilt logging function
-                log2(0x20, 0x60, eventSignatureHash, currentAddress)
+                log3(0x20, 0x60, eventSignatureHash, currentAddress, amount)
            }
 
             // 0xacf071542e5c4e6701a11ffbc7a8f8e63ef5fdc6871e5d1ee4e7bc956a8d23ac
@@ -269,14 +270,18 @@ object "StateManagerSnippets" {
             // Transfer ether to the recipient address
             // function signature transferTo(address,uint256,bool)—hash 0x2b261e94b0c8d2a13b0379d0e6facd43b4bd12e1d1b944f2ee6288c0a278d838
             // function selector 0x2b261e94
-            // call example:
+            // call example, snippet address—function selector, recipient address, wei amount and revert flag
+            // call example: [["addr",0x2b261e94000000000000000000000000746FfB8C87c9142519a144caB812495d2960a24b00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000,0,0,1]]
             function transferTo(recipient, amount, revertFlag) {
                 // hardcoding f1f1f1f1 as custom calldata in case of a transfer
                 let formedCallData := mload(0x40)
                 let functionSelector := 0xf1f1f1f100000000000000000000000000000000000000000000000000000000
                 mstore(formedCallData, functionSelector)
-                if iszero(call(gas(), recipient, amount, formedCallData, 0x20, 0, 0)) {
-                    revert(0,0)
+                let success := call(gas(), recipient, amount, formedCallData, 0x20, 0, 0)
+                // Check if the transfer was successful
+                if iszero(success) {
+                    // Revert the transaction if the transfer failed
+                    revert(0, 0)
                 }
             }
 

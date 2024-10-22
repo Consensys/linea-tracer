@@ -10,18 +10,42 @@ import {TestingFrameworkEvents} from "./TestingFrameworkEvents.sol";
  */
 contract FrameworkEntrypoint is TestingFrameworkStorageLayout, TestingBase {
     /// @dev - this is inherited function executeCalls(ContractCall[] memory _contractCalls) public payable virtual;
+    constructor() payable {
+
+    }
+
+    receive() external payable {
+
+    }
+    fallback() external payable {
+
+    }
+
+    function sendEth(address addr, int256 amount) external payable {
+        assembly {
+            let formedCallData := mload(0x40)
+            let functionSelector := 0xf1f1f1f100000000000000000000000000000000000000000000000000000000
+            mstore(formedCallData, functionSelector)
+            let success := call(gas(), addr, amount, formedCallData, 0x20, 0, 0)
+        // Check if the transfer was successful
+            if iszero(success) {
+            // Revert the transaction if the transfer failed
+                revert(0, 0)
+            }
+        }
+    }
 }
 
 /*
     Scenario:
     - Deploy Solidity Framework entrypoint ( Addr_0 )
-    - Deploy Yul based contract with firstInt storage manipulation ( Addr_1 ) - snippet demonstrating verbatim bytecode 
+    - Deploy Yul based contract with firstInt storage manipulation ( Addr_1 ) - snippet demonstrating verbatim bytecode
         [Addr_1,0xa770741d,0,0,0]
         ["0xE2A247187aFB847fC36070DccF2c76bA8237d378",0xa770741d,0,0,0]
     - Deploy Solidity contract with secondInt storage manipulation ( Addr_2 ) - demonstrating code snippets - delegateable storage adjustments
         [Addr_2,0x2792dcc80000000000000000000000000000000000000000000000000db4da5f7ef412b1,0,0,0]
         ["0xfD4331c96496A0FD6De3cb18d7CA52BDf0A6EE88",0x2792dcc80000000000000000000000000000000000000000000000000db4da5f7ef412b1,0,0,0]
-    
+
     - Deploy Solidity Contract (Encode and write commands) to set first int and set second int ( Addr_3 ) - delegatecalls - demonstrating the ability to put function commands in contract code location for later use to simplify outer call requests
         [[Addr_1,0xa770741d,0,0,0],[Addr_2,0x2792dcc80000000000000000000000000000000000000000000000000db4da5f7ef412b1,0,0,0]]
         [["0xE2A247187aFB847fC36070DccF2c76bA8237d378",0xa770741d,0,0,0], ["0xfD4331c96496A0FD6De3cb18d7CA52BDf0A6EE88",0x2792dcc80000000000000000000000000000000000000000000000000db4da5f7ef412b1,0,0,0]]
@@ -43,8 +67,8 @@ contract FrameworkEntrypoint is TestingFrameworkStorageLayout, TestingBase {
         [Addr_4,0xa30d978a000000000000000000000000E9F535514219F04198880bAf8c02BEEb4688c5B9,0,0,0]
         // replace 0xA8865E8852437aF01B557a5f2B5A430E24462b85
         ["0xA8865E8852437aF01B557a5f2B5A430E24462b85", 0xa30d978a000000000000000000000000E9F535514219F04198880bAf8c02BEEb4688c5B9,0,0,0]
-      
-      - Call Addr_4 to executeCalls with a call to self 
+
+      - Call Addr_4 to executeCalls with a call to self
         // replace 0xA8865E8852437aF01B557a5f2B5A430E24462b85 - including the bytes
         ["0xA8865E8852437aF01B557a5f2B5A430E24462b85",0xe4f2355a000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000020000000000000000000000000A8865E8852437aF01B557a5f2B5A430E24462b8500000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000048507a8f000000000000000000000000000000000000000000000000000000000,0,0,0]
 

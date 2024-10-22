@@ -16,5 +16,12 @@ abstract contract StateManagerEvents {
     /// Event signature: c2db4694c1ec690e784f771a7fe3533681e081da4baa4aa1ad7dd5c33da95925
     event Read(address contractAddress, uint256 x, uint256 y);
 
-    event EventReadFromStorage(address contractAddress, uint256 x);
+    // Unhashed signature PayETH(address,address,uint256)
+    // Event signature: 86486637435fcc400fa51609bdb9068db32be14298e016223d7b7ffdae7998ff
+    event PayETH(address,address,uint256);
+
+    // Received ETH event
+    // Unhashed signature RecETH(address,uint256)
+    // Event signature: e1b5c1e280a4d97847c2d5c3006bd406609f68889f3d868ed3250aa10a8629aa
+    event RecETH(address,uint256);
 }

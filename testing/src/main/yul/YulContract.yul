@@ -43,20 +43,6 @@ object "YulContract" {
                     revertWithError()
                 }
             }
-             case 0x0dd2602c // writeToStorage()
-             {
-                            // Load the first argument (x) from calldata
-                            let x := calldataload(0x04)
-
-                            // Load the second argument (y) from calldata
-                            let y := calldataload(0x24)
-
-                            // call the writeToStorage function
-                            writeToStorage(x, y, false)
-
-                            // log the call
-                            logValuesWrite(x, y)
-            }
 
             case 0x2d97bf10 // readFromStorage()
             {

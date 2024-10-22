@@ -22,22 +22,27 @@ object "YulContractHybrid" {
             }
 
             case 0xacf07154 // writeToStorage()
-             {
-                 // Load the first argument (x) from calldata
-                 let x := calldataload(0x04)
+            {
+                // Load the first argument (x) from calldata
+                let x := calldataload(0x04)
 
-                 // Load the second argument (y) from calldata, 0x20 is 32 bytes
-                 let y := calldataload(0x24)
+                // Load the second argument (y) from calldata, 0x20 is 32 bytes
+                let y := calldataload(0x24)
 
-                 // get the revertFlag
-                 let revertFlag := calldataload(0x44)
+                // get the revertFlag
+                let revertFlag := calldataload(0x44)
 
-                 // call the writeToStorage function
-                 writeToStorage(x, y, revertFlag)
+                // call the writeToStorage function
+                writeToStorage(x, y, revertFlag)
 
-                 // log the call
-                 logValuesWrite(x, y)
-             }
+                // log the call
+                logValuesWrite(x, y)
+
+                // check the revert flag, and if true, perform a revert
+                if eq(revertFlag, 0x01) {
+                    revertWithError()
+                }
+            }
 
             case 0xd40e607a // readFromStorage()
             {
@@ -177,6 +182,22 @@ object "YulContractHybrid" {
                     revert(0,0)
                 }
             }
+
+                        // Function to revert with an error message
+            function revertWithError() {
+            // Define the error message in hexadecimal
+            let errorMessage := "Reverting"
+
+            // Allocate memory for the error message
+            let errorMessageSize := 0x20  // 32 bytes
+            let errorMessageOffset := mload(0x40)  // Load the free memory pointer
+            mstore(errorMessageOffset, errorMessage)
+
+            // Revert with the error message
+            revert(errorMessageOffset, errorMessageSize)
+            }
+
+
         }
     }
 }

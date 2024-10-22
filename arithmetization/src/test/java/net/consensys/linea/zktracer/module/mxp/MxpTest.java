@@ -381,10 +381,7 @@ public class MxpTest {
       offset2 = EWord.of(getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
 
       // NOOP case (except for Type2 and Type3 instructions)
-      if (mxpType != MxpType.TYPE_2
-          && mxpType != MxpType.TYPE_3
-          && opCode != OpCode.RETURN
-          && opCode != OpCode.REVERT) { // TODO: double check filtering out RETURN and REVERT is correct
+      if (mxpType != MxpType.TYPE_2 && mxpType != MxpType.TYPE_3) {
         if (RAND.nextFloat() < NOOP_PROB) {
           // One or both of the size parameters are equal to 0 (each scenario has the same
           // probability)
@@ -422,6 +419,7 @@ public class MxpTest {
         appendOpCodeCall(List.of(value, offset1), opCode, program);
         break;
       case LOG0, SHA3, RETURN, REVERT: // RETURN and REVERT are selected only when isHalting is true
+        System.out.println("size: " + size1.toBigInteger() + " offset: " + offset1.toBigInteger());
         appendOpCodeCall(List.of(size1, offset1), opCode, program);
         if (opCode == OpCode.SHA3) {
           program.op(OpCode.POP);

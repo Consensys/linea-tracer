@@ -419,7 +419,8 @@ public class MxpTest {
         appendOpCodeCall(List.of(value, offset1), opCode, program);
         break;
       case LOG0, SHA3, RETURN, REVERT: // RETURN and REVERT are selected only when isHalting is true
-        System.out.println(opCode + " size: " + size1.toBigInteger() + " offset: " + offset1.toBigInteger());
+        System.out.println(
+            opCode + " size: " + size1.toBigInteger() + " offset: " + offset1.toBigInteger());
         appendOpCodeCall(List.of(size1, offset1), opCode, program);
         if (opCode == OpCode.SHA3) {
           program.op(OpCode.POP);

@@ -15,9 +15,12 @@
 
 package net.consensys.linea.plugins.rpc.linecounts;
 
+import java.util.Map;
+
 import com.google.auto.service.AutoService;
 import net.consensys.linea.plugins.AbstractLineaPrivateOptionsPlugin;
 import net.consensys.linea.plugins.BesuServiceProvider;
+import net.consensys.linea.plugins.LineaOptionsPluginConfiguration;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.RequestLimiterDispatcher;
 import org.hyperledger.besu.plugin.BesuContext;
@@ -36,6 +39,17 @@ public class LineCountsEndpointServicePlugin extends AbstractLineaPrivateOptions
   private BesuContext besuContext;
   private RpcEndpointService rpcEndpointService;
 
+  @Override
+  public Map<String, LineaOptionsPluginConfiguration> getPrivateLineaPluginConfigMap(
+      Map<String, LineaOptionsPluginConfiguration> configMap) {
+    final LineCountsEndpointCliOptions lineCountsEndpointCliOptions =
+        LineCountsEndpointCliOptions.create();
+    configMap.put(
+        LineCountsEndpointCliOptions.CONFIG_KEY, lineCountsEndpointCliOptions.asPluginConfig());
+
+    return configMap;
+  }
+
   /**
    * Register the RPC service.
    *
@@ -52,6 +66,10 @@ public class LineCountsEndpointServicePlugin extends AbstractLineaPrivateOptions
   public void beforeExternalServices() {
     super.beforeExternalServices();
 
+    final LineCountsEndpointConfiguration endpointConfiguration =
+        (LineCountsEndpointConfiguration)
+            getConfigurationByKey(LineCountsEndpointCliOptions.CONFIG_KEY).optionsConfig();
+
     RequestLimiterDispatcher.setLimiterIfMissing(
         RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY,
         rpcConfiguration().concurrentRequestsLimit());
@@ -59,7 +77,8 @@ public class LineCountsEndpointServicePlugin extends AbstractLineaPrivateOptions
         RequestLimiterDispatcher.getLimiter(
             RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY);
 
-    final GenerateLineCountsV2 method = new GenerateLineCountsV2(besuContext, reqLimiter);
+    final GenerateLineCountsV2 method =
+        new GenerateLineCountsV2(besuContext, reqLimiter, endpointConfiguration);
     createAndRegister(method, rpcEndpointService);
   }
 

@@ -32,16 +32,20 @@ import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.exceptions.InvalidModuleKeyException;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
@@ -179,6 +183,8 @@ public class Hub implements Module {
   /** stores all data related to failure states & module activation */
   @Getter private final PlatformController pch = new PlatformController(this);
 
+  @Getter private final List<Module> modulesToCount;
+
   @Override
   public String moduleKey() {
     return "HUB";
@@ -261,23 +267,9 @@ public class Hub implements Module {
 
   private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
   private final BlakeRounds blakeRounds = new BlakeRounds();
-
-  private List<Module> precompileLimitModules() {
-
-    return List.of(
-        keccak,
-        sha256Blocks,
-        ecAddEffectiveCall,
-        ecMulEffectiveCall,
-        ecRecoverEffectiveCall,
-        ecPairingG2MembershipCalls,
-        ecPairingMillerLoops,
-        ecPairingFinalExponentiations,
-        modexpEffectiveCall,
-        ripemdBlocks,
-        blakeEffectiveCall,
-        blakeRounds);
-  }
+  private final BinRt binRt = new BinRt();
+  private final InstructionDecoder instDecoder = new InstructionDecoder();
+  private final ShfRt shfRt = new ShfRt();
 
   /*
    * precompile-data modules
@@ -310,103 +302,26 @@ public class Hub implements Module {
   /** reference table modules */
   private final List<Module> refTableModules;
 
+  private final List<Module> precompileLimitModules;
+  private final List<Module> standardModules;
+  private final List<Module> standardModulesToCount;
+  private final List<Module> standardModulesToTrace;
+
+  private final Map<String, Module> modulesToCountMap;
+
   /**
    * boolean which remembers whether a {@link CreateSection} detected Failure Condition F. Gets
    * reset with every new opcode.
    */
   public boolean failureConditionForCreates = false;
 
-  /**
-   * @return a list of all modules for which to generate traces
-   */
-  public List<Module> getModulesToTrace() {
-    return Stream.concat(
-            Stream.of(
-                this,
-                add,
-                bin,
-                blakeModexpData,
-                blockdata,
-                blockhash,
-                ecData,
-                exp,
-                ext,
-                euc,
-                gas,
-                logData,
-                logInfo,
-                mmu, // WARN: must be traced before the MMIO
-                mmio,
-                mod,
-                mul,
-                mxp,
-                oob,
-                rlpAddr,
-                rlpTxn,
-                rlpTxnRcpt,
-                rom,
-                romLex,
-                shakiraData,
-                shf,
-                stp,
-                trm,
-                txnData,
-                wcp),
-            refTableModules.stream())
-        .toList();
-  }
-
-  /**
-   * List all the modules for which to generate counters. Intersects with, but is not equal to
-   * {@code getModulesToTrace}.
-   *
-   * @return the modules to count
-   */
-  public List<Module> getModulesToCount() {
-    return Stream.concat(
-            Stream.of(
-                this,
-                add,
-                bin,
-                blakeModexpData,
-                blockdata,
-                blockhash,
-                ecData,
-                exp,
-                ext,
-                euc,
-                gas,
-                logData,
-                logInfo,
-                mmu,
-                mmio,
-                mod,
-                mul,
-                mxp,
-                oob,
-                rlpAddr,
-                rlpTxn,
-                rlpTxnRcpt,
-                rom,
-                romLex,
-                shakiraData,
-                shf,
-                stp,
-                trm,
-                txnData,
-                wcp,
-                l2Block,
-                l2L1Logs),
-            Stream.concat(refTableModules.stream(), precompileLimitModules().stream()))
-        .toList();
-  }
-
   public Hub(
       final Address l2l1ContractAddress,
       final Bytes l2l1Topic,
-      final BigInteger nonnegativeChainId) {
-    Preconditions.checkState(nonnegativeChainId.signum() >= 0);
-    chainId = nonnegativeChainId;
+      final BigInteger nonNegativeChainId,
+      final Set<String> configuredModuleKeysToCount) {
+    Preconditions.checkState(nonNegativeChainId.signum() >= 0);
+    chainId = nonNegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
@@ -415,42 +330,184 @@ public class Hub implements Module {
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
-    refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
+    refTableModules = initRefTableModules();
+    precompileLimitModules = initPrecompileLimitModules();
+    standardModules = initStandardModules();
+    standardModulesToCount = initStandardModulesToCount();
+    standardModulesToTrace = initStandardModulesToTrace();
+    modulesToCountMap = initModulesToCountMap();
 
-    modules =
-        Stream.concat(
-                Stream.of(
-                    add,
-                    bin,
-                    blakeModexpData,
-                    blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
-                    ecData,
-                    euc,
-                    ext,
-                    gas,
-                    mmio,
-                    mmu,
-                    mod,
-                    mul,
-                    mxp,
-                    oob,
-                    exp,
-                    rlpAddr,
-                    rlpTxn,
-                    rlpTxnRcpt,
-                    logData, /* WARN: must be called AFTER rlpTxnRcpt */
-                    logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
-                    rom,
-                    romLex,
-                    shakiraData,
-                    shf,
-                    stp,
-                    trm,
-                    wcp, /* WARN: must be called BEFORE txnData */
-                    txnData,
-                    blockdata /* WARN: must be called AFTER txnData */),
-                precompileLimitModules().stream())
-            .toList();
+    modules = Stream.concat(standardModules.stream(), precompileLimitModules.stream()).toList();
+    modulesToCount = initModulesToCount(configuredModuleKeysToCount);
+  }
+
+  /**
+   * @return a list of all modules for which to generate traces
+   */
+  public List<Module> getModulesToTrace() {
+    return Stream.concat(standardModulesToTrace.stream(), refTableModules.stream()).toList();
+  }
+
+  /**
+   * List all the modules for which to generate counters. Intersects with, but is not equal to
+   * {@code getModulesToTrace}.
+   *
+   * @return the modules to count
+   */
+  public List<Module> getDefaultModulesToCount() {
+    return Stream.concat(
+            standardModulesToCount.stream(),
+            Stream.concat(refTableModules.stream(), precompileLimitModules.stream()))
+        .toList();
+  }
+
+  private List<Module> initStandardModulesToCount() {
+    return List.of(
+        this,
+        add,
+        bin,
+        blakeModexpData,
+        blockdata,
+        blockhash,
+        ecData,
+        exp,
+        ext,
+        euc,
+        gas,
+        logData,
+        logInfo,
+        mmu,
+        mmio,
+        mod,
+        mul,
+        mxp,
+        oob,
+        rlpAddr,
+        rlpTxn,
+        rlpTxnRcpt,
+        rom,
+        romLex,
+        shakiraData,
+        shf,
+        stp,
+        trm,
+        txnData,
+        wcp,
+        l2Block,
+        l2L1Logs);
+  }
+
+  private List<Module> initStandardModulesToTrace() {
+    return List.of(
+        this,
+        add,
+        bin,
+        blakeModexpData,
+        blockdata,
+        blockhash,
+        ecData,
+        exp,
+        ext,
+        euc,
+        logData,
+        logInfo,
+        mmu, // WARN: must be traced before the MMIO
+        mmio,
+        mod,
+        mul,
+        mxp,
+        oob,
+        rlpAddr,
+        rlpTxn,
+        rlpTxnRcpt,
+        rom,
+        romLex,
+        shakiraData,
+        shf,
+        stp,
+        trm,
+        txnData,
+        wcp);
+  }
+
+  private List<Module> initModulesToCount(Set<String> configuredModuleKeysToCount) {
+    return configuredModuleKeysToCount != null
+        ? configuredModuleKeysToCount.stream()
+            .map(
+                k -> {
+                  if (modulesToCountMap.containsKey(k)) {
+                    return modulesToCountMap.get(k);
+                  } else {
+                    throw new InvalidModuleKeyException(k);
+                  }
+                })
+            .toList()
+        : getDefaultModulesToCount();
+  }
+
+  private List<Module> initRefTableModules() {
+    return List.of(binRt, instDecoder, shfRt);
+  }
+
+  private List<Module> initPrecompileLimitModules() {
+    return List.of(
+        keccak,
+        sha256Blocks,
+        ecAddEffectiveCall,
+        ecMulEffectiveCall,
+        ecRecoverEffectiveCall,
+        ecPairingG2MembershipCalls,
+        ecPairingMillerLoops,
+        ecPairingFinalExponentiations,
+        modexpEffectiveCall,
+        ripemdBlocks,
+        blakeEffectiveCall,
+        blakeRounds);
+  }
+
+  private List<Module> initStandardModules() {
+    return List.of(
+        add,
+        bin,
+        blakeModexpData,
+        blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
+        ecData,
+        euc,
+        ext,
+        gas,
+        mmio,
+        mmu,
+        mod,
+        mul,
+        mxp,
+        oob,
+        exp,
+        rlpAddr,
+        rlpTxn,
+        rlpTxnRcpt,
+        logData, /* WARN: must be called AFTER rlpTxnRcpt */
+        logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
+        rom,
+        romLex,
+        shakiraData,
+        shf,
+        stp,
+        trm,
+        wcp, /* WARN: must be called BEFORE txnData */
+        txnData,
+        blockdata /* WARN: must be called AFTER txnData */);
+  }
+
+  private Map<String, Module> initModulesToCountMap() {
+    return Stream.concat(
+            // All Standard Modules to Count.
+            Maps.uniqueIndex(standardModulesToCount, Module::moduleKey).entrySet().stream(),
+            Stream.concat(
+                // Reference Tables
+                Maps.uniqueIndex(refTableModules, Module::moduleKey).entrySet().stream(),
+                // Precompile Limit Modules
+                Maps.uniqueIndex(precompileLimitModules, Module::moduleKey).entrySet().stream()))
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   @Override
@@ -905,7 +962,7 @@ public class Hub implements Module {
   private void handleStack(MessageFrame frame) {
     this.currentFrame()
         .stack()
-        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * (stamp() + 1));
+        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * stamp());
   }
 
   void triggerModules(MessageFrame frame) {

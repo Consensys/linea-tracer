@@ -68,10 +68,13 @@ public class StateManagerSolidityTest {
   }
   // destination must be our .yul smart contract
   Transaction writeToStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key, Long value, boolean revertFlag) {
-    List<org.web3j.abi.datatypes.Uint> inputParams = new ArrayList<>();
+    /*List<org.web3j.abi.datatypes.Uint> inputParams = new ArrayList<>();
     inputParams.addLast(new Uint256(BigInteger.valueOf(key)));
-    inputParams.addLast(new Uint256(BigInteger.valueOf(value)));
-    Function yulFunction = new Function("writeToStorage", Collections.unmodifiableList(inputParams), Collections.emptyList());
+    inputParams.addLast(new Uint256(BigInteger.valueOf(value)));*/
+    //var inputParams = Arrays.asList(new Uint256(BigInteger.valueOf(key)), new Uint256(BigInteger.valueOf(value)), new org.web3j.abi.datatypes.Bool(revertFlag));
+    Function yulFunction = new Function("writeToStorage",
+            Arrays.asList(new Uint256(BigInteger.valueOf(key)), new Uint256(BigInteger.valueOf(value)), new org.web3j.abi.datatypes.Bool(revertFlag)),
+            Collections.emptyList());
 
     var encoding = FunctionEncoder.encode(yulFunction);
     FrameworkEntrypoint.ContractCall snippetContractCall =
@@ -431,11 +434,11 @@ public class StateManagerSolidityTest {
      */
     MultiBlockExecutionEnvironment.builder()
             .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.initialAccounts[1], this.testContext.frameworkEntryPointAccount))
-            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L)))
+            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L, true)))
             //.addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L)))
             //.addBlock(List.of(selfDestruct(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], testContext.frameworkEntryPointAccount)))
-            //.addBlock(List.of(deployWithCreate2(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.frameworkEntryPointAccount, "0x0000000000000000000000000000000000000000000000000000000000000002")))
-            //.addBlock(List.of(writeToStorageRevert(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[2], 123L, 1L)))
+            .addBlock(List.of(deployWithCreate2(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.frameworkEntryPointAccount, "0x0000000000000000000000000000000000000000000000000000000000000002")))
+            .addBlock(List.of(writeToStorageRevert(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[2], 123L, 1L)))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();

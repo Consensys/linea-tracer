@@ -1,4 +1,4 @@
-object "StateManagerSnippets" {
+object "YulContract" {
     code {
         // return the bytecode of the contract
         datacopy(0x00, dataoffset("runtime"), datasize("runtime"))

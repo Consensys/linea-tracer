@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
+import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
@@ -164,14 +165,36 @@ public class OperationAncillaries {
   public static MemorySpan returnDataRequestedSegment(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CALL, CALLCODE -> {
-        long offset = Words.clampedToLong(frame.getStackItem(5));
-        long length = Words.clampedToLong(frame.getStackItem(6));
-        return MemorySpan.fromStartLength(offset, length);
+        long callDataOffset = Words.clampedToLong(frame.getStackItem(3));
+        long callDataSize = Words.clampedToLong(frame.getStackItem(4));
+        long returnDataOffset = Words.clampedToLong(frame.getStackItem(5));
+        long returnDataSize = Words.clampedToLong(frame.getStackItem(6));
+
+        Preconditions.checkArgument(!(callDataOffset >= Math.pow(2, 32) && callDataSize == 0));
+        Preconditions.checkArgument(!(returnDataOffset >= Math.pow(2, 32) && returnDataSize == 0));
+
+        System.out.println("callDataOffset: " + callDataOffset);
+        System.out.println("callDataSize: " + callDataSize);
+        System.out.println("returnDataOffset: " + returnDataOffset);
+        System.out.println("returnDataSize: " + returnDataSize);
+
+        return MemorySpan.fromStartLength(returnDataOffset, returnDataSize);
       }
       case DELEGATECALL, STATICCALL -> {
-        long offset = Words.clampedToLong(frame.getStackItem(4));
-        long length = Words.clampedToLong(frame.getStackItem(5));
-        return MemorySpan.fromStartLength(offset, length);
+        long callDataOffset = Words.clampedToLong(frame.getStackItem(2));
+        long callDataSize = Words.clampedToLong(frame.getStackItem(3));
+        long returnDataOffset = Words.clampedToLong(frame.getStackItem(4));
+        long returnDataSize = Words.clampedToLong(frame.getStackItem(5));
+
+        System.out.println("callDataOffset: " + callDataOffset);
+        System.out.println("callDataSize: " + callDataSize);
+        System.out.println("returnDataOffset: " + returnDataOffset);
+        System.out.println("returnDataSize: " + returnDataSize);
+
+        Preconditions.checkArgument(!(callDataOffset >= Math.pow(2, 32) && callDataSize == 0));
+        Preconditions.checkArgument(!(returnDataOffset >= Math.pow(2, 32) && returnDataSize == 0));
+
+        return MemorySpan.fromStartLength(returnDataOffset, returnDataSize);
       }
       default -> throw new IllegalArgumentException(
           "returnDataRequestedSegment called outside of a *CALL");
@@ -221,7 +244,7 @@ public class OperationAncillaries {
         //  We cannot use this method for that purpose.
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
         Address target = Words.toAddress(frame.getStackItem(1));
-        if (isPrecompile(target)) {
+        if (!isPrecompile(target)) {
           return MemorySpan.fromStartLength(0, 0);
         }
         checkArgument(isPrecompile(target)); // useless (?) sanity check

@@ -22,12 +22,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import net.consensys.linea.testing.SmartContractUtils;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import net.consensys.linea.testing.Web3jUtils;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
@@ -107,35 +107,37 @@ public class ExampleSolidityTest {
                     .keyPair(keyPair)
                     .build();
 
-    Consumer<TransactionProcessingResult> resultValidator =
-            (TransactionProcessingResult result) -> {
-              // One event from the snippet
-              // One event from the framework entrypoint about contract call
-              assertEquals(result.getLogs().size(), 2);
-              for (Log log : result.getLogs()) {
-                String logTopic = log.getTopics().getFirst().toHexString();
-                if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
-                  TestSnippet_Events.DataNoIndexesEventResponse response =
-                          TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
-                  assertEquals(response.singleInt, BigInteger.valueOf(123456));
-                } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
-                        .equals(logTopic)) {
-                  FrameworkEntrypoint.CallExecutedEventResponse response =
-                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
-                  assertTrue(response.isSuccess);
-                  assertEquals(response.destination, snippetAccount.getAddress().toHexString());
-                } else {
-                  fail();
-                }
-              }
-            };
+
+    TransactionProcessingResultValidator resultValidator =
+        (Transaction transaction, TransactionProcessingResult result) -> {
+          // One event from the snippet
+          // One event from the framework entrypoint about contract call
+          assertEquals(result.getLogs().size(), 2);
+          for (Log log : result.getLogs()) {
+            String logTopic = log.getTopics().getFirst().toHexString();
+            if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
+              TestSnippet_Events.DataNoIndexesEventResponse response =
+                  TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
+              assertEquals(response.singleInt, BigInteger.valueOf(123456));
+            } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
+                .equals(logTopic)) {
+              FrameworkEntrypoint.CallExecutedEventResponse response =
+                  FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
+              assertTrue(response.isSuccess);
+              assertEquals(response.destination, snippetAccount.getAddress().toHexString());
+            } else {
+              fail();
+            }
+          }
+        };
 
     ToyExecutionEnvironmentV2.builder()
-            .accounts(List.of(senderAccount, frameworkEntrypointAccount, snippetAccount))
-            .transaction(tx)
-            .testValidator(resultValidator)
-            .build()
-            .run();
+        .accounts(List.of(senderAccount, frameworkEntrypointAccount, snippetAccount))
+        .transaction(tx)
+        .transactionProcessingResultValidator(resultValidator)
+        .build()
+        .run();
+
   }
 
   @Test
@@ -170,21 +172,22 @@ public class ExampleSolidityTest {
                     .keyPair(keyPair)
                     .build();
 
-    Consumer<TransactionProcessingResult> resultValidator =
-            (TransactionProcessingResult result) -> {
-              assertEquals(result.getLogs().size(), 1);
-              TestSnippet_Events.DataNoIndexesEventResponse response =
-                      TestSnippet_Events.getDataNoIndexesEventFromLog(
-                              Web3jUtils.fromBesuLog(result.getLogs().getFirst()));
-              assertEquals(response.singleInt, BigInteger.valueOf(123456));
-            };
+
+    TransactionProcessingResultValidator resultValidator =
+        (Transaction transaction, TransactionProcessingResult result) -> {
+          assertEquals(result.getLogs().size(), 1);
+          TestSnippet_Events.DataNoIndexesEventResponse response =
+              TestSnippet_Events.getDataNoIndexesEventFromLog(
+                  Web3jUtils.fromBesuLog(result.getLogs().getFirst()));
+          assertEquals(response.singleInt, BigInteger.valueOf(123456));
+        };
 
     ToyExecutionEnvironmentV2.builder()
-            .accounts(List.of(senderAccount, contractAccount))
-            .transaction(tx)
-            .testValidator(resultValidator)
-            .build()
-            .run();
+        .accounts(List.of(senderAccount, contractAccount))
+        .transaction(tx)
+        .transactionProcessingResultValidator(resultValidator)
+        .build()
+        .run();
   }
 
   @Test
@@ -273,21 +276,23 @@ public class ExampleSolidityTest {
     Bytes txPayload =
             Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
 
-    Consumer<TransactionProcessingResult> resultValidator =
-            (TransactionProcessingResult result) -> {
-              assertEquals(result.getLogs().size(), 1);
-              for (Log log : result.getLogs()) {
-                String logTopic = log.getTopics().getFirst().toHexString();
-                if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT).equals(logTopic)) {
-                  FrameworkEntrypoint.CallExecutedEventResponse response =
-                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
-                  assertTrue(response.isSuccess);
-                  assertEquals(response.destination, yulAccount.getAddress().toHexString());
-                } else {
-                  fail();
-                }
-              }
-            };
+
+    TransactionProcessingResultValidator resultValidator =
+        (Transaction transaction, TransactionProcessingResult result) -> {
+          assertEquals(result.getLogs().size(), 1);
+          for (Log log : result.getLogs()) {
+            String logTopic = log.getTopics().getFirst().toHexString();
+            if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT).equals(logTopic)) {
+              FrameworkEntrypoint.CallExecutedEventResponse response =
+                  FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
+              assertTrue(response.isSuccess);
+              assertEquals(response.destination, yulAccount.getAddress().toHexString());
+            } else {
+              fail();
+            }
+          }
+        };
+
 
     Transaction tx =
             ToyTransaction.builder()
@@ -299,10 +304,11 @@ public class ExampleSolidityTest {
                     .build();
 
     ToyExecutionEnvironmentV2.builder()
-            .accounts(List.of(senderAccount, yulAccount, frameworkEntrypointAccount))
-            .transaction(tx)
-            .testValidator(resultValidator)
-            .build()
-            .run();
+
+        .accounts(List.of(senderAccount, yulAccount, frameworkEntrypointAccount))
+        .transaction(tx)
+        .transactionProcessingResultValidator(resultValidator)
+        .build()
+        .run();
   }
 }

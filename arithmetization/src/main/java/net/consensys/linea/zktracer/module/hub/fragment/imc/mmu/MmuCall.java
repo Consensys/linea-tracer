@@ -460,7 +460,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(precompileSubsection.exoModuleOperationId())
         .sourceRamBytes(Optional.of(precompileSubsection.returnData()))
-        .targetId(precompileSubsection.callSection.hubStamp())
+        .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(precompileSubsection.callerMemorySnapshot))
         .sourceOffset(EWord.ZERO)
         .targetOffset(EWord.of(precompileSubsection.parentReturnDataTarget.offset()))

@@ -50,6 +50,7 @@ import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -156,10 +157,11 @@ public class CallSection extends TraceSection
             "The STP and the HUB have conflicting predictions of an OOGX\n\t\tHUB_STAMP = %s",
             hubStamp()));
 
-    final Address callerAddress = hub.messageFrame().getRecipientAddress();
+    final CallFrame currentFrame = hub.currentFrame();
+    final Address callerAddress = currentFrame.frame().getRecipientAddress();
     preOpcodeCallerSnapshot = canonical(hub, callerAddress);
 
-    rawCalleeAddress = hub.currentFrame().frame().getStackItem(1);
+    rawCalleeAddress = currentFrame.frame().getStackItem(1);
     final Address calleeAddress = Address.extract(EWord.of(rawCalleeAddress)); // TODO check this
     preOpcodeCalleeSnapshot = canonical(hub, calleeAddress);
 
@@ -171,11 +173,15 @@ public class CallSection extends TraceSection
 
     // The CALL is now unexceptional
     checkArgument(Exceptions.none(exceptions));
-    hub.currentFrame().childSpanningSection(this);
+    currentFrame.childSpanningSection(this);
+
+    final boolean callCanTransferValue = currentFrame.opCode().callCanTransferValue();
+    currentFrame.returnDataTargetInCaller(
+        returnDataMemorySpan(currentFrame.frame(), callCanTransferValue));
 
     value =
-        hub.opCode().callCanTransferValue()
-            ? Wei.of(hub.messageFrame().getStackItem(2).toUnsignedBigInteger())
+        callCanTransferValue
+            ? Wei.of(currentFrame.frame().getStackItem(2).toUnsignedBigInteger())
             : Wei.ZERO;
 
     final CallOobCall oobCall = new CallOobCall();
@@ -184,7 +190,7 @@ public class CallSection extends TraceSection
     final boolean aborts = hub.pch().abortingConditions().any();
     checkArgument(oobCall.isAbortingCondition() == aborts);
 
-    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
+    hub.defers().scheduleForPostRollback(this, currentFrame);
     hub.defers().scheduleForPostTransaction(this);
 
     if (aborts) {
@@ -195,8 +201,8 @@ public class CallSection extends TraceSection
 
     // The CALL is now unexceptional and un-aborted
     hub.defers().scheduleForImmediateContextEntry(this);
-    hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
-    final WorldUpdater world = hub.messageFrame().getWorldUpdater();
+    hub.defers().scheduleForContextReEntry(this, currentFrame);
+    final WorldUpdater world = currentFrame.frame().getWorldUpdater();
 
     if (isPrecompile(calleeAddress)) {
       precompileAddress = Optional.of(calleeAddress);
@@ -225,7 +231,7 @@ public class CallSection extends TraceSection
       finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);
       final boolean isSelfCall = callerAddress.equals(calleeAddress);
       selfCallWithNonzeroValueTransfer = isSelfCall && !value.isZero();
-      hub.romLex().callRomLex(hub.currentFrame().frame());
+      hub.romLex().callRomLex(currentFrame.frame());
       hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     }
 
@@ -579,5 +585,17 @@ public class CallSection extends TraceSection
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
     this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
+  }
+
+  private MemorySpan returnDataMemorySpan(MessageFrame currentFrame, boolean callCanTransferValue) {
+    final int returnDataOffset =
+        callCanTransferValue
+            ? currentFrame.getStackItem(5).toInt()
+            : currentFrame.getStackItem(4).toInt();
+    final int returnDataLength =
+        callCanTransferValue
+            ? currentFrame.getStackItem(6).toInt()
+            : currentFrame.getStackItem(5).toInt();
+    return MemorySpan.fromStartLength(returnDataOffset, returnDataLength);
   }
 }

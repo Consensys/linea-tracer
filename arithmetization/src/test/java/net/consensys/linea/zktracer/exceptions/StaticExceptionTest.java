@@ -28,9 +28,53 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class StaticExceptionTest {
+
+  @ParameterizedTest
+  @CsvSource({"CALL, 0", "CALL, 1", "CALLCODE, 0", "CALLCODE, 1"})
+  void staticExceptionDueToCallWithNonZeroValueTest(String opCodeName, int value) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .push(0) // return data size
+        .push(0) // return data offset
+        .push(0) // call data size
+        .push(0) // call data offset
+        .push("ca11ee") // address
+        .push(1000) // gas
+        .op(OpCode.STATICCALL);
+
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram();
+    calleeProgram
+        .push(0) // return data size
+        .push(0) // return data offset
+        .push(0) // call data size
+        .push(0) // call data offset
+        .push(value) // value
+        .push("ca11ee") // address
+        .push(1000) // gas
+        .op(opCodeName.equals("CALL") ? OpCode.CALL : OpCode.CALLCODE);
+
+    final ToyAccount calleeAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(10)
+            .address(Address.fromHexString("ca11ee"))
+            .code(calleeProgram.compile())
+            .build();
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+
+    bytecodeRunner.run(List.of(calleeAccount));
+
+    if (value != 0) {
+      assertEquals(
+          STATIC_FAULT,
+          bytecodeRunner.getHub().previousTraceSection(2).commonValues.tracedException());
+    }
+  }
 
   @Test
   void staticExceptionDueToSStoreTest() {
@@ -46,6 +90,38 @@ public class StaticExceptionTest {
 
     BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram();
     calleeProgram.push(0).push(0).op(OpCode.SSTORE);
+
+    final ToyAccount calleeAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(10)
+            .address(Address.fromHexString("ca11ee"))
+            .code(calleeProgram.compile())
+            .build();
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+
+    bytecodeRunner.run(List.of(calleeAccount));
+
+    assertEquals(
+        STATIC_FAULT,
+        bytecodeRunner.getHub().previousTraceSection(2).commonValues.tracedException());
+  }
+
+  @Test
+  void staticExceptionDueToSelfDestructTest() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .push(0) // return data size
+        .push(0) // return data offset
+        .push(0) // call data size
+        .push(0) // call data offset
+        .push("ca11ee") // address
+        .push(1000) // gas
+        .op(OpCode.STATICCALL);
+
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram();
+    calleeProgram.push(0).op(OpCode.SELFDESTRUCT);
 
     final ToyAccount calleeAccount =
         ToyAccount.builder()
@@ -82,6 +158,46 @@ public class StaticExceptionTest {
       calleeProgram.push(0);
     }
     calleeProgram.push(0).push(0).op(OpCode.of(OpCode.LOG0.getData().value() + numberOfTopics));
+
+    final ToyAccount calleeAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(10)
+            .address(Address.fromHexString("ca11ee"))
+            .code(calleeProgram.compile())
+            .build();
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+
+    bytecodeRunner.run(List.of(calleeAccount));
+
+    assertEquals(
+        STATIC_FAULT,
+        bytecodeRunner.getHub().previousTraceSection(2).commonValues.tracedException());
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = {"CREATE", "CREATE2"})
+  void staticExceptionDueToCreateTest(String opCodeName) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .push(0) // return data size
+        .push(0) // return data offset
+        .push(0) // call data size
+        .push(0) // call data offset
+        .push("ca11ee") // address
+        .push(1000) // gas
+        .op(OpCode.STATICCALL);
+
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram();
+    if (opCodeName.equals("CREATE2")) {
+      calleeProgram.push(0);
+    }
+    calleeProgram
+        .push(0)
+        .push(0)
+        .push(0)
+        .op(opCodeName.equals("CREATE") ? OpCode.CREATE : OpCode.CREATE2);
 
     final ToyAccount calleeAccount =
         ToyAccount.builder()

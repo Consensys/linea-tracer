@@ -33,16 +33,12 @@ import org.hyperledger.besu.evm.log.Log;
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -170,7 +166,7 @@ public class RevertingTest {
                       .address(Address.fromHexString("0x11111"))
                       .balance(Wei.ONE)
                       .nonce(6)
-                      .code(SmartContractUtils.getYulContractByteCode("YulContract.yul"))
+                      .code(SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul"))
                       .build();
       // generate extra accounts
       KeyPair keyPair = new SECP256K1().generateKeyPair();

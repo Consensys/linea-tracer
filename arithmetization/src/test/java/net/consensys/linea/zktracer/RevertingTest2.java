@@ -135,7 +135,7 @@ public class RevertingTest2 {
                       .address(Address.fromHexString("0x11111"))
                       .balance(Wei.ONE)
                       .nonce(6)
-                      .code(SmartContractUtils.getYulContractByteCode("YulContract.yul"))
+                      .code(SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul"))
                       .build();
       // generate extra accounts
       KeyPair keyPair = new SECP256K1().generateKeyPair();

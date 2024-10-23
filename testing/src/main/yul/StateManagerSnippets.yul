@@ -1,4 +1,4 @@
-object "YulContract" {
+object "StateManagerSnippets" {
     code {
         // return the bytecode of the contract
         datacopy(0x00, dataoffset("runtime"), datasize("runtime"))
@@ -39,7 +39,7 @@ object "YulContract" {
                 logValuesWrite(x, y)
 
                 // check the revert flag, and if true, perform a revert
-                if eq(revertFlag, 0x01) {
+                if eq(revertFlag, 0x0000000000000000000000000000000000000000000000000000000000000001) {
                     revertWithError()
                 }
             }
@@ -59,12 +59,12 @@ object "YulContract" {
                 logValuesRead(x, y)
 
                 // check the revert flag, and if true, perform a revert
-                if eq(revertFlag, 0x01) {
+                if eq(revertFlag, 0x0000000000000000000000000000000000000000000000000000000000000001) {
                     revertWithError()
                 }
             }
 
-            case 0x3f5a0bdd // selfDestruct()
+            case 0xeba7ff7f // selfDestruct()
             {
                 // Load the first argument (recipient) from calldata
                 let recipient := calldataload(0x04)
@@ -78,12 +78,12 @@ object "YulContract" {
                 // call the self-destruct function if the revert is not present
                 // not the best way to revert, but the self destruct does not allow for a revert afterwards
                 // unless the revert flag is pushed outside, after the end of the contract call
-                if eq(revertFlag, 0x00) {
+                if eq(revertFlag, 0x0000000000000000000000000000000000000000000000000000000000000000) {
                     selfDestruct(recipient, revertFlag)
                 }
 
                 // check the revert flag, and if true, perform a revert
-                if eq(revertFlag, 0x01) {
+                if eq(revertFlag, 0x0000000000000000000000000000000000000000000000000000000000000001) {
                     revertWithError()
                 }
             }
@@ -109,14 +109,19 @@ object "YulContract" {
                 logTransfer(senderAddress, recipient, amount)
 
                 // check the revert flag, and if true, perform a revert
-                if eq(revertFlag, 0x01) {
+                if eq(revertFlag, 0x0000000000000000000000000000000000000000000000000000000000000001) {
                     revertWithError()
                 }
             }
 
-            case 0xf1f1f1f1 {
+            case 0x3ecfd51e {
                 // I will use 0xf1f1f1f1 as hardcoded calldata for the call opcode in case of a transfer
                 logReceive()
+                receiveETH()
+            }
+
+            case 0xffffffff {
+                // I will use 0xf1f1f1f1 as hardcoded calldata for the call opcode in case of a transfer
             }
 
             default {
@@ -275,7 +280,7 @@ object "YulContract" {
             function transferTo(recipient, amount, revertFlag) {
                 // hardcoding f1f1f1f1 as custom calldata in case of a transfer
                 let formedCallData := mload(0x40)
-                let functionSelector := 0xf1f1f1f100000000000000000000000000000000000000000000000000000000
+                let functionSelector := 0x3ecfd51e00000000000000000000000000000000000000000000000000000000
                 mstore(formedCallData, functionSelector)
                 let success := call(gas(), recipient, amount, formedCallData, 0x20, 0, 0)
                 // Check if the transfer was successful
@@ -297,6 +302,14 @@ object "YulContract" {
 
             // Revert with the error message
             revert(errorMessageOffset, errorMessageSize)
+            }
+
+            // 3ecfd51e90ed5312cd5bc47447919dde093173d93c6a98ab52ecf0cfc491e099
+            // function selector 0x3ecfd51e
+            // we need this empty function in order for the contract to be sucessfully deployed
+            // using the java wrappers
+            function receiveETH() {
+
             }
         }
     }

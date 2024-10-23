@@ -1484,22 +1484,22 @@ public class Hub implements Module {
       Map<
               TransactionProcessingMetadata.AddrStorageKeyPair,
               TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-          txnMapStorage = metadata.getStorageFirstAndLastMap();
+              txnMapStorage = metadata.getStorageFirstAndLastMap();
       for (TransactionProcessingMetadata.AddrStorageKeyPair addrKeyPair : txnMapStorage.keySet()) {
         var txnValue = txnMapStorage.get(addrKeyPair);
         System.out.println(
-            "Storage: txn level map: addr: "
-                + addrKeyPair.getAddress()
-                + ": storage key: "
-                + addrKeyPair.getStorageKey()
-                + ": first dom: "
-                + txnValue.getFirstDom()
-                + ", first sub: "
-                + txnValue.getFirstSub()
-                + ": last dom: "
-                + txnValue.getLastDom()
-                + ", last sub: "
-                + txnValue.getLastSub());
+                "Storage: txn level map: addr: "
+                        + addrKeyPair.getAddress()
+                        + ": storage key: "
+                        + addrKeyPair.getStorageKey()
+                        + ": first dom: "
+                        + txnValue.getFirstDom()
+                        + ", first sub: "
+                        + txnValue.getFirstSub()
+                        + ": last dom: "
+                        + txnValue.getLastDom()
+                        + ", last sub: "
+                        + txnValue.getLastSub());
       }
     }
 
@@ -1508,20 +1508,20 @@ public class Hub implements Module {
     for (var addrKeyBlockTuple : blockMapStorage.keySet()) {
       var blockValue = blockMapStorage.get(addrKeyBlockTuple);
       System.out.println(
-          "Storage: block level map: addr: "
-              + addrKeyBlockTuple.getAddrStorageKeyPair().getAddress()
-              + ": key: "
-              + addrKeyBlockTuple.getAddrStorageKeyPair().getStorageKey()
-              + ": block: "
-              + addrKeyBlockTuple.getBlockNumber()
-              + ": first dom: "
-              + blockValue.getFirstDom()
-              + ", first sub: "
-              + blockValue.getFirstSub()
-              + ": last dom: "
-              + blockValue.getLastDom()
-              + ", last sub: "
-              + blockValue.getLastSub());
+              "Storage: block level map: addr: "
+                      + addrKeyBlockTuple.getAddrStorageKeyPair().getAddress()
+                      + ": key: "
+                      + addrKeyBlockTuple.getAddrStorageKeyPair().getStorageKey()
+                      + ": block: "
+                      + addrKeyBlockTuple.getBlockNumber()
+                      + ": first dom: "
+                      + blockValue.getFirstDom()
+                      + ", first sub: "
+                      + blockValue.getFirstSub()
+                      + ": last dom: "
+                      + blockValue.getLastDom()
+                      + ", last sub: "
+                      + blockValue.getLastSub());
     }
 
     // Print conflationMaps
@@ -1529,19 +1529,20 @@ public class Hub implements Module {
     for (var addrKeyPair : conflationMapStorage.keySet()) {
       var conflationValue = conflationMapStorage.get(addrKeyPair);
       System.out.println(
-          "Storage: conflation level map: addr: "
-              + addrKeyPair.getAddress()
-              + ": storage key: "
-              + addrKeyPair.getStorageKey()
-              + ": first dom: "
-              + conflationValue.getFirstDom()
-              + ", first sub: "
-              + conflationValue.getFirstSub()
-              + ": last dom: "
-              + conflationValue.getLastDom()
-              + ", last sub: "
-              + conflationValue.getLastSub());
+              "Storage: conflation level map: addr: "
+                      + addrKeyPair.getAddress()
+                      + ": storage key: "
+                      + addrKeyPair.getStorageKey()
+                      + ": first dom: "
+                      + conflationValue.getFirstDom()
+                      + ", first sub: "
+                      + conflationValue.getFirstSub()
+                      + ": last dom: "
+                      + conflationValue.getLastDom()
+                      + ", last sub: "
+                      + conflationValue.getLastSub());
     }
+  }
   public final boolean returnFromMessageCall(MessageFrame frame) {
     return opCode() == RETURN && frame.getType() == MESSAGE_CALL;
   }

@@ -221,7 +221,7 @@ public class OperationAncillaries {
         //  We cannot use this method for that purpose.
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
         Address target = Words.toAddress(frame.getStackItem(1));
-        if (isPrecompile(target)) {
+        if (!isPrecompile(target)) {
           return MemorySpan.fromStartLength(0, 0);
         }
         checkArgument(isPrecompile(target)); // useless (?) sanity check

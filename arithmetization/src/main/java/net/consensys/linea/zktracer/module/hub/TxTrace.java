@@ -57,6 +57,18 @@ public class TxTrace {
   }
 
   /**
+   * Returns the trace section that is `n` positions before the most recent one.
+   *
+   * @param n the number of positions before the most recent trace section
+   * @return the trace section that is `n` positions before the most recent one
+   * @throws IllegalArgumentException if there are fewer than `n + 1` sections in the trace
+   */
+  public TraceSection previousSection(int n) {
+    Preconditions.checkArgument(trace.size() > n);
+    return this.trace.get(this.size() - 1 - n);
+  }
+
+  /**
    * @return whether this trace is empty
    */
   public boolean isEmpty() {

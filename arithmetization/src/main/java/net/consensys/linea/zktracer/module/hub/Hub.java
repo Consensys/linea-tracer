@@ -958,6 +958,10 @@ public class Hub implements Module {
     return state.currentTxTrace().previousSection();
   }
 
+  public TraceSection previousTraceSection(int n) {
+    return state.currentTxTrace().previousSection(n);
+  }
+
   public void addTraceSection(TraceSection section) {
     state.currentTxTrace().add(section);
   }

@@ -378,7 +378,7 @@ public class StateManagerSolidityTest {
                                       ctxt.initialKeyPairs[1],
                                       ctxt.frameworkEntryPointAddress,
                               "0x0000000000000000000000000000000000000000000000000000000000000002",
-                                      TestContext.snippetsCode)))
+                                      SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul"))))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();

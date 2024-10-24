@@ -67,34 +67,6 @@ public class StateManagerSolidityTest {
   }
 
 
-    public static String calculateCreate2Address(byte[] senderAddress, byte[] salt, byte[] initCode) {
-
-      // Calculate keccak256(init_code)
-      org.apache.tuweni.bytes.Bytes32 initCodeHash = org.hyperledger.besu.crypto.Hash.keccak256(Bytes.wrap(initCode));
-
-      // Concatenate 0xff, sender_address, salt, and keccak256(init_code)
-      byte[] data = new byte[1 + senderAddress.length + salt.length + initCodeHash.size()];
-      data[0] = (byte) 0xff;
-      System.arraycopy(senderAddress, 0, data, 1, senderAddress.length);
-      System.arraycopy(salt, 0, data, 1 + senderAddress.length, salt.length);
-      System.arraycopy(initCodeHash, 0, data, 1 + senderAddress.length + salt.length, initCodeHash.size());
-
-      // Calculate keccak256(data)
-      org.apache.tuweni.bytes.Bytes32 addressBytes = org.hyperledger.besu.crypto.Hash.keccak256(Bytes.wrap(data));
-
-      // Take the last 20 bytes of the hash result
-      byte[] resultAddressBytes = new byte[20];
-      System.arraycopy(addressBytes, 12, resultAddressBytes, 0, 20);
-
-      // Convert the result to a hex string
-      return "0x" + resultAddressBytes.toString();
-  }
-
-
-
-
-
-
   // destination must be our .yul smart contract
   Transaction writeToStorage(ToyAccount sender, KeyPair senderKeyPair, Address destination, Long key, Long value, boolean revertFlag, BigInteger callType) {
     Function yulFunction = new Function("writeToStorage",
@@ -309,7 +281,7 @@ public class StateManagerSolidityTest {
                       .address(Address.fromHexString("0x11111"))
                       .balance(Wei.ONE)
                       .nonce(6)
-                      .code(SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul"))
+                      .code(TestContext.snippetsCode)
                       .build();
       addresses[0] = initialAccounts[0].getAddress();
       // generate extra accounts

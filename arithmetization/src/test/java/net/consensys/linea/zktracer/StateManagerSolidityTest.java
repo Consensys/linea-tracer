@@ -402,29 +402,40 @@ public class StateManagerSolidityTest {
     // initialize the test context
     this.ctxt = new TestContext();
     this.ctxt.initializeTestContext();
+    // prepare the transaction validator
     TransactionProcessingResultValidator resultValidator = getValidator();
+    // fetch the Hub metadata for the state manager maps
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
-
+    // compute the addresses for several accounts that will be deployed later
     ctxt.addresses[3] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000002");
     ctxt.addresses[4] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000003");
     ctxt.addresses[5] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000004");
 
+    // prepare a multi-block execution of transactions
     MultiBlockExecutionEnvironment.builder()
+            // initialize accounts
             .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
+            // test storage operations for an account prexisting in the state
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, 8L, false, BigInteger.ONE)))
             .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, false, BigInteger.ONE)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, 10L, false, BigInteger.ONE)))
             .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, false, BigInteger.ONE)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, 15L, false, BigInteger.ONE)))
+            // deploy another account and perform storage operations on it
             .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000002", TestContext.snippetsCodeForCreate2)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[3], 345L, 20L, false, BigInteger.ONE)))
             .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[3], 345L, false, BigInteger.ONE)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[3], 345L, 40L, false, BigInteger.ONE)))
+            // deploy another account and self destruct it at the end, redeploy it and change the storage again
+            // the salt will be the same twice in a row, which will be on purpose
             .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000003", TestContext.snippetsCodeForCreate2)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, 12L, false, BigInteger.ONE)))
             .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, false, BigInteger.ONE)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, 13L, false, BigInteger.ONE)))
             .addBlock(List.of(selfDestruct(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, ctxt.addresses[4], false, BigInteger.ONE)))
+            .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000003", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, 99L, false, BigInteger.ONE)))
+            // deploy a new account and check revert operations on it
             .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000004", TestContext.snippetsCodeForCreate2)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 500L, 23L, false, BigInteger.ONE)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 500L, 53L, true, BigInteger.ONE))) // revert flag on
@@ -438,8 +449,22 @@ public class StateManagerSolidityTest {
     Map<TransactionProcessingMetadata. AddrStorageKeyPair, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
             conflationStorage = stateManagerMetadata.getStorageFirstLastConflationMap();
 
-    EWord[] expectedFirst = {EWord.of(8L), EWord.of(20L), EWord.of(12L), EWord.of(23L)};
-    EWord[] expectedLast = {EWord.of(15L), EWord.of(40L), EWord.of(13L), EWord.of(23L)};
+    // prepare data for asserts
+    // expected first values for the keys we are testing
+    EWord[] expectedFirst = {
+            EWord.of(8L),
+            EWord.of(20L),
+            EWord.of(12L),
+            EWord.of(23L)
+    };
+    // expected last values for the keys we are testing
+    EWord[] expectedLast = {
+            EWord.of(15L),
+            EWord.of(40L),
+            EWord.of(99L),
+            EWord.of(23L)
+    };
+    // prepare the key pairs
     TransactionProcessingMetadata.AddrStorageKeyPair[] keys = {
             new TransactionProcessingMetadata.AddrStorageKeyPair(ctxt.initialAccounts[0].getAddress(), EWord.of(123L)),
             new TransactionProcessingMetadata.AddrStorageKeyPair(ctxt.addresses[3], EWord.of(345L)),
@@ -448,7 +473,9 @@ public class StateManagerSolidityTest {
     };
 
     for (int i = 0; i < keys.length; i++) {
-      TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment> storageData = conflationStorage.get(keys[i]);
+      TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>
+              storageData = conflationStorage.get(keys[i]);
+      // asserts for the first and last storage values in conflation
       assertEquals(storageData.getFirst().getValueNext(), expectedFirst[i]);
       assertEquals(storageData.getLast().getValueNext(), expectedLast[i]);
     }

@@ -373,7 +373,12 @@ public class StateManagerSolidityTest {
     TransactionProcessingResultValidator resultValidator = getValidator();
     MultiBlockExecutionEnvironment.builder()
             .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
-            .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000002", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(
+                    deployWithCreate2(ctxt.initialAccounts[1],
+                                      ctxt.initialKeyPairs[1],
+                                      ctxt.frameworkEntryPointAddress,
+                              "0x0000000000000000000000000000000000000000000000000000000000000002",
+                                      TestContext.snippetsCode)))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();

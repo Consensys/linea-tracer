@@ -407,7 +407,7 @@ public class StateManagerSolidityTest {
     org.apache.tuweni.bytes.Bytes32 targetAddress2 = AddressUtils.getCreate2RawAddress(ctxt.frameworkEntryPointAccount.getAddress(),
             org.apache.tuweni.bytes.Bytes32.wrap(Bytes.fromHexStringLenient("0x0000000000000000000000000000000000000000000000000000000000000003").toArray()),
             initCodeHash);
-    ctxt.addresses[4] = Address.extract(targetAddress);
+    ctxt.addresses[4] = Address.extract(targetAddress2);
 
     MultiBlockExecutionEnvironment.builder()
             .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))

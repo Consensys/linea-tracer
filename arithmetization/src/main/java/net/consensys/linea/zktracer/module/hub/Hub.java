@@ -950,8 +950,16 @@ public class Hub implements Module {
     return this.currentFrame().opCode();
   }
 
-  TraceSection currentTraceSection() {
+  public TraceSection currentTraceSection() {
     return state.currentTxTrace().currentSection();
+  }
+
+  public TraceSection previousTraceSection() {
+    return state.currentTxTrace().previousSection();
+  }
+
+  public TraceSection previousTraceSection(int n) {
+    return state.currentTxTrace().previousSection(n);
   }
 
   public void addTraceSection(TraceSection section) {

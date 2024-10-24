@@ -243,24 +243,23 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall returnDataCopy(final Hub hub) {
-    final MemorySpan returnDataSegment = hub.currentFrame().returnDataSpan();
+    final CallFrame currentFrame = hub.currentFrame();
+    final MemorySpan returnDataSegment = currentFrame.returnDataSpan();
     final CallFrame returnerFrame =
-        hub.callStack().getByContextNumber(hub.currentFrame().returnDataContextNumber());
+        hub.callStack().getByContextNumber(currentFrame.returnDataContextNumber());
 
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId(returnerFrame.contextNumber())
-        .sourceRamBytes(
-            Optional.of(
-                returnerFrame.frame().shadowReadMemory(0, returnerFrame.frame().memoryByteSize())))
-        .targetId(hub.currentFrame().contextNumber())
+        .sourceRamBytes(Optional.of(currentFrame.frame().getReturnData().copy()))
+        .targetId(currentFrame.contextNumber())
         .targetRamBytes(
             Optional.of(
-                hub.currentFrame()
+                currentFrame
                     .frame()
                     .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
-        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
-        .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .sourceOffset(EWord.of(currentFrame.frame().getStackItem(1)))
+        .targetOffset(EWord.of(currentFrame.frame().getStackItem(0)))
+        .size(Words.clampedToLong(currentFrame.frame().getStackItem(2)))
         .referenceOffset(returnDataSegment.offset())
         .referenceSize(returnDataSegment.length());
   }

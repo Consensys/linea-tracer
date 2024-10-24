@@ -21,11 +21,11 @@ import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.testing.generated.StateManagerEvents;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
-import net.consensys.linea.testing.generated.TestingBase;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.transients.StateManagerMetadata;
+import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -40,23 +40,18 @@ import org.hyperledger.besu.evm.log.Log;
 import org.junit.jupiter.api.Test;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.DynamicArray;
-import org.web3j.abi.datatypes.DynamicBytes;
 import org.web3j.abi.datatypes.Function;
-import org.web3j.abi.datatypes.Type;
-import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 
 import java.math.BigInteger;
 import java.util.*;
-import java.util.function.Consumer;
 
 import static org.assertj.core.api.Fail.fail;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class StateManagerSolidityTest {
-  TestContext testContext;
+  TestContext ctxt;
   enum RevertFlag {
     DISABLED,
     ENABLED
@@ -70,7 +65,7 @@ public class StateManagerSolidityTest {
     }
   }
 
-  
+
     public static String calculateCreate2Address(byte[] senderAddress, byte[] salt, byte[] initCode) {
 
       // Calculate keccak256(init_code)
@@ -100,7 +95,7 @@ public class StateManagerSolidityTest {
 
 
   // destination must be our .yul smart contract
-  Transaction writeToStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key, Long value, boolean revertFlag, BigInteger callType) {
+  Transaction writeToStorage(ToyAccount sender, KeyPair senderKeyPair, Address destination, Long key, Long value, boolean revertFlag, BigInteger callType) {
     Function yulFunction = new Function("writeToStorage",
             Arrays.asList(new Uint256(BigInteger.valueOf(key)), new Uint256(BigInteger.valueOf(value)), new org.web3j.abi.datatypes.Bool(revertFlag)),
             Collections.emptyList());
@@ -108,7 +103,7 @@ public class StateManagerSolidityTest {
     var encoding = FunctionEncoder.encode(yulFunction);
     FrameworkEntrypoint.ContractCall snippetContractCall =
             new FrameworkEntrypoint.ContractCall(
-                    /*Address*/ destination.getAddress().toHexString(),
+                    /*Address*/ destination.toHexString(),
                     /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
                     /*gasLimit*/ BigInteger.ZERO,
                     /*value*/ BigInteger.ZERO,
@@ -126,7 +121,7 @@ public class StateManagerSolidityTest {
 
     ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
             .sender(sender)
-            .to(this.testContext.frameworkEntryPointAccount)
+            .to(this.ctxt.frameworkEntryPointAccount)
             .payload(txPayload)
             .keyPair(senderKeyPair)
             .gasLimit(TestContext.gasLimit);
@@ -143,7 +138,7 @@ public class StateManagerSolidityTest {
 
 
   // destination must be our .yul smart contract
-  Transaction readFromStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key, boolean revertFlag, BigInteger callType) {
+  Transaction readFromStorage(ToyAccount sender, KeyPair senderKeyPair, Address destination, Long key, boolean revertFlag, BigInteger callType) {
     Function yulFunction = new Function("readFromStorage",
             Arrays.asList(new Uint256(BigInteger.valueOf(key)), new org.web3j.abi.datatypes.Bool(revertFlag)),
             Collections.emptyList());
@@ -152,7 +147,7 @@ public class StateManagerSolidityTest {
     var encoding = FunctionEncoder.encode(yulFunction);
     FrameworkEntrypoint.ContractCall snippetContractCall =
             new FrameworkEntrypoint.ContractCall(
-                    /*Address*/ destination.getAddress().toHexString(),
+                    /*Address*/ destination.toHexString(),
                     /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
                     /*gasLimit*/ BigInteger.ZERO,
                     /*value*/ BigInteger.ZERO,
@@ -169,7 +164,7 @@ public class StateManagerSolidityTest {
 
     ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
             .sender(sender)
-            .to(this.testContext.frameworkEntryPointAccount)
+            .to(this.ctxt.frameworkEntryPointAccount)
             .payload(txPayload)
             .keyPair(senderKeyPair)
             .gasLimit(TestContext.gasLimit);
@@ -185,7 +180,7 @@ public class StateManagerSolidityTest {
   }
 
   // destination must be our .yul smart contract
-  Transaction selfDestruct(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, ToyAccount recipient, boolean revertFlag, BigInteger callType) {
+  Transaction selfDestruct(ToyAccount sender, KeyPair senderKeyPair, Address destination, ToyAccount recipient, boolean revertFlag, BigInteger callType) {
     String recipientAddressString = recipient.getAddress().toHexString();
     Function yulFunction = new Function("selfDestruct",
             Arrays.asList(new org.web3j.abi.datatypes.Address(recipientAddressString), new org.web3j.abi.datatypes.Bool(revertFlag)),
@@ -195,7 +190,7 @@ public class StateManagerSolidityTest {
     var encoding = FunctionEncoder.encode(yulFunction);
     FrameworkEntrypoint.ContractCall snippetContractCall =
             new FrameworkEntrypoint.ContractCall(
-                    /*Address*/ destination.getAddress().toHexString(),
+                    /*Address*/ destination.toHexString(),
                     /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
                     /*gasLimit*/ BigInteger.ZERO,
                     /*value*/ BigInteger.ZERO,
@@ -212,7 +207,7 @@ public class StateManagerSolidityTest {
 
     ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
             .sender(sender)
-            .to(this.testContext.frameworkEntryPointAccount)
+            .to(this.ctxt.frameworkEntryPointAccount)
             .payload(txPayload)
             .keyPair(senderKeyPair)
             .gasLimit(TestContext.gasLimit);
@@ -228,7 +223,7 @@ public class StateManagerSolidityTest {
   }
 
   // destination must be our .yul smart contract
-  Transaction deployWithCreate2(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, String saltString) {
+  Transaction deployWithCreate2(ToyAccount sender, KeyPair senderKeyPair, Address destination, String saltString) {
     Bytes salt = Bytes.fromHexStringLenient(saltString);
     // the following are the bytecode of the .yul contract
     Bytes yulContractBytes = Bytes.fromHexStringLenient("61037d61001060003961037d6000f3fe6100076102e1565b63a770741d8114610064576397deb47b81146100715763acf07154811461007d57632d97bf1081146100b45763eba7ff7f81146100e757632b261e94811461012157633ecfd51e811461015b5763ffffffff811461017057600080fd5b61006c610177565b610171565b60005460005260206000f35b6004356024356044356100918183856102c7565b61009b828461019d565b600181036100ac576100ab61034d565b5b505050610171565b6004356024356100c481836102cf565b6100ce81846101da565b600182036100df576100de61034d565b5b505050610171565b6004356024356100f682610253565b600081036101095761010881836102db565b5b6001810361011a5761011961034d565b5b5050610171565b6004356024356044353061013682848661030a565b610141838583610217565b600182036101525761015161034d565b5b50505050610171565b61016361028b565b61016b61037a565b610171565b5b5061037c565b7f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef600055565b7f577269746528616464726573732c75696e743235362c75696e74323536290000604051818152601e8120308585828460606020a4505050505050565b7f5265616428616464726573732c75696e743235362c75696e7432353629202020604051818152601d8120308585828460606020a4505050505050565b7f50617945544828616464726573732c616464726573732c75696e743235362900604051818152601f81208585858360606020a4505050505050565b7f436f6e747261637444657374726f796564286164647265737329000000000000604051818152601a8120838160606020a250505050565b7f52656345544828616464726573732c75696e743235362900000000000000000060405181815260178120303480828460606020a35050505050565b818155505050565b60008154905092915050565b80ff5050565b60007c010000000000000000000000000000000000000000000000000000000060003504905090565b6040517f3ecfd51e0000000000000000000000000000000000000000000000000000000080825260008060208487875af18061034557600080fd5b505050505050565b7f526576657274696e67000000000000000000000000000000000000000000000060206040518281528181fd5b565b");
@@ -244,7 +239,7 @@ public class StateManagerSolidityTest {
 
     FrameworkEntrypoint.ContractCall snippetContractCall =
             new FrameworkEntrypoint.ContractCall(
-                    /*Address*/ destination.getAddress().toHexString(),
+                    /*Address*/ destination.toHexString(),
                     /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
                     /*gasLimit*/ BigInteger.ZERO,
                     /*value*/ BigInteger.ZERO,
@@ -263,7 +258,7 @@ public class StateManagerSolidityTest {
 
     ToyTransaction.ToyTransactionBuilder tempTx = ToyTransaction.builder()
             .sender(sender)
-            .to(this.testContext.frameworkEntryPointAccount)
+            .to(this.ctxt.frameworkEntryPointAccount)
             .payload(txPayload)
             .keyPair(senderKeyPair)
             .gasLimit(TestContext.gasLimit);
@@ -283,15 +278,19 @@ public class StateManagerSolidityTest {
   class TestContext {
     static Long txNonce = null;
     static final Long gasLimit = 5000000L;
-    static final int numberOfAccounts = 3;
+    static final int numberOfAccounts = 4;
+    static final Bytes snippetsCode = SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul");
     @Getter
     ToyAccount frameworkEntryPointAccount;
+    Address frameworkEntryPointAddress;
     ToyAccount[] initialAccounts;
+    Address[] addresses;
     KeyPair[] initialKeyPairs;
     public void initializeTestContext() {
       // initialize vectors
       initialAccounts = new ToyAccount[numberOfAccounts];
       initialKeyPairs = new KeyPair[numberOfAccounts];
+      addresses = new Address[numberOfAccounts];
       // initialize the testing framework entry point account
       frameworkEntryPointAccount =
               ToyAccount.builder()
@@ -300,6 +299,7 @@ public class StateManagerSolidityTest {
                       .nonce(5)
                       .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
                       .build();
+      frameworkEntryPointAddress = frameworkEntryPointAccount.getAddress();
       // initialize the .yul snippets account
       // load the .yul bytecode
       initialAccounts[0] =
@@ -309,6 +309,7 @@ public class StateManagerSolidityTest {
                       .nonce(6)
                       .code(SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul"))
                       .build();
+      addresses[0] = initialAccounts[0].getAddress();
       // generate extra accounts
       KeyPair keyPair = new SECP256K1().generateKeyPair();
       Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
@@ -317,6 +318,7 @@ public class StateManagerSolidityTest {
       // add to arrays
       initialAccounts[1] = senderAccount;
       initialKeyPairs[1] = keyPair;
+      addresses[1] = initialAccounts[1].getAddress();
       // an account with revert
       initialAccounts[2] =
               ToyAccount.builder()
@@ -325,6 +327,7 @@ public class StateManagerSolidityTest {
                       .nonce(8)
                       .code(SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul"))
                       .build();
+      addresses[2] = initialAccounts[2].getAddress();
     }
   }
 
@@ -333,8 +336,8 @@ public class StateManagerSolidityTest {
   @Test
   void testBuildingBlockOperations() {
     // initialize the test context
-    this.testContext = new TestContext();
-    this.testContext.initializeTestContext();
+    this.ctxt = new TestContext();
+    this.ctxt.initializeTestContext();
     TransactionProcessingResultValidator resultValidator =
             (Transaction transaction, TransactionProcessingResult result) -> {
               TransactionProcessingResultValidator.DEFAULT_VALIDATOR.accept(transaction, result);
@@ -359,7 +362,7 @@ public class StateManagerSolidityTest {
                           FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
                   assertTrue(response.isSuccess);
                   if (logTopic.equals(createdEventSignature)) {
-                    assertEquals(response.destination, this.testContext.frameworkEntryPointAccount.getAddress().toHexString());
+                    assertEquals(response.destination, this.ctxt.frameworkEntryPointAccount.getAddress().toHexString());
                   } else {
                     //assertEquals(response.destination, this.testContext.initialAccounts[0].getAddress().toHexString());
                   }
@@ -410,11 +413,11 @@ public class StateManagerSolidityTest {
      */
 
     MultiBlockExecutionEnvironment.builder()
-            .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.initialAccounts[1], this.testContext.frameworkEntryPointAccount))
-            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L, false, BigInteger.ZERO)))
-            .addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, false, BigInteger.ZERO)))
-            .addBlock(List.of(selfDestruct(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], testContext.frameworkEntryPointAccount, false, BigInteger.ZERO)))
-            .addBlock(List.of(deployWithCreate2(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.frameworkEntryPointAccount, "0x0000000000000000000000000000000000000000000000000000000000000002")))
+            .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, 1L, false, BigInteger.ZERO)))
+            .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, false, BigInteger.ZERO)))
+            .addBlock(List.of(selfDestruct(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], ctxt.frameworkEntryPointAccount, false, BigInteger.ZERO)))
+            .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000002")))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();
@@ -424,8 +427,8 @@ public class StateManagerSolidityTest {
   @Test
   void testConflationMap() {
     // initialize the test context
-    this.testContext = new TestContext();
-    this.testContext.initializeTestContext();
+    this.ctxt = new TestContext();
+    this.ctxt.initializeTestContext();
     TransactionProcessingResultValidator resultValidator =
             (Transaction transaction, TransactionProcessingResult result) -> {
               TransactionProcessingResultValidator.DEFAULT_VALIDATOR.accept(transaction, result);
@@ -450,7 +453,7 @@ public class StateManagerSolidityTest {
                           FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
                   assertTrue(response.isSuccess);
                   if (logTopic.equals(createdEventSignature)) {
-                    assertEquals(response.destination, this.testContext.frameworkEntryPointAccount.getAddress().toHexString());
+                    assertEquals(response.destination, this.ctxt.frameworkEntryPointAccount.getAddress().toHexString());
                   } else {
                     //assertEquals(response.destination, this.testContext.initialAccounts[0].getAddress().toHexString());
                   }
@@ -501,14 +504,23 @@ public class StateManagerSolidityTest {
      */
 
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
+    org.apache.tuweni.bytes.Bytes32 initCodeHash = org.hyperledger.besu.crypto.Hash.keccak256(Bytes.wrap(TestContext.snippetsCode));
+    org.apache.tuweni.bytes.Bytes32 targetAddress = AddressUtils.getCreate2RawAddress(ctxt.frameworkEntryPointAccount.getAddress(),
+            org.apache.tuweni.bytes.Bytes32.wrap(Bytes.fromHexStringLenient("0x0000000000000000000000000000000000000000000000000000000000000002").toArray()),
+            initCodeHash);
+    ctxt.addresses[3] = Address.extract(targetAddress);
 
     MultiBlockExecutionEnvironment.builder()
-            .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.initialAccounts[1], this.testContext.frameworkEntryPointAccount))
-            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 8L, false, BigInteger.ONE)))
-            .addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, false, BigInteger.ONE)))
-            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 10L, false, BigInteger.ONE)))
-            .addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, false, BigInteger.ONE)))
-            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 15L, false, BigInteger.ONE)))
+            .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, 8L, false, BigInteger.ONE)))
+            .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, false, BigInteger.ONE)))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, 10L, false, BigInteger.ONE)))
+            .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, false, BigInteger.ONE)))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[0], 123L, 15L, false, BigInteger.ONE)))
+            .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000002")))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[3], 345L, 20L, false, BigInteger.ONE)))
+            .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[3], 345L, false, BigInteger.ONE)))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[3], 345L, 40L, false, BigInteger.ONE)))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();
@@ -518,15 +530,17 @@ public class StateManagerSolidityTest {
     Map<TransactionProcessingMetadata. AddrStorageKeyPair, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
             conflationStorage = stateManagerMetadata.getStorageFirstLastConflationMap();
 
+    EWord[] expectedFirst = {EWord.of(8L), EWord.of(20L)};
+    EWord[] expectedLast = {EWord.of(15L), EWord.of(40L)};
+    TransactionProcessingMetadata.AddrStorageKeyPair[] keys = {new TransactionProcessingMetadata.AddrStorageKeyPair(ctxt.initialAccounts[0].getAddress(), EWord.of(123L)),
+            new TransactionProcessingMetadata.AddrStorageKeyPair(ctxt.addresses[3], EWord.of(345L))
+    };
 
-    TransactionProcessingMetadata.AddrStorageKeyPair key = new TransactionProcessingMetadata.AddrStorageKeyPair(testContext.initialAccounts[0].getAddress(), EWord.of(123L));
-    TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment> storageData = conflationStorage.get(key);
-
-
-    assertEquals(storageData.getFirst().getValueNext(), EWord.of(8L));
-    assertEquals(storageData.getLast().getValueNext(), EWord.of(15L));
-
-
+    for (int i = 0; i < keys.length; i++) {
+      TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment> storageData = conflationStorage.get(keys[i]);
+      assertEquals(storageData.getFirst().getValueNext(), expectedFirst[i]);
+      assertEquals(storageData.getLast().getValueNext(), expectedLast[i]);
+    }
     System.out.println("Done");
   }
 

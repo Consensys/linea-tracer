@@ -349,7 +349,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall fullReturnDataTransferForEcrecover(
-      final Hub hub, EllipticCurvePrecompileSubsection subsection) {
+      final Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
 
     final int precompileContextNumber = subsection.exoModuleOperationId();
 
@@ -360,6 +360,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .targetRamBytes(Optional.of(Bytes.EMPTY))
         .size(WORD_SIZE)
         .phase(PHASE_ECRECOVER_RESULT)
+        .successBit(successBit)
         .setEcData();
   }
 
@@ -488,7 +489,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall fullReturnDataTransferForEcadd(
-      final Hub hub, PrecompileSubsection subsection) {
+      final Hub hub, PrecompileSubsection subsection, boolean successBit) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(subsection.exoModuleOperationId())
         .exoBytes(Optional.of(subsection.returnData()))
@@ -496,7 +497,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .targetRamBytes(Optional.of(Bytes.EMPTY))
         .size(64)
         .setEcData()
-        .phase(PHASE_ECADD_RESULT);
+        .phase(PHASE_ECADD_RESULT)
+        .successBit(successBit);
   }
 
   public static MmuCall partialCopyOfReturnDataForEcadd(
@@ -527,7 +529,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall fullReturnDataTransferForEcmul(
-      final Hub hub, final PrecompileSubsection subsection) {
+      final Hub hub, final PrecompileSubsection subsection, boolean successBit) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(subsection.exoModuleOperationId())
         .exoBytes(Optional.of(subsection.returnData()))
@@ -535,7 +537,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .targetRamBytes(Optional.of(Bytes.EMPTY))
         .size(64)
         .setEcData()
-        .phase(PHASE_ECMUL_RESULT);
+        .phase(PHASE_ECMUL_RESULT)
+        .successBit(successBit);
   }
 
   public static MmuCall partialCopyOfReturnDataForEcmul(
@@ -571,7 +574,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
    * empty call data and nonempty call data.
    */
   public static MmuCall fullReturnDataTransferForEcpairing(
-      final Hub hub, PrecompileSubsection subsection) {
+      final Hub hub, PrecompileSubsection subsection, boolean successBit) {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     if (subsection.callDataMemorySpan.isEmpty()) {
       return new MmuCall(hub, MMU_INST_MSTORE).targetId(precompileContextNumber).limb2(Bytes.of(1));
@@ -583,7 +586,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
           .targetRamBytes(Optional.of(Bytes.EMPTY))
           .size(WORD_SIZE)
           .setEcData()
-          .phase(PHASE_ECPAIRING_RESULT);
+          .phase(PHASE_ECPAIRING_RESULT)
+          .successBit(successBit);
     }
   }
 

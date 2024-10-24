@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToInt;
 import static org.hyperledger.besu.datatypes.Address.*;
 
 import java.util.Map;
@@ -590,12 +591,12 @@ public class CallSection extends TraceSection
   private MemorySpan returnDataMemorySpan(MessageFrame currentFrame, boolean callCanTransferValue) {
     final int returnDataOffset =
         callCanTransferValue
-            ? currentFrame.getStackItem(5).toInt()
-            : currentFrame.getStackItem(4).toInt();
+            ? bytesToInt(currentFrame.getStackItem(5))
+            : bytesToInt(currentFrame.getStackItem(4));
     final int returnDataLength =
         callCanTransferValue
-            ? currentFrame.getStackItem(6).toInt()
-            : currentFrame.getStackItem(5).toInt();
+            ? bytesToInt(currentFrame.getStackItem(6))
+            : bytesToInt(currentFrame.getStackItem(5));
     return MemorySpan.fromStartLength(returnDataOffset, returnDataLength);
   }
 }

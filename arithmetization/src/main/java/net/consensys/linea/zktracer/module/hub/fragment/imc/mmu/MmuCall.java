@@ -57,14 +57,17 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHAS
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PHASE_MODEXP_RESULT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_TXN_PHASE_DATA;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_RIPEMD_160;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
+import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.apache.tuweni.bytes.Bytes.minimalBytes;
+import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.Optional;
 
@@ -95,7 +98,6 @@ import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
@@ -180,18 +182,21 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall sha3(final Hub hub, final Bytes hashInput) {
+    final CallFrame currentFrame = hub.currentFrame();
+    final EWord sourceOffset = EWord.of(currentFrame.frame().getStackItem(0));
+    final long size = clampedToLong(currentFrame.frame().getStackItem(1));
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .sourceId(hub.currentFrame().contextNumber())
+        .sourceId(currentFrame.contextNumber())
         .sourceRamBytes(
             Optional.of(
-                hub.currentFrame()
-                    .frame()
-                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
-        .auxId(hub.state().stamps().hub())
+                extractContiguousLimbsFromMemory(
+                    currentFrame.frame(),
+                    MemorySpan.fromStartLength(clampedToLong(sourceOffset), size))))
+        .auxId(newIdentifierFromStamp(hub.stamp()))
         .exoBytes(Optional.of(hashInput))
-        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
-        .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+        .sourceOffset(sourceOffset)
+        .size(size)
+        .referenceSize(clampedToLong(currentFrame.frame().getStackItem(1)))
         .setKec();
   }
 
@@ -209,7 +214,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
                     .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(1)))
         .targetOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .size(Words.clampedToLong(hub.messageFrame().getStackItem(2)))
+        .size(clampedToLong(hub.messageFrame().getStackItem(2)))
         .referenceOffset(callDataInfo.memorySpan().offset())
         .referenceSize(callDataInfo.memorySpan().length());
   }
@@ -222,7 +227,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
             Optional.of(
                 slice(
                     logData.ramSourceBytes,
-                    (int) Words.clampedToLong(logData.offset),
+                    (int) clampedToLong(logData.offset),
                     (int) logData.size)))
         .sourceOffset(logData.offset)
         .size(logData.size)
@@ -259,7 +264,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
                     .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .sourceOffset(EWord.of(currentFrame.frame().getStackItem(1)))
         .targetOffset(EWord.of(currentFrame.frame().getStackItem(0)))
-        .size(Words.clampedToLong(currentFrame.frame().getStackItem(2)))
+        .size(clampedToLong(currentFrame.frame().getStackItem(2)))
         .referenceOffset(returnDataSegment.offset())
         .referenceSize(returnDataSegment.length());
   }
@@ -311,7 +316,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
                     .frame()
                     .shadowReadMemory(0, hub.callStack().parent().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+        .size(clampedToLong(hub.messageFrame().getStackItem(1)))
         .referenceOffset(hub.currentFrame().returnDataTargetInCaller().offset())
         .referenceSize(hub.currentFrame().returnDataTargetInCaller().length());
   }

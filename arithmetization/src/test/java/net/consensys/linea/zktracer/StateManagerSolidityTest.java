@@ -22,6 +22,12 @@ import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.testing.generated.StateManagerEvents;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
 import net.consensys.linea.testing.generated.TestingBase;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
+import net.consensys.linea.zktracer.module.hub.transients.StateManagerMetadata;
+import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -43,10 +49,7 @@ import org.web3j.abi.datatypes.generated.Bytes32;
 import org.web3j.abi.datatypes.generated.Uint256;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static org.assertj.core.api.Fail.fail;
@@ -70,7 +73,7 @@ public class StateManagerSolidityTest {
 
 
   // destination must be our .yul smart contract
-  Transaction writeToStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key, Long value, boolean revertFlag) {
+  Transaction writeToStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key, Long value, boolean revertFlag, BigInteger callType) {
     Function yulFunction = new Function("writeToStorage",
             Arrays.asList(new Uint256(BigInteger.valueOf(key)), new Uint256(BigInteger.valueOf(value)), new org.web3j.abi.datatypes.Bool(revertFlag)),
             Collections.emptyList());
@@ -82,7 +85,7 @@ public class StateManagerSolidityTest {
                     /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
                     /*gasLimit*/ BigInteger.ZERO,
                     /*value*/ BigInteger.ZERO,
-                    /*callType*/ BigInteger.ZERO);
+                    /*callType*/ callType);
 
     List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall);
     Function frameworkEntryPointFunction =
@@ -113,7 +116,7 @@ public class StateManagerSolidityTest {
 
 
   // destination must be our .yul smart contract
-  Transaction readFromStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key, boolean revertFlag) {
+  Transaction readFromStorage(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, Long key, boolean revertFlag, BigInteger callType) {
     Function yulFunction = new Function("readFromStorage",
             Arrays.asList(new Uint256(BigInteger.valueOf(key)), new org.web3j.abi.datatypes.Bool(revertFlag)),
             Collections.emptyList());
@@ -126,7 +129,7 @@ public class StateManagerSolidityTest {
                     /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
                     /*gasLimit*/ BigInteger.ZERO,
                     /*value*/ BigInteger.ZERO,
-                    /*callType*/ BigInteger.ZERO);
+                    /*callType*/ callType);
 
     List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall);
     Function frameworkEntryPointFunction =
@@ -155,7 +158,7 @@ public class StateManagerSolidityTest {
   }
 
   // destination must be our .yul smart contract
-  Transaction selfDestruct(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, ToyAccount recipient, boolean revertFlag) {
+  Transaction selfDestruct(ToyAccount sender, KeyPair senderKeyPair, ToyAccount destination, ToyAccount recipient, boolean revertFlag, BigInteger callType) {
     String recipientAddressString = recipient.getAddress().toHexString();
     Function yulFunction = new Function("selfDestruct",
             Arrays.asList(new org.web3j.abi.datatypes.Address(recipientAddressString), new org.web3j.abi.datatypes.Bool(revertFlag)),
@@ -169,7 +172,7 @@ public class StateManagerSolidityTest {
                     /*calldata*/ Bytes.fromHexStringLenient(encoding).toArray(),
                     /*gasLimit*/ BigInteger.ZERO,
                     /*value*/ BigInteger.ZERO,
-                    /*callType*/ BigInteger.ONE); // Normal call, not a delegate call as would be the default
+                    /*callType*/ callType); // Normal call, not a delegate call as would be the default
 
     List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall);
     Function frameworkEntryPointFunction =
@@ -301,13 +304,10 @@ public class StateManagerSolidityTest {
 
 
   @Test
-  void testYulModifiedWrite() {
+  void testBuildingBlockOperations() {
     // initialize the test context
     this.testContext = new TestContext();
     this.testContext.initializeTestContext();
-
-
-
     TransactionProcessingResultValidator resultValidator =
             (Transaction transaction, TransactionProcessingResult result) -> {
               TransactionProcessingResultValidator.DEFAULT_VALIDATOR.accept(transaction, result);
@@ -380,17 +380,128 @@ public class StateManagerSolidityTest {
                 fail();
               }
             };
-
      */
+
     MultiBlockExecutionEnvironment.builder()
             .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.initialAccounts[1], this.testContext.frameworkEntryPointAccount))
-            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L, false)))
-            .addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, false)))
-            .addBlock(List.of(selfDestruct(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], testContext.frameworkEntryPointAccount, false)))
+            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 1L, false, BigInteger.ZERO)))
+            .addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, false, BigInteger.ZERO)))
+            .addBlock(List.of(selfDestruct(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], testContext.frameworkEntryPointAccount, false, BigInteger.ZERO)))
             .addBlock(List.of(deployWithCreate2(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.frameworkEntryPointAccount, "0x0000000000000000000000000000000000000000000000000000000000000002")))
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();
     System.out.println("Done");
   }
+
+  @Test
+  void testConflationMap() {
+    // initialize the test context
+    this.testContext = new TestContext();
+    this.testContext.initializeTestContext();
+    TransactionProcessingResultValidator resultValidator =
+            (Transaction transaction, TransactionProcessingResult result) -> {
+              TransactionProcessingResultValidator.DEFAULT_VALIDATOR.accept(transaction, result);
+              // One event from the snippet
+              // One event from the framework entrypoint about contract call
+              System.out.println("Number of logs: "+result.getLogs().size());
+              //assertEquals(result.getLogs().size(), 2);
+              for (Log log : result.getLogs()) {
+                String callEventSignature = EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT);
+                String writeEventSignature = EventEncoder.encode(StateManagerEvents.WRITE_EVENT);
+                String readEventSignature = EventEncoder.encode(StateManagerEvents.READ_EVENT);
+                String destroyedEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTDESTROYED_EVENT);
+                String createdEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTCREATED_EVENT);
+                String logTopic = log.getTopics().getFirst().toHexString();
+                if (EventEncoder.encode(TestSnippet_Events.DATANOINDEXES_EVENT).equals(logTopic)) {
+                  TestSnippet_Events.DataNoIndexesEventResponse response =
+                          TestSnippet_Events.getDataNoIndexesEventFromLog(Web3jUtils.fromBesuLog(log));
+                  //assertEquals(response.singleInt, BigInteger.valueOf(123456));
+                } else if (EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT)
+                        .equals(logTopic)) {
+                  FrameworkEntrypoint.CallExecutedEventResponse response =
+                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
+                  assertTrue(response.isSuccess);
+                  if (logTopic.equals(createdEventSignature)) {
+                    assertEquals(response.destination, this.testContext.frameworkEntryPointAccount.getAddress().toHexString());
+                  } else {
+                    //assertEquals(response.destination, this.testContext.initialAccounts[0].getAddress().toHexString());
+                  }
+                } else {
+                  if (!(logTopic.equals(callEventSignature) || logTopic.equals(writeEventSignature) || logTopic.equals(readEventSignature) || logTopic.equals(destroyedEventSignature) || logTopic.equals(createdEventSignature))) {
+                    fail();
+                  }
+                }
+              }
+            };
+
+    /*
+    TransactionProcessingResultValidator resultValidator =
+            (Transaction transaction, TransactionProcessingResult result) -> {
+              // One event from the snippet
+              // One event from the framework entrypoint about contract call
+              //assertEquals(result.getLogs().size(), 1);
+              System.out.println("Number of logs: "+result.getLogs().size());
+              var noTopics = result.getLogs().size();
+              for (Log log : result.getLogs()) {
+                String logTopic = log.getTopics().getFirst().toHexString();
+                String callEventSignature = EventEncoder.encode(FrameworkEntrypoint.CALLEXECUTED_EVENT);
+                String writeEventSignature = EventEncoder.encode(FrameworkEntrypoint.WRITE_EVENT);
+                String readEventSignature = EventEncoder.encode(FrameworkEntrypoint.READ_EVENT);
+                String destructEventSignature = EventEncoder.encode(FrameworkEntrypoint.CONTRACTDESTROYED_EVENT);
+                if (callEventSignature.equals(logTopic)) {
+                  FrameworkEntrypoint.CallExecutedEventResponse response =
+                          FrameworkEntrypoint.getCallExecutedEventFromLog(Web3jUtils.fromBesuLog(log));
+                  assertTrue(response.isSuccess);
+                  assertEquals(response.destination, this.testContext.initialAccounts[0].getAddress().toHexString());
+                  continue;
+                }
+                if (writeEventSignature.equals(logTopic)) {
+                  // write event
+                  continue;
+                }
+                if (readEventSignature.equals(logTopic)) {
+                  // read event
+                  continue;
+                }
+                if (destructEventSignature.equals(logTopic)) {
+                  // self destruct
+                  continue;
+                }
+                fail();
+              }
+            };
+     */
+
+    StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
+
+    MultiBlockExecutionEnvironment.builder()
+            .accounts(List.of(this.testContext.initialAccounts[0], this.testContext.initialAccounts[1], this.testContext.frameworkEntryPointAccount))
+            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 8L, false, BigInteger.ONE)))
+            .addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, false, BigInteger.ONE)))
+            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 10L, false, BigInteger.ONE)))
+            .addBlock(List.of(readFromStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, false, BigInteger.ONE)))
+            .addBlock(List.of(writeToStorage(testContext.initialAccounts[1], testContext.initialKeyPairs[1], testContext.initialAccounts[0], 123L, 15L, false, BigInteger.ONE)))
+            .transactionProcessingResultValidator(resultValidator)
+            .build()
+            .run();
+
+    Map<Address, TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>>
+            conflationMap = stateManagerMetadata.getAccountFirstLastConflationMap();
+    Map<TransactionProcessingMetadata. AddrStorageKeyPair, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
+            conflationStorage = stateManagerMetadata.getStorageFirstLastConflationMap();
+
+
+    TransactionProcessingMetadata.AddrStorageKeyPair key = new TransactionProcessingMetadata.AddrStorageKeyPair(testContext.initialAccounts[0].getAddress(), EWord.of(123L));
+    TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment> storageData = conflationStorage.get(key);
+
+
+    assertEquals(storageData.getFirst().getValueNext(), EWord.of(8L));
+    assertEquals(storageData.getLast().getValueNext(), EWord.of(15L));
+
+
+    System.out.println("Done");
+  }
+
+
 }

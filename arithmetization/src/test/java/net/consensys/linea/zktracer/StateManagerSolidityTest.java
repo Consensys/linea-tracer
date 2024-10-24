@@ -22,6 +22,7 @@ import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.testing.generated.StateManagerEvents;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
 import net.consensys.linea.testing.generated.TestingBase;
+import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
@@ -251,9 +252,10 @@ public class StateManagerSolidityTest {
   class TestContext {
     static Long txNonce = null;
     static final Long gasLimit = 5000000L;
-    static final int numberOfAccounts = 5;
+    static final int numberOfAccounts = 6;
     static final Bytes snippetsCode = SmartContractUtils.getYulContractByteCode("StateManagerSnippets.yul");
     static final Bytes snippetsCodeForCreate2 = Bytes.fromHexStringLenient("0x61037d61001060003961037d6000f3fe6100076102e1565b63a770741d8114610064576397deb47b81146100715763acf07154811461007d57632d97bf1081146100b45763eba7ff7f81146100e757632b261e94811461012157633ecfd51e811461015b5763ffffffff811461017057600080fd5b61006c610177565b610171565b60005460005260206000f35b6004356024356044356100918183856102c7565b61009b828461019d565b600181036100ac576100ab61034d565b5b505050610171565b6004356024356100c481836102cf565b6100ce81846101da565b600182036100df576100de61034d565b5b505050610171565b6004356024356100f682610253565b600081036101095761010881836102db565b5b6001810361011a5761011961034d565b5b5050610171565b6004356024356044353061013682848661030a565b610141838583610217565b600182036101525761015161034d565b5b50505050610171565b61016361028b565b61016b61037a565b610171565b5b5061037c565b7f0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef600055565b7f577269746528616464726573732c75696e743235362c75696e74323536290000604051818152601e8120308585828460606020a4505050505050565b7f5265616428616464726573732c75696e743235362c75696e7432353629202020604051818152601d8120308585828460606020a4505050505050565b7f50617945544828616464726573732c616464726573732c75696e743235362900604051818152601f81208585858360606020a4505050505050565b7f436f6e747261637444657374726f796564286164647265737329000000000000604051818152601a8120838160606020a250505050565b7f52656345544828616464726573732c75696e743235362900000000000000000060405181815260178120303480828460606020a35050505050565b818155505050565b60008154905092915050565b80ff5050565b60007c010000000000000000000000000000000000000000000000000000000060003504905090565b6040517f3ecfd51e0000000000000000000000000000000000000000000000000000000080825260008060208487875af18061034557600080fd5b505050505050565b7f526576657274696e67000000000000000000000000000000000000000000000060206040518281528181fd5b565b");
+    static final org.apache.tuweni.bytes.Bytes32 initCodeHashSnippet = org.hyperledger.besu.crypto.Hash.keccak256(Bytes.wrap(TestContext.snippetsCodeForCreate2));
     @Getter
     ToyAccount frameworkEntryPointAccount;
     Address frameworkEntryPointAddress;
@@ -344,6 +346,14 @@ public class StateManagerSolidityTest {
     return resultValidator;
   }
 
+  Address getCreate2AddressForSnippet(String salt) {
+    org.apache.tuweni.bytes.Bytes32 initCodeHash = org.hyperledger.besu.crypto.Hash.keccak256(Bytes.wrap(TestContext.snippetsCodeForCreate2));
+    org.apache.tuweni.bytes.Bytes32 targetAddress = AddressUtils.getCreate2RawAddress(ctxt.frameworkEntryPointAccount.getAddress(),
+            org.apache.tuweni.bytes.Bytes32.wrap(Bytes.fromHexStringLenient(salt).toArray()),
+            initCodeHash);
+    return Address.extract(targetAddress);
+  }
+
   @Test
   void testBuildingBlockOperations() {
     // initialize the test context
@@ -393,21 +403,11 @@ public class StateManagerSolidityTest {
     this.ctxt = new TestContext();
     this.ctxt.initializeTestContext();
     TransactionProcessingResultValidator resultValidator = getValidator();
-
-
-
-
     StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
-    org.apache.tuweni.bytes.Bytes32 initCodeHash = org.hyperledger.besu.crypto.Hash.keccak256(Bytes.wrap(TestContext.snippetsCodeForCreate2));
-    org.apache.tuweni.bytes.Bytes32 targetAddress = AddressUtils.getCreate2RawAddress(ctxt.frameworkEntryPointAccount.getAddress(),
-            org.apache.tuweni.bytes.Bytes32.wrap(Bytes.fromHexStringLenient("0x0000000000000000000000000000000000000000000000000000000000000002").toArray()),
-            initCodeHash);
-    ctxt.addresses[3] = Address.extract(targetAddress);
 
-    org.apache.tuweni.bytes.Bytes32 targetAddress2 = AddressUtils.getCreate2RawAddress(ctxt.frameworkEntryPointAccount.getAddress(),
-            org.apache.tuweni.bytes.Bytes32.wrap(Bytes.fromHexStringLenient("0x0000000000000000000000000000000000000000000000000000000000000003").toArray()),
-            initCodeHash);
-    ctxt.addresses[4] = Address.extract(targetAddress2);
+    ctxt.addresses[3] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000002");
+    ctxt.addresses[4] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000003");
+    ctxt.addresses[5] = getCreate2AddressForSnippet("0x0000000000000000000000000000000000000000000000000000000000000004");
 
     MultiBlockExecutionEnvironment.builder()
             .accounts(List.of(ctxt.initialAccounts[0], ctxt.initialAccounts[1], ctxt.frameworkEntryPointAccount))
@@ -425,6 +425,10 @@ public class StateManagerSolidityTest {
             .addBlock(List.of(readFromStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, false, BigInteger.ONE)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, 13L, false, BigInteger.ONE)))
             .addBlock(List.of(selfDestruct(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, ctxt.addresses[4], false, BigInteger.ONE)))
+            .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000004", TestContext.snippetsCodeForCreate2)))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 500L, 23L, false, BigInteger.ONE)))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 500L, 53L, true, BigInteger.ONE))) // revert flag on
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 500L, 63L, true, BigInteger.ONE))) // revert flag on
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();
@@ -434,12 +438,13 @@ public class StateManagerSolidityTest {
     Map<TransactionProcessingMetadata. AddrStorageKeyPair, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
             conflationStorage = stateManagerMetadata.getStorageFirstLastConflationMap();
 
-    EWord[] expectedFirst = {EWord.of(8L), EWord.of(20L), EWord.of(12L)};
-    EWord[] expectedLast = {EWord.of(15L), EWord.of(40L), EWord.of(13L)};
+    EWord[] expectedFirst = {EWord.of(8L), EWord.of(20L), EWord.of(12L), EWord.of(23L)};
+    EWord[] expectedLast = {EWord.of(15L), EWord.of(40L), EWord.of(13L), EWord.of(23L)};
     TransactionProcessingMetadata.AddrStorageKeyPair[] keys = {
             new TransactionProcessingMetadata.AddrStorageKeyPair(ctxt.initialAccounts[0].getAddress(), EWord.of(123L)),
             new TransactionProcessingMetadata.AddrStorageKeyPair(ctxt.addresses[3], EWord.of(345L)),
-            new TransactionProcessingMetadata.AddrStorageKeyPair(ctxt.addresses[4], EWord.of(400L))
+            new TransactionProcessingMetadata.AddrStorageKeyPair(ctxt.addresses[4], EWord.of(400L)),
+            new TransactionProcessingMetadata.AddrStorageKeyPair(ctxt.addresses[5], EWord.of(500L))
     };
 
     for (int i = 0; i < keys.length; i++) {

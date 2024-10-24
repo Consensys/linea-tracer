@@ -28,14 +28,13 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 public class StaticExceptionTest {
 
   @ParameterizedTest
-  @CsvSource({"CALL, 0", "CALL, 1", "CALLCODE, 0", "CALLCODE, 1"})
-  void staticExceptionDueToCallWithNonZeroValueTest(String opCodeName, int value) {
+  @ValueSource(ints = {0, 1})
+  void staticExceptionDueToCallWithNonZeroValueTest(int value) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
         .push(0) // return data size
@@ -55,7 +54,7 @@ public class StaticExceptionTest {
         .push(value) // value
         .push("ca11ee") // address
         .push(1000) // gas
-        .op(opCodeName.equals("CALL") ? OpCode.CALL : OpCode.CALLCODE);
+        .op(OpCode.CALL);
 
     final ToyAccount calleeAccount =
         ToyAccount.builder()

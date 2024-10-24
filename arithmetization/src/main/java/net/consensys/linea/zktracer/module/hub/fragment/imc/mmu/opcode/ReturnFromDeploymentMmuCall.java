@@ -16,6 +16,9 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_RAM_TO_EXO_WITH_PADDING;
+import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
+import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
+import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.Optional;
 
@@ -25,11 +28,12 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.internal.Words;
 
 /**
  * A specialization of {@link MmuCall} that addresses the fact that the MMU requires access to the
@@ -46,7 +50,8 @@ public class ReturnFromDeploymentMmuCall extends MmuCall {
 
     this.hub = hub;
 
-    final Address contractAddress = hub.messageFrame().getContractAddress();
+    final CallFrame currentFrame = hub.currentFrame();
+    final Address contractAddress = currentFrame.frame().getContractAddress();
     final int depNumber = hub.deploymentNumberOf(contractAddress);
     contract = ContractMetadata.make(contractAddress, depNumber, false);
 
@@ -56,16 +61,19 @@ public class ReturnFromDeploymentMmuCall extends MmuCall {
 
     hashResult = shakiraDataOperation.result();
 
-    this.sourceId(hub.currentFrame().contextNumber())
+    final EWord sourceOffset = EWord.of(currentFrame.frame().getStackItem(0));
+    final long size = clampedToLong(currentFrame.frame().getStackItem(1));
+
+    this.sourceId(currentFrame.contextNumber())
         .sourceRamBytes(
             Optional.of(
-                hub.currentFrame()
-                    .frame()
-                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
-        .auxId(hub.state().stamps().hub())
-        .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
-        .size(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
-        .referenceSize(Words.clampedToLong(hub.messageFrame().getStackItem(1)))
+                extractContiguousLimbsFromMemory(
+                    currentFrame.frame(),
+                    MemorySpan.fromStartLength(clampedToLong(sourceOffset), size))))
+        .auxId(newIdentifierFromStamp(hub.stamp()))
+        .sourceOffset(sourceOffset)
+        .size(size)
+        .referenceSize(size)
         .setKec()
         .setRom();
   }

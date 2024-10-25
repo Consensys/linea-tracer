@@ -437,9 +437,11 @@ public class StateManagerSolidityTest {
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 400L, 99L, false, BigInteger.ONE)))
             // deploy a new account and check revert operations on it
             .addBlock(List.of(deployWithCreate2(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.frameworkEntryPointAddress, "0x0000000000000000000000000000000000000000000000000000000000000004", TestContext.snippetsCodeForCreate2)))
-            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 500L, 23L, false, BigInteger.ONE)))
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 500L, 53L, true, BigInteger.ONE))) // revert flag on
             .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[4], 500L, 63L, true, BigInteger.ONE))) // revert flag on
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[5], 500L, 23L, false, BigInteger.ONE)))
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[5], 500L, 53L, true, BigInteger.ONE))) // revert flag on
+            .addBlock(List.of(writeToStorage(ctxt.initialAccounts[1], ctxt.initialKeyPairs[1], ctxt.addresses[5], 500L, 63L, true, BigInteger.ONE))) // revert flag on
             .transactionProcessingResultValidator(resultValidator)
             .build()
             .run();

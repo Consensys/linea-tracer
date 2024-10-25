@@ -56,56 +56,57 @@ public class ExampleSolidityTest {
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+            ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount frameworkEntrypointAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x22222"))
-            .balance(Wei.ONE)
-            .nonce(5)
-            .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x22222"))
+                    .balance(Wei.ONE)
+                    .nonce(5)
+                    .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
+                    .build();
 
     ToyAccount snippetAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x11111"))
-            .balance(Wei.ONE)
-            .nonce(6)
-            .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x11111"))
+                    .balance(Wei.ONE)
+                    .nonce(6)
+                    .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
+                    .build();
 
     Function snippetFunction =
-        new Function(
-            TestSnippet_Events.FUNC_EMITDATANOINDEXES,
-            List.of(new Uint256(BigInteger.valueOf(123456))),
-            Collections.emptyList());
+            new Function(
+                    TestSnippet_Events.FUNC_EMITDATANOINDEXES,
+                    List.of(new Uint256(BigInteger.valueOf(123456))),
+                    Collections.emptyList());
 
     FrameworkEntrypoint.ContractCall snippetContractCall =
-        new FrameworkEntrypoint.ContractCall(
-            /*Address*/ snippetAccount.getAddress().toHexString(),
-            /*calldata*/ Bytes.fromHexStringLenient(FunctionEncoder.encode(snippetFunction))
-                .toArray(),
-            /*gasLimit*/ BigInteger.ZERO,
-            /*value*/ BigInteger.ZERO,
-            /*callType*/ BigInteger.ZERO);
+            new FrameworkEntrypoint.ContractCall(
+                    /*Address*/ snippetAccount.getAddress().toHexString(),
+                    /*calldata*/ Bytes.fromHexStringLenient(FunctionEncoder.encode(snippetFunction))
+                    .toArray(),
+                    /*gasLimit*/ BigInteger.ZERO,
+                    /*value*/ BigInteger.ZERO,
+                    /*callType*/ BigInteger.ZERO);
 
     List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(snippetContractCall);
 
     Function frameworkEntryPointFunction =
-        new Function(
-            FrameworkEntrypoint.FUNC_EXECUTECALLS,
-            List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
-            Collections.emptyList());
+            new Function(
+                    FrameworkEntrypoint.FUNC_EXECUTECALLS,
+                    List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
+                    Collections.emptyList());
     Bytes txPayload =
-        Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+            Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
 
     Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(frameworkEntrypointAccount)
-            .payload(txPayload)
-            .keyPair(keyPair)
-            .build();
+            ToyTransaction.builder()
+                    .sender(senderAccount)
+                    .to(frameworkEntrypointAccount)
+                    .payload(txPayload)
+                    .keyPair(keyPair)
+                    .build();
+
 
     TransactionProcessingResultValidator resultValidator =
         (Transaction transaction, TransactionProcessingResult result) -> {
@@ -136,6 +137,7 @@ public class ExampleSolidityTest {
         .transactionProcessingResultValidator(resultValidator)
         .build()
         .run();
+
   }
 
   @Test
@@ -144,31 +146,32 @@ public class ExampleSolidityTest {
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+            ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount contractAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x11111"))
-            .balance(Wei.ONE)
-            .nonce(6)
-            .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x11111"))
+                    .balance(Wei.ONE)
+                    .nonce(6)
+                    .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
+                    .build();
 
     Function function =
-        new Function(
-            TestSnippet_Events.FUNC_EMITDATANOINDEXES,
-            List.of(new Uint256(BigInteger.valueOf(123456))),
-            Collections.emptyList());
+            new Function(
+                    TestSnippet_Events.FUNC_EMITDATANOINDEXES,
+                    List.of(new Uint256(BigInteger.valueOf(123456))),
+                    Collections.emptyList());
     String encodedFunction = FunctionEncoder.encode(function);
     Bytes txPayload = Bytes.fromHexStringLenient(encodedFunction);
 
     Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(contractAccount)
-            .payload(txPayload)
-            .keyPair(keyPair)
-            .build();
+            ToyTransaction.builder()
+                    .sender(senderAccount)
+                    .to(contractAccount)
+                    .payload(txPayload)
+                    .keyPair(keyPair)
+                    .build();
+
 
     TransactionProcessingResultValidator resultValidator =
         (Transaction transaction, TransactionProcessingResult result) -> {
@@ -191,87 +194,88 @@ public class ExampleSolidityTest {
   void testContractNotRelatedToTestingFramework() {
     KeyPair senderkeyPair = new SECP256K1().generateKeyPair();
     Address senderAddress =
-        Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
+            Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+            ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount contractAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x11111"))
-            .balance(Wei.ONE)
-            .nonce(6)
-            .code(SmartContractUtils.getSolidityContractByteCode(TestStorage.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x11111"))
+                    .balance(Wei.ONE)
+                    .nonce(6)
+                    .code(SmartContractUtils.getSolidityContractByteCode(TestStorage.class))
+                    .build();
 
     Function function =
-        new Function(
-            TestStorage.FUNC_STORE,
-            List.of(new Uint256(BigInteger.valueOf(3))),
-            Collections.emptyList());
+            new Function(
+                    TestStorage.FUNC_STORE,
+                    List.of(new Uint256(BigInteger.valueOf(3))),
+                    Collections.emptyList());
     String encodedFunction = FunctionEncoder.encode(function);
     Bytes txPayload = Bytes.fromHexStringLenient(encodedFunction);
     Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(contractAccount)
-            .payload(txPayload)
-            .keyPair(senderkeyPair)
-            .build();
+            ToyTransaction.builder()
+                    .sender(senderAccount)
+                    .to(contractAccount)
+                    .payload(txPayload)
+                    .keyPair(senderkeyPair)
+                    .build();
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, contractAccount))
-        .transaction(tx)
-        .build()
-        .run();
+            .accounts(List.of(senderAccount, contractAccount))
+            .transaction(tx)
+            .build()
+            .run();
   }
 
   @Test
   void testYul() {
     KeyPair senderkeyPair = new SECP256K1().generateKeyPair();
     Address senderAddress =
-        Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
+            Address.extract(Hash.hash(senderkeyPair.getPublicKey().getEncodedBytes()));
 
     ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+            ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     ToyAccount frameworkEntrypointAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x22222"))
-            .balance(Wei.ONE)
-            .nonce(5)
-            .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x22222"))
+                    .balance(Wei.ONE)
+                    .nonce(5)
+                    .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
+                    .build();
 
     ToyAccount yulAccount =
-        ToyAccount.builder()
-            .address(Address.fromHexString("0x11111"))
-            .balance(Wei.ONE)
-            .nonce(6)
-            .code(SmartContractUtils.getYulContractByteCode("DynamicBytecode.yul"))
-            .build();
+            ToyAccount.builder()
+                    .address(Address.fromHexString("0x11111"))
+                    .balance(Wei.ONE)
+                    .nonce(6)
+                    .code(SmartContractUtils.getYulContractByteCode("DynamicBytecode.yul"))
+                    .build();
 
     Function yulFunction = new Function("Write", Collections.emptyList(), Collections.emptyList());
 
     String encodedContractCall = FunctionEncoder.encode(yulFunction);
 
     FrameworkEntrypoint.ContractCall yulContractCall =
-        new FrameworkEntrypoint.ContractCall(
-            /*Address*/ yulAccount.getAddress().toHexString(),
-            /*calldata*/ Bytes.fromHexStringLenient(encodedContractCall).toArray(),
-            /*gasLimit*/ BigInteger.ZERO,
-            /*value*/ BigInteger.ZERO,
-            /*callType*/ BigInteger.ZERO);
+            new FrameworkEntrypoint.ContractCall(
+                    /*Address*/ yulAccount.getAddress().toHexString(),
+                    /*calldata*/ Bytes.fromHexStringLenient(encodedContractCall).toArray(),
+                    /*gasLimit*/ BigInteger.ZERO,
+                    /*value*/ BigInteger.ZERO,
+                    /*callType*/ BigInteger.ZERO);
 
     List<FrameworkEntrypoint.ContractCall> contractCalls = List.of(yulContractCall);
 
     Function frameworkEntryPointFunction =
-        new Function(
-            FrameworkEntrypoint.FUNC_EXECUTECALLS,
-            List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
-            Collections.emptyList());
+            new Function(
+                    FrameworkEntrypoint.FUNC_EXECUTECALLS,
+                    List.of(new DynamicArray<>(FrameworkEntrypoint.ContractCall.class, contractCalls)),
+                    Collections.emptyList());
     Bytes txPayload =
-        Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+            Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
+
 
     TransactionProcessingResultValidator resultValidator =
         (Transaction transaction, TransactionProcessingResult result) -> {
@@ -289,16 +293,18 @@ public class ExampleSolidityTest {
           }
         };
 
+
     Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(frameworkEntrypointAccount)
-            .payload(txPayload)
-            .keyPair(senderkeyPair)
-            .gasLimit(500000L)
-            .build();
+            ToyTransaction.builder()
+                    .sender(senderAccount)
+                    .to(frameworkEntrypointAccount)
+                    .payload(txPayload)
+                    .keyPair(senderkeyPair)
+                    .gasLimit(500000L)
+                    .build();
 
     ToyExecutionEnvironmentV2.builder()
+
         .accounts(List.of(senderAccount, yulAccount, frameworkEntrypointAccount))
         .transaction(tx)
         .transactionProcessingResultValidator(resultValidator)

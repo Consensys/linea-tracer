@@ -40,7 +40,7 @@ public class MultiBlockExecutionEnvironment {
    */
   @Builder.Default
   private final TransactionProcessingResultValidator transactionProcessingResultValidator =
-      TransactionProcessingResultValidator.DEFAULT_VALIDATOR;
+          TransactionProcessingResultValidator.DEFAULT_VALIDATOR;
 
   public static class MultiBlockExecutionEnvironmentBuilder {
 
@@ -48,10 +48,10 @@ public class MultiBlockExecutionEnvironment {
 
     public MultiBlockExecutionEnvironmentBuilder addBlock(List<Transaction> transactions) {
       BlockHeaderBuilder blockHeaderBuilder =
-          this.blocks.isEmpty()
-              ? ExecutionEnvironment.getLineaBlockHeaderBuilder(Optional.empty())
-              : ExecutionEnvironment.getLineaBlockHeaderBuilder(
-                  Optional.of(this.blocks.getLast().header().toBlockHeader()));
+              this.blocks.isEmpty()
+                      ? ExecutionEnvironment.getLineaBlockHeaderBuilder(Optional.empty())
+                      : ExecutionEnvironment.getLineaBlockHeaderBuilder(
+                      Optional.of(this.blocks.getLast().header().toBlockHeader()));
       blockHeaderBuilder.coinbase(ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS);
       BlockBody blockBody = new BlockBody(transactions, Collections.emptyList());
       this.blocks.add(BlockSnapshot.of(blockHeaderBuilder.buildBlockHeader(), blockBody));
@@ -62,47 +62,47 @@ public class MultiBlockExecutionEnvironment {
 
   public void run() {
     ReplayExecutionEnvironment.builder()
-        .useCoinbaseAddressFromBlockHeader(true)
-        .transactionProcessingResultValidator(this.transactionProcessingResultValidator)
-        .build()
-        .replay(ToyExecutionEnvironmentV2.CHAIN_ID, this.buildConflationSnapshot());
+            .useCoinbaseAddressFromBlockHeader(true)
+            .transactionProcessingResultValidator(this.transactionProcessingResultValidator)
+            .build()
+            .replay(ToyExecutionEnvironmentV2.CHAIN_ID, this.buildConflationSnapshot());
   }
 
   private ConflationSnapshot buildConflationSnapshot() {
     List<AccountSnapshot> accountSnapshots =
-        accounts.stream()
-            .map(
-                toyAccount ->
-                    new AccountSnapshot(
-                        toyAccount.getAddress().toHexString(),
-                        toyAccount.getNonce(),
-                        toyAccount.getBalance().toHexString(),
-                        toyAccount.getCode().toHexString()))
-            .toList();
+            accounts.stream()
+                    .map(
+                            toyAccount ->
+                                    new AccountSnapshot(
+                                            toyAccount.getAddress().toHexString(),
+                                            toyAccount.getNonce(),
+                                            toyAccount.getBalance().toHexString(),
+                                            toyAccount.getCode().toHexString()))
+                    .toList();
 
     List<StorageSnapshot> storageSnapshots =
-        accounts.stream()
-            .flatMap(
-                account ->
-                    account.storage.entrySet().stream()
-                        .map(
-                            storageEntry ->
-                                new StorageSnapshot(
-                                    account.getAddress().toHexString(),
-                                    storageEntry.getKey().toHexString(),
-                                    storageEntry.getValue().toHexString())))
-            .toList();
+            accounts.stream()
+                    .flatMap(
+                            account ->
+                                    account.storage.entrySet().stream()
+                                            .map(
+                                                    storageEntry ->
+                                                            new StorageSnapshot(
+                                                                    account.getAddress().toHexString(),
+                                                                    storageEntry.getKey().toHexString(),
+                                                                    storageEntry.getValue().toHexString())))
+                    .toList();
 
     List<BlockHashSnapshot> blockHashSnapshots =
-        blocks.stream()
-            .map(
-                blockSnapshot -> {
-                  BlockHeader blockHeader = blockSnapshot.header().toBlockHeader();
-                  return BlockHashSnapshot.of(blockHeader.getNumber(), blockHeader.getBlockHash());
-                })
-            .toList();
+            blocks.stream()
+                    .map(
+                            blockSnapshot -> {
+                              BlockHeader blockHeader = blockSnapshot.header().toBlockHeader();
+                              return BlockHashSnapshot.of(blockHeader.getNumber(), blockHeader.getBlockHash());
+                            })
+                    .toList();
 
     return new ConflationSnapshot(
-        this.blocks, accountSnapshots, storageSnapshots, blockHashSnapshots);
+            this.blocks, accountSnapshots, storageSnapshots, blockHashSnapshots);
   }
 }

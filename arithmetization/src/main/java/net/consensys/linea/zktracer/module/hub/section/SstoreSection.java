@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
@@ -114,18 +115,28 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
 
   private StorageFragment doingSstore(Hub hub) {
 
-    return new StorageFragment(
-        hub.state,
-        new State.StorageSlotIdentifier(
-            accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
-        valueOriginal,
-        valueCurrent,
-        valueNext,
-        incomingWarmth,
-        true,
-        DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
-        hub.state.firstAndLastStorageSlotOccurrences.size(),
-        SSTORE_DOING);
+    TransactionProcessingMetadata txnMetadata = hub.txStack().current();
+    StorageFragment newFragment =
+        new StorageFragment(
+            hub.state,
+            new State.StorageSlotIdentifier(
+                accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
+            valueOriginal,
+            valueCurrent,
+            valueNext,
+            incomingWarmth,
+            true,
+            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
+            hub.state.firstAndLastStorageSlotOccurrences.size(),
+            SSTORE_DOING,
+            accountAddressDeploymentNumber, // Arijit — check that it is computed properly
+            // beforehand.
+            txnMetadata);
+    TransactionProcessingMetadata.AddrStorageKeyPair mapKey =
+        new TransactionProcessingMetadata.AddrStorageKeyPair(accountAddress, EWord.of(storageKey));
+    // update storage txn map values for the state manager as new storage fragment is created
+    txnMetadata.updateStorageFirstAndLast(newFragment, mapKey);
+    return newFragment;
   }
 
   @Override
@@ -134,6 +145,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
             this.hubStamp(), hub.callStack().currentCallFrame().revertStamp(), 0);
 
+    TransactionProcessingMetadata txnMetadata = hub.txStack().current();
     final StorageFragment undoingSstoreStorageFragment =
         new StorageFragment(
             hub.state,
@@ -146,11 +158,17 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
             incomingWarmth,
             undoingDomSubStamps,
             hub.state.firstAndLastStorageSlotOccurrences.size(),
-            SSTORE_UNDOING);
+            SSTORE_UNDOING,
+            accountAddressDeploymentNumber, // Arijit — check that it is computed properly
+            // beforehand.
+            txnMetadata);
 
     this.addFragment(undoingSstoreStorageFragment);
-
     // undo the refund
     commonValues.refundDelta(0);
+    // update storage txn map values for the state manager as new storage fragment is created
+    TransactionProcessingMetadata.AddrStorageKeyPair mapKey =
+        new TransactionProcessingMetadata.AddrStorageKeyPair(accountAddress, EWord.of(storageKey));
+    txnMetadata.updateStorageFirstAndLast(undoingSstoreStorageFragment, mapKey);
   }
 }

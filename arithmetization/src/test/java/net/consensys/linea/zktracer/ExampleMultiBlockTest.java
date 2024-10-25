@@ -23,6 +23,7 @@ import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.SmartContractUtils;
@@ -32,6 +33,7 @@ import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import net.consensys.linea.testing.Web3jUtils;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
+
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -45,11 +47,13 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.evm.log.Log;
 import org.junit.jupiter.api.Test;
+
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
+
 
 class ExampleMultiBlockTest {
 
@@ -217,8 +221,7 @@ class ExampleMultiBlockTest {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
-    ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1000)).nonce(5).address(senderAddress).build();
+    ToyAccount senderAccount = ToyAccount.builder().balance(Wei.fromEth(1000)).nonce(5).address(senderAddress).build();
 
     ToyAccount frameworkEntrypointAccount =
         ToyAccount.builder()

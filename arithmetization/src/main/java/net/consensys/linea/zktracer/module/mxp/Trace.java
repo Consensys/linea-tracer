@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
-import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -96,65 +95,65 @@ public class Trace {
   private final MappedByteBuffer wordsNew;
 
   static List<ColumnHeader> headers(int length) {
-      List<ColumnHeader> headers = new ArrayList<>();
-      headers.add(new ColumnHeader("mxp.ACC_1", 17, length));
-      headers.add(new ColumnHeader("mxp.ACC_2", 17, length));
-      headers.add(new ColumnHeader("mxp.ACC_3", 17, length));
-      headers.add(new ColumnHeader("mxp.ACC_4", 17, length));
-      headers.add(new ColumnHeader("mxp.ACC_A", 17, length));
-      headers.add(new ColumnHeader("mxp.ACC_Q", 17, length));
-      headers.add(new ColumnHeader("mxp.ACC_W", 17, length));
-      headers.add(new ColumnHeader("mxp.BYTE_1", 1, length));
-      headers.add(new ColumnHeader("mxp.BYTE_2", 1, length));
-      headers.add(new ColumnHeader("mxp.BYTE_3", 1, length));
-      headers.add(new ColumnHeader("mxp.BYTE_4", 1, length));
-      headers.add(new ColumnHeader("mxp.BYTE_A", 1, length));
-      headers.add(new ColumnHeader("mxp.BYTE_Q", 1, length));
-      headers.add(new ColumnHeader("mxp.BYTE_QQ", 1, length));
-      headers.add(new ColumnHeader("mxp.BYTE_R", 1, length));
-      headers.add(new ColumnHeader("mxp.BYTE_W", 1, length));
-      headers.add(new ColumnHeader("mxp.C_MEM", 8, length));
-      headers.add(new ColumnHeader("mxp.C_MEM_NEW", 8, length));
-      headers.add(new ColumnHeader("mxp.CN", 8, length));
-      headers.add(new ColumnHeader("mxp.COMP", 1, length));
-      headers.add(new ColumnHeader("mxp.CT", 1, length));
-      headers.add(new ColumnHeader("mxp.DEPLOYS", 1, length));
-      headers.add(new ColumnHeader("mxp.EXPANDS", 1, length));
-      headers.add(new ColumnHeader("mxp.GAS_MXP", 8, length));
-      headers.add(new ColumnHeader("mxp.GBYTE", 8, length));
-      headers.add(new ColumnHeader("mxp.GWORD", 8, length));
-      headers.add(new ColumnHeader("mxp.INST", 1, length));
-      headers.add(new ColumnHeader("mxp.LIN_COST", 8, length));
-      headers.add(new ColumnHeader("mxp.MAX_OFFSET", 16, length));
-      headers.add(new ColumnHeader("mxp.MAX_OFFSET_1", 16, length));
-      headers.add(new ColumnHeader("mxp.MAX_OFFSET_2", 16, length));
-      headers.add(new ColumnHeader("mxp.MTNTOP", 1, length));
-      headers.add(new ColumnHeader("mxp.MXP_TYPE_1", 1, length));
-      headers.add(new ColumnHeader("mxp.MXP_TYPE_2", 1, length));
-      headers.add(new ColumnHeader("mxp.MXP_TYPE_3", 1, length));
-      headers.add(new ColumnHeader("mxp.MXP_TYPE_4", 1, length));
-      headers.add(new ColumnHeader("mxp.MXP_TYPE_5", 1, length));
-      headers.add(new ColumnHeader("mxp.MXPX", 1, length));
-      headers.add(new ColumnHeader("mxp.NOOP", 1, length));
-      headers.add(new ColumnHeader("mxp.OFFSET_1_HI", 16, length));
-      headers.add(new ColumnHeader("mxp.OFFSET_1_LO", 16, length));
-      headers.add(new ColumnHeader("mxp.OFFSET_2_HI", 16, length));
-      headers.add(new ColumnHeader("mxp.OFFSET_2_LO", 16, length));
-      headers.add(new ColumnHeader("mxp.QUAD_COST", 8, length));
-      headers.add(new ColumnHeader("mxp.ROOB", 1, length));
-      headers.add(new ColumnHeader("mxp.SIZE_1_HI", 16, length));
-      headers.add(new ColumnHeader("mxp.SIZE_1_LO", 16, length));
-      headers.add(new ColumnHeader("mxp.SIZE_1_NONZERO_NO_MXPX", 1, length));
-      headers.add(new ColumnHeader("mxp.SIZE_2_HI", 16, length));
-      headers.add(new ColumnHeader("mxp.SIZE_2_LO", 16, length));
-      headers.add(new ColumnHeader("mxp.SIZE_2_NONZERO_NO_MXPX", 1, length));
-      headers.add(new ColumnHeader("mxp.STAMP", 4, length));
-      headers.add(new ColumnHeader("mxp.WORDS", 8, length));
-      headers.add(new ColumnHeader("mxp.WORDS_NEW", 8, length));
-      return headers;
+    List<ColumnHeader> headers = new ArrayList<>();
+    headers.add(new ColumnHeader("mxp.ACC_1", 17, length));
+    headers.add(new ColumnHeader("mxp.ACC_2", 17, length));
+    headers.add(new ColumnHeader("mxp.ACC_3", 17, length));
+    headers.add(new ColumnHeader("mxp.ACC_4", 17, length));
+    headers.add(new ColumnHeader("mxp.ACC_A", 17, length));
+    headers.add(new ColumnHeader("mxp.ACC_Q", 17, length));
+    headers.add(new ColumnHeader("mxp.ACC_W", 17, length));
+    headers.add(new ColumnHeader("mxp.BYTE_1", 1, length));
+    headers.add(new ColumnHeader("mxp.BYTE_2", 1, length));
+    headers.add(new ColumnHeader("mxp.BYTE_3", 1, length));
+    headers.add(new ColumnHeader("mxp.BYTE_4", 1, length));
+    headers.add(new ColumnHeader("mxp.BYTE_A", 1, length));
+    headers.add(new ColumnHeader("mxp.BYTE_Q", 1, length));
+    headers.add(new ColumnHeader("mxp.BYTE_QQ", 1, length));
+    headers.add(new ColumnHeader("mxp.BYTE_R", 1, length));
+    headers.add(new ColumnHeader("mxp.BYTE_W", 1, length));
+    headers.add(new ColumnHeader("mxp.C_MEM", 8, length));
+    headers.add(new ColumnHeader("mxp.C_MEM_NEW", 8, length));
+    headers.add(new ColumnHeader("mxp.CN", 8, length));
+    headers.add(new ColumnHeader("mxp.COMP", 1, length));
+    headers.add(new ColumnHeader("mxp.CT", 1, length));
+    headers.add(new ColumnHeader("mxp.DEPLOYS", 1, length));
+    headers.add(new ColumnHeader("mxp.EXPANDS", 1, length));
+    headers.add(new ColumnHeader("mxp.GAS_MXP", 8, length));
+    headers.add(new ColumnHeader("mxp.GBYTE", 8, length));
+    headers.add(new ColumnHeader("mxp.GWORD", 8, length));
+    headers.add(new ColumnHeader("mxp.INST", 1, length));
+    headers.add(new ColumnHeader("mxp.LIN_COST", 8, length));
+    headers.add(new ColumnHeader("mxp.MAX_OFFSET", 16, length));
+    headers.add(new ColumnHeader("mxp.MAX_OFFSET_1", 16, length));
+    headers.add(new ColumnHeader("mxp.MAX_OFFSET_2", 16, length));
+    headers.add(new ColumnHeader("mxp.MTNTOP", 1, length));
+    headers.add(new ColumnHeader("mxp.MXP_TYPE_1", 1, length));
+    headers.add(new ColumnHeader("mxp.MXP_TYPE_2", 1, length));
+    headers.add(new ColumnHeader("mxp.MXP_TYPE_3", 1, length));
+    headers.add(new ColumnHeader("mxp.MXP_TYPE_4", 1, length));
+    headers.add(new ColumnHeader("mxp.MXP_TYPE_5", 1, length));
+    headers.add(new ColumnHeader("mxp.MXPX", 1, length));
+    headers.add(new ColumnHeader("mxp.NOOP", 1, length));
+    headers.add(new ColumnHeader("mxp.OFFSET_1_HI", 16, length));
+    headers.add(new ColumnHeader("mxp.OFFSET_1_LO", 16, length));
+    headers.add(new ColumnHeader("mxp.OFFSET_2_HI", 16, length));
+    headers.add(new ColumnHeader("mxp.OFFSET_2_LO", 16, length));
+    headers.add(new ColumnHeader("mxp.QUAD_COST", 8, length));
+    headers.add(new ColumnHeader("mxp.ROOB", 1, length));
+    headers.add(new ColumnHeader("mxp.SIZE_1_HI", 16, length));
+    headers.add(new ColumnHeader("mxp.SIZE_1_LO", 16, length));
+    headers.add(new ColumnHeader("mxp.SIZE_1_NONZERO_NO_MXPX", 1, length));
+    headers.add(new ColumnHeader("mxp.SIZE_2_HI", 16, length));
+    headers.add(new ColumnHeader("mxp.SIZE_2_LO", 16, length));
+    headers.add(new ColumnHeader("mxp.SIZE_2_NONZERO_NO_MXPX", 1, length));
+    headers.add(new ColumnHeader("mxp.STAMP", 4, length));
+    headers.add(new ColumnHeader("mxp.WORDS", 8, length));
+    headers.add(new ColumnHeader("mxp.WORDS_NEW", 8, length));
+    return headers;
   }
 
-  public Trace (List<MappedByteBuffer> buffers) {
+  public Trace(List<MappedByteBuffer> buffers) {
     this.acc1 = buffers.get(0);
     this.acc2 = buffers.get(1);
     this.acc3 = buffers.get(2);
@@ -219,7 +218,7 @@ public class Trace {
     return this.currentLine;
   }
 
-  public  acc1(final Bytes b) {
+  public acc1(final Bytes b) {
     if (filled.get(0)) {
       throw new IllegalStateException("mxp.ACC_1 already set");
     } else {
@@ -229,16 +228,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 136) { throw new IllegalArgumentException("acc1 has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 136) {
+      throw new IllegalArgumentException("acc1 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<17; i++) { acc1.put((byte) 0); }
+    for (int i = bs.size(); i < 17; i++) {
+      acc1.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { acc1.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      acc1.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  acc2(final Bytes b) {
+  public acc2(final Bytes b) {
     if (filled.get(1)) {
       throw new IllegalStateException("mxp.ACC_2 already set");
     } else {
@@ -248,16 +253,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 136) { throw new IllegalArgumentException("acc2 has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 136) {
+      throw new IllegalArgumentException("acc2 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<17; i++) { acc2.put((byte) 0); }
+    for (int i = bs.size(); i < 17; i++) {
+      acc2.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { acc2.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      acc2.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  acc3(final Bytes b) {
+  public acc3(final Bytes b) {
     if (filled.get(2)) {
       throw new IllegalStateException("mxp.ACC_3 already set");
     } else {
@@ -267,16 +278,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 136) { throw new IllegalArgumentException("acc3 has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 136) {
+      throw new IllegalArgumentException("acc3 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<17; i++) { acc3.put((byte) 0); }
+    for (int i = bs.size(); i < 17; i++) {
+      acc3.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { acc3.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      acc3.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  acc4(final Bytes b) {
+  public acc4(final Bytes b) {
     if (filled.get(3)) {
       throw new IllegalStateException("mxp.ACC_4 already set");
     } else {
@@ -286,16 +303,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 136) { throw new IllegalArgumentException("acc4 has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 136) {
+      throw new IllegalArgumentException("acc4 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<17; i++) { acc4.put((byte) 0); }
+    for (int i = bs.size(); i < 17; i++) {
+      acc4.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { acc4.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      acc4.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  accA(final Bytes b) {
+  public accA(final Bytes b) {
     if (filled.get(4)) {
       throw new IllegalStateException("mxp.ACC_A already set");
     } else {
@@ -305,16 +328,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 136) { throw new IllegalArgumentException("accA has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 136) {
+      throw new IllegalArgumentException("accA has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<17; i++) { accA.put((byte) 0); }
+    for (int i = bs.size(); i < 17; i++) {
+      accA.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { accA.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      accA.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  accQ(final Bytes b) {
+  public accQ(final Bytes b) {
     if (filled.get(5)) {
       throw new IllegalStateException("mxp.ACC_Q already set");
     } else {
@@ -324,16 +353,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 136) { throw new IllegalArgumentException("accQ has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 136) {
+      throw new IllegalArgumentException("accQ has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<17; i++) { accQ.put((byte) 0); }
+    for (int i = bs.size(); i < 17; i++) {
+      accQ.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { accQ.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      accQ.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  accW(final Bytes b) {
+  public accW(final Bytes b) {
     if (filled.get(6)) {
       throw new IllegalStateException("mxp.ACC_W already set");
     } else {
@@ -343,16 +378,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 136) { throw new IllegalArgumentException("accW has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 136) {
+      throw new IllegalArgumentException("accW has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<17; i++) { accW.put((byte) 0); }
+    for (int i = bs.size(); i < 17; i++) {
+      accW.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { accW.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      accW.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  byte1(final UnsignedByte b) {
+  public byte1(final UnsignedByte b) {
     if (filled.get(7)) {
       throw new IllegalStateException("mxp.BYTE_1 already set");
     } else {
@@ -364,7 +405,7 @@ public class Trace {
     return this;
   }
 
-  public  byte2(final UnsignedByte b) {
+  public byte2(final UnsignedByte b) {
     if (filled.get(8)) {
       throw new IllegalStateException("mxp.BYTE_2 already set");
     } else {
@@ -376,7 +417,7 @@ public class Trace {
     return this;
   }
 
-  public  byte3(final UnsignedByte b) {
+  public byte3(final UnsignedByte b) {
     if (filled.get(9)) {
       throw new IllegalStateException("mxp.BYTE_3 already set");
     } else {
@@ -388,7 +429,7 @@ public class Trace {
     return this;
   }
 
-  public  byte4(final UnsignedByte b) {
+  public byte4(final UnsignedByte b) {
     if (filled.get(10)) {
       throw new IllegalStateException("mxp.BYTE_4 already set");
     } else {
@@ -400,7 +441,7 @@ public class Trace {
     return this;
   }
 
-  public  byteA(final UnsignedByte b) {
+  public byteA(final UnsignedByte b) {
     if (filled.get(11)) {
       throw new IllegalStateException("mxp.BYTE_A already set");
     } else {
@@ -412,7 +453,7 @@ public class Trace {
     return this;
   }
 
-  public  byteQ(final UnsignedByte b) {
+  public byteQ(final UnsignedByte b) {
     if (filled.get(12)) {
       throw new IllegalStateException("mxp.BYTE_Q already set");
     } else {
@@ -424,7 +465,7 @@ public class Trace {
     return this;
   }
 
-  public  byteQq(final UnsignedByte b) {
+  public byteQq(final UnsignedByte b) {
     if (filled.get(13)) {
       throw new IllegalStateException("mxp.BYTE_QQ already set");
     } else {
@@ -436,7 +477,7 @@ public class Trace {
     return this;
   }
 
-  public  byteR(final UnsignedByte b) {
+  public byteR(final UnsignedByte b) {
     if (filled.get(14)) {
       throw new IllegalStateException("mxp.BYTE_R already set");
     } else {
@@ -448,7 +489,7 @@ public class Trace {
     return this;
   }
 
-  public  byteW(final UnsignedByte b) {
+  public byteW(final UnsignedByte b) {
     if (filled.get(15)) {
       throw new IllegalStateException("mxp.BYTE_W already set");
     } else {
@@ -460,7 +501,7 @@ public class Trace {
     return this;
   }
 
-  public  cMem(final Bytes b) {
+  public cMem(final Bytes b) {
     if (filled.get(19)) {
       throw new IllegalStateException("mxp.C_MEM already set");
     } else {
@@ -470,16 +511,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("cMem has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("cMem has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { cMem.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      cMem.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { cMem.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      cMem.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  cMemNew(final Bytes b) {
+  public cMemNew(final Bytes b) {
     if (filled.get(20)) {
       throw new IllegalStateException("mxp.C_MEM_NEW already set");
     } else {
@@ -489,16 +536,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("cMemNew has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("cMemNew has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { cMemNew.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      cMemNew.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { cMemNew.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      cMemNew.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  cn(final Bytes b) {
+  public cn(final Bytes b) {
     if (filled.get(16)) {
       throw new IllegalStateException("mxp.CN already set");
     } else {
@@ -508,16 +561,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("cn has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("cn has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { cn.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      cn.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { cn.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      cn.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  comp(final Boolean b) {
+  public comp(final Boolean b) {
     if (filled.get(17)) {
       throw new IllegalStateException("mxp.COMP already set");
     } else {
@@ -529,21 +588,22 @@ public class Trace {
     return this;
   }
 
-  public  ct(final long b) {
+  public ct(final long b) {
     if (filled.get(18)) {
       throw new IllegalStateException("mxp.CT already set");
     } else {
       filled.set(18);
     }
 
-    if(b >= 32L) { throw new IllegalArgumentException("ct has invalid value (" + b + ")"); }
+    if (b >= 32L) {
+      throw new IllegalArgumentException("ct has invalid value (" + b + ")");
+    }
     ct.put((byte) b);
-
 
     return this;
   }
 
-  public  deploys(final Boolean b) {
+  public deploys(final Boolean b) {
     if (filled.get(21)) {
       throw new IllegalStateException("mxp.DEPLOYS already set");
     } else {
@@ -555,7 +615,7 @@ public class Trace {
     return this;
   }
 
-  public  expands(final Boolean b) {
+  public expands(final Boolean b) {
     if (filled.get(22)) {
       throw new IllegalStateException("mxp.EXPANDS already set");
     } else {
@@ -567,7 +627,7 @@ public class Trace {
     return this;
   }
 
-  public  gasMxp(final Bytes b) {
+  public gasMxp(final Bytes b) {
     if (filled.get(23)) {
       throw new IllegalStateException("mxp.GAS_MXP already set");
     } else {
@@ -577,16 +637,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("gasMxp has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("gasMxp has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { gasMxp.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      gasMxp.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { gasMxp.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      gasMxp.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  gbyte(final Bytes b) {
+  public gbyte(final Bytes b) {
     if (filled.get(24)) {
       throw new IllegalStateException("mxp.GBYTE already set");
     } else {
@@ -596,16 +662,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("gbyte has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("gbyte has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { gbyte.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      gbyte.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { gbyte.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      gbyte.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  gword(final Bytes b) {
+  public gword(final Bytes b) {
     if (filled.get(25)) {
       throw new IllegalStateException("mxp.GWORD already set");
     } else {
@@ -615,16 +687,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("gword has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("gword has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { gword.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      gword.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { gword.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      gword.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  inst(final UnsignedByte b) {
+  public inst(final UnsignedByte b) {
     if (filled.get(26)) {
       throw new IllegalStateException("mxp.INST already set");
     } else {
@@ -636,7 +714,7 @@ public class Trace {
     return this;
   }
 
-  public  linCost(final Bytes b) {
+  public linCost(final Bytes b) {
     if (filled.get(27)) {
       throw new IllegalStateException("mxp.LIN_COST already set");
     } else {
@@ -646,16 +724,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("linCost has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("linCost has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { linCost.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      linCost.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { linCost.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      linCost.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  maxOffset(final Bytes b) {
+  public maxOffset(final Bytes b) {
     if (filled.get(28)) {
       throw new IllegalStateException("mxp.MAX_OFFSET already set");
     } else {
@@ -665,16 +749,23 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("maxOffset has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "maxOffset has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { maxOffset.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      maxOffset.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { maxOffset.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      maxOffset.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  maxOffset1(final Bytes b) {
+  public maxOffset1(final Bytes b) {
     if (filled.get(29)) {
       throw new IllegalStateException("mxp.MAX_OFFSET_1 already set");
     } else {
@@ -684,16 +775,23 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("maxOffset1 has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "maxOffset1 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { maxOffset1.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      maxOffset1.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { maxOffset1.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      maxOffset1.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  maxOffset2(final Bytes b) {
+  public maxOffset2(final Bytes b) {
     if (filled.get(30)) {
       throw new IllegalStateException("mxp.MAX_OFFSET_2 already set");
     } else {
@@ -703,16 +801,23 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("maxOffset2 has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "maxOffset2 has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { maxOffset2.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      maxOffset2.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { maxOffset2.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      maxOffset2.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  mtntop(final Boolean b) {
+  public mtntop(final Boolean b) {
     if (filled.get(31)) {
       throw new IllegalStateException("mxp.MTNTOP already set");
     } else {
@@ -724,7 +829,7 @@ public class Trace {
     return this;
   }
 
-  public  mxpType1(final Boolean b) {
+  public mxpType1(final Boolean b) {
     if (filled.get(33)) {
       throw new IllegalStateException("mxp.MXP_TYPE_1 already set");
     } else {
@@ -736,7 +841,7 @@ public class Trace {
     return this;
   }
 
-  public  mxpType2(final Boolean b) {
+  public mxpType2(final Boolean b) {
     if (filled.get(34)) {
       throw new IllegalStateException("mxp.MXP_TYPE_2 already set");
     } else {
@@ -748,7 +853,7 @@ public class Trace {
     return this;
   }
 
-  public  mxpType3(final Boolean b) {
+  public mxpType3(final Boolean b) {
     if (filled.get(35)) {
       throw new IllegalStateException("mxp.MXP_TYPE_3 already set");
     } else {
@@ -760,7 +865,7 @@ public class Trace {
     return this;
   }
 
-  public  mxpType4(final Boolean b) {
+  public mxpType4(final Boolean b) {
     if (filled.get(36)) {
       throw new IllegalStateException("mxp.MXP_TYPE_4 already set");
     } else {
@@ -772,7 +877,7 @@ public class Trace {
     return this;
   }
 
-  public  mxpType5(final Boolean b) {
+  public mxpType5(final Boolean b) {
     if (filled.get(37)) {
       throw new IllegalStateException("mxp.MXP_TYPE_5 already set");
     } else {
@@ -784,7 +889,7 @@ public class Trace {
     return this;
   }
 
-  public  mxpx(final Boolean b) {
+  public mxpx(final Boolean b) {
     if (filled.get(32)) {
       throw new IllegalStateException("mxp.MXPX already set");
     } else {
@@ -796,7 +901,7 @@ public class Trace {
     return this;
   }
 
-  public  noop(final Boolean b) {
+  public noop(final Boolean b) {
     if (filled.get(38)) {
       throw new IllegalStateException("mxp.NOOP already set");
     } else {
@@ -808,7 +913,7 @@ public class Trace {
     return this;
   }
 
-  public  offset1Hi(final Bytes b) {
+  public offset1Hi(final Bytes b) {
     if (filled.get(39)) {
       throw new IllegalStateException("mxp.OFFSET_1_HI already set");
     } else {
@@ -818,16 +923,23 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("offset1Hi has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "offset1Hi has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { offset1Hi.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      offset1Hi.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { offset1Hi.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      offset1Hi.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  offset1Lo(final Bytes b) {
+  public offset1Lo(final Bytes b) {
     if (filled.get(40)) {
       throw new IllegalStateException("mxp.OFFSET_1_LO already set");
     } else {
@@ -837,16 +949,23 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("offset1Lo has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "offset1Lo has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { offset1Lo.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      offset1Lo.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { offset1Lo.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      offset1Lo.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  offset2Hi(final Bytes b) {
+  public offset2Hi(final Bytes b) {
     if (filled.get(41)) {
       throw new IllegalStateException("mxp.OFFSET_2_HI already set");
     } else {
@@ -856,16 +975,23 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("offset2Hi has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "offset2Hi has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { offset2Hi.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      offset2Hi.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { offset2Hi.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      offset2Hi.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  offset2Lo(final Bytes b) {
+  public offset2Lo(final Bytes b) {
     if (filled.get(42)) {
       throw new IllegalStateException("mxp.OFFSET_2_LO already set");
     } else {
@@ -875,16 +1001,23 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("offset2Lo has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException(
+          "offset2Lo has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { offset2Lo.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      offset2Lo.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { offset2Lo.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      offset2Lo.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  quadCost(final Bytes b) {
+  public quadCost(final Bytes b) {
     if (filled.get(43)) {
       throw new IllegalStateException("mxp.QUAD_COST already set");
     } else {
@@ -894,16 +1027,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("quadCost has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("quadCost has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { quadCost.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      quadCost.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { quadCost.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      quadCost.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  roob(final Boolean b) {
+  public roob(final Boolean b) {
     if (filled.get(44)) {
       throw new IllegalStateException("mxp.ROOB already set");
     } else {
@@ -915,7 +1054,7 @@ public class Trace {
     return this;
   }
 
-  public  size1Hi(final Bytes b) {
+  public size1Hi(final Bytes b) {
     if (filled.get(45)) {
       throw new IllegalStateException("mxp.SIZE_1_HI already set");
     } else {
@@ -925,16 +1064,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("size1Hi has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("size1Hi has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { size1Hi.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      size1Hi.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { size1Hi.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      size1Hi.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  size1Lo(final Bytes b) {
+  public size1Lo(final Bytes b) {
     if (filled.get(46)) {
       throw new IllegalStateException("mxp.SIZE_1_LO already set");
     } else {
@@ -944,16 +1089,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("size1Lo has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("size1Lo has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { size1Lo.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      size1Lo.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { size1Lo.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      size1Lo.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  size1NonzeroNoMxpx(final Boolean b) {
+  public size1NonzeroNoMxpx(final Boolean b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mxp.SIZE_1_NONZERO_NO_MXPX already set");
     } else {
@@ -965,7 +1116,7 @@ public class Trace {
     return this;
   }
 
-  public  size2Hi(final Bytes b) {
+  public size2Hi(final Bytes b) {
     if (filled.get(48)) {
       throw new IllegalStateException("mxp.SIZE_2_HI already set");
     } else {
@@ -975,16 +1126,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("size2Hi has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("size2Hi has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { size2Hi.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      size2Hi.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { size2Hi.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      size2Hi.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  size2Lo(final Bytes b) {
+  public size2Lo(final Bytes b) {
     if (filled.get(49)) {
       throw new IllegalStateException("mxp.SIZE_2_LO already set");
     } else {
@@ -994,16 +1151,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 128) { throw new IllegalArgumentException("size2Lo has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 128) {
+      throw new IllegalArgumentException("size2Lo has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<16; i++) { size2Lo.put((byte) 0); }
+    for (int i = bs.size(); i < 16; i++) {
+      size2Lo.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { size2Lo.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      size2Lo.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  size2NonzeroNoMxpx(final Boolean b) {
+  public size2NonzeroNoMxpx(final Boolean b) {
     if (filled.get(50)) {
       throw new IllegalStateException("mxp.SIZE_2_NONZERO_NO_MXPX already set");
     } else {
@@ -1015,24 +1178,25 @@ public class Trace {
     return this;
   }
 
-  public  stamp(final long b) {
+  public stamp(final long b) {
     if (filled.get(51)) {
       throw new IllegalStateException("mxp.STAMP already set");
     } else {
       filled.set(51);
     }
 
-    if(b >= 4294967296L) { throw new IllegalArgumentException("stamp has invalid value (" + b + ")"); }
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("stamp has invalid value (" + b + ")");
+    }
     stamp.put((byte) (b >> 24));
     stamp.put((byte) (b >> 16));
     stamp.put((byte) (b >> 8));
     stamp.put((byte) b);
 
-
     return this;
   }
 
-  public  words(final Bytes b) {
+  public words(final Bytes b) {
     if (filled.get(52)) {
       throw new IllegalStateException("mxp.WORDS already set");
     } else {
@@ -1042,16 +1206,22 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("words has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("words has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { words.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      words.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { words.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      words.put(bs.get(j));
+    }
 
     return this;
   }
 
-  public  wordsNew(final Bytes b) {
+  public wordsNew(final Bytes b) {
     if (filled.get(53)) {
       throw new IllegalStateException("mxp.WORDS_NEW already set");
     } else {
@@ -1061,11 +1231,17 @@ public class Trace {
     // Trim array to size
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
-    if(bs.bitLength() > 64) { throw new IllegalArgumentException("wordsNew has invalid width (" + bs.bitLength() + "bits)"); }
+    if (bs.bitLength() > 64) {
+      throw new IllegalArgumentException("wordsNew has invalid width (" + bs.bitLength() + "bits)");
+    }
     // Write padding (if necessary)
-    for(int i=bs.size(); i<8; i++) { wordsNew.put((byte) 0); }
+    for (int i = bs.size(); i < 8; i++) {
+      wordsNew.put((byte) 0);
+    }
     // Write bytes
-    for(int j=0; j<bs.size(); j++) { wordsNew.put(bs.get(j)); }
+    for (int j = 0; j < bs.size(); j++) {
+      wordsNew.put(bs.get(j));
+    }
 
     return this;
   }

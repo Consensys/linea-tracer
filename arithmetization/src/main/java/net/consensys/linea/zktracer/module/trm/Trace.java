@@ -91,7 +91,7 @@ public class Trace {
     return this.currentLine;
   }
 
-  public accHi(final Bytes b) {
+  public Trace accHi(final Bytes b) {
     if (filled.get(0)) {
       throw new IllegalStateException("trm.ACC_HI already set");
     } else {
@@ -116,7 +116,7 @@ public class Trace {
     return this;
   }
 
-  public accLo(final Bytes b) {
+  public Trace accLo(final Bytes b) {
     if (filled.get(1)) {
       throw new IllegalStateException("trm.ACC_LO already set");
     } else {
@@ -141,7 +141,7 @@ public class Trace {
     return this;
   }
 
-  public accT(final long b) {
+  public Trace accT(final long b) {
     if (filled.get(2)) {
       throw new IllegalStateException("trm.ACC_T already set");
     } else {
@@ -159,7 +159,7 @@ public class Trace {
     return this;
   }
 
-  public byteHi(final UnsignedByte b) {
+  public Trace byteHi(final UnsignedByte b) {
     if (filled.get(3)) {
       throw new IllegalStateException("trm.BYTE_HI already set");
     } else {
@@ -171,7 +171,7 @@ public class Trace {
     return this;
   }
 
-  public byteLo(final UnsignedByte b) {
+  public Trace byteLo(final UnsignedByte b) {
     if (filled.get(4)) {
       throw new IllegalStateException("trm.BYTE_LO already set");
     } else {
@@ -183,7 +183,7 @@ public class Trace {
     return this;
   }
 
-  public ct(final long b) {
+  public Trace ct(final long b) {
     if (filled.get(5)) {
       throw new IllegalStateException("trm.CT already set");
     } else {
@@ -198,7 +198,7 @@ public class Trace {
     return this;
   }
 
-  public isPrecompile(final Boolean b) {
+  public Trace isPrecompile(final Boolean b) {
     if (filled.get(6)) {
       throw new IllegalStateException("trm.IS_PRECOMPILE already set");
     } else {
@@ -210,7 +210,7 @@ public class Trace {
     return this;
   }
 
-  public one(final Boolean b) {
+  public Trace one(final Boolean b) {
     if (filled.get(7)) {
       throw new IllegalStateException("trm.ONE already set");
     } else {
@@ -222,7 +222,7 @@ public class Trace {
     return this;
   }
 
-  public plateauBit(final Boolean b) {
+  public Trace plateauBit(final Boolean b) {
     if (filled.get(8)) {
       throw new IllegalStateException("trm.PLATEAU_BIT already set");
     } else {
@@ -234,7 +234,7 @@ public class Trace {
     return this;
   }
 
-  public rawAddressHi(final Bytes b) {
+  public Trace rawAddressHi(final Bytes b) {
     if (filled.get(9)) {
       throw new IllegalStateException("trm.RAW_ADDRESS_HI already set");
     } else {
@@ -260,7 +260,7 @@ public class Trace {
     return this;
   }
 
-  public rawAddressLo(final Bytes b) {
+  public Trace rawAddressLo(final Bytes b) {
     if (filled.get(10)) {
       throw new IllegalStateException("trm.RAW_ADDRESS_LO already set");
     } else {
@@ -286,7 +286,7 @@ public class Trace {
     return this;
   }
 
-  public stamp(final long b) {
+  public Trace stamp(final long b) {
     if (filled.get(11)) {
       throw new IllegalStateException("trm.STAMP already set");
     } else {
@@ -303,7 +303,7 @@ public class Trace {
     return this;
   }
 
-  public trmAddressHi(final long b) {
+  public Trace trmAddressHi(final long b) {
     if (filled.get(12)) {
       throw new IllegalStateException("trm.TRM_ADDRESS_HI already set");
     } else {

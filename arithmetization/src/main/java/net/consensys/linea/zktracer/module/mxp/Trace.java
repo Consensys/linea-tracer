@@ -218,7 +218,7 @@ public class Trace {
     return this.currentLine;
   }
 
-  public acc1(final Bytes b) {
+  public Trace acc1(final Bytes b) {
     if (filled.get(0)) {
       throw new IllegalStateException("mxp.ACC_1 already set");
     } else {
@@ -243,7 +243,7 @@ public class Trace {
     return this;
   }
 
-  public acc2(final Bytes b) {
+  public Trace acc2(final Bytes b) {
     if (filled.get(1)) {
       throw new IllegalStateException("mxp.ACC_2 already set");
     } else {
@@ -268,7 +268,7 @@ public class Trace {
     return this;
   }
 
-  public acc3(final Bytes b) {
+  public Trace acc3(final Bytes b) {
     if (filled.get(2)) {
       throw new IllegalStateException("mxp.ACC_3 already set");
     } else {
@@ -293,7 +293,7 @@ public class Trace {
     return this;
   }
 
-  public acc4(final Bytes b) {
+  public Trace acc4(final Bytes b) {
     if (filled.get(3)) {
       throw new IllegalStateException("mxp.ACC_4 already set");
     } else {
@@ -318,7 +318,7 @@ public class Trace {
     return this;
   }
 
-  public accA(final Bytes b) {
+  public Trace accA(final Bytes b) {
     if (filled.get(4)) {
       throw new IllegalStateException("mxp.ACC_A already set");
     } else {
@@ -343,7 +343,7 @@ public class Trace {
     return this;
   }
 
-  public accQ(final Bytes b) {
+  public Trace accQ(final Bytes b) {
     if (filled.get(5)) {
       throw new IllegalStateException("mxp.ACC_Q already set");
     } else {
@@ -368,7 +368,7 @@ public class Trace {
     return this;
   }
 
-  public accW(final Bytes b) {
+  public Trace accW(final Bytes b) {
     if (filled.get(6)) {
       throw new IllegalStateException("mxp.ACC_W already set");
     } else {
@@ -393,7 +393,7 @@ public class Trace {
     return this;
   }
 
-  public byte1(final UnsignedByte b) {
+  public Trace byte1(final UnsignedByte b) {
     if (filled.get(7)) {
       throw new IllegalStateException("mxp.BYTE_1 already set");
     } else {
@@ -405,7 +405,7 @@ public class Trace {
     return this;
   }
 
-  public byte2(final UnsignedByte b) {
+  public Trace byte2(final UnsignedByte b) {
     if (filled.get(8)) {
       throw new IllegalStateException("mxp.BYTE_2 already set");
     } else {
@@ -417,7 +417,7 @@ public class Trace {
     return this;
   }
 
-  public byte3(final UnsignedByte b) {
+  public Trace byte3(final UnsignedByte b) {
     if (filled.get(9)) {
       throw new IllegalStateException("mxp.BYTE_3 already set");
     } else {
@@ -429,7 +429,7 @@ public class Trace {
     return this;
   }
 
-  public byte4(final UnsignedByte b) {
+  public Trace byte4(final UnsignedByte b) {
     if (filled.get(10)) {
       throw new IllegalStateException("mxp.BYTE_4 already set");
     } else {
@@ -441,7 +441,7 @@ public class Trace {
     return this;
   }
 
-  public byteA(final UnsignedByte b) {
+  public Trace byteA(final UnsignedByte b) {
     if (filled.get(11)) {
       throw new IllegalStateException("mxp.BYTE_A already set");
     } else {
@@ -453,7 +453,7 @@ public class Trace {
     return this;
   }
 
-  public byteQ(final UnsignedByte b) {
+  public Trace byteQ(final UnsignedByte b) {
     if (filled.get(12)) {
       throw new IllegalStateException("mxp.BYTE_Q already set");
     } else {
@@ -465,7 +465,7 @@ public class Trace {
     return this;
   }
 
-  public byteQq(final UnsignedByte b) {
+  public Trace byteQq(final UnsignedByte b) {
     if (filled.get(13)) {
       throw new IllegalStateException("mxp.BYTE_QQ already set");
     } else {
@@ -477,7 +477,7 @@ public class Trace {
     return this;
   }
 
-  public byteR(final UnsignedByte b) {
+  public Trace byteR(final UnsignedByte b) {
     if (filled.get(14)) {
       throw new IllegalStateException("mxp.BYTE_R already set");
     } else {
@@ -489,7 +489,7 @@ public class Trace {
     return this;
   }
 
-  public byteW(final UnsignedByte b) {
+  public Trace byteW(final UnsignedByte b) {
     if (filled.get(15)) {
       throw new IllegalStateException("mxp.BYTE_W already set");
     } else {
@@ -501,7 +501,7 @@ public class Trace {
     return this;
   }
 
-  public cMem(final Bytes b) {
+  public Trace cMem(final Bytes b) {
     if (filled.get(19)) {
       throw new IllegalStateException("mxp.C_MEM already set");
     } else {
@@ -526,7 +526,7 @@ public class Trace {
     return this;
   }
 
-  public cMemNew(final Bytes b) {
+  public Trace cMemNew(final Bytes b) {
     if (filled.get(20)) {
       throw new IllegalStateException("mxp.C_MEM_NEW already set");
     } else {
@@ -551,7 +551,7 @@ public class Trace {
     return this;
   }
 
-  public cn(final Bytes b) {
+  public Trace cn(final Bytes b) {
     if (filled.get(16)) {
       throw new IllegalStateException("mxp.CN already set");
     } else {
@@ -576,7 +576,7 @@ public class Trace {
     return this;
   }
 
-  public comp(final Boolean b) {
+  public Trace comp(final Boolean b) {
     if (filled.get(17)) {
       throw new IllegalStateException("mxp.COMP already set");
     } else {
@@ -588,7 +588,7 @@ public class Trace {
     return this;
   }
 
-  public ct(final long b) {
+  public Trace ct(final long b) {
     if (filled.get(18)) {
       throw new IllegalStateException("mxp.CT already set");
     } else {
@@ -603,7 +603,7 @@ public class Trace {
     return this;
   }
 
-  public deploys(final Boolean b) {
+  public Trace deploys(final Boolean b) {
     if (filled.get(21)) {
       throw new IllegalStateException("mxp.DEPLOYS already set");
     } else {
@@ -615,7 +615,7 @@ public class Trace {
     return this;
   }
 
-  public expands(final Boolean b) {
+  public Trace expands(final Boolean b) {
     if (filled.get(22)) {
       throw new IllegalStateException("mxp.EXPANDS already set");
     } else {
@@ -627,7 +627,7 @@ public class Trace {
     return this;
   }
 
-  public gasMxp(final Bytes b) {
+  public Trace gasMxp(final Bytes b) {
     if (filled.get(23)) {
       throw new IllegalStateException("mxp.GAS_MXP already set");
     } else {
@@ -652,7 +652,7 @@ public class Trace {
     return this;
   }
 
-  public gbyte(final Bytes b) {
+  public Trace gbyte(final Bytes b) {
     if (filled.get(24)) {
       throw new IllegalStateException("mxp.GBYTE already set");
     } else {
@@ -677,7 +677,7 @@ public class Trace {
     return this;
   }
 
-  public gword(final Bytes b) {
+  public Trace gword(final Bytes b) {
     if (filled.get(25)) {
       throw new IllegalStateException("mxp.GWORD already set");
     } else {
@@ -702,7 +702,7 @@ public class Trace {
     return this;
   }
 
-  public inst(final UnsignedByte b) {
+  public Trace inst(final UnsignedByte b) {
     if (filled.get(26)) {
       throw new IllegalStateException("mxp.INST already set");
     } else {
@@ -714,7 +714,7 @@ public class Trace {
     return this;
   }
 
-  public linCost(final Bytes b) {
+  public Trace linCost(final Bytes b) {
     if (filled.get(27)) {
       throw new IllegalStateException("mxp.LIN_COST already set");
     } else {
@@ -739,7 +739,7 @@ public class Trace {
     return this;
   }
 
-  public maxOffset(final Bytes b) {
+  public Trace maxOffset(final Bytes b) {
     if (filled.get(28)) {
       throw new IllegalStateException("mxp.MAX_OFFSET already set");
     } else {
@@ -765,7 +765,7 @@ public class Trace {
     return this;
   }
 
-  public maxOffset1(final Bytes b) {
+  public Trace maxOffset1(final Bytes b) {
     if (filled.get(29)) {
       throw new IllegalStateException("mxp.MAX_OFFSET_1 already set");
     } else {
@@ -791,7 +791,7 @@ public class Trace {
     return this;
   }
 
-  public maxOffset2(final Bytes b) {
+  public Trace maxOffset2(final Bytes b) {
     if (filled.get(30)) {
       throw new IllegalStateException("mxp.MAX_OFFSET_2 already set");
     } else {
@@ -817,7 +817,7 @@ public class Trace {
     return this;
   }
 
-  public mtntop(final Boolean b) {
+  public Trace mtntop(final Boolean b) {
     if (filled.get(31)) {
       throw new IllegalStateException("mxp.MTNTOP already set");
     } else {
@@ -829,7 +829,7 @@ public class Trace {
     return this;
   }
 
-  public mxpType1(final Boolean b) {
+  public Trace mxpType1(final Boolean b) {
     if (filled.get(33)) {
       throw new IllegalStateException("mxp.MXP_TYPE_1 already set");
     } else {
@@ -841,7 +841,7 @@ public class Trace {
     return this;
   }
 
-  public mxpType2(final Boolean b) {
+  public Trace mxpType2(final Boolean b) {
     if (filled.get(34)) {
       throw new IllegalStateException("mxp.MXP_TYPE_2 already set");
     } else {
@@ -853,7 +853,7 @@ public class Trace {
     return this;
   }
 
-  public mxpType3(final Boolean b) {
+  public Trace mxpType3(final Boolean b) {
     if (filled.get(35)) {
       throw new IllegalStateException("mxp.MXP_TYPE_3 already set");
     } else {
@@ -865,7 +865,7 @@ public class Trace {
     return this;
   }
 
-  public mxpType4(final Boolean b) {
+  public Trace mxpType4(final Boolean b) {
     if (filled.get(36)) {
       throw new IllegalStateException("mxp.MXP_TYPE_4 already set");
     } else {
@@ -877,7 +877,7 @@ public class Trace {
     return this;
   }
 
-  public mxpType5(final Boolean b) {
+  public Trace mxpType5(final Boolean b) {
     if (filled.get(37)) {
       throw new IllegalStateException("mxp.MXP_TYPE_5 already set");
     } else {
@@ -889,7 +889,7 @@ public class Trace {
     return this;
   }
 
-  public mxpx(final Boolean b) {
+  public Trace mxpx(final Boolean b) {
     if (filled.get(32)) {
       throw new IllegalStateException("mxp.MXPX already set");
     } else {
@@ -901,7 +901,7 @@ public class Trace {
     return this;
   }
 
-  public noop(final Boolean b) {
+  public Trace noop(final Boolean b) {
     if (filled.get(38)) {
       throw new IllegalStateException("mxp.NOOP already set");
     } else {
@@ -913,7 +913,7 @@ public class Trace {
     return this;
   }
 
-  public offset1Hi(final Bytes b) {
+  public Trace offset1Hi(final Bytes b) {
     if (filled.get(39)) {
       throw new IllegalStateException("mxp.OFFSET_1_HI already set");
     } else {
@@ -939,7 +939,7 @@ public class Trace {
     return this;
   }
 
-  public offset1Lo(final Bytes b) {
+  public Trace offset1Lo(final Bytes b) {
     if (filled.get(40)) {
       throw new IllegalStateException("mxp.OFFSET_1_LO already set");
     } else {
@@ -965,7 +965,7 @@ public class Trace {
     return this;
   }
 
-  public offset2Hi(final Bytes b) {
+  public Trace offset2Hi(final Bytes b) {
     if (filled.get(41)) {
       throw new IllegalStateException("mxp.OFFSET_2_HI already set");
     } else {
@@ -991,7 +991,7 @@ public class Trace {
     return this;
   }
 
-  public offset2Lo(final Bytes b) {
+  public Trace offset2Lo(final Bytes b) {
     if (filled.get(42)) {
       throw new IllegalStateException("mxp.OFFSET_2_LO already set");
     } else {
@@ -1017,7 +1017,7 @@ public class Trace {
     return this;
   }
 
-  public quadCost(final Bytes b) {
+  public Trace quadCost(final Bytes b) {
     if (filled.get(43)) {
       throw new IllegalStateException("mxp.QUAD_COST already set");
     } else {
@@ -1042,7 +1042,7 @@ public class Trace {
     return this;
   }
 
-  public roob(final Boolean b) {
+  public Trace roob(final Boolean b) {
     if (filled.get(44)) {
       throw new IllegalStateException("mxp.ROOB already set");
     } else {
@@ -1054,7 +1054,7 @@ public class Trace {
     return this;
   }
 
-  public size1Hi(final Bytes b) {
+  public Trace size1Hi(final Bytes b) {
     if (filled.get(45)) {
       throw new IllegalStateException("mxp.SIZE_1_HI already set");
     } else {
@@ -1079,7 +1079,7 @@ public class Trace {
     return this;
   }
 
-  public size1Lo(final Bytes b) {
+  public Trace size1Lo(final Bytes b) {
     if (filled.get(46)) {
       throw new IllegalStateException("mxp.SIZE_1_LO already set");
     } else {
@@ -1104,7 +1104,7 @@ public class Trace {
     return this;
   }
 
-  public size1NonzeroNoMxpx(final Boolean b) {
+  public Trace size1NonzeroNoMxpx(final Boolean b) {
     if (filled.get(47)) {
       throw new IllegalStateException("mxp.SIZE_1_NONZERO_NO_MXPX already set");
     } else {
@@ -1116,7 +1116,7 @@ public class Trace {
     return this;
   }
 
-  public size2Hi(final Bytes b) {
+  public Trace size2Hi(final Bytes b) {
     if (filled.get(48)) {
       throw new IllegalStateException("mxp.SIZE_2_HI already set");
     } else {
@@ -1141,7 +1141,7 @@ public class Trace {
     return this;
   }
 
-  public size2Lo(final Bytes b) {
+  public Trace size2Lo(final Bytes b) {
     if (filled.get(49)) {
       throw new IllegalStateException("mxp.SIZE_2_LO already set");
     } else {
@@ -1166,7 +1166,7 @@ public class Trace {
     return this;
   }
 
-  public size2NonzeroNoMxpx(final Boolean b) {
+  public Trace size2NonzeroNoMxpx(final Boolean b) {
     if (filled.get(50)) {
       throw new IllegalStateException("mxp.SIZE_2_NONZERO_NO_MXPX already set");
     } else {
@@ -1178,7 +1178,7 @@ public class Trace {
     return this;
   }
 
-  public stamp(final long b) {
+  public Trace stamp(final long b) {
     if (filled.get(51)) {
       throw new IllegalStateException("mxp.STAMP already set");
     } else {
@@ -1196,7 +1196,7 @@ public class Trace {
     return this;
   }
 
-  public words(final Bytes b) {
+  public Trace words(final Bytes b) {
     if (filled.get(52)) {
       throw new IllegalStateException("mxp.WORDS already set");
     } else {
@@ -1221,7 +1221,7 @@ public class Trace {
     return this;
   }
 
-  public wordsNew(final Bytes b) {
+  public Trace wordsNew(final Bytes b) {
     if (filled.get(53)) {
       throw new IllegalStateException("mxp.WORDS_NEW already set");
     } else {

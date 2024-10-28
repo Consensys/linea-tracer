@@ -609,8 +609,8 @@ public class MxpOperation extends ModuleOperation {
           .gasMxp(Bytes.ofUnsignedLong(this.mxpCall.getGasMxp()))
           .expands(this.isExpands())
           .mtntop(this.mxpCall.mayTriggerNontrivialMmuOperation)
-          .size1NonzeroNoMxpx(!this.mxpCall.mxpx && !this.mxpCall.getSize1().isZero())
-          .size2NonzeroNoMxpx(!this.mxpCall.mxpx && !this.mxpCall.getSize2().isZero())
+          .size1NonzeroNoMxpx(this.mxpCall.getSize1NonZeroNoMxpx())
+          .size2NonzeroNoMxpx(this.mxpCall.getSize2NonZeroNoMxpx())
           .validateRow();
     }
   }

@@ -73,7 +73,8 @@ public class Stack {
 
     pending.addLine(
         new IndexedStackOperation(1, StackItem.pop(height, val1, stackStampWithOffset(0))),
-        new IndexedStackOperation(2, StackItem.pop((short) (height - 1), val2, stackStampWithOffset(1))));
+        new IndexedStackOperation(
+            2, StackItem.pop((short) (height - 1), val2, stackStampWithOffset(1))));
   }
 
   private void zeroOne(MessageFrame ignoredFrame, StackContext pending) {

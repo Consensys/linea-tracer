@@ -217,14 +217,7 @@ public final class StackFragment implements TraceFragment {
     }
 
     final InstructionFamily currentInstFamily = stack.getCurrentOpcodeData().instructionFamily();
-
-    TracedException tracedException = commonFragmentValues.tracedException();
-
-    // TODO: here only for debugging, remove it
-    if (tracedException == UNDEFINED) {
-      System.out.println(currentInstFamily);
-      System.out.println(this.opCode);
-    }
+    final TracedException tracedException = commonFragmentValues.tracedException();
 
     this.tracedExceptionSanityChecks(tracedException);
 

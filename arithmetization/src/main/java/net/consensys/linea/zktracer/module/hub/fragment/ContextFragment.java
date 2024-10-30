@@ -128,7 +128,7 @@ public class ContextFragment implements TraceFragment {
         callStack,
         Either.right(receiverContextNumber),
         providerContextNumber,
-        callStack.currentCallFrame().returnDataSpan().snapshot(),
+        callStack.currentCallFrame().outputDataSpan().snapshot(),
         true);
     // TODO: is this what we want ?
     //  also: will the latestReturnData have been updated ?

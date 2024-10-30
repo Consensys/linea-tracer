@@ -28,11 +28,8 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Install Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-
-      - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
+      - name: Setup Rust Corset
+        uses: ./.github/actions/setup-rust-corset
 
       - name: Generate zkevm_for_reference_tests.bin
         run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
@@ -52,10 +49,12 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ethereum-tests-report
-          path: reference-tests/build/reports/tests/**/*
+          path: |
+            reference-tests/build/reports/tests/**/*
+            tmp/local/*
 
 
   ethereum-tests-go-corset:
@@ -77,20 +76,11 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Install Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-
-      - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
+      - name: Setup Go Corset
+        uses: ./.github/actions/setup-go-corset
 
       - name: Generate zkevm_for_reference_tests.bin
         run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
-
-      - name: Install Go
-        uses: actions/setup-go@v4
-
-      - name: Install Go Corset
-        run: go install github.com/consensys/go-corset/cmd/go-corset@latest
 
       - name: Generate General State Reference Tests
         run: ./gradlew generateGeneralStateReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
@@ -108,7 +98,9 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ethereum-tests-go-corset-report
-          path: reference-tests/build/reports/tests/**/*
+          path: | 
+            reference-tests/build/reports/tests/**/*
+            tmp/local/*

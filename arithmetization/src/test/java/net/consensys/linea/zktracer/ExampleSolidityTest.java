@@ -22,12 +22,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 import net.consensys.linea.testing.SmartContractUtils;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import net.consensys.linea.testing.Web3jUtils;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.testing.generated.TestSnippet_Events;
@@ -63,7 +63,7 @@ public class ExampleSolidityTest {
             .address(Address.fromHexString("0x22222"))
             .balance(Wei.ONE)
             .nonce(5)
-            .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
             .build();
 
     ToyAccount snippetAccount =
@@ -71,7 +71,7 @@ public class ExampleSolidityTest {
             .address(Address.fromHexString("0x11111"))
             .balance(Wei.ONE)
             .nonce(6)
-            .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
             .build();
 
     Function snippetFunction =
@@ -107,8 +107,8 @@ public class ExampleSolidityTest {
             .keyPair(keyPair)
             .build();
 
-    Consumer<TransactionProcessingResult> resultValidator =
-        (TransactionProcessingResult result) -> {
+    TransactionProcessingResultValidator resultValidator =
+        (Transaction transaction, TransactionProcessingResult result) -> {
           // One event from the snippet
           // One event from the framework entrypoint about contract call
           assertEquals(result.getLogs().size(), 2);
@@ -133,7 +133,7 @@ public class ExampleSolidityTest {
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(senderAccount, frameworkEntrypointAccount, snippetAccount))
         .transaction(tx)
-        .testValidator(resultValidator)
+        .transactionProcessingResultValidator(resultValidator)
         .build()
         .run();
   }
@@ -151,7 +151,7 @@ public class ExampleSolidityTest {
             .address(Address.fromHexString("0x11111"))
             .balance(Wei.ONE)
             .nonce(6)
-            .code(SmartContractUtils.getSolidityContractByteCode(TestSnippet_Events.class))
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestSnippet_Events.class))
             .build();
 
     Function function =
@@ -170,8 +170,8 @@ public class ExampleSolidityTest {
             .keyPair(keyPair)
             .build();
 
-    Consumer<TransactionProcessingResult> resultValidator =
-        (TransactionProcessingResult result) -> {
+    TransactionProcessingResultValidator resultValidator =
+        (Transaction transaction, TransactionProcessingResult result) -> {
           assertEquals(result.getLogs().size(), 1);
           TestSnippet_Events.DataNoIndexesEventResponse response =
               TestSnippet_Events.getDataNoIndexesEventFromLog(
@@ -182,7 +182,7 @@ public class ExampleSolidityTest {
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(senderAccount, contractAccount))
         .transaction(tx)
-        .testValidator(resultValidator)
+        .transactionProcessingResultValidator(resultValidator)
         .build()
         .run();
   }
@@ -201,7 +201,7 @@ public class ExampleSolidityTest {
             .address(Address.fromHexString("0x11111"))
             .balance(Wei.ONE)
             .nonce(6)
-            .code(SmartContractUtils.getSolidityContractByteCode(TestStorage.class))
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(TestStorage.class))
             .build();
 
     Function function =
@@ -240,7 +240,7 @@ public class ExampleSolidityTest {
             .address(Address.fromHexString("0x22222"))
             .balance(Wei.ONE)
             .nonce(5)
-            .code(SmartContractUtils.getSolidityContractByteCode(FrameworkEntrypoint.class))
+            .code(SmartContractUtils.getSolidityContractRuntimeByteCode(FrameworkEntrypoint.class))
             .build();
 
     ToyAccount yulAccount =
@@ -248,7 +248,7 @@ public class ExampleSolidityTest {
             .address(Address.fromHexString("0x11111"))
             .balance(Wei.ONE)
             .nonce(6)
-            .code(SmartContractUtils.getYulContractByteCode("DynamicBytecode.yul"))
+            .code(SmartContractUtils.getYulContractRuntimeByteCode("DynamicBytecode.yul"))
             .build();
 
     Function yulFunction = new Function("Write", Collections.emptyList(), Collections.emptyList());
@@ -273,8 +273,8 @@ public class ExampleSolidityTest {
     Bytes txPayload =
         Bytes.fromHexStringLenient(FunctionEncoder.encode(frameworkEntryPointFunction));
 
-    Consumer<TransactionProcessingResult> resultValidator =
-        (TransactionProcessingResult result) -> {
+    TransactionProcessingResultValidator resultValidator =
+        (Transaction transaction, TransactionProcessingResult result) -> {
           assertEquals(result.getLogs().size(), 1);
           for (Log log : result.getLogs()) {
             String logTopic = log.getTopics().getFirst().toHexString();
@@ -301,7 +301,7 @@ public class ExampleSolidityTest {
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(senderAccount, yulAccount, frameworkEntrypointAccount))
         .transaction(tx)
-        .testValidator(resultValidator)
+        .transactionProcessingResultValidator(resultValidator)
         .build()
         .run();
   }

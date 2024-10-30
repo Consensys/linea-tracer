@@ -28,7 +28,7 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Setup Corset
+      - name: Setup Rust Corset
         uses: ./.github/actions/setup-rust-corset
 
       - name: Run Weekly tests

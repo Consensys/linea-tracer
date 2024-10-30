@@ -75,7 +75,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     final boolean coinbaseWarmth = txMetadata.isCoinbaseWarmAtTransactionEnd();
 
     final Address senderAddress = senderSnapshotBeforeFinalization.address();
-    senderSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub,senderAddress);
+    senderSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub, senderAddress);
     senderSnapshotAfterTxFinalization.turnOnWarmth(); // purely constraints based
 
     final Address recipientAddress = recipientSnapshotBeforeFinalization.address();

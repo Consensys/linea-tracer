@@ -624,6 +624,7 @@ opcodes:
       nbAdded: 1
       nbRemoved: 1
       staticGas: S_HUB
+      flag1: true
   - mnemonic: SSTORE
     value: 0x55
     instructionFamily: STORAGE
@@ -635,7 +636,7 @@ opcodes:
       nbRemoved: 2
       staticGas: S_HUB
       forbiddenInStatic: true
-      flag1: true
+      flag2: true
   - mnemonic: JUMP
     value: 0x56
     instructionFamily: JUMP

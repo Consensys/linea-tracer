@@ -58,7 +58,6 @@ public final class StackFragment implements TraceFragment {
   @Getter private final OpCode opCode;
   @Setter private boolean jumpDestinationVettingRequired;
   @Setter private boolean validJumpDestination;
-  private final boolean willRevert;
   private final State.TxState.Stamps stamps;
   private final CommonFragmentValues commonFragmentValues;
 
@@ -70,7 +69,6 @@ public final class StackFragment implements TraceFragment {
       AbortingConditions aborts,
       GasProjection gp,
       boolean isDeploying,
-      boolean willRevert,
       CommonFragmentValues commonFragmentValues) {
     this.stack = stack;
     this.stackOps = stackOps;
@@ -126,7 +124,6 @@ public final class StackFragment implements TraceFragment {
       jumpDestinationVettingRequired = false;
     }
 
-    this.willRevert = willRevert;
     this.stamps = hub.state().stamps();
     this.commonFragmentValues = commonFragmentValues;
   }
@@ -139,7 +136,6 @@ public final class StackFragment implements TraceFragment {
       final AbortingConditions aborts,
       final GasProjection gp,
       boolean isDeploying,
-      boolean willRevert,
       CommonFragmentValues commonFragmentValues) {
     return new StackFragment(
         hub,
@@ -149,16 +145,11 @@ public final class StackFragment implements TraceFragment {
         aborts,
         gp,
         isDeploying,
-        willRevert,
         commonFragmentValues);
   }
 
   private boolean traceLog() {
-    return opCode.isLog()
-        && Exceptions.none(
-            exceptions) // TODO: should be redundant (exceptions trigger reverts) --- this
-        // could be asserted
-        && !willRevert;
+    return opCode.isLog() && !commonFragmentValues.callFrame().willRevert();
   }
 
   @Override

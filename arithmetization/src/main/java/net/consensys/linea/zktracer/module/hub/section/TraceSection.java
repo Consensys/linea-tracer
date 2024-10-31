@@ -171,7 +171,6 @@ public class TraceSection {
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(currentFrame.frame(), currentFrame.opCode()),
                 currentFrame.isDeployment(),
-                currentFrame.willRevert(),
                 commonValues));
       }
     } else {
@@ -185,7 +184,6 @@ public class TraceSection {
                 hub.pch().abortingConditions().snapshot(),
                 Hub.GAS_PROJECTOR.of(currentFrame.frame(), currentFrame.opCode()),
                 currentFrame.isDeployment(),
-                currentFrame.willRevert(),
                 commonValues));
       }
     }

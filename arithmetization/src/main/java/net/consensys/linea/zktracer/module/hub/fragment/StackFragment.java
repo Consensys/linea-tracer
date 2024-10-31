@@ -138,14 +138,7 @@ public final class StackFragment implements TraceFragment {
       boolean isDeploying,
       CommonFragmentValues commonFragmentValues) {
     return new StackFragment(
-        hub,
-        stack,
-        stackItems,
-        exceptions,
-        aborts,
-        gp,
-        isDeploying,
-        commonFragmentValues);
+        hub, stack, stackItems, exceptions, aborts, gp, isDeploying, commonFragmentValues);
   }
 
   private boolean traceLog() {

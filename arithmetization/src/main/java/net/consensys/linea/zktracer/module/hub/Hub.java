@@ -228,7 +228,7 @@ public class Hub implements Module {
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
-  private final RlpAddr rlpAddr = new RlpAddr(this, trm);
+  @Getter private final RlpAddr rlpAddr = new RlpAddr(this, trm);
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
   @Getter private final Mxp mxp = new Mxp();

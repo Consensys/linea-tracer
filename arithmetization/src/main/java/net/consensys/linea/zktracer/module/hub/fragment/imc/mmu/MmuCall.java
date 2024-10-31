@@ -802,9 +802,9 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       return trace
           .pMiscMmuFlag(true)
           .pMiscMmuInst(instruction)
-          .pMiscMmuTgtId(targetId)
-          .pMiscMmuSrcId(sourceId)
-          .pMiscMmuAuxId(auxId)
+          .pMiscMmuTgtId(targetId())
+          .pMiscMmuSrcId(sourceId())
+          .pMiscMmuAuxId(auxId())
           .pMiscMmuSrcOffsetHi(sourceOffset.hi())
           .pMiscMmuSrcOffsetLo(sourceOffset.lo())
           .pMiscMmuTgtOffsetLo(targetOffset.lo())

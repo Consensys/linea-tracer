@@ -915,9 +915,6 @@ public class Hub implements Module {
     if (pch.signals().bin()) {
       bin.tracePreOpcode(frame);
     }
-    if (pch.signals().rlpAddr()) {
-      rlpAddr.tracePreOpcode(frame);
-    }
     if (pch.signals().mul()) {
       mul.tracePreOpcode(frame);
     }

@@ -185,7 +185,7 @@ public class Stack {
         line2 =
             new IndexedStackOperation[] {
               new IndexedStackOperation(
-                  1, StackItem.pop((short) (height - 2), topic1, stackStampWithOffset(0))),
+                  1, StackItem.pop((short) (height - 2), topic1, stackStampWithOffset(2))),
             };
       }
       case LOG2 -> {

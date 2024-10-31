@@ -149,7 +149,6 @@ public class ContextFragment implements TraceFragment {
   public Trace trace(Trace trace) {
     final CallFrame callFrame =
         this.callFrameReference.map(this.callStack::getById, this.callStack::getByContextNumber);
-    final CallFrame parent = callStack.getParentCallFrameById(callFrame.id());
 
     final Address address = callFrame.accountAddress();
     final Address codeAddress = callFrame.byteCodeAddress();

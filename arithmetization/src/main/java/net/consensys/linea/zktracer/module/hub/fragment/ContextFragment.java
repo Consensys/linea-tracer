@@ -172,7 +172,7 @@ public class ContextFragment implements TraceFragment {
         .pContextCallerAddressHi(highPart(callerAddress))
         .pContextCallerAddressLo(lowPart(callerAddress))
         .pContextCallValue(callFrame.value())
-        .pContextCallDataContextNumber(parent.contextNumber())
+        .pContextCallDataContextNumber(callFrame.callDataInfo().callDataContextNumber())
         .pContextCallDataOffset(callFrame.callDataInfo().memorySpan().offset())
         .pContextCallDataSize(callFrame.callDataInfo().memorySpan().length())
         .pContextReturnAtOffset(callFrame.returnDataTargetInCaller().offset())

@@ -105,35 +105,34 @@ public class Trace {
   private final MappedByteBuffer
       finalInBlkXorMxpSize1NonzeroNoMxpxXorCallSmcFailureCallerWillRevertXorDecFlag1XorFirstInTxn;
   private final MappedByteBuffer
-      finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorUnconstrainedFinal;
+      finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorValueCurrChanges;
   private final MappedByteBuffer
-      finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorUnconstrainedFirst;
+      finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorValueCurrIsOrig;
   private final MappedByteBuffer
-      firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrChanges;
-  private final MappedByteBuffer firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueCurrIsOrig;
+      firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrIsZero;
+  private final MappedByteBuffer firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueNextIsCurr;
   private final MappedByteBuffer
-      firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueCurrIsZero;
+      firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueNextIsOrig;
   private final MappedByteBuffer gasActual;
   private final MappedByteBuffer gasCost;
   private final MappedByteBuffer gasExpected;
   private final MappedByteBuffer gasLimit;
   private final MappedByteBuffer gasNext;
   private final MappedByteBuffer gasPrice;
-  private final MappedByteBuffer hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueNextIsOrig;
+  private final MappedByteBuffer hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueOrigIsZero;
   private final MappedByteBuffer
-      hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsCurr;
+      hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsZero;
   private final MappedByteBuffer height;
   private final MappedByteBuffer heightNew;
   private final MappedByteBuffer hubStamp;
   private final MappedByteBuffer hubStampTransactionEnd;
   private final MappedByteBuffer instruction;
-  private final MappedByteBuffer
-      isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorValueNextIsZero;
+  private final MappedByteBuffer isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorWarmth;
   private final MappedByteBuffer logInfoStamp;
   private final MappedByteBuffer
-      markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpxXorWarmth;
+      markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpx;
   private final MappedByteBuffer
-      markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorValueOrigIsZero;
+      markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorWarmthNew;
   private final MappedByteBuffer mmuStamp;
   private final MappedByteBuffer mxpOffset2Hi;
   private final MappedByteBuffer mxpOffset2Lo;
@@ -200,7 +199,7 @@ public class Trace {
   private final MappedByteBuffer
       rlpaddrDepAddrLoXorMmuSrcOffsetHiXorStackItemValueHi4XorValueOrigHi;
   private final MappedByteBuffer
-      rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequiredXorWarmthNew;
+      rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequired;
   private final MappedByteBuffer rlpaddrKecHiXorMmuSrcOffsetLoXorStackItemValueLo1XorValueOrigLo;
   private final MappedByteBuffer rlpaddrKecLoXorMmuTgtOffsetLoXorStackItemValueLo2;
   private final MappedByteBuffer rlpaddrRecipe;
@@ -387,27 +386,27 @@ public class Trace {
             length));
     headers.add(
         new ColumnHeader(
-            "hub.FINAL_IN_CNF_xor_MXP_SIZE_2_NONZERO_NO_MXPX_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DEC_FLAG_2_xor_UNCONSTRAINED_FINAL",
+            "hub.FINAL_IN_CNF_xor_MXP_SIZE_2_NONZERO_NO_MXPX_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DEC_FLAG_2_xor_VALUE_CURR_CHANGES",
             1,
             length));
     headers.add(
         new ColumnHeader(
-            "hub.FINAL_IN_TXN_xor_OOB_FLAG_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DEC_FLAG_3_xor_UNCONSTRAINED_FIRST",
+            "hub.FINAL_IN_TXN_xor_OOB_FLAG_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DEC_FLAG_3_xor_VALUE_CURR_IS_ORIG",
             1,
             length));
     headers.add(
         new ColumnHeader(
-            "hub.FIRST_IN_BLK_xor_STP_EXISTS_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DEC_FLAG_4_xor_VALUE_CURR_CHANGES",
+            "hub.FIRST_IN_BLK_xor_STP_EXISTS_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DEC_FLAG_4_xor_VALUE_CURR_IS_ZERO",
             1,
             length));
     headers.add(
         new ColumnHeader(
-            "hub.FIRST_IN_CNF_xor_STP_FLAG_xor_CREATE_ABORT_xor_DUP_FLAG_xor_VALUE_CURR_IS_ORIG",
+            "hub.FIRST_IN_CNF_xor_STP_FLAG_xor_CREATE_ABORT_xor_DUP_FLAG_xor_VALUE_NEXT_IS_CURR",
             1,
             length));
     headers.add(
         new ColumnHeader(
-            "hub.FIRST_IN_TXN_xor_STP_OOGX_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_EXT_FLAG_xor_VALUE_CURR_IS_ZERO",
+            "hub.FIRST_IN_TXN_xor_STP_OOGX_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_EXT_FLAG_xor_VALUE_NEXT_IS_ORIG",
             1,
             length));
     headers.add(new ColumnHeader("hub.GAS_ACTUAL", 8, length));
@@ -418,12 +417,12 @@ public class Trace {
     headers.add(new ColumnHeader("hub.GAS_PRICE", 8, length));
     headers.add(
         new ColumnHeader(
-            "hub.HAS_CODE_NEW_xor_CREATE_EXCEPTION_xor_HASH_INFO_FLAG_xor_VALUE_NEXT_IS_ORIG",
+            "hub.HAS_CODE_NEW_xor_CREATE_EXCEPTION_xor_HASH_INFO_FLAG_xor_VALUE_ORIG_IS_ZERO",
             1,
             length));
     headers.add(
         new ColumnHeader(
-            "hub.HAS_CODE_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_HALT_FLAG_xor_VALUE_NEXT_IS_CURR",
+            "hub.HAS_CODE_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_HALT_FLAG_xor_VALUE_NEXT_IS_ZERO",
             1,
             length));
     headers.add(new ColumnHeader("hub.HEIGHT", 2, length));
@@ -433,18 +432,18 @@ public class Trace {
     headers.add(new ColumnHeader("hub.INSTRUCTION", 32, length));
     headers.add(
         new ColumnHeader(
-            "hub.IS_PRECOMPILE_xor_CREATE_FAILURE_CONDITION_WILL_REVERT_xor_ICPX_xor_VALUE_NEXT_IS_ZERO",
+            "hub.IS_PRECOMPILE_xor_CREATE_FAILURE_CONDITION_WILL_REVERT_xor_ICPX_xor_WARMTH",
             1,
             length));
     headers.add(new ColumnHeader("hub.LOG_INFO_STAMP", 4, length));
     headers.add(
         new ColumnHeader(
-            "hub.MARKED_FOR_SELFDESTRUCT_NEW_xor_CREATE_NONEMPTY_INIT_CODE_FAILURE_WILL_REVERT_xor_JUMPX_xor_WARMTH",
+            "hub.MARKED_FOR_SELFDESTRUCT_NEW_xor_CREATE_NONEMPTY_INIT_CODE_FAILURE_WILL_REVERT_xor_JUMPX",
             1,
             length));
     headers.add(
         new ColumnHeader(
-            "hub.MARKED_FOR_SELFDESTRUCT_xor_CREATE_FAILURE_CONDITION_WONT_REVERT_xor_INVALID_FLAG_xor_VALUE_ORIG_IS_ZERO",
+            "hub.MARKED_FOR_SELFDESTRUCT_xor_CREATE_FAILURE_CONDITION_WONT_REVERT_xor_INVALID_FLAG_xor_WARMTH_NEW",
             1,
             length));
     headers.add(new ColumnHeader("hub.MMU_STAMP", 4, length));
@@ -537,7 +536,7 @@ public class Trace {
             length));
     headers.add(
         new ColumnHeader(
-            "hub.RLPADDR_FLAG_xor_CREATE_NONEMPTY_INIT_CODE_FAILURE_WONT_REVERT_xor_JUMP_DESTINATION_VETTING_REQUIRED_xor_WARMTH_NEW",
+            "hub.RLPADDR_FLAG_xor_CREATE_NONEMPTY_INIT_CODE_FAILURE_WONT_REVERT_xor_JUMP_DESTINATION_VETTING_REQUIRED",
             1,
             length));
     headers.add(
@@ -669,14 +668,14 @@ public class Trace {
             .finalInBlkXorMxpSize1NonzeroNoMxpxXorCallSmcFailureCallerWillRevertXorDecFlag1XorFirstInTxn =
         buffers.get(44);
     this
-            .finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorUnconstrainedFinal =
+            .finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorValueCurrChanges =
         buffers.get(45);
-    this.finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorUnconstrainedFirst =
+    this.finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorValueCurrIsOrig =
         buffers.get(46);
-    this.firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrChanges =
+    this.firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrIsZero =
         buffers.get(47);
-    this.firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueCurrIsOrig = buffers.get(48);
-    this.firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueCurrIsZero =
+    this.firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueNextIsCurr = buffers.get(48);
+    this.firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueNextIsOrig =
         buffers.get(49);
     this.gasActual = buffers.get(50);
     this.gasCost = buffers.get(51);
@@ -684,19 +683,19 @@ public class Trace {
     this.gasLimit = buffers.get(53);
     this.gasNext = buffers.get(54);
     this.gasPrice = buffers.get(55);
-    this.hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueNextIsOrig = buffers.get(56);
-    this.hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsCurr =
+    this.hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueOrigIsZero = buffers.get(56);
+    this.hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsZero =
         buffers.get(57);
     this.height = buffers.get(58);
     this.heightNew = buffers.get(59);
     this.hubStamp = buffers.get(60);
     this.hubStampTransactionEnd = buffers.get(61);
     this.instruction = buffers.get(62);
-    this.isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorValueNextIsZero = buffers.get(63);
+    this.isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorWarmth = buffers.get(63);
     this.logInfoStamp = buffers.get(64);
-    this.markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpxXorWarmth =
+    this.markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpx =
         buffers.get(65);
-    this.markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorValueOrigIsZero =
+    this.markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorWarmthNew =
         buffers.get(66);
     this.mmuStamp = buffers.get(67);
     this.mxpOffset2Hi = buffers.get(68);
@@ -762,8 +761,7 @@ public class Trace {
     this.returnFromMessageCallWontTouchRamXorStackItemPop4 = buffers.get(128);
     this.rlpaddrDepAddrHiXorCallDataContextNumberXorMmuRefSize = buffers.get(129);
     this.rlpaddrDepAddrLoXorMmuSrcOffsetHiXorStackItemValueHi4XorValueOrigHi = buffers.get(130);
-    this
-            .rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequiredXorWarmthNew =
+    this.rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequired =
         buffers.get(131);
     this.rlpaddrKecHiXorMmuSrcOffsetLoXorStackItemValueLo1XorValueOrigLo = buffers.get(132);
     this.rlpaddrKecLoXorMmuTgtOffsetLoXorStackItemValueLo2 = buffers.get(133);
@@ -1789,7 +1787,7 @@ public class Trace {
       filled.set(54);
     }
 
-    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorUnconstrainedFinal
+    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorValueCurrChanges
         .put((byte) (b ? 1 : 0));
 
     return this;
@@ -1802,7 +1800,7 @@ public class Trace {
       filled.set(55);
     }
 
-    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorUnconstrainedFirst.put(
+    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorValueCurrIsOrig.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -1815,7 +1813,7 @@ public class Trace {
       filled.set(56);
     }
 
-    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrChanges.put(
+    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -1828,7 +1826,7 @@ public class Trace {
       filled.set(57);
     }
 
-    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueCurrIsOrig.put((byte) (b ? 1 : 0));
+    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueNextIsCurr.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1840,7 +1838,7 @@ public class Trace {
       filled.set(58);
     }
 
-    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueCurrIsZero.put(
+    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueNextIsOrig.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -1853,7 +1851,7 @@ public class Trace {
       filled.set(59);
     }
 
-    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsCurr.put(
+    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -1866,7 +1864,7 @@ public class Trace {
       filled.set(60);
     }
 
-    hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueNextIsOrig.put((byte) (b ? 1 : 0));
+    hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueOrigIsZero.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1878,8 +1876,7 @@ public class Trace {
       filled.set(61);
     }
 
-    isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorValueNextIsZero.put(
-        (byte) (b ? 1 : 0));
+    isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorWarmth.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -1891,7 +1888,7 @@ public class Trace {
       filled.set(62);
     }
 
-    markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorValueOrigIsZero.put(
+    markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorWarmthNew.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -1904,7 +1901,7 @@ public class Trace {
       filled.set(63);
     }
 
-    markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpxXorWarmth.put(
+    markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpx.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -2018,8 +2015,8 @@ public class Trace {
       filled.set(64);
     }
 
-    rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequiredXorWarmthNew
-        .put((byte) (b ? 1 : 0));
+    rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequired.put(
+        (byte) (b ? 1 : 0));
 
     return this;
   }
@@ -3634,7 +3631,7 @@ public class Trace {
       filled.set(54);
     }
 
-    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorUnconstrainedFinal
+    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorValueCurrChanges
         .put((byte) (b ? 1 : 0));
 
     return this;
@@ -3897,7 +3894,7 @@ public class Trace {
       filled.set(55);
     }
 
-    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorUnconstrainedFirst.put(
+    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorValueCurrIsOrig.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -3928,7 +3925,7 @@ public class Trace {
       filled.set(56);
     }
 
-    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrChanges.put(
+    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -3941,7 +3938,7 @@ public class Trace {
       filled.set(57);
     }
 
-    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueCurrIsOrig.put((byte) (b ? 1 : 0));
+    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueNextIsCurr.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4121,7 +4118,7 @@ public class Trace {
       filled.set(58);
     }
 
-    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueCurrIsZero.put(
+    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueNextIsOrig.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4186,7 +4183,7 @@ public class Trace {
       filled.set(59);
     }
 
-    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsCurr.put(
+    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4321,7 +4318,7 @@ public class Trace {
       filled.set(54);
     }
 
-    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorUnconstrainedFinal
+    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorValueCurrChanges
         .put((byte) (b ? 1 : 0));
 
     return this;
@@ -4335,7 +4332,7 @@ public class Trace {
       filled.set(55);
     }
 
-    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorUnconstrainedFirst.put(
+    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorValueCurrIsOrig.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4349,7 +4346,7 @@ public class Trace {
       filled.set(56);
     }
 
-    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrChanges.put(
+    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4362,7 +4359,7 @@ public class Trace {
       filled.set(57);
     }
 
-    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueCurrIsOrig.put((byte) (b ? 1 : 0));
+    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueNextIsCurr.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4375,7 +4372,7 @@ public class Trace {
       filled.set(58);
     }
 
-    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueCurrIsZero.put(
+    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueNextIsOrig.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4389,7 +4386,7 @@ public class Trace {
       filled.set(59);
     }
 
-    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsCurr.put(
+    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4402,7 +4399,7 @@ public class Trace {
       filled.set(60);
     }
 
-    hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueNextIsOrig.put((byte) (b ? 1 : 0));
+    hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueOrigIsZero.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4415,8 +4412,7 @@ public class Trace {
       filled.set(61);
     }
 
-    isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorValueNextIsZero.put(
-        (byte) (b ? 1 : 0));
+    isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorWarmth.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -4429,7 +4425,7 @@ public class Trace {
       filled.set(62);
     }
 
-    markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorValueOrigIsZero.put(
+    markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorWarmthNew.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4443,7 +4439,7 @@ public class Trace {
       filled.set(63);
     }
 
-    markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpxXorWarmth.put(
+    markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpx.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -4457,8 +4453,8 @@ public class Trace {
       filled.set(64);
     }
 
-    rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequiredXorWarmthNew
-        .put((byte) (b ? 1 : 0));
+    rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequired.put(
+        (byte) (b ? 1 : 0));
 
     return this;
   }
@@ -5085,7 +5081,7 @@ public class Trace {
       filled.set(54);
     }
 
-    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorUnconstrainedFinal
+    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorValueCurrChanges
         .put((byte) (b ? 1 : 0));
 
     return this;
@@ -5098,7 +5094,7 @@ public class Trace {
       filled.set(55);
     }
 
-    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorUnconstrainedFirst.put(
+    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorValueCurrIsOrig.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -5111,7 +5107,7 @@ public class Trace {
       filled.set(56);
     }
 
-    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrChanges.put(
+    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -5136,7 +5132,7 @@ public class Trace {
       filled.set(57);
     }
 
-    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueCurrIsOrig.put((byte) (b ? 1 : 0));
+    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueNextIsCurr.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -5148,7 +5144,7 @@ public class Trace {
       filled.set(58);
     }
 
-    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueCurrIsZero.put(
+    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueNextIsOrig.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -5161,7 +5157,7 @@ public class Trace {
       filled.set(59);
     }
 
-    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsCurr.put(
+    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -5174,7 +5170,7 @@ public class Trace {
       filled.set(60);
     }
 
-    hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueNextIsOrig.put((byte) (b ? 1 : 0));
+    hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueOrigIsZero.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -5246,8 +5242,7 @@ public class Trace {
       filled.set(61);
     }
 
-    isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorValueNextIsZero.put(
-        (byte) (b ? 1 : 0));
+    isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorWarmth.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -5285,7 +5280,7 @@ public class Trace {
       filled.set(62);
     }
 
-    markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorValueOrigIsZero.put(
+    markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorWarmthNew.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -5298,8 +5293,8 @@ public class Trace {
       filled.set(64);
     }
 
-    rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequiredXorWarmthNew
-        .put((byte) (b ? 1 : 0));
+    rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequired.put(
+        (byte) (b ? 1 : 0));
 
     return this;
   }
@@ -5323,7 +5318,7 @@ public class Trace {
       filled.set(63);
     }
 
-    markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpxXorWarmth.put(
+    markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpx.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -6456,41 +6451,15 @@ public class Trace {
     return this;
   }
 
-  public Trace pStorageUnconstrainedFinal(final Boolean b) {
+  public Trace pStorageValueCurrChanges(final Boolean b) {
     if (filled.get(54)) {
-      throw new IllegalStateException("hub.storage/UNCONSTRAINED_FINAL already set");
+      throw new IllegalStateException("hub.storage/VALUE_CURR_CHANGES already set");
     } else {
       filled.set(54);
     }
 
-    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorUnconstrainedFinal
+    finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorValueCurrChanges
         .put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace pStorageUnconstrainedFirst(final Boolean b) {
-    if (filled.get(55)) {
-      throw new IllegalStateException("hub.storage/UNCONSTRAINED_FIRST already set");
-    } else {
-      filled.set(55);
-    }
-
-    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorUnconstrainedFirst.put(
-        (byte) (b ? 1 : 0));
-
-    return this;
-  }
-
-  public Trace pStorageValueCurrChanges(final Boolean b) {
-    if (filled.get(56)) {
-      throw new IllegalStateException("hub.storage/VALUE_CURR_CHANGES already set");
-    } else {
-      filled.set(56);
-    }
-
-    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrChanges.put(
-        (byte) (b ? 1 : 0));
 
     return this;
   }
@@ -6524,25 +6493,26 @@ public class Trace {
   }
 
   public Trace pStorageValueCurrIsOrig(final Boolean b) {
-    if (filled.get(57)) {
+    if (filled.get(55)) {
       throw new IllegalStateException("hub.storage/VALUE_CURR_IS_ORIG already set");
     } else {
-      filled.set(57);
+      filled.set(55);
     }
 
-    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueCurrIsOrig.put((byte) (b ? 1 : 0));
+    finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorValueCurrIsOrig.put(
+        (byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pStorageValueCurrIsZero(final Boolean b) {
-    if (filled.get(58)) {
+    if (filled.get(56)) {
       throw new IllegalStateException("hub.storage/VALUE_CURR_IS_ZERO already set");
     } else {
-      filled.set(58);
+      filled.set(56);
     }
 
-    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueCurrIsZero.put(
+    firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -6605,38 +6575,38 @@ public class Trace {
   }
 
   public Trace pStorageValueNextIsCurr(final Boolean b) {
-    if (filled.get(59)) {
+    if (filled.get(57)) {
       throw new IllegalStateException("hub.storage/VALUE_NEXT_IS_CURR already set");
     } else {
-      filled.set(59);
+      filled.set(57);
     }
 
-    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsCurr.put(
-        (byte) (b ? 1 : 0));
+    firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueNextIsCurr.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pStorageValueNextIsOrig(final Boolean b) {
-    if (filled.get(60)) {
+    if (filled.get(58)) {
       throw new IllegalStateException("hub.storage/VALUE_NEXT_IS_ORIG already set");
     } else {
-      filled.set(60);
+      filled.set(58);
     }
 
-    hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueNextIsOrig.put((byte) (b ? 1 : 0));
+    firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueNextIsOrig.put(
+        (byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pStorageValueNextIsZero(final Boolean b) {
-    if (filled.get(61)) {
+    if (filled.get(59)) {
       throw new IllegalStateException("hub.storage/VALUE_NEXT_IS_ZERO already set");
     } else {
-      filled.set(61);
+      filled.set(59);
     }
 
-    isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorValueNextIsZero.put(
+    hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsZero.put(
         (byte) (b ? 1 : 0));
 
     return this;
@@ -6699,14 +6669,13 @@ public class Trace {
   }
 
   public Trace pStorageValueOrigIsZero(final Boolean b) {
-    if (filled.get(62)) {
+    if (filled.get(60)) {
       throw new IllegalStateException("hub.storage/VALUE_ORIG_IS_ZERO already set");
     } else {
-      filled.set(62);
+      filled.set(60);
     }
 
-    markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorValueOrigIsZero.put(
-        (byte) (b ? 1 : 0));
+    hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueOrigIsZero.put((byte) (b ? 1 : 0));
 
     return this;
   }
@@ -6740,27 +6709,26 @@ public class Trace {
   }
 
   public Trace pStorageWarmth(final Boolean b) {
-    if (filled.get(63)) {
+    if (filled.get(61)) {
       throw new IllegalStateException("hub.storage/WARMTH already set");
     } else {
-      filled.set(63);
+      filled.set(61);
     }
 
-    markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpxXorWarmth.put(
-        (byte) (b ? 1 : 0));
+    isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorWarmth.put((byte) (b ? 1 : 0));
 
     return this;
   }
 
   public Trace pStorageWarmthNew(final Boolean b) {
-    if (filled.get(64)) {
+    if (filled.get(62)) {
       throw new IllegalStateException("hub.storage/WARMTH_NEW already set");
     } else {
-      filled.set(64);
+      filled.set(62);
     }
 
-    rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequiredXorWarmthNew
-        .put((byte) (b ? 1 : 0));
+    markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorWarmthNew.put(
+        (byte) (b ? 1 : 0));
 
     return this;
   }
@@ -7803,27 +7771,27 @@ public class Trace {
 
     if (!filled.get(54)) {
       throw new IllegalStateException(
-          "hub.FINAL_IN_CNF_xor_MXP_SIZE_2_NONZERO_NO_MXPX_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DEC_FLAG_2_xor_UNCONSTRAINED_FINAL has not been filled");
+          "hub.FINAL_IN_CNF_xor_MXP_SIZE_2_NONZERO_NO_MXPX_xor_CALL_SMC_FAILURE_CALLER_WONT_REVERT_xor_DEC_FLAG_2_xor_VALUE_CURR_CHANGES has not been filled");
     }
 
     if (!filled.get(55)) {
       throw new IllegalStateException(
-          "hub.FINAL_IN_TXN_xor_OOB_FLAG_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DEC_FLAG_3_xor_UNCONSTRAINED_FIRST has not been filled");
+          "hub.FINAL_IN_TXN_xor_OOB_FLAG_xor_CALL_SMC_SUCCESS_CALLER_WILL_REVERT_xor_DEC_FLAG_3_xor_VALUE_CURR_IS_ORIG has not been filled");
     }
 
     if (!filled.get(56)) {
       throw new IllegalStateException(
-          "hub.FIRST_IN_BLK_xor_STP_EXISTS_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DEC_FLAG_4_xor_VALUE_CURR_CHANGES has not been filled");
+          "hub.FIRST_IN_BLK_xor_STP_EXISTS_xor_CALL_SMC_SUCCESS_CALLER_WONT_REVERT_xor_DEC_FLAG_4_xor_VALUE_CURR_IS_ZERO has not been filled");
     }
 
     if (!filled.get(57)) {
       throw new IllegalStateException(
-          "hub.FIRST_IN_CNF_xor_STP_FLAG_xor_CREATE_ABORT_xor_DUP_FLAG_xor_VALUE_CURR_IS_ORIG has not been filled");
+          "hub.FIRST_IN_CNF_xor_STP_FLAG_xor_CREATE_ABORT_xor_DUP_FLAG_xor_VALUE_NEXT_IS_CURR has not been filled");
     }
 
     if (!filled.get(58)) {
       throw new IllegalStateException(
-          "hub.FIRST_IN_TXN_xor_STP_OOGX_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_EXT_FLAG_xor_VALUE_CURR_IS_ZERO has not been filled");
+          "hub.FIRST_IN_TXN_xor_STP_OOGX_xor_CREATE_EMPTY_INIT_CODE_WILL_REVERT_xor_EXT_FLAG_xor_VALUE_NEXT_IS_ORIG has not been filled");
     }
 
     if (!filled.get(14)) {
@@ -7852,12 +7820,12 @@ public class Trace {
 
     if (!filled.get(60)) {
       throw new IllegalStateException(
-          "hub.HAS_CODE_NEW_xor_CREATE_EXCEPTION_xor_HASH_INFO_FLAG_xor_VALUE_NEXT_IS_ORIG has not been filled");
+          "hub.HAS_CODE_NEW_xor_CREATE_EXCEPTION_xor_HASH_INFO_FLAG_xor_VALUE_ORIG_IS_ZERO has not been filled");
     }
 
     if (!filled.get(59)) {
       throw new IllegalStateException(
-          "hub.HAS_CODE_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_HALT_FLAG_xor_VALUE_NEXT_IS_CURR has not been filled");
+          "hub.HAS_CODE_xor_STP_WARMTH_xor_CREATE_EMPTY_INIT_CODE_WONT_REVERT_xor_HALT_FLAG_xor_VALUE_NEXT_IS_ZERO has not been filled");
     }
 
     if (!filled.get(18)) {
@@ -7882,7 +7850,7 @@ public class Trace {
 
     if (!filled.get(61)) {
       throw new IllegalStateException(
-          "hub.IS_PRECOMPILE_xor_CREATE_FAILURE_CONDITION_WILL_REVERT_xor_ICPX_xor_VALUE_NEXT_IS_ZERO has not been filled");
+          "hub.IS_PRECOMPILE_xor_CREATE_FAILURE_CONDITION_WILL_REVERT_xor_ICPX_xor_WARMTH has not been filled");
     }
 
     if (!filled.get(22)) {
@@ -7891,12 +7859,12 @@ public class Trace {
 
     if (!filled.get(63)) {
       throw new IllegalStateException(
-          "hub.MARKED_FOR_SELFDESTRUCT_NEW_xor_CREATE_NONEMPTY_INIT_CODE_FAILURE_WILL_REVERT_xor_JUMPX_xor_WARMTH has not been filled");
+          "hub.MARKED_FOR_SELFDESTRUCT_NEW_xor_CREATE_NONEMPTY_INIT_CODE_FAILURE_WILL_REVERT_xor_JUMPX has not been filled");
     }
 
     if (!filled.get(62)) {
       throw new IllegalStateException(
-          "hub.MARKED_FOR_SELFDESTRUCT_xor_CREATE_FAILURE_CONDITION_WONT_REVERT_xor_INVALID_FLAG_xor_VALUE_ORIG_IS_ZERO has not been filled");
+          "hub.MARKED_FOR_SELFDESTRUCT_xor_CREATE_FAILURE_CONDITION_WONT_REVERT_xor_INVALID_FLAG_xor_WARMTH_NEW has not been filled");
     }
 
     if (!filled.get(23)) {
@@ -8171,7 +8139,7 @@ public class Trace {
 
     if (!filled.get(64)) {
       throw new IllegalStateException(
-          "hub.RLPADDR_FLAG_xor_CREATE_NONEMPTY_INIT_CODE_FAILURE_WONT_REVERT_xor_JUMP_DESTINATION_VETTING_REQUIRED_xor_WARMTH_NEW has not been filled");
+          "hub.RLPADDR_FLAG_xor_CREATE_NONEMPTY_INIT_CODE_FAILURE_WONT_REVERT_xor_JUMP_DESTINATION_VETTING_REQUIRED has not been filled");
     }
 
     if (!filled.get(142)) {
@@ -8585,37 +8553,35 @@ public class Trace {
     }
 
     if (!filled.get(54)) {
-      finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorUnconstrainedFinal
+      finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorValueCurrChanges
           .position(
-              finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorUnconstrainedFinal
+              finalInCnfXorMxpSize2NonzeroNoMxpxXorCallSmcFailureCallerWontRevertXorDecFlag2XorValueCurrChanges
                       .position()
                   + 1);
     }
 
     if (!filled.get(55)) {
-      finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorUnconstrainedFirst
-          .position(
-              finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorUnconstrainedFirst
-                      .position()
-                  + 1);
+      finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorValueCurrIsOrig.position(
+          finalInTxnXorOobFlagXorCallSmcSuccessCallerWillRevertXorDecFlag3XorValueCurrIsOrig
+                  .position()
+              + 1);
     }
 
     if (!filled.get(56)) {
-      firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrChanges
-          .position(
-              firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrChanges
-                      .position()
-                  + 1);
+      firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrIsZero.position(
+          firstInBlkXorStpExistsXorCallSmcSuccessCallerWontRevertXorDecFlag4XorValueCurrIsZero
+                  .position()
+              + 1);
     }
 
     if (!filled.get(57)) {
-      firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueCurrIsOrig.position(
-          firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueCurrIsOrig.position() + 1);
+      firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueNextIsCurr.position(
+          firstInCnfXorStpFlagXorCreateAbortXorDupFlagXorValueNextIsCurr.position() + 1);
     }
 
     if (!filled.get(58)) {
-      firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueCurrIsZero.position(
-          firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueCurrIsZero
+      firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueNextIsOrig.position(
+          firstInTxnXorStpOogxXorCreateEmptyInitCodeWillRevertXorExtFlagXorValueNextIsOrig
                   .position()
               + 1);
     }
@@ -8645,13 +8611,13 @@ public class Trace {
     }
 
     if (!filled.get(60)) {
-      hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueNextIsOrig.position(
-          hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueNextIsOrig.position() + 1);
+      hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueOrigIsZero.position(
+          hasCodeNewXorCreateExceptionXorHashInfoFlagXorValueOrigIsZero.position() + 1);
     }
 
     if (!filled.get(59)) {
-      hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsCurr.position(
-          hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsCurr
+      hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsZero.position(
+          hasCodeXorStpWarmthXorCreateEmptyInitCodeWontRevertXorHaltFlagXorValueNextIsZero
                   .position()
               + 1);
     }
@@ -8677,8 +8643,8 @@ public class Trace {
     }
 
     if (!filled.get(61)) {
-      isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorValueNextIsZero.position(
-          isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorValueNextIsZero.position() + 1);
+      isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorWarmth.position(
+          isPrecompileXorCreateFailureConditionWillRevertXorIcpxXorWarmth.position() + 1);
     }
 
     if (!filled.get(22)) {
@@ -8686,18 +8652,16 @@ public class Trace {
     }
 
     if (!filled.get(63)) {
-      markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpxXorWarmth.position(
-          markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpxXorWarmth
-                  .position()
+      markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpx.position(
+          markedForSelfdestructNewXorCreateNonemptyInitCodeFailureWillRevertXorJumpx.position()
               + 1);
     }
 
     if (!filled.get(62)) {
-      markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorValueOrigIsZero
-          .position(
-              markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorValueOrigIsZero
-                      .position()
-                  + 1);
+      markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorWarmthNew.position(
+          markedForSelfdestructXorCreateFailureConditionWontRevertXorInvalidFlagXorWarmthNew
+                  .position()
+              + 1);
     }
 
     if (!filled.get(23)) {
@@ -8968,9 +8932,9 @@ public class Trace {
     }
 
     if (!filled.get(64)) {
-      rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequiredXorWarmthNew
+      rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequired
           .position(
-              rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequiredXorWarmthNew
+              rlpaddrFlagXorCreateNonemptyInitCodeFailureWontRevertXorJumpDestinationVettingRequired
                       .position()
                   + 1);
     }

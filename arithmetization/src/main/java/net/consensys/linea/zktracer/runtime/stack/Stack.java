@@ -239,7 +239,8 @@ public class Stack {
   }
 
   private void copy(MessageFrame frame, StackContext pending) {
-    if (currentOpcodeData.stackSettings().addressTrimmingInstruction()) {
+    if (currentOpcodeData.numberOfArguments() == 4) {
+      // this is the EXTCODECOPY case
       Bytes val0 = getStack(frame, 0);
       Bytes val1 = getStack(frame, 1);
       Bytes val2 = getStack(frame, 2);
@@ -253,7 +254,9 @@ public class Stack {
           new IndexedStackOperation(
               3, StackItem.pop((short) (height - 2), val2, stackStampWithOffset(3))),
           new IndexedStackOperation(4, StackItem.pop(height, val0, stamp)));
+
     } else {
+      // this is the CALLDATACOPY, CODECOPY and RETURNDATACOPY case
       Bytes val1 = getStack(frame, 0);
       Bytes val2 = getStack(frame, 2);
       Bytes val3 = getStack(frame, 1);

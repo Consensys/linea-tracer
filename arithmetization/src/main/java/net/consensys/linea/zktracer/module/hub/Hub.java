@@ -55,25 +55,7 @@ import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
-import net.consensys.linea.zktracer.module.hub.section.AccountSection;
-import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
-import net.consensys.linea.zktracer.module.hub.section.ContextSection;
-import net.consensys.linea.zktracer.module.hub.section.CreateSection;
-import net.consensys.linea.zktracer.module.hub.section.EarlyExceptionSection;
-import net.consensys.linea.zktracer.module.hub.section.ExpSection;
-import net.consensys.linea.zktracer.module.hub.section.JumpSection;
-import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
-import net.consensys.linea.zktracer.module.hub.section.LogSection;
-import net.consensys.linea.zktracer.module.hub.section.SloadSection;
-import net.consensys.linea.zktracer.module.hub.section.SstoreSection;
-import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
-import net.consensys.linea.zktracer.module.hub.section.StackRamSection;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-import net.consensys.linea.zktracer.module.hub.section.TransactionSection;
-import net.consensys.linea.zktracer.module.hub.section.TxFinalizationSection;
-import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
-import net.consensys.linea.zktracer.module.hub.section.TxPreWarmingMacroSection;
-import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
+import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection;
@@ -1021,17 +1003,13 @@ public class Hub implements Module {
     failureConditionForCreates = false;
 
     switch (this.opCodeData().instructionFamily()) {
-      case ADD,
-          MOD,
-          SHF,
-          BIN,
-          WCP,
-          EXT,
-          BATCH,
-          MACHINE_STATE,
-          PUSH_POP,
-          DUP,
-          SWAP -> new StackOnlySection(this);
+      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(this);
+      case MACHINE_STATE -> {
+        switch (this.opCode()) {
+          case OpCode.MSIZE -> new MsizeSection(this);
+          default -> new StackOnlySection(this);
+        }
+      }
       case MUL -> {
         switch (this.opCode()) {
           case OpCode.EXP -> new ExpSection(this);

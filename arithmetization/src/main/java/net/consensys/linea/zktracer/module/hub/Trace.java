@@ -34,7 +34,7 @@ public class Trace {
   public static final int DOM_SUB_STAMP_OFFSET___REVERT = 0x6;
   public static final int DOM_SUB_STAMP_OFFSET___SELFDESTRUCT = 0x7;
   public static final int MULTIPLIER___DOM_SUB_STAMPS = 0x8;
-  public static final int MULTIPLIER___STACK_HEIGHT = 0x8;
+  public static final int MULTIPLIER___STACK_STAMP = 0x8;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;

@@ -21,7 +21,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
-import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
+import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_STAMP;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
@@ -887,7 +887,7 @@ public class Hub implements Module {
   private void handleStack(MessageFrame frame) {
     this.currentFrame()
         .stack()
-        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * (stamp() + 1));
+        .processInstruction(this, frame, MULTIPLIER___STACK_STAMP * (stamp() + 1));
   }
 
   void triggerModules(MessageFrame frame) {

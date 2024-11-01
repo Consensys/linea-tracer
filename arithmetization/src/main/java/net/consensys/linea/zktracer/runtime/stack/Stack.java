@@ -322,32 +322,31 @@ public class Stack {
   }
 
   private void create(MessageFrame frame, StackContext pending) {
-    final Bytes val1 = getStack(frame, 1);
-    final Bytes val2 = getStack(frame, 2);
+    final Bytes offset = getStack(frame, 1);
+    final Bytes size = getStack(frame, 2);
+    final Bytes value = getStack(frame, 0);
 
     pending.addLine(
         new IndexedStackOperation(
-            1, StackItem.pop((short) (height - 1), val1, stackStampWithOffset(1))),
+            1, StackItem.pop((short) (height - 1), offset, stackStampWithOffset(1))),
         new IndexedStackOperation(
-            2, StackItem.pop((short) (height - 2), val2, stackStampWithOffset(2))));
-    // case CREATE2
+            2, StackItem.pop((short) (height - 2), size, stackStampWithOffset(2))));
+
     if (currentOpcodeData.stackSettings().flag2()) {
-      final Bytes val3 = getStack(frame, 3);
-      final Bytes val4 = getStack(frame, 0);
+      // case CREATE2
+      final Bytes salt = getStack(frame, 3);
 
       pending.addArmingLine(
           new IndexedStackOperation(
-              2, StackItem.pop((short) (height - 3), val3, stackStampWithOffset(3))),
-          new IndexedStackOperation(3, StackItem.pop(height, val4, stackStampWithOffset(0))),
+              2, StackItem.pop((short) (height - 3), salt, stackStampWithOffset(3))),
+          new IndexedStackOperation(3, StackItem.pop(height, value, stackStampWithOffset(0))),
           new IndexedStackOperation(
               4, StackItem.push((short) (height - 3), stackStampWithOffset(4))));
     } else
     // case CREATE
     {
-      final Bytes val4 = getStack(frame, 0);
-
       pending.addArmingLine(
-          new IndexedStackOperation(3, StackItem.pop(height, val4, stackStampWithOffset(0))),
+          new IndexedStackOperation(3, StackItem.pop(height, value, stackStampWithOffset(0))),
           new IndexedStackOperation(
               4, StackItem.push((short) (height - 2), stackStampWithOffset(4))));
     }

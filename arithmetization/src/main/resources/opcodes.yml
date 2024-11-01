@@ -429,7 +429,6 @@ opcodes:
       delta: 4
       nbAdded: 0
       nbRemoved: 4
-      staticGas: G_VERY_LOW
       flag4: true
     billing:
       byWord:

@@ -117,6 +117,7 @@ import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
+import org.checkerframework.checker.units.qual.C;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -387,7 +388,7 @@ public class Hub implements Module {
       final Address l2l1ContractAddress,
       final Bytes l2l1Topic,
       final BigInteger nonnegativeChainId) {
-    Preconditions.checkState(nonnegativeChainId.signum() >= 0);
+    checkState(nonnegativeChainId.signum() >= 0);
     chainId = nonnegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
@@ -606,6 +607,8 @@ public class Hub implements Module {
     // internal transaction (CALL) or internal deployment (CREATE)
     if (frame.getDepth() > 0) {
       final OpCode currentOpCode = callStack.currentCallFrame().opCode();
+      checkState(currentOpCode.isCall() || currentOpCode.isCreate());
+      checkState(currentTraceSection() instanceof CallSection || currentTraceSection() instanceof CreateSection);
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
@@ -633,6 +636,11 @@ public class Hub implements Module {
       currentFrame().rememberGasNextBeforePausing();
       currentFrame().pauseCurrentFrame();
 
+      MemorySpan returnDataTargetInCaller =
+              (currentTraceSection() instanceof CallSection)
+                      ? ((CallSection) currentTraceSection()).getCallProvidedReturnDataTargetSpan()
+                      : MemorySpan.empty();
+
       callStack.enter(
           frameType,
           newChildContextNumber(),
@@ -648,7 +656,8 @@ public class Hub implements Module {
           frame.getInputData(),
           callDataOffset,
           callDataSize,
-          callDataContextNumber);
+          callDataContextNumber,
+          returnDataTargetInCaller);
 
       this.currentFrame().initializeFrame(frame);
 

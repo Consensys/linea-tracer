@@ -57,36 +57,6 @@ public final class CallStack {
   /** a "pointer" to the currentId {@link CallFrame} in <code>frames</code>. */
   private int currentId;
 
-  public void newPrecompileResult(
-      final int hubStamp,
-      final Bytes precompileResult,
-      final int returnDataOffset,
-      final Address precompileAddress) {
-
-    final CallFrame newFrame =
-        new CallFrame(
-            CallFrameType.PRECOMPILE_RETURN_DATA,
-            this.callFrames.size(),
-            hubStamp,
-            this.depth,
-            false,
-            Wei.ZERO,
-            0,
-            precompileAddress,
-            -1,
-            precompileAddress,
-            -1,
-            Bytecode.EMPTY,
-            precompileAddress,
-            -1,
-            this.currentId,
-            precompileResult,
-            returnDataOffset,
-            precompileResult.size());
-
-    this.callFrames.add(newFrame);
-  }
-
   public void newRootContext(
       int contextNumber,
       Address from,

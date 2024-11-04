@@ -58,7 +58,6 @@ public final class StackFragment implements TraceFragment {
   @Getter private final OpCode opCode;
   @Setter private boolean jumpDestinationVettingRequired;
   @Setter private boolean validJumpDestination;
-  private final boolean willRevert;
   private final State.TxState.Stamps stamps;
   private final CommonFragmentValues commonFragmentValues;
 
@@ -70,7 +69,6 @@ public final class StackFragment implements TraceFragment {
       AbortingConditions aborts,
       GasProjection gp,
       boolean isDeploying,
-      boolean willRevert,
       CommonFragmentValues commonFragmentValues) {
     this.stack = stack;
     this.stackOps = stackOps;
@@ -126,7 +124,6 @@ public final class StackFragment implements TraceFragment {
       jumpDestinationVettingRequired = false;
     }
 
-    this.willRevert = willRevert;
     this.stamps = hub.state().stamps();
     this.commonFragmentValues = commonFragmentValues;
   }
@@ -139,26 +136,13 @@ public final class StackFragment implements TraceFragment {
       final AbortingConditions aborts,
       final GasProjection gp,
       boolean isDeploying,
-      boolean willRevert,
       CommonFragmentValues commonFragmentValues) {
     return new StackFragment(
-        hub,
-        stack,
-        stackItems,
-        exceptions,
-        aborts,
-        gp,
-        isDeploying,
-        willRevert,
-        commonFragmentValues);
+        hub, stack, stackItems, exceptions, aborts, gp, isDeploying, commonFragmentValues);
   }
 
   private boolean traceLog() {
-    return opCode.isLog()
-        && Exceptions.none(
-            exceptions) // TODO: should be redundant (exceptions trigger reverts) --- this
-        // could be asserted
-        && !willRevert;
+    return opCode.isLog() && !commonFragmentValues.callFrame().willRevert();
   }
 
   @Override
@@ -185,14 +169,14 @@ public final class StackFragment implements TraceFragment {
             trace::pStackStackItemPop3,
             trace::pStackStackItemPop4);
 
-    final List<Function<Bytes, Trace>> heightTracers =
+    final List<Function<Short, Trace>> heightTracers =
         List.of(
             trace::pStackStackItemHeight1,
             trace::pStackStackItemHeight2,
             trace::pStackStackItemHeight3,
             trace::pStackStackItemHeight4);
 
-    final List<Function<Bytes, Trace>> stampTracers =
+    final List<Function<Integer, Trace>> stampTracers =
         List.of(
             trace::pStackStackItemStamp1,
             trace::pStackStackItemStamp2,
@@ -209,22 +193,15 @@ public final class StackFragment implements TraceFragment {
         pushValue = eValue;
       }
 
-      heightTracers.get(i).apply(Bytes.ofUnsignedShort(op.height()));
-      valLoTracers.get(i).apply(eValue.lo());
+      heightTracers.get(i).apply(op.height());
       valHiTracers.get(i).apply(eValue.hi());
+      valLoTracers.get(i).apply(eValue.lo());
       popTracers.get(i).apply(op.action() == Stack.POP);
-      stampTracers.get(i).apply(Bytes.ofUnsignedLong(op.stackStamp()));
+      stampTracers.get(i).apply(op.stackStamp());
     }
 
     final InstructionFamily currentInstFamily = stack.getCurrentOpcodeData().instructionFamily();
-
-    TracedException tracedException = commonFragmentValues.tracedException();
-
-    // TODO: here only for debugging, remove it
-    if (tracedException == UNDEFINED) {
-      System.out.println(currentInstFamily);
-      System.out.println(this.opCode);
-    }
+    final TracedException tracedException = commonFragmentValues.tracedException();
 
     this.tracedExceptionSanityChecks(tracedException);
 

@@ -122,13 +122,13 @@ public class Exceptions {
   }
 
   private static boolean isStackUnderflow(final MessageFrame frame, OpCodeData opCodeData) {
-    return frame.stackSize() < opCodeData.stackSettings().nbRemoved();
+    return frame.stackSize() < opCodeData.stackSettings().delta();
   }
 
   private static boolean isStackOverflow(final MessageFrame frame, OpCodeData opCodeData) {
     return frame.stackSize()
-            + opCodeData.stackSettings().nbAdded()
-            - opCodeData.stackSettings().nbRemoved()
+            + opCodeData.stackSettings().alpha()
+            - opCodeData.stackSettings().delta()
         > 1024;
   }
 
@@ -138,15 +138,15 @@ public class Exceptions {
   }
 
   private static boolean isOutOfGas(MessageFrame frame, OpCode opCode, GasProjector gp) {
-    final long required = gp.of(frame, opCode).total();
+    final long required = gp.of(frame, opCode).upfrontGasCost();
     return required > frame.getRemainingGas();
   }
 
   private static boolean isReturnDataCopyFault(final MessageFrame frame, final OpCode opCode) {
     if (opCode == OpCode.RETURNDATACOPY) {
-      long returnDataSize = frame.getReturnData().size();
-      long askedOffset = clampedToLong(frame.getStackItem(1));
-      long askedSize = clampedToLong(frame.getStackItem(2));
+      final long returnDataSize = frame.getReturnData().size();
+      final long askedOffset = clampedToLong(frame.getStackItem(1));
+      final long askedSize = clampedToLong(frame.getStackItem(2));
 
       return Words.clampedAdd(askedOffset, askedSize) > returnDataSize;
     }

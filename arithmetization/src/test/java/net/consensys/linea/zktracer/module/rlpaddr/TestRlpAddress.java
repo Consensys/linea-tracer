@@ -24,6 +24,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -40,8 +41,6 @@ public class TestRlpAddress {
 
   @Test
   void randDeployment() {
-    // final ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
-
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
         Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
@@ -51,7 +50,6 @@ public class TestRlpAddress {
             .nonce(randLong())
             .address(senderAddress)
             .build();
-    ;
 
     final Bytes initCode = BytecodeCompiler.newProgram().push(1).push(1).op(OpCode.SLT).compile();
 
@@ -65,8 +63,6 @@ public class TestRlpAddress {
             .gasPrice(Wei.of(10L))
             .payload(initCode)
             .build();
-
-    Address deploymentAddress = Address.contractAddress(senderAddress, senderAccount.getNonce());
 
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(senderAccount))
@@ -137,7 +133,7 @@ public class TestRlpAddress {
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(senderAccount, contractAccount))
         .transaction(tx)
-        .testValidator(x -> {})
+        .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
         .run();
   }

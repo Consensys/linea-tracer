@@ -71,6 +71,8 @@ tasks.register('referenceGeneralStateTests', Test) {
   description = 'Runs ETH reference general state tests.'
   dependsOn generateGeneralStateReferenceTests
 
+  environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "GeneralStateReferenceTestOutcome.json")
+
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")
   }
@@ -121,4 +123,5 @@ dependencies {
   implementation project(":arithmetization")
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
   testImplementation project(path: ':testing')
+  implementation 'org.junit.platform:junit-platform-launcher:1.11.2'
 }

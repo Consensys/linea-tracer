@@ -43,7 +43,7 @@ import org.hyperledger.besu.ethereum.chain.BadBlockManager;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
 import org.hyperledger.besu.ethereum.core.BlockHeaderBuilder;
 import org.hyperledger.besu.ethereum.core.Difficulty;
-import org.hyperledger.besu.ethereum.core.MiningParameters;
+import org.hyperledger.besu.ethereum.core.MiningConfiguration;
 import org.hyperledger.besu.ethereum.core.PrivacyParameters;
 import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSpecFactory;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
@@ -54,25 +54,28 @@ import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
 import org.slf4j.Logger;
 
 public class ExecutionEnvironment {
+  public static final String CORSET_VALIDATION_RESULT = "Corset validation result: ";
   static GenesisConfigFile GENESIS_CONFIG =
       GenesisConfigFile.fromSource(GenesisConfigFile.class.getResource("/linea.json"));
 
   public static void checkTracer(
       ZkTracer zkTracer, CorsetValidator corsetValidator, Optional<Logger> logger) {
     Path traceFilePath = null;
+    boolean traceValidated = false;
     try {
       traceFilePath = Files.createTempFile(null, ".lt");
       zkTracer.writeToFile(traceFilePath);
       final Path finalTraceFilePath = traceFilePath;
       logger.ifPresent(log -> log.debug("trace written to {}", finalTraceFilePath));
       CorsetValidator.Result corsetValidationResult = corsetValidator.validate(traceFilePath);
-      assertThat(corsetValidationResult.isValid())
-          .withFailMessage("Corset validation result: %s", corsetValidationResult.toString())
+      traceValidated = corsetValidationResult.isValid();
+      assertThat(traceValidated)
+          .withFailMessage(CORSET_VALIDATION_RESULT + "%s", corsetValidationResult.corsetOutput())
           .isTrue();
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
-      if (traceFilePath != null) {
+      if (traceFilePath != null && traceValidated) {
         if (System.getenv("PRESERVE_TRACE_FILES") == null) {
           boolean traceFileDeleted = traceFilePath.toFile().delete();
           final Path finalTraceFilePath = traceFilePath;
@@ -91,6 +94,7 @@ public class ExecutionEnvironment {
                 .number(parentBlockHeader.get().getNumber() + 1)
                 .timestamp(parentBlockHeader.get().getTimestamp() + 100)
                 .parentHash(parentBlockHeader.get().getHash())
+                .nonce(parentBlockHeader.get().getNonce() + 1)
                 .blockHeaderFunctions(new CliqueBlockHeaderFunctions())
             : BlockHeaderBuilder.createDefault();
 
@@ -111,7 +115,7 @@ public class ExecutionEnvironment {
             createNodeKey(),
             false,
             EvmConfiguration.DEFAULT,
-            MiningParameters.MINING_DISABLED,
+            MiningConfiguration.MINING_DISABLED,
             badBlockManager,
             false,
             new NoOpMetricsSystem());
@@ -122,7 +126,7 @@ public class ExecutionEnvironment {
                 true,
                 OptionalLong.empty(),
                 EvmConfiguration.DEFAULT,
-                MiningParameters.MINING_DISABLED,
+                MiningConfiguration.MINING_DISABLED,
                 false,
                 new NoOpMetricsSystem())
             .londonDefinition(GENESIS_CONFIG.getConfigOptions());

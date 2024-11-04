@@ -15,6 +15,8 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_PUSH1;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.io.BufferedReader;
@@ -265,5 +267,34 @@ public class BytecodeCompiler {
    */
   public Bytes compile() {
     return Bytes.concatenate(byteCode);
+  }
+
+  /**
+   * Adds an incomplete PUSH operation of the given width and its argument to the bytecode sequence.
+   *
+   * @param w the width to push (in the range [1, 32])
+   * @param bs byte array to be added
+   * @return current instance
+   */
+  public BytecodeCompiler incompletePush(final int w, final byte[] bs) {
+    Preconditions.condition(w > 0 && w <= WORD_SIZE, "Invalid PUSH width");
+    Preconditions.condition(bs.length <= w, "PUSH argument must be smaller than the width");
+
+    this.op(OpCode.of(EVM_INST_PUSH1 + w - 1));
+    this.byteCode.add(Bytes.of(bs));
+
+    return this;
+  }
+
+  /**
+   * Adds an incomplete PUSH operation of the given width and its argument to the bytecode sequence.
+   *
+   * @param w the width to push (in the range [1, 32])
+   * @param x string representing a hex number to be added
+   * @return current instance
+   */
+  public BytecodeCompiler incompletePush(final int w, String x) {
+    return this.incompletePush(
+        w, bigIntegerToBytes(new BigInteger(x.isEmpty() ? "0" : x, 16)).toArray());
   }
 }

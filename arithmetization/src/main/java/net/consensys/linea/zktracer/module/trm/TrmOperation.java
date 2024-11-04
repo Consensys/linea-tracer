@@ -51,10 +51,10 @@ public class TrmOperation extends ModuleOperation {
 
     for (int ct = 0; ct < MAX_CT; ct++) {
       trace
-          .ct(UnsignedByte.of(ct))
+          .ct(ct)
           .stamp(stamp)
           .isPrecompile(isPrec)
-          .pbit(ct >= PIVOT_BIT_FLIPS_TO_TRUE)
+          .plateauBit(ct >= PIVOT_BIT_FLIPS_TO_TRUE)
           .rawAddressHi(this.rawAddress.hi())
           .rawAddressLo(this.rawAddress.lo())
           .trmAddressHi(trmHi)

@@ -102,8 +102,10 @@ public final class BytecodeRunner {
         ToyTransaction.builder()
             .sender(senderAccount)
             .to(receiverAccount)
+            .value(Wei.ONE)
             .keyPair(keyPair)
             .gasLimit(selectedGasLimit)
+            .gasPrice(Wei.of(8))
             .build();
 
     List<ToyAccount> accounts = new ArrayList<>();
@@ -113,7 +115,8 @@ public final class BytecodeRunner {
 
     toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder()
-            .testValidator(x -> {})
+            .transactionProcessingResultValidator(
+                TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .accounts(accounts)
             .zkTracerValidator(zkTracerValidator)
             .transaction(tx)

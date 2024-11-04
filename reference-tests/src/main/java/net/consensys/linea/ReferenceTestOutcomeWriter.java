@@ -12,6 +12,19 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.precompiles;
+package net.consensys.linea;
 
-public class PrecompileTests {}
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.*;
+
+import lombok.extern.slf4j.Slf4j;
+import org.junit.platform.launcher.LauncherSession;
+import org.junit.platform.launcher.LauncherSessionListener;
+
+@Slf4j
+public class ReferenceTestOutcomeWriter implements LauncherSessionListener {
+
+  @Override
+  public void launcherSessionClosed(LauncherSession session) {
+    writeToJsonFile("full_" + JSON_OUTPUT_FILENAME);
+  }
+}

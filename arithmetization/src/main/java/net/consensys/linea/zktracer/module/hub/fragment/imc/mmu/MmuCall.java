@@ -140,7 +140,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   private int exoSum = 0;
 
   public void dontTraceMe() {
-    this.traceMe = false;
+    traceMe = false;
   }
 
   private MmuCall updateExoSum(final int exoValue) {

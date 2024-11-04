@@ -180,7 +180,8 @@ public class CallSection extends TraceSection
     currentFrame.childSpanningSection(this);
 
     final boolean callCanTransferValue = currentFrame.opCode().callCanTransferValue();
-    callProvidedReturnDataTargetSpan = returnDataMemorySpan(currentFrame.frame(), callCanTransferValue);
+    callProvidedReturnDataTargetSpan =
+        returnDataMemorySpan(currentFrame.frame(), callCanTransferValue);
 
     value =
         callCanTransferValue

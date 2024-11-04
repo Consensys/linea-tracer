@@ -87,7 +87,7 @@ public final class CallStack {
         0,
         callData.size(),
         callDataContextNumber,
-            MemorySpan.empty());
+        MemorySpan.empty());
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -122,8 +122,7 @@ public final class CallStack {
         // useless
         // useless
         // useless
-            MemorySpan.empty()
-        );
+        MemorySpan.empty());
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -172,23 +171,22 @@ public final class CallStack {
    * @param inputData the call data sent to this call frame
    */
   public void enter(
-          CallFrameType type,
-          int newContextNumber,
-          boolean isDeployment,
-          Wei value,
-          long gasStipend,
-          Address accountAddress,
-          int accountDeploymentNumber,
-          Address byteCodeAddress,
-          int byteCodeDeploymentNumber,
-          Bytecode byteCode,
-          Address callerAddress,
-          Bytes inputData,
-          long callDataOffset,
-          long callDataSize,
-          long callDataContextNumber,
-          MemorySpan returnDataTargetInCaller
-  ) {
+      CallFrameType type,
+      int newContextNumber,
+      boolean isDeployment,
+      Wei value,
+      long gasStipend,
+      Address accountAddress,
+      int accountDeploymentNumber,
+      Address byteCodeAddress,
+      int byteCodeDeploymentNumber,
+      Bytecode byteCode,
+      Address callerAddress,
+      Bytes inputData,
+      long callDataOffset,
+      long callDataSize,
+      long callDataContextNumber,
+      MemorySpan returnDataTargetInCaller) {
     final int callerId = this.depth == -1 ? -1 : this.currentId;
     final int newCallFrameId = this.callFrames.size();
     this.depth += 1;

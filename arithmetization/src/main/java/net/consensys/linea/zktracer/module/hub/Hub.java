@@ -36,7 +36,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -117,7 +116,6 @@ import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.checkerframework.checker.units.qual.C;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -608,7 +606,9 @@ public class Hub implements Module {
     if (frame.getDepth() > 0) {
       final OpCode currentOpCode = callStack.currentCallFrame().opCode();
       checkState(currentOpCode.isCall() || currentOpCode.isCreate());
-      checkState(currentTraceSection() instanceof CallSection || currentTraceSection() instanceof CreateSection);
+      checkState(
+          currentTraceSection() instanceof CallSection
+              || currentTraceSection() instanceof CreateSection);
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
@@ -637,9 +637,9 @@ public class Hub implements Module {
       currentFrame().pauseCurrentFrame();
 
       MemorySpan returnDataTargetInCaller =
-              (currentTraceSection() instanceof CallSection)
-                      ? ((CallSection) currentTraceSection()).getCallProvidedReturnDataTargetSpan()
-                      : MemorySpan.empty();
+          (currentTraceSection() instanceof CallSection)
+              ? ((CallSection) currentTraceSection()).getCallProvidedReturnDataTargetSpan()
+              : MemorySpan.empty();
 
       callStack.enter(
           frameType,

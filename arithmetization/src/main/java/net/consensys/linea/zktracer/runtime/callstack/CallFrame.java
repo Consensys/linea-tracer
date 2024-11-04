@@ -41,8 +41,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Accessors(fluent = true)
 public class CallFrame {
-  public static final CallFrame EMPTY =
-      new CallFrame();
+  public static final CallFrame EMPTY = new CallFrame();
 
   @Setter public int universalParentReturnDataContextNumber;
 

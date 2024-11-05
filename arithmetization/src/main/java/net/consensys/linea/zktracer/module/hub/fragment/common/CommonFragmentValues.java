@@ -72,7 +72,7 @@ public class CommonFragmentValues {
 
   public CommonFragmentValues(Hub hub) {
     final short exceptions = hub.pch().exceptions();
-    final boolean noStackException = !stackException(exceptions);
+    final boolean stackException = stackException(exceptions);
 
     final boolean isExec = hub.state.getProcessingPhase() == TX_EXEC;
 
@@ -86,7 +86,7 @@ public class CommonFragmentValues {
     this.exceptions = exceptions;
     // this.contextNumberNew = hub.contextNumberNew(callFrame);
     this.pc = isExec ? hub.currentFrame().pc() : 0;
-    this.pcNew = computePcNew(hub, pc, noStackException, isExec);
+    this.pcNew = computePcNew(hub, pc, stackException, isExec);
     this.height = callFrame.stack().getHeight();
     this.heightNew = callFrame.stack().getHeightNew();
 
@@ -167,11 +167,13 @@ public class CommonFragmentValues {
   }
 
   static int computePcNew(
-      final Hub hub, final int pc, boolean noStackException, boolean hubInExecPhase) {
+      final Hub hub, final int pc, boolean stackException, boolean isExec) {
     final OpCode opCode = hub.opCode();
-    if (!(noStackException && hubInExecPhase)) {
+    if (!isExec || stackException) {
       return 0;
     }
+
+    if (!opCode.isPush() || ! opCode.isJump()) return pc + 1;
 
     if (opCode.getData().isPush()) {
       return pc + opCode.byteValue() - OpCode.PUSH1.byteValue() + 2;
@@ -196,9 +198,8 @@ public class CommonFragmentValues {
         }
       }
     }
-    ;
 
-    return pc + 1;
+    throw new RuntimeException("Instruction not covered " + opCode.getData().mnemonic() + " unable to compute pcNew.");
   }
 
   private long computeGasRemaining() {

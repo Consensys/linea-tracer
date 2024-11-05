@@ -41,6 +41,7 @@ import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.Bytecode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -232,6 +233,23 @@ public class ReturnSection extends TraceSection
       secondImcFragment.callMmu(nonemptyDeploymentMmuCall);
 
       triggerHashInfo(nonemptyDeploymentMmuCall.hashResult());
+
+      if (hub.messageFrame().getDepth() == 0) {
+        // in case of zero depth we don't have a ContextReEntry step
+        postDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
+        postDeploymentAccountSnapshot.code(new Bytecode(hub.messageFrame().getOutputData()));
+        postDeploymentAccountSnapshot.deploymentStatus(false);
+
+        final AccountFragment deploymentAccountFragment =
+                hub.factories()
+                        .accountFragment()
+                        .make(
+                                preDeploymentAccountSnapshot,
+                                postDeploymentAccountSnapshot,
+                                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+
+        this.addFragment(deploymentAccountFragment);
+      }
     }
   }
 

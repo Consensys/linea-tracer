@@ -173,10 +173,10 @@ public class CommonFragmentValues {
       return 0;
     }
 
-    if (!opCode.isPush() || ! opCode.isJump()) return pc + 1;
+    if (!opCode.isPush() && !opCode.isJump()) return pc + 1;
 
     if (opCode.getData().isPush()) {
-      return pc + opCode.byteValue() - OpCode.PUSH1.byteValue() + 2;
+      return pc + 1 + (opCode.byteValue() - OpCode.PUSH1.byteValue() + 1);
     }
 
     if (opCode.isJump()) {

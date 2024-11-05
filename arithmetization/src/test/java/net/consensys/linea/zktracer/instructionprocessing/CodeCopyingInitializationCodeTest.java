@@ -16,7 +16,6 @@ package net.consensys.linea.zktracer.instructionprocessing;
 
 import java.util.List;
 
-import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -26,7 +25,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
-import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.TransactionType;
@@ -34,68 +32,106 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
+/**
+ * The purpose of {@link CodeCopyingInitializationCodeTest}
+ * is to test the coherence between the CODE_SIZE as expected by the zkEVM of an account under
+ * deployment, that is the initialization code's size, and the codeSize contained in the account's
+ * snapshot.
+ *
+ * <p>We test both <b>deployment transactions</b> and <b>CREATE's</b>.
+ *
+ * <p>This test answers the point raised in <a
+ * href="https://github.com/Consensys/linea-tracer/issues/1482">this issue</a>.
+ */
 public class CodeCopyingInitializationCodeTest {
 
+  final Bytes initCodeSimple =
+          BytecodeCompiler.newProgram()
+                  .op(OpCode.CODESIZE)
+                  .push(0)
+                  .push(0)
+                  .op(OpCode.CODECOPY)
+                  .compile();
+
+  final Bytes initCodeWithMload =
+          BytecodeCompiler.newProgram()
+                  .op(OpCode.CODESIZE)
+                  .push(0)
+                  .push(0)
+                  .op(OpCode.CODECOPY)
+                  .push(0)
+                  .op(OpCode.MLOAD)
+                  .compile();
+
+  final Bytes initCodeDeploysItself =
+          BytecodeCompiler.newProgram()
+                  .op(OpCode.CODESIZE)
+                  .push(0)
+                  .push(0)
+                  .op(OpCode.CODECOPY)
+                  .op(OpCode.CODESIZE)
+                  .push(0)
+                  .op(OpCode.RETURN)
+                  .compile();
+
+  final Bytes deployerOfInitCodeSimple = deployerOf(initCodeSimple);
+  final Bytes deployerOfInitCodeWithMload = deployerOf(initCodeWithMload);
+  final Bytes deployerOfInitCodeDeploysItself = deployerOf(initCodeDeploysItself);
 
   /**
-   * The purpose of {@link CodeCopyingInitializationCodeTest#testSimpleCodeCopyOfInitializationCode} is to test the
-   * coherence between the CODE_SIZE as expected by the zkEVM of an account under deployment, that is the
-   * initialization code's size, and the codeSize contained in the account's snapshot. This test answers the
-   * point raised in <a href="https://github.com/Consensys/linea-tracer/issues/1482">this issue</a>.
+   * We test <b>deployment transactions</b>.
    */
   @Test
-  void testSimpleCodeCopyOfInitializationCode() {
-    Bytes initCode =
-        BytecodeCompiler.newProgram()
-            .op(OpCode.CODESIZE)
-            .push(0)
-            .push(0)
-            .op(OpCode.CODECOPY)
-            .compile();
-
-    Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCode);
+  void testDeploymentTransactionCodeCopiesItself() {
+    Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCodeSimple);
     runTransaction(deploymentTransaction);
   }
 
   @Test
-  void testSimpleCodeCopyOfInitializationCodeWithFollowupMload() {
-    Bytes initCode =
-        BytecodeCompiler.newProgram()
-            .op(OpCode.CODESIZE)
-            .push(0)
-            .push(0)
-            .op(OpCode.CODECOPY)
-            .push(0)
-            .op(OpCode.MLOAD)
-            .compile();
-
-    Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCode);
+  void testDeploymentTransactionCodeCopiesItselfAndFinishesOnMload() {
+    Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCodeWithMload);
     runTransaction(deploymentTransaction);
   }
 
   @Test
-  void testInitializationCodeDeploysItselfThroughCodeCopy() {
-    Bytes initCode =
-        BytecodeCompiler.newProgram()
-            .op(OpCode.CODESIZE)
-            .push(0)
-            .push(0)
-            .op(OpCode.CODECOPY)
-            .op(OpCode.CODESIZE)
-            .push(0)
-            .op(OpCode.RETURN)
-            .compile();
-
-    Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCode);
+  void testDeploymentTransactionDeploysOwnInitCodeThroughCodeCopy() {
+    Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCodeDeploysItself);
     runTransaction(deploymentTransaction);
+  }
+
+  /**
+   * We test <b>CREATE's</b>.
+   */
+  @Test
+  void testCreateContractFromInitCodeSimple() {
+    Transaction messageCallTransaction = messageCallTransactionToDeployerAccount(accountInitCodeSimple);
+    runTransaction(messageCallTransaction);
+  }
+
+  @Test
+  void testCreateContractFromInitCodeWithMload() {
+    Transaction messageCallTransaction = messageCallTransactionToDeployerAccount(accountInitCodeWithMload);
+    runTransaction(messageCallTransaction);
+  }
+
+  @Test
+  void testCreateContractFromInitCodeThatDeploysItself() {
+    Transaction messageCallTransaction = messageCallTransactionToDeployerAccount(accountInitCodeThatDeploysItself);
+    runTransaction(messageCallTransaction);
   }
 
   KeyPair keyPair = new SECP256K1().generateKeyPair();
   Address userAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
   ToyAccount userAccount =
-          ToyAccount.builder().balance(Wei.fromEth(100)).nonce(1).address(userAddress).build();
+      ToyAccount.builder().balance(Wei.fromEth(100)).nonce(1).address(userAddress).build();
+  ToyAccount accountInitCodeSimple =
+      ToyAccount.builder().balance(Wei.fromEth(1)).nonce(13).address(Address.fromHexString("1337")).code(deployerOfInitCodeSimple).build();
+  ToyAccount accountInitCodeWithMload =
+          ToyAccount.builder().balance(Wei.fromEth(1)).nonce(81).address(Address.fromHexString("add7e550")).code(deployerOfInitCodeWithMload).build();
+  ToyAccount accountInitCodeThatDeploysItself =
+          ToyAccount.builder().balance(Wei.fromEth(1)).nonce(255).address(Address.fromHexString("69420")).code(deployerOfInitCodeDeploysItself).build();
 
-  List<ToyAccount> accounts = List.of(userAccount);
+  List<ToyAccount> accounts = List.of(userAccount, accountInitCodeWithMload, accountInitCodeSimple, accountInitCodeThatDeploysItself);
 
   Transaction deploymentTansactionFromInitCode(Bytes initCode) {
     return ToyTransaction.builder()
@@ -109,12 +145,37 @@ public class CodeCopyingInitializationCodeTest {
         .build();
   }
 
+  Transaction messageCallTransactionToDeployerAccount(ToyAccount deployerAccount) {
+    return ToyTransaction.builder()
+            .sender(userAccount)
+            .to(deployerAccount)
+            .transactionType(TransactionType.FRONTIER)
+            .value(Wei.ONE)
+            .keyPair(keyPair)
+            .gasLimit(100_000L)
+            .gasPrice(Wei.of(8))
+            .build();
+  }
+
   private void runTransaction(Transaction transaction) {
     ToyExecutionEnvironmentV2.builder()
-            .accounts(accounts)
-            .transaction(transaction)
-            .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
-            .build()
-            .run();
+        .accounts(accounts)
+        .transaction(transaction)
+        .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+        .build()
+        .run();
+  }
+
+  private Bytes deployerOf(Bytes initCode) {
+    return BytecodeCompiler.newProgram()
+            .push(initCode)
+            .push(0) // offset
+            .op(OpCode.MSTORE)
+            .push(initCode.size()) // size
+            .push(32 - initCode.size()) // offset
+            .push(1234) // value
+            .op(OpCode.CREATE)
+            .op(OpCode.EXTCODESIZE) // get code size of newly deployed smart contract
+            .compile();
   }
 }

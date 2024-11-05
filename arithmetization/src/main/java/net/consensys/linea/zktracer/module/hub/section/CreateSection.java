@@ -244,9 +244,10 @@ public class CreateSection extends TraceSection
     creatorAccountFragment.rlpAddrSubFragment(rlpAddrSubFragment);
 
     final AccountFragment createeAccountFragment =
-        accountFragmentFactory.make(
+        accountFragmentFactory.makeWithTrm(
             preOpcodeCreateeSnapshot,
             childEntryCreateeSnapshot,
+            preOpcodeCreateeSnapshot.address().trimLeadingZeros(),
             DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
     createeAccountFragment.requiresRomlex(true);

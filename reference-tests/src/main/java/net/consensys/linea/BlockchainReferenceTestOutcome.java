@@ -40,6 +40,8 @@ public class BlockchainReferenceTestOutcome {
   @JsonProperty private final int successCounter;
   @JsonProperty private final int disabledCounter;
   @JsonProperty private final int abortedCounter;
-  @JsonProperty private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
+
+  @JsonProperty
+  private final ConcurrentMap<String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
       modulesToConstraintsToTests;
 }

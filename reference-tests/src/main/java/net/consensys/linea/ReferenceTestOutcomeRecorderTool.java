@@ -38,12 +38,10 @@ public class ReferenceTestOutcomeRecorderTool {
 
   public static final String JSON_INPUT_FILENAME =
       System.getenv()
-          .getOrDefault(
-              "REFERENCE_TEST_OUTCOME_INPUT_FILE", "failedReferenceTests-input.json");
+          .getOrDefault("REFERENCE_TEST_OUTCOME_INPUT_FILE", "failedReferenceTests-input.json");
   public static final String JSON_OUTPUT_FILENAME =
       System.getenv()
-          .getOrDefault(
-              "REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "failedReferenceTests.json");
+          .getOrDefault("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "failedReferenceTests.json");
   public static JsonConverter jsonConverter = JsonConverter.builder().build();
   private static volatile AtomicInteger failedCounter = new AtomicInteger(0);
   private static volatile AtomicInteger successCounter = new AtomicInteger(0);

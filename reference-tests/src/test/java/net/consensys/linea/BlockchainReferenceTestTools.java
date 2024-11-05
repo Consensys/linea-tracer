@@ -78,6 +78,18 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignoreAll();
     }
 
+    //    "IllegalStateException": {
+    //      "java.lang.IllegalStateException: Account with nonce 0, no code and non empty storage.":
+    // [
+    //        "InitCollision_d0g0v0_London[London]",
+    //        "InitCollision_d1g0v0_London[London]",
+    //        "InitCollision_d2g0v0_London[London]",
+    //        "InitCollision_d3g0v0_London[London]",
+    //        "RevertInCreateInInitCreate2_d0g0v0_London[London]",
+    //        "RevertInCreateInInit_d0g0v0_London[London]"
+    //      ]
+    //    },
+
     // Consumes a huge amount of memory.
     PARAMS.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");
     PARAMS.ignore("ShanghaiLove_.*");

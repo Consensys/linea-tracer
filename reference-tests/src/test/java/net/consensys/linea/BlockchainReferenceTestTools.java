@@ -141,7 +141,7 @@ public class BlockchainReferenceTestTools {
             .toList());
   }
 
-  public static Collection<Object[]> generateTestParametersForConfig(
+  public static Collection<Object[]> generateTestParametersForConfigForFailedTests(
       final String[] filePath, String failedModule, String failedConstraint)
       throws ExecutionException, InterruptedException {
     Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));

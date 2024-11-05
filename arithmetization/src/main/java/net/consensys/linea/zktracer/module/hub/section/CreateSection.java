@@ -249,6 +249,8 @@ public class CreateSection extends TraceSection
             childEntryCreateeSnapshot,
             DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
+    createeAccountFragment.requiresRomlex(true);
+
     this.addFragments(creatorAccountFragment, createeAccountFragment);
   }
 

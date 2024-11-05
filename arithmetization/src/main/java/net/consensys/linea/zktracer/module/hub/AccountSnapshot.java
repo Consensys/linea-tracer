@@ -31,6 +31,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @AllArgsConstructor
@@ -57,11 +58,13 @@ public class AccountSnapshot {
    * @return
    */
   public static AccountSnapshot canonical(Hub hub, Address address) {
-    return fromArguments(
+    AccountSnapshot canonicalSnapshot = fromArguments(
         hub.messageFrame().getWorldUpdater(),
         address,
         hub.transients.conflation().deploymentInfo(),
         isAddressWarm(hub.messageFrame(), address));
+
+    return canonicalSnapshot;
   }
 
   public static AccountSnapshot canonical(
@@ -77,12 +80,16 @@ public class AccountSnapshot {
 
     final Account account = worldView.get(address);
     if (account != null) {
+
       return new AccountSnapshot(
           account.getAddress(),
           account.getNonce(),
           account.getBalance(),
           warmth,
-          new Bytecode(account.getCode()),
+          // new Bytecode(account.getCode()),
+          deploymentInfo.getDeploymentStatus(address)
+                  ? new Bytecode(deploymentInfo.getInitializationCode(address))
+                  : new Bytecode(account.getCode()),
           deploymentInfo.deploymentNumber(address),
           deploymentInfo.getDeploymentStatus(address));
     } else {

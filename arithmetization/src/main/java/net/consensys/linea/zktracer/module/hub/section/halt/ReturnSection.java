@@ -315,16 +315,20 @@ public class ReturnSection extends TraceSection
     // in case of zero depth we don't have a ContextReEntry step so we have to add the
     // deployment account fragment manually
     postDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
-    postDeploymentAccountSnapshot.code(new Bytecode(hub.messageFrame().shadowReadMemory(Words.clampedToLong(mxpCall.offset1), Words.clampedToLong(mxpCall.size1))));
+    postDeploymentAccountSnapshot.code(
+        new Bytecode(
+            hub.messageFrame()
+                .shadowReadMemory(
+                    Words.clampedToLong(mxpCall.offset1), Words.clampedToLong(mxpCall.size1))));
     postDeploymentAccountSnapshot.deploymentStatus(false);
 
     final AccountFragment deploymentAccountFragment =
-            hub.factories()
-                    .accountFragment()
-                    .make(
-                            preDeploymentAccountSnapshot,
-                            postDeploymentAccountSnapshot,
-                            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+        hub.factories()
+            .accountFragment()
+            .make(
+                preDeploymentAccountSnapshot,
+                postDeploymentAccountSnapshot,
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     this.addFragment(deploymentAccountFragment);
   }

@@ -33,10 +33,9 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
 /**
- * The purpose of {@link CodeCopyingInitializationCodeTest}
- * is to test the coherence between the CODE_SIZE as expected by the zkEVM of an account under
- * deployment, that is the initialization code's size, and the codeSize contained in the account's
- * snapshot.
+ * The purpose of {@link CodeCopyingInitializationCodeTest} is to test the coherence between the
+ * CODE_SIZE as expected by the zkEVM of an account under deployment, that is the initialization
+ * code's size, and the codeSize contained in the account's snapshot.
  *
  * <p>We test both <b>deployment transactions</b> and <b>CREATE's</b>.
  *
@@ -46,41 +45,39 @@ import org.junit.jupiter.api.Test;
 public class CodeCopyingInitializationCodeTest {
 
   final Bytes initCodeSimple =
-          BytecodeCompiler.newProgram()
-                  .op(OpCode.CODESIZE)
-                  .push(0)
-                  .push(0)
-                  .op(OpCode.CODECOPY)
-                  .compile();
+      BytecodeCompiler.newProgram()
+          .op(OpCode.CODESIZE)
+          .push(0)
+          .push(0)
+          .op(OpCode.CODECOPY)
+          .compile();
 
   final Bytes initCodeWithMload =
-          BytecodeCompiler.newProgram()
-                  .op(OpCode.CODESIZE)
-                  .push(0)
-                  .push(0)
-                  .op(OpCode.CODECOPY)
-                  .push(0)
-                  .op(OpCode.MLOAD)
-                  .compile();
+      BytecodeCompiler.newProgram()
+          .op(OpCode.CODESIZE)
+          .push(0)
+          .push(0)
+          .op(OpCode.CODECOPY)
+          .push(0)
+          .op(OpCode.MLOAD)
+          .compile();
 
   final Bytes initCodeDeploysItself =
-          BytecodeCompiler.newProgram()
-                  .op(OpCode.CODESIZE)
-                  .push(0)
-                  .push(0)
-                  .op(OpCode.CODECOPY)
-                  .op(OpCode.CODESIZE)
-                  .push(0)
-                  .op(OpCode.RETURN)
-                  .compile();
+      BytecodeCompiler.newProgram()
+          .op(OpCode.CODESIZE)
+          .push(0)
+          .push(0)
+          .op(OpCode.CODECOPY)
+          .op(OpCode.CODESIZE)
+          .push(0)
+          .op(OpCode.RETURN)
+          .compile();
 
   final Bytes deployerOfInitCodeSimple = deployerOf(initCodeSimple);
   final Bytes deployerOfInitCodeWithMload = deployerOf(initCodeWithMload);
   final Bytes deployerOfInitCodeDeploysItself = deployerOf(initCodeDeploysItself);
 
-  /**
-   * We test <b>deployment transactions</b>.
-   */
+  /** We test <b>deployment transactions</b>. */
   @Test
   void testDeploymentTransactionCodeCopiesItself() {
     Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCodeSimple);
@@ -99,24 +96,25 @@ public class CodeCopyingInitializationCodeTest {
     runTransaction(deploymentTransaction);
   }
 
-  /**
-   * We test <b>CREATE's</b>.
-   */
+  /** We test <b>CREATE's</b>. */
   @Test
   void testCreateContractFromInitCodeSimple() {
-    Transaction messageCallTransaction = messageCallTransactionToDeployerAccount(accountInitCodeSimple);
+    Transaction messageCallTransaction =
+        messageCallTransactionToDeployerAccount(accountInitCodeSimple);
     runTransaction(messageCallTransaction);
   }
 
   @Test
   void testCreateContractFromInitCodeWithMload() {
-    Transaction messageCallTransaction = messageCallTransactionToDeployerAccount(accountInitCodeWithMload);
+    Transaction messageCallTransaction =
+        messageCallTransactionToDeployerAccount(accountInitCodeWithMload);
     runTransaction(messageCallTransaction);
   }
 
   @Test
   void testCreateContractFromInitCodeThatDeploysItself() {
-    Transaction messageCallTransaction = messageCallTransactionToDeployerAccount(accountInitCodeThatDeploysItself);
+    Transaction messageCallTransaction =
+        messageCallTransactionToDeployerAccount(accountInitCodeThatDeploysItself);
     runTransaction(messageCallTransaction);
   }
 
@@ -125,13 +123,33 @@ public class CodeCopyingInitializationCodeTest {
   ToyAccount userAccount =
       ToyAccount.builder().balance(Wei.fromEth(100)).nonce(1).address(userAddress).build();
   ToyAccount accountInitCodeSimple =
-      ToyAccount.builder().balance(Wei.fromEth(1)).nonce(13).address(Address.fromHexString("1337")).code(deployerOfInitCodeSimple).build();
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(13)
+          .address(Address.fromHexString("1337"))
+          .code(deployerOfInitCodeSimple)
+          .build();
   ToyAccount accountInitCodeWithMload =
-          ToyAccount.builder().balance(Wei.fromEth(1)).nonce(81).address(Address.fromHexString("add7e550")).code(deployerOfInitCodeWithMload).build();
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(81)
+          .address(Address.fromHexString("add7e550"))
+          .code(deployerOfInitCodeWithMload)
+          .build();
   ToyAccount accountInitCodeThatDeploysItself =
-          ToyAccount.builder().balance(Wei.fromEth(1)).nonce(255).address(Address.fromHexString("69420")).code(deployerOfInitCodeDeploysItself).build();
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(255)
+          .address(Address.fromHexString("69420"))
+          .code(deployerOfInitCodeDeploysItself)
+          .build();
 
-  List<ToyAccount> accounts = List.of(userAccount, accountInitCodeWithMload, accountInitCodeSimple, accountInitCodeThatDeploysItself);
+  List<ToyAccount> accounts =
+      List.of(
+          userAccount,
+          accountInitCodeWithMload,
+          accountInitCodeSimple,
+          accountInitCodeThatDeploysItself);
 
   Transaction deploymentTansactionFromInitCode(Bytes initCode) {
     return ToyTransaction.builder()
@@ -147,14 +165,14 @@ public class CodeCopyingInitializationCodeTest {
 
   Transaction messageCallTransactionToDeployerAccount(ToyAccount deployerAccount) {
     return ToyTransaction.builder()
-            .sender(userAccount)
-            .to(deployerAccount)
-            .transactionType(TransactionType.FRONTIER)
-            .value(Wei.ONE)
-            .keyPair(keyPair)
-            .gasLimit(100_000L)
-            .gasPrice(Wei.of(8))
-            .build();
+        .sender(userAccount)
+        .to(deployerAccount)
+        .transactionType(TransactionType.FRONTIER)
+        .value(Wei.ONE)
+        .keyPair(keyPair)
+        .gasLimit(100_000L)
+        .gasPrice(Wei.of(8))
+        .build();
   }
 
   private void runTransaction(Transaction transaction) {
@@ -168,14 +186,14 @@ public class CodeCopyingInitializationCodeTest {
 
   private Bytes deployerOf(Bytes initCode) {
     return BytecodeCompiler.newProgram()
-            .push(initCode)
-            .push(0) // offset
-            .op(OpCode.MSTORE)
-            .push(initCode.size()) // size
-            .push(32 - initCode.size()) // offset
-            .push(1234) // value
-            .op(OpCode.CREATE)
-            .op(OpCode.EXTCODESIZE) // get code size of newly deployed smart contract
-            .compile();
+        .push(initCode)
+        .push(0) // offset
+        .op(OpCode.MSTORE)
+        .push(initCode.size()) // size
+        .push(32 - initCode.size()) // offset
+        .push(1234) // value
+        .op(OpCode.CREATE)
+        .op(OpCode.EXTCODESIZE) // get code size of newly deployed smart contract
+        .compile();
   }
 }

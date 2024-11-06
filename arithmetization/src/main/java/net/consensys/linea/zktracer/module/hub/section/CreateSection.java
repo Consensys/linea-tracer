@@ -176,7 +176,6 @@ public class CreateSection extends TraceSection
     final boolean failedCreate = createdAddressHasNonZeroNonce || createdAddressHasNonEmptyCode;
     final boolean emptyInitCode = hub.transients().op().initCodeSegment().isEmpty();
 
-
     final long offset = Words.clampedToLong(hub.messageFrame().getStackItem(1));
     final long size = Words.clampedToLong(hub.messageFrame().getStackItem(2));
 
@@ -217,7 +216,11 @@ public class CreateSection extends TraceSection
             this, hub.currentFrame()); // To get the success bit of the CREATE(2)
 
     hub.romLex().callRomLex(messageFrame);
-    hub.transients().conflation().deploymentInfo().newDeploymentWithExecutionAt(createeAddress, hub.messageFrame().shadowReadMemory(offset, size));
+    hub.transients()
+        .conflation()
+        .deploymentInfo()
+        .newDeploymentWithExecutionAt(
+            createeAddress, hub.messageFrame().shadowReadMemory(offset, size));
 
     // Note: the case CREATE2 has been set before, we need to do it even in the failure case
     if (hub.opCode() == CREATE) {

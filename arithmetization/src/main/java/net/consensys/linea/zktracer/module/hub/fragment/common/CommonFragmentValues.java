@@ -166,8 +166,7 @@ public class CommonFragmentValues {
     this.tracedException = tracedException;
   }
 
-  static int computePcNew(
-      final Hub hub, final int pc, boolean stackException, boolean isExec) {
+  static int computePcNew(final Hub hub, final int pc, boolean stackException, boolean isExec) {
     final OpCode opCode = hub.opCode();
     if (!isExec || stackException) {
       return 0;
@@ -199,7 +198,8 @@ public class CommonFragmentValues {
       }
     }
 
-    throw new RuntimeException("Instruction not covered " + opCode.getData().mnemonic() + " unable to compute pcNew.");
+    throw new RuntimeException(
+        "Instruction not covered " + opCode.getData().mnemonic() + " unable to compute pcNew.");
   }
 
   private long computeGasRemaining() {

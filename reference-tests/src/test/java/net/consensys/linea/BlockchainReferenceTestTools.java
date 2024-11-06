@@ -77,18 +77,14 @@ public class BlockchainReferenceTestTools {
     if (NETWORKS_TO_RUN.isEmpty()) {
       PARAMS.ignoreAll();
     }
-//FHUC TODO --------------------
-    //    "IllegalStateException": {
-    //      "java.lang.IllegalStateException: Account with nonce 0, no code and non empty storage.":
-    // [
-    //        "InitCollision_d0g0v0_London[London]",
-    //        "InitCollision_d1g0v0_London[London]",
-    //        "InitCollision_d2g0v0_London[London]",
-    //        "InitCollision_d3g0v0_London[London]",
-    //        "RevertInCreateInInitCreate2_d0g0v0_London[London]",
-    //        "RevertInCreateInInit_d0g0v0_London[London]"
-    //      ]
-    //    },
+    // ignore tests that are failing because there is an account with nonce 0 and
+    // non empty code which can't happen in Linea since we are post LONDON only.
+    PARAMS.ignore("InitCollision_d0g0v0_London[London]");
+    PARAMS.ignore("InitCollision_d1g0v0_London[London]");
+    PARAMS.ignore("InitCollision_d2g0v0_London[London]");
+    PARAMS.ignore("InitCollision_d3g0v0_London[London]");
+    PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]");
+    PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]");
 
     // Consumes a huge amount of memory.
     PARAMS.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");

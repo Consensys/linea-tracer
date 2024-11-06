@@ -85,6 +85,8 @@ public class CreateSection extends TraceSection
   // row i+?
   private ContextFragment finalContextFragment;
 
+  private boolean requiresRomLex;
+
   // TODO: according to our preliminary conclusion in issue #866
   //  CREATE's that raise a failure condition _do spawn a child context_.
   public CreateSection(Hub hub) {
@@ -215,6 +217,7 @@ public class CreateSection extends TraceSection
         .scheduleForContextReEntry(
             this, hub.currentFrame()); // To get the success bit of the CREATE(2)
 
+    requiresRomLex = true;
     hub.romLex().callRomLex(messageFrame);
     hub.transients()
         .conflation()
@@ -253,7 +256,7 @@ public class CreateSection extends TraceSection
             preOpcodeCreateeSnapshot.address().trimLeadingZeros(),
             DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
-    createeAccountFragment.requiresRomlex(true);
+    createeAccountFragment.requiresRomlex(requiresRomLex);
 
     this.addFragments(creatorAccountFragment, createeAccountFragment);
   }

@@ -33,11 +33,10 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
 /**
- * The purpose of {@link EmptyDeploymentsInTheRootTest} is to make sure that deployment
- * transactions work and lead to the actual deployment of bytecode. In particular the final
- * RETURN instruction (if present) should be treated properly and the update to the deployment
- * account is accounted for in the relevant row.
- *
+ * The purpose of {@link EmptyDeploymentsInTheRootTest} is to make sure that deployment transactions
+ * work and lead to the actual deployment of bytecode. In particular the final RETURN instruction
+ * (if present) should be treated properly and the update to the deployment account is accounted for
+ * in the relevant row.
  */
 public class EmptyDeploymentsInTheRootTest {
 

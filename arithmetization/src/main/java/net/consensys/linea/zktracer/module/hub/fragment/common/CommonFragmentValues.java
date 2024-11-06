@@ -194,6 +194,8 @@ public class CommonFragmentValues {
         BigInteger condition = hub.currentFrame().frame().getStackItem(1).toUnsignedBigInteger();
         if (!condition.equals(BigInteger.ZERO)) {
           return attemptedPcNew;
+        } else {
+          return pc + 1;
         }
       }
     }

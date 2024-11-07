@@ -52,8 +52,10 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -86,6 +88,7 @@ public class CreateSection extends TraceSection
   private ContextFragment finalContextFragment;
 
   private boolean requiresRomLex;
+  private Wei value;
 
   // TODO: according to our preliminary conclusion in issue #866
   //  CREATE's that raise a failure condition _do spawn a child context_.
@@ -213,6 +216,7 @@ public class CreateSection extends TraceSection
     }
 
     // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create
+    value = Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(0)));
     hub.defers()
         .scheduleForContextReEntry(
             this, hub.currentFrame()); // To get the success bit of the CREATE(2)
@@ -236,8 +240,12 @@ public class CreateSection extends TraceSection
 
   @Override
   public void resolveUponContextEntry(Hub hub) {
-    childEntryCreatorSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreatorSnapshot.address());
-    childEntryCreateeSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreateeSnapshot.address());
+    childEntryCreatorSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreatorSnapshot.address())
+            // .raiseNonceByOne() // for some reason the nonce was already raised
+            .decrementBalanceBy(value);
+    childEntryCreateeSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreateeSnapshot.address())
+            .raiseNonceByOne()
+            .incrementBalanceBy(value);
 
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();

@@ -49,7 +49,7 @@ public class EmptyDeploymentsInTheRootTest {
 
   final Bytes initCodeNonemptyDeployment =
       BytecodeCompiler.newProgram()
-          .op(OpCode.DIFFICULTY) // value
+          .op(OpCode.TIMESTAMP) // value, initially was DIFFICULTY
           .push(0) // offset
           .op(OpCode.MSTORE)
           .push(32) // size
@@ -210,6 +210,10 @@ public class EmptyDeploymentsInTheRootTest {
         .run();
   }
 
+  /**
+   * @param initCode assumed to fit on at most <b>32</b> bytes
+   * @return
+   */
   private Bytes deployerOf(Bytes initCode) {
     return BytecodeCompiler.newProgram()
         .push(initCode)

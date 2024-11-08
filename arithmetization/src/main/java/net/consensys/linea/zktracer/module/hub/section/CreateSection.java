@@ -197,6 +197,8 @@ public class CreateSection extends TraceSection
       triggerHashInfo(shakiraDataOperation.result());
     }
 
+    value = failedCreate ? Wei.ZERO : Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(0)));
+
     if (failedCreate || emptyInitCode) {
       finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
 
@@ -216,7 +218,6 @@ public class CreateSection extends TraceSection
     }
 
     // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create
-    value = Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(0)));
     hub.defers()
         .scheduleForContextReEntry(
             this, hub.currentFrame()); // To get the success bit of the CREATE(2)
@@ -242,7 +243,7 @@ public class CreateSection extends TraceSection
   public void resolveUponContextEntry(Hub hub) {
     childEntryCreatorSnapshot =
         AccountSnapshot.canonical(hub, preOpcodeCreatorSnapshot.address())
-            // .raiseNonceByOne() // for some reason the nonce was already raised
+            // .raiseNonceByOne() // the nonce was already raised
             .decrementBalanceBy(value);
     childEntryCreateeSnapshot =
         AccountSnapshot.canonical(hub, preOpcodeCreateeSnapshot.address())

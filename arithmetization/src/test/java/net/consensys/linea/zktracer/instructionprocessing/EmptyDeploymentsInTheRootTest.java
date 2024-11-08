@@ -221,7 +221,7 @@ public class EmptyDeploymentsInTheRootTest {
         .op(OpCode.MSTORE)
         .push(initCode.size()) // size
         .push(32 - initCode.size()) // offset
-        .push(1234) // value
+        .push(255) // value
         .op(OpCode.CREATE)
         .op(OpCode.EXTCODESIZE) // get code size of newly deployed smart contract
         .compile();

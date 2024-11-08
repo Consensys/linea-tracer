@@ -240,10 +240,12 @@ public class CreateSection extends TraceSection
 
   @Override
   public void resolveUponContextEntry(Hub hub) {
-    childEntryCreatorSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreatorSnapshot.address())
+    childEntryCreatorSnapshot =
+        AccountSnapshot.canonical(hub, preOpcodeCreatorSnapshot.address())
             // .raiseNonceByOne() // for some reason the nonce was already raised
             .decrementBalanceBy(value);
-    childEntryCreateeSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreateeSnapshot.address())
+    childEntryCreateeSnapshot =
+        AccountSnapshot.canonical(hub, preOpcodeCreateeSnapshot.address())
             .raiseNonceByOne()
             .incrementBalanceBy(value);
 

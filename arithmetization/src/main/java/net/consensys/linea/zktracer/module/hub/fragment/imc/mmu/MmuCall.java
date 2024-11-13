@@ -756,7 +756,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceId(modexpSubsection.exoModuleOperationId())
         .sourceRamBytes(
             Optional.of(leftPadTo(modexpSubsection.returnData, MODEXP_COMPONENT_BYTE_SIZE)))
-        .targetId(modexpSubsection.callSection.hubStamp())
+        .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(modexpSubsection.callerMemorySnapshot))
         .sourceOffset(EWord.of(MODEXP_COMPONENT_BYTE_SIZE - modExpMetadata.mbs().toInt()))
         .size(modExpMetadata.mbs().toInt())
@@ -766,28 +766,24 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
   @Override
   public Trace trace(Trace trace, State.TxState.Stamps stamps) {
-    if (traceMe) {
-      stamps.incrementMmuStamp();
-      return trace
-          .pMiscMmuFlag(true)
-          .pMiscMmuInst(instruction)
-          .pMiscMmuTgtId(targetId())
-          .pMiscMmuSrcId(sourceId())
-          .pMiscMmuAuxId(auxId())
-          .pMiscMmuSrcOffsetHi(sourceOffset.hi())
-          .pMiscMmuSrcOffsetLo(sourceOffset.lo())
-          .pMiscMmuTgtOffsetLo(targetOffset.lo())
-          .pMiscMmuSize(size)
-          .pMiscMmuRefOffset(referenceOffset)
-          .pMiscMmuRefSize(referenceSize)
-          .pMiscMmuSuccessBit(successBit)
-          .pMiscMmuLimb1(limb1)
-          .pMiscMmuLimb2(limb2)
-          .pMiscMmuExoSum(exoSum)
-          .pMiscMmuPhase(phase);
-    } else {
-      return trace;
-    }
+    stamps.incrementMmuStamp();
+    return trace
+        .pMiscMmuFlag(true)
+        .pMiscMmuInst(instruction)
+        .pMiscMmuTgtId(targetId())
+        .pMiscMmuSrcId(sourceId())
+        .pMiscMmuAuxId(auxId())
+        .pMiscMmuSrcOffsetHi(sourceOffset.hi())
+        .pMiscMmuSrcOffsetLo(sourceOffset.lo())
+        .pMiscMmuTgtOffsetLo(targetOffset.lo())
+        .pMiscMmuSize(size)
+        .pMiscMmuRefOffset(referenceOffset)
+        .pMiscMmuRefSize(referenceSize)
+        .pMiscMmuSuccessBit(successBit)
+        .pMiscMmuLimb1(limb1)
+        .pMiscMmuLimb2(limb2)
+        .pMiscMmuExoSum(exoSum)
+        .pMiscMmuPhase(phase);
   }
 
   @Override

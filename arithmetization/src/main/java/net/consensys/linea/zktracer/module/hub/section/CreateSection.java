@@ -186,10 +186,11 @@ public class CreateSection extends TraceSection
 
     // Trigger MMU & SHAKIRA to hash the (non-empty) InitCode of CREATE2 - even for failed CREATE2
     if (hub.opCode() == CREATE2 && !emptyInitCode) {
-      final MmuCall mmuCall = MmuCall.create2(hub, failedCreate);
+      final Bytes create2InitCode = messageFrame.shadowReadMemory(offset, size);
+
+      final MmuCall mmuCall = MmuCall.create2(hub, create2InitCode, failedCreate);
       imcFragment.callMmu(mmuCall);
 
-      final Bytes create2InitCode = messageFrame.shadowReadMemory(offset, size);
       final ShakiraDataOperation shakiraDataOperation =
           new ShakiraDataOperation(hub.stamp(), create2InitCode);
       hub.shakiraData().call(shakiraDataOperation);

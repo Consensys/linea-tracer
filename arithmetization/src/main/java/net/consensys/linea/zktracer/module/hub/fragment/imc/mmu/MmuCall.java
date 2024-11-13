@@ -245,8 +245,9 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     return MmuCall.revert(hub);
   }
 
-  public static MmuCall create2(final Hub hub, boolean failureCondition) {
-    return new Create2(hub, failureCondition);
+  public static MmuCall create2(
+      final Hub hub, final Bytes create2initCode, final boolean failureCondition) {
+    return new Create2(hub, create2initCode, failureCondition);
   }
 
   public static MmuCall invalidCodePrefix(final Hub hub) {

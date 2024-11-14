@@ -236,6 +236,7 @@ public class CallSection extends TraceSection
     }
 
     if (scenarioFragment.getScenario() == CALL_SMC_UNDEFINED) {
+      this.commonValues.payGasPaidOutOfPocket(hub);
       finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);
       final boolean isSelfCall = callerAddress.equals(calleeAddress);
       selfCallWithNonzeroValueTransfer = isSelfCall && !value.isZero();
@@ -244,6 +245,7 @@ public class CallSection extends TraceSection
     }
 
     if (scenarioFragment.getScenario() == CALL_EOA_SUCCESS_WONT_REVERT) {
+      this.commonValues.collectChildStipend(hub);
       finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
     }
   }
@@ -285,6 +287,8 @@ public class CallSection extends TraceSection
   private void abortingCall(Hub hub) {
     scenarioFragment.setScenario(CALL_ABORT_WONT_REVERT);
     finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
+    // we immediately reap the call stipend
+    commonValues.collectChildStipend(hub);
   }
 
   @Override
@@ -293,6 +297,8 @@ public class CallSection extends TraceSection
     checkArgument(scenarioFragment.getScenario() == CALL_ABORT_WONT_REVERT);
     postOpcodeCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
     postOpcodeCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
+    // we unlatched the stack after a CALL if and only if we don't "contextEnter" the CALL.
+    hub.unlatchStack(frame, this);
   }
 
   @Override

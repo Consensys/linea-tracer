@@ -203,7 +203,6 @@ public class CallSection extends TraceSection
 
     if (aborts) {
       this.abortingCall(hub);
-      hub.defers().scheduleForPostExecution(this);
       return;
     }
 
@@ -286,7 +285,28 @@ public class CallSection extends TraceSection
 
   private void abortingCall(Hub hub) {
     scenarioFragment.setScenario(CALL_ABORT_WONT_REVERT);
+    postOpcodeCallerSnapshot = preOpcodeCallerSnapshot.deepCopy();
+    postOpcodeCalleeSnapshot = preOpcodeCalleeSnapshot.deepCopy().turnOnWarmth();
+    final Factories factories = hub.factories();
+    final AccountFragment readingCallerAccount =
+            factories
+                    .accountFragment()
+                    .make(
+                            preOpcodeCallerSnapshot,
+                            postOpcodeCallerSnapshot,
+                            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+
+    final AccountFragment readingCalleeAccountAndWarmth =
+            factories
+                    .accountFragment()
+                    .makeWithTrm(
+                            preOpcodeCalleeSnapshot,
+                            postOpcodeCalleeSnapshot,
+                            rawCalleeAddress,
+                            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
     finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
+    this.addFragments(readingCallerAccount, readingCalleeAccountAndWarmth);
+    hub.defers().scheduleForPostExecution(this);
     // we immediately reap the call stipend
     commonValues.collectChildStipend(hub);
   }

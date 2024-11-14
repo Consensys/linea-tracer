@@ -35,6 +35,7 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -60,7 +61,7 @@ public class CommonFragmentValues {
   public final long gasExpected;
   public final long gasActual;
   @Getter final long gasCost;
-  final long gasNext;
+  @Getter @Setter long gasNext;
   @Getter final long gasCostExcluduingDeploymentCost;
   @Setter public long refundDelta = 0; // 0 is default Value, can be modified only by SSTORE section
   @Setter public long gasRefund; // Set at commit time
@@ -204,7 +205,7 @@ public class CommonFragmentValues {
         "Instruction not covered " + opCode.getData().mnemonic() + " unable to compute pcNew.");
   }
 
-  private long computeGasRemaining() {
+  public long computeGasRemaining() {
     return hub.remainingGas();
   }
 
@@ -230,6 +231,24 @@ public class CommonFragmentValues {
     return Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasCostExcludingDeploymentCost();
   }
 
+  /**
+   * Returns the value of the GAS_NEXT column. For CALL's and CREATE's it returns
+   *
+   * <p><center><b>remainingGas - upfrontGasCost</b></center>
+   *
+   * <p>This initial computation has to be amended down the line to account for
+   *
+   * <p>- {@link GasProjection#stipend()} for aborted calls / EOA calls
+   *
+   * <p>- {@link GasProjection#gasPaidOutOfPocket()} when entering a <b>CALL</b>/<b>CREATE</b>
+   *
+   * <p>- precompile specific costs for PRC calls
+   *
+   * <p>The stipend is done through {@link CommonFragmentValues#collectChildStipend(Hub)}}
+   *
+   * @param exceptions
+   * @return
+   */
   public long computeGasNext(short exceptions) {
 
     if (Exceptions.any(exceptions)) {
@@ -238,23 +257,35 @@ public class CommonFragmentValues {
 
     final long gasAfterDeductingCost = computeGasRemaining() - computeGasCost();
 
+    OpCode opCode = hub.opCode();
+    GasProjection gasUtility = Hub.GAS_PROJECTOR.of(hub.messageFrame(), opCode);
+
     return switch (hub.opCodeData().instructionFamily()) {
       case KEC, COPY, STACK_RAM, STORAGE, LOG, HALT -> gasAfterDeductingCost;
-      case CREATE -> gasAfterDeductingCost
-          - Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasPaidOutOfPocket();
-      case CALL ->
-      // TODO: this will not work because of
-      //  1. aborts with value transfers
-      //  2. EOA calls
-      //  3. precompile calls
-      gasAfterDeductingCost
-          - Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasPaidOutOfPocket();
+      case CREATE -> gasAfterDeductingCost;
+        // TODO: this is only part of the story because of
+        //  1. nonempty init code CREATE's where gas is paid out of pocket
+      case CALL -> gasAfterDeductingCost;
+        // TODO: this is only part of the story because of
+        //  1. aborts with value transfers (immediately reapStipend)
+        //  2. EOA calls with value transfer (immediately reapStipend)
+        //  3. SMC calls: gas paid out of pocket
+        //  4. PRC calls: gas paid out of pocket + special PRC cost + returned gas
+
       default -> // ADD, MUL, MOD, EXT, WCP, BIN, SHF, CONTEXT, ACCOUNT, TRANSACTION, BATCH, JUMP,
       // MACHINE_STATE, PUSH_POP, DUP, SWAP, INVALID
       // TODO: this may not work for EXP, EXTCODEHASH, EXTCODESIZE, BALANCE as they require extra
       //  care for pricing because of ⒈ warmth and ⒉ log computations
       gasAfterDeductingCost;
     };
+  }
+
+  public void payGasPaidOutOfPocket(Hub hub) {
+    this.gasNext -= Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasPaidOutOfPocket();
+  }
+
+  public void collectChildStipend(Hub hub) {
+    this.gasNext += Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).stipend();
   }
 
   public long gasCostToTrace() {

@@ -433,7 +433,7 @@ public class CallSection extends TraceSection
   }
 
   @Override
-  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
+  public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
     final Factories factory = hub.factories();
     postRollbackCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
     postRollbackCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());

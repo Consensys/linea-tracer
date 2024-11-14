@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests;
 
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.utilities.eoaAddress;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.utilities.untrimmedEoaAddress;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -22,11 +24,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
 public class trimmingTests {
-
-  final String fullEoaAddress = "000000000000000000000000abcdef0123456789";
-  final String toTrim12 = "aaaaaaaaaaaaaaaaaaaaaaaa";
-  final String untrimmedEoaAddress = toTrim12 + fullEoaAddress;
-  final String eoaAddress = "abcdef0123456789";
 
   @Test
   void targetTrimming() {
@@ -37,7 +34,7 @@ public class trimmingTests {
             .push(2)
             .push(3)
             .push(4)
-            .push(1) // value
+            .push(0) // value
             .push(untrimmedEoaAddress) // address
             .push(0) // gas
             .op(CALL)
@@ -50,7 +47,7 @@ public class trimmingTests {
             .push(2)
             .push(3)
             .push(4)
-            .push(1) // value
+            .push(0) // value
             .push(eoaAddress) // address
             .push(0) // gas
             .op(CALL)

@@ -33,10 +33,7 @@ import java.util.Optional;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
-import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.*;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -60,10 +57,12 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
+import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CreateSection extends TraceSection
-    implements ImmediateContextEntryDefer,
+    implements PostOpcodeDefer,
+        ImmediateContextEntryDefer,
         PostRollbackDefer,
         ContextReEntryDefer,
         PostTransactionDefer {
@@ -159,7 +158,8 @@ public class CreateSection extends TraceSection
 
     if (aborts.any()) {
       scenarioFragment.setScenario(CREATE_ABORT);
-      this.finishAbortCreate(hub);
+      this.finishAbort(hub);
+      hub.defers().scheduleForPostExecution(this);
       return;
     }
 
@@ -351,7 +351,7 @@ public class CreateSection extends TraceSection
     return 11; // Note: could be lower for unreverted successful CREATE(s)
   }
 
-  private void finishAbortCreate(final Hub hub) {
+  private void finishAbort(final Hub hub) {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
     final AccountFragment creatorAccountFragment =
@@ -379,5 +379,14 @@ public class CreateSection extends TraceSection
 
   public boolean isAbortedCreate() {
     return scenarioFragment.isAbortedCreate();
+  }
+
+  // we unlatched the stack after a CREATE if and only if we don't "contextEnter" the CREATE.
+  // "failure condition CREATE's" do enter the CREATE context.
+  @Override
+  public void resolvePostExecution(
+      Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+    checkState(isAbortedCreate());
+    hub.unlatchStack(frame, this);
   }
 }

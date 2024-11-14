@@ -67,16 +67,16 @@ public class utilities {
    */
   public static void validEcrecoverData(BytecodeCompiler program) {
     program
-        .push("0x279d94621558f755796898fc4bd36b6d407cae77537865afe523b79c74cc680b")
+        .push("279d94621558f755796898fc4bd36b6d407cae77537865afe523b79c74cc680b")
         .push(0)
         .op(MSTORE)
-        .push("0x1b")
+        .push("1b")
         .push(32)
         .op(MSTORE)
-        .push("0xc2ff96feed8749a5ad1c0714f950b5ac939d8acedbedcbc2949614ab8af06312")
+        .push("c2ff96feed8749a5ad1c0714f950b5ac939d8acedbedcbc2949614ab8af06312")
         .push(64)
         .op(MSTORE)
-        .push("0x1feecd50adc6273fdd5d11c6da18c8cfe14e2787f5a90af7c7c1328e7d0a2c42")
+        .push("1feecd50adc6273fdd5d11c6da18c8cfe14e2787f5a90af7c7c1328e7d0a2c42")
         .push(96)
         .op(MSTORE);
   }

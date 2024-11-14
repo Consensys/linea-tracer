@@ -278,7 +278,7 @@ public class ReturnSection extends TraceSection
   }
 
   @Override
-  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
+  public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     checkArgument(returnFromDeployment);
     returnScenarioFragment.setScenario(

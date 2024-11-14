@@ -501,7 +501,7 @@ public class Hub implements Module {
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
-      new TxSkippedSection(this, world, transactionProcessingMetadata, transients);
+      new TxSkipSection(this, world, transactionProcessingMetadata, transients);
     } else {
       if (transactionProcessingMetadata.requiresPrewarming()) {
         state.setProcessingPhase(TX_WARM);
@@ -699,7 +699,7 @@ public class Hub implements Module {
     defers.resolveUponContextExit(this, this.currentFrame());
     // TODO: verify me please @Olivier
     if (this.currentFrame().opCode() == REVERT || Exceptions.any(pch.exceptions())) {
-      defers.resolvePostRollback(this, frame, this.currentFrame());
+      defers.resolveUponRollback(this, frame, this.currentFrame());
     }
 
     if (frame.getDepth() > 0) {

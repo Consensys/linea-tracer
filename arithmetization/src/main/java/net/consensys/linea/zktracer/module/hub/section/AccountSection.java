@@ -94,7 +94,7 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
     this.addFragment(doingAccountFragment);
   }
 
-  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
+  public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
     final AccountSnapshot postRollBackAccountSnapshot =
         AccountSnapshot.canonical(hub, targetAddress);

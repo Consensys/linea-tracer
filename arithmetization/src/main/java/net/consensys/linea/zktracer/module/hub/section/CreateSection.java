@@ -308,7 +308,7 @@ public class CreateSection extends TraceSection
   }
 
   @Override
-  public void resolvePostRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
+  public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
     scenarioFragment.setScenario(switchToRevert(scenarioFragment.getScenario()));
 
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =

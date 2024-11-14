@@ -102,13 +102,13 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
         "The coinbase may not be under deployment");
 
     if (isSuccessful) {
-      successfulFinalization(hub);
+      successFinalization(hub);
     } else {
-      unsuccessfulFinalization(hub);
+      failureFinalization(hub);
     }
   }
 
-  private void successfulFinalization(Hub hub) {
+  private void successFinalization(Hub hub) {
 
     if (!senderIsCoinbase()) {
 
@@ -160,7 +160,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     this.addFragments(senderAccountFragment, coinbaseAccountFragment, currentTransactionFragment);
   }
 
-  private void unsuccessfulFinalization(Hub hub) {
+  private void failureFinalization(Hub hub) {
     if (noAddressCollisions()) {
 
       AccountFragment senderAccountFragment =

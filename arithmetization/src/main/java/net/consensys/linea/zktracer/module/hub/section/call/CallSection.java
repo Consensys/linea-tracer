@@ -314,17 +314,14 @@ public class CallSection extends TraceSection
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    checkArgument(scenarioFragment.getScenario() == CALL_ABORT_WONT_REVERT);
-    postOpcodeCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
-    postOpcodeCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
     // we unlatched the stack after a CALL if and only if we don't "contextEnter" the CALL.
     hub.unlatchStack(frame, this);
   }
 
   @Override
   public void resolveUponContextEntry(Hub hub) {
-    postOpcodeCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
-    postOpcodeCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
+    postOpcodeCallerSnapshot = preOpcodeCallerSnapshot.deepCopy().decrementBalanceBy(value);
+    postOpcodeCalleeSnapshot = preOpcodeCalleeSnapshot.deepCopy().incrementBalanceBy(value).turnOnWarmth();
 
     switch (scenarioFragment.getScenario()) {
       case CALL_SMC_UNDEFINED -> {
@@ -333,8 +330,8 @@ public class CallSection extends TraceSection
           // is decremented by the value transferred. This becomes the initial state
           // of the callee, which is then credited by that value. This can happen
           // only for the SMC case.
-          postOpcodeCallerSnapshot.decrementBalanceBy(value);
-          preOpcodeCalleeSnapshot.decrementBalanceBy(value);
+          preOpcodeCalleeSnapshot = postOpcodeCallerSnapshot;
+          postOpcodeCalleeSnapshot = preOpcodeCallerSnapshot;
         }
 
         final Factories factories = hub.factories();
@@ -504,7 +501,7 @@ public class CallSection extends TraceSection
             .accountFragment()
             .make(
                 postOpcodeCalleeSnapshot,
-                postRollbackCalleeSnapshot,
+                preOpcodeCalleeSnapshot,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 2));
     this.addFragment(undoingCalleeAccountFragment);

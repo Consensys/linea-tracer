@@ -1095,7 +1095,8 @@ public class Hub implements Module {
 
       case CREATE -> new CreateSection(this);
 
-      case CALL -> new CallSection(this);
+      case CALL -> new CallSection(this, frame);
+
       case INVALID -> new EarlyExceptionSection(this);
     }
   }

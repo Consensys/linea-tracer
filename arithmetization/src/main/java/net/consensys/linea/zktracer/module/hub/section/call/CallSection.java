@@ -125,7 +125,7 @@ public class CallSection extends TraceSection
 
   @Getter private MemorySpan callProvidedReturnDataTargetSpan;
 
-  public CallSection(Hub hub) {
+  public CallSection(Hub hub, MessageFrame frame) {
     super(hub, maxNumberOfLines(hub));
 
     final short exceptions = hub.pch().exceptions();

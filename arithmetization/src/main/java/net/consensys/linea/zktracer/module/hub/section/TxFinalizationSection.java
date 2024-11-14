@@ -40,7 +40,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
   private @Setter AccountSnapshot recipientSnapshotAfterTxFinalization;
   private @Setter AccountSnapshot coinbaseSnapshotAfterFinalization;
 
-  public TxFinalizationSection(Hub hub, WorldView world) {
+  public TxFinalizationSection(Hub hub, WorldView world, boolean exceptionOrRevert) {
     super(hub, (short) 4);
 
     txMetadata = hub.txStack().current();
@@ -50,21 +50,15 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     final Address coinbaseAddress = txMetadata.getCoinbase();
 
     // recipient
-    senderSnapshotBeforeFinalization = AccountSnapshot.canonical(hub, world, senderAddress);
-    recipientSnapshotBeforeFinalization = AccountSnapshot.canonical(hub, world, recipientAddress);
+    senderSnapshotBeforeFinalization =
+        exceptionOrRevert
+            ? hub.txStack().getInitializationSection().getSenderAfterPayingForTransaction()
+            : AccountSnapshot.canonical(hub, world, senderAddress);
+    recipientSnapshotBeforeFinalization =
+        exceptionOrRevert
+            ? hub.txStack().getInitializationSection().getRecipientAfterValueTransfer()
+            : AccountSnapshot.canonical(hub, world, recipientAddress);
     coinbaseSnapshotBeforeTxFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
-
-    // TODO: re-enable checks
-    checkArgument(
-        senderSnapshotBeforeFinalization.isWarm(),
-        "The sender account ought to be warm during TX_FINL");
-    checkArgument(
-        recipientSnapshotBeforeFinalization.isWarm(),
-        "The recipient account ought to be warm during TX_FINL");
-    checkArgument(
-        txMetadata.isCoinbaseWarmAtTransactionEnd()
-            == coinbaseSnapshotBeforeTxFinalization.isWarm(),
-        "isCoinbaseWarmAtTransactiondEnd prediction is wrong");
 
     hub.defers().scheduleForPostTransaction(this);
   }

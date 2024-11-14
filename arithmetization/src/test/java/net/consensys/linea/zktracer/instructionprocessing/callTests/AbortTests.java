@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
  * <p>- <b>scn/CALL_ABORT_WONT_REVERT</b> The main point being: (unexceptional) aborted CALL's warm
  * up the target account.
  */
-public class abortTests {
+public class AbortTests {
 
   final String eoaAddress = "abcdef0123456789";
 

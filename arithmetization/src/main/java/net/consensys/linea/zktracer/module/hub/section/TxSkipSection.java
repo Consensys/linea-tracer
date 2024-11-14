@@ -131,12 +131,20 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
 
     // recipient account fragment
     final AccountFragment recipientAccountFragment =
-        hub.factories()
-            .accountFragment()
-            .make(
-                recipientAccountSnapshotBefore,
-                recipientAccountSnapshotAfter,
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
+        (tx.getTo().isEmpty())
+            ? hub.factories()
+                .accountFragment()
+                .makeWithTrm(
+                    recipientAccountSnapshotBefore,
+                    recipientAccountSnapshotAfter,
+                    recipientAddress,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1))
+            : hub.factories()
+                .accountFragment()
+                .make(
+                    recipientAccountSnapshotBefore,
+                    recipientAccountSnapshotAfter,
+                    DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
     // coinbase account fragment
     final AccountFragment coinbaseAccountFragment =

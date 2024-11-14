@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecover;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.utilities.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 
 import net.consensys.linea.testing.BytecodeCompiler;

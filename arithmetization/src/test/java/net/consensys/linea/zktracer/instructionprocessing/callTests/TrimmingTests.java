@@ -14,8 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.utilities.eoaAddress;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.utilities.untrimmedEoaAddress;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.eoaAddress;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.untrimmedEoaAddress;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -23,7 +23,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
-public class trimmingTests {
+public class TrimmingTests {
 
   @Test
   void targetTrimming() {

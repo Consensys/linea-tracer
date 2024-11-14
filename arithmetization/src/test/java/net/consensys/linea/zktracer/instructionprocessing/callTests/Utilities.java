@@ -20,12 +20,13 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 
-public class utilities {
+public class Utilities {
 
   public static final String fullEoaAddress = "000000000000000000000000abcdef0123456789";
   public static final String toTrim12 = "aaaaaaaaaaaaaaaaaaaaaaaa";
   public static final String untrimmedEoaAddress = toTrim12 + fullEoaAddress;
-  public static final String eoaAddress = "abcdef0123456789";
+  public static final String eoaAddress = "c0ffeef00d";
+  public static final String eoaAddress2 = "badbeef";
 
   public static void fullGasCall(
       BytecodeCompiler program,
@@ -57,7 +58,7 @@ public class utilities {
     if (callOpcode.callCanTransferValue()) {
       program.push(value);
     }
-    program.push(to).push(gas).op(callOpcode).op(POP);
+    program.push(to).push(gas).op(callOpcode);
   }
 
   /**

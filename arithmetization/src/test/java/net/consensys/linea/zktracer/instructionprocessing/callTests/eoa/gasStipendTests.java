@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.eoa;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.utilities.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;

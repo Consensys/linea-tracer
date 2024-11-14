@@ -16,14 +16,10 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.monoOpC
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
-import net.consensys.linea.testing.ToyAccount;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.smc.Utilities.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.utilities.simpleCall;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 

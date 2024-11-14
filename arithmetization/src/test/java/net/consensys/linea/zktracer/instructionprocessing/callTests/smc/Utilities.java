@@ -59,17 +59,4 @@ public class Utilities {
                     .build();
 
     public static List<ToyAccount> accounts = List.of(userAccount, accountWhoseByteCodeIsASingleStop, accountWhoseByteCodeIsASingleJumpDest, accountWhoseByteCodeIsASingleInvalid);
-
-
-    public Transaction simpleTransaction(ToyAccount targetOfTransaction) {
-        return ToyTransaction.builder()
-                .sender(userAccount)
-                .to(targetOfTransaction)
-                .transactionType(TransactionType.FRONTIER)
-                .value(Wei.of(7))
-                .keyPair(keyPair)
-                .gasLimit(100_000L)
-                .gasPrice(Wei.of(8))
-                .build();
-    }
 }

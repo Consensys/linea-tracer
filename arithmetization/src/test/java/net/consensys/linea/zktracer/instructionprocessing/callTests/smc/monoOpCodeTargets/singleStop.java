@@ -15,17 +15,10 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.monoOpCodeTargets;
 
 import net.consensys.linea.testing.*;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.smc.Utilities.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.utilities.simpleCall;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 /**

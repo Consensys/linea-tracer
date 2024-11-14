@@ -62,6 +62,10 @@ public class CallScenarioFragment implements TraceFragment {
           || this == CALL_PRC_SUCCESS_WONT_REVERT;
     }
 
+    public boolean isAbortingScenario() {
+      return this == CALL_ABORT_WILL_REVERT || this == CALL_ABORT_WONT_REVERT;
+    }
+
     public boolean noLongerUndefined() {
       return this != UNDEFINED && this != CALL_PRC_UNDEFINED && this != CALL_SMC_UNDEFINED;
     }

@@ -796,6 +796,7 @@ public class Hub implements Module {
         currentSection.commonValues.gasCostExcluduingDeploymentCost();
 
     if (operationResult.getHaltReason() != null) {
+
       return;
     }
 

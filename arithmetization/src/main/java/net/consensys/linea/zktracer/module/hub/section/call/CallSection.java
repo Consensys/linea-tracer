@@ -88,6 +88,10 @@ public class CallSection extends TraceSection
   // row i+0
   private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
 
+  public boolean isAbortingScenario() {
+    return scenarioFragment.getScenario().isAbortingScenario();
+  }
+
   // last row
   @Setter private ContextFragment finalContextFragment;
 

@@ -376,4 +376,8 @@ public class CreateSection extends TraceSection
       default -> throw new IllegalArgumentException("unexpected Create scenario");
     };
   }
+
+  public boolean isAbortedCreate() {
+    return scenarioFragment.isAbortedCreate();
+  }
 }

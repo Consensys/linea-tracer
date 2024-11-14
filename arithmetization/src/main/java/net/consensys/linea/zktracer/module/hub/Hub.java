@@ -751,6 +751,25 @@ public class Hub implements Module {
       this.unlatchStack(frame, currentSection);
     }
 
+    // we unlatched the stack after a CALL if and only if we don't "contextEnter" the CALL.
+    if (this.currentFrame().opCode().isCall()) {
+      checkState(currentSection instanceof CallSection);
+      final boolean abortedCall = ((CallSection) currentSection).isAbortingScenario();
+      if (abortedCall) {
+        this.unlatchStack(frame, currentSection);
+      }
+    }
+
+    // we unlatched the stack after a CREATE if and only if we don't "contextEnter" the CREATE.
+    // "failure condition CREATE's" do enter the CREATE context.
+    if (this.currentFrame().opCode().isCreate()) {
+      checkState(currentSection instanceof CreateSection);
+      final boolean abortedCreate = ((CreateSection) currentSection).isAbortedCreate();
+      if (abortedCreate) {
+        this.unlatchStack(frame, currentSection);
+      }
+    }
+
     if (frame.getDepth() == 0
         && (frame.getState() == MessageFrame.State.EXCEPTIONAL_HALT || opCode() == REVERT)) {
       this.state.setProcessingPhase(TX_FINL);

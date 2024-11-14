@@ -117,7 +117,6 @@ public final class CommonFragment implements TraceFragment {
         .counterNsr((short) nonStackRowsCounter);
   }
 
-
   static long computeGasCost(Hub hub, WorldView world) {
 
     switch (hub.opCodeData().instructionFamily()) {

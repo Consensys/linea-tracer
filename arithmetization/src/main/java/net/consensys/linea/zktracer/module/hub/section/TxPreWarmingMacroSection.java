@@ -80,7 +80,13 @@ public class TxPreWarmingMacroSection {
 
                   final DomSubStampsSubFragment domSubStampsSubFragment =
                       new DomSubStampsSubFragment(
-                          DomSubStampsSubFragment.DomSubType.STANDARD, hub.stamp() + 1, 0, 0, 0, 0, 0);
+                          DomSubStampsSubFragment.DomSubType.STANDARD,
+                          hub.stamp() + 1,
+                          0,
+                          0,
+                          0,
+                          0,
+                          0);
 
                   new TxPrewarmingSection(
                       hub,

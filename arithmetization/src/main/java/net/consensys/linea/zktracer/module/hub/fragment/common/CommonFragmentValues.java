@@ -38,7 +38,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
@@ -243,8 +242,11 @@ public class CommonFragmentValues {
       case KEC, COPY, STACK_RAM, STORAGE, LOG, HALT -> gasAfterDeductingCost;
       case CREATE -> gasAfterDeductingCost
           - Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasPaidOutOfPocket();
-      case CALL -> // TODO: this will not work because of 1. aborts with value transfers 2. EOA
-      // calls 3. precompile calls
+      case CALL ->
+      // TODO: this will not work because of
+      //  1. aborts with value transfers
+      //  2. EOA calls
+      //  3. precompile calls
       gasAfterDeductingCost
           - Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasPaidOutOfPocket();
       default -> // ADD, MUL, MOD, EXT, WCP, BIN, SHF, CONTEXT, ACCOUNT, TRANSACTION, BATCH, JUMP,
@@ -258,13 +260,13 @@ public class CommonFragmentValues {
   public long gasCostToTrace() {
 
     if (hubProcessingPhase != TX_EXEC
-            || tracedException() == TracedException.STACK_UNDERFLOW
-            || tracedException() == TracedException.STACK_OVERFLOW
-            || tracedException() == TracedException.RETURN_DATA_COPY_FAULT
-            || tracedException() == TracedException.MEMORY_EXPANSION_EXCEPTION
-            || tracedException() == TracedException.STATIC_FAULT
-            || tracedException() == TracedException.INVALID_CODE_PREFIX
-            || tracedException() == TracedException.MAX_CODE_SIZE_EXCEPTION) {
+        || tracedException() == TracedException.STACK_UNDERFLOW
+        || tracedException() == TracedException.STACK_OVERFLOW
+        || tracedException() == TracedException.RETURN_DATA_COPY_FAULT
+        || tracedException() == TracedException.MEMORY_EXPANSION_EXCEPTION
+        || tracedException() == TracedException.STATIC_FAULT
+        || tracedException() == TracedException.INVALID_CODE_PREFIX
+        || tracedException() == TracedException.MAX_CODE_SIZE_EXCEPTION) {
       return 0;
     }
 

@@ -74,13 +74,14 @@ public final class StackFragment implements TraceFragment {
     this.stackOps = stackOps;
     this.exceptions = exceptions;
     this.opCode = stack.getCurrentOpcodeData().mnemonic();
-    this.hashInfoFlag = Exceptions.none(exceptions) &&
-      switch (this.opCode) {
-        case SHA3 -> gp.messageSize() > 0;
-        case RETURN -> isDeploying && gp.messageSize() > 0;
-        case CREATE2 -> aborts.none() && gp.messageSize() > 0;
-        default -> false;
-      };
+    this.hashInfoFlag =
+        Exceptions.none(exceptions)
+            && switch (this.opCode) {
+              case SHA3 -> gp.messageSize() > 0;
+              case RETURN -> isDeploying && gp.messageSize() > 0;
+              case CREATE2 -> aborts.none() && gp.messageSize() > 0;
+              default -> false;
+            };
     if (this.hashInfoFlag) {
       Bytes memorySegmentToHash;
       switch (this.opCode) {

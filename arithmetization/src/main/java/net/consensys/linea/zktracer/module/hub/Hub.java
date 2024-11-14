@@ -633,7 +633,7 @@ public class Hub implements Module {
 
       final long callDataContextNumber = callStack.currentCallFrame().contextNumber();
 
-      currentFrame().rememberGasNextBeforePausing();
+      currentFrame().rememberGasNextBeforePausing(this);
       currentFrame().pauseCurrentFrame();
 
       MemorySpan returnDataTargetInCaller =

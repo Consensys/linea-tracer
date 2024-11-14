@@ -118,8 +118,8 @@ public class CallFrame {
     executionPaused = false;
   }
 
-  public void rememberGasNextBeforePausing() {
-    lastValidGasNext = frame.getRemainingGas();
+  public void rememberGasNextBeforePausing(Hub hub) {
+    lastValidGasNext = hub.state.current().txTrace().currentSection().commonValues.gasNext();
   }
 
   /** the ether amount given to this frame. */

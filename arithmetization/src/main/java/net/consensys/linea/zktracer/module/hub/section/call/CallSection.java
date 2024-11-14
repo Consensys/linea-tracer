@@ -486,7 +486,7 @@ public class CallSection extends TraceSection
                 postOpcodeCalleeSnapshot,
                 postRollbackCalleeSnapshot,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), this.revertStamp(), 0));
+                    this.hubStamp(), this.revertStamp(), 2));
     this.addFragment(undoingCalleeAccountFragment);
   }
 

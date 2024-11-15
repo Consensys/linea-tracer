@@ -199,22 +199,19 @@ public class CreateSection extends TraceSection
 
     value = failedCreate ? Wei.ZERO : Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(0)));
 
-    if (failedCreate || emptyInitCode) {
+
+    if (failedCreate) {
       finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
+      scenarioFragment.setScenario(CREATE_FAILURE_CONDITION_WONT_REVERT);
+      hub.failureConditionForCreates = true;
+      return;
+    }
 
-      if (failedCreate) {
-        scenarioFragment.setScenario(CREATE_FAILURE_CONDITION_WONT_REVERT);
-        hub.failureConditionForCreates = true;
-        return;
-      }
-
-      // this "if" is redundant and could be removed
-      // --- please don't, for now at least
-      if (emptyInitCode) {
-        scenarioFragment.setScenario(CREATE_EMPTY_INIT_CODE_WONT_REVERT);
-        hub.transients().conflation().deploymentInfo().newDeploymentSansExecutionAt(createeAddress);
-        return;
-      }
+    if (emptyInitCode) {
+      finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
+      scenarioFragment.setScenario(CREATE_EMPTY_INIT_CODE_WONT_REVERT);
+      hub.transients().conflation().deploymentInfo().newDeploymentSansExecutionAt(createeAddress);
+      return;
     }
 
     // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create

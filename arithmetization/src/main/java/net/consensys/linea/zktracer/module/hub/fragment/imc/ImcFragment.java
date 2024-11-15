@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
+import net.consensys.linea.zktracer.opcode.gas.projector.Call;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
@@ -45,8 +46,7 @@ public class ImcFragment implements TraceFragment, ContextReEntryDefer {
   private boolean mmuIsSet = false;
   private boolean stpIsSet = false;
 
-  private boolean childContextSelfReverts = false;
-  private int childContextRevertStamp = 0;
+  private CallFrame childFrame = null;
 
   private ImcFragment(final Hub hub) {
     this.hub = hub;
@@ -141,17 +141,17 @@ public class ImcFragment implements TraceFragment, ContextReEntryDefer {
       subFragment.trace(trace, hub.state.stamps());
     }
 
-    trace.pMiscCcrsStamp(childContextRevertStamp).pMiscCcsrFlag(childContextSelfReverts);
+    if (childFrame != null) {
+      trace.pMiscCcrsStamp(childFrame.revertStamp()).pMiscCcsrFlag(childFrame.selfReverts());
+    }
 
     return trace;
   }
 
+  // TODO: The most natural thing would be to implement resolveAtContextEntry instead.
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-
-    CallFrame child = hub.callStack().getById(frame.childFramesId().getLast());
-    childContextSelfReverts = child.selfReverts();
-    childContextRevertStamp = child.revertStamp();
+    childFrame = hub.callStack().getById(frame.childFramesId().getLast());
   }
 
   /**

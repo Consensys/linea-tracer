@@ -21,7 +21,6 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.container.StackedContainer;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;

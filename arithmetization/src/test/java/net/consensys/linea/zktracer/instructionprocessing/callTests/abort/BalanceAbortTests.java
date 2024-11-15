@@ -60,7 +60,7 @@ public class BalanceAbortTests {
   }
 
   /**
-   * scenario/CALL_ABORT_WILL_REVERT
+   * scenario/CALL_ABORT_WILL_REVERT; reverts the warmth;
   */
   @Test
   void insufficientBalanceAbortWillRevert() {

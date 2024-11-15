@@ -289,21 +289,21 @@ public class CallSection extends TraceSection
     postOpcodeCalleeSnapshot = preOpcodeCalleeSnapshot.deepCopy().turnOnWarmth();
     final Factories factories = hub.factories();
     final AccountFragment readingCallerAccount =
-            factories
-                    .accountFragment()
-                    .make(
-                            preOpcodeCallerSnapshot,
-                            postOpcodeCallerSnapshot,
-                            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+        factories
+            .accountFragment()
+            .make(
+                preOpcodeCallerSnapshot,
+                postOpcodeCallerSnapshot,
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     final AccountFragment readingCalleeAccountAndWarmth =
-            factories
-                    .accountFragment()
-                    .makeWithTrm(
-                            preOpcodeCalleeSnapshot,
-                            postOpcodeCalleeSnapshot,
-                            rawCalleeAddress,
-                            DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
+        factories
+            .accountFragment()
+            .makeWithTrm(
+                preOpcodeCalleeSnapshot,
+                postOpcodeCalleeSnapshot,
+                rawCalleeAddress,
+                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
     finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
     this.addFragments(readingCallerAccount, readingCalleeAccountAndWarmth);
     hub.defers().scheduleForPostExecution(this);
@@ -321,7 +321,8 @@ public class CallSection extends TraceSection
   @Override
   public void resolveUponContextEntry(Hub hub) {
     postOpcodeCallerSnapshot = preOpcodeCallerSnapshot.deepCopy().decrementBalanceBy(value);
-    postOpcodeCalleeSnapshot = preOpcodeCalleeSnapshot.deepCopy().incrementBalanceBy(value).turnOnWarmth();
+    postOpcodeCalleeSnapshot =
+        preOpcodeCalleeSnapshot.deepCopy().incrementBalanceBy(value).turnOnWarmth();
 
     switch (scenarioFragment.getScenario()) {
       case CALL_SMC_UNDEFINED -> {
@@ -460,7 +461,7 @@ public class CallSection extends TraceSection
 
     final CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
     switch (callScenario) {
-      case CALL_ABORT_WONT_REVERT -> completeAbortWillRevert(factory);
+      case CALL_ABORT_WONT_REVERT -> completeAbortWillRevert(hub, factory);
       case CALL_EOA_SUCCESS_WONT_REVERT -> completeEoaSuccessWillRevert(factory);
       case CALL_SMC_FAILURE_WONT_REVERT -> completeSmcFailureWillRevert(factory);
       case CALL_SMC_SUCCESS_WONT_REVERT,
@@ -494,14 +495,18 @@ public class CallSection extends TraceSection
     this.addFragment(finalContextFragment);
   }
 
-  private void completeAbortWillRevert(Factories factory) {
+  private void completeAbortWillRevert(Hub hub, Factories factory) {
     scenarioFragment.setScenario(CALL_ABORT_WILL_REVERT);
+    AccountSnapshot preRollBackCalleeSnapshot =
+        postOpcodeCalleeSnapshot.deepCopy().setDeploymentInfo(hub);
+    AccountSnapshot postRollBackCalleeSnapshot =
+        preOpcodeCalleeSnapshot.deepCopy().setDeploymentInfo(hub);
     final AccountFragment undoingCalleeAccountFragment =
         factory
             .accountFragment()
             .make(
-                postOpcodeCalleeSnapshot,
-                preOpcodeCalleeSnapshot,
+                preRollBackCalleeSnapshot,
+                postRollBackCalleeSnapshot,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 2));
     this.addFragment(undoingCalleeAccountFragment);

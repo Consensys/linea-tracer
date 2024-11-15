@@ -76,7 +76,7 @@ public class EoaTests {
   @Test
   void transfersAllValueWillRevertTest() {
 
-    Bytes bytecode =
+    Bytes program =
         BytecodeCompiler.newProgram()
             .push(1)
             .push(2)
@@ -92,7 +92,7 @@ public class EoaTests {
             .op(REVERT)
             .compile();
 
-    BytecodeRunner.of(bytecode).run();
+    BytecodeRunner.of(program).run();
   }
 
   @Test

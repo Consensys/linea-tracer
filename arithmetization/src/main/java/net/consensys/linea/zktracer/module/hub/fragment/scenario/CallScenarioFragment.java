@@ -32,10 +32,6 @@ public class CallScenarioFragment implements TraceFragment {
     scenario = UNDEFINED;
   }
 
-  public CallScenarioFragment(final CallScenario callScenario) {
-    scenario = callScenario;
-  }
-
   public enum CallScenario {
     UNDEFINED,
     CALL_EXCEPTION,
@@ -70,9 +66,6 @@ public class CallScenarioFragment implements TraceFragment {
       return this != UNDEFINED && this != CALL_PRC_UNDEFINED && this != CALL_SMC_UNDEFINED;
     }
   }
-
-  private static final List<CallScenario> illegalTracingScenario =
-      List.of(UNDEFINED, CALL_SMC_UNDEFINED, CALL_PRC_UNDEFINED);
 
   public Trace trace(Trace trace) {
     checkArgument(scenario.noLongerUndefined(), "Final Scenario hasn't been set");

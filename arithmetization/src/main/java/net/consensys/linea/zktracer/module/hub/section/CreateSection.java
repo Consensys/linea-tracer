@@ -215,6 +215,10 @@ public class CreateSection extends TraceSection
     }
 
     // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create
+    ////////////////////////////////////////////////////////////////////////////////
+
+    // we capture revert information about the child context: CCSR and CCRS
+    hub.defers().scheduleForContextReEntry(imcFragment, hub.currentFrame());
 
     // The current execution context pays (63/64)ths of it current gas to the child context
     commonValues.payGasPaidOutOfPocket(hub);

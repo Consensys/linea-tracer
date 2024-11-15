@@ -199,7 +199,6 @@ public class CreateSection extends TraceSection
 
     value = failedCreate ? Wei.ZERO : Wei.of(UInt256.fromBytes(hub.messageFrame().getStackItem(0)));
 
-
     if (failedCreate) {
       finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
       scenarioFragment.setScenario(CREATE_FAILURE_CONDITION_WONT_REVERT);

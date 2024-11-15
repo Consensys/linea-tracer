@@ -59,27 +59,25 @@ public class BalanceAbortTests {
     BytecodeRunner.of(bytecode).run();
   }
 
-  /**
-   * scenario/CALL_ABORT_WILL_REVERT; reverts the warmth;
-  */
+  /** scenario/CALL_ABORT_WILL_REVERT; reverts the warmth; */
   @Test
   void insufficientBalanceAbortWillRevert() {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    appendInsufficientBalanceCall(program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
+    appendInsufficientBalanceCall(
+        program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
     program.push(6).push(7).op(REVERT);
     Bytes bytecode = program.compile();
     BytecodeRunner.of(bytecode).run();
   }
 
-  /**
-   * scenario/CALL_ABORT_WONT_REVERT
-   */
+  /** scenario/CALL_ABORT_WONT_REVERT */
   @Test
   void insufficientBalanceAbortWontRevert() {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    appendInsufficientBalanceCall(program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
+    appendInsufficientBalanceCall(
+        program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
     Bytes bytecode = program.compile();
     BytecodeRunner.of(bytecode).run();
   }

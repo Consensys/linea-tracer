@@ -98,11 +98,13 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
 
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
-    final AccountSnapshot preRollBackAccountSnapshot = accountSnapshotAfter.deepCopy().setDeploymentInfo(hub);
-    final AccountSnapshot postRollBackAccountSnapshot = accountSnapshotBefore.deepCopy().setDeploymentInfo(hub);
+    final AccountSnapshot preRollBackAccountSnapshot =
+        accountSnapshotAfter.deepCopy().setDeploymentInfo(hub);
+    final AccountSnapshot postRollBackAccountSnapshot =
+        accountSnapshotBefore.deepCopy().setDeploymentInfo(hub);
     final DomSubStampsSubFragment undoingDomSubStamps =
-            DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), hub.currentFrame().revertStamp(), 1);
+        DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+            this.hubStamp(), hub.currentFrame().revertStamp(), 1);
 
     this.addFragment(
         hub.factories()

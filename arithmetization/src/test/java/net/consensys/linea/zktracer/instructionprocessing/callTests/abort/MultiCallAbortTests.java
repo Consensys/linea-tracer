@@ -23,49 +23,51 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 
-/**
- * CALL/ABORT's are revert sensitive. We test this with two CALL's.
- */
+/** CALL/ABORT's are revert sensitive. We test this with two CALL's. */
 public class MultiCallAbortTests {
 
-    @Test
-    void normalCallThenAbortedCallToEoaThenRevert() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
-        simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
-        appendInsufficientBalanceCall(program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
-        program.push(6).push(7).op(REVERT);
-        Bytes bytecode = program.compile();
-        BytecodeRunner.of(bytecode).run();
-    }
+  @Test
+  void normalCallThenAbortedCallToEoaThenRevert() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
+    appendInsufficientBalanceCall(
+        program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
+    program.push(6).push(7).op(REVERT);
+    Bytes bytecode = program.compile();
+    BytecodeRunner.of(bytecode).run();
+  }
 
   @Test
   void abortedCallNormalCallToEoaThenRevert() {
-      BytecodeCompiler program = BytecodeCompiler.newProgram();
-      appendInsufficientBalanceCall(program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
-      simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
-      program.push(6).push(7).op(REVERT);
-      Bytes bytecode = program.compile();
-      BytecodeRunner.of(bytecode).run();
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    appendInsufficientBalanceCall(
+        program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
+    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
+    program.push(6).push(7).op(REVERT);
+    Bytes bytecode = program.compile();
+    BytecodeRunner.of(bytecode).run();
   }
 
-    @Test
-    void balanceThenAbortedCallToEoaThenRevert() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
-        program.push(eoaAddress).op(BALANCE).op(POP);
-        appendInsufficientBalanceCall(program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
-        simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
-        program.push(6).push(7).op(REVERT);
-        Bytes bytecode = program.compile();
-        BytecodeRunner.of(bytecode).run();
-    }
+  @Test
+  void balanceThenAbortedCallToEoaThenRevert() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program.push(eoaAddress).op(BALANCE).op(POP);
+    appendInsufficientBalanceCall(
+        program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
+    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
+    program.push(6).push(7).op(REVERT);
+    Bytes bytecode = program.compile();
+    BytecodeRunner.of(bytecode).run();
+  }
 
-    @Test
-    void abortedCallThenBalanceToEoaThenRevert() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
-        appendInsufficientBalanceCall(program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
-        simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
-        program.push(6).push(7).op(REVERT);
-        Bytes bytecode = program.compile();
-        BytecodeRunner.of(bytecode).run();
-    }
+  @Test
+  void abortedCallThenBalanceToEoaThenRevert() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    appendInsufficientBalanceCall(
+        program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
+    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
+    program.push(6).push(7).op(REVERT);
+    Bytes bytecode = program.compile();
+    BytecodeRunner.of(bytecode).run();
+  }
 }

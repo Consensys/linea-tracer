@@ -256,7 +256,7 @@ public class ModexpTests {
             .push(64) // offset
             .op(OpCode.MSTORE)
             // MSTORE ebm
-            .push(Bytes.fromHexString("0xba7e000ec70000080d"))
+            .push(Bytes32.rightPad(Bytes.fromHexString("0xba7e000ec70000080d")))
             .push(96)
             .op(OpCode.MSTORE)
             // Call Modexp

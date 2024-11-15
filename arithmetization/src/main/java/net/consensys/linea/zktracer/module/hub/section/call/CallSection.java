@@ -236,6 +236,7 @@ public class CallSection extends TraceSection
 
     if (scenarioFragment.getScenario() == CALL_SMC_UNDEFINED) {
       this.commonValues.payGasPaidOutOfPocket(hub);
+      hub.defers().scheduleForContextReEntry(firstImcFragment, currentFrame);
       finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);
       final boolean isSelfCall = callerAddress.equals(calleeAddress);
       selfCallWithNonzeroValueTransfer = isSelfCall && !value.isZero();

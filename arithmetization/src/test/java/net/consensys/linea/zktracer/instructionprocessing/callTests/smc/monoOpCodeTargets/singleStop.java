@@ -14,12 +14,12 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.monoOpCodeTargets;
 
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.smc.Utilities.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import net.consensys.linea.testing.*;
 import org.junit.jupiter.api.Test;
-
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.smc.Utilities.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 /**
  * Simplest case where we enter a smart contract. The called smart contract executes a single STOP
@@ -27,71 +27,36 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
  */
 public class singleStop {
 
-    /**
-     * This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WONT_REVERT</b>
-     * scenario.
-     */
-    @Test
-        void zeroValueTransferToContractThatStops() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+  /** This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WONT_REVERT</b> scenario. */
+  @Test
+  void zeroValueTransferToContractThatStops() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-        simpleCall(program,
-                CALL,
-                0,
-                accountWhoseByteCodeIsASingleStop.getAddress(),
-                0,
-                0,
-                0,
-                0,
-                0);
+    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleStop.getAddress(), 0, 0, 0, 0, 0);
 
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 
-    /**
-     * This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WONT_REVERT</b>
-     * scenario.
-     */
-    @Test
-    void nonZeroValueTransferToContractThatStops() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+  /** This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WONT_REVERT</b> scenario. */
+  @Test
+  void nonZeroValueTransferToContractThatStops() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-        simpleCall(program,
-                CALL,
-                0,
-                accountWhoseByteCodeIsASingleStop.getAddress(),
-                1,
-                0,
-                0,
-                0,
-                0);
+    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleStop.getAddress(), 1, 0, 0, 0, 0);
 
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 
+  /** This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WILL_REVERT</b> scenario. */
+  @Test
+  void nonZeroValueTransferToContractThatStopsRevertingTransaction() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    /**
-     * This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WILL_REVERT</b>
-     * scenario.
-     */
-    @Test
-    void nonZeroValueTransferToContractThatStopsRevertingTransaction() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleStop.getAddress(), 1, 0, 0, 0, 0);
 
-        simpleCall(program,
-                CALL,
-                0,
-                accountWhoseByteCodeIsASingleStop.getAddress(),
-                1,
-                0,
-                0,
-                0,
-                0);
+    // we use the 1 on the stack after this successful CALL as the revert message size
+    program.push(0).op(REVERT);
 
-        // we use the 1 on the stack after this successful CALL as the revert message size
-        program.push(0).op(REVERT);
-
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
-
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 }

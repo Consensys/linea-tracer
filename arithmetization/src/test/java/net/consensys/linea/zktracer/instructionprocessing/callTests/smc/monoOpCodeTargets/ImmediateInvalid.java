@@ -14,71 +14,44 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.monoOpCodeTargets;
 
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.smc.Utilities.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
+import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.junit.jupiter.api.Test;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.smc.Utilities.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
-import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
-import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
-
 public class ImmediateInvalid {
 
+  @Test
+  void zeroValueTransferToInvalid() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    @Test
-    void zeroValueTransferToInvalid() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleInvalid.getAddress(), 0, 0, 0, 0, 0);
 
-        simpleCall(program,
-                CALL,
-                0,
-                accountWhoseByteCodeIsASingleInvalid.getAddress(),
-                0,
-                0,
-                0,
-                0,
-                0);
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
+  @Test
+  void nonZeroValueTransferToInvalidContract() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    @Test
-    void nonZeroValueTransferToInvalidContract() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleInvalid.getAddress(), 1, 0, 0, 0, 0);
 
-        simpleCall(program,
-                CALL,
-                0,
-                accountWhoseByteCodeIsASingleInvalid.getAddress(),
-                1,
-                0,
-                0,
-                0,
-                0);
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
+  @Test
+  void nonZeroValueTransferToInvalidContractRevertingTransaction() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
+    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleInvalid.getAddress(), 1, 0, 0, 0, 0);
 
-    @Test
-    void nonZeroValueTransferToInvalidContractRevertingTransaction() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    // we use the 1 on the stack after this successful CALL as the revert message size
+    program.push(0).op(REVERT);
 
-        simpleCall(program,
-                CALL,
-                0,
-                accountWhoseByteCodeIsASingleInvalid.getAddress(),
-                1,
-                0,
-                0,
-                0,
-                0);
-
-        // we use the 1 on the stack after this successful CALL as the revert message size
-        program.push(0).op(REVERT);
-
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
-
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 }

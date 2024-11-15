@@ -14,156 +14,90 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.monoOpCodeTargets;
 
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.smc.Utilities.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
+import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.junit.jupiter.api.Test;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.smc.Utilities.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
-import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
-import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
-
 /**
- * Second-simplest case where we enter a smart contract. The called smart contract executes a single JUMPDEST
- * opcode (which is costs gas).
+ * Second-simplest case where we enter a smart contract. The called smart contract executes a single
+ * JUMPDEST opcode (which is costs gas).
  */
 public class singleJumpDest {
 
-    /**
-     * This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WONT_REVERT</b>
-     * scenario.
-     */
-    @Test
-    void zeroValueTransferToJumpDestContract() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+  /** This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WONT_REVERT</b> scenario. */
+  @Test
+  void zeroValueTransferToJumpDestContract() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-        simpleCall(program,
-                CALL,
-                10,
-                accountWhoseByteCodeIsASingleJumpDest.getAddress(),
-                0,
-                0,
-                0,
-                0,
-                0);
+    simpleCall(
+        program, CALL, 10, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 0, 0, 0, 0, 0);
 
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 
-    /**
-     * This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WONT_REVERT</b>
-     * scenario.
-     */
-    @Test
-    void nonZeroValueTransferToJumpDestContract() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+  /** This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WONT_REVERT</b> scenario. */
+  @Test
+  void nonZeroValueTransferToJumpDestContract() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-        simpleCall(program,
-                CALL,
-                10,
-                accountWhoseByteCodeIsASingleJumpDest.getAddress(),
-                1,
-                0,
-                0,
-                0,
-                0);
+    simpleCall(
+        program, CALL, 10, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
 
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 
+  /** This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WILL_REVERT</b> scenario. */
+  @Test
+  void nonZeroValueTransferToJumpDestContractRevertingTransaction() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    /**
-     * This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WILL_REVERT</b>
-     * scenario.
-     */
-    @Test
-    void nonZeroValueTransferToJumpDestContractRevertingTransaction() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    simpleCall(
+        program, CALL, 10, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
 
-        simpleCall(program,
-                CALL,
-                10,
-                accountWhoseByteCodeIsASingleJumpDest.getAddress(),
-                1,
-                0,
-                0,
-                0,
-                0);
+    // we use the 1 on the stack after this successful CALL as the revert message size
+    program.push(0).op(REVERT);
 
-        // we use the 1 on the stack after this successful CALL as the revert message size
-        program.push(0).op(REVERT);
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
+  // CALL reverts because of OOGX
+  ///////////////////////////////
 
-    // CALL reverts because of OOGX
-    ///////////////////////////////
+  /** This test should trigger the <b>scenario/CALL_TO_SMC_FAILURE_WONT_REVERT</b> scenario. */
+  @Test
+  void zeroValueTransferToJumpDestContractOogx() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    /**
-     * This test should trigger the <b>scenario/CALL_TO_SMC_FAILURE_WONT_REVERT</b>
-     * scenario.
-     */
-    @Test
-    void zeroValueTransferToJumpDestContractOogx() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 0, 0, 0, 0, 0);
 
-        simpleCall(program,
-                CALL,
-                0,
-                accountWhoseByteCodeIsASingleJumpDest.getAddress(),
-                0,
-                0,
-                0,
-                0,
-                0);
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
+  /** This test should trigger the <b>scenario/CALL_TO_SMC_FAILURE_WONT_REVERT</b> scenario. */
+  @Test
+  void nonZeroValueTransferToJumpDestContractOogx() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    /**
-     * This test should trigger the <b>scenario/CALL_TO_SMC_FAILURE_WONT_REVERT</b>
-     * scenario.
-     */
-    @Test
-    void nonZeroValueTransferToJumpDestContractOogx() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
 
-        simpleCall(program,
-                CALL,
-                0,
-                accountWhoseByteCodeIsASingleJumpDest.getAddress(),
-                1,
-                0,
-                0,
-                0,
-                0);
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
+  /** This test should trigger the <b>scenario/CALL_TO_SMC_FAILURE_WILL_REVERT</b> scenario. */
+  @Test
+  void nonZeroValueTransferToJumpDestContractOogxAndRevertingTransaction() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
+    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
 
-    /**
-     * This test should trigger the <b>scenario/CALL_TO_SMC_FAILURE_WILL_REVERT</b>
-     * scenario.
-     */
-    @Test
-    void nonZeroValueTransferToJumpDestContractOogxAndRevertingTransaction() {
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    // we use the 1 on the stack after this successful CALL as the revert message size
+    program.push(0).op(REVERT);
 
-        simpleCall(program,
-                CALL,
-                0,
-                accountWhoseByteCodeIsASingleJumpDest.getAddress(),
-                1,
-                0,
-                0,
-                0,
-                0);
-
-        // we use the 1 on the stack after this successful CALL as the revert message size
-        program.push(0).op(REVERT);
-
-        BytecodeRunner.of(program.compile()).run(accounts);
-    }
-
+    BytecodeRunner.of(program.compile()).run(accounts);
+  }
 }

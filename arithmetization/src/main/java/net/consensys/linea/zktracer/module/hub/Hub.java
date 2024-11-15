@@ -740,7 +740,7 @@ public class Hub implements Module {
      */
     if (isExceptional()) {
       this.currentTraceSection()
-          .addFragments(ContextFragment.executionProvidesEmptyReturnData(this));
+          .exceptionalContextFragment(ContextFragment.executionProvidesEmptyReturnData(this));
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
     }

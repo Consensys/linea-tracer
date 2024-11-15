@@ -87,6 +87,7 @@ public class TxTrace {
   public int lineCount() {
     int lineCount = 0;
     for (TraceSection s : trace) {
+      if (s.exceptionalContextFragment != null) s.fragments().add(s.exceptionalContextFragment);
       lineCount += s.fragments().size();
     }
     return lineCount;

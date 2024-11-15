@@ -406,11 +406,14 @@ public class CallSection extends TraceSection
       }
 
       case CALL_SMC_UNDEFINED -> {
+
+        // CALL_SMC_SUCCESS_XXX case
         if (successBit) {
           scenarioFragment.setScenario(CALL_SMC_SUCCESS_WONT_REVERT);
           return;
         }
 
+        // CALL_SMC_FAILURE_XXX case
         scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
 
         if (selfCallWithNonzeroValueTransfer) {
@@ -418,14 +421,18 @@ public class CallSection extends TraceSection
           reEntryCalleeSnapshot.decrementBalanceBy(value);
         }
 
+        int childId = hub.currentFrame().childFramesId().getLast();
+        CallFrame childFrame = hub.callStack().getById(childId);
+        int childContextRevertStamp = childFrame.revertStamp();
+
         final AccountFragment postReEntryCallerAccountFragment =
             hub.factories()
                 .accountFragment()
                 .make(
                     childContextExitCallerSnapshot,
                     reEntryCallerSnapshot,
-                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                        this.hubStamp(), this.revertStamp(), 2));
+                    DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                        this.hubStamp(), childContextRevertStamp, 2));
 
         final AccountFragment postReEntryCalleeAccountFragment =
             hub.factories()
@@ -433,8 +440,8 @@ public class CallSection extends TraceSection
                 .make(
                     childContextExitCalleeSnapshot,
                     reEntryCalleeSnapshot,
-                    DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                        this.hubStamp(), this.revertStamp(), 3));
+                    DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                        this.hubStamp(), childContextRevertStamp, 3));
 
         this.addFragments(postReEntryCallerAccountFragment, postReEntryCalleeAccountFragment);
       }

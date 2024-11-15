@@ -145,8 +145,8 @@ public final class CallStack {
    * @return the parent {@link CallFrame} of the current frame
    */
   public CallFrame parent() {
-    if (this.currentCallFrame().callerId() != -1) {
-      return this.callFrames.get(this.currentCallFrame().callerId());
+    if (this.currentCallFrame().parentId() != -1) {
+      return this.callFrames.get(this.currentCallFrame().parentId());
     } else {
       return CallFrame.EMPTY;
     }
@@ -232,7 +232,7 @@ public final class CallStack {
   public void exit() {
     this.depth -= 1;
     Preconditions.checkState(this.depth >= 0);
-    this.currentId = this.currentCallFrame().callerId();
+    this.currentId = this.currentCallFrame().parentId();
   }
 
   /**
@@ -262,7 +262,7 @@ public final class CallStack {
    * @return the caller of the current frame
    */
   public CallFrame caller() {
-    return this.callFrames.get(this.currentCallFrame().callerId());
+    return this.callFrames.get(this.currentCallFrame().parentId());
   }
 
   /**
@@ -308,7 +308,7 @@ public final class CallStack {
       return CallFrame.EMPTY;
     }
 
-    return this.getById(this.callFrames.get(id).callerId());
+    return this.getById(this.callFrames.get(id).parentId());
   }
 
   /**

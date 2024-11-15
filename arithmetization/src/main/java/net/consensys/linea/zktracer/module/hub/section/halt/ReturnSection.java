@@ -177,7 +177,7 @@ public class ReturnSection extends TraceSection
       final ContextFragment updateCallerReturnData =
           ContextFragment.executionProvidesReturnData(
               hub,
-              hub.callStack().getById(callFrame.callerId()).contextNumber(),
+              hub.callStack().getById(callFrame.parentId()).contextNumber(),
               callFrame.contextNumber());
       this.addFragment(updateCallerReturnData);
 

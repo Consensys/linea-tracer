@@ -93,7 +93,7 @@ public final class CommonFragment implements TraceFragment {
         .contextNumber(isExec ? frame.contextNumber() : 0)
         .contextNumberNew(commonFragmentValues.contextNumberNew)
         .callerContextNumber(
-            commonFragmentValues.callStack.getById(frame.callerId()).contextNumber())
+            commonFragmentValues.callStack.getById(frame.parentId()).contextNumber())
         .contextWillRevert(frame.willRevert() && isExec)
         .contextGetsReverted(frame.getsReverted() && isExec)
         .contextSelfReverts(frame.selfReverts() && isExec)

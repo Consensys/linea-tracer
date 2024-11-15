@@ -377,14 +377,6 @@ public class CallSection extends TraceSection
 
     childContextExitCallerSnapshot = canonical(hub, preOpcodeCallerSnapshot.address());
     childContextExitCalleeSnapshot = canonical(hub, preOpcodeCalleeSnapshot.address());
-
-    // TODO: what follows assumes that the caller's stack has been updated
-    //  to contain the success bit of the call at traceContextReEntry.
-    //  See issue #872.
-    // TODO: when does the callFrame update its output data?
-    // TODO: when does the callFrame update to the parent callFrame ?
-    finalContextFragment.returnDataContextNumber(hub.currentFrame().contextNumber());
-    finalContextFragment.returnDataSegment(hub.currentFrame().outputDataSpan());
   }
 
   @Override

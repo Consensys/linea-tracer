@@ -20,18 +20,23 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
+import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
+import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /**
  * IMCFragments embed data required for Inter-Module Communication, i.e. data that are required to
  * correctly trigger other modules from the Hub.
  */
-public class ImcFragment implements TraceFragment {
+public class ImcFragment implements TraceFragment, ContextReEntryDefer {
   /** the list of modules to trigger withing this fragment. */
   private final List<TraceSubFragment> moduleCalls = new ArrayList<>(5);
 
@@ -42,6 +47,9 @@ public class ImcFragment implements TraceFragment {
   private boolean mxpIsSet = false;
   private boolean mmuIsSet = false;
   private boolean stpIsSet = false;
+
+  private boolean childContextSelfReverts = false;
+  private int childContextRevertStamp = 0;
 
   private ImcFragment(final Hub hub) {
     this.hub = hub;
@@ -136,6 +144,27 @@ public class ImcFragment implements TraceFragment {
       subFragment.trace(trace, hub.state.stamps());
     }
 
+    trace
+            .pMiscCcrsStamp(childContextRevertStamp)
+            .pMiscCcsrFlag(childContextSelfReverts);
+
     return trace;
   }
+
+  @Override
+  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
+
+    CallFrame child = hub.callStack().getById(frame.childFramesId().getLast());
+    childContextSelfReverts = child.selfReverts();
+    childContextRevertStamp = child.revertStamp();
+  }
+
+  /**
+   * The IMC fragment (or MISCELLANEOUS fragment in the specification) requires, for CALL and CREATE instructions,
+   * to record the following data
+   * <p>- whether the child context will or won't self-revert (i.e. CHILD_CONTEXT_SELF_REVERTS ≡ CCSR)</p>
+   * <p>- if it does, at what point in time (i.e. CHILD_CONTEXT_REVERT_STAMP ≡ CCRS)</p>
+   * <p> In order to capture this information we will schedule IMC fragments for context-re-entry.
+   * @param hub
+   */
 }

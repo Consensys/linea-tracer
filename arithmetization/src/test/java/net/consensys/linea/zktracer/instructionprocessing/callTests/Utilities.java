@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -59,6 +60,29 @@ public class Utilities {
       program.push(value);
     }
     program.push(to).push(gas).op(callOpcode);
+  }
+
+  public static void appendInsufficientBalanceCall(
+      BytecodeCompiler program,
+      OpCode callOpcode,
+      int gas,
+      Address to,
+      int cdo,
+      int cds,
+      int rao,
+      int rac) {
+    checkArgument(callOpcode.callCanTransferValue());
+    program
+        .push(rac)
+        .push(rao)
+        .push(cds)
+        .push(cdo)
+        .op(BALANCE)
+        .push(1)
+        .op(ADD) // puts balance + 1 on the stack
+        .push(to)
+        .push(gas)
+        .op(callOpcode);
   }
 
   /**

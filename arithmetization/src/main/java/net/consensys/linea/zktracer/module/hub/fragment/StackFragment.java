@@ -75,11 +75,11 @@ public final class StackFragment implements TraceFragment {
     this.exceptions = exceptions;
     this.opCode = stack.getCurrentOpcodeData().mnemonic();
     this.hashInfoFlag =
-        Exceptions.none(exceptions)
+        Exceptions.none(exceptions) && gp.messageSize() > 0
             && switch (this.opCode) {
-              case SHA3 -> gp.messageSize() > 0;
-              case RETURN -> isDeploying && gp.messageSize() > 0;
-              case CREATE2 -> aborts.none() && gp.messageSize() > 0;
+              case SHA3 -> true;
+              case RETURN -> isDeploying;
+              case CREATE2 -> aborts.none();
               default -> false;
             };
     if (this.hashInfoFlag) {

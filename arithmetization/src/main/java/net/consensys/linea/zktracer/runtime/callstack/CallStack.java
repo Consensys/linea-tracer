@@ -258,15 +258,6 @@ public final class CallStack {
   }
 
   /**
-   * Get the {@link CallFrame} representing the caller of the current frame
-   *
-   * @return the caller of the current frame
-   */
-  public CallFrame caller() {
-    return this.callFrames.get(this.currentCallFrame().parentId());
-  }
-
-  /**
    * Returns the ith {@link CallFrame} in this call stack.
    *
    * @param i ID of the call frame to fetch

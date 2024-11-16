@@ -98,7 +98,7 @@ public class PrecompileSubsection
 
     final MessageFrame messageFrame = hub.messageFrame();
 
-    hub.defers().scheduleForImmediateContextEntry(this); // gas & input data, ...
+    hub.defers().scheduleForContextEntry(this); // gas & input data, ...
     hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame()); // success bit & return data
 

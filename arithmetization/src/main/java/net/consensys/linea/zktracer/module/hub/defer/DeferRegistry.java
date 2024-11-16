@@ -63,7 +63,7 @@ public class DeferRegistry
   private final Map<CallFrame, List<PostRollbackDefer>> rollbackDefers = new HashMap<>();
 
   /** Schedule an action to be executed after the completion of the current opcode. */
-  public void scheduleForImmediateContextEntry(ImmediateContextEntryDefer defer) {
+  public void scheduleForContextEntry(ImmediateContextEntryDefer defer) {
     immediateContextEntryDefers.add(defer);
   }
 

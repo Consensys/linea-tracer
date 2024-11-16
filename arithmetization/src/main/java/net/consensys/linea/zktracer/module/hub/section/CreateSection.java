@@ -165,7 +165,7 @@ public class CreateSection extends TraceSection
 
     // The CREATE(2) is now unexceptional and unaborted
     checkArgument(aborts.none());
-    hub.defers().scheduleForImmediateContextEntry(this); // when we add the two account fragments
+    hub.defers().scheduleForContextEntry(this); // when we add the two account fragments
     hub.defers().scheduleForPostRollback(this, hub.currentFrame()); // in case of Rollback
     hub.defers().scheduleForPostTransaction(this); // when we add the last context row
 

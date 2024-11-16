@@ -161,7 +161,7 @@ public class RomLex
 
         checkArgument(length > 0, "callRomLex expects positive size for CREATE(2)");
 
-        hub.defers().scheduleForImmediateContextEntry(this);
+        hub.defers().scheduleForContextEntry(this);
         byteCode = frame.shadowReadMemory(offset, length);
         address = getDeploymentAddress(frame);
       }

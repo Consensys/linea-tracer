@@ -324,14 +324,14 @@ public class CallSection extends TraceSection
   }
 
   private void prcProcessing(Hub hub) {
-    hub.defers().scheduleForImmediateContextEntry(this);
+    hub.defers().scheduleForContextEntry(this);
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
   }
 
     private void smcProcessing(Hub hub) {
 
-    hub.defers().scheduleForImmediateContextEntry(this);
+    hub.defers().scheduleForContextEntry(this);
     hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());

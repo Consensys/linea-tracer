@@ -38,7 +38,7 @@ public class StackUnderflowExceptionTest {
       OpCode opCode, int nPushes, boolean triggersStackUnderflowExceptions) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < nPushes; i++) {
-      program.push(0);
+      program.push(i + 1);
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());

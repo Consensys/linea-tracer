@@ -285,11 +285,18 @@ public class CallSection extends TraceSection
 
   /**
    * Sets the scenario to the relevant undefined variant, i.e. either
-   * <p>- {@link net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario#CALL_PRC_UNDEFINED}</p>
-   * <p>- {@link net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario#CALL_SMC_UNDEFINED}</p>
-   * <p>- {@link net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario#CALL_EOA_UNDEFINED}</p>
+   *
+   * <p>- {@link
+   * net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario#CALL_PRC_UNDEFINED}
+   *
+   * <p>- {@link
+   * net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario#CALL_SMC_UNDEFINED}
+   *
+   * <p>- {@link
+   * net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario#CALL_EOA_UNDEFINED}
    *
    * <p>depending on the address.
+   *
    * @param hub
    */
   private void refineUndefinedScenario(Hub hub) {
@@ -414,7 +421,6 @@ public class CallSection extends TraceSection
     reEntryCallerSnapshot = canonical(hub, callerAddress);
     reEntryCalleeSnapshot = canonical(hub, calleeAddress);
 
-
     switch (scenarioFragment.getScenario()) {
       case CALL_EOA_UNDEFINED -> {
         checkState(successBit);
@@ -431,7 +437,9 @@ public class CallSection extends TraceSection
         emptyCodeFirstCoupleOfAccountFragments(hub);
 
         CallFrame prcFrame = hub.callStack().getById(frame.childFramesId().getLast());
-        finalContextFragment = ContextFragment.updateReturnData(hub, prcFrame.contextNumber(), prcFrame.outputDataSpan());
+        finalContextFragment =
+            ContextFragment.updateReturnData(
+                hub, prcFrame.contextNumber(), prcFrame.outputDataSpan());
       }
 
       case CALL_SMC_UNDEFINED -> {
@@ -442,10 +450,14 @@ public class CallSection extends TraceSection
           return;
         }
 
-        AccountSnapshot beforeFailureCallerSnapshot = postOpcodeCallerSnapshot.deepCopy().setDeploymentInfo(hub);
-        AccountSnapshot afterFailureCallerSnapshot  = preOpcodeCallerSnapshot.deepCopy().setDeploymentInfo(hub);
-        AccountSnapshot beforeFailureCalleeSnapshot = postOpcodeCalleeSnapshot.deepCopy().setDeploymentInfo(hub);
-        AccountSnapshot afterFailureCalleeSnapshot  = preOpcodeCalleeSnapshot.deepCopy().setDeploymentInfo(hub).turnOnWarmth();
+        AccountSnapshot beforeFailureCallerSnapshot =
+            postOpcodeCallerSnapshot.deepCopy().setDeploymentInfo(hub);
+        AccountSnapshot afterFailureCallerSnapshot =
+            preOpcodeCallerSnapshot.deepCopy().setDeploymentInfo(hub);
+        AccountSnapshot beforeFailureCalleeSnapshot =
+            postOpcodeCalleeSnapshot.deepCopy().setDeploymentInfo(hub);
+        AccountSnapshot afterFailureCalleeSnapshot =
+            preOpcodeCalleeSnapshot.deepCopy().setDeploymentInfo(hub).turnOnWarmth();
 
         // CALL_SMC_FAILURE_XXX case
         scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
@@ -463,8 +475,8 @@ public class CallSection extends TraceSection
             hub.factories()
                 .accountFragment()
                 .make(
-                        beforeFailureCallerSnapshot,
-                        afterFailureCallerSnapshot,
+                    beforeFailureCallerSnapshot,
+                    afterFailureCallerSnapshot,
                     DomSubStampsSubFragment.revertsWithChildDomSubStamps(
                         this.hubStamp(), childContextRevertStamp, 2));
 
@@ -472,8 +484,8 @@ public class CallSection extends TraceSection
             hub.factories()
                 .accountFragment()
                 .make(
-                        beforeFailureCalleeSnapshot,
-                        afterFailureCalleeSnapshot,
+                    beforeFailureCalleeSnapshot,
+                    afterFailureCalleeSnapshot,
                     DomSubStampsSubFragment.revertsWithChildDomSubStamps(
                         this.hubStamp(), childContextRevertStamp, 3));
 
@@ -670,6 +682,7 @@ public class CallSection extends TraceSection
     checkState(scenarioFragment.getScenario().isIndefiniteSmcCallScenario());
     return calleeAddress.equals(callerAddress);
   }
+
   private boolean isNonzeroValueSelfCall() {
     checkState(scenarioFragment.getScenario().isIndefiniteSmcCallScenario());
     return isSelfCall() && !value.isZero();

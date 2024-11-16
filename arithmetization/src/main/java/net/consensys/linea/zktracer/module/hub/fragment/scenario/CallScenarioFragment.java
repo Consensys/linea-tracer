@@ -54,6 +54,7 @@ public class CallScenarioFragment implements TraceFragment {
     public boolean isIndefinitePrcCallScenario() {
       return this == CALL_PRC_UNDEFINED || isPrcCallScenario();
     }
+
     public boolean isPrcCallScenario() {
       return this == CALL_PRC_FAILURE
           || this == CALL_PRC_SUCCESS_WILL_REVERT
@@ -63,6 +64,7 @@ public class CallScenarioFragment implements TraceFragment {
     public boolean isIndefiniteSmcCallScenario() {
       return this == CALL_SMC_UNDEFINED || isSmcCallScenario();
     }
+
     public boolean isSmcCallScenario() {
       return this == CALL_SMC_FAILURE_WILL_REVERT
           || this == CALL_SMC_FAILURE_WONT_REVERT
@@ -73,9 +75,9 @@ public class CallScenarioFragment implements TraceFragment {
     public boolean isIndefiniteEoaCallScenario() {
       return this == CALL_EOA_UNDEFINED || isEoaCallScenario();
     }
+
     public boolean isEoaCallScenario() {
-      return this == CALL_EOA_SUCCESS_WILL_REVERT
-          || this == CALL_EOA_SUCCESS_WONT_REVERT;
+      return this == CALL_EOA_SUCCESS_WILL_REVERT || this == CALL_EOA_SUCCESS_WONT_REVERT;
     }
 
     public boolean isAbortingScenario() {

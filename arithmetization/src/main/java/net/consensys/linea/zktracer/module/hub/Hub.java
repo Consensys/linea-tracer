@@ -752,8 +752,7 @@ public class Hub implements Module {
       this.unlatchStack(frame, currentSection);
     }
 
-    if (frame.getDepth() == 0
-        && (isExceptional() || opCode() == REVERT)) {
+    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
       this.state.setProcessingPhase(TX_FINL);
       new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }

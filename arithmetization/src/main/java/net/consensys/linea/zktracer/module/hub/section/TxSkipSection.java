@@ -57,9 +57,11 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
     final Address coinbaseAddress = txMetadata.getCoinbase();
 
     senderAccountSnapshotBefore =
-        AccountSnapshot.canonical(hub, world, senderAddress, isPrecompile(senderAddress));
+        AccountSnapshot.canonical(hub, world, senderAddress, isPrecompile(senderAddress))
+            .turnOnWarmth();
     recipientAccountSnapshotBefore =
-        AccountSnapshot.canonical(hub, world, recipientAddress, isPrecompile(recipientAddress));
+        AccountSnapshot.canonical(hub, world, recipientAddress, isPrecompile(recipientAddress))
+            .turnOnWarmth();
     coinbaseAccountSnapshotBefore =
         AccountSnapshot.canonical(hub, world, coinbaseAddress, isPrecompile(coinbaseAddress));
 

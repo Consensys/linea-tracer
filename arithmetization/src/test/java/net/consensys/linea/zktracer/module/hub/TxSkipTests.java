@@ -160,7 +160,7 @@ public class TxSkipTests {
     final Transaction deploymentWithEmptyInitAndUselessAccessList =
         ToyTransaction.builder()
             .sender(senderAccount7)
-            .gasLimit(100002120L)
+            .gasLimit(1000021L)
             .keyPair(senderKeyPair7)
             .transactionType(TransactionType.ACCESS_LIST)
             .value(Wei.of(546))
@@ -173,10 +173,9 @@ public class TxSkipTests {
             pureTransferWoValue,
             pureTransferWithUselessAccessList,
             pureTransferWithUselessCalldata,
-            pureTransferWithUselessCalldataAndAccessList
-            // TODO: deploymentWithEmptyInit,
-            // TODO:  deploymentWithEmptyInitAndUselessAccessList
-            );
+            pureTransferWithUselessCalldataAndAccessList,
+            deploymentWithEmptyInit,
+            deploymentWithEmptyInitAndUselessAccessList);
 
     ToyExecutionEnvironmentV2.builder()
         .accounts(

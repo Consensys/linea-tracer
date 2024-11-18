@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
@@ -68,8 +69,8 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
         "Arithmetization restriction: recipient address is a precompile.");
 
     // sanity check + EIP-3607
-    checkArgument(world.get(senderAddress) != null);
-    checkArgument(!world.get(senderAddress).hasCode());
+    checkArgument(world.get(senderAddress) != null, "Sender account must exists");
+    checkArgument(!world.get(senderAddress).hasCode(), "Sender account must not have code");
 
     // deployments are local to a transaction, every address should have deploymentStatus == false
     // at the start of every transaction
@@ -84,80 +85,113 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
   }
 
   @Override
-  /**
-   * This doesn't take into account the "sender = recipient, recipient = coinbase, coinbase =
-   * sender" shenanigans.
-   *
-   * <p>TODO: issue #1018, {@link https://github.com/Consensys/linea-tracer/issues/1018}
-   */
-  public void resolvePostTransaction(Hub hub, WorldView state, Transaction tx, boolean statusCode) {
-    final Address senderAddress = txMetadata.getBesuTransaction().getSender();
-    final Address recipientAddress = txMetadata.getEffectiveRecipient();
-    final Address coinbaseAddress = txMetadata.getCoinbase();
-
+  public void resolvePostTransaction(Hub hub, WorldView world, Transaction tx, boolean statusCode) {
     checkArgument(statusCode, "TX_SKIP transactions should be successful");
-    checkArgument(
-        statusCode == txMetadata.statusCode(), "meta data suggests an unsuccessful TX_SKIP");
+    checkArgument(txMetadata.statusCode(), "meta data suggests an unsuccessful TX_SKIP");
 
-    final AccountSnapshot senderAccountSnapshotAfter =
-        AccountSnapshot.fromAccount(
-            state.get(senderAddress),
-            this.senderAccountSnapshotBefore.isWarm(),
-            hub.deploymentNumberOf(senderAddress),
-            false);
+    if (txMetadata.noAddressCollisions()) {
 
-    final AccountSnapshot recipientAccountSnapshotAfter =
-        AccountSnapshot.fromAccount(
-            state.get(recipientAddress),
-            this.recipientAccountSnapshotBefore.isWarm(),
-            hub.deploymentNumberOf(recipientAddress),
-            false);
+      final AccountSnapshot senderAccountSnapshotAfter =
+          AccountSnapshot.canonical(hub, world, senderAccountSnapshotBefore.address());
 
-    final AccountSnapshot coinbaseAccountSnapshotAfter =
-        AccountSnapshot.fromAccount(
-            state.get(coinbaseAddress),
-            this.coinbaseAccountSnapshotBefore.isWarm(),
-            hub.deploymentNumberOf(coinbaseAddress),
-            false);
+      final AccountSnapshot recipientAccountSnapshotAfter =
+          AccountSnapshot.canonical(hub, world, recipientAccountSnapshotBefore.address());
 
-    // sender account fragment
-    final AccountFragment senderAccountFragment =
-        hub.factories()
-            .accountFragment()
-            .makeWithTrm(
-                senderAccountSnapshotBefore,
-                senderAccountSnapshotAfter,
-                senderAddress,
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
+      final AccountSnapshot coinbaseAccountSnapshotAfter =
+          AccountSnapshot.canonical(hub, world, coinbaseAccountSnapshotBefore.address());
 
-    // recipient account fragment
-    final AccountFragment recipientAccountFragment =
-        hub.factories()
-            .accountFragment()
-            .makeWithTrm(
-                recipientAccountSnapshotBefore,
-                recipientAccountSnapshotAfter,
-                recipientAddress,
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
+      // sender account fragment
+      final AccountFragment senderAccountFragment =
+          hub.factories()
+              .accountFragment()
+              .makeWithTrm(
+                  senderAccountSnapshotBefore,
+                  senderAccountSnapshotAfter,
+                  senderAccountSnapshotBefore.address(),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
-    // coinbase account fragment
-    final AccountFragment coinbaseAccountFragment =
-        hub.factories()
-            .accountFragment()
-            .makeWithTrm(
-                coinbaseAccountSnapshotBefore,
-                coinbaseAccountSnapshotAfter,
-                coinbaseAddress,
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
+      // recipient account fragment
+      final AccountFragment recipientAccountFragment =
+          hub.factories()
+              .accountFragment()
+              .makeWithTrm(
+                  recipientAccountSnapshotBefore,
+                  recipientAccountSnapshotAfter,
+                  recipientAccountSnapshotBefore.address(),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
+
+      // coinbase account fragment
+      final AccountFragment coinbaseAccountFragment =
+          hub.factories()
+              .accountFragment()
+              .makeWithTrm(
+                  coinbaseAccountSnapshotBefore,
+                  coinbaseAccountSnapshotAfter,
+                  coinbaseAccountSnapshotBefore.address(),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
+
+      this.addFragments(senderAccountFragment, recipientAccountFragment, coinbaseAccountFragment);
+    } else {
+      final Wei value = (Wei) txMetadata.getBesuTransaction().getValue();
+
+      final AccountSnapshot firstAccountFragmentSnapshotAfter =
+          txMetadata.senderAddressCollision()
+              ? senderAccountSnapshotBefore.decrementBalanceBy(
+                  value.add(txMetadata.getGasUsed() * txMetadata.getEffectiveGasPrice()))
+              : AccountSnapshot.canonical(hub, world, senderAccountSnapshotBefore.address());
+
+      final AccountSnapshot secondAccountFragmentSnapshotAfter =
+          txMetadata.senderIsCoinbase()
+              ? firstAccountFragmentSnapshotAfter.incrementBalanceBy(value)
+              : AccountSnapshot.canonical(hub, world, recipientAccountSnapshotBefore.address());
+
+      final AccountSnapshot thirdAccountFragmentSnapshotBefore =
+          txMetadata.coinbaseAddressCollision()
+              ? secondAccountFragmentSnapshotAfter
+              : coinbaseAccountSnapshotBefore;
+
+      final AccountSnapshot coinbaseAccountSnapshotAfter =
+          AccountSnapshot.canonical(hub, world, coinbaseAccountSnapshotBefore.address());
+
+      // "sender" account fragment
+      final AccountFragment firstAccountFragment =
+          hub.factories()
+              .accountFragment()
+              .makeWithTrm(
+                  senderAccountSnapshotBefore,
+                  firstAccountFragmentSnapshotAfter,
+                  senderAccountSnapshotBefore.address(),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
+
+      // "recipient" account fragment
+      final AccountFragment secondAccountFragment =
+          hub.factories()
+              .accountFragment()
+              .makeWithTrm(
+                  txMetadata.senderIsRecipient()
+                      ? firstAccountFragmentSnapshotAfter
+                      : senderAccountSnapshotBefore,
+                  secondAccountFragmentSnapshotAfter,
+                  recipientAccountSnapshotBefore.address(),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
+
+      // "coinbase" account fragment
+      final AccountFragment thirdAccountFragment =
+          hub.factories()
+              .accountFragment()
+              .makeWithTrm(
+                  thirdAccountFragmentSnapshotBefore,
+                  coinbaseAccountSnapshotAfter,
+                  coinbaseAccountSnapshotBefore.address(),
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
+
+      this.addFragments(firstAccountFragment, secondAccountFragment, thirdAccountFragment);
+    }
 
     // transaction fragment
     final TransactionFragment transactionFragment =
         TransactionFragment.prepare(hub.txStack().current());
 
-    this.addFragments(
-        senderAccountFragment,
-        recipientAccountFragment,
-        coinbaseAccountFragment,
-        transactionFragment);
+    this.addFragment(transactionFragment);
   }
 }

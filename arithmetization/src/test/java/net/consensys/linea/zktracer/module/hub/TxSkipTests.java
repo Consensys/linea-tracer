@@ -200,4 +200,118 @@ public class TxSkipTests {
         .build()
         .run();
   }
+
+  @Test
+  void receiverIsCoinbase() {
+
+    final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
+    final ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(123)).nonce(5).address(senderAddress).build();
+
+    final ToyAccount coinbaseAccount =
+        ToyAccount.builder()
+            .address(DEFAULT_COINBASE_ADDRESS)
+            .balance(Wei.fromEth(2))
+            .nonce(5)
+            .build();
+
+    final Transaction tx =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(coinbaseAccount)
+            .keyPair(senderKeyPair)
+            .value(Wei.of(123))
+            .build();
+
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(coinbaseAccount, senderAccount))
+        .transaction(tx)
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run();
+  }
+
+  @Test
+  void receiverIsSender() {
+
+    final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
+    final ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(123)).nonce(5).address(senderAddress).build();
+
+    final Transaction tx =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(senderAccount)
+            .keyPair(senderKeyPair)
+            .value(Wei.of(123))
+            .build();
+
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(senderAccount))
+        .transaction(tx)
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run();
+  }
+
+  @Test
+  void senderIsCoinbase() {
+
+    final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
+    final ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(123)).nonce(5).address(senderAddress).build();
+
+    final ToyAccount receiverAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(116)
+            .address(Address.fromHexString("0xdead000000000000000000000000000beef"))
+            .build();
+
+    final Transaction tx =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(receiverAccount)
+            .keyPair(senderKeyPair)
+            .value(Wei.of(123))
+            .build();
+
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(senderAccount))
+        .transaction(tx)
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run(senderAddress);
+  }
+
+  @Test
+  void senderIsCoinbaseIsReceiver() {
+
+    final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
+    final ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(123)).nonce(5).address(senderAddress).build();
+
+    final Transaction tx =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(senderAccount)
+            .keyPair(senderKeyPair)
+            .value(Wei.of(123))
+            .build();
+
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(senderAccount))
+        .transaction(tx)
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run(senderAddress);
+  }
 }

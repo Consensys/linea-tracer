@@ -68,7 +68,20 @@ public class ToyExecutionEnvironmentV2 {
   public void run() {
     ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN_ID);
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
-        this.buildGeneralStateTestCaseSpec(protocolSpec);
+        this.buildGeneralStateTestCaseSpec(protocolSpec, Optional.empty());
+
+    GeneralStateReferenceTestTools.executeTest(
+        generalStateTestCaseEipSpec,
+        protocolSpec,
+        tracer,
+        transactionProcessingResultValidator,
+        zkTracerValidator);
+  }
+
+  public void run(Address coinbase) {
+    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN_ID);
+    GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
+        this.buildGeneralStateTestCaseSpec(protocolSpec, Optional.of(coinbase));
 
     GeneralStateReferenceTestTools.executeTest(
         generalStateTestCaseEipSpec,
@@ -82,7 +95,8 @@ public class ToyExecutionEnvironmentV2 {
     return tracer.getHub();
   }
 
-  public GeneralStateTestCaseEipSpec buildGeneralStateTestCaseSpec(ProtocolSpec protocolSpec) {
+  public GeneralStateTestCaseEipSpec buildGeneralStateTestCaseSpec(
+      ProtocolSpec protocolSpec, Optional<Address> coinbase) {
     Map<String, ReferenceTestWorldState.AccountMock> accountMockMap =
         accounts.stream()
             .collect(
@@ -94,7 +108,7 @@ public class ToyExecutionEnvironmentV2 {
     BlockHeader blockHeader =
         ExecutionEnvironment.getLineaBlockHeaderBuilder(Optional.empty())
             .number(DEFAULT_BLOCK_NUMBER)
-            .coinbase(DEFAULT_COINBASE_ADDRESS)
+            .coinbase(coinbase.orElse(DEFAULT_COINBASE_ADDRESS))
             .timestamp(DEFAULT_TIME_STAMP)
             .parentHash(DEFAULT_HASH)
             .buildBlockHeader();

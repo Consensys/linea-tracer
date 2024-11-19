@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.Util.slice;
-import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.MODEXP_COMPONENT_BYTE_SIZE;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_RIPEMD_160;
@@ -601,10 +601,12 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(subsection.callerMemorySnapshot()))
         .targetId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.callData))
-        .sourceOffset(EWord.of(subsection.callDataMemorySpan.offset() + 4))
-        .size(208)
-        .referenceSize(208)
+        .exoBytes(
+            Optional.of(
+                subsection.callData.slice(BLAKE2f_HASH_INPUT_OFFSET, BLAKE2f_HASH_INPUT_SIZE)))
+        .sourceOffset(EWord.of(subsection.callDataMemorySpan.offset() + BLAKE2f_HASH_INPUT_OFFSET))
+        .size(BLAKE2f_HASH_INPUT_SIZE)
+        .referenceSize(BLAKE2f_HASH_INPUT_SIZE)
         .setBlakeModexp()
         .phase(PHASE_BLAKE_DATA);
   }
@@ -614,10 +616,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(precompileContextNumber)
-        .exoBytes(Optional.of(leftPadTo(subsection.returnData(), WORD_SIZE)))
+        .exoBytes(Optional.of(leftPadTo(subsection.returnData(), BLAKE2f_HASH_OUTPUT_SIZE)))
         .targetId(precompileContextNumber)
         .targetRamBytes(Optional.of(Bytes.EMPTY))
-        .size(64)
+        .size(BLAKE2f_HASH_OUTPUT_SIZE)
         .setBlakeModexp()
         .phase(PHASE_BLAKE_RESULT);
   }
@@ -627,10 +629,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(precompileContextNumber)
-        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), WORD_SIZE)))
+        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), BLAKE2f_HASH_OUTPUT_SIZE)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
-        .size(64)
+        .size(BLAKE2f_HASH_OUTPUT_SIZE)
         .referenceOffset(subsection.parentReturnDataTarget.offset())
         .referenceSize(subsection.parentReturnDataTarget.length());
   }

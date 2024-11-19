@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.BLAKE2f_HASH_OUTPUT_SIZE;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.Trace.INDEX_MAX_BLAKE_RESULT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 
@@ -53,7 +54,7 @@ public class BlakeTests {
             .push(10) // value = r for Blake call
             .push(3) // offset
             .op(OpCode.MSTORE8)
-            .push(LLARGE * (INDEX_MAX_BLAKE_RESULT + 1)) // return size
+            .push(BLAKE2f_HASH_OUTPUT_SIZE) // return size
             .push(0) // return offset
             .push(213) // size
             .push(0) // offset
@@ -62,6 +63,10 @@ public class BlakeTests {
             .push(0xffff) // gas
             .op(OpCode.CALL)
             .op(OpCode.POP)
+            // To check memory consistency
+            .push(0)
+            .op(OpCode.MLOAD)
+            .op(OpCode.STOP)
             .compile();
     BytecodeRunner.of(bytecode).run();
   }

@@ -26,7 +26,7 @@ abstract class TraceFilesTask extends Exec {
                      "-P", "${moduleDir.getOrElse(module.get()).replaceAll('/','.')}",
                      "-o", "${project.projectDir}/src/main/java/net/consensys/linea/zktracer/module/${moduleDir.getOrElse(module.get())}"
     ]
-    if(className) {
+    if(project.hasProperty("className")) {
       arguments.add("-c")
       arguments.add("${className.get()}")
     }

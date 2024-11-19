@@ -14,6 +14,8 @@
  */
 package net.consensys.linea;
 
+import static net.consensys.linea.reporting.TestOutcomeWriterTool.getFileDirectory;
+
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -23,8 +25,6 @@ import java.util.concurrent.CompletableFuture;
 
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
-
-import static net.consensys.linea.reporting.TestOutcomeWriterTool.getFileDirectory;
 
 @Slf4j
 public class BlockchainReferenceTestJson {

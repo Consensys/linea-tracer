@@ -14,12 +14,6 @@
  */
 package net.consensys.linea.reporting;
 
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.zktracer.json.JsonConverter;
-import org.junit.platform.launcher.LauncherSession;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,6 +22,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.json.JsonConverter;
 
 @Slf4j
 public class TestOutcomeWriterTool {
@@ -45,11 +43,13 @@ public class TestOutcomeWriterTool {
   private static volatile AtomicInteger abortedCounter = new AtomicInteger(0);
   private static volatile ConcurrentMap<
           String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
-          modulesToConstraintsToTests = new ConcurrentHashMap<>();
+      modulesToConstraintsToTests = new ConcurrentHashMap<>();
 
   public static void addFailure(String type, String cause, String test) {
-    modulesToConstraintsToTests.computeIfAbsent(type, t -> new ConcurrentHashMap<>())
-            .computeIfAbsent(cause, t -> new ConcurrentSkipListSet<>()).add(test);
+    modulesToConstraintsToTests
+        .computeIfAbsent(type, t -> new ConcurrentHashMap<>())
+        .computeIfAbsent(cause, t -> new ConcurrentSkipListSet<>())
+        .add(test);
   }
 
   public static void addSuccess() {
@@ -75,18 +75,17 @@ public class TestOutcomeWriterTool {
     }
     try (FileWriter file = new FileWriter(Path.of(fileDirectory, name).toString())) {
       objectMapper.writeValue(
-              file,
-              new TestOutcome(
-                      failedCounter.get(),
-                      successCounter.get(),
-                      disabledCounter.get(),
-                      abortedCounter.get(),
-                      modulesToConstraintsToTests));
+          file,
+          new TestOutcome(
+              failedCounter.get(),
+              successCounter.get(),
+              disabledCounter.get(),
+              abortedCounter.get(),
+              modulesToConstraintsToTests));
     } catch (Exception e) {
       log.error("Error - Failed to write test output: %s".formatted(e.getMessage()));
     }
   }
-
 
   public static String getFileDirectory() {
     String jsonDirectory = System.getenv("FAILED_TEST_JSON_DIRECTORY");
@@ -96,12 +95,10 @@ public class TestOutcomeWriterTool {
     return jsonDirectory;
   }
 
-
-  public static TestOutcome parseTestOutcome(
-          String jsonString) {
+  public static TestOutcome parseTestOutcome(String jsonString) {
     if (!jsonString.isEmpty()) {
       TestOutcome blockchainReferenceTestOutcome =
-              jsonConverter.fromJson(jsonString, TestOutcome.class);
+          jsonConverter.fromJson(jsonString, TestOutcome.class);
       return blockchainReferenceTestOutcome;
     }
     throw new RuntimeException("invalid JSON");

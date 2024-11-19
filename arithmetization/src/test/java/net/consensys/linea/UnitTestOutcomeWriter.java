@@ -14,12 +14,12 @@
  */
 package net.consensys.linea;
 
+import static net.consensys.linea.reporting.TestOutcomeWriterTool.writeToJsonFile;
+
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 
-import static net.consensys.linea.reporting.TestOutcomeWriterTool.writeToJsonFile;
-
-public class UnitTestOutcomeWriter  implements LauncherSessionListener {
+public class UnitTestOutcomeWriter implements LauncherSessionListener {
 
   public static final String FILE_NAME = "UnitTestsResults.json";
 
@@ -27,5 +27,4 @@ public class UnitTestOutcomeWriter  implements LauncherSessionListener {
   public void launcherSessionClosed(LauncherSession session) {
     writeToJsonFile(FILE_NAME);
   }
-
 }

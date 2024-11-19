@@ -14,12 +14,12 @@
  */
 package net.consensys.linea;
 
+import java.util.Optional;
+
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.reporting.TestOutcomeWriterTool;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
-
-import java.util.Optional;
 
 @Slf4j
 public class UnitTestWatcher implements TestWatcher {

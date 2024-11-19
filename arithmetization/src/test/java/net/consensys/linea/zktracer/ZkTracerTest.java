@@ -21,7 +21,6 @@ import net.consensys.linea.UnitTestWatcher;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-
 @ExtendWith(UnitTestWatcher.class)
 public class ZkTracerTest {
 

@@ -14,6 +14,8 @@
  */
 package net.consensys.linea;
 
+import static net.consensys.linea.reporting.TestOutcomeWriterTool.addFailure;
+
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,8 +24,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.reporting.TestOutcomeWriterTool;
 import net.consensys.linea.reporting.TestState;
-
-import static net.consensys.linea.reporting.TestOutcomeWriterTool.addFailure;
 
 @Slf4j
 public class ReferenceTestOutcomeRecorderTool {
@@ -36,7 +36,7 @@ public class ReferenceTestOutcomeRecorderTool {
           .getOrDefault("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "failedReferenceTests.json");
 
   public static void mapAndStoreTestResult(
-          String testName, TestState success, Map<String, Set<String>> failedConstraints) {
+      String testName, TestState success, Map<String, Set<String>> failedConstraints) {
     switch (success) {
       case FAILED -> {
         TestOutcomeWriterTool.addFailed();
@@ -139,5 +139,4 @@ public class ReferenceTestOutcomeRecorderTool {
   }
 
   static ObjectMapper objectMapper = new ObjectMapper();
-
 }

@@ -47,10 +47,56 @@ public class BlakeTests {
   void basicBlakeTest() {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
-            .push(Bytes.fromHexString("0x0badb077")) // value
+            .push(Bytes.fromHexString("0x0badb077")) // value, some random data to hash
             .push(5) // offset
             .op(OpCode.MSTORE)
             .push(10) // value = r for Blake call
+            .push(3) // offset
+            .op(OpCode.MSTORE8)
+            .push(LLARGE * (INDEX_MAX_BLAKE_RESULT + 1)) // return size
+            .push(0) // return offset
+            .push(213) // size
+            .push(0) // offset
+            .push(0) // value
+            .push(Address.BLAKE2B_F_COMPRESSION) // address
+            .push(0xffff) // gas
+            .op(OpCode.CALL)
+            .op(OpCode.POP)
+            .compile();
+    BytecodeRunner.of(bytecode).run();
+  }
+
+  @Test
+  void wrongFInputTest() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(Bytes.fromHexString("0x0badb077")) // value, some random data to hash
+            .push(5) // offset
+            .op(OpCode.MSTORE)
+            .push(2) // value = f for Blake call
+            .push(212) // offset
+            .op(OpCode.MSTORE8)
+            .push(LLARGE * (INDEX_MAX_BLAKE_RESULT + 1)) // return size
+            .push(0) // return offset
+            .push(213) // size
+            .push(0) // offset
+            .push(0) // value
+            .push(Address.BLAKE2B_F_COMPRESSION) // address
+            .push(0xffff) // gas
+            .op(OpCode.CALL)
+            .op(OpCode.POP)
+            .compile();
+    BytecodeRunner.of(bytecode).run();
+  }
+
+  @Test
+  void notEnoughGasBlakeTest() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(Bytes.fromHexString("0x0badb077")) // value, some random data to hash
+            .push(5) // offset
+            .op(OpCode.MSTORE)
+            .push(10) // value = r * 256 ** 3  for Blake call
             .push(0) // offset
             .op(OpCode.MSTORE8)
             .push(LLARGE * (INDEX_MAX_BLAKE_RESULT + 1)) // return size

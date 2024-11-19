@@ -130,6 +130,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     return this.exoIsBlakeModexp(true).updateExoSum(EXO_SUM_WEIGHT_BLAKEMODEXP);
   }
 
+  final MmuCall setBlakeModexp(boolean effectiveFlag) {
+    return this.exoIsBlakeModexp(effectiveFlag).updateExoSum(EXO_SUM_WEIGHT_BLAKEMODEXP);
+  }
+
   final MmuCall setEcData() {
     return this.exoIsEcData(true).updateExoSum(EXO_SUM_WEIGHT_ECDATA);
   }
@@ -587,7 +591,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .successBit(blakeSuccess)
         .limb1(blakeR)
         .limb2(blakeF)
-        .setBlakeModexp()
+        .setBlakeModexp(blakeSuccess)
         .phase(PHASE_BLAKE_PARAMS);
   }
 

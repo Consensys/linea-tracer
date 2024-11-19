@@ -137,6 +137,7 @@ public class Blake implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffsetR)
             .sourceByteOffset(sourceByteOffsetR)
             .targetByteOffset((short) (LLARGE - 4))
+            .targetLimbOffset(0)
             .limb(hubToMmuValues.limb1())
             .build());
 
@@ -148,6 +149,7 @@ public class Blake implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffsetF)
             .sourceByteOffset(sourceByteOffsetF)
             .targetByteOffset((short) (LLARGE - 1))
+            .targetLimbOffset(1)
             .limb(hubToMmuValues.limb2())
             .build());
 

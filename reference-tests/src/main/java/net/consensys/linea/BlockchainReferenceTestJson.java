@@ -14,8 +14,6 @@
  */
 package net.consensys.linea;
 
-import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.setFileDirectory;
-
 import java.io.IOException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -26,12 +24,14 @@ import java.util.concurrent.CompletableFuture;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 
+import static net.consensys.linea.reporting.TestOutcomeWriterTool.getFileDirectory;
+
 @Slf4j
 public class BlockchainReferenceTestJson {
 
   @Synchronized
   public static CompletableFuture<String> readBlockchainReferenceTestsOutput(String fileName) {
-    String fileDirectory = setFileDirectory();
+    String fileDirectory = getFileDirectory();
     return CompletableFuture.supplyAsync(
         () -> {
           Path directoryPath = Paths.get(fileDirectory);

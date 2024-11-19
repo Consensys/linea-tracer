@@ -36,6 +36,8 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.reporting.TestOutcome;
+import net.consensys.linea.reporting.TestOutcomeWriterTool;
 import net.consensys.linea.testing.ExecutionEnvironment;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.ethereum.MainnetBlockValidator;
@@ -86,6 +88,18 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]");
     PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]");
 
+    // Arithmetization restriction: recipient address is a precompile.
+    PARAMS.ignore("modexpRandomInput_d0g0v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d0g1v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d1g0v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d1g1v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d2g0v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d2g1v0_London[London]");
+    PARAMS.ignore("randomStatetest642_d0g0v0_London[London]");
+    PARAMS.ignore("randomStatetest644_d0g0v0_London[London]");
+    PARAMS.ignore("randomStatetest645_d0g0v0_London[London]");
+    PARAMS.ignore("randomStatetest645_d0g0v1_London[London]");
+
     // Consumes a huge amount of memory.
     PARAMS.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");
     PARAMS.ignore("ShanghaiLove_.*");
@@ -121,9 +135,9 @@ public class BlockchainReferenceTestTools {
       return CompletableFuture.completedFuture(failedTests);
     }
 
-    CompletableFuture<BlockchainReferenceTestOutcome> modulesToConstraintsFutures =
+    CompletableFuture<TestOutcome> modulesToConstraintsFutures =
         readBlockchainReferenceTestsOutput(JSON_INPUT_FILENAME)
-            .thenApply(ReferenceTestOutcomeRecorderTool::parseBlockchainReferenceTestOutcome);
+            .thenApply(TestOutcomeWriterTool::parseTestOutcome);
 
     return modulesToConstraintsFutures.thenApply(
         blockchainReferenceTestOutcome -> {

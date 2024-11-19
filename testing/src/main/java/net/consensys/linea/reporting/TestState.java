@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea;
+package net.consensys.linea.reporting;
 
 public enum TestState {
   DISABLED,

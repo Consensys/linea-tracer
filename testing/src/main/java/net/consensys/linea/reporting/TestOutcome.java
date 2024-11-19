@@ -12,10 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea;
-
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListSet;
+package net.consensys.linea.reporting;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -23,6 +20,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 @Getter
 @Setter
@@ -35,7 +35,7 @@ import lombok.Setter;
   "abortedCounter",
   "modulesToConstraintsToTests"
 })
-public class BlockchainReferenceTestOutcome {
+public class TestOutcome {
   @JsonProperty private final int failedCounter;
   @JsonProperty private final int successCounter;
   @JsonProperty private final int disabledCounter;

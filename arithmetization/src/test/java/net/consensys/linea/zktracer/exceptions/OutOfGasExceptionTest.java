@@ -26,15 +26,19 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class OutOfGasExceptionTest {
 
-  // TODO: add tests when address is warm. Use constants such as G_WARM_ACCESS etc
+  // TODO: add tests when address is warm. Use constants such as G_WARM_ACCESS etc, make clear the
+  // different types of costs
   @ParameterizedTest
   @MethodSource("outOfGasExceptionSource")
   void outOfGasExceptionColdTest(
@@ -73,6 +77,60 @@ public class OutOfGasExceptionTest {
         arguments.add(Arguments.of(opCode, staticCost, delta, true));
         arguments.add(Arguments.of(opCode, staticCost, delta, false));
       }
+    }
+    return arguments.stream();
+  }
+
+  @ParameterizedTest
+  @MethodSource("outOfGasExceptionCallSource")
+  void outOfGasExceptionCallTest(int value, boolean targetAddressExists, boolean isWarm) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    int nPushes = 0;
+
+    if (targetAddressExists && isWarm) {
+      // Note: this is a possible way to warm the address
+      program.push("ca11ee").op(OpCode.BALANCE);
+      nPushes += 1;
+    }
+
+    program
+        .push(0) // return at capacity
+        .push(0) // return at offset
+        .push(0) // call data size
+        .push(0) // call data offset
+        .push(value) // value
+        .push("ca11ee") // address
+        .push(1000) // gas
+        .op(OpCode.CALL);
+    nPushes += 7;
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+
+    // TODO: the gas limits here are are surely not enough to run the program, but we want to ensure
+    //  that the OOGX is triggered exactly when the CALL is executed
+    if (targetAddressExists) {
+      final ToyAccount calleeAccount =
+          ToyAccount.builder()
+              .balance(Wei.fromEth(1))
+              .nonce(10)
+              .address(Address.fromHexString("ca11ee"))
+              .build();
+      bytecodeRunner.run(21000L + nPushes * 3L, List.of(calleeAccount));
+    } else {
+      bytecodeRunner.run(21000L + nPushes * 3L);
+    }
+
+    assertEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+  }
+
+  static Stream<Arguments> outOfGasExceptionCallSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (int value : new int[] {0, 1}) {
+      arguments.add(Arguments.of(value, true, true));
+      arguments.add(Arguments.of(value, true, false));
+      arguments.add(Arguments.of(value, false, false));
     }
     return arguments.stream();
   }

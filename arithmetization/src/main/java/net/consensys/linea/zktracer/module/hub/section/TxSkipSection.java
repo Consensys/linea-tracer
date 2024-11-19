@@ -138,22 +138,30 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
 
       final AccountSnapshot firstAccountFragmentSnapshotAfter =
           txMetadata.senderAddressCollision()
-              ? senderAccountSnapshotBefore.decrementBalanceBy(
-                  value.add(txMetadata.getGasUsed() * txMetadata.getEffectiveGasPrice()))
+              ? senderAccountSnapshotBefore
+                  .deepCopy()
+                  .decrementBalanceBy(
+                      value.add(txMetadata.getGasUsed() * txMetadata.getEffectiveGasPrice()))
+                  .raiseNonceByOne()
               : AccountSnapshot.canonical(hub, world, senderAccountSnapshotBefore.address());
 
-      final AccountSnapshot secondAccountFragmentSnapshotAfter =
-          txMetadata.senderIsCoinbase()
-              ? firstAccountFragmentSnapshotAfter.incrementBalanceBy(value)
-              : AccountSnapshot.canonical(hub, world, recipientAccountSnapshotBefore.address());
+      final AccountSnapshot secondAccountFragmentSnapshotBefore =
+          txMetadata.senderIsRecipient()
+              ? firstAccountFragmentSnapshotAfter.deepCopy()
+              : recipientAccountSnapshotBefore;
 
-      final AccountSnapshot thirdAccountFragmentSnapshotBefore =
-          txMetadata.coinbaseAddressCollision()
-              ? secondAccountFragmentSnapshotAfter
-              : coinbaseAccountSnapshotBefore;
+      final AccountSnapshot secondAccountFragmentSnapshotAfter =
+          secondAccountFragmentSnapshotBefore.deepCopy().incrementBalanceBy(value);
 
       final AccountSnapshot coinbaseAccountSnapshotAfter =
           AccountSnapshot.canonical(hub, world, coinbaseAccountSnapshotBefore.address());
+
+      final AccountSnapshot thirdAccountFragmentSnapshotBefore =
+          txMetadata.coinbaseAddressCollision()
+              ? coinbaseAccountSnapshotAfter
+                  .deepCopy()
+                  .decrementBalanceBy(txMetadata.getCoinbaseReward())
+              : coinbaseAccountSnapshotBefore;
 
       // "sender" account fragment
       final AccountFragment firstAccountFragment =
@@ -170,12 +178,10 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
           hub.factories()
               .accountFragment()
               .makeWithTrm(
-                  txMetadata.senderIsRecipient()
-                      ? firstAccountFragmentSnapshotAfter
-                      : senderAccountSnapshotBefore,
+                  secondAccountFragmentSnapshotBefore,
                   secondAccountFragmentSnapshotAfter,
                   recipientAccountSnapshotBefore.address(),
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
       // "coinbase" account fragment
       final AccountFragment thirdAccountFragment =
@@ -185,7 +191,7 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
                   thirdAccountFragmentSnapshotBefore,
                   coinbaseAccountSnapshotAfter,
                   coinbaseAccountSnapshotBefore.address(),
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
+                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
 
       this.addFragments(firstAccountFragment, secondAccountFragment, thirdAccountFragment);
     }

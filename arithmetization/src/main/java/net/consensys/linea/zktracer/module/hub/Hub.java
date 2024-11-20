@@ -1101,7 +1101,7 @@ public class Hub implements Module {
 
       case JUMP -> new JumpSection(this);
 
-      case CREATE -> new CreateSection(this);
+      case CREATE -> new CreateSection(this, frame);
 
       case CALL -> new CallSection(this, frame);
 

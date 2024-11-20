@@ -336,6 +336,7 @@ public class CallSection extends TraceSection
     hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     hub.defers().scheduleForContextReEntry(this, currentFrame);
     hub.defers().scheduleForPostRollback(this, currentFrame);
+
     hub.defers().scheduleForContextReEntry(firstImcFragment, currentFrame);
 
     this.commonValues.payGasPaidOutOfPocket(hub);

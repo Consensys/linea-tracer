@@ -1062,7 +1062,7 @@ public class Hub implements Module {
           case RETURN -> new ReturnSection(this);
           case REVERT -> new RevertSection(this);
           case STOP -> new StopSection(this);
-          case SELFDESTRUCT -> new SelfdestructSection(this);
+          case SELFDESTRUCT -> new SelfdestructSection(this, frame);
         }
       }
 

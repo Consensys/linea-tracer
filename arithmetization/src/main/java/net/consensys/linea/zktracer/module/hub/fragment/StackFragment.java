@@ -58,7 +58,6 @@ public final class StackFragment implements TraceFragment {
   @Getter private final OpCode opCode;
   @Setter private boolean jumpDestinationVettingRequired;
   @Setter private boolean validJumpDestination;
-  private final boolean willRevert;
   private final State.TxState.Stamps stamps;
   private final CommonFragmentValues commonFragmentValues;
 
@@ -70,7 +69,6 @@ public final class StackFragment implements TraceFragment {
       AbortingConditions aborts,
       GasProjection gp,
       boolean isDeploying,
-      boolean willRevert,
       CommonFragmentValues commonFragmentValues) {
     this.stack = stack;
     this.stackOps = stackOps;
@@ -78,11 +76,13 @@ public final class StackFragment implements TraceFragment {
     this.opCode = stack.getCurrentOpcodeData().mnemonic();
     this.hashInfoFlag =
         switch (this.opCode) {
-          case SHA3 -> Exceptions.none(exceptions) && gp.messageSize() > 0;
-          case RETURN -> Exceptions.none(exceptions) && gp.messageSize() > 0 && isDeploying;
-          case CREATE2 -> Exceptions.none(exceptions) && aborts.none() && gp.messageSize() > 0;
-          default -> false;
-        };
+              case SHA3 -> true;
+              case RETURN -> isDeploying;
+              case CREATE2 -> aborts.none();
+              default -> false;
+            }
+            && Exceptions.none(exceptions)
+            && gp.messageSize() > 0;
     if (this.hashInfoFlag) {
       Bytes memorySegmentToHash;
       switch (this.opCode) {
@@ -126,7 +126,6 @@ public final class StackFragment implements TraceFragment {
       jumpDestinationVettingRequired = false;
     }
 
-    this.willRevert = willRevert;
     this.stamps = hub.state().stamps();
     this.commonFragmentValues = commonFragmentValues;
   }
@@ -139,26 +138,13 @@ public final class StackFragment implements TraceFragment {
       final AbortingConditions aborts,
       final GasProjection gp,
       boolean isDeploying,
-      boolean willRevert,
       CommonFragmentValues commonFragmentValues) {
     return new StackFragment(
-        hub,
-        stack,
-        stackItems,
-        exceptions,
-        aborts,
-        gp,
-        isDeploying,
-        willRevert,
-        commonFragmentValues);
+        hub, stack, stackItems, exceptions, aborts, gp, isDeploying, commonFragmentValues);
   }
 
   private boolean traceLog() {
-    return opCode.isLog()
-        && Exceptions.none(
-            exceptions) // TODO: should be redundant (exceptions trigger reverts) --- this
-        // could be asserted
-        && !willRevert;
+    return opCode.isLog() && !commonFragmentValues.callFrame().willRevert();
   }
 
   @Override
@@ -217,14 +203,7 @@ public final class StackFragment implements TraceFragment {
     }
 
     final InstructionFamily currentInstFamily = stack.getCurrentOpcodeData().instructionFamily();
-
-    TracedException tracedException = commonFragmentValues.tracedException();
-
-    // TODO: here only for debugging, remove it
-    if (tracedException == UNDEFINED) {
-      System.out.println(currentInstFamily);
-      System.out.println(this.opCode);
-    }
+    final TracedException tracedException = commonFragmentValues.tracedException();
 
     this.tracedExceptionSanityChecks(tracedException);
 
@@ -233,8 +212,6 @@ public final class StackFragment implements TraceFragment {
         // Instruction details
         .pStackAlpha(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().alpha()))
         .pStackDelta(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().delta()))
-        .pStackNbAdded(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().nbAdded()))
-        .pStackNbRemoved(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().nbRemoved()))
         .pStackInstruction(Bytes.of(stack.getCurrentOpcodeData().value()))
         .pStackStaticGas(staticGas)
         // Opcode families

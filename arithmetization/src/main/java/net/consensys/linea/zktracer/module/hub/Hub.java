@@ -21,7 +21,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
-import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
+import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_STAMP;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
@@ -36,7 +36,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -55,25 +54,7 @@ import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
-import net.consensys.linea.zktracer.module.hub.section.AccountSection;
-import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
-import net.consensys.linea.zktracer.module.hub.section.ContextSection;
-import net.consensys.linea.zktracer.module.hub.section.CreateSection;
-import net.consensys.linea.zktracer.module.hub.section.EarlyExceptionSection;
-import net.consensys.linea.zktracer.module.hub.section.ExpSection;
-import net.consensys.linea.zktracer.module.hub.section.JumpSection;
-import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
-import net.consensys.linea.zktracer.module.hub.section.LogSection;
-import net.consensys.linea.zktracer.module.hub.section.SloadSection;
-import net.consensys.linea.zktracer.module.hub.section.SstoreSection;
-import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
-import net.consensys.linea.zktracer.module.hub.section.StackRamSection;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-import net.consensys.linea.zktracer.module.hub.section.TransactionSection;
-import net.consensys.linea.zktracer.module.hub.section.TxFinalizationSection;
-import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
-import net.consensys.linea.zktracer.module.hub.section.TxPreWarmingMacroSection;
-import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
+import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection;
@@ -228,7 +209,7 @@ public class Hub implements Module {
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
-  private final RlpAddr rlpAddr = new RlpAddr(this, trm);
+  @Getter private final RlpAddr rlpAddr = new RlpAddr(this, trm);
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
   @Getter private final Mxp mxp = new Mxp();
@@ -405,7 +386,7 @@ public class Hub implements Module {
       final Address l2l1ContractAddress,
       final Bytes l2l1Topic,
       final BigInteger nonnegativeChainId) {
-    Preconditions.checkState(nonnegativeChainId.signum() >= 0);
+    checkState(nonnegativeChainId.signum() >= 0);
     chainId = nonnegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
@@ -455,6 +436,8 @@ public class Hub implements Module {
 
   @Override
   public void enterTransaction() {
+    // Note: txStack.enter(); happens at traceStartTransaction as it requires world, etc
+    state.enter();
     transients.conflation().stackHeightChecksForStackUnderflows().enter();
     transients.conflation().stackHeightChecksForStackOverflows().enter();
     for (Module m : modules) {
@@ -511,7 +494,6 @@ public class Hub implements Module {
 
   public void traceStartTransaction(final WorldView world, final Transaction tx) {
     pch.reset();
-    state.enter();
     txStack.enterTransaction(world, tx, transients.block());
 
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
@@ -520,7 +502,7 @@ public class Hub implements Module {
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
-      new TxSkippedSection(this, world, transactionProcessingMetadata, transients);
+      new TxSkipSection(this, world, transactionProcessingMetadata, transients);
     } else {
       if (transactionProcessingMetadata.requiresPrewarming()) {
         state.setProcessingPhase(TX_WARM);
@@ -624,6 +606,10 @@ public class Hub implements Module {
     // internal transaction (CALL) or internal deployment (CREATE)
     if (frame.getDepth() > 0) {
       final OpCode currentOpCode = callStack.currentCallFrame().opCode();
+      checkState(currentOpCode.isCall() || currentOpCode.isCreate());
+      checkState(
+          currentTraceSection() instanceof CallSection
+              || currentTraceSection() instanceof CreateSection);
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
@@ -648,8 +634,13 @@ public class Hub implements Module {
 
       final long callDataContextNumber = callStack.currentCallFrame().contextNumber();
 
-      currentFrame().rememberGasNextBeforePausing();
+      currentFrame().rememberGasNextBeforePausing(this);
       currentFrame().pauseCurrentFrame();
+
+      MemorySpan returnDataTargetInCaller =
+          (currentTraceSection() instanceof CallSection)
+              ? ((CallSection) currentTraceSection()).getCallProvidedReturnDataTargetSpan()
+              : MemorySpan.empty();
 
       callStack.enter(
           frameType,
@@ -666,7 +657,8 @@ public class Hub implements Module {
           frame.getInputData(),
           callDataOffset,
           callDataSize,
-          callDataContextNumber);
+          callDataContextNumber,
+          returnDataTargetInCaller);
 
       this.currentFrame().initializeFrame(frame);
 
@@ -698,16 +690,17 @@ public class Hub implements Module {
               coinbaseIsWarm,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
-      if (state.getProcessingPhase() != TX_SKIP) {
-        state.setProcessingPhase(TX_FINL);
-        new TxFinalizationSection(this, frame.getWorldUpdater());
+      if (state.getProcessingPhase() != TX_SKIP
+          && frame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
+        this.state.setProcessingPhase(TX_FINL);
+        new TxFinalizationSection(this, frame.getWorldUpdater(), false);
       }
     }
 
     defers.resolveUponContextExit(this, this.currentFrame());
     // TODO: verify me please @Olivier
     if (this.currentFrame().opCode() == REVERT || Exceptions.any(pch.exceptions())) {
-      defers.resolvePostRollback(this, frame, this.currentFrame());
+      defers.resolveUponRollback(this, frame, this.currentFrame());
     }
 
     if (frame.getDepth() > 0) {
@@ -748,7 +741,7 @@ public class Hub implements Module {
      */
     if (isExceptional()) {
       this.currentTraceSection()
-          .addFragments(ContextFragment.executionProvidesEmptyReturnData(this));
+          .exceptionalContextFragment(ContextFragment.executionProvidesEmptyReturnData(this));
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
     }
@@ -757,6 +750,11 @@ public class Hub implements Module {
 
     if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
       this.unlatchStack(frame, currentSection);
+    }
+
+    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
+      this.state.setProcessingPhase(TX_FINL);
+      new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }
 
@@ -779,6 +777,7 @@ public class Hub implements Module {
         currentSection.commonValues.gasCostExcluduingDeploymentCost();
 
     if (operationResult.getHaltReason() != null) {
+
       return;
     }
 
@@ -807,11 +806,6 @@ public class Hub implements Module {
 
   public boolean isExceptional() {
     return !isUnexceptional();
-  }
-
-  public boolean raisesOogxOrIsUnexceptional() {
-    return currentTraceSection().commonValues.tracedException() == OUT_OF_GAS_EXCEPTION
-        || isUnexceptional();
   }
 
   /**
@@ -905,7 +899,7 @@ public class Hub implements Module {
   private void handleStack(MessageFrame frame) {
     this.currentFrame()
         .stack()
-        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * (stamp() + 1));
+        .processInstruction(this, frame, MULTIPLIER___STACK_STAMP * (stamp() + 1));
   }
 
   void triggerModules(MessageFrame frame) {
@@ -914,9 +908,6 @@ public class Hub implements Module {
     }
     if (pch.signals().bin()) {
       bin.tracePreOpcode(frame);
-    }
-    if (pch.signals().rlpAddr()) {
-      rlpAddr.tracePreOpcode(frame);
     }
     if (pch.signals().mul()) {
       mul.tracePreOpcode(frame);
@@ -950,8 +941,16 @@ public class Hub implements Module {
     return this.currentFrame().opCode();
   }
 
-  TraceSection currentTraceSection() {
+  public TraceSection currentTraceSection() {
     return state.currentTxTrace().currentSection();
+  }
+
+  public TraceSection previousTraceSection() {
+    return state.currentTxTrace().previousSection();
+  }
+
+  public TraceSection previousTraceSection(int n) {
+    return state.currentTxTrace().previousSection(n);
   }
 
   public void addTraceSection(TraceSection section) {
@@ -1024,17 +1023,13 @@ public class Hub implements Module {
     failureConditionForCreates = false;
 
     switch (this.opCodeData().instructionFamily()) {
-      case ADD,
-          MOD,
-          SHF,
-          BIN,
-          WCP,
-          EXT,
-          BATCH,
-          MACHINE_STATE,
-          PUSH_POP,
-          DUP,
-          SWAP -> new StackOnlySection(this);
+      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(this);
+      case MACHINE_STATE -> {
+        switch (this.opCode()) {
+          case OpCode.MSIZE -> new MsizeSection(this);
+          default -> new StackOnlySection(this);
+        }
+      }
       case MUL -> {
         switch (this.opCode()) {
           case OpCode.EXP -> new ExpSection(this);
@@ -1108,7 +1103,8 @@ public class Hub implements Module {
 
       case CREATE -> new CreateSection(this);
 
-      case CALL -> new CallSection(this);
+      case CALL -> new CallSection(this, frame);
+
       case INVALID -> new EarlyExceptionSection(this);
     }
   }

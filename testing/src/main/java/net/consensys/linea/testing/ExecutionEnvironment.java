@@ -43,7 +43,7 @@ import org.hyperledger.besu.ethereum.chain.BadBlockManager;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
 import org.hyperledger.besu.ethereum.core.BlockHeaderBuilder;
 import org.hyperledger.besu.ethereum.core.Difficulty;
-import org.hyperledger.besu.ethereum.core.MiningParameters;
+import org.hyperledger.besu.ethereum.core.MiningConfiguration;
 import org.hyperledger.besu.ethereum.core.PrivacyParameters;
 import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSpecFactory;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
@@ -75,6 +75,7 @@ public class ExecutionEnvironment {
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
+      /*
       if (traceFilePath != null && traceValidated) {
         if (System.getenv("PRESERVE_TRACE_FILES") == null) {
           boolean traceFileDeleted = traceFilePath.toFile().delete();
@@ -83,6 +84,7 @@ public class ExecutionEnvironment {
               log -> log.debug("trace file {} deleted {}", finalTraceFilePath, traceFileDeleted));
         }
       }
+       */
     }
   }
 
@@ -115,7 +117,7 @@ public class ExecutionEnvironment {
             createNodeKey(),
             false,
             EvmConfiguration.DEFAULT,
-            MiningParameters.MINING_DISABLED,
+            MiningConfiguration.MINING_DISABLED,
             badBlockManager,
             false,
             new NoOpMetricsSystem());
@@ -126,7 +128,7 @@ public class ExecutionEnvironment {
                 true,
                 OptionalLong.empty(),
                 EvmConfiguration.DEFAULT,
-                MiningParameters.MINING_DISABLED,
+                MiningConfiguration.MINING_DISABLED,
                 false,
                 new NoOpMetricsSystem())
             .londonDefinition(GENESIS_CONFIG.getConfigOptions());

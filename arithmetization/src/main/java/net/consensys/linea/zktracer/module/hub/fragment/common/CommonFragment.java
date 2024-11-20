@@ -51,12 +51,24 @@ public final class CommonFragment implements TraceFragment {
   private final CommonFragmentValues commonFragmentValues;
   private final int nonStackRowsCounter;
   private final boolean twoLineInstructionCounter;
+  private final int mmuStamp;
+  private final int mxpStamp;
 
   public CommonFragment(
-      CommonFragmentValues commonValues, int stackLineCounter, int nonStackLineCounter) {
+      CommonFragmentValues commonValues,
+      int stackLineCounter,
+      int nonStackLineCounter,
+      int mmuStamp,
+      int mxpStamp) {
     this.commonFragmentValues = commonValues;
     this.twoLineInstructionCounter = stackLineCounter == 1;
     this.nonStackRowsCounter = nonStackLineCounter;
+    this.mmuStamp = mmuStamp;
+    this.mxpStamp = mxpStamp;
+  }
+
+  private boolean isUnexceptional() {
+    return Exceptions.none(commonFragmentValues.exceptions);
   }
 
   public boolean txReverts() {
@@ -83,13 +95,13 @@ public final class CommonFragment implements TraceFragment {
         .contextMayChange(commonFragmentValues.contextMayChange)
         .exceptionAhoy(Exceptions.any(commonFragmentValues.exceptions) && isExec)
         .logInfoStamp(commonFragmentValues.logStamp)
-        .mmuStamp(commonFragmentValues.stamps.mmu())
-        .mxpStamp(commonFragmentValues.stamps.mxp())
+        .mmuStamp(mmuStamp)
+        .mxpStamp(mxpStamp)
         // nontrivial dom / sub are traced in storage or account fragments only
         .contextNumber(isExec ? frame.contextNumber() : 0)
         .contextNumberNew(commonFragmentValues.contextNumberNew)
         .callerContextNumber(
-            commonFragmentValues.callStack.getById(frame.callerId()).contextNumber())
+            commonFragmentValues.callStack.getById(frame.parentId()).contextNumber())
         .contextWillRevert(frame.willRevert() && isExec)
         .contextGetsReverted(frame.getsReverted() && isExec)
         .contextSelfReverts(frame.selfReverts() && isExec)
@@ -97,37 +109,20 @@ public final class CommonFragment implements TraceFragment {
         .codeFragmentIndex(commonFragmentValues.codeFragmentIndex)
         .programCounter(commonFragmentValues.pc)
         .programCounterNew(commonFragmentValues.pcNew)
-        .height(
-            commonFragmentValues.hubProcessingPhase == TX_EXEC ? commonFragmentValues.height : 0)
-        .heightNew(
-            commonFragmentValues.hubProcessingPhase == TX_EXEC ? commonFragmentValues.heightNew : 0)
+        .height(isExec ? commonFragmentValues.height : 0)
+        .heightNew(isExec ? commonFragmentValues.heightNew : 0)
         // peeking flags are traced in the respective fragments
         .gasExpected(Bytes.ofUnsignedLong(commonFragmentValues.gasExpected))
         .gasActual(Bytes.ofUnsignedLong(commonFragmentValues.gasActual))
-        .gasCost(gasCostToTrace())
-        .gasNext(Bytes.ofUnsignedLong(isExec ? commonFragmentValues.gasNext : 0))
+        .gasCost(Bytes.ofUnsignedLong(commonFragmentValues.gasCostToTrace()))
+        .gasNext(
+            Bytes.ofUnsignedLong(isExec && isUnexceptional() ? commonFragmentValues.gasNext : 0))
         .refundCounter(commonFragmentValues.gasRefund)
         .refundCounterNew(commonFragmentValues.gasRefundNew)
         .twoLineInstruction(commonFragmentValues.TLI)
         .counterTli(twoLineInstructionCounter)
         .nonStackRows((short) commonFragmentValues.numberOfNonStackRows)
         .counterNsr((short) nonStackRowsCounter);
-  }
-
-  private Bytes gasCostToTrace() {
-
-    if (commonFragmentValues.hubProcessingPhase != TX_EXEC) {
-      return Bytes.EMPTY;
-    }
-
-    final boolean oogx =
-        commonFragmentValues.tracedException() == TracedException.OUT_OF_GAS_EXCEPTION;
-    final boolean nonOogException = Exceptions.any(commonFragmentValues.exceptions) && !oogx;
-    if (nonOogException) {
-      return Bytes.EMPTY;
-    }
-
-    return Bytes.ofUnsignedLong(commonFragmentValues.gasCost);
   }
 
   static long computeGasCost(Hub hub, WorldView world) {

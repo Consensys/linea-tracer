@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
@@ -45,6 +46,29 @@ public class TxTrace {
   }
 
   /**
+   * Returns the previous trace section, i.e., the one before the most recent.
+   *
+   * @return the previous trace section
+   * @throws IllegalArgumentException if there are fewer than two sections in the trace
+   */
+  public TraceSection previousSection() {
+    Preconditions.checkArgument(trace.size() > 1);
+    return this.trace.get(this.size() - 2);
+  }
+
+  /**
+   * Returns the trace section that is `n` positions before the most recent one.
+   *
+   * @param n the number of positions before the most recent trace section
+   * @return the trace section that is `n` positions before the most recent one
+   * @throws IllegalArgumentException if there are fewer than `n + 1` sections in the trace
+   */
+  public TraceSection previousSection(int n) {
+    Preconditions.checkArgument(trace.size() > n);
+    return this.trace.get(this.size() - 1 - n);
+  }
+
+  /**
    * @return whether this trace is empty
    */
   public boolean isEmpty() {
@@ -57,7 +81,6 @@ public class TxTrace {
    * @param section the section to append
    */
   public void add(TraceSection section) {
-    section.parentTrace(this);
     // Link the current section with the previous and next one
     final TraceSection previousSection = this.trace.isEmpty() ? null : this.trace.getLast();
     if (previousSection != null) {
@@ -88,6 +111,7 @@ public class TxTrace {
   public int lineCount() {
     int lineCount = 0;
     for (TraceSection s : trace) {
+      if (s.exceptionalContextFragment != null) s.fragments().add(s.exceptionalContextFragment);
       lineCount += s.fragments().size();
     }
     return lineCount;

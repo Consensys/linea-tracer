@@ -41,8 +41,8 @@ public class CreateScenarioFragment implements TraceFragment {
     this.scenario = CreateScenario.UNDEFINED;
   }
 
-  public CreateScenarioFragment(CreateScenario scenario) {
-    this.scenario = scenario;
+  public boolean isAbortedCreate() {
+    return scenario == CreateScenario.CREATE_ABORT;
   }
 
   @Override
@@ -54,7 +54,7 @@ public class CreateScenarioFragment implements TraceFragment {
         .pScenarioCreateException(scenario == CreateScenario.CREATE_EXCEPTION)
         .pScenarioCreateAbort(scenario == CreateScenario.CREATE_ABORT)
         .pScenarioCreateFailureConditionWillRevert(
-            scenario == CreateScenario.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT)
+            scenario == CreateScenario.CREATE_FAILURE_CONDITION_WILL_REVERT)
         .pScenarioCreateFailureConditionWontRevert(
             scenario == CreateScenario.CREATE_FAILURE_CONDITION_WONT_REVERT)
         .pScenarioCreateEmptyInitCodeWillRevert(

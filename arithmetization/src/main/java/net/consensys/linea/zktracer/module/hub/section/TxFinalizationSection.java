@@ -36,12 +36,13 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
   private final AccountSnapshot senderSnapshotBeforeFinalization;
   private final AccountSnapshot recipientSnapshotBeforeFinalization;
   private final AccountSnapshot coinbaseSnapshotBeforeTxFinalization;
-  private @Setter AccountSnapshot senderAccountAfterTxFinalization;
-  private @Setter AccountSnapshot recipientAccountAfterTxFinalization;
+  private @Setter AccountSnapshot senderSnapshotAfterTxFinalization;
+  private @Setter AccountSnapshot recipientSnapshotAfterTxFinalization;
   private @Setter AccountSnapshot coinbaseSnapshotAfterFinalization;
 
-  public TxFinalizationSection(Hub hub, WorldView world) {
+  public TxFinalizationSection(Hub hub, WorldView world, boolean exceptionOrRevert) {
     super(hub, (short) 4);
+
     txMetadata = hub.txStack().current();
 
     final Address senderAddress = txMetadata.getSender();
@@ -49,21 +50,15 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     final Address coinbaseAddress = txMetadata.getCoinbase();
 
     // recipient
-    senderSnapshotBeforeFinalization = AccountSnapshot.canonical(hub, senderAddress);
-    recipientSnapshotBeforeFinalization = AccountSnapshot.canonical(hub, recipientAddress);
-    coinbaseSnapshotBeforeTxFinalization = AccountSnapshot.canonical(hub, coinbaseAddress);
-
-    //  TODO: re-enable checks
-    // checkArgument(
-    //         senderSnapshotBeforeFinalization.isWarm(),
-    //         "The sender account ought to be warm during TX_FINL");
-    // checkArgument(
-    //         recipientSnapshotBeforeFinalization.isWarm(),
-    //         "The recipient account ought to be warm during TX_FINL");
-    checkArgument(
-        txMetadata.isCoinbaseWarmAtTransactionEnd()
-            == coinbaseSnapshotBeforeTxFinalization.isWarm(),
-        "isCoinbaseWarmAtTransactiondEnd prediction is wrong");
+    senderSnapshotBeforeFinalization =
+        exceptionOrRevert
+            ? hub.txStack().getInitializationSection().getSenderAfterPayingForTransaction()
+            : AccountSnapshot.canonical(hub, world, senderAddress);
+    recipientSnapshotBeforeFinalization =
+        exceptionOrRevert
+            ? hub.txStack().getInitializationSection().getRecipientAfterValueTransfer()
+            : AccountSnapshot.canonical(hub, world, recipientAddress);
+    coinbaseSnapshotBeforeTxFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
 
     hub.defers().scheduleForPostTransaction(this);
   }
@@ -75,34 +70,39 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     final boolean coinbaseWarmth = txMetadata.isCoinbaseWarmAtTransactionEnd();
 
     final Address senderAddress = senderSnapshotBeforeFinalization.address();
-    senderAccountAfterTxFinalization = AccountSnapshot.canonical(hub, senderAddress);
-    senderAccountAfterTxFinalization.turnOnWarmth(); // purely constraints based
+    senderSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub, world, senderAddress);
+    senderSnapshotAfterTxFinalization.turnOnWarmth(); // purely constraints based
 
     final Address recipientAddress = recipientSnapshotBeforeFinalization.address();
-    recipientAccountAfterTxFinalization = AccountSnapshot.canonical(hub, recipientAddress);
-    recipientAccountAfterTxFinalization.turnOnWarmth(); // purely constraints based
+    recipientSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub, world, recipientAddress);
+    recipientSnapshotAfterTxFinalization.turnOnWarmth(); // purely constraints based
 
     final Address coinbaseAddress = coinbaseSnapshotBeforeTxFinalization.address();
-    coinbaseSnapshotAfterFinalization = AccountSnapshot.canonical(hub, coinbaseAddress);
+    coinbaseSnapshotAfterFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
     coinbaseSnapshotAfterFinalization.setWarmthTo(coinbaseWarmth); // purely constraints based
 
     DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     checkArgument(isSuccessful == txMetadata.statusCode());
 
     // TODO: do we switch off the deployment status at the end of a deployment ?
-    // checkArgument(!deploymentInfo.getDeploymentStatus(senderAddress), "The sender may not be
-    // under deployment");
-    // checkArgument(!deploymentInfo.getDeploymentStatus(recipientAddress), "");
-    // checkArgument(!deploymentInfo.getDeploymentStatus(coinbaseAddress), "");
+    // checkArgument(
+    //     !deploymentInfo.getDeploymentStatus(senderAddress),
+    //     "The sender may not be under deployment");
+    // checkArgument(
+    //     !deploymentInfo.getDeploymentStatus(recipientAddress),
+    //     "The recipient may not be under deployment");
+    checkArgument(
+        !deploymentInfo.getDeploymentStatus(coinbaseAddress),
+        "The coinbase may not be under deployment");
 
     if (isSuccessful) {
-      successfulFinalization(hub);
+      successFinalization(hub);
     } else {
-      unsuccessfulFinalization(hub);
+      failureFinalization(hub);
     }
   }
 
-  private void successfulFinalization(Hub hub) {
+  private void successFinalization(Hub hub) {
 
     if (!senderIsCoinbase()) {
 
@@ -111,7 +111,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
               .accountFragment()
               .make(
                   senderSnapshotBeforeFinalization,
-                  senderAccountAfterTxFinalization,
+                  senderSnapshotAfterTxFinalization,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
       AccountFragment coinbaseAccountFragment =
@@ -154,7 +154,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     this.addFragments(senderAccountFragment, coinbaseAccountFragment, currentTransactionFragment);
   }
 
-  private void unsuccessfulFinalization(Hub hub) {
+  private void failureFinalization(Hub hub) {
     if (noAddressCollisions()) {
 
       AccountFragment senderAccountFragment =
@@ -162,7 +162,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
               .accountFragment()
               .make(
                   senderSnapshotBeforeFinalization,
-                  senderAccountAfterTxFinalization,
+                  senderSnapshotAfterTxFinalization,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
       AccountFragment recipientAccountFragment =
@@ -170,7 +170,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
               .accountFragment()
               .make(
                   recipientSnapshotBeforeFinalization,
-                  recipientAccountAfterTxFinalization,
+                  recipientSnapshotAfterTxFinalization,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
       AccountFragment coinbaseAccountFragment =

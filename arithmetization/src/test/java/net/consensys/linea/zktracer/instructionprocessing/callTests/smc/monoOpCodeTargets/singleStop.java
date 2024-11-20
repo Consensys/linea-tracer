@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.monoOpCodeTargets;
 
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendCall;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCode.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.*;

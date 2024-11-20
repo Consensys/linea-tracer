@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.monoOpCodeTargets;
 
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendCall;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCode.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
  * Second-simplest case where we enter a smart contract. The called smart contract executes a single
  * JUMPDEST opcode (which is costs gas).
  */
-public class singleJumpDest {
+public class SingleJumpDest {
 
   /** This test should trigger the <b>scenario/CALL_TO_SMC_SUCCESS_WONT_REVERT</b> scenario. */
   @Test

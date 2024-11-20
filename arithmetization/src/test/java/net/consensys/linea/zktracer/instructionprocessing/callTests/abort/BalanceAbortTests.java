@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.abort;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.appendInsufficientBalanceCall;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 

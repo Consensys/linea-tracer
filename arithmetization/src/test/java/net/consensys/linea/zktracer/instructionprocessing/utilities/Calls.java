@@ -119,6 +119,15 @@ public class Calls {
         .op(MSTORE);
   }
 
+  public static void appendGibberishReturn(BytecodeCompiler program) {
+    program.op(CALLER).op(EXTCODEHASH).op(DUP1);
+    program.push(1).push(0).op(SUB); // writes 0xffff...ff onto the stack
+    program.op(XOR);
+    program.push(11).op(MSTORE);
+    program.push(50).op(MSTORE);
+    program.push(77).push(3).op(RETURN); // returning some of that with zeros at the start
+  }
+
   public static class ProgramIncrement {
 
     public final BytecodeCompiler program;

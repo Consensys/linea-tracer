@@ -89,7 +89,8 @@ public class SelfdestructSection extends TraceSection
 
     selfdestructScenarioFragment = new SelfdestructScenarioFragment();
     // SCN fragment
-    this.addFragment(selfdestructScenarioFragment);
+    this.addStack(hub); // stack fragments
+    this.addFragment(selfdestructScenarioFragment); // scenario fragment
     if (Exceptions.any(exceptions)) {
       selfdestructScenarioFragment.setScenario(
           SelfdestructScenarioFragment.SelfdestructScenario.SELFDESTRUCT_EXCEPTION);

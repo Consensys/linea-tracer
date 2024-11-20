@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.smc;
+package net.consensys.linea.zktracer.instructionprocessing.utilities;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 
-public class Utilities {
+public class MonoOpCodeSmartContracts {
 
   public static KeyPair keyPair = new SECP256K1().generateKeyPair();
   public static Address userAddress =

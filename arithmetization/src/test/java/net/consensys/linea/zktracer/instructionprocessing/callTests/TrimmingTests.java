@@ -14,8 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.eoaAddress;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.untrimmedEoaAddress;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.eoaAddress;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.untrimmedEoaAddress;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;

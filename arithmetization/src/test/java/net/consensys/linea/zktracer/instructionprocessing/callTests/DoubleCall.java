@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -24,13 +24,13 @@ import org.junit.jupiter.api.Test;
 
 public class DoubleCall {
 
-  /** Same address */
+  /** Same selfDestructorAddress */
   @Test
   void doubleCallToSameAddressWontRevert() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
 
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 2, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 2, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run();
   }
@@ -38,22 +38,22 @@ public class DoubleCall {
   @Test
   void doubleCallToSameAddressWillRevert() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
 
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 2, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 2, 0, 0, 0, 0);
 
     program.op(REVERT);
 
     BytecodeRunner.of(program.compile()).run();
   }
 
-  /** Different address */
+  /** Different selfDestructorAddress */
   @Test
   void doubleCallTodifferentAddressesWontRevert() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
 
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress2), 2, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress2), 2, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run();
   }
@@ -61,9 +61,9 @@ public class DoubleCall {
   @Test
   void doubleCallTodifferentAddressesWillRevert() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
 
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress2), 2, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress2), 2, 0, 0, 0, 0);
 
     program.push(13).push(71); // the stack already contains two items but why not ...
     program.op(REVERT);

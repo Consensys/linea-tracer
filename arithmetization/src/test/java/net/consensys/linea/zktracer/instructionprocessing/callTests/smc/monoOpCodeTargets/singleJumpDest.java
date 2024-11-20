@@ -14,8 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.monoOpCodeTargets;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.simpleCall;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.smc.Utilities.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendCall;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCode.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 
@@ -34,7 +34,7 @@ public class singleJumpDest {
   void zeroValueTransferToJumpDestContract() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    simpleCall(
+    appendCall(
         program, CALL, 10, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 0, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run(accounts);
@@ -45,7 +45,7 @@ public class singleJumpDest {
   void nonZeroValueTransferToJumpDestContract() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    simpleCall(
+    appendCall(
         program, CALL, 10, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run(accounts);
@@ -56,7 +56,7 @@ public class singleJumpDest {
   void nonZeroValueTransferToJumpDestContractRevertingTransaction() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    simpleCall(
+    appendCall(
         program, CALL, 10, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
 
     // we use the 1 on the stack after this successful CALL as the revert message size
@@ -73,7 +73,7 @@ public class singleJumpDest {
   void zeroValueTransferToJumpDestContractOogx() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 0, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 0, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run(accounts);
   }
@@ -83,7 +83,7 @@ public class singleJumpDest {
   void nonZeroValueTransferToJumpDestContractOogx() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run(accounts);
   }
@@ -93,7 +93,7 @@ public class singleJumpDest {
   void nonZeroValueTransferToJumpDestContractOogxAndRevertingTransaction() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    simpleCall(program, CALL, 0, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, accountWhoseByteCodeIsASingleJumpDest.getAddress(), 1, 0, 0, 0, 0);
 
     // we use the 1 on the stack after this successful CALL as the revert message size
     program.push(0).op(REVERT);

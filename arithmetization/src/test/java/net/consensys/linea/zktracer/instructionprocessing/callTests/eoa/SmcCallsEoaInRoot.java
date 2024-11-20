@@ -14,14 +14,12 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.eoa;
 
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendCall;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.fullBalanceCall;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.simpleCall;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
-import com.ibm.icu.impl.UPropertyAliases;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 
@@ -32,7 +30,7 @@ import org.junit.jupiter.api.Test;
  *
  * <p>- <b>scn/CALL_EOA_SUCCESS_WONT_REVERT</b>
  */
-public class EoaTests {
+public class SmcCallsEoaInRoot {
 
   final String eoaAddress = "abcdef0123456789";
 
@@ -40,7 +38,7 @@ public class EoaTests {
   void transfersSomeValueWillRevertTest() {
 
     BytecodeCompiler bytecode = BytecodeCompiler.newProgram();
-    simpleCall(bytecode, CALL, 0, Address.fromHexString(eoaAddress), 13, 2, 3, 4, 5);
+    appendCall(bytecode, CALL, 0, Address.fromHexString(eoaAddress), 13, 2, 3, 4, 5);
     bytecode.op(POP).push(6).push(7).op(REVERT).compile();
 
     BytecodeRunner.of(bytecode.compile()).run();
@@ -50,7 +48,7 @@ public class EoaTests {
   void transfersSomeValueWontRevertTest() {
 
     BytecodeCompiler bytecode = BytecodeCompiler.newProgram();
-    simpleCall(bytecode, CALL, 0, Address.fromHexString(eoaAddress), 13, 2, 3, 4, 5);
+    appendCall(bytecode, CALL, 0, Address.fromHexString(eoaAddress), 13, 2, 3, 4, 5);
 
     BytecodeRunner.of(bytecode.compile()).run();
   }
@@ -78,7 +76,7 @@ public class EoaTests {
   void transfersNoValueWillRevertTest() {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 1, 2, 3, 4);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 1, 2, 3, 4);
     program.op(POP).push(6).push(7).op(REVERT).compile();
 
     BytecodeRunner.of(program.compile()).run();
@@ -88,7 +86,7 @@ public class EoaTests {
   void transfersNoValueWontRevertTest() {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 1, 2, 3, 4);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 1, 2, 3, 4);
 
     BytecodeRunner.of(program.compile()).run();
   }

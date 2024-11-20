@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecover;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -39,7 +39,7 @@ public class gasStipendTests {
   void zeroValueEcrecoverCallTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
-    simpleCall(
+    appendCall(
         program, CALL, 3000, Address.fromHexString(Address.ECREC.toHexString()), 0, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run();
@@ -49,7 +49,7 @@ public class gasStipendTests {
   void nonzeroValueEcrecoverCallTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
-    simpleCall(
+    appendCall(
         program, CALL, 3000, Address.fromHexString(Address.ECREC.toHexString()), 1, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run();
@@ -59,7 +59,7 @@ public class gasStipendTests {
   void nonzeroValueStipendCompletesGasEcrecoverCallTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
-    simpleCall(
+    appendCall(
         program, CALL, 700, Address.fromHexString(Address.ECREC.toHexString()), 1, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run();
@@ -70,7 +70,7 @@ public class gasStipendTests {
   void nonzeroValueShortOnGasEcrecoverCallTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
-    simpleCall(
+    appendCall(
         program, CALL, 2999, Address.fromHexString(Address.ECREC.toHexString()), 1, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run();
@@ -80,7 +80,7 @@ public class gasStipendTests {
   void nonzeroValueStipendFallsShortOfCompletingGasEcrecoverCallTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
-    simpleCall(
+    appendCall(
         program, CALL, 699, Address.fromHexString(Address.ECREC.toHexString()), 1, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run();

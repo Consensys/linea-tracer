@@ -14,41 +14,42 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.utilities;
 
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
-
 public class MultiOpCodeSmcs {
 
-    /**
-     * Produces a program that triggers all opcodes from the CONTEXT instruction family.
-     * @return
-     */
-    public static BytecodeCompiler allContextOpCodes() {
+  /**
+   * Produces a program that triggers all opcodes from the CONTEXT instruction family.
+   *
+   * @return
+   */
+  public static BytecodeCompiler allContextOpCodes() {
 
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
-        program
-                .op(ADDRESS)
-                .op(CALLDATASIZE)
-                .op(RETURNDATASIZE) // will return 0, but will be tested in the caller
-                .op(CALLER)
-                .op(CALLVALUE);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .op(ADDRESS)
+        .op(CALLDATASIZE)
+        .op(RETURNDATASIZE) // will return 0, but will be tested in the caller
+        .op(CALLER)
+        .op(CALLVALUE);
 
-        // producing some gibberish return data
-        appendGibberishReturn(program);
+    // producing some gibberish return data
+    appendGibberishReturn(program);
 
-        return program;
-    }
+    return program;
+  }
 
-    public static ToyAccount allContextOpCodesSmc =
-            ToyAccount.builder()
-                    .balance(Wei.fromEth(9))
-                    .nonce(13)
-                    .address(Address.fromHexString("c0de"))
-                    .code(allContextOpCodes().compile())
-                    .build();
+  public static ToyAccount allContextOpCodesSmc =
+      ToyAccount.builder()
+          .balance(Wei.fromEth(9))
+          .nonce(13)
+          .address(Address.fromHexString("c0de"))
+          .code(allContextOpCodes().compile())
+          .build();
 }

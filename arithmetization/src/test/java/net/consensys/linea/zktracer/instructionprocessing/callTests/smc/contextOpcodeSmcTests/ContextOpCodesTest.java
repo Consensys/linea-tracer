@@ -14,5 +14,4 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.contextOpcodeSmcTests;
 
-public class ContextOpCodesTest {
-}
+public class ContextOpCodesTest {}

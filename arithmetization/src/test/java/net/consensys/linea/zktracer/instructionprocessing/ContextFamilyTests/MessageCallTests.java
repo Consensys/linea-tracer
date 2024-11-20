@@ -14,6 +14,15 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.ContextFamilyTests;
 
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendCall;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MultiOpCodeSmcs.allContextOpCodesSmc;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -23,73 +32,78 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendCall;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MultiOpCodeSmcs.allContextOpCodesSmc;
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
-
 public class MessageCallTests {
 
-    /**
-     * This test serves to verify that context data is correctly initialized after a CALL-type instruction.
-     */
-    @ParameterizedTest
-    @EnumSource(value = OpCode.class, names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-    public void testWithCall(OpCode opCode) {
+  /**
+   * This test serves to verify that context data is correctly initialized after a CALL-type
+   * instruction.
+   */
+  @ParameterizedTest
+  @EnumSource(
+      value = OpCode.class,
+      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
+  public void testWithCall(OpCode opCode) {
 
-        ToyAccount recipientAccount = buildRecipient(opCode);
+    ToyAccount recipientAccount = buildRecipient(opCode);
 
-        List<ToyAccount> accounts = new ArrayList<>();
-        accounts.add(userAccount);
-        accounts.add(allContextOpCodesSmc);
-        accounts.add(recipientAccount);
+    List<ToyAccount> accounts = new ArrayList<>();
+    accounts.add(userAccount);
+    accounts.add(allContextOpCodesSmc);
+    accounts.add(recipientAccount);
 
+    ToyExecutionEnvironmentV2.builder()
+        .transaction(buildTransaction(recipientAccount))
+        .accounts(accounts)
+        .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+        .build()
+        .run();
+  }
 
-        ToyExecutionEnvironmentV2.builder()
-                .transaction(buildTransaction(recipientAccount))
-                .accounts(accounts)
-                .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
-                .build().run();
-    }
+  /**
+   * The recipient will see only its return data change. We take the opportunity to test context
+   * data, too.
+   *
+   * @return
+   */
+  private ToyAccount buildRecipient(OpCode callOpCode) {
 
-    /**
-     * The recipient will see only its return data change. We take the opportunity to test context data, too.
-     * @return
-     */
-    private ToyAccount buildRecipient(OpCode callOpCode) {
+    BytecodeCompiler recipientCode = BytecodeCompiler.newProgram();
+    recipientCode.op(CALLDATASIZE);
+    recipientCode.op(RETURNDATASIZE);
+    recipientCode.op(CALLER);
+    recipientCode.op(ADDRESS);
+    recipientCode.op(CALLVALUE);
+    appendCall(
+        recipientCode,
+        callOpCode,
+        100_000,
+        allContextOpCodesSmc.getAddress(),
+        1664,
+        13,
+        91,
+        51,
+        77);
+    recipientCode.op(CALLDATASIZE);
+    recipientCode.op(RETURNDATASIZE);
 
-        BytecodeCompiler recipientCode = BytecodeCompiler.newProgram();
-        recipientCode.op(CALLDATASIZE);
-        recipientCode.op(RETURNDATASIZE);
-        recipientCode.op(CALLER);
-        recipientCode.op(ADDRESS);
-        recipientCode.op(CALLVALUE);
-        appendCall(recipientCode, callOpCode, 100_000, allContextOpCodesSmc.getAddress(), 1664, 13, 91, 51, 77);
-        recipientCode.op(CALLDATASIZE);
-        recipientCode.op(RETURNDATASIZE);
+    return ToyAccount.builder()
+        .balance(Wei.of(500_000L))
+        .code(recipientCode.compile())
+        .nonce(891)
+        .address(Address.fromHexString("c0dec0ffee31"))
+        .build();
+  }
 
-        return ToyAccount.builder()
-                .balance(Wei.of(500_000L))
-                .code(recipientCode.compile())
-                .nonce(891)
-                .address(Address.fromHexString("c0dec0ffee31"))
-                .build();
-    }
-
-    private Transaction buildTransaction(ToyAccount recipientAccount) {
-       return ToyTransaction.builder()
-                .sender(userAccount)
-                .to(recipientAccount)
-                .value(Wei.of(3_000_000L))
-                .payload(Bytes.fromHexString("0xaabb3311ee88"))
-                .gasLimit(1_000_000L)
-                .keyPair(keyPair)
-                .nonce(userAccount.getNonce())
-                .gasPrice(Wei.of(8L))
-                .build();
-    }
+  private Transaction buildTransaction(ToyAccount recipientAccount) {
+    return ToyTransaction.builder()
+        .sender(userAccount)
+        .to(recipientAccount)
+        .value(Wei.of(3_000_000L))
+        .payload(Bytes.fromHexString("0xaabb3311ee88"))
+        .gasLimit(1_000_000L)
+        .keyPair(keyPair)
+        .nonce(userAccount.getNonce())
+        .gasPrice(Wei.of(8L))
+        .build();
+  }
 }

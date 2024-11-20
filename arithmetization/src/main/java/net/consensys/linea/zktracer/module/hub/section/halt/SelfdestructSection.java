@@ -78,7 +78,8 @@ public class SelfdestructSection extends TraceSection
 
     // Account
     addressWhichMaySelfDestruct = frame.getRecipientAddress();
-    selfdestructorAccountBefore = AccountSnapshot.canonical(hub, frame.getWorldUpdater(), addressWhichMaySelfDestruct);
+    selfdestructorAccountBefore =
+        AccountSnapshot.canonical(hub, frame.getWorldUpdater(), addressWhichMaySelfDestruct);
 
     // Recipient
     recipientAddressUntrimmed = frame.getStackItem(0);
@@ -135,7 +136,9 @@ public class SelfdestructSection extends TraceSection
     }
 
     // Unexceptional case
-    finalUnexceptionalUnrevertedContextFragment = ContextFragment.executionProvidesEmptyReturnData(hub, hub.callStack().currentCallFrame().contextNumber());
+    finalUnexceptionalUnrevertedContextFragment =
+        ContextFragment.executionProvidesEmptyReturnData(
+            hub, hub.callStack().currentCallFrame().contextNumber());
 
     final Map<EphemeralAccount, List<AttemptedSelfDestruct>> unexceptionalSelfDestructMap =
         hub.txStack().current().getUnexceptionalSelfDestructMap();
@@ -173,7 +176,8 @@ public class SelfdestructSection extends TraceSection
       recipientAccountBefore = selfdestructorAccountAfter.deepCopy();
       recipientAccountAfter = recipientAccountBefore.deepCopy();
     } else {
-      recipientAccountBefore = AccountSnapshot.canonical(hub, frame.getWorldUpdater(), recipientAddress);
+      recipientAccountBefore =
+          AccountSnapshot.canonical(hub, frame.getWorldUpdater(), recipientAddress);
       recipientAccountAfter =
           recipientAccountBefore
               .deepCopy()

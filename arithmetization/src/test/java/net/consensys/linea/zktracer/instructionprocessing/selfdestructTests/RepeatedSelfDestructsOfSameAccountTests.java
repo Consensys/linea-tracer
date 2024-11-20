@@ -12,17 +12,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.selfdestructTests.repeatedly;
+package net.consensys.linea.zktracer.instructionprocessing.selfdestructTests;
 
-import static net.consensys.linea.zktracer.instructionprocessing.selfdestructTests.SeveralSelfDestructsInARowModifyingStorageTests.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.selfdestructTests.Type.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 
 import java.util.List;
 
 import net.consensys.linea.testing.*;
-import net.consensys.linea.zktracer.instructionprocessing.selfdestructTests.SeveralSelfDestructsInARowModifyingStorageTests;
-import net.consensys.linea.zktracer.instructionprocessing.selfdestructTests.Type;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.TransactionType;
@@ -37,7 +35,7 @@ import org.junit.jupiter.params.provider.EnumSource;
  * selfDestructorAddress parameter decides whether the SELFDESTRUCT targets the same
  * selfDestructorAddress or not. We consider the reverted vs unreverted cases.
  */
-public class BasicTests {
+public class RepeatedSelfDestructsOfSameAccountTests {
 
   private ToyAccount userAccount = SeveralSelfDestructsInARowModifyingStorageTests.userAccount;
   private ToyAccount toAccount;

@@ -12,6 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.selfdestructTests;
-public class SelfDestructInsideOfADelegateCall {
+package net.consensys.linea.zktracer.instructionprocessing.callTests.smc.contextOpcodeSmcTests;
+
+public class Test {
 }

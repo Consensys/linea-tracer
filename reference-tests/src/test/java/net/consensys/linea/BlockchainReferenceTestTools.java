@@ -111,6 +111,11 @@ public class BlockchainReferenceTestTools {
     // Absurd amount of gas, doesn't run in parallel.
     PARAMS.ignore("randomStatetest94_\\w+");
 
+    // Balance is more than 128 bits
+    PARAMS.ignore(("Call1024PreCalls_d0g0v0_London[London]"));
+    PARAMS.ignore(("Call1024PreCalls_d0g1v0_London[London]"));
+    PARAMS.ignore(("OverflowGasRequire_London[London]"));
+
     // Don't do time-consuming tests.
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");
     PARAMS.ignore("loopMul_*");

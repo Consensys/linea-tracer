@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests;
+package net.consensys.linea.zktracer.instructionprocessing.utilities;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
@@ -21,7 +21,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 
-public class Utilities {
+public class Calls {
 
   public static final String fullEoaAddress = "000000000000000000000000abcdef0123456789";
   public static final String toTrim12 = "aaaaaaaaaaaaaaaaaaaaaaaa";
@@ -45,7 +45,20 @@ public class Utilities {
     program.push(to).op(GAS).op(callOpcode).op(POP);
   }
 
-  public static void simpleCall(
+  public static void fullBalanceCall(
+      BytecodeCompiler program, OpCode callOpcode, Address to, int cdo, int cds, int rao, int rac) {
+    program.push(rac).push(rao).push(cds).push(cdo);
+    if (callOpcode.callCanTransferValue()) {
+      program.op(BALANCE);
+    }
+    program.push(to).op(GAS).op(callOpcode).op(POP);
+  }
+
+  public static void appendRevert(BytecodeCompiler program, int rdo, int rds) {
+    program.push(rds).push(rdo).op(REVERT);
+  }
+
+  public static void appendCall(
       BytecodeCompiler program,
       OpCode callOpcode,
       int gas,
@@ -104,5 +117,20 @@ public class Utilities {
         .push("1feecd50adc6273fdd5d11c6da18c8cfe14e2787f5a90af7c7c1328e7d0a2c42")
         .push(96)
         .op(MSTORE);
+  }
+
+  public static class ProgramIncrement {
+
+    public final BytecodeCompiler program;
+    public final int initialSize;
+
+    public ProgramIncrement(BytecodeCompiler program) {
+      this.program = program;
+      this.initialSize = program.compile().size();
+    }
+
+    public int sizeDelta() {
+      return program.compile().size() - initialSize;
+    }
   }
 }

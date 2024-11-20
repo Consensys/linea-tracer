@@ -24,7 +24,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 
-public class MonoOpCodeSmartContracts {
+public class MonoOpCode {
 
   public static KeyPair keyPair = new SECP256K1().generateKeyPair();
   public static Address userAddress =

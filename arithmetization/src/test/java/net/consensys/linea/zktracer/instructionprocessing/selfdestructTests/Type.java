@@ -13,5 +13,54 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 package net.consensys.linea.zktracer.instructionprocessing.selfdestructTests;
-public class SelfDestructorType {
+
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.eoaAddress;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.SelfDestructs.createValueFromContextParameters;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.SELFDESTRUCT;
+
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.ToyAccount;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Wei;
+
+public enum Type {
+  HEIR_IS_ZERO,
+  HEIR_IS_ORIGIN,
+  HEIR_IS_CALLER,
+  HEIR_IS_SELF,
+  HEIR_IS_EOA,
+  HEIR_IS_ECREC,
+  HEIR_IS_COMPUTED;
+
+  public static Address selfDestructorAddress = Address.fromHexString("0xFFc0deadd7");
+
+  public static ToyAccount basicSelfDestructor(Type type) {
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    switch (type) {
+      case HEIR_IS_ZERO:
+        program.push(0);
+      case HEIR_IS_ORIGIN:
+        program.op(ORIGIN);
+      case HEIR_IS_CALLER:
+        program.op(CALLER);
+      case HEIR_IS_SELF:
+        program.op(ADDRESS);
+      case HEIR_IS_EOA:
+        program.push(eoaAddress);
+      case HEIR_IS_ECREC:
+        program.push(Address.ECREC);
+      case HEIR_IS_COMPUTED:
+        createValueFromContextParameters(program);
+    }
+    program.op(SELFDESTRUCT);
+
+    return ToyAccount.builder()
+        .address(selfDestructorAddress)
+        .code(program.compile())
+        .balance(Wei.fromEth(1))
+        .nonce(1776)
+        .build();
+  }
 }

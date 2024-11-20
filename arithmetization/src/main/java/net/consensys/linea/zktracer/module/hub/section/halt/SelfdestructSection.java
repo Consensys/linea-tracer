@@ -110,7 +110,7 @@ public class SelfdestructSection extends TraceSection
       recipientAccountBefore =
           selfdestructTargetsItself()
               ? selfdestructorAccountBefore
-              : AccountSnapshot.canonical(hub, recipientAddress);
+              : AccountSnapshot.canonical(hub, frame.getWorldUpdater(), recipientAddress);
 
       selfdestructorFirstAccountFragment =
           hub.factories()
@@ -173,7 +173,7 @@ public class SelfdestructSection extends TraceSection
       recipientAccountBefore = selfdestructorAccountAfter.deepCopy();
       recipientAccountAfter = recipientAccountBefore.deepCopy();
     } else {
-      recipientAccountBefore = AccountSnapshot.canonical(hub, recipientAddress);
+      recipientAccountBefore = AccountSnapshot.canonical(hub, frame.getWorldUpdater(), recipientAddress);
       recipientAccountAfter =
           recipientAccountBefore
               .deepCopy()

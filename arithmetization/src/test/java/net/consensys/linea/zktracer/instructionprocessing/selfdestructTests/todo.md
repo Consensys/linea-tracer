@@ -40,3 +40,4 @@ There is the classical example of how to produce a CREATE address collision:
 - [ ] sd'ing in the root of a message call transaction
 - [ ] sd'ing in the root of a deployment transaction
   - **Note.** This leads to a temporary deployment of empty bytecode that immediately gets wiped.
+- [ ] sd'ing and redeploying

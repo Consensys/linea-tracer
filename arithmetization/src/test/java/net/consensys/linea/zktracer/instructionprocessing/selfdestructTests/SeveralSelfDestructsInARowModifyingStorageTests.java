@@ -14,22 +14,18 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.selfdestructTests;
 
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.simpleCall;
-
-import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.instructionprocessing.utilities.*;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.Test;
 
-public class SelfDestructResetsStorageTest {
-  Address selfDestructAddress = Address.fromHexString("ffc0de");
-  Address multipleCallerAddress = Address.fromHexString("ca11e7");
+public class SeveralSelfDestructsInARowModifyingStorageTests {
+  Address modifyStorageThenSelfDestructAddress = Address.fromHexString("ffc0de");
+  Hash hash = Hash.fromHexString("modifyStorageThenSelfDestruct");
+  Address multipleCallsAddress = Address.fromHexString("ca11e7");
 
   public static KeyPair keyPair = new SECP256K1().generateKeyPair();
   public static Address userAddress =
@@ -37,27 +33,11 @@ public class SelfDestructResetsStorageTest {
   public static ToyAccount userAccount =
       ToyAccount.builder().balance(Wei.fromEth(10)).nonce(99).address(userAddress).build();
 
-  private ToyAccount storageModifyingAccountThatSelfDestructs =
+  private ToyAccount modifyStorageThenSelfDestruct =
       ToyAccount.builder()
           .balance(Wei.fromEth(1))
           .nonce(13)
-          .address(selfDestructAddress)
+          .address(modifyStorageThenSelfDestructAddress)
           .code(SelfDestructs.storageTouchingSelfDestructorRewardsZeroAddress().compile())
           .build();
-
-  private ToyAccount multipleCalls() {
-    BytecodeCompiler multipleCalls = BytecodeCompiler.newProgram();
-    simpleCall(multipleCalls, OpCode.CALL, 100_000, selfDestructAddress, 12, 0, 4, 0, 0);
-    simpleCall(multipleCalls, OpCode.CALL, 100_000, selfDestructAddress, 19, 0, 3, 0, 0);
-    simpleCall(multipleCalls, OpCode.CALL, 100_000, selfDestructAddress, 26, 0, 2, 0, 0);
-    return ToyAccount.builder()
-        .balance(Wei.of(1_000_000L))
-        .nonce(420)
-        .address(multipleCallerAddress)
-        .code(multipleCalls.compile())
-        .build();
-  }
-
-  @Test
-  void storageRemainsResetsOnlyAtTransactionEndTest() {}
 }

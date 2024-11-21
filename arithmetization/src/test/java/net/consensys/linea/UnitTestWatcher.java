@@ -18,17 +18,19 @@ import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.reporting.TestOutcomeWriterTool;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 
 @Slf4j
+@ExtendWith(UnitTestWatcher.class)
 public class UnitTestWatcher implements TestWatcher {
 
   private String FAILED = "FAILED";
 
   @Override
   public void testFailed(ExtensionContext context, Throwable cause) {
-    String testName = context.getDisplayName().split(": ")[1];
+    String testName = context.getDisplayName();
     log.info("Adding failure for {}", testName);
     TestOutcomeWriterTool.addFailure(FAILED, cause.getMessage(), testName);
     log.info("Failure added for {}", testName);

@@ -16,15 +16,18 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.abort;
 
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Attempt to trigger the maximum call stack depth abort. We put everything to 0 to avoid memory
  * expansion costs. We will want to revert so we transfer value to see the effect of reverting.
  */
+@ExtendWith(UnitTestWatcher.class)
 public class CallStackDepthAbortTests {
   @Test
   void attemptAtCallStackDepthAbortWillRevert() {

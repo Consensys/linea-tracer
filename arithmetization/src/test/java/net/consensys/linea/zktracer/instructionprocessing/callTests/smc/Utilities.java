@@ -16,6 +16,7 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.smc;
 
 import java.util.List;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.ToyAccount;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -23,7 +24,9 @@ import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(UnitTestWatcher.class)
 public class Utilities {
 
   public static KeyPair keyPair = new SECP256K1().generateKeyPair();

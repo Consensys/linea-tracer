@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import java.nio.file.Path;
 import java.util.List;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.plugins.continoustracing.ContinuousTracer;
 import net.consensys.linea.plugins.continoustracing.ContinuousTracingConfiguration;
@@ -38,9 +39,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith(MockitoExtension.class)
+@ExtendWith(UnitTestWatcher.class)
 public class ContinuousTracerTest {
   private static final Hash BLOCK_HASH =
       Hash.fromHexString("0x0000000000000000000000000000000000000000000000000000000000000042");

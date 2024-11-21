@@ -16,10 +16,12 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.eoa;
 
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * In the arithmetization there are the following EOA specific scenarios:
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.Test;
  *
  * <p>- <b>scn/CALL_EOA_SUCCESS_WONT_REVERT</b>
  */
+@ExtendWith(UnitTestWatcher.class)
 public class EoaTests {
 
   final String eoaAddress = "abcdef0123456789";

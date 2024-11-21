@@ -17,10 +17,12 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecov
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * For these tests to work as expected, the transaction should start out with sufficient gas. At
@@ -32,6 +34,7 @@ import org.junit.jupiter.api.Test;
  * transfer + 25k if value transfer leads to a precompile starting to exist in the state etc ... +
  * 3k for the callee + opcode costs on the order of 130 or so)
  */
+@ExtendWith(UnitTestWatcher.class)
 public class gasStipendTests {
 
   // sufficient gas for PRC execution

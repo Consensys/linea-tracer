@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.Util.slice;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.MODEXP_COMPONENT_BYTE_SIZE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
+import static net.consensys.linea.zktracer.module.ecdata.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_RIPEMD_160;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_SHA2_256;
@@ -450,7 +451,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .exoBytes(Optional.of(subsection.callData))
         .sourceOffset(EWord.of(subsection.callDataMemorySpan.offset()))
         .size(subsection.callDataMemorySpan.length())
-        .referenceSize(128)
+        .referenceSize(TOTAL_SIZE_ECADD_DATA)
         .successBit(successBit)
         .setEcData()
         .phase(PHASE_ECADD_DATA);
@@ -460,10 +461,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, PrecompileSubsection subsection, boolean successBit) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(subsection.exoModuleOperationId())
-        .exoBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
+        .exoBytes(Optional.of(leftPadTo(subsection.returnData(), TOTAL_SIZE_ECADD_RESULT)))
         .targetId(subsection.exoModuleOperationId())
         .targetRamBytes(Optional.of(Bytes.EMPTY))
-        .size(64)
+        .size(TOTAL_SIZE_ECADD_RESULT)
         .setEcData()
         .phase(PHASE_ECADD_RESULT)
         .successBit(successBit);
@@ -473,12 +474,12 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, PrecompileSubsection subsection) {
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.exoModuleOperationId())
-        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
+        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), TOTAL_SIZE_ECADD_RESULT)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
         .referenceOffset(subsection.parentReturnDataTarget.offset())
         .size(subsection.parentReturnDataTarget.length())
-        .referenceSize(64);
+        .referenceSize(TOTAL_SIZE_ECADD_RESULT);
   }
 
   public static MmuCall callDataExtractionForEcmul(
@@ -490,7 +491,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .exoBytes(Optional.of(subsection.callData))
         .sourceOffset(EWord.of(subsection.callDataMemorySpan.offset()))
         .size(subsection.callDataMemorySpan.length())
-        .referenceSize(96)
+        .referenceSize(TOTAL_SIZE_ECMUL_DATA)
         .successBit(successBit)
         .setEcData()
         .phase(PHASE_ECMUL_DATA);
@@ -500,10 +501,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, final PrecompileSubsection subsection, boolean successBit) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(subsection.exoModuleOperationId())
-        .exoBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
+        .exoBytes(Optional.of(leftPadTo(subsection.returnData(), TOTAL_SIZE_ECMUL_RESULT)))
         .targetId(subsection.exoModuleOperationId())
         .targetRamBytes(Optional.of(Bytes.EMPTY))
-        .size(64)
+        .size(TOTAL_SIZE_ECMUL_RESULT)
         .setEcData()
         .phase(PHASE_ECMUL_RESULT)
         .successBit(successBit);
@@ -513,12 +514,12 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
       final Hub hub, final PrecompileSubsection subsection) {
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.exoModuleOperationId())
-        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), 2 * WORD_SIZE)))
+        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), TOTAL_SIZE_ECMUL_RESULT)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
         .referenceOffset(subsection.parentReturnDataTarget().offset())
         .size(subsection.parentReturnDataTarget().length())
-        .referenceSize(64);
+        .referenceSize(TOTAL_SIZE_ECMUL_RESULT);
   }
 
   public static MmuCall callDataExtractionForEcpairing(
@@ -549,10 +550,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     } else {
       return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
           .sourceId(precompileContextNumber)
-          .exoBytes(Optional.of(leftPadTo(subsection.returnData(), WORD_SIZE)))
+          .exoBytes(Optional.of(leftPadTo(subsection.returnData(), TOTAL_SIZE_ECPAIRING_RESULT)))
           .targetId(precompileContextNumber)
           .targetRamBytes(Optional.of(Bytes.EMPTY))
-          .size(WORD_SIZE)
+          .size(TOTAL_SIZE_ECPAIRING_RESULT)
           .setEcData()
           .phase(PHASE_ECPAIRING_RESULT)
           .successBit(successBit);
@@ -564,12 +565,13 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     final int precompileContextNumber = subsection.exoModuleOperationId();
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(precompileContextNumber)
-        .sourceRamBytes(Optional.of(leftPadTo(subsection.returnData(), WORD_SIZE)))
+        .sourceRamBytes(
+            Optional.of(leftPadTo(subsection.returnData(), TOTAL_SIZE_ECPAIRING_RESULT)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.callerMemorySnapshot()))
         .referenceOffset(subsection.parentReturnDataTarget.offset())
         .size(subsection.parentReturnDataTarget.length())
-        .referenceSize(WORD_SIZE);
+        .referenceSize(TOTAL_SIZE_ECPAIRING_RESULT);
   }
 
   public static MmuCall parameterExtractionForBlake(

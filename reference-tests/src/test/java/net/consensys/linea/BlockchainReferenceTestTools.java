@@ -78,21 +78,21 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignoreAll();
     }
     // ignore tests that are failing in Besu too
-    PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]"); // failing in Besu too
-    PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]"); // failing in Besu too
-    PARAMS.ignore("create2collisionStorage_d0g0v0_London[London]"); // failing in Besu too
-    PARAMS.ignore("create2collisionStorage_d1g0v0_London[London]"); // failing in Besu too
-    PARAMS.ignore("create2collisionStorage_d2g0v0_London[London]"); // failing in Besu too
-    PARAMS.ignore("dynamicAccountOverwriteEmpty_d0g0v0_London[London]"); // failing in Besu too
+    PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]"); 
+    PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]"); 
+    PARAMS.ignore("create2collisionStorage_d0g0v0_London[London]"); 
+    PARAMS.ignore("create2collisionStorage_d1g0v0_London[London]"); 
+    PARAMS.ignore("create2collisionStorage_d2g0v0_London[London]"); 
+    PARAMS.ignore("dynamicAccountOverwriteEmpty_d0g0v0_London[London]"); 
 
     // ignore tests that are failing because there is an account with nonce 0 and
     // non empty code which can't happen in Linea since we are post LONDON only.
-    PARAMS.ignore("InitCollision_d0g0v0_London[London]"); // non empty + nonce 0
-    PARAMS.ignore("InitCollision_d1g0v0_London[London]"); // non empty + nonce 0
-    PARAMS.ignore("InitCollision_d2g0v0_London[London]"); // non empty + nonce 0
-    PARAMS.ignore("InitCollision_d3g0v0_London[London]"); // non empty + nonce 0
-    PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]"); // non empty + nonce 0
-    PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]"); // non empty + nonce 0
+    PARAMS.ignore("InitCollision_d0g0v0_London[London]");
+    PARAMS.ignore("InitCollision_d1g0v0_London[London]");
+    PARAMS.ignore("InitCollision_d2g0v0_London[London]");
+    PARAMS.ignore("InitCollision_d3g0v0_London[London]");
+    PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]");
+    PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]");
 
     // Consumes a huge amount of memory.
     PARAMS.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");

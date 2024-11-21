@@ -68,7 +68,6 @@ Before contributing, ensure you're familiar with:
 - [Discord](https://discord.gg/linea)
 - [Twitter](https://twitter.com/LineaBuild)
 
-
 ### Update reference tests
 
 To update the reference tests, run the following commands:

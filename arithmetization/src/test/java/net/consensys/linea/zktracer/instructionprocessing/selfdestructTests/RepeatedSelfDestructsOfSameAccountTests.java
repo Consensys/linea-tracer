@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.instructionprocessing.selfdestructTests;
 import static net.consensys.linea.zktracer.instructionprocessing.selfdestructTests.Heir.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
 import java.util.List;
 
@@ -37,7 +38,6 @@ import org.junit.jupiter.params.provider.EnumSource;
  */
 public class RepeatedSelfDestructsOfSameAccountTests {
 
-  private ToyAccount userAccount = SeveralSelfDestructsInARowModifyingStorageTests.userAccount;
   private ToyAccount toAccount;
   BytecodeCompiler toAccountCode = BytecodeCompiler.newProgram();
   private ToyAccount selfDestructorAccount;
@@ -54,12 +54,12 @@ public class RepeatedSelfDestructsOfSameAccountTests {
 
   private Transaction transaction() {
     return ToyTransaction.builder()
+        .keyPair(keyPair)
         .sender(userAccount)
         .to(toAccount)
         .transactionType(TransactionType.FRONTIER)
         .gasLimit(500_000L)
         .value(Wei.ONE)
-        .keyPair(keyPair)
         .build();
   }
 

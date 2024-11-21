@@ -78,12 +78,12 @@ public class BlockchainReferenceTestTools {
       PARAMS.ignoreAll();
     }
     // ignore tests that are failing in Besu too
-    PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]"); 
-    PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]"); 
-    PARAMS.ignore("create2collisionStorage_d0g0v0_London[London]"); 
-    PARAMS.ignore("create2collisionStorage_d1g0v0_London[London]"); 
-    PARAMS.ignore("create2collisionStorage_d2g0v0_London[London]"); 
-    PARAMS.ignore("dynamicAccountOverwriteEmpty_d0g0v0_London[London]"); 
+    PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]");
+    PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]");
+    PARAMS.ignore("create2collisionStorage_d0g0v0_London[London]");
+    PARAMS.ignore("create2collisionStorage_d1g0v0_London[London]");
+    PARAMS.ignore("create2collisionStorage_d2g0v0_London[London]");
+    PARAMS.ignore("dynamicAccountOverwriteEmpty_d0g0v0_London[London]");
 
     // ignore tests that are failing because there is an account with nonce 0 and
     // non empty code which can't happen in Linea since we are post LONDON only.

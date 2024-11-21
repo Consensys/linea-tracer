@@ -25,6 +25,6 @@ public class RootOfMessageCallTests {
   @Test
   public void messageCallTest() {
     BytecodeCompiler program = allContextOpCodes();
-    BytecodeRunner.of(program.compile()).run();
+    BytecodeRunner.of(program).run();
   }
 }

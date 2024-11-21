@@ -20,7 +20,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
-import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
 public class TrimmingTests {
@@ -28,7 +27,7 @@ public class TrimmingTests {
   @Test
   void targetTrimming() {
 
-    Bytes bytecode =
+    BytecodeCompiler bytecode =
         BytecodeCompiler.newProgram()
             .push(1)
             .push(2)
@@ -55,8 +54,7 @@ public class TrimmingTests {
             .push(untrimmedEoaAddress) // address
             .op(BALANCE)
             .push(eoaAddress) // address
-            .op(EXTCODEHASH)
-            .compile();
+            .op(EXTCODEHASH);
 
     BytecodeRunner.of(bytecode).run();
   }

@@ -15,12 +15,13 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecover;
 
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 /**
  * For these tests to work as expected, the transaction should start out with sufficient gas. At
@@ -35,53 +36,130 @@ import org.junit.jupiter.api.Test;
 public class gasStipendTests {
 
   // sufficient gas for PRC execution
-  @Test
-  void zeroValueEcrecoverCallTest() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OpCode.class,
+      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
+  void zeroValueEcrecoverCallTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
-        program, CALL, 3000, Address.fromHexString(Address.ECREC.toHexString()), 0, 0, 0, 0, 0);
+        program,
+        callOpCode,
+        3000,
+        Address.fromHexString(Address.ECREC.toHexString()),
+        0,
+        0,
+        0,
+        0,
+        0);
 
     BytecodeRunner.of(program.compile()).run();
   }
 
-  @Test
-  void nonzeroValueEcrecoverCallTest() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OpCode.class,
+      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
+  void nonzeroValueEcrecoverCallTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
-        program, CALL, 3000, Address.fromHexString(Address.ECREC.toHexString()), 1, 0, 0, 0, 0);
+        program,
+        callOpCode,
+        3000,
+        Address.fromHexString(Address.ECREC.toHexString()),
+        1,
+        0,
+        0,
+        0,
+        0);
 
     BytecodeRunner.of(program.compile()).run();
   }
 
-  @Test
-  void nonzeroValueStipendCompletesGasEcrecoverCallTest() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OpCode.class,
+      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
+  void nonzeroValueEcrecoverCallWillRevertTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
-        program, CALL, 700, Address.fromHexString(Address.ECREC.toHexString()), 1, 0, 0, 0, 0);
+        program,
+        callOpCode,
+        3000,
+        Address.fromHexString(Address.ECREC.toHexString()),
+        1,
+        0,
+        0,
+        0,
+        32);
+    appendRevert(program, 0, 32);
+
+    BytecodeRunner.of(program.compile()).run();
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+      value = OpCode.class,
+      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
+  void nonzeroValueStipendCompletesGasEcrecoverCallTest(OpCode callOpCode) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    validEcrecoverData(program);
+    appendCall(
+        program,
+        callOpCode,
+        700,
+        Address.fromHexString(Address.ECREC.toHexString()),
+        1,
+        0,
+        0,
+        0,
+        0);
 
     BytecodeRunner.of(program.compile()).run();
   }
 
   // insufficient gas for PRC execution
-  @Test
-  void nonzeroValueShortOnGasEcrecoverCallTest() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OpCode.class,
+      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
+  void nonzeroValueShortOnGasEcrecoverCallTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
-        program, CALL, 2999, Address.fromHexString(Address.ECREC.toHexString()), 1, 0, 0, 0, 0);
+        program,
+        callOpCode,
+        2999,
+        Address.fromHexString(Address.ECREC.toHexString()),
+        1,
+        0,
+        0,
+        0,
+        0);
 
     BytecodeRunner.of(program.compile()).run();
   }
 
-  @Test
-  void nonzeroValueStipendFallsShortOfCompletingGasEcrecoverCallTest() {
+  @ParameterizedTest
+  @EnumSource(
+      value = OpCode.class,
+      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
+  void nonzeroValueStipendFallsShortOfCompletingGasEcrecoverCallTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
-        program, CALL, 699, Address.fromHexString(Address.ECREC.toHexString()), 1, 0, 0, 0, 0);
+        program,
+        callOpCode,
+        699,
+        Address.fromHexString(Address.ECREC.toHexString()),
+        1,
+        0,
+        0,
+        0,
+        0);
 
     BytecodeRunner.of(program.compile()).run();
   }

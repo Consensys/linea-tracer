@@ -29,7 +29,7 @@ public class Calls {
   public static final String eoaAddress = "c0ffeef00d";
   public static final String eoaAddress2 = "badbeef";
 
-  public static void fullGasCall(
+  public static void appendFullGasCall(
       BytecodeCompiler program,
       OpCode callOpcode,
       Address to,
@@ -96,6 +96,18 @@ public class Calls {
         .push(to)
         .push(gas)
         .op(callOpcode);
+  }
+
+  public static void appendRecursiveSelfCall(BytecodeCompiler program, OpCode callOpCode) {
+    checkArgument(callOpCode.isCall());
+    program.push(0).push(0).push(0).push(0);
+    if (callOpCode.callCanTransferValue()) {
+      program.push("1000"); // value
+    }
+    program
+        .op(ADDRESS) // current address
+        .op(GAS) // providing all available gas
+        .op(callOpCode); // self-call
   }
 
   /**

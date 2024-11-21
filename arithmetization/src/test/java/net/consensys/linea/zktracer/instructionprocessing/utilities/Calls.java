@@ -42,7 +42,7 @@ public class Calls {
     if (callOpcode.callCanTransferValue()) {
       program.push(value);
     }
-    program.push(to).op(GAS).op(callOpcode).op(POP);
+    program.push(to).op(GAS).op(callOpcode);
   }
 
   public static void fullBalanceCall(
@@ -51,7 +51,7 @@ public class Calls {
     if (callOpcode.callCanTransferValue()) {
       program.op(BALANCE);
     }
-    program.push(to).op(GAS).op(callOpcode).op(POP);
+    program.push(to).op(GAS).op(callOpcode);
   }
 
   public static void appendRevert(BytecodeCompiler program, int rdo, int rds) {

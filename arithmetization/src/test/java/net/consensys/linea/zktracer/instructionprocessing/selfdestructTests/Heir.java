@@ -24,7 +24,7 @@ import net.consensys.linea.testing.ToyAccount;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 
-public enum Type {
+public enum Heir {
   HEIR_IS_ZERO,
   HEIR_IS_ORIGIN,
   HEIR_IS_CALLER,
@@ -35,10 +35,10 @@ public enum Type {
 
   public static Address selfDestructorAddress = Address.fromHexString("0xFFc0deadd7");
 
-  public static ToyAccount basicSelfDestructor(Type type) {
+  public static ToyAccount basicSelfDestructor(Heir heir) {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    switch (type) {
+    switch (heir) {
       case HEIR_IS_ZERO:
         program.push(0);
       case HEIR_IS_ORIGIN:

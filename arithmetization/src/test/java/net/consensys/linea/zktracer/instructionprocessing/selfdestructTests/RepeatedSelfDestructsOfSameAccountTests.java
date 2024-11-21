@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.selfdestructTests;
 
-import static net.consensys.linea.zktracer.instructionprocessing.selfdestructTests.Type.*;
+import static net.consensys.linea.zktracer.instructionprocessing.selfdestructTests.Heir.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 
@@ -63,8 +63,8 @@ public class RepeatedSelfDestructsOfSameAccountTests {
         .build();
   }
 
-  private void run(Type type) {
-    selfDestructorAccount = basicSelfDestructor(type);
+  private void run(Heir heir) {
+    selfDestructorAccount = basicSelfDestructor(heir);
     buildToAccount();
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(userAccount, toAccount, selfDestructorAccount))
@@ -77,26 +77,26 @@ public class RepeatedSelfDestructsOfSameAccountTests {
    * The root contract CALL's the selfdestructor thrice, each time providing him with new balance.
    */
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void sameAccountSelfDestructsThrice(Type type) {
+  @EnumSource(Heir.class)
+  public void sameAccountSelfDestructsThrice(Heir heir) {
 
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 19, 0, 3, 0, 0);
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 26, 0, 2, 0, 0);
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 19, 0, 3, 0, 0);
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 26, 0, 2, 0, 0);
 
-    run(type);
+    run(heir);
   }
 
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void sameAccountSelfDestructsThriceReverted(Type type) {
+  @EnumSource(Heir.class)
+  public void sameAccountSelfDestructsThriceReverted(Heir heir) {
 
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 19, 0, 3, 0, 0);
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 26, 0, 2, 0, 0);
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 19, 0, 3, 0, 0);
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 26, 0, 2, 0, 0);
     appendRevert(toAccountCode, 0, 0);
 
-    run(type);
+    run(heir);
   }
 
   /**
@@ -105,48 +105,48 @@ public class RepeatedSelfDestructsOfSameAccountTests {
    * <p>The second SELFDESTRUCT should go through due to DELEGATECALL not transferring value.
    */
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void calleeInducesSelfDestructInCallerViaDelegateCall(Type type) {
+  @EnumSource(Heir.class)
+  public void calleeInducesSelfDestructInCallerViaDelegateCall(Heir heir) {
 
     appendCall(
-        toAccountCode, OpCode.DELEGATECALL, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
+        toAccountCode, OpCode.DELEGATECALL, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
     appendCall(
-        toAccountCode, OpCode.DELEGATECALL, 100_000, Type.selfDestructorAddress, 19, 0, 3, 0, 0);
+        toAccountCode, OpCode.DELEGATECALL, 100_000, Heir.selfDestructorAddress, 19, 0, 3, 0, 0);
 
-    run(type);
+    run(heir);
   }
 
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void calleeInducesSelfDestructInCallerViaDelegateCallReverted(Type type) {
+  @EnumSource(Heir.class)
+  public void calleeInducesSelfDestructInCallerViaDelegateCallReverted(Heir heir) {
 
     appendCall(
-        toAccountCode, OpCode.DELEGATECALL, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
+        toAccountCode, OpCode.DELEGATECALL, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
     appendCall(
-        toAccountCode, OpCode.DELEGATECALL, 100_000, Type.selfDestructorAddress, 19, 0, 3, 0, 0);
+        toAccountCode, OpCode.DELEGATECALL, 100_000, Heir.selfDestructorAddress, 19, 0, 3, 0, 0);
     appendRevert(toAccountCode, 0, 0);
 
-    run(type);
+    run(heir);
   }
 
   /** The second call should abort due to not having any funds left. */
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void calleeInducesSelfDestructInCallerViaCallCode(Type type) {
-    appendCall(toAccountCode, OpCode.CALLCODE, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
-    appendCall(toAccountCode, OpCode.CALLCODE, 100_000, Type.selfDestructorAddress, 19, 0, 3, 0, 0);
+  @EnumSource(Heir.class)
+  public void calleeInducesSelfDestructInCallerViaCallCode(Heir heir) {
+    appendCall(toAccountCode, OpCode.CALLCODE, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
+    appendCall(toAccountCode, OpCode.CALLCODE, 100_000, Heir.selfDestructorAddress, 19, 0, 3, 0, 0);
 
-    run(type);
+    run(heir);
   }
 
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void calleeInducesSelfDestructInCallerViaCallCodeReverted(Type type) {
-    appendCall(toAccountCode, OpCode.CALLCODE, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
-    appendCall(toAccountCode, OpCode.CALLCODE, 100_000, Type.selfDestructorAddress, 19, 0, 3, 0, 0);
+  @EnumSource(Heir.class)
+  public void calleeInducesSelfDestructInCallerViaCallCodeReverted(Heir heir) {
+    appendCall(toAccountCode, OpCode.CALLCODE, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
+    appendCall(toAccountCode, OpCode.CALLCODE, 100_000, Heir.selfDestructorAddress, 19, 0, 3, 0, 0);
     appendRevert(toAccountCode, 0, 0);
 
-    run(type);
+    run(heir);
   }
 
   /**
@@ -156,23 +156,23 @@ public class RepeatedSelfDestructsOfSameAccountTests {
    * <p>Both reverted and unreverted versions
    */
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void callerThenCalleeSelfDestruct(Type type) {
+  @EnumSource(Heir.class)
+  public void callerThenCalleeSelfDestruct(Heir heir) {
     appendCall(
-        toAccountCode, OpCode.DELEGATECALL, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 0, 0, 3, 0, 0);
+        toAccountCode, OpCode.DELEGATECALL, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 0, 0, 3, 0, 0);
 
-    run(type);
+    run(heir);
   }
 
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void callerThenCalleeSelfDestructReverted(Type type) {
+  @EnumSource(Heir.class)
+  public void callerThenCalleeSelfDestructReverted(Heir heir) {
     appendCall(
-        toAccountCode, OpCode.DELEGATECALL, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 0, 0, 3, 0, 0);
+        toAccountCode, OpCode.DELEGATECALL, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 0, 0, 3, 0, 0);
 
-    run(type);
+    run(heir);
   }
 
   /**
@@ -182,23 +182,23 @@ public class RepeatedSelfDestructsOfSameAccountTests {
    * <p>Both reverted and unreverted versions
    */
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void calleeThenCallerSelfDestruct(Type type) {
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 25, 0, 3, 0, 0);
+  @EnumSource(Heir.class)
+  public void calleeThenCallerSelfDestruct(Heir heir) {
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 25, 0, 3, 0, 0);
     appendCall(
-        toAccountCode, OpCode.DELEGATECALL, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
+        toAccountCode, OpCode.DELEGATECALL, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
 
-    run(type);
+    run(heir);
   }
 
   @ParameterizedTest
-  @EnumSource(Type.class)
-  public void calleeThenCallerSelfDestructReverted(Type type) {
-    appendCall(toAccountCode, OpCode.CALL, 100_000, Type.selfDestructorAddress, 25, 0, 3, 0, 0);
+  @EnumSource(Heir.class)
+  public void calleeThenCallerSelfDestructReverted(Heir heir) {
+    appendCall(toAccountCode, OpCode.CALL, 100_000, Heir.selfDestructorAddress, 25, 0, 3, 0, 0);
     appendCall(
-        toAccountCode, OpCode.DELEGATECALL, 100_000, Type.selfDestructorAddress, 12, 0, 4, 0, 0);
+        toAccountCode, OpCode.DELEGATECALL, 100_000, Heir.selfDestructorAddress, 12, 0, 4, 0, 0);
     appendRevert(toAccountCode, 0, 0);
 
-    run(type);
+    run(heir);
   }
 }

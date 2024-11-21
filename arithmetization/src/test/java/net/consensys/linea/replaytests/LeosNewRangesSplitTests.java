@@ -204,7 +204,7 @@ public class LeosNewRangesSplitTests {
 
   @Test
   void split_range_2292180_2292180() {
-    replay(LINEA_MAINNET, "2292180-2292180.mainnet.json.gz");
+    replay(LINEA_MAINNET, "2292180.mainnet.json.gz");
   }
 
   @Test
@@ -324,7 +324,7 @@ public class LeosNewRangesSplitTests {
 
   @Test
   void split_range_2362189_2362189() {
-    replay(LINEA_MAINNET, "2362189-2362189.mainnet.json.gz");
+    replay(LINEA_MAINNET, "2362189.mainnet.json.gz");
   }
 
   @Test
@@ -599,7 +599,7 @@ public class LeosNewRangesSplitTests {
 
   @Test
   void split_range_5042990_5042990() {
-    replay(LINEA_MAINNET, "5042990-5042990.mainnet.json.gz");
+    replay(LINEA_MAINNET, "5042990.mainnet.json.gz");
   }
 
   @Test
@@ -859,7 +859,7 @@ public class LeosNewRangesSplitTests {
 
   @Test
   void split_range_5050130_5050130() {
-    replay(LINEA_MAINNET, "5050130-5050130.mainnet.json.gz");
+    replay(LINEA_MAINNET, "5050130.mainnet.json.gz");
   }
 
   @Test

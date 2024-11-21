@@ -203,7 +203,7 @@ public class NightlyTests {
 
   @Test
   void test_6930360_6930360() {
-    replay(LINEA_MAINNET, "6930360-6930360.mainnet.json.gz");
+    replay(LINEA_MAINNET, "6930360.mainnet.json.gz");
   }
 
   @Test
@@ -213,7 +213,7 @@ public class NightlyTests {
 
   @Test
   void test_7037321_7037321() {
-    replay(LINEA_MAINNET, "7037321-7037321.mainnet.json.gz");
+    replay(LINEA_MAINNET, "7037321.mainnet.json.gz");
   }
 
   @Test
@@ -223,7 +223,7 @@ public class NightlyTests {
 
   @Test
   void test_7037244_7037244() {
-    replay(LINEA_MAINNET, "7037244-7037244.mainnet.json.gz");
+    replay(LINEA_MAINNET, "7037244.mainnet.json.gz");
   }
 
   @Test

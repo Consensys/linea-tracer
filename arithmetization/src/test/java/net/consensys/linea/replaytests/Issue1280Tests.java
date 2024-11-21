@@ -27,7 +27,7 @@ public class Issue1280Tests {
   // 3901959-3902032
   @Test
   void issue1280_range_3901959_3901959() {
-    replay(LINEA_MAINNET, "3901959-3901959.mainnet.json.gz");
+    replay(LINEA_MAINNET, "3901959.mainnet.json.gz");
   }
 
   @Test
@@ -108,7 +108,7 @@ public class Issue1280Tests {
   // 4065349-4065420
   @Test
   void issue1280_range_4065349_4065349() {
-    replay(LINEA_MAINNET, "4065349-4065349.mainnet.json.gz");
+    replay(LINEA_MAINNET, "4065349.mainnet.json.gz");
   }
 
   @Test
@@ -184,7 +184,7 @@ public class Issue1280Tests {
 
   @Test
   void issue1280_range_4065420_4065420() {
-    replay(LINEA_MAINNET, "4065420-4065420.mainnet.json.gz");
+    replay(LINEA_MAINNET, "4065420.mainnet.json.gz");
   }
 
   // 4736791-4736859
@@ -261,7 +261,7 @@ public class Issue1280Tests {
   // 4981619-4981658
   @Test
   void issue1280_range_4981619_4981619() {
-    replay(LINEA_MAINNET, "4981619-4981619.mainnet.json.gz");
+    replay(LINEA_MAINNET, "4981619.mainnet.json.gz");
   }
 
   @Test

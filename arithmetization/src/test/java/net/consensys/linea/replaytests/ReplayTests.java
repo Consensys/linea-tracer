@@ -106,7 +106,7 @@ public class ReplayTests {
   // @Disabled
   @Test
   void failingCreate2() {
-    replay(LINEA_MAINNET, "2250197-2250197.mainnet.json.gz");
+    replay(LINEA_MAINNET, "2250197.mainnet.json.gz");
   }
 
   // @Disabled

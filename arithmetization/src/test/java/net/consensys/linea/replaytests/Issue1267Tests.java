@@ -83,7 +83,7 @@ public class Issue1267Tests {
   // splitting of 4065349-4065420
   @Test
   void issue_4065349_4065349() {
-    replay(LINEA_MAINNET, "4065349-4065349.mainnet.json.gz");
+    replay(LINEA_MAINNET, "4065349.mainnet.json.gz");
   }
 
   @Test
@@ -159,7 +159,7 @@ public class Issue1267Tests {
 
   @Test
   void issue_4065420_4065420() {
-    replay(LINEA_MAINNET, "4065420-4065420.mainnet.json.gz");
+    replay(LINEA_MAINNET, "4065420.mainnet.json.gz");
   }
 
   // splitting of 4736791-4736859

@@ -285,8 +285,9 @@ public class TxSkipTests {
         .accounts(List.of(senderAccount))
         .transaction(tx)
         .zkTracerValidator(zkTracer -> {})
+        .coinbase(senderAddress)
         .build()
-        .run(senderAddress);
+        .run();
   }
 
   @Test
@@ -310,7 +311,8 @@ public class TxSkipTests {
         .accounts(List.of(senderAccount))
         .transaction(tx)
         .zkTracerValidator(zkTracer -> {})
+        .coinbase(senderAddress)
         .build()
-        .run(senderAddress);
+        .run();
   }
 }

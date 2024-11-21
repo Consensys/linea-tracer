@@ -39,9 +39,7 @@ public class BalanceAbortTests {
   /**
    * This test has different behaviour for <b>CALL</b> and <b>CALLCODE</b> vs the other CALL-type
    * instructions. The point being: these two can transfer value, the others can't. As such they are
-   * the only instructions that can trigger the desired <b>INSUFFICIENT_BALANCE_ABORT</b>. We
-   * include the other CALL-type instructions for completeness' sake, though arguably they have no
-   * place here.
+   * the only instructions that can trigger the desired <b>INSUFFICIENT_BALANCE_ABORT</b>.
    *
    * <p>This test should trigger <b>scenario/CALL_ABORT_WONT_REVERT</b> for both <b>CALL</b> and
    * <b>CALLCODE</b>.
@@ -51,7 +49,7 @@ public class BalanceAbortTests {
   @ParameterizedTest
   @EnumSource(
       value = OpCode.class,
-      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
+      names = {"CALL", "CALLCODE"})
   void insufficientBalanceAbortWarmsUpTarget(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     appendInsufficientBalanceCall(
@@ -77,7 +75,7 @@ public class BalanceAbortTests {
   @ParameterizedTest
   @EnumSource(
       value = OpCode.class,
-      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
+      names = {"CALL", "CALLCODE"})
   void insufficientBalanceAbortWillRevert(OpCode callOpCode) {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();

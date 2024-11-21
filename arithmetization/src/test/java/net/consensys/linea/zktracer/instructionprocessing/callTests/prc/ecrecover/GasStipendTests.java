@@ -33,14 +33,14 @@ import org.junit.jupiter.params.provider.EnumSource;
  * transfer + 25k if value transfer leads to a precompile starting to exist in the state etc ... +
  * 3k for the callee + opcode costs on the order of 130 or so)
  */
-public class gasStipendTests {
+public class GasStipendTests {
 
   // sufficient gas for PRC execution
   @ParameterizedTest
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-  void zeroValueEcrecoverCallTest(OpCode callOpCode) {
+  void zeroValueEcRecoverCallTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
@@ -61,7 +61,7 @@ public class gasStipendTests {
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-  void nonzeroValueEcrecoverCallTest(OpCode callOpCode) {
+  void nonzeroValueEcRecoverCallTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
@@ -82,7 +82,7 @@ public class gasStipendTests {
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-  void nonzeroValueEcrecoverCallWillRevertTest(OpCode callOpCode) {
+  void nonzeroValueEcRecoverCallWillRevertTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
@@ -103,8 +103,8 @@ public class gasStipendTests {
   @ParameterizedTest
   @EnumSource(
       value = OpCode.class,
-      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-  void nonzeroValueStipendCompletesGasEcrecoverCallTest(OpCode callOpCode) {
+      names = {"CALL", "CALLCODE"})
+  void stipendCompletesGasEcRecoverCallTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
@@ -126,7 +126,7 @@ public class gasStipendTests {
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-  void nonzeroValueShortOnGasEcrecoverCallTest(OpCode callOpCode) {
+  void gasFallsShortForEcRecoverTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
@@ -134,7 +134,7 @@ public class gasStipendTests {
         callOpCode,
         2999,
         Address.fromHexString(Address.ECREC.toHexString()),
-        1,
+        0,
         0,
         0,
         0,
@@ -146,14 +146,15 @@ public class gasStipendTests {
   @ParameterizedTest
   @EnumSource(
       value = OpCode.class,
-      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-  void nonzeroValueStipendFallsShortOfCompletingGasEcrecoverCallTest(OpCode callOpCode) {
+      names = {"CALL", "CALLCODE"})
+  void stipendFromValueFallsShortOfCompletingGasEcrecoverCallTest(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     validEcrecoverData(program);
     appendCall(
         program,
         callOpCode,
-        699,
+        699, // value transfer adds G_stipend = 2_300 to this, falling short of the 3_000 required
+        // gas
         Address.fromHexString(Address.ECREC.toHexString()),
         1,
         0,

@@ -39,7 +39,7 @@ public class Calls {
       int rao,
       int rac) {
     program.push(rac).push(rao).push(cds).push(cdo);
-    if (callOpcode.callCanTransferValue()) {
+    if (callOpcode.callHasValueArgument()) {
       program.push(value);
     }
     program.push(to).op(GAS).op(callOpcode);
@@ -48,7 +48,7 @@ public class Calls {
   public static void fullBalanceCall(
       BytecodeCompiler program, OpCode callOpcode, Address to, int cdo, int cds, int rao, int rac) {
     program.push(rac).push(rao).push(cds).push(cdo);
-    if (callOpcode.callCanTransferValue()) {
+    if (callOpcode.callHasValueArgument()) {
       program.op(BALANCE);
     }
     program.push(to).op(GAS).op(callOpcode);
@@ -69,7 +69,7 @@ public class Calls {
       int rao,
       int rac) {
     program.push(rac).push(rao).push(cds).push(cdo);
-    if (callOpcode.callCanTransferValue()) {
+    if (callOpcode.callHasValueArgument()) {
       program.push(value);
     }
     program.push(to).push(gas).op(callOpcode);
@@ -84,7 +84,7 @@ public class Calls {
       int cds,
       int rao,
       int rac) {
-    checkArgument(callOpcode.callCanTransferValue());
+    checkArgument(callOpcode.callHasValueArgument());
     program
         .push(rac)
         .push(rao)
@@ -101,7 +101,7 @@ public class Calls {
   public static void appendRecursiveSelfCall(BytecodeCompiler program, OpCode callOpCode) {
     checkArgument(callOpCode.isCall());
     program.push(0).push(0).push(0).push(0);
-    if (callOpCode.callCanTransferValue()) {
+    if (callOpCode.callHasValueArgument()) {
       program.push("1000"); // value
     }
     program

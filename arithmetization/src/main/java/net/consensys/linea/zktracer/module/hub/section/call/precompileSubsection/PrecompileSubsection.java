@@ -115,12 +115,12 @@ public class PrecompileSubsection
     final OpCode opCode = hub.opCode();
     final long offset =
         Words.clampedToLong(
-            opCode.callCanTransferValue()
+            opCode.callHasValueArgument()
                 ? messageFrame.getStackItem(3)
                 : messageFrame.getStackItem(2));
     final long length =
         Words.clampedToLong(
-            opCode.callCanTransferValue()
+            opCode.callHasValueArgument()
                 ? messageFrame.getStackItem(4)
                 : messageFrame.getStackItem(3));
     callDataMemorySpan = new MemorySpan(offset, length);

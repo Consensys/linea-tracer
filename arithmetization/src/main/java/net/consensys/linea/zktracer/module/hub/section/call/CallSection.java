@@ -184,7 +184,7 @@ public class CallSection extends TraceSection
     checkArgument(Exceptions.none(exceptions));
     currentFrame.childSpanningSection(this);
 
-    final boolean callCanTransferValue = currentFrame.opCode().callCanTransferValue();
+    final boolean callCanTransferValue = currentFrame.opCode().callHasValueArgument();
     callProvidedReturnDataTargetSpan =
         returnDataMemorySpan(currentFrame.frame(), callCanTransferValue);
 

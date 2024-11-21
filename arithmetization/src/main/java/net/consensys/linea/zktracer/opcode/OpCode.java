@@ -242,7 +242,7 @@ public enum OpCode {
     return this == OpCode.DELEGATECALL || this == OpCode.STATICCALL;
   }
 
-  public boolean callCanTransferValue() {
+  public boolean callHasValueArgument() {
     checkArgument(isCall());
     return this == OpCode.CALL || this == OpCode.CALLCODE;
   }

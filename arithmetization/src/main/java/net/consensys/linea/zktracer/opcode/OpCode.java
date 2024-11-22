@@ -241,7 +241,7 @@ public enum OpCode {
     return isCall() || isCreate();
   }
 
-  public boolean callMayNotTransferValue() {
+  public boolean callHasNoValueArgument() {
     checkArgument(isCall());
     return this == OpCode.DELEGATECALL || this == OpCode.STATICCALL;
   }

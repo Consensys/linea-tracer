@@ -209,8 +209,13 @@ public class OperationAncillaries {
 
     switch (opCode) {
       case RETURN, REVERT -> {
-        long offset = Words.clampedToLong(frame.getStackItem(0));
         long length = Words.clampedToLong(frame.getStackItem(1));
+
+        if (length == 0) {
+          return MemorySpan.empty();
+        }
+
+        long offset = Words.clampedToLong(frame.getStackItem(0));
         return MemorySpan.fromStartLength(offset, length);
       }
       case STOP, SELFDESTRUCT -> {

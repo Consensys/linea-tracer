@@ -34,7 +34,7 @@ import net.consensys.linea.zktracer.module.hub.Factories;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
-import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ContextEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -82,7 +82,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  */
 public class CallSection extends TraceSection
     implements PostOpcodeDefer,
-        ImmediateContextEntryDefer,
+        ContextEntryDefer,
         ContextExitDefer,
         ContextReEntryDefer,
         PostRollbackDefer,

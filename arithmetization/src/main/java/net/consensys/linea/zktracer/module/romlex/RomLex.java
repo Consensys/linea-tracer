@@ -35,7 +35,7 @@ import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
-import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
+import net.consensys.linea.zktracer.module.hub.defer.ContextEntryDefer;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -50,7 +50,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class RomLex
-    implements OperationSetModule<RomOperation>, ImmediateContextEntryDefer, ContextExitDefer {
+    implements OperationSetModule<RomOperation>, ContextEntryDefer, ContextExitDefer {
 
   private final Hub hub;
 

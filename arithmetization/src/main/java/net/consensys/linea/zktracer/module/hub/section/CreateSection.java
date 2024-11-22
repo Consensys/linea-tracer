@@ -62,7 +62,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CreateSection extends TraceSection
     implements PostOpcodeDefer,
-        ImmediateContextEntryDefer,
+        ContextEntryDefer,
         PostRollbackDefer,
         ContextReEntryDefer,
         PostTransactionDefer {

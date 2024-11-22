@@ -48,7 +48,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @Getter
 @Accessors(fluent = true)
 public class PrecompileSubsection
-    implements ImmediateContextEntryDefer,
+    implements ContextEntryDefer,
         ContextExitDefer,
         ContextReEntryDefer,
         PostRollbackDefer {

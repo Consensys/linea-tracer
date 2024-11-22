@@ -174,7 +174,7 @@ public class Util {
    * @param data, right-padded with 0's if needed, starting from
    * @param positionStart
    */
-  public static Bytes slice(Bytes data, int positionStart, int size) {
+  public static Bytes rightPadSlice(Bytes data, int positionStart, int size) {
 
     final int dataSize = data.size();
     Bytes output = Bytes.repeat((byte) 0x0, size);

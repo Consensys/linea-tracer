@@ -15,14 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub.precompiles;
 
-import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.Util.rightPadSlice;
 import static net.consensys.linea.zktracer.module.txndata.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.Util;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.internal.Words;
@@ -43,7 +42,7 @@ public class ModexpMetadata {
   }
 
   public EWord rawLeadingWord() {
-    return EWord.of(callData.slice(BASE_MIN_OFFSET + bbsInt(), WORD_SIZE));
+    return EWord.of(rightPadSlice(callData, BASE_MIN_OFFSET + bbsInt(), WORD_SIZE));
   }
 
   public boolean extractBbs() {
@@ -59,15 +58,15 @@ public class ModexpMetadata {
   }
 
   public Bytes rawBbs() {
-    return Util.slice(callData, BBS_MIN_OFFSET, WORD_SIZE);
+    return rightPadSlice(callData, BBS_MIN_OFFSET, WORD_SIZE);
   }
 
   public Bytes rawEbs() {
-    return Util.slice(callData, EBS_MIN_OFFSET, WORD_SIZE);
+    return rightPadSlice(callData, EBS_MIN_OFFSET, WORD_SIZE);
   }
 
   public Bytes rawMbs() {
-    return Util.slice(callData, MBS_MIN_OFFSET, WORD_SIZE);
+    return rightPadSlice(callData, MBS_MIN_OFFSET, WORD_SIZE);
   }
 
   private int bbsShift() {

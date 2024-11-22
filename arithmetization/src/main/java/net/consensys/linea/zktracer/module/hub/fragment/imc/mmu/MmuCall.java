@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.Util.slice;
+import static net.consensys.linea.zktracer.module.Util.rightPadSlice;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.*;
@@ -192,7 +192,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceRamBytes(Optional.of(logData.ramSourceBytes))
         .exoBytes(
             Optional.of(
-                slice(
+                rightPadSlice(
                     logData.ramSourceBytes,
                     (int) clampedToLong(logData.offset),
                     (int) logData.size)))

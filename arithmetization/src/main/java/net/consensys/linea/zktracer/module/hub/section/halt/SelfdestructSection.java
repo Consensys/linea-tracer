@@ -64,7 +64,7 @@ public class SelfdestructSection extends TraceSection
 
   @Getter boolean selfDestructWasReverted = false;
 
-  ContextFragment finalUnexceptionalUnrevertedContextFragment;
+  ContextFragment finalUnexceptionalContextFragment;
 
   public SelfdestructSection(Hub hub, MessageFrame frame) {
     // up to 8 = 1 + 7 rows
@@ -136,7 +136,7 @@ public class SelfdestructSection extends TraceSection
     }
 
     // Unexceptional case
-    finalUnexceptionalUnrevertedContextFragment =
+    finalUnexceptionalContextFragment =
         ContextFragment.executionProvidesEmptyReturnData(
             hub, hub.callStack().currentCallFrame().contextNumber());
 
@@ -244,11 +244,13 @@ public class SelfdestructSection extends TraceSection
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+
     if (selfDestructWasReverted) {
-      this.addFragment(finalUnexceptionalUnrevertedContextFragment);
+      this.addFragment(finalUnexceptionalContextFragment);
       return;
     }
 
+    // beyond this point the self destruct was not reverted
     final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
     final EphemeralAccount ephemeralAccount =
@@ -258,10 +260,9 @@ public class SelfdestructSection extends TraceSection
     checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
 
     // We modify the account fragment to reflect the self-destruct time
+    final int hubStampOfTheSelfDestructThatSealedTheDeal = effectiveSelfDestructMap.get(ephemeralAccount);
 
-    final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
-
-    checkArgument(hubStamp >= selfDestructTime);
+    checkArgument(hubStamp >= hubStampOfTheSelfDestructThatSealedTheDeal);
 
     final AccountSnapshot accountBeforeSelfDestruct =
         transactionProcessingMetadata.getDestructedAccountsSnapshot().stream()
@@ -270,7 +271,7 @@ public class SelfdestructSection extends TraceSection
             .findFirst()
             .orElseThrow(() -> new IllegalStateException("Account not found"));
 
-    if (hubStamp == selfDestructTime) {
+    if (hubStamp == hubStampOfTheSelfDestructThatSealedTheDeal) {
       selfdestructScenarioFragment.setScenario(
           SelfdestructScenarioFragment.SelfdestructScenario
               .SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
@@ -294,7 +295,7 @@ public class SelfdestructSection extends TraceSection
               .SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
     }
 
-    this.addFragment(finalUnexceptionalUnrevertedContextFragment);
+    this.addFragment(finalUnexceptionalContextFragment);
   }
 
   private boolean selfdestructTargetsItself() {

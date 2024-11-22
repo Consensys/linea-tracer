@@ -23,7 +23,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.Util;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.internal.Words;
@@ -37,14 +36,14 @@ public class ModexpMetadata {
   public static final int BASE_MIN_OFFSET = 0x60;
 
   private final Bytes callData;
-  private final EWord rawLeadingWord;
   @Setter private Bytes rawResult;
 
-  public ModexpMetadata(final Hub hub, final Bytes callData) {
+  public ModexpMetadata(final Bytes callData) {
     this.callData = callData;
-    int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
-    this.rawLeadingWord =
-        EWord.of(hub.messageFrame().shadowReadMemory(exponentOffsetInCallData, WORD_SIZE));
+  }
+
+  public EWord rawLeadingWord() {
+    return EWord.of(callData.slice(BASE_MIN_OFFSET + bbsInt(), WORD_SIZE));
   }
 
   public boolean extractBbs() {
@@ -113,12 +112,6 @@ public class ModexpMetadata {
 
   public boolean loadRawLeadingWord() {
     return callData.size() > BASE_MIN_OFFSET + bbsInt() && !ebs().isZero();
-  }
-
-  public EWord rawLeadingWord() {
-    // TODO: is this precaution useless / dangerous ?
-    checkArgument(loadRawLeadingWord());
-    return this.rawLeadingWord;
   }
 
   public boolean extractModulus() {

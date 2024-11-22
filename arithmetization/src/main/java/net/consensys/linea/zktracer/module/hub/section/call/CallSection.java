@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub.section.call;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToInt;
@@ -50,6 +51,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFra
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.*;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
@@ -116,6 +118,7 @@ public class CallSection extends TraceSection
   private AccountSnapshot reEntryCallerSnapshot;
   private AccountSnapshot reEntryCalleeSnapshot;
 
+  private final OpCode opCode;
   private Wei value;
 
   private AccountSnapshot postRollbackCalleeSnapshot;
@@ -128,6 +131,8 @@ public class CallSection extends TraceSection
 
   public CallSection(Hub hub, MessageFrame frame) {
     super(hub, maxNumberOfLines(hub));
+
+    opCode = hub.opCode();
 
     final short exceptions = hub.pch().exceptions();
 
@@ -363,9 +368,13 @@ public class CallSection extends TraceSection
     CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
     checkState(scenario == CALL_SMC_UNDEFINED | scenario == CALL_PRC_UNDEFINED);
 
-    postOpcodeCallerSnapshot = preOpcodeCallerSnapshot.deepCopy().decrementBalanceBy(value);
-    postOpcodeCalleeSnapshot =
-        preOpcodeCalleeSnapshot.deepCopy().incrementBalanceBy(value).turnOnWarmth();
+    postOpcodeCallerSnapshot = preOpcodeCallerSnapshot.deepCopy();
+    postOpcodeCalleeSnapshot = preOpcodeCalleeSnapshot.deepCopy().turnOnWarmth();
+
+    if (opCode == CALL) {
+      postOpcodeCallerSnapshot.decrementBalanceBy(value);
+      postOpcodeCalleeSnapshot.incrementBalanceBy(value);
+    }
 
     // we may be doing more stuff here later
     if (scenarioFragment.getScenario() == CALL_PRC_UNDEFINED) {
@@ -667,13 +676,13 @@ public class CallSection extends TraceSection
     this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
   }
 
-  private MemorySpan returnDataMemorySpan(MessageFrame currentFrame, boolean callCanTransferValue) {
+  private MemorySpan returnDataMemorySpan(MessageFrame currentFrame, boolean callOpcodeHasValueArgument) {
     final int returnDataOffset =
-        callCanTransferValue
+        callOpcodeHasValueArgument
             ? bytesToInt(currentFrame.getStackItem(5))
             : bytesToInt(currentFrame.getStackItem(4));
     final int returnDataLength =
-        callCanTransferValue
+        callOpcodeHasValueArgument
             ? bytesToInt(currentFrame.getStackItem(6))
             : bytesToInt(currentFrame.getStackItem(5));
     return MemorySpan.fromStartLength(returnDataOffset, returnDataLength);

@@ -676,7 +676,8 @@ public class CallSection extends TraceSection
     this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
   }
 
-  private MemorySpan returnDataMemorySpan(MessageFrame currentFrame, boolean callOpcodeHasValueArgument) {
+  private MemorySpan returnDataMemorySpan(
+      MessageFrame currentFrame, boolean callOpcodeHasValueArgument) {
     final int returnDataOffset =
         callOpcodeHasValueArgument
             ? bytesToInt(currentFrame.getStackItem(5))

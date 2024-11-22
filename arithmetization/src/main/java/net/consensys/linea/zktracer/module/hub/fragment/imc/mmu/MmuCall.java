@@ -437,7 +437,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(precompileSubsection.callerMemorySnapshot))
         .sourceOffset(EWord.ZERO)
-        .targetOffset(EWord.of(precompileSubsection.parentReturnDataTarget.offset()))
+        .referenceOffset(precompileSubsection.parentReturnDataTarget.offset())
         .size(precompileSubsection.parentReturnDataTarget.length())
         .referenceSize(precompileSubsection.parentReturnDataTarget.length());
   }

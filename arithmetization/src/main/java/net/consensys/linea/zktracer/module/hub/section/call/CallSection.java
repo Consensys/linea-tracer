@@ -20,7 +20,6 @@ import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToInt;
 import static org.hyperledger.besu.datatypes.Address.*;
 
 import java.util.Map;
@@ -50,6 +49,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFra
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.*;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.runtime.callstack.CallDataInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemorySpan;
@@ -58,6 +58,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -123,7 +124,8 @@ public class CallSection extends TraceSection
   public StpCall stpCall;
   private PrecompileSubsection precompileSubsection;
 
-  @Getter private MemorySpan callProvidedReturnDataTargetSpan;
+  @Getter private MemorySpan returnAtMemorySpan;
+  @Getter private CallDataInfo callDataInfo;
 
   public CallSection(Hub hub, MessageFrame frame) {
     super(hub, maxNumberOfLines(hub));
@@ -183,12 +185,16 @@ public class CallSection extends TraceSection
     checkArgument(Exceptions.none(exceptions));
     currentFrame.childSpanningSection(this);
 
-    final boolean callCanTransferValue = currentFrame.opCode().callCanTransferValue();
-    callProvidedReturnDataTargetSpan =
-        returnDataMemorySpan(currentFrame.frame(), callCanTransferValue);
+    final boolean callHasValueArgument = currentFrame.opCode().callHasValueArgument();
+
+    // the call data span and ``return at'' spans are only required once the CALL is unexceptional
+    returnAtMemorySpan = returnAtMemorySpan(frame, callHasValueArgument);
+    callDataInfo =
+        new CallDataInfo(
+            frame, callDataSpan(frame, callHasValueArgument), currentFrame.contextNumber());
 
     value =
-        callCanTransferValue
+        callHasValueArgument
             ? Wei.of(currentFrame.frame().getStackItem(2).toUnsignedBigInteger())
             : Wei.ZERO;
 
@@ -623,15 +629,46 @@ public class CallSection extends TraceSection
     this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
   }
 
-  private MemorySpan returnDataMemorySpan(MessageFrame currentFrame, boolean callCanTransferValue) {
-    final int returnDataOffset =
-        callCanTransferValue
-            ? bytesToInt(currentFrame.getStackItem(5))
-            : bytesToInt(currentFrame.getStackItem(4));
-    final int returnDataLength =
-        callCanTransferValue
-            ? bytesToInt(currentFrame.getStackItem(6))
-            : bytesToInt(currentFrame.getStackItem(5));
-    return MemorySpan.fromStartLength(returnDataOffset, returnDataLength);
+  private MemorySpan callDataSpan(MessageFrame frame, boolean callHasValueArgument) {
+    final long callDataSize =
+        callHasValueArgument
+            ? Words.clampedToLong(frame.getStackItem(4))
+            : Words.clampedToLong(frame.getStackItem(3));
+
+    if (callDataSize == 0) {
+      return MemorySpan.empty();
+    }
+
+    final long returnAtOffset =
+        callHasValueArgument
+            ? Words.clampedToLong(frame.getStackItem(3))
+            : Words.clampedToLong(frame.getStackItem(2));
+    return MemorySpan.fromStartLength(returnAtOffset, callDataSize);
+  }
+
+  /**
+   * The {@link #returnAtMemorySpan(MessageFrame, boolean)} method implements the spec logic for
+   * defining the ``returnAtMemorySpan`` of a CALL. The main point being: if its capacity is zero we
+   * require that {@link MemorySpan} to be {@link MemorySpan#empty()}.
+   *
+   * @param frame
+   * @param callHasValueArgument
+   * @return
+   */
+  private MemorySpan returnAtMemorySpan(MessageFrame frame, boolean callHasValueArgument) {
+    final long returnAtCapacity =
+        callHasValueArgument
+            ? Words.clampedToLong(frame.getStackItem(6))
+            : Words.clampedToLong(frame.getStackItem(5));
+
+    if (returnAtCapacity == 0) {
+      return MemorySpan.empty();
+    }
+
+    final long returnAtOffset =
+        callHasValueArgument
+            ? Words.clampedToLong(frame.getStackItem(5))
+            : Words.clampedToLong(frame.getStackItem(4));
+    return MemorySpan.fromStartLength(returnAtOffset, returnAtCapacity);
   }
 }

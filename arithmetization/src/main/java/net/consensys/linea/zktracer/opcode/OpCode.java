@@ -237,12 +237,12 @@ public enum OpCode {
     return getData().isCall();
   }
 
-  public boolean callMayNotTransferValue() {
+  public boolean callHasNoValueArgument() {
     checkArgument(isCall());
     return this == OpCode.DELEGATECALL || this == OpCode.STATICCALL;
   }
 
-  public boolean callCanTransferValue() {
+  public boolean callHasValueArgument() {
     checkArgument(isCall());
     return this == OpCode.CALL || this == OpCode.CALLCODE;
   }

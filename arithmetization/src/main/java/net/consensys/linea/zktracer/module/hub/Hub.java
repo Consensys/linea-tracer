@@ -725,12 +725,14 @@ public class Hub implements Module {
   }
 
   /**
-   * A comment on {@link #unlatchStack(MessageFrame, TraceSection)}: Any instruction that writes onto the stack gets immediately unlatched if it raises an exception.
-   * If unexceptional it also gets immediately unlatched, except CALL's and CREATE's.
-   * The value written on the stack (<b>successBit</b> or <b>successBit ∙ [child address]</b> respectively) is only written
-   * after the child context has been executed.
+   * A comment on {@link #unlatchStack(MessageFrame, TraceSection)}: Any instruction that writes
+   * onto the stack gets immediately unlatched if it raises an exception. If unexceptional it also
+   * gets immediately unlatched, except CALL's and CREATE's. The value written on the stack
+   * (<b>successBit</b> or <b>successBit ∙ [child address]</b> respectively) is only written after
+   * the child context has been executed.
    *
-   * <p> <b>Question:</b> Does this work well with CALL's to EOA's ? to PRC's ? trivial deployments (i.e. empty initialization code) ?
+   * <p><b>Question:</b> Does this work well with CALL's to EOA's ? to PRC's ? trivial deployments
+   * (i.e. empty initialization code) ?
    */
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     checkArgument(

@@ -18,7 +18,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 
 public class Calls {
@@ -28,6 +30,11 @@ public class Calls {
   public static final String untrimmedEoaAddress = toTrim12 + fullEoaAddress;
   public static final String eoaAddress = "c0ffeef00d";
   public static final String eoaAddress2 = "badbeef";
+
+  public static Bytes32 randRao =
+      Bytes32.fromHexString("0b03478988fb194f3ddd922bbc4e9fb415fbdb99818f88186ccfa206337b023d");
+  public static Bytes32 randCdo =
+      Bytes32.fromHexString("1a3b88fc78471a5d0ce2df8a5799299b7eefd8e6bfd6d6afb0e437e0a6311878");
 
   public static void appendFullGasCall(
       BytecodeCompiler program,
@@ -73,6 +80,35 @@ public class Calls {
       program.push(value);
     }
     program.push(to).push(gas).op(callOpcode);
+  }
+
+  public static void appendExtremalCall(
+      BytecodeCompiler program,
+      OpCode callOpcode,
+      int gas,
+      ToyAccount toAccount,
+      int value,
+      boolean emptyCallData,
+      boolean emptyReturnAt) {
+
+    // return at parameters
+    if (emptyReturnAt) {
+      program.push(0).push(randRao);
+    } else {
+      program.push(256).push(257);
+    }
+
+    // call data parameters
+    if (emptyCallData) {
+      program.push(0).push(randCdo);
+    } else {
+      program.push(258).push(259);
+    }
+
+    if (callOpcode.callHasValueArgument()) {
+      program.push(value);
+    }
+    program.push(toAccount.getAddress()).push(gas).op(callOpcode);
   }
 
   public static void appendInsufficientBalanceCall(

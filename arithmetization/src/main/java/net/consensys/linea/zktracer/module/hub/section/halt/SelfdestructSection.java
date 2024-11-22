@@ -260,7 +260,8 @@ public class SelfdestructSection extends TraceSection
     checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
 
     // We modify the account fragment to reflect the self-destruct time
-    final int hubStampOfTheSelfDestructThatSealedTheDeal = effectiveSelfDestructMap.get(ephemeralAccount);
+    final int hubStampOfTheSelfDestructThatSealedTheDeal =
+        effectiveSelfDestructMap.get(ephemeralAccount);
 
     checkArgument(hubStamp >= hubStampOfTheSelfDestructThatSealedTheDeal);
 

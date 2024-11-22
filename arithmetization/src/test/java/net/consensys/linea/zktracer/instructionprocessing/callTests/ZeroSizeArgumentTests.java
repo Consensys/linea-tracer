@@ -98,9 +98,9 @@ public class ZeroSizeArgumentTests {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
         .push(0) // return at capacity
-            .push("ff".repeat(32)) // return at offset
+        .push("ff".repeat(32)) // return at offset
         .push(0) // call data size
-            .push("ff".repeat(32)) // call data offset
+        .push("ff".repeat(32)) // call data offset
         .push("ca11ee") // address
         .push(1000) // gas
         .op(OpCode.STATICCALL);

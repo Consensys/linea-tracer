@@ -65,6 +65,21 @@ import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
+/**
+ * A {@link CallSection} first detects exceptional CALL-type instructions. Exceptional CALL's are
+ * easily dealt with and require no post-processing.
+ *
+ * <p>Unexceptional CALL-type instructions, including aborted ones, <b>always</b> require some
+ * degree of post-processing. For one, they are <b>all</b> rollback sensitive as it pertains to
+ * value transfers and warmth. As such everything gets scheduled for post rollback.
+ *
+ * <p>We also need to schedule unexceptional {@link CallSection}'s for post-transaction resolution.
+ * Indeed, the following must always be performed, in that order, at transaction end:
+ *
+ * <p>- append the precompile subsection (if applicable)
+ *
+ * <p>- append the final context fragment
+ */
 public class CallSection extends TraceSection
     implements PostOpcodeDefer,
         ImmediateContextEntryDefer,
@@ -213,15 +228,11 @@ public class CallSection extends TraceSection
     hub.defers().scheduleForPostRollback(this, currentFrame);
     hub.defers().scheduleForPostTransaction(this);
 
-    if (aborts) {
-      this.abortingCall(hub);
-      return;
-    }
-
     // The CALL is now unexceptional and un-aborted
     refineUndefinedScenario(hub);
     CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
     switch (scenario) {
+      case CALL_ABORT_WONT_REVERT -> abortingCall(hub);
       case CALL_EOA_UNDEFINED -> eoaProcessing(hub);
       case CALL_PRC_UNDEFINED -> prcProcessing(hub);
       case CALL_SMC_UNDEFINED -> smcProcessing(hub, frame);
@@ -264,10 +275,7 @@ public class CallSection extends TraceSection
   }
 
   private void abortingCall(Hub hub) {
-    // rollbacks will undo the warmth update
-    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
 
-    scenarioFragment.setScenario(CALL_ABORT_WONT_REVERT);
     postOpcodeCallerSnapshot = preOpcodeCallerSnapshot.deepCopy();
     postOpcodeCalleeSnapshot = preOpcodeCalleeSnapshot.deepCopy().turnOnWarmth();
     final Factories factories = hub.factories();
@@ -312,6 +320,12 @@ public class CallSection extends TraceSection
    */
   private void refineUndefinedScenario(Hub hub) {
 
+    final boolean aborts = hub.pch().abortingConditions().any();
+    if (aborts) {
+      scenarioFragment.setScenario(CALL_ABORT_WONT_REVERT);
+      return;
+    }
+
     final WorldUpdater world = hub.currentFrame().frame().getWorldUpdater();
     if (isPrecompile(calleeAddress)) {
       precompileAddress = Optional.of(calleeAddress);
@@ -335,8 +349,6 @@ public class CallSection extends TraceSection
 
   private void eoaProcessing(Hub hub) {
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
-    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
-
     commonValues.collectChildStipend(hub);
     finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
   }
@@ -346,7 +358,6 @@ public class CallSection extends TraceSection
     hub.defers().scheduleForContextEntry(this);
     hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     hub.defers().scheduleForContextReEntry(this, currentFrame);
-    hub.defers().scheduleForPostRollback(this, currentFrame);
 
     hub.defers().scheduleForContextReEntry(firstImcFragment, currentFrame);
 
@@ -358,7 +369,6 @@ public class CallSection extends TraceSection
   private void prcProcessing(Hub hub) {
     hub.defers().scheduleForContextEntry(this);
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
-    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
   }
 
   @Override

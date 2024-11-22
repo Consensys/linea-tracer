@@ -237,6 +237,10 @@ public enum OpCode {
     return getData().isCall();
   }
 
+  public boolean isCallOrCreate() {
+    return isCall() || isCreate();
+  }
+
   public boolean callMayNotTransferValue() {
     checkArgument(isCall());
     return this == OpCode.DELEGATECALL || this == OpCode.STATICCALL;

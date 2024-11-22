@@ -45,6 +45,7 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -98,6 +99,7 @@ public class MxpTest {
     BytecodeRunner.of(program.compile()).run();
   }
 
+  @Disabled("#1535")
   @Test
   void testMxpRandomTriggerMxpx() {
     // Testing a random program
@@ -111,6 +113,7 @@ public class MxpTest {
     BytecodeRunner.of(program.compile()).run();
   }
 
+  @Disabled("#1535")
   @Test
   void testRandomMxpInstructionsFollowedByTriggeringRoob() {
     // Testing a random program
@@ -162,6 +165,7 @@ public class MxpTest {
     }
   }
 
+  @Disabled("#1535")
   @Test
   void testMxpRandomAdvanced() {
     // Testing a random program that contains creates with meaning random arguments

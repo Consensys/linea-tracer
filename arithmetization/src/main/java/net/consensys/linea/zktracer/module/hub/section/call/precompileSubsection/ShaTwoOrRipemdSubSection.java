@@ -90,7 +90,7 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
 
     // the partial copy of return data happens only if the caller context
     // provided a nonempty return data target
-    if (!parentReturnDataTarget.isEmpty()) {
+    if (!callSection.getReturnAtMemorySpan().isEmpty()) {
       final MmuCall partialReturnDataCopy =
           MmuCall.partialReturnDataCopyForShaTwoAndRipemd(hub, this);
       thirdImcFragment.callMmu(partialReturnDataCopy);

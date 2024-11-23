@@ -78,7 +78,7 @@ public class BlakeSubsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity checks
-    checkArgument(blakeCdsOobCall.isHubSuccess() == (callDataMemorySpan.length() == 213));
+    checkArgument(blakeCdsOobCall.isHubSuccess() == (cds() == 213));
     checkArgument(callSuccess == blakeSuccess);
     this.sanityCheck();
 
@@ -102,7 +102,7 @@ public class BlakeSubsection extends PrecompileSubsection {
     final ImcFragment fourthImcFragment = ImcFragment.empty(hub);
     fragments.add(fourthImcFragment);
 
-    if (!this.parentReturnDataTarget.isEmpty()) {
+    if (!this.callSection.getReturnAtMemorySpan().isEmpty()) {
       final MmuCall partialReturnDataCopyForBlake =
           MmuCall.partialCopyOfReturnDataforBlake(hub, this);
       fourthImcFragment.callMmu(partialReturnDataCopyForBlake);
@@ -110,7 +110,7 @@ public class BlakeSubsection extends PrecompileSubsection {
 
     // TODO: make it smarter
     final BlakeComponents blake2f =
-        new BlakeComponents(getCallData(), getCallData().slice(0, 4), getCallData().slice(212, 1), returnData);
+        new BlakeComponents(getCallData(), getCallData().slice(0, 4), getCallData().slice(212, 1), getReturnData());
     hub.blakeModexpData().callBlake(blake2f, this.exoModuleOperationId());
   }
 

@@ -144,7 +144,7 @@ public class ModexpSubsection extends PrecompileSubsection {
       return;
     }
 
-    modexpMetaData.rawResult(returnData);
+    modexpMetaData.rawResult(getReturnData());
     hub.blakeModexpData().callModexp(modexpMetaData, exoModuleOperationId());
 
     fragments().add(seventhImcFragment);
@@ -176,7 +176,7 @@ public class ModexpSubsection extends PrecompileSubsection {
 
     final ImcFragment eleventhImcFragment = ImcFragment.empty(hub);
     fragments().add(eleventhImcFragment);
-    if (modexpMetaData.mbsNonZero() && !parentReturnDataTarget.isEmpty()) {
+    if (modexpMetaData.mbsNonZero() && !callSection.getReturnAtMemorySpan().isEmpty()) {
       final MmuCall mmuCall = forModexpPartialResultCopy(hub, this, modexpMetaData);
       eleventhImcFragment.callMmu(mmuCall);
     }

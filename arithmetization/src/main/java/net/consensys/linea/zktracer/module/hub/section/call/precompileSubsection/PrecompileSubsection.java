@@ -163,8 +163,8 @@ public class PrecompileSubsection
     return newIdentifierFromStamp(callSection.hubStamp());
   }
 
-  public int returnDataContextNumber() {
-    return exoModuleOperationId();
+  public int getReturnDataContextNumber() {
+    return (int) returnDataInfo.getReturnDataContextNumber();
   }
 
   public PrecompileScenarioFragment.PrecompileFlag flag() {
@@ -185,6 +185,10 @@ public class PrecompileSubsection
 
   public MemorySpan getCallDataSpan() {
     return getCallDataInfo().memorySpan();
+  }
+
+  public Bytes getReturnData() {
+    return returnDataInfo.getData();
   }
 
   public long cdo() {

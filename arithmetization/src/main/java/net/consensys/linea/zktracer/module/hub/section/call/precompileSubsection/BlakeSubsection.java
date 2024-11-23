@@ -47,8 +47,8 @@ public class BlakeSubsection extends PrecompileSubsection {
       return;
     }
 
-    final Bytes blakeR = callData.slice(0, 4);
-    final Bytes blakeF = callData.slice(212, 1);
+    final Bytes blakeR = getCallData().slice(0, 4);
+    final Bytes blakeF = getCallData().slice(212, 1);
 
     final boolean wellFormedF = blakeF.get(0) == 0 || blakeF.get(0) == 1;
     final long rounds = blakeR.toLong();
@@ -74,8 +74,8 @@ public class BlakeSubsection extends PrecompileSubsection {
   }
 
   @Override
-  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-    super.resolveAtContextReEntry(hub, frame);
+  public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
+    super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity checks
     checkArgument(blakeCdsOobCall.isHubSuccess() == (callDataMemorySpan.length() == 213));
@@ -110,7 +110,7 @@ public class BlakeSubsection extends PrecompileSubsection {
 
     // TODO: make it smarter
     final BlakeComponents blake2f =
-        new BlakeComponents(callData, callData.slice(0, 4), callData.slice(212, 1), returnData);
+        new BlakeComponents(getCallData(), getCallData().slice(0, 4), getCallData().slice(212, 1), returnData);
     hub.blakeModexpData().callBlake(blake2f, this.exoModuleOperationId());
   }
 

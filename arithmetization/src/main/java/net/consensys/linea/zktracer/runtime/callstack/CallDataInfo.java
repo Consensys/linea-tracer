@@ -26,15 +26,21 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 @Getter
 public class CallDataInfo {
-  private static final CallDataInfo EMPTY = new CallDataInfo(Bytes.EMPTY, 0, 0, 0);
-
-  public static CallDataInfo empty() {
-    return EMPTY;
-  }
 
   private final Bytes data;
   private final MemorySpan memorySpan;
   private final long callDataContextNumber;
+
+  private static final CallDataInfo EMPTY = new CallDataInfo(Bytes.EMPTY, 0, 0, 0);
+
+  /** This method could be problematic: we may want to remember the callDataContextNumber */
+  public static CallDataInfo empty() {
+    return EMPTY;
+  }
+
+  public static CallDataInfo empty(final long callDataContextNumber) {
+    return new CallDataInfo(Bytes.EMPTY, 0, 0, callDataContextNumber);
+  }
 
   public CallDataInfo(
       final Bytes data,
@@ -54,5 +60,15 @@ public class CallDataInfo {
     this.memorySpan = span;
     this.data =
         (span.isEmpty()) ? Bytes.EMPTY : frame.shadowReadMemory(span.offset(), span.length());
+  }
+
+  /** CDO is short for Call Data Offset */
+  public long cdo() {
+    return memorySpan.offset();
+  }
+
+  /** CDS is short for Call Data Size */
+  public long cds() {
+    return memorySpan.length();
   }
 }

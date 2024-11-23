@@ -63,7 +63,7 @@ public class Tests {
   void nontrivialCallDataIdentityTest(OpCode callOpCode) {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    fullCodeCopyOf(program, byteSource);
+    fullCopyOfByteCodeFrom(program, byteSource);
     appendCall(
         program,
         callOpCode,
@@ -98,7 +98,7 @@ public class Tests {
    * @param program
    * @param account
    */
-  public void fullCodeCopyOf(BytecodeCompiler program, ToyAccount account) {
+  public void fullCopyOfByteCodeFrom(BytecodeCompiler program, ToyAccount account) {
     final Address address = account.getAddress();
     program
         .push(address)

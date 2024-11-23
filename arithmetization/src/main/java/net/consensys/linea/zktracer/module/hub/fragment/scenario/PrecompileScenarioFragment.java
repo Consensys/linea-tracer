@@ -170,9 +170,9 @@ public class PrecompileScenarioFragment implements TraceFragment {
         .pScenarioPrcCallerGas(precompileSubSection.callerGas())
         .pScenarioPrcCalleeGas(precompileSubSection.calleeGas())
         .pScenarioPrcReturnGas(precompileSubSection.returnGas())
-        .pScenarioPrcCdo(precompileSubSection.callDataMemorySpan().offset())
-        .pScenarioPrcCds(precompileSubSection.callDataMemorySpan().length())
-        .pScenarioPrcRao(precompileSubSection.parentReturnDataTarget().offset())
-        .pScenarioPrcRac(precompileSubSection.parentReturnDataTarget().length());
+        .pScenarioPrcCdo(precompileSubSection.callSection.getCallDataInfo().memorySpan().offset())
+        .pScenarioPrcCds(precompileSubSection.callSection.getCallDataInfo().memorySpan().length())
+        .pScenarioPrcRao(precompileSubSection.callSection.getReturnAtMemorySpan().offset())
+        .pScenarioPrcRac(precompileSubSection.callSection.getReturnAtMemorySpan().length());
   }
 }

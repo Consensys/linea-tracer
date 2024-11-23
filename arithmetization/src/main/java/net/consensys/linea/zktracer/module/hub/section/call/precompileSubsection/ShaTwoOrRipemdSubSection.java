@@ -65,12 +65,12 @@ public class ShaTwoOrRipemdSubSection extends PrecompileSubsection {
     }
 
     // NOTE: we trigger the SHAKIRA module for nonempty call data only
-    if (!callData.isEmpty()) {
+    if (!getCallData().isEmpty()) {
       final ShakiraDataOperation shakiraCall =
           new ShakiraDataOperation(
               callSection.hubStamp(),
               this.flag() == PRC_SHA2_256 ? SHA256 : RIPEMD,
-              callData(),
+              getCallData(),
               callFrame.frame().getReturnData());
       hub.shakiraData().call(shakiraCall);
 

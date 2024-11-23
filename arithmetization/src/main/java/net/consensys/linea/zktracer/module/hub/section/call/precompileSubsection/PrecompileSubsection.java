@@ -18,16 +18,13 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
-import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
-import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.*;
@@ -36,12 +33,12 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.runtime.callstack.CallDataInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.runtime.callstack.ReturnDataInfo;
 import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 
 /** Note: {@link PrecompileSubsection}'s are created at child context entry by the call section */
 @RequiredArgsConstructor
@@ -50,22 +47,14 @@ import org.hyperledger.besu.evm.internal.Words;
 public class PrecompileSubsection
     implements ContextEntryDefer, ContextExitDefer, ContextReEntryDefer, PostRollbackDefer {
 
+  /** Contains among others the call data */
   public final CallSection callSection;
 
   /** List of fragments of the precompile specific subsection */
   public final List<TraceFragment> fragments;
 
-  /** The (potentially empty) call data of the precompile call */
-  public Bytes callData;
-
-  /** The input data for the precompile */
-  public MemorySpan callDataMemorySpan;
-
-  /** Where the caller wants the precompile return data to be stored */
-  public MemorySpan parentReturnDataTarget;
-
-  /** The (potentially empty) return data of the precompile call */
-  @Setter public Bytes returnData;
+  /** ReturnDataInfo produced by the precompile */
+  public ReturnDataInfo returnDataInfo;
 
   /** Leftover gas of the caller */
   long callerGas;
@@ -108,23 +97,6 @@ public class PrecompileSubsection
 
     firstImcFragment = ImcFragment.empty(hub);
     fragments.add(firstImcFragment);
-
-    final OpCode opCode = hub.opCode();
-    final long offset =
-        Words.clampedToLong(
-            opCode.callHasValueArgument()
-                ? messageFrame.getStackItem(3)
-                : messageFrame.getStackItem(2));
-    final long length =
-        Words.clampedToLong(
-            opCode.callHasValueArgument()
-                ? messageFrame.getStackItem(4)
-                : messageFrame.getStackItem(3));
-    callDataMemorySpan = new MemorySpan(offset, length);
-    callerMemorySnapshot = extractContiguousLimbsFromMemory(messageFrame, callDataMemorySpan);
-    final int lengthToExtract =
-        (int) Math.min(length, Math.max(callerMemorySnapshot.size() - offset, 0));
-    callData = rightPadTo(callerMemorySnapshot.slice((int) offset, lengthToExtract), (int) length);
   }
 
   protected short maxNumberOfLines() {
@@ -134,12 +106,12 @@ public class PrecompileSubsection
   @Override
   public void resolveUponContextEntry(Hub hub) {
     // Sanity check
-    checkArgument(callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));
-    checkArgument(callData.equals(hub.messageFrame().getInputData()));
+    checkState(getCallDataSpan().equals(hub.currentFrame().callDataInfo().memorySpan()));
+    checkState(getCallData().equals(hub.messageFrame().getInputData()));
+    checkState(callSection.getReturnAtMemorySpan().equals(hub.currentFrame().returnDataTargetInCaller()));
 
-    callerGas = hub.callStack().parent().frame().getRemainingGas();
+    callerGas = hub.callStack().parentFrame().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
-    parentReturnDataTarget = hub.currentFrame().returnDataTargetInCaller();
   }
 
   public void resolveUponContextExit(Hub hub, CallFrame callFrame) {
@@ -147,20 +119,24 @@ public class PrecompileSubsection
   }
 
   @Override
-  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-    callSuccess = bytesToBoolean(frame.frame().getStackItem(0));
-    returnData = frame.frame().getReturnData();
+  public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
+    callSuccess = bytesToBoolean(callFrame.frame().getStackItem(0));
+    Bytes returnData = callFrame.frame().getReturnData();
 
+    // TODO: from @Olivier to @Olivier: the 513 will (intentionally) blow up,
+    //  it must be replaced with mbs.
     final int returnerCn = exoModuleOperationId();
-    final CallFrame returnerFrame = hub.callStack().getByContextNumber(returnerCn);
-    returnerFrame.returnData(returnData);
-    frame.returnDataContextNumber(returnerCn);
-    frame.returnDataSpan(new MemorySpan(0, returnData.size()));
+    ReturnDataInfo returnDataInfo =
+            (precompileScenarioFragment.flag == PRC_MODEXP)
+                    ? ReturnDataInfo.forModExp(returnData, 513, returnerCn)
+                    : ReturnDataInfo.standard(returnData, returnerCn);
+
+    callFrame.returnDataInfo(returnDataInfo);
 
     if (callSuccess) {
-      hub.defers().scheduleForPostRollback(this, frame);
+      hub.defers().scheduleForPostRollback(this, callFrame);
       callSection.setFinalContextFragment(
-          ContextFragment.updateReturnData(hub, returnDataContextNumber(), parentReturnDataTarget));
+          ContextFragment.updateReturnData(hub, returnDataInfo));
     } else {
       callSection.setFinalContextFragment(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
     }
@@ -197,5 +173,41 @@ public class PrecompileSubsection
 
   public void setScenario(PrecompileScenarioFragment.PrecompileScenario scenario) {
     precompileScenarioFragment.scenario(scenario);
+  }
+
+  public CallDataInfo getCallDataInfo() {
+    return callSection.getCallDataInfo();
+  }
+
+  public Bytes getCallData() {
+    return getCallDataInfo().data();
+  }
+
+  public MemorySpan getCallDataSpan() {
+    return getCallDataInfo().memorySpan();
+  }
+
+  public long cdo() {
+    return callSection.getCallDataInfo().cdo();
+  }
+
+  public long cds() {
+    return callSection.getCallDataInfo().cds();
+  }
+
+  public long rao() {
+    return callSection.getReturnAtMemorySpan().offset();
+  }
+
+  public long rac() {
+    return callSection.getReturnAtMemorySpan().length();
+  }
+
+  public long rdo() {
+    return returnDataInfo().rdo();
+  }
+
+  public long rds() {
+    return returnDataInfo().rds();
   }
 }

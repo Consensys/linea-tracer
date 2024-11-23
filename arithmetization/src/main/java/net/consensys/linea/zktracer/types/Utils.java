@@ -33,21 +33,29 @@ import org.apache.tuweni.toml.TomlTable;
 public class Utils {
 
   /**
-   * Add zeroes to the left of the {@link Bytes} to create {@link Bytes} of the given size. The
-   * wantedSize must be at least the size of the Bytes.
+   * Left pads {@code input} with <b>0x00</b>'s until {@code finalSize}.
+   * Expects that {@code input} has size ≤ than that of {@code finalSize}
    *
    * @param input
-   * @param wantedSize
+   * @param finalSize
    * @return
    */
-  public static Bytes leftPadTo(Bytes input, int wantedSize) {
-    checkArgument(wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
-    return Bytes.concatenate(Bytes.repeat((byte) 0, wantedSize - input.size()), input);
+  public static Bytes leftPadTo(Bytes input, int finalSize) {
+    checkArgument(finalSize >= input.size(), "finalSize can't be shorter than the input size");
+    return Bytes.concatenate(Bytes.repeat((byte) 0, finalSize - input.size()), input);
   }
 
-  public static Bytes rightPadTo(Bytes input, int wantedSize) {
-    checkArgument(wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
-    return Bytes.concatenate(input, Bytes.repeat((byte) 0, wantedSize - input.size()));
+  /**
+   * Right pads {@code input} with <b>0x00</b>'s until {@code finalSize}.
+   * Expects that {@code input} has size ≤ than that of {@code finalSize}
+   *
+   * @param input
+   * @param finalSize
+   * @return
+   */
+  public static Bytes rightPadTo(Bytes input, int finalSize) {
+    checkArgument(finalSize >= input.size(), "wantedSize can't be shorter than the input size");
+    return Bytes.concatenate(input, Bytes.repeat((byte) 0, finalSize - input.size()));
   }
 
   /**

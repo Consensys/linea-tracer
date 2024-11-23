@@ -107,10 +107,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
-import net.consensys.linea.zktracer.runtime.callstack.CallDataInfo;
-import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
+import net.consensys.linea.zktracer.runtime.callstack.*;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
@@ -1034,23 +1031,25 @@ public class Hub implements Module {
         }
       }
       case HALT -> {
-        final CallFrame parentFrame = callStack.parent();
-        parentFrame.returnDataContextNumber(this.currentFrame().contextNumber());
+
         final Bytes outputData = transients.op().outputData();
-        this.currentFrame().outputDataSpan(transients.op().outputDataSpan());
-        this.currentFrame().outputData(outputData);
+
+        final int currentContextNumber = currentFrame().contextNumber();
+        currentFrame().outputDataSpan(transients.op().outputDataSpan());
+        currentFrame().outputData(outputData);
 
         // The output data always becomes return data of the caller when REVERT'ing
         // and in all other cases becomes return data of the caller iff the present
         // context is a message call context
         final boolean outputDataBecomesParentReturnData =
-            (this.opCode() == REVERT || this.currentFrame().isMessageCall());
+                (opCode() == REVERT || currentFrame().isMessageCall());
+        final CallFrame parentFrame = callStack.parentFrame();
+
 
         if (outputDataBecomesParentReturnData) {
-          parentFrame.returnData(outputData);
-          parentFrame.returnDataSpan(transients.op().outputDataSpan());
+          parentFrame.returnDataInfo(ReturnDataInfo.standard(outputData, currentContextNumber));
         } else {
-          this.squashParentFrameReturnData();
+          parentFrame.returnDataInfo(ReturnDataInfo.empty(currentContextNumber));
         }
 
         switch (this.opCode()) {
@@ -1110,9 +1109,8 @@ public class Hub implements Module {
   }
 
   public void squashParentFrameReturnData() {
-    final CallFrame parentFrame = callStack.parent();
-    parentFrame.returnData(Bytes.EMPTY);
-    parentFrame.returnDataSpan(MemorySpan.empty());
+    final CallFrame parentFrame = callStack.parentFrame();
+    parentFrame.returnDataInfo(ReturnDataInfo.empty(currentFrame().contextNumber()));
   }
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {

@@ -193,7 +193,7 @@ public class ReturnSection extends TraceSection
       //  end for stuff that happens after the root returns ...
       hub.defers()
           .scheduleForContextReEntry(
-              this, hub.callStack().parent()); // post deployment account snapshot
+              this, hub.callStack().parentFrame()); // post deployment account snapshot
       hub.defers().scheduleForPostRollback(this, callFrame); // undo deployment
       hub.defers().scheduleForPostTransaction(this); // inserting the final context row;
 

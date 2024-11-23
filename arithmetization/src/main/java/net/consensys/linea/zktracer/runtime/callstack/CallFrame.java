@@ -132,13 +132,7 @@ public class CallFrame {
   @Getter private final CallDataInfo callDataInfo;
 
   /** the latest child context to have been called from this frame */
-  @Getter @Setter private int returnDataContextNumber = 0;
-
-  /** the data returned by the latest child context. */
-  @Getter @Setter private Bytes returnData = Bytes.EMPTY;
-
-  /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan returnDataSpan = MemorySpan.empty();
+  @Getter @Setter private ReturnDataInfo returnDataInfo = ReturnDataInfo.empty();
 
   /** the return data provided by this frame */
   @Getter @Setter private Bytes outputData = Bytes.EMPTY;
@@ -166,14 +160,6 @@ public class CallFrame {
    * instruction
    */
   @Getter @Setter private TraceSection childSpanningSection;
-
-  public static void updateParentContextReturnData(
-      Hub hub, Bytes outputData, MemorySpan returnDataSource) {
-    CallFrame parent = hub.callStack().parent();
-    parent.returnDataContextNumber = hub.currentFrame().contextNumber;
-    parent.returnData = outputData;
-    parent.outputDataSpan(returnDataSource);
-  }
 
   /** Create a MANTLE call frame. */
   CallFrame(final Address origin, final Bytes callData, final int contextNumber) {
@@ -252,7 +238,6 @@ public class CallFrame {
     this.parentId = parentId;
     this.callDataInfo = callDataInfo;
     this.outputDataSpan = MemorySpan.empty();
-    this.returnDataSpan = MemorySpan.empty();
     this.returnDataTargetInCaller = returnDataTargetInCaller;
   }
 

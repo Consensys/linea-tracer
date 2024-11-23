@@ -58,6 +58,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
     super.resolveAtContextReEntry(hub, callFrame);
+    Bytes returnData = returnDataInfo.getData();
 
     // sanity checks
     switch (flag()) {
@@ -89,7 +90,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
     }
 
     final MmuCall firstMmuCall;
-    final boolean nonemptyCallData = !callData.isEmpty();
+    final boolean nonemptyCallData = !getCallData().isEmpty();
 
     final boolean successBitMmuCall = flag() == PRC_ECRECOVER ? !returnData.isEmpty() : callSuccess;
 
@@ -110,8 +111,8 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
       hub.ecData.callEcData(
           exoModuleOperationId(),
           flag(),
-          callData(),
-          returnData()); // TODO @Lorenzo @Olivier : verify it's at the right position
+          getCallData(),
+          returnData); // TODO @Lorenzo @Olivier : verify it's at the right position
     }
 
     final ImcFragment secondImcFragment = ImcFragment.empty(hub);
@@ -123,7 +124,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
     MmuCall secondMmuCall = null;
     MmuCall thirdMmuCall = null;
     final boolean producesNonemptyReturnData = !returnData.isEmpty();
-    final boolean callerMayReceiveReturnData = !parentReturnDataTarget.isEmpty();
+    final boolean callerMayReceiveReturnData = !callSection.getReturnAtMemorySpan().isEmpty();
 
     if (producesNonemptyReturnData) {
       switch (flag()) {

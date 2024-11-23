@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.hyperledger.besu.evm.account.Account;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -108,7 +107,8 @@ public class ReturnRevertArguments {
     BytecodeCompiler calleeAccountCode = BytecodeCompiler.newProgram();
     zeroSizeReturnOrRevert(calleeAccountCode, opCode);
 
-    ToyAccount calleeAccount = ToyAccount.builder()
+    ToyAccount calleeAccount =
+        ToyAccount.builder()
             .address(calleeAccountAddress)
             .nonce(71)
             .balance(Wei.of(512L))
@@ -118,42 +118,42 @@ public class ReturnRevertArguments {
     Address callerAccountAddress = Address.fromHexString("ca11e7c0de");
     BytecodeCompiler callerAccountCode = BytecodeCompiler.newProgram();
     callerAccountCode
-            .push(0) // r@c
-            .push(0) // r@o
-            .op(CALLDATASIZE) // cds
-            .push(0) // cdo
-            .push(255) // 0xff value
-            .push(calleeAccountAddress)
-            .push(100_000) // gas
-            .op(CALL)
-            // then we check balances for good measure
-            .push(calleeAccountAddress)
-            .op(BALANCE)
-            .op(SELFBALANCE);
+        .push(0) // r@c
+        .push(0) // r@o
+        .op(CALLDATASIZE) // cds
+        .push(0) // cdo
+        .push(255) // 0xff value
+        .push(calleeAccountAddress)
+        .push(100_000) // gas
+        .op(CALL)
+        // then we check balances for good measure
+        .push(calleeAccountAddress)
+        .op(BALANCE)
+        .op(SELFBALANCE);
 
     ToyAccount callerAccount =
-            ToyAccount.builder()
-                    .address(callerAccountAddress)
-                    .nonce(127)
-                    .balance(Wei.of(1_000_000L))
-                    .code(callerAccountCode.compile())
-                    .build();
+        ToyAccount.builder()
+            .address(callerAccountAddress)
+            .nonce(127)
+            .balance(Wei.of(1_000_000L))
+            .code(callerAccountCode.compile())
+            .build();
 
     Transaction transaction =
-            ToyTransaction.builder()
-                    .sender(userAccount)
-                    .keyPair(keyPair)
-                    .to(callerAccount)
-                    .gasPrice(Wei.of(8L))
-                    .gasLimit(1_000_000L)
-                    .value(Wei.of(1L))
-                    .build();
+        ToyTransaction.builder()
+            .sender(userAccount)
+            .keyPair(keyPair)
+            .to(callerAccount)
+            .gasPrice(Wei.of(8L))
+            .gasLimit(1_000_000L)
+            .value(Wei.of(1L))
+            .build();
 
     ToyExecutionEnvironmentV2.builder()
-            .accounts(List.of(userAccount, callerAccount, calleeAccount))
-            .transaction(transaction)
-            .build()
-            .run();
+        .accounts(List.of(userAccount, callerAccount, calleeAccount))
+        .transaction(transaction)
+        .build()
+        .run();
   }
 
   /**

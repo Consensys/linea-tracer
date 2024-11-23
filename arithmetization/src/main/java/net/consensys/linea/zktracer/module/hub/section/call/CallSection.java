@@ -330,7 +330,6 @@ public class CallSection extends TraceSection
     if (isPrecompile(calleeAddress)) {
       precompileAddress = Optional.of(calleeAddress);
       scenarioFragment.setScenario(CALL_PRC_UNDEFINED);
-      // Account rows for precompile are traced at contextReEntry
 
       precompileSubsection =
           ADDRESS_TO_PRECOMPILE.get(preOpcodeCalleeSnapshot.address()).apply(hub, this);
@@ -354,7 +353,7 @@ public class CallSection extends TraceSection
   }
 
   private void smcProcessing(Hub hub, MessageFrame frame) {
-    CallFrame currentFrame = hub.currentFrame();
+    final CallFrame currentFrame = hub.currentFrame();
     hub.defers().scheduleForContextEntry(this);
     hub.defers().scheduleForContextExit(this, hub.callStack().futureId());
     hub.defers().scheduleForContextReEntry(this, currentFrame);

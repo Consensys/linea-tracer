@@ -35,9 +35,7 @@ public class StackUnderflowExceptionTest {
   @ParameterizedTest
   @MethodSource("stackUnderflowExceptionSource")
   void stackUnderflowExceptionTest(
-      OpCode opCode,
-      int nPushes,
-      boolean triggersStackUnderflowExceptions) {
+      OpCode opCode, int nPushes, boolean triggersStackUnderflowExceptions) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < nPushes; i++) {
       program.push(0);

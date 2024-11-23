@@ -25,8 +25,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 /**
- * In the {@link CallArguments} tests, we test the extremal cases of CALLs with respect to "call data"
- * and "return at ..." parameters. This follows up on the recent change in constraints where,
+ * In the {@link CallArguments} tests, we test the extremal cases of CALLs with respect to "call
+ * data" and "return at ..." parameters. This follows up on the recent change in constraints where,
  * focusing on CALLs only, we set CDO to zero whenever CDS ≡ 0, and similarly for R@0 and R@C.
  */
 public class CallArguments {

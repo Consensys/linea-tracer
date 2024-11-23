@@ -14,35 +14,35 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.ZeroSizeTests;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 public class ReturnRevertArguments {
 
-    public String hugeOffset = "ff".repeat(32);
+  public String hugeOffset = "ff".repeat(32);
 
-    @ParameterizedTest
-    @EnumSource(
-        value = OpCode.class,
-        names = {"RETURN", "REVERT"})
-    void rootContextMessageCall(OpCode opCode) {
-        BytecodeCompiler program = zeroSizeReturnOrRevert(opCode);
-        BytecodeRunner.of(program.compile()).run();
-    }
+  @ParameterizedTest
+  @EnumSource(
+      value = OpCode.class,
+      names = {"RETURN", "REVERT"})
+  void rootContextMessageCall(OpCode opCode) {
+    BytecodeCompiler program = zeroSizeReturnOrRevert(opCode);
+    BytecodeRunner.of(program.compile()).run();
+  }
 
-    private BytecodeCompiler zeroSizeReturnOrRevert(OpCode opCode) {
-        checkArgument(opCode == OpCode.RETURN || opCode == OpCode.REVERT);
+  private BytecodeCompiler zeroSizeReturnOrRevert(OpCode opCode) {
+    checkArgument(opCode == OpCode.RETURN || opCode == OpCode.REVERT);
 
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
-        program
-                .push(0) // zero size
-                .push(hugeOffset) // huge offset
-                .op(opCode);
-        return program;
-    }
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .push(0) // zero size
+        .push(hugeOffset) // huge offset
+        .op(opCode);
+    return program;
+  }
 }

@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests;
+package net.consensys.linea.zktracer.instructionprocessing.ZeroSizeTests;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 
-public class ZeroSizeArgumentTests {
+public class CallArgumentsMaybeRedundant {
   /*
    * Copyright ConsenSys Inc.
    *

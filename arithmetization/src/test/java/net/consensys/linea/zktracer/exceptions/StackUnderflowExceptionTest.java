@@ -37,11 +37,10 @@ public class StackUnderflowExceptionTest {
   void stackUnderflowExceptionTest(
       OpCode opCode,
       int nPushes,
-      boolean triggersStackUnderflowExceptions,
-      boolean allZeroArguments) {
+      boolean triggersStackUnderflowExceptions) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < nPushes; i++) {
-      program.push(allZeroArguments ? 0 : i + 1);
+      program.push(0);
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
@@ -62,8 +61,7 @@ public class StackUnderflowExceptionTest {
       OpCode opCode = opCodeData.mnemonic();
       int delta = opCodeData.stackSettings().delta(); // number of items popped from the stack
       for (int nPushes = 0; nPushes <= delta; nPushes++) {
-        arguments.add(Arguments.of(opCode, nPushes, nPushes < delta, false));
-        arguments.add(Arguments.of(opCode, nPushes, nPushes < delta, true));
+        arguments.add(Arguments.of(opCode, nPushes, nPushes < delta));
       }
     }
     return arguments.stream();

@@ -66,7 +66,7 @@ public class CallFrame {
   @Getter private int parentId;
 
   /** all the {@link CallFrame} that have been called by this frame. */
-  @Getter private final List<Integer> childFramesId = new ArrayList<>();
+  @Getter private final List<Integer> childFrameIds = new ArrayList<>();
 
   /** the {@link Address} of the account executing this {@link CallFrame}. */
   @Getter private final Address accountAddress;
@@ -133,15 +133,6 @@ public class CallFrame {
   @Getter private final MemoryRange returnAtRange;
   @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY;
   @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY;
-
-  /** the latest child context to have been called from this frame */
-  @Getter @Setter private int returnDataContextNumber = 0;
-
-  /** the data returned by the latest child context. */
-  @Getter @Setter private Bytes returnData = Bytes.EMPTY;
-
-  /** returnData position within the latest callee memory space. */
-  @Getter @Setter private Range returnDataSpan = Range.empty();
 
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
@@ -237,7 +228,6 @@ public class CallFrame {
     this.callerAddress = callerAddress;
     this.parentId = parentId;
     this.callDataRange = callDataRange;
-    this.returnDataSpan = Range.empty();
     this.returnAtRange = returnAtRange;
   }
 
@@ -275,11 +265,11 @@ public class CallFrame {
    * @return the ID of the latest callee
    */
   public Optional<Integer> lastCallee() {
-    if (this.childFramesId.isEmpty()) {
+    if (this.childFrameIds.isEmpty()) {
       return Optional.empty();
     }
 
-    return Optional.of(this.childFramesId.get(this.childFramesId.size() - 1));
+    return Optional.of(this.childFrameIds.get(this.childFrameIds.size() - 1));
   }
 
   /**
@@ -292,7 +282,7 @@ public class CallFrame {
   }
 
   private void revertChildren(CallStack callStack, int parentRevertStamp) {
-    childFramesId.stream()
+    childFrameIds.stream()
         .map(callStack::getById)
         .forEach(
             frame -> {

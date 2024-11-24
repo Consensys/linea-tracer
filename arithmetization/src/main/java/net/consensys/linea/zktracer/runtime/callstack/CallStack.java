@@ -198,8 +198,7 @@ public final class CallStack {
     this.callFrames.add(newFrame);
     this.currentId = newCallFrameId;
     if (callerId != -1) {
-      this.callFrames.get(callerId).returnData(Bytes.EMPTY);
-      this.callFrames.get(callerId).childFramesId().add(newCallFrameId);
+      this.callFrames.get(callerId).childFrameIds().add(newCallFrameId);
     }
   }
 

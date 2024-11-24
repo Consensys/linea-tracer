@@ -456,7 +456,7 @@ public class CallSection extends TraceSection
         }
         emptyCodeFirstCoupleOfAccountFragments(hub);
 
-        CallFrame prcFrame = hub.callStack().getById(frame.childFramesId().getLast());
+        CallFrame prcFrame = hub.callStack().getById(frame.childFrameIds().getLast());
         finalContextFragment =
             ContextFragment.updateCurrentReturnData(hub, prcFrame.outputDataRange());
       }
@@ -486,7 +486,7 @@ public class CallSection extends TraceSection
           reEntryCalleeSnapshot.decrementBalanceBy(value);
         }
 
-        int childId = hub.currentFrame().childFramesId().getLast();
+        int childId = hub.currentFrame().childFrameIds().getLast();
         CallFrame childFrame = hub.callStack().getById(childId);
         int childContextRevertStamp = childFrame.revertStamp();
 

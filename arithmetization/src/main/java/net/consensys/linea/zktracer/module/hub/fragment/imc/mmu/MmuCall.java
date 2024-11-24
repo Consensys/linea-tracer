@@ -27,7 +27,6 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
@@ -216,17 +215,13 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
   public static MmuCall returnDataCopy(final Hub hub) {
     final CallFrame currentFrame = hub.currentFrame();
-    final Range returnDataSegment = currentFrame.returnDataSpan();
+    final MemoryRange returnDataRange = currentFrame.returnDataRange();
     final CallFrame returnerFrame =
-        hub.callStack().getByContextNumber(currentFrame.returnDataContextNumber());
+        hub.callStack().getByContextNumber(returnDataRange.contextNumber());
 
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
         .sourceId(returnerFrame.contextNumber())
-        .sourceRamBytes(
-            Optional.of(
-                isPrecompile(returnerFrame.accountAddress())
-                    ? returnerFrame.returnData()
-                    : extractContiguousLimbsFromMemory(returnerFrame.frame(), returnDataSegment)))
+        .sourceRamBytes(Optional.of(returnDataRange.getRawData()))
         .targetId(currentFrame.contextNumber())
         .targetRamBytes(
             Optional.of(
@@ -234,8 +229,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceOffset(EWord.of(currentFrame.frame().getStackItem(1)))
         .targetOffset(EWord.of(currentFrame.frame().getStackItem(0)))
         .size(clampedToLong(currentFrame.frame().getStackItem(2)))
-        .referenceOffset(returnDataSegment.offset())
-        .referenceSize(returnDataSegment.size());
+        .referenceOffset(returnDataRange.offset())
+        .referenceSize(returnDataRange.size());
   }
 
   public static MmuCall create(final Hub hub) {

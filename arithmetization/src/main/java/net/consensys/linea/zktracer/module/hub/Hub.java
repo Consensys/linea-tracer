@@ -1100,7 +1100,7 @@ public class Hub implements Module {
   }
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {
-    return callStack.getById(parentFrame.childFramesId().getLast());
+    return callStack.getById(parentFrame.childFrameIds().getLast());
   }
 
   // Quality of life deployment info related functions

@@ -30,6 +30,12 @@ import net.consensys.linea.zktracer.types.Either;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import org.hyperledger.besu.datatypes.Address;
 
+/**
+ * Represents a context fragment in the trace. Ideally one would provide a {@link CallFrame}
+ * directly. But when initializing a new context we may only provide a {@code callFrameReference}.
+ * Note that the {@code returnDataRange} may evolve during the lifetime of a {@link CallFrame}. As
+ * such we provide its current value.
+ */
 @Getter
 @Setter
 @Accessors(fluent = true)

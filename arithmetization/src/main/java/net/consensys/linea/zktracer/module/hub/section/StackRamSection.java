@@ -67,8 +67,7 @@ public class StackRamSection extends TraceSection {
     final EWord offset = EWord.of(currentFrame.frame().getStackItem(0));
     final long longOffset = Words.clampedToLong(offset);
     final Bytes currentRam =
-        extractContiguousLimbsFromMemory(
-            currentFrame.frame(), new Range(longOffset, WORD_SIZE));
+        extractContiguousLimbsFromMemory(currentFrame.frame(), new Range(longOffset, WORD_SIZE));
     final int currentContextNumber = currentFrame.contextNumber();
     final EWord value =
         instruction.equals(OpCode.MLOAD)

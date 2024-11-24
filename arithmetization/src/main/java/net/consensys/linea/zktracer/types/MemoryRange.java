@@ -14,12 +14,12 @@
  */
 package net.consensys.linea.zktracer.types;
 
+import static net.consensys.linea.zktracer.module.Util.safeLongToInt;
+import static net.consensys.linea.zktracer.module.Util.slice;
+
 import lombok.Getter;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-
-import static net.consensys.linea.zktracer.module.Util.safeLongToInt;
-import static net.consensys.linea.zktracer.module.Util.slice;
 
 /**
  * A {@link MemoryRange} describes a contiguous region in the memory of some execution context. The
@@ -59,10 +59,11 @@ public class MemoryRange {
     this.rawData = size.isZero() ? Bytes.EMPTY : rawData;
   }
 
-    /**
-     * Constructs an empty memory range associated with {@code contextNumber}.
-     * @param contextNumber
-     */
+  /**
+   * Constructs an empty memory range associated with {@code contextNumber}.
+   *
+   * @param contextNumber
+   */
   public MemoryRange(long contextNumber) {
     this.contextNumber = contextNumber;
     this.range = Range.empty();
@@ -75,16 +76,18 @@ public class MemoryRange {
     this.rawData = rawData;
   }
 
-  public MemoryRange(final long contextNumber, final long offset, final long size, final Bytes rawData) {
+  public MemoryRange(
+      final long contextNumber, final long offset, final long size, final Bytes rawData) {
     this.contextNumber = contextNumber;
     this.range = Range.fromOffsetAndSize(offset, size);
     this.rawData = rawData;
   }
 
   public MemoryRange(final long contextNumber, final Range range, final MessageFrame frame) {
-      this.contextNumber = contextNumber;
-      this.range = range;
-      this.rawData = (range.isEmpty()) ? Bytes.EMPTY : frame.shadowReadMemory(0, frame.memoryByteSize());
+    this.contextNumber = contextNumber;
+    this.range = range;
+    this.rawData =
+        (range.isEmpty()) ? Bytes.EMPTY : frame.shadowReadMemory(0, frame.memoryByteSize());
   }
 
   public long offset() {
@@ -100,7 +103,9 @@ public class MemoryRange {
   }
 
   public Bytes extract() {
-    return range.isEmpty() ? Bytes.EMPTY : slice(rawData, safeLongToInt(range.offset()), safeLongToInt(range.size()));
+    return range.isEmpty()
+        ? Bytes.EMPTY
+        : slice(rawData, safeLongToInt(range.offset()), safeLongToInt(range.size()));
   }
 
   public boolean isEmpty() {

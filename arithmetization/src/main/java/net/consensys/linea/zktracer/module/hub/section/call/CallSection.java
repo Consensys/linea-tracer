@@ -688,26 +688,18 @@ public class CallSection extends TraceSection
 
   private Range callDataSpan(MessageFrame frame) {
     final Bytes callDataSize =
-            opCode.callHasValueArgument()
-            ? frame.getStackItem(4)
-            : frame.getStackItem(3);
+        opCode.callHasValueArgument() ? frame.getStackItem(4) : frame.getStackItem(3);
     final Bytes callDataOffset =
-            opCode.callHasValueArgument()
-                    ? frame.getStackItem(3)
-                    : frame.getStackItem(2);
+        opCode.callHasValueArgument() ? frame.getStackItem(3) : frame.getStackItem(2);
 
     return Range.fromOffsetAndSize(callDataOffset, callDataSize);
   }
 
   private Range returnAtSpan(MessageFrame frame) {
     final Bytes returnAtCapacity =
-        opCode.callHasValueArgument()
-            ? frame.getStackItem(6)
-            : frame.getStackItem(5);
+        opCode.callHasValueArgument() ? frame.getStackItem(6) : frame.getStackItem(5);
     final Bytes returnAtOffset =
-            opCode.callHasValueArgument()
-            ? frame.getStackItem(5)
-            : frame.getStackItem(4);
+        opCode.callHasValueArgument() ? frame.getStackItem(5) : frame.getStackItem(4);
 
     return Range.fromOffsetAndSize(returnAtOffset, returnAtCapacity);
   }

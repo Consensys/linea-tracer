@@ -72,12 +72,7 @@ public class ContextFragment implements TraceFragment {
 
   public static ContextFragment initializeNewExecutionContext(final Hub hub) {
     return new ContextFragment(
-        hub,
-        hub.callStack(),
-        Either.right(hub.newChildContextNumber()),
-        0,
-        Range.empty(),
-        false);
+        hub, hub.callStack(), Either.right(hub.newChildContextNumber()), 0, Range.empty(), false);
   }
 
   public static ContextFragment executionProvidesEmptyReturnData(final Hub hub) {

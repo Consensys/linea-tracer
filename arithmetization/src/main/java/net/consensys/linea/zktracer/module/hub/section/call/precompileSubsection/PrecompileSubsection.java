@@ -39,8 +39,8 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /** Note: {@link PrecompileSubsection}'s are created at child context entry by the call section */
 @RequiredArgsConstructor
@@ -129,7 +129,8 @@ public class PrecompileSubsection
 
       hub.defers().scheduleForPostRollback(this, callFrame);
       callSection.setFinalContextFragment(
-          ContextFragment.updateReturnData(hub, returnDataContextNumber(), returnDataRange.getRange()));
+          ContextFragment.updateReturnData(
+              hub, returnDataContextNumber(), returnDataRange.getRange()));
     } else {
       callSection.setFinalContextFragment(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
     }
@@ -152,15 +153,14 @@ public class PrecompileSubsection
     precompileScenarioFragment.scenario(PRC_SUCCESS_WILL_REVERT);
   }
 
-  /**
-   * Our arithmetization distinguishes between {@link Address#MODEXP} and other precompiles.
-   */
+  /** Our arithmetization distinguishes between {@link Address#MODEXP} and other precompiles. */
   private void setReturnDataRange() {
 
     final boolean notModexp = !(this instanceof ModexpSubsection);
 
     if (notModexp) {
-      returnDataRange = new MemoryRange(returnDataContextNumber(), 0, returnData.size(), returnData);
+      returnDataRange =
+          new MemoryRange(returnDataContextNumber(), 0, returnData.size(), returnData);
     } else {
       int mbs = ((ModexpSubsection) this).modexpMetaData.mbsInt();
       checkState(0 <= mbs && mbs <= 512);
@@ -214,6 +214,7 @@ public class PrecompileSubsection
   public Bytes rawCallerMemory() {
     return callSection.getCallDataRange().getRawData();
   }
+
   public Bytes extractCallData() {
     return callSection.getCallDataRange().extract();
   }

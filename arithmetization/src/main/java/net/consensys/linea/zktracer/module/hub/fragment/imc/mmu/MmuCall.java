@@ -35,7 +35,6 @@ import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 import java.math.BigInteger;
 import java.util.Optional;
 
-import com.google.common.primitives.UnsignedInteger;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -355,8 +354,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   public static MmuCall callDataExtractionForShaTwoAndRipemd(
       final Hub hub, PrecompileSubsection prc) {
 
-    final PrecompileScenarioFragment.PrecompileFlag flag =
-        prc.precompileScenarioFragment().flag;
+    final PrecompileScenarioFragment.PrecompileFlag flag = prc.precompileScenarioFragment().flag;
     checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
 
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
@@ -404,8 +402,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   public static MmuCall partialReturnDataCopyForShaTwoAndRipemd(
       final Hub hub, PrecompileSubsection prc) {
 
-    final PrecompileScenarioFragment.PrecompileFlag flag =
-        prc.precompileScenarioFragment().flag;
+    final PrecompileScenarioFragment.PrecompileFlag flag = prc.precompileScenarioFragment().flag;
 
     checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
     checkArgument(!prc.getReturnAtRange().isEmpty());
@@ -607,7 +604,9 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .targetId(precompileContextNumber)
         .exoBytes(
             Optional.of(
-                subsection.extractCallData().slice(BLAKE2f_HASH_INPUT_OFFSET, BLAKE2f_HASH_INPUT_SIZE)))
+                subsection
+                    .extractCallData()
+                    .slice(BLAKE2f_HASH_INPUT_OFFSET, BLAKE2f_HASH_INPUT_SIZE)))
         .sourceOffset(EWord.of(subsection.cdo() + BLAKE2f_HASH_INPUT_OFFSET))
         .size(BLAKE2f_HASH_INPUT_SIZE)
         .referenceSize(BLAKE2f_HASH_INPUT_SIZE)
@@ -681,9 +680,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     return new MmuCall(hub, MMU_INST_MLOAD)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(precompileSubsection.rawCallerMemory()))
-        .sourceOffset(
-            EWord.of(
-                precompileSubsection.cdo() + 96 + metaData.bbs().toInt()))
+        .sourceOffset(EWord.of(precompileSubsection.cdo() + 96 + metaData.bbs().toInt()))
         .limb1(metaData.rawLeadingWord().hi())
         .limb2(metaData.rawLeadingWord().lo());
   }

@@ -642,7 +642,7 @@ public class Hub implements Module {
           this.deploymentNumberOf(frame.getContractAddress()),
           new Bytecode(frame.getCode().getBytes()),
           frame.getSenderAddress(),
-              callDataRange,
+          callDataRange,
           returnAtRange);
 
       this.currentFrame().initializeFrame(frame);

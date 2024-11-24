@@ -46,6 +46,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Mode
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.apache.tuweni.bytes.Bytes;
 
 public class ModexpSubsection extends PrecompileSubsection {
 
@@ -143,6 +144,8 @@ public class ModexpSubsection extends PrecompileSubsection {
       precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);
       return;
     }
+
+    final Bytes returnData = extractReturnData();
 
     modexpMetaData.rawResult(returnData);
     hub.blakeModexpData().callModexp(modexpMetaData, exoModuleOperationId());

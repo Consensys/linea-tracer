@@ -54,9 +54,6 @@ public class PrecompileSubsection
   /** List of fragments of the precompile specific subsection */
   public final List<TraceFragment> fragments;
 
-  /** The (potentially empty) return data of the precompile call */
-  @Setter public Bytes returnData;
-
   public MemoryRange returnDataRange;
 
   /** Leftover gas of the caller */
@@ -116,23 +113,18 @@ public class PrecompileSubsection
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
     callSuccess = bytesToBoolean(callFrame.frame().getStackItem(0));
-    returnData = callFrame.frame().getReturnData();
-
-    final CallFrame returnerFrame = hub.callStack().getByContextNumber(returnDataContextNumber());
-    returnerFrame.returnData(returnData);
-    callFrame.returnDataContextNumber(returnDataContextNumber());
-    callFrame.returnDataSpan(new Range(0, returnData.size()));
 
     if (callSuccess) {
-
-      setReturnDataRange();
-
+      setReturnDataRange(callFrame.frame());
       hub.defers().scheduleForPostRollback(this, callFrame);
       callSection.setFinalContextFragment(
           ContextFragment.updateCurrentReturnData(hub, returnDataRange));
     } else {
       callSection.setFinalContextFragment(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
     }
+
+    final CallFrame returnerFrame = hub.callStack().getByContextNumber(returnDataContextNumber());
+    returnerFrame.returnDataRange(returnDataRange);
   }
 
   public void sanityCheck() {
@@ -153,15 +145,16 @@ public class PrecompileSubsection
   }
 
   /** Our arithmetization distinguishes between {@link Address#MODEXP} and other precompiles. */
-  private void setReturnDataRange() {
+  private void setReturnDataRange(MessageFrame frame) {
 
     final boolean notModexp = !(this instanceof ModexpSubsection);
 
     if (notModexp) {
       returnDataRange =
-          new MemoryRange(returnDataContextNumber(), 0, returnData.size(), returnData);
+          new MemoryRange(returnDataContextNumber(), 0, frame.getReturnData().size(), frame.getReturnData());
     } else {
       int mbs = ((ModexpSubsection) this).modexpMetaData.mbsInt();
+      Bytes returnData = frame.getReturnData();
       checkState(0 <= mbs && mbs <= 512);
       checkState(returnData.size() == mbs);
       leftPadTo(returnData, 512);
@@ -216,5 +209,9 @@ public class PrecompileSubsection
 
   public Bytes extractCallData() {
     return callSection.getCallDataRange().extract();
+  }
+
+  public Bytes extractReturnData() {
+    return returnDataRange.extract();
   }
 }

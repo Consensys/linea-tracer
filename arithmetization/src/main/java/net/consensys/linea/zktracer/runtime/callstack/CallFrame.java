@@ -130,7 +130,7 @@ public class CallFrame {
   @Getter private long gasStipend;
 
   /** the call data given to this frame. */
-  @Getter private final MemoryRange callData;
+  @Getter private final MemoryRange callDataRange;
 
   /** the latest child context to have been called from this frame */
   @Getter @Setter private int returnDataContextNumber = 0;
@@ -148,7 +148,7 @@ public class CallFrame {
   @Getter @Setter private Range outputDataSpan;
 
   /** where this frame is expected to write its outputData within its parent's memory space. */
-  @Getter private final MemoryRange returnAt;
+  @Getter private final MemoryRange returnAtRange;
 
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
@@ -177,12 +177,12 @@ public class CallFrame {
   }
 
   /** Create a MANTLE call frame. */
-  CallFrame(final Address origin, final Bytes callData, final int contextNumber) {
+  CallFrame(final Address origin, final Bytes callDataRange, final int contextNumber) {
     type = CallFrameType.TRANSACTION_CALL_DATA_HOLDER;
     this.contextNumber = contextNumber;
     accountAddress = origin;
-    this.callData = new MemoryRange(contextNumber, 0, callData.size(), callData);
-    this.returnAt = MemoryRange.EMPTY;
+    this.callDataRange = new MemoryRange(contextNumber, 0, callDataRange.size(), callDataRange);
+    this.returnAtRange = MemoryRange.EMPTY;
     value = Wei.ZERO;
     id = -1;
     depth = -1;
@@ -194,8 +194,8 @@ public class CallFrame {
     contextNumber = 0;
     accountAddress = Address.ZERO;
     parentId = -1;
-    this.callData = MemoryRange.EMPTY;
-    this.returnAt = MemoryRange.EMPTY;
+    this.callDataRange = MemoryRange.EMPTY;
+    this.returnAtRange = MemoryRange.EMPTY;
     depth = 0;
     value = Wei.ZERO;
     id = -1;
@@ -218,7 +218,7 @@ public class CallFrame {
    * @param byteCode byteCode that executes in the present context
    * @param callerAddress either account address of the caller/creator context
    * @param parentId ID of the caller frame in the {@link CallStack}
-   * @param callData call data of the current frame
+   * @param callDataRange call data of the current frame
    */
   CallFrame(
       CallFrameType type,
@@ -235,8 +235,8 @@ public class CallFrame {
       Bytecode byteCode,
       Address callerAddress,
       int parentId,
-      MemoryRange callData,
-      MemoryRange returnAt) {
+      MemoryRange callDataRange,
+      MemoryRange returnAtRange) {
     this.type = type;
     this.id = id;
     this.contextNumber = contextNumber;
@@ -251,10 +251,10 @@ public class CallFrame {
     this.code = byteCode;
     this.callerAddress = callerAddress;
     this.parentId = parentId;
-    this.callData = callData;
+    this.callDataRange = callDataRange;
     this.outputDataSpan = Range.empty();
     this.returnDataSpan = Range.empty();
-    this.returnAt = returnAt;
+    this.returnAtRange = returnAtRange;
   }
 
   public boolean isRoot() {

@@ -162,7 +162,7 @@ public class ReturnSection extends TraceSection
       final boolean messageCallReturnTouchesRam =
           !callFrame.isRoot()
               && nontrivialMmuOperation // [size ≠ 0] ∧ ¬MXPX
-              && !callFrame.returnAt().isEmpty(); // [r@c ≠ 0]
+              && !callFrame.returnAtRange().isEmpty(); // [r@c ≠ 0]
 
       returnScenarioFragment.setScenario(
           messageCallReturnTouchesRam

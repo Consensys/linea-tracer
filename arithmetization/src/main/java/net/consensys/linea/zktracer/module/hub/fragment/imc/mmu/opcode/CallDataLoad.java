@@ -35,10 +35,10 @@ public class CallDataLoad extends MmuCall implements PostOpcodeDefer {
     hub.defers().scheduleForPostExecution(this);
 
     final CallFrame currentFrame = hub.currentFrame();
-    final long callDataSize = currentFrame.callData().getRange().size();
-    final long callDataOffset = currentFrame.callData().getRange().offset();
+    final long callDataSize = currentFrame.callDataRange().getRange().size();
+    final long callDataOffset = currentFrame.callDataRange().getRange().offset();
     final EWord sourceOffset = EWord.of(currentFrame.frame().getStackItem(0));
-    final long callDataCN = currentFrame.callData().getContextNumber();
+    final long callDataCN = currentFrame.callDataRange().getContextNumber();
     final Bytes sourceBytes = hub.callStack().getFullMemoryOfCaller(hub);
 
     this.sourceId((int) callDataCN)

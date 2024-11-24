@@ -24,10 +24,12 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.Bytecode;
+import net.consensys.linea.zktracer.types.MemorySpan;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.Code;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /**
  * This class represents the call hierarchy of a transaction.
@@ -57,36 +59,6 @@ public final class CallStack {
   /** a "pointer" to the currentId {@link CallFrame} in <code>frames</code>. */
   private int currentId;
 
-  public void newPrecompileResult(
-      final int hubStamp,
-      final Bytes precompileResult,
-      final int returnDataOffset,
-      final Address precompileAddress) {
-
-    final CallFrame newFrame =
-        new CallFrame(
-            CallFrameType.PRECOMPILE_RETURN_DATA,
-            this.callFrames.size(),
-            hubStamp,
-            this.depth,
-            false,
-            Wei.ZERO,
-            0,
-            precompileAddress,
-            -1,
-            precompileAddress,
-            -1,
-            Bytecode.EMPTY,
-            precompileAddress,
-            -1,
-            this.currentId,
-            precompileResult,
-            returnDataOffset,
-            precompileResult.size());
-
-    this.callFrames.add(newFrame);
-  }
-
   public void newRootContext(
       int contextNumber,
       Address from,
@@ -112,10 +84,8 @@ public final class CallStack {
         codeDeploymentNumber,
         toCode == null ? Bytecode.EMPTY : toCode,
         from,
-        callData,
-        0,
-        callData.size(),
-        callDataContextNumber);
+        new CallDataInfo(callData, 0, callData.size(), callDataContextNumber),
+        MemorySpan.empty());
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -140,17 +110,8 @@ public final class CallStack {
         0,
         Bytecode.EMPTY,
         Address.ZERO, // useless
-        // useless
-        // useless
-        // useless
-        callData,
-        0,
-        callData.size(),
-        transactionCallDataContextNumber
-        // useless
-        // useless
-        // useless
-        );
+        CallDataInfo.empty(),
+        MemorySpan.empty());
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -173,8 +134,8 @@ public final class CallStack {
    * @return the parent {@link CallFrame} of the current frame
    */
   public CallFrame parent() {
-    if (this.currentCallFrame().callerId() != -1) {
-      return this.callFrames.get(this.currentCallFrame().callerId());
+    if (this.currentCallFrame().parentId() != -1) {
+      return this.callFrames.get(this.currentCallFrame().parentId());
     } else {
       return CallFrame.EMPTY;
     }
@@ -196,7 +157,6 @@ public final class CallStack {
    * @param accountDeploymentNumber
    * @param byteCodeDeploymentNumber
    * @param byteCode the {@link Code} being executed
-   * @param inputData the call data sent to this call frame
    */
   public void enter(
       CallFrameType type,
@@ -210,18 +170,12 @@ public final class CallStack {
       int byteCodeDeploymentNumber,
       Bytecode byteCode,
       Address callerAddress,
-      Bytes inputData,
-      long callDataOffset,
-      long callDataSize,
-      long callDataContextNumber) {
+      CallDataInfo callDataInfo,
+      MemorySpan returnDataTargetInCaller) {
     final int callerId = this.depth == -1 ? -1 : this.currentId;
     final int newCallFrameId = this.callFrames.size();
     this.depth += 1;
 
-    Bytes callData = Bytes.EMPTY;
-    if (type != CallFrameType.INIT_CODE) {
-      callData = inputData;
-    }
     final CallFrame newFrame =
         new CallFrame(
             type,
@@ -237,11 +191,9 @@ public final class CallStack {
             byteCodeDeploymentNumber,
             byteCode,
             callerAddress,
-            callDataContextNumber,
             callerId,
-            callData,
-            callDataOffset,
-            callDataSize);
+            callDataInfo,
+            returnDataTargetInCaller);
 
     this.callFrames.add(newFrame);
     this.currentId = newCallFrameId;
@@ -258,7 +210,7 @@ public final class CallStack {
   public void exit() {
     this.depth -= 1;
     Preconditions.checkState(this.depth >= 0);
-    this.currentId = this.currentCallFrame().callerId();
+    this.currentId = this.currentCallFrame().parentId();
   }
 
   /**
@@ -280,15 +232,6 @@ public final class CallStack {
    */
   public boolean isStatic() {
     return this.currentCallFrame().type() == CallFrameType.STATIC;
-  }
-
-  /**
-   * Get the {@link CallFrame} representing the caller of the current frame
-   *
-   * @return the caller of the current frame
-   */
-  public CallFrame caller() {
-    return this.callFrames.get(this.currentCallFrame().callerId());
   }
 
   /**
@@ -334,7 +277,7 @@ public final class CallStack {
       return CallFrame.EMPTY;
     }
 
-    return this.getById(this.callFrames.get(id).callerId());
+    return this.getById(this.callFrames.get(id).parentId());
   }
 
   /**
@@ -347,5 +290,12 @@ public final class CallStack {
    */
   public int getParentContextNumberById(int id) {
     return this.getParentCallFrameById(id).contextNumber();
+  }
+
+  public Bytes getFullMemoryOfCaller(Hub hub) {
+    final MessageFrame parentFrame = parent().frame();
+    return currentCallFrame().depth() == 0
+        ? hub.txStack().current().getTransactionCallData()
+        : parentFrame.shadowReadMemory(0, parentFrame.memoryByteSize());
   }
 }

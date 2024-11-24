@@ -45,7 +45,6 @@ public class Conversions {
         bytes = Bytes.wrap(byteArray);
       }
     }
-
     return bytes;
   }
 
@@ -137,11 +136,11 @@ public class Conversions {
   }
 
   public static Bytes32 longToBytes32(final long input) {
-    return Bytes32.leftPad(Bytes.minimalBytes(input));
+    return Bytes32.leftPad(longToBytes(input));
   }
 
   public static Bytes longToBytes(final long input) {
-    return input == 0 ? Bytes.of(0) : Bytes.minimalBytes(input);
+    return input == 0 ? Bytes.of(0) : Bytes.ofUnsignedLong(input).trimLeadingZeros();
   }
 
   public static Bytes booleanToBytes(boolean x) {
@@ -183,5 +182,9 @@ public class Conversions {
       sb.append(String.format("%02X ", b));
     }
     return sb.toString().trim();
+  }
+
+  public static int bytesToInt(Bytes bytes) {
+    return bytes.trimLeadingZeros().toInt();
   }
 }

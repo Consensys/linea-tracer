@@ -31,7 +31,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.TxTrace;
+import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragment;
@@ -48,11 +48,11 @@ public class TraceSection {
   private final Hub hub;
   public final CommonFragmentValues commonValues;
   @Getter List<TraceFragment> fragments;
-  @Getter @Setter private TxTrace parentTrace;
   /* A link to the previous section */
   @Setter public TraceSection previousSection = null;
   /* A link to the next section */
   @Setter public TraceSection nextSection = null;
+  @Setter public ContextFragment exceptionalContextFragment = null;
 
   /** Default creator specifying the max number of rows the section can contain. */
   public TraceSection(final Hub hub, final short maxNumberOfLines) {
@@ -157,45 +157,42 @@ public class TraceSection {
         : 0;
   }
 
-  private List<TraceFragment> makeStackFragments(final Hub hub, CallFrame f) {
-    final List<TraceFragment> r = new ArrayList<>(2);
-    Stack snapshot = f.stack().snapshot();
-    if (f.pending().lines().isEmpty()) {
-      for (int i = 0; i < (f.opCodeData().numberOfStackRows()); i++) {
-        r.add(
+  private List<TraceFragment> makeStackFragments(final Hub hub, CallFrame currentFrame) {
+    final List<TraceFragment> stackFragments = new ArrayList<>(2);
+    final Stack snapshot = currentFrame.stack().snapshot();
+    if (currentFrame.pending().lines().isEmpty()) {
+      for (int i = 0; i < (currentFrame.opCodeData().numberOfStackRows()); i++) {
+        stackFragments.add(
             StackFragment.prepare(
                 hub,
                 snapshot,
                 new StackLine().asStackItems(),
                 hub.pch().exceptions(),
                 hub.pch().abortingConditions().snapshot(),
-                Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
-                f.isDeployment(),
-                f.willRevert(),
+                Hub.GAS_PROJECTOR.of(currentFrame.frame(), currentFrame.opCode()),
+                currentFrame.isDeployment(),
                 commonValues));
       }
     } else {
-      for (StackLine line : f.pending().lines()) {
-        r.add(
+      for (StackLine line : currentFrame.pending().lines()) {
+        stackFragments.add(
             StackFragment.prepare(
                 hub,
                 snapshot,
                 line.asStackItems(),
                 hub.pch().exceptions(),
                 hub.pch().abortingConditions().snapshot(),
-                Hub.GAS_PROJECTOR.of(f.frame(), f.opCode()),
-                f.isDeployment(),
-                f.willRevert(),
+                Hub.GAS_PROJECTOR.of(currentFrame.frame(), currentFrame.opCode()),
+                currentFrame.isDeployment(),
                 commonValues));
       }
     }
-    return r;
+    return stackFragments;
   }
 
-  public void triggerHashInfo(Bytes hash) {
+  public void writeHashInfoResult(Bytes hash) {
     for (TraceFragment fragment : this.fragments()) {
       if (fragment instanceof StackFragment) {
-        ((StackFragment) fragment).hashInfoFlag = true;
         ((StackFragment) fragment).hash = hash;
       }
     }
@@ -226,7 +223,12 @@ public class TraceSection {
 
       specificFragment.trace(hubTrace);
       final CommonFragment commonFragment =
-          new CommonFragment(commonValues, stackLineCounter, nonStackLineCounter);
+          new CommonFragment(
+              commonValues,
+              stackLineCounter,
+              nonStackLineCounter,
+              hub.state.stamps().mmu(),
+              hub.state.stamps().mxp());
       commonFragment.trace(hubTrace);
       hubTrace.fillAndValidateRow();
     }

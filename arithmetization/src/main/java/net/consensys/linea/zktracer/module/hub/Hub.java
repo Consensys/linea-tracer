@@ -21,7 +21,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
-import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_HEIGHT;
+import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_STAMP;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
@@ -30,10 +30,12 @@ import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -52,27 +54,7 @@ import net.consensys.linea.zktracer.module.gas.Gas;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
-import net.consensys.linea.zktracer.module.hub.section.AccountSection;
-import net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection;
-import net.consensys.linea.zktracer.module.hub.section.ContextSection;
-import net.consensys.linea.zktracer.module.hub.section.CreateSection;
-import net.consensys.linea.zktracer.module.hub.section.EarlyExceptionSection;
-import net.consensys.linea.zktracer.module.hub.section.ExpSection;
-import net.consensys.linea.zktracer.module.hub.section.JumpSection;
-import net.consensys.linea.zktracer.module.hub.section.KeccakSection;
-import net.consensys.linea.zktracer.module.hub.section.LogSection;
-import net.consensys.linea.zktracer.module.hub.section.SloadSection;
-import net.consensys.linea.zktracer.module.hub.section.SstoreSection;
-import net.consensys.linea.zktracer.module.hub.section.StackOnlySection;
-import net.consensys.linea.zktracer.module.hub.section.StackRamSection;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-import net.consensys.linea.zktracer.module.hub.section.TransactionSection;
-import net.consensys.linea.zktracer.module.hub.section.TxFinalizationSection;
-import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
-import net.consensys.linea.zktracer.module.hub.section.TxPreWarmingMacroSection;
-import net.consensys.linea.zktracer.module.hub.section.TxSkippedSection;
+import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection;
@@ -84,7 +66,6 @@ import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
-import net.consensys.linea.zktracer.module.hub.transients.StateManagerMetadata;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
@@ -118,7 +99,7 @@ import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
-import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -126,6 +107,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
+import net.consensys.linea.zktracer.runtime.callstack.CallDataInfo;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
@@ -140,7 +122,6 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.operation.Operation;
@@ -163,9 +144,6 @@ public class Hub implements Module {
 
   /** provides phase-related volatile information */
   @Getter Transients transients = new Transients(this);
-
-  /** Block and conflation-level metadata for computing columns relevant to the state manager.* */
-  @Getter static StateManagerMetadata stateManagerMetadata = new StateManagerMetadata();
 
   /**
    * Long-lived states, not used in tracing per se but keeping track of data of the associated
@@ -231,7 +209,7 @@ public class Hub implements Module {
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
-  private final RlpAddr rlpAddr = new RlpAddr(this, trm);
+  @Getter private final RlpAddr rlpAddr = new RlpAddr(this, trm);
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
   @Getter private final Mxp mxp = new Mxp();
@@ -408,7 +386,7 @@ public class Hub implements Module {
       final Address l2l1ContractAddress,
       final Bytes l2l1Topic,
       final BigInteger nonnegativeChainId) {
-    Preconditions.checkState(nonnegativeChainId.signum() >= 0);
+    checkState(nonnegativeChainId.signum() >= 0);
     chainId = nonnegativeChainId;
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
@@ -454,11 +432,12 @@ public class Hub implements Module {
                     blockdata /* WARN: must be called AFTER txnData */),
                 precompileLimitModules().stream())
             .toList();
-    stateManagerMetadata.setHub(this);
   }
 
   @Override
   public void enterTransaction() {
+    // Note: txStack.enter(); happens at traceStartTransaction as it requires world, etc
+    state.enter();
     transients.conflation().stackHeightChecksForStackUnderflows().enter();
     transients.conflation().stackHeightChecksForStackOverflows().enter();
     for (Module m : modules) {
@@ -490,17 +469,10 @@ public class Hub implements Module {
     romLex.determineCodeFragmentIndex();
     txStack.setCodeFragmentIndex(this);
     defers.resolvePostConflation(this, world);
-    // update the conflation level map for the state manager
-    updateConflationMapAccount();
-    updateConflationMapStorage();
 
     for (Module m : modules) {
       m.traceEndConflation(world);
     }
-    // Print all the account maps
-    printAccountMaps();
-    // Print all the storage map
-    printStorageMaps();
   }
 
   @Override
@@ -518,14 +490,10 @@ public class Hub implements Module {
     for (Module m : modules) {
       m.traceEndBlock(blockHeader, blockBody);
     }
-    // update the block level map for the state manager
-    updateBlockMap();
   }
 
   public void traceStartTransaction(final WorldView world, final Transaction tx) {
     pch.reset();
-    state.enter();
-    var myBlock = transients.block();
     txStack.enterTransaction(world, tx, transients.block());
 
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
@@ -534,7 +502,7 @@ public class Hub implements Module {
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
-      new TxSkippedSection(this, world, transactionProcessingMetadata, transients);
+      new TxSkipSection(this, world, transactionProcessingMetadata, transients);
     } else {
       if (transactionProcessingMetadata.requiresPrewarming()) {
         state.setProcessingPhase(TX_WARM);
@@ -639,31 +607,28 @@ public class Hub implements Module {
     if (frame.getDepth() > 0) {
       final OpCode currentOpCode = callStack.currentCallFrame().opCode();
       final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
+
+      checkState(currentOpCode.isCall() || currentOpCode.isCreate());
+      checkState(
+          currentTraceSection() instanceof CallSection
+              || currentTraceSection() instanceof CreateSection);
+      checkState(currentTraceSection() instanceof CreateSection == isDeployment);
+
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
 
-      final long callDataOffset =
+      final CallDataInfo callDataInfo =
           isDeployment
-              ? 0
-              : Words.clampedToLong(
-                  callStack
-                      .currentCallFrame()
-                      .frame()
-                      .getStackItem(currentOpCode.callMayNotTransferValue() ? 2 : 3));
+              ? CallDataInfo.empty()
+              : ((CallSection) currentTraceSection()).getCallDataInfo();
 
-      final long callDataSize =
-          isDeployment
-              ? 0
-              : Words.clampedToLong(
-                  callStack
-                      .currentCallFrame()
-                      .frame()
-                      .getStackItem(currentOpCode.callMayNotTransferValue() ? 3 : 4));
-
-      final long callDataContextNumber = callStack.currentCallFrame().contextNumber();
-
-      currentFrame().rememberGasNextBeforePausing();
+      currentFrame().rememberGasNextBeforePausing(this);
       currentFrame().pauseCurrentFrame();
+
+      MemorySpan returnDataTargetInCaller =
+          isDeployment
+              ? MemorySpan.empty()
+              : ((CallSection) currentTraceSection()).getReturnAtMemorySpan();
 
       callStack.enter(
           frameType,
@@ -677,10 +642,8 @@ public class Hub implements Module {
           this.deploymentNumberOf(frame.getContractAddress()),
           new Bytecode(frame.getCode().getBytes()),
           frame.getSenderAddress(),
-          frame.getInputData(),
-          callDataOffset,
-          callDataSize,
-          callDataContextNumber);
+          callDataInfo,
+          returnDataTargetInCaller);
 
       this.currentFrame().initializeFrame(frame);
 
@@ -712,16 +675,17 @@ public class Hub implements Module {
               coinbaseIsWarm,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
-      if (state.getProcessingPhase() != TX_SKIP) {
-        state.setProcessingPhase(TX_FINL);
-        new TxFinalizationSection(this, frame.getWorldUpdater());
+      if (state.getProcessingPhase() != TX_SKIP
+          && frame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
+        this.state.setProcessingPhase(TX_FINL);
+        new TxFinalizationSection(this, frame.getWorldUpdater(), false);
       }
     }
 
     defers.resolveUponContextExit(this, this.currentFrame());
     // TODO: verify me please @Olivier
     if (this.currentFrame().opCode() == REVERT || Exceptions.any(pch.exceptions())) {
-      defers.resolvePostRollback(this, frame, this.currentFrame());
+      defers.resolveUponRollback(this, frame, this.currentFrame());
     }
 
     if (frame.getDepth() > 0) {
@@ -745,6 +709,16 @@ public class Hub implements Module {
     this.processStateExec(frame);
   }
 
+  /**
+   * A comment on {@link #unlatchStack(MessageFrame, TraceSection)}: Any instruction that writes
+   * onto the stack gets immediately unlatched if it raises an exception. If unexceptional it also
+   * gets immediately unlatched, except CALL's and CREATE's. The value written on the stack
+   * (<b>successBit</b> or <b>successBit ∙ [child address]</b> respectively) is only written after
+   * the child context has been executed.
+   *
+   * <p><b>Question:</b> Does this work well with CALL's to EOA's ? to PRC's ? trivial deployments
+   * (i.e. empty initialization code) ?
+   */
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     checkArgument(
         this.state().processingPhase == TX_EXEC,
@@ -762,15 +736,20 @@ public class Hub implements Module {
      */
     if (isExceptional()) {
       this.currentTraceSection()
-          .addFragments(ContextFragment.executionProvidesEmptyReturnData(this));
+          .exceptionalContextFragment(ContextFragment.executionProvidesEmptyReturnData(this));
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
     }
 
     defers.resolvePostExecution(this, frame, operationResult);
 
-    if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
+    if (isExceptional() || !opCode().isCallOrCreate()) {
       this.unlatchStack(frame, currentSection);
+    }
+
+    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
+      this.state.setProcessingPhase(TX_FINL);
+      new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }
 
@@ -793,6 +772,7 @@ public class Hub implements Module {
         currentSection.commonValues.gasCostExcluduingDeploymentCost();
 
     if (operationResult.getHaltReason() != null) {
+
       return;
     }
 
@@ -821,11 +801,6 @@ public class Hub implements Module {
 
   public boolean isExceptional() {
     return !isUnexceptional();
-  }
-
-  public boolean raisesOogxOrIsUnexceptional() {
-    return currentTraceSection().commonValues.tracedException() == OUT_OF_GAS_EXCEPTION
-        || isUnexceptional();
   }
 
   /**
@@ -919,7 +894,7 @@ public class Hub implements Module {
   private void handleStack(MessageFrame frame) {
     this.currentFrame()
         .stack()
-        .processInstruction(this, frame, MULTIPLIER___STACK_HEIGHT * (stamp() + 1));
+        .processInstruction(this, frame, MULTIPLIER___STACK_STAMP * (stamp() + 1));
   }
 
   void triggerModules(MessageFrame frame) {
@@ -928,9 +903,6 @@ public class Hub implements Module {
     }
     if (pch.signals().bin()) {
       bin.tracePreOpcode(frame);
-    }
-    if (pch.signals().rlpAddr()) {
-      rlpAddr.tracePreOpcode(frame);
     }
     if (pch.signals().mul()) {
       mul.tracePreOpcode(frame);
@@ -964,8 +936,16 @@ public class Hub implements Module {
     return this.currentFrame().opCode();
   }
 
-  TraceSection currentTraceSection() {
+  public TraceSection currentTraceSection() {
     return state.currentTxTrace().currentSection();
+  }
+
+  public TraceSection previousTraceSection() {
+    return state.currentTxTrace().previousSection();
+  }
+
+  public TraceSection previousTraceSection(int n) {
+    return state.currentTxTrace().previousSection(n);
   }
 
   public void addTraceSection(TraceSection section) {
@@ -1038,17 +1018,13 @@ public class Hub implements Module {
     failureConditionForCreates = false;
 
     switch (this.opCodeData().instructionFamily()) {
-      case ADD,
-          MOD,
-          SHF,
-          BIN,
-          WCP,
-          EXT,
-          BATCH,
-          MACHINE_STATE,
-          PUSH_POP,
-          DUP,
-          SWAP -> new StackOnlySection(this);
+      case ADD, MOD, SHF, BIN, WCP, EXT, BATCH, PUSH_POP, DUP, SWAP -> new StackOnlySection(this);
+      case MACHINE_STATE -> {
+        switch (this.opCode()) {
+          case OpCode.MSIZE -> new MsizeSection(this);
+          default -> new StackOnlySection(this);
+        }
+      }
       case MUL -> {
         switch (this.opCode()) {
           case OpCode.EXP -> new ExpSection(this);
@@ -1081,7 +1057,7 @@ public class Hub implements Module {
           case RETURN -> new ReturnSection(this);
           case REVERT -> new RevertSection(this);
           case STOP -> new StopSection(this);
-          case SELFDESTRUCT -> new SelfdestructSection(this);
+          case SELFDESTRUCT -> new SelfdestructSection(this, frame);
         }
       }
 
@@ -1120,9 +1096,10 @@ public class Hub implements Module {
 
       case JUMP -> new JumpSection(this);
 
-      case CREATE -> new CreateSection(this);
+      case CREATE -> new CreateSection(this, frame);
 
-      case CALL -> new CallSection(this);
+      case CALL -> new CallSection(this, frame);
+
       case INVALID -> new EarlyExceptionSection(this);
     }
   }
@@ -1178,389 +1155,6 @@ public class Hub implements Module {
 
   public final boolean deploymentStatusOfAccountAddress() {
     return deploymentStatusOf(this.accountAddress());
-  }
-
-  public void updateBlockMapAccount() {
-    Map<
-            StateManagerMetadata.AddrBlockPair,
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-        blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
-
-    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
-
-    for (TransactionProcessingMetadata metadata : txn) {
-      if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
-        int blockNumber = transients.block().blockNumber();
-        Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-            localMapAccount = metadata.getAccountFirstAndLastMap();
-
-        Map<
-                TransactionProcessingMetadata.AddrStorageKeyPair,
-                TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-            localMapStorage = metadata.getStorageFirstAndLastMap();
-
-        // Update the block map for the account
-        for (Address addr : localMapAccount.keySet()) {
-          StateManagerMetadata.AddrBlockPair pairAddrBlock =
-              new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
-
-          // localValue exists for sure because addr belongs to the keySet of the local map
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValueAccount =
-              localMapAccount.get(addr);
-          if (!blockMapAccount.containsKey(pairAddrBlock)) {
-            // the pair is not present in the map
-            blockMapAccount.put(pairAddrBlock, localValueAccount);
-          } else {
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
-                blockMapAccount.get(pairAddrBlock);
-            // update the first part of the blockValue
-            // Todo: Refactor and remove code duplication
-            if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                localValueAccount.getFirstDom(),
-                localValueAccount.getFirstSub(),
-                blockValue.getFirstDom(),
-                blockValue.getFirstSub())) {
-              // chronologically checks that localValue.First is before blockValue.First
-              // localValue comes chronologically before, and should be the first value of the map.
-              blockValue.setFirst(localValueAccount.getFirst());
-              blockValue.setFirstDom(localValueAccount.getFirstDom());
-              blockValue.setFirstSub(localValueAccount.getFirstSub());
-
-              // update the last part of the blockValue
-              if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                  blockValue.getLastDom(),
-                  blockValue.getLastSub(),
-                  localValueAccount.getLastDom(),
-                  localValueAccount.getLastSub())) {
-                // chronologically checks that blockValue.Last is before localValue.Last
-                // localValue comes chronologically after, and should be the final value of the map.
-                blockValue.setLast(localValueAccount.getLast());
-                blockValue.setLastDom(localValueAccount.getLastDom());
-                blockValue.setLastSub(localValueAccount.getLastSub());
-              }
-              blockMapAccount.put(pairAddrBlock, blockValue);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  public void updateBlockMapStorage() {
-    Map<
-            StateManagerMetadata.AddrStorageKeyBlockNumTuple,
-            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-        blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
-
-    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
-
-    for (TransactionProcessingMetadata metadata : txn) {
-      if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
-        int blockNumber = transients.block().blockNumber();
-        Map<
-                TransactionProcessingMetadata.AddrStorageKeyPair,
-                TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-            localMapStorage = metadata.getStorageFirstAndLastMap();
-        // Update the block map for storage
-        for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair :
-            localMapStorage.keySet()) {
-
-          StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
-              new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, blockNumber);
-
-          // localValue exists for sure because addr belongs to the keySet of the local map
-          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> localValueStorage =
-              localMapStorage.get(addrStorageKeyPair);
-
-          if (!blockMapStorage.containsKey(addrStorageBlockTuple)) {
-            // the pair is not present in the map
-            blockMapStorage.put(addrStorageBlockTuple, localValueStorage);
-          } else {
-            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValueStorage =
-                blockMapStorage.get(addrStorageBlockTuple);
-            // update the first part of the blockValue
-            if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                localValueStorage.getFirstDom(),
-                localValueStorage.getFirstSub(),
-                blockValueStorage.getFirstDom(),
-                blockValueStorage.getFirstSub())) {
-              // chronologically checks that localValue.First is before blockValue.First
-              // localValue comes chronologically before, and should be the first value of the map.
-              blockValueStorage.setFirst(localValueStorage.getFirst());
-              blockValueStorage.setFirstDom(localValueStorage.getFirstDom());
-              blockValueStorage.setFirstSub(localValueStorage.getFirstSub());
-
-              // update the last part of the blockValue
-              if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                  blockValueStorage.getLastDom(),
-                  blockValueStorage.getLastSub(),
-                  localValueStorage.getLastDom(),
-                  localValueStorage.getLastSub())) {
-                // chronologically checks that blockValue.Last is before localValue.Last
-                // localValue comes chronologically after, and should be the final value of the map.
-                blockValueStorage.setLast(localValueStorage.getLast());
-                blockValueStorage.setLastDom(localValueStorage.getLastDom());
-                blockValueStorage.setLastSub(localValueStorage.getLastSub());
-              }
-              blockMapStorage.put(addrStorageBlockTuple, blockValueStorage);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  public void updateBlockMap() {
-    updateBlockMapAccount();
-    updateBlockMapStorage();
-  }
-
-  // Update the conflation level map for the state manager
-  public void updateConflationMapAccount() {
-    Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-        conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
-
-    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
-    HashSet<Address> allAccounts = new HashSet<Address>();
-
-    Map<
-            StateManagerMetadata.AddrBlockPair,
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-        blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
-
-    for (TransactionProcessingMetadata metadata : txn) {
-
-      Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-          txnMapAccount = metadata.getAccountFirstAndLastMap();
-
-      allAccounts.addAll(txnMapAccount.keySet());
-    }
-
-    for (Address addr : allAccounts) {
-      TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> firstValue = null;
-      // Update the first value of the conflation map for Account
-      // We update the value of the conflation map with the earliest value of the block map
-      for (int i = 1; i <= transients.block().blockNumber(); i++) {
-        StateManagerMetadata.AddrBlockPair pairAddrBlock =
-            new StateManagerMetadata.AddrBlockPair(addr, i);
-        if (blockMapAccount.containsKey(pairAddrBlock)) {
-          firstValue = blockMapAccount.get(pairAddrBlock);
-          conflationMapAccount.put(addr, firstValue);
-          break;
-        }
-      }
-      // Update the last value of the conflation map
-      // We update the last value for the conflation map with the latest blockMap's last values,
-      // if some address is not present in the last block, we ignore the corresponding account
-      for (int i = transients.block().blockNumber(); i >= 1; i--) {
-        StateManagerMetadata.AddrBlockPair pairAddrBlock =
-            new StateManagerMetadata.AddrBlockPair(addr, i);
-        if (blockMapAccount.containsKey(pairAddrBlock)) {
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
-              blockMapAccount.get(pairAddrBlock);
-
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> updatedValue =
-              new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>(
-                  firstValue.getFirst(),
-                  blockValue.getLast(),
-                  firstValue.getFirstDom(),
-                  firstValue.getFirstSub(),
-                  blockValue.getLastDom(),
-                  blockValue.getLastSub());
-          conflationMapAccount.put(addr, updatedValue);
-          break;
-        }
-      }
-    }
-  }
-
-  public void updateConflationMapStorage() {
-    Map<
-            TransactionProcessingMetadata.AddrStorageKeyPair,
-            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-        conflationMapStorage = Hub.stateManagerMetadata().getStorageFirstLastConflationMap();
-
-    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
-    HashSet<TransactionProcessingMetadata.AddrStorageKeyPair> allStorage =
-        new HashSet<TransactionProcessingMetadata.AddrStorageKeyPair>();
-    Map<
-            StateManagerMetadata.AddrStorageKeyBlockNumTuple,
-            TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-        blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
-    for (TransactionProcessingMetadata metadata : txn) {
-
-      Map<
-              TransactionProcessingMetadata.AddrStorageKeyPair,
-              TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-          txnMapStorage = metadata.getStorageFirstAndLastMap();
-
-      allStorage.addAll(txnMapStorage.keySet());
-    }
-
-    for (TransactionProcessingMetadata.AddrStorageKeyPair addrStorageKeyPair : allStorage) {
-      TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> firstValue = null;
-      // Update the first value of the conflation map for Storage
-      // We update the value of the conflation map with the earliest value of the block map
-      for (int i = 1; i <= transients.block().blockNumber(); i++) {
-        StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
-            new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, i);
-        if (blockMapStorage.containsKey(addrStorageBlockTuple)) {
-          firstValue = blockMapStorage.get(addrStorageBlockTuple);
-          conflationMapStorage.put(addrStorageKeyPair, firstValue);
-          break;
-        }
-      }
-      // Update the last value of the conflation map
-      // We update the last value for the conflation map with the latest blockMap's last values,
-      // if some address is not present in the last block, we ignore the corresponding account
-      for (int i = transients.block().blockNumber(); i >= 1; i--) {
-        StateManagerMetadata.AddrStorageKeyBlockNumTuple addrStorageBlockTuple =
-            new StateManagerMetadata.AddrStorageKeyBlockNumTuple(addrStorageKeyPair, i);
-        if (blockMapStorage.containsKey(addrStorageBlockTuple)) {
-          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> blockValue =
-              blockMapStorage.get(addrStorageBlockTuple);
-
-          TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment> updatedValue =
-              new TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>(
-                  firstValue.getFirst(),
-                  blockValue.getLast(),
-                  firstValue.getFirstDom(),
-                  firstValue.getFirstSub(),
-                  blockValue.getLastDom(),
-                  blockValue.getLastSub());
-          conflationMapStorage.put(addrStorageKeyPair, updatedValue);
-          break;
-        }
-      }
-    }
-  }
-
-  // Print all the account maps
-  public void printAccountMaps() {
-    // Print txnMaps
-    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
-    for (var metadata : txn) {
-      Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-          txnMapAccount = metadata.getAccountFirstAndLastMap();
-      for (Address addr : txnMapAccount.keySet()) {
-        var txnValue = txnMapAccount.get(addr);
-        System.out.println(
-            "Account: txn level map: addr: "
-                + addr
-                + ": first dom: "
-                + txnValue.getFirstDom()
-                + ", first sub: "
-                + txnValue.getFirstSub()
-                + ": last dom: "
-                + txnValue.getLastDom()
-                + ", last sub: "
-                + txnValue.getLastSub());
-      }
-    }
-
-    // Print blockMaps
-    var blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
-    for (var addrBlockPair : blockMapAccount.keySet()) {
-      var blockValue = blockMapAccount.get(addrBlockPair);
-      System.out.println(
-          "Account: block level map: addr: "
-              + addrBlockPair.getAddress()
-              + ": block: "
-              + addrBlockPair.getBlockNumber()
-              + ": first dom: "
-              + blockValue.getFirstDom()
-              + ", first sub: "
-              + blockValue.getFirstSub()
-              + ": last dom: "
-              + blockValue.getLastDom()
-              + ", last sub: "
-              + blockValue.getLastSub());
-    }
-
-    // Print conflationMaps
-    var conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
-    for (Address addr : conflationMapAccount.keySet()) {
-      var conflationValue = conflationMapAccount.get(addr);
-      System.out.println(
-          "Account: conflation level map: addr: "
-              + addr
-              + ": first dom: "
-              + conflationValue.getFirstDom()
-              + ", first sub: "
-              + conflationValue.getFirstSub()
-              + ": last dom: "
-              + conflationValue.getLastDom()
-              + ", last sub: "
-              + conflationValue.getLastSub());
-    }
-  }
-
-  // Print all the storage maps
-  public void printStorageMaps() {
-    // Print txnMaps
-    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
-    for (var metadata : txn) {
-      Map<
-              TransactionProcessingMetadata.AddrStorageKeyPair,
-              TransactionProcessingMetadata.FragmentFirstAndLast<StorageFragment>>
-          txnMapStorage = metadata.getStorageFirstAndLastMap();
-      for (TransactionProcessingMetadata.AddrStorageKeyPair addrKeyPair : txnMapStorage.keySet()) {
-        var txnValue = txnMapStorage.get(addrKeyPair);
-        System.out.println(
-            "Storage: txn level map: addr: "
-                + addrKeyPair.getAddress()
-                + ": storage key: "
-                + addrKeyPair.getStorageKey()
-                + ": first dom: "
-                + txnValue.getFirstDom()
-                + ", first sub: "
-                + txnValue.getFirstSub()
-                + ": last dom: "
-                + txnValue.getLastDom()
-                + ", last sub: "
-                + txnValue.getLastSub());
-      }
-    }
-
-    // Print blockMaps
-    var blockMapStorage = Hub.stateManagerMetadata().getStorageFirstLastBlockMap();
-    for (var addrKeyBlockTuple : blockMapStorage.keySet()) {
-      var blockValue = blockMapStorage.get(addrKeyBlockTuple);
-      System.out.println(
-          "Storage: block level map: addr: "
-              + addrKeyBlockTuple.getAddrStorageKeyPair().getAddress()
-              + ": key: "
-              + addrKeyBlockTuple.getAddrStorageKeyPair().getStorageKey()
-              + ": block: "
-              + addrKeyBlockTuple.getBlockNumber()
-              + ": first dom: "
-              + blockValue.getFirstDom()
-              + ", first sub: "
-              + blockValue.getFirstSub()
-              + ": last dom: "
-              + blockValue.getLastDom()
-              + ", last sub: "
-              + blockValue.getLastSub());
-    }
-
-    // Print conflationMaps
-    var conflationMapStorage = Hub.stateManagerMetadata().getStorageFirstLastConflationMap();
-    for (var addrKeyPair : conflationMapStorage.keySet()) {
-      var conflationValue = conflationMapStorage.get(addrKeyPair);
-      System.out.println(
-          "Storage: conflation level map: addr: "
-              + addrKeyPair.getAddress()
-              + ": storage key: "
-              + addrKeyPair.getStorageKey()
-              + ": first dom: "
-              + conflationValue.getFirstDom()
-              + ", first sub: "
-              + conflationValue.getFirstSub()
-              + ": last dom: "
-              + conflationValue.getLastDom()
-              + ", last sub: "
-              + conflationValue.getLastSub());
-    }
   }
 
   public final boolean returnFromMessageCall(MessageFrame frame) {

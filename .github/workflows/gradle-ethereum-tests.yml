@@ -12,11 +12,6 @@ jobs:
   ethereum-tests:
     runs-on: ubuntu-latest-128
     steps:
-      - uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.CONSTRAINTS_SSH_KEY }}
-
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -28,11 +23,8 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Install Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-
-      - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
+      - name: Setup Rust Corset
+        uses: ./.github/actions/setup-rust-corset
 
       - name: Generate zkevm_for_reference_tests.bin
         run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
@@ -63,11 +55,6 @@ jobs:
   ethereum-tests-go-corset:
     runs-on: ubuntu-latest-128
     steps:
-      - uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.CONSTRAINTS_SSH_KEY }}
-
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -79,20 +66,11 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Install Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-
-      - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
+      - name: Setup Go Corset
+        uses: ./.github/actions/setup-go-corset
 
       - name: Generate zkevm_for_reference_tests.bin
         run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
-
-      - name: Install Go
-        uses: actions/setup-go@v4
-
-      - name: Install Go Corset
-        run: go install github.com/consensys/go-corset/cmd/go-corset@latest
 
       - name: Generate General State Reference Tests
         run: ./gradlew generateGeneralStateReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true

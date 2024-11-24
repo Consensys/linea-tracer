@@ -129,8 +129,10 @@ public final class AccountFragment
 
   @Override
   public Trace trace(Trace trace) {
-    final EWord eCodeHash = EWord.of(oldState.code().getCodeHash());
-    final EWord eCodeHashNew = EWord.of(newState.code().getCodeHash());
+    final EWord eCodeHash =
+        EWord.of(oldState.deploymentStatus() ? Hash.EMPTY : oldState.code().getCodeHash());
+    final EWord eCodeHashNew =
+        EWord.of(newState.deploymentStatus() ? Hash.EMPTY : newState.code().getCodeHash());
 
     // tracing
     domSubStampsSubFragment.trace(trace);
@@ -156,6 +158,10 @@ public final class AccountFragment
     long minDeploymentNumberInBlock = stateManagerMetadata.getMinDeplNoBlock().get(current);
     long maxDeploymentNumberInBlock = stateManagerMetadata.getMaxDeplNoBlock().get(current);
 
+    final boolean hasCode = !eCodeHash.equals(EWord.of(Hash.EMPTY));
+    final boolean hasCodeNew = !eCodeHashNew.equals(EWord.of(Hash.EMPTY));
+
+
     return trace
         .peekAtAccount(true)
         .pAccountAddressHi(highPart(oldState.address()))
@@ -170,18 +176,12 @@ public final class AccountFragment
         .pAccountCodeHashHiNew(eCodeHashNew.hi())
         .pAccountCodeHashLo(eCodeHash.lo())
         .pAccountCodeHashLoNew(eCodeHashNew.lo())
-        .pAccountHasCode(oldState.code().getCodeHash() != Hash.EMPTY)
-        .pAccountHasCodeNew(newState.code().getCodeHash() != Hash.EMPTY)
+        .pAccountHasCode(hasCode)
+        .pAccountHasCodeNew(hasCodeNew)
         .pAccountCodeFragmentIndex(codeFragmentIndex)
         .pAccountRomlexFlag(requiresRomlex)
-        .pAccountExists(
-            oldState.nonce() > 0
-                || oldState.code().getCodeHash() != Hash.EMPTY
-                || !oldState.balance().isZero())
-        .pAccountExistsNew(
-            newState.nonce() > 0
-                || newState.code().getCodeHash() != Hash.EMPTY
-                || !newState.balance().isZero())
+        .pAccountExists(oldState.nonce() > 0 || hasCode || !oldState.balance().isZero())
+        .pAccountExistsNew(newState.nonce() > 0 || hasCodeNew || !newState.balance().isZero())
         .pAccountWarmth(oldState.isWarm())
         .pAccountWarmthNew(newState.isWarm())
         .pAccountMarkedForSelfdestruct(markedForSelfDestruct)

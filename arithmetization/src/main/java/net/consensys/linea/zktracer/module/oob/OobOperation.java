@@ -32,6 +32,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_CODE_SIZE;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.*;
+import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_CDS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_PARAMS;
 import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CALL;
@@ -255,7 +256,7 @@ public class OobOperation extends ModuleOperation {
 
         // DELEGATECALL, STATICCALL can't trasfer value,
         // CALL, CALLCODE may transfer value
-        EWord value = opCode.callCanTransferValue() ? EWord.of(frame.getStackItem(2)) : EWord.ZERO;
+        EWord value = opCode.callHasValueArgument() ? EWord.of(frame.getStackItem(2)) : EWord.ZERO;
         CallOobCall callOobCall = (CallOobCall) oobCall;
         callOobCall.setValue(value);
         callOobCall.setBalance(callerAccount.getBalance().toUnsignedBigInteger());
@@ -301,11 +302,11 @@ public class OobOperation extends ModuleOperation {
     final OpCode opCode = getOpCode(frame);
     final long argsOffset =
         Words.clampedToLong(
-            opCode.callCanTransferValue()
+            opCode.callHasValueArgument()
                 ? hub.messageFrame().getStackItem(3)
                 : hub.messageFrame().getStackItem(2));
-    final int cdsIndex = opCode.callCanTransferValue() ? 4 : 3;
-    final int returnAtCapacityIndex = opCode.callCanTransferValue() ? 6 : 5;
+    final int cdsIndex = opCode.callHasValueArgument() ? 4 : 3;
+    final int returnAtCapacityIndex = opCode.callHasValueArgument() ? 6 : 5;
 
     BigInteger calleeGas = BigInteger.ZERO;
     if (oobCall instanceof PrecompileCommonOobCall) {
@@ -1138,7 +1139,7 @@ public class OobOperation extends ModuleOperation {
         callToLT(
             3,
             BigInteger.ZERO,
-            BigInteger.valueOf(96)
+            BigInteger.valueOf(BASE_MIN_OFFSET)
                 .add(prcModexpExtractOobCall.getBbs().add(prcModexpExtractOobCall.getEbs())),
             BigInteger.ZERO,
             prcModexpExtractOobCall.getCds());

@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rlpaddr;
 
-import static net.consensys.linea.zktracer.module.rlpcommon.RlpRandEdgeCase.randLong;
-
 import java.util.List;
 import java.util.Random;
 
@@ -25,6 +23,7 @@ import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
+import net.consensys.linea.zktracer.module.rlpcommon.RlpRandEdgeCase;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -38,21 +37,19 @@ import org.junit.jupiter.api.Test;
 
 public class TestRlpAddress {
   private final Random rnd = new Random(666);
+  private final RlpRandEdgeCase util = new RlpRandEdgeCase();
 
   @Test
   void randDeployment() {
-    // final ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
-
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
         Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
     final ToyAccount senderAccount =
         ToyAccount.builder()
             .balance(Wei.of(100000000))
-            .nonce(randLong())
+            .nonce(util.randLong())
             .address(senderAddress)
             .build();
-    ;
 
     final Bytes initCode = BytecodeCompiler.newProgram().push(1).push(1).op(OpCode.SLT).compile();
 
@@ -66,8 +63,6 @@ public class TestRlpAddress {
             .gasPrice(Wei.of(10L))
             .payload(initCode)
             .build();
-
-    Address deploymentAddress = Address.contractAddress(senderAddress, senderAccount.getNonce());
 
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(senderAccount))
@@ -85,7 +80,7 @@ public class TestRlpAddress {
     final ToyAccount senderAccount =
         ToyAccount.builder()
             .balance(Wei.fromEth(1000))
-            .nonce(randLong())
+            .nonce(util.randLong())
             .address(senderAddress)
             .build();
 

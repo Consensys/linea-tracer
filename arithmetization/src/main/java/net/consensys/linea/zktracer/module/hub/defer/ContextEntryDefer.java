@@ -12,6 +12,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.precompiles;
 
-public class PrecompileTests {}
+package net.consensys.linea.zktracer.module.hub.defer;
+
+import net.consensys.linea.zktracer.module.hub.Hub;
+
+public interface ContextEntryDefer {
+  void resolveUponContextEntry(Hub hub);
+}

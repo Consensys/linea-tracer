@@ -139,5 +139,6 @@ public final class StorageFragment implements TraceFragment {
         .pStorageFinalInCnf(this == storageFirstLastConflationPair.getLast())
         .pStorageDeploymentNumberFirstInBlock(minDeploymentNumberInBlock)
         .pStorageDeploymentNumberFinalInBlock(maxDeploymentNumberInBlock);
+        .pStorageValueNextIsOrig(valueNext.equals(valueOriginal));
   }
 }

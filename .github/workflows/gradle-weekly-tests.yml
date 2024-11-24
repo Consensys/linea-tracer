@@ -12,11 +12,6 @@ jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-      - uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.CONSTRAINTS_SSH_KEY }}
-
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -28,11 +23,8 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Install Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-
-      - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
+      - name: Setup Rust Corset
+        uses: ./.github/actions/setup-rust-corset
 
       - name: Run Weekly tests
         run: ./gradlew weeklyTests
@@ -52,10 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     steps:
-      - uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.CONSTRAINTS_SSH_KEY }}
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -67,18 +55,8 @@ jobs:
           java-version: 21
           distribution: temurin
 
-      - name: Install Rust
-        uses: actions-rust-lang/setup-rust-toolchain@v1
-
-      - name: Install Corset
-        run: RUSTFLAGS=-Awarnings cargo install --git ssh://git@github.com/ConsenSys/corset --tag v9.7.15 --locked --force
-
-      - name: Install Go
-        uses: actions/setup-go@v4
-
-      - name: Install Go Corset
-        run:
-          go install github.com/consensys/go-corset/cmd/go-corset@latest
+      - name: Setup Go Corset
+        uses: ./.github/actions/setup-go-corset
 
       - name: Run Weekly tests
         run: GOMEMLIMIT=196GiB ./gradlew weeklyTests

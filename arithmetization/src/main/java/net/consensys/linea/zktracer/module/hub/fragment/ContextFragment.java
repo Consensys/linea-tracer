@@ -93,7 +93,7 @@ public class ContextFragment implements TraceFragment {
 
   public static ContextFragment executionProvidesEmptyReturnData(final Hub hub, int contextNumber) {
     CallStack callStack = hub.callStack();
-    int parentId = callStack.getByContextNumber(contextNumber).callerId();
+    int parentId = callStack.getByContextNumber(contextNumber).parentId();
     return new ContextFragment(
         hub, callStack, Either.left(parentId), contextNumber, MemorySpan.empty(), true);
   }
@@ -128,7 +128,7 @@ public class ContextFragment implements TraceFragment {
         callStack,
         Either.right(receiverContextNumber),
         providerContextNumber,
-        callStack.currentCallFrame().returnDataSpan().snapshot(),
+        callStack.currentCallFrame().outputDataSpan().snapshot(),
         true);
     // TODO: is this what we want ?
     //  also: will the latestReturnData have been updated ?
@@ -149,7 +149,6 @@ public class ContextFragment implements TraceFragment {
   public Trace trace(Trace trace) {
     final CallFrame callFrame =
         this.callFrameReference.map(this.callStack::getById, this.callStack::getByContextNumber);
-    final CallFrame parent = callStack.getParentCallFrameById(callFrame.id());
 
     final Address address = callFrame.accountAddress();
     final Address codeAddress = callFrame.byteCodeAddress();
@@ -172,7 +171,7 @@ public class ContextFragment implements TraceFragment {
         .pContextCallerAddressHi(highPart(callerAddress))
         .pContextCallerAddressLo(lowPart(callerAddress))
         .pContextCallValue(callFrame.value())
-        .pContextCallDataContextNumber(parent.contextNumber())
+        .pContextCallDataContextNumber(callFrame.callDataInfo().callDataContextNumber())
         .pContextCallDataOffset(callFrame.callDataInfo().memorySpan().offset())
         .pContextCallDataSize(callFrame.callDataInfo().memorySpan().length())
         .pContextReturnAtOffset(callFrame.returnDataTargetInCaller().offset())

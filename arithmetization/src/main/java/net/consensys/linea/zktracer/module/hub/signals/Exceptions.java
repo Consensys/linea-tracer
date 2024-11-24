@@ -122,13 +122,13 @@ public class Exceptions {
   }
 
   private static boolean isStackUnderflow(final MessageFrame frame, OpCodeData opCodeData) {
-    return frame.stackSize() < opCodeData.stackSettings().nbRemoved();
+    return frame.stackSize() < opCodeData.stackSettings().delta();
   }
 
   private static boolean isStackOverflow(final MessageFrame frame, OpCodeData opCodeData) {
     return frame.stackSize()
-            + opCodeData.stackSettings().nbAdded()
-            - opCodeData.stackSettings().nbRemoved()
+            - opCodeData.stackSettings().delta()
+            + opCodeData.stackSettings().alpha()
         > 1024;
   }
 
@@ -144,9 +144,9 @@ public class Exceptions {
 
   private static boolean isReturnDataCopyFault(final MessageFrame frame, final OpCode opCode) {
     if (opCode == OpCode.RETURNDATACOPY) {
-      long returnDataSize = frame.getReturnData().size();
-      long askedOffset = clampedToLong(frame.getStackItem(1));
-      long askedSize = clampedToLong(frame.getStackItem(2));
+      final long returnDataSize = frame.getReturnData().size();
+      final long askedOffset = clampedToLong(frame.getStackItem(1));
+      final long askedSize = clampedToLong(frame.getStackItem(2));
 
       return Words.clampedAdd(askedOffset, askedSize) > returnDataSize;
     }
@@ -231,6 +231,10 @@ public class Exceptions {
     return codeSize > MAX_CODE_SIZE;
   }
 
+  public static boolean isOogxOrUnexceptional(short exceptions) {
+    return Exceptions.none(exceptions) || Exceptions.outOfGasException(exceptions);
+  }
+
   /**
    * Return the first exception that may have happened in the current frame. Although multiple
    * exceptions may be triggered, the one minimizing the quantity of trace lines is generated.
@@ -241,14 +245,14 @@ public class Exceptions {
     final OpCode opCode = hub.opCode();
     final OpCodeData opCodeData = hub.currentFrame().opCodeData();
 
-    if (isInvalidOpcode(opCode)) {
-      return INVALID_OPCODE;
-    }
     if (isStackUnderflow(frame, opCodeData)) {
       return STACK_UNDERFLOW;
     }
     if (isStackOverflow(frame, opCodeData)) {
       return STACK_OVERFLOW;
+    }
+    if (isInvalidOpcode(opCode)) {
+      return INVALID_OPCODE;
     }
     if (isStaticFault(frame, opCodeData)) {
       return STATIC_FAULT;

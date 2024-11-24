@@ -223,20 +223,20 @@ public class MmioData {
 
     checkArgument(
         0 <= sourceByteOffset && sourceByteOffset <= LLARGEMO,
-        "sourceByteOffset has value {}.",
+        "sourceByteOffset has value %s.",
         sourceByteOffset);
-    checkArgument(0 < size && size <= LLARGE, "size has value {}.", size);
+    checkArgument(0 < size && size <= LLARGE, "size has value %s.", size);
     checkArgument(
         sourceByteOffset + size - 1 <= LLARGEMO,
-        "sourceByteOffset has value {}.",
+        "sourceByteOffset has value %s.",
         sourceByteOffset);
     checkArgument(
         0 <= targetByteOffset && targetByteOffset <= LLARGEMO,
-        "targetByteOffset has value {}.",
+        "targetByteOffset has value %s.",
         targetByteOffset);
     checkArgument(
         targetByteOffset + size - 1 <= LLARGEMO,
-        "targetByteOffset has value {}.",
+        "targetByteOffset has value %s.",
         targetByteOffset);
 
     for (short ct = 0; ct < LLARGE; ct++) {
@@ -266,11 +266,21 @@ public class MmioData {
       final short targetByteOffset,
       final short size) {
 
-    checkArgument(0 <= sourceByteOffset && sourceByteOffset <= LLARGEMO);
-    checkArgument(0 < size && size <= LLARGE);
-    checkArgument(sourceByteOffset + size - 1 > LLARGEMO);
-    checkArgument(0 <= targetByteOffset && targetByteOffset <= LLARGEMO);
-    checkArgument(targetByteOffset + size - 1 <= LLARGEMO);
+    checkArgument(
+        0 <= sourceByteOffset && sourceByteOffset <= LLARGEMO,
+        "sourceByteOffset has value %s.",
+        sourceByteOffset);
+    checkArgument(0 < size && size <= LLARGE, "size has value %s.", size);
+    checkArgument(
+        sourceByteOffset + size - 1 > LLARGEMO, "sourceByteOffset has value %s.", sourceByteOffset);
+    checkArgument(
+        0 <= targetByteOffset && targetByteOffset <= LLARGEMO,
+        "targetByteOffset has value %s.",
+        targetByteOffset);
+    checkArgument(
+        targetByteOffset + size - 1 <= LLARGEMO,
+        "targetByteOffset has value %s.",
+        targetByteOffset);
 
     for (short ct = 0; ct < LLARGE; ct++) {
       bit1.add(ct, plateau(sourceByteOffset, ct));
@@ -288,15 +298,15 @@ public class MmioData {
       final Bytes16 source1,
       final Bytes16 source2,
       final Bytes16 target,
-      final short sourceOffsetTrigger,
-      final short targetOffsetTrgger,
+      final short sourceByteOffset,
+      final short targetByteOffset,
       final short size) {
 
     for (short ct = 0; ct < LLARGE; ct++) {
-      bit1.add(ct, plateau(sourceOffsetTrigger, ct));
-      bit2.add(ct, plateau(sourceOffsetTrigger + size - LLARGE, ct));
-      bit3.add(ct, plateau(targetOffsetTrgger, ct));
-      bit4.add(ct, plateau(targetOffsetTrgger + size, ct));
+      bit1.add(ct, plateau(sourceByteOffset, ct));
+      bit2.add(ct, plateau(sourceByteOffset + size - LLARGE, ct));
+      bit3.add(ct, plateau(targetByteOffset, ct));
+      bit4.add(ct, plateau(targetByteOffset + size, ct));
     }
 
     acc1 = isolateSuffix(source1, bit1);
@@ -307,8 +317,9 @@ public class MmioData {
     pow2562 = antiPower(bit2);
   }
 
-  public boolean operationRequiresOperation() {
+  public boolean operationRequiresExoFlag() {
     return List.of(
+            MMIO_INST_LIMB_VANISHES,
             MMIO_INST_LIMB_TO_RAM_TRANSPLANT,
             MMIO_INST_LIMB_TO_RAM_ONE_TARGET,
             MMIO_INST_LIMB_TO_RAM_TWO_TARGET,

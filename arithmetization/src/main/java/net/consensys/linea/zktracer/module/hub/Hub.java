@@ -617,18 +617,18 @@ public class Hub implements Module {
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
 
-      final MemoryRange callData =
+      final MemoryRange callDataRange =
           isDeployment
               ? new MemoryRange(currentFrame().contextNumber())
-              : ((CallSection) currentTraceSection()).getCallData();
+              : ((CallSection) currentTraceSection()).getCallDataRange();
 
       currentFrame().rememberGasNextBeforePausing(this);
       currentFrame().pauseCurrentFrame();
 
-      MemoryRange returnAt =
+      MemoryRange returnAtRange =
           isDeployment
               ? new MemoryRange(currentFrame().contextNumber())
-              : ((CallSection) currentTraceSection()).getReturnAt();
+              : ((CallSection) currentTraceSection()).getReturnAtRange();
 
       callStack.enter(
           frameType,
@@ -642,8 +642,8 @@ public class Hub implements Module {
           this.deploymentNumberOf(frame.getContractAddress()),
           new Bytecode(frame.getCode().getBytes()),
           frame.getSenderAddress(),
-              callData,
-          returnAt);
+              callDataRange,
+          returnAtRange);
 
       this.currentFrame().initializeFrame(frame);
 

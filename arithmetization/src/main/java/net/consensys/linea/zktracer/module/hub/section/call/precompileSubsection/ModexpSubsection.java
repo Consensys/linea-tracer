@@ -49,14 +49,14 @@ import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
 public class ModexpSubsection extends PrecompileSubsection {
 
-  private final ModexpMetadata modexpMetaData;
+  public final ModexpMetadata modexpMetaData;
   private ModexpPricingOobCall sixthOobCall;
   private ImcFragment seventhImcFragment;
 
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
 
-    modexpMetaData = new ModexpMetadata(hub, callData);
+    modexpMetaData = new ModexpMetadata(hub, getCallDataRange().extract());
     if (modexpMetaData
                 .bbs()
                 .toUnsignedBigInteger()
@@ -176,7 +176,7 @@ public class ModexpSubsection extends PrecompileSubsection {
 
     final ImcFragment eleventhImcFragment = ImcFragment.empty(hub);
     fragments().add(eleventhImcFragment);
-    if (modexpMetaData.mbsNonZero() && !parentReturnDataTarget.isEmpty()) {
+    if (modexpMetaData.mbsNonZero() && !getReturnAtRange().isEmpty()) {
       final MmuCall mmuCall = forModexpPartialResultCopy(hub, this, modexpMetaData);
       eleventhImcFragment.callMmu(mmuCall);
     }

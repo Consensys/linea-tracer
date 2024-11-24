@@ -135,13 +135,13 @@ public class ContextFragment implements TraceFragment {
   }
 
   public static ContextFragment updateReturnData(
-      final Hub hub, final int returnDataContextNumber, final Range returnDataMetaInfo) {
+      final Hub hub, final int returnDataContextNumber, final Range returnDataRange) {
     return new ContextFragment(
         hub,
         hub.callStack(),
         Either.right(hub.callStack().currentCallFrame().contextNumber()),
         returnDataContextNumber,
-        returnDataMetaInfo,
+        returnDataRange,
         true);
   }
 

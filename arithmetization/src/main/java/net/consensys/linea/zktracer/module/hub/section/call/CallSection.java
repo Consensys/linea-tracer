@@ -142,8 +142,8 @@ public class CallSection extends TraceSection
   public StpCall stpCall;
   private PrecompileSubsection precompileSubsection;
 
-  @Getter private MemoryRange callData;
-  @Getter private MemoryRange returnAt;
+  @Getter private MemoryRange callDataRange;
+  @Getter private MemoryRange returnAtRange;
 
   public CallSection(Hub hub, MessageFrame frame) {
     super(hub, maxNumberOfLines(hub));
@@ -206,8 +206,8 @@ public class CallSection extends TraceSection
     currentFrame.childSpanningSection(this);
 
     // the call data span and ``return at'' spans are only required once the CALL is unexceptional
-    callData = new MemoryRange(currentFrame.contextNumber(), callDataSpan(frame), frame);
-    returnAt = new MemoryRange(currentFrame.contextNumber(), returnAtSpan(frame), frame);
+    callDataRange = new MemoryRange(currentFrame.contextNumber(), callDataSpan(frame), frame);
+    returnAtRange = new MemoryRange(currentFrame.contextNumber(), returnAtSpan(frame), frame);
 
     value =
         opCode.callHasValueArgument()

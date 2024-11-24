@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.types;
 
+import lombok.Getter;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
@@ -34,6 +35,7 @@ import static net.consensys.linea.zktracer.module.Util.slice;
  *
  * <p>W
  */
+@Getter
 public class MemoryRange {
 
   private final long contextNumber;
@@ -99,5 +101,9 @@ public class MemoryRange {
 
   public Bytes extract() {
     return range.isEmpty() ? Bytes.EMPTY : slice(rawData, safeLongToInt(range.offset()), safeLongToInt(range.size()));
+  }
+
+  public boolean isEmpty() {
+    return range.isEmpty();
   }
 }

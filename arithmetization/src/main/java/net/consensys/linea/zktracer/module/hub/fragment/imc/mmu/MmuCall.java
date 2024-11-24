@@ -271,7 +271,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public static MmuCall revert(final Hub hub) {
-    final CallFrame parentFrame = hub.callStack().parent();
+    final CallFrame parentFrame = hub.callStack().parentCallFrame();
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(hub.currentFrame().contextNumber())
@@ -285,7 +285,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
             Optional.of(
                 parentFrame
                     .frame()
-                    .shadowReadMemory(0, hub.callStack().parent().frame().memoryByteSize())))
+                    .shadowReadMemory(0, hub.callStack().parentCallFrame().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(clampedToLong(hub.messageFrame().getStackItem(1)))
         .referenceOffset(hub.currentFrame().returnAtRange().offset())

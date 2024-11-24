@@ -105,7 +105,7 @@ public class PrecompileSubsection
 
   @Override
   public void resolveUponContextEntry(Hub hub) {
-    callerGas = hub.callStack().parent().frame().getRemainingGas();
+    callerGas = hub.callStack().parentCallFrame().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
   }
 
@@ -129,8 +129,7 @@ public class PrecompileSubsection
 
       hub.defers().scheduleForPostRollback(this, callFrame);
       callSection.setFinalContextFragment(
-          ContextFragment.updateReturnData(
-              hub, returnDataContextNumber(), returnDataRange.getRange()));
+          ContextFragment.updateCurrentReturnData(hub, returnDataRange));
     } else {
       callSection.setFinalContextFragment(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
     }

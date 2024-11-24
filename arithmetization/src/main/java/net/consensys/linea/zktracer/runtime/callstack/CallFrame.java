@@ -129,8 +129,10 @@ public class CallFrame {
   /** the gas given to this frame. */
   @Getter private long gasStipend;
 
-  /** the call data given to this frame. */
   @Getter private final MemoryRange callDataRange;
+  @Getter private final MemoryRange returnAtRange;
+  @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY;
+  @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY;
 
   /** the latest child context to have been called from this frame */
   @Getter @Setter private int returnDataContextNumber = 0;
@@ -140,15 +142,6 @@ public class CallFrame {
 
   /** returnData position within the latest callee memory space. */
   @Getter @Setter private Range returnDataSpan = Range.empty();
-
-  /** the return data provided by this frame */
-  @Getter @Setter private Bytes outputData = Bytes.EMPTY;
-
-  /** where this frame store its return data in its own RAM */
-  @Getter @Setter private Range outputDataSpan;
-
-  /** where this frame is expected to write its outputData within its parent's memory space. */
-  @Getter private final MemoryRange returnAtRange;
 
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
@@ -167,14 +160,6 @@ public class CallFrame {
    * instruction
    */
   @Getter @Setter private TraceSection childSpanningSection;
-
-  public static void updateParentContextReturnData(
-      Hub hub, Bytes outputData, Range returnDataSource) {
-    CallFrame parent = hub.callStack().parent();
-    parent.returnDataContextNumber = hub.currentFrame().contextNumber;
-    parent.returnData = outputData;
-    parent.outputDataSpan(returnDataSource);
-  }
 
   /** Create a MANTLE call frame. */
   CallFrame(final Address origin, final Bytes callDataRange, final int contextNumber) {
@@ -252,7 +237,6 @@ public class CallFrame {
     this.callerAddress = callerAddress;
     this.parentId = parentId;
     this.callDataRange = callDataRange;
-    this.outputDataSpan = Range.empty();
     this.returnDataSpan = Range.empty();
     this.returnAtRange = returnAtRange;
   }
@@ -359,5 +343,9 @@ public class CallFrame {
 
   public static OpCode getOpCode(MessageFrame frame) {
     return OpCode.of(0xFF & frame.getCurrentOperation().getOpcode());
+  }
+
+  public void squashReturnData() {
+    returnDataRange(MemoryRange.EMPTY);
   }
 }

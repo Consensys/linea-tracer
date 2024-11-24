@@ -133,7 +133,7 @@ public final class CallStack {
   /**
    * @return the parent {@link CallFrame} of the current frame
    */
-  public CallFrame parent() {
+  public CallFrame parentCallFrame() {
     if (this.currentCallFrame().parentId() != -1) {
       return this.callFrames.get(this.currentCallFrame().parentId());
     } else {
@@ -293,7 +293,7 @@ public final class CallStack {
   }
 
   public Bytes getFullMemoryOfCaller(Hub hub) {
-    final MessageFrame parentFrame = parent().frame();
+    final MessageFrame parentFrame = parentCallFrame().frame();
     return currentCallFrame().depth() == 0
         ? hub.txStack().current().getTransactionCallData()
         : parentFrame.shadowReadMemory(0, parentFrame.memoryByteSize());

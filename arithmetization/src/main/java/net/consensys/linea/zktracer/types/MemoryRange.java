@@ -111,4 +111,8 @@ public class MemoryRange {
   public boolean isEmpty() {
     return range.isEmpty();
   }
+
+  public MemoryRange deepCopy() {
+    return new MemoryRange(this.contextNumber, this.range, this.rawData);
+  }
 }

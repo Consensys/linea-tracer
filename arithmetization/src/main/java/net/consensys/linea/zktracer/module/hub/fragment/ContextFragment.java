@@ -27,7 +27,7 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.Either;
-import net.consensys.linea.zktracer.types.Range;
+import net.consensys.linea.zktracer.types.MemoryRange;
 import org.hyperledger.besu.datatypes.Address;
 
 @Getter
@@ -36,106 +36,64 @@ import org.hyperledger.besu.datatypes.Address;
 @AllArgsConstructor
 public class ContextFragment implements TraceFragment {
   private final Hub hub;
-  private final CallStack callStack;
-  // Left: callFrameId, Right: contextNumber
-  private Either<Integer, Integer> callFrameReference;
-  private int returnDataContextNumber;
-  private Range returnDataSegment;
-  private boolean updateReturnData;
+  private final Either<Integer, Integer> callFrameReference;
+  private final MemoryRange returnDataRange;
+  private final boolean updateReturnData;
 
-  public static ContextFragment readContextDataByContextNumber(
-      final Hub hub, final int contextNumber) {
-    CallStack callStack = hub.callStack();
-    return new ContextFragment(
-        hub,
-        callStack,
-        Either.right(contextNumber),
-        callStack.getByContextNumber(contextNumber).returnDataContextNumber(),
-        callStack.currentCallFrame().returnDataSpan().snapshot(),
-        false);
+  private static ContextFragment readContextData(final Hub hub, final Either<Integer, Integer> callFrameReference) {
+    final CallFrame callFrame = callFrameReference.map(hub.callStack()::getById, hub.callStack()::getByContextNumber);
+    return new ContextFragment(hub, callFrameReference, callFrame.returnDataRange().deepCopy(), false);
   }
 
   public static ContextFragment readContextDataById(final Hub hub, final int contextId) {
-    CallStack callStack = hub.callStack();
-    return new ContextFragment(
-        hub,
-        callStack,
-        Either.left(contextId),
-        callStack.getById(contextId).returnDataContextNumber(),
-        callStack.currentCallFrame().returnDataSpan().snapshot(),
-        false);
+    return readContextData( hub, Either.left(contextId));
   }
 
   public static ContextFragment readCurrentContextData(final Hub hub) {
-    return readContextDataById(hub, hub.callStack().currentCallFrame().id());
+    return readContextData(hub, Either.left(hub.currentFrame().id()));
   }
 
   public static ContextFragment initializeNewExecutionContext(final Hub hub) {
     return new ContextFragment(
-        hub, hub.callStack(), Either.right(hub.newChildContextNumber()), 0, Range.empty(), false);
-  }
-
-  public static ContextFragment executionProvidesEmptyReturnData(final Hub hub) {
-    CallStack callStack = hub.callStack();
-    return new ContextFragment(
-        hub,
-        callStack,
-        Either.left(callStack.parent().id()),
-        hub.callStack().currentCallFrame().contextNumber(),
-        Range.empty(),
-        true);
+        hub, Either.right(hub.newChildContextNumber()), MemoryRange.EMPTY, false);
   }
 
   public static ContextFragment executionProvidesEmptyReturnData(final Hub hub, int contextNumber) {
-    CallStack callStack = hub.callStack();
-    int parentId = callStack.getByContextNumber(contextNumber).parentId();
+    int parentId = hub.callStack().getByContextNumber(contextNumber).parentId();
     return new ContextFragment(
-        hub, callStack, Either.left(parentId), contextNumber, Range.empty(), true);
+            hub, Either.left(parentId), new MemoryRange(contextNumber), true);
   }
 
-  public static ContextFragment nonExecutionProvidesEmptyReturnData(final Hub hub) {
-    CallStack callStack = hub.callStack();
-    return new ContextFragment(
-        hub,
-        callStack,
-        Either.left(callStack.currentCallFrame().id()),
-        hub.newChildContextNumber(),
-        Range.empty(),
-        true);
+  public static ContextFragment executionProvidesEmptyReturnData(final Hub hub) {
+    int currentContextNumber = hub.currentFrame().contextNumber();
+    return executionProvidesEmptyReturnData(hub, currentContextNumber);
   }
 
-  public static ContextFragment executionProvidesReturnData(final Hub hub) {
-    CallStack callStack = hub.callStack();
+  public static ContextFragment executionProvidesReturnData(final Hub hub, MemoryRange returnDataRange) {
+    int parentId = hub.callStack().currentCallFrame().parentId();
     return new ContextFragment(
         hub,
-        callStack,
-        Either.left(callStack.parent().id()),
-        hub.currentFrame().contextNumber(),
-        callStack.currentCallFrame().outputDataSpan(),
-        true);
-  }
-
-  public static ContextFragment executionProvidesReturnData(
-      final Hub hub, int receiverContextNumber, int providerContextNumber) {
-    CallStack callStack = hub.callStack();
-    return new ContextFragment(
-        hub,
-        callStack,
-        Either.right(receiverContextNumber),
-        providerContextNumber,
-        callStack.currentCallFrame().outputDataSpan().snapshot(),
+        Either.left(parentId),
+        returnDataRange,
         true);
     // TODO: is this what we want ?
     //  also: will the latestReturnData have been updated ?
   }
 
-  public static ContextFragment updateReturnData(
-      final Hub hub, final int returnDataContextNumber, final Range returnDataRange) {
+  public static ContextFragment nonExecutionProvidesEmptyReturnData(final Hub hub) {
+    CallStack callStack = hub.callStack();
+    return new ContextFragment(
+            hub,
+            Either.left(callStack.currentCallFrame().id()),
+            new MemoryRange(hub.newChildContextNumber()),
+            true);
+  }
+
+  public static ContextFragment updateCurrentReturnData(
+      final Hub hub, final MemoryRange returnDataRange) {
     return new ContextFragment(
         hub,
-        hub.callStack(),
-        Either.right(hub.callStack().currentCallFrame().contextNumber()),
-        returnDataContextNumber,
+        Either.right(hub.currentFrame().contextNumber()),
         returnDataRange,
         true);
   }
@@ -143,7 +101,7 @@ public class ContextFragment implements TraceFragment {
   @Override
   public Trace trace(Trace trace) {
     final CallFrame callFrame =
-        this.callFrameReference.map(this.callStack::getById, this.callStack::getByContextNumber);
+        this.callFrameReference.map(hub.callStack()::getById, hub.callStack()::getByContextNumber);
 
     final Address address = callFrame.accountAddress();
     final Address codeAddress = callFrame.byteCodeAddress();
@@ -172,12 +130,8 @@ public class ContextFragment implements TraceFragment {
         .pContextReturnAtOffset(callFrame.returnAtRange().offset())
         .pContextReturnAtCapacity(callFrame.returnAtRange().size())
         .pContextUpdate(updateReturnData)
-        .pContextReturnDataContextNumber(returnDataContextNumber)
-        //             callFrame.id() == 0
-        //                 ? callFrame.universalParentReturnDataContextNumber
-        //                 : callFrame.lastCallee().map(c ->
-        // callStack.getById(c).contextNumber()).orElse(0))
-        .pContextReturnDataOffset(returnDataSegment.offset())
-        .pContextReturnDataSize(returnDataSegment.size());
+        .pContextReturnDataContextNumber(returnDataRange.contextNumber())
+        .pContextReturnDataOffset(returnDataRange.offset())
+        .pContextReturnDataSize(returnDataRange.size());
   }
 }

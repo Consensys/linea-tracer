@@ -30,8 +30,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
  * <p>Typicallly {@link #rawData} will contain a snapshot of memory at the time of creation of the
  * {@link MemoryRange}, though if {@link #range} is empty, the {@link #rawData} will be discarded.
  * It may or may not contain the actual data as a subset. Regardless, the actual data ought to be
- * extractable from the rawData using the {@link #range} and zero-right-padding to the expected size
- * ({@link Range#size()}) if necessary.
+ * {@link #extract}-able from the {@link #rawData} using the {@link #range} and zero-right-padding
+ * to the expected size ({@link Range#size()}) if necessary.
  *
  * <p>W
  */

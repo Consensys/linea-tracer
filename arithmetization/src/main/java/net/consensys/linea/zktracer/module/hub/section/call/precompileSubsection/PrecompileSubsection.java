@@ -38,7 +38,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScena
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
@@ -59,10 +59,10 @@ public class PrecompileSubsection
   public Bytes callData;
 
   /** The input data for the precompile */
-  public MemorySpan callDataMemorySpan;
+  public Range callDataRange;
 
   /** Where the caller wants the precompile return data to be stored */
-  public MemorySpan parentReturnDataTarget;
+  public Range parentReturnDataTarget;
 
   /** The (potentially empty) return data of the precompile call */
   @Setter public Bytes returnData;
@@ -120,8 +120,8 @@ public class PrecompileSubsection
             opCode.callHasValueArgument()
                 ? messageFrame.getStackItem(4)
                 : messageFrame.getStackItem(3));
-    callDataMemorySpan = new MemorySpan(offset, length);
-    callerMemorySnapshot = extractContiguousLimbsFromMemory(messageFrame, callDataMemorySpan);
+    callDataRange = new Range(offset, length);
+    callerMemorySnapshot = extractContiguousLimbsFromMemory(messageFrame, callDataRange);
     final int lengthToExtract =
         (int) Math.min(length, Math.max(callerMemorySnapshot.size() - offset, 0));
     callData = rightPadTo(callerMemorySnapshot.slice((int) offset, lengthToExtract), (int) length);
@@ -134,7 +134,7 @@ public class PrecompileSubsection
   @Override
   public void resolveUponContextEntry(Hub hub) {
     // Sanity check
-    checkArgument(callDataMemorySpan.equals(hub.currentFrame().callDataInfo().memorySpan()));
+    checkArgument(callDataRange.equals(hub.currentFrame().callData().range()));
     checkArgument(callData.equals(hub.messageFrame().getInputData()));
 
     callerGas = hub.callStack().parent().frame().getRemainingGas();
@@ -155,7 +155,7 @@ public class PrecompileSubsection
     final CallFrame returnerFrame = hub.callStack().getByContextNumber(returnerCn);
     returnerFrame.returnData(returnData);
     frame.returnDataContextNumber(returnerCn);
-    frame.returnDataSpan(new MemorySpan(0, returnData.size()));
+    frame.returnDataSpan(new Range(0, returnData.size()));
 
     if (callSuccess) {
       hub.defers().scheduleForPostRollback(this, frame);

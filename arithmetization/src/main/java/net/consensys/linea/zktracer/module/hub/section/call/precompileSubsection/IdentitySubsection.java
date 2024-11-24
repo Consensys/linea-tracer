@@ -55,7 +55,7 @@ public class IdentitySubsection extends PrecompileSubsection {
       precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_HUB);
     }
 
-    final boolean extractCallData = callSuccess && !callDataMemorySpan.isEmpty();
+    final boolean extractCallData = callSuccess && !callDataRange.isEmpty();
     if (extractCallData) {
       final MmuCall mmuCall = forIdentityExtractCallData(hub, this);
       firstImcFragment.callMmu(mmuCall);

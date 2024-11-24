@@ -27,7 +27,7 @@ import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.Either;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Range;
 import org.hyperledger.besu.datatypes.Address;
 
 @Getter
@@ -40,7 +40,7 @@ public class ContextFragment implements TraceFragment {
   // Left: callFrameId, Right: contextNumber
   private Either<Integer, Integer> callFrameReference;
   private int returnDataContextNumber;
-  private MemorySpan returnDataSegment;
+  private Range returnDataSegment;
   private boolean updateReturnData;
 
   public static ContextFragment readContextDataByContextNumber(
@@ -76,7 +76,7 @@ public class ContextFragment implements TraceFragment {
         hub.callStack(),
         Either.right(hub.newChildContextNumber()),
         0,
-        MemorySpan.empty(),
+        Range.empty(),
         false);
   }
 
@@ -87,7 +87,7 @@ public class ContextFragment implements TraceFragment {
         callStack,
         Either.left(callStack.parent().id()),
         hub.callStack().currentCallFrame().contextNumber(),
-        MemorySpan.empty(),
+        Range.empty(),
         true);
   }
 
@@ -95,7 +95,7 @@ public class ContextFragment implements TraceFragment {
     CallStack callStack = hub.callStack();
     int parentId = callStack.getByContextNumber(contextNumber).parentId();
     return new ContextFragment(
-        hub, callStack, Either.left(parentId), contextNumber, MemorySpan.empty(), true);
+        hub, callStack, Either.left(parentId), contextNumber, Range.empty(), true);
   }
 
   public static ContextFragment nonExecutionProvidesEmptyReturnData(final Hub hub) {
@@ -105,7 +105,7 @@ public class ContextFragment implements TraceFragment {
         callStack,
         Either.left(callStack.currentCallFrame().id()),
         hub.newChildContextNumber(),
-        MemorySpan.empty(),
+        Range.empty(),
         true);
   }
 
@@ -135,7 +135,7 @@ public class ContextFragment implements TraceFragment {
   }
 
   public static ContextFragment updateReturnData(
-      final Hub hub, final int returnDataContextNumber, final MemorySpan returnDataMetaInfo) {
+      final Hub hub, final int returnDataContextNumber, final Range returnDataMetaInfo) {
     return new ContextFragment(
         hub,
         hub.callStack(),
@@ -171,11 +171,11 @@ public class ContextFragment implements TraceFragment {
         .pContextCallerAddressHi(highPart(callerAddress))
         .pContextCallerAddressLo(lowPart(callerAddress))
         .pContextCallValue(callFrame.value())
-        .pContextCallDataContextNumber(callFrame.callDataInfo().callDataContextNumber())
-        .pContextCallDataOffset(callFrame.callDataInfo().memorySpan().offset())
-        .pContextCallDataSize(callFrame.callDataInfo().memorySpan().length())
+        .pContextCallDataContextNumber(callFrame.callData().callDataContextNumber())
+        .pContextCallDataOffset(callFrame.callData().range().offset())
+        .pContextCallDataSize(callFrame.callData().range().size())
         .pContextReturnAtOffset(callFrame.returnDataTargetInCaller().offset())
-        .pContextReturnAtCapacity(callFrame.returnDataTargetInCaller().length())
+        .pContextReturnAtCapacity(callFrame.returnDataTargetInCaller().size())
         .pContextUpdate(updateReturnData)
         .pContextReturnDataContextNumber(returnDataContextNumber)
         //             callFrame.id() == 0
@@ -183,6 +183,6 @@ public class ContextFragment implements TraceFragment {
         //                 : callFrame.lastCallee().map(c ->
         // callStack.getById(c).contextNumber()).orElse(0))
         .pContextReturnDataOffset(returnDataSegment.offset())
-        .pContextReturnDataSize(returnDataSegment.length());
+        .pContextReturnDataSize(returnDataSegment.size());
   }
 }

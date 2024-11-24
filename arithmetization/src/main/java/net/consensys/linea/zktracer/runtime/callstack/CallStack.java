@@ -24,7 +24,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -84,8 +84,8 @@ public final class CallStack {
         codeDeploymentNumber,
         toCode == null ? Bytecode.EMPTY : toCode,
         from,
-        new CallDataInfo(callData, 0, callData.size(), callDataContextNumber),
-        MemorySpan.empty());
+        new CallData(callDataContextNumber, 0, callData.size(), callData),
+        Range.empty());
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -110,8 +110,8 @@ public final class CallStack {
         0,
         Bytecode.EMPTY,
         Address.ZERO, // useless
-        CallDataInfo.empty(),
-        MemorySpan.empty());
+        CallData.empty(),
+        Range.empty());
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -170,8 +170,8 @@ public final class CallStack {
       int byteCodeDeploymentNumber,
       Bytecode byteCode,
       Address callerAddress,
-      CallDataInfo callDataInfo,
-      MemorySpan returnDataTargetInCaller) {
+      CallData callData,
+      Range returnDataTargetInCaller) {
     final int callerId = this.depth == -1 ? -1 : this.currentId;
     final int newCallFrameId = this.callFrames.size();
     this.depth += 1;
@@ -192,7 +192,7 @@ public final class CallStack {
             byteCode,
             callerAddress,
             callerId,
-            callDataInfo,
+                callData,
             returnDataTargetInCaller);
 
     this.callFrames.add(newFrame);

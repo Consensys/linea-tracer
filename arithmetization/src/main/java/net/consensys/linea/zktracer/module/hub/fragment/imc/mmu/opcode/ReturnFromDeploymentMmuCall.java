@@ -30,7 +30,7 @@ import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -69,7 +69,7 @@ public class ReturnFromDeploymentMmuCall extends MmuCall {
             Optional.of(
                 extractContiguousLimbsFromMemory(
                     currentFrame.frame(),
-                    MemorySpan.fromStartLength(clampedToLong(sourceOffset), size))))
+                    Range.fromOffsetAndSize(clampedToLong(sourceOffset), size))))
         .auxId(newIdentifierFromStamp(hub.stamp()))
         .sourceOffset(sourceOffset)
         .size(size)

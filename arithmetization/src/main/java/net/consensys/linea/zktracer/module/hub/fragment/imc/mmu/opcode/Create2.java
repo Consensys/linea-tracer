@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romlex.RomLexDefer;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 
 /**
@@ -53,7 +53,7 @@ public class Create2 extends MmuCall implements RomLexDefer {
             Optional.of(
                 extractContiguousLimbsFromMemory(
                     currentFrame.frame(),
-                    MemorySpan.fromStartLength(clampedToLong(sourceOffset), size))))
+                    Range.fromOffsetAndSize(clampedToLong(sourceOffset), size))))
         .auxId(newIdentifierFromStamp(hub.stamp()))
         .exoBytes(Optional.of(create2initCode))
         .sourceOffset(sourceOffset)

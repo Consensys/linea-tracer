@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Range;
 
 /**
  * A specialization of {@link MmuCall} that addresses the fact that the MMU requires access to the
@@ -50,7 +50,7 @@ public class CodeCopy extends MmuCall {
             Optional.of(
                 extractContiguousLimbsFromMemory(
                     currentFrame.frame(),
-                    MemorySpan.fromStartLength(clampedToLong(targetOffset), size))))
+                    Range.fromOffsetAndSize(clampedToLong(targetOffset), size))))
         .sourceOffset(EWord.of(currentFrame.frame().getStackItem(1)))
         .targetOffset(targetOffset)
         .size(size)

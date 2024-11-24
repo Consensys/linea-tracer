@@ -74,11 +74,11 @@ public class BlakeSubsection extends PrecompileSubsection {
   }
 
   @Override
-  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-    super.resolveAtContextReEntry(hub, frame);
+  public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
+    super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity checks
-    checkArgument(blakeCdsOobCall.isHubSuccess() == (callDataMemorySpan.length() == 213));
+    checkArgument(blakeCdsOobCall.isHubSuccess() == (callDataRange.size() == 213));
     checkArgument(callSuccess == blakeSuccess);
     this.sanityCheck();
 

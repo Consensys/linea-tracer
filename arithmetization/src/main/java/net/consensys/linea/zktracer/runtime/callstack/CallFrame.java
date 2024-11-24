@@ -33,7 +33,7 @@ import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -129,7 +129,7 @@ public class CallFrame {
   @Getter private long gasStipend;
 
   /** the call data given to this frame. */
-  @Getter private final CallDataInfo callDataInfo;
+  @Getter private final CallData callData;
 
   /** the latest child context to have been called from this frame */
   @Getter @Setter private int returnDataContextNumber = 0;
@@ -138,16 +138,16 @@ public class CallFrame {
   @Getter @Setter private Bytes returnData = Bytes.EMPTY;
 
   /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan returnDataSpan = MemorySpan.empty();
+  @Getter @Setter private Range returnDataSpan = Range.empty();
 
   /** the return data provided by this frame */
   @Getter @Setter private Bytes outputData = Bytes.EMPTY;
 
   /** where this frame store its return data in its own RAM */
-  @Getter @Setter private MemorySpan outputDataSpan;
+  @Getter @Setter private Range outputDataSpan;
 
   /** where this frame is expected to write its outputData within its parent's memory space. */
-  @Getter private final MemorySpan returnDataTargetInCaller;
+  @Getter private final Range returnDataTargetInCaller;
 
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
@@ -168,7 +168,7 @@ public class CallFrame {
   @Getter @Setter private TraceSection childSpanningSection;
 
   public static void updateParentContextReturnData(
-      Hub hub, Bytes outputData, MemorySpan returnDataSource) {
+      Hub hub, Bytes outputData, Range returnDataSource) {
     CallFrame parent = hub.callStack().parent();
     parent.returnDataContextNumber = hub.currentFrame().contextNumber;
     parent.returnData = outputData;
@@ -180,8 +180,8 @@ public class CallFrame {
     type = CallFrameType.TRANSACTION_CALL_DATA_HOLDER;
     this.contextNumber = contextNumber;
     accountAddress = origin;
-    callDataInfo = new CallDataInfo(callData, 0, callData.size(), contextNumber);
-    returnDataTargetInCaller = MemorySpan.empty();
+    this.callData = new CallData(contextNumber, 0, callData.size(), callData);
+    returnDataTargetInCaller = Range.empty();
     value = Wei.ZERO;
     id = -1;
     depth = -1;
@@ -193,8 +193,8 @@ public class CallFrame {
     contextNumber = 0;
     accountAddress = Address.ZERO;
     parentId = -1;
-    callDataInfo = new CallDataInfo(Bytes.EMPTY, 0, 0, 0);
-    returnDataTargetInCaller = MemorySpan.empty();
+    callData = new CallData(0, 0, 0, Bytes.EMPTY);
+    returnDataTargetInCaller = Range.empty();
     depth = 0;
     value = Wei.ZERO;
     id = -1;
@@ -217,7 +217,7 @@ public class CallFrame {
    * @param byteCode byteCode that executes in the present context
    * @param callerAddress either account address of the caller/creator context
    * @param parentId ID of the caller frame in the {@link CallStack}
-   * @param callDataInfo call data of the current frame
+   * @param callData call data of the current frame
    */
   CallFrame(
       CallFrameType type,
@@ -234,8 +234,8 @@ public class CallFrame {
       Bytecode byteCode,
       Address callerAddress,
       int parentId,
-      CallDataInfo callDataInfo,
-      MemorySpan returnDataTargetInCaller) {
+      CallData callData,
+      Range returnDataTargetInCaller) {
     this.type = type;
     this.id = id;
     this.contextNumber = contextNumber;
@@ -250,9 +250,9 @@ public class CallFrame {
     this.code = byteCode;
     this.callerAddress = callerAddress;
     this.parentId = parentId;
-    this.callDataInfo = callDataInfo;
-    this.outputDataSpan = MemorySpan.empty();
-    this.returnDataSpan = MemorySpan.empty();
+    this.callData = callData;
+    this.outputDataSpan = Range.empty();
+    this.returnDataSpan = Range.empty();
     this.returnDataTargetInCaller = returnDataTargetInCaller;
   }
 
@@ -347,9 +347,9 @@ public class CallFrame {
   }
 
   public static Bytes extractContiguousLimbsFromMemory(
-      final MessageFrame frame, final MemorySpan memorySpan) {
+      final MessageFrame frame, final Range range) {
     // TODO: optimize me please. Need a review of the MMU operation handling.
-    return memorySpan.isEmpty() ? Bytes.EMPTY : frame.shadowReadMemory(0, frame.memoryByteSize());
+    return range.isEmpty() ? Bytes.EMPTY : frame.shadowReadMemory(0, frame.memoryByteSize());
   }
 
   public OpCode getOpCode() {

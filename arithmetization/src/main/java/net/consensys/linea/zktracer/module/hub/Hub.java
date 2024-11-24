@@ -107,14 +107,14 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
-import net.consensys.linea.zktracer.runtime.callstack.CallDataInfo;
+import net.consensys.linea.zktracer.runtime.callstack.CallData;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Range;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -617,18 +617,18 @@ public class Hub implements Module {
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
 
-      final CallDataInfo callDataInfo =
+      final CallData callData =
           isDeployment
-              ? CallDataInfo.empty()
-              : ((CallSection) currentTraceSection()).getCallDataInfo();
+              ? CallData.empty()
+              : ((CallSection) currentTraceSection()).getCallData();
 
       currentFrame().rememberGasNextBeforePausing(this);
       currentFrame().pauseCurrentFrame();
 
-      MemorySpan returnDataTargetInCaller =
+      Range returnAt =
           isDeployment
-              ? MemorySpan.empty()
-              : ((CallSection) currentTraceSection()).getReturnAtMemorySpan();
+              ? Range.empty()
+              : ((CallSection) currentTraceSection()).getReturnAt();
 
       callStack.enter(
           frameType,
@@ -642,8 +642,8 @@ public class Hub implements Module {
           this.deploymentNumberOf(frame.getContractAddress()),
           new Bytecode(frame.getCode().getBytes()),
           frame.getSenderAddress(),
-          callDataInfo,
-          returnDataTargetInCaller);
+              callData,
+          returnAt);
 
       this.currentFrame().initializeFrame(frame);
 
@@ -1105,14 +1105,14 @@ public class Hub implements Module {
   }
 
   public void squashCurrentFrameOutputData() {
-    this.currentFrame().outputDataSpan(MemorySpan.empty());
+    this.currentFrame().outputDataSpan(Range.empty());
     this.currentFrame().outputData(Bytes.EMPTY);
   }
 
   public void squashParentFrameReturnData() {
     final CallFrame parentFrame = callStack.parent();
     parentFrame.returnData(Bytes.EMPTY);
-    parentFrame.returnDataSpan(MemorySpan.empty());
+    parentFrame.returnDataSpan(Range.empty());
   }
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {

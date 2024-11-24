@@ -516,14 +516,6 @@ public class Hub implements Module {
     transactionProcessingMetadata
         .captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(this);
 
-    /*
-     * TODO: the ID = 0 (universal parent context) context should
-     *  1. be shared by all transactions in a conflation (OK)
-     *  2. should be the father of all root contexts
-     *  3. should have the current root context as its lastCallee()
-     */
-    callStack.getById(0).universalParentReturnDataContextNumber(this.stamp() + 1);
-
     for (Module m : modules) {
       m.traceStartTx(world, transactionProcessingMetadata);
     }

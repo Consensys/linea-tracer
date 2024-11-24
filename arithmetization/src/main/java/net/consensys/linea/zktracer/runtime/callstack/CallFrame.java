@@ -44,56 +44,37 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class CallFrame {
   public static final CallFrame EMPTY = new CallFrame();
 
-  @Setter public int universalParentReturnDataContextNumber;
-
-  /** the position of this {@link CallFrame} in the {@link CallStack}. */
+  // various identifiers related to the CallFrame
   @Getter private final int id;
-
-  /** the context number of the frame, i.e. the hub stamp at its creation */
   @Getter private final int contextNumber;
+  @Getter private int parentId;
+  @Getter private final List<Integer> childFrameIds = new ArrayList<>();
 
-  /** the depth of this CallFrame within its call hierarchy. */
+  // general information
+  @Getter private final Wei value;
+  @Getter private long gasStipend;
   @Getter private final int depth;
-
-  /** true iff the current context was spawned by a deployment transaction or a CREATE(2) opcode */
   @Getter private boolean isDeployment;
+  @Getter private final CallFrameType type;
 
   public boolean isMessageCall() {
     return !isDeployment;
   }
 
-  /** the ID of this {@link CallFrame} parent in the {@link CallStack}. */
-  @Getter private int parentId;
-
-  /** all the {@link CallFrame} that have been called by this frame. */
-  @Getter private final List<Integer> childFrameIds = new ArrayList<>();
-
-  /** the {@link Address} of the account executing this {@link CallFrame}. */
+  // account whose storage and value are accessible
   @Getter private final Address accountAddress;
-
   @Getter private int accountDeploymentNumber;
+  private EWord eAddress = null; // memoization
 
-  /** A memoized {@link EWord} conversion of `address` */
-  private EWord eAddress = null;
-
-  /** the {@link Address} of the code executed in this {@link CallFrame}. */
+  // byte code that is running in the present frame
   @Getter private Address byteCodeAddress = Address.ZERO;
-
   @Getter private int byteCodeDeploymentNumber;
-
-  /** the {@link Bytecode} executing within this frame. */
+  private EWord eCodeAddress = null; // memoization
   @Getter private Bytecode code = Bytecode.EMPTY;
-
-  /** the CFI of this frame bytecode if applicable */
   @Getter private int codeFragmentIndex = -1;
 
-  /** A memoized {@link EWord} conversion of `codeAddress` */
-  private EWord eCodeAddress = null;
-
+  // caller related information
   @Getter private Address callerAddress = Address.ZERO;
-
-  /** the {@link CallFrameType} of this frame. */
-  @Getter private final CallFrameType type;
 
   public int getCodeFragmentIndex(Hub hub) {
     return this == CallFrame.EMPTY || type == CallFrameType.TRANSACTION_CALL_DATA_HOLDER
@@ -123,21 +104,15 @@ public class CallFrame {
     lastValidGasNext = hub.state.current().txTrace().currentSection().commonValues.gasNext();
   }
 
-  /** the ether amount given to this frame. */
-  @Getter private final Wei value;
+  // various memory ranges
+  @Getter private final MemoryRange callDataRange; // immutable
+  @Getter private final MemoryRange returnAtRange; // immutable
+  @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY; // mutable
+  @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY; // set at exit time
 
-  /** the gas given to this frame. */
-  @Getter private long gasStipend;
-
-  @Getter private final MemoryRange callDataRange;
-  @Getter private final MemoryRange returnAtRange;
-  @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY;
-  @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY;
-
+  // revert related information
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
-
-  /** the hub stamp at which this frame reverts (0 means it does not revert) */
   @Getter @Setter private int revertStamp = 0;
 
   /** this frame {@link Stack}. */

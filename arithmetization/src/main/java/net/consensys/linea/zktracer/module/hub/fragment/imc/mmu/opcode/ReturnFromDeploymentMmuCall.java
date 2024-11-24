@@ -68,8 +68,7 @@ public class ReturnFromDeploymentMmuCall extends MmuCall {
         .sourceRamBytes(
             Optional.of(
                 extractContiguousLimbsFromMemory(
-                    currentFrame.frame(),
-                    Range.fromOffsetAndSize(sourceOffset, size))))
+                    currentFrame.frame(), Range.fromOffsetAndSize(sourceOffset, size))))
         .auxId(newIdentifierFromStamp(hub.stamp()))
         .sourceOffset(EWord.of(sourceOffset))
         .size(clampedToLong(size))

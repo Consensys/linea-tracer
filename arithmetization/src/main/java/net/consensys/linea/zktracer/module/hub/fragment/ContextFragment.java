@@ -40,13 +40,16 @@ public class ContextFragment implements TraceFragment {
   private final MemoryRange returnDataRange;
   private final boolean updateReturnData;
 
-  private static ContextFragment readContextData(final Hub hub, final Either<Integer, Integer> callFrameReference) {
-    final CallFrame callFrame = callFrameReference.map(hub.callStack()::getById, hub.callStack()::getByContextNumber);
-    return new ContextFragment(hub, callFrameReference, callFrame.returnDataRange().deepCopy(), false);
+  private static ContextFragment readContextData(
+      final Hub hub, final Either<Integer, Integer> callFrameReference) {
+    final CallFrame callFrame =
+        callFrameReference.map(hub.callStack()::getById, hub.callStack()::getByContextNumber);
+    return new ContextFragment(
+        hub, callFrameReference, callFrame.returnDataRange().deepCopy(), false);
   }
 
   public static ContextFragment readContextDataById(final Hub hub, final int contextId) {
-    return readContextData( hub, Either.left(contextId));
+    return readContextData(hub, Either.left(contextId));
   }
 
   public static ContextFragment readCurrentContextData(final Hub hub) {
@@ -60,8 +63,7 @@ public class ContextFragment implements TraceFragment {
 
   public static ContextFragment executionProvidesEmptyReturnData(final Hub hub, int contextNumber) {
     int parentId = hub.callStack().getByContextNumber(contextNumber).parentId();
-    return new ContextFragment(
-            hub, Either.left(parentId), new MemoryRange(contextNumber), true);
+    return new ContextFragment(hub, Either.left(parentId), new MemoryRange(contextNumber), true);
   }
 
   public static ContextFragment executionProvidesEmptyReturnData(final Hub hub) {
@@ -69,13 +71,10 @@ public class ContextFragment implements TraceFragment {
     return executionProvidesEmptyReturnData(hub, currentContextNumber);
   }
 
-  public static ContextFragment executionProvidesReturnData(final Hub hub, MemoryRange returnDataRange) {
+  public static ContextFragment executionProvidesReturnData(
+      final Hub hub, MemoryRange returnDataRange) {
     int parentId = hub.callStack().currentCallFrame().parentId();
-    return new ContextFragment(
-        hub,
-        Either.left(parentId),
-        returnDataRange,
-        true);
+    return new ContextFragment(hub, Either.left(parentId), returnDataRange, true);
     // TODO: is this what we want ?
     //  also: will the latestReturnData have been updated ?
   }
@@ -83,19 +82,16 @@ public class ContextFragment implements TraceFragment {
   public static ContextFragment nonExecutionProvidesEmptyReturnData(final Hub hub) {
     CallStack callStack = hub.callStack();
     return new ContextFragment(
-            hub,
-            Either.left(callStack.currentCallFrame().id()),
-            new MemoryRange(hub.newChildContextNumber()),
-            true);
+        hub,
+        Either.left(callStack.currentCallFrame().id()),
+        new MemoryRange(hub.newChildContextNumber()),
+        true);
   }
 
   public static ContextFragment updateCurrentReturnData(
       final Hub hub, final MemoryRange returnDataRange) {
     return new ContextFragment(
-        hub,
-        Either.right(hub.currentFrame().contextNumber()),
-        returnDataRange,
-        true);
+        hub, Either.right(hub.currentFrame().contextNumber()), returnDataRange, true);
   }
 
   @Override

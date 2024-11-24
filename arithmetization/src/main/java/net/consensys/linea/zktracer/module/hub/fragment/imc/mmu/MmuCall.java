@@ -154,8 +154,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceRamBytes(
             Optional.of(
                 extractContiguousLimbsFromMemory(
-                    currentFrame.frame(),
-                    Range.fromOffsetAndSize(sourceOffset, size))))
+                    currentFrame.frame(), Range.fromOffsetAndSize(sourceOffset, size))))
         .auxId(newIdentifierFromStamp(hub.stamp()))
         .exoBytes(Optional.of(hashInput))
         .sourceOffset(EWord.of(sourceOffset))
@@ -285,7 +284,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
             Optional.of(
                 parentFrame
                     .frame()
-                    .shadowReadMemory(0, hub.callStack().parentCallFrame().frame().memoryByteSize())))
+                    .shadowReadMemory(
+                        0, hub.callStack().parentCallFrame().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(clampedToLong(hub.messageFrame().getStackItem(1)))
         .referenceOffset(hub.currentFrame().returnAtRange().offset())

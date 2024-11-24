@@ -55,8 +55,7 @@ public class CodeCopy extends MmuCall {
         .targetRamBytes(
             Optional.of(
                 extractContiguousLimbsFromMemory(
-                    currentFrame.frame(),
-                    Range.fromOffsetAndSize(targetOffset, size))))
+                    currentFrame.frame(), Range.fromOffsetAndSize(targetOffset, size))))
         .sourceOffset(EWord.of(sourceOffset))
         .targetOffset(EWord.of(targetOffset))
         .size(clampedToLong(size))

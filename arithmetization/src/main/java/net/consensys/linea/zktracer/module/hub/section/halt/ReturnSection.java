@@ -172,7 +172,9 @@ public class ReturnSection extends TraceSection
 
       final Bytes offset = messageFrame.getStackItem(0);
       final Bytes size = messageFrame.getStackItem(1);
-      callFrame.outputDataRange(new MemoryRange(callFrame.contextNumber(), Range.fromOffsetAndSize(offset, size), messageFrame));
+      callFrame.outputDataRange(
+          new MemoryRange(
+              callFrame.contextNumber(), Range.fromOffsetAndSize(offset, size), messageFrame));
 
       if (messageCallReturnTouchesRam) {
         final MmuCall returnFromMessageCall = MmuCall.returnFromMessageCall(hub);
@@ -180,9 +182,7 @@ public class ReturnSection extends TraceSection
       }
 
       final ContextFragment updateCallerReturnData =
-          ContextFragment.executionProvidesReturnData(
-              hub,
-              callFrame.outputDataRange());
+          ContextFragment.executionProvidesReturnData(hub, callFrame.outputDataRange());
       this.addFragment(updateCallerReturnData);
 
       return;

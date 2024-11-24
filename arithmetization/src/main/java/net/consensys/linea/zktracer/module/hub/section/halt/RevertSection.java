@@ -66,7 +66,8 @@ public class RevertSection extends TraceSection {
     final CallFrame callFrame = hub.currentFrame();
     final Bytes offset = frame.getStackItem(0);
     final Bytes size = frame.getStackItem(1);
-    callFrame.outputDataRange(new MemoryRange(callFrame.contextNumber(), Range.fromOffsetAndSize(offset, size), frame));
+    callFrame.outputDataRange(
+        new MemoryRange(callFrame.contextNumber(), Range.fromOffsetAndSize(offset, size), frame));
 
     final boolean triggerMmu =
         (Exceptions.none(exceptions))

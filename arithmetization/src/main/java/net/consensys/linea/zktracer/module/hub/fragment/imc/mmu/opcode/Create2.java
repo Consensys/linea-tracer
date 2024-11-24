@@ -52,8 +52,7 @@ public class Create2 extends MmuCall implements RomLexDefer {
         .sourceRamBytes(
             Optional.of(
                 extractContiguousLimbsFromMemory(
-                    currentFrame.frame(),
-                    Range.fromOffsetAndSize(sourceOffset, size))))
+                    currentFrame.frame(), Range.fromOffsetAndSize(sourceOffset, size))))
         .auxId(newIdentifierFromStamp(hub.stamp()))
         .exoBytes(Optional.of(create2initCode))
         .sourceOffset(EWord.of(sourceOffset))

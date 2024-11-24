@@ -112,7 +112,8 @@ public class BlakeSubsection extends PrecompileSubsection {
     // TODO: make it smarter
     Bytes callData = getCallDataRange().extract();
     final BlakeComponents blake2f =
-        new BlakeComponents(callData, callData.slice(0, 4), callData.slice(212, 1), extractReturnData());
+        new BlakeComponents(
+            callData, callData.slice(0, 4), callData.slice(212, 1), extractReturnData());
     hub.blakeModexpData().callBlake(blake2f, this.exoModuleOperationId());
   }
 

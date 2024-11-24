@@ -70,7 +70,8 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
                 ? (returnData == Bytes.EMPTY || returnData.size() == WORD_SIZE)
                 : returnData == Bytes.EMPTY);
       }
-      case PRC_ECPAIRING -> checkArgument(returnDataRange.extract().size() == (callSuccess ? WORD_SIZE : 0));
+      case PRC_ECPAIRING -> checkArgument(
+          returnDataRange.extract().size() == (callSuccess ? WORD_SIZE : 0));
       case PRC_ECADD, PRC_ECMUL -> checkArgument(
           returnDataRange.extract().size() == (callSuccess ? 2 * WORD_SIZE : 0));
       default -> throw new IllegalArgumentException("Not an elliptic curve precompile");

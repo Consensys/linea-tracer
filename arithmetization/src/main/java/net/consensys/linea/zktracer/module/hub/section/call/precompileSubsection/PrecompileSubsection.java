@@ -26,7 +26,6 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.*;
@@ -37,7 +36,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScena
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.MemoryRange;
-import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -151,7 +149,8 @@ public class PrecompileSubsection
 
     if (notModexp) {
       returnDataRange =
-          new MemoryRange(returnDataContextNumber(), 0, frame.getReturnData().size(), frame.getReturnData());
+          new MemoryRange(
+              returnDataContextNumber(), 0, frame.getReturnData().size(), frame.getReturnData());
     } else {
       int mbs = ((ModexpSubsection) this).modexpMetaData.mbsInt();
       Bytes returnData = frame.getReturnData();

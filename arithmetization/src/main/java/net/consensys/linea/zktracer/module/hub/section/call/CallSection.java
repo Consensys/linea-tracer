@@ -206,8 +206,8 @@ public class CallSection extends TraceSection
     currentFrame.childSpanningSection(this);
 
     // the call data span and ``return at'' spans are only required once the CALL is unexceptional
-    callDataRange = new MemoryRange(currentFrame.contextNumber(), callDataSpan(frame), frame);
-    returnAtRange = new MemoryRange(currentFrame.contextNumber(), returnAtSpan(frame), frame);
+    callDataRange = new MemoryRange(currentFrame.contextNumber(), callDataRange(frame), frame);
+    returnAtRange = new MemoryRange(currentFrame.contextNumber(), returnAtRange(frame), frame);
 
     value =
         opCode.callHasValueArgument()
@@ -686,7 +686,7 @@ public class CallSection extends TraceSection
     this.addFragments(firstCallerAccountFragment, firstCalleeAccountFragment);
   }
 
-  private Range callDataSpan(MessageFrame frame) {
+  private Range callDataRange(MessageFrame frame) {
     final Bytes callDataSize =
         opCode.callHasValueArgument() ? frame.getStackItem(4) : frame.getStackItem(3);
     final Bytes callDataOffset =
@@ -695,7 +695,7 @@ public class CallSection extends TraceSection
     return Range.fromOffsetAndSize(callDataOffset, callDataSize);
   }
 
-  private Range returnAtSpan(MessageFrame frame) {
+  private Range returnAtRange(MessageFrame frame) {
     final Bytes returnAtCapacity =
         opCode.callHasValueArgument() ? frame.getStackItem(6) : frame.getStackItem(5);
     final Bytes returnAtOffset =

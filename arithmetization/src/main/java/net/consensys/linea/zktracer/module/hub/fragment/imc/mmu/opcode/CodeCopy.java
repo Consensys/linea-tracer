@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMU_INST_ANY_TO_RAM_WITH_PADDING;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
@@ -27,6 +28,7 @@ import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.Range;
+import org.apache.tuweni.bytes.Bytes;
 
 /**
  * A specialization of {@link MmuCall} that addresses the fact that the MMU requires access to the
@@ -41,8 +43,12 @@ public class CodeCopy extends MmuCall {
     this.hub = hub;
     this.contract = hub.currentFrame().metadata();
     final CallFrame currentFrame = hub.currentFrame();
-    final EWord targetOffset = EWord.of(currentFrame.frame().getStackItem(0));
-    final long size = clampedToLong(currentFrame.frame().getStackItem(2));
+    final Bytes targetOffset = currentFrame.frame().getStackItem(0);
+    final Bytes sourceOffset = currentFrame.frame().getStackItem(1);
+    final Bytes size = currentFrame.frame().getStackItem(2);
+
+    // the MMU module only deals with nontrivial CODECOPY instructions
+    checkArgument(!size.isZero());
 
     this.exoBytes(Optional.of(currentFrame.code().bytecode()))
         .targetId(currentFrame.contextNumber())
@@ -50,10 +56,10 @@ public class CodeCopy extends MmuCall {
             Optional.of(
                 extractContiguousLimbsFromMemory(
                     currentFrame.frame(),
-                    Range.fromOffsetAndSize(clampedToLong(targetOffset), size))))
-        .sourceOffset(EWord.of(currentFrame.frame().getStackItem(1)))
-        .targetOffset(targetOffset)
-        .size(size)
+                    Range.fromOffsetAndSize(targetOffset, size))))
+        .sourceOffset(EWord.of(sourceOffset))
+        .targetOffset(EWord.of(targetOffset))
+        .size(clampedToLong(size))
         .referenceSize(currentFrame.code().getSize())
         .setRom();
   }

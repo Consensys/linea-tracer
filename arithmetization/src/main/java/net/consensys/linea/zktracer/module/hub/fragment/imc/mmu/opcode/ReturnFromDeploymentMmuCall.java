@@ -61,19 +61,19 @@ public class ReturnFromDeploymentMmuCall extends MmuCall {
 
     hashResult = shakiraDataOperation.result();
 
-    final EWord sourceOffset = EWord.of(currentFrame.frame().getStackItem(0));
-    final long size = clampedToLong(currentFrame.frame().getStackItem(1));
+    final Bytes sourceOffset = currentFrame.frame().getStackItem(0);
+    final Bytes size = currentFrame.frame().getStackItem(1);
 
     this.sourceId(currentFrame.contextNumber())
         .sourceRamBytes(
             Optional.of(
                 extractContiguousLimbsFromMemory(
                     currentFrame.frame(),
-                    Range.fromOffsetAndSize(clampedToLong(sourceOffset), size))))
+                    Range.fromOffsetAndSize(sourceOffset, size))))
         .auxId(newIdentifierFromStamp(hub.stamp()))
-        .sourceOffset(sourceOffset)
-        .size(size)
-        .referenceSize(size)
+        .sourceOffset(EWord.of(sourceOffset))
+        .size(clampedToLong(size))
+        .referenceSize(clampedToLong(size))
         .setKec()
         .setRom();
   }

@@ -147,20 +147,20 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
   public static MmuCall sha3(final Hub hub, final Bytes hashInput) {
     final CallFrame currentFrame = hub.currentFrame();
-    final EWord sourceOffset = EWord.of(currentFrame.frame().getStackItem(0));
-    final long size = clampedToLong(currentFrame.frame().getStackItem(1));
+    final Bytes sourceOffset = currentFrame.frame().getStackItem(0);
+    final Bytes size = currentFrame.frame().getStackItem(1);
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
         .sourceId(currentFrame.contextNumber())
         .sourceRamBytes(
             Optional.of(
                 extractContiguousLimbsFromMemory(
                     currentFrame.frame(),
-                    Range.fromOffsetAndSize(clampedToLong(sourceOffset), size))))
+                    Range.fromOffsetAndSize(sourceOffset, size))))
         .auxId(newIdentifierFromStamp(hub.stamp()))
         .exoBytes(Optional.of(hashInput))
-        .sourceOffset(sourceOffset)
-        .size(size)
-        .referenceSize(clampedToLong(currentFrame.frame().getStackItem(1)))
+        .sourceOffset(EWord.of(sourceOffset))
+        .size(clampedToLong(size))
+        .referenceSize(clampedToLong(size))
         .setKec();
   }
 

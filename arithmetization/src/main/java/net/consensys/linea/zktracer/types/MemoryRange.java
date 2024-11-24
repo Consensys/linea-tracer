@@ -14,10 +14,11 @@
  */
 package net.consensys.linea.zktracer.types;
 
-import com.slack.api.model.Message;
-import lombok.Getter;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+
+import static net.consensys.linea.zktracer.module.Util.safeLongToInt;
+import static net.consensys.linea.zktracer.module.Util.slice;
 
 /**
  * A {@link MemoryRange} describes a contiguous region in the memory of some execution context. The
@@ -38,6 +39,8 @@ public class MemoryRange {
   private final long contextNumber;
   private final Range range;
   private final Bytes rawData;
+
+  public static final MemoryRange EMPTY = new MemoryRange(0);
 
   /**
    * This method is used when constructing a {@link MemoryRange} using offsets and sizes that are
@@ -92,5 +95,9 @@ public class MemoryRange {
 
   public long contextNumber() {
     return contextNumber;
+  }
+
+  public Bytes extract() {
+    return range.isEmpty() ? Bytes.EMPTY : slice(rawData, safeLongToInt(range.offset()), safeLongToInt(range.size()));
   }
 }

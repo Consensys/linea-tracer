@@ -24,7 +24,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.Range;
+import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -84,8 +84,8 @@ public final class CallStack {
         codeDeploymentNumber,
         toCode == null ? Bytecode.EMPTY : toCode,
         from,
-        new CallData(callDataContextNumber, 0, callData.size(), callData),
-        Range.empty());
+        new MemoryRange(callDataContextNumber, 0, callData.size(), callData),
+        new MemoryRange(0));
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -95,7 +95,7 @@ public final class CallStack {
    * @param transactionCallDataContextNumber
    * @param callData
    */
-  public void newTransactionCallDataContext(int transactionCallDataContextNumber, Bytes callData) {
+  public void transactionCallDataContext(int transactionCallDataContextNumber, Bytes callData) {
     this.depth = -1;
     this.callFrames.add(new CallFrame(Address.ZERO, callData, transactionCallDataContextNumber));
     this.enter(
@@ -110,8 +110,8 @@ public final class CallStack {
         0,
         Bytecode.EMPTY,
         Address.ZERO, // useless
-        CallData.empty(),
-        Range.empty());
+        new MemoryRange(0),
+        new MemoryRange(0));
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -170,8 +170,8 @@ public final class CallStack {
       int byteCodeDeploymentNumber,
       Bytecode byteCode,
       Address callerAddress,
-      CallData callData,
-      Range returnDataTargetInCaller) {
+      MemoryRange callData,
+      MemoryRange returnAt) {
     final int callerId = this.depth == -1 ? -1 : this.currentId;
     final int newCallFrameId = this.callFrames.size();
     this.depth += 1;
@@ -192,8 +192,8 @@ public final class CallStack {
             byteCode,
             callerAddress,
             callerId,
-                callData,
-            returnDataTargetInCaller);
+            callData,
+            returnAt);
 
     this.callFrames.add(newFrame);
     this.currentId = newCallFrameId;

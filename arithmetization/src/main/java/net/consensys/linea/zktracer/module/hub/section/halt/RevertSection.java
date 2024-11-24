@@ -63,7 +63,7 @@ public class RevertSection extends TraceSection {
         (Exceptions.none(exceptions))
             && !hub.currentFrame().isRoot()
             && mxpCall.mayTriggerNontrivialMmuOperation // i.e. size ≠ 0 ∧ ¬MXPX
-            && !hub.currentFrame().returnDataTargetInCaller().isEmpty();
+            && !hub.currentFrame().returnAt().isEmpty();
 
     if (triggerMmu) {
       mmuCall = MmuCall.revert(hub);

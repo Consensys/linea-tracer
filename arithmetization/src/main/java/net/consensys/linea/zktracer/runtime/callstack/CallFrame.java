@@ -34,6 +34,7 @@ import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.Range;
+import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -129,7 +130,7 @@ public class CallFrame {
   @Getter private long gasStipend;
 
   /** the call data given to this frame. */
-  @Getter private final CallData callData;
+  @Getter private final MemoryRange callData;
 
   /** the latest child context to have been called from this frame */
   @Getter @Setter private int returnDataContextNumber = 0;
@@ -147,7 +148,7 @@ public class CallFrame {
   @Getter @Setter private Range outputDataSpan;
 
   /** where this frame is expected to write its outputData within its parent's memory space. */
-  @Getter private final Range returnDataTargetInCaller;
+  @Getter private final MemoryRange returnAt;
 
   @Getter @Setter private boolean selfReverts = false;
   @Getter @Setter private boolean getsReverted = false;
@@ -180,8 +181,8 @@ public class CallFrame {
     type = CallFrameType.TRANSACTION_CALL_DATA_HOLDER;
     this.contextNumber = contextNumber;
     accountAddress = origin;
-    this.callData = new CallData(contextNumber, 0, callData.size(), callData);
-    returnDataTargetInCaller = Range.empty();
+    this.callData = new MemoryRange(contextNumber, 0, callData.size(), callData);
+    this.returnAt = MemoryRange.EMPTY;
     value = Wei.ZERO;
     id = -1;
     depth = -1;
@@ -193,8 +194,8 @@ public class CallFrame {
     contextNumber = 0;
     accountAddress = Address.ZERO;
     parentId = -1;
-    callData = new CallData(0, 0, 0, Bytes.EMPTY);
-    returnDataTargetInCaller = Range.empty();
+    this.callData = MemoryRange.EMPTY;
+    this.returnAt = MemoryRange.EMPTY;
     depth = 0;
     value = Wei.ZERO;
     id = -1;
@@ -234,8 +235,8 @@ public class CallFrame {
       Bytecode byteCode,
       Address callerAddress,
       int parentId,
-      CallData callData,
-      Range returnDataTargetInCaller) {
+      MemoryRange callData,
+      MemoryRange returnAt) {
     this.type = type;
     this.id = id;
     this.contextNumber = contextNumber;
@@ -253,7 +254,7 @@ public class CallFrame {
     this.callData = callData;
     this.outputDataSpan = Range.empty();
     this.returnDataSpan = Range.empty();
-    this.returnDataTargetInCaller = returnDataTargetInCaller;
+    this.returnAt = returnAt;
   }
 
   public boolean isRoot() {

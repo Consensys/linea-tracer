@@ -139,7 +139,7 @@ public class PrecompileSubsection
 
     callerGas = hub.callStack().parent().frame().getRemainingGas();
     calleeGas = hub.messageFrame().getRemainingGas();
-    parentReturnDataTarget = hub.currentFrame().returnDataTargetInCaller();
+    parentReturnDataTarget = hub.currentFrame().returnAt();
   }
 
   public void resolveUponContextExit(Hub hub, CallFrame callFrame) {

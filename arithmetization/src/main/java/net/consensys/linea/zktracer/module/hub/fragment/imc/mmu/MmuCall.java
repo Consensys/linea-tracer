@@ -51,9 +51,9 @@ import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.PrecompileSubsection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.LogData;
-import net.consensys.linea.zktracer.runtime.callstack.CallData;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -165,11 +165,11 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
   public static MmuCall callDataCopy(final Hub hub) {
     final CallFrame currentFrame = hub.currentFrame();
-    final CallData callData = currentFrame.callData();
+    final MemoryRange callData = currentFrame.callData();
     final Bytes sourceBytes = hub.callStack().getFullMemoryOfCaller(hub);
 
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
-        .sourceId((int) callData.callDataContextNumber())
+        .sourceId((int) callData.contextNumber())
         .sourceRamBytes(Optional.of(sourceBytes))
         .targetId(currentFrame.contextNumber())
         .targetRamBytes(
@@ -178,8 +178,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceOffset(EWord.of(currentFrame.frame().getStackItem(1)))
         .targetOffset(EWord.of(currentFrame.frame().getStackItem(0)))
         .size(clampedToLong(currentFrame.frame().getStackItem(2)))
-        .referenceOffset(callData.range().offset())
-        .referenceSize(callData.range().size());
+        .referenceOffset(callData.offset())
+        .referenceSize(callData.size());
   }
 
   public static MmuCall callDataLoad(final Hub hub) {
@@ -287,8 +287,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
                     .shadowReadMemory(0, hub.callStack().parent().frame().memoryByteSize())))
         .sourceOffset(EWord.of(hub.messageFrame().getStackItem(0)))
         .size(clampedToLong(hub.messageFrame().getStackItem(1)))
-        .referenceOffset(hub.currentFrame().returnDataTargetInCaller().offset())
-        .referenceSize(hub.currentFrame().returnDataTargetInCaller().size());
+        .referenceOffset(hub.currentFrame().returnAt().offset())
+        .referenceSize(hub.currentFrame().returnAt().size());
   }
 
   public static MmuCall txInit(final Hub hub) {

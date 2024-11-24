@@ -107,13 +107,13 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
-import net.consensys.linea.zktracer.runtime.callstack.CallData;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrameType;
 import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
+import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.Range;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -578,7 +578,7 @@ public class Hub implements Module {
 
       final boolean copyTransactionCallData = currentTransaction.copyTransactionCallData();
       if (copyTransactionCallData) {
-        callStack.newTransactionCallDataContext(
+        callStack.transactionCallDataContext(
             callDataContextNumber(true), currentTransaction.getBesuTransaction().getData().get());
       }
 
@@ -617,17 +617,17 @@ public class Hub implements Module {
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
 
-      final CallData callData =
+      final MemoryRange callData =
           isDeployment
-              ? CallData.empty()
+              ? new MemoryRange(currentFrame().contextNumber())
               : ((CallSection) currentTraceSection()).getCallData();
 
       currentFrame().rememberGasNextBeforePausing(this);
       currentFrame().pauseCurrentFrame();
 
-      Range returnAt =
+      MemoryRange returnAt =
           isDeployment
-              ? Range.empty()
+              ? new MemoryRange(currentFrame().contextNumber())
               : ((CallSection) currentTraceSection()).getReturnAt();
 
       callStack.enter(

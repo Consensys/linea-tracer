@@ -90,7 +90,10 @@ public class CallFrame {
   // various memory ranges
   @Getter private final MemoryRange callDataRange; // immutable
   @Getter private final MemoryRange returnAtRange; // immutable
-  @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY; // mutable, reset with every CALL/CREATE
+
+  @Getter @Setter
+  private MemoryRange returnDataRange = MemoryRange.EMPTY; // mutable, reset with every CALL/CREATE
+
   @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY; // set at exit time
 
   @Getter private boolean executionPaused = false;

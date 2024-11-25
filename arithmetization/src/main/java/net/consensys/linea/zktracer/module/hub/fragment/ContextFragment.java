@@ -54,10 +54,6 @@ public class ContextFragment implements TraceFragment {
         hub, callFrameReference, callFrame.returnDataRange().deepCopy(), false);
   }
 
-  public static ContextFragment readContextDataById(final Hub hub, final int contextId) {
-    return readContextData(hub, Either.left(contextId));
-  }
-
   public static ContextFragment readCurrentContextData(final Hub hub) {
     return readContextData(hub, Either.left(hub.currentFrame().id()));
   }
@@ -102,8 +98,7 @@ public class ContextFragment implements TraceFragment {
 
   @Override
   public Trace trace(Trace trace) {
-    final CallFrame callFrame =
-        this.callFrameReference.map(hub.callStack()::getById, hub.callStack()::getByContextNumber);
+    final CallFrame callFrame = getCallFrame();
 
     final Address address = callFrame.accountAddress();
     final Address codeAddress = callFrame.byteCodeAddress();
@@ -135,5 +130,10 @@ public class ContextFragment implements TraceFragment {
         .pContextReturnDataContextNumber(returnDataRange.contextNumber())
         .pContextReturnDataOffset(returnDataRange.offset())
         .pContextReturnDataSize(returnDataRange.size());
+  }
+
+  private CallFrame getCallFrame() {
+    return this.callFrameReference.map(
+        hub.callStack()::getById, hub.callStack()::getByContextNumber);
   }
 }

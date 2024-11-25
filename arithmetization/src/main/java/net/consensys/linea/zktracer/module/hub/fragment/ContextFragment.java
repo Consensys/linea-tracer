@@ -48,7 +48,7 @@ public class ContextFragment implements TraceFragment {
   /** The following set of methods are used to read without modifying a context. */
   public static ContextFragment readContextData(Hub hub, CallFrame callFrame) {
     return new ContextFragment(
-        hub, Either.left(callFrame.id()), callFrame.returnDataRange(), false);
+        hub, Either.left(callFrame.id()), callFrame.returnDataRange().snapshot(), false);
   }
 
   public static ContextFragment readCurrentContextData(final Hub hub) {
@@ -60,7 +60,7 @@ public class ContextFragment implements TraceFragment {
       final Hub hub, CallFrame callFrame, final MemoryRange returnDataRange) {
 
     callFrame.returnDataRange(returnDataRange);
-    return new ContextFragment(hub, Either.left(callFrame.id()), returnDataRange, true);
+    return new ContextFragment(hub, Either.left(callFrame.id()), returnDataRange.snapshot(), true);
   }
 
   public static ContextFragment executionProvidesReturnData(final Hub hub) {

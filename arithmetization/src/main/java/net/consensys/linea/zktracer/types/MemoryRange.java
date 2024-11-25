@@ -113,6 +113,6 @@ public class MemoryRange {
   }
 
   public MemoryRange snapshot() {
-    return new MemoryRange(this.contextNumber, this.range, this.rawData);
+    return new MemoryRange(this.contextNumber, this.range.snapshot(), this.rawData);
   }
 }

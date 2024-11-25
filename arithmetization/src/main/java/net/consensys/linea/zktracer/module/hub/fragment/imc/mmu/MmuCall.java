@@ -417,7 +417,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .referenceSize(subsection.returnAtCapacity());
   }
 
-  public static MmuCall callDataExtractionForIdentity(final Hub hub, PrecompileSubsection subsection) {
+  public static MmuCall callDataExtractionForIdentity(
+      final Hub hub, PrecompileSubsection subsection) {
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry

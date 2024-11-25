@@ -195,18 +195,4 @@ public class Util {
     // data followed by padding
     return rightPadTo(data.slice(offset, dataSize - offset), size);
   }
-
-  /**
-   * This method expects a "small-ish" long value and returns the corresponding int value.
-   *
-   * @param value
-   * @return
-   * @throws ArithmeticException
-   */
-  public static int safeLongToInt(long value) throws ArithmeticException {
-    if (value < 0 || value > Integer.MAX_VALUE) {
-      throw new ArithmeticException(value + " cannot be cast to int without changing its value.");
-    }
-    return (int) value;
-  }
 }

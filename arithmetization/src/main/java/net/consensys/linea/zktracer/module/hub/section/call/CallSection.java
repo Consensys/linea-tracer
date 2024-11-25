@@ -456,9 +456,9 @@ public class CallSection extends TraceSection
         }
         emptyCodeFirstCoupleOfAccountFragments(hub);
 
-        CallFrame prcFrame = hub.callStack().getById(frame.childFrameIds().getLast());
+        // ATTENTION_OLIVIER
         finalContextFragment =
-            ContextFragment.updateCurrentReturnData(hub, prcFrame.outputDataRange());
+            ContextFragment.updateCurrentReturnData(hub, precompileSubsection.returnDataRange);
       }
 
       case CALL_SMC_UNDEFINED -> {

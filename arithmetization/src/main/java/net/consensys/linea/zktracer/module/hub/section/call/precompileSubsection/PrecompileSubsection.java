@@ -182,11 +182,11 @@ public class PrecompileSubsection
     return callSection.getCallDataRange();
   }
 
-  public long cdo() {
+  public long callDataOffset() {
     return getCallDataRange().offset();
   }
 
-  public long cds() {
+  public long callDataSize() {
     return getCallDataRange().size();
   }
 
@@ -194,11 +194,11 @@ public class PrecompileSubsection
     return callSection.getReturnAtRange();
   }
 
-  public long rao() {
+  public long returnAtOffset() {
     return getReturnAtRange().offset();
   }
 
-  public long rac() {
+  public long returnAtCapacity() {
     return getReturnAtRange().size();
   }
 

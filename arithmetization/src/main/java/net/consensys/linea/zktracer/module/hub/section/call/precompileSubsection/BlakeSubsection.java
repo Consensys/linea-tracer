@@ -79,7 +79,7 @@ public class BlakeSubsection extends PrecompileSubsection {
     super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity checks
-    checkArgument(blakeCdsOobCall.isHubSuccess() == (cds() == 213));
+    checkArgument(blakeCdsOobCall.isHubSuccess() == (callDataSize() == 213));
     checkArgument(callSuccess == blakeSuccess);
     this.sanityCheck();
 

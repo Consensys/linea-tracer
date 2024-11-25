@@ -456,7 +456,6 @@ public class CallSection extends TraceSection
         }
         emptyCodeFirstCoupleOfAccountFragments(hub);
 
-        // ATTENTION_OLIVIER
         finalContextFragment =
             ContextFragment.updateReturnData(
                 hub, hub.currentFrame(), precompileSubsection.returnDataRange);

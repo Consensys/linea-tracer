@@ -1035,9 +1035,7 @@ public class Hub implements Module {
         final boolean returnFromDeployment =
             (this.opCode() == RETURN || this.currentFrame().isDeployment());
 
-        if (!returnFromDeployment) {
-          callStack.parentCallFrame().returnDataRange(currentFrame().outputDataRange());
-        }
+          callStack.parentCallFrame().returnDataRange(returnFromDeployment ? new MemoryRange(currentFrame().contextNumber()) : currentFrame().outputDataRange());
       }
 
       case KEC -> new KeccakSection(this);

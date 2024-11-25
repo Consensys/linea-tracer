@@ -164,11 +164,11 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
   public static MmuCall callDataCopy(final Hub hub) {
     final CallFrame currentFrame = hub.currentFrame();
-    final MemoryRange callData = currentFrame.callDataRange();
+    final MemoryRange callDataRange = currentFrame.callDataRange();
     final Bytes sourceBytes = hub.callStack().getFullMemoryOfCaller(hub);
 
     return new MmuCall(hub, MMU_INST_ANY_TO_RAM_WITH_PADDING)
-        .sourceId((int) callData.contextNumber())
+        .sourceId((int) callDataRange.contextNumber())
         .sourceRamBytes(Optional.of(sourceBytes))
         .targetId(currentFrame.contextNumber())
         .targetRamBytes(
@@ -177,8 +177,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceOffset(EWord.of(currentFrame.frame().getStackItem(1)))
         .targetOffset(EWord.of(currentFrame.frame().getStackItem(0)))
         .size(clampedToLong(currentFrame.frame().getStackItem(2)))
-        .referenceOffset(callData.offset())
-        .referenceSize(callData.size());
+        .referenceOffset(callDataRange.offset())
+        .referenceSize(callDataRange.size());
   }
 
   public static MmuCall callDataLoad(final Hub hub) {

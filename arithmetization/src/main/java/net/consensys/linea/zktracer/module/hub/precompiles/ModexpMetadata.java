@@ -16,14 +16,13 @@
 package net.consensys.linea.zktracer.module.hub.precompiles;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.Util.slice;
 import static net.consensys.linea.zktracer.module.txndata.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.Util;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.internal.Words;
@@ -37,14 +36,10 @@ public class ModexpMetadata {
   public static final int BASE_MIN_OFFSET = 0x60;
 
   private final Bytes callData;
-  private final EWord rawLeadingWord;
   @Setter private Bytes rawResult;
 
-  public ModexpMetadata(final Hub hub, final Bytes callData) {
+  public ModexpMetadata(final Bytes callData) {
     this.callData = callData;
-    int exponentOffsetInCallData = BASE_MIN_OFFSET + bbsInt();
-    this.rawLeadingWord =
-        EWord.of(hub.messageFrame().shadowReadMemory(exponentOffsetInCallData, WORD_SIZE));
   }
 
   public boolean extractBbs() {
@@ -60,15 +55,15 @@ public class ModexpMetadata {
   }
 
   public Bytes rawBbs() {
-    return Util.slice(callData, BBS_MIN_OFFSET, WORD_SIZE);
+    return slice(callData, BBS_MIN_OFFSET, WORD_SIZE);
   }
 
   public Bytes rawEbs() {
-    return Util.slice(callData, EBS_MIN_OFFSET, WORD_SIZE);
+    return slice(callData, EBS_MIN_OFFSET, WORD_SIZE);
   }
 
   public Bytes rawMbs() {
-    return Util.slice(callData, MBS_MIN_OFFSET, WORD_SIZE);
+    return slice(callData, MBS_MIN_OFFSET, WORD_SIZE);
   }
 
   private int bbsShift() {
@@ -116,9 +111,8 @@ public class ModexpMetadata {
   }
 
   public EWord rawLeadingWord() {
-    // TODO: is this precaution useless / dangerous ?
     checkArgument(loadRawLeadingWord());
-    return this.rawLeadingWord;
+    return EWord.of(slice(callData, BASE_MIN_OFFSET + bbsInt(), WORD_SIZE));
   }
 
   public boolean extractModulus() {

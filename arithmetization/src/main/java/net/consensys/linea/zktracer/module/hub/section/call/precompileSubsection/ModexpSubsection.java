@@ -57,7 +57,7 @@ public class ModexpSubsection extends PrecompileSubsection {
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
 
-    modexpMetaData = new ModexpMetadata(getCallDataRange().extract());
+    modexpMetaData = new ModexpMetadata(getCallDataRange());
     if (modexpMetaData
                 .bbs()
                 .toUnsignedBigInteger()

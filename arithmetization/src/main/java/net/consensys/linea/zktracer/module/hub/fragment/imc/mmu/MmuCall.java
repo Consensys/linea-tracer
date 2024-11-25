@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.mmu;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.Util.slice;
+import static net.consensys.linea.zktracer.module.Util.rightPaddedSlice;
 import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.ecdata.Trace.*;
@@ -191,7 +191,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceRamBytes(Optional.of(logData.ramSourceBytes))
         .exoBytes(
             Optional.of(
-                slice(
+                rightPaddedSlice(
                     logData.ramSourceBytes,
                     (int) clampedToLong(logData.offset),
                     (int) logData.size)))
@@ -685,7 +685,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     return new MmuCall(hub, MMU_INST_MLOAD)
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(precompileSubsection.rawCallerMemory()))
-        .sourceOffset(EWord.of(precompileSubsection.cdo() + 96 + metaData.bbs().toInt()))
+        .sourceOffset(EWord.of(precompileSubsection.cdo() + BASE_MIN_OFFSET + metaData.bbsInt()))
         .limb1(metaData.rawLeadingWord().hi())
         .limb2(metaData.rawLeadingWord().lo());
   }

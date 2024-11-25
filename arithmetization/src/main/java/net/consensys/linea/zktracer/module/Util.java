@@ -175,7 +175,7 @@ public class Util {
    * @param data, right-padded with 0's if needed, starting from
    * @param offset
    */
-  public static Bytes slice(Bytes data, int offset, int size) {
+  public static Bytes rightPaddedSlice(Bytes data, int offset, int size) {
 
     checkArgument(offset >= 0, "Offset must be non-negative");
     checkArgument(size >= 0, "Size must be non-negative");

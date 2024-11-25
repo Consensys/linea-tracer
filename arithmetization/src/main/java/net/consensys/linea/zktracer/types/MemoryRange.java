@@ -14,8 +14,8 @@
  */
 package net.consensys.linea.zktracer.types;
 
+import static net.consensys.linea.zktracer.module.Util.rightPaddedSlice;
 import static net.consensys.linea.zktracer.module.Util.safeLongToInt;
-import static net.consensys.linea.zktracer.module.Util.slice;
 
 import lombok.Getter;
 import org.apache.tuweni.bytes.Bytes;
@@ -105,7 +105,7 @@ public class MemoryRange {
   public Bytes extract() {
     return range.isEmpty()
         ? Bytes.EMPTY
-        : slice(rawData, safeLongToInt(range.offset()), safeLongToInt(range.size()));
+        : rightPaddedSlice(rawData, safeLongToInt(range.offset()), safeLongToInt(range.size()));
   }
 
   public boolean isEmpty() {

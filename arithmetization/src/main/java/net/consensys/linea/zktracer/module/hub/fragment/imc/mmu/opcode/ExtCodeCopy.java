@@ -81,7 +81,6 @@ public class ExtCodeCopy extends MmuCall implements PostConflationDefer {
   public void resolvePostConflation(Hub hub, WorldView world) {
     try {
       sourceId(hub.romLex().getCodeFragmentIndexByMetadata(contract));
-      referenceSize(referenceSize());
     } catch (Exception ignored) {
       // Can be 0 in case the ext account is empty. In this case, no associated CFI
       sourceId(0);

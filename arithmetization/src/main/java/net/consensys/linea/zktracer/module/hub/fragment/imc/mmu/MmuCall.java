@@ -29,7 +29,6 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
-import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.math.BigInteger;
@@ -352,7 +351,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   public static MmuCall callDataExtractionForShaTwoAndRipemd(
       final Hub hub, PrecompileSubsection subsection) {
 
-    final PrecompileScenarioFragment.PrecompileFlag flag = subsection.precompileScenarioFragment().flag;
+    final PrecompileScenarioFragment.PrecompileFlag flag =
+        subsection.precompileScenarioFragment().flag;
     checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
 
     return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
@@ -388,8 +388,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     } else {
       return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
           .sourceId(subsection.exoModuleOperationId())
-          .exoBytes(
-              Optional.of(leftPadTo(subsection.returnDataRange.extract(), WORD_SIZE)))
+          .exoBytes(Optional.of(leftPadTo(subsection.returnDataRange.extract(), WORD_SIZE)))
           .targetId(subsection.returnDataContextNumber())
           .targetRamBytes(Optional.of(Bytes.EMPTY))
           .size(WORD_SIZE)
@@ -401,7 +400,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   public static MmuCall partialReturnDataCopyForShaTwoAndRipemd(
       final Hub hub, PrecompileSubsection subsection) {
 
-    final PrecompileScenarioFragment.PrecompileFlag flag = subsection.precompileScenarioFragment().flag;
+    final PrecompileScenarioFragment.PrecompileFlag flag =
+        subsection.precompileScenarioFragment().flag;
 
     checkArgument(flag.isAnyOf(PRC_SHA2_256, PRC_RIPEMD_160));
     checkArgument(!subsection.getReturnAtRange().isEmpty());
@@ -417,8 +417,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .referenceSize(subsection.returnAtCapacity());
   }
 
-  public static MmuCall forIdentityExtractCallData(
-      final Hub hub, PrecompileSubsection subsection) {
+  public static MmuCall forIdentityExtractCallData(final Hub hub, PrecompileSubsection subsection) {
 
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry
@@ -796,7 +795,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .pMiscMmuTgtOffsetLo(targetOffset.lo())
         .pMiscMmuSize(size)
         .pMiscMmuRefOffset(referenceOffset)
-        .pMiscMmuRefSize(referenceSize)
+        .pMiscMmuRefSize(referenceSize())
         .pMiscMmuSuccessBit(successBit)
         .pMiscMmuLimb1(limb1)
         .pMiscMmuLimb2(limb2)

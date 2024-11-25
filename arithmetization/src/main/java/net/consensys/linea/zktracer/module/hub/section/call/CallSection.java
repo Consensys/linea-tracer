@@ -356,7 +356,7 @@ public class CallSection extends TraceSection
     hub.defers().scheduleForContextReEntry(firstImcFragment, currentFrame);
 
     this.commonValues.payGasPaidOutOfPocket(hub);
-    finalContextFragment = ContextFragment.initializeNewExecutionContext(hub);
+    finalContextFragment = ContextFragment.initializeExecutionContext(hub);
     hub.romLex().callRomLex(frame);
   }
 
@@ -458,7 +458,8 @@ public class CallSection extends TraceSection
 
         // ATTENTION_OLIVIER
         finalContextFragment =
-            ContextFragment.updateCurrentReturnData(hub, precompileSubsection.returnDataRange);
+            ContextFragment.updateReturnData(
+                hub, hub.currentFrame(), precompileSubsection.returnDataRange);
       }
 
       case CALL_SMC_UNDEFINED -> {

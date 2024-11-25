@@ -182,7 +182,7 @@ public class ReturnSection extends TraceSection
       }
 
       final ContextFragment updateCallerReturnData =
-          ContextFragment.executionProvidesReturnData(hub, callFrame.outputDataRange());
+          ContextFragment.executionProvidesReturnData(hub);
       this.addFragment(updateCallerReturnData);
 
       return;

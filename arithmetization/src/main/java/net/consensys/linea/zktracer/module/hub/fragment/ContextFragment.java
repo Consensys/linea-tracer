@@ -25,7 +25,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.types.Either;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import org.hyperledger.besu.datatypes.Address;
@@ -46,55 +45,44 @@ public class ContextFragment implements TraceFragment {
   private final MemoryRange returnDataRange;
   private final boolean updateReturnData;
 
-  private static ContextFragment readContextData(
-      final Hub hub, final Either<Integer, Integer> callFrameReference) {
-    final CallFrame callFrame =
-        callFrameReference.map(hub.callStack()::getById, hub.callStack()::getByContextNumber);
+  /** The following set of methods are used to read without modifying a context. */
+  public static ContextFragment readContextData(Hub hub, CallFrame callFrame) {
     return new ContextFragment(
-        hub, callFrameReference, callFrame.returnDataRange().deepCopy(), false);
+        hub, Either.left(callFrame.id()), callFrame.returnDataRange(), false);
   }
 
   public static ContextFragment readCurrentContextData(final Hub hub) {
-    return readContextData(hub, Either.left(hub.currentFrame().id()));
+    return readContextData(hub, hub.currentFrame());
   }
 
-  public static ContextFragment initializeNewExecutionContext(final Hub hub) {
-    return new ContextFragment(
-        hub, Either.right(hub.newChildContextNumber()), MemoryRange.EMPTY, false);
+  /** The following set of methods are used to update the return data of a context. */
+  public static ContextFragment updateReturnData(
+      final Hub hub, CallFrame callFrame, final MemoryRange returnDataRange) {
+
+    callFrame.returnDataRange(returnDataRange);
+    return new ContextFragment(hub, Either.left(callFrame.id()), returnDataRange, true);
   }
 
-  public static ContextFragment executionProvidesEmptyReturnData(final Hub hub, int contextNumber) {
-    int parentId = hub.callStack().getByContextNumber(contextNumber).parentId();
-    return new ContextFragment(hub, Either.left(parentId), new MemoryRange(contextNumber), true);
+  public static ContextFragment executionProvidesReturnData(final Hub hub) {
+    return updateReturnData(
+        hub, hub.callStack().parentCallFrame(), hub.currentFrame().outputDataRange());
   }
 
   public static ContextFragment executionProvidesEmptyReturnData(final Hub hub) {
-    int currentContextNumber = hub.currentFrame().contextNumber();
-    return executionProvidesEmptyReturnData(hub, currentContextNumber);
-  }
-
-  public static ContextFragment executionProvidesReturnData(
-      final Hub hub, MemoryRange returnDataRange) {
-    int parentId = hub.callStack().currentCallFrame().parentId();
-    return new ContextFragment(hub, Either.left(parentId), returnDataRange, true);
-    // TODO: is this what we want ?
-    //  also: will the latestReturnData have been updated ?
+    return updateReturnData(
+        hub,
+        hub.callStack().parentCallFrame(),
+        new MemoryRange(hub.currentFrame().contextNumber()));
   }
 
   public static ContextFragment nonExecutionProvidesEmptyReturnData(final Hub hub) {
-    CallStack callStack = hub.callStack();
-    return new ContextFragment(
-        hub,
-        Either.left(callStack.currentCallFrame().id()),
-        new MemoryRange(hub.newChildContextNumber()),
-        true);
+    return updateReturnData(hub, hub.currentFrame(), new MemoryRange(hub.newChildContextNumber()));
   }
 
-  public static ContextFragment updateCurrentReturnData(
-      final Hub hub, final MemoryRange returnDataRange) {
-
-    hub.currentFrame().returnDataRange(returnDataRange);
-    return new ContextFragment(hub, Either.left(hub.currentFrame().id()), returnDataRange, true);
+  /** Initialization of a new execution context */
+  public static ContextFragment initializeExecutionContext(final Hub hub) {
+    return new ContextFragment(
+        hub, Either.right(hub.newChildContextNumber()), MemoryRange.EMPTY, false);
   }
 
   @Override

@@ -81,8 +81,7 @@ public class RevertSection extends TraceSection {
     }
 
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
-    final ContextFragment updateCallerReturnData =
-        ContextFragment.executionProvidesReturnData(hub, callFrame.outputDataRange());
+    final ContextFragment updateCallerReturnData = ContextFragment.executionProvidesReturnData(hub);
 
     this.addFragments(currentContext, updateCallerReturnData);
   }

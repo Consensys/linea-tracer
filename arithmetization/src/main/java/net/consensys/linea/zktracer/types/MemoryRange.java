@@ -112,7 +112,7 @@ public class MemoryRange {
     return range.isEmpty();
   }
 
-  public MemoryRange deepCopy() {
+  public MemoryRange snapshot() {
     return new MemoryRange(this.contextNumber, this.range, this.rawData);
   }
 }

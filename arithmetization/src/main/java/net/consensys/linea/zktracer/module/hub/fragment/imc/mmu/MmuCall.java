@@ -29,6 +29,7 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.math.BigInteger;
@@ -305,10 +306,10 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .sourceId(hub.currentFrame().contextNumber()) // called at ContextReEntry
         .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
         .targetId(subsection.exoModuleOperationId())
-        .exoBytes(Optional.of(subsection.extractCallData()))
+        .exoBytes(Optional.of(rightPadTo(subsection.extractCallData(), TOTAL_SIZE_ECRECOVER_DATA)))
         .sourceOffset(EWord.of(subsection.cdo()))
         .size(subsection.cds())
-        .referenceSize(128)
+        .referenceSize(TOTAL_SIZE_ECRECOVER_DATA)
         .successBit(successfulRecovery)
         .phase(PHASE_ECRECOVER_DATA)
         .setEcData();
@@ -319,12 +320,14 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
     final int precompileContextNumber = subsection.exoModuleOperationId();
 
+    checkState(subsection.returnDataRange.getRange().size() == TOTAL_SIZE_ECRECOVER_RESULT);
+
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(precompileContextNumber)
         .exoBytes(Optional.of(subsection.returnDataRange.extract()))
         .targetId(precompileContextNumber)
         .targetRamBytes(Optional.of(Bytes.EMPTY))
-        .size(WORD_SIZE)
+        .size(TOTAL_SIZE_ECRECOVER_RESULT)
         .phase(PHASE_ECRECOVER_RESULT)
         .successBit(successBit)
         .setEcData();
@@ -341,7 +344,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(prc.rawCallerMemory()))
         .sourceOffset(EWord.ZERO)
-        .size(WORD_SIZE)
+        .size(TOTAL_SIZE_ECRECOVER_RESULT)
         .referenceOffset(prc.rao())
         .referenceSize(prc.rac());
   }

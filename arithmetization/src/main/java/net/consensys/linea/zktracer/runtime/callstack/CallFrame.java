@@ -87,6 +87,12 @@ public class CallFrame {
   @Getter @Setter private OpCodeData opCodeData = OpCodes.of(OpCode.STOP);
   @Getter private MessageFrame frame; // TODO: can we make this final ?
 
+  // various memory ranges
+  @Getter private final MemoryRange callDataRange; // immutable
+  @Getter private final MemoryRange returnAtRange; // immutable
+  @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY; // mutable, reset with every CALL/CREATE
+  @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY; // set at exit time
+
   @Getter private boolean executionPaused = false;
   @Getter private long lastValidGasNext = 0;
 
@@ -103,12 +109,6 @@ public class CallFrame {
   public void rememberGasNextBeforePausing(Hub hub) {
     lastValidGasNext = hub.state.current().txTrace().currentSection().commonValues.gasNext();
   }
-
-  // various memory ranges
-  @Getter private final MemoryRange callDataRange; // immutable
-  @Getter private final MemoryRange returnAtRange; // immutable
-  @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY; // mutable
-  @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY; // set at exit time
 
   // revert related information
   @Getter @Setter private boolean selfReverts = false;

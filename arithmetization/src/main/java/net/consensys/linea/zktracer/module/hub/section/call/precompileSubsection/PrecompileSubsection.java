@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.MODEXP_COMPONENT_BYTE_SIZE;
 import static net.consensys.linea.zktracer.module.hub.Hub.newIdentifierFromStamp;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.*;
@@ -122,7 +123,7 @@ public class PrecompileSubsection
     }
 
     final CallFrame returnerFrame = hub.callStack().getByContextNumber(returnDataContextNumber());
-    returnerFrame.returnDataRange(returnDataRange);
+    returnerFrame.outputDataRange(returnDataRange);
   }
 
   public void sanityCheck() {
@@ -152,13 +153,18 @@ public class PrecompileSubsection
           new MemoryRange(
               returnDataContextNumber(), 0, frame.getReturnData().size(), frame.getReturnData());
     } else {
-      int mbs = ((ModexpSubsection) this).modexpMetaData.mbsInt();
-      Bytes returnData = frame.getReturnData();
-      checkState(0 <= mbs && mbs <= 512);
+      final int mbs = ((ModexpSubsection) this).modexpMetaData.mbsInt();
+      final Bytes returnData = frame.getReturnData();
+      checkState(0 <= mbs && mbs <= MODEXP_COMPONENT_BYTE_SIZE);
       checkState(returnData.size() == mbs);
-      leftPadTo(returnData, 512);
+      final Bytes leftPaddedReturnData = leftPadTo(returnData, MODEXP_COMPONENT_BYTE_SIZE);
 
-      returnDataRange = new MemoryRange(returnDataContextNumber(), 512 - mbs, mbs, returnData);
+      returnDataRange =
+          new MemoryRange(
+              returnDataContextNumber(),
+              MODEXP_COMPONENT_BYTE_SIZE - mbs,
+              mbs,
+              leftPaddedReturnData);
     }
   }
 

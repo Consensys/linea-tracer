@@ -187,7 +187,7 @@ public class ReplayTests {
 
   @Test
   void legacyTxWithoutChainID() {
-    replay(LINEA_SEPOLIA, "254251.sepolia.mainnet.json.gz");
+    replay(LINEA_SEPOLIA, "254251.sepolia.json.gz");
   }
 
   @Test
@@ -200,7 +200,8 @@ public class ReplayTests {
   @MethodSource("replayBlockTestSource")
   void replayBlockTest(int blockNumber) {
     File file =
-        new File("../arithmetization/src/test/resources/replays/" + blockNumber + ".mainnet.json.gz");
+        new File(
+            "../arithmetization/src/test/resources/replays/" + blockNumber + ".mainnet.json.gz");
     if (!file.exists()) {
       String[] cmd = {"./scripts/capture.pl", "--start", String.valueOf(blockNumber)};
       try {

@@ -20,7 +20,6 @@ import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType2;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType3;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType5;
-import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.triggerNonTrivialButMxpxOrRoobForOpCode;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -31,6 +30,7 @@ import java.util.stream.Stream;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.zktracer.module.mxp.MxpTestUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -44,7 +44,7 @@ public class MemoryExpansionExceptionTest {
   @MethodSource("memoryExpansionExceptionTestSource")
   public void memoryExpansionExceptionTest(boolean triggerRoob, OpCode opCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    triggerNonTrivialButMxpxOrRoobForOpCode(program, triggerRoob, opCode);
+    new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(program, triggerRoob, opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
     assertEquals(

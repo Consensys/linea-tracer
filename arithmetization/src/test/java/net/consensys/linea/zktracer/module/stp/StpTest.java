@@ -44,11 +44,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
 public class StpTest {
-  private static final Random RAND = new Random(666L);
-  final int NB_CALL = 200;
-  final int NB_CREATE = 200;
+  /**
+   * NOTE: Do not make this static as it will introduce non-deterministic behaviour into the testing
+   * process.
+   */
+  private final Random RAND = new Random(666L);
 
-  final long SENDER_BALANCE = 0xFFFFFFFFFFFFL;
+  private final int NB_CALL = 200;
+  private final int NB_CREATE = 200;
+
+  private final long SENDER_BALANCE = 0xFFFFFFFFFFFFL;
 
   @Test
   void testCall() {

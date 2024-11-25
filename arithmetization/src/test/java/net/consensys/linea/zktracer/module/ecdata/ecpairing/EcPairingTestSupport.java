@@ -32,14 +32,14 @@ import org.junit.jupiter.params.provider.Arguments;
 public class EcPairingTestSupport {
   private static final String DELIMITER_CSV = ",";
   static final String DELIMITER_PAIRINGS = "_";
-  private static final Random random = new Random(1);
+  private final Random random = new Random(1);
 
   static String info(int totalPairings, int r) {
     // r represents the number of the repetition of a scenario
     return "TotalPairings" + totalPairings + "(" + r + ")";
   }
 
-  static Arguments generatePairings(
+  Arguments generatePairings(
       final String description,
       final int totalPairings,
       List<Arguments> smallPointsType,
@@ -51,7 +51,7 @@ public class EcPairingTestSupport {
     return Arguments.of(description, argumentsListToPairingsAsString(pairings));
   }
 
-  static Arguments generatePairingsSmallPointsMixed(
+  Arguments generatePairingsSmallPointsMixed(
       final String description,
       final int totalPairings,
       List<Arguments> smallPointsType1,
@@ -68,7 +68,7 @@ public class EcPairingTestSupport {
     return Arguments.of(description, argumentsListToPairingsAsString(pairings));
   }
 
-  static Arguments generatePairingsLargePointsMixed(
+  Arguments generatePairingsLargePointsMixed(
       final String description,
       final int totalPairings,
       List<Arguments> smallPointsType,
@@ -85,7 +85,7 @@ public class EcPairingTestSupport {
     return Arguments.of(description, argumentsListToPairingsAsString(pairings));
   }
 
-  static Arguments generatePairingsMixed(
+  Arguments generatePairingsMixed(
       final String description,
       final int totalPairings,
       List<Arguments> smallPointsType1,
@@ -170,7 +170,7 @@ public class EcPairingTestSupport {
     return argumentsList;
   }
 
-  private static Arguments rnd(List<Arguments> points) {
+  private Arguments rnd(List<Arguments> points) {
     // If there is only one point, return it
     if (points.size() == 1) {
       return points.getFirst();

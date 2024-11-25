@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.eoa;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.UnitTestWatcher;
@@ -34,7 +34,7 @@ public class gasStipendTests {
   @Test
   void zeroValueEoaCallTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run();
   }
@@ -43,7 +43,7 @@ public class gasStipendTests {
   @Test
   void nonzeroValueEoaCallTest() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
 
     BytecodeRunner.of(program.compile()).run();
   }

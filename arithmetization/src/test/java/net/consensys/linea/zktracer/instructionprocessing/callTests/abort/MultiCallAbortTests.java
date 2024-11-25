@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.abort;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.UnitTestWatcher;
@@ -32,7 +32,7 @@ public class MultiCallAbortTests {
   @Test
   void normalCallThenAbortedCallToEoaThenRevert() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
     appendInsufficientBalanceCall(
         program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
     program.push(6).push(7).op(REVERT);
@@ -45,7 +45,7 @@ public class MultiCallAbortTests {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     appendInsufficientBalanceCall(
         program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
     program.push(6).push(7).op(REVERT);
     Bytes bytecode = program.compile();
     BytecodeRunner.of(bytecode).run();
@@ -57,7 +57,7 @@ public class MultiCallAbortTests {
     program.push(eoaAddress).op(BALANCE).op(POP);
     appendInsufficientBalanceCall(
         program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
     program.push(6).push(7).op(REVERT);
     Bytes bytecode = program.compile();
     BytecodeRunner.of(bytecode).run();
@@ -68,7 +68,7 @@ public class MultiCallAbortTests {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     appendInsufficientBalanceCall(
         program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
-    simpleCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
+    appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 0, 0, 0, 0);
     program.push(6).push(7).op(REVERT);
     Bytes bytecode = program.compile();
     BytecodeRunner.of(bytecode).run();

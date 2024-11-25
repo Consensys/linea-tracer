@@ -12,22 +12,20 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.smc;
+package net.consensys.linea.zktracer.instructionprocessing.selfdestructTests;
 
-import java.util.List;
-
-import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.ToyAccount;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.*;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(UnitTestWatcher.class)
-public class Utilities {
+public class SeveralSelfDestructsInARowModifyingStorageTests {
+  Address modifyStorageThenSelfDestructAddress = Address.fromHexString("ffc0de");
+  Hash hash = Hash.fromHexString("modifyStorageThenSelfDestruct");
+  Address multipleCallsAddress = Address.fromHexString("ca11e7");
 
   public static KeyPair keyPair = new SECP256K1().generateKeyPair();
   public static Address userAddress =
@@ -35,34 +33,11 @@ public class Utilities {
   public static ToyAccount userAccount =
       ToyAccount.builder().balance(Wei.fromEth(10)).nonce(99).address(userAddress).build();
 
-  public static ToyAccount accountWhoseByteCodeIsASingleStop =
+  private ToyAccount modifyStorageThenSelfDestruct =
       ToyAccount.builder()
           .balance(Wei.fromEth(1))
           .nonce(13)
-          .address(Address.fromHexString("c0de00"))
-          .code(Bytes.fromHexString("00"))
+          .address(modifyStorageThenSelfDestructAddress)
+          .code(SelfDestructs.storageTouchingSelfDestructorRewardsZeroAddress().compile())
           .build();
-
-  public static ToyAccount accountWhoseByteCodeIsASingleJumpDest =
-      ToyAccount.builder()
-          .balance(Wei.fromEth(1))
-          .nonce(19)
-          .address(Address.fromHexString("c0de5b"))
-          .code(Bytes.fromHexString("5b"))
-          .build();
-
-  public static ToyAccount accountWhoseByteCodeIsASingleInvalid =
-      ToyAccount.builder()
-          .balance(Wei.fromEth(1))
-          .nonce(13)
-          .address(Address.fromHexString("c0defe"))
-          .code(Bytes.fromHexString("fe"))
-          .build();
-
-  public static List<ToyAccount> accounts =
-      List.of(
-          userAccount,
-          accountWhoseByteCodeIsASingleStop,
-          accountWhoseByteCodeIsASingleJumpDest,
-          accountWhoseByteCodeIsASingleInvalid);
 }

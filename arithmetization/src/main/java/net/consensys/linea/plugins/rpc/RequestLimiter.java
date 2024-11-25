@@ -29,6 +29,7 @@ public class RequestLimiter {
 
   private final Semaphore semaphore;
   private final RpcMethodError UNAVAILABLE_EXCEPTION = new UnavailableException();
+
   @Builder
   public RequestLimiter(int concurrentRequestsCount) {
     this.semaphore = new Semaphore(concurrentRequestsCount);

@@ -397,7 +397,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
     }
   }
 
-  public static MmuCall partialReturnDataCopyForShaTwoAndRipemd(
+  public static MmuCall partialCopyOfReturnDataForShaTwoAndRipemd(
       final Hub hub, PrecompileSubsection subsection) {
 
     final PrecompileScenarioFragment.PrecompileFlag flag =
@@ -434,6 +434,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
 
     checkState(subsection.callDataSize() == subsection.returnDataSize());
     checkState(subsection.returnDataOffset() == 0);
+
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(subsection.exoModuleOperationId())
         .sourceRamBytes(Optional.of(subsection.returnDataRange.extract()))
@@ -460,7 +461,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
         .phase(PHASE_ECADD_DATA);
   }
 
-  public static MmuCall fullReturnDataTransferForEcadd(
+  public static MmuCall fullTransferOfReturnDataForEcadd(
       final Hub hub, PrecompileSubsection subsection, boolean successBit) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
         .sourceId(subsection.exoModuleOperationId())

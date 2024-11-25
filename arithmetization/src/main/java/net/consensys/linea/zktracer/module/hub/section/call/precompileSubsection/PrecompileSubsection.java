@@ -119,6 +119,7 @@ public class PrecompileSubsection
       callSection.setFinalContextFragment(
           ContextFragment.updateCurrentReturnData(hub, returnDataRange));
     } else {
+      returnDataRange = new MemoryRange(returnDataContextNumber());
       callSection.setFinalContextFragment(ContextFragment.nonExecutionProvidesEmptyReturnData(hub));
     }
 

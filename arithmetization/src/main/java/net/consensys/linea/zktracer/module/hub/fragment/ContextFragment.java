@@ -46,11 +46,6 @@ public class ContextFragment implements TraceFragment {
   private final MemoryRange returnDataRange;
   private final boolean updateReturnData;
 
-
-  private static ContextFragment readContextData(final Hub hub, CallFrame callFrame) {
-
-  }
-
   private static ContextFragment readContextData(
       final Hub hub, final Either<Integer, Integer> callFrameReference) {
     final CallFrame callFrame =
@@ -99,8 +94,7 @@ public class ContextFragment implements TraceFragment {
       final Hub hub, final MemoryRange returnDataRange) {
 
     hub.currentFrame().returnDataRange(returnDataRange);
-    return new ContextFragment(
-        hub, Either.left(hub.currentFrame().id()), returnDataRange, true);
+    return new ContextFragment(hub, Either.left(hub.currentFrame().id()), returnDataRange, true);
   }
 
   @Override

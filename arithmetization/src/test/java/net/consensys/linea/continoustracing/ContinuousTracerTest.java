@@ -39,8 +39,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(UnitTestWatcher.class)
+@ExtendWith(MockitoExtension.class)
 public class ContinuousTracerTest {
   private static final Hash BLOCK_HASH =
       Hash.fromHexString("0x0000000000000000000000000000000000000000000000000000000000000042");

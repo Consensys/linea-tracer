@@ -211,7 +211,7 @@ public class CallSection extends TraceSection
 
     value =
         opCode.callHasValueArgument()
-            ? Wei.of(currentFrame.frame().getStackItem(2).toUnsignedBigInteger())
+            ? Wei.of(frame.getStackItem(2).toUnsignedBigInteger())
             : Wei.ZERO;
 
     final CallOobCall oobCall = new CallOobCall();
@@ -224,13 +224,13 @@ public class CallSection extends TraceSection
     hub.defers().scheduleForPostTransaction(this);
 
     // The CALL is now unexceptional and un-aborted
-    refineUndefinedScenario(hub);
-    CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
+    refineUndefinedScenario(hub, frame);
+    final CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
     switch (scenario) {
-      case CALL_ABORT_WONT_REVERT -> abortingCall(hub);
       case CALL_EOA_UNDEFINED -> eoaProcessing(hub);
-      case CALL_PRC_UNDEFINED -> prcProcessing(hub);
       case CALL_SMC_UNDEFINED -> smcProcessing(hub, frame);
+      case CALL_PRC_UNDEFINED -> prcProcessing(hub);
+      case CALL_ABORT_WONT_REVERT -> abortingCall(hub);
       default -> throw new RuntimeException("Illegal CALL scenario");
     }
   }
@@ -313,7 +313,7 @@ public class CallSection extends TraceSection
    *
    * @param hub
    */
-  private void refineUndefinedScenario(Hub hub) {
+  private void refineUndefinedScenario(Hub hub, MessageFrame frame) {
 
     final boolean aborts = hub.pch().abortingConditions().any();
     if (aborts) {
@@ -321,13 +321,10 @@ public class CallSection extends TraceSection
       return;
     }
 
-    final WorldUpdater world = hub.currentFrame().frame().getWorldUpdater();
+    final WorldUpdater world = frame.getWorldUpdater();
     if (isPrecompile(calleeAddress)) {
       precompileAddress = Optional.of(calleeAddress);
       scenarioFragment.setScenario(CALL_PRC_UNDEFINED);
-
-      precompileSubsection =
-          ADDRESS_TO_PRECOMPILE.get(preOpcodeCalleeSnapshot.address()).apply(hub, this);
     } else {
       Optional.ofNullable(world.get(calleeAddress))
           .ifPresentOrElse(
@@ -361,6 +358,8 @@ public class CallSection extends TraceSection
   }
 
   private void prcProcessing(Hub hub) {
+    precompileSubsection =
+        ADDRESS_TO_PRECOMPILE.get(preOpcodeCalleeSnapshot.address()).apply(hub, this);
     hub.defers().scheduleForContextEntry(this);
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
   }

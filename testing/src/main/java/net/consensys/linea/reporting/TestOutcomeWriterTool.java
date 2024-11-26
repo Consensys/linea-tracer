@@ -46,6 +46,7 @@ public class TestOutcomeWriterTool {
       modulesToConstraintsToTests = new ConcurrentHashMap<>();
 
   public static void addFailure(String type, String cause, String test) {
+    failedCounter.incrementAndGet();
     modulesToConstraintsToTests
         .computeIfAbsent(type, t -> new ConcurrentHashMap<>())
         .computeIfAbsent(cause, t -> new ConcurrentSkipListSet<>())

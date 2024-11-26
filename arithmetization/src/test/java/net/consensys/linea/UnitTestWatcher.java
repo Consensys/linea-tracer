@@ -32,7 +32,7 @@ public class UnitTestWatcher implements TestWatcher {
   public void testFailed(ExtensionContext context, Throwable cause) {
     String testName = context.getDisplayName();
     log.info("Adding failure for {}", testName);
-    TestOutcomeWriterTool.addFailure(FAILED, cause.getMessage(), testName);
+    TestOutcomeWriterTool.addFailure(FAILED, cause.getMessage().split(System.lineSeparator(), 2)[0], testName);
     log.info("Failure added for {}", testName);
   }
 

@@ -446,6 +446,9 @@ public class CallSection extends TraceSection
         checkState(successBit);
         scenarioFragment.setScenario(CALL_EOA_SUCCESS_WONT_REVERT);
         emptyCodeFirstCoupleOfAccountFragments(hub);
+        long gasAfterCall = frame.frame().getRemainingGas();
+        commonValues.gasNext(gasAfterCall);
+        hub.currentFrame().lastValidGasNext(gasAfterCall);
       }
 
       case CALL_PRC_UNDEFINED -> {
@@ -455,6 +458,9 @@ public class CallSection extends TraceSection
           scenarioFragment.setScenario(CALL_PRC_FAILURE);
         }
         emptyCodeFirstCoupleOfAccountFragments(hub);
+        long gasAfterCall = frame.frame().getRemainingGas();
+        commonValues.gasNext(gasAfterCall);
+        hub.currentFrame().lastValidGasNext(gasAfterCall);
 
         finalContextFragment =
             ContextFragment.updateReturnData(

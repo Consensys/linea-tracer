@@ -130,7 +130,7 @@ public class ReplayTests {
 
   @Test
   void largeInitCode() {
-    replay(LINEA_SEPOLIA, "3318494.sepolia.mainnet.json.gz");
+    replay(LINEA_SEPOLIA, "3318494.sepolia.json.gz");
   }
 
   /**

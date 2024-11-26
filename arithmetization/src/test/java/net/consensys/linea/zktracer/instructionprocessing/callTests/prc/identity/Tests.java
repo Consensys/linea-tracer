@@ -40,6 +40,8 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -89,23 +91,30 @@ public class Tests {
         7,
         51);
     program.op(RETURNDATASIZE); // should return 512
-
-    identityCaller.setCode(program.compile());
-
-    Transaction transaction =
-        ToyTransaction.builder()
-            .sender(userAccount)
-            .keyPair(keyPair)
-            .to(identityCaller)
-            .value(Wei.of(7_000_000_000L))
-            .build();
-    ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(byteSource, userAccount, identityCaller))
-        .transaction(transaction)
-        .build()
-        .run();
+    run(program);
   }
 
+  @Test
+  void callCodeTransfersValueToIdentityTest() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    fullCodeCopyOf(program, byteSource);
+    appendGenericCall(program, CALLCODE, GAS, Address.ID, ValueParameter.ONE, OfstParam.ZERO, SizeParam.ZERO, OfstParam.ZERO, SizeParam.ZERO, 0, 0);
+    program.op(RETURNDATASIZE);
+
+    run(program);
+  }
+
+  @Test
+  void callCodeNoValueValueTransferToIdentityTest() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    fullCodeCopyOf(program, byteSource);
+    appendGenericCall(program, CALLCODE, GAS, Address.ID, ValueParameter.ZERO, OfstParam.ZERO, SizeParam.ZERO, OfstParam.ZERO, SizeParam.ZERO, 0, 0);
+    program.op(RETURNDATASIZE);
+
+    run(program);
+  }
+
+  // @Tag("nightly")
   @ParameterizedTest
   @MethodSource("callParameterIDENTITY")
   void genericIdentityTests(
@@ -114,21 +123,9 @@ public class Tests {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     fullCodeCopyOf(program, byteSource);
     appendGenericCall(program, callOpCode, gasParam, Address.ID, ValueParameter.ONE, cdo, cds, rao, rac, 0, 0);
-    identityCaller.setCode(program.compile());
+    program.op(RETURNDATASIZE);
 
-    Transaction transaction =
-            ToyTransaction.builder()
-                    .sender(userAccount)
-                    .keyPair(keyPair)
-                    .to(identityCaller)
-                    .value(Wei.of(7_000_000_000L))
-                    .build();
-
-    ToyExecutionEnvironmentV2.builder()
-            .accounts(List.of(byteSource, userAccount, identityCaller))
-            .transaction(transaction)
-            .build()
-            .run();
+    run(program);
   }
 
   /**
@@ -159,8 +156,16 @@ public class Tests {
       for (GasParam gasParam : gasParams) {
         for (OfstParam cdo : OfstParam.values()) {
           for (SizeParam cds : SizeParam.values()) {
+            if ((cds == SizeParam.ZERO) && !(cdo == OfstParam.ZERO || cdo == OfstParam.SIXTEEN)) {
+              continue;
+            }
             for (OfstParam rao : OfstParam.values()) {
               for (SizeParam rac : SizeParam.values()) {
+
+                if ((rac == SizeParam.ZERO) && !(rao == OfstParam.ZERO || rao == OfstParam.SIXTEEN)) {
+                  continue;
+                }
+
                 arguments.add(Arguments.of(callOpCode, gasParam, cdo, cds, rao, rac));
               }
             }
@@ -170,4 +175,23 @@ public class Tests {
     }
     return arguments.stream();
   }
+
+  void run(BytecodeCompiler program) {
+
+    identityCaller.setCode(program.compile());
+
+    Transaction transaction =
+            ToyTransaction.builder()
+                    .sender(userAccount)
+                    .keyPair(keyPair)
+                    .to(identityCaller)
+                    .value(Wei.of(7_000_000_000L))
+                    .build();
+    ToyExecutionEnvironmentV2.builder()
+            .accounts(List.of(byteSource, userAccount, identityCaller))
+            .transaction(transaction)
+            .build()
+            .run();
+  }
+
 }

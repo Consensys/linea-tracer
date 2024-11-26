@@ -47,7 +47,6 @@ import org.hyperledger.besu.evm.internal.Words;
 @Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class StpCall implements TraceSubFragment {
-  final Hub hub;
   @EqualsAndHashCode.Include final long memoryExpansionGas;
   @EqualsAndHashCode.Include OpCode opCode;
   @EqualsAndHashCode.Include long gasActual;
@@ -61,7 +60,6 @@ public class StpCall implements TraceSubFragment {
   @EqualsAndHashCode.Include long stipend;
 
   public StpCall(Hub hub, long memoryExpansionGas) {
-    this.hub = hub;
     this.memoryExpansionGas = memoryExpansionGas;
     this.opCode = hub.opCode();
     this.gasActual = hub.messageFrame().getRemainingGas();
@@ -83,13 +81,13 @@ public class StpCall implements TraceSubFragment {
     this.value = opCode.callHasValueArgument() ? EWord.of(frame.getStackItem(2)) : ZERO;
     this.exists =
         switch (hub.opCode()) {
-          case CALL -> toAccount != null ? !toAccount.isEmpty() : false;
+          case CALL -> toAccount != null && !toAccount.isEmpty();
           case CALLCODE, DELEGATECALL, STATICCALL -> false;
           default -> throw new IllegalArgumentException(
               "STP module triggered for a non CALL-type instruction");
         };
     this.warm = isAddressWarm(frame, to);
-    this.upfrontGasCost = upfrontGasCostForCalls(opCode);
+    this.upfrontGasCost = upfrontGasCostForCalls();
     this.outOfGasException = gasActual < upfrontGasCost;
     this.gasPaidOutOfPocket = gasPaidOutOfPocketForCalls();
     this.stipend = !outOfGasException && nonzeroValueTransfer() ? GAS_CONST_G_CALL_STIPEND : 0;
@@ -138,7 +136,7 @@ public class StpCall implements TraceSubFragment {
     }
   }
 
-  private long upfrontGasCostForCalls(OpCode callOpCode) {
+  private long upfrontGasCostForCalls() {
 
     long upfrontGasCost = memoryExpansionGas;
     upfrontGasCost += nonzeroValueTransfer() ? GAS_CONST_G_CALL_VALUE : 0;

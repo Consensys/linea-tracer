@@ -36,6 +36,7 @@ import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruc
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.module.hub.transients.StorageInitialValues;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -327,5 +328,42 @@ public class TransactionProcessingMetadata {
         hub.deploymentNumberOf(effectiveRecipient);
     updatedRecipientAddressDeploymentStatusAtTransactionStart =
         hub.deploymentStatusOf(effectiveRecipient);
+  }
+
+  public Bytes getTransactionCallData() {
+    return besuTransaction.getData().orElse(Bytes.EMPTY);
+  }
+
+  public boolean senderIsRecipient() {
+    return besuTransaction.getTo().isPresent()
+        && besuTransaction.getTo().get().equals(besuTransaction.getSender());
+  }
+
+  public boolean senderIsCoinbase() {
+    return besuTransaction.getSender().equals(coinbase);
+  }
+
+  public boolean recipientIsCoinbase() {
+    return besuTransaction.getTo().isPresent() && besuTransaction.getTo().get().equals(coinbase);
+  }
+
+  public boolean senderAddressCollision() {
+    return senderIsRecipient() || senderIsCoinbase();
+  }
+
+  public boolean recipientAddressCollision() {
+    return senderIsRecipient() || recipientIsCoinbase();
+  }
+
+  public boolean coinbaseAddressCollision() {
+    return senderIsCoinbase() || recipientIsCoinbase();
+  }
+
+  public boolean addressCollision() {
+    return senderIsRecipient() || senderIsCoinbase() || recipientIsCoinbase();
+  }
+
+  public boolean noAddressCollisions() {
+    return !addressCollision();
   }
 }

@@ -41,7 +41,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
  */
 @Accessors(fluent = true)
 public final class BytecodeRunner {
-  public static final long DEFAULT_GAS_LIMIT = 25_000_000L;
+  public static final long DEFAULT_GAS_LIMIT = 61_000_000L;
   private final Bytes byteCode;
   ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;
 
@@ -50,6 +50,10 @@ public final class BytecodeRunner {
    */
   public BytecodeRunner(Bytes byteCode) {
     this.byteCode = byteCode;
+  }
+
+  public static BytecodeRunner of(BytecodeCompiler program) {
+    return new BytecodeRunner(program.compile());
   }
 
   public static BytecodeRunner of(Bytes byteCode) {
@@ -66,6 +70,11 @@ public final class BytecodeRunner {
   // Ad-hoc senderBalance
   public void run(Wei senderBalance) {
     this.run(senderBalance, (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT, List.of());
+  }
+
+  // Ad-hoc gasLimit
+  public void run(Long gasLimit) {
+    this.run(Wei.fromEth(1), gasLimit, List.of());
   }
 
   // Ad-hoc senderBalance and gasLimit
@@ -102,7 +111,7 @@ public final class BytecodeRunner {
         ToyTransaction.builder()
             .sender(senderAccount)
             .to(receiverAccount)
-            .value(Wei.ONE)
+            .value(Wei.of(69))
             .keyPair(keyPair)
             .gasLimit(selectedGasLimit)
             .gasPrice(Wei.of(8))

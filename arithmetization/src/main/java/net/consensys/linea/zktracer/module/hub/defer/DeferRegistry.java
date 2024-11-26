@@ -31,7 +31,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  */
 public class DeferRegistry
     implements PostOpcodeDefer,
-        ImmediateContextEntryDefer,
+        ContextEntryDefer,
         ContextExitDefer,
         PostRollbackDefer,
         PostTransactionDefer,
@@ -41,7 +41,7 @@ public class DeferRegistry
   private final List<PostOpcodeDefer> postOpcodeDefers = new ArrayList<>();
 
   /** A list of actions deferred to the immediate entry into a child or parent context */
-  private final List<ImmediateContextEntryDefer> immediateContextEntryDefers = new ArrayList<>();
+  private final List<ContextEntryDefer> contextEntryDefers = new ArrayList<>();
 
   /** A list of actions deferred to the end of a given context */
   private final Map<Integer, List<ContextExitDefer>> contextExitDefers = new HashMap<>();
@@ -63,8 +63,8 @@ public class DeferRegistry
   private final Map<CallFrame, List<PostRollbackDefer>> rollbackDefers = new HashMap<>();
 
   /** Schedule an action to be executed after the completion of the current opcode. */
-  public void scheduleForImmediateContextEntry(ImmediateContextEntryDefer defer) {
-    immediateContextEntryDefers.add(defer);
+  public void scheduleForContextEntry(ContextEntryDefer defer) {
+    contextEntryDefers.add(defer);
   }
 
   /** Schedule an action to be executed after the completion of the current opcode. */
@@ -169,14 +169,14 @@ public class DeferRegistry
    * for the rollback.
    */
   @Override
-  public void resolvePostRollback(
+  public void resolveUponRollback(
       final Hub hub, final MessageFrame messageFrame, CallFrame currentCallFrame) {
 
     Optional.ofNullable(hub.defers().rollbackDefers.get(currentCallFrame))
         .ifPresent(
             defers -> {
               defers.forEach(
-                  defer -> defer.resolvePostRollback(hub, messageFrame, currentCallFrame));
+                  defer -> defer.resolveUponRollback(hub, messageFrame, currentCallFrame));
               defers.clear();
             });
 
@@ -184,15 +184,15 @@ public class DeferRegistry
     final CallStack callStack = hub.callStack();
     currentCallFrame.childFramesId().stream()
         .map(callStack::getById)
-        .forEach(childCallFrame -> resolvePostRollback(hub, messageFrame, childCallFrame));
+        .forEach(childCallFrame -> resolveUponRollback(hub, messageFrame, childCallFrame));
   }
 
   @Override
   public void resolveUponContextEntry(Hub hub) {
-    for (ImmediateContextEntryDefer defer : immediateContextEntryDefers) {
+    for (ContextEntryDefer defer : contextEntryDefers) {
       defer.resolveUponContextEntry(hub);
     }
-    immediateContextEntryDefers.clear();
+    contextEntryDefers.clear();
   }
 
   @Override

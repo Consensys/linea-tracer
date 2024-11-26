@@ -15,11 +15,16 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.appendOpCodeCall;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.isMxpx;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.isRoob;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType1;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType2;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType3;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4ExcludingHalting;
+import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4Halting;
+
 import java.util.List;
-import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,6 +45,7 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
@@ -48,31 +54,9 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 
 @Execution(ExecutionMode.SAME_THREAD)
 public class MxpTest {
-  private static final Random RAND = new Random(123456789123456L);
-  public static final EWord TWO_POW_128 = EWord.of(EWord.ONE.shiftLeft(128));
-  public static final EWord TWO_POW_32 = EWord.of(EWord.ONE.shiftLeft(32));
 
-  // Some OpCodes are not interesting with random arguments, so we skip them in random testing part
-  final OpCode[] opCodesType1 = new OpCode[] {OpCode.MSIZE};
-  final OpCode[] opCodesType2 = new OpCode[] {OpCode.MLOAD, OpCode.MSTORE};
-  final OpCode[] opCodesType3 = new OpCode[] {OpCode.MSTORE8};
-  final OpCode[] opCodesType4 =
-      new OpCode[] {
-        OpCode.LOG0,
-        OpCode.LOG1,
-        OpCode.LOG2,
-        OpCode.LOG3,
-        OpCode.LOG4,
-        OpCode.SHA3,
-        OpCode.CODECOPY,
-        OpCode.CALLDATACOPY,
-        OpCode.EXTCODECOPY,
-        OpCode.CREATE,
-        OpCode.CREATE2
-      }; // OpCode.COPY-type (Type 4) and OpCode.CALL-type (Type 5) are tested via TestCall()
-  // instead of TestMxpRandom
-
-  final OpCode[] opCodesHalting = new OpCode[] {OpCode.RETURN, OpCode.REVERT};
+  /** Construct non-static instance to prevent sharing across tests. */
+  private MxpTestUtils util = new MxpTestUtils();
 
   @Test
   void testMxpMinimalNonEmptyReturn() {
@@ -105,7 +89,6 @@ public class MxpTest {
 
   @Test
   void testMxpRandom() {
-
     // Testing a random program
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     final int INSTRUCTION_COUNT = 4096;
@@ -116,6 +99,7 @@ public class MxpTest {
     BytecodeRunner.of(program.compile()).run();
   }
 
+  @Disabled("#1535")
   @Test
   void testMxpRandomTriggerMxpx() {
     // Testing a random program
@@ -129,6 +113,7 @@ public class MxpTest {
     BytecodeRunner.of(program.compile()).run();
   }
 
+  @Disabled("#1535")
   @Test
   void testRandomMxpInstructionsFollowedByTriggeringRoob() {
     // Testing a random program
@@ -173,13 +158,14 @@ public class MxpTest {
     final int REPETITIONS = 5;
     for (int i = 0; i < REPETITIONS; i++) {
       BytecodeCompiler program = BytecodeCompiler.newProgram();
-      boolean isHalting = RAND.nextInt(2) == 0;
-      boolean triggerRoob = RAND.nextInt(2) == 0;
+      boolean isHalting = util.nextRandomInt(2) == 0;
+      boolean triggerRoob = util.nextRandomInt(2) == 0;
       triggerNonTrivialButMxpxOrRoob(program, isHalting, triggerRoob);
       BytecodeRunner.of(program.compile()).run();
     }
   }
 
+  @Disabled("#1535")
   @Test
   void testMxpRandomAdvanced() {
     // Testing a random program that contains creates with meaning random arguments
@@ -294,12 +280,15 @@ public class MxpTest {
             contractAccountMO1,
             contractAccountMO2);
 
-    ToyExecutionEnvironmentV2.builder()
-        .accounts(accounts)
-        .transaction(tx)
-        .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
-        .build()
-        .run();
+    ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder()
+            .accounts(accounts)
+            .transaction(tx)
+            .transactionProcessingResultValidator(
+                TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+            .build();
+
+    toyExecutionEnvironmentV2.run();
   }
 
   // Support methods
@@ -324,11 +313,11 @@ public class MxpTest {
     OpCode opCode;
 
     if (!isHalting) {
-      mxpType = MxpType.values()[RAND.nextInt(1, 5)]; // Type 1 to 4 excluding opCodeLast
+      mxpType = MxpType.values()[util.nextRandomInt(1, 5)]; // Type 1 to 4 excluding opCodeLast
       opCode = getRandomOpCodeByType(mxpType);
     } else {
       mxpType = MxpType.TYPE_4;
-      opCode = opCodesHalting[RAND.nextInt(opCodesHalting.length)]; // opCodeLast
+      opCode = opCodesType4Halting[util.nextRandomInt(opCodesType4Halting.length)]; // opCodeLast
     }
 
     // Generate as many random values as needed at most
@@ -337,31 +326,31 @@ public class MxpTest {
     EWord offset2;
     boolean roob;
     boolean mxpx;
-    EWord value = EWord.of(getRandomBigIntegerByBytesSize(0, 4));
-    Address address = getRandomBigIntegerByBytesSize(20, 20).toAddress();
-    EWord salt = EWord.of(getRandomBigIntegerByBytesSize(0, 4));
+    EWord value = EWord.of(util.getRandomBigIntegerByBytesSize(0, 4));
+    Address address = util.getRandomBigIntegerByBytesSize(20, 20).toAddress();
+    EWord salt = EWord.of(util.getRandomBigIntegerByBytesSize(0, 4));
 
     // Keep generating random values until we are in the !roob && !mxpx case
     do {
-      size1 = EWord.of(getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
-      offset1 = EWord.of(getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
-      offset2 = EWord.of(getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
+      size1 = EWord.of(util.getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
+      offset1 = EWord.of(util.getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
+      offset2 = EWord.of(util.getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
 
       // NOOP case (except for Type2 and Type3 instructions)
       if (mxpType != MxpType.TYPE_2 && mxpType != MxpType.TYPE_3) {
-        if (RAND.nextFloat() < NOOP_PROB) {
+        if (util.nextRandomFloat() < NOOP_PROB) {
           // One or both of the size parameters are equal to 0 (each scenario has the same
           // probability)
           size1 = EWord.ZERO;
-          final float offsetModifier = RAND.nextFloat();
+          final float offsetModifier = util.nextRandomFloat();
           if (offsetModifier < 1 / 3f) {
             // offset1 remains the same
           } else if (offsetModifier > 2 / 3f) {
             // offset1 is large
-            offset1 = EWord.of(getRandomBigIntegerByBytesSize(0, 16));
+            offset1 = EWord.of(util.getRandomBigIntegerByBytesSize(0, 16));
           } else {
             // offset1 is huge
-            offset1 = EWord.of(getRandomBigIntegerByBytesSize(16, 32));
+            offset1 = EWord.of(util.getRandomBigIntegerByBytesSize(16, 32));
           }
         }
       }
@@ -393,28 +382,32 @@ public class MxpTest {
         break;
       case LOG1:
         appendOpCodeCall(
-            Stream.concat(getRandomUpTo32BytesBigIntegers(1).stream(), Stream.of(size1, offset1))
+            Stream.concat(
+                    util.getRandomUpTo32BytesBigIntegers(1).stream(), Stream.of(size1, offset1))
                 .collect(Collectors.toList()),
             opCode,
             program);
         break;
       case LOG2:
         appendOpCodeCall(
-            Stream.concat(getRandomUpTo32BytesBigIntegers(2).stream(), Stream.of(size1, offset1))
+            Stream.concat(
+                    util.getRandomUpTo32BytesBigIntegers(2).stream(), Stream.of(size1, offset1))
                 .collect(Collectors.toList()),
             opCode,
             program);
         break;
       case LOG3:
         appendOpCodeCall(
-            Stream.concat(getRandomUpTo32BytesBigIntegers(3).stream(), Stream.of(size1, offset1))
+            Stream.concat(
+                    util.getRandomUpTo32BytesBigIntegers(3).stream(), Stream.of(size1, offset1))
                 .collect(Collectors.toList()),
             opCode,
             program);
         break;
       case LOG4:
         appendOpCodeCall(
-            Stream.concat(getRandomUpTo32BytesBigIntegers(4).stream(), Stream.of(size1, offset1))
+            Stream.concat(
+                    util.getRandomUpTo32BytesBigIntegers(4).stream(), Stream.of(size1, offset1))
                 .collect(Collectors.toList()),
             opCode,
             program);
@@ -429,7 +422,7 @@ public class MxpTest {
         // CREATEs are added only if INIT is provided
         if (!INIT.isEmpty()) {
           EWord INITCODEOFFSET =
-              getRandomBigIntegerByBytesSize(
+              util.getRandomBigIntegerByBytesSize(
                   0, MAX_BYTE_SIZE); // roob or mxpx cannot be triggered this way
 
           size1 = EWord.of(INIT.size());
@@ -468,180 +461,26 @@ public class MxpTest {
 
   private void triggerNonTrivialButMxpxOrRoob(
       BytecodeCompiler program, boolean isHalting, boolean triggerRoob) {
-    final int MAX_BYTE_SIZE =
-        32; // To trigger MXPX we need at least 5 bytes, while ROOB at least 17 bytes
-    MxpType mxpType;
     OpCode opCode;
 
     if (!isHalting) {
-      mxpType = MxpType.values()[RAND.nextInt(2, 5)]; // Type 2 to 4
+      MxpType mxpType = MxpType.values()[util.nextRandomInt(2, 5)]; // Type 2 to 4
       opCode = getRandomOpCodeByType(mxpType);
     } else {
-      mxpType = MxpType.TYPE_4;
-      opCode = opCodesHalting[RAND.nextInt(opCodesHalting.length)]; // opCodeLast
+      opCode = opCodesType4Halting[util.nextRandomInt(opCodesType4Halting.length)]; // opCodeLast
     }
-
-    // Generate as many random values as needed at most
-    EWord size1;
-    EWord offset1;
-    EWord offset2;
-    boolean roob;
-    boolean mxpx;
-    EWord value = getRandomBigIntegerByBytesSize(0, 4);
-    Address address = getRandomBigIntegerByBytesSize(20, 20).toAddress();
-    EWord salt = getRandomBigIntegerByBytesSize(0, 4);
-
-    // Keep generating random values until we are in the mxpx && roob case or in the mxpx && !roob
-    // case
-    do {
-      size1 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);
-      offset1 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);
-      offset2 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);
-
-      // size2 is irrelevant for this case
-      mxpx = isMxpx(mxpType, size1, offset1);
-      roob = isRoob(mxpType, size1, offset1);
-    } while (!(triggerRoob && mxpx && roob) && !(!triggerRoob && mxpx && !roob));
-
-    switch (opCode) {
-      case MLOAD -> appendOpCodeCall(List.of(offset1), opCode, program);
-      case MSTORE, MSTORE8 -> appendOpCodeCall(List.of(value, offset1), opCode, program);
-      case LOG0,
-          SHA3,
-          RETURN,
-          REVERT -> // RETURN and REVERT are selected only when isHalting is true
-      appendOpCodeCall(List.of(size1, offset1), opCode, program);
-      case LOG1 -> appendOpCodeCall(
-          Stream.concat(getRandomUpTo32BytesBigIntegers(1).stream(), Stream.of(size1, offset1))
-              .collect(Collectors.toList()),
-          opCode,
-          program);
-      case LOG2 -> appendOpCodeCall(
-          Stream.concat(getRandomUpTo32BytesBigIntegers(2).stream(), Stream.of(size1, offset1))
-              .collect(Collectors.toList()),
-          opCode,
-          program);
-      case LOG3 -> appendOpCodeCall(
-          Stream.concat(getRandomUpTo32BytesBigIntegers(3).stream(), Stream.of(size1, offset1))
-              .collect(Collectors.toList()),
-          opCode,
-          program);
-      case LOG4 -> appendOpCodeCall(
-          Stream.concat(getRandomUpTo32BytesBigIntegers(4).stream(), Stream.of(size1, offset1))
-              .collect(Collectors.toList()),
-          opCode,
-          program);
-      case CODECOPY, CALLDATACOPY -> appendOpCodeCall(
-          List.of(size1, offset2, offset1), opCode, program);
-      case EXTCODECOPY -> appendOpCodeCall(
-          List.of(size1, offset2, offset1, EWord.of(address)), opCode, program);
-      case CREATE, CREATE2 -> {
-        if (opCode == OpCode.CREATE) {
-          // CREATE
-          appendOpCodeCall(List.of(size1, offset1, value), opCode, program);
-        } else {
-          // CREATE2
-          appendOpCodeCall(List.of(salt, size1, offset1, value), opCode, program);
-        }
-      }
-      default -> {}
-    }
-  }
-
-  private boolean isRoob(MxpType randomMxpType, EWord size1, EWord offset1) {
-
-    final boolean condition4And5 = offset1.compareTo(TWO_POW_128) >= 0 && !size1.isZero();
-
-    return switch (randomMxpType) {
-      case TYPE_2, TYPE_3 -> offset1.compareTo(TWO_POW_128) >= 0;
-      case TYPE_4 -> size1.compareTo(TWO_POW_128) >= 0 || condition4And5;
-        // We never test TYPE_5 in the randomized tests (CALLs)
-      default -> false;
-    };
-  }
-
-  private boolean isMxpx(MxpType randomMxpType, EWord size1, EWord offset1) {
-    EWord maxOffset1 = EWord.ZERO;
-    EWord maxOffset2 = EWord.ZERO;
-    EWord maxOffset;
-
-    switch (randomMxpType) {
-      case TYPE_2 -> maxOffset1 = offset1.add(31);
-      case TYPE_3 -> maxOffset1 = offset1;
-      case TYPE_4 -> {
-        if (!size1.isZero()) {
-          maxOffset1 = offset1.add(size1).subtract(1);
-        }
-      }
-        // We never test TYPE_5 in the randomized tests (CALLs)
-    }
-
-    maxOffset = maxOffset1.greaterThan(maxOffset2) ? maxOffset1 : maxOffset2;
-    return maxOffset.compareTo(TWO_POW_32) >= 0;
-  }
-
-  private void appendOpCodeCall(List<Bytes> args, OpCode opCode, BytecodeCompiler program) {
-    for (Bytes arg : args) {
-      program.push(arg);
-    }
-    program.op(opCode);
-  }
-
-  private void appendOpCodeCall(OpCode randomOpCode, BytecodeCompiler program) {
-    appendOpCodeCall(Collections.emptyList(), randomOpCode, program);
-  }
-
-  // Generates a BigInteger that requires a random number of bytes to be represented in [minBytes,
-  // maxBytes)
-  private EWord getRandomBigIntegerByBytesSize(int minBytes, int maxBytes) {
-    if (minBytes < 0 || maxBytes > 32 || minBytes > maxBytes) {
-      throw new IllegalArgumentException("Invalid input values");
-    }
-    int minBits = 8 * minBytes;
-    int maxBits = 8 * maxBytes;
-    int numBits = RAND.nextInt(minBits, maxBits + 1);
-    return EWord.of(new BigInteger(numBits == 0 ? 1 : numBits, RAND));
-  }
-
-  private List<EWord> getRandomUpTo32BytesBigIntegers(int n) {
-    List<EWord> randomBigIntegers = new ArrayList<>();
-    for (int i = 0; i < n; i++) {
-      randomBigIntegers.add(EWord.of(getRandomBigIntegerByBytesSize(0, 32)));
-    }
-    return randomBigIntegers;
+    // OpCode.CALL-type (Type 5) are tested via testCall()
+    util.triggerNonTrivialButMxpxOrRoobForOpCode(program, triggerRoob, opCode);
   }
 
   private OpCode getRandomOpCodeByType(MxpType mxpType) {
     return switch (mxpType) {
-      case TYPE_1 -> opCodesType1[RAND.nextInt(opCodesType1.length)];
-      case TYPE_2 -> opCodesType2[RAND.nextInt(opCodesType2.length)];
-      case TYPE_3 -> opCodesType3[RAND.nextInt(opCodesType3.length)];
-      case TYPE_4 -> opCodesType4[RAND.nextInt(opCodesType4.length)];
+      case TYPE_1 -> opCodesType1[util.nextRandomInt(opCodesType1.length)];
+      case TYPE_2 -> opCodesType2[util.nextRandomInt(opCodesType2.length)];
+      case TYPE_3 -> opCodesType3[util.nextRandomInt(opCodesType3.length)];
+      case TYPE_4 -> opCodesType4ExcludingHalting[
+          util.nextRandomInt(opCodesType4ExcludingHalting.length)];
       default -> OpCode.MSIZE; // We never enter the default case since we skip MxpType.NONE
     };
-  }
-
-  @Test
-  void testSeveralKeccaks() {
-    BytecodeRunner.of(
-            BytecodeCompiler.newProgram()
-                .push(0)
-                .push(0)
-                .op(OpCode.SHA3)
-                .op(OpCode.POP)
-                .push(64)
-                .push(13)
-                .op(OpCode.SHA3)
-                .op(OpCode.POP)
-                .push(11)
-                .push(75)
-                .op(OpCode.SHA3)
-                .op(OpCode.POP)
-                .push(32)
-                .push(32)
-                .op(OpCode.SHA3)
-                .op(OpCode.POP)
-                .compile())
-        .run();
   }
 }

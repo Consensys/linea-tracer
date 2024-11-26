@@ -76,11 +76,13 @@ public final class StackFragment implements TraceFragment {
     this.opCode = stack.getCurrentOpcodeData().mnemonic();
     this.hashInfoFlag =
         switch (this.opCode) {
-          case SHA3 -> Exceptions.none(exceptions) && gp.messageSize() > 0;
-          case RETURN -> Exceptions.none(exceptions) && gp.messageSize() > 0 && isDeploying;
-          case CREATE2 -> Exceptions.none(exceptions) && aborts.none() && gp.messageSize() > 0;
-          default -> false;
-        };
+              case SHA3 -> true;
+              case RETURN -> isDeploying;
+              case CREATE2 -> aborts.none();
+              default -> false;
+            }
+            && Exceptions.none(exceptions)
+            && gp.messageSize() > 0;
     if (this.hashInfoFlag) {
       Bytes memorySegmentToHash;
       switch (this.opCode) {
@@ -210,8 +212,6 @@ public final class StackFragment implements TraceFragment {
         // Instruction details
         .pStackAlpha(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().alpha()))
         .pStackDelta(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().delta()))
-        .pStackNbAdded(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().nbAdded()))
-        .pStackNbRemoved(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().nbRemoved()))
         .pStackInstruction(Bytes.of(stack.getCurrentOpcodeData().value()))
         .pStackStaticGas(staticGas)
         // Opcode families

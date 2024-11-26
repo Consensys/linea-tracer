@@ -24,7 +24,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -84,11 +84,8 @@ public final class CallStack {
         codeDeploymentNumber,
         toCode == null ? Bytecode.EMPTY : toCode,
         from,
-        callData,
-        0,
-        callData.size(),
-        callDataContextNumber,
-        MemorySpan.empty());
+        new MemoryRange(callDataContextNumber, 0, callData.size(), callData),
+        new MemoryRange(0));
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -98,7 +95,7 @@ public final class CallStack {
    * @param transactionCallDataContextNumber
    * @param callData
    */
-  public void newTransactionCallDataContext(int transactionCallDataContextNumber, Bytes callData) {
+  public void transactionCallDataContext(int transactionCallDataContextNumber, Bytes callData) {
     this.depth = -1;
     this.callFrames.add(new CallFrame(Address.ZERO, callData, transactionCallDataContextNumber));
     this.enter(
@@ -113,17 +110,8 @@ public final class CallStack {
         0,
         Bytecode.EMPTY,
         Address.ZERO, // useless
-        // useless
-        // useless
-        // useless
-        callData,
-        0,
-        callData.size(),
-        transactionCallDataContextNumber,
-        // useless
-        // useless
-        // useless
-        MemorySpan.empty());
+        new MemoryRange(0),
+        new MemoryRange(0));
     this.currentId = this.callFrames.size() - 1;
   }
 
@@ -145,7 +133,7 @@ public final class CallStack {
   /**
    * @return the parent {@link CallFrame} of the current frame
    */
-  public CallFrame parent() {
+  public CallFrame parentCallFrame() {
     if (this.currentCallFrame().parentId() != -1) {
       return this.callFrames.get(this.currentCallFrame().parentId());
     } else {
@@ -169,7 +157,6 @@ public final class CallStack {
    * @param accountDeploymentNumber
    * @param byteCodeDeploymentNumber
    * @param byteCode the {@link Code} being executed
-   * @param inputData the call data sent to this call frame
    */
   public void enter(
       CallFrameType type,
@@ -183,19 +170,12 @@ public final class CallStack {
       int byteCodeDeploymentNumber,
       Bytecode byteCode,
       Address callerAddress,
-      Bytes inputData,
-      long callDataOffset,
-      long callDataSize,
-      long callDataContextNumber,
-      MemorySpan returnDataTargetInCaller) {
+      MemoryRange callData,
+      MemoryRange returnAt) {
     final int callerId = this.depth == -1 ? -1 : this.currentId;
     final int newCallFrameId = this.callFrames.size();
     this.depth += 1;
 
-    Bytes callData = Bytes.EMPTY;
-    if (type != CallFrameType.INIT_CODE) {
-      callData = inputData;
-    }
     final CallFrame newFrame =
         new CallFrame(
             type,
@@ -211,18 +191,14 @@ public final class CallStack {
             byteCodeDeploymentNumber,
             byteCode,
             callerAddress,
-            callDataContextNumber,
             callerId,
             callData,
-            callDataOffset,
-            callDataSize,
-            returnDataTargetInCaller);
+            returnAt);
 
     this.callFrames.add(newFrame);
     this.currentId = newCallFrameId;
     if (callerId != -1) {
-      this.callFrames.get(callerId).returnData(Bytes.EMPTY);
-      this.callFrames.get(callerId).childFramesId().add(newCallFrameId);
+      this.callFrames.get(callerId).childFrameIds().add(newCallFrameId);
     }
   }
 
@@ -316,7 +292,7 @@ public final class CallStack {
   }
 
   public Bytes getFullMemoryOfCaller(Hub hub) {
-    final MessageFrame parentFrame = parent().frame();
+    final MessageFrame parentFrame = parentCallFrame().frame();
     return currentCallFrame().depth() == 0
         ? hub.txStack().current().getTransactionCallData()
         : parentFrame.shadowReadMemory(0, parentFrame.memoryByteSize());

@@ -39,7 +39,7 @@ public class Utilities {
       int rao,
       int rac) {
     program.push(rac).push(rao).push(cds).push(cdo);
-    if (callOpcode.callCanTransferValue()) {
+    if (callOpcode.callHasValueArgument()) {
       program.push(value);
     }
     program.push(to).op(GAS).op(callOpcode).op(POP);
@@ -56,7 +56,7 @@ public class Utilities {
       int rao,
       int rac) {
     program.push(rac).push(rao).push(cds).push(cdo);
-    if (callOpcode.callCanTransferValue()) {
+    if (callOpcode.callHasValueArgument()) {
       program.push(value);
     }
     program.push(to).push(gas).op(callOpcode);
@@ -71,7 +71,7 @@ public class Utilities {
       int cds,
       int rao,
       int rac) {
-    checkArgument(callOpcode.callCanTransferValue());
+    checkArgument(callOpcode.callHasValueArgument());
     program
         .push(rac)
         .push(rao)

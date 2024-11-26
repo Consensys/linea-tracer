@@ -19,6 +19,10 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.enums.GasParam;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.enums.OfstParam;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.enums.SizeParam;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.enums.ValueParameter;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
@@ -35,6 +39,45 @@ public class Calls {
       Bytes32.fromHexString("0b03478988fb194f3ddd922bbc4e9fb415fbdb99818f88186ccfa206337b023d");
   public static Bytes32 randCdo =
       Bytes32.fromHexString("1a3b88fc78471a5d0ce2df8a5799299b7eefd8e6bfd6d6afb0e437e0a6311878");
+
+  public enum Revert {
+    WILL_REVERT,
+    WONT_REVERT
+  }
+
+  public static void appendGenericCall(
+          BytecodeCompiler program,
+          OpCode callOpcode,
+          GasParam gasParam,
+          Address to,
+          ValueParameter valueParameter,
+          OfstParam cdo,
+          SizeParam cds,
+          OfstParam rao,
+          SizeParam rac,
+          int userDefinedGas,
+          int userDefinedValue) {
+    program.push(rac.value()).push(rao.value()).push(cds.value()).push(cdo.value());
+    if (callOpcode.callHasValueArgument()) {
+      switch (valueParameter) {
+        case ZERO -> program.push(0);
+        case ONE -> program.push(1);
+        case BALANCE -> program.op(BALANCE);
+        case BALANCE_PLUS_ONE -> program.op(BALANCE).push(1).op(ADD);
+        case MAX_UINT_256 -> program.push("ff".repeat(32));
+        case USER_DEFINED -> program.push(userDefinedValue);
+      }
+    }
+    program.push(to);
+    switch (gasParam) {
+      case ZERO -> program.push(0);
+      case GAS -> program.op(GAS);
+      case GAS_PLUS_ONE -> program.op(GAS).push(1).op(ADD);
+      case MAX_UINT_256 -> program.push("ff".repeat(32));
+      case USER_DEFINED -> program.push(userDefinedGas);
+    }
+    program.op(callOpcode);
+  }
 
   public static void appendFullGasCall(
       BytecodeCompiler program,

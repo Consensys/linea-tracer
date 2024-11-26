@@ -15,23 +15,37 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.identity;
 
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendCall;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendGenericCall;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.enums.GasParam.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.enums.GasParam.GAS;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.enums.GasParam.GAS_PLUS_ONE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.enums.GasParam;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.enums.OfstParam;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.enums.SizeParam;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.enums.ValueParameter;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class Tests {
 
@@ -92,6 +106,31 @@ public class Tests {
         .run();
   }
 
+  @ParameterizedTest
+  @MethodSource("callParameterIDENTITY")
+  void genericIdentityTests(
+          OpCode callOpCode, GasParam gasParam, OfstParam cdo, SizeParam cds, OfstParam rao, SizeParam rac) {
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    fullCodeCopyOf(program, byteSource);
+    appendGenericCall(program, callOpCode, gasParam, Address.ID, ValueParameter.ONE, cdo, cds, rao, rac, 0, 0);
+    identityCaller.setCode(program.compile());
+
+    Transaction transaction =
+            ToyTransaction.builder()
+                    .sender(userAccount)
+                    .keyPair(keyPair)
+                    .to(identityCaller)
+                    .value(Wei.of(7_000_000_000L))
+                    .build();
+
+    ToyExecutionEnvironmentV2.builder()
+            .accounts(List.of(byteSource, userAccount, identityCaller))
+            .transaction(transaction)
+            .build()
+            .run();
+  }
+
   /**
    * The following copies the entirety of the account code to RAM.
    *
@@ -107,5 +146,28 @@ public class Tests {
         .push(0)
         .push(address)
         .op(EXTCODECOPY); // copies the entire code to RAM
+  }
+
+  static Stream<Arguments> callParameterIDENTITY() {
+
+
+    List<OpCode> callOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
+    List<GasParam> gasParams = List.of(GAS, GAS_PLUS_ONE);
+    List<Arguments> arguments = new ArrayList<>();
+
+    for (OpCode callOpCode : callOpCodes) {
+      for (GasParam gasParam : gasParams) {
+        for (OfstParam cdo : OfstParam.values()) {
+          for (SizeParam cds : SizeParam.values()) {
+            for (OfstParam rao : OfstParam.values()) {
+              for (SizeParam rac : SizeParam.values()) {
+                arguments.add(Arguments.of(callOpCode, gasParam, cdo, cds, rao, rac));
+              }
+            }
+          }
+        }
+      }
+    }
+    return arguments.stream();
   }
 }

@@ -77,11 +77,10 @@ public class StpCall implements TraceSubFragment {
   private void stpCallForCalls(Hub hub) {
     final MessageFrame frame = hub.messageFrame();
 
-    final boolean callHasValueArgument = opCode.callHasValueArgument();
     final Address to = Words.toAddress(frame.getStackItem(1));
     final Account toAccount = frame.getWorldUpdater().get(to);
     this.gas = EWord.of(frame.getStackItem(0));
-    this.value = (callHasValueArgument) ? EWord.of(frame.getStackItem(2)) : ZERO;
+    this.value = opCode.callHasValueArgument() ? EWord.of(frame.getStackItem(2)) : ZERO;
     this.exists =
         switch (hub.opCode()) {
           case CALL -> toAccount != null ? !toAccount.isEmpty() : false;
@@ -90,14 +89,18 @@ public class StpCall implements TraceSubFragment {
               "STP module triggered for a non CALL-type instruction");
         };
     this.warm = isAddressWarm(frame, to);
-
-    final boolean isCALL = opCode.equals(OpCode.CALL);
-    final boolean nonzeroValueTransfer = !value.isZero();
-
-    this.upfrontGasCost = upfrontGasCostForCalls(isCALL, nonzeroValueTransfer);
+    this.upfrontGasCost = upfrontGasCostForCalls(opCode);
     this.outOfGasException = gasActual < upfrontGasCost;
     this.gasPaidOutOfPocket = gasPaidOutOfPocketForCalls();
-    this.stipend = !outOfGasException && nonzeroValueTransfer ? GAS_CONST_G_CALL_STIPEND : 0;
+    this.stipend = !outOfGasException && nonzeroValueTransfer() ? GAS_CONST_G_CALL_STIPEND : 0;
+  }
+
+  private boolean nonzeroValueTransfer() {
+    return opCode.callHasValueArgument() && !value.isZero();
+  }
+
+  private boolean callWouldLeadToAccountCreation() {
+    return (opCode == OpCode.CALL) && nonzeroValueTransfer() && !exists;
   }
 
   private long gasPaidOutOfPocketForCalls() {
@@ -135,15 +138,12 @@ public class StpCall implements TraceSubFragment {
     }
   }
 
-  private long upfrontGasCostForCalls(boolean isCALL, boolean nonzeroValueTransfer) {
+  private long upfrontGasCostForCalls(OpCode callOpCode) {
 
-    boolean toIsWarm = warm;
     long upfrontGasCost = memoryExpansionGas;
-    final boolean callWouldLeadToAccountCreation = isCALL && nonzeroValueTransfer && !exists;
-    if (nonzeroValueTransfer) upfrontGasCost += GAS_CONST_G_CALL_VALUE;
-    if (toIsWarm) upfrontGasCost += GAS_CONST_G_WARM_ACCESS;
-    else upfrontGasCost += GAS_CONST_G_COLD_ACCOUNT_ACCESS;
-    if (callWouldLeadToAccountCreation) upfrontGasCost += GAS_CONST_G_NEW_ACCOUNT;
+    upfrontGasCost += nonzeroValueTransfer() ? GAS_CONST_G_CALL_VALUE : 0;
+    upfrontGasCost += warm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS;
+    upfrontGasCost += callWouldLeadToAccountCreation() ? GAS_CONST_G_NEW_ACCOUNT : 0;
 
     return upfrontGasCost;
   }

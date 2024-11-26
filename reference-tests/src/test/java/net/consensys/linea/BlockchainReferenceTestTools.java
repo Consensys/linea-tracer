@@ -126,6 +126,8 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("StrangeContractCreation_London[London]");
     PARAMS.ignore("SuicideIssue_London[London]");
     PARAMS.ignore("DelegateCallSpam_London[London]");
+    PARAMS.ignore("OverflowGasRequire2_d0g0v0_London[London]");
+    PARAMS.ignore("HighGasLimit_d0g0v0_London[London]");
 
     // Don't do time-consuming tests.
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");

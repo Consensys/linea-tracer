@@ -373,7 +373,7 @@ public class CallSection extends TraceSection
   }
 
   @Override
-  public void resolveUponContextEntry(Hub hub) {
+  public void resolveUponContextEntry(Hub hub, MessageFrame frame) {
 
     CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
     checkState(scenario == CALL_SMC_UNDEFINED | scenario == CALL_PRC_UNDEFINED);

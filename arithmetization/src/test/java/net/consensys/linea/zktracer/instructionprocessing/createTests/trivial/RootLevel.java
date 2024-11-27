@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static net.consensys.linea.zktracer.instructionprocessing.createTests.CreateType.CREATE2;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.WhenToTestParameter.BEFORE;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.WhenToTestParameter.BEFORE_AND_AFTER;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
@@ -46,7 +45,7 @@ public class RootLevel {
             boolean revert) {
 
         BytecodeCompiler program = BytecodeCompiler.newProgram();
-        genericCreate(program, createType, valueParameter, offsetParameter, SizeParameter.ZERO);
+        genericCreate(program, createType, valueParameter, offsetParameter, SizeParameter.ZERO, salt01);
 
         if (revert) {
             program
@@ -64,7 +63,7 @@ public class RootLevel {
 
         int storageKey = 0;
         BytecodeCompiler program = BytecodeCompiler.newProgram();
-        precomputeCreate2DeploymentAddress(program, salt01, storageKey);
+        precomputeCreate2DeploymentAddress(program, salt01);
         storeAt(program, storageKey);
 
         if (when == BEFORE || when == BEFORE_AND_AFTER) {
@@ -72,7 +71,7 @@ public class RootLevel {
             program.op(EXTCODEHASH); // we expect to see 0
         }
 
-        genericCreate(program, CREATE2, ValueParameter.ONE, OffsetParameter.ZERO, SizeParameter.ZERO);
+        genericCreate(program, CreateType.CREATE2, ValueParameter.ONE, OffsetParameter.ZERO, SizeParameter.ZERO, salt01);
 
         if (when == BEFORE || when == BEFORE_AND_AFTER) {
             loadFromStorage(program, storageKey);
@@ -102,7 +101,9 @@ public class RootLevel {
         return arguments.stream();
     }
 
-    public static void genericCreate(BytecodeCompiler program, CreateType type, ValueParameter valueParameter, OffsetParameter offsetParameter, SizeParameter sizeParameter) {
+    public static void genericCreate(BytecodeCompiler program, CreateType type, ValueParameter valueParameter, OffsetParameter offsetParameter, SizeParameter sizeParameter, String salt) {
+
+        if (type == CreateType.CREATE2) program.push(salt);
 
         switch (sizeParameter) {
             case ZERO -> program.push(0);
@@ -132,17 +133,17 @@ public class RootLevel {
         }
     }
 
-    public static void precomputeCreate2DeploymentAddress(BytecodeCompiler program, String salt, int key) {
+    public static void precomputeCreate2DeploymentAddress(BytecodeCompiler program, String salt) {
         program
                 .push(0xff)
                 .push(0)
                 .op(MSTORE8); // (255)
         program
                 .op(OpCode.ADDRESS)
-                .push(8 * 12)
+                .push(12 * 8)
                 .op(SHL)
                 .push(1)
-                .op(MSTORE);
+                .op(MSTORE); // store address left shifted by 12 bytes
         program
                 .push(salt)
                 .push(21)

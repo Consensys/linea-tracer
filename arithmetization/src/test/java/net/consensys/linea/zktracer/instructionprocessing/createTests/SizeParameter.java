@@ -21,4 +21,5 @@ public enum SizeParameter {
     FOURTEEN, // - 3 + 1
     THIRTY_TWO,
     MSIZE,
+    MAX,
 }

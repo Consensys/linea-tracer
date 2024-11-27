@@ -33,8 +33,8 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 public class RootLevel {
 
-    public String salt01 = "5a1701";
-    public String salt02 = "5a1702";
+    public static String salt01 = "5a1701";
+    public static String salt02 = "5a1702";
 
     @ParameterizedTest
     @MethodSource("createParametersForEmptyCreates")
@@ -111,7 +111,8 @@ public class RootLevel {
             case THIRTEEN -> program.push(13);
             case FOURTEEN -> program.push(14);
             case THIRTY_TWO -> program.push(0x20);
-            case MSIZE -> program.op(MSTORE);
+            case MSIZE -> program.op(MSIZE);
+            case MAX -> program.push("ff".repeat(32));
         }
         switch (offsetParameter) {
             case ZERO -> program.push(0);
@@ -175,8 +176,7 @@ public class RootLevel {
                 .op(SLOAD);
     }
 
-    private void run(BytecodeCompiler program) {
+    public static void run(BytecodeCompiler program) {
         BytecodeRunner.of(program).run();
     }
-
 }

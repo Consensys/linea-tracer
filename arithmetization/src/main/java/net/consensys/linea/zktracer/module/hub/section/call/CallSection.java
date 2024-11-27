@@ -105,10 +105,6 @@ public class CallSection extends TraceSection
   // row i+0
   private final CallScenarioFragment scenarioFragment = new CallScenarioFragment();
 
-  public boolean isAbortingScenario() {
-    return scenarioFragment.getScenario().isAbortingScenario();
-  }
-
   // last row
   @Setter private ContextFragment finalContextFragment;
 
@@ -362,6 +358,12 @@ public class CallSection extends TraceSection
         ADDRESS_TO_PRECOMPILE.get(preOpcodeCalleeSnapshot.address()).apply(hub, this);
     hub.defers().scheduleForContextEntry(this);
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
+    // In case of arguments too large for MODEXP, transaction will be popped anyway, and resolving
+    // defers will create NPE
+    if (precompileSubsection instanceof ModexpSubsection
+        && ((ModexpSubsection) precompileSubsection).transactionWillBePopped) {
+      hub.defers().unscheduleForContextReEntry(this, hub.currentFrame());
+    }
   }
 
   @Override
@@ -468,13 +470,13 @@ public class CallSection extends TraceSection
           return;
         }
 
-        AccountSnapshot beforeFailureCallerSnapshot =
+        final AccountSnapshot beforeFailureCallerSnapshot =
             postOpcodeCallerSnapshot.deepCopy().setDeploymentInfo(hub);
-        AccountSnapshot afterFailureCallerSnapshot =
+        final AccountSnapshot afterFailureCallerSnapshot =
             preOpcodeCallerSnapshot.deepCopy().setDeploymentInfo(hub);
-        AccountSnapshot beforeFailureCalleeSnapshot =
+        final AccountSnapshot beforeFailureCalleeSnapshot =
             postOpcodeCalleeSnapshot.deepCopy().setDeploymentInfo(hub);
-        AccountSnapshot afterFailureCalleeSnapshot =
+        final AccountSnapshot afterFailureCalleeSnapshot =
             preOpcodeCalleeSnapshot.deepCopy().setDeploymentInfo(hub).turnOnWarmth();
 
         // CALL_SMC_FAILURE_XXX case
@@ -485,9 +487,9 @@ public class CallSection extends TraceSection
           reEntryCalleeSnapshot.decrementBalanceBy(value);
         }
 
-        int childId = hub.currentFrame().childFrameIds().getLast();
-        CallFrame childFrame = hub.callStack().getById(childId);
-        int childContextRevertStamp = childFrame.revertStamp();
+        final int childId = hub.currentFrame().childFrameIds().getLast();
+        final CallFrame childFrame = hub.callStack().getById(childId);
+        final int childContextRevertStamp = childFrame.revertStamp();
 
         final AccountFragment postReEntryCallerAccountFragment =
             hub.factories()

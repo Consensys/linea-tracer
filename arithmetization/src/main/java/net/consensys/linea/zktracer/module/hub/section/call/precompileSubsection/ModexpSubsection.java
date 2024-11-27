@@ -53,6 +53,7 @@ public class ModexpSubsection extends PrecompileSubsection {
   public final ModexpMetadata modexpMetaData;
   private ModexpPricingOobCall sixthOobCall;
   private ImcFragment seventhImcFragment;
+  public boolean transactionWillBePopped = false;
 
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
@@ -75,6 +76,7 @@ public class ModexpSubsection extends PrecompileSubsection {
             >= 0) {
       hub.modexpEffectiveCall().addPrecompileLimit(Integer.MAX_VALUE);
       hub.defers().unscheduleForContextReEntry(this, hub.currentFrame());
+      transactionWillBePopped = true;
       return;
     }
 

@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.createTests;
 
 public enum WhenToTestParameter {
-    BEFORE,
-    AFTER,
-    BEFORE_AND_AFTER
+  BEFORE,
+  AFTER,
+  BEFORE_AND_AFTER
 }

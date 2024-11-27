@@ -15,6 +15,6 @@
 package net.consensys.linea.zktracer.instructionprocessing.createTests;
 
 public enum CreateType {
-    CREATE,
-    CREATE2
+  CREATE,
+  CREATE2
 }

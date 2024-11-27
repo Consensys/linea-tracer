@@ -15,10 +15,10 @@
 package net.consensys.linea.zktracer.instructionprocessing.createTests;
 
 public enum OffsetParameter {
-    ZERO,
-    THREE,
-    SIXTEEN,
-    SIXTEEN_BYTE_INT,
-    THIRTY_TWO_BYTE_INT,
-    MAX,
+  ZERO,
+  THREE,
+  SIXTEEN,
+  SIXTEEN_BYTE_INT,
+  THIRTY_TWO_BYTE_INT,
+  MAX,
 }

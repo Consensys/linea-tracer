@@ -14,6 +14,15 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.abort;
 
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.SizeParameter.*;
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.trivial.RootLevel.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendRevert;
+import static net.consensys.linea.zktracer.opcode.OpCode.SHA3;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.createTests.CreateType;
 import net.consensys.linea.zktracer.instructionprocessing.createTests.OffsetParameter;
@@ -23,49 +32,117 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
-
-import static net.consensys.linea.zktracer.instructionprocessing.createTests.SizeParameter.*;
-import static net.consensys.linea.zktracer.instructionprocessing.createTests.trivial.RootLevel.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.SHA3;
-
 public class Balance {
 
-    @ParameterizedTest
-    @MethodSource("rootLevelInsufficientBalanceParameters")
-    void rootLevelInsfficientBalanceEmptyCreateOpcodeTest(CreateType createType, SizeParameter sizeParameter, OffsetParameter offsetParameter) {
+  /** The tests below are meant to trigger the "insufficientBalanceAbort" condition. */
+  @ParameterizedTest
+  @MethodSource("rootLevelInsufficientBalanceParameters")
+  void rootLevelInsufficientBalanceCreateOpcodeTest(
+      CreateType createType, SizeParameter sizeParameter, OffsetParameter offsetParameter) {
 
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-        if (sizeParameter == MSIZE) {
-            program.push(512).push(0).op(SHA3); // purely to expand memory
-        }
-
-        genericCreate(program, createType, ValueParameter.SELFBALANCE_PLUS_ONE, offsetParameter, sizeParameter, salt01);
-
-        run(program);
+    if (sizeParameter == MSIZE) {
+      program.push(513).push(0).op(SHA3); // purely to expand memory to 0 < 512 + 32 bytes
     }
 
-    /**
-     * {@link #rootLevelInsufficientBalanceParameters} excludes ''large sizes'': we are interested in unexceptional but aborted
-     * CREATE(2)'s.
-     *
-     */
-    private static Stream<Arguments> rootLevelInsufficientBalanceParameters() {
+    genericCreate(
+        program,
+        createType,
+        ValueParameter.SELFBALANCE_PLUS_ONE,
+        offsetParameter,
+        sizeParameter,
+        salt01);
 
-        List<Arguments> arguments = new ArrayList<>();
-        List<SizeParameter> sizeParameters = List.of(ZERO, TWELVE, THIRTEEN, FOURTEEN, THIRTY_TWO, MSIZE);
+    run(program);
+  }
 
-        for (CreateType createType : CreateType.values()) {
-            for (OffsetParameter offsetParameter : OffsetParameter.values()) {
-                for (SizeParameter sizeParameter : sizeParameters) {
-                    arguments.add(Arguments.of(createType, sizeParameter, offsetParameter));
-                }
-            }
-        }
+  /**
+   * In the tests {@link #rootLevelAbortThenSuccessCreateTest} we perform two CREATE(2)'s in a row.
+   * The first one is designed to raise the insufficientBalanceAbort condition, the second one is
+   * designed to succeed. We optionally REVERT.
+   */
+  @ParameterizedTest
+  @MethodSource("offsetAndSizeParameters")
+  void rootLevelAbortThenSuccessCreateTest(
+      CreateType createType,
+      OffsetParameter offsetParameter,
+      SizeParameter sizeParameter,
+      boolean reverts) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    genericCreate(
+        program,
+        createType,
+        ValueParameter.SELFBALANCE_PLUS_ONE,
+        offsetParameter,
+        sizeParameter,
+        salt01); // aborts
+    genericCreate(program, createType, ValueParameter.ONE, offsetParameter, sizeParameter, salt01);
 
-        return arguments.stream();
+    if (reverts) {
+      appendRevert(program, 2, 13);
     }
+
+    run(program);
+  }
+
+  /**
+   * In the tests {@link #rootLevelSuccessThenAbortCreateTest} we perform two CREATE(2)'s in a row.
+   * The first one is designed to succeed, the second one is designed to raise the
+   * insufficientBalanceAbort condition. We optionally REVERT.
+   */
+  @ParameterizedTest
+  @MethodSource("offsetAndSizeParameters")
+  void rootLevelSuccessThenAbortCreateTest(
+      CreateType createType,
+      OffsetParameter offsetParameter,
+      SizeParameter sizeParameter,
+      boolean reverts) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    genericCreate(program, createType, ValueParameter.ONE, offsetParameter, sizeParameter, salt01);
+    genericCreate(
+        program,
+        createType,
+        ValueParameter.SELFBALANCE_PLUS_ONE,
+        offsetParameter,
+        sizeParameter,
+        salt01); // aborts
+    if (reverts) {
+      appendRevert(program, 2, 13);
+    }
+    run(program);
+  }
+
+  private static Stream<Arguments> offsetAndSizeParameters() {
+    List<Arguments> arguments = new ArrayList<>();
+    for (OffsetParameter offsetParameter : OffsetParameter.values()) {
+      for (SizeParameter sizeParameter : SizeParameter.values()) {
+        if (sizeParameter.willRaiseException()) continue;
+        arguments.add(Arguments.of(CreateType.CREATE, offsetParameter, sizeParameter, true));
+        arguments.add(Arguments.of(CreateType.CREATE2, offsetParameter, sizeParameter, false));
+      }
+    }
+    return arguments.stream();
+  }
+
+  /**
+   * {@link #rootLevelInsufficientBalanceParameters} excludes ''large sizes'': we are interested in
+   * unexceptional but aborted CREATE(2)'s.
+   */
+  private static Stream<Arguments> rootLevelInsufficientBalanceParameters() {
+
+    List<Arguments> arguments = new ArrayList<>();
+    List<SizeParameter> sizeParameters =
+        List.of(ZERO, TWELVE, THIRTEEN, FOURTEEN, THIRTY_TWO, MSIZE);
+
+    for (CreateType createType : CreateType.values()) {
+      for (OffsetParameter offsetParameter : OffsetParameter.values()) {
+        for (SizeParameter sizeParameter : sizeParameters) {
+          arguments.add(Arguments.of(createType, sizeParameter, offsetParameter));
+        }
+      }
+    }
+
+    return arguments.stream();
+  }
 }

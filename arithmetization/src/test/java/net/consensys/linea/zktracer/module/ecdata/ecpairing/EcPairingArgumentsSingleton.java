@@ -17,12 +17,9 @@ package net.consensys.linea.zktracer.module.ecdata.ecpairing;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.consensys.linea.UnitTestWatcher;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @Getter
 @Setter
-
 public class EcPairingArgumentsSingleton {
   private static EcPairingArgumentsSingleton instance;
   private String arguments;

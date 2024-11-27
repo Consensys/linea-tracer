@@ -18,10 +18,7 @@ package net.consensys.linea.zktracer.module.rlpcommon;
 import java.math.BigInteger;
 import java.util.Random;
 
-import net.consensys.linea.UnitTestWatcher;
 import org.apache.tuweni.bytes.Bytes;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 
 public class RlpRandEdgeCase {
   /**

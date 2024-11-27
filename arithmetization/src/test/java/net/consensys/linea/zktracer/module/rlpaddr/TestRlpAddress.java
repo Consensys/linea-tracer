@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.rlpaddr;
 import java.util.List;
 import java.util.Random;
 
-import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -35,8 +34,6 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 
 public class TestRlpAddress {
   private final Random rnd = new Random(666);

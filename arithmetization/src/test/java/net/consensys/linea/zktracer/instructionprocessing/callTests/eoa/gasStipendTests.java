@@ -17,18 +17,15 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.eoa;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
-import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Transferring nonzero value provides a gas stipend to the callee. This stipend will immediately be
  * restituted to the caller in case of an EOA call.
  */
-
 public class gasStipendTests {
 
   @Test

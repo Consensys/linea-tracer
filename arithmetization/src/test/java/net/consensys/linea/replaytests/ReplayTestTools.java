@@ -33,9 +33,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.ReplayExecutionEnvironment;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
 
 /**
@@ -55,7 +53,6 @@ import org.junit.jupiter.params.provider.Arguments;
  * One can run this command: scripts/capture.pl --start xxx --end yyy --output my-test-case.json.gz
  */
 @Slf4j
-
 public class ReplayTestTools {
   /** A list of block numbers used for testing purposes in {@link ReplayTests}. */
   static List<Arguments> BLOCK_NUMBERS = new ArrayList<>();

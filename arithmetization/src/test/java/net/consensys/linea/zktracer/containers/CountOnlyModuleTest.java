@@ -17,12 +17,9 @@ package net.consensys.linea.zktracer.containers;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
-import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
 
 public class CountOnlyModuleTest {
   @Test

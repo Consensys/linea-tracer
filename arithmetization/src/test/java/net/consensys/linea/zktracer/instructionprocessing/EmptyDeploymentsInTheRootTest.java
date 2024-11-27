@@ -16,7 +16,6 @@ package net.consensys.linea.zktracer.instructionprocessing;
 
 import java.util.List;
 
-import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -32,7 +31,6 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * The purpose of {@link EmptyDeploymentsInTheRootTest} is to make sure that deployment transactions
@@ -40,7 +38,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * (if present) should be treated properly and the update to the deployment account is accounted for
  * in the relevant row.
  */
-
 public class EmptyDeploymentsInTheRootTest {
 
   final Bytes initCodeEmptyDeployment =

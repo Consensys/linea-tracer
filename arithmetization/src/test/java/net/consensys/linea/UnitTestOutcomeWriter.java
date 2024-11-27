@@ -16,10 +16,8 @@ package net.consensys.linea;
 
 import static net.consensys.linea.reporting.TestOutcomeWriterTool.writeToJsonFile;
 
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
-
 
 public class UnitTestOutcomeWriter implements LauncherSessionListener {
 

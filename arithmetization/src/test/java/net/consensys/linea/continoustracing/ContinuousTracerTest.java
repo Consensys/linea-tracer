@@ -22,7 +22,6 @@ import static org.mockito.Mockito.when;
 import java.nio.file.Path;
 import java.util.List;
 
-import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.plugins.continoustracing.ContinuousTracer;
 import net.consensys.linea.plugins.continoustracing.ContinuousTracingConfiguration;
@@ -40,7 +39,6 @@ import org.junit.jupiter.api.io.TempDir;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 
 @ExtendWith(MockitoExtension.class)
 public class ContinuousTracerTest {

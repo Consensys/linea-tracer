@@ -17,10 +17,8 @@ package net.consensys.linea.replaytests;
 import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
 
-import net.consensys.linea.UnitTestWatcher;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * This test contains a STATICCALL to the ECRECOVER precompile in the first transaction, at
@@ -41,7 +39,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  */
 @Tag("replay")
 @Tag("nightly")
-
 public class Issue1136Tests {
 
   @Test

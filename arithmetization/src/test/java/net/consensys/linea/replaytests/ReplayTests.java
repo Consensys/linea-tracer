@@ -24,17 +24,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-import net.consensys.linea.UnitTestWatcher;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @Tag("replay")
-
 public class ReplayTests {
 
   @Test

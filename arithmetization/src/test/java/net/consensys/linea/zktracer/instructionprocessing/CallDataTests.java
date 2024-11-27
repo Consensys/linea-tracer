@@ -35,7 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * more generally deployment context's, call data is empty and the tests are "trivial" in some
  * sense. They aren't for message calls.
  */
-
+@ExtendWith(UnitTestWatcher.class)
 public class CallDataTests {
   // @Test
   // void transactionCallDataForMessageCallTest() {

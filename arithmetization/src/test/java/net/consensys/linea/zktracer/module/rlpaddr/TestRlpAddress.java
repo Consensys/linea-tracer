@@ -37,7 +37,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-
+@ExtendWith(UnitTestWatcher.class)
 public class TestRlpAddress {
   private final Random rnd = new Random(666);
   private final RlpRandEdgeCase util = new RlpRandEdgeCase();

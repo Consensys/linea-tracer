@@ -22,7 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @Getter
 @Setter
-
+@ExtendWith(UnitTestWatcher.class)
 public class EcPairingArgumentsSingleton {
   private static EcPairingArgumentsSingleton instance;
   private String arguments;

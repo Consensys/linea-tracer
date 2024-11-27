@@ -40,7 +40,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * (if present) should be treated properly and the update to the deployment account is accounted for
  * in the relevant row.
  */
-
+@ExtendWith(UnitTestWatcher.class)
 public class EmptyDeploymentsInTheRootTest {
 
   final Bytes initCodeEmptyDeployment =

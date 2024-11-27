@@ -30,7 +30,7 @@ import org.junit.jupiter.params.provider.EnumSource;
  * Attempt to trigger the maximum call stack depth abort. We put everything to 0 to avoid memory
  * expansion costs. We will want to revert so we transfer value to see the effect of reverting.
  */
-
+@ExtendWith(UnitTestWatcher.class)
 public class CallStackDepthAbortTests {
   @ParameterizedTest
   @EnumSource(

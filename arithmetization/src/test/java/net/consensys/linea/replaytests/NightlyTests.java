@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @Tag("nightly")
-
+@ExtendWith(UnitTestWatcher.class)
 public class NightlyTests {
   @Test
   void leoFailingRange() {

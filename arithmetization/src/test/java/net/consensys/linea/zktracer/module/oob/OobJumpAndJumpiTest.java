@@ -40,7 +40,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-
+@ExtendWith(UnitTestWatcher.class)
 public class OobJumpAndJumpiTest {
 
   public static final BigInteger TWO_POW_128_MINUS_ONE =

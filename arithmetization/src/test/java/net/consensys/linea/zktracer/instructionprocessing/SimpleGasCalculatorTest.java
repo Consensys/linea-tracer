@@ -21,7 +21,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-
+@ExtendWith(UnitTestWatcher.class)
 public class SimpleGasCalculatorTest {
   @Test
   void simpleGasCalculatorTest() {

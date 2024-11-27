@@ -39,7 +39,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * <p>See https://github.com/Consensys/linea-tracer/issues/1121
  */
 @Tag("nightly")
-
+@ExtendWith(UnitTestWatcher.class)
 public class Issue1126Tests {
   @Test
   void test_3108622_3108633() {

@@ -29,7 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * Test class related to {@link BaseTheta} data structure, which is an extension of {@link
  * BytesArray}, with support for high and low bytes' manipulation.
  */
-
+@ExtendWith(UnitTestWatcher.class)
 public class BaseThetaTest {
   @Test
   public void baseThetaTest() {

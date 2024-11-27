@@ -41,7 +41,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @Accessors(fluent = true)
 @Tag("weekly")
-
+@ExtendWith(UnitTestWatcher.class)
 public class ShfExtensiveTest {
 
   private static final List<Arguments> shfTestSourceList = new ArrayList<>();

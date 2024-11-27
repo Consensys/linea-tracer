@@ -41,7 +41,7 @@ import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-
+@ExtendWith(UnitTestWatcher.class)
 @ExtendWith(MockitoExtension.class)
 public class ContinuousTracerTest {
   private static final Hash BLOCK_HASH =

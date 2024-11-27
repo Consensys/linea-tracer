@@ -44,7 +44,7 @@ public class MessageCallTests {
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-  
+  @ExtendWith(UnitTestWatcher.class)
   public void testWithCall(OpCode opCode) {
 
     ToyAccount recipientAccount = buildRecipient(opCode);

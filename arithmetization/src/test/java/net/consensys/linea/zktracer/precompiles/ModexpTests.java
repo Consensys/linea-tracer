@@ -32,7 +32,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-
+@ExtendWith(UnitTestWatcher.class)
 public class ModexpTests {
 
   // some 10 decimal digit primes in the range [256 ** 3, 256 ** 4[

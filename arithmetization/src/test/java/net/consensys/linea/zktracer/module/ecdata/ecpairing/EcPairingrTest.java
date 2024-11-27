@@ -49,7 +49,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 // that can be used to run the same test cases with @CsvFileSource
 
 @ExtendWith(EcPairingTestWatcher.class)
-
+@ExtendWith(UnitTestWatcher.class)
 public class EcPairingrTest {
   // https://github.com/Consensys/linea-arithmetization/issues/822
 

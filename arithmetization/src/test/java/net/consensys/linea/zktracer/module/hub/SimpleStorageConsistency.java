@@ -35,7 +35,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-
+@ExtendWith(UnitTestWatcher.class)
 public class SimpleStorageConsistency {
 
   private final Address receiverAddress =

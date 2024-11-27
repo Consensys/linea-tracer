@@ -23,7 +23,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-
+@ExtendWith(UnitTestWatcher.class)
 public class Utilities {
 
   public static final String fullEoaAddress = "000000000000000000000000abcdef0123456789";

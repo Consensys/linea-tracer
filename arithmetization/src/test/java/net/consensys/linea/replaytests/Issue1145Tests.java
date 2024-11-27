@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @Tag("replay")
-
+@ExtendWith(UnitTestWatcher.class)
 public class Issue1145Tests {
 
   @Test

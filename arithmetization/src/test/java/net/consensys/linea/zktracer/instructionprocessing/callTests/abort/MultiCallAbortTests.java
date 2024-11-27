@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /** CALL/ABORT's are revert sensitive. We test this with two CALL's. */
-
+@ExtendWith(UnitTestWatcher.class)
 public class MultiCallAbortTests {
 
   @Test

@@ -41,7 +41,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  */
 @Tag("replay")
 @Tag("nightly")
-
+@ExtendWith(UnitTestWatcher.class)
 public class Issue1136Tests {
 
   @Test

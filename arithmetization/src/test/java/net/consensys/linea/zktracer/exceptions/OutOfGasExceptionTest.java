@@ -34,7 +34,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-
+@ExtendWith(UnitTestWatcher.class)
 public class OutOfGasExceptionTest {
 
   // TODO: add tests when address is warm. Use constants such as G_WARM_ACCESS etc

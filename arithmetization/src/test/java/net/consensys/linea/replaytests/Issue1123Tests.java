@@ -25,7 +25,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 /** Same underlying NPE issue as that solved in #1216. */
 @Tag("replay")
 @Tag("nightly")
-
+@ExtendWith(UnitTestWatcher.class)
 public class Issue1123Tests {
 
   @Test

@@ -9,11 +9,15 @@ Trivial CREATE's are those CREATE's that are
 # Parameters
 
 In terms of the parameters we can play with we find:
-- CREATE vs CREATE2
-- zero value vs nonzero value
-- WILL_REVERT vs WONT_REVERT
-- root level or higher level
-- zero size, huge offset shenanigans
+- [ ] level
+  - [x] root level
+  - [ ] higher level
+- [x] CREATE vs CREATE2
+- [x] zero value vs nonzero value
+- [x] WILL_REVERT vs WONT_REVERT
+- [ ] zero size
+  - [ ] 'zero size, huge offset' shenanigans
+- [ ] nonzero size
 
 We _could_ also consider collisions via CREATE2 or through multi transactions and SELFDESTRUCT's.
 This will be the focus of other tests. We should also measure the interaction that these trivial deployments have with EXTCODEHASH.

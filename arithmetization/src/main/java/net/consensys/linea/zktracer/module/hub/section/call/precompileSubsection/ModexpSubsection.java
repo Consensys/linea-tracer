@@ -63,17 +63,17 @@ public class ModexpSubsection extends PrecompileSubsection {
                 .bbs()
                 .toUnsignedBigInteger()
                 .compareTo(BigInteger.valueOf(MODEXP_COMPONENT_BYTE_SIZE))
-            >= 0
+            > 0
         || modexpMetaData
                 .mbs()
                 .toUnsignedBigInteger()
                 .compareTo(BigInteger.valueOf(MODEXP_COMPONENT_BYTE_SIZE))
-            >= 0
+            > 0
         || modexpMetaData
                 .ebs()
                 .toUnsignedBigInteger()
                 .compareTo(BigInteger.valueOf(MODEXP_COMPONENT_BYTE_SIZE))
-            >= 0) {
+            > 0) {
       hub.modexpEffectiveCall().addPrecompileLimit(Integer.MAX_VALUE);
       hub.defers().unscheduleForContextReEntry(this, hub.currentFrame());
       transactionWillBePopped = true;

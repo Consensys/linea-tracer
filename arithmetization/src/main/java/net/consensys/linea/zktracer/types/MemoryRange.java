@@ -80,7 +80,7 @@ public class MemoryRange {
       final long contextNumber, final long offset, final long size, final Bytes rawData) {
     this.contextNumber = contextNumber;
     this.range = Range.fromOffsetAndSize(offset, size);
-    this.rawData = range.isEmpty() ? Bytes.EMPTY : rawData;
+    this.rawData = isEmpty() ? Bytes.EMPTY : rawData;
   }
 
   public MemoryRange(final long contextNumber, final Range range, final MessageFrame frame) {

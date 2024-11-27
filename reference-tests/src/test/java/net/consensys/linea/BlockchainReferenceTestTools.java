@@ -120,9 +120,9 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("randomStatetest94_\\w+");
 
     // Balance is more than 128 bits
-    PARAMS.ignore(("Call1024PreCalls_d0g0v0_London[London]"));
-    PARAMS.ignore(("Call1024PreCalls_d0g1v0_London[London]"));
-    PARAMS.ignore(("OverflowGasRequire_London[London]"));
+    PARAMS.ignore("Call1024PreCalls_d0g0v0_London[London]");
+    PARAMS.ignore("Call1024PreCalls_d0g1v0_London[London]");
+    PARAMS.ignore("OverflowGasRequire_London[London]");
     PARAMS.ignore("StrangeContractCreation_London[London]");
     PARAMS.ignore("SuicideIssue_London[London]");
     PARAMS.ignore("DelegateCallSpam_London[London]");

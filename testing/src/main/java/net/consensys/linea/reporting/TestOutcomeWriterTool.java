@@ -35,7 +35,7 @@ public class TestOutcomeWriterTool {
   }
 
   public static JsonConverter jsonConverter = JsonConverter.builder().build();
-  static ObjectMapper objectMapper = new ObjectMapper();
+  private static ObjectMapper objectMapper = new ObjectMapper();
 
   private static volatile AtomicInteger failedCounter = new AtomicInteger(0);
   private static volatile AtomicInteger successCounter = new AtomicInteger(0);
@@ -43,7 +43,7 @@ public class TestOutcomeWriterTool {
   private static volatile AtomicInteger abortedCounter = new AtomicInteger(0);
   private static volatile ConcurrentMap<
           String, ConcurrentMap<String, ConcurrentSkipListSet<String>>>
-      modulesToConstraintsToTests = new ConcurrentHashMap<>();
+      modulesToConstraintsToTests = new ConcurrentHashMap<>(20);
 
   public static void addFailure(String type, String cause, String test) {
     failedCounter.incrementAndGet();

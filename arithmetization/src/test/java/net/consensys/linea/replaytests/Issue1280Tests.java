@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("nightly")
+@Tag("replay")
 public class Issue1280Tests {
 
   // 3901959-3902032

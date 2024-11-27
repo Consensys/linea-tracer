@@ -1,6 +1,6 @@
 # Definitions
 
-Trivial CREATE's are those creates that are
+Trivial CREATE's are those CREATE's that are
 - unexceptional
 - don't abort
 - don't raise the failure condition **F**

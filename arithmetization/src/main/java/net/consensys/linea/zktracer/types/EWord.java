@@ -229,7 +229,7 @@ public final class EWord extends BaseUInt256Value<EWord> implements Quantity {
       return false;
     }
 
-    //start from the end for perf reasons as ewords often start with 0s.
+    // start from the end for perf reasons as ewords often start with 0s.
     for (int i = this.size() - 1; i >= 0; i--) {
       if (this.get(i) != other.get(i)) {
         return false;

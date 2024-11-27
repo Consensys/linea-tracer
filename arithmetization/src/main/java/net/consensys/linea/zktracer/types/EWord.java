@@ -214,4 +214,27 @@ public final class EWord extends BaseUInt256Value<EWord> implements Quantity {
   public int byteLength() {
     return (this.bitLength() + 7) / 8;
   }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    }
+    if (!(obj instanceof Bytes)) {
+      return false;
+    }
+
+    Bytes other = (Bytes) obj;
+    if (this.size() != other.size()) {
+      return false;
+    }
+
+    for (int i = 0; i < size(); i++) {
+      if (this.get(i) != other.get(i)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }

@@ -34,8 +34,8 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +47,7 @@ import org.apache.tuweni.bytes.Bytes32;
 
 @Accessors(fluent = true)
 @Slf4j
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class WcpOperation extends ModuleOperation {
   public static final byte LEQbv = (byte) WCP_INST_LEQ;
   public static final byte GEQbv = (byte) WCP_INST_GEQ;
@@ -58,8 +59,8 @@ public class WcpOperation extends ModuleOperation {
   static final byte ISZERObv = (byte) EVM_INST_ISZERO;
 
   private final byte wcpInst;
-  @Getter private final Bytes32 arg1;
-  @Getter private final Bytes32 arg2;
+  @EqualsAndHashCode.Include @Getter private final Bytes32 arg1;
+  @EqualsAndHashCode.Include @Getter private final Bytes32 arg2;
   private int ctMax; // Note : is computed in computeLineCount, if the WCP operation is added to the
   // StackedSet
 
@@ -247,34 +248,5 @@ public class WcpOperation extends ModuleOperation {
   protected int computeLineCount() {
     ctMax = computeCtMax();
     return ctMax + 1;
-  }
-
-  @Override
-  public String toString() {
-    return "WcpOperation{" + "" + wcpInst + ", " + arg1 + ", " + arg2 + ", " + hashCode() + '}';
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    WcpOperation that = (WcpOperation) o;
-    return wcpInst == that.wcpInst
-        && compareBytes(arg1, ((WcpOperation) o).arg1())
-        && compareBytes(arg2, ((WcpOperation) o).arg2());
-  }
-
-  private boolean compareBytes(Bytes32 current, Bytes32 other) {
-    for (int i = 0; i < 32; i++) {
-      if (current.get(i) != other.get(i)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(wcpInst, arg1, arg2);
   }
 }

@@ -359,10 +359,11 @@ public class CallSection extends TraceSection
     hub.defers().scheduleForContextEntry(this);
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     // In case of arguments too large for MODEXP, transaction will be popped anyway, and resolving
-    // defers will create NPE
+    // some defers will create NPE
     if (precompileSubsection instanceof ModexpSubsection
         && ((ModexpSubsection) precompileSubsection).transactionWillBePopped) {
       hub.defers().unscheduleForContextReEntry(this, hub.currentFrame());
+      hub.defers().unscheduleForPostTransaction(this);
     }
   }
 
@@ -376,7 +377,7 @@ public class CallSection extends TraceSection
   @Override
   public void resolveUponContextEntry(Hub hub) {
 
-    CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
+    final CallScenarioFragment.CallScenario scenario = scenarioFragment.getScenario();
     checkState(scenario == CALL_SMC_UNDEFINED | scenario == CALL_PRC_UNDEFINED);
 
     postOpcodeCallerSnapshot = preOpcodeCallerSnapshot.deepCopy();
@@ -463,13 +464,11 @@ public class CallSection extends TraceSection
       }
 
       case CALL_SMC_UNDEFINED -> {
-
         // CALL_SMC_SUCCESS_XXX case
         if (successBit) {
           scenarioFragment.setScenario(CALL_SMC_SUCCESS_WONT_REVERT);
           return;
         }
-
         final AccountSnapshot beforeFailureCallerSnapshot =
             postOpcodeCallerSnapshot.deepCopy().setDeploymentInfo(hub);
         final AccountSnapshot afterFailureCallerSnapshot =
@@ -481,12 +480,10 @@ public class CallSection extends TraceSection
 
         // CALL_SMC_FAILURE_XXX case
         scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
-
         if (isNonzeroValueSelfCall()) {
           childContextExitCallerSnapshot.decrementBalanceBy(value);
           reEntryCalleeSnapshot.decrementBalanceBy(value);
         }
-
         final int childId = hub.currentFrame().childFrameIds().getLast();
         final CallFrame childFrame = hub.callStack().getById(childId);
         final int childContextRevertStamp = childFrame.revertStamp();

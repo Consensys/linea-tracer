@@ -23,7 +23,7 @@ import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCal
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(UnitTestWatcher.class)
+
 public class CountOnlyModuleTest {
   @Test
   void test() {

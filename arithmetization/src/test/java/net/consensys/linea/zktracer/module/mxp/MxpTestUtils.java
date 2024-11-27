@@ -33,7 +33,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(UnitTestWatcher.class)
+
 public class MxpTestUtils {
   public static final EWord TWO_POW_128 = EWord.of(EWord.ONE.shiftLeft(128));
   public static final EWord TWO_POW_32 = EWord.of(EWord.ONE.shiftLeft(32));

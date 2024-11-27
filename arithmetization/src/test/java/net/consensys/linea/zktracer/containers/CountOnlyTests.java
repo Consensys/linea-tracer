@@ -22,7 +22,7 @@ import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(UnitTestWatcher.class)
+
 public class CountOnlyTests {
   @Test
   void testAddedToFront() {

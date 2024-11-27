@@ -24,7 +24,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(UnitTestWatcher.class)
+
 public class ReturnDataCopyTest {
   @Test
   void testReturnDataCopyFromSha256() {

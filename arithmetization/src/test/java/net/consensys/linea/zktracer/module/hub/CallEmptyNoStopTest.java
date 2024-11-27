@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /** Ensure that calling a contract with empty code does not generate a virtual STOP trace */
-@ExtendWith(UnitTestWatcher.class)
+
 public class CallEmptyNoStopTest {
   @Test
   void test() {

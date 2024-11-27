@@ -34,7 +34,7 @@ import org.junit.jupiter.params.provider.EnumSource;
  * <p>- <b>scn/CALL_ABORT_WONT_REVERT</b> The main point being: (unexceptional) aborted CALL's warm
  * up the target account.
  */
-@ExtendWith(UnitTestWatcher.class)
+
 public class BalanceAbortTests {
 
   final String eoaAddress = "abcdef0123456789";

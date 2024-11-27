@@ -24,7 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 @Tag("nightly")
 @Tag("replay")
-@ExtendWith(UnitTestWatcher.class)
+
 public class Issue1267Tests {
 
   // splitting of 3506963-3507013

@@ -39,7 +39,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @Slf4j
-@ExtendWith(UnitTestWatcher.class)
+
 public class ExpTest {
   // Generates 128, 64, 2, 1 as LD (leading digit)
   // LD_INDICES | LD

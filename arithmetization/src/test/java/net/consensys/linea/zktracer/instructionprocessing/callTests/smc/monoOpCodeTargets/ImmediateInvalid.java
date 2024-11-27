@@ -25,7 +25,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(UnitTestWatcher.class)
+
 public class ImmediateInvalid {
 
   @Test

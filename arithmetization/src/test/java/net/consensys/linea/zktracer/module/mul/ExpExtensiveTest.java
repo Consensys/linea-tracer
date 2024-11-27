@@ -40,7 +40,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @Accessors(fluent = true)
 @Tag("weekly")
-@ExtendWith(UnitTestWatcher.class)
+
 public class ExpExtensiveTest {
   // Test vectors
   static final String P_1 = "f076b857fa9947c1f9ec558262c72704099ca8cd325566f73fb99238102ed171";

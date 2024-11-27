@@ -44,7 +44,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * <p>This test answers the point raised in <a
  * href="https://github.com/Consensys/linea-tracer/issues/1482">this issue</a>.
  */
-@ExtendWith(UnitTestWatcher.class)
+
 public class CodeCopyingInitializationCodeTest {
 
   final Bytes initCodeSimple =

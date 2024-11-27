@@ -50,7 +50,7 @@ import org.web3j.abi.datatypes.DynamicArray;
 import org.web3j.abi.datatypes.Function;
 import org.web3j.abi.datatypes.generated.Uint256;
 
-@ExtendWith(UnitTestWatcher.class)
+
 public class ExampleSolidityTest {
 
   @Test

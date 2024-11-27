@@ -32,7 +32,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-@ExtendWith(UnitTestWatcher.class)
+
 public class JumpiTest {
 
   // NOTE: the bytecode we propose will at time use the following offsets (unless pcNew is large)

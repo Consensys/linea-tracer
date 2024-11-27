@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @Disabled
-@ExtendWith(UnitTestWatcher.class)
+
 public class LeosNewRanges {
   @Test
   void leos_new_ranges_2258472_2258607() {

@@ -34,7 +34,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * the purpose of these tests is to track balance updates for the sender, the coinbase and, in case
  * of a reverted transaction, the recipient.
  */
-@ExtendWith(UnitTestWatcher.class)
+
 public class BalanceTests {
 
   @Test

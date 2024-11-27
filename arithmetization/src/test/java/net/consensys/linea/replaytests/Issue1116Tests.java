@@ -24,7 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 /** Insufficient balance at some address */
 @Tag("replay")
-@ExtendWith(UnitTestWatcher.class)
+
 public class Issue1116Tests {
 
   // @Disabled

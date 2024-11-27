@@ -20,7 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.platform.launcher.LauncherSession;
 import org.junit.platform.launcher.LauncherSessionListener;
 
-@ExtendWith(UnitTestWatcher.class)
+
 public class UnitTestOutcomeWriter implements LauncherSessionListener {
 
   public static final String FILE_NAME = "UnitTestsResults.json";

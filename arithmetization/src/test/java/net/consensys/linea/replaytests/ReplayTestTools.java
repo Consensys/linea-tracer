@@ -55,7 +55,7 @@ import org.junit.jupiter.params.provider.Arguments;
  * One can run this command: scripts/capture.pl --start xxx --end yyy --output my-test-case.json.gz
  */
 @Slf4j
-@ExtendWith(UnitTestWatcher.class)
+
 public class ReplayTestTools {
   /** A list of block numbers used for testing purposes in {@link ReplayTests}. */
   static List<Arguments> BLOCK_NUMBERS = new ArrayList<>();

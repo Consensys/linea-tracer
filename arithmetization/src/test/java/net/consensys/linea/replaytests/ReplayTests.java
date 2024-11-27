@@ -34,7 +34,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @Tag("replay")
-@ExtendWith(UnitTestWatcher.class)
+
 public class ReplayTests {
 
   @Test

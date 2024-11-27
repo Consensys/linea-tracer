@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.TestWatcher;
 
 @Slf4j
-@ExtendWith(UnitTestWatcher.class)
+
 public class UnitTestWatcher implements TestWatcher {
 
   private String FAILED = "FAILED";

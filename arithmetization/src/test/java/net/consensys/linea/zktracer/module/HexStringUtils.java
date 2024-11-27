@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import net.consensys.linea.UnitTestWatcher;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@ExtendWith(UnitTestWatcher.class)
+
 public class HexStringUtils {
 
   /**

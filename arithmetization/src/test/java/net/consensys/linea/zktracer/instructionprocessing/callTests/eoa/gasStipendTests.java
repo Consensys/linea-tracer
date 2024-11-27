@@ -28,7 +28,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * Transferring nonzero value provides a gas stipend to the callee. This stipend will immediately be
  * restituted to the caller in case of an EOA call.
  */
-
+@ExtendWith(UnitTestWatcher.class)
 public class gasStipendTests {
 
   @Test

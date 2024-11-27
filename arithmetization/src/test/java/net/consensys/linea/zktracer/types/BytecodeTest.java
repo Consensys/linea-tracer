@@ -17,8 +17,11 @@ package net.consensys.linea.zktracer.types;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import net.consensys.linea.UnitTestWatcher;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 
 class BytecodeTest {
 

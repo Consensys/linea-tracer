@@ -17,8 +17,11 @@ package net.consensys.linea.zktracer.containers;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 
 public class CountOnlyTests {
   @Test

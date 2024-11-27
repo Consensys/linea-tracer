@@ -15,9 +15,12 @@
 
 package net.consensys.linea.zktracer;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 
 public class ExceptionsTest {
 

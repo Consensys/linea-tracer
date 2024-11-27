@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.containers;
 
 import java.math.BigInteger;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.add.AddOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -24,6 +25,8 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 
 public class StackedSetTests {
 

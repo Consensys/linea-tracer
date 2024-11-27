@@ -17,6 +17,10 @@ package net.consensys.linea.zktracer.module;
 
 import java.math.BigInteger;
 
+import net.consensys.linea.UnitTestWatcher;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+
 public class HexStringUtils {
 
   /**

@@ -53,9 +53,9 @@ public class Create2 {
    * <p><b>RETURN</b>
    *
    * <p>i.e. 0x60016000f3. We then (1) store that init code in memory (2) use it for a first CREATE2
-   * which deploys a SMC with bytecode of length 1 equal to 0x00 (3) test the (EXT) code size,
-   * code hash and balance of this new account (4) attempt a second deployment at that same
-   * exact address, thus raising the <b>Failure Condition F</b>.
+   * which deploys a SMC with bytecode of length 1 equal to 0x00 (3) test the (EXT) code size, code
+   * hash and balance of this new account (4) attempt a second deployment at that same exact
+   * address, thus raising the <b>Failure Condition F</b>.
    */
   @Test
   void failureConditionNonceAndCodeTest() {

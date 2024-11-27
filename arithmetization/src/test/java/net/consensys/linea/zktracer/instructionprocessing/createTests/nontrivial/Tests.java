@@ -14,7 +14,4 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.nontrivial;
 
-public class Tests {
-
-
-}
+public class Tests {}

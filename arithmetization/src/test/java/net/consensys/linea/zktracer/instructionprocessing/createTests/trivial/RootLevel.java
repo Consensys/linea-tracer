@@ -60,7 +60,7 @@ public class RootLevel {
 
     int storageKey = 0;
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    precomputeCreate2DeploymentAddress(program, salt01);
+    precomputeDeploymentAddressOfEmptyInitCodeCreate2(program, salt01);
     storeAt(program, storageKey);
 
     if (when == BEFORE || when == BEFORE_AND_AFTER) {
@@ -144,7 +144,8 @@ public class RootLevel {
     }
   }
 
-  public static void precomputeCreate2DeploymentAddress(BytecodeCompiler program, String salt) {
+  public static void precomputeDeploymentAddressOfEmptyInitCodeCreate2(
+      BytecodeCompiler program, String salt) {
     program.push(0xff).push(0).op(MSTORE8); // (255)
     program
         .op(OpCode.ADDRESS)

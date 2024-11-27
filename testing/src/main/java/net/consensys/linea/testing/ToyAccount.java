@@ -205,12 +205,6 @@ public class ToyAccount implements MutableAccount {
 
   public ToyAccount raiseNonceBy(long k) {
     long updatedNonce = this.getNonce() + k;
-    return new ToyAccount(
-            this.parent,
-            this.getAddress(),
-            updatedNonce,
-            this.balance,
-            this.balance
-    );
+    return new ToyAccount(this.parent, this.getAddress(), updatedNonce, this.balance, this.balance);
   }
 }

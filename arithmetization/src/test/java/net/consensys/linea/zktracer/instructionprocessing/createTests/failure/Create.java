@@ -171,12 +171,12 @@ public class Create {
 
   final Transaction createTransactionNumber1 =
       ToyTransaction.builder()
-              .sender(userAccount.raiseNonceBy(1))
+          .sender(userAccount.raiseNonceBy(1))
           .to(targetAccount)
           .keyPair(keyPair)
           .value(Wei.of(0xeeee))
-              .gasLimit(1_000_000L)
-              .gasPrice(Wei.of(8))
+          .gasLimit(1_000_000L)
+          .gasPrice(Wei.of(8))
           .payload(leftPaddedAddress1)
           .build();
 
@@ -186,29 +186,29 @@ public class Create {
           .to(targetAccount)
           .keyPair(keyPair)
           .value(Wei.of(0xdddd))
-              .gasLimit(1_000_000L)
-              .gasPrice(Wei.of(8))
+          .gasLimit(1_000_000L)
+          .gasPrice(Wei.of(8))
           .payload(leftPaddedAddress2)
           .build();
 
   final Transaction deploymentTransactionNumber2 =
       ToyTransaction.builder()
-              .sender(userAccount.raiseNonceBy(3))
+          .sender(userAccount.raiseNonceBy(3))
           .to(targetAccount)
           .keyPair(keyPair)
           .value(Wei.of(0xcccc))
-              .gasLimit(1_000_000L)
-              .gasPrice(Wei.of(8))
+          .gasLimit(1_000_000L)
+          .gasPrice(Wei.of(8))
           .build();
 
   final Transaction createTransactionNumber2 =
       ToyTransaction.builder()
-              .sender(userAccount.raiseNonceBy(4))
+          .sender(userAccount.raiseNonceBy(4))
           .to(targetAccount)
           .keyPair(keyPair)
           .value(Wei.of(0xbbbb))
-              .gasLimit(1_000_000L)
-              .gasPrice(Wei.of(8))
+          .gasLimit(1_000_000L)
+          .gasPrice(Wei.of(8))
           .payload(leftPaddedAddress1)
           .build();
 
@@ -218,10 +218,10 @@ public class Create {
           createTransactionNumber1,
           selfDestructTransaction,
           deploymentTransactionNumber2,
-          createTransactionNumber2
-      );
+          createTransactionNumber2);
 
-  final List<ToyAccount> accounts = List.of(userAccount, targetAccount, simpleSelfDestructor, simpleCreator);
+  final List<ToyAccount> accounts =
+      List.of(userAccount, targetAccount, simpleSelfDestructor, simpleCreator);
 
   @Test
   void complexFailureConditionTest() {
@@ -229,8 +229,7 @@ public class Create {
     ToyExecutionEnvironmentV2.builder()
         .accounts(accounts)
         .transactions(transactions)
-        .zkTracerValidator(
-            zkTracer -> {})
+        .zkTracerValidator(zkTracer -> {})
         .build()
         .run();
   }

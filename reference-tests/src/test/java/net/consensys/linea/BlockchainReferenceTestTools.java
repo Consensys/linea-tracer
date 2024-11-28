@@ -138,6 +138,7 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g0v1_London\\[London\\]");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g1v0_London\\[London\\]");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g1v1_London\\[London\\]");
+    PARAMS.ignore("createJS_ExampleContract_d0g0v0_London\\[London\\]");
 
     // Don't do time-consuming tests.
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");

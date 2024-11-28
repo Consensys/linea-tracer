@@ -99,7 +99,7 @@ import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
-import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -113,7 +113,7 @@ import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -121,7 +121,6 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.operation.Operation;
@@ -502,7 +501,7 @@ public class Hub implements Module {
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
-      new TxSkippedSection(this, world, transactionProcessingMetadata, transients);
+      new TxSkipSection(this, world, transactionProcessingMetadata, transients);
     } else {
       if (transactionProcessingMetadata.requiresPrewarming()) {
         state.setProcessingPhase(TX_WARM);
@@ -516,14 +515,6 @@ public class Hub implements Module {
     // initialization phase. We are thus capturing the respective XXX_NEW's
     transactionProcessingMetadata
         .captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(this);
-
-    /*
-     * TODO: the ID = 0 (universal parent context) context should
-     *  1. be shared by all transactions in a conflation (OK)
-     *  2. should be the father of all root contexts
-     *  3. should have the current root context as its lastCallee()
-     */
-    callStack.getById(0).universalParentReturnDataContextNumber(this.stamp() + 1);
 
     for (Module m : modules) {
       m.traceStartTx(world, transactionProcessingMetadata);
@@ -578,7 +569,7 @@ public class Hub implements Module {
 
       final boolean copyTransactionCallData = currentTransaction.copyTransactionCallData();
       if (copyTransactionCallData) {
-        callStack.newTransactionCallDataContext(
+        callStack.transactionCallDataContext(
             callDataContextNumber(true), currentTransaction.getBesuTransaction().getData().get());
       }
 
@@ -606,41 +597,29 @@ public class Hub implements Module {
     // internal transaction (CALL) or internal deployment (CREATE)
     if (frame.getDepth() > 0) {
       final OpCode currentOpCode = callStack.currentCallFrame().opCode();
+      final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
+
       checkState(currentOpCode.isCall() || currentOpCode.isCreate());
       checkState(
           currentTraceSection() instanceof CallSection
               || currentTraceSection() instanceof CreateSection);
-      final boolean isDeployment = frame.getType() == CONTRACT_CREATION;
+      checkState(currentTraceSection() instanceof CreateSection == isDeployment);
+
       final CallFrameType frameType =
           frame.isStatic() ? CallFrameType.STATIC : CallFrameType.STANDARD;
 
-      final long callDataOffset =
+      final MemoryRange callDataRange =
           isDeployment
-              ? 0
-              : Words.clampedToLong(
-                  callStack
-                      .currentCallFrame()
-                      .frame()
-                      .getStackItem(currentOpCode.callMayNotTransferValue() ? 2 : 3));
+              ? new MemoryRange(currentFrame().contextNumber())
+              : ((CallSection) currentTraceSection()).getCallDataRange();
 
-      final long callDataSize =
-          isDeployment
-              ? 0
-              : Words.clampedToLong(
-                  callStack
-                      .currentCallFrame()
-                      .frame()
-                      .getStackItem(currentOpCode.callMayNotTransferValue() ? 3 : 4));
-
-      final long callDataContextNumber = callStack.currentCallFrame().contextNumber();
-
-      currentFrame().rememberGasNextBeforePausing();
+      currentFrame().rememberGasNextBeforePausing(this);
       currentFrame().pauseCurrentFrame();
 
-      MemorySpan returnDataTargetInCaller =
-          (currentTraceSection() instanceof CallSection)
-              ? ((CallSection) currentTraceSection()).getCallProvidedReturnDataTargetSpan()
-              : MemorySpan.empty();
+      MemoryRange returnAtRange =
+          isDeployment
+              ? new MemoryRange(currentFrame().contextNumber())
+              : ((CallSection) currentTraceSection()).getReturnAtRange();
 
       callStack.enter(
           frameType,
@@ -654,15 +633,12 @@ public class Hub implements Module {
           this.deploymentNumberOf(frame.getContractAddress()),
           new Bytecode(frame.getCode().getBytes()),
           frame.getSenderAddress(),
-          frame.getInputData(),
-          callDataOffset,
-          callDataSize,
-          callDataContextNumber,
-          returnDataTargetInCaller);
+          callDataRange,
+          returnAtRange);
 
       this.currentFrame().initializeFrame(frame);
 
-      defers.resolveUponContextEntry(this);
+      defers.resolveUponContextEntry(this, frame);
 
       for (Module m : modules) {
         m.traceContextEnter(frame);
@@ -690,16 +666,17 @@ public class Hub implements Module {
               coinbaseIsWarm,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
-      if (state.getProcessingPhase() != TX_SKIP) {
-        state.setProcessingPhase(TX_FINL);
-        new TxFinalizationSection(this, frame.getWorldUpdater());
+      if (state.getProcessingPhase() != TX_SKIP
+          && frame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
+        this.state.setProcessingPhase(TX_FINL);
+        new TxFinalizationSection(this, frame.getWorldUpdater(), false);
       }
     }
 
     defers.resolveUponContextExit(this, this.currentFrame());
     // TODO: verify me please @Olivier
     if (this.currentFrame().opCode() == REVERT || Exceptions.any(pch.exceptions())) {
-      defers.resolvePostRollback(this, frame, this.currentFrame());
+      defers.resolveUponRollback(this, frame, this.currentFrame());
     }
 
     if (frame.getDepth() > 0) {
@@ -723,6 +700,16 @@ public class Hub implements Module {
     this.processStateExec(frame);
   }
 
+  /**
+   * A comment on {@link #unlatchStack(MessageFrame, TraceSection)}: Any instruction that writes
+   * onto the stack gets immediately unlatched if it raises an exception. If unexceptional it also
+   * gets immediately unlatched, except CALL's and CREATE's. The value written on the stack
+   * (<b>successBit</b> or <b>successBit ∙ [child address]</b> respectively) is only written after
+   * the child context has been executed.
+   *
+   * <p><b>Question:</b> Does this work well with CALL's to EOA's ? to PRC's ? trivial deployments
+   * (i.e. empty initialization code) ?
+   */
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     checkArgument(
         this.state().processingPhase == TX_EXEC,
@@ -740,15 +727,20 @@ public class Hub implements Module {
      */
     if (isExceptional()) {
       this.currentTraceSection()
-          .addFragments(ContextFragment.executionProvidesEmptyReturnData(this));
+          .exceptionalContextFragment(ContextFragment.executionProvidesEmptyReturnData(this));
       this.squashCurrentFrameOutputData();
       this.squashParentFrameReturnData();
     }
 
     defers.resolvePostExecution(this, frame, operationResult);
 
-    if (!this.currentFrame().opCode().isCall() && !this.currentFrame().opCode().isCreate()) {
+    if (isExceptional() || !opCode().isCallOrCreate()) {
       this.unlatchStack(frame, currentSection);
+    }
+
+    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
+      this.state.setProcessingPhase(TX_FINL);
+      new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }
 
@@ -771,6 +763,7 @@ public class Hub implements Module {
         currentSection.commonValues.gasCostExcluduingDeploymentCost();
 
     if (operationResult.getHaltReason() != null) {
+
       return;
     }
 
@@ -799,11 +792,6 @@ public class Hub implements Module {
 
   public boolean isExceptional() {
     return !isUnexceptional();
-  }
-
-  public boolean raisesOogxOrIsUnexceptional() {
-    return currentTraceSection().commonValues.tracedException() == OUT_OF_GAS_EXCEPTION
-        || isUnexceptional();
   }
 
   /**
@@ -939,8 +927,16 @@ public class Hub implements Module {
     return this.currentFrame().opCode();
   }
 
-  TraceSection currentTraceSection() {
+  public TraceSection currentTraceSection() {
     return state.currentTxTrace().currentSection();
+  }
+
+  public TraceSection previousTraceSection() {
+    return state.currentTxTrace().previousSection();
+  }
+
+  public TraceSection previousTraceSection(int n) {
+    return state.currentTxTrace().previousSection(n);
   }
 
   public void addTraceSection(TraceSection section) {
@@ -1029,31 +1025,22 @@ public class Hub implements Module {
         }
       }
       case HALT -> {
-        final CallFrame parentFrame = callStack.parent();
-        parentFrame.returnDataContextNumber(this.currentFrame().contextNumber());
-        final Bytes outputData = transients.op().outputData();
-        this.currentFrame().outputDataSpan(transients.op().outputDataSpan());
-        this.currentFrame().outputData(outputData);
-
-        // The output data always becomes return data of the caller when REVERT'ing
-        // and in all other cases becomes return data of the caller iff the present
-        // context is a message call context
-        final boolean outputDataBecomesParentReturnData =
-            (this.opCode() == REVERT || this.currentFrame().isMessageCall());
-
-        if (outputDataBecomesParentReturnData) {
-          parentFrame.returnData(outputData);
-          parentFrame.returnDataSpan(transients.op().outputDataSpan());
-        } else {
-          this.squashParentFrameReturnData();
-        }
-
         switch (this.opCode()) {
-          case RETURN -> new ReturnSection(this);
-          case REVERT -> new RevertSection(this);
+          case RETURN -> new ReturnSection(this, frame);
+          case REVERT -> new RevertSection(this, frame);
           case STOP -> new StopSection(this);
-          case SELFDESTRUCT -> new SelfdestructSection(this);
+          case SELFDESTRUCT -> new SelfdestructSection(this, frame);
         }
+
+        final boolean returnFromDeployment =
+            (this.opCode() == RETURN && this.currentFrame().isDeployment());
+
+        callStack
+            .parentCallFrame()
+            .returnDataRange(
+                returnFromDeployment
+                    ? new MemoryRange(currentFrame().contextNumber())
+                    : currentFrame().outputDataRange());
       }
 
       case KEC -> new KeccakSection(this);
@@ -1065,7 +1052,7 @@ public class Hub implements Module {
           case OpCode.CALLDATACOPY -> new CallDataCopySection(this);
           case OpCode.RETURNDATACOPY -> new ReturnDataCopySection(this);
           case OpCode.CODECOPY -> new CodeCopySection(this);
-          case OpCode.EXTCODECOPY -> new ExtCodeCopySection(this);
+          case OpCode.EXTCODECOPY -> new ExtCodeCopySection(this, frame);
           default -> throw new RuntimeException(
               "Invalid instruction: " + this.opCode().toString() + " not in the COPY family");
         }
@@ -1091,26 +1078,24 @@ public class Hub implements Module {
 
       case JUMP -> new JumpSection(this);
 
-      case CREATE -> new CreateSection(this);
+      case CREATE -> new CreateSection(this, frame);
 
-      case CALL -> new CallSection(this);
+      case CALL -> new CallSection(this, frame);
+
       case INVALID -> new EarlyExceptionSection(this);
     }
   }
 
   public void squashCurrentFrameOutputData() {
-    this.currentFrame().outputDataSpan(MemorySpan.empty());
-    this.currentFrame().outputData(Bytes.EMPTY);
+    callStack.currentCallFrame().outputDataRange(MemoryRange.EMPTY);
   }
 
   public void squashParentFrameReturnData() {
-    final CallFrame parentFrame = callStack.parent();
-    parentFrame.returnData(Bytes.EMPTY);
-    parentFrame.returnDataSpan(MemorySpan.empty());
+    callStack.parentCallFrame().outputDataRange(MemoryRange.EMPTY);
   }
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {
-    return callStack.getById(parentFrame.childFramesId().getLast());
+    return callStack.getById(parentFrame.childFrameIds().getLast());
   }
 
   // Quality of life deployment info related functions

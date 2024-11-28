@@ -46,34 +46,37 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Mode
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import org.apache.tuweni.bytes.Bytes;
 
 public class ModexpSubsection extends PrecompileSubsection {
 
-  private final ModexpMetadata modexpMetaData;
+  public final ModexpMetadata modexpMetaData;
   private ModexpPricingOobCall sixthOobCall;
   private ImcFragment seventhImcFragment;
+  public boolean transactionWillBePopped = false;
 
   public ModexpSubsection(final Hub hub, final CallSection callSection) {
     super(hub, callSection);
 
-    modexpMetaData = new ModexpMetadata(hub, callData);
+    modexpMetaData = new ModexpMetadata(getCallDataRange());
     if (modexpMetaData
                 .bbs()
                 .toUnsignedBigInteger()
                 .compareTo(BigInteger.valueOf(MODEXP_COMPONENT_BYTE_SIZE))
-            >= 0
+            > 0
         || modexpMetaData
                 .mbs()
                 .toUnsignedBigInteger()
                 .compareTo(BigInteger.valueOf(MODEXP_COMPONENT_BYTE_SIZE))
-            >= 0
+            > 0
         || modexpMetaData
                 .ebs()
                 .toUnsignedBigInteger()
                 .compareTo(BigInteger.valueOf(MODEXP_COMPONENT_BYTE_SIZE))
-            >= 0) {
+            > 0) {
       hub.modexpEffectiveCall().addPrecompileLimit(Integer.MAX_VALUE);
       hub.defers().unscheduleForContextReEntry(this, hub.currentFrame());
+      transactionWillBePopped = true;
       return;
     }
 
@@ -144,6 +147,8 @@ public class ModexpSubsection extends PrecompileSubsection {
       return;
     }
 
+    final Bytes returnData = extractReturnData();
+
     modexpMetaData.rawResult(returnData);
     hub.blakeModexpData().callModexp(modexpMetaData, exoModuleOperationId());
 
@@ -176,7 +181,7 @@ public class ModexpSubsection extends PrecompileSubsection {
 
     final ImcFragment eleventhImcFragment = ImcFragment.empty(hub);
     fragments().add(eleventhImcFragment);
-    if (modexpMetaData.mbsNonZero() && !parentReturnDataTarget.isEmpty()) {
+    if (modexpMetaData.mbsNonZero() && !getReturnAtRange().isEmpty()) {
       final MmuCall mmuCall = forModexpPartialResultCopy(hub, this, modexpMetaData);
       eleventhImcFragment.callMmu(mmuCall);
     }

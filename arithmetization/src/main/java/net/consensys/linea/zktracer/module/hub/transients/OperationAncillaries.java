@@ -19,14 +19,13 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
-import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -38,19 +37,19 @@ import org.hyperledger.besu.evm.internal.Words;
 public class OperationAncillaries {
   private final Hub hub;
 
-  private static Bytes maybeShadowReadMemory(final MemorySpan span, final MessageFrame frame) {
-    // Accesses to huge offset with 0-length are valid
+  private static Bytes maybeShadowReadMemory(final Range span, final MessageFrame frame) {
+    // Accesses to huge offset with 0-size are valid
     if (span.isEmpty()) {
       return Bytes.EMPTY;
     }
 
-    // Besu is limited to i32 for memory offset/length
+    // Besu is limited to i32 for memory offset/size
     if (span.besuOverflow()) {
       log.warn("Overflowing memory access: {}", span);
       return Bytes.EMPTY;
     }
 
-    return frame.shadowReadMemory(span.offset(), span.length());
+    return frame.shadowReadMemory(span.offset(), span.size());
   }
 
   /**
@@ -86,29 +85,29 @@ public class OperationAncillaries {
    * @param frame the execution context
    * @return the input data segment
    */
-  public static MemorySpan callDataSegment(final MessageFrame frame) {
+  public static Range callDataSegment(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CALL, CALLCODE -> {
         long offset = Words.clampedToLong(frame.getStackItem(3));
         long length = Words.clampedToLong(frame.getStackItem(4));
-        return MemorySpan.fromStartLength(offset, length);
+        return Range.fromOffsetAndSize(offset, length);
       }
       case DELEGATECALL, STATICCALL -> {
         long offset = Words.clampedToLong(frame.getStackItem(2));
         long length = Words.clampedToLong(frame.getStackItem(3));
-        return MemorySpan.fromStartLength(offset, length);
+        return Range.fromOffsetAndSize(offset, length);
       }
       default -> throw new IllegalArgumentException(
           "callDataSegment called outside of a CALL-type instruction");
     }
   }
 
-  public static MemorySpan initCodeSegment(final MessageFrame frame) {
+  public static Range initCodeSegment(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CREATE, CREATE2 -> {
         long offset = Words.clampedToLong(frame.getStackItem(1));
         long length = Words.clampedToLong(frame.getStackItem(2));
-        return MemorySpan.fromStartLength(offset, length);
+        return Range.fromOffsetAndSize(offset, length);
       }
       default -> throw new IllegalArgumentException(
           "callDataSegment called outside of a CREATE(2)");
@@ -121,11 +120,11 @@ public class OperationAncillaries {
    *
    * @return the input data segment
    */
-  public MemorySpan callDataSegment() {
+  public Range callDataSegment() {
     return callDataSegment(hub.messageFrame());
   }
 
-  public MemorySpan initCodeSegment() {
+  public Range initCodeSegment() {
     return initCodeSegment(hub.messageFrame());
   }
 
@@ -135,7 +134,7 @@ public class OperationAncillaries {
    * @return the calldata content
    */
   public Bytes callData() {
-    final MemorySpan callDataSegment = callDataSegment();
+    final Range callDataSegment = callDataSegment();
     return maybeShadowReadMemory(callDataSegment, hub.messageFrame());
   }
 
@@ -146,12 +145,12 @@ public class OperationAncillaries {
    * @return the calldata content
    */
   public static Bytes callData(final MessageFrame frame) {
-    final MemorySpan callDataSegment = callDataSegment(frame);
+    final Range callDataSegment = callDataSegment(frame);
     return maybeShadowReadMemory(callDataSegment, frame);
   }
 
   public static Bytes initCode(final MessageFrame frame) {
-    final MemorySpan initCodeSegment = initCodeSegment(frame);
+    final Range initCodeSegment = initCodeSegment(frame);
     return maybeShadowReadMemory(initCodeSegment, frame);
   }
 
@@ -162,39 +161,17 @@ public class OperationAncillaries {
    * @param frame the execution context
    * @return the return data target
    */
-  public static MemorySpan returnDataRequestedSegment(final MessageFrame frame) {
+  public static Range returnDataRequestedSegment(final MessageFrame frame) {
     switch (OpCode.of(frame.getCurrentOperation().getOpcode())) {
       case CALL, CALLCODE -> {
-        long callDataOffset = Words.clampedToLong(frame.getStackItem(3));
-        long callDataSize = Words.clampedToLong(frame.getStackItem(4));
-        long returnAtOffset = Words.clampedToLong(frame.getStackItem(5));
-        long returnAtCapacity = Words.clampedToLong(frame.getStackItem(6));
-
-        Preconditions.checkArgument(!(callDataOffset >= Math.pow(2, 32) && callDataSize == 0));
-        Preconditions.checkArgument(!(returnAtOffset >= Math.pow(2, 32) && returnAtCapacity == 0));
-
-        System.out.println("callDataOffset: " + callDataOffset);
-        System.out.println("callDataSize: " + callDataSize);
-        System.out.println("returnAtOffset: " + returnAtOffset);
-        System.out.println("returnAtCapacity: " + returnAtCapacity);
-
-        return MemorySpan.fromStartLength(returnAtOffset, returnAtCapacity);
+        long offset = Words.clampedToLong(frame.getStackItem(5));
+        long length = Words.clampedToLong(frame.getStackItem(6));
+        return Range.fromOffsetAndSize(offset, length);
       }
       case DELEGATECALL, STATICCALL -> {
-        long callDataOffset = Words.clampedToLong(frame.getStackItem(2));
-        long callDataSize = Words.clampedToLong(frame.getStackItem(3));
-        long returnAtOffset = Words.clampedToLong(frame.getStackItem(4));
-        long returnAtCapacity = Words.clampedToLong(frame.getStackItem(5));
-
-        System.out.println("callDataOffset: " + callDataOffset);
-        System.out.println("callDataSize: " + callDataSize);
-        System.out.println("returnAtOffset: " + returnAtOffset);
-        System.out.println("returnAtCapacity: " + returnAtCapacity);
-
-        Preconditions.checkArgument(!(callDataOffset >= Math.pow(2, 32) && callDataSize == 0));
-        Preconditions.checkArgument(!(returnAtOffset >= Math.pow(2, 32) && returnAtCapacity == 0));
-
-        return MemorySpan.fromStartLength(returnAtOffset, returnAtCapacity);
+        long offset = Words.clampedToLong(frame.getStackItem(4));
+        long length = Words.clampedToLong(frame.getStackItem(5));
+        return Range.fromOffsetAndSize(offset, length);
       }
       default -> throw new IllegalArgumentException(
           "returnDataRequestedSegment called outside of a *CALL");
@@ -207,7 +184,7 @@ public class OperationAncillaries {
    *
    * @return the return data target
    */
-  public MemorySpan returnDataRequestedSegment() {
+  public Range returnDataRequestedSegment() {
     return returnDataRequestedSegment(hub.messageFrame());
   }
 
@@ -218,39 +195,44 @@ public class OperationAncillaries {
    * @param frame the execution context
    * @return the return data segment
    */
-  public static MemorySpan outputDataSpan(final MessageFrame frame) {
+  public static Range outputDataSpan(final MessageFrame frame) {
 
     if (frame.getExceptionalHaltReason().isPresent()) {
-      return MemorySpan.empty();
+      return Range.empty();
     }
 
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
 
     if (opCode == OpCode.RETURN && frame.getType() == MessageFrame.Type.CONTRACT_CREATION) {
-      return MemorySpan.empty();
+      return Range.empty();
     }
 
     switch (opCode) {
       case RETURN, REVERT -> {
+        long size = Words.clampedToLong(frame.getStackItem(1));
+
+        if (size == 0) {
+          return Range.empty();
+        }
+
         long offset = Words.clampedToLong(frame.getStackItem(0));
-        long length = Words.clampedToLong(frame.getStackItem(1));
-        return MemorySpan.fromStartLength(offset, length);
+        return Range.fromOffsetAndSize(offset, size);
       }
       case STOP, SELFDESTRUCT -> {
-        return MemorySpan.empty();
+        return Range.empty();
       }
 
         // TODO: what the case below provides isn't output data, but the return data ...
         //  We cannot use this method for that purpose.
       case CALL, CALLCODE, DELEGATECALL, STATICCALL -> {
         Address target = Words.toAddress(frame.getStackItem(1));
-        if (!isPrecompile(target)) {
-          return MemorySpan.fromStartLength(0, 0);
+        if (isPrecompile(target)) {
+          return Range.fromOffsetAndSize(0, 0);
         }
         checkArgument(isPrecompile(target)); // useless (?) sanity check
         // TODO: this will not work for MODEXP as return data starts at offset
         //  512 - modulusByteSize
-        return MemorySpan.fromStartLength(0, frame.getReturnData().size());
+        return Range.fromOffsetAndSize(0, frame.getReturnData().size());
       }
       default -> throw new IllegalArgumentException(
           "returnDataRequestedSegment called outside of a RETURN/REVERT");
@@ -263,7 +245,7 @@ public class OperationAncillaries {
    *
    * @return the return data target
    */
-  public MemorySpan outputDataSpan() {
+  public Range outputDataSpan() {
     return outputDataSpan(hub.messageFrame());
   }
 
@@ -273,14 +255,14 @@ public class OperationAncillaries {
    * @return the return data content
    */
   public Bytes outputData() {
-    final MemorySpan outputDataSpan = outputDataSpan();
+    final Range outputDataSpan = outputDataSpan();
 
-    // Accesses to huge offset with 0-length are valid
+    // Accesses to huge offset with 0-size are valid
     if (outputDataSpan.isEmpty()) {
       return Bytes.EMPTY;
     }
 
-    // Besu is limited to i32 for memory offset/length
+    // Besu is limited to i32 for memory offset/size
     if (outputDataSpan.besuOverflow()) {
       log.warn("Overflowing memory access: {}", outputDataSpan);
       return Bytes.EMPTY;
@@ -298,17 +280,17 @@ public class OperationAncillaries {
    * @return the returndata content
    */
   public static Bytes outputData(final MessageFrame frame) {
-    final MemorySpan returnDataSegment = outputDataSpan(frame);
+    final Range returnDataSegment = outputDataSpan(frame);
     return maybeShadowReadMemory(returnDataSegment, frame);
   }
 
-  public static MemorySpan logDataSegment(final MessageFrame frame) {
+  public static Range logDataSegment(final MessageFrame frame) {
     long offset = Words.clampedToLong(frame.getStackItem(0));
     long length = Words.clampedToLong(frame.getStackItem(1));
-    return MemorySpan.fromStartLength(offset, length);
+    return Range.fromOffsetAndSize(offset, length);
   }
 
-  public MemorySpan logDataSegment() {
+  public Range logDataSegment() {
     return logDataSegment(this.hub.messageFrame());
   }
 

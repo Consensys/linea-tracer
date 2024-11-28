@@ -113,6 +113,7 @@ public class ExecutionEnvironment {
             genesisConfigOptions,
             CliqueForksSchedulesFactory.create(genesisConfigOptions),
             createNodeKey(),
+            PrivacyParameters.DEFAULT,
             false,
             EvmConfiguration.DEFAULT,
             MiningConfiguration.MINING_DISABLED,

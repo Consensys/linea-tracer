@@ -47,7 +47,7 @@ public class AccountSnapshot {
   private boolean deploymentStatus;
 
   // TODO: is there a "canonical" way to take a snapshot fo an account
-  //  where getWorldUpdater().getAccount(address) return null ?
+  //  where getWorldUpdater().get(address) return null ?
 
   /**
    * Canonical way of creating an account snapshot.
@@ -65,6 +65,14 @@ public class AccountSnapshot {
             isAddressWarm(hub.messageFrame(), address));
 
     return canonicalSnapshot;
+  }
+
+  public static AccountSnapshot canonical(Hub hub, WorldView world, Address address) {
+    return fromArguments(
+        world,
+        address,
+        hub.transients.conflation().deploymentInfo(),
+        isAddressWarm(hub.messageFrame(), address));
   }
 
   public static AccountSnapshot canonical(
@@ -138,7 +146,6 @@ public class AccountSnapshot {
         .orElseGet(() -> AccountSnapshot.empty(isWarm, deploymentNumber, deploymentStatus));
   }
 
-  // TODO: confirm with @Tsvetan that this indeed creates a deep copy
   /**
    * Creates deep copy of {@code this} {@link AccountSnapshot}.
    *
@@ -234,13 +241,17 @@ public class AccountSnapshot {
    * @return {@code this} with nonce++
    */
   public AccountSnapshot raiseNonceByOne() {
-    nonce(nonce + 1);
+    this.nonce(nonce + 1);
     return this;
   }
 
+  public AccountSnapshot setDeploymentInfo(Hub hub) {
+    return this.setDeploymentInfo(hub.transients.conflation().deploymentInfo());
+  }
+
   public AccountSnapshot setDeploymentInfo(DeploymentInfo deploymentInfo) {
-    deploymentNumber(deploymentInfo.deploymentNumber(address));
-    deploymentStatus(deploymentInfo.getDeploymentStatus(address));
+    this.deploymentNumber(deploymentInfo.deploymentNumber(address));
+    this.deploymentStatus(deploymentInfo.getDeploymentStatus(address));
     return this;
   }
 

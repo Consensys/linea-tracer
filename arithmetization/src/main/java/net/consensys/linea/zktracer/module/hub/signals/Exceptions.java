@@ -17,13 +17,16 @@ package net.consensys.linea.zktracer.module.hub.signals;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EIP_3541_MARKER;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_CODE_SIZE;
+import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
+import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
+import java.util.function.Consumer;
+
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
@@ -32,18 +35,18 @@ public class Exceptions {
   private Exceptions() {}
 
   public static final short NONE = 0; // no exceptions occurred
-  private static final short INVALID_OPCODE = 1; // unknown opcode
-  private static final short STACK_UNDERFLOW = 2; // stack underflow
-  private static final short STACK_OVERFLOW = 4; // stack overflow
-  private static final short OUT_OF_MEMORY_EXPANSION = 8; // tried to use memory too far away
-  private static final short OUT_OF_GAS = 16; // not enough gas for instruction
-  private static final short RETURN_DATA_COPY_FAULT = 32; // trying to read past the RETURNDATA end
-  private static final short JUMP_FAULT = 64; // jumping to an invalid destination
-  private static final short STATIC_FAULT =
+  public static final short INVALID_OPCODE = 1; // unknown opcode
+  public static final short STACK_UNDERFLOW = 2; // stack underflow
+  public static final short STACK_OVERFLOW = 4; // stack overflow
+  public static final short MEMORY_EXPANSION_EXCEPTION = 8; // tried to use memory too far away
+  public static final short OUT_OF_GAS_EXCEPTION = 16; // not enough gas for instruction
+  public static final short RETURN_DATA_COPY_FAULT = 32; // trying to read past the RETURNDATA end
+  public static final short JUMP_FAULT = 64; // jumping to an invalid destination
+  public static final short STATIC_FAULT =
       128; // trying to execute non-static instruction in a static context
-  private static final short OUT_OF_SSTORE = 256; // not enough gas to execute an SSTORE
-  private static final short INVALID_CODE_PREFIX = 512;
-  private static final short CODE_SIZE_OVERFLOW = 2048;
+  public static final short OUT_OF_SSTORE = 256; // not enough gas to execute an SSTORE
+  public static final short INVALID_CODE_PREFIX = 512;
+  public static final short MAX_CODE_SIZE_EXCEPTION = 1024;
 
   public static boolean stackException(final short bitmask) {
     return stackOverflow(bitmask) || stackUnderflow(bitmask);
@@ -57,7 +60,7 @@ public class Exceptions {
   }
 
   /**
-   * @return true if any exception flag has been raised
+   * @return true if any exception flag has been raised, i.e., at least one exception flag is raised
    */
   public static boolean any(final short bitmask) {
     return !none(bitmask);
@@ -82,12 +85,12 @@ public class Exceptions {
     return (bitmask & STACK_OVERFLOW) != 0;
   }
 
-  public static boolean outOfMemoryExpansion(final short bitmask) {
-    return (bitmask & OUT_OF_MEMORY_EXPANSION) != 0;
+  public static boolean memoryExpansionException(final short bitmask) {
+    return (bitmask & MEMORY_EXPANSION_EXCEPTION) != 0;
   }
 
-  public static boolean outOfGas(final short bitmask) {
-    return (bitmask & OUT_OF_GAS) != 0;
+  public static boolean outOfGasException(final short bitmask) {
+    return (bitmask & OUT_OF_GAS_EXCEPTION) != 0;
   }
 
   public static boolean returnDataCopyFault(final short bitmask) {
@@ -110,8 +113,8 @@ public class Exceptions {
     return (bitmask & INVALID_CODE_PREFIX) != 0;
   }
 
-  public static boolean codeSizeOverflow(final short bitmask) {
-    return (bitmask & CODE_SIZE_OVERFLOW) != 0;
+  public static boolean maxCodeSizeException(final short bitmask) {
+    return (bitmask & MAX_CODE_SIZE_EXCEPTION) != 0;
   }
 
   private static boolean isInvalidOpcode(final OpCode opCode) {
@@ -119,13 +122,13 @@ public class Exceptions {
   }
 
   private static boolean isStackUnderflow(final MessageFrame frame, OpCodeData opCodeData) {
-    return frame.stackSize() < opCodeData.stackSettings().nbRemoved();
+    return frame.stackSize() < opCodeData.stackSettings().delta();
   }
 
   private static boolean isStackOverflow(final MessageFrame frame, OpCodeData opCodeData) {
     return frame.stackSize()
-            + opCodeData.stackSettings().nbAdded()
-            - opCodeData.stackSettings().nbRemoved()
+            - opCodeData.stackSettings().delta()
+            + opCodeData.stackSettings().alpha()
         > 1024;
   }
 
@@ -135,15 +138,15 @@ public class Exceptions {
   }
 
   private static boolean isOutOfGas(MessageFrame frame, OpCode opCode, GasProjector gp) {
-    final long required = gp.of(frame, opCode).total();
+    final long required = gp.of(frame, opCode).upfrontGasCost();
     return required > frame.getRemainingGas();
   }
 
   private static boolean isReturnDataCopyFault(final MessageFrame frame, final OpCode opCode) {
     if (opCode == OpCode.RETURNDATACOPY) {
-      long returnDataSize = frame.getReturnData().size();
-      long askedOffset = Words.clampedToLong(frame.getStackItem(1));
-      long askedSize = Words.clampedToLong(frame.getStackItem(2));
+      final long returnDataSize = frame.getReturnData().size();
+      final long askedOffset = clampedToLong(frame.getStackItem(1));
+      final long askedSize = clampedToLong(frame.getStackItem(2));
 
       return Words.clampedAdd(askedOffset, askedSize) > returnDataSize;
     }
@@ -153,7 +156,7 @@ public class Exceptions {
 
   private static boolean isJumpFault(final MessageFrame frame, OpCode opCode) {
     if (opCode == OpCode.JUMP || opCode == OpCode.JUMPI) {
-      final long target = Words.clampedToLong(frame.getStackItem(0));
+      final long target = clampedToLong(frame.getStackItem(0));
       final boolean invalidDestination = frame.getCode().isJumpDestInvalid((int) target);
 
       switch (opCode) {
@@ -161,7 +164,7 @@ public class Exceptions {
           return invalidDestination;
         }
         case JUMPI -> {
-          long condition = Words.clampedToLong(frame.getStackItem(1));
+          long condition = clampedToLong(frame.getStackItem(1));
           return (condition != 0) && invalidDestination;
         }
         default -> {
@@ -173,38 +176,63 @@ public class Exceptions {
     return false;
   }
 
-  private static boolean isStaticFault(final MessageFrame frame, OpCodeData opCodeData) {
-    if (frame.isStatic() && opCodeData.mnemonic() == OpCode.CALL && frame.stackSize() > 2) {
-      final long value = Words.clampedToLong(frame.getStackItem(2));
-      if (value > 0) {
-        return true;
-      }
+  protected static boolean isStaticFault(final MessageFrame frame, OpCodeData opCodeData) {
+
+    // staticException requires a static context
+    if (!frame.isStatic()) {
+      return false;
     }
 
-    return frame.isStatic() && opCodeData.stackSettings().forbiddenInStatic();
+    // SSTORE, SELFDESTRUCT, CREATE, CREATE2, ...
+    // automatically trigger the staticException
+    if (opCodeData.mnemonic() != OpCode.CALL) {
+      return opCodeData.stackSettings().forbiddenInStatic();
+    }
+
+    // CALL's trigger a staticException if and only if
+    // they attempt to transfer value
+    if (frame.stackSize() >= 7) {
+      final long value = clampedToLong(frame.getStackItem(2));
+      return value > 0;
+    }
+
+    return false;
   }
 
   private static boolean isOutOfSStore(MessageFrame frame, OpCode opCode) {
-    return opCode == OpCode.SSTORE && frame.getRemainingGas() <= GasConstants.G_CALL_STIPEND.cost();
+    return opCode == OpCode.SSTORE
+        && frame.getRemainingGas() <= GlobalConstants.GAS_CONST_G_CALL_STIPEND;
   }
 
   private static boolean isInvalidCodePrefix(MessageFrame frame) {
-    if (frame.getType() != MessageFrame.Type.CONTRACT_CREATION) {
+    if (frame.getType() != MessageFrame.Type.CONTRACT_CREATION
+        || getOpCode(frame) != OpCode.RETURN) {
       return false;
     }
-
-    final Bytes deployedCode = frame.getOutputData();
-    return !deployedCode.isEmpty() && (deployedCode.get(0) == (byte) EIP_3541_MARKER);
+    final long size = clampedToLong(frame.getStackItem(1));
+    if (size == 0) {
+      return false;
+    }
+    final long offset = clampedToLong(frame.getStackItem(0));
+    if (offset >= frame.memoryByteSize()) {
+      return false;
+    }
+    final byte firstByte = frame.shadowReadMemory(offset, 1).get(0);
+    return firstByte == (byte) EIP_3541_MARKER;
   }
 
   private static boolean isCodeSizeOverflow(MessageFrame frame) {
-    if (frame.getType() != MessageFrame.Type.CONTRACT_CREATION) {
+    if (frame.getType() != MessageFrame.Type.CONTRACT_CREATION
+        || getOpCode(frame) != OpCode.RETURN) {
       return false;
     }
 
-    // TODO: don't get it from getOutputData, but only when OPCODE == RETURN && read in memory
-    final Bytes deployedCode = frame.getOutputData();
-    return deployedCode.size() > MAX_CODE_SIZE;
+    final long codeSize = clampedToLong(frame.getStackItem(1));
+    return codeSize > MAX_CODE_SIZE;
+  }
+
+  public static boolean isOogxOrUnexceptional(short exceptions) {
+    return Exceptions.none(exceptions) || Exceptions.outOfGasException(exceptions);
   }
 
   /**
@@ -214,23 +242,23 @@ public class Exceptions {
    * @param frame the context from which to compute the putative exceptions
    */
   public static short fromFrame(final Hub hub, final MessageFrame frame) {
-    OpCode opCode = hub.opCode();
-    OpCodeData opCodeData = hub.opCodeData();
+    final OpCode opCode = hub.opCode();
+    final OpCodeData opCodeData = hub.currentFrame().opCodeData();
 
-    if (isInvalidOpcode(opCode)) {
-      return INVALID_OPCODE;
-    }
     if (isStackUnderflow(frame, opCodeData)) {
       return STACK_UNDERFLOW;
     }
     if (isStackOverflow(frame, opCodeData)) {
       return STACK_OVERFLOW;
     }
+    if (isInvalidOpcode(opCode)) {
+      return INVALID_OPCODE;
+    }
     if (isStaticFault(frame, opCodeData)) {
       return STATIC_FAULT;
     }
     if (isCodeSizeOverflow(frame)) {
-      return CODE_SIZE_OVERFLOW;
+      return MAX_CODE_SIZE_EXCEPTION;
     }
 
     final GasProjector gp = Hub.GAS_PROJECTOR;
@@ -257,10 +285,10 @@ public class Exceptions {
           MSTORE,
           MSTORE8 -> {
         if (isMemoryExpansionFault(frame, opCode, gp)) {
-          return OUT_OF_MEMORY_EXPANSION;
+          return MEMORY_EXPANSION_EXCEPTION;
         }
         if (isOutOfGas(frame, opCode, gp)) {
-          return OUT_OF_GAS;
+          return OUT_OF_GAS_EXCEPTION;
         }
       }
 
@@ -269,10 +297,10 @@ public class Exceptions {
           return RETURN_DATA_COPY_FAULT;
         }
         if (isMemoryExpansionFault(frame, opCode, gp)) {
-          return OUT_OF_MEMORY_EXPANSION;
+          return MEMORY_EXPANSION_EXCEPTION;
         }
         if (isOutOfGas(frame, opCode, gp)) {
-          return OUT_OF_GAS;
+          return OUT_OF_GAS_EXCEPTION;
         }
       }
 
@@ -280,7 +308,7 @@ public class Exceptions {
 
       case JUMP, JUMPI -> {
         if (isOutOfGas(frame, opCode, gp)) {
-          return OUT_OF_GAS;
+          return OUT_OF_GAS_EXCEPTION;
         }
         if (isJumpFault(frame, opCode)) {
           return JUMP_FAULT;
@@ -292,13 +320,13 @@ public class Exceptions {
           return OUT_OF_SSTORE;
         }
         if (isOutOfGas(frame, opCode, gp)) {
-          return OUT_OF_GAS;
+          return OUT_OF_GAS_EXCEPTION;
         }
       }
 
       default -> {
         if (isOutOfGas(frame, opCode, gp)) {
-          return OUT_OF_GAS;
+          return OUT_OF_GAS_EXCEPTION;
         }
       }
     }
@@ -307,5 +335,51 @@ public class Exceptions {
       return INVALID_CODE_PREFIX;
     }
     return NONE;
+  }
+
+  public static String prettyStringOf(OpCode opCode, final short bitmask) {
+    StringBuilder sb = new StringBuilder();
+    Consumer<String> appendLine = (s) -> sb.append(s).append(System.lineSeparator());
+    appendLine.accept("");
+    appendLine.accept("underlying OpCode: " + opCode.name());
+    appendLine.accept("raw exceptions:");
+    if (none(bitmask)) {
+      appendLine.accept("NONE");
+      return sb.toString();
+    }
+    if (invalidOpcode(bitmask)) {
+      appendLine.accept("INVALID_OPCODE");
+    }
+    if (stackUnderflow(bitmask)) {
+      appendLine.accept("STACK_UNDERFLOW");
+    }
+    if (stackOverflow(bitmask)) {
+      appendLine.accept("STACK_OVERFLOW");
+    }
+    if (memoryExpansionException(bitmask)) {
+      appendLine.accept("MEMORY_EXPANSION_EXCEPTION");
+    }
+    if (outOfGasException(bitmask)) {
+      appendLine.accept("OUT_OF_GAS_EXCEPTION");
+    }
+    if (returnDataCopyFault(bitmask)) {
+      appendLine.accept("RETURN_DATA_COPY_FAULT");
+    }
+    if (jumpFault(bitmask)) {
+      appendLine.accept("JUMP_FAULT");
+    }
+    if (staticFault(bitmask)) {
+      appendLine.accept("STATIC_FAULT");
+    }
+    if (outOfSStore(bitmask)) {
+      appendLine.accept("OUT_OF_SSTORE");
+    }
+    if (invalidCodePrefix(bitmask)) {
+      appendLine.accept("INVALID_CODE_PREFIX");
+    }
+    if (maxCodeSizeException(bitmask)) {
+      appendLine.accept("MAX_CODE_SIZE_EXCEPTION");
+    }
+    return sb.toString();
   }
 }

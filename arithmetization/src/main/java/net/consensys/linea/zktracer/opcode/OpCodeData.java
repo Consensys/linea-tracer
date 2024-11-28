@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.opcode;
 
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
+
 import java.util.Objects;
 
 import net.consensys.linea.zktracer.opcode.gas.Billing;
@@ -35,28 +37,13 @@ import net.consensys.linea.zktracer.opcode.stack.StackSettings;
 public record OpCodeData(
     OpCode mnemonic,
     int value,
-    boolean pushFlag,
-    boolean jumpFlag,
     InstructionFamily instructionFamily,
     StackSettings stackSettings,
     RamSettings ramSettings,
     Billing billing) {
 
-  /**
-   * Returns the number of arguments supported by the given opcode.
-   *
-   * @return number of arguments supported by the given opcode.
-   */
-  public int numberOfArguments() {
-    return this.stackSettings.nbRemoved();
-  }
-
-  public RamSettings ramSettings() {
-    return Objects.requireNonNullElse(this.ramSettings, RamSettings.DEFAULT);
-  }
-
   public Billing billing() {
-    return Objects.requireNonNullElse(this.billing, Billing.DEFAULT);
+    return Objects.requireNonNullElse(billing, Billing.DEFAULT);
   }
 
   /**
@@ -65,7 +52,15 @@ public record OpCodeData(
    * @return <code>true</code> if this opcode is a <code>PUSHx</code>
    */
   public boolean isPush() {
-    return (0x60 <= this.value) && (this.value < 0x80);
+    return (0x60 <= value) && (value < 0x80);
+  }
+
+  public boolean isJumpDest() {
+    return value == 0x5b;
+  }
+
+  public boolean isJump() {
+    return instructionFamily == JUMP;
   }
 
   /**
@@ -74,7 +69,19 @@ public record OpCodeData(
    * @return true if {@link InstructionFamily} is HALT
    */
   public boolean isHalt() {
-    return this.instructionFamily == InstructionFamily.HALT;
+    return instructionFamily == HALT;
+  }
+
+  public boolean isCall() {
+    return instructionFamily == CALL;
+  }
+
+  public boolean isCreate() {
+    return instructionFamily == CREATE;
+  }
+
+  public boolean isLog() {
+    return instructionFamily == LOG;
   }
 
   /**
@@ -83,10 +90,14 @@ public record OpCodeData(
    * @return true if {@link InstructionFamily} is INVALID
    */
   public boolean isInvalid() {
-    return this.instructionFamily == InstructionFamily.INVALID;
+    return instructionFamily == INVALID;
   }
 
   public boolean isMxp() {
     return this.billing().type() != MxpType.NONE;
+  }
+
+  public int numberOfStackRows() {
+    return stackSettings.twoLineInstruction() ? 2 : 1;
   }
 }

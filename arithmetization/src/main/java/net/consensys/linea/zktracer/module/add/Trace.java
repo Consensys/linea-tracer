@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.add;
 
 import java.nio.MappedByteBuffer;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
@@ -51,22 +52,23 @@ public class Trace {
   private final MappedByteBuffer stamp;
 
   static List<ColumnHeader> headers(int length) {
-    return List.of(
-        new ColumnHeader("add.ACC_1", 16, length),
-        new ColumnHeader("add.ACC_2", 16, length),
-        new ColumnHeader("add.ARG_1_HI", 16, length),
-        new ColumnHeader("add.ARG_1_LO", 16, length),
-        new ColumnHeader("add.ARG_2_HI", 16, length),
-        new ColumnHeader("add.ARG_2_LO", 16, length),
-        new ColumnHeader("add.BYTE_1", 1, length),
-        new ColumnHeader("add.BYTE_2", 1, length),
-        new ColumnHeader("add.CT", 1, length),
-        new ColumnHeader("add.CT_MAX", 1, length),
-        new ColumnHeader("add.INST", 1, length),
-        new ColumnHeader("add.OVERFLOW", 1, length),
-        new ColumnHeader("add.RES_HI", 16, length),
-        new ColumnHeader("add.RES_LO", 16, length),
-        new ColumnHeader("add.STAMP", 4, length));
+    List<ColumnHeader> headers = new ArrayList<>();
+    headers.add(new ColumnHeader("add.ACC_1", 16, length));
+    headers.add(new ColumnHeader("add.ACC_2", 16, length));
+    headers.add(new ColumnHeader("add.ARG_1_HI", 16, length));
+    headers.add(new ColumnHeader("add.ARG_1_LO", 16, length));
+    headers.add(new ColumnHeader("add.ARG_2_HI", 16, length));
+    headers.add(new ColumnHeader("add.ARG_2_LO", 16, length));
+    headers.add(new ColumnHeader("add.BYTE_1", 1, length));
+    headers.add(new ColumnHeader("add.BYTE_2", 1, length));
+    headers.add(new ColumnHeader("add.CT", 1, length));
+    headers.add(new ColumnHeader("add.CT_MAX", 1, length));
+    headers.add(new ColumnHeader("add.INST", 1, length));
+    headers.add(new ColumnHeader("add.OVERFLOW", 1, length));
+    headers.add(new ColumnHeader("add.RES_HI", 16, length));
+    headers.add(new ColumnHeader("add.RES_LO", 16, length));
+    headers.add(new ColumnHeader("add.STAMP", 4, length));
+    return headers;
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -106,7 +108,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("acc1 has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "add.ACC_1 has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -131,7 +134,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("acc2 has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "add.ACC_2 has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -156,7 +160,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("arg1Hi has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "add.ARG_1_HI has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -181,7 +186,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("arg1Lo has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "add.ARG_1_LO has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -206,7 +212,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("arg2Hi has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "add.ARG_2_HI has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -231,7 +238,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("arg2Lo has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "add.ARG_2_LO has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -328,7 +336,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("resHi has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "add.RES_HI has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -353,7 +362,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("resLo has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "add.RES_LO has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -375,7 +385,7 @@ public class Trace {
     }
 
     if (b >= 4294967296L) {
-      throw new IllegalArgumentException("stamp has invalid value (" + b + ")");
+      throw new IllegalArgumentException("add.STAMP has invalid value (" + b + ")");
     }
     stamp.put((byte) (b >> 24));
     stamp.put((byte) (b >> 16));

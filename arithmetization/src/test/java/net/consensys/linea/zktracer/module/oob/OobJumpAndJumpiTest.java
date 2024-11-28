@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.JUMP_FAULT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -23,15 +25,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
@@ -42,7 +44,7 @@ public class OobJumpAndJumpiTest {
       BigInteger.ONE.shiftLeft(128).subtract(BigInteger.ONE);
 
   @Test
-  void TestJumpSequenceSuccessTrivial() {
+  void testJumpSequenceSuccessTrivial() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     appendJump(EWord.of(35), program);
@@ -70,7 +72,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpSequenceSuccessBackAndForth() {
+  void testJumpSequenceSuccessBackAndForth() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     appendJump(EWord.of(71), program);
@@ -98,7 +100,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpSequenceFailingNoJumpdestTrivial() {
+  void testJumpSequenceFailingNoJumpdestTrivial() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     appendJump(EWord.of(35), program);
@@ -122,10 +124,12 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
+    assertEquals(
+        JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
   }
 
   @Test
-  void TestJumpSequenceFailingOobTrivial() {
+  void testJumpSequenceFailingOobTrivial() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     appendJump(EWord.of(35), program);
@@ -149,10 +153,12 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
+    assertEquals(
+        JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
   }
 
   @Test
-  void TestJumpSequenceSuccessRandom() {
+  void testJumpSequenceSuccessRandom() {
     final int N_JUMPS = 200;
     final int MAX_JUMPDESTINATION = 256;
     final int SPREADING_FACTOR = 256;
@@ -198,7 +204,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpSequenceSuccessRandomBackAndForth() {
+  void testJumpSequenceSuccessRandomBackAndForth() {
     final int N_JUMPS = 200;
     final int MAX_JUMPDESTINATION = 256;
     final int SPREADING_FACTOR = 256;
@@ -248,7 +254,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpiSequenceSuccessTrivial() {
+  void testJumpiSequenceSuccessTrivial() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     appendJumpi(EWord.of(68), EWord.of(1), program);
@@ -276,7 +282,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpiSequenceSuccessBackAndForth() {
+  void testJumpiSequenceSuccessBackAndForth() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     appendJumpi(EWord.of(137), EWord.of(1), program);
@@ -304,7 +310,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpiSequenceFailingNoJumpdestTrivial() {
+  void testJumpiSequenceFailingNoJumpdestTrivial() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     appendJumpi(EWord.of(68), EWord.of(1), program);
@@ -328,10 +334,12 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
+    assertEquals(
+        JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
   }
 
   @Test
-  void TestJumpiSequenceFailingOobTrivial() {
+  void testJumpiSequenceFailingOobTrivial() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     appendJumpi(EWord.of(68), EWord.of(1), program);
@@ -356,10 +364,12 @@ public class OobJumpAndJumpiTest {
     Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.jumpFault(hub.pch().exceptions()));
+    assertEquals(
+        JUMP_FAULT, bytecodeRunner.getHub().currentTraceSection().commonValues.tracedException());
   }
 
   @Test
-  void TestNoJumpi() {
+  void testNoJumpi() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     appendJumpi(EWord.of(68), EWord.of(0), program); // jumpCondition is 0, that means no JUMPI
@@ -378,7 +388,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpiHiNonZero() {
+  void testJumpiHiNonZero() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     EWord jumpCondition = EWord.of(TWO_POW_128_MINUS_ONE, BigInteger.ZERO);
@@ -398,7 +408,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpiLoNonZero() {
+  void testJumpiLoNonZero() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     EWord jumpCondition = EWord.of(BigInteger.valueOf(0), TWO_POW_128_MINUS_ONE);
@@ -418,7 +428,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpiHiLoNonZero() {
+  void testJumpiHiLoNonZero() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     EWord jumpCondition = EWord.of(TWO_POW_128_MINUS_ONE, TWO_POW_128_MINUS_ONE);
@@ -438,7 +448,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpiSequenceSuccessRandom() {
+  void testJumpiSequenceSuccessRandom() {
     final int N_JUMPIS = 200;
     final int MAX_JUMPDESTINATION = 256;
     final int SPREADING_FACTOR = 256;
@@ -489,7 +499,7 @@ public class OobJumpAndJumpiTest {
   }
 
   @Test
-  void TestJumpiSequenceSuccessRandomBackAndForth() {
+  void testJumpiSequenceSuccessRandomBackAndForth() {
     final int N_JUMPIS = 200;
     final int MAX_JUMPDESTINATION = 256;
     final int SPREADING_FACTOR = 256;
@@ -544,9 +554,11 @@ public class OobJumpAndJumpiTest {
   }
 
   // Support methods
+  private Random random = new Random(1);
+
   private List<Integer> generateJumpDestinations(
       int N_JUMPS, int MAX_JUMPDESTINATION, int SPREADING_FACTOR) {
-    return ThreadLocalRandom.current()
+    return random
         .ints(1, MAX_JUMPDESTINATION)
         .distinct()
         .limit(N_JUMPS)
@@ -558,7 +570,7 @@ public class OobJumpAndJumpiTest {
 
   private List<Integer> generatePermutation(int jumpDestinationsSize) {
     List<Integer> permutation =
-        ThreadLocalRandom.current()
+        random
             .ints(0, jumpDestinationsSize - 1)
             .distinct()
             .limit(jumpDestinationsSize - 1)

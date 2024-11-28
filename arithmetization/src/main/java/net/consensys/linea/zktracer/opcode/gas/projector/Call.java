@@ -15,11 +15,11 @@
 
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
+import net.consensys.linea.zktracer.types.Range;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
@@ -30,14 +30,14 @@ import org.hyperledger.besu.evm.internal.Words;
 public class Call extends GasProjection {
   private final MessageFrame frame;
   private final long stipend;
-  private final MemorySpan inputData;
-  private final MemorySpan returnData;
+  private final Range inputData;
+  private final Range returnData;
   private final Wei value;
   private final Account recipient;
   private final Address to;
 
   public static Call invalid() {
-    return new Call(null, 0, MemorySpan.empty(), MemorySpan.empty(), Wei.ZERO, null, null);
+    return new Call(null, 0, Range.empty(), Range.empty(), Wei.ZERO, null, null);
   }
 
   boolean isInvalid() {
@@ -51,8 +51,8 @@ public class Call extends GasProjection {
     }
 
     return Math.max(
-        gc.memoryExpansionGasCost(frame, inputData.offset(), inputData.length()),
-        gc.memoryExpansionGasCost(frame, returnData.offset(), returnData.length()));
+        gc.memoryExpansionGasCost(frame, inputData.offset(), inputData.size()),
+        gc.memoryExpansionGasCost(frame, returnData.offset(), returnData.size()));
   }
 
   @Override
@@ -62,8 +62,8 @@ public class Call extends GasProjection {
     }
 
     return Math.max(
-        inputData.isEmpty() ? 0 : Words.clampedAdd(inputData.offset(), inputData.length()),
-        returnData.isEmpty() ? 0 : Words.clampedAdd(returnData.offset(), returnData.length()));
+        inputData.isEmpty() ? 0 : Words.clampedAdd(inputData.offset(), inputData.size()),
+        returnData.isEmpty() ? 0 : Words.clampedAdd(returnData.offset(), returnData.size()));
   }
 
   @Override
@@ -72,10 +72,10 @@ public class Call extends GasProjection {
       return 0;
     }
 
-    if (frame.isAddressWarm(to) || isPrecompile(to)) {
-      return GasConstants.G_WARM_ACCESS.cost();
+    if (isAddressWarm(frame, to)) {
+      return GlobalConstants.GAS_CONST_G_WARM_ACCESS;
     } else {
-      return GasConstants.G_COLD_ACCOUNT_ACCESS.cost();
+      return GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
     }
   }
 
@@ -86,7 +86,7 @@ public class Call extends GasProjection {
     }
 
     if ((recipient == null || recipient.isEmpty()) && !value.isZero()) {
-      return GasConstants.G_NEW_ACCOUNT.cost();
+      return GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
     } else {
       return 0L;
     }
@@ -101,33 +101,33 @@ public class Call extends GasProjection {
     if (value.isZero()) {
       return 0L;
     } else {
-      return GasConstants.G_CALL_VALUE.cost();
+      return GlobalConstants.GAS_CONST_G_CALL_VALUE;
     }
   }
 
   @Override
-  public long rawStipend() {
+  public long gasPaidOutOfPocket() {
     if (this.isInvalid()) {
       return 0;
     }
 
-    final long cost = memoryExpansion() + accountAccess() + accountCreation() + transferValue();
-    if (cost > frame.getRemainingGas()) {
+    final long upfrontGasCost =
+        memoryExpansion() + accountAccess() + accountCreation() + transferValue();
+    if (upfrontGasCost > frame.getRemainingGas()) {
       return 0L;
-    } else {
-      final long remaining = frame.getRemainingGas() - cost;
-      final long weird = remaining - remaining / 64;
-
-      return Math.min(weird, stipend);
     }
+
+    final long remaining = frame.getRemainingGas() - upfrontGasCost;
+    final long sixtyThreeSixtyFourthsOfRemaining = remaining - remaining / 64;
+    return Math.min(sixtyThreeSixtyFourthsOfRemaining, stipend);
   }
 
   @Override
-  public long extraStipend() {
+  public long stipend() {
     if (this.isInvalid() || this.value.isZero()) {
       return 0;
     }
 
-    return GasConstants.G_CALL_STIPEND.cost();
+    return GlobalConstants.GAS_CONST_G_CALL_STIPEND;
   }
 }

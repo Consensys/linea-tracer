@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.opcode;
 
+import static com.google.common.base.Preconditions.*;
+
+import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 /** Represents the entire set of opcodes that are required by the arithmetization process. */
@@ -210,24 +213,41 @@ public enum OpCode {
     return UnsignedByte.of(byteValue());
   }
 
+  /** Returns true for PUSH-type instructions */
+  public boolean isPush() {
+    return getData().isPush();
+  }
+
+  /** Returns true for JUMP-type instructions */
+  public boolean isJump() {
+    return getData().isJump();
+  }
+
+  public boolean isLog() {
+    return getData().isLog();
+  }
+
   /** Returns whether the {@link OpCode} entails a contract creation. */
   public boolean isCreate() {
-    return this == OpCode.CREATE || this == OpCode.CREATE2;
+    return getData().isCreate();
   }
 
   /** Returns whether the {@link OpCode} is one of the CALL opcodes */
   public boolean isCall() {
-    return this == OpCode.CALL
-        || this == OpCode.CALLCODE
-        || this == OpCode.DELEGATECALL
-        || this == OpCode.STATICCALL;
+    return getData().isCall();
   }
 
-  public boolean callHasSixArgument() {
+  public boolean isCallOrCreate() {
+    return isCall() || isCreate();
+  }
+
+  public boolean callHasNoValueArgument() {
+    checkArgument(isCall());
     return this == OpCode.DELEGATECALL || this == OpCode.STATICCALL;
   }
 
-  public boolean callHasSevenArgument() {
+  public boolean callHasValueArgument() {
+    checkArgument(isCall());
     return this == OpCode.CALL || this == OpCode.CALLCODE;
   }
 
@@ -245,5 +265,25 @@ public enum OpCode {
     }
 
     return false;
+  }
+
+  public short numberOfStackRows() {
+    return (short) (this.getData().numberOfStackRows());
+  }
+
+  public boolean mayTriggerStackUnderflow() {
+    return this.getData().stackSettings().delta() > 0;
+  }
+
+  public boolean mayTriggerStackOverflow() {
+    return this.getData().stackSettings().alpha() > 0;
+  }
+
+  public boolean mayTriggerStaticException() {
+    return this.getData().stackSettings().forbiddenInStatic();
+  }
+
+  public boolean mayTriggerMemoryExpansionException() {
+    return this != MSIZE && this.getData().billing().type() != MxpType.NONE;
   }
 }

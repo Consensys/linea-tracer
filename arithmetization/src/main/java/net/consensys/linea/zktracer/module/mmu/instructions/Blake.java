@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.mmu.instructions;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.NB_MICRO_ROWS_TOT_BLAKE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.NB_PP_ROWS_BLAKE;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes;
 
 import java.util.ArrayList;
@@ -26,7 +28,6 @@ import java.util.List;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.euc.EucOperation;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
-import net.consensys.linea.zktracer.module.mmu.Trace;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuEucCallRecord;
 import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
@@ -34,14 +35,13 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
 
 public class Blake implements MmuInstruction {
   private final Euc euc;
   private final Wcp wcp;
-  private List<MmuEucCallRecord> eucCallRecords;
-  private List<MmuWcpCallRecord> wcpCallRecords;
+  private final List<MmuEucCallRecord> eucCallRecords;
+  private final List<MmuWcpCallRecord> wcpCallRecords;
   private long sourceLimbOffsetR;
   private short sourceByteOffsetR;
   private long sourceLimbOffsetF;
@@ -51,17 +51,17 @@ public class Blake implements MmuInstruction {
   public Blake(Euc euc, Wcp wcp) {
     this.euc = euc;
     this.wcp = wcp;
-    this.eucCallRecords = new ArrayList<>(Trace.NB_PP_ROWS_BLAKE);
-    this.wcpCallRecords = new ArrayList<>(Trace.NB_PP_ROWS_BLAKE);
+    this.eucCallRecords = new ArrayList<>(NB_PP_ROWS_BLAKE);
+    this.wcpCallRecords = new ArrayList<>(NB_PP_ROWS_BLAKE);
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
     // Preprocessing row n°1
     final long dividendRow1 = hubToMmuValues.sourceOffsetLo().longValueExact();
-    EucOperation eucOpRow1 = euc.callEUC(longToBytes(dividendRow1), Bytes.of(LLARGE));
+    final EucOperation eucOpRow1 = euc.callEUC(longToBytes(dividendRow1), Bytes.of(LLARGE));
     sourceLimbOffsetR = eucOpRow1.quotient().toLong();
     sourceByteOffsetR = (short) eucOpRow1.remainder().toInt();
     eucCallRecords.add(
@@ -84,7 +84,7 @@ public class Blake implements MmuInstruction {
 
     // Preprocessing row n°2
     final long dividendRow2 = hubToMmuValues.sourceOffsetLo().longValueExact() + 213 - 1;
-    EucOperation eucOpRow2 = euc.callEUC(longToBytes(dividendRow2), Bytes.of(LLARGE));
+    final EucOperation eucOpRow2 = euc.callEUC(longToBytes(dividendRow2), Bytes.of(LLARGE));
     sourceLimbOffsetF = eucOpRow2.quotient().toLong();
     sourceByteOffsetF = (short) eucOpRow2.remainder().toInt();
     eucCallRecords.add(
@@ -105,7 +105,7 @@ public class Blake implements MmuInstruction {
 
     // setting the number of micro instruction rows
     mmuData.totalLeftZeroesInitials(0);
-    mmuData.totalNonTrivialInitials(Trace.NB_MICRO_ROWS_TOT_INVALID_CODE_PREFIX);
+    mmuData.totalNonTrivialInitials(NB_MICRO_ROWS_TOT_BLAKE);
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
@@ -126,9 +126,6 @@ public class Blake implements MmuInstruction {
             .exoId(successBit ? (int) hubToMmuValues.targetId() : 0)
             .build());
 
-    // Setting the source ram bytes
-    mmuData.setSourceRamBytes();
-
     // First micro instruction
     mmuData.mmuToMmioInstruction(
         MmuToMmioInstruction.builder()
@@ -140,6 +137,7 @@ public class Blake implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffsetR)
             .sourceByteOffset(sourceByteOffsetR)
             .targetByteOffset((short) (LLARGE - 4))
+            .targetLimbOffset(0)
             .limb(hubToMmuValues.limb1())
             .build());
 
@@ -151,6 +149,7 @@ public class Blake implements MmuInstruction {
             .sourceLimbOffset(sourceLimbOffsetF)
             .sourceByteOffset(sourceByteOffsetF)
             .targetByteOffset((short) (LLARGE - 1))
+            .targetLimbOffset(1)
             .limb(hubToMmuValues.limb2())
             .build());
 

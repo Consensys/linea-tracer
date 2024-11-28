@@ -41,5 +41,14 @@ public enum InstructionFamily {
   CREATE,
   CALL,
   HALT,
-  INVALID
+  INVALID;
+
+  public boolean isAnyOf(InstructionFamily... families) {
+    for (InstructionFamily family : families) {
+      if (this == family) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

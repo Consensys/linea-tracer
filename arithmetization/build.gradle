@@ -44,13 +44,14 @@ dependencies {
   implementation "${besuArtifactGroup}:plugin-api"
   implementation "${besuArtifactGroup}.internal:algorithms"
   implementation "${besuArtifactGroup}.internal:api"
+  implementation "${besuArtifactGroup}.internal:clique"
   implementation "${besuArtifactGroup}.internal:core"
   implementation "${besuArtifactGroup}.internal:rlp"
-
 
   implementation 'info.picocli:picocli'
 
   implementation 'io.vertx:vertx-core'
+  implementation 'io.vertx:vertx-web'
 
   implementation 'com.fasterxml.jackson.core:jackson-databind'
   implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
@@ -60,6 +61,9 @@ dependencies {
   implementation 'io.tmio:tuweni-toml'
   implementation 'org.bouncycastle:bcprov-jdk18on'
   implementation 'org.hibernate.validator:hibernate-validator'
+
+  testImplementation project(path: ':testing')
+  testImplementation 'org.junit.platform:junit-platform-launcher'
 }
 
 configurations {

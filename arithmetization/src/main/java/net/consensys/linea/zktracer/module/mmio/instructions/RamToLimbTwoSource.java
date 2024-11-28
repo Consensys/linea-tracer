@@ -17,31 +17,19 @@ package net.consensys.linea.zktracer.module.mmio.instructions;
 
 import static net.consensys.linea.zktracer.types.Bytecodes.readLimb;
 
-import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.module.mmio.MmioData;
 import net.consensys.linea.zktracer.module.mmu.MmuData;
-import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
-import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.types.Bytes16;
 
-@RequiredArgsConstructor
-public class RamToLimbTwoSource implements MmioInstruction {
-  private final MmuData mmuData;
+public class RamToLimbTwoSource extends MmioInstruction {
 
-  private final int instructionNumber;
+  public RamToLimbTwoSource(MmuData mmuData, int instructionNumber) {
+    super(mmuData, instructionNumber);
+  }
 
   @Override
   public MmioData execute() {
-    final MmuToMmioConstantValues mmuToMmioConstantValues = mmuData.mmuToMmioConstantValues();
-    final MmuToMmioInstruction mmuToMmioInstruction =
-        mmuData.mmuToMmioInstructions().get(instructionNumber);
-
-    MmioData mmioData =
-        new MmioData(
-            mmuData.hubToMmuValues(),
-            mmuToMmioConstantValues,
-            mmuToMmioInstruction,
-            mmuData.exoSumDecoder());
+    final MmioData mmioData = super.execute();
 
     mmioData.cnA(mmioData.sourceContext());
     mmioData.cnB(mmioData.sourceContext());
@@ -62,7 +50,11 @@ public class RamToLimbTwoSource implements MmioInstruction {
     mmioData.valCNew(Bytes16.ZERO);
 
     mmioData.twoToOnePadded(
-        mmioData.valA(), mmioData.valB(), mmioData.sourceByteOffset(), mmioData.size());
+        mmioData.valA(),
+        mmioData.valB(),
+        mmioData.sourceByteOffset(),
+        mmioData.targetByteOffset(),
+        mmioData.size());
     return mmioData;
   }
 }

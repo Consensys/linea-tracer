@@ -6,8 +6,6 @@ opcodes:
       pattern: ZERO_ZERO
       alpha: 0
       delta: 0
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_ZERO
       flag3: true
   - mnemonic: ADD
@@ -17,8 +15,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: MUL
     value: 0x02
@@ -27,9 +23,8 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_LOW
+      flag1: true
   - mnemonic: SUB
     value: 0x03
     instructionFamily: ADD
@@ -37,8 +32,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: DIV
     value: 0x04
@@ -47,8 +40,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_LOW
   - mnemonic: SDIV
     value: 0x05
@@ -57,8 +48,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_LOW
   - mnemonic: MOD
     value: 0x06
@@ -67,8 +56,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_LOW
   - mnemonic: SMOD
     value: 0x07
@@ -77,8 +64,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_LOW
   - mnemonic: ADDMOD
     value: 0x8
@@ -87,9 +72,7 @@ opcodes:
       pattern: THREE_ONE
       alpha: 1
       delta: 3
-      nbAdded: 1
-      nbRemoved: 3
-      staticGas: G_LOW
+      staticGas: G_MID
   - mnemonic: MULMOD
     value: 0x9
     instructionFamily: EXT
@@ -97,9 +80,7 @@ opcodes:
       pattern: THREE_ONE
       alpha: 1
       delta: 3
-      nbAdded: 1
-      nbRemoved: 3
-      staticGas: G_LOW
+      staticGas: G_MID
   - mnemonic: EXP
     value: 0xa
     instructionFamily: MUL
@@ -107,9 +88,8 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_EXP
+      flag2: true
   - mnemonic: SIGNEXTEND
     value: 0xb
     instructionFamily: BIN
@@ -117,11 +97,9 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
-      staticGas: G_VERY_LOW
-      # assigned SLT opcode for WCP module with value 0x0E. Change this value if Linéa/EVM uses this opcode.
-      # assigned SGT opcode for WCP module with value 0x0F. Change this value if Linéa/EVM uses this opcode.
+      staticGas: G_LOW
+      # assigned LEQ opcode for WCP module with value 0x0E. Change this value if Linéa/EVM uses this opcode.
+      # assigned GEQ opcode for WCP module with value 0x0F. Change this value if Linéa/EVM uses this opcode.
   - mnemonic: LT
     value: 0x10
     instructionFamily: WCP
@@ -129,8 +107,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: GT
     value: 0x11
@@ -139,8 +115,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: SLT
     value: 0x12
@@ -149,8 +123,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: SGT
     value: 0x13
@@ -159,8 +131,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: EQ
     value: 0x14
@@ -169,8 +139,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: ISZERO
     value: 0x15
@@ -179,8 +147,6 @@ opcodes:
       pattern: ONE_ONE
       alpha: 1
       delta: 1
-      nbAdded: 1
-      nbRemoved: 1
       staticGas: G_VERY_LOW
       flag1: true
   - mnemonic: AND
@@ -190,8 +156,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: OR
     value: 0x17
@@ -200,8 +164,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: XOR
     value: 0x18
@@ -210,8 +172,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: NOT
     value: 0x19
@@ -220,8 +180,6 @@ opcodes:
       pattern: ONE_ONE
       alpha: 1
       delta: 1
-      nbAdded: 1
-      nbRemoved: 1
       staticGas: G_VERY_LOW
       flag1: true
   - mnemonic: BYTE
@@ -231,8 +189,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: SHL
     value: 0x1b
@@ -241,8 +197,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: SHR
     value: 0x1c
@@ -251,8 +205,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: SAR
     value: 0x1d
@@ -261,8 +213,6 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
       staticGas: G_VERY_LOW
   - mnemonic: SHA3
     value: 0x20
@@ -271,9 +221,7 @@ opcodes:
       pattern: TWO_ONE
       alpha: 1
       delta: 2
-      nbAdded: 1
-      nbRemoved: 2
-      staticGas: S_MXP
+      staticGas: G_KECCAK_256
     billing:
       byWord:
         type: TYPE_4
@@ -285,9 +233,8 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
+      flag1: true
   - mnemonic: BALANCE
     value: 0x31
     instructionFamily: ACCOUNT
@@ -295,11 +242,8 @@ opcodes:
       pattern: ONE_ONE
       alpha: 1
       delta: 1
-      nbAdded: 1
-      nbRemoved: 1
       staticGas: S_HUB
-      addressTrimmingInstruction: true
-      flag4: true
+      flag1: true
   - mnemonic: ORIGIN
     value: 0x32
     instructionFamily: TRANSACTION
@@ -307,9 +251,8 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
+      flag1: true
   - mnemonic: CALLER
     value: 0x33
     instructionFamily: CONTEXT
@@ -317,8 +260,6 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
       flag2: true
   - mnemonic: CALLVALUE
@@ -328,10 +269,8 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
-      flag1: true
+      flag3: true
   - mnemonic: CALLDATALOAD
     value: 0x35
     instructionFamily: STACK_RAM
@@ -339,10 +278,7 @@ opcodes:
       pattern: LOAD_STORE
       alpha: 1
       delta: 1
-      nbAdded: 1
-      nbRemoved: 1
       staticGas: G_VERY_LOW
-      oobFlag: true
       flag1: true
   - mnemonic: CALLDATASIZE
     value: 0x36
@@ -351,11 +287,8 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
-      flag1: true
-      flag3: true
+      flag4: true
   - mnemonic: CALLDATACOPY
     value: 0x37
     instructionFamily: COPY
@@ -363,9 +296,8 @@ opcodes:
       pattern: COPY
       alpha: 0
       delta: 3
-      nbAdded: 0
-      nbRemoved: 3
-      staticGas: S_MXP
+      staticGas: G_VERY_LOW
+      flag1: true
     billing:
       byWord:
         type: TYPE_4
@@ -377,10 +309,8 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
-      flag1: true
+      flag4: true
   - mnemonic: CODECOPY
     value: 0x39
     instructionFamily: COPY
@@ -388,9 +318,7 @@ opcodes:
       pattern: COPY
       alpha: 0
       delta: 3
-      nbAdded: 0
-      nbRemoved: 3
-      staticGas: S_MXP
+      staticGas: G_VERY_LOW
       flag3: true
     billing:
       byWord:
@@ -403,10 +331,8 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
-      flag1: true
+      flag2: true
   - mnemonic: EXTCODESIZE
     value: 0x3b
     instructionFamily: ACCOUNT
@@ -414,12 +340,8 @@ opcodes:
       pattern: ONE_ONE
       alpha: 1
       delta: 1
-      nbAdded: 1
-      nbRemoved: 1
       staticGas: S_HUB
-      addressTrimmingInstruction: true
-      flag1: true
-      flag3: true
+      flag2: true
   - mnemonic: EXTCODECOPY
     value: 0x3c
     instructionFamily: COPY
@@ -427,10 +349,7 @@ opcodes:
       pattern: COPY
       alpha: 0
       delta: 4
-      nbAdded: 0
-      nbRemoved: 4
-      staticGas: S_MXP
-      addressTrimmingInstruction: true
+      staticGas: G_ZERO
       flag4: true
     billing:
       byWord:
@@ -443,11 +362,7 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
-      flag1: true
-      flag2: true
   - mnemonic: RETURNDATACOPY
     value: 0x3e
     instructionFamily: COPY
@@ -455,10 +370,7 @@ opcodes:
       pattern: COPY
       alpha: 0
       delta: 3
-      nbAdded: 0
-      nbRemoved: 3
-      oobFlag: true
-      staticGas: S_MXP
+      staticGas: G_VERY_LOW
       flag2: true
     billing:
       byWord:
@@ -471,11 +383,8 @@ opcodes:
       pattern: ONE_ONE
       alpha: 1
       delta: 1
-      nbAdded: 1
-      nbRemoved: 1
       staticGas: S_HUB
-      addressTrimmingInstruction: true
-      flag2: true
+      flag3: true
   - mnemonic: BLOCKHASH
     value: 0x40
     instructionFamily: BATCH
@@ -483,8 +392,6 @@ opcodes:
       pattern: ONE_ONE
       alpha: 1
       delta: 1
-      nbAdded: 1
-      nbRemoved: 1
       staticGas: G_BLOCK_HASH
       flag1: true
   - mnemonic: COINBASE
@@ -494,10 +401,7 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
-      staticGas: G_BLOCK_HASH
-      flag1: true
+      staticGas: G_BASE
   - mnemonic: TIMESTAMP
     value: 0x42
     instructionFamily: BATCH
@@ -505,10 +409,7 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
-      staticGas: G_BLOCK_HASH
-      flag1: true
+      staticGas: G_BASE
   - mnemonic: NUMBER
     value: 0x43
     instructionFamily: BATCH
@@ -516,10 +417,7 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
-      staticGas: G_BLOCK_HASH
-      flag1: true
+      staticGas: G_BASE
   - mnemonic: DIFFICULTY
     value: 0x44
     instructionFamily: BATCH
@@ -527,10 +425,7 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
-      staticGas: G_BLOCK_HASH
-      flag1: true
+      staticGas: G_BASE
   - mnemonic: GASLIMIT
     value: 0x45
     instructionFamily: BATCH
@@ -538,10 +433,7 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
-      staticGas: G_BLOCK_HASH
-      flag1: true
+      staticGas: G_BASE
   - mnemonic: CHAINID
     value: 0x46
     instructionFamily: BATCH
@@ -549,10 +441,7 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
-      staticGas: G_BLOCK_HASH
-      flag1: true
+      staticGas: G_BASE
   - mnemonic: SELFBALANCE
     value: 0x47
     instructionFamily: ACCOUNT
@@ -560,10 +449,7 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_LOW
-      flag1: true
   - mnemonic: BASEFEE
     value: 0x48
     instructionFamily: BATCH
@@ -571,10 +457,7 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
-      staticGas: G_BLOCK_HASH
-      flag1: true
+      staticGas: G_BASE
   - mnemonic: POP
     value: 0x50
     instructionFamily: PUSH_POP
@@ -582,18 +465,15 @@ opcodes:
       pattern: ONE_ZERO
       alpha: 0
       delta: 1
-      nbAdded: 0
-      nbRemoved: 1
       staticGas: G_BASE
+      flag1: true
   - mnemonic: MLOAD
     value: 0x51
     instructionFamily: STACK_RAM
     stackSettings:
-      pattern: ONE_ONE
+      pattern: LOAD_STORE
       alpha: 1
       delta: 1
-      nbAdded: 1
-      nbRemoved: 1
       staticGas: G_VERY_LOW
       flag2: true
     billing:
@@ -603,11 +483,9 @@ opcodes:
     value: 0x52
     instructionFamily: STACK_RAM
     stackSettings:
-      pattern: TWO_ZERO
+      pattern: LOAD_STORE
       alpha: 0
       delta: 2
-      nbAdded: 0
-      nbRemoved: 2
       staticGas: G_VERY_LOW
       flag3: true
     billing:
@@ -617,11 +495,9 @@ opcodes:
     value: 0x53
     instructionFamily: STACK_RAM
     stackSettings:
-      pattern: TWO_ZERO
+      pattern: LOAD_STORE
       alpha: 0
       delta: 2
-      nbAdded: 0
-      nbRemoved: 2
       staticGas: G_VERY_LOW
       flag4: true
     billing:
@@ -631,25 +507,21 @@ opcodes:
     value: 0x54
     instructionFamily: STORAGE
     stackSettings:
-      pattern: ONE_ONE
+      pattern: LOAD_STORE
       alpha: 1
       delta: 1
-      nbAdded: 1
-      nbRemoved: 1
       staticGas: S_HUB
+      flag1: true
   - mnemonic: SSTORE
     value: 0x55
     instructionFamily: STORAGE
     stackSettings:
-      pattern: TWO_ZERO
+      pattern: LOAD_STORE
       alpha: 0
       delta: 2
-      nbAdded: 0
-      nbRemoved: 2
-      oobFlag: true
       staticGas: S_HUB
       forbiddenInStatic: true
-      flag1: true
+      flag2: true
   - mnemonic: JUMP
     value: 0x56
     instructionFamily: JUMP
@@ -657,10 +529,7 @@ opcodes:
       pattern: ONE_ZERO
       alpha: 0
       delta: 1
-      nbAdded: 0
-      nbRemoved: 1
       staticGas: G_MID
-      oobFlag: true
       flag1: true
   - mnemonic: JUMPI
     value: 0x57
@@ -669,10 +538,7 @@ opcodes:
       pattern: TWO_ZERO
       alpha: 0
       delta: 2
-      nbAdded: 0
-      nbRemoved: 2
-      staticGas: G_MID
-      oobFlag: true
+      staticGas: G_HIGH
       flag2: true
   - mnemonic: PC
     value: 0x58
@@ -681,8 +547,6 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
       flag1: true
   - mnemonic: MSIZE
@@ -692,8 +556,6 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
       flag2: true
     billing:
@@ -706,406 +568,305 @@ opcodes:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_BASE
       flag3: true
   - mnemonic: JUMPDEST
     value: 0x5b
     instructionFamily: MACHINE_STATE
-    jumpFlag: true
     stackSettings:
       pattern: ZERO_ZERO
       alpha: 0
       delta: 0
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_JUMP_DEST
       flag4: true
   - mnemonic: PUSH1
     value: 0x60
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH2
     value: 0x61
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH3
     value: 0x62
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH4
     value: 0x63
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH5
     value: 0x64
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH6
     value: 0x65
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH7
     value: 0x66
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH8
     value: 0x67
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH9
     value: 0x68
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH10
     value: 0x69
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH11
     value: 0x6a
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH12
     value: 0x6b
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH13
     value: 0x6c
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH14
     value: 0x6d
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH15
     value: 0x6e
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH16
     value: 0x6f
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH17
     value: 0x70
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH18
     value: 0x71
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH19
     value: 0x72
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH20
     value: 0x73
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH21
     value: 0x74
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH22
     value: 0x75
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH23
     value: 0x76
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH24
     value: 0x77
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH25
     value: 0x78
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH26
     value: 0x79
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH27
     value: 0x7a
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH28
     value: 0x7b
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH29
     value: 0x7c
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH30
     value: 0x7d
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH31
     value: 0x7e
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: PUSH32
     value: 0x7f
     instructionFamily: PUSH_POP
-    pushFlag: true
     stackSettings:
       pattern: ZERO_ONE
       alpha: 1
       delta: 0
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
-      flag1: true
+      flag2: true
   - mnemonic: DUP1
     value: 0x80
     instructionFamily: DUP
@@ -1113,8 +874,6 @@ opcodes:
       pattern: DUP
       alpha: 2
       delta: 1
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP2
     value: 0x81
@@ -1123,8 +882,6 @@ opcodes:
       pattern: DUP
       alpha: 3
       delta: 2
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP3
     value: 0x82
@@ -1133,8 +890,6 @@ opcodes:
       pattern: DUP
       alpha: 4
       delta: 3
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP4
     value: 0x83
@@ -1143,8 +898,6 @@ opcodes:
       pattern: DUP
       alpha: 5
       delta: 4
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP5
     value: 0x84
@@ -1153,8 +906,6 @@ opcodes:
       pattern: DUP
       alpha: 6
       delta: 5
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP6
     value: 0x85
@@ -1163,8 +914,6 @@ opcodes:
       pattern: DUP
       alpha: 7
       delta: 6
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP7
     value: 0x86
@@ -1173,8 +922,6 @@ opcodes:
       pattern: DUP
       alpha: 8
       delta: 7
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP8
     value: 0x87
@@ -1183,8 +930,6 @@ opcodes:
       pattern: DUP
       alpha: 9
       delta: 8
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP9
     value: 0x88
@@ -1193,8 +938,6 @@ opcodes:
       pattern: DUP
       alpha: 10
       delta: 9
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP10
     value: 0x89
@@ -1203,8 +946,6 @@ opcodes:
       pattern: DUP
       alpha: 11
       delta: 10
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP11
     value: 0x8a
@@ -1213,8 +954,6 @@ opcodes:
       pattern: DUP
       alpha: 12
       delta: 11
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP12
     value: 0x8b
@@ -1223,8 +962,6 @@ opcodes:
       pattern: DUP
       alpha: 13
       delta: 12
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP13
     value: 0x8c
@@ -1233,8 +970,6 @@ opcodes:
       pattern: DUP
       alpha: 14
       delta: 13
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP14
     value: 0x8d
@@ -1243,8 +978,6 @@ opcodes:
       pattern: DUP
       alpha: 15
       delta: 14
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP15
     value: 0x8e
@@ -1253,8 +986,6 @@ opcodes:
       pattern: DUP
       alpha: 16
       delta: 15
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: DUP16
     value: 0x8f
@@ -1263,8 +994,6 @@ opcodes:
       pattern: DUP
       alpha: 17
       delta: 16
-      nbAdded: 1
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP1
     value: 0x90
@@ -1273,8 +1002,6 @@ opcodes:
       pattern: SWAP
       alpha: 2
       delta: 2
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP2
     value: 0x91
@@ -1283,8 +1010,6 @@ opcodes:
       pattern: SWAP
       alpha: 3
       delta: 3
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP3
     value: 0x92
@@ -1293,8 +1018,6 @@ opcodes:
       pattern: SWAP
       alpha: 4
       delta: 4
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP4
     value: 0x93
@@ -1303,8 +1026,6 @@ opcodes:
       pattern: SWAP
       alpha: 5
       delta: 5
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP5
     value: 0x94
@@ -1313,8 +1034,6 @@ opcodes:
       pattern: SWAP
       alpha: 6
       delta: 6
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP6
     value: 0x95
@@ -1323,8 +1042,6 @@ opcodes:
       pattern: SWAP
       alpha: 7
       delta: 7
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP7
     value: 0x96
@@ -1333,8 +1050,6 @@ opcodes:
       pattern: SWAP
       alpha: 8
       delta: 8
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP8
     value: 0x97
@@ -1343,8 +1058,6 @@ opcodes:
       pattern: SWAP
       alpha: 9
       delta: 9
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP9
     value: 0x98
@@ -1353,8 +1066,6 @@ opcodes:
       pattern: SWAP
       alpha: 10
       delta: 10
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP10
     value: 0x99
@@ -1363,8 +1074,6 @@ opcodes:
       pattern: SWAP
       alpha: 11
       delta: 11
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP11
     value: 0x9a
@@ -1373,8 +1082,6 @@ opcodes:
       pattern: SWAP
       alpha: 12
       delta: 12
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP12
     value: 0x9b
@@ -1383,8 +1090,6 @@ opcodes:
       pattern: SWAP
       alpha: 13
       delta: 13
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP13
     value: 0x9c
@@ -1393,8 +1098,6 @@ opcodes:
       pattern: SWAP
       alpha: 14
       delta: 14
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP14
     value: 0x9d
@@ -1403,8 +1106,6 @@ opcodes:
       pattern: SWAP
       alpha: 15
       delta: 15
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP15
     value: 0x9e
@@ -1413,8 +1114,6 @@ opcodes:
       pattern: SWAP
       alpha: 16
       delta: 16
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: SWAP16
     value: 0x9f
@@ -1423,8 +1122,6 @@ opcodes:
       pattern: SWAP
       alpha: 17
       delta: 17
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_VERY_LOW
   - mnemonic: LOG0
     value: 0xa0
@@ -1433,10 +1130,8 @@ opcodes:
       pattern: LOG
       alpha: 0
       delta: 2
-      nbAdded: 0
-      nbRemoved: 2
       staticGas: G_LOG_0
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
     billing:
       byByte:
@@ -1449,10 +1144,8 @@ opcodes:
       pattern: LOG
       alpha: 0
       delta: 3
-      nbAdded: 0
-      nbRemoved: 3
       staticGas: G_LOG_1
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
       flag1: true
     billing:
@@ -1466,13 +1159,10 @@ opcodes:
       pattern: LOG
       alpha: 0
       delta: 4
-      nbAdded: 0
-      nbRemoved: 4
       staticGas: G_LOG_2
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
-      flag1: true
-      flag3: true
+      flag2: true
     billing:
       byByte:
         type: TYPE_4
@@ -1484,12 +1174,9 @@ opcodes:
       pattern: LOG
       alpha: 0
       delta: 5
-      nbAdded: 0
-      nbRemoved: 5
       staticGas: G_LOG_3
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
-      flag1: true
       flag3: true
     billing:
       byByte:
@@ -1502,14 +1189,10 @@ opcodes:
       pattern: LOG
       alpha: 0
       delta: 6
-      nbAdded: 0
-      nbRemoved: 6
       staticGas: G_LOG_4
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
-      flag1: true
-      flag2: true
-      flag3: true
+      flag4: true
     billing:
       byByte:
         type: TYPE_4
@@ -1521,15 +1204,14 @@ opcodes:
       pattern: CREATE
       alpha: 1
       delta: 3
-      nbAdded: 1
-      nbRemoved: 3
-      oobFlag: true
       staticGas: G_CREATE
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
+      flag1: true
     billing:
       byMxp:
         type: TYPE_4
+        wordPrice: G_KECCAK_256_WORD
   - mnemonic: CALL
     value: 0xf1
     instructionFamily: CALL
@@ -1537,12 +1219,9 @@ opcodes:
       pattern: CALL
       alpha: 1
       delta: 7
-      nbAdded: 1
-      nbRemoved: 7
-      oobFlag: true
       staticGas: S_CALL
-      twoLinesInstruction: true
-      addressTrimmingInstruction: true
+      twoLineInstruction: true
+      forbiddenInStatic: true
       flag1: true
     billing:
       byMxp:
@@ -1554,12 +1233,8 @@ opcodes:
       pattern: CALL
       alpha: 1
       delta: 7
-      nbAdded: 1
-      nbRemoved: 7
-      oobFlag: true
       staticGas: S_CALL
-      twoLinesInstruction: true
-      addressTrimmingInstruction: true
+      twoLineInstruction: true
       flag2: true
     billing:
       byMxp:
@@ -1571,10 +1246,7 @@ opcodes:
       pattern: TWO_ZERO
       alpha: 0
       delta: 2
-      nbAdded: 0
-      nbRemoved: 2
-      oobFlag: true
-      staticGas: S_MXP
+      staticGas: G_ZERO
       flag1: true
     billing:
       byByte:
@@ -1587,11 +1259,8 @@ opcodes:
       pattern: CALL
       alpha: 1
       delta: 6
-      nbAdded: 1
-      nbRemoved: 6
       staticGas: S_CALL
-      twoLinesInstruction: true
-      addressTrimmingInstruction: true
+      twoLineInstruction: true
       flag3: true
     billing:
       byMxp:
@@ -1603,13 +1272,10 @@ opcodes:
       pattern: CREATE
       alpha: 1
       delta: 4
-      nbAdded: 1
-      nbRemoved: 4
-      oobFlag: true
       staticGas: G_CREATE
-      twoLinesInstruction: true
+      twoLineInstruction: true
       forbiddenInStatic: true
-      flag1: true
+      flag2: true
     billing:
       byWord:
         type: TYPE_4
@@ -1621,11 +1287,8 @@ opcodes:
       pattern: CALL
       alpha: 1
       delta: 6
-      nbAdded: 1
-      nbRemoved: 6
       staticGas: S_CALL
-      twoLinesInstruction: true
-      addressTrimmingInstruction: true
+      twoLineInstruction: true
       flag4: true
     billing:
       byMxp:
@@ -1637,9 +1300,7 @@ opcodes:
       pattern: TWO_ZERO
       alpha: 0
       delta: 2
-      nbAdded: 0
-      nbRemoved: 2
-      staticGas: S_MXP
+      staticGas: G_ZERO
       flag2: true
     billing:
       byMxp:
@@ -1651,9 +1312,8 @@ opcodes:
       pattern: ZERO_ZERO
       alpha: 0
       delta: 0
-      nbAdded: 0
-      nbRemoved: 0
       staticGas: G_ZERO
+      flag1: true
   - mnemonic: SELFDESTRUCT
     value: 0xff
     instructionFamily: HALT
@@ -1661,9 +1321,6 @@ opcodes:
       pattern: ONE_ZERO
       alpha: 0
       delta: 1
-      nbAdded: 0
-      nbRemoved: 1
-      staticGas: S_MXP
+      staticGas: G_SELF_DESTRUCT
       forbiddenInStatic: true
-      addressTrimmingInstruction: true
       flag4: true

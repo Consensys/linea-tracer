@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.tables.shf;
 
 import java.nio.MappedByteBuffer;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
@@ -41,13 +42,14 @@ public class Trace {
   private final MappedByteBuffer rap;
 
   static List<ColumnHeader> headers(int length) {
-    return List.of(
-        new ColumnHeader("shfreftable.BYTE1", 1, length),
-        new ColumnHeader("shfreftable.IOMF", 1, length),
-        new ColumnHeader("shfreftable.LAS", 1, length),
-        new ColumnHeader("shfreftable.MSHP", 1, length),
-        new ColumnHeader("shfreftable.ONES", 1, length),
-        new ColumnHeader("shfreftable.RAP", 1, length));
+    List<ColumnHeader> headers = new ArrayList<>();
+    headers.add(new ColumnHeader("shfreftable.BYTE1", 1, length));
+    headers.add(new ColumnHeader("shfreftable.IOMF", 1, length));
+    headers.add(new ColumnHeader("shfreftable.LAS", 1, length));
+    headers.add(new ColumnHeader("shfreftable.MSHP", 1, length));
+    headers.add(new ColumnHeader("shfreftable.ONES", 1, length));
+    headers.add(new ColumnHeader("shfreftable.RAP", 1, length));
+    return headers;
   }
 
   public Trace(List<MappedByteBuffer> buffers) {

@@ -15,17 +15,19 @@
 
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static org.hyperledger.besu.evm.internal.Words.*;
+
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
-import org.hyperledger.besu.evm.internal.Words;
 
 public abstract class GasProjection {
   GasCalculator gc = ZkTracer.gasCalculator;
 
-  long linearCost(long a, long x, long unit) {
-    Preconditions.checkArgument((unit == 1) || (unit == 32));
-    return Words.clampedMultiply(a, (Words.clampedAdd(x, unit) - 1) / unit);
+  long linearCost(long costPerUnit, long size, long unit) {
+    checkArgument((unit == 1) || (unit == WORD_SIZE));
+    return clampedMultiply(costPerUnit, clampedAdd(size, unit - 1) / unit);
   }
 
   public long staticGas() {
@@ -68,11 +70,11 @@ public abstract class GasProjection {
     return 0;
   }
 
-  public long rawStipend() {
+  public long gasPaidOutOfPocket() {
     return 0;
   }
 
-  public long extraStipend() {
+  public long stipend() {
     return 0;
   }
 
@@ -98,7 +100,19 @@ public abstract class GasProjection {
     return 0;
   }
 
-  public final long total() {
+  /**
+   * {@link GasProjection#upfrontGasCost()} computes the upfront gas cost of instructions, that is,
+   * the gas cost that determines whether an <b>OUT_OF_GAS_EXCEPTION</b> occurred. This cost
+   * purposefully <i>excludes</i> the gas paid "out of pocket" to child contexts in case of
+   * <b>CALL</b>-type or <b>CREATE</b>-type instructions.
+   *
+   * @return
+   */
+  public final long upfrontGasCost() {
+    return gasCostExcludingDeploymentCost() + deploymentCost();
+  }
+
+  public final long gasCostExcludingDeploymentCost() {
     return staticGas()
         + expGas()
         + memoryExpansion()
@@ -108,7 +122,10 @@ public abstract class GasProjection {
         + linearPerWord()
         + linearPerByte()
         + storageWarmth()
-        + sStoreValue()
-        + deploymentCost();
+        + sStoreValue();
+  }
+
+  public final long childGasAllowance() {
+    return gasPaidOutOfPocket() + stipend();
   }
 }

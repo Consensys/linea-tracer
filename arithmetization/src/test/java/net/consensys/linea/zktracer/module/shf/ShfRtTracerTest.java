@@ -19,9 +19,9 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.Named;
@@ -32,7 +32,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @Slf4j
 class ShfRtTracerTest {
-  private static final Random RAND = new Random();
   private static final int TEST_REPETITIONS = 4;
 
   @ParameterizedTest(name = "{0}")
@@ -48,7 +47,7 @@ class ShfRtTracerTest {
   }
 
   @Test
-  void TestShfResultFailure() {
+  void testShfResultFailure() {
     BytecodeRunner.of(
             Bytes.fromHexString(
                 "7faaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa7fa0000000000000000000000000000000000000000000000000000000000000001d"))
@@ -83,6 +82,7 @@ class ShfRtTracerTest {
 
   private static Stream<Arguments> provideRandomSarArguments() {
     final Arguments[] arguments = new Arguments[TEST_REPETITIONS];
+    final Random RAND = new Random();
 
     for (int i = 0; i < TEST_REPETITIONS; i++) {
       final boolean signBit = RAND.nextInt(2) == 1;

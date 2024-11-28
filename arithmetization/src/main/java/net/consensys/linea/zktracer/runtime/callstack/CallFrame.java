@@ -33,7 +33,8 @@ import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.MemorySpan;
+import net.consensys.linea.zktracer.types.MemoryRange;
+import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -43,87 +44,75 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class CallFrame {
   public static final CallFrame EMPTY = new CallFrame();
 
-  /** the position of this {@link CallFrame} in the {@link CallStack}. */
-  @Getter private int id;
-
-  /** the context number of the frame, i.e. the hub stamp at its creation */
+  // various identifiers related to the CallFrame
+  @Getter private final int id;
   @Getter private final int contextNumber;
+  @Getter private int parentId;
+  @Getter private final List<Integer> childFrameIds = new ArrayList<>();
 
-  /** the depth of this CallFrame within its call hierarchy. */
-  @Getter private int depth;
-
-  /** */
-  @Getter private int accountDeploymentNumber;
-
-  /** */
-  @Getter private int codeDeploymentNumber;
-
-  /** */
-  @Getter private boolean underDeployment;
-
-  @Getter @Setter private TraceSection sectionToUnlatch = null;
-
-  /** the ID of this {@link CallFrame} parent in the {@link CallStack}. */
-  @Getter private int parentFrame;
-
-  /** all the {@link CallFrame} that have been called by this frame. */
-  @Getter private final List<Integer> childFrames = new ArrayList<>();
-
-  /** the {@link Address} of the account executing this {@link CallFrame}. */
-  @Getter private final Address address;
-
-  /** A memoized {@link EWord} conversion of `address` */
-  private EWord eAddress = null;
-
-  /** the {@link Address} of the code executed in this {@link CallFrame}. */
-  @Getter private Address codeAddress = Address.ZERO;
-
-  /** A memoized {@link EWord} conversion of `codeAddress` */
-  private EWord eCodeAddress = null;
-
-  /** the {@link CallFrameType} of this frame. */
+  // general information
+  @Getter private final Wei value;
+  @Getter private long gasStipend;
+  @Getter private final int depth;
+  @Getter private boolean isDeployment;
   @Getter private final CallFrameType type;
 
-  /** the {@link Bytecode} executing within this frame. */
+  public boolean isMessageCall() {
+    return !isDeployment;
+  }
+
+  // account whose storage and value are accessible
+  @Getter private final Address accountAddress;
+  @Getter private int accountDeploymentNumber;
+  private EWord eAddress = null; // memoization
+
+  // byte code that is running in the present frame
+  @Getter private Address byteCodeAddress = Address.ZERO;
+  @Getter private int byteCodeDeploymentNumber;
+  private EWord eCodeAddress = null; // memoization
   @Getter private Bytecode code = Bytecode.EMPTY;
 
-  /** the CFI of this frame bytecode if applicable */
-  @Getter private int codeFragmentIndex = -1;
+  // caller related information
+  @Getter private Address callerAddress = Address.ZERO;
+
+  public int getCodeFragmentIndex(Hub hub) {
+    return this == CallFrame.EMPTY || type == CallFrameType.TRANSACTION_CALL_DATA_HOLDER
+        ? 0
+        : hub.getCfiByMetaData(byteCodeAddress, byteCodeDeploymentNumber, isDeployment);
+  }
 
   @Getter @Setter private int pc;
   @Getter @Setter private OpCode opCode = OpCode.STOP;
   @Getter @Setter private OpCodeData opCodeData = OpCodes.of(OpCode.STOP);
-  @Getter private MessageFrame frame;
+  @Getter private MessageFrame frame; // TODO: can we make this final ?
 
-  /** the ether amount given to this frame. */
-  @Getter private Wei value = Wei.fromHexString("0xBadF00d"); // Marker for debugging
+  // various memory ranges
+  @Getter private final MemoryRange callDataRange; // immutable
+  @Getter private final MemoryRange returnAtRange; // immutable
+  @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY; // mutable
+  @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY; // set at exit time
 
-  /** the gas given to this frame. */
-  @Getter private long gasEndowment;
+  @Getter private boolean executionPaused = false;
+  @Getter @Setter private long lastValidGasNext = 0;
 
-  /** the call data given to this frame. */
-  @Getter CallDataInfo callDataInfo;
+  public void pauseCurrentFrame() {
+    Preconditions.checkState(!executionPaused);
+    executionPaused = true;
+  }
 
-  /** the data returned by the latest callee. */
-  @Getter @Setter private Bytes latestReturnData = Bytes.EMPTY;
+  public void unpauseCurrentFrame() {
+    Preconditions.checkState(executionPaused);
+    executionPaused = false;
+  }
 
-  /** returnData position within the latest callee memory space. */
-  @Getter @Setter private MemorySpan latestReturnDataSource = new MemorySpan(0, 0);
+  public void rememberGasNextBeforePausing(Hub hub) {
+    lastValidGasNext = hub.state.current().txTrace().currentSection().commonValues.gasNext();
+  }
 
-  /** the return data provided by this frame */
-  @Getter @Setter private Bytes returnData = Bytes.EMPTY;
-
-  /** where this frame store its return data in its own RAM */
-  @Getter @Setter private MemorySpan returnDataSource;
-
-  /** where this frame is expected to write its returnData within its parent's memory space. */
-  @Getter private MemorySpan requestedReturnDataTarget = MemorySpan.empty();
-
-  /** the latest child context to have been called from this frame */
-  @Getter private int currentReturner = -1;
-
-  @Getter @Setter private int selfRevertsAt = 0;
-  @Getter @Setter private int getsRevertedAt = 0;
+  // revert related information
+  @Getter @Setter private boolean selfReverts = false;
+  @Getter @Setter private boolean getsReverted = false;
+  @Getter @Setter private int revertStamp = 0;
 
   /** this frame {@link Stack}. */
   @Getter private final Stack stack = new Stack();
@@ -131,89 +120,89 @@ public class CallFrame {
   /** the latched context of this callframe stack. */
   @Getter @Setter private StackContext pending;
 
-  /** Create a MANTLE call frame. */
-  CallFrame(final Bytes callData, final int contextNumber) {
-    this.type = CallFrameType.MANTLE;
-    this.contextNumber = contextNumber;
-    this.address = Address.ZERO;
-    this.callDataInfo = new CallDataInfo(callData, 0, callData.size(), contextNumber);
-  }
+  /**
+   * the section responsible for the creation of a child context, either a CALL or a CREATE
+   * instruction
+   */
+  @Getter @Setter private TraceSection childSpanningSection;
 
-  /** Create a PRECOMPILE_RETURN_DATA callFrame */
-  CallFrame(
-      final int contextNumber,
-      final Bytes precompileResult,
-      final int returnDataOffset,
-      final Address precompileAddress) {
-    Preconditions.checkArgument(
-        returnDataOffset == 0 || precompileAddress == Address.MODEXP,
-        "ReturnDataOffset is 0 for all precompile except Modexp");
-    this.type = CallFrameType.PRECOMPILE_RETURN_DATA;
+  /** Create a MANTLE call frame. */
+  CallFrame(final Address origin, final Bytes callDataRange, final int contextNumber) {
+    type = CallFrameType.TRANSACTION_CALL_DATA_HOLDER;
     this.contextNumber = contextNumber;
-    this.returnData = precompileResult;
-    this.returnDataSource = new MemorySpan(returnDataOffset, precompileResult.size());
-    this.address = precompileAddress;
+    accountAddress = origin;
+    this.callDataRange = new MemoryRange(contextNumber, 0, callDataRange.size(), callDataRange);
+    this.returnAtRange = MemoryRange.EMPTY;
+    value = Wei.ZERO;
+    id = -1;
+    depth = -1;
   }
 
   /** Create an empty call frame. */
   CallFrame() {
-    this.type = CallFrameType.EMPTY;
-    this.contextNumber = 0;
-    this.address = Address.ZERO;
-    this.parentFrame = -1;
+    type = CallFrameType.EMPTY;
+    contextNumber = 0;
+    accountAddress = Address.ZERO;
+    parentId = -1;
+    this.callDataRange = MemoryRange.EMPTY;
+    this.returnAtRange = MemoryRange.EMPTY;
+    depth = 0;
+    value = Wei.ZERO;
+    id = -1;
   }
 
   /**
-   * Create a normal (non-root) call frame.
+   * Create a non-root call frame. Below we abbreviate Context Number to CN
    *
-   * @param accountDeploymentNumber the DN of this frame in the {@link Hub}
-   * @param codeDeploymentNumber the DN of this frame in the {@link Hub}
-   * @param isDeployment whether the executing code is initcode
-   * @param id the ID of this frame in the {@link CallStack}
-   * @param hubStamp the hub stamp at the frame creation
-   * @param address the {@link Address} of this frame executor
    * @param type the {@link CallFrameType} of this frame
-   * @param caller the ID of this frame caller in the {@link CallStack}
+   * @param id ID of this frame in the {@link CallStack}
+   * @param contextNumber of this call frame
+   * @param depth call stack depth of the current execution context
+   * @param isDeployment whether the executing byteCode is initcode
    * @param value how much ether was given to this frame
-   * @param gas how much gas was given to this frame
-   * @param callData {@link Bytes} containing this frame call data
+   * @param gasStipend how much gasStipend was given to this frame
+   * @param accountAddress {@link Address} of this frame executor
+   * @param accountDeploymentNumber DN of the account address
+   * @param byteCodeAddress address whose byteCode executes in the present frame
+   * @param byteCodeDeploymentNumber DN of this call frame in the {@link Hub}
+   * @param byteCode byteCode that executes in the present context
+   * @param callerAddress either account address of the caller/creator context
+   * @param parentId ID of the caller frame in the {@link CallStack}
+   * @param callDataRange call data of the current frame
    */
   CallFrame(
-      int accountDeploymentNumber,
-      int codeDeploymentNumber,
-      boolean isDeployment,
-      int id,
-      int hubStamp,
-      Address address,
-      Address codeAddress,
-      Bytecode code,
       CallFrameType type,
-      int caller,
+      int id,
+      int contextNumber,
+      int depth,
+      boolean isDeployment,
       Wei value,
-      long gas,
-      Bytes callData,
-      long callDataOffset,
-      long callDataSize,
-      long callDataContextNumber,
-      int depth) {
-    this.accountDeploymentNumber = accountDeploymentNumber;
-    this.codeDeploymentNumber = codeDeploymentNumber;
-    this.underDeployment = isDeployment;
-    this.id = id;
-    this.contextNumber = hubStamp + 1;
-    this.address = address;
-    this.codeAddress = codeAddress;
-    this.code = code;
+      long gasStipend,
+      Address accountAddress,
+      int accountDeploymentNumber,
+      Address byteCodeAddress,
+      int byteCodeDeploymentNumber,
+      Bytecode byteCode,
+      Address callerAddress,
+      int parentId,
+      MemoryRange callDataRange,
+      MemoryRange returnAtRange) {
     this.type = type;
-    this.parentFrame = caller;
+    this.id = id;
+    this.contextNumber = contextNumber;
+    this.isDeployment = isDeployment;
     this.value = value;
-    this.gasEndowment = gas;
-    this.callDataInfo =
-        new CallDataInfo(callData, callDataOffset, callDataSize, callDataContextNumber);
+    this.gasStipend = gasStipend;
     this.depth = depth;
-    this.returnDataSource = MemorySpan.empty();
-    this.latestReturnDataSource = MemorySpan.empty();
-    this.requestedReturnDataTarget = MemorySpan.empty(); // TODO: fix me Franklin
+    this.accountAddress = accountAddress;
+    this.accountDeploymentNumber = accountDeploymentNumber;
+    this.byteCodeAddress = byteCodeAddress;
+    this.byteCodeDeploymentNumber = byteCodeDeploymentNumber;
+    this.code = byteCode;
+    this.callerAddress = callerAddress;
+    this.parentId = parentId;
+    this.callDataRange = callDataRange;
+    this.returnAtRange = returnAtRange;
   }
 
   public boolean isRoot() {
@@ -227,7 +216,7 @@ public class CallFrame {
    */
   public EWord addressAsEWord() {
     if (this.eAddress == null) {
-      this.eAddress = EWord.of(this.address);
+      this.eAddress = EWord.of(this.accountAddress);
     }
     return this.eAddress;
   }
@@ -239,7 +228,7 @@ public class CallFrame {
    */
   public EWord codeAddressAsEWord() {
     if (this.eCodeAddress == null) {
-      this.eCodeAddress = EWord.of(this.codeAddress);
+      this.eCodeAddress = EWord.of(this.byteCodeAddress);
     }
     return this.eCodeAddress;
   }
@@ -250,11 +239,11 @@ public class CallFrame {
    * @return the ID of the latest callee
    */
   public Optional<Integer> lastCallee() {
-    if (this.childFrames.isEmpty()) {
+    if (this.childFrameIds.isEmpty()) {
       return Optional.empty();
     }
 
-    return Optional.of(this.childFrames.get(this.childFrames.size() - 1));
+    return Optional.of(this.childFrameIds.get(this.childFrameIds.size() - 1));
   }
 
   /**
@@ -263,43 +252,64 @@ public class CallFrame {
    * @return the executed contract metadata
    */
   public ContractMetadata metadata() {
-    return ContractMetadata.make(this.codeAddress, this.codeDeploymentNumber, this.underDeployment);
+    return ContractMetadata.make(byteCodeAddress, byteCodeDeploymentNumber, isDeployment);
   }
 
-  private void revertChildren(CallStack callStack, int stamp) {
-    if (this.getsRevertedAt == 0) {
-      this.getsRevertedAt = stamp;
-      this.childFrames.stream()
-          .map(callStack::getById)
-          .forEach(frame -> frame.revertChildren(callStack, stamp));
+  private void revertChildren(CallStack callStack, int parentRevertStamp) {
+    childFrameIds.stream()
+        .map(callStack::getById)
+        .forEach(
+            frame -> {
+              frame.getsReverted = true;
+              if (!frame.selfReverts) {
+                frame.revertStamp = parentRevertStamp;
+              }
+              frame.revertChildren(callStack, parentRevertStamp);
+            });
+  }
+
+  public void setRevertStamps(CallStack callStack, int currentStamp) {
+    if (selfReverts) {
+      throw new IllegalStateException(
+          String.format(
+              "a context can not self-revert twice, it already reverts at %s, can't revert again at %s",
+              revertStamp, currentStamp));
     }
+    selfReverts = true;
+    revertStamp = currentStamp;
+    this.revertChildren(callStack, revertStamp);
   }
 
-  public void revert(CallStack callStack, int stamp) {
-    if (this.selfRevertsAt == 0) {
-      this.selfRevertsAt = stamp;
-      this.revertChildren(callStack, stamp);
-    } else if (stamp != this.selfRevertsAt) {
-      throw new IllegalStateException("a context can not self-reverse twice");
-    }
+  public boolean willRevert() {
+    return selfReverts() || getsReverted();
   }
 
-  public boolean selfReverts() {
-    return this.selfRevertsAt > 0;
-  }
-
-  public boolean getsReverted() {
-    return this.getsRevertedAt > 0;
-  }
-
-  public boolean hasReverted() {
-    return (this.selfRevertsAt > 0) || (this.getsRevertedAt > 0);
+  public void initializeFrame(final MessageFrame frame) {
+    this.frame = frame;
   }
 
   public void frame(MessageFrame frame) {
     this.frame = frame;
-    this.opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    this.opCodeData = OpCodes.of(this.opCode);
-    this.pc = frame.getPC();
+    opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    opCodeData = OpCodes.of(opCode);
+    pc = frame.getPC();
+  }
+
+  public static Bytes extractContiguousLimbsFromMemory(
+      final MessageFrame frame, final Range range) {
+    // TODO: optimize me please. Need a review of the MMU operation handling.
+    return range.isEmpty() ? Bytes.EMPTY : frame.shadowReadMemory(0, frame.memoryByteSize());
+  }
+
+  public OpCode getOpCode() {
+    return getOpCode(frame);
+  }
+
+  public static OpCode getOpCode(MessageFrame frame) {
+    return OpCode.of(0xFF & frame.getCurrentOperation().getOpcode());
+  }
+
+  public void squashReturnData() {
+    returnDataRange(MemoryRange.EMPTY);
   }
 }

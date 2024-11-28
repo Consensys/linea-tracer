@@ -31,13 +31,12 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ExoToRamTransplants implements MmuInstruction {
-  private Euc euc;
-  private List<MmuEucCallRecord> eucCallRecords;
-  private List<MmuWcpCallRecord> wcpCallRecords;
+  private final Euc euc;
+  private final List<MmuEucCallRecord> eucCallRecords;
+  private final List<MmuWcpCallRecord> wcpCallRecords;
 
   public ExoToRamTransplants(Euc euc) {
     this.euc = euc;
@@ -46,7 +45,7 @@ public class ExoToRamTransplants implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(MmuData mmuData) {
     // row n°1
     final Bytes dividend = Bytes.ofUnsignedInt(mmuData.hubToMmuValues().size());
     final EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
@@ -74,7 +73,7 @@ public class ExoToRamTransplants implements MmuInstruction {
 
   @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
-    HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
+    final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
     // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
@@ -84,6 +83,7 @@ public class ExoToRamTransplants implements MmuInstruction {
             .phase(hubToMmuValues.phase())
             .exoId((int) hubToMmuValues.sourceId())
             .totalSize((int) hubToMmuValues.size())
+            .successBit(hubToMmuValues.successBit())
             .build());
 
     // Setting the target ram bytes

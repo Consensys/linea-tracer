@@ -15,16 +15,17 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import java.util.List;
+import static com.google.common.base.Preconditions.*;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.module.Module;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 
-@RequiredArgsConstructor
-public final class BlakeEffectiveCall implements Module {
-  @Getter private final BlakeRounds blakeRounds;
+@Getter
+@Accessors(fluent = true)
+public final class BlakeEffectiveCall implements CountingOnlyModule {
+  private final CountOnlyOperation counts = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {
@@ -32,22 +33,9 @@ public final class BlakeEffectiveCall implements Module {
   }
 
   @Override
-  public void enterTransaction() {}
-
-  @Override
-  public void popTransaction() {}
-
-  @Override
-  public int lineCount() {
-    int r = 0;
-    for (BlakeLimit count : this.blakeRounds.counts()) {
-      r += count.numberOfEffectiveCalls();
-    }
-    return r;
-  }
-
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    throw new UnsupportedOperationException("should never be called");
+  public void addPrecompileLimit(final int numberEffectiveCall) {
+    checkArgument(
+        numberEffectiveCall == 1, "can't add more than one effective precompile call at a time");
+    counts.add(numberEffectiveCall);
   }
 }

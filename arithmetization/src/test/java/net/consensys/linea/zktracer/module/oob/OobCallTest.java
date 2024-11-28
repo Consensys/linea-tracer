@@ -15,18 +15,19 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
+import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.stackUnderflow;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.util.List;
 
+import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
+import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.testing.ToyAccount;
-import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
-import net.consensys.linea.zktracer.testing.ToyTransaction;
-import net.consensys.linea.zktracer.testing.ToyWorld;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -41,33 +42,33 @@ import org.junit.jupiter.api.Test;
 public class OobCallTest {
 
   @Test
-  void TestCallSendValueGreaterThanBalanceHiNonZero() {
-    EWord balanceOfCaller = EWord.of(BigInteger.ONE);
-    EWord amountToSend = EWord.of(BigInteger.ONE, BigInteger.ZERO);
+  void testCallSendValueGreaterThanBalanceHiNonZero() {
+    final EWord balanceOfCaller = EWord.of(BigInteger.ONE);
+    final EWord amountToSend = EWord.of(BigInteger.ONE, BigInteger.ZERO);
 
     testCallSendValue(balanceOfCaller, amountToSend, 1);
   }
 
   @Test
-  void TestCallSendValueGreaterThanBalanceLoNonZero() {
-    EWord balanceOfCaller = EWord.of(BigInteger.ONE);
-    EWord amountToSend = EWord.of(BigInteger.ZERO, BigInteger.TWO);
+  void testCallSendValueGreaterThanBalanceLoNonZero() {
+    final EWord balanceOfCaller = EWord.of(BigInteger.ONE);
+    final EWord amountToSend = EWord.of(BigInteger.ZERO, BigInteger.TWO);
 
     testCallSendValue(balanceOfCaller, amountToSend, 1);
   }
 
   @Test
-  void TestCallSendValueGreaterThanBalanceHiLoNonZero() {
-    EWord balanceOfCaller = EWord.of(BigInteger.ONE);
-    EWord amountToSend = EWord.of(BigInteger.TWO, BigInteger.TWO);
+  void testCallSendValueGreaterThanBalanceHiLoNonZero() {
+    final EWord balanceOfCaller = EWord.of(BigInteger.ONE);
+    final EWord amountToSend = EWord.of(BigInteger.TWO, BigInteger.TWO);
 
     testCallSendValue(balanceOfCaller, amountToSend, 1);
   }
 
   @Test
-  void TestCallSendValueSmallerThanBalanceLoNonZero() {
-    EWord balanceOfCaller = EWord.of(BigInteger.TWO);
-    EWord amountToSend = EWord.of(BigInteger.ZERO, BigInteger.ONE);
+  void testCallSendValueSmallerThanBalanceLoNonZero() {
+    final EWord balanceOfCaller = EWord.of(BigInteger.TWO);
+    final EWord amountToSend = EWord.of(BigInteger.ZERO, BigInteger.ONE);
 
     testCallSendValue(balanceOfCaller, amountToSend);
   }
@@ -78,29 +79,66 @@ public class OobCallTest {
    */
   @Test
   void testRecursiveCalls1024() {
-    EWord iterations = EWord.of(BigInteger.valueOf(1024));
+    final EWord iterations = EWord.of(BigInteger.valueOf(1024));
 
     testRecursiveCalls(iterations);
   }
 
   @Test
   void testRecursiveCalls1025() {
-    EWord iterations = EWord.of(BigInteger.valueOf(1025));
+    final EWord iterations = EWord.of(BigInteger.valueOf(1025));
 
     testRecursiveCalls(iterations, 1);
   }
 
   @Test
-  void TestRecursiveCallsWithBytecode() {
-    BytecodeRunner bytecodeRunner =
+  void testRecursiveCallsWithBytecode() {
+    final BytecodeRunner bytecodeRunner =
         BytecodeRunner.of(Bytes.fromHexString("60006000600060006000305af1"));
-    bytecodeRunner.run(Wei.fromEth(400), 0xfffffffffffL);
+    bytecodeRunner.run(Wei.fromEth(400), 0xFFFFFFL);
 
-    Hub hub = bytecodeRunner.getHub();
+    final Hub hub = bytecodeRunner.getHub();
 
     assertTrue(Exceptions.none(hub.pch().exceptions()));
+  }
 
-    // assertNumberOfOnesInOobEvent1(bytecodeRunner.getHub().oob(), 1);
+  /**
+   * Same as {@link #testRecursiveCallsWithBytecode()} but with an ADD opcode at the end triggering
+   * SUX
+   */
+  @Test
+  void testRecursiveCallsWithBytecodeFollowedByStackUnderflow() {
+    final BytecodeRunner bytecodeRunner =
+        BytecodeRunner.of(Bytes.fromHexString("60006000600060006000305af101"));
+    bytecodeRunner.run(Wei.fromEth(400), 0xFFFFFFL);
+
+    final Hub hub = bytecodeRunner.getHub();
+
+    assertTrue(stackUnderflow(hub.pch().exceptions()));
+  }
+
+  /** Same as {@link #testRecursiveCallsWithBytecode()} but with an ADDRESS opcode at the end */
+  @Test
+  void testRecursiveCallsWithBytecodeFollowedByAddress() {
+    final BytecodeRunner bytecodeRunner =
+        BytecodeRunner.of(Bytes.fromHexString("60006000600060006000305af130"));
+    bytecodeRunner.run(Wei.fromEth(400), (long) 21000 + 10000);
+
+    final Hub hub = bytecodeRunner.getHub();
+
+    assertTrue(Exceptions.none(hub.pch().exceptions()));
+  }
+
+  /** Same as {@link #testRecursiveCallsWithBytecode()} but with an STOP opcode at the end */
+  @Test
+  void testRecursiveCallsWithBytecodeFollowedByExplicitStop() {
+    final BytecodeRunner bytecodeRunner =
+        BytecodeRunner.of(Bytes.fromHexString("60006000600060006000305af100"));
+    bytecodeRunner.run(Wei.fromEth(400), 0xFFFFFFL);
+
+    final Hub hub = bytecodeRunner.getHub();
+
+    assertTrue(Exceptions.none(hub.pch().exceptions()));
   }
 
   // Support methods
@@ -109,20 +147,21 @@ public class OobCallTest {
   }
 
   private void testCallSendValue(
-      EWord balanceOfCaller, EWord amountToSend, int numberOfOnesInOobEvent1) {
+      final EWord balanceOfCaller, EWord amountToSend, int numberOfOnesInOobEvent1) {
     /* NOTE: The contracts in this method are compiled by using
     solc *.sol --bin-runtime --evm-version london -o compiledContracts
     i.e., we do not include the init code of the contracts in the bytecode
     */
 
     // User address
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address userAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
-    ToyAccount userAccount =
+    final KeyPair keyPair = new SECP256K1().generateKeyPair();
+    final Address userAddress =
+        Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+    final ToyAccount userAccount =
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(1).address(userAddress).build();
 
     // Caller
-    ToyAccount contractCallerAccount =
+    final ToyAccount contractCallerAccount =
         ToyAccount.builder()
             .balance(Wei.of(balanceOfCaller.toBigInteger()))
             .nonce(2)
@@ -133,7 +172,7 @@ public class OobCallTest {
             .build();
 
     // Callee
-    ToyAccount contractCalleeAccount =
+    final ToyAccount contractCalleeAccount =
         ToyAccount.builder()
             .balance(Wei.fromEth(1))
             .nonce(3)
@@ -143,7 +182,7 @@ public class OobCallTest {
                     "60806040526004361061002d5760003560e01c806363acac8e14610039578063ff277a621461006257610034565b3661003457005b600080fd5b34801561004557600080fd5b50610060600480360381019061005b91906101b5565b61008b565b005b34801561006e57600080fd5b5061008960048036038101906100849190610240565b61010f565b005b600081111561010c573073ffffffffffffffffffffffffffffffffffffffff166363acac8e6001836100bd91906102af565b6040518263ffffffff1660e01b81526004016100d991906102f2565b600060405180830381600087803b1580156100f357600080fd5b505af1158015610107573d6000803e3d6000fd5b505050505b50565b60008290508073ffffffffffffffffffffffffffffffffffffffff1663671dcbd7836040518263ffffffff1660e01b81526004016000604051808303818588803b15801561015c57600080fd5b505af1158015610170573d6000803e3d6000fd5b5050505050505050565b600080fd5b6000819050919050565b6101928161017f565b811461019d57600080fd5b50565b6000813590506101af81610189565b92915050565b6000602082840312156101cb576101ca61017a565b5b60006101d9848285016101a0565b91505092915050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b600061020d826101e2565b9050919050565b61021d81610202565b811461022857600080fd5b50565b60008135905061023a81610214565b92915050565b600080604083850312156102575761025661017a565b5b60006102658582860161022b565b9250506020610276858286016101a0565b9150509250929050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60006102ba8261017f565b91506102c58361017f565b92508282039050818111156102dd576102dc610280565b5b92915050565b6102ec8161017f565b82525050565b600060208201905061030760008301846102e3565b9291505056fea2646970667358221220eeda6cd078a1e0b43b7e0e6267949ef02a8119de7d68431781e3b1ef33a616d464736f6c63430008150033"))
             .build();
 
-    Transaction tx =
+    final Transaction tx =
         ToyTransaction.builder()
             .sender(userAccount)
             .to(contractCallerAccount)
@@ -152,31 +191,24 @@ public class OobCallTest {
                     "0xff277a62000000000000000000000000d8b934580fce35a11b58c6d73adee468a2833fa8"
                         + amountToSend.toString().substring(2)))
             .transactionType(TransactionType.FRONTIER)
-            .gasLimit(0xffffffffL)
+            .gasLimit(0xffffffL)
             .value(Wei.ZERO)
             .keyPair(keyPair)
             .build();
 
-    ToyWorld toyWorld =
-        ToyWorld.builder()
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder()
             .accounts(List.of(userAccount, contractCallerAccount, contractCalleeAccount))
-            .build();
-
-    ToyExecutionEnvironment toyExecutionEnvironment =
-        ToyExecutionEnvironment.builder()
-            .toyWorld(toyWorld)
             .transaction(tx)
-            .testValidator(x -> {})
+            .transactionProcessingResultValidator(
+                TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .build();
 
-    toyExecutionEnvironment.run();
+    toyExecutionEnvironmentV2.run();
 
-    Hub hub = toyExecutionEnvironment.getHub();
+    final Hub hub = toyExecutionEnvironmentV2.getHub();
 
     assertTrue(Exceptions.none(hub.pch().exceptions()));
-
-    // assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getHub().oob(),
-    // numberOfOnesInOobEvent1);
   }
 
   private void testRecursiveCalls(EWord iterations) {
@@ -189,13 +221,14 @@ public class OobCallTest {
     i.e., we do not include the init code of the contracts in the bytecode
     */
     // User address
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address userAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
-    ToyAccount userAccount =
+    final KeyPair keyPair = new SECP256K1().generateKeyPair();
+    final Address userAddress =
+        Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+    final ToyAccount userAccount =
         ToyAccount.builder().balance(Wei.fromEth(25)).nonce(1).address(userAddress).build();
 
     // Caller
-    ToyAccount contractCallerAccount =
+    final ToyAccount contractCallerAccount =
         ToyAccount.builder()
             .balance(Wei.fromEth(1))
             .nonce(2)
@@ -205,34 +238,29 @@ public class OobCallTest {
                     "60806040526004361061002d5760003560e01c806363acac8e14610039578063ff277a621461006257610034565b3661003457005b600080fd5b34801561004557600080fd5b50610060600480360381019061005b91906101b5565b61008b565b005b34801561006e57600080fd5b5061008960048036038101906100849190610240565b61010f565b005b600081111561010c573073ffffffffffffffffffffffffffffffffffffffff166363acac8e6001836100bd91906102af565b6040518263ffffffff1660e01b81526004016100d991906102f2565b600060405180830381600087803b1580156100f357600080fd5b505af1158015610107573d6000803e3d6000fd5b505050505b50565b60008290508073ffffffffffffffffffffffffffffffffffffffff1663671dcbd7836040518263ffffffff1660e01b81526004016000604051808303818588803b15801561015c57600080fd5b505af1158015610170573d6000803e3d6000fd5b5050505050505050565b600080fd5b6000819050919050565b6101928161017f565b811461019d57600080fd5b50565b6000813590506101af81610189565b92915050565b6000602082840312156101cb576101ca61017a565b5b60006101d9848285016101a0565b91505092915050565b600073ffffffffffffffffffffffffffffffffffffffff82169050919050565b600061020d826101e2565b9050919050565b61021d81610202565b811461022857600080fd5b50565b60008135905061023a81610214565b92915050565b600080604083850312156102575761025661017a565b5b60006102658582860161022b565b9250506020610276858286016101a0565b9150509250929050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60006102ba8261017f565b91506102c58361017f565b92508282039050818111156102dd576102dc610280565b5b92915050565b6102ec8161017f565b82525050565b600060208201905061030760008301846102e3565b9291505056fea2646970667358221220eeda6cd078a1e0b43b7e0e6267949ef02a8119de7d68431781e3b1ef33a616d464736f6c63430008150033"))
             .build();
 
-    Transaction tx =
+    final Transaction tx =
         ToyTransaction.builder()
             .sender(userAccount)
             .to(contractCallerAccount)
             .payload(Bytes.fromHexString("0x63acac8e" + iterations.toString().substring(2)))
             .transactionType(TransactionType.FRONTIER)
-            .gasLimit(0xffffffffffL)
+            .gasLimit(0xFFFFFFL)
             .value(Wei.ZERO)
             .keyPair(keyPair)
             .build();
 
-    ToyWorld toyWorld =
-        ToyWorld.builder().accounts(List.of(userAccount, contractCallerAccount)).build();
-
-    ToyExecutionEnvironment toyExecutionEnvironment =
-        ToyExecutionEnvironment.builder()
-            .toyWorld(toyWorld)
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder()
+            .accounts(List.of(userAccount, contractCallerAccount))
             .transaction(tx)
-            .testValidator(x -> {})
+            .transactionProcessingResultValidator(
+                TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .build();
 
-    toyExecutionEnvironment.run();
+    toyExecutionEnvironmentV2.run();
 
-    Hub hub = toyExecutionEnvironment.getHub();
+    final Hub hub = toyExecutionEnvironmentV2.getHub();
 
     assertTrue(Exceptions.none(hub.pch().exceptions()));
-
-    // assertNumberOfOnesInOobEvent1(toyExecutionEnvironment.getHub().oob(),
-    // numberOfOnesInOobEvent1);
   }
 }

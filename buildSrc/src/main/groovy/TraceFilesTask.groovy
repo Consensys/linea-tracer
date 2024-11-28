@@ -7,6 +7,10 @@ import org.gradle.api.tasks.Optional
 abstract class TraceFilesTask extends Exec {
 
   @Input
+  @Optional
+  abstract Property<String> getClassName()
+
+  @Input
   abstract Property<String> getModule()
 
   @Input
@@ -19,12 +23,17 @@ abstract class TraceFilesTask extends Exec {
   @Override
   protected void exec() {
     def arguments = ["besu",
-                     "-P", module.get(),
+                     "-P", "${moduleDir.getOrElse(module.get()).replaceAll('/','.')}",
                      "-o", "${project.projectDir}/src/main/java/net/consensys/linea/zktracer/module/${moduleDir.getOrElse(module.get())}"
     ]
-    arguments.addAll(files.get().collect({"zkevm-constraints/${it}"}))
+    if(project.hasProperty("className")) {
+      arguments.add("-c")
+      arguments.add("${className.get()}")
+    }
+    arguments.addAll(files.get().collect({"linea-constraints/${it}"}))
 
     workingDir project.rootDir
+    executable"which corset"
     executable "corset"
     args arguments
 

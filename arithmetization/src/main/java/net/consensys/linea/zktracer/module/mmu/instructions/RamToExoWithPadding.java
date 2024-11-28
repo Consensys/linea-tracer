@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
 
 public class RamToExoWithPadding implements MmuInstruction {
@@ -54,8 +53,8 @@ public class RamToExoWithPadding implements MmuInstruction {
   private long initialSourceLimbOffset;
   private short initialSourceByteOffset;
   private boolean hasRightPadding;
-  private int paddingSize;
-  private int extractionSize;
+  private long paddingSize;
+  private long extractionSize;
 
   public RamToExoWithPadding(Euc euc, Wcp wcp) {
     this.euc = euc;
@@ -65,7 +64,7 @@ public class RamToExoWithPadding implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(MmuData mmuData) {
 
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
@@ -129,7 +128,7 @@ public class RamToExoWithPadding implements MmuInstruction {
     paddingSize = hasRightPadding ? (int) (refSize - size) : 0;
     extractionSize = (int) (hasRightPadding ? size : refSize);
 
-    final Bytes dividend = Bytes.ofUnsignedShort(paddingSize);
+    final Bytes dividend = Bytes.ofUnsignedLong(paddingSize);
     final EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
 
     eucCallRecords.add(
@@ -145,10 +144,10 @@ public class RamToExoWithPadding implements MmuInstruction {
 
   private void row3(final MmuData mmuData) {
     // row n°3
-    final Bytes dividend = Bytes.ofUnsignedShort(extractionSize);
+    final Bytes dividend = Bytes.ofUnsignedLong(extractionSize);
     final EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
 
-    Bytes quotient = eucOp.quotient();
+    final Bytes quotient = eucOp.quotient();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
             .dividend(dividend.toLong())
@@ -200,9 +199,6 @@ public class RamToExoWithPadding implements MmuInstruction {
             .kecId(hubToMmuValues.auxId())
             .totalSize((int) hubToMmuValues.referenceSize())
             .build());
-
-    // Setting the source ram bytes
-    mmuData.setTargetRamBytes();
 
     // Setting the list of MMIO instructions
     if (mmuData.totalNonTrivialInitials() == 1) {

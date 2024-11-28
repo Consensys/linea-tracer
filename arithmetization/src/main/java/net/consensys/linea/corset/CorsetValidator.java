@@ -44,7 +44,9 @@ public class CorsetValidator {
   public record Result(boolean isValid, File traceFile, String corsetOutput) {}
 
   /** */
-  private static final String ZK_EVM_RELATIVE_PATH = "/zkevm-constraints/zkevm.bin";
+  private static final String ZK_EVM_RELATIVE_PATH = "/linea-constraints/";
+
+  private static final String ZK_EVM_BIN = "zkevm.bin";
 
   /** Specifies the default zkEVM.bin file to use (including its path). */
   private String defaultZkEvm = null;
@@ -88,22 +90,25 @@ public class CorsetValidator {
    *     additional information for debugging purposes.
    */
   public Result validate(final Path traceFile, final String zkEvmBin) {
+    // Generate results from Rust and Go corset tools
+    Result rr = rustCorset.validate(traceFile, zkEvmBin);
+    Result rg = goCorset.validate(traceFile, zkEvmBin);
     // Sanity check at least one validator is active
     if (!rustCorset.isActive() && !goCorset.isActive()) {
       throw new RuntimeException("Neither corset nor go-corset are available");
+    } else if (rustCorset.isActive() && goCorset.isActive() && rg.isValid() != rr.isValid()) {
+      // Both Rust and Go corset are active, but disagree.
+      log.info("Outcome from Rust and Go tools differs ({} v {})", rr.isValid(), rg.isValid());
+      // Return failing result to force a test failure.
+      return rg.isValid() ? rr : rg;
+    } else if (rustCorset.isActive()) {
+      // Rust corset is active, and Go corset may or may not be.  Eitherway, default to Rust corset
+      // for the source of truth.
+      return rr;
+    } else {
+      // Only Go corset is active
+      return rg;
     }
-    // First, generate "official" result from Rust tool
-    Result rr = rustCorset.validate(traceFile, zkEvmBin);
-    Result rg = goCorset.validate(traceFile, zkEvmBin);
-    // Second, validate this against Go tool
-    if (rg != null && rg.isValid() != rr.isValid()) {
-      log.info("Output from Rust and Go tools differs ({} v {})", rr.isValid(), rg.isValid());
-      if (!rg.isValid()) {
-        return rg;
-      }
-    }
-    //
-    return rr;
   }
 
   private void initDefaultZkEvm() {
@@ -116,18 +121,22 @@ public class CorsetValidator {
       throw new RuntimeException(e);
     }
 
-    final String zkEvmBinInCurrentDir = currentDir + ZK_EVM_RELATIVE_PATH;
+    final String zkEvmBinInCurrentDir = currentDir + ZK_EVM_RELATIVE_PATH + binName();
     if (new File(zkEvmBinInCurrentDir).exists()) {
       defaultZkEvm = zkEvmBinInCurrentDir;
       return;
     }
 
-    final String zkEvmBinInDirAbove = currentDir + "/.." + ZK_EVM_RELATIVE_PATH;
+    final String zkEvmBinInDirAbove = currentDir + "/.." + ZK_EVM_RELATIVE_PATH + binName();
     if (new File(zkEvmBinInDirAbove).exists()) {
       defaultZkEvm = zkEvmBinInDirAbove;
       return;
     }
 
-    log.warn("Could not find default path for zkevm.bin");
+    log.warn("Could not find default path for {}", binName());
+  }
+
+  private String binName() {
+    return System.getenv("ZKEVM_BIN") != null ? System.getenv("ZKEVM_BIN") : ZK_EVM_BIN;
   }
 }

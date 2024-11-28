@@ -25,11 +25,13 @@ echo "net.git-fetch-with-cli=true" >> .cargo/config.toml
 cargo install --git ssh://git@github.com/ConsenSys/corset --locked --force
 ```
 
-#### Step 5: Update constraints [submodule](https://github.com/Consensys/zkevm-constraints/)
+#### Step 5: Update constraints [submodule](https://github.com/Consensys/linea-constraints/)
 
 ```shell
 git submodule update --init --recursive
 ```
+
+Note: Windows user may have to run 'git config core.protectNTFS false' command within the linea-constraints folder to bypass CON.* file names being reserved.
 
 #### Step 6: Install [pre-commit](https://pre-commit.com/)
 
@@ -65,8 +67,14 @@ ______________________________________________________________________
 # Run only acceptance tests
 ./gradlew clean acceptanceTests
 
+# Generate EVM test suite BlockchainTests
+./gradlew :reference-tests:generateBlockchainReferenceTests 
+
 # Run EVM test suite BlockchainTests
 ./gradlew clean referenceBlockchainTests
+
+# Generate EVM test suite GeneralStateTests
+./gradlew :reference-tests:generateGeneralStateReferenceTests 
 
 # Run EVM test suite GeneralStateTests
 ./gradlew clean referenceGeneralStateTests
@@ -83,7 +91,7 @@ ______________________________________________________________________
 NOTE
 
 > Please be aware if the reference test code generation tasks `blockchainReferenceTests` and
-> `generalStateReferenceTests` do not generate any java code, than probably you are missing the Ethereum tests
+> `generalStateReferenceTests` do not generate any Java code, then probably you are missing the Ethereum tests
 > submodule which you can clone via `git submodule update --init --recursive`.
 
 ______________________________________________________________________
@@ -149,7 +157,7 @@ ______________________________________________________________________
 - JSON files can be debugged with the following command:
 
 ```shell
-corset check -T <JSON_FILE> -v zkevm-constraints/zkevm.bin
+corset check -T <JSON_FILE> -v linea-constraints/zkevm.bin
 ```
 
 ## Disable Corset expansion

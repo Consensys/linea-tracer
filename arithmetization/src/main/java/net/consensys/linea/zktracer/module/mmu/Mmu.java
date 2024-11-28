@@ -15,67 +15,35 @@
 
 package net.consensys.linea.zktracer.module.mmu;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.stacked.list.StackedList;
-import net.consensys.linea.zktracer.module.Module;
-import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
-import net.consensys.linea.zktracer.module.ecdata.EcData;
+import net.consensys.linea.zktracer.container.module.OperationListModule;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.call.mmu.MmuCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.mmu.values.HubToMmuValues;
-import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
-import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
-import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
+@RequiredArgsConstructor
 @Accessors(fluent = true)
-public class Mmu implements Module {
-  @Getter private final StackedList<MmuOperation> mmuOperations = new StackedList<>();
+public class Mmu implements OperationListModule<MmuOperation> {
+  @Getter
+  private final ModuleOperationStackedList<MmuOperation> operations =
+      new ModuleOperationStackedList<>();
+
   private final Euc euc;
   private final Wcp wcp;
-
-  private final ExoSumDecoder exoSumDecoder;
-
-  public Mmu(
-      final Euc euc,
-      final Wcp wcp,
-      final RomLex romLex,
-      final RlpTxn rlpTxn,
-      final RlpTxnRcpt rlpTxnRcpt,
-      final EcData ecData,
-      final BlakeModexpData blakeModexpData,
-      //  TODO: SHAKIRA module
-      final CallStack callStack) {
-    this.euc = euc;
-    this.wcp = wcp;
-    this.exoSumDecoder =
-        new ExoSumDecoder(callStack, romLex, rlpTxn, rlpTxnRcpt, ecData, blakeModexpData);
-  }
 
   @Override
   public String moduleKey() {
     return "MMU";
-  }
-
-  @Override
-  public void enterTransaction() {
-    this.mmuOperations.enter();
-  }
-
-  @Override
-  public void popTransaction() {
-    this.mmuOperations.pop();
-  }
-
-  @Override
-  public int lineCount() {
-    return this.mmuOperations.lineCount();
   }
 
   @Override
@@ -90,25 +58,24 @@ public class Mmu implements Module {
     int mmuStamp = 0;
     int mmioStamp = 0;
 
-    for (MmuOperation mmuOp : this.mmuOperations) {
-      mmuOp.getCFI();
-      mmuOp.setExoBytes(exoSumDecoder);
-      mmuOp.fillLimb();
+    for (MmuOperation mmuOperation : operations.getAll()) {
+      checkState(mmuOperation.traceMe(), "Cannot compute if traceMe is false");
+      mmuOperation.getCFI();
+      mmuOperation.fillLimb();
 
-      mmuStamp += 1;
-      mmuOp.trace(mmuStamp, mmioStamp, trace);
-      mmioStamp += mmuOp.mmuData().numberMmioInstructions();
+      mmioStamp = mmuOperation.trace(++mmuStamp, mmioStamp, trace);
     }
   }
 
-  public void call(final MmuCall mmuCall, final CallStack callStack) {
-    MmuData mmuData = new MmuData(mmuCall, callStack);
+  public void call(final MmuCall mmuCall) {
+    checkState(mmuCall.traceMe(), "Shouldn't compute if traceMe is false");
+    MmuData mmuData = new MmuData(mmuCall);
     mmuData.hubToMmuValues(
         HubToMmuValues.fromMmuCall(mmuCall, mmuData.exoLimbIsSource(), mmuData.exoLimbIsTarget()));
 
     final MmuInstructions mmuInstructions = new MmuInstructions(euc, wcp);
-    mmuData = mmuInstructions.compute(mmuData, callStack);
+    mmuData = mmuInstructions.compute(mmuData);
 
-    this.mmuOperations.add(new MmuOperation(mmuData, callStack));
+    operations.add(new MmuOperation(mmuData));
   }
 }

@@ -24,6 +24,12 @@ apply from: rootProject.file("gradle/dependency-management.gradle")
 apply from: rootProject.file('gradle/common-dependencies.gradle')
 apply from: rootProject.file("gradle/lint.gradle")
 
+configurations.configureEach {
+  exclude module: 'log4j-api'
+  exclude module: 'log4j-core'
+  exclude module: 'log4j-slf4j2-impl'
+}
+
 tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   refTestTemplateFilePath = "src/test/resources/templates/BlockchainReferenceTest.java.template"
   refTests = "src/test/resources/ethereum-tests/BlockchainTests"
@@ -31,6 +37,9 @@ tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   refTestJsonParamsExcludedPath = "BlockchainTests/InvalidBlocks/bcExpectSection" // exclude test for test filling tool
   refTestNamePrefix = "BlockchainReferenceTest"
   generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/blockchain"
+  failedTestsFilePath = System.getenv('FAILED_TEST_JSON_DIRECTORY') ?: "../tmp/local/"
+  failedModule = System.getenv('FAILED_MODULE') ?: ""
+  failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
 }
 
 tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
@@ -40,15 +49,19 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
   refTestJsonParamsExcludedPath = ""
   refTestNamePrefix = "GeneralStateReferenceTest"
   generatedRefTestsOutput = "src/test/java/net/consensys/linea/generated/generalstate"
+  failedTestsFilePath = System.getenv('FAILED_TEST_JSON_DIRECTORY') ?: "../tmp/local/"
+  failedModule = System.getenv('FAILED_MODULE') ?: ""
+  failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
 }
 
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
-
   dependsOn generateBlockchainReferenceTests
+  environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 
-  minHeapSize = "4g"
-  maxHeapSize = "20g"
+  boolean isCiServer = System.getenv().containsKey("CI")
+  minHeapSize = isCiServer ? "8g" :"4g"
+  maxHeapSize = isCiServer ? "50g" : "8g"
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
@@ -57,49 +70,59 @@ tasks.register('referenceBlockchainTests', Test) {
 
 tasks.register('referenceGeneralStateTests', Test) {
   description = 'Runs ETH reference general state tests.'
-
   dependsOn generateGeneralStateReferenceTests
 
-  minHeapSize = "4g"
-  maxHeapSize = "20g"
+  environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "GeneralStateReferenceTestOutcome.json")
 
   useJUnitPlatform {
     includeTags("GeneralStateReferenceTest")
   }
+
+  boolean isCiServer = System.getenv().containsKey("CI")
+  minHeapSize = "4g"
+  maxHeapSize = isCiServer ? "32g" : "8g"
 }
 
-tasks.register('referenceTests', Test) {
-  description = 'Runs ETH reference tests.'
+[
+  tasks.named("referenceGeneralStateTests"),
+  tasks.named("referenceBlockchainTests"),
+].forEach {
+  it.configure {
+    dependsOn buildReferenceTestsZkevmBin
+    environment.put("ZKEVM_BIN", "zkevm_for_reference_tests.bin")
 
-  minHeapSize = "4g"
-  maxHeapSize = "20g"
-
-  useJUnitPlatform {
-    includeTags("BlockchainReferenceTest")
-    includeTags("GeneralStateReferenceTest")
+    systemProperty("junit.jupiter.execution.timeout.default", "5 m")  // 5 minutes
+    systemProperty("junit.jupiter.execution.parallel.enabled", "true")
+    systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+    systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+    systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+      System.getenv().getOrDefault("REFERENCE_TESTS_PARALLELISM", "1").toInteger())
   }
 }
-
 
 dependencies {
-  testImplementation project(":arithmetization")
   testImplementation "${besuArtifactGroup}:besu-datatypes"
   testImplementation "${besuArtifactGroup}:evm"
-  testImplementation "${besuArtifactGroup}:plugin-api"
-  testImplementation "${besuArtifactGroup}.internal:algorithms"
   testImplementation "${besuArtifactGroup}.internal:config"
   testImplementation "${besuArtifactGroup}.internal:core"
+  testImplementation "${besuArtifactGroup}.internal:algorithms"
   testImplementation "${besuArtifactGroup}.internal:metrics-core"
   testImplementation "${besuArtifactGroup}.internal:referencetests"
   testImplementation "${besuArtifactGroup}.internal:rlp"
   testImplementation "${besuArtifactGroup}.internal:testutil"
   testImplementation "${besuArtifactGroup}.internal:trie"
   testImplementation "${besuArtifactGroup}.internal:util"
-
+  testImplementation "${besuArtifactGroup}:plugin-api"
 
   testImplementation 'io.tmio:tuweni-bytes'
   testImplementation 'io.tmio:tuweni-units'
 
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
   testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+
+  implementation project(":arithmetization")
+  implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+  implementation project(path: ':testing')
+  implementation 'org.junit.platform:junit-platform-launcher'
 }

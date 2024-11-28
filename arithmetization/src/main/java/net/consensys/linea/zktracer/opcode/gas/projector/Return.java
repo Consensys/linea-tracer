@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.opcode.gas.projector;
 
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
-import net.consensys.linea.zktracer.opcode.gas.GasConstants;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
@@ -46,10 +46,15 @@ public final class Return extends GasProjection {
 
   @Override
   public long deploymentCost() {
+
+    if (frame.getType() != MessageFrame.Type.CONTRACT_CREATION) {
+      return 0;
+    }
+
     if (this.size > 24_576) {
       return 0L;
     } else {
-      return GasConstants.G_CODE_DEPOSIT.cost() * this.size;
+      return GlobalConstants.GAS_CONST_G_CODE_DEPOSIT * this.size;
     }
   }
 

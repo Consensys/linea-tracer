@@ -19,8 +19,9 @@ import java.util.Optional;
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
-import org.hyperledger.besu.plugin.BesuContext;
+import net.consensys.linea.plugins.BesuServiceProvider;
 import org.hyperledger.besu.plugin.BesuPlugin;
+import org.hyperledger.besu.plugin.ServiceManager;
 import org.hyperledger.besu.plugin.services.BesuEvents;
 import org.hyperledger.besu.plugin.services.PicoCLIOptions;
 import org.hyperledger.besu.plugin.services.TraceService;
@@ -32,7 +33,7 @@ public class ContinuousTracingPlugin implements BesuPlugin {
   public static final String ENV_WEBHOOK_URL = "SLACK_SHADOW_NODE_WEBHOOK_URL";
 
   private final ContinuousTracingCliOptions options;
-  private BesuContext context;
+  private ServiceManager context;
 
   public ContinuousTracingPlugin() {
     options = ContinuousTracingCliOptions.create();
@@ -44,14 +45,8 @@ public class ContinuousTracingPlugin implements BesuPlugin {
   }
 
   @Override
-  public void register(final BesuContext context) {
-    final PicoCLIOptions cmdlineOptions =
-        context
-            .getService(PicoCLIOptions.class)
-            .orElseThrow(
-                () ->
-                    new IllegalStateException(
-                        "Expecting a PicoCLI options to register CLI options with, but none found."));
+  public void register(final ServiceManager context) {
+    final PicoCLIOptions cmdlineOptions = BesuServiceProvider.getPicoCLIOptionsService(context);
 
     cmdlineOptions.addPicoCLIOptions(getName().get(), options);
 

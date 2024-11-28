@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.mmu.instructions;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_VANISHES;
+import static net.consensys.linea.zktracer.module.mmu.Trace.NB_MICRO_ROWS_TOT_MODEXP_ZERO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +29,10 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuOutAndBinValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 
 public class ModexpZero implements MmuInstruction {
-  private List<MmuEucCallRecord> eucCallRecords;
-  private List<MmuWcpCallRecord> wcpCallRecords;
+  private final List<MmuEucCallRecord> eucCallRecords;
+  private final List<MmuWcpCallRecord> wcpCallRecords;
 
   public ModexpZero() {
     this.eucCallRecords = new ArrayList<>(Trace.NB_PP_ROWS_MODEXP_ZERO);
@@ -40,7 +40,7 @@ public class ModexpZero implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(MmuData mmuData) {
 
     // no call to wcp nor euc. So much fun.
     eucCallRecords.add(MmuEucCallRecord.EMPTY_CALL);
@@ -52,7 +52,7 @@ public class ModexpZero implements MmuInstruction {
     mmuData.outAndBinValues(MmuOutAndBinValues.builder().build()); // all 0. Fun is at its peak.
 
     mmuData.totalLeftZeroesInitials(0);
-    mmuData.totalNonTrivialInitials(Trace.NB_MICRO_ROWS_TOT_MODEXP_ZERO);
+    mmuData.totalNonTrivialInitials(NB_MICRO_ROWS_TOT_MODEXP_ZERO);
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
@@ -67,13 +67,10 @@ public class ModexpZero implements MmuInstruction {
         MmuToMmioConstantValues.builder()
             .exoSum(hubToMmuValues.exoSum())
             .phase(hubToMmuValues.phase())
-            .targetContextNumber(hubToMmuValues.targetId())
+            .exoId((int) hubToMmuValues.targetId())
             .build());
 
-    // Setting the source ram bytes
-    mmuData.setSourceRamBytes();
-
-    for (int i = 0; i < Trace.NB_MICRO_ROWS_TOT_MODEXP_ZERO; i++) {
+    for (int i = 0; i < NB_MICRO_ROWS_TOT_MODEXP_ZERO; i++) {
       vanishingMicroInstruction(mmuData, i);
     }
 

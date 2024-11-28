@@ -18,12 +18,14 @@ package net.consensys.linea.zktracer.module.hub.transients;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 
 /** Stores information relative to contract deployment. */
 public class DeploymentInfo {
   private final Map<Address, Integer> deploymentNumber = new HashMap<>();
-  private final Map<Address, Boolean> isDeploying = new HashMap<>();
+  private final Map<Address, Boolean> deploymentStatus = new HashMap<>();
+  private final Map<Address, Bytes> initializationCodes = new HashMap<>();
 
   /**
    * Returns the deployment number of the given address; sets it to zero if it is the first
@@ -32,24 +34,54 @@ public class DeploymentInfo {
    * @param address the address to get information for
    * @return the deployment number for this address
    */
-  public final int number(Address address) {
+  public final int deploymentNumber(Address address) {
+    return this.getDeploymentNumber(address);
+  }
+
+  public void newDeploymentWithExecutionAt(Address address, Bytes bytecode) {
+    this.incrementDeploymentNumber(address);
+    this.markAsUnderDeployment(address);
+    this.setInitializationCode(address, bytecode);
+  }
+
+  public void newDeploymentSansExecutionAt(Address address) {
+    this.incrementDeploymentNumber(address);
+    this.markAsNotUnderDeployment(address);
+    this.setInitializationCode(address, Bytes.EMPTY);
+  }
+
+  public void freshDeploymentNumberFinishingSelfdestruct(Address address) {
+    this.incrementDeploymentNumber(address);
+    this.markAsNotUnderDeployment(address);
+    this.setInitializationCode(address, Bytes.EMPTY);
+  }
+
+  private int getDeploymentNumber(Address address) {
     return this.deploymentNumber.getOrDefault(address, 0);
   }
 
-  public void deploy(Address address) {
-    this.deploymentNumber.put(address, this.number(address) + 1);
-    this.markDeploying(address);
+  public final boolean getDeploymentStatus(Address address) {
+    return this.deploymentStatus.getOrDefault(address, false);
   }
 
-  public final boolean isDeploying(Address address) {
-    return this.isDeploying.getOrDefault(address, false);
+  public final Bytes getInitializationCode(Address address) {
+    return this.initializationCodes.get(address);
   }
 
-  public final void markDeploying(Address address) {
-    this.isDeploying.put(address, true);
+  private void incrementDeploymentNumber(Address address) {
+    int currentDeploymentNumber = getDeploymentNumber(address);
+    deploymentNumber.put(address, currentDeploymentNumber + 1);
   }
 
-  public final void unmarkDeploying(Address address) {
-    this.isDeploying.put(address, false);
+  private void markAsUnderDeployment(Address address) {
+    this.deploymentStatus.put(address, true);
+  }
+
+  public final void markAsNotUnderDeployment(Address address) {
+    this.deploymentStatus.put(address, false);
+  }
+
+  public void setInitializationCode(Address address, Bytes bytecode) {
+    this.initializationCodes.put(address, bytecode);
   }
 }

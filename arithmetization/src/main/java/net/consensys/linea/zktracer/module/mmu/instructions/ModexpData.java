@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_TRANSPLANT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.NB_MICRO_ROWS_TOT_MODEXP_DATA;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes;
 
 import java.util.ArrayList;
@@ -36,14 +37,13 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ModexpData implements MmuInstruction {
   private final Euc euc;
   private final Wcp wcp;
-  private List<MmuEucCallRecord> eucCallRecords;
-  private List<MmuWcpCallRecord> wcpCallRecords;
+  private final List<MmuEucCallRecord> eucCallRecords;
+  private final List<MmuWcpCallRecord> wcpCallRecords;
   private int initialTotalLeftZeroes;
   private int initialTotalNonTrivial;
   private int initialTotalRightZeroes;
@@ -72,7 +72,7 @@ public class ModexpData implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
     row2();
@@ -113,7 +113,7 @@ public class ModexpData implements MmuInstruction {
         (int) (hubToMmuValues.referenceSize() - hubToMmuValues.sourceOffsetLo().longValueExact());
     final int numberLeftPaddingBytes = 512 - parameterByteSize;
 
-    EucOperation eucOp = euc.callEUC(longToBytes(numberLeftPaddingBytes), Bytes.of(LLARGE));
+    final EucOperation eucOp = euc.callEUC(longToBytes(numberLeftPaddingBytes), Bytes.of(LLARGE));
 
     initialTargetByteOffset = (short) eucOp.remainder().toInt();
     initialTotalLeftZeroes = eucOp.quotient().toInt();
@@ -139,10 +139,10 @@ public class ModexpData implements MmuInstruction {
     wcpCallRecords.add(
         MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
 
-    EucOperation eucOp = euc.callEUC(longToBytes(numberRightPaddingBytes), Bytes.of(LLARGE));
+    final EucOperation eucOp = euc.callEUC(longToBytes(numberRightPaddingBytes), Bytes.of(LLARGE));
     initialTotalRightZeroes = eucOp.quotient().toInt();
     initialTotalNonTrivial =
-        Trace.NB_MICRO_ROWS_TOT_MODEXP_DATA - initialTotalLeftZeroes - initialTotalRightZeroes;
+        NB_MICRO_ROWS_TOT_MODEXP_DATA - initialTotalLeftZeroes - initialTotalRightZeroes;
     rightPaddingRemainder = eucOp.remainder().toInt();
     eucCallRecords.add(
         MmuEucCallRecord.builder()
@@ -157,12 +157,16 @@ public class ModexpData implements MmuInstruction {
     // row n°3
     final Bytes wcpArg1 = longToBytes(initialTotalNonTrivial);
     final Bytes wcpArg2 = Bytes.of(1);
-    final boolean wcpResult = wcp.callEQ(wcpArg1, wcpArg2);
+    final boolean singleNonTrivialMmioOperation = wcp.callEQ(wcpArg1, wcpArg2);
     wcpCallRecords.add(
-        MmuWcpCallRecord.instEqBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
+        MmuWcpCallRecord.instEqBuilder()
+            .arg1Lo(wcpArg1)
+            .arg2Lo(wcpArg2)
+            .result(singleNonTrivialMmioOperation)
+            .build());
 
     final long dividend = parameterOffset;
-    EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
+    final EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
     initialSourceLimbOffset = eucOp.quotient().toLong();
     initialSourceByteOffset = (short) eucOp.remainder().toInt();
     eucCallRecords.add(
@@ -172,7 +176,7 @@ public class ModexpData implements MmuInstruction {
             .quotient(eucOp.quotient().toLong())
             .remainder((short) eucOp.remainder().toInt())
             .build());
-    if (wcpResult) {
+    if (singleNonTrivialMmioOperation) {
       firstLimbByteSize = (short) (dataRunsOut ? leftoverDataSize : parameterByteSize);
     } else {
       firstLimbByteSize = (short) (LLARGE - initialTargetByteOffset);
@@ -212,7 +216,7 @@ public class ModexpData implements MmuInstruction {
       wcpCallRecords.add(MmuWcpCallRecord.EMPTY_CALL);
     } else {
       final long dividend = initialSourceByteOffset + firstLimbByteSize;
-      EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
+      final EucOperation eucOp = euc.callEUC(longToBytes(dividend), Bytes.of(LLARGE));
       middleSourceByteOffset = (short) eucOp.remainder().toInt();
       eucCallRecords.add(
           MmuEucCallRecord.builder()
@@ -248,9 +252,6 @@ public class ModexpData implements MmuInstruction {
             .exoId((int) hubToMmuValues.targetId())
             .build());
 
-    // Setting the source ram bytes
-    mmuData.setSourceRamBytes();
-
     // Left Zeroes
     for (int i = 0; i < initialTotalLeftZeroes; i++) {
       vanishingMicroInstruction(mmuData, i);
@@ -259,7 +260,7 @@ public class ModexpData implements MmuInstruction {
     // Non-Trivial Rows
     firstOrOnlyMicroInstruction(mmuData);
 
-    middleFirstSourceLimbOffset = aligned ? initialSourceLimbOffset + 1 : initialSourceLimbOffset;
+    middleFirstSourceLimbOffset = determineFirstMiddleSourceLimbOffset();
     middleMicroInst = aligned ? MMIO_INST_RAM_TO_LIMB_TRANSPLANT : MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
     for (int i = 1; i < mmuData.totalNonTrivialInitials() - 1; i++) {
       final long sourceLimbOffset = middleFirstSourceLimbOffset + i - 1;
@@ -267,7 +268,9 @@ public class ModexpData implements MmuInstruction {
       middleMicroInstruction(mmuData, sourceLimbOffset, targetLimbOffset);
     }
 
-    lastMicroInstruction(mmuData);
+    if (initialTotalNonTrivial > 1) {
+      lastMicroInstruction(mmuData);
+    }
 
     // Right Zeroes
     for (int i = 0; i < initialTotalRightZeroes; i++) {
@@ -324,5 +327,10 @@ public class ModexpData implements MmuInstruction {
             .sourceByteOffset(middleSourceByteOffset)
             .targetLimbOffset(initialTotalLeftZeroes + initialTotalNonTrivial - 1)
             .build());
+  }
+
+  private long determineFirstMiddleSourceLimbOffset() {
+    if (aligned) return initialSourceLimbOffset + 1;
+    return firstLimbSingleSource ? initialSourceLimbOffset : initialSourceLimbOffset + 1;
   }
 }

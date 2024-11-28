@@ -20,4 +20,5 @@ import net.consensys.linea.plugins.LineaOptionsConfiguration;
 
 /** The Linea tracer configuration private to this repo. */
 @Builder(toBuilder = true)
-record TracesEndpointConfiguration(String tracesOutputPath) implements LineaOptionsConfiguration {}
+public record TracesEndpointConfiguration(String tracesOutputPath)
+    implements LineaOptionsConfiguration {}

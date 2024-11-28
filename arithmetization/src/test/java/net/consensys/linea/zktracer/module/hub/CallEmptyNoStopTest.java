@@ -19,12 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
+import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.ToyAccount;
-import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
-import net.consensys.linea.zktracer.testing.ToyTransaction;
-import net.consensys.linea.zktracer.testing.ToyWorld;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -73,13 +72,8 @@ public class CallEmptyNoStopTest {
     Transaction tx =
         ToyTransaction.builder().sender(senderAccount).to(receiverAccount).keyPair(keyPair).build();
 
-    ToyWorld toyWorld =
-        ToyWorld.builder()
-            .accounts(List.of(senderAccount, receiverAccount, emptyCodeAccount))
-            .build();
-
-    ToyExecutionEnvironment.builder()
-        .toyWorld(toyWorld)
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(senderAccount, receiverAccount, emptyCodeAccount))
         .transaction(tx)
         .zkTracerValidator(
             zkTracer -> {

@@ -15,12 +15,17 @@
 
 package net.consensys.linea.zktracer.types;
 
+import static com.google.common.base.Preconditions.*;
+
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.toml.Toml;
 import org.apache.tuweni.toml.TomlTable;
@@ -36,14 +41,12 @@ public class Utils {
    * @return
    */
   public static Bytes leftPadTo(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
-        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
+    checkArgument(wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     return Bytes.concatenate(Bytes.repeat((byte) 0, wantedSize - input.size()), input);
   }
 
   public static Bytes rightPadTo(Bytes input, int wantedSize) {
-    Preconditions.checkArgument(
-        wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
+    checkArgument(wantedSize >= input.size(), "wantedSize can't be shorter than the input size");
     return Bytes.concatenate(input, Bytes.repeat((byte) 0, wantedSize - input.size()));
   }
 
@@ -56,8 +59,7 @@ public class Utils {
    */
   public static BitDecOutput bitDecomposition(int input, int nbStep) {
     final int nbStepMin = 8;
-    Preconditions.checkArgument(
-        nbStep >= nbStepMin, "Number of steps must be at least " + nbStepMin);
+    checkArgument(nbStep >= nbStepMin, "Number of steps must be at least " + nbStepMin);
 
     ArrayList<Boolean> bit = new ArrayList<>(nbStep);
     ArrayList<Integer> acc = new ArrayList<>(nbStep);
@@ -89,6 +91,20 @@ public class Utils {
     return output;
   }
 
+  /**
+   * Adds an offset to a hexadecimal string representation of a number. This method takes a
+   * hexadecimal string and an integer offset, adds the offset to the number represented by the
+   * hexadecimal string, and returns the result as a hexadecimal string.
+   *
+   * @param offset The integer offset to add to the number represented by the hexadecimal string.
+   * @param hexString The hexadecimal string representation of the number to which the offset will
+   *     be added.
+   * @return A hexadecimal string representing the sum of the original number and the offset.
+   */
+  public static String addOffsetToHexString(int offset, String hexString) {
+    return new BigInteger(hexString, 16).add(BigInteger.valueOf(offset)).toString(16);
+  }
+
   public static Map<String, Integer> computeSpillings() throws IOException {
     final Map<String, Integer> spillings = new HashMap<>();
 
@@ -98,5 +114,34 @@ public class Utils {
     table.toMap().keySet().forEach(k -> spillings.put(k, Math.toIntExact(table.getLong(k))));
 
     return spillings;
+  }
+
+  /**
+   * Initializes an array with a specified value and size.
+   *
+   * @param <T> The type of the elements in the array.
+   * @param initValue The value to initialize each element of the array with.
+   * @param size The size of the array to be created.
+   * @return An array of the specified size, with each element initialized to the specified value.
+   */
+  @SuppressWarnings("unchecked")
+  public static <T> T[] initArray(T initValue, int size) {
+    return Stream.generate(() -> initValue)
+        .limit(size)
+        .toArray(i -> (T[]) java.lang.reflect.Array.newInstance(initValue.getClass(), i));
+  }
+
+  /**
+   * Initializes a list with a specified value and size.
+   *
+   * @param <T> The type of the elements in the list.
+   * @param initValue The value to initialize each element of the list with.
+   * @param size The size of the list to be created.
+   * @return A list of the specified size, with each element initialized to the specified value.
+   */
+  public static <T> List<T> initList(T initValue, int size) {
+    return Stream.generate(() -> initValue)
+        .limit(size)
+        .collect(Collectors.toCollection(ArrayList::new));
   }
 }

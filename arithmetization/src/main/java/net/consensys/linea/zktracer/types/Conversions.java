@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.types;
 
+import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +30,7 @@ public class Conversions {
   public static final Bytes ONE = Bytes.of(1);
   public static final BigInteger UNSIGNED_LONG_MASK =
       BigInteger.ONE.shiftLeft(Long.SIZE).subtract(BigInteger.ONE);
+  public static int LIMB_BIT_SIZE = 8 * LLARGE;
 
   public static Bytes bigIntegerToBytes(final BigInteger input) {
     Bytes bytes;
@@ -41,7 +45,6 @@ public class Conversions {
         bytes = Bytes.wrap(byteArray);
       }
     }
-
     return bytes;
   }
 
@@ -133,14 +136,73 @@ public class Conversions {
   }
 
   public static Bytes32 longToBytes32(final long input) {
-    return Bytes32.leftPad(Bytes.minimalBytes(input));
+    return Bytes32.leftPad(longToBytes(input));
   }
 
   public static Bytes longToBytes(final long input) {
-    return input == 0 ? Bytes.of(0) : Bytes.minimalBytes(input);
+    return input == 0 ? Bytes.of(0) : Bytes.ofUnsignedLong(input).trimLeadingZeros();
   }
 
   public static Bytes booleanToBytes(boolean x) {
     return x ? ONE : Bytes.EMPTY;
+  }
+
+  public static long bytesToLong(final Bytes input) {
+    return input.trimLeadingZeros().toLong();
+  }
+
+  public static BigInteger hiPart(final BigInteger input) {
+    if (input.bitLength() <= LIMB_BIT_SIZE) {
+      return BigInteger.ZERO;
+    }
+    final Bytes inputBytes = bigIntegerToBytes(input);
+    final Bytes hiBytes = inputBytes.slice(0, inputBytes.size() - LLARGE);
+    return hiBytes.toUnsignedBigInteger();
+  }
+
+  public static BigInteger lowPart(final BigInteger input) {
+    if (input.bitLength() <= LIMB_BIT_SIZE) {
+      return input;
+    }
+    final Bytes inputBytes = bigIntegerToBytes(input);
+    final Bytes lowBytes = inputBytes.slice(inputBytes.size() - LLARGE, LLARGE);
+    return lowBytes.toUnsignedBigInteger();
+  }
+
+  public static boolean bytesToBoolean(final Bytes input) {
+    final int bitLength = input.bitLength();
+    checkArgument(
+        bitLength == 0 || bitLength == 1, String.format("Can't convert %s to boolean", input));
+    return bitLength == 1;
+  }
+
+  public static String bytesToHex(byte[] bytes) {
+    StringBuilder sb = new StringBuilder();
+    for (byte b : bytes) {
+      sb.append(String.format("%02X ", b));
+    }
+    return sb.toString().trim();
+  }
+
+  public static int bytesToInt(Bytes bytes) {
+    return bytes.trimLeadingZeros().toInt();
+  }
+
+  /**
+   * This method expects a "small-ish" long value and returns the corresponding int value.
+   *
+   * @param value
+   * @return
+   * @throws ArithmeticException
+   */
+  public static int safeLongToInt(long value) throws ArithmeticException {
+    if (value < 0 || value > Integer.MAX_VALUE) {
+      throw new ArithmeticException(value + " cannot be cast to int without changing its value.");
+    }
+    return (int) value;
+  }
+
+  public static Bytes unsignedIntToBytes(int value) {
+    return bigIntegerToBytes(BigInteger.valueOf(Integer.toUnsignedLong(value)));
   }
 }

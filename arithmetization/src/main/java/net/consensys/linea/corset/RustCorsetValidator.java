@@ -69,6 +69,13 @@ public class RustCorsetValidator extends AbstractExecutable {
    */
   @Getter @Setter private boolean autoConstraints = false;
 
+  /**
+   * Specifies the number of rows to show either side for a failing constraint. This can faciliate
+   * debugging, since the greater the width the more information can be seen. At the same time,
+   * however, too much information can make the report very hard to read.
+   */
+  @Getter @Setter private int reportWidth = 8;
+
   /** Indicates whether or not this validator is active (i.e. we located the corset binary). */
   @Getter private boolean active = false;
 
@@ -86,23 +93,28 @@ public class RustCorsetValidator extends AbstractExecutable {
    *     additional information for debugging purposes.
    */
   public Result validate(final Path traceFile, final String zkEvmBin) {
-    Outcome outcome;
-    try {
-      List<String> commands = buildCommandLine(traceFile, zkEvmBin);
-      log.debug("{}", commands);
-      // Execute corset with a 5s timeout.
-      outcome = super.exec(5, commands);
-    } catch (Throwable e) {
-      log.error("Corset validation has thrown an exception: %s".formatted(e.getMessage()));
-      throw new RuntimeException(e);
+    if (active) {
+      Outcome outcome;
+      try {
+        List<String> commands = buildCommandLine(traceFile, zkEvmBin);
+        log.debug("{}", commands);
+        // Execute corset with a 5s timeout.
+        outcome = super.exec(5, commands);
+      } catch (Throwable e) {
+        log.error("Corset validation has thrown an exception: %s".formatted(e.getMessage()));
+        throw new RuntimeException(e);
+      }
+      // Check for success or failure
+      if (outcome.exitcode() != 0) {
+        log.error("Validation failed: %s".formatted(outcome.output()));
+        return new Result(false, traceFile.toFile(), outcome.output());
+      }
+      // success!
+      return new Result(true, traceFile.toFile(), outcome.output());
     }
-    // Check for success or failure
-    if (outcome.exitcode() != 0) {
-      log.error("Validation failed: %s".formatted(outcome.output()));
-      return new Result(false, traceFile.toFile(), outcome.output());
-    }
-    // success!
-    return new Result(true, traceFile.toFile(), outcome.output());
+    // Tool is not active
+    log.debug("(inactive)");
+    return null;
   }
 
   /**
@@ -139,8 +151,11 @@ public class RustCorsetValidator extends AbstractExecutable {
       this.fieldArithmetic = false;
       this.expansion = 0;
       this.autoConstraints = false;
-      // Check for default case (empty string)
-      if (!flags.isEmpty()) {
+      //
+      if (flags.equals("disable")) {
+        // Special case used to disable corset even when it is available.
+        active = false;
+      } else if (!flags.isEmpty()) {
         // split flags by separator
         String[] splitFlags = flags.split(",");
         // Build configuration based on flags
@@ -162,8 +177,12 @@ public class RustCorsetValidator extends AbstractExecutable {
               this.autoConstraints = true;
               break;
             default:
-              // Error
-              throw new RuntimeException("Unknown Corset configuration flag: %s".formatted(flag));
+              if (flag.startsWith("trace-span=")) {
+                this.reportWidth = Integer.parseInt(flag.substring(11));
+              } else {
+                // Error
+                throw new RuntimeException("Unknown Corset configuration flag: %s".formatted(flag));
+              }
           }
         }
       }
@@ -207,6 +226,9 @@ public class RustCorsetValidator extends AbstractExecutable {
       options.add("--auto-constraints");
       options.add("nhood,sorts");
     }
+    // Specify span width to use
+    options.add("--trace-span");
+    options.add(Integer.toString(this.reportWidth));
     // Specify number of threads to use.
     options.add("-t");
     options.add(determineNumberOfThreads());
@@ -223,6 +245,7 @@ public class RustCorsetValidator extends AbstractExecutable {
    * @return
    */
   private String determineNumberOfThreads() {
-    return Optional.ofNullable(System.getenv("CORSET_THREADS")).orElse("2");
+    int ncpus = Runtime.getRuntime().availableProcessors();
+    return Optional.ofNullable(System.getenv("CORSET_THREADS")).orElse(Integer.toString(ncpus));
   }
 }

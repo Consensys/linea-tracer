@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.stp;
 
-import static net.consensys.linea.zktracer.module.rlpcommon.RlpRandEdgeCase.randBigInt;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes;
 
@@ -24,12 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
+import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.ToyAccount;
-import net.consensys.linea.zktracer.testing.ToyExecutionEnvironment;
-import net.consensys.linea.zktracer.testing.ToyTransaction;
-import net.consensys.linea.zktracer.testing.ToyWorld;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -42,20 +41,27 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
 public class StpTest {
-  private static final Random RAND = new Random(666L);
-  final int NB_CALL = 200;
-  final int NB_CREATE = 200;
+  /**
+   * NOTE: Do not make this static as it will introduce non-deterministic behaviour into the testing
+   * process.
+   */
+  private final Random RAND = new Random(666L);
+
+  private final int NB_CALL = 200;
+  private final int NB_CREATE = 200;
+
+  private final long SENDER_BALANCE = 0xFFFFFFFFFFFFL;
 
   @Test
   void testCall() {
-    ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
+    List<ToyAccount> world = new ArrayList<>();
     List<Transaction> txList = new ArrayList<>();
 
     for (int i = 0; i < NB_CALL; i++) {
       final OpCode opcode = randOpCodeCall();
       final boolean toExists = RAND.nextBoolean();
       final boolean toWarm = toExists && RAND.nextBoolean();
-      final Wei balance = Wei.of(randBigInt(true));
+      final Wei balance = Wei.of(SENDER_BALANCE);
       final long gasCall = RAND.nextLong(0, 100000L);
       final BigInteger value = BigInteger.valueOf(RAND.nextLong(0, 100000L));
       final long gasLimit = RAND.nextLong(23400, 1000000L);
@@ -63,17 +69,17 @@ public class StpTest {
       txList.add(txCall(opcode, toExists, toWarm, balance, value, gasCall, gasLimit, world));
     }
 
-    ToyExecutionEnvironment.builder()
-        .toyWorld(world.build())
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(world)
         .transactions(txList)
-        .testValidator(x -> {})
+        .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
         .run();
   }
 
   @Test
   void testCreate() {
-    ToyWorld.ToyWorldBuilder world = ToyWorld.builder();
+    List<ToyAccount> world = new ArrayList<>();
     List<Transaction> txList = new ArrayList<>();
 
     for (int i = 0; i < NB_CREATE; i++) {
@@ -86,10 +92,10 @@ public class StpTest {
       }
     }
 
-    ToyExecutionEnvironment.builder()
-        .toyWorld(world.build())
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(world)
         .transactions(txList)
-        .testValidator(x -> {})
+        .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
         .run();
   }
@@ -121,7 +127,7 @@ public class StpTest {
       BigInteger value,
       long gasCall,
       long gasLimit,
-      ToyWorld.ToyWorldBuilder world) {
+      List<ToyAccount> world) {
 
     // Create the sender account
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -129,14 +135,14 @@ public class StpTest {
         Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
     final ToyAccount senderAccount =
         ToyAccount.builder().balance(balance).nonce(1).address(senderAddress).build();
-    world.account(senderAccount);
+    world.add(senderAccount);
 
     // Create the callee account and address
     final Address calleeAddress = Address.wrap(Bytes.random(20));
     final ToyAccount calleeAccount =
         ToyAccount.builder().nonce(1).balance(Wei.ONE).address(calleeAddress).build();
     if (toExist) {
-      world.account(calleeAccount);
+      world.add(calleeAccount);
     }
 
     // Create the to account, which contains the bytecode to execute
@@ -148,7 +154,7 @@ public class StpTest {
             .balance(Wei.ONE)
             .code(codeCall(opcode, calleeAddress, value, gasCall))
             .build();
-    world.account(toAccount);
+    world.add(toAccount);
 
     AccessListEntry entry = AccessListEntry.createAccessListEntry(senderAddress, List.of());
     if (toWarm) {
@@ -192,7 +198,7 @@ public class StpTest {
     };
   }
 
-  final Transaction txCreate(ToyWorld.ToyWorldBuilder world) {
+  final Transaction txCreate(List<ToyAccount> world) {
     // create sender account
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -200,11 +206,11 @@ public class StpTest {
     final long value = RAND.nextLong();
     final ToyAccount senderAccount =
         ToyAccount.builder()
-            .balance(Wei.of(randBigInt(true)))
+            .balance(Wei.of(SENDER_BALANCE))
             .nonce(Math.abs(RAND.nextInt()))
             .address(senderAddress)
             .build();
-    world.account(senderAccount);
+    world.add(senderAccount);
 
     // create to account
     final Address to = Address.wrap(Bytes.random(20));
@@ -221,7 +227,7 @@ public class StpTest {
                     .op(OpCode.CREATE)
                     .compile())
             .build();
-    world.account(toAccount);
+    world.add(toAccount);
 
     final long gasLimit = RAND.nextLong(21000, 1000000L);
     return ToyTransaction.builder()
@@ -234,7 +240,7 @@ public class StpTest {
         .build();
   }
 
-  final Transaction txCreate2(ToyWorld.ToyWorldBuilder world) {
+  final Transaction txCreate2(List<ToyAccount> world) {
     // create senderAccount
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -242,11 +248,11 @@ public class StpTest {
     final long value = RAND.nextLong();
     final ToyAccount senderAccount =
         ToyAccount.builder()
-            .balance(Wei.of(randBigInt(true)))
+            .balance(Wei.of(SENDER_BALANCE))
             .nonce(Math.abs(RAND.nextInt()))
             .address(senderAddress)
             .build();
-    world.account(senderAccount);
+    world.add(senderAccount);
 
     // create to account
     final Address to = Address.wrap(Bytes.random(20));
@@ -264,7 +270,7 @@ public class StpTest {
                     .op(OpCode.CREATE)
                     .compile())
             .build();
-    world.account(toAccount);
+    world.add(toAccount);
 
     final long gasLimit = RAND.nextLong(21000, 1000000L);
     return ToyTransaction.builder()

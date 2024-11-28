@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.txndata;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
@@ -39,6 +40,10 @@ public class Trace {
   public static final int COMMON_RLP_TXN_PHASE_NUMBER_4 = 0xa;
   public static final int COMMON_RLP_TXN_PHASE_NUMBER_5 = 0x7;
   public static final int CREATE2_SHIFT = 0xff;
+  public static final int CT_MAX_TYPE_0 = 0x7;
+  public static final int CT_MAX_TYPE_1 = 0x8;
+  public static final int CT_MAX_TYPE_2 = 0x8;
+  public static final long EIP2681_MAX_NONCE = 0xffffffffffffffffL;
   public static final int EIP_3541_MARKER = 0xef;
   public static final BigInteger EMPTY_KECCAK_HI =
       new BigInteger("262949717399590921288928019264691438528");
@@ -249,6 +254,7 @@ public class Trace {
   public static final int LINEA_CHAIN_ID = 0xe708;
   public static final int LINEA_DIFFICULTY = 0x2;
   public static final int LINEA_GOERLI_CHAIN_ID = 0xe704;
+  public static final int LINEA_MAX_NUMBER_OF_TRANSACTIONS_IN_BATCH = 0xc8;
   public static final int LINEA_SEPOLIA_CHAIN_ID = 0xe705;
   public static final int LLARGE = 0x10;
   public static final int LLARGEMO = 0xf;
@@ -287,9 +293,9 @@ public class Trace {
   public static final int MMU_INST_RAM_TO_EXO_WITH_PADDING = 0xfe20;
   public static final int MMU_INST_RAM_TO_RAM_SANS_PADDING = 0xfe40;
   public static final int MMU_INST_RIGHT_PADDED_WORD_EXTRACTION = 0xfe10;
-  public static final int NB_ROWS_TYPE_0 = 0x7;
-  public static final int NB_ROWS_TYPE_1 = 0x8;
-  public static final int NB_ROWS_TYPE_2 = 0x8;
+  public static final int NB_ROWS_TYPE_0 = 0x8;
+  public static final int NB_ROWS_TYPE_1 = 0x9;
+  public static final int NB_ROWS_TYPE_2 = 0x9;
   public static final int OOB_INST_BLAKE_CDS = 0xfa09;
   public static final int OOB_INST_BLAKE_PARAMS = 0xfb09;
   public static final int OOB_INST_CALL = 0xca;
@@ -334,8 +340,7 @@ public class Trace {
   public static final int PHASE_RIPEMD_RESULT = 0x4;
   public static final int PHASE_SHA2_DATA = 0x1;
   public static final int PHASE_SHA2_RESULT = 0x2;
-  public static final int REFUND_CONST_R_SCLEAR = 0x3a98;
-  public static final int REFUND_CONST_R_SELFDESTRUCT = 0x5dc0;
+  public static final int REFUND_CONST_R_SCLEAR = 0x12c0;
   public static final int RLP_ADDR_RECIPE_1 = 0x1;
   public static final int RLP_ADDR_RECIPE_2 = 0x2;
   public static final int RLP_PREFIX_INT_LONG = 0xb7;
@@ -375,6 +380,15 @@ public class Trace {
   public static final int WCP_INST_LEQ = 0xf;
   public static final int WORD_SIZE = 0x20;
   public static final int WORD_SIZE_MO = 0x1f;
+  public static final int row_offset___computing_effective_gas_price_comparison = 0x8;
+  public static final int row_offset___detecting_empty_call_data_comparison = 0x5;
+  public static final int row_offset___effective_refund_comparison = 0x4;
+  public static final int row_offset___initial_balance_comparison = 0x1;
+  public static final int row_offset___max_fee_and_basefee_comparison = 0x6;
+  public static final int row_offset___max_fee_and_max_priority_fee_comparison = 0x7;
+  public static final int row_offset___nonce_comparison = 0x0;
+  public static final int row_offset___sufficient_gas_comparison = 0x2;
+  public static final int row_offset___upper_limit_refunds_comparison = 0x3;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -428,54 +442,55 @@ public class Trace {
   private final MappedByteBuffer wcpFlag;
 
   static List<ColumnHeader> headers(int length) {
-    return List.of(
-        new ColumnHeader("txndata.ABS_TX_NUM", 2, length),
-        new ColumnHeader("txndata.ABS_TX_NUM_MAX", 2, length),
-        new ColumnHeader("txndata.ARG_ONE_LO", 16, length),
-        new ColumnHeader("txndata.ARG_TWO_LO", 16, length),
-        new ColumnHeader("txndata.BASEFEE", 16, length),
-        new ColumnHeader("txndata.BLOCK_GAS_LIMIT", 8, length),
-        new ColumnHeader("txndata.CALL_DATA_SIZE", 4, length),
-        new ColumnHeader("txndata.CODE_FRAGMENT_INDEX", 4, length),
-        new ColumnHeader("txndata.COINBASE_HI", 4, length),
-        new ColumnHeader("txndata.COINBASE_LO", 16, length),
-        new ColumnHeader("txndata.COPY_TXCD", 1, length),
-        new ColumnHeader("txndata.CT", 1, length),
-        new ColumnHeader("txndata.EUC_FLAG", 1, length),
-        new ColumnHeader("txndata.FROM_HI", 4, length),
-        new ColumnHeader("txndata.FROM_LO", 16, length),
-        new ColumnHeader("txndata.GAS_CUMULATIVE", 16, length),
-        new ColumnHeader("txndata.GAS_INITIALLY_AVAILABLE", 16, length),
-        new ColumnHeader("txndata.GAS_LEFTOVER", 16, length),
-        new ColumnHeader("txndata.GAS_LIMIT", 8, length),
-        new ColumnHeader("txndata.GAS_PRICE", 8, length),
-        new ColumnHeader("txndata.INIT_CODE_SIZE", 4, length),
-        new ColumnHeader("txndata.INITIAL_BALANCE", 16, length),
-        new ColumnHeader("txndata.INST", 1, length),
-        new ColumnHeader("txndata.IS_DEP", 1, length),
-        new ColumnHeader("txndata.IS_LAST_TX_OF_BLOCK", 1, length),
-        new ColumnHeader("txndata.NONCE", 8, length),
-        new ColumnHeader("txndata.OUTGOING_HI", 8, length),
-        new ColumnHeader("txndata.OUTGOING_LO", 16, length),
-        new ColumnHeader("txndata.OUTGOING_RLP_TXNRCPT", 16, length),
-        new ColumnHeader("txndata.PHASE_RLP_TXN", 1, length),
-        new ColumnHeader("txndata.PHASE_RLP_TXNRCPT", 1, length),
-        new ColumnHeader("txndata.PRIORITY_FEE_PER_GAS", 16, length),
-        new ColumnHeader("txndata.REFUND_COUNTER", 16, length),
-        new ColumnHeader("txndata.REFUND_EFFECTIVE", 16, length),
-        new ColumnHeader("txndata.REL_BLOCK", 2, length),
-        new ColumnHeader("txndata.REL_TX_NUM", 2, length),
-        new ColumnHeader("txndata.REL_TX_NUM_MAX", 2, length),
-        new ColumnHeader("txndata.REQUIRES_EVM_EXECUTION", 1, length),
-        new ColumnHeader("txndata.RES", 8, length),
-        new ColumnHeader("txndata.STATUS_CODE", 1, length),
-        new ColumnHeader("txndata.TO_HI", 4, length),
-        new ColumnHeader("txndata.TO_LO", 16, length),
-        new ColumnHeader("txndata.TYPE0", 1, length),
-        new ColumnHeader("txndata.TYPE1", 1, length),
-        new ColumnHeader("txndata.TYPE2", 1, length),
-        new ColumnHeader("txndata.VALUE", 16, length),
-        new ColumnHeader("txndata.WCP_FLAG", 1, length));
+    List<ColumnHeader> headers = new ArrayList<>();
+    headers.add(new ColumnHeader("txndata.ABS_TX_NUM", 2, length));
+    headers.add(new ColumnHeader("txndata.ABS_TX_NUM_MAX", 2, length));
+    headers.add(new ColumnHeader("txndata.ARG_ONE_LO", 16, length));
+    headers.add(new ColumnHeader("txndata.ARG_TWO_LO", 16, length));
+    headers.add(new ColumnHeader("txndata.BASEFEE", 16, length));
+    headers.add(new ColumnHeader("txndata.BLOCK_GAS_LIMIT", 8, length));
+    headers.add(new ColumnHeader("txndata.CALL_DATA_SIZE", 4, length));
+    headers.add(new ColumnHeader("txndata.CODE_FRAGMENT_INDEX", 4, length));
+    headers.add(new ColumnHeader("txndata.COINBASE_HI", 4, length));
+    headers.add(new ColumnHeader("txndata.COINBASE_LO", 16, length));
+    headers.add(new ColumnHeader("txndata.COPY_TXCD", 1, length));
+    headers.add(new ColumnHeader("txndata.CT", 1, length));
+    headers.add(new ColumnHeader("txndata.EUC_FLAG", 1, length));
+    headers.add(new ColumnHeader("txndata.FROM_HI", 4, length));
+    headers.add(new ColumnHeader("txndata.FROM_LO", 16, length));
+    headers.add(new ColumnHeader("txndata.GAS_CUMULATIVE", 16, length));
+    headers.add(new ColumnHeader("txndata.GAS_INITIALLY_AVAILABLE", 16, length));
+    headers.add(new ColumnHeader("txndata.GAS_LEFTOVER", 16, length));
+    headers.add(new ColumnHeader("txndata.GAS_LIMIT", 8, length));
+    headers.add(new ColumnHeader("txndata.GAS_PRICE", 8, length));
+    headers.add(new ColumnHeader("txndata.INIT_CODE_SIZE", 4, length));
+    headers.add(new ColumnHeader("txndata.INITIAL_BALANCE", 16, length));
+    headers.add(new ColumnHeader("txndata.INST", 1, length));
+    headers.add(new ColumnHeader("txndata.IS_DEP", 1, length));
+    headers.add(new ColumnHeader("txndata.IS_LAST_TX_OF_BLOCK", 1, length));
+    headers.add(new ColumnHeader("txndata.NONCE", 8, length));
+    headers.add(new ColumnHeader("txndata.OUTGOING_HI", 8, length));
+    headers.add(new ColumnHeader("txndata.OUTGOING_LO", 16, length));
+    headers.add(new ColumnHeader("txndata.OUTGOING_RLP_TXNRCPT", 16, length));
+    headers.add(new ColumnHeader("txndata.PHASE_RLP_TXN", 1, length));
+    headers.add(new ColumnHeader("txndata.PHASE_RLP_TXNRCPT", 1, length));
+    headers.add(new ColumnHeader("txndata.PRIORITY_FEE_PER_GAS", 16, length));
+    headers.add(new ColumnHeader("txndata.REFUND_COUNTER", 16, length));
+    headers.add(new ColumnHeader("txndata.REFUND_EFFECTIVE", 16, length));
+    headers.add(new ColumnHeader("txndata.REL_BLOCK", 2, length));
+    headers.add(new ColumnHeader("txndata.REL_TX_NUM", 2, length));
+    headers.add(new ColumnHeader("txndata.REL_TX_NUM_MAX", 2, length));
+    headers.add(new ColumnHeader("txndata.REQUIRES_EVM_EXECUTION", 1, length));
+    headers.add(new ColumnHeader("txndata.RES", 8, length));
+    headers.add(new ColumnHeader("txndata.STATUS_CODE", 1, length));
+    headers.add(new ColumnHeader("txndata.TO_HI", 4, length));
+    headers.add(new ColumnHeader("txndata.TO_LO", 16, length));
+    headers.add(new ColumnHeader("txndata.TYPE0", 1, length));
+    headers.add(new ColumnHeader("txndata.TYPE1", 1, length));
+    headers.add(new ColumnHeader("txndata.TYPE2", 1, length));
+    headers.add(new ColumnHeader("txndata.VALUE", 16, length));
+    headers.add(new ColumnHeader("txndata.WCP_FLAG", 1, length));
+    return headers;
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -544,7 +559,7 @@ public class Trace {
     }
 
     if (b >= 65536L) {
-      throw new IllegalArgumentException("absTxNum has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.ABS_TX_NUM has invalid value (" + b + ")");
     }
     absTxNum.put((byte) (b >> 8));
     absTxNum.put((byte) b);
@@ -560,7 +575,7 @@ public class Trace {
     }
 
     if (b >= 65536L) {
-      throw new IllegalArgumentException("absTxNumMax has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.ABS_TX_NUM_MAX has invalid value (" + b + ")");
     }
     absTxNumMax.put((byte) (b >> 8));
     absTxNumMax.put((byte) b);
@@ -579,7 +594,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("argOneLo has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.ARG_ONE_LO has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -604,7 +620,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("argTwoLo has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.ARG_TWO_LO has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -629,7 +646,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("basefee has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.BASEFEE has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -655,7 +673,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 64) {
       throw new IllegalArgumentException(
-          "blockGasLimit has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.BLOCK_GAS_LIMIT has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
@@ -677,7 +695,7 @@ public class Trace {
     }
 
     if (b >= 4294967296L) {
-      throw new IllegalArgumentException("callDataSize has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.CALL_DATA_SIZE has invalid value (" + b + ")");
     }
     callDataSize.put((byte) (b >> 24));
     callDataSize.put((byte) (b >> 16));
@@ -695,7 +713,8 @@ public class Trace {
     }
 
     if (b >= 4294967296L) {
-      throw new IllegalArgumentException("codeFragmentIndex has invalid value (" + b + ")");
+      throw new IllegalArgumentException(
+          "txndata.CODE_FRAGMENT_INDEX has invalid value (" + b + ")");
     }
     codeFragmentIndex.put((byte) (b >> 24));
     codeFragmentIndex.put((byte) (b >> 16));
@@ -713,7 +732,7 @@ public class Trace {
     }
 
     if (b >= 4294967296L) {
-      throw new IllegalArgumentException("coinbaseHi has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.COINBASE_HI has invalid value (" + b + ")");
     }
     coinbaseHi.put((byte) (b >> 24));
     coinbaseHi.put((byte) (b >> 16));
@@ -735,7 +754,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "coinbaseLo has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.COINBASE_LO has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -793,7 +812,7 @@ public class Trace {
     }
 
     if (b >= 4294967296L) {
-      throw new IllegalArgumentException("fromHi has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.FROM_HI has invalid value (" + b + ")");
     }
     fromHi.put((byte) (b >> 24));
     fromHi.put((byte) (b >> 16));
@@ -814,7 +833,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("fromLo has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.FROM_LO has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -840,7 +860,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "gasCumulative has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.GAS_CUMULATIVE has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -866,7 +886,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "gasInitiallyAvailable has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.GAS_INITIALLY_AVAILABLE has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -892,7 +912,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "gasLeftover has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.GAS_LEFTOVER has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -917,7 +937,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 64) {
-      throw new IllegalArgumentException("gasLimit has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.GAS_LIMIT has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
@@ -942,7 +963,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 64) {
-      throw new IllegalArgumentException("gasPrice has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.GAS_PRICE has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
@@ -964,7 +986,7 @@ public class Trace {
     }
 
     if (b >= 4294967296L) {
-      throw new IllegalArgumentException("initCodeSize has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.INIT_CODE_SIZE has invalid value (" + b + ")");
     }
     initCodeSize.put((byte) (b >> 24));
     initCodeSize.put((byte) (b >> 16));
@@ -986,7 +1008,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "initialBalance has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.INITIAL_BALANCE has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -1047,7 +1069,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 64) {
-      throw new IllegalArgumentException("nonce has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.NONCE has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
@@ -1073,7 +1096,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 64) {
       throw new IllegalArgumentException(
-          "outgoingHi has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.OUTGOING_HI has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
@@ -1099,7 +1122,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "outgoingLo has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.OUTGOING_LO has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -1125,7 +1148,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "outgoingRlpTxnrcpt has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.OUTGOING_RLP_TXNRCPT has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -1175,7 +1198,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "priorityFeePerGas has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.PRIORITY_FEE_PER_GAS has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -1201,7 +1224,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "refundCounter has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.REFUND_COUNTER has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -1227,7 +1250,7 @@ public class Trace {
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
       throw new IllegalArgumentException(
-          "refundEffective has invalid width (" + bs.bitLength() + "bits)");
+          "txndata.REFUND_EFFECTIVE has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -1249,7 +1272,7 @@ public class Trace {
     }
 
     if (b >= 65536L) {
-      throw new IllegalArgumentException("relBlock has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.REL_BLOCK has invalid value (" + b + ")");
     }
     relBlock.put((byte) (b >> 8));
     relBlock.put((byte) b);
@@ -1265,7 +1288,7 @@ public class Trace {
     }
 
     if (b >= 65536L) {
-      throw new IllegalArgumentException("relTxNum has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.REL_TX_NUM has invalid value (" + b + ")");
     }
     relTxNum.put((byte) (b >> 8));
     relTxNum.put((byte) b);
@@ -1281,7 +1304,7 @@ public class Trace {
     }
 
     if (b >= 65536L) {
-      throw new IllegalArgumentException("relTxNumMax has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.REL_TX_NUM_MAX has invalid value (" + b + ")");
     }
     relTxNumMax.put((byte) (b >> 8));
     relTxNumMax.put((byte) b);
@@ -1312,7 +1335,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 64) {
-      throw new IllegalArgumentException("res has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.RES has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
@@ -1346,7 +1370,7 @@ public class Trace {
     }
 
     if (b >= 4294967296L) {
-      throw new IllegalArgumentException("toHi has invalid value (" + b + ")");
+      throw new IllegalArgumentException("txndata.TO_HI has invalid value (" + b + ")");
     }
     toHi.put((byte) (b >> 24));
     toHi.put((byte) (b >> 16));
@@ -1367,7 +1391,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("toLo has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.TO_LO has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -1428,7 +1453,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("value has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "txndata.VALUE has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {

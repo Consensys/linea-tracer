@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
 import java.nio.MappedByteBuffer;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 
@@ -57,20 +58,21 @@ public class Trace {
   private final MappedByteBuffer stamp;
 
   static List<ColumnHeader> headers(int length) {
-    return List.of(
-        new ColumnHeader("blake2fmodexpdata.ID", 6, length),
-        new ColumnHeader("blake2fmodexpdata.INDEX", 1, length),
-        new ColumnHeader("blake2fmodexpdata.INDEX_MAX", 1, length),
-        new ColumnHeader("blake2fmodexpdata.IS_BLAKE_DATA", 1, length),
-        new ColumnHeader("blake2fmodexpdata.IS_BLAKE_PARAMS", 1, length),
-        new ColumnHeader("blake2fmodexpdata.IS_BLAKE_RESULT", 1, length),
-        new ColumnHeader("blake2fmodexpdata.IS_MODEXP_BASE", 1, length),
-        new ColumnHeader("blake2fmodexpdata.IS_MODEXP_EXPONENT", 1, length),
-        new ColumnHeader("blake2fmodexpdata.IS_MODEXP_MODULUS", 1, length),
-        new ColumnHeader("blake2fmodexpdata.IS_MODEXP_RESULT", 1, length),
-        new ColumnHeader("blake2fmodexpdata.LIMB", 16, length),
-        new ColumnHeader("blake2fmodexpdata.PHASE", 1, length),
-        new ColumnHeader("blake2fmodexpdata.STAMP", 1, length));
+    List<ColumnHeader> headers = new ArrayList<>();
+    headers.add(new ColumnHeader("blake2fmodexpdata.ID", 4, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.INDEX", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.INDEX_MAX", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.IS_BLAKE_DATA", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.IS_BLAKE_PARAMS", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.IS_BLAKE_RESULT", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.IS_MODEXP_BASE", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.IS_MODEXP_EXPONENT", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.IS_MODEXP_MODULUS", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.IS_MODEXP_RESULT", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.LIMB", 16, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.PHASE", 1, length));
+    headers.add(new ColumnHeader("blake2fmodexpdata.STAMP", 2, length));
+    return headers;
   }
 
   public Trace(List<MappedByteBuffer> buffers) {
@@ -104,11 +106,9 @@ public class Trace {
       filled.set(0);
     }
 
-    if (b >= 281474976710656L) {
-      throw new IllegalArgumentException("id has invalid value (" + b + ")");
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException("blake2fmodexpdata.ID has invalid value (" + b + ")");
     }
-    id.put((byte) (b >> 40));
-    id.put((byte) (b >> 32));
     id.put((byte) (b >> 24));
     id.put((byte) (b >> 16));
     id.put((byte) (b >> 8));
@@ -236,7 +236,8 @@ public class Trace {
     Bytes bs = b.trimLeadingZeros();
     // Sanity check against expected width
     if (bs.bitLength() > 128) {
-      throw new IllegalArgumentException("limb has invalid width (" + bs.bitLength() + "bits)");
+      throw new IllegalArgumentException(
+          "blake2fmodexpdata.LIMB has invalid width (" + bs.bitLength() + "bits)");
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 16; i++) {
@@ -262,14 +263,18 @@ public class Trace {
     return this;
   }
 
-  public Trace stamp(final UnsignedByte b) {
+  public Trace stamp(final long b) {
     if (filled.get(12)) {
       throw new IllegalStateException("blake2fmodexpdata.STAMP already set");
     } else {
       filled.set(12);
     }
 
-    stamp.put(b.toByte());
+    if (b >= 1024L) {
+      throw new IllegalArgumentException("blake2fmodexpdata.STAMP has invalid value (" + b + ")");
+    }
+    stamp.put((byte) (b >> 8));
+    stamp.put((byte) b);
 
     return this;
   }
@@ -335,7 +340,7 @@ public class Trace {
 
   public Trace fillAndValidateRow() {
     if (!filled.get(0)) {
-      id.position(id.position() + 6);
+      id.position(id.position() + 4);
     }
 
     if (!filled.get(1)) {
@@ -383,7 +388,7 @@ public class Trace {
     }
 
     if (!filled.get(12)) {
-      stamp.position(stamp.position() + 1);
+      stamp.position(stamp.position() + 2);
     }
 
     filled.clear();

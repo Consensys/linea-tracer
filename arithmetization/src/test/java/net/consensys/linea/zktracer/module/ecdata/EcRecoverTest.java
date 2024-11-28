@@ -23,9 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
@@ -40,6 +40,61 @@ public class EcRecoverTest {
             Bytes.fromHexString(
                 "6080604052348015600f57600080fd5b5060476001601b6001620f00007ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe609360201b60201c565b605157605060ce565b5b60006040518060400160405280600e81526020017f7a6b2d65766d206973206c6966650000000000000000000000000000000000008152509050805160208201f35b600060405186815285602082015284604082015283606082015260008084608001836001610bb8fa9150608081016040525095945050505050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052600160045260246000fdfe"))
         .run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("ecRecoverSource")
+  void testEcRecover(
+      String description,
+      EWord h,
+      EWord v,
+      EWord r,
+      EWord s,
+      boolean expectedInternalChecksPassed,
+      boolean expectedSuccessBit) {
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram()
+            // First place the parameters in memory
+            .push(h)
+            .push(0)
+            .op(OpCode.MSTORE)
+            .push(v) // v
+            .push(0x20)
+            .op(OpCode.MSTORE)
+            .push(r) // r
+            .push(0x40)
+            .op(OpCode.MSTORE)
+            .push(s) // s
+            .push(0x60)
+            .op(OpCode.MSTORE)
+            // Do the call
+            .push(32) // retSize
+            .push(0x80) // retOffset
+            .push(0x80) // argSize
+            .push(0) // argOffset
+            .push(1) // address
+            .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+            .op(OpCode.STATICCALL);
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+
+    // Retrieve recoveredAddress, internalChecksPassed, successBit
+    // Assert internalChecksPassed and successBit are what expected
+    EcDataOperation ecDataOperation = bytecodeRunner.getHub().ecData().operations().get(0);
+    EWord recoveredAddress =
+        EWord.of(
+            ecDataOperation.limb().get(8).toUnsignedBigInteger(),
+            ecDataOperation.limb().get(9).toUnsignedBigInteger());
+    boolean internalChecksPassed = ecDataOperation.internalChecksPassed();
+    boolean successBit = ecDataOperation.successBit();
+
+    assertEquals(expectedInternalChecksPassed, internalChecksPassed);
+    assertEquals(expectedSuccessBit, successBit);
+
+    System.out.println("recoveredAddress: " + recoveredAddress);
+    System.out.println("internalChecksPassed: " + internalChecksPassed);
+    System.out.println("successBit: " + successBit);
   }
 
   private static Stream<Arguments> ecRecoverSource() {
@@ -172,29 +227,21 @@ public class EcRecoverTest {
     return Arguments.of(description, h, v, r, s, expectedInternalChecksPassed, expectedSuccessBit);
   }
 
-  @ParameterizedTest
-  @MethodSource("ecRecoverSource")
-  void testEcRecover(
-      String description,
-      EWord h,
-      EWord v,
-      EWord r,
-      EWord s,
-      boolean expectedInternalChecksPassed,
-      boolean expectedSuccessBit) {
+  @Test
+  void testEcRecoverInternalChecksFailSingleCase() {
     BytecodeCompiler program =
         BytecodeCompiler.newProgram()
             // First place the parameters in memory
-            .push(h)
+            .push("1111111111111111111111111111111111111111111111111111111111111111") // h
             .push(0)
             .op(OpCode.MSTORE)
-            .push(v) // v
+            .push("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff") // v
             .push(0x20)
             .op(OpCode.MSTORE)
-            .push(r) // r
+            .push("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc") // r
             .push(0x40)
             .op(OpCode.MSTORE)
-            .push(s) // s
+            .push("cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc") // s
             .push(0x60)
             .op(OpCode.MSTORE)
             // Do the call
@@ -203,28 +250,10 @@ public class EcRecoverTest {
             .push(0x80) // argSize
             .push(0) // argOffset
             .push(1) // address
-            .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+            .push(3000)
             .op(OpCode.STATICCALL);
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
-
-    // Retrieve recoveredAddress, internalChecksPassed, successBit
-    // Assert internalChecksPassed and successBit are what expected
-    EcDataOperation ecDataOperation =
-        bytecodeRunner.getHub().ecData().getOperations().stream().toList().get(0);
-    EWord recoveredAddress =
-        EWord.of(
-            ecDataOperation.limb().get(8).toUnsignedBigInteger(),
-            ecDataOperation.limb().get(9).toUnsignedBigInteger());
-    boolean internalChecksPassed = ecDataOperation.internalChecksPassed();
-    boolean successBit = ecDataOperation.successBit();
-
-    assertEquals(internalChecksPassed, expectedInternalChecksPassed);
-    assertEquals(successBit, expectedSuccessBit);
-
-    System.out.println("recoveredAddress: " + recoveredAddress);
-    System.out.println("internalChecksPassed: " + internalChecksPassed);
-    System.out.println("successBit: " + successBit);
   }
 }

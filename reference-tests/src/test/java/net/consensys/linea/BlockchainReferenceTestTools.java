@@ -15,14 +15,30 @@
 
 package net.consensys.linea;
 
+import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
+import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_INPUT_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.math.BigInteger;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.reporting.TestOutcome;
+import net.consensys.linea.reporting.TestOutcomeWriterTool;
+import net.consensys.linea.testing.ExecutionEnvironment;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.ethereum.MainnetBlockValidator;
 import org.hyperledger.besu.ethereum.ProtocolContext;
@@ -39,7 +55,9 @@ import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseS
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
 import org.hyperledger.besu.testutil.JsonTestParameters;
+import org.junit.jupiter.api.Assumptions;
 
+@Slf4j
 public class BlockchainReferenceTestTools {
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
@@ -55,20 +73,61 @@ public class BlockchainReferenceTestTools {
                     testName + "[" + eip + "]", fullPath, spec, NETWORKS_TO_RUN.contains(eip));
               });
 
-  private static final CorsetValidator corsetValidator = new CorsetValidator();
+  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
 
   static {
     if (NETWORKS_TO_RUN.isEmpty()) {
       PARAMS.ignoreAll();
     }
+    // ignore tests that are failing in Besu too
+    PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]");
+    PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]");
+    PARAMS.ignore("create2collisionStorage_d0g0v0_London[London]");
+    PARAMS.ignore("create2collisionStorage_d1g0v0_London[London]");
+    PARAMS.ignore("create2collisionStorage_d2g0v0_London[London]");
+    PARAMS.ignore("dynamicAccountOverwriteEmpty_d0g0v0_London[London]");
+
+    // ignore tests that are failing because there is an account with nonce 0 and
+    // non empty code which can't happen in Linea since we are post LONDON only.
+    PARAMS.ignore("InitCollision_d0g0v0_London[London]");
+    PARAMS.ignore("InitCollision_d1g0v0_London[London]");
+    PARAMS.ignore("InitCollision_d2g0v0_London[London]");
+    PARAMS.ignore("InitCollision_d3g0v0_London[London]");
+    PARAMS.ignore("RevertInCreateInInitCreate2_d0g0v0_London[London]");
+    PARAMS.ignore("RevertInCreateInInit_d0g0v0_London[London]");
+
+    // Arithmetization restriction: recipient address is a precompile.
+    PARAMS.ignore("modexpRandomInput_d0g0v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d0g1v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d1g0v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d1g1v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d2g0v0_London[London]");
+    PARAMS.ignore("modexpRandomInput_d2g1v0_London[London]");
+    PARAMS.ignore("randomStatetest642_d0g0v0_London[London]");
+    PARAMS.ignore("randomStatetest644_d0g0v0_London[London]");
+    PARAMS.ignore("randomStatetest645_d0g0v0_London[London]");
+    PARAMS.ignore("randomStatetest645_d0g0v1_London[London]");
 
     // Consumes a huge amount of memory.
     PARAMS.ignore("static_Call1MB1024Calldepth_d1g0v0_\\w+");
     PARAMS.ignore("ShanghaiLove_.*");
     PARAMS.ignore("/GeneralStateTests/VMTests/vmPerformance/");
+    PARAMS.ignore("Call50000");
+    PARAMS.ignore("static_LoopCallsDepthThenRevert3");
+    PARAMS.ignore("Return50000");
 
     // Absurd amount of gas, doesn't run in parallel.
     PARAMS.ignore("randomStatetest94_\\w+");
+
+    // Balance is more than 128 bits
+    PARAMS.ignore("Call1024PreCalls_d0g0v0_London[London]");
+    PARAMS.ignore("Call1024PreCalls_d0g1v0_London[London]");
+    PARAMS.ignore("OverflowGasRequire_London[London]");
+    PARAMS.ignore("StrangeContractCreation_London[London]");
+    PARAMS.ignore("SuicideIssue_London[London]");
+    PARAMS.ignore("DelegateCallSpam_London[London]");
+    PARAMS.ignore("OverflowGasRequire2_d0g0v0_London[London]");
+    PARAMS.ignore("HighGasLimit_d0g0v0_London[London]");
 
     // Don't do time-consuming tests.
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");
@@ -87,11 +146,69 @@ public class BlockchainReferenceTestTools {
     // utility class
   }
 
+  public static CompletableFuture<Set<String>> getRecordedFailedTestsFromJson(
+      String failedModule, String failedConstraint) {
+    Set<String> failedTests = new HashSet<>();
+    if (failedModule.isEmpty()) {
+      return CompletableFuture.completedFuture(failedTests);
+    }
+
+    CompletableFuture<TestOutcome> modulesToConstraintsFutures =
+        readBlockchainReferenceTestsOutput(JSON_INPUT_FILENAME)
+            .thenApply(TestOutcomeWriterTool::parseTestOutcome);
+
+    return modulesToConstraintsFutures.thenApply(
+        blockchainReferenceTestOutcome -> {
+          ConcurrentMap<String, ConcurrentSkipListSet<String>> filteredFailedTests =
+              blockchainReferenceTestOutcome.getModulesToConstraintsToTests().get(failedModule);
+          if (filteredFailedTests == null) {
+            return failedTests;
+          }
+          if (!failedConstraint.isEmpty()) {
+            return filteredFailedTests.get(failedConstraint);
+          }
+          return filteredFailedTests.values().stream()
+              .flatMap(Set::stream)
+              .collect(Collectors.toSet());
+        });
+  }
+
   public static Collection<Object[]> generateTestParametersForConfig(final String[] filePath) {
+    Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
     return PARAMS.generate(
         Arrays.stream(filePath)
             .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
             .toList());
+  }
+
+  public static Collection<Object[]> generateTestParametersForConfigForFailedTests(
+      final String[] filePath, String failedModule, String failedConstraint)
+      throws ExecutionException, InterruptedException {
+    Arrays.stream(filePath).forEach(f -> log.info("checking file: {}", f));
+    Collection<Object[]> params =
+        PARAMS.generate(
+            Arrays.stream(filePath)
+                .map(f -> Paths.get("src/test/resources/ethereum-tests/" + f).toFile())
+                .toList());
+
+    return getRecordedFailedTestsFromJson(failedModule, failedConstraint)
+        .thenApply(
+            failedTests -> {
+              List<Object[]> modifiedParams = new ArrayList<>();
+              for (Object[] param : params) {
+                Object[] modifiedParam = markTestToRun(param, failedTests);
+                modifiedParams.add(modifiedParam);
+              }
+              return modifiedParams;
+            })
+        .get();
+  }
+
+  public static Object[] markTestToRun(Object[] param, Set<String> failedTests) {
+    String testName = (String) param[0];
+    param[2] = failedTests.contains(testName);
+
+    return param;
   }
 
   public static void executeTest(final BlockchainReferenceTestCaseSpec spec) {
@@ -100,6 +217,9 @@ public class BlockchainReferenceTestTools {
         spec.getWorldStateArchive()
             .getMutable(genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash())
             .get();
+
+    log.info(
+        "checking roothash {} is {}", worldState.rootHash(), genesisBlockHeader.getStateRoot());
     assertThat(worldState.rootHash()).isEqualTo(genesisBlockHeader.getStateRoot());
 
     final ProtocolSchedule schedule =
@@ -108,15 +228,28 @@ public class BlockchainReferenceTestTools {
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
 
-    for (var candidateBlock : spec.getCandidateBlocks()) {
-      if (!candidateBlock.isExecutable()) {
-        return;
-      }
+    final BigInteger nonnegativeChainId = schedule.getChainId().get().abs();
 
-      final ZkTracer zkTracer = new ZkTracer();
+    final ZkTracer zkTracer = new ZkTracer(nonnegativeChainId);
+    zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
+
+    for (var candidateBlock : spec.getCandidateBlocks()) {
+      Assumptions.assumeTrue(
+          candidateBlock.areAllTransactionsValid(),
+          "Skipping the test because the block is not executable");
+      Assumptions.assumeTrue(
+          candidateBlock.isExecutable(), "Skipping the test because the block is not executable");
+      Assumptions.assumeTrue(
+          candidateBlock.getBlock().getBody().getTransactions().size() > 0,
+          "Skipping the test because the block has no transaction");
+      Assumptions.assumeTrue(
+          Arrays.stream(spec.getCandidateBlocks()).filter(b -> !b.isValid()).count() == 0,
+          "Skipping the test because it has invalid blocks");
 
       try {
         final Block block = candidateBlock.getBlock();
+
+        zkTracer.traceStartBlock(block.getHeader());
 
         final ProtocolSpec protocolSpec = schedule.getByBlockHeader(block.getHeader());
 
@@ -130,15 +263,27 @@ public class BlockchainReferenceTestTools {
 
         final BlockImportResult importResult =
             blockImporter.importBlock(context, block, validationMode, validationMode);
+        log.info(
+            "checking block is imported {} equals {}",
+            importResult.isImported(),
+            candidateBlock.isValid());
+        assertThat(importResult.isImported())
+            .isEqualTo(candidateBlock.isValid())
+            .withFailMessage(
+                "checking block is imported {} while expected {}",
+                importResult.isImported(),
+                candidateBlock.isValid());
 
-        assertThat(importResult.isImported()).isEqualTo(candidateBlock.isValid());
+        zkTracer.traceEndBlock(block.getHeader(), block.getBody());
       } catch (final RLPException e) {
+        log.info("caught RLP exception, checking it's invalid {}", candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();
       }
-
-      assertThat(corsetValidator.validate(zkTracer.writeToTmpFile()).isValid()).isTrue();
     }
 
+    zkTracer.traceEndConflation(worldState);
+
+    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
     assertThat(blockchain.getChainHeadHash()).isEqualTo(spec.getLastBlockHash());
   }
 

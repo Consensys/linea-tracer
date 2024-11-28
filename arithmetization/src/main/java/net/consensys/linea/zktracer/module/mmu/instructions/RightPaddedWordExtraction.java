@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_TRANSPLANT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.mmu.Trace.NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.math.BigInteger;
@@ -39,17 +40,16 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.tuweni.bytes.Bytes;
 
 public class RightPaddedWordExtraction implements MmuInstruction {
   private final Euc euc;
   private final Wcp wcp;
-  private List<MmuEucCallRecord> eucCallRecords;
-  private List<MmuWcpCallRecord> wcpCallRecords;
+  private final List<MmuEucCallRecord> eucCallRecords;
+  private final List<MmuWcpCallRecord> wcpCallRecords;
 
-  private boolean firstLimbPadded;
+  private long totalSourceOffset;
   private short firstLimbByteSize;
   private boolean secondLimbPadded;
   private short secondLimbByteSize;
@@ -60,8 +60,6 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   private Bytes sourceLimbOffset;
   private Bytes sourceByteOffset;
   private boolean secondLimbVoid;
-  private int firstMicroInst;
-  private int secondMicroInst;
 
   public RightPaddedWordExtraction(Euc euc, Wcp wcp) {
     this.euc = euc;
@@ -71,7 +69,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   }
 
   @Override
-  public MmuData preProcess(MmuData mmuData, final CallStack callStack) {
+  public MmuData preProcess(MmuData mmuData) {
     final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
     row1(hubToMmuValues);
     row2();
@@ -86,7 +84,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     mmuData.outAndBinValues(MmuOutAndBinValues.DEFAULT); // all 0
 
     mmuData.totalLeftZeroesInitials(0);
-    mmuData.totalNonTrivialInitials(Trace.NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION);
+    mmuData.totalNonTrivialInitials(NB_MICRO_ROWS_TOT_RIGHT_PADDED_WORD_EXTRACTION);
     mmuData.totalRightZeroesInitials(0);
 
     return mmuData;
@@ -114,12 +112,15 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     // row n°2
     final Bytes wcpArg1 = longToBytes(extractionSize);
     final Bytes wcpArg2 = Bytes.of(LLARGE);
-    final boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
+    final boolean firstLimbPadded = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
+        MmuWcpCallRecord.instLtBuilder()
+            .arg1Lo(wcpArg1)
+            .arg2Lo(wcpArg2)
+            .result(firstLimbPadded)
+            .build());
 
-    firstLimbPadded = wcpResult;
     if (!secondLimbPadded) {
       secondLimbByteSize = LLARGE;
     } else {
@@ -129,7 +130,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
     firstLimbByteSize = !firstLimbPadded ? LLARGE : extractionSize;
 
     final Bytes dividend = Bytes.of(firstLimbByteSize);
-    EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
+    final EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
 
     firstLimbIsFull = BooleanUtils.toBoolean(eucOp.quotient().toInt());
 
@@ -144,13 +145,13 @@ public class RightPaddedWordExtraction implements MmuInstruction {
 
   private void row3(final HubToMmuValues hubToMmuValues) {
     // row n°3
-    final Bytes dividend =
-        longToBytes(hubToMmuValues.sourceOffsetLo().longValue() + hubToMmuValues.referenceOffset());
-    EucOperation eucOp = euc.callEUC(dividend, Bytes.of(LLARGE));
+    totalSourceOffset =
+        hubToMmuValues.sourceOffsetLo().longValue() + hubToMmuValues.referenceOffset();
+    final EucOperation eucOp = euc.callEUC(longToBytes(totalSourceOffset), Bytes.of(LLARGE));
 
     eucCallRecords.add(
         MmuEucCallRecord.builder()
-            .dividend(dividend.toLong())
+            .dividend(totalSourceOffset)
             .divisor((short) LLARGE)
             .quotient(eucOp.quotient().toLong())
             .remainder((short) eucOp.remainder().toInt())
@@ -161,12 +162,14 @@ public class RightPaddedWordExtraction implements MmuInstruction {
 
     final Bytes wcpArg1 = Bytes.ofUnsignedShort(sourceByteOffset.toInt() + firstLimbByteSize);
     final Bytes wcpArg2 = Bytes.of(LLARGEPO);
-    boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
+    firstLimbSingleSource = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
-
-    firstLimbSingleSource = wcpResult;
+        MmuWcpCallRecord.instLtBuilder()
+            .arg1Lo(wcpArg1)
+            .arg2Lo(wcpArg2)
+            .result(firstLimbSingleSource)
+            .build());
   }
 
   private void row4() {
@@ -175,12 +178,14 @@ public class RightPaddedWordExtraction implements MmuInstruction {
 
     final Bytes wcpArg1 = Bytes.ofUnsignedShort(sourceByteOffset.toInt() + secondLimbByteSize);
     final Bytes wcpArg2 = Bytes.of(LLARGEPO);
-    boolean wcpResult = wcp.callLT(wcpArg1, wcpArg2);
+    secondLimbSingleSource = wcp.callLT(wcpArg1, wcpArg2);
 
     wcpCallRecords.add(
-        MmuWcpCallRecord.instLtBuilder().arg1Lo(wcpArg1).arg2Lo(wcpArg2).result(wcpResult).build());
-
-    secondLimbSingleSource = wcpResult;
+        MmuWcpCallRecord.instLtBuilder()
+            .arg1Lo(wcpArg1)
+            .arg2Lo(wcpArg2)
+            .result(secondLimbSingleSource)
+            .build());
   }
 
   private void row5() {
@@ -198,14 +203,11 @@ public class RightPaddedWordExtraction implements MmuInstruction {
 
   @Override
   public MmuData setMicroInstructions(MmuData mmuData) {
-    HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
+    final HubToMmuValues hubToMmuValues = mmuData.hubToMmuValues();
 
     // Setting MMIO constant values
     mmuData.mmuToMmioConstantValues(
         MmuToMmioConstantValues.builder().sourceContextNumber(hubToMmuValues.sourceId()).build());
-
-    // Setting the source ram bytes
-    mmuData.setSourceRamBytes();
 
     // Setting the list of MMIO instructions
     firstMicroInstruction(mmuData);
@@ -215,6 +217,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   }
 
   private void firstMicroInstruction(MmuData mmuData) {
+    int firstMicroInst;
     if (firstLimbSingleSource) {
       firstMicroInst =
           firstLimbIsFull ? MMIO_INST_RAM_TO_LIMB_TRANSPLANT : MMIO_INST_RAM_TO_LIMB_ONE_SOURCE;
@@ -233,6 +236,7 @@ public class RightPaddedWordExtraction implements MmuInstruction {
   }
 
   private void secondMicroInstruction(MmuData mmuData) {
+    int secondMicroInst;
     if (secondLimbVoid) {
       secondMicroInst = MMIO_INST_LIMB_VANISHES;
     } else {

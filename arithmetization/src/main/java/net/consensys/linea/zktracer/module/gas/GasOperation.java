@@ -15,50 +15,89 @@
 
 package net.consensys.linea.zktracer.module.gas;
 
-import static net.consensys.linea.zktracer.module.gas.Trace.CT_MAX;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
+import static net.consensys.linea.zktracer.types.Utils.initArray;
 
 import java.math.BigInteger;
 
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 
+@Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class GasOperation extends ModuleOperation {
-  @EqualsAndHashCode.Include GasParameters gasParameters;
-  Bytes acc1;
-  Bytes acc2;
+  @EqualsAndHashCode.Include @Getter GasParameters gasParameters;
+  BigInteger[] wcpArg1Lo;
+  BigInteger[] wcpArg2Lo;
+  UnsignedByte[] wcpInst;
+  boolean[] wcpRes;
+  int ctMax;
 
-  public GasOperation(GasParameters gasParameters) {
+  public GasOperation(GasParameters gasParameters, Wcp wcp) {
     this.gasParameters = gasParameters;
-    acc1 = bigIntegerToBytes(gasParameters.gasActl());
-    acc2 =
-        bigIntegerToBytes(
-            (BigInteger.valueOf((2L * booleanToInt(gasParameters.oogx()) - 1))
-                    .multiply(gasParameters.gasCost().subtract(gasParameters.gasActl())))
-                .subtract(BigInteger.valueOf(booleanToInt(gasParameters.oogx()))));
+    ctMax = compareGasActualAndGasCost() ? 2 : 1;
+
+    // init arrays
+    wcpArg1Lo = initArray(BigInteger.ZERO, ctMax + 1);
+    wcpArg2Lo = initArray(BigInteger.ZERO, ctMax + 1);
+    wcpInst = initArray(UnsignedByte.of(0), ctMax + 1);
+    wcpRes = new boolean[ctMax + 1];
+
+    // row 0
+    wcpArg1Lo[0] = BigInteger.ZERO;
+    wcpArg2Lo[0] = gasParameters.gasActual();
+    wcpInst[0] = UnsignedByte.of(WCP_INST_LEQ);
+    final boolean gasActualIsNonNegative = wcp.callLEQ(0, gasParameters.gasActual().longValue());
+    wcpRes[0] = gasActualIsNonNegative; // supposed to be true
+
+    // row 1
+    wcpArg1Lo[1] = BigInteger.ZERO;
+    wcpArg2Lo[1] = gasParameters.gasCost();
+    wcpInst[1] = UnsignedByte.of(WCP_INST_LEQ);
+    final boolean gasCostIsNonNegative = wcp.callLEQ(0, gasParameters.gasCost().longValue());
+    wcpRes[1] = gasCostIsNonNegative; // supposed to be true
+
+    // row 2
+    if (compareGasActualAndGasCost()) {
+      wcpArg1Lo[2] = gasParameters.gasActual();
+      wcpArg2Lo[2] = gasParameters.gasCost();
+      wcpInst[2] = UnsignedByte.of(EVM_INST_LT);
+      final boolean gasActualLTGasCost =
+          wcp.callLT(gasParameters.gasActual().longValue(), gasParameters.gasCost().longValue());
+      wcpRes[2] = gasActualLTGasCost; // supposed to be equal to gasParameters.isOogx()
+    }
+  }
+
+  private boolean compareGasActualAndGasCost() {
+    return !gasParameters.xahoy() || gasParameters.oogx();
   }
 
   @Override
   protected int computeLineCount() {
-    return CT_MAX + 1;
+    return ctMax + 1;
   }
 
-  public void trace(int stamp, Trace trace) {
-    for (short i = 0; i < CT_MAX + 1; i++) {
+  public void trace(Trace trace) {
+    for (short i = 0; i < ctMax + 1; i++) {
       trace
-          .stamp(stamp)
+          .inputsAndOutputsAreMeaningful(true)
+          .first(i == 0)
           .ct(i)
-          .gasActl(gasParameters.gasActl().longValue())
+          .ctMax(ctMax)
+          .gasActual(bigIntegerToBytes(gasParameters.gasActual()))
           .gasCost(bigIntegerToBytes(gasParameters.gasCost()))
-          .oogx(gasParameters.oogx())
-          .byte1(UnsignedByte.of(acc1.get(i)))
-          .byte2(UnsignedByte.of(acc2.get(i)))
-          .acc1(acc1.slice(0, i + 1))
-          .acc2(acc2.slice(0, i + 1))
+          .exceptionsAhoy(gasParameters.xahoy())
+          .outOfGasException(gasParameters.oogx())
+          .wcpArg1Lo(bigIntegerToBytes(wcpArg1Lo[i]))
+          .wcpArg2Lo(bigIntegerToBytes(wcpArg2Lo[i]))
+          .wcpInst(wcpInst[i])
+          .wcpRes(wcpRes[i])
           .validateRow();
     }
   }

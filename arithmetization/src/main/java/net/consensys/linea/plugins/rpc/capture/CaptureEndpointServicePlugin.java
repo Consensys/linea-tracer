@@ -16,14 +16,14 @@
 package net.consensys.linea.plugins.rpc.capture;
 
 import java.util.Map;
-import java.util.Optional;
 
 import com.google.auto.service.AutoService;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.AbstractLineaRequiredPlugin;
+import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.LineaOptionsPluginConfiguration;
-import org.hyperledger.besu.plugin.BesuContext;
 import org.hyperledger.besu.plugin.BesuPlugin;
+import org.hyperledger.besu.plugin.ServiceManager;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;
 
 /**
@@ -42,15 +42,11 @@ public class CaptureEndpointServicePlugin extends AbstractLineaRequiredPlugin {
    * @param context the BesuContext to be used.
    */
   @Override
-  public void doRegister(final BesuContext context) {
+  public void doRegister(final ServiceManager context) {
     CaptureToFile method = new CaptureToFile(context);
 
-    Optional<RpcEndpointService> service = context.getService(RpcEndpointService.class);
-    createAndRegister(
-        method,
-        service.orElseThrow(
-            () ->
-                new RuntimeException("Failed to obtain RpcEndpointService from the BesuContext.")));
+    RpcEndpointService service = BesuServiceProvider.getRpcEndpointService(context);
+    createAndRegister(method, service);
   }
 
   /**

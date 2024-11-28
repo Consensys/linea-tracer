@@ -51,7 +51,6 @@ public class ZeroSizeCallDataOrReturnDataTest {
             .build();
 
     BytecodeRunner.of(program.compile()).run(Wei.fromEth(1), 30000L, List.of(calleeAccount));
-    // TODO: this test is supposed to fail as the ones below, but it does not. Understand why
   }
 
   @Test

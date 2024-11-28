@@ -15,19 +15,21 @@
 
 package net.consensys.linea;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import static net.consensys.linea.BlockchainReferenceTestTools.PARAMS;
 
 import java.util.Collection;
 import java.util.List;
 
-import static net.consensys.linea.BlockchainReferenceTestTools.PARAMS;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class FilterTest {
 
   @Test
   void name() {
-    Collection<Object[]> tests = PARAMS.generate("ethereum-tests/BlockchainTests/GeneralStateTests/stCreate2/RevertInCreateInInitCreate2.json");
+    Collection<Object[]> tests =
+        PARAMS.generate(
+            "ethereum-tests/BlockchainTests/GeneralStateTests/stCreate2/RevertInCreateInInitCreate2.json");
     List<Object[]> filtered = tests.stream().filter(t -> ((boolean) t[2]) == true).toList();
     Assertions.assertEquals(0, filtered.size());
   }

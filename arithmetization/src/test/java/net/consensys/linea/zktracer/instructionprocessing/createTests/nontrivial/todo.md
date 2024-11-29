@@ -41,3 +41,22 @@ Once we are in the realm of successful deployments we must explore deployed byte
 - [ ] allows for modifying its own storage
 - [ ] allows for SELFDESTRUCT through its own code
 - [ ] ability to DELEGATECALL into other accounts
+
+# Specific scenarios that we need to test
+
+- [ ] deployment transaction
+  - [ ] COINBASE is the deployment address [yes / no]
+  - [ ] deployment address already has funds [yes / no]
+  - [ ] deployment success [yes / no]
+  - [ ] 0th transaction CALL's future deployment address with value [yes / no]
+  - [ ] 2nd transaction CALL's failed deployment address with value [yes / no]
+  - [ ] 2nd transaction EXTCODEHASH's failed deployment address [yes / no]
+  - [ ] 2nd transaction SELFDESTRUCT's and targets failed deployment address with value [yes / no]
+- [ ] same thing with CREATE-induced deployment (though this should be working fine as is)
+
+The rationale for the last points: the recent change that we made to TX_INIT / TX_FINL solved an issue whereby
+after a failed deployment transaction the deployment address would still have a nonzero nonce (≥ 1) and thus would
+EXIST in the state σ after transaction end. This would have down stream effects such as
+- EXTCODEHASH would not behave the same
+- CALL with value would cost 25k less gas
+- sending funds via SELFDESTRUCT would cost 25k less gas

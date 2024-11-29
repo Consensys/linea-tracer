@@ -13,11 +13,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.defer;
+package net.consensys.linea;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
-import org.hyperledger.besu.evm.frame.MessageFrame;
+import static net.consensys.linea.BlockchainReferenceTestTools.PARAMS;
 
-public interface ContextEntryDefer {
-  void resolveUponContextEntry(Hub hub, MessageFrame frame);
+import java.util.Collection;
+import java.util.List;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
+public class FilterTest {
+
+  @Test
+  void name() {
+    Collection<Object[]> tests =
+        PARAMS.generate(
+            "ethereum-tests/BlockchainTests/GeneralStateTests/stCreate2/RevertInCreateInInitCreate2.json");
+    List<Object[]> filtered = tests.stream().filter(t -> ((boolean) t[2]) == true).toList();
+    Assertions.assertEquals(0, filtered.size());
+  }
 }

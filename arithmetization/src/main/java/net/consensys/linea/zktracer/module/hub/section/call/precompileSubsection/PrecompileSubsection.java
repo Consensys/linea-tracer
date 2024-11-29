@@ -92,9 +92,9 @@ public class PrecompileSubsection
   }
 
   @Override
-  public void resolveUponContextEntry(Hub hub) {
+  public void resolveUponContextEntry(Hub hub, MessageFrame frame) {
     callerGas = hub.callStack().parentCallFrame().frame().getRemainingGas();
-    calleeGas = hub.messageFrame().getRemainingGas();
+    calleeGas = frame.getRemainingGas();
   }
 
   public void resolveUponContextExit(Hub hub, CallFrame callFrame) {
@@ -209,7 +209,9 @@ public class PrecompileSubsection
   }
 
   public Bytes rawCallerMemory() {
-    return callSection.getCallDataRange().getRawData();
+    return getCallDataRange().isEmpty()
+        ? getReturnAtRange().getRawData()
+        : getCallDataRange().getRawData();
   }
 
   public Bytes extractCallData() {

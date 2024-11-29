@@ -12,12 +12,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.reporting;
 
-package net.consensys.linea.zktracer.module.hub.defer;
-
-import net.consensys.linea.zktracer.module.hub.Hub;
-import org.hyperledger.besu.evm.frame.MessageFrame;
-
-public interface ContextEntryDefer {
-  void resolveUponContextEntry(Hub hub, MessageFrame frame);
+public enum TestState {
+  DISABLED,
+  SUCCESS,
+  FAILED,
+  ABORTED;
 }

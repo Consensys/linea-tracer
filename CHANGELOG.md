@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.8.0-rc5
+## 0.8.0-rc6
 * skip ref test that are deployment transaction to an already existing … (#1584)
 * tmp: disbale MMIO constraints for the release (#1587)
 * Update Linea Besu to 24.11-delivery39 (#1583)

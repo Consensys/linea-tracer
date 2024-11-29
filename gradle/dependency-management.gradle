@@ -30,11 +30,15 @@ repositories {
   mavenLocal()
 }
 
-configurations.all {
-  resolutionStrategy {
-    cacheChangingModulesFor 0, 'seconds'
+configurations {
+  pluginImplementation
+  resolvable('pluginClasspath') {
+    extendsFrom(pluginImplementation)
   }
 }
+
+sourceSets.main.compileClasspath += configurations.pluginImplementation
+sourceSets.main.runtimeClasspath += configurations.pluginImplementation
 
 apply plugin: 'io.spring.dependency-management'
 
@@ -53,6 +57,8 @@ dependencyManagement {
       entry 'logback-core'
       entry 'logback-classic'
     }
+
+    dependency 'com.google.code.gson:gson:2.11.0'
 
     dependency 'com.slack.api:slack-api-client:1.32.1'
   }

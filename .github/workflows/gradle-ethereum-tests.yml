@@ -12,11 +12,6 @@ jobs:
   ethereum-tests:
     runs-on: ubuntu-latest-128
     steps:
-      - uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.CONSTRAINTS_SSH_KEY }}
-
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -56,15 +51,19 @@ jobs:
             reference-tests/build/reports/tests/**/*
             tmp/local/*
 
+      - name: Failure Notification
+        if: ${{ failure() || cancelled() }}
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+             name: "Daily Reference Tests (Rust Corset)"
+             status: "${{ job.status }}"
 
   ethereum-tests-go-corset:
     runs-on: ubuntu-latest-128
     steps:
-      - uses: webfactory/ssh-agent@v0.7.0
-        with:
-          ssh-private-key: |
-            ${{ secrets.CONSTRAINTS_SSH_KEY }}
-
       - name: Checkout repository
         uses: actions/checkout@v3
         with:
@@ -83,7 +82,7 @@ jobs:
         run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
 
       - name: Generate General State Reference Tests
-        run: ./gradlew generateGeneralStateReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
+        run: ./gradlew generateGeneralStateReferenceTests -Dorg.gradle.caching=true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand
@@ -91,7 +90,6 @@ jobs:
       - name: Run General State Reference Tests
         run: GOMEMLIMIT=196GiB ./gradlew referenceGeneralStateTests
         env:
-          REFERENCE_TESTS_PARALLELISM: 10
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
@@ -101,6 +99,16 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ethereum-tests-go-corset-report
-          path: | 
+          path: |
             reference-tests/build/reports/tests/**/*
             tmp/local/*
+
+      - name: Failure Notification
+        if: ${{ failure() || cancelled() }}
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+             name: "Daily Reference Tests (Go Corset)"
+             status: "${{ job.status }}"

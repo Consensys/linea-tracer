@@ -47,11 +47,13 @@ public class BlakeSubsection extends PrecompileSubsection {
       return;
     }
 
+    final Bytes callData = getCallDataRange().extract();
     final Bytes blakeR = callData.slice(0, 4);
     final Bytes blakeF = callData.slice(212, 1);
 
     final boolean wellFormedF = blakeF.get(0) == 0 || blakeF.get(0) == 1;
     final long rounds = blakeR.toLong();
+    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     final boolean sufficientGas = calleeGas >= rounds;
     blakeSuccess = wellFormedF && sufficientGas;
 
@@ -66,7 +68,6 @@ public class BlakeSubsection extends PrecompileSubsection {
     secondImcFragment = ImcFragment.empty(hub);
     fragments.add(secondImcFragment);
 
-    final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
     blake2fParamsOobCall = new Blake2fParamsOobCall(calleeGas);
     secondImcFragment.callOob(blake2fParamsOobCall);
 
@@ -74,11 +75,11 @@ public class BlakeSubsection extends PrecompileSubsection {
   }
 
   @Override
-  public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-    super.resolveAtContextReEntry(hub, frame);
+  public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
+    super.resolveAtContextReEntry(hub, callFrame);
 
     // sanity checks
-    checkArgument(blakeCdsOobCall.isHubSuccess() == (callDataMemorySpan.length() == 213));
+    checkArgument(blakeCdsOobCall.isHubSuccess() == (callDataSize() == 213));
     checkArgument(callSuccess == blakeSuccess);
     this.sanityCheck();
 
@@ -102,15 +103,17 @@ public class BlakeSubsection extends PrecompileSubsection {
     final ImcFragment fourthImcFragment = ImcFragment.empty(hub);
     fragments.add(fourthImcFragment);
 
-    if (!this.parentReturnDataTarget.isEmpty()) {
+    if (!this.getReturnAtRange().isEmpty()) {
       final MmuCall partialReturnDataCopyForBlake =
           MmuCall.partialCopyOfReturnDataforBlake(hub, this);
       fourthImcFragment.callMmu(partialReturnDataCopyForBlake);
     }
 
     // TODO: make it smarter
+    Bytes callData = getCallDataRange().extract();
     final BlakeComponents blake2f =
-        new BlakeComponents(callData, callData.slice(0, 4), callData.slice(212, 1), returnData);
+        new BlakeComponents(
+            callData, callData.slice(0, 4), callData.slice(212, 1), extractReturnData());
     hub.blakeModexpData().callBlake(blake2f, this.exoModuleOperationId());
   }
 

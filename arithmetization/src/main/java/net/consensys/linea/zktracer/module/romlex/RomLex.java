@@ -34,8 +34,8 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.ContextEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
-import net.consensys.linea.zktracer.module.hub.defer.ImmediateContextEntryDefer;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -50,7 +50,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class RomLex
-    implements OperationSetModule<RomOperation>, ImmediateContextEntryDefer, ContextExitDefer {
+    implements OperationSetModule<RomOperation>, ContextEntryDefer, ContextExitDefer {
 
   private final Hub hub;
 
@@ -161,7 +161,7 @@ public class RomLex
 
         checkArgument(length > 0, "callRomLex expects positive size for CREATE(2)");
 
-        hub.defers().scheduleForImmediateContextEntry(this);
+        hub.defers().scheduleForContextEntry(this);
         byteCode = frame.shadowReadMemory(offset, length);
         address = getDeploymentAddress(frame);
       }
@@ -219,8 +219,8 @@ public class RomLex
             !hub.deploymentStatusOf(foreignCodeAddress),
             "EXTCODECOPY should only trigger a ROM_LEX chunk if its target isn't currently deploying");
         checkArgument(
-            !frame.getWorldUpdater().getAccount(foreignCodeAddress).isEmpty()
-                && frame.getWorldUpdater().getAccount(foreignCodeAddress).hasCode());
+            !frame.getWorldUpdater().get(foreignCodeAddress).isEmpty()
+                && frame.getWorldUpdater().get(foreignCodeAddress).hasCode());
 
         Optional.ofNullable(frame.getWorldUpdater().get(foreignCodeAddress))
             .map(AccountState::getCode)
@@ -245,8 +245,8 @@ public class RomLex
   }
 
   @Override
-  public void resolveUponContextEntry(Hub hub) {
-    checkArgument(hub.messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION);
+  public void resolveUponContextEntry(Hub hub, MessageFrame frame) {
+    checkArgument(frame.getType() == MessageFrame.Type.CONTRACT_CREATION);
     checkArgument(
         hub.deploymentStatusOf(address), "After a CREATE the deployment status should be true");
 

@@ -47,7 +47,7 @@ public class AccountSnapshot {
   private boolean deploymentStatus;
 
   // TODO: is there a "canonical" way to take a snapshot fo an account
-  //  where getWorldUpdater().getAccount(address) return null ?
+  //  where getWorldUpdater().get(address) return null ?
 
   /**
    * Canonical way of creating an account snapshot.
@@ -146,7 +146,6 @@ public class AccountSnapshot {
         .orElseGet(() -> AccountSnapshot.empty(isWarm, deploymentNumber, deploymentStatus));
   }
 
-  // TODO: confirm with @Tsvetan that this indeed creates a deep copy
   /**
    * Creates deep copy of {@code this} {@link AccountSnapshot}.
    *

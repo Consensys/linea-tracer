@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.hyperledger.besu.datatypes.Address;
@@ -37,21 +38,21 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class OutOfGasExceptionTest {
 
-  // TODO: add tests when address is warm. Use constants such as G_WARM_ACCESS etc, make clear the
-  // different types of costs
+  // TODO: add tests when address is warm for every opcode
   @ParameterizedTest
   @MethodSource("outOfGasExceptionSource")
   void outOfGasExceptionColdTest(
-      OpCode opCode, int staticCost, int nPushes, boolean triggersOutOfGasExceptions) {
+      OpCode opCode, int opCodeStaticCost, int nPushes, short corneCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < nPushes; i++) {
       program.push(0);
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(
-        (long) 21000 + nPushes * 3L + staticCost - (triggersOutOfGasExceptions ? 1 : 0));
-    if (triggersOutOfGasExceptions) {
+    // TODO: check if this approach is general enough, maybe use a similar approach to the test
+    //  below
+    bytecodeRunner.run((long) 21000 + nPushes * 3L + opCodeStaticCost + corneCase);
+    if (corneCase == -1) {
       assertEquals(
           OUT_OF_GAS_EXCEPTION,
           bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
@@ -66,16 +67,17 @@ public class OutOfGasExceptionTest {
     List<Arguments> arguments = new ArrayList<>();
     for (OpCodeData opCodeData : opCodeToOpCodeDataMap.values()) {
       OpCode opCode = opCodeData.mnemonic();
-      int staticCost = opCodeData.stackSettings().staticGas().cost();
-      int delta = opCodeData.stackSettings().delta(); // number of items popped from the stack
+      int opCodeStaticCost = opCodeData.stackSettings().staticGas().cost();
+      int nPushes = opCodeData.stackSettings().delta(); // number of items popped from the stack
       // TODO: some opCodes are excluded for now because they may need to be treated differently
-      if (staticCost > 0
+      if (opCodeStaticCost > 0
           && opCode != OpCode.MLOAD
           && opCode != OpCode.MSTORE8
           && opCode != OpCode.SELFDESTRUCT
           && opCode != OpCode.MSTORE) {
-        arguments.add(Arguments.of(opCode, staticCost, delta, true));
-        arguments.add(Arguments.of(opCode, staticCost, delta, false));
+        arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, -1));
+        arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 0));
+        arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 1));
       }
     }
     return arguments.stream();
@@ -83,14 +85,13 @@ public class OutOfGasExceptionTest {
 
   @ParameterizedTest
   @MethodSource("outOfGasExceptionCallSource")
-  void outOfGasExceptionCallTest(int value, boolean targetAddressExists, boolean isWarm) {
+  void outOfGasExceptionCallTest(
+      int value, boolean targetAddressExists, boolean isWarm, short cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    int nPushes = 0;
 
     if (targetAddressExists && isWarm) {
       // Note: this is a possible way to warm the address
       program.push("ca11ee").op(OpCode.BALANCE);
-      nPushes += 1;
     }
 
     program
@@ -102,12 +103,16 @@ public class OutOfGasExceptionTest {
         .push("ca11ee") // address
         .push(1000) // gas
         .op(OpCode.CALL);
-    nPushes += 7;
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
 
-    // TODO: the gas limits here are are surely not enough to run the program, but we want to ensure
-    //  that the OOGX is triggered exactly when the CALL is executed
+    long gasLimit =
+        21000L
+            + // base gas cost
+            (isWarm ? 3L + 2600L : 0) // BALANCE + PUSH
+            + 7 * 3L // 7 PUSH
+            + callGasCost(value, targetAddressExists, isWarm); // CALL
+
     if (targetAddressExists) {
       final ToyAccount calleeAccount =
           ToyAccount.builder()
@@ -115,23 +120,55 @@ public class OutOfGasExceptionTest {
               .nonce(10)
               .address(Address.fromHexString("ca11ee"))
               .build();
-      bytecodeRunner.run(21000L + nPushes * 3L, List.of(calleeAccount));
+      bytecodeRunner.run(gasLimit + cornerCase, List.of(calleeAccount));
     } else {
-      bytecodeRunner.run(21000L + nPushes * 3L);
+      bytecodeRunner.run(gasLimit + cornerCase);
     }
 
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 
   static Stream<Arguments> outOfGasExceptionCallSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (int value : new int[] {0, 1}) {
-      arguments.add(Arguments.of(value, true, true));
-      arguments.add(Arguments.of(value, true, false));
-      arguments.add(Arguments.of(value, false, false));
+      for (short cornerCase : new short[] {-1, 0, 1}) {
+        arguments.add(Arguments.of(value, true, true, cornerCase));
+        arguments.add(Arguments.of(value, true, false, cornerCase));
+        arguments.add(Arguments.of(value, false, false, cornerCase));
+      }
     }
     return arguments.stream();
+  }
+
+  private long callGasCost(int value, boolean targetAddressExists, boolean isWarm) {
+    // TODO: check if this method is correct, general enough and can be simplified
+    if (value == 0) {
+      if (isWarm) {
+        return GlobalConstants.GAS_CONST_G_WARM_ACCESS;
+      } else {
+        return GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
+      }
+    } else {
+      if (isWarm) {
+        return GlobalConstants.GAS_CONST_G_WARM_ACCESS + GlobalConstants.GAS_CONST_G_CALL_VALUE;
+      } else {
+        if (targetAddressExists) {
+          return GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS
+              + GlobalConstants.GAS_CONST_G_CALL_VALUE;
+        } else {
+          return GlobalConstants.GAS_CONST_G_NEW_ACCOUNT
+              + GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS
+              + GlobalConstants.GAS_CONST_G_CALL_VALUE;
+        }
+      }
+    }
   }
 }

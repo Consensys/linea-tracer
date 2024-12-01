@@ -1,4 +1,4 @@
-name: "Unit & Fast Replay Tests"
+name: "Fast Replay Tests"
 
 on:
   push:
@@ -50,7 +50,7 @@ jobs:
       - name: Run spotless
         run: ./gradlew --no-daemon --parallel clean spotlessCheck
 
-  tests:
+  corset-replay-tests:
     needs: [ build ]
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-large
     steps:
@@ -75,13 +75,6 @@ jobs:
       - name: Setup Rust Corset
         uses: ./.github/actions/setup-rust-corset
 
-      - name: Run unit tests
-        run: ./gradlew :arithmetization:test --stacktrace
-        env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-          CORSET_FLAGS: trace-span=3,fields,expand,expand,expand
-          UNIT_TESTS_PARALLELISM: 2
-
       - name: Run Replay tests
         run: ./gradlew :arithmetization:fastReplayTests --stacktrace
         env:
@@ -93,10 +86,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: unit-test-report
+          name: replay-test-report
           path: arithmetization/build/reports/tests/**/*
 
-  go-corset-tests:
+  go-corset-replay-tests:
     needs: [ build ]
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-large
     continue-on-error: true
@@ -122,13 +115,6 @@ jobs:
       - name: Setup Go Corset
         uses: ./.github/actions/setup-go-corset
 
-      - name: Run unit tests
-        run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:test
-        env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-          CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -b1024 -wd --ansi-escapes=false --report --air
-
       - name: Run replay tests
         run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:fastReplayTests
         env:
@@ -140,5 +126,5 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v3
         with:
-          name: go-corset-tests-report
+          name: go-corset-replay-tests-report
           path: arithmetization/build/reports/tests/**/*

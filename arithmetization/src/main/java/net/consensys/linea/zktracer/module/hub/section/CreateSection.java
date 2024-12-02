@@ -220,18 +220,15 @@ public class CreateSection extends TraceSection
     // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create
     ////////////////////////////////////////////////////////////////////////////////
 
-    // we charge for the gas paid out of pocked
-    final long gasMinusUpfrontGasCost = commonValues.gasNext();
-    final long gasPaidOutOfPocket = Hub.GAS_PROJECTOR.of(frame, hub.opCode()).gasPaidOutOfPocket();
-    commonValues.gasNext(gasMinusUpfrontGasCost - gasPaidOutOfPocket);
+    // we charge for the gas paid out of pocket
+    commonValues.payGasPaidOutOfPocket(hub);
 
     // we capture revert information about the child context: CCSR and CCRS
     hub.defers().scheduleForContextReEntry(imcFragment, hub.currentFrame());
 
     // The current execution context pays (63/64)ths of it current gas to the child context
-    commonValues.payGasPaidOutOfPocket(hub);
-    hub.defers()
-        .scheduleForContextReEntry(this, callFrame); // To get the success bit of the CREATE(2)
+    // To get the success bit of the CREATE(2) operation
+    hub.defers().scheduleForContextReEntry(this, callFrame);
 
     requiresRomLex = true;
     hub.romLex().callRomLex(frame);

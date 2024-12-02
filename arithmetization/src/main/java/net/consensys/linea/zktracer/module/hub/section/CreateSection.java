@@ -206,6 +206,7 @@ public class CreateSection extends TraceSection
     if (failedCreate) {
       finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
       scenarioFragment.setScenario(CREATE_FAILURE_CONDITION_WONT_REVERT);
+      commonValues.payGasPaidOutOfPocket(hub);
       hub.failureConditionForCreates = true;
       return;
     }
@@ -363,8 +364,8 @@ public class CreateSection extends TraceSection
         hub.factories().accountFragment();
     final AccountFragment creatorAccountFragment =
         accountFragmentFactory.make(
-            preOpcodeCreateeSnapshot,
-            preOpcodeCreateeSnapshot,
+            preOpcodeCreatorSnapshot,
+            preOpcodeCreatorSnapshot,
             DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     final ContextFragment updatedCurrentContextFragment =

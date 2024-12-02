@@ -26,6 +26,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.instructionprocessing.createTests.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -35,6 +36,20 @@ public class RootLevel {
 
   public static String salt01 = "5a1701";
   public static String salt02 = "5a1702";
+
+  @Test
+  void basicCreate2Test() {
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+            .push(0xadd7) // salt
+            .push(1) // size
+            .push(0) // offset
+            .push(1) // value
+            .op(CREATE2);
+
+    run(program);
+  }
 
   @ParameterizedTest
   @MethodSource("createParametersForEmptyCreates")

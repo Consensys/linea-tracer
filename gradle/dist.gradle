@@ -63,6 +63,22 @@ task unTarLineaBesu(type: Copy) {
   into lineaBesuDistTar.parentFile
 }
 
+// Get all the dependencies that are provided by Besu, removing the version and suffix
+def lineaBesuLibDir = new File(lineaBesuDistTar.parentFile, rootProject.besuIdentifier + '/lib')
+def lineaBesuLibs = []
+fileTree(dir: lineaBesuLibDir, include: '*.jar').visit {
+  FileVisitDetails details ->
+    def libPrefix = details.file.name =~ dependencyNamePattern()
+    lineaBesuLibs << libPrefix[0][1]
+}
+
+def excludeBesuProvidedDeps = {
+  // include the dependency in the jar only if it is not already provided by Besu
+  def libName = it.name =~ dependencyNamePattern()
+  def libPrefix = libName[0][1]
+  !lineaBesuLibs.contains(libPrefix)
+}
+
 jar {
   dependsOn unTarLineaBesu
   archiveBaseName = distributionIdentifier
@@ -76,23 +92,10 @@ jar {
     )
   }
 
-  // Get all the dependencies that are provided by Besu, removing the version and suffix
-  def lineaBesuLibDir = new File(lineaBesuDistTar.parentFile, rootProject.besuIdentifier + '/lib')
-  def lineaBesuLibs = []
-  fileTree(dir: lineaBesuLibDir, include: '*.jar').visit {
-    FileVisitDetails details ->
-      def libPrefix = details.file.name =~ /(.*)(\-.*?)\.jar/
-      lineaBesuLibs << libPrefix[0][1]
-  }
 
   from {
-    configurations.pluginClasspath.filter(
-      {
-        // include the dependency in the jar only if it is not already provided by Besu
-        def libName = it.name =~ /(.*)(\-.*?)\.jar/
-        def libPrefix = libName[0][1]
-        !lineaBesuLibs.contains(libPrefix)
-      }).collect {it.isDirectory() ? it : zipTree(it) }
+    configurations.pluginClasspath.filter(excludeBesuProvidedDeps
+).collect {it.isDirectory() ? it : zipTree(it) }
   }
   duplicatesStrategy('exclude')
 }
@@ -108,7 +111,27 @@ def calculateVersion() {
   return version
 }
 
+/**
+ * Create a distribution of the plugin, that only contains the plugin jar and the
+ * dependencies that are not provided by Besu itself, so that is can be simply
+ * extracted in the Besu plugins dir.
+ */
+tasks.register('distPlugin', Zip) {
+  dependsOn installDist
+
+  from("${buildDir}/libs")
+  from {
+    configurations.pluginClasspath.filter(
+            excludeBesuProvidedDeps)
+
+  }
+}
+
 static def getCheckedOutGitCommitHash() {
   def hashLength = 8
   "git rev-parse HEAD".execute().text.take(hashLength)
+}
+
+static def dependencyNamePattern() {
+  /(.*)(\-.*?)\.jar/
 }

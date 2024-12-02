@@ -336,7 +336,7 @@ public class MxpTest {
       offset1 = EWord.of(util.getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
       offset2 = EWord.of(util.getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
 
-      // NOOP case (except for Type2 and Type3)
+      // NOOP case (except for Type2 and Type3 instructions)
       if (mxpType != MxpType.TYPE_2 && mxpType != MxpType.TYPE_3) {
         if (util.nextRandomFloat() < NOOP_PROB) {
           // One or both of the size parameters are equal to 0 (each scenario has the same

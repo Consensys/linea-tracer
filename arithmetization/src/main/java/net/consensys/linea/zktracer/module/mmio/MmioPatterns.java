@@ -181,7 +181,7 @@ public class MmioPatterns {
   }
 
   public static void updateTemporaryTargetRam(
-          MmuData mmuData, final long targetLimbOffsetToUpdate, final Bytes16 newLimb) {
+      MmuData mmuData, final long targetLimbOffsetToUpdate, final Bytes16 newLimb) {
     byte[] originalRam = mmuData.targetRamBytes().toArray();
 
     int limbStart = (int) (LLARGE * targetLimbOffsetToUpdate);
@@ -190,8 +190,8 @@ public class MmioPatterns {
     byte[] updatedRam = new byte[originalRam.length];
     System.arraycopy(originalRam, 0, updatedRam, 0, limbStart);
     System.arraycopy(newLimb.toArray(), 0, updatedRam, limbStart, newLimb.size());
-    System.arraycopy(originalRam, limbEnd, updatedRam, limbStart + newLimb.size(),
-            originalRam.length - limbEnd);
+    System.arraycopy(
+        originalRam, limbEnd, updatedRam, limbStart + newLimb.size(), originalRam.length - limbEnd);
     mmuData.targetRamBytes(Bytes.wrap(updatedRam));
   }
 }

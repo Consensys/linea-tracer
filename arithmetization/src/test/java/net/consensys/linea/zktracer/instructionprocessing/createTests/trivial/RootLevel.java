@@ -42,11 +42,11 @@ public class RootLevel {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
-            .push(0xadd7) // salt
-            .push(1) // size
-            .push(0) // offset
-            .push(1) // value
-            .op(CREATE2);
+        .push(0xadd7) // salt
+        .push(1) // size
+        .push(0) // offset
+        .push(1) // value
+        .op(CREATE2);
 
     run(program);
   }

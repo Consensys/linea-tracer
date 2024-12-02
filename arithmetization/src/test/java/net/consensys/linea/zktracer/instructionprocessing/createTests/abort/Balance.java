@@ -98,12 +98,12 @@ public class Balance {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     genericCreate(
-            program,
-            createType,
-            ValueParameter.SELFBALANCE_PLUS_ONE,
-            offsetParameter,
-            sizeParameter,
-            salt01); // aborts
+        program,
+        createType,
+        ValueParameter.SELFBALANCE_PLUS_ONE,
+        offsetParameter,
+        sizeParameter,
+        salt01); // aborts
     genericCreate(program, createType, ValueParameter.ONE, offsetParameter, sizeParameter, salt01);
 
     if (reverts) {

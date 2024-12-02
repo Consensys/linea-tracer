@@ -109,7 +109,7 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
     final Address currentAddress = frame.getRecipientAddress();
     final Bytes32 rawCreate2Address = getCreate2RawAddress(currentAddress, salt, hash);
     final RlpAddrOperation operation =
-        new RlpAddrOperation(rawCreate2Address, OpCode.CREATE2, currentAddress, salt, hash);
+        new RlpAddrOperation(rawCreate2Address, OpCode.CREATE2, currentAddress, salt, hash, longToUnsignedBigInteger(frame.getWorldUpdater().get(currentAddress).getNonce()));
     operations.add(operation);
     hub.trm().callTrimming(rawCreate2Address);
   }
@@ -118,6 +118,8 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
     final Bytes rawAddressHi = chunk.rawHash().slice(0, LLARGE);
     final long depAddressHi = rawAddressHi.slice(12, 4).toLong();
     final Bytes depAddressLo = chunk.rawHash().slice(LLARGE, LLARGE);
+    final BigInteger nonce = chunk.nonce().orElseThrow();
+    final Bytes nonceBytes = bigIntegerToBytes(nonce);
 
     for (int ct = 0; ct <= MAX_CT_CREATE2; ct++) {
       trace
@@ -134,6 +136,7 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
           .saltLo(chunk.salt().orElseThrow().slice(LLARGE, LLARGE))
           .kecHi(chunk.keccak().orElseThrow().slice(0, LLARGE))
           .kecLo(chunk.keccak().orElseThrow().slice(LLARGE, LLARGE))
+          .nonce(nonceBytes)
           .lc(true)
           .index(UnsignedByte.of(ct))
           .counter(UnsignedByte.of(ct));

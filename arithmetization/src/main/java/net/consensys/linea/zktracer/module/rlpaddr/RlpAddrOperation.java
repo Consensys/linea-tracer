@@ -49,8 +49,8 @@ public final class RlpAddrOperation extends ModuleOperation {
 
   // CREATE2 operation
   public RlpAddrOperation(
-      Bytes32 rawHash, OpCode opCode, Address address, Bytes32 salt, Bytes32 kec) {
-    this(rawHash, opCode, Optional.empty(), address, Optional.of(salt), Optional.of(kec));
+      Bytes32 rawHash, OpCode opCode, Address address, Bytes32 salt, Bytes32 kec, BigInteger nonce) {
+    this(rawHash, opCode, Optional.of(nonce), address, Optional.of(salt), Optional.of(kec));
   }
 
   @Override

@@ -185,7 +185,7 @@ public class MmioPatterns {
     byte[] originalRam = mmuData.targetRamBytes().toArray();
 
     int limbStart = (int) (LLARGE * targetLimbOffsetToUpdate);
-    int limbEnd = limbStart + (int) LLARGE;
+    int limbEnd = limbStart + LLARGE;
 
     byte[] updatedRam = new byte[originalRam.length];
     System.arraycopy(originalRam, 0, updatedRam, 0, limbStart);

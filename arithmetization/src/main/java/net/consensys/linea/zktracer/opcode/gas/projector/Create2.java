@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
+import static com.google.common.base.Preconditions.checkState;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;

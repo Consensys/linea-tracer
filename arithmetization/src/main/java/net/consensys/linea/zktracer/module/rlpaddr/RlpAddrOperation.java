@@ -37,14 +37,14 @@ import org.hyperledger.besu.datatypes.Address;
 public final class RlpAddrOperation extends ModuleOperation {
   @EqualsAndHashCode.Include private final Bytes32 rawHash;
   private final OpCode opCode;
-  private final Optional<BigInteger> nonce;
+  @EqualsAndHashCode.Include private final BigInteger nonce;
   private final Address address;
-  private final Optional<Bytes32> salt;
-  private final Optional<Bytes32> keccak;
+  private final Bytes32 salt;
+  private final Bytes32 keccak;
 
   // CREATE operation
   public RlpAddrOperation(Bytes32 rawDepAddress, OpCode opCode, BigInteger nonce, Address address) {
-    this(rawDepAddress, opCode, Optional.of(nonce), address, Optional.empty(), Optional.empty());
+    this(rawDepAddress, opCode, nonce, address, Bytes32.ZERO, Bytes32.ZERO);
   }
 
   // CREATE2 operation
@@ -55,7 +55,7 @@ public final class RlpAddrOperation extends ModuleOperation {
       Bytes32 salt,
       Bytes32 kec,
       BigInteger nonce) {
-    this(rawHash, opCode, Optional.of(nonce), address, Optional.of(salt), Optional.of(kec));
+    this(rawHash, opCode, nonce, address, salt, kec);
   }
 
   @Override

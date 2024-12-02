@@ -41,7 +41,7 @@ jobs:
           path: build/reports/tests/**/*
 
   go-corset-tests:
-    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
+    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
     continue-on-error: true
     steps:
       - name: Checkout repository

@@ -187,13 +187,28 @@ public class MmioPatterns {
     int limbEnd = limbStart + LLARGE;
     byte[] originalRam = mmuData.targetRamBytes().toArray();
 
-    // The original formula below is limbStart + newLimb.size() + mmuData.targetRamBytes().size() - limbStart
-    int size = newLimb.size() + mmuData.targetRamBytes().size();
+    int size = limbStart + newLimb.size() + mmuData.targetRamBytes().size() - limbEnd;
     byte[] updatedRam = new byte[size];
     System.arraycopy(newLimb.toArray(), 0, updatedRam, limbStart, newLimb.size());
     System.arraycopy(
         originalRam, limbEnd, updatedRam, limbStart + newLimb.size(), originalRam.length - limbEnd);
 
     mmuData.targetRamBytes(Bytes.wrap(updatedRam));
+  }
+
+  public static void updateTemporaryTargetRam0(
+      MmuData mmuData, final long targetLimbOffsetToUpdate, final Bytes16 newLimb) {
+    final Bytes bytesPreLimb =
+        Bytes.repeat(
+            (byte) 0,
+            (int)
+                (LLARGE
+                    * targetLimbOffsetToUpdate)); // We won't access the preLimb again, so we don't
+    // care
+    // of its value
+    final Bytes bytesPostLimb =
+        mmuData.targetRamBytes().slice((int) ((targetLimbOffsetToUpdate + 1) * LLARGE));
+
+    mmuData.targetRamBytes(Bytes.concatenate(bytesPreLimb, newLimb, bytesPostLimb));
   }
 }

@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.instructionprocessing.createTests.CreateType
 import net.consensys.linea.zktracer.instructionprocessing.createTests.OffsetParameter;
 import net.consensys.linea.zktracer.instructionprocessing.createTests.SizeParameter;
 import net.consensys.linea.zktracer.instructionprocessing.createTests.ValueParameter;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -77,6 +78,32 @@ public class Balance {
         offsetParameter,
         sizeParameter,
         salt01); // aborts
+    genericCreate(program, createType, ValueParameter.ONE, offsetParameter, sizeParameter, salt01);
+
+    if (reverts) {
+      appendRevert(program, 2, 13);
+    }
+
+    run(program);
+  }
+
+  @Test
+  void rootLevelAbortThenSuccessCreateTest() {
+
+    // parameters
+    CreateType createType = CreateType.CREATE;
+    OffsetParameter offsetParameter = OffsetParameter.ZERO;
+    SizeParameter sizeParameter = SizeParameter.ZERO;
+    boolean reverts = true;
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    genericCreate(
+            program,
+            createType,
+            ValueParameter.SELFBALANCE_PLUS_ONE,
+            offsetParameter,
+            sizeParameter,
+            salt01); // aborts
     genericCreate(program, createType, ValueParameter.ONE, offsetParameter, sizeParameter, salt01);
 
     if (reverts) {

@@ -58,5 +58,5 @@ The rationale for the last points: the recent change that we made to TX_INIT / T
 after a failed deployment transaction the deployment address would still have a nonzero nonce (≥ 1) and thus would
 EXIST in the state σ after transaction end. This would have down stream effects such as
 - EXTCODEHASH would not behave the same
-- CALL with value would cost 25k less gas
+- CALL with value may cost 25k less gas
 - sending funds via SELFDESTRUCT would cost 25k less gas

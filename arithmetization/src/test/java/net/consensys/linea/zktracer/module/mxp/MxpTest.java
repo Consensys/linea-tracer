@@ -24,6 +24,7 @@ import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType3;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4ExcludingHalting;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4Halting;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -312,11 +313,12 @@ public class MxpTest {
     OpCode opCode;
 
     if (!isHalting) {
-      mxpType = MxpType.values()[util.nextRandomInt(1, 5)]; // Type 1 to 4 excluding opCodeLast
-      opCode = getRandomOpCodeByType(mxpType);
+      mxpType =
+          MxpType.values()[util.nextRandomInt(1, 5)]; // Type 1 to 4 excluding opCodesType4Halting
+      opCode = getRandomNonHaltingOpCodeByType(mxpType);
     } else {
       mxpType = MxpType.TYPE_4;
-      opCode = opCodesType4Halting[util.nextRandomInt(opCodesType4Halting.length)]; // opCodeLast
+      opCode = opCodesType4Halting[util.nextRandomInt(opCodesType4Halting.length)];
     }
 
     // Generate as many random values as needed at most
@@ -335,8 +337,11 @@ public class MxpTest {
       offset1 = EWord.of(util.getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
       offset2 = EWord.of(util.getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE));
 
-      // NOOP case (except for Type2 and Type3 instructions)
-      if (mxpType != MxpType.TYPE_2 && mxpType != MxpType.TYPE_3) {
+      // NOOP case (except for Type2 and Type3 instructions and halting instructions,
+      // as we do not want halting instructions to turn into NOOPs)
+      if (mxpType != MxpType.TYPE_2
+          && mxpType != MxpType.TYPE_3
+          && !Arrays.asList(opCodesType4Halting).contains(opCode)) {
         if (util.nextRandomFloat() < NOOP_PROB) {
           // One or both of the size parameters are equal to 0 (each scenario has the same
           // probability)
@@ -463,16 +468,17 @@ public class MxpTest {
     OpCode opCode;
 
     if (!isHalting) {
-      MxpType mxpType = MxpType.values()[util.nextRandomInt(2, 5)]; // Type 2 to 4
-      opCode = getRandomOpCodeByType(mxpType);
+      MxpType mxpType =
+          MxpType.values()[util.nextRandomInt(2, 5)]; // Type 2 to 4 excluding opCodesType4Halting
+      opCode = getRandomNonHaltingOpCodeByType(mxpType);
     } else {
-      opCode = opCodesType4Halting[util.nextRandomInt(opCodesType4Halting.length)]; // opCodeLast
+      opCode = opCodesType4Halting[util.nextRandomInt(opCodesType4Halting.length)];
     }
     // OpCode.CALL-type (Type 5) are tested via testCall()
     util.triggerNonTrivialButMxpxOrRoobForOpCode(program, triggerRoob, opCode);
   }
 
-  private OpCode getRandomOpCodeByType(MxpType mxpType) {
+  private OpCode getRandomNonHaltingOpCodeByType(MxpType mxpType) {
     return switch (mxpType) {
       case TYPE_1 -> opCodesType1[util.nextRandomInt(opCodesType1.length)];
       case TYPE_2 -> opCodesType2[util.nextRandomInt(opCodesType2.length)];

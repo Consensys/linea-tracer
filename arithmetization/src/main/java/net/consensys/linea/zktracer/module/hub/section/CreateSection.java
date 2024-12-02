@@ -130,7 +130,7 @@ public class CreateSection extends TraceSection
       return;
     }
 
-    final StpCall stpCall = new StpCall(hub, mxpCall.getGasMxp());
+    final StpCall stpCall = new StpCall(hub, frame, mxpCall.getGasMxp());
     imcFragment.callStp(stpCall);
 
     checkArgument(stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));

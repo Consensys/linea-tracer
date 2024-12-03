@@ -44,7 +44,7 @@ tasks.withType(Test).configureEach {
   dependsOn(buildZkevmBin)
 
   minHeapSize = "4g"
-  maxHeapSize = "8g"
+  //maxHeapSize = "8g"
 
   jvmArgs = [
     '-XX:-UseGCOverheadLimit',

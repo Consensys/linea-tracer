@@ -26,6 +26,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -41,6 +42,7 @@ public class Create {
   final Address address1 = Address.wrap(leftPadTo(tinyAddress1, 20));
   final Address address2 = Address.wrap(leftPadTo(tinyAddress2, 20));
   final Address targetAddress = Address.fromHexString("797add7e55");
+  final ToyAccount cAccount = userAccount.copyAccount();
 
   final BytecodeCompiler simpleSelfDestruct =
       BytecodeCompiler.newProgram().op(ORIGIN).op(SELFDESTRUCT);
@@ -162,6 +164,7 @@ public class Create {
   final Transaction deploymentTransactionNumber1 =
       ToyTransaction.builder()
           .sender(userAccount)
+              .nonce(99L)
           .to(targetAccount)
           .keyPair(keyPair)
           .value(Wei.of(0xffff))
@@ -171,7 +174,8 @@ public class Create {
 
   final Transaction createTransactionNumber1 =
       ToyTransaction.builder()
-          .sender(userAccount.raiseNonceBy(1))
+          .sender(userAccount)
+              .nonce(100L)
           .to(targetAccount)
           .keyPair(keyPair)
           .value(Wei.of(0xeeee))
@@ -182,7 +186,8 @@ public class Create {
 
   final Transaction selfDestructTransaction =
       ToyTransaction.builder()
-          .sender(userAccount.raiseNonceBy(2))
+          .sender(userAccount)
+              .nonce(101L)
           .to(targetAccount)
           .keyPair(keyPair)
           .value(Wei.of(0xdddd))
@@ -193,7 +198,8 @@ public class Create {
 
   final Transaction deploymentTransactionNumber2 =
       ToyTransaction.builder()
-          .sender(userAccount.raiseNonceBy(3))
+          .sender(userAccount)
+              .nonce(102L)
           .to(targetAccount)
           .keyPair(keyPair)
           .value(Wei.of(0xcccc))
@@ -203,7 +209,8 @@ public class Create {
 
   final Transaction createTransactionNumber2 =
       ToyTransaction.builder()
-          .sender(userAccount.raiseNonceBy(4))
+          .sender(userAccount)
+              .nonce(103L)
           .to(targetAccount)
           .keyPair(keyPair)
           .value(Wei.of(0xbbbb))

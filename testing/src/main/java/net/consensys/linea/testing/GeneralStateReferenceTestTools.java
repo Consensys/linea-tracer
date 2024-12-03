@@ -126,7 +126,6 @@ public class GeneralStateReferenceTestTools {
 
       transactionProcessingResultValidator.accept(transaction, result);
       zkTracerValidator.accept(tracer);
-      // update my account's nonce
       worldStateUpdater.commit();
     }
 

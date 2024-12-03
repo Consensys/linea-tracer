@@ -210,14 +210,15 @@ public class Create {
               .payload(leftPaddedAddress1)
               .build();
 
-  ToyTransactionNonceSetter[] arrayTxs = {
+  ToyTransactionNonceSetter[] transactionsNonceSetter = {
     deploymentTransactionNumber1,
     createTransactionNumber1,
     selfDestructTransaction,
     deploymentTransactionNumber2,
     createTransactionNumber2
   };
-  final List<Transaction> transactions = ToyMultiTransaction.builder().build(arrayTxs, userAccount);
+  final List<Transaction> transactions =
+      ToyMultiTransaction.builder().build(transactionsNonceSetter, userAccount);
 
   final List<ToyAccount> accounts =
       List.of(userAccount, targetAccount, simpleSelfDestructor, simpleCreator);

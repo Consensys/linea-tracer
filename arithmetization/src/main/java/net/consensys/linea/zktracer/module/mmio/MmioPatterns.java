@@ -196,20 +196,4 @@ public class MmioPatterns {
 
     mmuData.targetRamBytes(Bytes.wrap(updatedRam));
   }
-
-  public static void updateTemporaryTargetRam0(
-      MmuData mmuData, final long targetLimbOffsetToUpdate, final Bytes16 newLimb) {
-    final Bytes bytesPreLimb =
-        Bytes.repeat(
-            (byte) 0,
-            (int)
-                (LLARGE
-                    * targetLimbOffsetToUpdate)); // We won't access the preLimb again, so we don't
-    // care
-    // of its value
-    final Bytes bytesPostLimb =
-        mmuData.targetRamBytes().slice((int) ((targetLimbOffsetToUpdate + 1) * LLARGE));
-
-    mmuData.targetRamBytes(Bytes.concatenate(bytesPreLimb, newLimb, bytesPostLimb));
-  }
 }

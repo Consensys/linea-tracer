@@ -207,4 +207,8 @@ public class ToyAccount implements MutableAccount {
     long updatedNonce = this.getNonce() + k;
     return new ToyAccount(this.parent, this.getAddress(), updatedNonce, this.balance, this.balance);
   }
+
+  public ToyAccount copyAccount() {
+    return new ToyAccount(this.parent, this.getAddress(), this.getNonce(), this.balance, this.balance);
+  }
 }

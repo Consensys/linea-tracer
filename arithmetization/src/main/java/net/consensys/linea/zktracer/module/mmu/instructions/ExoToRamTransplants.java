@@ -32,6 +32,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.MutableBytes;
 
 public class ExoToRamTransplants implements MmuInstruction {
   private final Euc euc;
@@ -89,7 +90,7 @@ public class ExoToRamTransplants implements MmuInstruction {
     // Setting the target ram bytes
     // The target CN is ALWAYS a new, virgin, fictitious context, where is either write the call
     // data, or the result of a precompile
-    mmuData.targetRamBytes(Bytes.EMPTY);
+    mmuData.targetRamBytes(MutableBytes.EMPTY);
 
     // setting the MMIO instructions
     for (int i = 0; i < mmuData.totalNonTrivialInitials(); i++) {

@@ -37,6 +37,7 @@ import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioConstantValues;
 import net.consensys.linea.zktracer.module.mmu.values.MmuToMmioInstruction;
 import net.consensys.linea.zktracer.module.mmu.values.MmuWcpCallRecord;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.MutableBytes;
 
 @AllArgsConstructor
 @Getter
@@ -56,7 +57,7 @@ public class MmuData {
   private boolean mmuInstAnyToRamWithPaddingIsPurePadding;
   private Bytes exoBytes;
   private Bytes sourceRamBytes;
-  private Bytes targetRamBytes;
+  private MutableBytes targetRamBytes;
   private final boolean exoLimbIsSource;
   private final boolean exoLimbIsTarget;
   private static final List<Integer> MMU_INST_EXO_IS_SOURCE =
@@ -83,7 +84,7 @@ public class MmuData {
         false,
         Bytes.EMPTY,
         Bytes.EMPTY,
-        Bytes.EMPTY,
+        MutableBytes.EMPTY,
         MMU_INST_EXO_IS_SOURCE.contains(mmuCall.instruction()),
         MMU_INST_EXO_IS_TARGET.contains(mmuCall.instruction()));
 
@@ -112,7 +113,7 @@ public class MmuData {
 
   public void setTargetRamBytes() {
     if (mmuCall.targetRamBytes().isPresent()) {
-      targetRamBytes(mmuCall.targetRamBytes().get());
+      targetRamBytes(mmuCall.targetRamBytes().get().mutableCopy());
     }
   }
 

@@ -33,12 +33,13 @@ public class ToyMultiTransaction {
      *
      * @return an instance of {@link List<Transaction>}
      */
-    public List<Transaction> build(ToyTransactionBuilder[] toyTxBuilders, ToyAccount account) {
-      long accountNonce = account.getNonce();
+    public List<Transaction> build(
+        ToyTransactionBuilder[] toyTxBuilders, ToyAccount senderAccount) {
+      long senderAccountNonce = senderAccount.getNonce();
       List<Transaction> results = new ArrayList<>();
       for (ToyTransactionBuilder toyTxBuilder : toyTxBuilders) {
-        results.add(toyTxBuilder.nonce(accountNonce).build());
-        accountNonce++;
+        results.add(toyTxBuilder.nonce(senderAccountNonce).build());
+        senderAccountNonce++;
       }
       return results;
     }

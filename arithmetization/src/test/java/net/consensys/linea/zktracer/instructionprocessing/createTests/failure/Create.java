@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.failure;
 
+import static net.consensys.linea.testing.ToyTransaction.ToyTransactionBuilder;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.trivial.RootLevel.salt01;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
@@ -156,69 +157,59 @@ public class Create {
           .address(targetAddress)
           .build();
 
-  final ToyTransactionNonceSetter deploymentTransactionNumber1 =
-      (long nonce) ->
-          ToyTransaction.builder()
-              .nonce(nonce)
-              .to(targetAccount)
-              .keyPair(keyPair)
-              .value(Wei.of(0xffff))
-              .gasLimit(1_000_000L)
-              .gasPrice(Wei.of(8))
-              .build();
-  final ToyTransactionNonceSetter createTransactionNumber1 =
-      (long nonce) ->
-          ToyTransaction.builder()
-              .nonce(nonce)
-              .to(targetAccount)
-              .keyPair(keyPair)
-              .value(Wei.of(0xeeee))
-              .gasLimit(1_000_000L)
-              .gasPrice(Wei.of(8))
-              .payload(leftPaddedAddress1)
-              .build();
-  final ToyTransactionNonceSetter selfDestructTransaction =
-      (long nonce) ->
-          ToyTransaction.builder()
-              .nonce(nonce)
-              .to(targetAccount)
-              .keyPair(keyPair)
-              .value(Wei.of(0xdddd))
-              .gasLimit(1_000_000L)
-              .gasPrice(Wei.of(8))
-              .payload(leftPaddedAddress2)
-              .build();
-  final ToyTransactionNonceSetter deploymentTransactionNumber2 =
-      (long nonce) ->
-          ToyTransaction.builder()
-              .nonce(nonce)
-              .to(targetAccount)
-              .keyPair(keyPair)
-              .value(Wei.of(0xcccc))
-              .gasLimit(1_000_000L)
-              .gasPrice(Wei.of(8))
-              .build();
-  final ToyTransactionNonceSetter createTransactionNumber2 =
-      (long nonce) ->
-          ToyTransaction.builder()
-              .nonce(nonce)
-              .to(targetAccount)
-              .keyPair(keyPair)
-              .value(Wei.of(0xbbbb))
-              .gasLimit(1_000_000L)
-              .gasPrice(Wei.of(8))
-              .payload(leftPaddedAddress1)
-              .build();
+  final ToyTransactionBuilder deploymentTransactionBuilderNumber1 =
+      ToyTransaction.builder()
+          .to(targetAccount)
+          .keyPair(keyPair)
+          .value(Wei.of(0xffff))
+          .gasLimit(1_000_000L)
+          .gasPrice(Wei.of(8));
 
-  ToyTransactionNonceSetter[] transactionsNonceSetter = {
-    deploymentTransactionNumber1,
-    createTransactionNumber1,
-    selfDestructTransaction,
-    deploymentTransactionNumber2,
-    createTransactionNumber2
+  final ToyTransactionBuilder createTransactionBuilderNumber1 =
+      ToyTransaction.builder()
+          .to(targetAccount)
+          .keyPair(keyPair)
+          .value(Wei.of(0xeeee))
+          .gasLimit(1_000_000L)
+          .gasPrice(Wei.of(8))
+          .payload(leftPaddedAddress1);
+
+  final ToyTransactionBuilder selfDestructTransactionBuilder =
+      ToyTransaction.builder()
+          .to(targetAccount)
+          .keyPair(keyPair)
+          .value(Wei.of(0xdddd))
+          .gasLimit(1_000_000L)
+          .gasPrice(Wei.of(8))
+          .payload(leftPaddedAddress2);
+
+  final ToyTransactionBuilder deploymentTransactionBuilderNumber2 =
+      ToyTransaction.builder()
+          .to(targetAccount)
+          .keyPair(keyPair)
+          .value(Wei.of(0xcccc))
+          .gasLimit(1_000_000L)
+          .gasPrice(Wei.of(8));
+
+  final ToyTransactionBuilder createTransactionBuilderNumber2 =
+      ToyTransaction.builder()
+          .to(targetAccount)
+          .keyPair(keyPair)
+          .value(Wei.of(0xbbbb))
+          .gasLimit(1_000_000L)
+          .gasPrice(Wei.of(8))
+          .payload(leftPaddedAddress1);
+
+  ToyTransactionBuilder[] toyTransactionBuilders = {
+    deploymentTransactionBuilderNumber1,
+    createTransactionBuilderNumber1,
+    selfDestructTransactionBuilder,
+    deploymentTransactionBuilderNumber2,
+    createTransactionBuilderNumber2
   };
+
   final List<Transaction> transactions =
-      ToyMultiTransaction.builder().build(transactionsNonceSetter, userAccount);
+      ToyMultiTransaction.builder().build(toyTransactionBuilders, userAccount);
 
   final List<ToyAccount> accounts =
       List.of(userAccount, targetAccount, simpleSelfDestructor, simpleCreator);

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Builder;
+import net.consensys.linea.testing.ToyTransaction.ToyTransactionBuilder;
 import org.hyperledger.besu.ethereum.core.Transaction;
 
 @Builder
@@ -32,12 +33,12 @@ public class ToyMultiTransaction {
      *
      * @return an instance of {@link List<Transaction>}
      */
-    public List<Transaction> build(ToyTransactionNonceSetter[] tns, ToyAccount account) {
-      long nonce = account.getNonce();
+    public List<Transaction> build(ToyTransactionBuilder[] toyTxBuilders, ToyAccount account) {
+      long accountNonce = account.getNonce();
       List<Transaction> results = new ArrayList<>();
-      for (ToyTransactionNonceSetter tn : tns) {
-        results.add(tn.apply(nonce));
-        nonce++;
+      for (ToyTransactionBuilder toyTxBuilder : toyTxBuilders) {
+        results.add(toyTxBuilder.nonce(accountNonce).build());
+        accountNonce++;
       }
       return results;
     }

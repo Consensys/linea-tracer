@@ -66,7 +66,7 @@ jobs:
         run: ./gradlew referenceBlockchainTests -x spotlessCheck
         timeout-minutes: 180
         env:
-          REFERENCE_TESTS_PARALLELISM: 7
+          REFERENCE_TESTS_PARALLELISM: 1
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air

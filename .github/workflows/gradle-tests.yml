@@ -13,13 +13,19 @@ on:
         type: boolean
         default: false
 
-env:
-  CARGO_NET_GIT_FETCH_WITH_CLI: true
-
 jobs:
+  # ==================================================================
+  # Build
+  # ==================================================================
   build:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
     steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: false
+
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
 
@@ -40,11 +46,19 @@ jobs:
       - name: Run spotless
         run: ./gradlew --no-daemon --parallel clean spotlessCheck
 
+  # ==================================================================
+  # Unit Tests
+  # ==================================================================
   corset-unit-tests:
     needs: [ build ]
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-large
     steps:
-      - name: Setup Environment
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: false
+
+      - name: Setup Test Environment
         uses: ./.github/actions/setup-environment
         with:
           enable-ssh: ${{ inputs.tests-with-ssh }}
@@ -69,7 +83,12 @@ jobs:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-large
     continue-on-error: true
     steps:
-      - name: Setup Testing Environment
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: false
+
+      - name: Setup Test Environment
         uses: ./.github/actions/setup-environment
         with:
           enable-ssh: ${{ inputs.tests-with-ssh }}
@@ -81,6 +100,7 @@ jobs:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -wd --ansi-escapes=false --report --air
+          UNIT_TESTS_PARALLELISM: 1
 
       - name: Upload test report
         if: ${{ always() }}
@@ -89,10 +109,18 @@ jobs:
           name: go-corset-unit-tests-report
           path: arithmetization/build/reports/tests/**/*
 
+  # ==================================================================
+  # Fast Replay Tests
+  # ==================================================================
   corset-replay-tests:
     needs: [ build ]
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-large
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: false
+
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
         with:
@@ -118,11 +146,16 @@ jobs:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-large
     continue-on-error: true
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: false
+
       - name: Setup Environment
         uses: ./.github/actions/setup-environment
         with:
           enable-ssh: ${{ inputs.tests-with-ssh }}
-          rust-corset: true
+          go-corset: true
 
       - name: Run replay tests
         run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:fastReplayTests

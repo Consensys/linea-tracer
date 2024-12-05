@@ -18,6 +18,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.opcode.OpCode;
 
 public class CreateScenarioFragment implements TraceFragment {
 
@@ -32,10 +33,22 @@ public class CreateScenarioFragment implements TraceFragment {
     CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT,
     CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT,
     CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WILL_REVERT,
-    CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT
+    CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT;
+
+
+    public boolean isAnyOf(CreateScenario... createScenarios) {
+      for (CreateScenario createScenario : createScenarios) {
+        if (createScenario.equals(this)) {
+          return true;
+        }
+      }
+      return false;
+    }
   }
 
   @Setter @Getter private CreateScenario scenario;
+
+
 
   public CreateScenarioFragment() {
     this.scenario = CreateScenario.UNDEFINED;

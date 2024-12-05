@@ -16,16 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_ABORT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_EMPTY_INIT_CODE_WILL_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_EMPTY_INIT_CODE_WONT_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_EXCEPTION;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_FAILURE_CONDITION_WILL_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_FAILURE_CONDITION_WONT_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WILL_REVERT;
-import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 
@@ -71,6 +62,8 @@ public class CreateSection extends TraceSection
   private Address createeAddress;
   final ImcFragment imcFragment;
 
+  final AccountFragment.AccountFragmentFactory accountFragmentFactory;
+
   // Just before create
   private AccountSnapshot preOpcodeCreatorSnapshot;
   private AccountSnapshot preOpcodeCreateeSnapshot;
@@ -92,12 +85,15 @@ public class CreateSection extends TraceSection
 
   private boolean requiresRomLex;
   private Wei value;
+  private boolean success = false;
 
   // TODO: according to our preliminary conclusion in issue #866
   //  CREATE's that raise a failure condition _do spawn a child context_.
   public CreateSection(Hub hub, MessageFrame frame) {
     super(hub, maxNumberOfLines(hub.pch().exceptions(), hub.pch().abortingConditions()));
     final short exceptions = hub.pch().exceptions();
+
+    accountFragmentFactory = hub.factories().accountFragment();
 
     this.addStack(hub);
 
@@ -154,10 +150,12 @@ public class CreateSection extends TraceSection
     final CallFrame callFrame = hub.currentFrame();
 
     creatorAddress = frame.getRecipientAddress();
-    preOpcodeCreatorSnapshot = AccountSnapshot.canonical(hub, creatorAddress);
-
     createeAddress = getDeploymentAddress(frame);
-    preOpcodeCreateeSnapshot = AccountSnapshot.canonical(hub, createeAddress);
+
+    preOpcodeCreatorSnapshot =
+        AccountSnapshot.canonical(hub, frame.getWorldUpdater(), creatorAddress);
+    preOpcodeCreateeSnapshot =
+        AccountSnapshot.canonical(hub, frame.getWorldUpdater(), createeAddress);
 
     if (aborts.any()) {
       scenarioFragment.setScenario(CREATE_ABORT);
@@ -212,6 +210,7 @@ public class CreateSection extends TraceSection
     }
 
     if (emptyInitCode) {
+      success = true;
       finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
       scenarioFragment.setScenario(CREATE_EMPTY_INIT_CODE_WONT_REVERT);
       hub.transients().conflation().deploymentInfo().newDeploymentSansExecutionAt(createeAddress);
@@ -250,16 +249,13 @@ public class CreateSection extends TraceSection
   @Override
   public void resolveUponContextEntry(Hub hub, MessageFrame frame) {
     childEntryCreatorSnapshot =
-        AccountSnapshot.canonical(hub, preOpcodeCreatorSnapshot.address())
+        AccountSnapshot.canonical(hub, frame.getWorldUpdater(), preOpcodeCreatorSnapshot.address())
             // .raiseNonceByOne() // the nonce was already raised
             .decrementBalanceBy(value);
     childEntryCreateeSnapshot =
-        AccountSnapshot.canonical(hub, preOpcodeCreateeSnapshot.address())
+        AccountSnapshot.canonical(hub, frame.getWorldUpdater(), preOpcodeCreateeSnapshot.address())
             .raiseNonceByOne()
             .incrementBalanceBy(value);
-
-    final AccountFragment.AccountFragmentFactory accountFragmentFactory =
-        hub.factories().accountFragment();
 
     final AccountFragment creatorAccountFragment =
         accountFragmentFactory.make(
@@ -282,45 +278,46 @@ public class CreateSection extends TraceSection
 
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
-    final boolean deploymentSuccess = !frame.frame().getStackItem(0).isZero();
+    success = !frame.frame().getStackItem(0).isZero();
 
-    if (deploymentSuccess) {
+    if (success) {
       scenarioFragment.setScenario(CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT);
-    } else {
-      scenarioFragment.setScenario(CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT);
-
-      reEntryCreatorSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreatorSnapshot.address());
-      reEntryCreateeSnapshot = AccountSnapshot.canonical(hub, preOpcodeCreateeSnapshot.address());
-
-      final AccountFragment.AccountFragmentFactory accountFragmentFactory =
-          hub.factories().accountFragment();
-
-      final int childRevertStamp = hub.getLastChildCallFrame(frame).revertStamp();
-
-      final AccountFragment undoCreator =
-          accountFragmentFactory.make(
-              childEntryCreatorSnapshot,
-              reEntryCreatorSnapshot,
-              DomSubStampsSubFragment.revertsWithChildDomSubStamps(
-                  this.hubStamp(), childRevertStamp, 2));
-
-      final AccountFragment undoCreatee =
-          accountFragmentFactory.make(
-              childEntryCreateeSnapshot,
-              reEntryCreateeSnapshot,
-              DomSubStampsSubFragment.revertsWithChildDomSubStamps(
-                  this.hubStamp(), childRevertStamp, 3));
-
-      this.addFragments(undoCreator, undoCreatee);
+      return;
     }
+
+    scenarioFragment.setScenario(CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT);
+
+    reEntryCreatorSnapshot = childEntryCreatorSnapshot.deepCopy().incrementBalanceBy(value);
+    reEntryCreateeSnapshot =
+        childEntryCreateeSnapshot
+            .deepCopy()
+            .decrementBalanceBy(value)
+            .deploymentStatus(false)
+            .deploymentNumber(hub.deploymentNumberOf(createeAddress))
+            .nonce(0);
+
+    final int childRevertStamp = hub.getLastChildCallFrame(frame).revertStamp();
+
+    final AccountFragment undoCreator =
+        accountFragmentFactory.make(
+            childEntryCreatorSnapshot,
+            reEntryCreatorSnapshot,
+            DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                this.hubStamp(), childRevertStamp, 2));
+
+    final AccountFragment undoCreatee =
+        accountFragmentFactory.make(
+            childEntryCreateeSnapshot,
+            reEntryCreateeSnapshot,
+            DomSubStampsSubFragment.revertsWithChildDomSubStamps(
+                this.hubStamp(), childRevertStamp, 3));
+
+    this.addFragments(undoCreator, undoCreatee);
   }
 
   @Override
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
     scenarioFragment.setScenario(switchToRevert(scenarioFragment.getScenario()));
-
-    final AccountFragment.AccountFragmentFactory accountFragmentFactory =
-        hub.factories().accountFragment();
 
     final int revertStamp = callFrame.revertStamp();
     final boolean firstUndo =
@@ -360,8 +357,6 @@ public class CreateSection extends TraceSection
   }
 
   private void finishAbort(final Hub hub) {
-    final AccountFragment.AccountFragmentFactory accountFragmentFactory =
-        hub.factories().accountFragment();
     final AccountFragment creatorAccountFragment =
         accountFragmentFactory.make(
             preOpcodeCreatorSnapshot,
@@ -385,16 +380,12 @@ public class CreateSection extends TraceSection
     };
   }
 
-  public boolean isAbortedCreate() {
-    return scenarioFragment.isAbortedCreate();
-  }
-
   // we unlatched the stack after a CREATE if and only if we don't "contextEnter" the CREATE.
   // "failure condition CREATE's" do enter the CREATE context.
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    checkState(isAbortedCreate());
+    checkState(scenarioFragment.isAbortedCreate());
     hub.unlatchStack(frame, this);
   }
 }

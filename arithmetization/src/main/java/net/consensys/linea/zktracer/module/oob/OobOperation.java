@@ -277,10 +277,15 @@ public class OobOperation extends ModuleOperation {
         checkState(hub.currentTraceSection() instanceof CreateSection);
         final boolean unexceptional = hub.isUnexceptional();
         final boolean unaborted = hub.pch().abortingConditions().snapshot().none();
-        final boolean unexcepationalAndUnabortedCreateAndDeploymentAccountExists = ((deployedAccount != null) && unexceptional && unaborted);
+        final boolean unexcepationalAndUnabortedCreateAndDeploymentAccountExists =
+            ((deployedAccount != null) && unexceptional && unaborted);
 
-        final long nonce = unexcepationalAndUnabortedCreateAndDeploymentAccountExists ? deployedAccount.getNonce() : 0;
-        final boolean hasCode = unexcepationalAndUnabortedCreateAndDeploymentAccountExists && deployedAccount.hasCode();
+        final long nonce =
+            unexcepationalAndUnabortedCreateAndDeploymentAccountExists
+                ? deployedAccount.getNonce()
+                : 0;
+        final boolean hasCode =
+            unexcepationalAndUnabortedCreateAndDeploymentAccountExists && deployedAccount.hasCode();
 
         final CreateOobCall createOobCall = (CreateOobCall) oobCall;
         createOobCall.setValue(EWord.of(frame.getStackItem(0)));

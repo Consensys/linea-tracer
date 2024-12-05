@@ -22,7 +22,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
 /** The following tests raise the Failure Condition <b>F</b> CREATE2. */
-public class Create2 {
+public class Create2InducedFailureTests {
 
   @Test
   void failureConditionNonceTest() {

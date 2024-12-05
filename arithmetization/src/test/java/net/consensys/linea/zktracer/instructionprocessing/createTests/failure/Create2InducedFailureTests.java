@@ -21,7 +21,10 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
-/** The following tests raise the Failure Condition <b>F</b> CREATE2. */
+/**
+ * The following tests raise the <b>Failure Condition F</b> with the <b>CREATE2</b> opcode. These
+ * tests are sequential in nature: one <b>CREATE2</b> after another.
+ */
 public class Create2InducedFailureTests {
 
   @Test

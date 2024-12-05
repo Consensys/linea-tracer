@@ -125,6 +125,25 @@ public class Balance {
       OffsetParameter offsetParameter,
       SizeParameter sizeParameter,
       boolean reverts) {
+    BytecodeCompiler program =
+        rootLevelSuccessThenAbortCreateByteCodeCompiler(
+            createType, offsetParameter, sizeParameter, reverts);
+    run(program);
+  }
+
+  @Test
+  void specificRootLevelSuccessThenAbortCreateTest() {
+    BytecodeCompiler program =
+        rootLevelSuccessThenAbortCreateByteCodeCompiler(
+            CreateType.CREATE2, OffsetParameter.ZERO, SizeParameter.ZERO, false);
+    run(program);
+  }
+
+  BytecodeCompiler rootLevelSuccessThenAbortCreateByteCodeCompiler(
+      CreateType createType,
+      OffsetParameter offsetParameter,
+      SizeParameter sizeParameter,
+      boolean reverts) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     genericCreate(program, createType, ValueParameter.ONE, offsetParameter, sizeParameter, salt01);
     genericCreate(
@@ -137,7 +156,7 @@ public class Balance {
     if (reverts) {
       appendRevert(program, 2, 13);
     }
-    run(program);
+    return program;
   }
 
   private static Stream<Arguments> offsetAndSizeParameters() {

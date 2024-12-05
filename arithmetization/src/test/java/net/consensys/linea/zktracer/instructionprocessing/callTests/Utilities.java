@@ -63,14 +63,14 @@ public class Utilities {
   }
 
   public static void callCaller(
-          BytecodeCompiler program,
-          OpCode callOpcode,
-          int gas,
-          int value,
-          int cdo,
-          int cds,
-          int rao,
-          int rac) {
+      BytecodeCompiler program,
+      OpCode callOpcode,
+      int gas,
+      int value,
+      int cdo,
+      int cds,
+      int rao,
+      int rac) {
     program.push(rac).push(rao).push(cds).push(cdo);
     if (callOpcode.callHasValueArgument()) {
       program.push(value);

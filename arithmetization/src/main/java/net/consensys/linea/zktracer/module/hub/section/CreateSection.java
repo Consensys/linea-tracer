@@ -378,14 +378,14 @@ public class CreateSection extends TraceSection
     final AccountFragment undoCreator =
         accountFragmentFactory.make(
             firstUndo ? childContextEntryCreatorSnapshot : reEntryCreatorSnapshot,
-            preOpcodeCreatorSnapshot,
+            preOpcodeCreatorSnapshot.deepCopy().setDeploymentInfo(hub),
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                 this.hubStamp(), revertStamp, firstUndo ? 0 : 2));
 
     final AccountFragment undoCreatee =
         accountFragmentFactory.make(
             firstUndo ? childContextEntryCreateeSnapshot : reEntryCreateeSnapshot,
-            preOpcodeCreateeSnapshot,
+            preOpcodeCreateeSnapshot.deepCopy().setDeploymentInfo(hub),
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                 this.hubStamp(), revertStamp, firstUndo ? 1 : 3));
 

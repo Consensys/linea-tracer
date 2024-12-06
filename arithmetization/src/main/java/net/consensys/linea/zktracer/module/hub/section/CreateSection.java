@@ -38,6 +38,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioF
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -80,8 +81,7 @@ public class CreateSection extends TraceSection
   final CreateScenarioFragment scenarioFragment; // row i + 0
   final ContextFragment currentContextFragment; // row i + 1
   final ImcFragment imcFragment; // row i + 2
-  // row i+?
-  private ContextFragment finalContextFragment;
+  private ContextFragment finalContextFragment; // row i+?
 
   private boolean requiresRomLex;
   private Wei value;
@@ -116,64 +116,56 @@ public class CreateSection extends TraceSection
       return;
     }
 
+    // MXPX case
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
     checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
-
-    // MXPX case
     if (mxpCall.mxpx) {
       return;
     }
 
+    // OOGX case
     final StpCall stpCall = new StpCall(hub, frame, mxpCall.getGasMxp());
     imcFragment.callStp(stpCall);
-
     checkArgument(stpCall.outOfGasException() == Exceptions.outOfGasException(exceptions));
-
-    // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
       return;
     }
 
     // The CREATE(2) is now unexceptional
+    /////////////////////////////////////
+
     checkArgument(Exceptions.none(exceptions));
     hub.currentFrame().childSpanningSection(this);
 
     final CreateOobCall oobCall = new CreateOobCall();
     imcFragment.callOob(oobCall);
 
-    final AbortingConditions aborts = hub.pch().abortingConditions().snapshot();
-    checkArgument(oobCall.isAbortingCondition() == aborts.any());
-
     preOpcodeCreatorSnapshot =
         AccountSnapshot.canonical(hub, frame.getWorldUpdater(), creatorAddress);
     preOpcodeCreateeSnapshot =
         AccountSnapshot.canonical(hub, frame.getWorldUpdater(), createeAddress);
 
+    final boolean aborts = scenarioFragment.getScenario() == CREATE_ABORT;
+    final boolean failedCreate = scenarioFragment.getScenario() == CREATE_FAILURE_CONDITION_WONT_REVERT;
+    final boolean emptyInitCode = scenarioFragment.getScenario() == CREATE_EMPTY_INIT_CODE_WONT_REVERT;
 
-    switch (scenarioFragment.getScenario()) {
-      case CREATE_ABORT -> {
-        this.traceAbort(hub);
-        return;
-      }
-      case CREATE_FAILURE_CONDITION_WONT_REVERT, CREATE_EMPTY_INIT_CODE_WONT_REVERT, CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT -> {}
-      default -> throw new IllegalStateException(
-          scenarioFragment.getScenario().name() + " shouldn't enter this section");
+    checkArgument(oobCall.isAbortingCondition() == aborts);
+    if (aborts) {
+      this.traceAbort(hub);
+      return;
     }
 
-    // The CREATE(2) is now unexceptional and unaborted
-    checkArgument(aborts.none());
+    // The CREATE(2) is now unexceptional, unaborted
+    ////////////////////////////////////////////////
 
     rlpAddrSubFragment = RlpAddrSubFragment.makeFragment(hub, createeAddress);
 
     final long offset = Words.clampedToLong(frame.getStackItem(1));
     final long size = Words.clampedToLong(frame.getStackItem(2));
 
-    final boolean failedCreate = raisesFailureCondition(frame);
-    final boolean emptyInitCode = hasEmptyInitCode(hub);
-
     // Trigger MMU & SHAKIRA to hash the (non-empty) InitCode of CREATE2 - even for failed CREATE2
-    if (hub.opCode() == CREATE2 && !emptyInitCode) {
+    if (nontrivialCreate2(hub.opCode(), size)) {
       final Bytes create2InitCode = frame.shadowReadMemory(offset, size);
 
       final MmuCall mmuCall = MmuCall.create2(hub, create2InitCode, failedCreate);
@@ -200,8 +192,8 @@ public class CreateSection extends TraceSection
       return;
     }
 
-    // Finally, non-exceptional, non-aborting, non-failing, non-emptyInitCode create
-    ////////////////////////////////////////////////////////////////////////////////
+    // unexceptional, unaborted, non-failing, non-emptyInitCode CREATE(2)
+    /////////////////////////////////////////////////////////////////////
 
     // we charge for the gas paid out of pocket
     commonValues.payGasPaidOutOfPocket(hub);
@@ -260,10 +252,10 @@ public class CreateSection extends TraceSection
     CreateScenarioFragment.CreateScenario scenario = scenarioFragment.getScenario();
 
     switch (scenario) {
-      case CREATE_FAILURE_CONDITION_WONT_REVERT, CREATE_EMPTY_INIT_CODE_WONT_REVERT -> {
-        checkState(success == (scenario == CREATE_EMPTY_INIT_CODE_WONT_REVERT));
-        reEntryCreatorSnapshot = AccountSnapshot.canonical(hub, frame.frame().getWorldUpdater(), creatorAddress);
-        reEntryCreateeSnapshot = AccountSnapshot.canonical(hub, frame.frame().getWorldUpdater(), createeAddress);
+      case CREATE_FAILURE_CONDITION_WONT_REVERT -> {
+        checkState(!success);
+        reEntryCreatorSnapshot = preOpcodeCreatorSnapshot.deepCopy().raiseNonceByOne();
+        reEntryCreateeSnapshot = preOpcodeCreateeSnapshot.deepCopy().turnOnWarmth();
         final AccountFragment firstCreatorFragment =
                 accountFragmentFactory.make(
                         preOpcodeCreatorSnapshot,
@@ -279,6 +271,29 @@ public class CreateSection extends TraceSection
                         createeAddress.trimLeadingZeros(),
                                 DomSubStampsSubFragment.standardDomSubStamps(
                                         this.hubStamp(), 1));
+
+        this.addFragments(firstCreatorFragment, firstCreateeFragment);
+        return;
+      }
+      case CREATE_EMPTY_INIT_CODE_WONT_REVERT -> {
+        checkState(success);
+        reEntryCreatorSnapshot = AccountSnapshot.canonical(hub, frame.frame().getWorldUpdater(), creatorAddress);
+        reEntryCreateeSnapshot = AccountSnapshot.canonical(hub, frame.frame().getWorldUpdater(), createeAddress);
+        final AccountFragment firstCreatorFragment =
+                accountFragmentFactory.make(
+                        preOpcodeCreatorSnapshot,
+                        reEntryCreatorSnapshot,
+                        DomSubStampsSubFragment.standardDomSubStamps(
+                                this.hubStamp(), 0));
+        firstCreatorFragment.rlpAddrSubFragment(rlpAddrSubFragment);
+
+        final AccountFragment firstCreateeFragment =
+                accountFragmentFactory.makeWithTrm(
+                        preOpcodeCreateeSnapshot,
+                        reEntryCreateeSnapshot,
+                        createeAddress.trimLeadingZeros(),
+                        DomSubStampsSubFragment.standardDomSubStamps(
+                                this.hubStamp(), 1));
 
         this.addFragments(firstCreatorFragment, firstCreateeFragment);
         return;
@@ -307,14 +322,14 @@ public class CreateSection extends TraceSection
                 childContextEntryCreatorSnapshot,
             reEntryCreatorSnapshot,
             DomSubStampsSubFragment.revertsWithChildDomSubStamps(
-                this.hubStamp(), childRevertStamp, 2));
+                this.hubStamp(), childRevertStamp, 0));
 
     final AccountFragment undoCreatee =
         accountFragmentFactory.make(
                 childContextEntryCreateeSnapshot,
             reEntryCreateeSnapshot,
             DomSubStampsSubFragment.revertsWithChildDomSubStamps(
-                this.hubStamp(), childRevertStamp, 3));
+                this.hubStamp(), childRevertStamp, 1));
 
     this.addFragments(undoCreator, undoCreatee);
   }
@@ -340,14 +355,14 @@ public class CreateSection extends TraceSection
                         reEntryCreatorSnapshot.deepCopy().setDeploymentInfo(hub),
                         preOpcodeCreatorSnapshot.deepCopy().setDeploymentInfo(hub),
                         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                                this.hubStamp(), revertStamp, 2));
+                                this.hubStamp(), revertStamp, 0));
 
         final AccountFragment undoCreatee =
                 accountFragmentFactory.make(
                         reEntryCreateeSnapshot.deepCopy().setDeploymentInfo(hub),
                         preOpcodeCreateeSnapshot.deepCopy().setDeploymentInfo(hub),
                         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                                this.hubStamp(), revertStamp,3));
+                                this.hubStamp(), revertStamp,1));
         this.addFragments(undoCreator, undoCreatee);
         return;
       }
@@ -365,14 +380,14 @@ public class CreateSection extends TraceSection
             firstUndo ? childContextEntryCreatorSnapshot : reEntryCreatorSnapshot,
             preOpcodeCreatorSnapshot,
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                this.hubStamp(), revertStamp, firstUndo ? 2 : 4));
+                this.hubStamp(), revertStamp, firstUndo ? 0 : 2));
 
     final AccountFragment undoCreatee =
         accountFragmentFactory.make(
             firstUndo ? childContextEntryCreateeSnapshot : reEntryCreateeSnapshot,
             preOpcodeCreateeSnapshot,
             DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                this.hubStamp(), revertStamp, firstUndo ? 3 : 5));
+                this.hubStamp(), revertStamp, firstUndo ? 1 : 3));
 
     this.addFragments(undoCreator, undoCreatee);
   }
@@ -492,5 +507,9 @@ public class CreateSection extends TraceSection
   public void resolvePostTransaction(
           Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     addFragment(finalContextFragment);
+  }
+
+  private boolean nontrivialCreate2(OpCode opCode, long size) {
+    return (opCode == CREATE2 && size != 0);
   }
 }

@@ -78,7 +78,8 @@ public class Balance {
         offsetParameter,
         sizeParameter,
         salt01); // aborts
-    genericCreate(program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
+    genericCreate(
+        program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
 
     if (reverts) {
       appendRevert(program, 2, 13);
@@ -104,7 +105,8 @@ public class Balance {
         offsetParameter,
         sizeParameter,
         salt01); // aborts
-    genericCreate(program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
+    genericCreate(
+        program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
 
     if (reverts) {
       appendRevert(program, 2, 13);
@@ -145,7 +147,8 @@ public class Balance {
       SizeParameter sizeParameter,
       boolean reverts) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    genericCreate(program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
+    genericCreate(
+        program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
     genericCreate(
         program,
         createType,

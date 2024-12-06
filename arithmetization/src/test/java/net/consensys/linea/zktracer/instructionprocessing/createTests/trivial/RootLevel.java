@@ -60,7 +60,8 @@ public class RootLevel {
       boolean revert) {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    genericCreate(program, createType, valueParameter, offsetParameter, SizeParameter.s_ZERO, salt01);
+    genericCreate(
+        program, createType, valueParameter, offsetParameter, SizeParameter.s_ZERO, salt01);
 
     if (revert) {
       program.push(0).push(0).op(REVERT);
@@ -103,7 +104,8 @@ public class RootLevel {
 
   private static Stream<Arguments> createParametersForEmptyCreates() {
 
-    final List<ValueParameter> valueParameters = List.of(ValueParameter.v_ZERO, ValueParameter.v_ONE);
+    final List<ValueParameter> valueParameters =
+        List.of(ValueParameter.v_ZERO, ValueParameter.v_ONE);
 
     List<Arguments> arguments = new ArrayList<>();
 

@@ -15,13 +15,13 @@
 package net.consensys.linea.zktracer.instructionprocessing.createTests;
 
 public enum SizeParameter {
-  ZERO,
-  TWELVE, // - 3 - 1
-  THIRTEEN, // - 3 + 0
-  FOURTEEN, // - 3 + 1
-  THIRTY_TWO,
-  MSIZE,
-  MAX;
+  s_ZERO,
+  s_TWELVE, // - 3 - 1
+  s_THIRTEEN, // - 3 + 0
+  s_FOURTEEN, // - 3 + 1
+  s_THIRTY_TWO,
+  s_MSIZE,
+  s_MAX;
 
   public boolean isAnyOf(SizeParameter... sizeParameters) {
     for (SizeParameter sizeParameter : sizeParameters) {
@@ -33,6 +33,6 @@ public enum SizeParameter {
   }
 
   public boolean willRaiseException() {
-    return this.isAnyOf(MAX);
+    return this.isAnyOf(s_MAX);
   }
 }

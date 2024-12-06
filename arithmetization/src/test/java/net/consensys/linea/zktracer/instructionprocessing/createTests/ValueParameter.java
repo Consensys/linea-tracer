@@ -15,8 +15,8 @@
 package net.consensys.linea.zktracer.instructionprocessing.createTests;
 
 public enum ValueParameter {
-  ZERO,
-  ONE,
-  SELFBALANCE,
-  SELFBALANCE_PLUS_ONE,
+    v_ZERO,
+    v_ONE,
+    v_SELFBALANCE,
+    v_SELFBALANCE_PLUS_ONE,
 }

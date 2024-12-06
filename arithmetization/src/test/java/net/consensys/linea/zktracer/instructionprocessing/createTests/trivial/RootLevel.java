@@ -60,7 +60,7 @@ public class RootLevel {
       boolean revert) {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    genericCreate(program, createType, valueParameter, offsetParameter, SizeParameter.ZERO, salt01);
+    genericCreate(program, createType, valueParameter, offsetParameter, SizeParameter.s_ZERO, salt01);
 
     if (revert) {
       program.push(0).push(0).op(REVERT);
@@ -86,9 +86,9 @@ public class RootLevel {
     genericCreate(
         program,
         CreateType.CREATE2,
-        ValueParameter.ONE,
-        OffsetParameter.ZERO,
-        SizeParameter.ZERO,
+        ValueParameter.v_ONE,
+        OffsetParameter.o_ZERO,
+        SizeParameter.s_ZERO,
         salt01);
 
     if (when == BEFORE || when == BEFORE_AND_AFTER) {
@@ -103,7 +103,7 @@ public class RootLevel {
 
   private static Stream<Arguments> createParametersForEmptyCreates() {
 
-    final List<ValueParameter> valueParameters = List.of(ValueParameter.ZERO, ValueParameter.ONE);
+    final List<ValueParameter> valueParameters = List.of(ValueParameter.v_ZERO, ValueParameter.v_ONE);
 
     List<Arguments> arguments = new ArrayList<>();
 
@@ -130,32 +130,32 @@ public class RootLevel {
     if (type == CreateType.CREATE2) program.push(salt);
 
     switch (sizeParameter) {
-      case ZERO -> program.push(0);
-      case TWELVE -> program.push(12);
-      case THIRTEEN -> program.push(13);
-      case FOURTEEN -> program.push(14);
-      case THIRTY_TWO -> program.push(0x20);
-      case MSIZE -> program.op(MSIZE);
-      case MAX -> program.push("ff".repeat(32));
+      case s_ZERO -> program.push(0);
+      case s_TWELVE -> program.push(12);
+      case s_THIRTEEN -> program.push(13);
+      case s_FOURTEEN -> program.push(14);
+      case s_THIRTY_TWO -> program.push(0x20);
+      case s_MSIZE -> program.op(MSIZE);
+      case s_MAX -> program.push("ff".repeat(32));
     }
     switch (offsetParameter) {
-      case ZERO -> program.push(0);
-      case THREE -> program.push(0);
-      case SIXTEEN -> program.push(0x10);
-      case SIXTEEN_BYTE_INT -> program.push("abe1245ffff123a87000a543eff12aaa");
-      case THIRTY_TWO_BYTE_INT -> program.push(
+      case o_ZERO -> program.push(0);
+      case o_THREE -> program.push(0);
+      case o_SIXTEEN -> program.push(0x10);
+      case o_SIXTEEN_BYTE_INT -> program.push("abe1245ffff123a87000a543eff12aaa");
+      case o_THIRTY_TWO_BYTE_INT -> program.push(
           "abe1245ffff123a87000a543eff12aaa09987582714266effffefaabc76aa758");
-      case MAX -> program.push("ff".repeat(32));
+      case o_MAX -> program.push("ff".repeat(32));
     }
     switch (valueParameter) {
-      case ZERO -> program.push(0);
-      case ONE -> program.push(1);
-      case SELFBALANCE -> program.op(SELFBALANCE);
-      case SELFBALANCE_PLUS_ONE -> program.op(SELFBALANCE).push(1).op(ADD);
+      case v_ZERO -> program.push(0);
+      case v_ONE -> program.push(1);
+      case v_SELFBALANCE -> program.op(SELFBALANCE);
+      case v_SELFBALANCE_PLUS_ONE -> program.op(SELFBALANCE).push(1).op(ADD);
     }
     switch (type) {
       case CREATE -> program.op(CREATE);
-      case CREATE2 -> program.op(OpCode.CREATE2);
+      case CREATE2 -> program.op(CREATE2);
     }
   }
 

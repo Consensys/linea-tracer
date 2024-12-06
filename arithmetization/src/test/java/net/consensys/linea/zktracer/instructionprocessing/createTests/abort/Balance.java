@@ -43,14 +43,14 @@ public class Balance {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    if (sizeParameter == MSIZE) {
+    if (sizeParameter == s_MSIZE) {
       program.push(513).push(0).op(SHA3); // purely to expand memory to 0 < 512 + 32 bytes
     }
 
     genericCreate(
         program,
         createType,
-        ValueParameter.SELFBALANCE_PLUS_ONE,
+        ValueParameter.v_SELFBALANCE_PLUS_ONE,
         offsetParameter,
         sizeParameter,
         salt01);
@@ -74,11 +74,11 @@ public class Balance {
     genericCreate(
         program,
         createType,
-        ValueParameter.SELFBALANCE_PLUS_ONE,
+        ValueParameter.v_SELFBALANCE_PLUS_ONE,
         offsetParameter,
         sizeParameter,
         salt01); // aborts
-    genericCreate(program, createType, ValueParameter.ONE, offsetParameter, sizeParameter, salt01);
+    genericCreate(program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
 
     if (reverts) {
       appendRevert(program, 2, 13);
@@ -92,19 +92,19 @@ public class Balance {
 
     // parameters
     CreateType createType = CreateType.CREATE;
-    OffsetParameter offsetParameter = OffsetParameter.ZERO;
-    SizeParameter sizeParameter = SizeParameter.ZERO;
+    OffsetParameter offsetParameter = OffsetParameter.o_ZERO;
+    SizeParameter sizeParameter = SizeParameter.s_ZERO;
     boolean reverts = true;
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     genericCreate(
         program,
         createType,
-        ValueParameter.SELFBALANCE_PLUS_ONE,
+        ValueParameter.v_SELFBALANCE_PLUS_ONE,
         offsetParameter,
         sizeParameter,
         salt01); // aborts
-    genericCreate(program, createType, ValueParameter.ONE, offsetParameter, sizeParameter, salt01);
+    genericCreate(program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
 
     if (reverts) {
       appendRevert(program, 2, 13);
@@ -135,7 +135,7 @@ public class Balance {
   void specificRootLevelSuccessThenAbortCreateTest() {
     BytecodeCompiler program =
         rootLevelSuccessThenAbortCreateByteCodeCompiler(
-            CreateType.CREATE2, OffsetParameter.ZERO, SizeParameter.ZERO, false);
+            CreateType.CREATE2, OffsetParameter.o_ZERO, SizeParameter.s_ZERO, false);
     run(program);
   }
 
@@ -145,11 +145,11 @@ public class Balance {
       SizeParameter sizeParameter,
       boolean reverts) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    genericCreate(program, createType, ValueParameter.ONE, offsetParameter, sizeParameter, salt01);
+    genericCreate(program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
     genericCreate(
         program,
         createType,
-        ValueParameter.SELFBALANCE_PLUS_ONE,
+        ValueParameter.v_SELFBALANCE_PLUS_ONE,
         offsetParameter,
         sizeParameter,
         salt01); // aborts
@@ -179,7 +179,7 @@ public class Balance {
 
     List<Arguments> arguments = new ArrayList<>();
     List<SizeParameter> sizeParameters =
-        List.of(ZERO, TWELVE, THIRTEEN, FOURTEEN, THIRTY_TWO, MSIZE);
+        List.of(s_ZERO, s_TWELVE, s_THIRTEEN, s_FOURTEEN, s_THIRTY_TWO, s_MSIZE);
 
     for (CreateType createType : CreateType.values()) {
       for (OffsetParameter offsetParameter : OffsetParameter.values()) {

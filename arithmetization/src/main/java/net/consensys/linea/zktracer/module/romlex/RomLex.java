@@ -219,8 +219,8 @@ public class RomLex
             !hub.deploymentStatusOf(foreignCodeAddress),
             "EXTCODECOPY should only trigger a ROM_LEX chunk if its target isn't currently deploying");
         checkArgument(
-            !frame.getWorldUpdater().getAccount(foreignCodeAddress).isEmpty()
-                && frame.getWorldUpdater().getAccount(foreignCodeAddress).hasCode());
+            !frame.getWorldUpdater().get(foreignCodeAddress).isEmpty()
+                && frame.getWorldUpdater().get(foreignCodeAddress).hasCode());
 
         Optional.ofNullable(frame.getWorldUpdater().get(foreignCodeAddress))
             .map(AccountState::getCode)
@@ -245,8 +245,8 @@ public class RomLex
   }
 
   @Override
-  public void resolveUponContextEntry(Hub hub) {
-    checkArgument(hub.messageFrame().getType() == MessageFrame.Type.CONTRACT_CREATION);
+  public void resolveUponContextEntry(Hub hub, MessageFrame frame) {
+    checkArgument(frame.getType() == MessageFrame.Type.CONTRACT_CREATION);
     checkArgument(
         hub.deploymentStatusOf(address), "After a CREATE the deployment status should be true");
 

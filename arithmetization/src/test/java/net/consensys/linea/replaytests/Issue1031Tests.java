@@ -23,9 +23,8 @@ import org.junit.jupiter.api.Test;
 @Tag("replay")
 public class Issue1031Tests {
 
-  // @Disabled
   @Test
   void issue_1090_range_10_20() {
-    replay(LINEA_MAINNET, "10-20.json.gz");
+    replay(LINEA_MAINNET, "10-20.mainnet.json.gz");
   }
 }

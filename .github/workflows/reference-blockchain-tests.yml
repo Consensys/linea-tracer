@@ -1,4 +1,4 @@
-name: Daily Reference Blockchain Tests
+name: Daily Blockchain Tests
 
 on:
   schedule:
@@ -65,7 +65,6 @@ jobs:
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests -x spotlessCheck
         timeout-minutes: 180
-        continue-on-error: true
         env:
           REFERENCE_TESTS_PARALLELISM: 7
           JAVA_OPTS: -Dorg.gradle.daemon=false
@@ -77,6 +76,7 @@ jobs:
           REFERENCE_TEST_FILTER_INPUT: failedBlockchainReferenceTests.json
 
       - name: Upload artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: failedBlockchainReferenceTests.json
@@ -88,7 +88,7 @@ jobs:
         with:
           name: blockchain-refrence-tests-report
           path: reference-tests/build/reports/tests/**/*
-          
+
       - name: Failure Notification
         if: ${{ failure() || cancelled() }}
         uses: slackapi/slack-github-action@v2.0.0
@@ -96,5 +96,5 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: webhook-trigger
           payload: |
-             name: "Daily Reference Tests"
+             name: "Daily Blockchain"
              status: "${{ job.status }}"

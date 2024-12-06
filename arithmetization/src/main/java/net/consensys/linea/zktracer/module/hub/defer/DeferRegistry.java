@@ -188,9 +188,9 @@ public class DeferRegistry
   }
 
   @Override
-  public void resolveUponContextEntry(Hub hub) {
+  public void resolveUponContextEntry(Hub hub, MessageFrame frame) {
     for (ContextEntryDefer defer : contextEntryDefers) {
-      defer.resolveUponContextEntry(hub);
+      defer.resolveUponContextEntry(hub, frame);
     }
     contextEntryDefers.clear();
   }
@@ -223,5 +223,9 @@ public class DeferRegistry
 
   public void unscheduleForContextReEntry(ContextReEntryDefer defer, CallFrame callFrame) {
     contextReEntryDefers.get(callFrame).remove(defer);
+  }
+
+  public void unscheduleForPostTransaction(PostTransactionDefer defer) {
+    postTransactionDefers.remove(defer);
   }
 }

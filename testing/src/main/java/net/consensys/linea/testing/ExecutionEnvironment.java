@@ -75,7 +75,6 @@ public class ExecutionEnvironment {
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
-      /*
       if (traceFilePath != null && traceValidated) {
         if (System.getenv("PRESERVE_TRACE_FILES") == null) {
           boolean traceFileDeleted = traceFilePath.toFile().delete();
@@ -84,7 +83,6 @@ public class ExecutionEnvironment {
               log -> log.debug("trace file {} deleted {}", finalTraceFilePath, traceFileDeleted));
         }
       }
-       */
     }
   }
 
@@ -115,6 +113,7 @@ public class ExecutionEnvironment {
             genesisConfigOptions,
             CliqueForksSchedulesFactory.create(genesisConfigOptions),
             createNodeKey(),
+            PrivacyParameters.DEFAULT,
             false,
             EvmConfiguration.DEFAULT,
             MiningConfiguration.MINING_DISABLED,

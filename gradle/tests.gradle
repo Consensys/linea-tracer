@@ -118,7 +118,13 @@ tasks.withType(Test).configureEach {
 }
 
 tasks.test.configure {
-  maxParallelForks = Runtime.getRuntime().availableProcessors()
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+      System.getenv().getOrDefault("UNIT_TESTS_PARALLELISM", "4").toInteger())
+  //
   useJUnitPlatform {
     excludeTags("nightly")
     excludeTags("replay")

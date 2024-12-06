@@ -71,7 +71,6 @@ public class CallFrame {
   @Getter private int byteCodeDeploymentNumber;
   private EWord eCodeAddress = null; // memoization
   @Getter private Bytecode code = Bytecode.EMPTY;
-  @Getter private int codeFragmentIndex = -1;
 
   // caller related information
   @Getter private Address callerAddress = Address.ZERO;
@@ -94,7 +93,7 @@ public class CallFrame {
   @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY; // set at exit time
 
   @Getter private boolean executionPaused = false;
-  @Getter private long lastValidGasNext = 0;
+  @Getter @Setter private long lastValidGasNext = 0;
 
   public void pauseCurrentFrame() {
     Preconditions.checkState(!executionPaused);

@@ -24,9 +24,8 @@ import org.junit.jupiter.api.Test;
 @Tag("replay")
 public class Issue1116Tests {
 
-  // @Disabled
   @Test
   void issue_1116_block_8019521() {
-    replay(LINEA_MAINNET, "8019521-8019521.json.gz");
+    replay(LINEA_MAINNET, "8019521.mainnet.json.gz");
   }
 }

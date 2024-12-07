@@ -140,9 +140,6 @@ public class CallSection extends TraceSection
   private final OpCode opCode;
   private Wei value;
 
-  private AccountSnapshot postRollbackCalleeSnapshot;
-  private AccountSnapshot postRollbackCallerSnapshot;
-
   public StpCall stpCall;
   private PrecompileSubsection precompileSubsection;
 
@@ -406,8 +403,8 @@ public class CallSection extends TraceSection
 
     if (isNonzeroValueSelfCall()) {
       checkState(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED);
-      calleeFirst = callerFirstNew;
-      calleeFirstNew = callerFirst;
+      calleeFirst = callerFirstNew.deepCopy();
+      calleeFirstNew = callerFirst.deepCopy();
     }
 
     final AccountFragment firstCallerAccountFragment =
@@ -481,17 +478,15 @@ public class CallSection extends TraceSection
           scenarioFragment.setScenario(CALL_SMC_SUCCESS_WONT_REVERT);
           return;
         }
+
+        // CALL_SMC_FAILURE_XXX case
+        scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
+
         callerSecond = callerFirstNew.deepCopy().setDeploymentInfo(hub);
         callerSecondNew = callerFirst.deepCopy().setDeploymentInfo(hub);
         calleeSecond = calleeFirstNew.deepCopy().setDeploymentInfo(hub);
         calleeSecondNew = calleeFirst.deepCopy().setDeploymentInfo(hub).turnOnWarmth();
 
-        // CALL_SMC_FAILURE_XXX case
-        scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
-        if (isNonzeroValueSelfCall()) {
-          childContextExitCallerSnapshot.decrementBalanceBy(value);
-          reEntryCalleeSnapshot.decrementBalanceBy(value);
-        }
         final int childId = hub.currentFrame().childFrameIds().getLast();
         final CallFrame childFrame = hub.callStack().getById(childId);
         final int childContextRevertStamp = childFrame.revertStamp();
@@ -523,8 +518,6 @@ public class CallSection extends TraceSection
 
   @Override
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
-    postRollbackCalleeSnapshot = canonical(hub, calleeAddress);
-    postRollbackCallerSnapshot = canonical(hub, callerAddress);
 
     final CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
     switch (callScenario) {
@@ -635,30 +628,26 @@ public class CallSection extends TraceSection
       scenarioFragment.setScenario(CALL_PRC_SUCCESS_WILL_REVERT);
     }
 
-    final AccountSnapshot callerRightBeforeRollBack =
-        callerFirstNew.deepCopy().copyDeploymentInfoFrom(postRollbackCallerSnapshot);
-    final AccountSnapshot callerRightAfterRollBack =
-        callerFirst.deepCopy().copyDeploymentInfoFrom(postRollbackCallerSnapshot);
+    callerSecond = callerFirstNew.deepCopy().setDeploymentInfo(hub);
+    callerSecondNew = callerFirst.deepCopy().setDeploymentInfo(hub);
 
-    final AccountSnapshot calleeRightBeforeRollBack =
-        calleeFirstNew.deepCopy().copyDeploymentInfoFrom(postRollbackCalleeSnapshot);
-    final AccountSnapshot calleeRightAfterRollBack =
-        calleeFirst.deepCopy().copyDeploymentInfoFrom(postRollbackCalleeSnapshot);
+    calleeSecond = calleeFirstNew.deepCopy().setDeploymentInfo(hub);
+    calleeSecondNew = calleeFirst.deepCopy().setDeploymentInfo(hub);
 
     final AccountFragment undoingCallerAccountFragment =
         factory
             .accountFragment()
             .make(
-                callerRightBeforeRollBack,
-                callerRightAfterRollBack,
+                callerSecond,
+                callerSecondNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 2));
     final AccountFragment undoingCalleeAccountFragment =
         factory
             .accountFragment()
             .make(
-                calleeRightBeforeRollBack,
-                calleeRightAfterRollBack,
+                calleeSecond,
+                calleeSecondNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 3));
 

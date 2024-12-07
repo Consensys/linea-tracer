@@ -119,11 +119,13 @@ public class CallSection extends TraceSection
   private AccountSnapshot callerFirstNew;
   private AccountSnapshot calleeFirstNew;
 
+  // Second couple of rows
   private AccountSnapshot callerSecond;
   private AccountSnapshot calleeSecond;
   private AccountSnapshot callerSecondNew;
   private AccountSnapshot calleeSecondNew;
 
+  // Final row (for scenario/CALL_SMC_FAILURE_WILL_REVERT)
   private AccountSnapshot calleeThird;
   private AccountSnapshot calleeThirdNew;
 
@@ -259,16 +261,16 @@ public class CallSection extends TraceSection
         factory
             .accountFragment()
             .make(
-                    callerFirst,
-                    callerFirst,
+                callerFirst,
+                callerFirst,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     final AccountFragment calleeAccountFragment =
         factory
             .accountFragment()
             .makeWithTrm(
-                    calleeFirst,
-                    calleeFirst,
+                calleeFirst,
+                calleeFirst,
                 rawCalleeAddress,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
@@ -283,16 +285,16 @@ public class CallSection extends TraceSection
         factory
             .accountFragment()
             .make(
-                    callerFirst,
-                    callerFirstNew,
+                callerFirst,
+                callerFirstNew,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     final AccountFragment readingCalleeAccountAndWarmth =
         factory
             .accountFragment()
             .makeWithTrm(
-                    calleeFirst,
-                    calleeFirstNew,
+                calleeFirst,
+                calleeFirstNew,
                 rawCalleeAddress,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
     finalContextFragment = ContextFragment.nonExecutionProvidesEmptyReturnData(hub);
@@ -364,8 +366,7 @@ public class CallSection extends TraceSection
   }
 
   private void prcProcessing(Hub hub) {
-    precompileSubsection =
-        ADDRESS_TO_PRECOMPILE.get(calleeFirst.address()).apply(hub, this);
+    precompileSubsection = ADDRESS_TO_PRECOMPILE.get(calleeFirst.address()).apply(hub, this);
     hub.defers().scheduleForContextEntry(this);
     hub.defers().scheduleForContextReEntry(this, hub.currentFrame());
     // In case of arguments too large for MODEXP, transaction will be popped anyway, and resolving
@@ -413,16 +414,16 @@ public class CallSection extends TraceSection
         factory
             .accountFragment()
             .make(
-                    callerFirst,
-                    callerFirstNew,
+                callerFirst,
+                callerFirstNew,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     final AccountFragment firstCalleeAccountFragment =
         factory
             .accountFragment()
             .makeWithTrm(
-                    calleeFirst,
-                    calleeFirstNew,
+                calleeFirst,
+                calleeFirstNew,
                 rawCalleeAddress,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
@@ -480,14 +481,10 @@ public class CallSection extends TraceSection
           scenarioFragment.setScenario(CALL_SMC_SUCCESS_WONT_REVERT);
           return;
         }
-        callerSecond =
-            callerFirstNew.deepCopy().setDeploymentInfo(hub);
-        callerSecondNew =
-            callerFirst.deepCopy().setDeploymentInfo(hub);
-        calleeSecond =
-            calleeFirstNew.deepCopy().setDeploymentInfo(hub);
-        calleeSecondNew =
-            calleeFirst.deepCopy().setDeploymentInfo(hub).turnOnWarmth();
+        callerSecond = callerFirstNew.deepCopy().setDeploymentInfo(hub);
+        callerSecondNew = callerFirst.deepCopy().setDeploymentInfo(hub);
+        calleeSecond = calleeFirstNew.deepCopy().setDeploymentInfo(hub);
+        calleeSecondNew = calleeFirst.deepCopy().setDeploymentInfo(hub).turnOnWarmth();
 
         // CALL_SMC_FAILURE_XXX case
         scenarioFragment.setScenario(CALL_SMC_FAILURE_WONT_REVERT);
@@ -509,11 +506,11 @@ public class CallSection extends TraceSection
                         this.hubStamp(), childContextRevertStamp, 2));
 
         final AccountFragment postReEntryCalleeAccountFragment =
-                factory
+            factory
                 .accountFragment()
                 .make(
-                        calleeSecond,
-                        calleeSecondNew,
+                    calleeSecond,
+                    calleeSecondNew,
                     DomSubStampsSubFragment.revertsWithChildDomSubStamps(
                         this.hubStamp(), childContextRevertStamp, 3));
 
@@ -602,8 +599,8 @@ public class CallSection extends TraceSection
         factory
             .accountFragment()
             .make(
-                    calleeSecond,
-                    calleeSecondNew,
+                calleeSecond,
+                calleeSecondNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 3));
 
@@ -613,13 +610,15 @@ public class CallSection extends TraceSection
   private void completeSmcFailureWillRevert(Hub hub) {
     scenarioFragment.setScenario(CALL_SMC_FAILURE_WILL_REVERT);
 
+    calleeThird = calleeSecondNew.deepCopy().setDeploymentInfo(hub);
+    calleeThirdNew = calleeFirst.deepCopy().setDeploymentInfo(hub);
     // this (should) work for both self calls and foreign address calls
     final AccountFragment undoingCalleeWarmthAccountFragment =
         factory
             .accountFragment()
             .make(
-                reEntryCalleeSnapshot,
-                calleeFirst.deepCopy().setDeploymentInfo(hub),
+                calleeThird,
+                calleeThirdNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     this.hubStamp(), this.revertStamp(), 4));
 
@@ -629,6 +628,7 @@ public class CallSection extends TraceSection
   private void completeSmcOrPrcSuccessWillRevert(Hub hub) {
 
     final CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
+    checkState(callScenario.isAnyOf(CALL_SMC_SUCCESS_WONT_REVERT, CALL_PRC_SUCCESS_WONT_REVERT));
     if (callScenario == CALL_SMC_SUCCESS_WONT_REVERT) {
       scenarioFragment.setScenario(CALL_SMC_SUCCESS_WILL_REVERT);
     } else {
@@ -674,15 +674,15 @@ public class CallSection extends TraceSection
         factory
             .accountFragment()
             .make(
-                    callerFirst,
-                    callerFirstNew,
+                callerFirst,
+                callerFirstNew,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     final AccountFragment firstCalleeAccountFragment =
         factory
             .accountFragment()
             .makeWithTrm(
-                    calleeFirst,
+                calleeFirst,
                 calleeFirstNew,
                 rawCalleeAddress,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));

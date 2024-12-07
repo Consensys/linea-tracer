@@ -149,6 +149,8 @@ public class CallSection extends TraceSection
 
   final Factories factory;
 
+  private boolean success;
+
   public CallSection(Hub hub, MessageFrame frame) {
     super(hub, maxNumberOfLines(hub));
 
@@ -445,28 +447,24 @@ public class CallSection extends TraceSection
     //  See issue #872.
     // The callSuccess will only be set
     // if the call is acted upon i.e. if the call is un-exceptional and un-aborted
-    final boolean successBit = bytesToBoolean(hub.messageFrame().getStackItem(0));
+    success = bytesToBoolean(hub.messageFrame().getStackItem(0));
 
     reEntryCallerSnapshot = canonical(hub, callerAddress);
     reEntryCalleeSnapshot = canonical(hub, calleeAddress);
 
     switch (scenarioFragment.getScenario()) {
       case CALL_EOA_UNDEFINED -> {
-        checkState(successBit);
+        checkState(success);
         scenarioFragment.setScenario(CALL_EOA_SUCCESS_WONT_REVERT);
-        emptyCodeFirstCoupleOfAccountFragments(hub);
+        firstAccountRowsEoaOrPrc(hub);
         final long gasAfterCall = frame.frame().getRemainingGas();
         commonValues.gasNext(gasAfterCall);
         hub.currentFrame().lastValidGasNext(gasAfterCall);
       }
 
       case CALL_PRC_UNDEFINED -> {
-        if (successBit) {
-          scenarioFragment.setScenario(CALL_PRC_SUCCESS_WONT_REVERT);
-        } else {
-          scenarioFragment.setScenario(CALL_PRC_FAILURE);
-        }
-        emptyCodeFirstCoupleOfAccountFragments(hub);
+        scenarioFragment.setScenario(success ? CALL_PRC_SUCCESS_WONT_REVERT : CALL_PRC_FAILURE);
+        firstAccountRowsEoaOrPrc(hub);
         long gasAfterCall = frame.frame().getRemainingGas();
         commonValues.gasNext(gasAfterCall);
         hub.currentFrame().lastValidGasNext(gasAfterCall);
@@ -478,17 +476,17 @@ public class CallSection extends TraceSection
 
       case CALL_SMC_UNDEFINED -> {
         // CALL_SMC_SUCCESS_XXX case
-        if (successBit) {
+        if (success) {
           scenarioFragment.setScenario(CALL_SMC_SUCCESS_WONT_REVERT);
           return;
         }
-        final AccountSnapshot beforeFailureCallerSnapshot =
+        callerSecond =
             callerFirstNew.deepCopy().setDeploymentInfo(hub);
-        final AccountSnapshot afterFailureCallerSnapshot =
+        callerSecondNew =
             callerFirst.deepCopy().setDeploymentInfo(hub);
-        final AccountSnapshot beforeFailureCalleeSnapshot =
+        calleeSecond =
             calleeFirstNew.deepCopy().setDeploymentInfo(hub);
-        final AccountSnapshot afterFailureCalleeSnapshot =
+        calleeSecondNew =
             calleeFirst.deepCopy().setDeploymentInfo(hub).turnOnWarmth();
 
         // CALL_SMC_FAILURE_XXX case
@@ -505,8 +503,8 @@ public class CallSection extends TraceSection
             factory
                 .accountFragment()
                 .make(
-                    beforeFailureCallerSnapshot,
-                    afterFailureCallerSnapshot,
+                    callerSecond,
+                    callerSecondNew,
                     DomSubStampsSubFragment.revertsWithChildDomSubStamps(
                         this.hubStamp(), childContextRevertStamp, 2));
 
@@ -514,8 +512,8 @@ public class CallSection extends TraceSection
                 factory
                 .accountFragment()
                 .make(
-                    beforeFailureCalleeSnapshot,
-                    afterFailureCalleeSnapshot,
+                        calleeSecond,
+                        calleeSecondNew,
                     DomSubStampsSubFragment.revertsWithChildDomSubStamps(
                         this.hubStamp(), childContextRevertStamp, 3));
 
@@ -667,13 +665,17 @@ public class CallSection extends TraceSection
     this.addFragments(undoingCallerAccountFragment, undoingCalleeAccountFragment);
   }
 
-  private void emptyCodeFirstCoupleOfAccountFragments(final Hub hub) {
+  private void firstAccountRowsEoaOrPrc(final Hub hub) {
+
+    callerFirstNew = canonical(hub, callerAddress);
+    calleeFirstNew = canonical(hub, calleeAddress);
+
     final AccountFragment firstCallerAccountFragment =
         factory
             .accountFragment()
             .make(
                     callerFirst,
-                reEntryCallerSnapshot,
+                    callerFirstNew,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     final AccountFragment firstCalleeAccountFragment =
@@ -681,7 +683,7 @@ public class CallSection extends TraceSection
             .accountFragment()
             .makeWithTrm(
                     calleeFirst,
-                reEntryCalleeSnapshot,
+                calleeFirstNew,
                 rawCalleeAddress,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 

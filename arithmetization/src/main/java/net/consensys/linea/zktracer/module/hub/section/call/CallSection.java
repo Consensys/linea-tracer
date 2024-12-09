@@ -129,10 +129,6 @@ public class CallSection extends TraceSection
   private AccountSnapshot calleeThird;
   private AccountSnapshot calleeThirdNew;
 
-  // Just before re-entry
-  private AccountSnapshot childContextExitCallerSnapshot;
-  private AccountSnapshot childContextExitCalleeSnapshot;
-
   // Just after re-entry
   private AccountSnapshot reEntryCallerSnapshot;
   private AccountSnapshot reEntryCalleeSnapshot;
@@ -433,9 +429,6 @@ public class CallSection extends TraceSection
   @Override
   public void resolveUponContextExit(Hub hub, CallFrame frame) {
     checkArgument(scenarioFragment.getScenario() == CALL_SMC_UNDEFINED);
-
-    childContextExitCallerSnapshot = canonical(hub, callerFirst.address());
-    childContextExitCalleeSnapshot = canonical(hub, calleeFirst.address());
   }
 
   @Override

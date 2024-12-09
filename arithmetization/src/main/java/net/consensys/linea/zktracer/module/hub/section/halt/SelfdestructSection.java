@@ -253,8 +253,7 @@ public class SelfdestructSection extends TraceSection
     checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
 
     // We modify the account fragment to reflect the self-destruct time
-    final int hubStampOfTheActionableSelfDestruct =
-        effectiveSelfDestructMap.get(ephemeralAccount);
+    final int hubStampOfTheActionableSelfDestruct = effectiveSelfDestructMap.get(ephemeralAccount);
 
     checkArgument(hubStamp >= hubStampOfTheActionableSelfDestruct);
 
@@ -270,7 +269,10 @@ public class SelfdestructSection extends TraceSection
           SelfdestructScenarioFragment.SelfdestructScenario
               .SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
 
-      hub.transients().conflation().deploymentInfo().deploymentUpdateForSuccessfulSelfDestruct(selfdestructorAccountBefore.address());
+      hub.transients()
+          .conflation()
+          .deploymentInfo()
+          .deploymentUpdateForSuccessfulSelfDestruct(selfdestructorAccountBefore.address());
 
       // the hub's defers.resolvePostTransaction() gets called after the
       // hub's completeLineaTransaction which in turn calls

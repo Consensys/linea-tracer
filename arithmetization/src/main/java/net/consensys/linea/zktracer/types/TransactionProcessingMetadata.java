@@ -181,7 +181,8 @@ public class TransactionProcessingMetadata {
     this.logs = logs;
     for (Address address : selfDestructs) {
       destructedAccountsSnapshot.add(
-          AccountSnapshot.fromAddress(address, true, hub.deploymentNumberOf(address), hub.deploymentStatusOf(address)));
+          AccountSnapshot.fromAddress(
+              address, true, hub.deploymentNumberOf(address), hub.deploymentStatusOf(address)));
     }
 
     determineSelfDestructTimeStamp();

@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.blockdata;
 
 import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_BF;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_CB;
+import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_DEPTH;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_DF;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_GL;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_ID;
@@ -87,7 +88,7 @@ public class BlockdataOperation extends ModuleOperation {
         return CT_MAX_BF;
       }
       default -> {
-        throw new IllegalArgumentException("Invalid opcode for BlockdataOperation");
+        return CT_MAX_DEPTH;
       }
     }
   }

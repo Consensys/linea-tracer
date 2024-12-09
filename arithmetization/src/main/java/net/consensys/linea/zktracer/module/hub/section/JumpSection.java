@@ -52,10 +52,6 @@ public class JumpSection extends TraceSection {
     ///////////////////
     final Address codeAddress = hub.messageFrame().getContractAddress();
 
-    final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
-    final int deploymentNumber = deploymentInfo.deploymentNumber(codeAddress);
-    final boolean deploymentStatus = deploymentInfo.getDeploymentStatus(codeAddress);
-
     final boolean warmth = hub.messageFrame().isAddressWarm(codeAddress);
     checkArgument(warmth);
 
@@ -72,7 +68,7 @@ public class JumpSection extends TraceSection {
     // MISCELLANEOUS fragment
     /////////////////////////
     final ImcFragment miscellaneousRow = ImcFragment.empty(hub);
-    boolean mustAttemptJump = false;
+    boolean mustAttemptJump;
     switch (hub.opCode()) {
       case OpCode.JUMP -> {
         JumpOobCall jumpOobCall = new JumpOobCall();

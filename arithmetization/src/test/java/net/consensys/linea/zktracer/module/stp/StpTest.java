@@ -66,7 +66,8 @@ public class StpTest {
       final BigInteger value = BigInteger.valueOf(RAND.nextLong(0, 100000L));
       final long gasLimit = RAND.nextLong(23400, 1000000L);
 
-      transactions.add(txCall(opcode, toExists, toWarm, balance, value, gasCall, gasLimit, accounts));
+      transactions.add(
+          txCall(opcode, toExists, toWarm, balance, value, gasCall, gasLimit, accounts));
     }
 
     ToyExecutionEnvironmentV2.builder()

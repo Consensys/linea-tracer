@@ -26,7 +26,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(UnitTestWatcher.class)
 public class Issue1031Tests {
 
-  // @Disabled
   @Test
   void issue_1090_range_10_20() {
     replay(LINEA_MAINNET, "10-20.mainnet.json.gz");

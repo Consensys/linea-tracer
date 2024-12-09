@@ -27,7 +27,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(UnitTestWatcher.class)
 public class Issue1116Tests {
 
-  // @Disabled
   @Test
   void issue_1116_block_8019521() {
     replay(LINEA_MAINNET, "8019521.mainnet.json.gz");

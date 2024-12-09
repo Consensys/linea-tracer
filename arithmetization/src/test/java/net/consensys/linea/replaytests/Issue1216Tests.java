@@ -21,7 +21,6 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.datatypes.Address;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +44,6 @@ public class Issue1216Tests {
    * blowing up with a NPE since the "after" version of the self destructor didn't exist yet in the
    * code. This was solved in issue #1216.
    */
-  @Disabled
   @Tag("nightly")
   @Tag("replay")
   @Test

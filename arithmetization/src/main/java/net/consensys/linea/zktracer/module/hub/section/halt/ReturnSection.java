@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.memoryExpansionException;
@@ -24,6 +25,7 @@ import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -144,7 +146,7 @@ public class ReturnSection extends TraceSection
       final MmuCall actuallyInvalidCodePrefixMmuCall = MmuCall.invalidCodePrefix(hub);
       firstImcFragment.callMmu(actuallyInvalidCodePrefixMmuCall);
 
-      checkArgument(!actuallyInvalidCodePrefixMmuCall.successBit());
+      checkArgument(actuallyInvalidCodePrefixMmuCall.successBit());
       commonValues.setTracedException(TracedException.INVALID_CODE_PREFIX);
       return;
     }
@@ -257,19 +259,12 @@ public class ReturnSection extends TraceSection
   @Override
   public void resolveAtContextReEntry(Hub hub, CallFrame frame) {
 
-    // TODO: optional sanity check that may be removed
-    if (returnFromMessageCall) {
-      final Bytes topOfTheStack = hub.messageFrame().getStackItem(0);
-      boolean messageCallWasSuccessful = bytesToBoolean(topOfTheStack);
-      checkArgument(messageCallWasSuccessful == successfulMessageCallExpected);
-    }
+    checkState(returnFromDeployment);
 
     // TODO: optional sanity check that may be removed
-    if (returnFromDeployment) {
-      final Bytes topOfTheStack = hub.messageFrame().getStackItem(0);
-      boolean deploymentWasSuccess = !topOfTheStack.isZero();
-      checkArgument(deploymentWasSuccess == successfulDeploymentExpected);
-    }
+    final Bytes topOfTheStack = hub.messageFrame().getStackItem(0);
+    boolean deploymentWasSuccess = !topOfTheStack.isZero();
+    checkArgument(deploymentWasSuccess == successfulDeploymentExpected);
 
     firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
     final AccountFragment deploymentAccountFragment =
@@ -323,23 +318,27 @@ public class ReturnSection extends TraceSection
   }
 
   private void addDeploymentAccountFragmentIfRoot(Hub hub, MxpCall mxpCall) {
-    // in case of zero depth we don't have a ContextReEntry step so we have to add the
-    // deployment account fragment manually
+
+    checkState(returnFromDeployment);
+
     firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
     firstCreateeNew.code(
-        new Bytecode(
-            hub.messageFrame()
-                .shadowReadMemory(
-                    Words.clampedToLong(mxpCall.offset1), Words.clampedToLong(mxpCall.size1))));
+            new Bytecode(
+                    hub.messageFrame()
+                            .shadowReadMemory(
+                                    Words.clampedToLong(mxpCall.offset1), Words.clampedToLong(mxpCall.size1))));
     firstCreateeNew.deploymentStatus(false);
-
     final AccountFragment deploymentAccountFragment =
-        hub.factories()
-            .accountFragment()
-            .make(
-                    firstCreatee,
-                    firstCreateeNew,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+            hub.factories()
+                    .accountFragment()
+                    .make(
+                            firstCreatee,
+                            firstCreateeNew,
+                            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+
+    if (nonemptyByteCode) {
+      deploymentAccountFragment.requiresRomlex(true);
+    }
 
     this.addFragment(deploymentAccountFragment);
   }

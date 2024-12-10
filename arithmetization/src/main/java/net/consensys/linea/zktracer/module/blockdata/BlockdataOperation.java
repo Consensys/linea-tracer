@@ -29,6 +29,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_COINBASE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIFFICULTY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GASLIMIT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_NUMBER;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_TIMESTAMP;
@@ -174,9 +175,16 @@ public class BlockdataOperation extends ModuleOperation {
         0, dataHi, dataLo, Bytes.ofUnsignedLong((long) Math.pow(256, 4)), Bytes.ofUnsignedLong(0));
   }
 
-  // TODO: implement the ones below
+  private void handleTimestamp() {
+    // Row i
+    wcpCallToLT(
+        0, dataHi, dataLo, Bytes.ofUnsignedLong(0), Bytes.ofUnsignedLong((long) Math.pow(256, 6)));
+    // Row i + 1
+    /*    wcpCallToGT(
+    1, dataHi, dataLo, dataHi, dataLo);*/
+  }
 
-  private void handleTimestamp() {}
+  // TODO: implement the ones below
 
   private void handleNumber() {}
 
@@ -273,6 +281,30 @@ public class BlockdataOperation extends ModuleOperation {
     res[w] = booleanToBytes(r);
 
     exoInst[w] = UnsignedByte.of(EVM_INST_LT);
+
+    wcpFlag[w] = true;
+    eucFlag[w] = false;
+
+    return r;
+  }
+
+  private boolean wcpCallToGT(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
+    checkArgument(arg1Hi.bitLength() / 8 <= 16);
+    checkArgument(arg1Lo.bitLength() / 8 <= 16);
+    checkArgument(arg2Hi.bitLength() / 8 <= 16);
+    checkArgument(arg2Lo.bitLength() / 8 <= 16);
+    final EWord arg1 = EWord.of(Bytes.concatenate(arg1Hi, arg1Lo));
+    final EWord arg2 = EWord.of(Bytes.concatenate(arg2Hi, arg2Lo));
+
+    this.arg1Hi[w] = arg1Hi;
+    this.arg1Lo[w] = arg1Lo;
+    this.arg2Hi[w] = arg2Hi;
+    this.arg2Lo[w] = arg2Lo;
+
+    final boolean r = wcp.callGT(arg1, arg2);
+    res[w] = booleanToBytes(r);
+
+    exoInst[w] = UnsignedByte.of(EVM_INST_GT);
 
     wcpFlag[w] = true;
     eucFlag[w] = false;

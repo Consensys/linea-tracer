@@ -30,12 +30,15 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIFFICULTY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GASLIMIT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ISZERO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_NUMBER;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_TIMESTAMP;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BASE_FEE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BLOCK_GAS_LIMIT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_GEQ;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
@@ -264,7 +267,8 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   // Module call macros
-  private boolean wcpCallToLT(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
+  private boolean wcpCallTo(
+      int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo, int inst) {
     checkArgument(arg1Hi.bitLength() / 8 <= 16);
     checkArgument(arg1Lo.bitLength() / 8 <= 16);
     checkArgument(arg2Hi.bitLength() / 8 <= 16);
@@ -277,40 +281,44 @@ public class BlockdataOperation extends ModuleOperation {
     this.arg2Hi[w] = arg2Hi;
     this.arg2Lo[w] = arg2Lo;
 
-    final boolean r = wcp.callLT(arg1, arg2);
+    final boolean r;
+    r =
+        switch (inst) {
+          case EVM_INST_LT -> wcp.callLT(arg1, arg2);
+          case EVM_INST_GT -> wcp.callGT(arg1, arg2);
+          case WCP_INST_LEQ -> wcp.callLEQ(arg1, arg2);
+          case WCP_INST_GEQ -> wcp.callGEQ(arg1, arg2);
+          case EVM_INST_ISZERO -> wcp.callISZERO(arg1);
+          default -> throw new IllegalStateException("Unexpected value: " + inst);
+        };
     res[w] = booleanToBytes(r);
 
-    exoInst[w] = UnsignedByte.of(EVM_INST_LT);
+    exoInst[w] = UnsignedByte.of(inst);
 
     wcpFlag[w] = true;
     eucFlag[w] = false;
 
     return r;
+  }
+
+  private boolean wcpCallToLT(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
+    return wcpCallTo(w, arg1Hi, arg1Lo, arg2Hi, arg2Lo, EVM_INST_LT);
   }
 
   private boolean wcpCallToGT(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
-    checkArgument(arg1Hi.bitLength() / 8 <= 16);
-    checkArgument(arg1Lo.bitLength() / 8 <= 16);
-    checkArgument(arg2Hi.bitLength() / 8 <= 16);
-    checkArgument(arg2Lo.bitLength() / 8 <= 16);
-    final EWord arg1 = EWord.of(Bytes.concatenate(arg1Hi, arg1Lo));
-    final EWord arg2 = EWord.of(Bytes.concatenate(arg2Hi, arg2Lo));
-
-    this.arg1Hi[w] = arg1Hi;
-    this.arg1Lo[w] = arg1Lo;
-    this.arg2Hi[w] = arg2Hi;
-    this.arg2Lo[w] = arg2Lo;
-
-    final boolean r = wcp.callGT(arg1, arg2);
-    res[w] = booleanToBytes(r);
-
-    exoInst[w] = UnsignedByte.of(EVM_INST_GT);
-
-    wcpFlag[w] = true;
-    eucFlag[w] = false;
-
-    return r;
+    return wcpCallTo(w, arg1Hi, arg1Lo, arg2Hi, arg2Lo, EVM_INST_GT);
   }
 
-  // TODO: add other call macros
+  private boolean wcpCallToLEQ(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
+    return wcpCallTo(w, arg1Hi, arg1Lo, arg2Hi, arg2Lo, WCP_INST_LEQ);
+  }
+
+  private boolean wcpCallToGEQ(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
+    return wcpCallTo(w, arg1Hi, arg1Lo, arg2Hi, arg2Lo, WCP_INST_GEQ);
+  }
+
+  private boolean wcpCallToISZERO(int w, Bytes arg1Hi, Bytes arg1Lo) {
+    return wcpCallTo(
+        w, arg1Hi, arg1Lo, Bytes.ofUnsignedLong(0), Bytes.ofUnsignedLong(0), EVM_INST_ISZERO);
+  }
 }

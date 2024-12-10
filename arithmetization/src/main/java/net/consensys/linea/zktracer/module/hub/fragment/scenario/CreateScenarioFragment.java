@@ -18,7 +18,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-
 public class CreateScenarioFragment implements TraceFragment {
 
   public enum CreateScenario {
@@ -41,6 +40,17 @@ public class CreateScenarioFragment implements TraceFragment {
         }
       }
       return false;
+    }
+
+    public static CreateScenario switchToRevertingScenario(
+            final CreateScenario currentScenario) {
+      return switch (currentScenario) {
+        case CREATE_FAILURE_CONDITION_WONT_REVERT -> CREATE_FAILURE_CONDITION_WILL_REVERT;
+        case CREATE_EMPTY_INIT_CODE_WONT_REVERT -> CREATE_EMPTY_INIT_CODE_WILL_REVERT;
+        case CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT -> CREATE_NON_EMPTY_INIT_CODE_FAILURE_WILL_REVERT;
+        case CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WONT_REVERT -> CREATE_NON_EMPTY_INIT_CODE_SUCCESS_WILL_REVERT;
+        default -> throw new IllegalArgumentException("unexpected Create scenario");
+      };
     }
   }
 

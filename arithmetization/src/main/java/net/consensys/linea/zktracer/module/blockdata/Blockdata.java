@@ -24,7 +24,7 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
-import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
+import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -34,9 +34,10 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @RequiredArgsConstructor
 public class Blockdata implements Module {
   private final Wcp wcp;
+  private final Euc euc;
   private final TxnData txnData;
-  private final RlpTxn rlpTxn;
   private final BigInteger chainId;
+
   private final Deque<BlockdataOperation> operations = new ArrayDeque<>();
   private boolean conflationFinished = false;
   private static final int TIMESTAMP_BYTESIZE = 4;
@@ -61,7 +62,12 @@ public class Blockdata implements Module {
             currentTimestamp,
             blockHeader.getNumber(),
             blockHeader.getDifficulty().getAsBigInteger(),
-            txnData.currentBlock().getNbOfTxsInBlock()));
+            txnData.currentBlock().getNbOfTxsInBlock(),
+            wcp,
+            euc,
+            txnData,
+            chainId,
+            0)); // TODO: find out which instruction we are dealing with
 
     wcp.callGT(currentTimestamp, previousTimestamp);
     previousTimestamp = currentTimestamp;

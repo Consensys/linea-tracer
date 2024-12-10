@@ -391,7 +391,7 @@ public class Hub implements Module {
     l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
-    blockdata = new Blockdata(wcp, txnData, rlpTxn, chainId);
+    blockdata = new Blockdata(wcp, euc, txnData, chainId);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 

@@ -17,9 +17,7 @@ package net.consensys.linea.zktracer.module.blockdata;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.List;
+import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -42,6 +40,7 @@ public class Blockdata implements Module {
   private boolean conflationFinished = false;
   private static final int TIMESTAMP_BYTESIZE = 4;
   private int previousTimestamp = 0;
+  private Map<Integer, BlockdataOperation> prevOperationByInst = new HashMap<>();
 
   @Override
   public String moduleKey() {
@@ -56,7 +55,9 @@ public class Blockdata implements Module {
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     final int currentTimestamp = (int) blockHeader.getTimestamp();
-    operations.addLast(
+    // TODO: check where we get inst
+    int inst = 0;
+    BlockdataOperation operation =
         new BlockdataOperation(
             blockHeader.getCoinbase(),
             currentTimestamp,
@@ -67,8 +68,10 @@ public class Blockdata implements Module {
             euc,
             txnData,
             chainId,
-            0)); // TODO: find out which instruction we are dealing with
-
+            0,
+            prevOperationByInst.get(inst));
+    operations.addLast(operation); // TODO: find out which instruction we are dealing with
+    prevOperationByInst.put(inst, operation);
     wcp.callGT(currentTimestamp, previousTimestamp);
     previousTimestamp = currentTimestamp;
   }

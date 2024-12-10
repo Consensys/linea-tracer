@@ -57,36 +57,41 @@ import org.hyperledger.besu.datatypes.Address;
 @Accessors(fluent = true)
 @Getter
 public class BlockdataOperation extends ModuleOperation {
-  private final Address coinbase;
   private final long timestamp;
   private final long absoluteBlockNumber;
   private final BigInteger difficulty;
-  private final int relTxMax;
   private final Wcp wcp;
   private final Euc euc;
   private final TxnData txnData;
   private final BigInteger chainId;
+  private final BlockdataOperation prevOperation;
+  private final Bytes ZERO = Bytes.ofUnsignedLong(0);
 
-  // TODO: follow the order of the specs
-  int ctMax;
-  int inst;
-  boolean isCoinbase;
-  boolean isTimestamp;
-  boolean isNumber;
-  boolean isDifficulty;
-  boolean isGasLimit;
-  boolean isChainId;
-  boolean isBaseFee;
-  Bytes dataHi;
-  Bytes dataLo;
-  boolean[] wcpFlag;
-  boolean[] eucFlag;
-  UnsignedByte[] exoInst;
-  Bytes[] arg1Hi;
-  Bytes[] arg1Lo;
-  Bytes[] arg2Hi;
-  Bytes[] arg2Lo;
-  Bytes[] res;
+  // TODO: miss IOMF, CT, BLOCK_GAS_LIMIT, BASE_FEE, REL_BLOCK
+  private boolean previousConflation; // TODO: how to set this variables
+  private boolean currentConflation; // TODO: how to set this variables
+  private final int ctMax;
+  private boolean isCoinbase;
+  private boolean isTimestamp;
+  private boolean isNumber;
+  private boolean isDifficulty;
+  private boolean isGasLimit;
+  private boolean isChainId;
+  private boolean isBaseFee;
+  private final int inst;
+  private final Address coinbase; // TODO: split coinbase here for hi and lo
+  private final long firstBlockNumber = 0; // TODO: how to set these variables
+  private final int relTxMax;
+  private Bytes dataHi;
+  private Bytes dataLo;
+  private Bytes[] arg1Hi;
+  private Bytes[] arg1Lo;
+  private Bytes[] arg2Hi;
+  private Bytes[] arg2Lo;
+  private Bytes[] res;
+  private final UnsignedByte[] exoInst;
+  private final boolean[] wcpFlag;
+  private final boolean[] eucFlag;
 
   public BlockdataOperation(
       Address coinbase,
@@ -98,7 +103,8 @@ public class BlockdataOperation extends ModuleOperation {
       Euc euc,
       TxnData txnData,
       BigInteger chainId,
-      int inst) {
+      int inst,
+      BlockdataOperation prevOperation) {
     this.coinbase = coinbase;
     this.timestamp = timestamp;
     this.absoluteBlockNumber = absoluteBlockNumber;
@@ -108,6 +114,7 @@ public class BlockdataOperation extends ModuleOperation {
     this.euc = euc;
     this.txnData = txnData;
     this.chainId = chainId;
+    this.prevOperation = prevOperation;
 
     this.inst = inst;
     this.ctMax = ctMax(inst);
@@ -122,6 +129,12 @@ public class BlockdataOperation extends ModuleOperation {
     this.arg2Lo = new Bytes[ctMax];
     this.res = new Bytes[ctMax];
 
+    // Shorthands
+    final boolean isPrev = previousConflation;
+    final boolean isCurr = currentConflation;
+    final boolean prevOperationIsPrev = prevOperation.previousConflation;
+    final boolean prevOperationIsCurr = prevOperation.currentConflation;
+
     // Handle opcodes
     switch (inst) {
       case EVM_INST_COINBASE -> {
@@ -135,7 +148,7 @@ public class BlockdataOperation extends ModuleOperation {
       }
       case EVM_INST_NUMBER -> {
         isNumber = true;
-        handleNumber();
+        handleNumber(isPrev, isCurr, prevOperationIsPrev, prevOperationIsCurr);
       }
       case EVM_INST_DIFFICULTY -> {
         isDifficulty = true;
@@ -174,22 +187,60 @@ public class BlockdataOperation extends ModuleOperation {
     this.dataLo = coinbaseAsEWord.lo();
 
     // Row i
-    wcpCallToLT(
-        0, dataHi, dataLo, Bytes.ofUnsignedLong((long) Math.pow(256, 4)), Bytes.ofUnsignedLong(0));
+    wcpCallToLT(0, dataHi, dataLo, Bytes.ofUnsignedLong((long) Math.pow(256, 4)), ZERO);
   }
 
   private void handleTimestamp() {
     // Row i
-    wcpCallToLT(
-        0, dataHi, dataLo, Bytes.ofUnsignedLong(0), Bytes.ofUnsignedLong((long) Math.pow(256, 6)));
+    wcpCallToLT(0, dataHi, dataLo, ZERO, Bytes.ofUnsignedLong((long) Math.pow(256, 6)));
     // Row i + 1
-    /*    wcpCallToGT(
-    1, dataHi, dataLo, dataHi, dataLo);*/
+    wcpCallToGT(
+        1,
+        dataHi,
+        dataLo,
+        prevOperation == null ? ZERO : prevOperation.dataHi,
+        prevOperation == null ? ZERO : prevOperation.dataLo);
+  }
+
+  private void handleNumber(
+      boolean isPrev, boolean isCurr, boolean prevOperationIsPrev, boolean prevOperationIsCurr) {
+    // Row i
+    final boolean firstBlockIsGenesisBlock =
+        wcpCallToISZERO(0, ZERO, Bytes.ofUnsignedLong(firstBlockNumber));
+    // Set dataHi and dataLo
+    if (isPrev) {
+      if (firstBlockIsGenesisBlock) {
+        dataHi = ZERO;
+        dataLo = ZERO;
+      }
+      if (!firstBlockIsGenesisBlock) {
+        dataHi = ZERO;
+        dataLo = Bytes.ofUnsignedLong(firstBlockNumber - 1);
+      }
+    }
+    if (isCurr) {
+      if (firstBlockIsGenesisBlock) {
+        if (prevOperationIsPrev) {
+          dataHi = ZERO;
+          dataLo = ZERO;
+        }
+        if (prevOperationIsCurr) {
+          dataHi = prevOperation.dataHi;
+          dataLo = Bytes.ofUnsignedLong(prevOperation.dataLo.toLong() + 1);
+        }
+      }
+      if (!firstBlockIsGenesisBlock) {
+        dataHi = prevOperation.dataHi;
+        dataLo = Bytes.ofUnsignedLong(prevOperation.dataLo.toLong() + 1);
+      }
+    }
+    // Row i + 1
+    if (isPrev) {
+      wcpCallToLT(1, dataHi, dataLo, ZERO, Bytes.ofUnsignedLong((long) Math.pow(256, 6)));
+    }
   }
 
   // TODO: implement the ones below
-
-  private void handleNumber() {}
 
   private void handleDifficulty() {}
 
@@ -318,7 +369,6 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   private boolean wcpCallToISZERO(int w, Bytes arg1Hi, Bytes arg1Lo) {
-    return wcpCallTo(
-        w, arg1Hi, arg1Lo, Bytes.ofUnsignedLong(0), Bytes.ofUnsignedLong(0), EVM_INST_ISZERO);
+    return wcpCallTo(w, arg1Hi, arg1Lo, ZERO, ZERO, EVM_INST_ISZERO);
   }
 }

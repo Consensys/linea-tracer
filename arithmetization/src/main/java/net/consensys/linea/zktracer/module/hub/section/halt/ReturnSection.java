@@ -61,31 +61,35 @@ public class ReturnSection extends TraceSection
   final ReturnScenarioFragment returnScenarioFragment;
   AccountFragment deploymentFragment;
 
-  AccountSnapshot preDeploymentAccountSnapshot;
-  AccountSnapshot postDeploymentAccountSnapshot;
-  AccountSnapshot undoingDeploymentAccountSnapshot;
+  AccountSnapshot firstCreatee;
+  AccountSnapshot firstCreateeNew;
+  AccountSnapshot secondCreatee;
+  AccountSnapshot secondCreateeNew;
   ContextFragment squashParentContextReturnData;
   Address deploymentAddress;
+
+  int hubStamp;
 
   boolean successfulMessageCallExpected = false; // for sanity check
   boolean successfulDeploymentExpected = false; // for sanity check
 
-  public ReturnSection(Hub hub, MessageFrame messageFrame) {
+  public ReturnSection(Hub hub, MessageFrame frame) {
     super(hub, maxNumberOfRows(hub));
 
+    hubStamp = hub.stamp();
     final CallFrame callFrame = hub.currentFrame();
 
-    returnFromMessageCall = callFrame.isMessageCall();
-    returnFromDeployment = callFrame.isDeployment();
+    returnFromMessageCall = frame.getType().equals(MESSAGE_CALL);
+    returnFromDeployment = frame.getType().equals(CONTRACT_CREATION);
 
-    checkArgument(callFrame.isDeployment() == (messageFrame.getType().equals(CONTRACT_CREATION)));
+    checkArgument(callFrame.isDeployment() == (frame.getType().equals(CONTRACT_CREATION)));
 
     checkArgument(
         returnFromDeployment
             == hub.transients()
                 .conflation()
                 .deploymentInfo()
-                .getDeploymentStatus(messageFrame.getContractAddress()));
+                .getDeploymentStatus(frame.getContractAddress()));
 
     returnScenarioFragment = new ReturnScenarioFragment();
     final ContextFragment currentContextFragment = ContextFragment.readCurrentContextData(hub);
@@ -170,11 +174,11 @@ public class ReturnSection extends TraceSection
               ? RETURN_FROM_MESSAGE_CALL_WILL_TOUCH_RAM
               : RETURN_FROM_MESSAGE_CALL_WONT_TOUCH_RAM);
 
-      final Bytes offset = messageFrame.getStackItem(0);
-      final Bytes size = messageFrame.getStackItem(1);
+      final Bytes offset = frame.getStackItem(0);
+      final Bytes size = frame.getStackItem(1);
       callFrame.outputDataRange(
           new MemoryRange(
-              callFrame.contextNumber(), Range.fromOffsetAndSize(offset, size), messageFrame));
+              callFrame.contextNumber(), Range.fromOffsetAndSize(offset, size), frame));
 
       if (messageCallReturnTouchesRam) {
         final MmuCall returnFromMessageCall = MmuCall.returnFromMessageCall(hub);
@@ -202,15 +206,17 @@ public class ReturnSection extends TraceSection
       hub.defers().scheduleForPostTransaction(this); // inserting the final context row;
 
       squashParentContextReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
-      deploymentAddress = messageFrame.getRecipientAddress();
+      deploymentAddress = frame.getRecipientAddress();
       nonemptyByteCode = mxpCall.mayTriggerNontrivialMmuOperation;
-      preDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
+
+      firstCreatee = AccountSnapshot.canonical(hub, frame.getWorldUpdater(), deploymentAddress);
+
       returnScenarioFragment.setScenario(
           nonemptyByteCode
               ? RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WONT_REVERT
               : RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WONT_REVERT);
 
-      final Bytes byteCodeSize = messageFrame.getStackItem(1);
+      final Bytes byteCodeSize = frame.getStackItem(1);
       checkArgument(nonemptyByteCode == (!byteCodeSize.isZero()));
 
       // Empty deployments
@@ -221,7 +227,7 @@ public class ReturnSection extends TraceSection
         return;
       }
 
-      hub.romLex().callRomLex(messageFrame);
+      hub.romLex().callRomLex(frame);
 
       final MmuCall invalidCodePrefixCheckMmuCall = MmuCall.invalidCodePrefix(hub);
       firstImcFragment.callMmu(invalidCodePrefixCheckMmuCall);
@@ -265,14 +271,14 @@ public class ReturnSection extends TraceSection
       checkArgument(deploymentWasSuccess == successfulDeploymentExpected);
     }
 
-    postDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
+    firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
     final AccountFragment deploymentAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
-                preDeploymentAccountSnapshot,
-                postDeploymentAccountSnapshot,
-                DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
+                    firstCreatee,
+                    firstCreateeNew,
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
 
     if (nonemptyByteCode) {
       deploymentAccountFragment.requiresRomlex(true);
@@ -290,7 +296,8 @@ public class ReturnSection extends TraceSection
             ? RETURN_FROM_DEPLOYMENT_NONEMPTY_CODE_WILL_REVERT
             : RETURN_FROM_DEPLOYMENT_EMPTY_CODE_WILL_REVERT);
 
-    undoingDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
+    secondCreatee = firstCreateeNew.deepCopy().setDeploymentNumber(hub);
+    secondCreateeNew = firstCreatee.deepCopy().setDeploymentNumber(hub);
 
     // TODO: does this account for updates to
     //  - deploymentNumber and status ?
@@ -299,10 +306,10 @@ public class ReturnSection extends TraceSection
         hub.factories()
             .accountFragment()
             .make(
-                postDeploymentAccountSnapshot,
-                undoingDeploymentAccountSnapshot,
+                    firstCreateeNew,
+                    secondCreateeNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                    this.hubStamp(), hub.callStack().currentCallFrame().revertStamp(), 1));
+                    hubStamp, hub.callStack().currentCallFrame().revertStamp(), 1));
 
     this.addFragment(undoingDeploymentAccountFragment);
   }
@@ -318,20 +325,20 @@ public class ReturnSection extends TraceSection
   private void addDeploymentAccountFragmentIfRoot(Hub hub, MxpCall mxpCall) {
     // in case of zero depth we don't have a ContextReEntry step so we have to add the
     // deployment account fragment manually
-    postDeploymentAccountSnapshot = AccountSnapshot.canonical(hub, deploymentAddress);
-    postDeploymentAccountSnapshot.code(
+    firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
+    firstCreateeNew.code(
         new Bytecode(
             hub.messageFrame()
                 .shadowReadMemory(
                     Words.clampedToLong(mxpCall.offset1), Words.clampedToLong(mxpCall.size1))));
-    postDeploymentAccountSnapshot.deploymentStatus(false);
+    firstCreateeNew.deploymentStatus(false);
 
     final AccountFragment deploymentAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
-                preDeploymentAccountSnapshot,
-                postDeploymentAccountSnapshot,
+                    firstCreatee,
+                    firstCreateeNew,
                 DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
     this.addFragment(deploymentAccountFragment);

@@ -31,7 +31,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
@@ -111,7 +110,8 @@ public final class StackFragment implements TraceFragment {
       final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
 
       boolean noOutOfGasException = !Exceptions.outOfGasException(exceptions);
-      boolean prospectivePcNewIsInBounds = codeSize.compareTo(prospectivePcNew) > 0 && noOutOfGasException;
+      boolean prospectivePcNewIsInBounds =
+          codeSize.compareTo(prospectivePcNew) > 0 && noOutOfGasException;
 
       if (opCode.equals(OpCode.JUMPI)) {
         boolean nonzeroJumpCondition =

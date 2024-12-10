@@ -30,10 +30,10 @@ import net.consensys.linea.zktracer.instructionprocessing.createTests.OffsetPara
 import net.consensys.linea.zktracer.instructionprocessing.createTests.SizeParameter;
 import net.consensys.linea.zktracer.instructionprocessing.createTests.ValueParameter;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
 public class Balance {
@@ -100,14 +100,14 @@ public class Balance {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     genericCreate(
-            program,
-            createType,
-            ValueParameter.v_SELFBALANCE_PLUS_ONE,
-            offsetParameter,
-            sizeParameter,
-            salt01); // aborts
+        program,
+        createType,
+        ValueParameter.v_SELFBALANCE_PLUS_ONE,
+        offsetParameter,
+        sizeParameter,
+        salt01); // aborts
     genericCreate(
-            program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
+        program, createType, ValueParameter.v_ONE, offsetParameter, sizeParameter, salt01);
 
     if (reverts) {
       appendRevert(program, 2, 13);

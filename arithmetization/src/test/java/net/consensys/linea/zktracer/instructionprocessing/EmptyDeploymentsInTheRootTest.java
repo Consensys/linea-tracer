@@ -78,20 +78,21 @@ public class EmptyDeploymentsInTheRootTest {
           .compile();
 
   final Bytes initCodeImmediateStackUnderflowException =
-          BytecodeCompiler.newProgram()
-                  .op(OpCode.BLOCKHASH) // immediate SUX
-                  .compile();
+      BytecodeCompiler.newProgram()
+          .op(OpCode.BLOCKHASH) // immediate SUX
+          .compile();
 
   final Bytes initCodeImmediateInvalidException =
-          BytecodeCompiler.newProgram()
-                  .op(OpCode.INVALID) // immediate INVALID
-                  .compile();
+      BytecodeCompiler.newProgram()
+          .op(OpCode.INVALID) // immediate INVALID
+          .compile();
 
   final Bytes deployerOfEmptyDeploymentInitCode = deployerOf(initCodeEmptyDeployment);
   final Bytes deployerOfNonemptyDeploymentInitCode = deployerOf(initCodeNonemptyDeployment);
   final Bytes deployerOfEmptyRevert = deployerOf(initCodeEmptyRevert);
   final Bytes deployerOfNonemptyRevert = deployerOf(initCodeNonemptyRevert);
-  final Bytes deployerOfStackUnderflowException = deployerOf(initCodeImmediateStackUnderflowException);
+  final Bytes deployerOfStackUnderflowException =
+      deployerOf(initCodeImmediateStackUnderflowException);
   final Bytes deployerOfInvalidException = deployerOf(initCodeImmediateInvalidException);
 
   /** We test <b>deployment transactions</b>. */
@@ -122,13 +123,15 @@ public class EmptyDeploymentsInTheRootTest {
 
   @Test
   void deploymentTransactionStackUnderFlowException() {
-    Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCodeImmediateStackUnderflowException);
+    Transaction deploymentTransaction =
+        deploymentTansactionFromInitCode(initCodeImmediateStackUnderflowException);
     runTransaction(deploymentTransaction);
   }
 
   @Test
   void deploymentTransactionInvalidException() {
-    Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCodeImmediateInvalidException);
+    Transaction deploymentTransaction =
+        deploymentTansactionFromInitCode(initCodeImmediateInvalidException);
     runTransaction(deploymentTransaction);
   }
 
@@ -200,30 +203,30 @@ public class EmptyDeploymentsInTheRootTest {
           .build();
 
   ToyAccount accountGeneratorOfRevertedCreateDueToStackException =
-          ToyAccount.builder()
-                  .balance(Wei.fromEth(1))
-                  .nonce(1024)
-                  .address(Address.fromHexString("0xdeadbeef0001"))
-                  .code(deployerOfStackUnderflowException)
-                  .build();
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(1024)
+          .address(Address.fromHexString("0xdeadbeef0001"))
+          .code(deployerOfStackUnderflowException)
+          .build();
 
   ToyAccount accountGeneratorOfRevertedCreateDueToInvalidException =
-          ToyAccount.builder()
-                  .balance(Wei.fromEth(1))
-                  .nonce(1024)
-                  .address(Address.fromHexString("0xdeadbeef0002"))
-                  .code(deployerOfInvalidException)
-                  .build();
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(1024)
+          .address(Address.fromHexString("0xdeadbeef0002"))
+          .code(deployerOfInvalidException)
+          .build();
 
   List<ToyAccount> accounts =
-          List.of(
-                  userAccount,
-                  accountDeployerOfEmptyInitCode,
-                  accountDeployerOfNonemptyInitCode,
-                  accountGeneratorOfRevertedCreateWithEmptyReturnData,
-                  accountGeneratorOfRevertedCreateWithNonemptyReturnData,
-                  accountGeneratorOfRevertedCreateDueToStackException,
-                  accountGeneratorOfRevertedCreateDueToInvalidException);
+      List.of(
+          userAccount,
+          accountDeployerOfEmptyInitCode,
+          accountDeployerOfNonemptyInitCode,
+          accountGeneratorOfRevertedCreateWithEmptyReturnData,
+          accountGeneratorOfRevertedCreateWithNonemptyReturnData,
+          accountGeneratorOfRevertedCreateDueToStackException,
+          accountGeneratorOfRevertedCreateDueToInvalidException);
 
   Transaction deploymentTansactionFromInitCode(Bytes initCode) {
     return ToyTransaction.builder()

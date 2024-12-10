@@ -230,7 +230,7 @@ public class ReturnSection extends TraceSection
       firstImcFragment.callOob(maxCodeSizeOobCall);
 
       // sanity checks
-      checkArgument(invalidCodePrefixCheckMmuCall.successBit());
+      checkArgument(!invalidCodePrefixCheckMmuCall.successBit());
       checkArgument(!maxCodeSizeOobCall.isMaxCodeSizeException());
 
       final ImcFragment secondImcFragment = ImcFragment.empty(hub);

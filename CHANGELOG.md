@@ -2,7 +2,7 @@
 
 ## 0.8.0-rc8
 * upgrade linea-besu dependency
-* deactivate mmio
+* deactivate MMIO constraints
 
 ## 0.8.0-rc7
 * constraints update (#1629)

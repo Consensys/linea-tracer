@@ -187,13 +187,13 @@ public final class AccountFragment
 
   @Override
   public void resolvePostConflation(Hub hub, WorldView world) {
-    deploymentNumberInfinity = hub.deploymentNumberOf(oldState.address());
+    deploymentNumberInfinity = hub.deploymentNumberOf(newState.address());
     existsInfinity = world.get(oldState.address()) != null;
     codeFragmentIndex =
         requiresRomlex
             ? hub.romLex()
                 .getCodeFragmentIndexByMetadata(
-                    ContractMetadata.make(oldState.address(), deploymentNumber, isDeployment))
+                    ContractMetadata.make(newState.address(), newState.deploymentNumber(), newState.deploymentStatus()))
             : 0;
   }
 }

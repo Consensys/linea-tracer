@@ -19,13 +19,11 @@ import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.ReturnScenarioFragment.ReturnScenario.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.memoryExpansionException;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.ContextExitDefer;
 import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -179,8 +177,7 @@ public class ReturnSection extends TraceSection
       final Bytes offset = frame.getStackItem(0);
       final Bytes size = frame.getStackItem(1);
       callFrame.outputDataRange(
-          new MemoryRange(
-              callFrame.contextNumber(), Range.fromOffsetAndSize(offset, size), frame));
+          new MemoryRange(callFrame.contextNumber(), Range.fromOffsetAndSize(offset, size), frame));
 
       if (messageCallReturnTouchesRam) {
         final MmuCall returnFromMessageCall = MmuCall.returnFromMessageCall(hub);
@@ -271,8 +268,8 @@ public class ReturnSection extends TraceSection
         hub.factories()
             .accountFragment()
             .make(
-                    firstCreatee,
-                    firstCreateeNew,
+                firstCreatee,
+                firstCreateeNew,
                 DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
 
     if (nonemptyByteCode) {
@@ -301,8 +298,8 @@ public class ReturnSection extends TraceSection
         hub.factories()
             .accountFragment()
             .make(
-                    firstCreateeNew,
-                    secondCreateeNew,
+                firstCreateeNew,
+                secondCreateeNew,
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     hubStamp, hub.callStack().currentCallFrame().revertStamp(), 1));
 
@@ -323,18 +320,18 @@ public class ReturnSection extends TraceSection
 
     firstCreateeNew = AccountSnapshot.canonical(hub, deploymentAddress);
     firstCreateeNew.code(
-            new Bytecode(
-                    hub.messageFrame()
-                            .shadowReadMemory(
-                                    Words.clampedToLong(mxpCall.offset1), Words.clampedToLong(mxpCall.size1))));
+        new Bytecode(
+            hub.messageFrame()
+                .shadowReadMemory(
+                    Words.clampedToLong(mxpCall.offset1), Words.clampedToLong(mxpCall.size1))));
     firstCreateeNew.deploymentStatus(false);
     final AccountFragment deploymentAccountFragment =
-            hub.factories()
-                    .accountFragment()
-                    .make(
-                            firstCreatee,
-                            firstCreateeNew,
-                            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+        hub.factories()
+            .accountFragment()
+            .make(
+                firstCreatee,
+                firstCreateeNew,
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
 
     if (nonemptyByteCode) {
       deploymentAccountFragment.requiresRomlex(true);

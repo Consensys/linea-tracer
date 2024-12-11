@@ -64,8 +64,8 @@ public class MemoryExpansionExceptionTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
     assertEquals(
-            MEMORY_EXPANSION_EXCEPTION,
-            bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+        MEMORY_EXPANSION_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     assertTrue(bytecodeRunner.getHub().mxp().operations().getLast().getMxpCall().isMxpx());
     assertEquals(triggerRoob, bytecodeRunner.getHub().mxp().operations().getLast().isRoob());
   }

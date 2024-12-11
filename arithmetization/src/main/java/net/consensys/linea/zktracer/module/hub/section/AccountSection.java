@@ -90,7 +90,10 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
           case BALANCE, EXTCODESIZE, EXTCODEHASH -> hub.factories()
               .accountFragment()
               .makeWithTrm(
-                      firstAccountSnapshot, firstAccountSnapshotNew, rawTargetAddress, doingDomSubStamps);
+                  firstAccountSnapshot,
+                  firstAccountSnapshotNew,
+                  rawTargetAddress,
+                  doingDomSubStamps);
           case SELFBALANCE, CODESIZE -> hub.factories()
               .accountFragment()
               .make(firstAccountSnapshot, firstAccountSnapshotNew, doingDomSubStamps);
@@ -101,10 +104,8 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
 
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
 
-    secondAccountSnapshot =
-        firstAccountSnapshotNew.deepCopy().setDeploymentNumber(hub);
-    secondAccountSnapshotNew =
-        firstAccountSnapshot.deepCopy().setDeploymentNumber(hub);
+    secondAccountSnapshot = firstAccountSnapshotNew.deepCopy().setDeploymentNumber(hub);
+    secondAccountSnapshotNew = firstAccountSnapshot.deepCopy().setDeploymentNumber(hub);
     final DomSubStampsSubFragment undoingDomSubStamps =
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
             hubStamp, hub.currentFrame().revertStamp(), 1);

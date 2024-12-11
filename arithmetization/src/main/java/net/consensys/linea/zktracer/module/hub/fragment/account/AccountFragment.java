@@ -189,7 +189,10 @@ public final class AccountFragment
         requiresRomlex
             ? hub.romLex()
                 .getCodeFragmentIndexByMetadata(
-                    ContractMetadata.make(newState.address(), newState.deploymentNumber(), newState.deploymentStatus()))
+                    ContractMetadata.make(
+                        newState.address(),
+                        newState.deploymentNumber(),
+                        newState.deploymentStatus()))
             : 0;
   }
 }

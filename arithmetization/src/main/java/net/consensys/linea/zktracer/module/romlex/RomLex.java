@@ -47,8 +47,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public class RomLex
-    implements OperationSetModule<RomOperation>, ContextEntryDefer {
+public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDefer {
 
   private final Hub hub;
 
@@ -189,7 +188,8 @@ public class RomLex
         byteCode = frame.shadowReadMemory(offset, length);
         Address deploymentAddress = hub.currentFrame().byteCodeAddress();
         final ContractMetadata contractMetadata =
-                ContractMetadata.make(deploymentAddress, hub.deploymentNumberOf(deploymentAddress), false);
+            ContractMetadata.make(
+                deploymentAddress, hub.deploymentNumberOf(deploymentAddress), false);
         final RomOperation chunk = new RomOperation(contractMetadata, false, true, byteCode);
         operations.add(chunk);
       }

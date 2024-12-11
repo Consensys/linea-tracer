@@ -74,74 +74,72 @@ public class TestRlpAddress {
         .run();
   }
 
-
   @Test
   void failingCreateTest() {
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
-            Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+        Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     final ToyAccount senderAccount =
-            ToyAccount.builder()
-                    .balance(Wei.fromEth(1000))
-                    .nonce(util.randLong())
-                    .address(senderAddress)
-                    .build();
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1000))
+            .nonce(util.randLong())
+            .address(senderAddress)
+            .build();
 
     final Address contractAddress = Address.fromHexString("0x000bad000000b077000");
     final ToyAccount contractAccount =
-            ToyAccount.builder()
-                    .balance(Wei.fromEth(1000))
-                    .nonce(10)
-                    .address(contractAddress)
-                    .code(
-                            BytecodeCompiler.newProgram()
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1000))
+            .nonce(10)
+            .address(contractAddress)
+            .code(
+                BytecodeCompiler.newProgram()
 
-                                    // copy the entirety of the call data to RAM
-                                    .op(OpCode.CALLDATASIZE)
-                                    .push(0)
-                                    .push(0)
-                                    .op(OpCode.CALLDATACOPY)
-                                    .op(OpCode.CALLDATASIZE)
-                                    .push(0)
-                                    .push(rnd.nextInt(0, 50000)) // value
-                                    .op(OpCode.CREATE)
-                                    .op(OpCode.STOP)
-                                    .compile())
-                    .build();
+                    // copy the entirety of the call data to RAM
+                    .op(OpCode.CALLDATASIZE)
+                    .push(0)
+                    .push(0)
+                    .op(OpCode.CALLDATACOPY)
+                    .op(OpCode.CALLDATASIZE)
+                    .push(0)
+                    .push(rnd.nextInt(0, 50000)) // value
+                    .op(OpCode.CREATE)
+                    .op(OpCode.STOP)
+                    .compile())
+            .build();
 
     final Bytes initCodeReturnContractCode =
-            BytecodeCompiler.newProgram()
-                    .push(contractAddress)
-                    .op(OpCode.EXTCODESIZE)
-                    .op(OpCode.DUP1)
-                    .push(0)
-                    .push(0)
-                    .op(OpCode.DUP5) // should provoke stack underflow
-                    .op(OpCode.EXTCODECOPY)
-                    .push(0)
-                    .push(0)
-                    .op(OpCode.RETURN)
-                    .compile();
+        BytecodeCompiler.newProgram()
+            .push(contractAddress)
+            .op(OpCode.EXTCODESIZE)
+            .op(OpCode.DUP1)
+            .push(0)
+            .push(0)
+            .op(OpCode.DUP5) // should provoke stack underflow
+            .op(OpCode.EXTCODECOPY)
+            .push(0)
+            .push(0)
+            .op(OpCode.RETURN)
+            .compile();
 
     final Transaction tx =
-            ToyTransaction.builder()
-                    .sender(senderAccount)
-                    .to(contractAccount)
-                    .keyPair(keyPair)
-                    .transactionType(TransactionType.FRONTIER)
-                    .gasLimit(1000000L)
-                    .payload(initCodeReturnContractCode)
-                    .build();
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(contractAccount)
+            .keyPair(keyPair)
+            .transactionType(TransactionType.FRONTIER)
+            .gasLimit(1000000L)
+            .payload(initCodeReturnContractCode)
+            .build();
 
     ToyExecutionEnvironmentV2.builder()
-            .accounts(List.of(senderAccount, contractAccount))
-            .transaction(tx)
-            .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
-            .build()
-            .run();
+        .accounts(List.of(senderAccount, contractAccount))
+        .transaction(tx)
+        .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+        .build()
+        .run();
   }
-
 
   @Test
   void improvedCreateTest() {
@@ -201,20 +199,16 @@ public class TestRlpAddress {
 
   public static void fullCopyOfForeignByteCode(BytecodeCompiler program, Address foreignAddress) {
     program
-            .push(foreignAddress)
-            .op(OpCode.EXTCODESIZE) // foreign address code size
-            .push(0) // source offset
-            .push(0) // target offset
-            .push(foreignAddress) // foreign address
-            .op(OpCode.EXTCODECOPY) // copy
+        .push(foreignAddress)
+        .op(OpCode.EXTCODESIZE) // foreign address code size
+        .push(0) // source offset
+        .push(0) // target offset
+        .push(foreignAddress) // foreign address
+        .op(OpCode.EXTCODECOPY) // copy
     ;
   }
 
   public static void appendReturn(BytecodeCompiler program, int rdo, int rds) {
-    program
-            .push(rds)
-            .push(rdo)
-            .op(OpCode.RETURN)
-    ;
+    program.push(rds).push(rdo).op(OpCode.RETURN);
   }
 }

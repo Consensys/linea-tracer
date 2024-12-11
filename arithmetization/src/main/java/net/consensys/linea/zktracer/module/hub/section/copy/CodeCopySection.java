@@ -74,7 +74,7 @@ public class CodeCopySection extends TraceSection {
         hub.factories()
             .accountFragment()
             .make(codeAccountSnapshot, codeAccountSnapshot, doingDomSubStamps)
-                .requiresRomlex(true);
+            .requiresRomlex(true);
 
     this.addFragment(accountReadingFragment);
 

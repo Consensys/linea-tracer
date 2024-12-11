@@ -93,11 +93,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
       final AccountFragment accountReadingFragment =
           hub.factories()
               .accountFragment()
-              .makeWithTrm(
-                      firstForeign,
-                      firstForeign,
-                  rawAddress,
-                  doingDomSubStamps);
+              .makeWithTrm(firstForeign, firstForeign, rawAddress, doingDomSubStamps);
 
       this.addFragment(accountReadingFragment);
       return;
@@ -122,11 +118,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     final AccountFragment accountDoingFragment =
         hub.factories()
             .accountFragment()
-            .makeWithTrm(
-                    firstForeign,
-                    firstForeignNew,
-                rawAddress,
-                doingDomSubStamps);
+            .makeWithTrm(firstForeign, firstForeignNew, rawAddress, doingDomSubStamps);
     accountDoingFragment.requiresRomlex(triggerRomLex);
     if (triggerRomLex) {
       hub.romLex().callRomLex(frame);

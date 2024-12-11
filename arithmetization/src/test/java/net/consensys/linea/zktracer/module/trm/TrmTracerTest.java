@@ -17,13 +17,16 @@ package net.consensys.linea.zktracer.module.trm;
 
 import java.util.List;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(UnitTestWatcher.class)
 public class TrmTracerTest {
   private final Bytes32 RANDOM_STRING_FROM_THE_INTERNET =
       Bytes32.fromHexString(
@@ -112,15 +115,15 @@ public class TrmTracerTest {
 
   @Test
   void testSevenArgCall() {
-    for (int tiny = 0; tiny < 16; tiny++) {
-      sevenArgCall(tiny);
+    for (int addr = 0; addr < 16; addr++) {
+      sevenArgCall(addr);
     }
   }
 
   @Test
   void testSampleDelegateCall() {
-    for (long tiny = 0; tiny < 16; tiny++) {
-      sampleDelegateCall(tiny);
+    for (long addr = 0; addr < 16; addr++) {
+      sampleDelegateCall(addr);
     }
   }
 

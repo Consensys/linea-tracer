@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
 
     steps:
       - uses: actions/checkout@v3
@@ -25,8 +25,8 @@ jobs:
         id: get_version
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
 
-      - name: Build without tests
-        run: ./gradlew build -PreleaseVersion=${{ steps.get_version.outputs.VERSION }} -x test -x spotlessCheck
+      - name: Build artifacts
+        run: ./gradlew artifacts -PreleaseVersion=${{ steps.get_version.outputs.VERSION }}
         env:
           JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
 
@@ -42,7 +42,7 @@ jobs:
           draft: true
           prerelease: false
 
-      - name: Upload Release Asset
+      - name: Upload Release Lib Asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
@@ -53,10 +53,21 @@ jobs:
           asset_name: linea-tracer-${{ steps.get_version.outputs.VERSION }}.jar
           asset_content_type: application/octet-stream
 
+      - name: Upload Release Dist Asset
+        id: upload-release-dist-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./arithmetization/build/distributions/linea-tracer-${{ steps.get_version.outputs.VERSION }}.zip
+          asset_name: linea-tracer-${{ steps.get_version.outputs.VERSION }}.zip
+          asset_content_type: application/octet-stream
+
   publish:
     needs: build
     if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
     env:
       architecture: "amd64"
       GRADLE_OPTS: "-Xmx6g -Dorg.gradle.parallel=true -Dorg.gradle.workers.max=4"

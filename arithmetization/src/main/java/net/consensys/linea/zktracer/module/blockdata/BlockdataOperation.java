@@ -72,7 +72,7 @@ public class BlockdataOperation extends ModuleOperation {
   private final BlockdataOperation prevOperation;
   private final Bytes ZERO = Bytes.ofUnsignedLong(0);
 
-  // TODO: miss IOMF, CT, BLOCK_GAS_LIMIT, BASE_FEE, REL_BLOCK
+  // TODO: miss IOMF, CT
   private boolean previousConflation; // TODO: how to set this variables
   private boolean currentConflation; // TODO: how to set this variables
   private final int ctMax;
@@ -85,10 +85,11 @@ public class BlockdataOperation extends ModuleOperation {
   private boolean isBaseFee;
   private final int inst;
   private final Address coinbase;
-  private final long blockGasLimit = 0; // TODO: how to set this variable
-  private final long baseFee = 0; // TODO: how to set this variable
-  private final long firstBlockNumber = 0; // TODO: how to set this variable
+  private long blockGasLimit; // TODO: how to set this variable
+  private long baseFee; // TODO: how to set this variable
+  private long firstBlockNumber; // TODO: how to set this variable
   private final int relTxMax;
+  private long relBlock;
 
   private Bytes dataHi;
   private Bytes dataLo;
@@ -106,26 +107,36 @@ public class BlockdataOperation extends ModuleOperation {
       long timestamp,
       long absoluteBlockNumber,
       BigInteger difficulty,
+      long blockGasLimit,
+      long baseFee,
       int relTxMax,
       Wcp wcp,
       Euc euc,
       TxnData txnData,
       BigInteger chainId,
       int inst,
-      BlockdataOperation prevOperation) {
+      BlockdataOperation prevOperation,
+      long firstBlockNumber) {
     this.coinbase = coinbase;
     this.timestamp = timestamp;
     this.absoluteBlockNumber = absoluteBlockNumber;
     this.difficulty = difficulty;
+    this.blockGasLimit = blockGasLimit;
+    this.chainId = chainId;
+    this.baseFee = prevOperation == null ? baseFee : prevOperation.baseFee;
+
+    this.previousConflation = (relBlock == 0);
+    this.currentConflation = (relBlock > 0);
+    this.ctMax = ctMax(inst);
+    this.firstBlockNumber = firstBlockNumber;
     this.relTxMax = relTxMax;
+    this.relBlock = absoluteBlockNumber - firstBlockNumber;
     this.wcp = wcp;
     this.euc = euc;
     this.txnData = txnData;
-    this.chainId = chainId;
     this.prevOperation = prevOperation;
 
     this.inst = inst;
-    this.ctMax = ctMax(inst);
 
     // Init non-counter constant columns arrays of size ctMax
     this.wcpFlag = new boolean[ctMax];
@@ -252,7 +263,7 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   private void handleDifficulty() {
-    dataHi = EWord.of(LINEA_DIFFICULTY).hi();
+    dataHi = EWord.of(LINEA_DIFFICULTY).hi(); // ?
     dataLo = EWord.of(LINEA_DIFFICULTY).lo();
 
     // row i
@@ -295,8 +306,10 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   private void handleChainId() {
-    dataHi = prevOperation.dataHi;
-    dataLo = prevOperation.dataLo;
+    if (isCurr(prevOperation)) {
+      dataHi = prevOperation.dataHi;
+      dataLo = prevOperation.dataLo;
+    }
 
     // row i
     wcpCallToGEQ(0, dataHi, dataLo, ZERO, ZERO);

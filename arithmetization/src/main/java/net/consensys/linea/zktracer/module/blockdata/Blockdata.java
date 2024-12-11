@@ -15,6 +15,14 @@
 
 package net.consensys.linea.zktracer.module.blockdata;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_BASEFEE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_CHAINID;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_COINBASE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIFFICULTY;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GASLIMIT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_NUMBER;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_TIMESTAMP;
+
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
 import java.util.*;
@@ -41,6 +49,18 @@ public class Blockdata implements Module {
   private static final int TIMESTAMP_BYTESIZE = 4;
   private int previousTimestamp = 0;
   private Map<Integer, BlockdataOperation> prevOperationByInst = new HashMap<>();
+  private int traceCounter = 0;
+  private long firstBlockNumber;
+
+  final int[] instructions = {
+    EVM_INST_COINBASE,
+    EVM_INST_TIMESTAMP,
+    EVM_INST_NUMBER,
+    EVM_INST_DIFFICULTY,
+    EVM_INST_GASLIMIT,
+    EVM_INST_CHAINID,
+    EVM_INST_BASEFEE
+  };
 
   @Override
   public String moduleKey() {
@@ -55,25 +75,32 @@ public class Blockdata implements Module {
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
     final int currentTimestamp = (int) blockHeader.getTimestamp();
-    // TODO: check where we get inst
-    int inst = 0;
-    BlockdataOperation operation =
-        new BlockdataOperation(
-            blockHeader.getCoinbase(),
-            currentTimestamp,
-            blockHeader.getNumber(),
-            blockHeader.getDifficulty().getAsBigInteger(),
-            txnData.currentBlock().getNbOfTxsInBlock(),
-            wcp,
-            euc,
-            txnData,
-            chainId,
-            0,
-            prevOperationByInst.get(inst));
-    operations.addLast(operation); // TODO: find out which instruction we are dealing with
-    prevOperationByInst.put(inst, operation);
-    wcp.callGT(currentTimestamp, previousTimestamp);
-    previousTimestamp = currentTimestamp;
+    final long blockNumber = blockHeader.getNumber();
+    firstBlockNumber = (traceCounter < instructions.length) ? blockNumber : firstBlockNumber;
+    for (int inst : instructions) {
+      BlockdataOperation operation =
+          new BlockdataOperation(
+              blockHeader.getCoinbase(),
+              currentTimestamp,
+              blockNumber,
+              blockHeader.getDifficulty().getAsBigInteger(),
+              blockHeader.getGasLimit(),
+              blockHeader.getBaseFee(),
+              txnData.currentBlock().getNbOfTxsInBlock(),
+              wcp,
+              euc,
+              txnData,
+              chainId,
+              inst,
+              prevOperationByInst.get(inst),
+              firstBlockNumber);
+      operations.addLast(operation);
+      prevOperationByInst.put(inst, operation);
+      wcp.callGT(currentTimestamp, previousTimestamp); // ?
+      previousTimestamp = currentTimestamp; // ?
+      // Increase counter to track where we are in the conflation
+      traceCounter++;
+    }
   }
 
   @Override

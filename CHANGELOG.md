@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.8.0-rc8
+* upgrade linea-besu dependency
+* deactivate MMIO constraints
+
+## 0.8.0-rc7
+* constraints update (#1629)
+* HUB debugging (#1625)
+* `CREATE` tests (#1572)
+* Fix pipelines and improve testings
+* feat: archiving shadow node make files (#1596)
+* Only add needed dependencies in the uber jar (#924)
+
 ## 0.8.0-rc6
 * skip ref test that are deployment transaction to an already existing … (#1584)
 * tmp: disbale MMIO constraints for the release (#1587)

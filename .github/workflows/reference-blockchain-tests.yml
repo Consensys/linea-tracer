@@ -1,4 +1,4 @@
-name: Daily Reference Blockchain Tests
+name: Daily Blockchain Tests
 
 on:
   schedule:
@@ -76,6 +76,7 @@ jobs:
           REFERENCE_TEST_FILTER_INPUT: failedBlockchainReferenceTests.json
 
       - name: Upload artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: failedBlockchainReferenceTests.json
@@ -95,5 +96,5 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: webhook-trigger
           payload: |
-             name: "Daily Reference Tests"
+             name: "Daily Blockchain"
              status: "${{ job.status }}"

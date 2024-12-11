@@ -292,16 +292,10 @@ public class CreateSection extends TraceSection
         scenarioFragment.setScenario(CREATE_NON_EMPTY_INIT_CODE_FAILURE_WONT_REVERT);
 
         secondCreator = firstCreatorNew.deepCopy().setDeploymentNumber(hub);
-        secondCreatorNew = firstCreatorNew.deepCopy().incrementBalanceBy(value);
+        secondCreatorNew = firstCreator.deepCopy().setDeploymentNumber(hub).raiseNonceByOne();
 
         secondCreatee = firstCreateeNew.deepCopy().setDeploymentNumber(hub);
-        secondCreateeNew =
-            firstCreateeNew
-                .deepCopy()
-                .decrementBalanceBy(value)
-                .deploymentStatus(false)
-                .deploymentNumber(hub.deploymentNumberOf(createeAddress))
-                .nonce(0);
+        secondCreateeNew = firstCreatee.deepCopy().setDeploymentNumber(hub).turnOnWarmth();
 
         final int childRevertStamp = hub.getLastChildCallFrame(frame).revertStamp();
 

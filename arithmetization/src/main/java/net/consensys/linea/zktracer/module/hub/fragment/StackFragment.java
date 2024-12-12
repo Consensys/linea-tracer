@@ -56,6 +56,7 @@ public final class StackFragment implements TraceFragment {
   private EWord hashInfoKeccak = EWord.ZERO;
   @Setter public Bytes hash;
   @Getter private final OpCode opCode;
+  @Getter private final int rawOpCode;
   @Setter private boolean jumpDestinationVettingRequired;
   @Setter private boolean validJumpDestination;
   private final State.TxState.Stamps stamps;
@@ -74,6 +75,13 @@ public final class StackFragment implements TraceFragment {
     this.stackOps = stackOps;
     this.exceptions = exceptions;
     this.opCode = stack.getCurrentOpcodeData().mnemonic();
+    if (this.opCode != OpCode.INVALID) {
+      this.rawOpCode = 0xff & this.opCode.byteValue();
+    } else {
+      final int codeSize = hub.messageFrame().getCode().getBytes().size();
+      final int pc = hub.messageFrame().getPC();
+      this.rawOpCode = (pc < codeSize) ? 0xff & hub.messageFrame().getCode().getBytes().get(pc) : 0;
+    }
     this.hashInfoFlag =
         switch (this.opCode) {
               case SHA3 -> true;
@@ -109,7 +117,9 @@ public final class StackFragment implements TraceFragment {
           hub.currentFrame().frame().getStackItem(0).toUnsignedBigInteger();
       final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
 
-      boolean prospectivePcNewIsInBounds = codeSize.compareTo(prospectivePcNew) > 0;
+      boolean noOutOfGasException = !Exceptions.outOfGasException(exceptions);
+      boolean prospectivePcNewIsInBounds =
+          codeSize.compareTo(prospectivePcNew) > 0 && noOutOfGasException;
 
       if (opCode.equals(OpCode.JUMPI)) {
         boolean nonzeroJumpCondition =
@@ -212,7 +222,7 @@ public final class StackFragment implements TraceFragment {
         // Instruction details
         .pStackAlpha(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().alpha()))
         .pStackDelta(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().delta()))
-        .pStackInstruction(Bytes.of(stack.getCurrentOpcodeData().value()))
+        .pStackInstruction(Bytes.of(rawOpCode))
         .pStackStaticGas(staticGas)
         // Opcode families
         .pStackAccFlag(currentInstFamily == ACCOUNT)

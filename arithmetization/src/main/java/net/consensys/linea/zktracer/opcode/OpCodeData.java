@@ -49,28 +49,28 @@ public record OpCodeData(
     return Objects.requireNonNullElse(billing, Billing.DEFAULT);
   }
 
-  public static OpCodeData forNonOpCodes(int value){
+  public static OpCodeData forNonOpCodes(int value) {
     return new OpCodeData(
         OpCode.INVALID,
         value,
         INVALID,
         new StackSettings(
-                Pattern.ZERO_ZERO,
-                0,
-                0,
-                GasConstants.G_ZERO,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false
-        ),
+            Pattern.ZERO_ZERO,
+            0,
+            0,
+            GasConstants.G_ZERO,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false,
+            false),
         new RamSettings(DataLocation.NONE, DataLocation.NONE),
         new Billing(GasConstants.G_ZERO, BillingRate.NONE, MxpType.NONE));
   }
+
   /**
    * A method singling out <code>PUSHx</code> instructions.
    *

@@ -24,17 +24,10 @@ import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_GL;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_ID;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_NB;
 import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_TS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_BASEFEE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_CHAINID;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_COINBASE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIFFICULTY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIV;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GASLIMIT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ISZERO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_NUMBER;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_TIMESTAMP;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_DIFFICULTY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_GEQ;
@@ -45,16 +38,20 @@ import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMI
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
+import java.util.Optional;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @Accessors(fluent = true)
@@ -72,10 +69,10 @@ public class BlockdataOperation extends ModuleOperation {
   private final boolean previousConflation;
   private final boolean currentConflation;
   private final int ctMax;
-  private final int inst;
+  @EqualsAndHashCode.Include @Getter private final OpCode opCode;
   private final Address coinbase;
   private final long blockGasLimit;
-  private final long baseFee;
+  private final Optional<? extends Quantity> baseFee;
   private final long firstBlockNumber;
   private final int relTxMax;
   private final long relBlock;
@@ -98,7 +95,7 @@ public class BlockdataOperation extends ModuleOperation {
       Wcp wcp,
       Euc euc,
       BigInteger chainId,
-      int inst,
+      OpCode opCode,
       long firstBlockNumber) {
     // Data from blockHeader
     this.coinbase = blockHeader.getCoinbase();
@@ -106,11 +103,11 @@ public class BlockdataOperation extends ModuleOperation {
     this.absoluteBlockNumber = blockHeader.getNumber();
     this.difficulty = blockHeader.getDifficulty().getAsBigInteger();
     this.blockGasLimit = blockHeader.getGasLimit();
-    this.baseFee = (long) blockHeader.getBaseFee();
+    this.baseFee = blockHeader.getBaseFee(); // TODO: check
     this.prevOperation = prevOperationByInst;
 
     this.chainId = chainId;
-    this.ctMax = ctMax(inst);
+    this.ctMax = ctMax(opCode);
     this.firstBlockNumber = firstBlockNumber;
     this.relTxMax = relTxMax;
     this.relBlock = absoluteBlockNumber - firstBlockNumber;
@@ -118,7 +115,7 @@ public class BlockdataOperation extends ModuleOperation {
     this.currentConflation = (relBlock > 0);
     this.wcp = wcp;
     this.euc = euc;
-    this.inst = inst;
+    this.opCode = opCode;
 
     // Init non-counter constant columns arrays of size ctMax
     this.wcpFlag = new boolean[ctMax];
@@ -131,26 +128,26 @@ public class BlockdataOperation extends ModuleOperation {
     this.res = new Bytes[ctMax];
 
     // Handle opcodes
-    switch (inst) {
-      case EVM_INST_COINBASE -> {
+    switch (opCode) {
+      case OpCode.COINBASE -> {
         handleCoinbase();
       }
-      case EVM_INST_TIMESTAMP -> {
+      case OpCode.TIMESTAMP -> {
         handleTimestamp();
       }
-      case EVM_INST_NUMBER -> {
+      case OpCode.NUMBER -> {
         handleNumber();
       }
-      case EVM_INST_DIFFICULTY -> {
+      case OpCode.DIFFICULTY -> {
         handleDifficulty();
       }
-      case EVM_INST_GASLIMIT -> {
+      case OpCode.GASLIMIT -> {
         handleGasLimit();
       }
-      case EVM_INST_CHAINID -> {
+      case OpCode.CHAINID -> {
         handleChainId();
       }
-      case EVM_INST_BASEFEE -> {
+      case OpCode.BASEFEE -> {
         handleBaseFee();
       }
       default -> {}
@@ -277,7 +274,7 @@ public class BlockdataOperation extends ModuleOperation {
 
   private void handleBaseFee() {
     dataHi = ZERO;
-    dataLo = EWord.of(baseFee).lo();
+    dataLo = EWord.of(0).lo(); // TODO: change to baseFee
 
     // row i
     wcpCallToGEQ(0, dataHi, dataLo, ZERO, ZERO);
@@ -294,23 +291,23 @@ public class BlockdataOperation extends ModuleOperation {
           .iomf(true)
           .previousConflation(previousConflation)
           .currentConflation(currentConflation)
-          .ctMax(ctMax())
+          .ctMax(ctMax)
           .ct(ct)
-          .isCoinbase(inst == EVM_INST_COINBASE)
-          .isTimestamp(inst == EVM_INST_TIMESTAMP)
-          .isNumber(inst == EVM_INST_NUMBER)
-          .isDifficulty(inst == EVM_INST_DIFFICULTY)
-          .isGaslimit(inst == EVM_INST_GASLIMIT)
-          .isChainid(inst == EVM_INST_CHAINID)
-          .isBasefee(inst == EVM_INST_BASEFEE)
-          .inst(UnsignedByte.of(inst))
-          .coinbaseHi(this.coinbase.slice(0, 4).toLong())
-          .coinbaseLo(this.coinbase.slice(4, LLARGE))
+          .isCoinbase(opCode == OpCode.COINBASE)
+          .isTimestamp(opCode == OpCode.TIMESTAMP)
+          .isNumber(opCode == OpCode.NUMBER)
+          .isDifficulty(opCode == OpCode.DIFFICULTY)
+          .isGaslimit(opCode == OpCode.GASLIMIT)
+          .isChainid(opCode == OpCode.CHAINID)
+          .isBasefee(opCode == OpCode.BASEFEE)
+          .inst(UnsignedByte.of(opCode.byteValue()))
+          .coinbaseHi(coinbase.slice(0, 4).toLong())
+          .coinbaseLo(coinbase.slice(4, LLARGE))
           .blockGasLimit(blockGasLimit)
-          .basefee(baseFee)
+          .basefee(0) // TODO: add baseFee
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
-          .relTxNumMax((short) this.relTxMax)
+          .relTxNumMax((short) relTxMax)
           .dataHi(dataHi)
           .dataHi(dataLo)
           .arg1Hi(arg1Hi[ct])
@@ -400,27 +397,27 @@ public class BlockdataOperation extends ModuleOperation {
     return res[w];
   }
 
-  private int ctMax(int inst) {
-    switch (inst) {
-      case EVM_INST_COINBASE -> {
+  private int ctMax(OpCode opCode) {
+    switch (opCode) {
+      case OpCode.COINBASE -> {
         return CT_MAX_CB;
       }
-      case EVM_INST_TIMESTAMP -> {
+      case OpCode.TIMESTAMP -> {
         return CT_MAX_TS;
       }
-      case EVM_INST_NUMBER -> {
+      case OpCode.NUMBER -> {
         return CT_MAX_NB;
       }
-      case EVM_INST_DIFFICULTY -> {
+      case OpCode.DIFFICULTY -> {
         return CT_MAX_DF;
       }
-      case EVM_INST_GASLIMIT -> {
+      case OpCode.GASLIMIT -> {
         return CT_MAX_GL;
       }
-      case EVM_INST_CHAINID -> {
+      case OpCode.CHAINID -> {
         return CT_MAX_ID;
       }
-      case EVM_INST_BASEFEE -> {
+      case OpCode.BASEFEE -> {
         return CT_MAX_BF;
       }
       default -> {

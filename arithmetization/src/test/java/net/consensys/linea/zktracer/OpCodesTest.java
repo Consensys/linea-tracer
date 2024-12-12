@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.opcode.OpCodes.opCodeToOpCodeDataMap;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes;
@@ -38,12 +39,14 @@ public class OpCodesTest {
   private Bytes getAllOpCodesProgram() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (OpCodeData opCodeData : opCodeToOpCodeDataMap.values()) {
-      OpCode opCode = opCodeData.mnemonic();
-      int nPushes = opCodeData.stackSettings().delta();
-      for (int i = 0; i < nPushes; i++) {
-        program.push(0);
+      if (opCodeData.instructionFamily() != InstructionFamily.HALT) {
+        OpCode opCode = opCodeData.mnemonic();
+        int nPushes = opCodeData.stackSettings().delta();
+        for (int i = 0; i < nPushes; i++) {
+          program.push(0);
+        }
+        program.op(opCode);
       }
-      program.op(opCode);
     }
     return program.compile();
   }

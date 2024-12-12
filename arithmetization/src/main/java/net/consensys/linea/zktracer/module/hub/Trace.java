@@ -31,9 +31,10 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final int DOM_SUB_STAMP_OFFSET___REVERT = 0x6;
-  public static final int DOM_SUB_STAMP_OFFSET___SELFDESTRUCT = 0x7;
-  public static final int MULTIPLIER___DOM_SUB_STAMPS = 0x8;
+  public static final int DOM_SUB_STAMP_OFFSET___FINALIZATION = 0x9;
+  public static final int DOM_SUB_STAMP_OFFSET___REVERT = 0x8;
+  public static final int DOM_SUB_STAMP_OFFSET___SELFDESTRUCT = 0xa;
+  public static final int MULTIPLIER___DOM_SUB_STAMPS = 0x10;
   public static final int MULTIPLIER___STACK_STAMP = 0x8;
 
   private final BitSet filled = new BitSet();
@@ -41,7 +42,7 @@ public class Trace {
 
   private final MappedByteBuffer absoluteTransactionNumber;
   private final MappedByteBuffer
-      addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize;
+      addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize;
   private final MappedByteBuffer
       addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo;
   private final MappedByteBuffer
@@ -61,16 +62,16 @@ public class Trace {
   private final MappedByteBuffer callerContextNumber;
   private final MappedByteBuffer codeFragmentIndex;
   private final MappedByteBuffer
-      codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi;
+      codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi;
   private final MappedByteBuffer codeHashHiNewXorExpData5XorStackItemValueHi1XorValueCurrLoXorValue;
   private final MappedByteBuffer
       codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo;
   private final MappedByteBuffer codeHashLoNewXorMmuLimb2XorStackItemValueHi3XorValueNextLo;
   private final MappedByteBuffer codeHashLoXorMmuLimb1XorStackItemValueHi2XorValueNextHi;
   private final MappedByteBuffer
-      codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize;
+      codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize;
   private final MappedByteBuffer
-      codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi;
+      codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi;
   private final MappedByteBuffer contextGetsReverted;
   private final MappedByteBuffer contextMayChange;
   private final MappedByteBuffer contextNumber;
@@ -84,10 +85,12 @@ public class Trace {
   private final MappedByteBuffer delta;
   private final MappedByteBuffer deploymentNumberFinalInBlockXorDeploymentNumberFinalInBlock;
   private final MappedByteBuffer deploymentNumberFirstInBlockXorDeploymentNumberFirstInBlock;
-  private final MappedByteBuffer deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase;
-  private final MappedByteBuffer deploymentNumberNewXorCallerAddressHiXorMmuRefOffset;
   private final MappedByteBuffer
-      deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi;
+      deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao;
+  private final MappedByteBuffer
+      deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas;
+  private final MappedByteBuffer
+      deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi;
   private final MappedByteBuffer
       deploymentStatusInftyXorMxpDeploysXorCallExceptionXorCallFlagXorFinalInCnfXorStatusCode;
   private final MappedByteBuffer
@@ -142,9 +145,8 @@ public class Trace {
   private final MappedByteBuffer mxpWords;
   private final MappedByteBuffer nonStackRows;
   private final MappedByteBuffer nonce;
-  private final MappedByteBuffer
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable;
-  private final MappedByteBuffer nonceXorStpGasMxpXorPrcCalleeGasXorBasefee;
+  private final MappedByteBuffer nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable;
+  private final MappedByteBuffer nonceXorStpGasMxpXorBasefee;
   private final MappedByteBuffer oobData1;
   private final MappedByteBuffer oobData2;
   private final MappedByteBuffer oobData3;
@@ -216,7 +218,7 @@ public class Trace {
   private final MappedByteBuffer stackItemStamp4;
   private final MappedByteBuffer stpGasHi;
   private final MappedByteBuffer stpGasLo;
-  private final MappedByteBuffer stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover;
+  private final MappedByteBuffer stpGasUpfrontGasCostXorGasLeftover;
   private final MappedByteBuffer stpValueHi;
   private final MappedByteBuffer stpValueLo;
   private final MappedByteBuffer subStamp;
@@ -239,7 +241,7 @@ public class Trace {
     headers.add(new ColumnHeader("hub.ABSOLUTE_TRANSACTION_NUMBER", 2, length));
     headers.add(
         new ColumnHeader(
-            "hub.ADDRESS_HI_xor_ACCOUNT_ADDRESS_HI_xor_CCRS_STAMP_xor_PRC_CDO_xor_STATIC_GAS_xor_ADDRESS_HI_xor_CALL_DATA_SIZE",
+            "hub.ADDRESS_HI_xor_ACCOUNT_ADDRESS_HI_xor_CCRS_STAMP_xor_PRC_CALLEE_GAS_xor_STATIC_GAS_xor_ADDRESS_HI_xor_CALL_DATA_SIZE",
             4,
             length));
     headers.add(
@@ -280,7 +282,7 @@ public class Trace {
     headers.add(new ColumnHeader("hub.CODE_FRAGMENT_INDEX", 4, length));
     headers.add(
         new ColumnHeader(
-            "hub.CODE_FRAGMENT_INDEX_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_EXP_INST_xor_PRC_CDS_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI",
+            "hub.CODE_FRAGMENT_INDEX_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_EXP_INST_xor_PRC_CALLER_GAS_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI",
             4,
             length));
     headers.add(
@@ -305,12 +307,12 @@ public class Trace {
             length));
     headers.add(
         new ColumnHeader(
-            "hub.CODE_SIZE_NEW_xor_BYTE_CODE_CODE_FRAGMENT_INDEX_xor_MMU_EXO_SUM_xor_PRC_RAO_xor_INIT_CODE_SIZE",
+            "hub.CODE_SIZE_NEW_xor_BYTE_CODE_CODE_FRAGMENT_INDEX_xor_MMU_EXO_SUM_xor_PRC_CDS_xor_INIT_CODE_SIZE",
             4,
             length));
     headers.add(
         new ColumnHeader(
-            "hub.CODE_SIZE_xor_BYTE_CODE_ADDRESS_HI_xor_MMU_AUX_ID_xor_PRC_RAC_xor_DEPLOYMENT_NUMBER_INFTY_xor_FROM_ADDRESS_HI",
+            "hub.CODE_SIZE_xor_BYTE_CODE_ADDRESS_HI_xor_MMU_AUX_ID_xor_PRC_CDO_xor_DEPLOYMENT_NUMBER_INFTY_xor_FROM_ADDRESS_HI",
             4,
             length));
     headers.add(new ColumnHeader("hub.CONTEXT_GETS_REVERTED", 1, length));
@@ -336,15 +338,17 @@ public class Trace {
             length));
     headers.add(
         new ColumnHeader(
-            "hub.DEPLOYMENT_NUMBER_INFTY_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU_PHASE",
+            "hub.DEPLOYMENT_NUMBER_INFTY_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU_PHASE_xor_PRC_RAO",
             4,
             length));
     headers.add(
         new ColumnHeader(
-            "hub.DEPLOYMENT_NUMBER_NEW_xor_CALLER_ADDRESS_HI_xor_MMU_REF_OFFSET", 4, length));
+            "hub.DEPLOYMENT_NUMBER_NEW_xor_CALLER_ADDRESS_HI_xor_MMU_REF_OFFSET_xor_PRC_RETURN_GAS",
+            4,
+            length));
     headers.add(
         new ColumnHeader(
-            "hub.DEPLOYMENT_NUMBER_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU_INST_xor_TO_ADDRESS_HI",
+            "hub.DEPLOYMENT_NUMBER_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU_INST_xor_PRC_RAC_xor_TO_ADDRESS_HI",
             4,
             length));
     headers.add(
@@ -454,11 +458,8 @@ public class Trace {
     headers.add(new ColumnHeader("hub.NONCE", 8, length));
     headers.add(
         new ColumnHeader(
-            "hub.NONCE_NEW_xor_STP_GAS_PAID_OUT_OF_POCKET_xor_PRC_CALLER_GAS_xor_GAS_INITIALLY_AVAILABLE",
-            8,
-            length));
-    headers.add(
-        new ColumnHeader("hub.NONCE_xor_STP_GAS_MXP_xor_PRC_CALLEE_GAS_xor_BASEFEE", 8, length));
+            "hub.NONCE_NEW_xor_STP_GAS_PAID_OUT_OF_POCKET_xor_GAS_INITIALLY_AVAILABLE", 8, length));
+    headers.add(new ColumnHeader("hub.NONCE_xor_STP_GAS_MXP_xor_BASEFEE", 8, length));
     headers.add(new ColumnHeader("hub.OOB_DATA_1", 16, length));
     headers.add(new ColumnHeader("hub.OOB_DATA_2", 16, length));
     headers.add(new ColumnHeader("hub.OOB_DATA_3", 16, length));
@@ -569,9 +570,7 @@ public class Trace {
     headers.add(new ColumnHeader("hub.STACK_ITEM_STAMP_4", 5, length));
     headers.add(new ColumnHeader("hub.STP_GAS_HI", 16, length));
     headers.add(new ColumnHeader("hub.STP_GAS_LO", 16, length));
-    headers.add(
-        new ColumnHeader(
-            "hub.STP_GAS_UPFRONT_GAS_COST_xor_PRC_RETURN_GAS_xor_GAS_LEFTOVER", 8, length));
+    headers.add(new ColumnHeader("hub.STP_GAS_UPFRONT_GAS_COST_xor_GAS_LEFTOVER", 8, length));
     headers.add(new ColumnHeader("hub.STP_VALUE_HI", 16, length));
     headers.add(new ColumnHeader("hub.STP_VALUE_LO", 16, length));
     headers.add(new ColumnHeader("hub.SUB_STAMP", 4, length));
@@ -597,7 +596,8 @@ public class Trace {
 
   public Trace(List<MappedByteBuffer> buffers) {
     this.absoluteTransactionNumber = buffers.get(0);
-    this.addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize =
+    this
+            .addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize =
         buffers.get(1);
     this
             .addressLoXorAccountAddressLoXorExpData1XorHashInfoKeccakHiXorAddressLoXorCoinbaseAddressLo =
@@ -621,16 +621,16 @@ public class Trace {
     this.callerContextNumber = buffers.get(12);
     this.codeFragmentIndex = buffers.get(13);
     this
-            .codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi =
+            .codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi =
         buffers.get(14);
     this.codeHashHiNewXorExpData5XorStackItemValueHi1XorValueCurrLoXorValue = buffers.get(15);
     this.codeHashHiXorCallValueXorExpData4XorPushValueLoXorValueCurrHiXorToAddressLo =
         buffers.get(16);
     this.codeHashLoNewXorMmuLimb2XorStackItemValueHi3XorValueNextLo = buffers.get(17);
     this.codeHashLoXorMmuLimb1XorStackItemValueHi2XorValueNextHi = buffers.get(18);
-    this.codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize =
+    this.codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize =
         buffers.get(19);
-    this.codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi =
+    this.codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi =
         buffers.get(20);
     this.contextGetsReverted = buffers.get(21);
     this.contextMayChange = buffers.get(22);
@@ -645,9 +645,10 @@ public class Trace {
     this.delta = buffers.get(31);
     this.deploymentNumberFinalInBlockXorDeploymentNumberFinalInBlock = buffers.get(32);
     this.deploymentNumberFirstInBlockXorDeploymentNumberFirstInBlock = buffers.get(33);
-    this.deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase = buffers.get(34);
-    this.deploymentNumberNewXorCallerAddressHiXorMmuRefOffset = buffers.get(35);
-    this.deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi = buffers.get(36);
+    this.deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao = buffers.get(34);
+    this.deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas = buffers.get(35);
+    this.deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi =
+        buffers.get(36);
     this.deploymentStatusInftyXorMxpDeploysXorCallExceptionXorCallFlagXorFinalInCnfXorStatusCode =
         buffers.get(37);
     this.deploymentStatusNewXorMxpFlagXorCallPrcFailureXorConFlagXorFinalInTxn = buffers.get(38);
@@ -704,8 +705,8 @@ public class Trace {
     this.mxpWords = buffers.get(75);
     this.nonStackRows = buffers.get(76);
     this.nonce = buffers.get(77);
-    this.nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable = buffers.get(78);
-    this.nonceXorStpGasMxpXorPrcCalleeGasXorBasefee = buffers.get(79);
+    this.nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable = buffers.get(78);
+    this.nonceXorStpGasMxpXorBasefee = buffers.get(79);
     this.oobData1 = buffers.get(80);
     this.oobData2 = buffers.get(81);
     this.oobData3 = buffers.get(82);
@@ -776,7 +777,7 @@ public class Trace {
     this.stackItemStamp4 = buffers.get(146);
     this.stpGasHi = buffers.get(147);
     this.stpGasLo = buffers.get(148);
-    this.stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover = buffers.get(149);
+    this.stpGasUpfrontGasCostXorGasLeftover = buffers.get(149);
     this.stpValueHi = buffers.get(150);
     this.stpValueLo = buffers.get(151);
     this.subStamp = buffers.get(152);
@@ -1267,14 +1268,14 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.account/ADDRESS_HI has invalid value (" + b + ")");
     }
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 24));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 16));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 8));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) b);
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -1413,13 +1414,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.account/CODE_FRAGMENT_INDEX has invalid value (" + b + ")");
     }
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 24));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 16));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 8));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) b);
 
     return this;
@@ -1539,13 +1540,13 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.account/CODE_SIZE has invalid value (" + b + ")");
     }
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 24));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 16));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 8));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) b);
 
     return this;
@@ -1561,13 +1562,13 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.account/CODE_SIZE_NEW has invalid value (" + b + ")");
     }
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 24));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 16));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 8));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put((byte) b);
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -1583,10 +1584,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.account/DEPLOYMENT_NUMBER has invalid value (" + b + ")");
     }
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 24));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 16));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 8));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) b);
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 24));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 16));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 8));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put((byte) b);
 
     return this;
   }
@@ -1636,10 +1640,10 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.account/DEPLOYMENT_NUMBER_INFTY has invalid value (" + b + ")");
     }
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) (b >> 24));
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) (b >> 16));
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) (b >> 8));
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) b);
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 24));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 16));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 8));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) b);
 
     return this;
   }
@@ -1655,10 +1659,10 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.account/DEPLOYMENT_NUMBER_NEW has invalid value (" + b + ")");
     }
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) (b >> 24));
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) (b >> 16));
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) (b >> 8));
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) b);
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 24));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 16));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 8));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) b);
 
     return this;
   }
@@ -1883,11 +1887,11 @@ public class Trace {
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
-      nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.put((byte) 0);
+      nonceXorStpGasMxpXorBasefee.put((byte) 0);
     }
     // Write bytes
     for (int j = 0; j < bs.size(); j++) {
-      nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.put(bs.get(j));
+      nonceXorStpGasMxpXorBasefee.put(bs.get(j));
     }
 
     return this;
@@ -1909,11 +1913,11 @@ public class Trace {
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.put((byte) 0);
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put((byte) 0);
     }
     // Write bytes
     for (int j = 0; j < bs.size(); j++) {
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.put(bs.get(j));
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put(bs.get(j));
     }
 
     return this;
@@ -2182,14 +2186,14 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.context/ACCOUNT_ADDRESS_HI has invalid value (" + b + ")");
     }
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 24));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 16));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 8));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) b);
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -2233,13 +2237,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.context/ACCOUNT_DEPLOYMENT_NUMBER has invalid value (" + b + ")");
     }
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 24));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 16));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 8));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) b);
 
     return this;
@@ -2256,13 +2260,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.context/BYTE_CODE_ADDRESS_HI has invalid value (" + b + ")");
     }
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 24));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 16));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 8));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) b);
 
     return this;
@@ -2307,13 +2311,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.context/BYTE_CODE_CODE_FRAGMENT_INDEX has invalid value (" + b + ")");
     }
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 24));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 16));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 8));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put((byte) b);
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -2329,10 +2333,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.context/BYTE_CODE_DEPLOYMENT_NUMBER has invalid value (" + b + ")");
     }
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 24));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 16));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 8));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) b);
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 24));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 16));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 8));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put((byte) b);
 
     return this;
   }
@@ -2348,10 +2355,10 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.context/BYTE_CODE_DEPLOYMENT_STATUS has invalid value (" + b + ")");
     }
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) (b >> 24));
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) (b >> 16));
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) (b >> 8));
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) b);
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 24));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 16));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 8));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) b);
 
     return this;
   }
@@ -2467,10 +2474,10 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.context/CALLER_ADDRESS_HI has invalid value (" + b + ")");
     }
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) (b >> 24));
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) (b >> 16));
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) (b >> 8));
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) b);
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 24));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 16));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 8));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) b);
 
     return this;
   }
@@ -2666,14 +2673,14 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.misc/CCRS_STAMP has invalid value (" + b + ")");
     }
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 24));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 16));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 8));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) b);
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -2850,13 +2857,13 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.misc/EXP_INST has invalid value (" + b + ")");
     }
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 24));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 16));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 8));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) b);
 
     return this;
@@ -2872,13 +2879,13 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.misc/MMU_AUX_ID has invalid value (" + b + ")");
     }
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 24));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 16));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 8));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) b);
 
     return this;
@@ -2894,13 +2901,13 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.misc/MMU_EXO_SUM has invalid value (" + b + ")");
     }
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 24));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 16));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 8));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put((byte) b);
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -2928,10 +2935,13 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.misc/MMU_INST has invalid value (" + b + ")");
     }
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 24));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 16));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 8));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) b);
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 24));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 16));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 8));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put((byte) b);
 
     return this;
   }
@@ -2998,10 +3008,10 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.misc/MMU_PHASE has invalid value (" + b + ")");
     }
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) (b >> 24));
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) (b >> 16));
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) (b >> 8));
-    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.put((byte) b);
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 24));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 16));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 8));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) b);
 
     return this;
   }
@@ -3016,10 +3026,10 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.misc/MMU_REF_OFFSET has invalid value (" + b + ")");
     }
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) (b >> 24));
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) (b >> 16));
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) (b >> 8));
-    deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.put((byte) b);
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 24));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 16));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 8));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) b);
 
     return this;
   }
@@ -3900,11 +3910,11 @@ public class Trace {
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
-      nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.put((byte) 0);
+      nonceXorStpGasMxpXorBasefee.put((byte) 0);
     }
     // Write bytes
     for (int j = 0; j < bs.size(); j++) {
-      nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.put(bs.get(j));
+      nonceXorStpGasMxpXorBasefee.put(bs.get(j));
     }
 
     return this;
@@ -3926,11 +3936,11 @@ public class Trace {
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.put((byte) 0);
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put((byte) 0);
     }
     // Write bytes
     for (int j = 0; j < bs.size(); j++) {
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.put(bs.get(j));
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put(bs.get(j));
     }
 
     return this;
@@ -3970,11 +3980,11 @@ public class Trace {
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
-      stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover.put((byte) 0);
+      stpGasUpfrontGasCostXorGasLeftover.put((byte) 0);
     }
     // Write bytes
     for (int j = 0; j < bs.size(); j++) {
-      stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover.put(bs.get(j));
+      stpGasUpfrontGasCostXorGasLeftover.put(bs.get(j));
     }
 
     return this;
@@ -4384,98 +4394,91 @@ public class Trace {
     return this;
   }
 
-  public Trace pScenarioPrcCalleeGas(final Bytes b) {
-    if (filled.get(123)) {
-      throw new IllegalStateException("hub.scenario/PRC_CALLEE_GAS already set");
-    } else {
-      filled.set(123);
-    }
-
-    // Trim array to size
-    Bytes bs = b.trimLeadingZeros();
-    // Sanity check against expected width
-    if (bs.bitLength() > 64) {
-      throw new IllegalArgumentException(
-          "hub.scenario/PRC_CALLEE_GAS has invalid width (" + bs.bitLength() + "bits)");
-    }
-    // Write padding (if necessary)
-    for (int i = bs.size(); i < 8; i++) {
-      nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.put((byte) 0);
-    }
-    // Write bytes
-    for (int j = 0; j < bs.size(); j++) {
-      nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.put(bs.get(j));
-    }
-
-    return this;
-  }
-
-  public Trace pScenarioPrcCallerGas(final Bytes b) {
-    if (filled.get(124)) {
-      throw new IllegalStateException("hub.scenario/PRC_CALLER_GAS already set");
-    } else {
-      filled.set(124);
-    }
-
-    // Trim array to size
-    Bytes bs = b.trimLeadingZeros();
-    // Sanity check against expected width
-    if (bs.bitLength() > 64) {
-      throw new IllegalArgumentException(
-          "hub.scenario/PRC_CALLER_GAS has invalid width (" + bs.bitLength() + "bits)");
-    }
-    // Write padding (if necessary)
-    for (int i = bs.size(); i < 8; i++) {
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.put((byte) 0);
-    }
-    // Write bytes
-    for (int j = 0; j < bs.size(); j++) {
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.put(bs.get(j));
-    }
-
-    return this;
-  }
-
-  public Trace pScenarioPrcCdo(final long b) {
+  public Trace pScenarioPrcCalleeGas(final long b) {
     if (filled.get(103)) {
-      throw new IllegalStateException("hub.scenario/PRC_CDO already set");
+      throw new IllegalStateException("hub.scenario/PRC_CALLEE_GAS already set");
     } else {
       filled.set(103);
     }
 
     if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "hub.scenario/PRC_CALLEE_GAS has invalid value (" + b + ")");
+    }
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) b);
+
+    return this;
+  }
+
+  public Trace pScenarioPrcCallerGas(final long b) {
+    if (filled.get(104)) {
+      throw new IllegalStateException("hub.scenario/PRC_CALLER_GAS already set");
+    } else {
+      filled.set(104);
+    }
+
+    if (b >= 4294967296L) {
+      throw new IllegalArgumentException(
+          "hub.scenario/PRC_CALLER_GAS has invalid value (" + b + ")");
+    }
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
+        .put((byte) (b >> 24));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
+        .put((byte) (b >> 16));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
+        .put((byte) (b >> 8));
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
+        .put((byte) b);
+
+    return this;
+  }
+
+  public Trace pScenarioPrcCdo(final long b) {
+    if (filled.get(105)) {
+      throw new IllegalStateException("hub.scenario/PRC_CDO already set");
+    } else {
+      filled.set(105);
+    }
+
+    if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.scenario/PRC_CDO has invalid value (" + b + ")");
     }
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 24));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 16));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 8));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) b);
 
     return this;
   }
 
   public Trace pScenarioPrcCds(final long b) {
-    if (filled.get(104)) {
+    if (filled.get(106)) {
       throw new IllegalStateException("hub.scenario/PRC_CDS already set");
     } else {
-      filled.set(104);
+      filled.set(106);
     }
 
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.scenario/PRC_CDS has invalid value (" + b + ")");
     }
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
-        .put((byte) (b >> 24));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
-        .put((byte) (b >> 16));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
-        .put((byte) (b >> 8));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
-        .put((byte) b);
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
+        (byte) (b >> 24));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
+        (byte) (b >> 16));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
+        (byte) (b >> 8));
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -4577,70 +4580,59 @@ public class Trace {
   }
 
   public Trace pScenarioPrcRac(final long b) {
-    if (filled.get(105)) {
+    if (filled.get(107)) {
       throw new IllegalStateException("hub.scenario/PRC_RAC already set");
     } else {
-      filled.set(105);
+      filled.set(107);
     }
 
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.scenario/PRC_RAC has invalid value (" + b + ")");
     }
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
         (byte) (b >> 24));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
         (byte) (b >> 16));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
         (byte) (b >> 8));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
-        (byte) b);
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put((byte) b);
 
     return this;
   }
 
   public Trace pScenarioPrcRao(final long b) {
-    if (filled.get(106)) {
+    if (filled.get(108)) {
       throw new IllegalStateException("hub.scenario/PRC_RAO already set");
     } else {
-      filled.set(106);
+      filled.set(108);
     }
 
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.scenario/PRC_RAO has invalid value (" + b + ")");
     }
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
-        (byte) (b >> 24));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
-        (byte) (b >> 16));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
-        (byte) (b >> 8));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put((byte) b);
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 24));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 16));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) (b >> 8));
+    deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.put((byte) b);
 
     return this;
   }
 
-  public Trace pScenarioPrcReturnGas(final Bytes b) {
-    if (filled.get(125)) {
+  public Trace pScenarioPrcReturnGas(final long b) {
+    if (filled.get(109)) {
       throw new IllegalStateException("hub.scenario/PRC_RETURN_GAS already set");
     } else {
-      filled.set(125);
+      filled.set(109);
     }
 
-    // Trim array to size
-    Bytes bs = b.trimLeadingZeros();
-    // Sanity check against expected width
-    if (bs.bitLength() > 64) {
+    if (b >= 4294967296L) {
       throw new IllegalArgumentException(
-          "hub.scenario/PRC_RETURN_GAS has invalid width (" + bs.bitLength() + "bits)");
+          "hub.scenario/PRC_RETURN_GAS has invalid value (" + b + ")");
     }
-    // Write padding (if necessary)
-    for (int i = bs.size(); i < 8; i++) {
-      stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover.put((byte) 0);
-    }
-    // Write bytes
-    for (int j = 0; j < bs.size(); j++) {
-      stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover.put(bs.get(j));
-    }
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 24));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 16));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) (b >> 8));
+    deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.put((byte) b);
 
     return this;
   }
@@ -5891,14 +5883,14 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.stack/STATIC_GAS has invalid value (" + b + ")");
     }
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 24));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 16));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 8));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) b);
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -5985,14 +5977,14 @@ public class Trace {
     if (b >= 4294967296L) {
       throw new IllegalArgumentException("hub.storage/ADDRESS_HI has invalid value (" + b + ")");
     }
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 24));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 16));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 8));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) b);
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -6075,13 +6067,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.storage/DEPLOYMENT_NUMBER has invalid value (" + b + ")");
     }
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 24));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 16));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 8));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) b);
 
     return this;
@@ -6132,13 +6124,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.storage/DEPLOYMENT_NUMBER_INFTY has invalid value (" + b + ")");
     }
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 24));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 16));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 8));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) b);
 
     return this;
@@ -6563,11 +6555,11 @@ public class Trace {
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
-      nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.put((byte) 0);
+      nonceXorStpGasMxpXorBasefee.put((byte) 0);
     }
     // Write bytes
     for (int j = 0; j < bs.size(); j++) {
-      nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.put(bs.get(j));
+      nonceXorStpGasMxpXorBasefee.put(bs.get(j));
     }
 
     return this;
@@ -6584,14 +6576,14 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.transaction/CALL_DATA_SIZE has invalid value (" + b + ")");
     }
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 24));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 16));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) (b >> 8));
-    addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize.put(
-        (byte) b);
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 24));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 16));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) (b >> 8));
+    addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
+        .put((byte) b);
 
     return this;
   }
@@ -6607,13 +6599,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.transaction/COINBASE_ADDRESS_HI has invalid value (" + b + ")");
     }
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 24));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 16));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) (b >> 8));
-    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+    codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
         .put((byte) b);
 
     return this;
@@ -6671,13 +6663,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.transaction/FROM_ADDRESS_HI has invalid value (" + b + ")");
     }
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 24));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 16));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) (b >> 8));
-    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi.put(
+    codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi.put(
         (byte) b);
 
     return this;
@@ -6727,11 +6719,11 @@ public class Trace {
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.put((byte) 0);
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put((byte) 0);
     }
     // Write bytes
     for (int j = 0; j < bs.size(); j++) {
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.put(bs.get(j));
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.put(bs.get(j));
     }
 
     return this;
@@ -6753,11 +6745,11 @@ public class Trace {
     }
     // Write padding (if necessary)
     for (int i = bs.size(); i < 8; i++) {
-      stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover.put((byte) 0);
+      stpGasUpfrontGasCostXorGasLeftover.put((byte) 0);
     }
     // Write bytes
     for (int j = 0; j < bs.size(); j++) {
-      stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover.put(bs.get(j));
+      stpGasUpfrontGasCostXorGasLeftover.put(bs.get(j));
     }
 
     return this;
@@ -6826,13 +6818,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.transaction/INIT_CODE_SIZE has invalid value (" + b + ")");
     }
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 24));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 16));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put(
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put(
         (byte) (b >> 8));
-    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.put((byte) b);
+    codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.put((byte) b);
 
     return this;
   }
@@ -7032,10 +7024,13 @@ public class Trace {
       throw new IllegalArgumentException(
           "hub.transaction/TO_ADDRESS_HI has invalid value (" + b + ")");
     }
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 24));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 16));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) (b >> 8));
-    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.put((byte) b);
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 24));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 16));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put(
+        (byte) (b >> 8));
+    deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.put((byte) b);
 
     return this;
   }
@@ -7361,7 +7356,7 @@ public class Trace {
 
     if (!filled.get(103)) {
       throw new IllegalStateException(
-          "hub.ADDRESS_HI_xor_ACCOUNT_ADDRESS_HI_xor_CCRS_STAMP_xor_PRC_CDO_xor_STATIC_GAS_xor_ADDRESS_HI_xor_CALL_DATA_SIZE has not been filled");
+          "hub.ADDRESS_HI_xor_ACCOUNT_ADDRESS_HI_xor_CCRS_STAMP_xor_PRC_CALLEE_GAS_xor_STATIC_GAS_xor_ADDRESS_HI_xor_CALL_DATA_SIZE has not been filled");
     }
 
     if (!filled.get(132)) {
@@ -7421,7 +7416,7 @@ public class Trace {
 
     if (!filled.get(104)) {
       throw new IllegalStateException(
-          "hub.CODE_FRAGMENT_INDEX_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_EXP_INST_xor_PRC_CDS_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI has not been filled");
+          "hub.CODE_FRAGMENT_INDEX_xor_ACCOUNT_DEPLOYMENT_NUMBER_xor_EXP_INST_xor_PRC_CALLER_GAS_xor_DEPLOYMENT_NUMBER_xor_COINBASE_ADDRESS_HI has not been filled");
     }
 
     if (!filled.get(136)) {
@@ -7446,12 +7441,12 @@ public class Trace {
 
     if (!filled.get(106)) {
       throw new IllegalStateException(
-          "hub.CODE_SIZE_NEW_xor_BYTE_CODE_CODE_FRAGMENT_INDEX_xor_MMU_EXO_SUM_xor_PRC_RAO_xor_INIT_CODE_SIZE has not been filled");
+          "hub.CODE_SIZE_NEW_xor_BYTE_CODE_CODE_FRAGMENT_INDEX_xor_MMU_EXO_SUM_xor_PRC_CDS_xor_INIT_CODE_SIZE has not been filled");
     }
 
     if (!filled.get(105)) {
       throw new IllegalStateException(
-          "hub.CODE_SIZE_xor_BYTE_CODE_ADDRESS_HI_xor_MMU_AUX_ID_xor_PRC_RAC_xor_DEPLOYMENT_NUMBER_INFTY_xor_FROM_ADDRESS_HI has not been filled");
+          "hub.CODE_SIZE_xor_BYTE_CODE_ADDRESS_HI_xor_MMU_AUX_ID_xor_PRC_CDO_xor_DEPLOYMENT_NUMBER_INFTY_xor_FROM_ADDRESS_HI has not been filled");
     }
 
     if (!filled.get(3)) {
@@ -7510,17 +7505,17 @@ public class Trace {
 
     if (!filled.get(108)) {
       throw new IllegalStateException(
-          "hub.DEPLOYMENT_NUMBER_INFTY_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU_PHASE has not been filled");
+          "hub.DEPLOYMENT_NUMBER_INFTY_xor_BYTE_CODE_DEPLOYMENT_STATUS_xor_MMU_PHASE_xor_PRC_RAO has not been filled");
     }
 
     if (!filled.get(109)) {
       throw new IllegalStateException(
-          "hub.DEPLOYMENT_NUMBER_NEW_xor_CALLER_ADDRESS_HI_xor_MMU_REF_OFFSET has not been filled");
+          "hub.DEPLOYMENT_NUMBER_NEW_xor_CALLER_ADDRESS_HI_xor_MMU_REF_OFFSET_xor_PRC_RETURN_GAS has not been filled");
     }
 
     if (!filled.get(107)) {
       throw new IllegalStateException(
-          "hub.DEPLOYMENT_NUMBER_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU_INST_xor_TO_ADDRESS_HI has not been filled");
+          "hub.DEPLOYMENT_NUMBER_xor_BYTE_CODE_DEPLOYMENT_NUMBER_xor_MMU_INST_xor_PRC_RAC_xor_TO_ADDRESS_HI has not been filled");
     }
 
     if (!filled.get(49)) {
@@ -7705,12 +7700,11 @@ public class Trace {
 
     if (!filled.get(124)) {
       throw new IllegalStateException(
-          "hub.NONCE_NEW_xor_STP_GAS_PAID_OUT_OF_POCKET_xor_PRC_CALLER_GAS_xor_GAS_INITIALLY_AVAILABLE has not been filled");
+          "hub.NONCE_NEW_xor_STP_GAS_PAID_OUT_OF_POCKET_xor_GAS_INITIALLY_AVAILABLE has not been filled");
     }
 
     if (!filled.get(123)) {
-      throw new IllegalStateException(
-          "hub.NONCE_xor_STP_GAS_MXP_xor_PRC_CALLEE_GAS_xor_BASEFEE has not been filled");
+      throw new IllegalStateException("hub.NONCE_xor_STP_GAS_MXP_xor_BASEFEE has not been filled");
     }
 
     if (!filled.get(152)) {
@@ -8013,7 +8007,7 @@ public class Trace {
 
     if (!filled.get(125)) {
       throw new IllegalStateException(
-          "hub.STP_GAS_UPFRONT_GAS_COST_xor_PRC_RETURN_GAS_xor_GAS_LEFTOVER has not been filled");
+          "hub.STP_GAS_UPFRONT_GAS_COST_xor_GAS_LEFTOVER has not been filled");
     }
 
     if (!filled.get(163)) {
@@ -8096,9 +8090,9 @@ public class Trace {
     }
 
     if (!filled.get(103)) {
-      addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize
+      addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
           .position(
-              addressHiXorAccountAddressHiXorCcrsStampXorPrcCdoXorStaticGasXorAddressHiXorCallDataSize
+              addressHiXorAccountAddressHiXorCcrsStampXorPrcCalleeGasXorStaticGasXorAddressHiXorCallDataSize
                       .position()
                   + 4);
     }
@@ -8176,9 +8170,9 @@ public class Trace {
     }
 
     if (!filled.get(104)) {
-      codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+      codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
           .position(
-              codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCdsXorDeploymentNumberXorCoinbaseAddressHi
+              codeFragmentIndexXorAccountDeploymentNumberXorExpInstXorPrcCallerGasXorDeploymentNumberXorCoinbaseAddressHi
                       .position()
                   + 4);
     }
@@ -8205,15 +8199,15 @@ public class Trace {
     }
 
     if (!filled.get(106)) {
-      codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.position(
-          codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcRaoXorInitCodeSize.position()
+      codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.position(
+          codeSizeNewXorByteCodeCodeFragmentIndexXorMmuExoSumXorPrcCdsXorInitCodeSize.position()
               + 4);
     }
 
     if (!filled.get(105)) {
-      codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi
+      codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi
           .position(
-              codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcRacXorDeploymentNumberInftyXorFromAddressHi
+              codeSizeXorByteCodeAddressHiXorMmuAuxIdXorPrcCdoXorDeploymentNumberInftyXorFromAddressHi
                       .position()
                   + 4);
     }
@@ -8273,18 +8267,19 @@ public class Trace {
     }
 
     if (!filled.get(108)) {
-      deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.position(
-          deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhase.position() + 4);
+      deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.position(
+          deploymentNumberInftyXorByteCodeDeploymentStatusXorMmuPhaseXorPrcRao.position() + 4);
     }
 
     if (!filled.get(109)) {
-      deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.position(
-          deploymentNumberNewXorCallerAddressHiXorMmuRefOffset.position() + 4);
+      deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.position(
+          deploymentNumberNewXorCallerAddressHiXorMmuRefOffsetXorPrcReturnGas.position() + 4);
     }
 
     if (!filled.get(107)) {
-      deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.position(
-          deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorToAddressHi.position() + 4);
+      deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.position(
+          deploymentNumberXorByteCodeDeploymentNumberXorMmuInstXorPrcRacXorToAddressHi.position()
+              + 4);
     }
 
     if (!filled.get(49)) {
@@ -8493,13 +8488,12 @@ public class Trace {
     }
 
     if (!filled.get(124)) {
-      nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.position(
-          nonceNewXorStpGasPaidOutOfPocketXorPrcCallerGasXorGasInitiallyAvailable.position() + 8);
+      nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.position(
+          nonceNewXorStpGasPaidOutOfPocketXorGasInitiallyAvailable.position() + 8);
     }
 
     if (!filled.get(123)) {
-      nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.position(
-          nonceXorStpGasMxpXorPrcCalleeGasXorBasefee.position() + 8);
+      nonceXorStpGasMxpXorBasefee.position(nonceXorStpGasMxpXorBasefee.position() + 8);
     }
 
     if (!filled.get(152)) {
@@ -8801,8 +8795,8 @@ public class Trace {
     }
 
     if (!filled.get(125)) {
-      stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover.position(
-          stpGasUpfrontGasCostXorPrcReturnGasXorGasLeftover.position() + 8);
+      stpGasUpfrontGasCostXorGasLeftover.position(
+          stpGasUpfrontGasCostXorGasLeftover.position() + 8);
     }
 
     if (!filled.get(163)) {

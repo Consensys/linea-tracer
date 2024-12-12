@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blockdata;
 
+import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_DEPTH;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_BASEFEE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_CHAINID;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_COINBASE;
@@ -69,7 +70,7 @@ public class Blockdata implements Module {
 
   @Override
   public void traceStartConflation(final long blockCount) {
-    wcp.additionalRows.add(TIMESTAMP_BYTESIZE);
+    wcp.additionalRows.add(TIMESTAMP_BYTESIZE); // TODO: check
   }
 
   @Override
@@ -80,19 +81,13 @@ public class Blockdata implements Module {
     for (int inst : instructions) {
       BlockdataOperation operation =
           new BlockdataOperation(
-              blockHeader.getCoinbase(),
-              currentTimestamp,
-              blockNumber,
-              blockHeader.getDifficulty().getAsBigInteger(),
-              blockHeader.getGasLimit(),
-              blockHeader.getBaseFee(),
+              blockHeader,
+              prevOperationByInst.get(inst),
               txnData.currentBlock().getNbOfTxsInBlock(),
               wcp,
               euc,
-              txnData,
               chainId,
               inst,
-              prevOperationByInst.get(inst),
               firstBlockNumber);
       operations.addLast(operation);
       prevOperationByInst.put(inst, operation);
@@ -117,7 +112,7 @@ public class Blockdata implements Module {
   @Override
   public int lineCount() {
     final int numberOfBlock = conflationFinished ? operations.size() : operations.size() + 1;
-    return numberOfBlock * (1); // TODO: update
+    return numberOfBlock * (CT_MAX_DEPTH + 1); // TODO: check
   }
 
   @Override
@@ -129,10 +124,8 @@ public class Blockdata implements Module {
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
 
-    final long firstBlockNumber = operations.getFirst().absoluteBlockNumber();
-    int relblock = 0;
     for (BlockdataOperation blockData : operations) {
-      blockData.trace(trace, ++relblock, firstBlockNumber, chainId);
+      blockData.trace(trace);
     }
   }
 }

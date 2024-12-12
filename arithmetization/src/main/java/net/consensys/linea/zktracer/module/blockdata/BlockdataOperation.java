@@ -35,8 +35,6 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_NUMBER;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_TIMESTAMP;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BASE_FEE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BLOCK_GAS_LIMIT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_DIFFICULTY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_GEQ;
@@ -52,12 +50,12 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @Accessors(fluent = true)
 @Getter
@@ -67,29 +65,20 @@ public class BlockdataOperation extends ModuleOperation {
   private final BigInteger difficulty;
   private final Wcp wcp;
   private final Euc euc;
-  private final TxnData txnData;
   private final BigInteger chainId;
   private final BlockdataOperation prevOperation;
   private final Bytes ZERO = Bytes.ofUnsignedLong(0);
 
-  // TODO: miss IOMF, CT
-  private boolean previousConflation; // TODO: how to set this variables
-  private boolean currentConflation; // TODO: how to set this variables
+  private final boolean previousConflation;
+  private final boolean currentConflation;
   private final int ctMax;
-  private boolean isCoinbase;
-  private boolean isTimestamp;
-  private boolean isNumber;
-  private boolean isDifficulty;
-  private boolean isGasLimit;
-  private boolean isChainId;
-  private boolean isBaseFee;
   private final int inst;
   private final Address coinbase;
-  private long blockGasLimit; // TODO: how to set this variable
-  private long baseFee; // TODO: how to set this variable
-  private long firstBlockNumber; // TODO: how to set this variable
+  private final long blockGasLimit;
+  private final long baseFee;
+  private final long firstBlockNumber;
   private final int relTxMax;
-  private long relBlock;
+  private final long relBlock;
 
   private Bytes dataHi;
   private Bytes dataLo;
@@ -103,39 +92,32 @@ public class BlockdataOperation extends ModuleOperation {
   private final boolean[] eucFlag;
 
   public BlockdataOperation(
-      Address coinbase,
-      long timestamp,
-      long absoluteBlockNumber,
-      BigInteger difficulty,
-      long blockGasLimit,
-      long baseFee,
+      BlockHeader blockHeader,
+      BlockdataOperation prevOperationByInst,
       int relTxMax,
       Wcp wcp,
       Euc euc,
-      TxnData txnData,
       BigInteger chainId,
       int inst,
-      BlockdataOperation prevOperation,
       long firstBlockNumber) {
-    this.coinbase = coinbase;
-    this.timestamp = timestamp;
-    this.absoluteBlockNumber = absoluteBlockNumber;
-    this.difficulty = difficulty;
-    this.blockGasLimit = blockGasLimit;
-    this.chainId = chainId;
-    this.baseFee = prevOperation == null ? baseFee : prevOperation.baseFee;
+    // Data from blockHeader
+    this.coinbase = blockHeader.getCoinbase();
+    this.timestamp = (int) blockHeader.getTimestamp();
+    this.absoluteBlockNumber = blockHeader.getNumber();
+    this.difficulty = blockHeader.getDifficulty().getAsBigInteger();
+    this.blockGasLimit = blockHeader.getGasLimit();
+    this.baseFee = (long) blockHeader.getBaseFee();
+    this.prevOperation = prevOperationByInst;
 
-    this.previousConflation = (relBlock == 0);
-    this.currentConflation = (relBlock > 0);
+    this.chainId = chainId;
     this.ctMax = ctMax(inst);
     this.firstBlockNumber = firstBlockNumber;
     this.relTxMax = relTxMax;
     this.relBlock = absoluteBlockNumber - firstBlockNumber;
+    this.previousConflation = (relBlock == 0);
+    this.currentConflation = (relBlock > 0);
     this.wcp = wcp;
     this.euc = euc;
-    this.txnData = txnData;
-    this.prevOperation = prevOperation;
-
     this.inst = inst;
 
     // Init non-counter constant columns arrays of size ctMax
@@ -151,47 +133,28 @@ public class BlockdataOperation extends ModuleOperation {
     // Handle opcodes
     switch (inst) {
       case EVM_INST_COINBASE -> {
-        isCoinbase = true;
         handleCoinbase();
       }
       case EVM_INST_TIMESTAMP -> {
-        isTimestamp = true;
         handleTimestamp();
       }
       case EVM_INST_NUMBER -> {
-        isNumber = true;
         handleNumber();
       }
       case EVM_INST_DIFFICULTY -> {
-        isDifficulty = true;
         handleDifficulty();
       }
       case EVM_INST_GASLIMIT -> {
-        isGasLimit = true;
         handleGasLimit();
       }
       case EVM_INST_CHAINID -> {
-        isChainId = true;
         handleChainId();
       }
       case EVM_INST_BASEFEE -> {
-        isBaseFee = true;
         handleBaseFee();
       }
       default -> {}
     }
-
-    /*
-    Sketch of what we need to do:
-    - Understand which opcode we are working with;
-    - Determine the corresponding CT_MAX_XXX;
-    - Initialize arrays for each column that is not counter constant of size CT_MAX_XXX, so as we can later fill them;
-    - Columns that are not counter constant do not need an array, but a single value is enough;
-    - One tricky aspect of this module is that the current operation needs a reference to the previous operation, so we need to
-      figure out how to handle this;
-    - For each opcode, we need to create a method to execute the corresponding computation. For example, executing the lookups and
-      filling the arrays and values to trace them later;
-     */
   }
 
   private void handleCoinbase() {
@@ -203,16 +166,15 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   private void handleTimestamp() {
+    dataHi = ZERO;
+    dataLo = EWord.of(timestamp).lo();
+    Bytes prevDataLo = prevOperation == null ? ZERO : prevOperation.dataLo;
+
     // row i
     wcpCallToLT(0, dataHi, dataLo, ZERO, Bytes.ofUnsignedLong((long) Math.pow(256, 6)));
 
     // row i + 1
-    wcpCallToGT(
-        1,
-        dataHi,
-        dataLo,
-        prevOperation == null ? ZERO : prevOperation.dataHi,
-        prevOperation == null ? ZERO : prevOperation.dataLo);
+    wcpCallToGT(1, dataHi, dataLo, ZERO, prevDataLo);
   }
 
   private boolean isPrev(BlockdataOperation operation) {
@@ -306,10 +268,8 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   private void handleChainId() {
-    if (isCurr(prevOperation)) {
-      dataHi = prevOperation.dataHi;
-      dataLo = prevOperation.dataLo;
-    }
+    dataHi = ZERO;
+    dataLo = EWord.of(chainId).lo();
 
     // row i
     wcpCallToGEQ(0, dataHi, dataLo, ZERO, ZERO);
@@ -328,56 +288,31 @@ public class BlockdataOperation extends ModuleOperation {
     return ctMax() + 1;
   }
 
-  private int ctMax(int inst) {
-    switch (inst) {
-      case EVM_INST_COINBASE -> {
-        return CT_MAX_CB;
-      }
-      case EVM_INST_TIMESTAMP -> {
-        return CT_MAX_TS;
-      }
-      case EVM_INST_NUMBER -> {
-        return CT_MAX_NB;
-      }
-      case EVM_INST_DIFFICULTY -> {
-        return CT_MAX_DF;
-      }
-      case EVM_INST_GASLIMIT -> {
-        return CT_MAX_GL;
-      }
-      case EVM_INST_CHAINID -> {
-        return CT_MAX_ID;
-      }
-      case EVM_INST_BASEFEE -> {
-        return CT_MAX_BF;
-      }
-      default -> {
-        return CT_MAX_DEPTH;
-      }
-    }
-  }
-
-  public void trace(
-      Trace trace, final int relBlock, final long firstBlockNumber, final BigInteger chainId) {
+  public void trace(Trace trace) {
     for (short ct = 0; ct <= ctMax(); ct++) {
       trace
+          .iomf(true)
+          .previousConflation(previousConflation)
+          .currentConflation(currentConflation)
+          .ctMax(ctMax())
+          .ct(ct)
+          .isCoinbase(inst == EVM_INST_COINBASE)
+          .isTimestamp(inst == EVM_INST_TIMESTAMP)
+          .isNumber(inst == EVM_INST_NUMBER)
+          .isDifficulty(inst == EVM_INST_DIFFICULTY)
+          .isGaslimit(inst == EVM_INST_GASLIMIT)
+          .isChainid(inst == EVM_INST_CHAINID)
+          .isBasefee(inst == EVM_INST_BASEFEE)
+          .inst(UnsignedByte.of(inst))
+          .coinbaseHi(this.coinbase.slice(0, 4).toLong())
+          .coinbaseLo(this.coinbase.slice(4, LLARGE))
+          .blockGasLimit(blockGasLimit)
+          .basefee(baseFee)
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
           .relTxNumMax((short) this.relTxMax)
-          .coinbaseHi(this.coinbase.slice(0, 4).toLong())
-          .coinbaseLo(this.coinbase.slice(4, LLARGE))
-          .blockGasLimit(LINEA_BLOCK_GAS_LIMIT)
-          .basefee(LINEA_BASE_FEE);
-
-      // TODO: add missing columns
-      trace
-          .isCoinbase(isCoinbase)
-          .isTimestamp(isTimestamp)
-          .isNumber(isNumber)
-          .isDifficulty(isDifficulty)
-          .isGaslimit(isGasLimit)
-          .isChainid(isChainId)
-          .isBasefee(isBaseFee)
+          .dataHi(dataHi)
+          .dataHi(dataLo)
           .arg1Hi(arg1Hi[ct])
           .arg1Lo(arg1Lo[ct])
           .arg2Hi(arg2Hi[ct])
@@ -463,5 +398,34 @@ public class BlockdataOperation extends ModuleOperation {
     eucFlag[w] = true;
 
     return res[w];
+  }
+
+  private int ctMax(int inst) {
+    switch (inst) {
+      case EVM_INST_COINBASE -> {
+        return CT_MAX_CB;
+      }
+      case EVM_INST_TIMESTAMP -> {
+        return CT_MAX_TS;
+      }
+      case EVM_INST_NUMBER -> {
+        return CT_MAX_NB;
+      }
+      case EVM_INST_DIFFICULTY -> {
+        return CT_MAX_DF;
+      }
+      case EVM_INST_GASLIMIT -> {
+        return CT_MAX_GL;
+      }
+      case EVM_INST_CHAINID -> {
+        return CT_MAX_ID;
+      }
+      case EVM_INST_BASEFEE -> {
+        return CT_MAX_BF;
+      }
+      default -> {
+        return CT_MAX_DEPTH;
+      }
+    }
   }
 }

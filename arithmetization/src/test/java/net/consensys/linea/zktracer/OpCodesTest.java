@@ -43,12 +43,11 @@ public class OpCodesTest {
           && opCodeData.instructionFamily() != InstructionFamily.JUMP) {
         OpCode opCode = opCodeData.mnemonic();
         int nPushes = opCodeData.stackSettings().delta();
-        int nPops = opCodeData.stackSettings().alpha();
         for (int i = 0; i < nPushes; i++) {
           program.push(0);
         }
         program.op(opCode);
-        for (int i = 0; i < nPops; i++) {
+        if (opCodeData.stackSettings().alpha() != 0) {
           program.op(OpCode.POP);
         }
       }

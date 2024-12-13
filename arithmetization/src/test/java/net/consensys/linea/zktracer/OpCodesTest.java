@@ -39,13 +39,18 @@ public class OpCodesTest {
   private Bytes getAllOpCodesProgram() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (OpCodeData opCodeData : opCodeToOpCodeDataMap.values()) {
-      if (opCodeData.instructionFamily() != InstructionFamily.HALT) {
+      if (opCodeData.instructionFamily() != InstructionFamily.HALT
+          && opCodeData.instructionFamily() != InstructionFamily.JUMP) {
         OpCode opCode = opCodeData.mnemonic();
         int nPushes = opCodeData.stackSettings().delta();
+        int nPops = opCodeData.stackSettings().alpha();
         for (int i = 0; i < nPushes; i++) {
           program.push(0);
         }
         program.op(opCode);
+        for (int i = 0; i < nPops; i++) {
+          program.op(OpCode.POP);
+        }
       }
     }
     return program.compile();

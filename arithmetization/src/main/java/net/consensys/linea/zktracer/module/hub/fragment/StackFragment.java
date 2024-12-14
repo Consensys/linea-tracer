@@ -46,8 +46,6 @@ import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Hash;
-import org.hyperledger.besu.evm.Code;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Accessors(fluent = true)
@@ -159,8 +157,8 @@ public final class StackFragment implements TraceFragment {
     int nLeftoverBytes = byteCode.size() - (pc + 1);
     Bytes partialPushValue = byteCode.slice(pc + 1, min(nLeftoverBytes, nBytesToPush));
     return (nLeftoverBytes >= nBytesToPush)
-            ? partialPushValue
-            : rightPadTo(partialPushValue, nBytesToPush);
+        ? partialPushValue
+        : rightPadTo(partialPushValue, nBytesToPush);
   }
 
   public static StackFragment prepare(

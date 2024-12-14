@@ -48,6 +48,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   final EWord valueOriginal;
   final EWord valueCurrent;
   final EWord valueNext;
+  final int hubStamp;
 
   public SstoreSection(Hub hub, WorldView worldView) {
     super(
@@ -56,6 +57,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
             (hub.opCode().numberOfStackRows() + (Exceptions.any(hub.pch().exceptions()) ? 5 : 4)));
 
     world = worldView;
+    hubStamp = hub.stamp();
     accountAddress = hub.accountAddress();
     accountAddressDeploymentNumber = hub.deploymentNumberOfAccountAddress();
     storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
@@ -132,7 +134,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
     final DomSubStampsSubFragment undoingDomSubStamps =
         DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-            this.hubStamp(), hub.callStack().currentCallFrame().revertStamp(), 0);
+            hubStamp, callFrame.revertStamp(), 0);
 
     final StorageFragment undoingSstoreStorageFragment =
         new StorageFragment(

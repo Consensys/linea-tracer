@@ -61,7 +61,7 @@ public class InvalidOpcodeExceptionTest {
   static Stream<Arguments> nonOpcodeExceptionSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (int value = 0; value < 256; value++) {
-      // If value it not in the map, then it is not an OpCode
+      // If value is not in the map, then it is not an OpCode
       if (!valueToOpCodeDataMap.containsKey(value)) {
         arguments.add(Arguments.of(value));
       }

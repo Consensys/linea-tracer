@@ -103,48 +103,34 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
   }
 
   private void successFinalization(Hub hub) {
+    // 0th account row sender
+    final AccountFragment senderAccountFragment =
+        hub.factories()
+            .accountFragment()
+            .make(
+                senderSnapshotBeforeFinalization,
+                senderSnapshotBeforeFinalization
+                    .deepCopy()
+                    .incrementBalanceBy(txMetadata.getGasRefundInWei()),
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
-    if (!txMetadata.senderIsCoinbase()) {
+    // 1st account row coinbase (depending on weather the sender is the coinbase or not)
+    final AccountFragment coinbaseAccountFragment =
+        hub.factories()
+            .accountFragment()
+            .make(
+                senderSnapshotBeforeFinalization,
+                !txMetadata.senderIsCoinbase()
+                    ? coinbaseSnapshotBeforeTxFinalization
+                        .deepCopy()
+                        .incrementBalanceBy(txMetadata.getCoinbaseReward())
+                    : coinbaseSnapshotBeforeTxFinalization
+                        .deepCopy()
+                        .incrementBalanceBy(
+                            txMetadata.getGasRefundInWei().add(txMetadata.getCoinbaseReward())),
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
-      final AccountFragment senderAccountFragment =
-          hub.factories()
-              .accountFragment()
-              .make(
-                  senderSnapshotBeforeFinalization,
-                  senderSnapshotAfterTxFinalization,
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
-
-      final AccountFragment coinbaseAccountFragment =
-          hub.factories()
-              .accountFragment()
-              .make(
-                  coinbaseSnapshotBeforeTxFinalization,
-                  coinbaseSnapshotAfterFinalization,
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
-
-      this.addFragments(senderAccountFragment, coinbaseAccountFragment);
-    } else {
-      // TODO: verify it works
-      final AccountFragment senderAccountFragment =
-          hub.factories()
-              .accountFragment()
-              .make(
-                  senderSnapshotBeforeFinalization,
-                  senderSnapshotBeforeFinalization
-                      .deepCopy()
-                      .incrementBalanceBy(txMetadata.getGasRefundInWei()),
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
-
-      final AccountFragment coinbaseAccountFragment =
-          hub.factories()
-              .accountFragment()
-              .make(
-                  senderSnapshotBeforeFinalization,
-                  coinbaseSnapshotAfterFinalization,
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
-
-      this.addFragments(senderAccountFragment, coinbaseAccountFragment);
-    }
+    this.addFragments(senderAccountFragment, coinbaseAccountFragment);
 
     final TransactionFragment currentTransactionFragment =
         TransactionFragment.prepare(hub.txStack().current());
@@ -181,6 +167,8 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
       this.addFragments(senderAccountFragment, recipientAccountFragment, coinbaseAccountFragment);
 
     } else {
+      // TODO: should we treat differently the sender != coinbase case from the sender == coinbase
+      //  in the failure finalization case, too?
 
       final Wei transactionValue = (Wei) txMetadata.getBesuTransaction().getValue();
 

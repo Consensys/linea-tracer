@@ -170,6 +170,30 @@ public class TxInitializationSection extends TraceSection {
     this.addFragments(
         ImcFragment.forTxInit(hub), ContextFragment.initializeExecutionContext(hub), txFragment);
 
+    boolean isRevertedTransaction = false; // TODO: how to get this?
+    if (isRevertedTransaction) {
+      AccountSnapshot senderAfterPayingForGasAndValueReverted =
+          senderAfterPayingForGasAndValue.deepCopy();
+      senderAfterPayingForGasAndValueReverted.incrementBalanceBy(value);
+
+      AccountSnapshot recipientAfterValueTransferReverted = recipientAfterValueTransfer.deepCopy();
+      recipientAfterValueTransferReverted.decrementBalanceBy(value);
+
+      // 3red account row sender
+      this.addFragment(
+          accountFragmentFactory.make(
+              senderAfterPayingForGasAndValue,
+              senderAfterPayingForGasAndValueReverted,
+              senderDomSubStamps));
+
+      // 4th account row recipient
+      this.addFragment(
+          accountFragmentFactory.make(
+              recipientAfterValueTransfer,
+              recipientAfterValueTransferReverted,
+              recipientDomSubStamps));
+    }
+
     hub.state.setProcessingPhase(TX_EXEC);
   }
 }

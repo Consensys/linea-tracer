@@ -37,7 +37,9 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TxInitializationSection extends TraceSection {
 
-  @Getter private final AccountSnapshot senderAfterPayingForTransaction;
+  @Getter private final AccountSnapshot senderAfterPayingForGas;
+  @Getter private final AccountSnapshot senderAfterPayingForValue;
+  @Getter private final AccountSnapshot senderAfterPayingForGasAndValue;
   @Getter private final AccountSnapshot recipientAfterValueTransfer;
 
   public TxInitializationSection(Hub hub, WorldView world) {
@@ -52,6 +54,7 @@ public class TxInitializationSection extends TraceSection {
 
     final Address senderAddress = tx.getSender();
     final Account senderAccount = world.get(senderAddress);
+
     final AccountSnapshot senderBeforePayingForTransaction =
         AccountSnapshot.fromAccount(
             senderAccount,
@@ -66,14 +69,22 @@ public class TxInitializationSection extends TraceSection {
     final Wei valueAndGasCost =
         transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()).add(value);
 
-    senderAfterPayingForTransaction = senderBeforePayingForTransaction.deepCopy();
-    senderAfterPayingForTransaction
+    senderAfterPayingForGas = senderBeforePayingForTransaction.deepCopy();
+    senderAfterPayingForGas
+        .decrementBalanceBy(transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()))
+        .turnOnWarmth();
+
+    // this is useful only in case of sender is equal to the recipient
+    senderAfterPayingForValue = senderAfterPayingForGas.deepCopy();
+    senderAfterPayingForValue.decrementBalanceBy(value).turnOnWarmth();
+
+    senderAfterPayingForGasAndValue = senderBeforePayingForTransaction.deepCopy();
+    senderAfterPayingForGasAndValue
         .decrementBalanceBy(valueAndGasCost)
         .turnOnWarmth()
         .raiseNonceByOne();
 
     final boolean isSelfCredit = recipientAddress.equals(senderAddress);
-
     final Account recipientAccount = world.get(recipientAddress);
 
     AccountSnapshot recipientBeforeValueTransfer;
@@ -81,7 +92,7 @@ public class TxInitializationSection extends TraceSection {
     if (recipientAccount != null) {
       recipientBeforeValueTransfer =
           isSelfCredit
-              ? senderAfterPayingForTransaction
+              ? senderAfterPayingForValue
               : AccountSnapshot.canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
                   .setWarmthTo(tx.isRecipientPreWarmed());
     } else {
@@ -101,6 +112,14 @@ public class TxInitializationSection extends TraceSection {
     final Bytecode initCode = new Bytecode(tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
 
     recipientAfterValueTransfer = recipientBeforeValueTransfer.deepCopy();
+    Wei incrementToApplyToRecipientBalance;
+    if (isSelfCredit) {
+      incrementToApplyToRecipientBalance =
+          value.subtract(transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()));
+    } else {
+      incrementToApplyToRecipientBalance = value;
+    }
+
     if (isDeployment) {
       Preconditions.checkState(
           !recipientBeforeValueTransfer.deploymentStatus()
@@ -111,12 +130,14 @@ public class TxInitializationSection extends TraceSection {
 
       recipientAfterValueTransfer
           .raiseNonceByOne()
-          .incrementBalanceBy(value)
+          .incrementBalanceBy(incrementToApplyToRecipientBalance)
           .code(initCode)
           .turnOnWarmth()
           .setDeploymentInfo(deploymentInfo);
     } else {
-      recipientAfterValueTransfer.incrementBalanceBy(value).turnOnWarmth();
+      recipientAfterValueTransfer
+          .incrementBalanceBy(incrementToApplyToRecipientBalance)
+          .turnOnWarmth();
     }
 
     final DomSubStampsSubFragment recipientDomSubStamps =
@@ -127,17 +148,25 @@ public class TxInitializationSection extends TraceSection {
     final AccountFragment.AccountFragmentFactory accountFragmentFactory =
         hub.factories().accountFragment();
 
+    // 0th account row sender
     this.addFragment(
         accountFragmentFactory.make(
-            senderBeforePayingForTransaction, senderAfterPayingForTransaction, senderDomSubStamps));
+            senderBeforePayingForTransaction, senderAfterPayingForGas, senderDomSubStamps));
+    // 1st account row sender
+    this.addFragment(
+        accountFragmentFactory.make(
+            senderAfterPayingForGas, senderAfterPayingForGasAndValue, senderDomSubStamps));
+    // 2nd account row recipient
     this.addFragment(
         accountFragmentFactory
             .makeWithTrm(
                 recipientBeforeValueTransfer,
-                recipientAfterValueTransfer,
+                recipientAfterValueTransfer, // Note that this depends on weather the sender is
+                // equal to the recipient
                 recipientAddress,
                 recipientDomSubStamps)
             .requiresRomlex(true));
+
     this.addFragments(
         ImcFragment.forTxInit(hub), ContextFragment.initializeExecutionContext(hub), txFragment);
 

@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
@@ -31,11 +32,12 @@ import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class TxInitializationSection extends TraceSection {
+public class TxInitializationSection extends TraceSection implements PostTransactionDefer {
   @Getter private final AccountSnapshot senderBeforePayingForGas;
   @Getter private final AccountSnapshot senderAfterPayingForGas;
   @Getter private final AccountSnapshot senderAfterPayingForValue;
@@ -46,6 +48,11 @@ public class TxInitializationSection extends TraceSection {
 
   @Getter private AccountSnapshot senderAfterPayingForGasAndValueReverted;
   @Getter private AccountSnapshot recipientAfterValueTransferReverted;
+
+  final AccountFragment.AccountFragmentFactory accountFragmentFactory;
+  final Wei value;
+  final DomSubStampsSubFragment senderDomSubStamps;
+  final DomSubStampsSubFragment recipientDomSubStamps;
 
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 5);
@@ -66,11 +73,10 @@ public class TxInitializationSection extends TraceSection {
             tx.isSenderPreWarmed(),
             deploymentInfo.deploymentNumber(senderAddress),
             deploymentInfo.getDeploymentStatus(senderAddress));
-    final DomSubStampsSubFragment senderDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0);
+    senderDomSubStamps = DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0);
 
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
-    final Wei value = (Wei) tx.getBesuTransaction().getValue();
+    value = (Wei) tx.getBesuTransaction().getValue();
     final Wei valueAndGasCost =
         transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()).add(value);
 
@@ -143,13 +149,11 @@ public class TxInitializationSection extends TraceSection {
           .turnOnWarmth();
     }
 
-    final DomSubStampsSubFragment recipientDomSubStamps =
-        DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1);
+    recipientDomSubStamps = DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1);
 
     final TransactionFragment txFragment = TransactionFragment.prepare(tx);
 
-    final AccountFragment.AccountFragmentFactory accountFragmentFactory =
-        hub.factories().accountFragment();
+    accountFragmentFactory = hub.factories().accountFragment();
 
     // 0th account row sender
     this.addFragment(
@@ -173,15 +177,21 @@ public class TxInitializationSection extends TraceSection {
     this.addFragments(
         ImcFragment.forTxInit(hub), ContextFragment.initializeExecutionContext(hub), txFragment);
 
-    boolean isRevertedTransaction = false; // TODO: how to get this?
-    if (isRevertedTransaction) {
+    hub.state.setProcessingPhase(TX_EXEC);
+  }
+
+  @Override
+  public void resolvePostTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    // TODO: do we need to schedule this?
+    if (!isSuccessful) {
       senderAfterPayingForGasAndValueReverted = senderAfterPayingForGasAndValue.deepCopy();
       senderAfterPayingForGasAndValueReverted.incrementBalanceBy(value);
 
       recipientAfterValueTransferReverted = recipientAfterValueTransfer.deepCopy();
       recipientAfterValueTransferReverted.decrementBalanceBy(value);
 
-      // 3red account row sender
+      // 3rd account row sender
       this.addFragment(
           accountFragmentFactory.make(
               senderAfterPayingForGasAndValue,
@@ -195,7 +205,5 @@ public class TxInitializationSection extends TraceSection {
               recipientAfterValueTransferReverted,
               recipientDomSubStamps));
     }
-
-    hub.state.setProcessingPhase(TX_EXEC);
   }
 }

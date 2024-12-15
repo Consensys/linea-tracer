@@ -118,16 +118,16 @@ public class SelfdestructSection extends TraceSection
           hub.factories()
               .accountFragment()
               .make(
-                      selfdestructor,
-                      selfdestructor,
+                  selfdestructor,
+                  selfdestructor,
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
       AccountFragment recipientFirstAccountFragment =
           hub.factories()
               .accountFragment()
               .makeWithTrm(
-                      recipient,
-                      recipient,
+                  recipient,
+                  recipient,
                   recipientAddressUntrimmed,
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
@@ -143,8 +143,7 @@ public class SelfdestructSection extends TraceSection
         hub.txStack().current().getUnexceptionalSelfDestructMap();
 
     final EphemeralAccount ephemeralAccount =
-        new EphemeralAccount(
-            addressWhichMaySelfDestruct, selfdestructor.deploymentNumber());
+        new EphemeralAccount(addressWhichMaySelfDestruct, selfdestructor.deploymentNumber());
 
     if (unexceptionalSelfDestructMap.containsKey(ephemeralAccount)) {
       unexceptionalSelfDestructMap
@@ -152,8 +151,7 @@ public class SelfdestructSection extends TraceSection
           .add(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()));
     } else {
       unexceptionalSelfDestructMap.put(
-          new EphemeralAccount(
-              addressWhichMaySelfDestruct, selfdestructor.deploymentNumber()),
+          new EphemeralAccount(addressWhichMaySelfDestruct, selfdestructor.deploymentNumber()),
           new ArrayList<>(List.of(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()))));
     }
 
@@ -180,15 +178,11 @@ public class SelfdestructSection extends TraceSection
 
     if (selfdestructTargetsItself()) {
       recipient = selfdestructorNew.deepCopy();
-      recipientNew = recipient.deepCopy();
+      recipientNew = selfdestructorNew.deepCopy();
     } else {
-      recipient =
-          AccountSnapshot.canonical(hub, frame.getWorldUpdater(), recipientAddress);
+      recipient = AccountSnapshot.canonical(hub, frame.getWorldUpdater(), recipientAddress);
       recipientNew =
-          recipient
-              .deepCopy()
-              .incrementBalanceBy(selfdestructor.balance())
-              .turnOnWarmth();
+          recipient.deepCopy().incrementBalanceBy(selfdestructor.balance()).turnOnWarmth();
     }
     checkArgument(recipientNew.isWarm());
 
@@ -196,15 +190,15 @@ public class SelfdestructSection extends TraceSection
         hub.factories()
             .accountFragment()
             .make(
-                    selfdestructor,
-                    selfdestructorNew,
+                selfdestructor,
+                selfdestructorNew,
                 DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
     AccountFragment recipientFirstAccountFragment =
         hub.factories()
             .accountFragment()
             .makeWithTrm(
-                    recipient,
-                    recipientNew,
+                recipient,
+                recipientNew,
                 recipientAddressUntrimmed,
                 DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
 
@@ -220,8 +214,8 @@ public class SelfdestructSection extends TraceSection
         hub.factories()
             .accountFragment()
             .make(
-                    selfdestructorNew.deepCopy().setDeploymentNumber(hub),
-                    selfdestructor.deepCopy().setDeploymentNumber(hub),
+                selfdestructorNew.deepCopy().setDeploymentNumber(hub),
+                selfdestructor.deepCopy().setDeploymentNumber(hub),
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     hubStamp, callFrame.revertStamp(), 2));
 
@@ -229,8 +223,8 @@ public class SelfdestructSection extends TraceSection
         hub.factories()
             .accountFragment()
             .make(
-                    recipientNew.deepCopy().setDeploymentNumber(hub),
-                    recipient.deepCopy().setDeploymentNumber(hub),
+                recipientNew.deepCopy().setDeploymentNumber(hub),
+                recipient.deepCopy().setDeploymentNumber(hub),
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     hubStamp, callFrame.revertStamp(), 3));
 
@@ -256,8 +250,7 @@ public class SelfdestructSection extends TraceSection
     final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
     final EphemeralAccount ephemeralAccount =
-        new EphemeralAccount(
-            addressWhichMaySelfDestruct, selfdestructorNew.deploymentNumber());
+        new EphemeralAccount(addressWhichMaySelfDestruct, selfdestructorNew.deploymentNumber());
 
     checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
 

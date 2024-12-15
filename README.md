@@ -1,13 +1,11 @@
 # Linea tracer (zkEVM)
 
 This repository hosts a Linea tracing implementation for 
-[Besu](https://github.com/hyperledger/besu) based on an 
- implementation in Go.
+[Besu](https://github.com/hyperledger/besu) based on an implementation in Go.
 
 Tracing refers to the process of extracting data from the execution of an EVM client in order to construct large matrices known as execution traces. Execution traces are subject to the constraint system specified in the [linea-specification](https://github.com/Consensys/linea-specification) repo and implemented in the [linea-constraints](https://github.com/Consensys/linea-constraints) repo.
 
-It serves developers by making the Linea tech stack open source under 
-the [Apache 2.0 license](LICENSE).
+It serves developers by making the Linea tech stack is open source under the [Apache 2.0 license](LICENSE).
 
 ## What is Linea?
 
@@ -46,7 +44,7 @@ Linea abstracts away the complexity of this technical architecture to allow deve
 Contributions are welcome!
 
 ### Guidelines for Non-Code and other Trivial Contributions
-Please keep in mind that we do not accept non-code contributions like fixing comments, typos or some other trivial fixes. Although we appreciate the extra help, managing lots of these small contributions is unfeasible, and puts extra pressure in our continuous delivery systems (running all tests, etc). Feel free to open an issue pointing to any of those errors, and we will batch them into a single change.
+Please keep in mind that we do not accept non-code contributions like fixing comments, typos or some other trivial fixes. Although we appreciate the extra help, managing lots of these small contributions is unfeasible, and puts extra pressure on our continuous delivery systems (running all tests, etc). Feel free to open an issue pointing to any of those errors, and we will batch them into a single change.
 
 1. [Create an issue](https://github.com/Consensys/linea-arithmetization/issues).
 > If the proposed update requires input, also tag us for discussion.

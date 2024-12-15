@@ -36,11 +36,16 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TxInitializationSection extends TraceSection {
-
+  @Getter private final AccountSnapshot senderBeforePayingForGas;
   @Getter private final AccountSnapshot senderAfterPayingForGas;
   @Getter private final AccountSnapshot senderAfterPayingForValue;
   @Getter private final AccountSnapshot senderAfterPayingForGasAndValue;
+
+  @Getter private final AccountSnapshot recipientBeforeValueTransfer;
   @Getter private final AccountSnapshot recipientAfterValueTransfer;
+
+  @Getter private AccountSnapshot senderAfterPayingForGasAndValueReverted;
+  @Getter private AccountSnapshot recipientAfterValueTransferReverted;
 
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 5);
@@ -55,7 +60,7 @@ public class TxInitializationSection extends TraceSection {
     final Address senderAddress = tx.getSender();
     final Account senderAccount = world.get(senderAddress);
 
-    final AccountSnapshot senderBeforePayingForTransaction =
+    senderBeforePayingForGas =
         AccountSnapshot.fromAccount(
             senderAccount,
             tx.isSenderPreWarmed(),
@@ -69,7 +74,7 @@ public class TxInitializationSection extends TraceSection {
     final Wei valueAndGasCost =
         transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()).add(value);
 
-    senderAfterPayingForGas = senderBeforePayingForTransaction.deepCopy();
+    senderAfterPayingForGas = senderBeforePayingForGas.deepCopy();
     senderAfterPayingForGas
         .decrementBalanceBy(transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()))
         .turnOnWarmth();
@@ -78,7 +83,7 @@ public class TxInitializationSection extends TraceSection {
     senderAfterPayingForValue = senderAfterPayingForGas.deepCopy();
     senderAfterPayingForValue.decrementBalanceBy(value).turnOnWarmth();
 
-    senderAfterPayingForGasAndValue = senderBeforePayingForTransaction.deepCopy();
+    senderAfterPayingForGasAndValue = senderBeforePayingForGas.deepCopy();
     senderAfterPayingForGasAndValue
         .decrementBalanceBy(valueAndGasCost)
         .turnOnWarmth()
@@ -86,8 +91,6 @@ public class TxInitializationSection extends TraceSection {
 
     final boolean isSelfCredit = recipientAddress.equals(senderAddress);
     final Account recipientAccount = world.get(recipientAddress);
-
-    AccountSnapshot recipientBeforeValueTransfer;
 
     if (recipientAccount != null) {
       recipientBeforeValueTransfer =
@@ -151,7 +154,7 @@ public class TxInitializationSection extends TraceSection {
     // 0th account row sender
     this.addFragment(
         accountFragmentFactory.make(
-            senderBeforePayingForTransaction, senderAfterPayingForGas, senderDomSubStamps));
+            senderBeforePayingForGas, senderAfterPayingForGas, senderDomSubStamps));
     // 1st account row sender
     this.addFragment(
         accountFragmentFactory.make(
@@ -172,11 +175,10 @@ public class TxInitializationSection extends TraceSection {
 
     boolean isRevertedTransaction = false; // TODO: how to get this?
     if (isRevertedTransaction) {
-      AccountSnapshot senderAfterPayingForGasAndValueReverted =
-          senderAfterPayingForGasAndValue.deepCopy();
+      senderAfterPayingForGasAndValueReverted = senderAfterPayingForGasAndValue.deepCopy();
       senderAfterPayingForGasAndValueReverted.incrementBalanceBy(value);
 
-      AccountSnapshot recipientAfterValueTransferReverted = recipientAfterValueTransfer.deepCopy();
+      recipientAfterValueTransferReverted = recipientAfterValueTransfer.deepCopy();
       recipientAfterValueTransferReverted.decrementBalanceBy(value);
 
       // 3red account row sender

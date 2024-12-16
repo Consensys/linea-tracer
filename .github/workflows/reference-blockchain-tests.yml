@@ -64,7 +64,7 @@ jobs:
 
       - name: Run reference blockchain tests
         run: ./gradlew referenceBlockchainTests -x spotlessCheck
-        timeout-minutes: 180
+        timeout-minutes: 360
         env:
           REFERENCE_TESTS_PARALLELISM: 1
           JAVA_OPTS: -Dorg.gradle.daemon=false

@@ -57,6 +57,9 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 5);
 
+    // this ensures resolvePostTransaction is executed
+    hub.defers().scheduleForPostTransaction(this);
+
     hub.txStack().setInitializationSection(this);
 
     final TransactionProcessingMetadata tx = hub.txStack().current();
@@ -175,8 +178,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
                 recipientDomSubStamps)
             .requiresRomlex(true));
 
-    this.addFragments(
-        ImcFragment.forTxInit(hub), ContextFragment.initializeExecutionContext(hub), txFragment);
+    this.addFragments(ImcFragment.forTxInit(hub), txFragment);
 
     hub.state.setProcessingPhase(TX_EXEC);
   }
@@ -186,11 +188,14 @@ public class TxInitializationSection extends TraceSection implements PostTransac
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     // TODO: do we need to schedule this?
     if (!isSuccessful) {
-      senderAfterPayingForGasAndValueReverted = senderAfterPayingForGasAndValue.deepCopy();
-      senderAfterPayingForGasAndValueReverted.incrementBalanceBy(value);
+      senderAfterPayingForGasAndValueReverted =
+          senderAfterPayingForGasAndValue
+              .deepCopy()
+              .setDeploymentNumber(hub)
+              .incrementBalanceBy(value);
 
-      recipientAfterValueTransferReverted = recipientAfterValueTransfer.deepCopy();
-      recipientAfterValueTransferReverted.decrementBalanceBy(value);
+      recipientAfterValueTransferReverted =
+          recipientAfterValueTransfer.deepCopy().setDeploymentNumber(hub).decrementBalanceBy(value);
 
       // 3rd account row sender
       this.addFragment(
@@ -206,5 +211,8 @@ public class TxInitializationSection extends TraceSection implements PostTransac
               recipientAfterValueTransferReverted,
               recipientDomSubStamps));
     }
+
+    // final context row
+    this.addFragment(ContextFragment.initializeExecutionContext(hub));
   }
 }

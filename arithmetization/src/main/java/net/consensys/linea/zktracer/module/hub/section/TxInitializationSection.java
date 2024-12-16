@@ -38,15 +38,21 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TxInitializationSection extends TraceSection implements PostTransactionDefer {
-  @Getter private final AccountSnapshot senderBeforePayingForGas;
-  @Getter private final AccountSnapshot senderAfterPayingForGas;
-  @Getter private final AccountSnapshot senderAfterPayingForGasAndValue;
+  @Getter private final AccountSnapshot senderGasPayment;
+  @Getter private final AccountSnapshot senderGasPaymentNew;
 
-  @Getter private final AccountSnapshot recipientBeforeValueTransfer;
-  @Getter private final AccountSnapshot recipientAfterValueTransfer;
+  @Getter private final AccountSnapshot senderValueTransfer; // = senderGasPaymentNew
+  @Getter private final AccountSnapshot senderValueTransferNew;
 
-  @Getter private AccountSnapshot senderAfterPayingForGasAndValueReverted;
-  @Getter private AccountSnapshot recipientAfterValueTransferReverted;
+  @Getter private final AccountSnapshot recipientValueReception;
+  @Getter private final AccountSnapshot recipientValueReceptionNew;
+
+  @Getter private final AccountSnapshot senderUndoingValueTransfer; // = senderValueTransferNew
+  @Getter private AccountSnapshot senderUndoingValueTransferNew;
+
+  @Getter private final AccountSnapshot recipientUndoingValueReception;
+  // = recipientValueReceptionNew
+  @Getter private AccountSnapshot recipientUndoingValueReceptionNew;
 
   final AccountFragment.AccountFragmentFactory accountFragmentFactory;
   final Wei value;
@@ -56,7 +62,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 5);
 
-    // this ensures resolvePostTransaction is executed
+    // This ensures resolvePostTransaction is executed
     hub.defers().scheduleForPostTransaction(this);
 
     hub.txStack().setInitializationSection(this);
@@ -69,7 +75,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     final Address senderAddress = tx.getSender();
     final Account senderAccount = world.get(senderAddress);
 
-    senderBeforePayingForGas =
+    senderGasPayment =
         AccountSnapshot.fromAccount(
             senderAccount,
             tx.isSenderPreWarmed(),
@@ -82,28 +88,28 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
     final Wei valueAndGasCost = gasCost.add(value);
 
-    senderAfterPayingForGas =
-        senderBeforePayingForGas.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth();
+    senderGasPaymentNew = senderGasPayment.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth();
+    senderValueTransfer = senderGasPaymentNew.deepCopy();
 
-    senderAfterPayingForGasAndValue =
-        senderBeforePayingForGas
+    senderValueTransferNew =
+        senderValueTransfer
             .deepCopy()
             .decrementBalanceBy(valueAndGasCost)
             .turnOnWarmth()
             .raiseNonceByOne();
+    senderUndoingValueTransfer = senderValueTransferNew.deepCopy();
 
     final boolean isSelfCredit = recipientAddress.equals(senderAddress);
     final Account recipientAccount = world.get(recipientAddress);
 
     if (recipientAccount != null) {
-
-      recipientBeforeValueTransfer =
+      recipientValueReception =
           isSelfCredit
-              ? senderAfterPayingForGasAndValue
+              ? senderValueTransferNew
               : AccountSnapshot.canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
                   .setWarmthTo(tx.isRecipientPreWarmed());
     } else {
-      recipientBeforeValueTransfer =
+      recipientValueReception =
           AccountSnapshot.fromAddress(
               recipientAddress,
               tx.isRecipientPreWarmed(),
@@ -118,7 +124,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
     final Bytecode initCode = new Bytecode(tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
 
-    recipientAfterValueTransfer = recipientBeforeValueTransfer.deepCopy();
+    recipientValueReceptionNew = recipientValueReception.deepCopy();
     Wei incrementToApplyToRecipientBalance;
     if (isSelfCredit) {
       incrementToApplyToRecipientBalance = value.subtract(gasCost);
@@ -128,50 +134,56 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
     if (isDeployment) {
       Preconditions.checkState(
-          !recipientBeforeValueTransfer.deploymentStatus()
+          !recipientValueReception.deploymentStatus()
               && deploymentInfo.getDeploymentStatus(recipientAddress)
-              && recipientBeforeValueTransfer.deploymentNumber() + 1
+              && recipientValueReception.deploymentNumber() + 1
                   == deploymentInfo.deploymentNumber(recipientAddress),
           "Deployment status should be true and deployment number should be positive");
 
-      recipientAfterValueTransfer
+      recipientValueReceptionNew
           .raiseNonceByOne()
           .incrementBalanceBy(incrementToApplyToRecipientBalance)
           .code(initCode)
           .turnOnWarmth()
           .setDeploymentInfo(deploymentInfo);
     } else {
-      recipientAfterValueTransfer
+      recipientValueReceptionNew
           .incrementBalanceBy(incrementToApplyToRecipientBalance)
           .turnOnWarmth();
     }
+    recipientUndoingValueReception = recipientValueReceptionNew.deepCopy();
 
     recipientDomSubStamps = DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1);
 
     final TransactionFragment txFragment = TransactionFragment.prepare(tx);
 
+    // MISC i+0
+    this.addFragments(ImcFragment.forTxInit(hub));
+
+    // TXN i+1
+    this.addFragment(txFragment);
+
     accountFragmentFactory = hub.factories().accountFragment();
 
-    // 0th account row sender
+    // ACC i+2 (sender)
+    this.addFragment(
+        accountFragmentFactory.make(senderGasPayment, senderGasPaymentNew, senderDomSubStamps));
+
+    // ACC i+3 (sender)
     this.addFragment(
         accountFragmentFactory.make(
-            senderBeforePayingForGas, senderAfterPayingForGas, senderDomSubStamps));
-    // 1st account row sender
-    this.addFragment(
-        accountFragmentFactory.make(
-            senderAfterPayingForGas, senderAfterPayingForGasAndValue, senderDomSubStamps));
-    // 2nd account row recipient
+            senderValueTransfer, senderValueTransferNew, senderDomSubStamps));
+
+    // ACC i+4 (recipient)
     this.addFragment(
         accountFragmentFactory
             .makeWithTrm(
-                recipientBeforeValueTransfer,
-                recipientAfterValueTransfer, // Note that this depends on weather the sender is
-                // equal to the recipient
+                recipientValueReception,
+                recipientValueReceptionNew,
+                // Note that this depends on weather the sender is equal to the recipient
                 recipientAddress,
                 recipientDomSubStamps)
             .requiresRomlex(true));
-
-    this.addFragments(ImcFragment.forTxInit(hub), txFragment);
 
     hub.state.setProcessingPhase(TX_EXEC);
   }
@@ -179,33 +191,30 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    // TODO: do we need to schedule this?
     if (!isSuccessful) {
-      senderAfterPayingForGasAndValueReverted =
-          senderAfterPayingForGasAndValue
+      senderUndoingValueTransferNew =
+          senderUndoingValueTransfer.deepCopy().setDeploymentNumber(hub).incrementBalanceBy(value);
+
+      recipientUndoingValueReceptionNew =
+          recipientUndoingValueReception
               .deepCopy()
               .setDeploymentNumber(hub)
-              .incrementBalanceBy(value);
+              .decrementBalanceBy(value);
 
-      recipientAfterValueTransferReverted =
-          recipientAfterValueTransfer.deepCopy().setDeploymentNumber(hub).decrementBalanceBy(value);
-
-      // 3rd account row sender
+      // ACC i+5 (sender)
       this.addFragment(
           accountFragmentFactory.make(
-              senderAfterPayingForGasAndValue,
-              senderAfterPayingForGasAndValueReverted,
-              senderDomSubStamps));
+              senderUndoingValueTransfer, senderUndoingValueTransferNew, senderDomSubStamps));
 
-      // 4th account row recipient
+      // ACC i+6 (recipient)
       this.addFragment(
           accountFragmentFactory.make(
-              recipientAfterValueTransfer,
-              recipientAfterValueTransferReverted,
+              recipientUndoingValueReception,
+              recipientUndoingValueReceptionNew,
               recipientDomSubStamps));
     }
 
-    // final context row
+    // CON i + 7
     this.addFragment(ContextFragment.initializeExecutionContext(hub));
   }
 }

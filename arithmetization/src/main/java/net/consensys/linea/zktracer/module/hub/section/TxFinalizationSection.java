@@ -52,11 +52,11 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     // recipient
     senderSnapshotBeforeFinalization =
         exceptionOrRevert
-            ? hub.txStack().getInitializationSection().getSenderAfterPayingForGasAndValue()
+            ? hub.txStack().getInitializationSection().getSenderValueTransferNew()
             : AccountSnapshot.canonical(hub, world, senderAddress);
     recipientSnapshotBeforeFinalization =
         exceptionOrRevert
-            ? hub.txStack().getInitializationSection().getRecipientAfterValueTransfer()
+            ? hub.txStack().getInitializationSection().getRecipientValueReceptionNew()
             : AccountSnapshot.canonical(hub, world, recipientAddress);
     coinbaseSnapshotBeforeTxFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
 

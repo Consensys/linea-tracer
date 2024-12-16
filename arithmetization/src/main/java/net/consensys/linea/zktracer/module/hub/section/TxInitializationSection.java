@@ -99,6 +99,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     final Account recipientAccount = world.get(recipientAddress);
 
     if (recipientAccount != null) {
+
       recipientBeforeValueTransfer =
           isSelfCredit
               ? senderAfterPayingForValue

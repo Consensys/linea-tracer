@@ -79,19 +79,18 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     value = (Wei) tx.getBesuTransaction().getValue();
-    final Wei valueAndGasCost =
-        transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()).add(value);
+    final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
+    final Wei valueAndGasCost = gasCost.add(value);
 
-    senderAfterPayingForGas = senderBeforePayingForGas.deepCopy();
-    senderAfterPayingForGas
-        .decrementBalanceBy(transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()))
-        .turnOnWarmth();
+    senderAfterPayingForGas =
+        senderBeforePayingForGas.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth();
 
-    senderAfterPayingForGasAndValue = senderBeforePayingForGas.deepCopy();
-    senderAfterPayingForGasAndValue
-        .decrementBalanceBy(valueAndGasCost)
-        .turnOnWarmth()
-        .raiseNonceByOne();
+    senderAfterPayingForGasAndValue =
+        senderBeforePayingForGas
+            .deepCopy()
+            .decrementBalanceBy(valueAndGasCost)
+            .turnOnWarmth()
+            .raiseNonceByOne();
 
     final boolean isSelfCredit = recipientAddress.equals(senderAddress);
     final Account recipientAccount = world.get(recipientAddress);
@@ -122,8 +121,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     recipientAfterValueTransfer = recipientBeforeValueTransfer.deepCopy();
     Wei incrementToApplyToRecipientBalance;
     if (isSelfCredit) {
-      incrementToApplyToRecipientBalance =
-          value.subtract(transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()));
+      incrementToApplyToRecipientBalance = value.subtract(gasCost);
     } else {
       incrementToApplyToRecipientBalance = value;
     }

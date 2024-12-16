@@ -38,6 +38,7 @@ import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMI
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.Optional;
 
 import lombok.EqualsAndHashCode;
@@ -126,6 +127,12 @@ public class BlockdataOperation extends ModuleOperation {
     this.arg2Hi = new Bytes[ctMax];
     this.arg2Lo = new Bytes[ctMax];
     this.res = new Bytes[ctMax];
+    Arrays.fill(exoInst, UnsignedByte.ZERO);
+    Arrays.fill(arg1Hi, ZERO);
+    Arrays.fill(arg1Lo, ZERO);
+    Arrays.fill(arg2Hi, ZERO);
+    Arrays.fill(arg2Lo, ZERO);
+    Arrays.fill(res, ZERO);
 
     // Handle opcodes
     switch (opCode) {
@@ -274,7 +281,7 @@ public class BlockdataOperation extends ModuleOperation {
 
   private void handleBaseFee() {
     dataHi = ZERO;
-    dataLo = EWord.of(0).lo(); // TODO: change to baseFee
+    dataLo = EWord.of(1).lo(); // TODO: change to baseFee
 
     // row i
     wcpCallToGEQ(0, dataHi, dataLo, ZERO, ZERO);
@@ -286,7 +293,7 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   public void trace(Trace trace) {
-    for (short ct = 0; ct <= ctMax(); ct++) {
+    for (short ct = 0; ct < ctMax; ct++) { // TODO: uniform
       trace
           .iomf(true)
           .previousConflation(previousConflation)
@@ -304,12 +311,12 @@ public class BlockdataOperation extends ModuleOperation {
           .coinbaseHi(coinbase.slice(0, 4).toLong())
           .coinbaseLo(coinbase.slice(4, LLARGE))
           .blockGasLimit(blockGasLimit)
-          .basefee(0) // TODO: add baseFee
+          .basefee(1) // TODO: add baseFee
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
           .relTxNumMax((short) relTxMax)
           .dataHi(dataHi)
-          .dataHi(dataLo)
+          .dataLo(dataLo)
           .arg1Hi(arg1Hi[ct])
           .arg1Lo(arg1Lo[ct])
           .arg2Hi(arg2Hi[ct])

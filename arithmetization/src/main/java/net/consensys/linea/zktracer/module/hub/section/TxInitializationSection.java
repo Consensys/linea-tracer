@@ -40,7 +40,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 public class TxInitializationSection extends TraceSection implements PostTransactionDefer {
   @Getter private final AccountSnapshot senderBeforePayingForGas;
   @Getter private final AccountSnapshot senderAfterPayingForGas;
-  @Getter private final AccountSnapshot senderAfterPayingForValue;
   @Getter private final AccountSnapshot senderAfterPayingForGasAndValue;
 
   @Getter private final AccountSnapshot recipientBeforeValueTransfer;
@@ -88,10 +87,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
         .decrementBalanceBy(transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit()))
         .turnOnWarmth();
 
-    // this is useful only in case of sender is equal to the recipient
-    senderAfterPayingForValue = senderAfterPayingForGas.deepCopy();
-    senderAfterPayingForValue.decrementBalanceBy(value).turnOnWarmth();
-
     senderAfterPayingForGasAndValue = senderBeforePayingForGas.deepCopy();
     senderAfterPayingForGasAndValue
         .decrementBalanceBy(valueAndGasCost)
@@ -105,7 +100,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
       recipientBeforeValueTransfer =
           isSelfCredit
-              ? senderAfterPayingForValue
+              ? senderAfterPayingForGasAndValue
               : AccountSnapshot.canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
                   .setWarmthTo(tx.isRecipientPreWarmed());
     } else {

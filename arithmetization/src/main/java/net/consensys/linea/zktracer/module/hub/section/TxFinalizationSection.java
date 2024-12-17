@@ -33,12 +33,15 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TxFinalizationSection extends TraceSection implements PostTransactionDefer {
   private final TransactionProcessingMetadata txMetadata;
-  private final AccountSnapshot senderSnapshotBeforeFinalization;
-  private final AccountSnapshot recipientSnapshotBeforeFinalization;
-  private final AccountSnapshot coinbaseSnapshotBeforeTxFinalization;
-  private @Setter AccountSnapshot senderSnapshotAfterTxFinalization;
-  private @Setter AccountSnapshot recipientSnapshotAfterTxFinalization;
-  private @Setter AccountSnapshot coinbaseSnapshotAfterFinalization;
+
+  private final AccountSnapshot senderTxFinalization;
+  private @Setter AccountSnapshot senderTxFinalizationNew;
+
+  private final AccountSnapshot recipientTxFinalization;
+  private @Setter AccountSnapshot recipientTxFinalizationNew;
+
+  private final AccountSnapshot coinbaseTxFinalization;
+  private @Setter AccountSnapshot coinbaseTxFinalizationNew;
 
   public TxFinalizationSection(Hub hub, WorldView world, boolean exceptionOrRevert) {
     super(hub, (short) 4);
@@ -49,16 +52,15 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     final Address recipientAddress = txMetadata.getEffectiveRecipient();
     final Address coinbaseAddress = txMetadata.getCoinbase();
 
-    // recipient
-    senderSnapshotBeforeFinalization =
+    senderTxFinalization =
         exceptionOrRevert
             ? hub.txStack().getInitializationSection().getSenderValueTransferNew()
             : AccountSnapshot.canonical(hub, world, senderAddress);
-    recipientSnapshotBeforeFinalization =
+    recipientTxFinalization =
         exceptionOrRevert
             ? hub.txStack().getInitializationSection().getRecipientValueReceptionNew()
             : AccountSnapshot.canonical(hub, world, recipientAddress);
-    coinbaseSnapshotBeforeTxFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
+    coinbaseTxFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
 
     hub.defers().scheduleForPostTransaction(this);
   }
@@ -69,17 +71,20 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
     final boolean coinbaseWarmth = txMetadata.isCoinbaseWarmAtTransactionEnd();
 
-    final Address senderAddress = senderSnapshotBeforeFinalization.address();
-    senderSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub, world, senderAddress);
-    senderSnapshotAfterTxFinalization.turnOnWarmth(); // purely constraints based
+    final Address senderAddress = senderTxFinalization.address();
+    senderTxFinalizationNew =
+        AccountSnapshot.canonical(hub, world, senderAddress)
+            .turnOnWarmth(); // purely constraints based
 
-    final Address recipientAddress = recipientSnapshotBeforeFinalization.address();
-    recipientSnapshotAfterTxFinalization = AccountSnapshot.canonical(hub, world, recipientAddress);
-    recipientSnapshotAfterTxFinalization.turnOnWarmth(); // purely constraints based
+    final Address recipientAddress = recipientTxFinalization.address();
+    recipientTxFinalizationNew =
+        AccountSnapshot.canonical(hub, world, recipientAddress)
+            .turnOnWarmth(); // purely constraints based
 
-    final Address coinbaseAddress = coinbaseSnapshotBeforeTxFinalization.address();
-    coinbaseSnapshotAfterFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
-    coinbaseSnapshotAfterFinalization.setWarmthTo(coinbaseWarmth); // purely constraints based
+    final Address coinbaseAddress = coinbaseTxFinalization.address();
+    coinbaseTxFinalizationNew =
+        AccountSnapshot.canonical(hub, world, coinbaseAddress)
+            .setWarmthTo(coinbaseWarmth); // purely constraints based
 
     DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     checkArgument(isSuccessful == txMetadata.statusCode());
@@ -103,31 +108,34 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
   }
 
   private void successFinalization(Hub hub) {
+    // TODO: are the assignments here correct?
     // 0th account row sender
+    senderTxFinalizationNew =
+        senderTxFinalization.deepCopy().incrementBalanceBy(txMetadata.getGasRefundInWei());
+
     final AccountFragment senderAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
-                senderSnapshotBeforeFinalization,
-                senderSnapshotBeforeFinalization
-                    .deepCopy()
-                    .incrementBalanceBy(txMetadata.getGasRefundInWei()),
+                senderTxFinalization,
+                senderTxFinalizationNew,
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
     // 1st account row coinbase (depending on weather the sender is the coinbase or not)
+    coinbaseTxFinalizationNew =
+        !txMetadata.senderIsCoinbase()
+            ? coinbaseTxFinalization.deepCopy().incrementBalanceBy(txMetadata.getCoinbaseReward())
+            : coinbaseTxFinalization
+                .deepCopy()
+                .incrementBalanceBy(
+                    txMetadata.getGasRefundInWei().add(txMetadata.getCoinbaseReward()));
+
     final AccountFragment coinbaseAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
-                senderSnapshotBeforeFinalization,
-                !txMetadata.senderIsCoinbase()
-                    ? coinbaseSnapshotBeforeTxFinalization
-                        .deepCopy()
-                        .incrementBalanceBy(txMetadata.getCoinbaseReward())
-                    : coinbaseSnapshotBeforeTxFinalization
-                        .deepCopy()
-                        .incrementBalanceBy(
-                            txMetadata.getGasRefundInWei().add(txMetadata.getCoinbaseReward())),
+                senderTxFinalization,
+                coinbaseTxFinalizationNew,
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
     this.addFragments(senderAccountFragment, coinbaseAccountFragment);
@@ -144,24 +152,24 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
           hub.factories()
               .accountFragment()
               .make(
-                  senderSnapshotBeforeFinalization,
-                  senderSnapshotAfterTxFinalization,
+                  senderTxFinalization,
+                  senderTxFinalizationNew,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
       final AccountFragment recipientAccountFragment =
           hub.factories()
               .accountFragment()
               .make(
-                  recipientSnapshotBeforeFinalization,
-                  recipientSnapshotAfterTxFinalization,
+                  recipientTxFinalization,
+                  recipientTxFinalizationNew,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
       final AccountFragment coinbaseAccountFragment =
           hub.factories()
               .accountFragment()
               .make(
-                  coinbaseSnapshotBeforeTxFinalization,
-                  coinbaseSnapshotAfterFinalization,
+                  coinbaseTxFinalization,
+                  coinbaseTxFinalizationNew,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
 
       this.addFragments(senderAccountFragment, recipientAccountFragment, coinbaseAccountFragment);
@@ -174,7 +182,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
       // FIRST ROW
       final AccountSnapshot senderSnapshotAfterValueAndGasRefunds =
-          senderSnapshotBeforeFinalization
+          senderTxFinalization
               .deepCopy()
               .incrementBalanceBy(transactionValue)
               .incrementBalanceBy(txMetadata.getGasRefundInWei());
@@ -183,7 +191,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
           hub.factories()
               .accountFragment()
               .make(
-                  senderSnapshotBeforeFinalization,
+                  senderTxFinalization,
                   senderSnapshotAfterValueAndGasRefunds,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
@@ -191,7 +199,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
       final AccountSnapshot recipientSnapshotBeforeSecondRow =
           (txMetadata.senderIsRecipient())
               ? senderSnapshotAfterValueAndGasRefunds
-              : recipientSnapshotBeforeFinalization;
+              : recipientTxFinalization;
 
       final AccountSnapshot recipientSnapshotAfterSecondRow =
           recipientSnapshotBeforeSecondRow.deepCopy().decrementBalanceBy(transactionValue);
@@ -206,16 +214,14 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
       // THIRD ROW
       final AccountSnapshot coinbaseSnapshotBefore =
-          coinbaseSnapshotAfterFinalization
-              .deepCopy()
-              .decrementBalanceBy(txMetadata.getCoinbaseReward());
+          coinbaseTxFinalizationNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
 
       final AccountFragment coinbaseAccountFragment =
           hub.factories()
               .accountFragment()
               .make(
                   coinbaseSnapshotBefore,
-                  coinbaseSnapshotAfterFinalization,
+                  coinbaseTxFinalizationNew,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
 
       this.addFragments(senderAccountFragment, recipientAccountFragment, coinbaseAccountFragment);

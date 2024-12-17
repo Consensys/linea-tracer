@@ -43,7 +43,7 @@ jobs:
         run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
 
       - name: Generate block chain reference tests
-        run: GOMEMLIMIT=96GiB ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
+        run: GOMEMLIMIT=64GiB ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.caching=true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: fields,expand,expand,expand

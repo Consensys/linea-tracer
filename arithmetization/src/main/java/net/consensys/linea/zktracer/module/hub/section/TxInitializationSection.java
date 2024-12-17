@@ -201,6 +201,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
               .setDeploymentNumber(hub)
               .decrementBalanceBy(value);
 
+      // TODO: "this happens second" in the issue, what does it mean?
       // ACC i+5 (sender)
       this.addFragment(
           accountFragmentFactory.make(
@@ -214,7 +215,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
               recipientDomSubStamps));
     }
 
-    // CON i + 7
+    // CON i+7
     this.addFragment(ContextFragment.initializeExecutionContext(hub));
   }
 }

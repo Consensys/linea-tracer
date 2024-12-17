@@ -75,7 +75,7 @@ public class ExecutionEnvironment {
     } catch (IOException e) {
       throw new RuntimeException(e);
     } finally {
-      if (traceFilePath != null && traceValidated) {
+      if (traceFilePath != null) {
         if (System.getenv("PRESERVE_TRACE_FILES") == null) {
           boolean traceFileDeleted = traceFilePath.toFile().delete();
           final Path finalTraceFilePath = traceFilePath;

@@ -115,6 +115,9 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("Call50000");
     PARAMS.ignore("static_LoopCallsDepthThenRevert3");
     PARAMS.ignore("Return50000");
+    // DJP: Also seem to consume lots of memory
+    PARAMS.ignore("static_LoopCallsThenRevert");    
+    PARAMS.ignore("randomStatetest185");
 
     // Absurd amount of gas, doesn't run in parallel.
     PARAMS.ignore("randomStatetest94_\\w+");

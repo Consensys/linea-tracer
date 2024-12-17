@@ -298,7 +298,7 @@ public class BlockdataOperation extends ModuleOperation {
           .iomf(true)
           .previousConflation(previousConflation)
           .currentConflation(currentConflation)
-          .ctMax(ctMax)
+          .ctMax(ctMax - 1)
           .ct(ct)
           .isCoinbase(opCode == OpCode.COINBASE)
           .isTimestamp(opCode == OpCode.TIMESTAMP)

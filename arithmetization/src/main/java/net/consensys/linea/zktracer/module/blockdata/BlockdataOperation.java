@@ -261,7 +261,7 @@ public class BlockdataOperation extends ModuleOperation {
           Bytes.ofUnsignedLong(prevGasLimit.toLong() + maxDeviation.toLong()));
 
       // row i + 4
-      wcpCallToLT(
+      wcpCallToGT(
           4,
           dataHi,
           dataLo,

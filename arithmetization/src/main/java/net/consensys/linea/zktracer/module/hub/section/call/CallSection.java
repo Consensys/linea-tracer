@@ -163,8 +163,10 @@ public class CallSection extends TraceSection
 
     if (Exceptions.any(exceptions)) {
       scenarioFragment.setScenario(CALL_EXCEPTION);
-      final XCallOobCall oobCall = new XCallOobCall();
-      firstImcFragment.callOob(oobCall);
+      if (opCode == CALL) {
+        final XCallOobCall oobCall = new XCallOobCall();
+        firstImcFragment.callOob(oobCall);
+      }
     }
 
     // STATICX cases
@@ -596,8 +598,8 @@ public class CallSection extends TraceSection
   private void completeSmcFailureWillRevert(Hub hub) {
     scenarioFragment.setScenario(CALL_SMC_FAILURE_WILL_REVERT);
 
-    calleeThird = calleeSecondNew.deepCopy().setDeploymentInfo(hub);
-    calleeThirdNew = calleeFirst.deepCopy().setDeploymentInfo(hub);
+    calleeThird = calleeSecondNew.deepCopy().setDeploymentNumber(hub);
+    calleeThirdNew = calleeFirst.deepCopy().setDeploymentNumber(hub);
     // this (should) work for both self calls and foreign address calls
     final AccountFragment undoingCalleeWarmthAccountFragment =
         factory

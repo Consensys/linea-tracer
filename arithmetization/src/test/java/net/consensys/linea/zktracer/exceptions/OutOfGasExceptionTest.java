@@ -150,7 +150,7 @@ public class OutOfGasExceptionTest {
     return arguments.stream();
   }
 
-  private long callGasCost(boolean transferValue, boolean targetAddressExists, boolean isWarm) {
+  private long callGasCost(boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
     Preconditions.checkArgument(
         !(isWarm && !targetAddressExists), "isWarm implies targetAddressExists");
     /*
@@ -175,8 +175,8 @@ public class OutOfGasExceptionTest {
       }
     }
      */
-    return (transferValue ? GlobalConstants.GAS_CONST_G_CALL_VALUE : 0)
-        + (targetAddressExists ? 0 : (transferValue ? GlobalConstants.GAS_CONST_G_NEW_ACCOUNT : 0))
+    return (transfersValue ? GlobalConstants.GAS_CONST_G_CALL_VALUE : 0)
+        + (targetAddressExists ? 0 : (transfersValue ? GlobalConstants.GAS_CONST_G_NEW_ACCOUNT : 0))
         + (isWarm
             ? GlobalConstants.GAS_CONST_G_WARM_ACCESS
             : GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS);

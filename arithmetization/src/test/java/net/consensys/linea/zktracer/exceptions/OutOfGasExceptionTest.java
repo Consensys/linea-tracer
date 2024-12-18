@@ -44,8 +44,7 @@ public class OutOfGasExceptionTest {
   // TODO: add tests when address is warm for every opcode
   @ParameterizedTest
   @MethodSource("outOfGasExceptionSource")
-  void outOfGasExceptionColdTest(
-      OpCode opCode, int opCodeStaticCost, int nPushes, short corneCase) {
+  void outOfGasExceptionColdTest(OpCode opCode, int opCodeStaticCost, int nPushes, int corneCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < nPushes; i++) {
       program.push(0);
@@ -89,7 +88,7 @@ public class OutOfGasExceptionTest {
   @ParameterizedTest
   @MethodSource("outOfGasExceptionCallSource")
   void outOfGasExceptionCallTest(
-      int value, boolean targetAddressExists, boolean isWarm, short cornerCase) {
+      int value, boolean targetAddressExists, boolean isWarm, int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     if (targetAddressExists && isWarm) {
@@ -142,7 +141,7 @@ public class OutOfGasExceptionTest {
   static Stream<Arguments> outOfGasExceptionCallSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (int value : new int[] {0, 1}) {
-      for (short cornerCase : new short[] {-1, 0, 1}) {
+      for (int cornerCase : new int[] {-1, 0, 1}) {
         arguments.add(Arguments.of(value, true, true, cornerCase));
         arguments.add(Arguments.of(value, true, false, cornerCase));
         arguments.add(Arguments.of(value, false, false, cornerCase));

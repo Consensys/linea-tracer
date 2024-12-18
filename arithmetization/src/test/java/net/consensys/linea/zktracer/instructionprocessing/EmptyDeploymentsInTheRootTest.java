@@ -16,6 +16,7 @@ package net.consensys.linea.zktracer.instructionprocessing;
 
 import java.util.List;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -31,6 +32,7 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * The purpose of {@link EmptyDeploymentsInTheRootTest} is to make sure that deployment transactions
@@ -38,12 +40,13 @@ import org.junit.jupiter.api.Test;
  * (if present) should be treated properly and the update to the deployment account is accounted for
  * in the relevant row.
  */
+@ExtendWith(UnitTestWatcher.class)
 public class EmptyDeploymentsInTheRootTest {
 
   final Bytes initCodeEmptyDeployment =
       BytecodeCompiler.newProgram()
           .push(0) // size
-          .push(0) // offset
+          .push(0x0c) // offset
           .op(OpCode.RETURN)
           .compile();
 
@@ -60,13 +63,13 @@ public class EmptyDeploymentsInTheRootTest {
   final Bytes initCodeEmptyRevert =
       BytecodeCompiler.newProgram()
           .push(0) // size
-          .push(0) // offset
+          .push(0x0f) // offset
           .op(OpCode.REVERT)
           .compile();
 
   final Bytes initCodeNonemptyRevert =
       BytecodeCompiler.newProgram()
-          .op(OpCode.BLOCKHASH) // value
+          .op(OpCode.COINBASE) // value
           .push(0) // offset
           .op(OpCode.MSTORE)
           .push(32) // size
@@ -74,10 +77,23 @@ public class EmptyDeploymentsInTheRootTest {
           .op(OpCode.REVERT)
           .compile();
 
+  final Bytes initCodeImmediateStackUnderflowException =
+      BytecodeCompiler.newProgram()
+          .op(OpCode.BLOCKHASH) // immediate SUX
+          .compile();
+
+  final Bytes initCodeImmediateInvalidException =
+      BytecodeCompiler.newProgram()
+          .op(OpCode.INVALID) // immediate INVALID
+          .compile();
+
   final Bytes deployerOfEmptyDeploymentInitCode = deployerOf(initCodeEmptyDeployment);
   final Bytes deployerOfNonemptyDeploymentInitCode = deployerOf(initCodeNonemptyDeployment);
   final Bytes deployerOfEmptyRevert = deployerOf(initCodeEmptyRevert);
   final Bytes deployerOfNonemptyRevert = deployerOf(initCodeNonemptyRevert);
+  final Bytes deployerOfStackUnderflowException =
+      deployerOf(initCodeImmediateStackUnderflowException);
+  final Bytes deployerOfInvalidException = deployerOf(initCodeImmediateInvalidException);
 
   /** We test <b>deployment transactions</b>. */
   @Test
@@ -102,6 +118,20 @@ public class EmptyDeploymentsInTheRootTest {
   @Test
   void deploymentTransactionNonemptyReverts() {
     Transaction deploymentTransaction = deploymentTansactionFromInitCode(initCodeNonemptyRevert);
+    runTransaction(deploymentTransaction);
+  }
+
+  @Test
+  void deploymentTransactionStackUnderFlowException() {
+    Transaction deploymentTransaction =
+        deploymentTansactionFromInitCode(initCodeImmediateStackUnderflowException);
+    runTransaction(deploymentTransaction);
+  }
+
+  @Test
+  void deploymentTransactionInvalidException() {
+    Transaction deploymentTransaction =
+        deploymentTansactionFromInitCode(initCodeImmediateInvalidException);
     runTransaction(deploymentTransaction);
   }
 
@@ -147,6 +177,7 @@ public class EmptyDeploymentsInTheRootTest {
           .address(Address.fromHexString("0x1337"))
           .code(deployerOfEmptyDeploymentInitCode)
           .build();
+
   ToyAccount accountDeployerOfNonemptyInitCode =
       ToyAccount.builder()
           .balance(Wei.fromEth(1))
@@ -154,6 +185,7 @@ public class EmptyDeploymentsInTheRootTest {
           .address(Address.fromHexString("0xadd7e550"))
           .code(deployerOfNonemptyDeploymentInitCode)
           .build();
+
   ToyAccount accountGeneratorOfRevertedCreateWithEmptyReturnData =
       ToyAccount.builder()
           .balance(Wei.fromEth(1))
@@ -161,12 +193,29 @@ public class EmptyDeploymentsInTheRootTest {
           .address(Address.fromHexString("0x69420"))
           .code(deployerOfEmptyRevert)
           .build();
+
   ToyAccount accountGeneratorOfRevertedCreateWithNonemptyReturnData =
       ToyAccount.builder()
           .balance(Wei.fromEth(1))
           .nonce(1024)
-          .address(Address.fromHexString("0xdeadbeef"))
+          .address(Address.fromHexString("0xdeadbeef0000"))
           .code(deployerOfNonemptyRevert)
+          .build();
+
+  ToyAccount accountGeneratorOfRevertedCreateDueToStackException =
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(1024)
+          .address(Address.fromHexString("0xdeadbeef0001"))
+          .code(deployerOfStackUnderflowException)
+          .build();
+
+  ToyAccount accountGeneratorOfRevertedCreateDueToInvalidException =
+      ToyAccount.builder()
+          .balance(Wei.fromEth(1))
+          .nonce(1024)
+          .address(Address.fromHexString("0xdeadbeef0002"))
+          .code(deployerOfInvalidException)
           .build();
 
   List<ToyAccount> accounts =
@@ -175,7 +224,9 @@ public class EmptyDeploymentsInTheRootTest {
           accountDeployerOfEmptyInitCode,
           accountDeployerOfNonemptyInitCode,
           accountGeneratorOfRevertedCreateWithEmptyReturnData,
-          accountGeneratorOfRevertedCreateWithNonemptyReturnData);
+          accountGeneratorOfRevertedCreateWithNonemptyReturnData,
+          accountGeneratorOfRevertedCreateDueToStackException,
+          accountGeneratorOfRevertedCreateDueToInvalidException);
 
   Transaction deploymentTansactionFromInitCode(Bytes initCode) {
     return ToyTransaction.builder()

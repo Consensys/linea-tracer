@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.rlpaddr;
 import java.util.List;
 import java.util.Random;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -34,7 +35,9 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(UnitTestWatcher.class)
 public class TestRlpAddress {
   private final Random rnd = new Random(666);
   private final RlpRandEdgeCase util = new RlpRandEdgeCase();
@@ -72,7 +75,7 @@ public class TestRlpAddress {
   }
 
   @Test
-  void create() {
+  void failingCreateTest() {
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
         Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
@@ -113,7 +116,7 @@ public class TestRlpAddress {
             .op(OpCode.DUP1)
             .push(0)
             .push(0)
-            .op(OpCode.DUP5)
+            .op(OpCode.DUP5) // should provoke stack underflow
             .op(OpCode.EXTCODECOPY)
             .push(0)
             .push(0)
@@ -136,5 +139,76 @@ public class TestRlpAddress {
         .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
         .run();
+  }
+
+  @Test
+  void improvedCreateTest() {
+    final KeyPair keyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+
+    final ToyAccount senderAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1000))
+            .nonce(util.randLong())
+            .address(senderAddress)
+            .build();
+
+    final Address contractAddress = Address.fromHexString("0x000bad000000b077000");
+    final ToyAccount callDataDeployerAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1000))
+            .nonce(10)
+            .address(contractAddress)
+            .code(
+                BytecodeCompiler.newProgram()
+                    // copy the entirety of the call data to RAM
+                    .op(OpCode.CALLDATASIZE)
+                    .push(0)
+                    .push(0)
+                    .op(OpCode.CALLDATACOPY)
+                    .op(OpCode.CALLDATASIZE)
+                    .push(0)
+                    .push(rnd.nextInt(0, 50000)) // value
+                    .op(OpCode.CREATE)
+                    .op(OpCode.STOP)
+                    .compile())
+            .build();
+
+    final BytecodeCompiler copyAndReturnSomeForeignContractsCode = BytecodeCompiler.newProgram();
+    fullCopyOfForeignByteCode(copyAndReturnSomeForeignContractsCode, contractAddress);
+    appendReturn(copyAndReturnSomeForeignContractsCode, 0, 0);
+
+    final Transaction tx =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(callDataDeployerAccount)
+            .keyPair(keyPair)
+            .transactionType(TransactionType.FRONTIER)
+            .gasLimit(1000000L)
+            .payload(copyAndReturnSomeForeignContractsCode.compile())
+            .build();
+
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(senderAccount, callDataDeployerAccount))
+        .transaction(tx)
+        .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+        .build()
+        .run();
+  }
+
+  public static void fullCopyOfForeignByteCode(BytecodeCompiler program, Address foreignAddress) {
+    program
+        .push(foreignAddress)
+        .op(OpCode.EXTCODESIZE) // foreign address code size
+        .push(0) // source offset
+        .push(0) // target offset
+        .push(foreignAddress) // foreign address
+        .op(OpCode.EXTCODECOPY) // copy
+    ;
+  }
+
+  public static void appendReturn(BytecodeCompiler program, int rdo, int rds) {
+    program.push(rds).push(rdo).op(OpCode.RETURN);
   }
 }

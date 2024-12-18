@@ -33,6 +33,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructSce
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -52,15 +53,15 @@ public class SelfdestructSection extends TraceSection
   SelfdestructScenarioFragment selfdestructScenarioFragment;
 
   final Address addressWhichMaySelfDestruct;
-  AccountSnapshot selfdestructorAccountBefore;
-  AccountSnapshot selfdestructorAccountAfter;
-
   final Bytes recipientAddressUntrimmed;
   final Address recipientAddress;
-  AccountFragment selfdestructorFirstAccountFragment;
-  AccountFragment recipientFirstAccountFragment;
-  AccountSnapshot recipientAccountBefore;
-  AccountSnapshot recipientAccountAfter;
+
+  AccountSnapshot selfdestructor;
+  AccountSnapshot selfdestructorNew;
+  AccountSnapshot recipient;
+  AccountSnapshot recipientNew;
+  AccountSnapshot accountWiping;
+  AccountSnapshot accountWipingNew;
 
   @Getter boolean selfDestructWasReverted = false;
 
@@ -78,7 +79,7 @@ public class SelfdestructSection extends TraceSection
 
     // Account
     addressWhichMaySelfDestruct = frame.getRecipientAddress();
-    selfdestructorAccountBefore =
+    selfdestructor =
         AccountSnapshot.canonical(hub, frame.getWorldUpdater(), addressWhichMaySelfDestruct);
 
     // Recipient
@@ -108,25 +109,25 @@ public class SelfdestructSection extends TraceSection
     if (Exceptions.any(exceptions)) {
       checkArgument(exceptions == OUT_OF_GAS_EXCEPTION);
 
-      recipientAccountBefore =
+      recipient =
           selfdestructTargetsItself()
-              ? selfdestructorAccountBefore
+              ? selfdestructor
               : AccountSnapshot.canonical(hub, frame.getWorldUpdater(), recipientAddress);
 
-      selfdestructorFirstAccountFragment =
+      AccountFragment selfdestructorFirstAccountFragment =
           hub.factories()
               .accountFragment()
               .make(
-                  selfdestructorAccountBefore,
-                  selfdestructorAccountBefore,
+                  selfdestructor,
+                  selfdestructor,
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0));
 
-      recipientFirstAccountFragment =
+      AccountFragment recipientFirstAccountFragment =
           hub.factories()
               .accountFragment()
               .makeWithTrm(
-                  recipientAccountBefore,
-                  recipientAccountBefore,
+                  recipient,
+                  recipient,
                   recipientAddressUntrimmed,
                   DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 1));
 
@@ -142,8 +143,7 @@ public class SelfdestructSection extends TraceSection
         hub.txStack().current().getUnexceptionalSelfDestructMap();
 
     final EphemeralAccount ephemeralAccount =
-        new EphemeralAccount(
-            addressWhichMaySelfDestruct, selfdestructorAccountBefore.deploymentNumber());
+        new EphemeralAccount(addressWhichMaySelfDestruct, selfdestructor.deploymentNumber());
 
     if (unexceptionalSelfDestructMap.containsKey(ephemeralAccount)) {
       unexceptionalSelfDestructMap
@@ -151,8 +151,7 @@ public class SelfdestructSection extends TraceSection
           .add(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()));
     } else {
       unexceptionalSelfDestructMap.put(
-          new EphemeralAccount(
-              addressWhichMaySelfDestruct, selfdestructorAccountBefore.deploymentNumber()),
+          new EphemeralAccount(addressWhichMaySelfDestruct, selfdestructor.deploymentNumber()),
           new ArrayList<>(List.of(new AttemptedSelfDestruct(hubStamp, hub.currentFrame()))));
     }
 
@@ -168,37 +167,40 @@ public class SelfdestructSection extends TraceSection
     // - The recipient address will become warm (i+3)
     //   * recipientFirstAccountFragment
 
-    selfdestructorAccountAfter = selfdestructorAccountBefore.deepCopy().setBalanceToZero();
+    selfdestructorNew = selfdestructor.deepCopy().setBalanceToZero();
+
+    final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
+    checkState(isDeployment == selfdestructor.deploymentStatus());
+    if (isDeployment) {
+      selfdestructorNew = selfdestructorNew.deploymentStatus(false);
+      selfdestructorNew.code(Bytecode.EMPTY);
+    }
 
     if (selfdestructTargetsItself()) {
-      recipientAccountBefore = selfdestructorAccountAfter.deepCopy();
-      recipientAccountAfter = recipientAccountBefore.deepCopy();
+      recipient = selfdestructorNew.deepCopy();
+      recipientNew = selfdestructorNew.deepCopy();
     } else {
-      recipientAccountBefore =
-          AccountSnapshot.canonical(hub, frame.getWorldUpdater(), recipientAddress);
-      recipientAccountAfter =
-          recipientAccountBefore
-              .deepCopy()
-              .incrementBalanceBy(selfdestructorAccountBefore.balance())
-              .turnOnWarmth();
+      recipient = AccountSnapshot.canonical(hub, frame.getWorldUpdater(), recipientAddress);
+      recipientNew =
+          recipient.deepCopy().incrementBalanceBy(selfdestructor.balance()).turnOnWarmth();
     }
-    checkArgument(recipientAccountAfter.isWarm());
+    checkArgument(recipientNew.isWarm());
 
-    selfdestructorFirstAccountFragment =
+    AccountFragment selfdestructorFirstAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
-                selfdestructorAccountBefore,
-                selfdestructorAccountAfter,
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
-    recipientFirstAccountFragment =
+                selfdestructor,
+                selfdestructorNew,
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+    AccountFragment recipientFirstAccountFragment =
         hub.factories()
             .accountFragment()
             .makeWithTrm(
-                recipientAccountBefore,
-                recipientAccountAfter,
+                recipient,
+                recipientNew,
                 recipientAddressUntrimmed,
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
 
     this.addFragment(selfdestructorFirstAccountFragment);
     this.addFragment(recipientFirstAccountFragment);
@@ -212,8 +214,8 @@ public class SelfdestructSection extends TraceSection
         hub.factories()
             .accountFragment()
             .make(
-                selfdestructorAccountAfter,
-                selfdestructorAccountBefore,
+                selfdestructorNew.deepCopy().setDeploymentNumber(hub),
+                selfdestructor.deepCopy().setDeploymentNumber(hub),
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     hubStamp, callFrame.revertStamp(), 2));
 
@@ -221,16 +223,13 @@ public class SelfdestructSection extends TraceSection
         hub.factories()
             .accountFragment()
             .make(
-                recipientAccountAfter,
-                recipientAccountBefore,
+                recipientNew.deepCopy().setDeploymentNumber(hub),
+                recipient.deepCopy().setDeploymentNumber(hub),
                 DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
                     hubStamp, callFrame.revertStamp(), 3));
+
     this.addFragment(selfDestroyerUndoingAccountFragment);
     this.addFragment(recipientUndoingAccountFragment);
-
-    ContextFragment squashParentContextReturnData =
-        ContextFragment.executionProvidesEmptyReturnData(hub);
-    this.addFragment(squashParentContextReturnData);
 
     selfDestructWasReverted = true;
 
@@ -251,28 +250,33 @@ public class SelfdestructSection extends TraceSection
     final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
     final EphemeralAccount ephemeralAccount =
-        new EphemeralAccount(
-            addressWhichMaySelfDestruct, selfdestructorAccountAfter.deploymentNumber());
+        new EphemeralAccount(addressWhichMaySelfDestruct, selfdestructorNew.deploymentNumber());
 
     checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
 
     // We modify the account fragment to reflect the self-destruct time
-    final int hubStampOfTheSelfDestructThatSealedTheDeal =
-        effectiveSelfDestructMap.get(ephemeralAccount);
+    final int hubStampOfTheActionableSelfDestruct = effectiveSelfDestructMap.get(ephemeralAccount);
 
-    checkArgument(hubStamp >= hubStampOfTheSelfDestructThatSealedTheDeal);
+    checkArgument(hubStamp >= hubStampOfTheActionableSelfDestruct);
 
-    final AccountSnapshot accountBeforeSelfDestruct =
+    accountWiping =
         transactionProcessingMetadata.getDestructedAccountsSnapshot().stream()
             .filter(
                 accountSnapshot -> accountSnapshot.address().equals(addressWhichMaySelfDestruct))
             .findFirst()
             .orElseThrow(() -> new IllegalStateException("Account not found"));
 
-    if (hubStamp == hubStampOfTheSelfDestructThatSealedTheDeal) {
+    if (hubStamp == hubStampOfTheActionableSelfDestruct) {
       selfdestructScenarioFragment.setScenario(
           SelfdestructScenarioFragment.SelfdestructScenario
               .SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
+
+      hub.transients()
+          .conflation()
+          .deploymentInfo()
+          .deploymentUpdateForSuccessfulSelfDestruct(selfdestructor.address());
+
+      accountWipingNew = selfdestructorNew.wipe(hub.transients().conflation().deploymentInfo());
 
       // the hub's defers.resolvePostTransaction() gets called after the
       // hub's completeLineaTransaction which in turn calls
@@ -282,9 +286,9 @@ public class SelfdestructSection extends TraceSection
           hub.factories()
               .accountFragment()
               .make(
-                  accountBeforeSelfDestruct,
-                  selfdestructorAccountAfter.wipe(hub.transients().conflation().deploymentInfo()),
-                  DomSubStampsSubFragment.selfdestructDomSubStamps(hub));
+                  accountWiping,
+                  accountWipingNew,
+                  DomSubStampsSubFragment.selfdestructDomSubStamps(hub, hubStamp));
 
       this.addFragment(accountWipingFragment);
     } else {

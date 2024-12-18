@@ -27,19 +27,38 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.mxp.MxpTestUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@ExtendWith(UnitTestWatcher.class)
 public class MemoryExpansionExceptionTest {
 
   @ParameterizedTest
   @MethodSource("memoryExpansionExceptionTestSource")
   public void memoryExpansionExceptionTest(boolean triggerRoob, OpCode opCode) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(program, triggerRoob, opCode);
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+    assertEquals(
+        MEMORY_EXPANSION_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    assertTrue(bytecodeRunner.getHub().mxp().operations().getLast().getMxpCall().isMxpx());
+    assertEquals(triggerRoob, bytecodeRunner.getHub().mxp().operations().getLast().isRoob());
+  }
+
+  @Test
+  public void soloMemoryExpansionTest() {
+    boolean triggerRoob = false;
+    OpCode opCode = OpCode.CODECOPY;
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(program, triggerRoob, opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());

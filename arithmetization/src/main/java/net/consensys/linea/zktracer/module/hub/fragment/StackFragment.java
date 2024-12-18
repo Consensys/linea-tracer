@@ -16,8 +16,10 @@
 package net.consensys.linea.zktracer.module.hub.fragment;
 
 import static com.google.common.base.Preconditions.*;
+import static com.google.common.primitives.Ints.min;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
+import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -56,10 +58,12 @@ public final class StackFragment implements TraceFragment {
   private EWord hashInfoKeccak = EWord.ZERO;
   @Setter public Bytes hash;
   @Getter private final OpCode opCode;
+  @Getter private final int rawOpCode;
   @Setter private boolean jumpDestinationVettingRequired;
   @Setter private boolean validJumpDestination;
   private final State.TxState.Stamps stamps;
   private final CommonFragmentValues commonFragmentValues;
+  private final EWord pushValue;
 
   private StackFragment(
       final Hub hub,
@@ -74,6 +78,13 @@ public final class StackFragment implements TraceFragment {
     this.stackOps = stackOps;
     this.exceptions = exceptions;
     this.opCode = stack.getCurrentOpcodeData().mnemonic();
+    if (this.opCode != OpCode.INVALID) {
+      this.rawOpCode = 0xff & this.opCode.byteValue();
+    } else {
+      final int codeSize = hub.messageFrame().getCode().getBytes().size();
+      final int pc = hub.messageFrame().getPC();
+      this.rawOpCode = (pc < codeSize) ? 0xff & hub.messageFrame().getCode().getBytes().get(pc) : 0;
+    }
     this.hashInfoFlag =
         switch (this.opCode) {
               case SHA3 -> true;
@@ -109,7 +120,9 @@ public final class StackFragment implements TraceFragment {
           hub.currentFrame().frame().getStackItem(0).toUnsignedBigInteger();
       final BigInteger codeSize = BigInteger.valueOf(hub.currentFrame().code().getSize());
 
-      boolean prospectivePcNewIsInBounds = codeSize.compareTo(prospectivePcNew) > 0;
+      boolean noOutOfGasException = !Exceptions.outOfGasException(exceptions);
+      boolean prospectivePcNewIsInBounds =
+          codeSize.compareTo(prospectivePcNew) > 0 && noOutOfGasException;
 
       if (opCode.equals(OpCode.JUMPI)) {
         boolean nonzeroJumpCondition =
@@ -128,6 +141,24 @@ public final class StackFragment implements TraceFragment {
 
     this.stamps = hub.state().stamps();
     this.commonFragmentValues = commonFragmentValues;
+    this.pushValue = opCode.isPush() ? EWord.of(getPushValue(hub)) : EWord.ZERO;
+  }
+
+  private Bytes getPushValue(Hub hub) {
+    checkState(hub.opCode().isPush());
+
+    final int pc = hub.messageFrame().getPC();
+    if (pc + 1 >= hub.messageFrame().getCode().getSize()) {
+      return Bytes.EMPTY;
+    }
+
+    Bytes byteCode = hub.messageFrame().getCode().getBytes();
+    int nBytesToPush = (opCode.byteValue() & 0xff) - (OpCode.PUSH1.byteValue() & 0xff) + 1;
+    int nLeftoverBytes = byteCode.size() - (pc + 1);
+    Bytes partialPushValue = byteCode.slice(pc + 1, min(nLeftoverBytes, nBytesToPush));
+    return (nLeftoverBytes >= nBytesToPush)
+        ? partialPushValue
+        : rightPadTo(partialPushValue, nBytesToPush);
   }
 
   public static StackFragment prepare(
@@ -185,15 +216,11 @@ public final class StackFragment implements TraceFragment {
             trace::pStackStackItemStamp3,
             trace::pStackStackItemStamp4);
 
-    EWord pushValue = EWord.ZERO;
     var it = stackOps.listIterator();
     while (it.hasNext()) {
       var i = it.nextIndex();
       var op = it.next();
-      final EWord eValue = EWord.of(op.value());
-      if (stack.getCurrentOpcodeData().isPush()) {
-        pushValue = eValue;
-      }
+      final EWord eValue = (i == 3 && opCode().isPush()) ? pushValue : EWord.of(op.value());
 
       heightTracers.get(i).apply(op.height());
       valHiTracers.get(i).apply(eValue.hi());
@@ -212,7 +239,7 @@ public final class StackFragment implements TraceFragment {
         // Instruction details
         .pStackAlpha(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().alpha()))
         .pStackDelta(UnsignedByte.of(stack.getCurrentOpcodeData().stackSettings().delta()))
-        .pStackInstruction(Bytes.of(stack.getCurrentOpcodeData().value()))
+        .pStackInstruction(Bytes.of(rawOpCode))
         .pStackStaticGas(staticGas)
         // Opcode families
         .pStackAccFlag(currentInstFamily == ACCOUNT)

@@ -17,10 +17,13 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests;
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
+import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(UnitTestWatcher.class)
 public class Utilities {
 
   public static final String fullEoaAddress = "000000000000000000000000abcdef0123456789";
@@ -60,6 +63,22 @@ public class Utilities {
       program.push(value);
     }
     program.push(to).push(gas).op(callOpcode);
+  }
+
+  public static void callCaller(
+      BytecodeCompiler program,
+      OpCode callOpcode,
+      int gas,
+      int value,
+      int cdo,
+      int cds,
+      int rao,
+      int rac) {
+    program.push(rac).push(rao).push(cds).push(cdo);
+    if (callOpcode.callHasValueArgument()) {
+      program.push(value);
+    }
+    program.op(CALLER).push(gas).op(callOpcode);
   }
 
   public static void appendInsufficientBalanceCall(

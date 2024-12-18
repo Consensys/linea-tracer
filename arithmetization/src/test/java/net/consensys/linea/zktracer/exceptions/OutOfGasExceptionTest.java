@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -51,8 +52,7 @@ public class OutOfGasExceptionTest {
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    // TODO: check if this approach is general enough, maybe use a similar approach to the test
-    //  below
+    // TODO: use a more general approach like in the test below
     bytecodeRunner.run((long) 21000 + nPushes * 3L + opCodeStaticCost + corneCase);
     if (corneCase == -1) {
       assertEquals(
@@ -113,7 +113,7 @@ public class OutOfGasExceptionTest {
             + // base gas cost
             (isWarm ? 3L + 2600L : 0) // BALANCE + PUSH
             + 7 * 3L // 7 PUSH
-            + callGasCost(value, targetAddressExists, isWarm); // CALL
+            + callGasCost(value != 0, targetAddressExists, isWarm); // CALL
 
     if (targetAddressExists) {
       final ToyAccount calleeAccount =
@@ -150,9 +150,11 @@ public class OutOfGasExceptionTest {
     return arguments.stream();
   }
 
-  private long callGasCost(int value, boolean targetAddressExists, boolean isWarm) {
-    // TODO: check if this method is correct, general enough and can be simplified
-    if (value == 0) {
+  private long callGasCost(boolean transferValue, boolean targetAddressExists, boolean isWarm) {
+    Preconditions.checkArgument(
+        !(isWarm && !targetAddressExists), "isWarm implies targetAddressExists");
+    /*
+    if (!transferValue) {
       if (isWarm) {
         return GlobalConstants.GAS_CONST_G_WARM_ACCESS;
       } else {
@@ -172,5 +174,11 @@ public class OutOfGasExceptionTest {
         }
       }
     }
+     */
+    return (transferValue ? GlobalConstants.GAS_CONST_G_CALL_VALUE : 0)
+        + (targetAddressExists ? 0 : (transferValue ? GlobalConstants.GAS_CONST_G_NEW_ACCOUNT : 0))
+        + (isWarm
+            ? GlobalConstants.GAS_CONST_G_WARM_ACCESS
+            : GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS);
   }
 }

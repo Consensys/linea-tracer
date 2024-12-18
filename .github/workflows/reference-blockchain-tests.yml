@@ -66,7 +66,7 @@ jobs:
         run: GOMEMLIMIT=32GiB ./gradlew referenceBlockchainTests -x spotlessCheck
         timeout-minutes: 360
         env:
-          REFERENCE_TESTS_PARALLELISM: 4
+          REFERENCE_TESTS_PARALLELISM: 2
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air

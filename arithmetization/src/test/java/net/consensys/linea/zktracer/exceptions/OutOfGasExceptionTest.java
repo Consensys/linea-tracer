@@ -90,6 +90,8 @@ public class OutOfGasExceptionTest {
       int opCodeStaticCost = opCodeData.stackSettings().staticGas().cost();
       int nPushes = opCodeData.stackSettings().delta(); // number of items popped from the stack
       // TODO: some opCodes are excluded for now because they may need to be treated differently
+      // TODO: classify tests properly, as here we are testing the cold case
+      //  but also just the opcodes that have positive  static cost
       if (opCodeStaticCost > 0
           && opCode != OpCode.MLOAD
           && opCode != OpCode.MSTORE8

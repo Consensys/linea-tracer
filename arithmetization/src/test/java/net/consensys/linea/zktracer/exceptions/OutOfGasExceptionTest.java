@@ -47,12 +47,14 @@ public class OutOfGasExceptionTest {
   @MethodSource("outOfGasExceptionSource")
   void outOfGasExceptionColdTest(OpCode opCode, int opCodeStaticCost, int nPushes, int corneCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
+    boolean isPush = opCode.getData().isPush();
     for (int i = 0; i < nPushes; i++) {
-      program.push(0);
+      // When the opCode we wish to test is PUSHx, we push on the stack a nonzero argument
+      program.push(isPush ? 1 : 0);
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    // TODO: use a more general approach like in the test below
+    // TODO: consider using a more general approach like in the test below
     bytecodeRunner.run((long) 21000 + nPushes * 3L + opCodeStaticCost + corneCase);
     if (corneCase == -1) {
       assertEquals(
@@ -153,28 +155,6 @@ public class OutOfGasExceptionTest {
   private long callGasCost(boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
     Preconditions.checkArgument(
         !(isWarm && !targetAddressExists), "isWarm implies targetAddressExists");
-    /*
-    if (!transferValue) {
-      if (isWarm) {
-        return GlobalConstants.GAS_CONST_G_WARM_ACCESS;
-      } else {
-        return GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
-      }
-    } else {
-      if (isWarm) {
-        return GlobalConstants.GAS_CONST_G_WARM_ACCESS + GlobalConstants.GAS_CONST_G_CALL_VALUE;
-      } else {
-        if (targetAddressExists) {
-          return GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS
-              + GlobalConstants.GAS_CONST_G_CALL_VALUE;
-        } else {
-          return GlobalConstants.GAS_CONST_G_NEW_ACCOUNT
-              + GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS
-              + GlobalConstants.GAS_CONST_G_CALL_VALUE;
-        }
-      }
-    }
-     */
     return (transfersValue ? GlobalConstants.GAS_CONST_G_CALL_VALUE : 0)
         + (targetAddressExists ? 0 : (transfersValue ? GlobalConstants.GAS_CONST_G_NEW_ACCOUNT : 0))
         + (isWarm

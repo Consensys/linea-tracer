@@ -120,6 +120,7 @@ public class ReplayTestTools {
 
     try (GZIPInputStream gzipStream = new GZIPInputStream(stream)) {
       ReplayExecutionEnvironment.builder()
+          .zkTracer(new ZkTracer(chainId))
           .build()
           .replay(chainId, new BufferedReader(new InputStreamReader(gzipStream)), filePath);
     } catch (IOException e) {

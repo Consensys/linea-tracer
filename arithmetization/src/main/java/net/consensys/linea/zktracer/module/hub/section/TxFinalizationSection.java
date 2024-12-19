@@ -109,7 +109,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
   private void successFinalization(Hub hub) {
     // TODO: are the assignments here correct?
-    // 0th account row sender
+    // ACC i+0 (sender)
     senderTxFinalizationNew =
         senderTxFinalization.deepCopy().incrementBalanceBy(txMetadata.getGasRefundInWei());
 
@@ -121,7 +121,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
                 senderTxFinalizationNew,
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
 
-    // 1st account row coinbase (depending on weather the sender is the coinbase or not)
+    // ACC i+1 (coinbase) (depending on weather the sender is the coinbase or not)
     coinbaseTxFinalizationNew =
         !txMetadata.senderIsCoinbase()
             ? coinbaseTxFinalization.deepCopy().incrementBalanceBy(txMetadata.getCoinbaseReward())
@@ -140,6 +140,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
     this.addFragments(senderAccountFragment, coinbaseAccountFragment);
 
+    // TXN i+2
     final TransactionFragment currentTransactionFragment =
         TransactionFragment.prepare(hub.txStack().current());
     this.addFragment(currentTransactionFragment);
@@ -224,6 +225,8 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
                   coinbaseTxFinalizationNew,
                   DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
 
+      // TODO: in the new specs it seems we only have 2 accounts rows
+      //  how to change the failure finalization case?
       this.addFragments(senderAccountFragment, recipientAccountFragment, coinbaseAccountFragment);
     }
     final TransactionFragment currentTransactionFragment =

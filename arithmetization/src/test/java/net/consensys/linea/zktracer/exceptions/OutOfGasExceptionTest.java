@@ -47,10 +47,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 @ExtendWith(UnitTestWatcher.class)
 public class OutOfGasExceptionTest {
 
-  // TODO: add tests when address is warm for every opcode
+  // TODO: can we generalize this test to treat all opcodes, warm and cold and types of gas costs?
+  //  currently only CALL is treated separately
   @ParameterizedTest
-  @MethodSource("outOfGasExceptionColdSource")
-  void outOfGasExceptionColdTest(OpCode opCode, int opCodeStaticCost, int nPushes, int corneCase) {
+  @MethodSource("outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostSource")
+  void outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostTest(
+      OpCode opCode, int opCodeStaticCost, int nPushes, int corneCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     boolean isPush = opCode.getData().isPush();
     for (int i = 0; i < nPushes; i++) {
@@ -61,8 +63,7 @@ public class OutOfGasExceptionTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     int opCodeDynamicCost =
         switch (opCode) {
-          case OpCode.SELFDESTRUCT -> GAS_CONST_G_NEW_ACCOUNT
-              + GAS_CONST_G_COLD_ACCOUNT_ACCESS; // TODO: check this
+          case OpCode.SELFDESTRUCT -> GAS_CONST_G_NEW_ACCOUNT + GAS_CONST_G_COLD_ACCOUNT_ACCESS;
           default -> 0;
         };
 
@@ -83,18 +84,16 @@ public class OutOfGasExceptionTest {
     }
   }
 
-  static Stream<Arguments> outOfGasExceptionColdSource() {
+  static Stream<Arguments>
+      outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (OpCodeData opCodeData : opCodeToOpCodeDataMap.values()) {
       OpCode opCode = opCodeData.mnemonic();
       int opCodeStaticCost = opCodeData.stackSettings().staticGas().cost();
       int nPushes = opCodeData.stackSettings().delta(); // number of items popped from the stack
-      // TODO: some opCodes are excluded for now because they may need to be treated differently
-      // TODO: classify tests properly, as here we are testing the cold case
-      //  but also just the opcodes that have positive  static cost
       if (opCodeStaticCost > 0
-          && opCode != OpCode.MLOAD
-          && opCode != OpCode.MSTORE8
+          && opCode != OpCode.MLOAD // MLOAD needs the memory expansion cost
+          && opCode != OpCode.MSTORE8 // MSTORE8 needs the memory expansion cost
           && opCode != OpCode.MSTORE) { // MSTORE needs the memory expansion cost
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, -1));
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 0));

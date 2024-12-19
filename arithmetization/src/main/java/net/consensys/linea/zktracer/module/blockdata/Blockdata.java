@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blockdata;
 
-import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_DEPTH;
+import static net.consensys.linea.zktracer.module.blockdata.Trace.nROWS_DEPTH;
 
 import java.math.BigInteger;
 import java.nio.MappedByteBuffer;
@@ -28,6 +28,8 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -37,15 +39,13 @@ public class Blockdata implements Module {
   private final Wcp wcp;
   private final Euc euc;
   private final TxnData txnData;
-  private final BigInteger chainId;
 
   private final Deque<BlockdataOperation> operations = new ArrayDeque<>();
-  private boolean conflationFinished = false;
   private static final int TIMESTAMP_BYTESIZE = 4;
-  private int previousTimestamp = 0;
-  private Map<OpCode, BlockdataOperation> prevOperationByOpCode = new HashMap<>();
+  private BlockHeader prevBlockHeader;
   private int traceCounter = 0;
   private long firstBlockNumber;
+  private Bytes chainId;
 
   final OpCode[] opCodes = {
     OpCode.COINBASE,
@@ -56,6 +56,10 @@ public class Blockdata implements Module {
     OpCode.CHAINID,
     OpCode.BASEFEE
   };
+
+  public void setChainId(BigInteger chainId) {
+    this.chainId = EWord.of(chainId).lo();
+  }
 
   @Override
   public String moduleKey() {
@@ -69,14 +73,13 @@ public class Blockdata implements Module {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    final int currentTimestamp = (int) blockHeader.getTimestamp();
     final long blockNumber = blockHeader.getNumber();
     firstBlockNumber = (traceCounter < opCodes.length) ? blockNumber : firstBlockNumber;
     for (OpCode opCode : opCodes) {
       BlockdataOperation operation =
           new BlockdataOperation(
               blockHeader,
-              prevOperationByOpCode.get(opCode),
+              prevBlockHeader,
               txnData.currentBlock().getNbOfTxsInBlock(),
               wcp,
               euc,
@@ -84,18 +87,14 @@ public class Blockdata implements Module {
               opCode,
               firstBlockNumber);
       operations.addLast(operation);
-      prevOperationByOpCode.put(opCode, operation);
-      wcp.callGT(currentTimestamp, previousTimestamp); // ?
-      previousTimestamp = currentTimestamp; // ?
       // Increase counter to track where we are in the conflation
       traceCounter++;
     }
+    prevBlockHeader = blockHeader;
   }
 
   @Override
-  public void traceEndConflation(final WorldView state) {
-    conflationFinished = true;
-  }
+  public void traceEndConflation(final WorldView state) {}
 
   @Override
   public void enterTransaction() {}
@@ -105,8 +104,8 @@ public class Blockdata implements Module {
 
   @Override
   public int lineCount() {
-    final int numberOfBlock = conflationFinished ? operations.size() : operations.size() + 1;
-    return numberOfBlock * (CT_MAX_DEPTH + 1); // TODO: check
+    final int numberOfBlock = (operations.size() / opCodes.length);
+    return numberOfBlock * nROWS_DEPTH;
   }
 
   @Override

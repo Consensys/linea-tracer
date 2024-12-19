@@ -31,14 +31,14 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
-  public static final int CT_MAX_BF = 0x1;
-  public static final int CT_MAX_CB = 0x1;
-  public static final int CT_MAX_DEPTH = 0xd;
-  public static final int CT_MAX_DF = 0x1;
-  public static final int CT_MAX_GL = 0x5;
-  public static final int CT_MAX_ID = 0x1;
-  public static final int CT_MAX_NB = 0x2;
-  public static final int CT_MAX_TS = 0x2;
+  public static final int nROWS_BF = 0x1;
+  public static final int nROWS_CB = 0x1;
+  public static final int nROWS_DEPTH = 0xd;
+  public static final int nROWS_DF = 0x1;
+  public static final int nROWS_GL = 0x5;
+  public static final int nROWS_ID = 0x1;
+  public static final int nROWS_NB = 0x2;
+  public static final int nROWS_TS = 0x2;
 
   private final BitSet filled = new BitSet();
   private int currentLine = 0;
@@ -53,7 +53,6 @@ public class Trace {
   private final MappedByteBuffer coinbaseLo;
   private final MappedByteBuffer ct;
   private final MappedByteBuffer ctMax;
-  private final MappedByteBuffer currentConflation;
   private final MappedByteBuffer dataHi;
   private final MappedByteBuffer dataLo;
   private final MappedByteBuffer eucFlag;
@@ -68,7 +67,6 @@ public class Trace {
   private final MappedByteBuffer isGaslimit;
   private final MappedByteBuffer isNumber;
   private final MappedByteBuffer isTimestamp;
-  private final MappedByteBuffer previousConflation;
   private final MappedByteBuffer relBlock;
   private final MappedByteBuffer relTxNumMax;
   private final MappedByteBuffer res;
@@ -86,7 +84,6 @@ public class Trace {
     headers.add(new ColumnHeader("blockdata.COINBASE_LO", 16, length));
     headers.add(new ColumnHeader("blockdata.CT", 1, length));
     headers.add(new ColumnHeader("blockdata.CT_MAX", 1, length));
-    headers.add(new ColumnHeader("blockdata.CURRENT_CONFLATION", 1, length));
     headers.add(new ColumnHeader("blockdata.DATA_HI", 16, length));
     headers.add(new ColumnHeader("blockdata.DATA_LO", 16, length));
     headers.add(new ColumnHeader("blockdata.EUC_FLAG", 1, length));
@@ -101,7 +98,6 @@ public class Trace {
     headers.add(new ColumnHeader("blockdata.IS_GASLIMIT", 1, length));
     headers.add(new ColumnHeader("blockdata.IS_NUMBER", 1, length));
     headers.add(new ColumnHeader("blockdata.IS_TIMESTAMP", 1, length));
-    headers.add(new ColumnHeader("blockdata.PREVIOUS_CONFLATION", 1, length));
     headers.add(new ColumnHeader("blockdata.REL_BLOCK", 1, length));
     headers.add(new ColumnHeader("blockdata.REL_TX_NUM_MAX", 2, length));
     headers.add(new ColumnHeader("blockdata.RES", 16, length));
@@ -120,26 +116,24 @@ public class Trace {
     this.coinbaseLo = buffers.get(7);
     this.ct = buffers.get(8);
     this.ctMax = buffers.get(9);
-    this.currentConflation = buffers.get(10);
-    this.dataHi = buffers.get(11);
-    this.dataLo = buffers.get(12);
-    this.eucFlag = buffers.get(13);
-    this.exoInst = buffers.get(14);
-    this.firstBlockNumber = buffers.get(15);
-    this.inst = buffers.get(16);
-    this.iomf = buffers.get(17);
-    this.isBasefee = buffers.get(18);
-    this.isChainid = buffers.get(19);
-    this.isCoinbase = buffers.get(20);
-    this.isDifficulty = buffers.get(21);
-    this.isGaslimit = buffers.get(22);
-    this.isNumber = buffers.get(23);
-    this.isTimestamp = buffers.get(24);
-    this.previousConflation = buffers.get(25);
-    this.relBlock = buffers.get(26);
-    this.relTxNumMax = buffers.get(27);
-    this.res = buffers.get(28);
-    this.wcpFlag = buffers.get(29);
+    this.dataHi = buffers.get(10);
+    this.dataLo = buffers.get(11);
+    this.eucFlag = buffers.get(12);
+    this.exoInst = buffers.get(13);
+    this.firstBlockNumber = buffers.get(14);
+    this.inst = buffers.get(15);
+    this.iomf = buffers.get(16);
+    this.isBasefee = buffers.get(17);
+    this.isChainid = buffers.get(18);
+    this.isCoinbase = buffers.get(19);
+    this.isDifficulty = buffers.get(20);
+    this.isGaslimit = buffers.get(21);
+    this.isNumber = buffers.get(22);
+    this.isTimestamp = buffers.get(23);
+    this.relBlock = buffers.get(24);
+    this.relTxNumMax = buffers.get(25);
+    this.res = buffers.get(26);
+    this.wcpFlag = buffers.get(27);
   }
 
   public int size() {
@@ -368,23 +362,11 @@ public class Trace {
     return this;
   }
 
-  public Trace currentConflation(final Boolean b) {
-    if (filled.get(10)) {
-      throw new IllegalStateException("blockdata.CURRENT_CONFLATION already set");
-    } else {
-      filled.set(10);
-    }
-
-    currentConflation.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
   public Trace dataHi(final Bytes b) {
-    if (filled.get(11)) {
+    if (filled.get(10)) {
       throw new IllegalStateException("blockdata.DATA_HI already set");
     } else {
-      filled.set(11);
+      filled.set(10);
     }
 
     // Trim array to size
@@ -407,10 +389,10 @@ public class Trace {
   }
 
   public Trace dataLo(final Bytes b) {
-    if (filled.get(12)) {
+    if (filled.get(11)) {
       throw new IllegalStateException("blockdata.DATA_LO already set");
     } else {
-      filled.set(12);
+      filled.set(11);
     }
 
     // Trim array to size
@@ -433,10 +415,10 @@ public class Trace {
   }
 
   public Trace eucFlag(final Boolean b) {
-    if (filled.get(13)) {
+    if (filled.get(12)) {
       throw new IllegalStateException("blockdata.EUC_FLAG already set");
     } else {
-      filled.set(13);
+      filled.set(12);
     }
 
     eucFlag.put((byte) (b ? 1 : 0));
@@ -445,10 +427,10 @@ public class Trace {
   }
 
   public Trace exoInst(final UnsignedByte b) {
-    if (filled.get(14)) {
+    if (filled.get(13)) {
       throw new IllegalStateException("blockdata.EXO_INST already set");
     } else {
-      filled.set(14);
+      filled.set(13);
     }
 
     exoInst.put(b.toByte());
@@ -457,10 +439,10 @@ public class Trace {
   }
 
   public Trace firstBlockNumber(final long b) {
-    if (filled.get(15)) {
+    if (filled.get(14)) {
       throw new IllegalStateException("blockdata.FIRST_BLOCK_NUMBER already set");
     } else {
-      filled.set(15);
+      filled.set(14);
     }
 
     if (b >= 281474976710656L) {
@@ -478,10 +460,10 @@ public class Trace {
   }
 
   public Trace inst(final UnsignedByte b) {
-    if (filled.get(16)) {
+    if (filled.get(15)) {
       throw new IllegalStateException("blockdata.INST already set");
     } else {
-      filled.set(16);
+      filled.set(15);
     }
 
     inst.put(b.toByte());
@@ -490,10 +472,10 @@ public class Trace {
   }
 
   public Trace iomf(final Boolean b) {
-    if (filled.get(17)) {
+    if (filled.get(16)) {
       throw new IllegalStateException("blockdata.IOMF already set");
     } else {
-      filled.set(17);
+      filled.set(16);
     }
 
     iomf.put((byte) (b ? 1 : 0));
@@ -502,10 +484,10 @@ public class Trace {
   }
 
   public Trace isBasefee(final Boolean b) {
-    if (filled.get(18)) {
+    if (filled.get(17)) {
       throw new IllegalStateException("blockdata.IS_BASEFEE already set");
     } else {
-      filled.set(18);
+      filled.set(17);
     }
 
     isBasefee.put((byte) (b ? 1 : 0));
@@ -514,10 +496,10 @@ public class Trace {
   }
 
   public Trace isChainid(final Boolean b) {
-    if (filled.get(19)) {
+    if (filled.get(18)) {
       throw new IllegalStateException("blockdata.IS_CHAINID already set");
     } else {
-      filled.set(19);
+      filled.set(18);
     }
 
     isChainid.put((byte) (b ? 1 : 0));
@@ -526,10 +508,10 @@ public class Trace {
   }
 
   public Trace isCoinbase(final Boolean b) {
-    if (filled.get(20)) {
+    if (filled.get(19)) {
       throw new IllegalStateException("blockdata.IS_COINBASE already set");
     } else {
-      filled.set(20);
+      filled.set(19);
     }
 
     isCoinbase.put((byte) (b ? 1 : 0));
@@ -538,10 +520,10 @@ public class Trace {
   }
 
   public Trace isDifficulty(final Boolean b) {
-    if (filled.get(21)) {
+    if (filled.get(20)) {
       throw new IllegalStateException("blockdata.IS_DIFFICULTY already set");
     } else {
-      filled.set(21);
+      filled.set(20);
     }
 
     isDifficulty.put((byte) (b ? 1 : 0));
@@ -550,10 +532,10 @@ public class Trace {
   }
 
   public Trace isGaslimit(final Boolean b) {
-    if (filled.get(22)) {
+    if (filled.get(21)) {
       throw new IllegalStateException("blockdata.IS_GASLIMIT already set");
     } else {
-      filled.set(22);
+      filled.set(21);
     }
 
     isGaslimit.put((byte) (b ? 1 : 0));
@@ -562,10 +544,10 @@ public class Trace {
   }
 
   public Trace isNumber(final Boolean b) {
-    if (filled.get(23)) {
+    if (filled.get(22)) {
       throw new IllegalStateException("blockdata.IS_NUMBER already set");
     } else {
-      filled.set(23);
+      filled.set(22);
     }
 
     isNumber.put((byte) (b ? 1 : 0));
@@ -574,10 +556,10 @@ public class Trace {
   }
 
   public Trace isTimestamp(final Boolean b) {
-    if (filled.get(24)) {
+    if (filled.get(23)) {
       throw new IllegalStateException("blockdata.IS_TIMESTAMP already set");
     } else {
-      filled.set(24);
+      filled.set(23);
     }
 
     isTimestamp.put((byte) (b ? 1 : 0));
@@ -585,23 +567,11 @@ public class Trace {
     return this;
   }
 
-  public Trace previousConflation(final Boolean b) {
-    if (filled.get(25)) {
-      throw new IllegalStateException("blockdata.PREVIOUS_CONFLATION already set");
-    } else {
-      filled.set(25);
-    }
-
-    previousConflation.put((byte) (b ? 1 : 0));
-
-    return this;
-  }
-
   public Trace relBlock(final long b) {
-    if (filled.get(26)) {
+    if (filled.get(24)) {
       throw new IllegalStateException("blockdata.REL_BLOCK already set");
     } else {
-      filled.set(26);
+      filled.set(24);
     }
 
     if (b >= 256L) {
@@ -613,10 +583,10 @@ public class Trace {
   }
 
   public Trace relTxNumMax(final long b) {
-    if (filled.get(27)) {
+    if (filled.get(25)) {
       throw new IllegalStateException("blockdata.REL_TX_NUM_MAX already set");
     } else {
-      filled.set(27);
+      filled.set(25);
     }
 
     if (b >= 1024L) {
@@ -629,10 +599,10 @@ public class Trace {
   }
 
   public Trace res(final Bytes b) {
-    if (filled.get(28)) {
+    if (filled.get(26)) {
       throw new IllegalStateException("blockdata.RES already set");
     } else {
-      filled.set(28);
+      filled.set(26);
     }
 
     // Trim array to size
@@ -655,10 +625,10 @@ public class Trace {
   }
 
   public Trace wcpFlag(final Boolean b) {
-    if (filled.get(29)) {
+    if (filled.get(27)) {
       throw new IllegalStateException("blockdata.WCP_FLAG already set");
     } else {
-      filled.set(29);
+      filled.set(27);
     }
 
     wcpFlag.put((byte) (b ? 1 : 0));
@@ -708,82 +678,74 @@ public class Trace {
     }
 
     if (!filled.get(10)) {
-      throw new IllegalStateException("blockdata.CURRENT_CONFLATION has not been filled");
-    }
-
-    if (!filled.get(11)) {
       throw new IllegalStateException("blockdata.DATA_HI has not been filled");
     }
 
-    if (!filled.get(12)) {
+    if (!filled.get(11)) {
       throw new IllegalStateException("blockdata.DATA_LO has not been filled");
     }
 
-    if (!filled.get(13)) {
+    if (!filled.get(12)) {
       throw new IllegalStateException("blockdata.EUC_FLAG has not been filled");
     }
 
-    if (!filled.get(14)) {
+    if (!filled.get(13)) {
       throw new IllegalStateException("blockdata.EXO_INST has not been filled");
     }
 
-    if (!filled.get(15)) {
+    if (!filled.get(14)) {
       throw new IllegalStateException("blockdata.FIRST_BLOCK_NUMBER has not been filled");
     }
 
-    if (!filled.get(16)) {
+    if (!filled.get(15)) {
       throw new IllegalStateException("blockdata.INST has not been filled");
     }
 
-    if (!filled.get(17)) {
+    if (!filled.get(16)) {
       throw new IllegalStateException("blockdata.IOMF has not been filled");
     }
 
-    if (!filled.get(18)) {
+    if (!filled.get(17)) {
       throw new IllegalStateException("blockdata.IS_BASEFEE has not been filled");
     }
 
-    if (!filled.get(19)) {
+    if (!filled.get(18)) {
       throw new IllegalStateException("blockdata.IS_CHAINID has not been filled");
     }
 
-    if (!filled.get(20)) {
+    if (!filled.get(19)) {
       throw new IllegalStateException("blockdata.IS_COINBASE has not been filled");
     }
 
-    if (!filled.get(21)) {
+    if (!filled.get(20)) {
       throw new IllegalStateException("blockdata.IS_DIFFICULTY has not been filled");
     }
 
-    if (!filled.get(22)) {
+    if (!filled.get(21)) {
       throw new IllegalStateException("blockdata.IS_GASLIMIT has not been filled");
     }
 
-    if (!filled.get(23)) {
+    if (!filled.get(22)) {
       throw new IllegalStateException("blockdata.IS_NUMBER has not been filled");
     }
 
-    if (!filled.get(24)) {
+    if (!filled.get(23)) {
       throw new IllegalStateException("blockdata.IS_TIMESTAMP has not been filled");
     }
 
-    if (!filled.get(25)) {
-      throw new IllegalStateException("blockdata.PREVIOUS_CONFLATION has not been filled");
-    }
-
-    if (!filled.get(26)) {
+    if (!filled.get(24)) {
       throw new IllegalStateException("blockdata.REL_BLOCK has not been filled");
     }
 
-    if (!filled.get(27)) {
+    if (!filled.get(25)) {
       throw new IllegalStateException("blockdata.REL_TX_NUM_MAX has not been filled");
     }
 
-    if (!filled.get(28)) {
+    if (!filled.get(26)) {
       throw new IllegalStateException("blockdata.RES has not been filled");
     }
 
-    if (!filled.get(29)) {
+    if (!filled.get(27)) {
       throw new IllegalStateException("blockdata.WCP_FLAG has not been filled");
     }
 
@@ -835,82 +797,74 @@ public class Trace {
     }
 
     if (!filled.get(10)) {
-      currentConflation.position(currentConflation.position() + 1);
-    }
-
-    if (!filled.get(11)) {
       dataHi.position(dataHi.position() + 16);
     }
 
-    if (!filled.get(12)) {
+    if (!filled.get(11)) {
       dataLo.position(dataLo.position() + 16);
     }
 
-    if (!filled.get(13)) {
+    if (!filled.get(12)) {
       eucFlag.position(eucFlag.position() + 1);
     }
 
-    if (!filled.get(14)) {
+    if (!filled.get(13)) {
       exoInst.position(exoInst.position() + 1);
     }
 
-    if (!filled.get(15)) {
+    if (!filled.get(14)) {
       firstBlockNumber.position(firstBlockNumber.position() + 6);
     }
 
-    if (!filled.get(16)) {
+    if (!filled.get(15)) {
       inst.position(inst.position() + 1);
     }
 
-    if (!filled.get(17)) {
+    if (!filled.get(16)) {
       iomf.position(iomf.position() + 1);
     }
 
-    if (!filled.get(18)) {
+    if (!filled.get(17)) {
       isBasefee.position(isBasefee.position() + 1);
     }
 
-    if (!filled.get(19)) {
+    if (!filled.get(18)) {
       isChainid.position(isChainid.position() + 1);
     }
 
-    if (!filled.get(20)) {
+    if (!filled.get(19)) {
       isCoinbase.position(isCoinbase.position() + 1);
     }
 
-    if (!filled.get(21)) {
+    if (!filled.get(20)) {
       isDifficulty.position(isDifficulty.position() + 1);
     }
 
-    if (!filled.get(22)) {
+    if (!filled.get(21)) {
       isGaslimit.position(isGaslimit.position() + 1);
     }
 
-    if (!filled.get(23)) {
+    if (!filled.get(22)) {
       isNumber.position(isNumber.position() + 1);
     }
 
-    if (!filled.get(24)) {
+    if (!filled.get(23)) {
       isTimestamp.position(isTimestamp.position() + 1);
     }
 
-    if (!filled.get(25)) {
-      previousConflation.position(previousConflation.position() + 1);
-    }
-
-    if (!filled.get(26)) {
+    if (!filled.get(24)) {
       relBlock.position(relBlock.position() + 1);
     }
 
-    if (!filled.get(27)) {
+    if (!filled.get(25)) {
       relTxNumMax.position(relTxNumMax.position() + 2);
     }
 
-    if (!filled.get(28)) {
+    if (!filled.get(26)) {
       res.position(res.position() + 16);
     }
 
-    if (!filled.get(29)) {
+    if (!filled.get(27)) {
       wcpFlag.position(wcpFlag.position() + 1);
     }
 

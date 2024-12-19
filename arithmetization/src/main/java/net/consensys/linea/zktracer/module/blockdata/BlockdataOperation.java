@@ -16,19 +16,10 @@
 package net.consensys.linea.zktracer.module.blockdata;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_BF;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_CB;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_DEPTH;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_DF;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_GL;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_ID;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_NB;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.CT_MAX_TS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIV;
+import static net.consensys.linea.zktracer.module.blockdata.Trace.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ISZERO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_DIFFICULTY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_GEQ;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
@@ -37,9 +28,7 @@ import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMI
 import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MINIMUM;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
-import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.Optional;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -51,29 +40,23 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Quantity;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @Accessors(fluent = true)
 @Getter
 public class BlockdataOperation extends ModuleOperation {
-  private final long timestamp;
-  private final long absoluteBlockNumber;
-  private final BigInteger difficulty;
   private final Wcp wcp;
   private final Euc euc;
-  private final BigInteger chainId;
-  private final BlockdataOperation prevOperation;
-  private final Bytes ZERO = Bytes.ofUnsignedLong(0);
+  private final Bytes chainId;
+  private final BlockHeader blockHeader;
+  private final BlockHeader prevBlockHeader;
+  private final Bytes ZERO = Bytes.fromHexString("0x00000000000000000000000000000000");
+  private final Bytes POWER_256_4 = Bytes.fromHexString("0x00000000000000000000000100000000");
+  private final Bytes POWER_256_6 = Bytes.fromHexString("0x00000000000000000001000000000000");
 
-  private final boolean previousConflation;
-  private final boolean currentConflation;
+  private final boolean firstBlockInConflation;
   private final int ctMax;
   @EqualsAndHashCode.Include @Getter private final OpCode opCode;
-  private final Address coinbase;
-  private final long blockGasLimit;
-  private final Optional<? extends Quantity> baseFee;
   private final long firstBlockNumber;
   private final int relTxMax;
   private final long relBlock;
@@ -91,29 +74,24 @@ public class BlockdataOperation extends ModuleOperation {
 
   public BlockdataOperation(
       BlockHeader blockHeader,
-      BlockdataOperation prevOperationByInst,
+      BlockHeader prevBlockHeader,
       int relTxMax,
       Wcp wcp,
       Euc euc,
-      BigInteger chainId,
+      Bytes chainId,
       OpCode opCode,
       long firstBlockNumber) {
     // Data from blockHeader
-    this.coinbase = blockHeader.getCoinbase();
-    this.timestamp = (int) blockHeader.getTimestamp();
-    this.absoluteBlockNumber = blockHeader.getNumber();
-    this.difficulty = blockHeader.getDifficulty().getAsBigInteger();
-    this.blockGasLimit = blockHeader.getGasLimit();
-    this.baseFee = blockHeader.getBaseFee(); // TODO: check
-    this.prevOperation = prevOperationByInst;
+    this.blockHeader = blockHeader;
+    this.prevBlockHeader = prevBlockHeader;
 
     this.chainId = chainId;
     this.ctMax = ctMax(opCode);
     this.firstBlockNumber = firstBlockNumber;
     this.relTxMax = relTxMax;
-    this.relBlock = absoluteBlockNumber - firstBlockNumber;
-    this.previousConflation = (relBlock == 0);
-    this.currentConflation = (relBlock > 0);
+    // TODO: add method
+    this.relBlock = blockHeader.getNumber() - firstBlockNumber + 1;
+    this.firstBlockInConflation = (blockHeader.getNumber() == firstBlockNumber);
     this.wcp = wcp;
     this.euc = euc;
     this.opCode = opCode;
@@ -157,80 +135,45 @@ public class BlockdataOperation extends ModuleOperation {
       case OpCode.BASEFEE -> {
         handleBaseFee();
       }
-      default -> {}
     }
   }
 
   private void handleCoinbase() {
-    dataHi = EWord.ofHexString(coinbase().toHexString()).hi();
-    dataLo = EWord.ofHexString(coinbase().toHexString()).lo();
+    dataHi = EWord.ofHexString(blockHeader.getCoinbase().toHexString()).hi();
+    dataLo = EWord.ofHexString(blockHeader.getCoinbase().toHexString()).lo();
 
     // row i
-    wcpCallToLT(0, dataHi, dataLo, Bytes.ofUnsignedLong((long) Math.pow(256, 4)), ZERO);
+    wcpCallToLT(0, dataHi, dataLo, POWER_256_4, ZERO);
   }
 
   private void handleTimestamp() {
     dataHi = ZERO;
-    dataLo = EWord.of(timestamp).lo();
-    Bytes prevDataLo = prevOperation == null ? ZERO : prevOperation.dataLo;
+    dataLo = EWord.of(blockHeader.getTimestamp()).lo();
+    Bytes prevDataLo =
+        prevBlockHeader == null ? ZERO : EWord.of(prevBlockHeader.getTimestamp()).lo();
 
     // row i
-    wcpCallToLT(0, dataHi, dataLo, ZERO, Bytes.ofUnsignedLong((long) Math.pow(256, 6)));
+    wcpCallToLT(0, dataHi, dataLo, ZERO, POWER_256_6);
 
     // row i + 1
     wcpCallToGT(1, dataHi, dataLo, ZERO, prevDataLo);
   }
 
-  private boolean isPrev(BlockdataOperation operation) {
-    return operation.previousConflation;
-  }
-
-  private boolean isCurr(BlockdataOperation operation) {
-    return operation.currentConflation;
-  }
-
   private void handleNumber() {
+    dataHi = ZERO;
+    dataLo = Bytes.ofUnsignedLong(blockHeader.getNumber());
+
+    wcpCallToISZERO(0, dataHi, Bytes.ofUnsignedLong(firstBlockNumber));
+
     // row i
-    final boolean firstBlockIsGenesisBlock =
-        wcpCallToISZERO(0, ZERO, Bytes.ofUnsignedLong(firstBlockNumber));
-
-    // Set dataHi and dataLo
-    if (isPrev(this)) {
-      if (firstBlockIsGenesisBlock) {
-        dataHi = ZERO;
-        dataLo = ZERO;
-      }
-      if (!firstBlockIsGenesisBlock) {
-        dataHi = ZERO;
-        dataLo = Bytes.ofUnsignedLong(firstBlockNumber - 1);
-      }
-    }
-    if (isCurr(this)) {
-      if (firstBlockIsGenesisBlock) {
-        if (isPrev(prevOperation)) {
-          dataHi = ZERO;
-          dataLo = ZERO;
-        }
-        if (isCurr(prevOperation)) {
-          dataHi = prevOperation.dataHi;
-          dataLo = Bytes.ofUnsignedLong(prevOperation.dataLo.toLong() + 1);
-        }
-      }
-      if (!firstBlockIsGenesisBlock) {
-        dataHi = prevOperation.dataHi;
-        dataLo = Bytes.ofUnsignedLong(prevOperation.dataLo.toLong() + 1);
-      }
-    }
-
-    // row i + 1
-    if (isPrev(this)) {
-      wcpCallToLT(1, dataHi, dataLo, ZERO, Bytes.ofUnsignedLong((long) Math.pow(256, 6)));
+    if (firstBlockInConflation) {
+      wcpCallToLT(1, dataHi, dataLo, ZERO, POWER_256_6);
     }
   }
 
   private void handleDifficulty() {
-    dataHi = EWord.of(LINEA_DIFFICULTY).hi(); // ?
-    dataLo = EWord.of(LINEA_DIFFICULTY).lo();
+    dataHi = EWord.of(blockHeader.getDifficulty().getAsBigInteger()).hi(); // ?
+    dataLo = EWord.of(blockHeader.getDifficulty().getAsBigInteger()).lo();
 
     // row i
     wcpCallToGEQ(0, dataHi, dataLo, ZERO, ZERO);
@@ -238,7 +181,7 @@ public class BlockdataOperation extends ModuleOperation {
 
   private void handleGasLimit() {
     dataHi = ZERO;
-    dataLo = EWord.of(blockGasLimit).lo();
+    dataLo = EWord.of(blockHeader.getGasLimit()).lo();
 
     // row i
     wcpCallToGEQ(0, dataHi, dataLo, ZERO, Bytes.ofUnsignedLong(LINEA_GAS_LIMIT_MINIMUM));
@@ -246,12 +189,11 @@ public class BlockdataOperation extends ModuleOperation {
     // row i + 1
     wcpCallToLEQ(1, dataHi, dataLo, ZERO, Bytes.ofUnsignedLong(LINEA_GAS_LIMIT_MAXIMUM));
 
-    if (isCurr(this)) {
+    if (!firstBlockInConflation) {
+      Bytes prevGasLimit = Bytes.ofUnsignedLong(prevBlockHeader.getGasLimit());
       // row i + 2
-      Bytes prevGasLimit = Bytes.ofUnsignedLong(prevOperation.blockGasLimit);
       Bytes maxDeviation =
           eucCall(2, prevGasLimit, Bytes.ofUnsignedLong(GAS_LIMIT_ADJUSTMENT_FACTOR));
-
       // row i + 3
       wcpCallToLT(
           3,
@@ -281,7 +223,8 @@ public class BlockdataOperation extends ModuleOperation {
 
   private void handleBaseFee() {
     dataHi = ZERO;
-    dataLo = EWord.of(1).lo(); // TODO: change to baseFee
+    dataLo =
+        EWord.of(blockHeader.getBaseFee().get().getAsBigInteger()).lo(); // TODO: change to baseFee
 
     // row i
     wcpCallToGEQ(0, dataHi, dataLo, ZERO, ZERO);
@@ -289,15 +232,13 @@ public class BlockdataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return ctMax() + 1;
+    return ctMax;
   }
 
   public void trace(Trace trace) {
-    for (short ct = 0; ct < ctMax; ct++) { // TODO: uniform
+    for (short ct = 0; ct < ctMax; ct++) {
       trace
           .iomf(true)
-          .previousConflation(previousConflation)
-          .currentConflation(currentConflation)
           .ctMax(ctMax - 1)
           .ct(ct)
           .isCoinbase(opCode == OpCode.COINBASE)
@@ -308,10 +249,11 @@ public class BlockdataOperation extends ModuleOperation {
           .isChainid(opCode == OpCode.CHAINID)
           .isBasefee(opCode == OpCode.BASEFEE)
           .inst(UnsignedByte.of(opCode.byteValue()))
-          .coinbaseHi(coinbase.slice(0, 4).toLong())
-          .coinbaseLo(coinbase.slice(4, LLARGE))
-          .blockGasLimit(blockGasLimit)
-          .basefee(1) // TODO: add baseFee
+          .coinbaseHi(blockHeader.getCoinbase().slice(0, 4).toLong())
+          .coinbaseLo(blockHeader.getCoinbase().slice(4, LLARGE))
+          .blockGasLimit(blockHeader.getGasLimit())
+          .basefee(
+              blockHeader.getBaseFee().get().getAsBigInteger().longValue()) // TODO: add baseFee
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
           .relTxNumMax((short) relTxMax)
@@ -396,8 +338,6 @@ public class BlockdataOperation extends ModuleOperation {
 
     res[w] = euc.callEUC(arg1Lo, arg2Lo).quotient();
 
-    exoInst[w] = UnsignedByte.of(EVM_INST_DIV); // TODO: is this correct?
-
     wcpFlag[w] = false;
     eucFlag[w] = true;
 
@@ -407,28 +347,28 @@ public class BlockdataOperation extends ModuleOperation {
   private int ctMax(OpCode opCode) {
     switch (opCode) {
       case OpCode.COINBASE -> {
-        return CT_MAX_CB;
+        return nROWS_CB;
       }
       case OpCode.TIMESTAMP -> {
-        return CT_MAX_TS;
+        return nROWS_TS;
       }
       case OpCode.NUMBER -> {
-        return CT_MAX_NB;
+        return nROWS_NB;
       }
       case OpCode.DIFFICULTY -> {
-        return CT_MAX_DF;
+        return nROWS_DF;
       }
       case OpCode.GASLIMIT -> {
-        return CT_MAX_GL;
+        return nROWS_GL;
       }
       case OpCode.CHAINID -> {
-        return CT_MAX_ID;
+        return nROWS_ID;
       }
       case OpCode.BASEFEE -> {
-        return CT_MAX_BF;
+        return nROWS_BF;
       }
       default -> {
-        return CT_MAX_DEPTH;
+        return nROWS_DEPTH;
       }
     }
   }

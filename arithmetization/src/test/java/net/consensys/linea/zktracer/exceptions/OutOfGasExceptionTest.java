@@ -15,6 +15,12 @@
 
 package net.consensys.linea.zktracer.exceptions;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_VALUE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TRANSACTION;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_VERY_LOW;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.opcode.OpCodes.opCodeToOpCodeDataMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +35,6 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.hyperledger.besu.datatypes.Address;
@@ -44,7 +49,7 @@ public class OutOfGasExceptionTest {
 
   // TODO: add tests when address is warm for every opcode
   @ParameterizedTest
-  @MethodSource("outOfGasExceptionSource")
+  @MethodSource("outOfGasExceptionColdSource")
   void outOfGasExceptionColdTest(OpCode opCode, int opCodeStaticCost, int nPushes, int corneCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     boolean isPush = opCode.getData().isPush();
@@ -54,8 +59,11 @@ public class OutOfGasExceptionTest {
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    // TODO: consider using a more general approach like in the test below
-    bytecodeRunner.run((long) 21000 + nPushes * 3L + opCodeStaticCost + corneCase);
+    bytecodeRunner.run(
+        (long) GAS_CONST_G_TRANSACTION
+            + (long) nPushes * GAS_CONST_G_VERY_LOW
+            + opCodeStaticCost
+            + corneCase);
     if (corneCase == -1) {
       assertEquals(
           OUT_OF_GAS_EXCEPTION,
@@ -67,7 +75,7 @@ public class OutOfGasExceptionTest {
     }
   }
 
-  static Stream<Arguments> outOfGasExceptionSource() {
+  static Stream<Arguments> outOfGasExceptionColdSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (OpCodeData opCodeData : opCodeToOpCodeDataMap.values()) {
       OpCode opCode = opCodeData.mnemonic();
@@ -111,10 +119,10 @@ public class OutOfGasExceptionTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
 
     long gasLimit =
-        21000L
+        GAS_CONST_G_TRANSACTION
             + // base gas cost
-            (isWarm ? 3L + 2600L : 0) // BALANCE + PUSH
-            + 7 * 3L // 7 PUSH
+            (isWarm ? GAS_CONST_G_VERY_LOW + GAS_CONST_G_COLD_ACCOUNT_ACCESS : 0) // PUSH + BALANCE
+            + 7 * GAS_CONST_G_VERY_LOW // 7 PUSH
             + callGasCost(value != 0, targetAddressExists, isWarm); // CALL
 
     if (targetAddressExists) {
@@ -155,10 +163,8 @@ public class OutOfGasExceptionTest {
   private long callGasCost(boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
     Preconditions.checkArgument(
         !(isWarm && !targetAddressExists), "isWarm implies targetAddressExists");
-    return (transfersValue ? GlobalConstants.GAS_CONST_G_CALL_VALUE : 0)
-        + (targetAddressExists ? 0 : (transfersValue ? GlobalConstants.GAS_CONST_G_NEW_ACCOUNT : 0))
-        + (isWarm
-            ? GlobalConstants.GAS_CONST_G_WARM_ACCESS
-            : GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS);
+    return (transfersValue ? GAS_CONST_G_CALL_VALUE : 0)
+        + (targetAddressExists ? 0 : (transfersValue ? GAS_CONST_G_NEW_ACCOUNT : 0))
+        + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
   }
 }

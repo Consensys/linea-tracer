@@ -59,10 +59,18 @@ public class OutOfGasExceptionTest {
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    int opCodeDynamicCost =
+        switch (opCode) {
+          case OpCode.SELFDESTRUCT -> GAS_CONST_G_NEW_ACCOUNT
+              + GAS_CONST_G_COLD_ACCOUNT_ACCESS; // TODO: check this
+          default -> 0;
+        };
+
     bytecodeRunner.run(
         (long) GAS_CONST_G_TRANSACTION
             + (long) nPushes * GAS_CONST_G_VERY_LOW
             + opCodeStaticCost
+            + opCodeDynamicCost
             + corneCase);
     if (corneCase == -1) {
       assertEquals(
@@ -85,8 +93,7 @@ public class OutOfGasExceptionTest {
       if (opCodeStaticCost > 0
           && opCode != OpCode.MLOAD
           && opCode != OpCode.MSTORE8
-          && opCode != OpCode.SELFDESTRUCT
-          && opCode != OpCode.MSTORE) {
+          && opCode != OpCode.MSTORE) { // MSTORE needs the memory expansion cost
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, -1));
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 0));
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 1));

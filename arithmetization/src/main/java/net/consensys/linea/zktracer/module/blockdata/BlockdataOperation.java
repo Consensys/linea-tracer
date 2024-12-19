@@ -51,8 +51,14 @@ public class BlockdataOperation extends ModuleOperation {
   private final BlockHeader blockHeader;
   private final BlockHeader prevBlockHeader;
   private final Bytes ZERO = Bytes.fromHexString("0x00000000000000000000000000000000");
-  private final Bytes POWER_256_4 = Bytes.fromHexString("0x00000000000000000000000100000000");
-  private final Bytes POWER_256_6 = Bytes.fromHexString("0x00000000000000000001000000000000");
+  private final EWord POWER_256_4 =
+      EWord.of(
+          Bytes.fromHexString(
+              "0x0000000000000000000000000000000000000000000000000000000100000000"));
+  private final EWord POWER_256_6 =
+      EWord.of(
+          Bytes.fromHexString(
+              "0x0000000000000000000000000000000000000000000000000001000000000000"));
 
   private final boolean firstBlockInConflation;
   private final int ctMax;
@@ -61,12 +67,9 @@ public class BlockdataOperation extends ModuleOperation {
   private final int relTxMax;
   private final long relBlock;
 
-  private Bytes dataHi;
-  private Bytes dataLo;
-  private Bytes[] arg1Hi;
-  private Bytes[] arg1Lo;
-  private Bytes[] arg2Hi;
-  private Bytes[] arg2Lo;
+  private EWord data;
+  private EWord[] arg1;
+  private EWord[] arg2;
   private Bytes[] res;
   private final UnsignedByte[] exoInst;
   private final boolean[] wcpFlag;
@@ -89,7 +92,6 @@ public class BlockdataOperation extends ModuleOperation {
     this.ctMax = ctMax(opCode);
     this.firstBlockNumber = firstBlockNumber;
     this.relTxMax = relTxMax;
-    // TODO: add method
     this.relBlock = blockHeader.getNumber() - firstBlockNumber + 1;
     this.firstBlockInConflation = (blockHeader.getNumber() == firstBlockNumber);
     this.wcp = wcp;
@@ -100,16 +102,12 @@ public class BlockdataOperation extends ModuleOperation {
     this.wcpFlag = new boolean[ctMax];
     this.eucFlag = new boolean[ctMax];
     this.exoInst = new UnsignedByte[ctMax];
-    this.arg1Hi = new Bytes[ctMax];
-    this.arg1Lo = new Bytes[ctMax];
-    this.arg2Hi = new Bytes[ctMax];
-    this.arg2Lo = new Bytes[ctMax];
+    this.arg1 = new EWord[ctMax];
+    this.arg2 = new EWord[ctMax];
     this.res = new Bytes[ctMax];
     Arrays.fill(exoInst, UnsignedByte.ZERO);
-    Arrays.fill(arg1Hi, ZERO);
-    Arrays.fill(arg1Lo, ZERO);
-    Arrays.fill(arg2Hi, ZERO);
-    Arrays.fill(arg2Lo, ZERO);
+    Arrays.fill(arg1, ZERO);
+    Arrays.fill(arg2, ZERO);
     Arrays.fill(res, ZERO);
 
     // Handle opcodes
@@ -139,95 +137,77 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   private void handleCoinbase() {
-    dataHi = EWord.ofHexString(blockHeader.getCoinbase().toHexString()).hi();
-    dataLo = EWord.ofHexString(blockHeader.getCoinbase().toHexString()).lo();
-
+    data = EWord.ofHexString(blockHeader.getCoinbase().toHexString());
     // row i
-    wcpCallToLT(0, dataHi, dataLo, POWER_256_4, ZERO);
+    wcpCallToLT(0, data, POWER_256_4);
   }
 
   private void handleTimestamp() {
-    dataHi = ZERO;
-    dataLo = EWord.of(blockHeader.getTimestamp()).lo();
-    Bytes prevDataLo =
-        prevBlockHeader == null ? ZERO : EWord.of(prevBlockHeader.getTimestamp()).lo();
+    data = EWord.of(blockHeader.getTimestamp());
+    EWord prevData =
+        prevBlockHeader == null ? EWord.ZERO : EWord.of(prevBlockHeader.getTimestamp());
 
     // row i
-    wcpCallToLT(0, dataHi, dataLo, ZERO, POWER_256_6);
+    wcpCallToLT(0, data, POWER_256_6);
 
     // row i + 1
-    wcpCallToGT(1, dataHi, dataLo, ZERO, prevDataLo);
+    wcpCallToGT(1, data, prevData);
   }
 
   private void handleNumber() {
-    dataHi = ZERO;
-    dataLo = Bytes.ofUnsignedLong(blockHeader.getNumber());
+    data = EWord.of(blockHeader.getNumber());
 
-    wcpCallToISZERO(0, dataHi, Bytes.ofUnsignedLong(firstBlockNumber));
+    wcpCallToISZERO(0, EWord.of(firstBlockNumber));
 
     // row i
     if (firstBlockInConflation) {
-      wcpCallToLT(1, dataHi, dataLo, ZERO, POWER_256_6);
+      wcpCallToLT(1, data, POWER_256_6);
     }
   }
 
   private void handleDifficulty() {
-    dataHi = EWord.of(blockHeader.getDifficulty().getAsBigInteger()).hi(); // ?
-    dataLo = EWord.of(blockHeader.getDifficulty().getAsBigInteger()).lo();
+    data = EWord.of(blockHeader.getDifficulty().getAsBigInteger());
 
     // row i
-    wcpCallToGEQ(0, dataHi, dataLo, ZERO, ZERO);
+    wcpCallToGEQ(0, data, EWord.ZERO);
   }
 
   private void handleGasLimit() {
-    dataHi = ZERO;
-    dataLo = EWord.of(blockHeader.getGasLimit()).lo();
+    data = EWord.of(blockHeader.getGasLimit());
 
     // row i
-    wcpCallToGEQ(0, dataHi, dataLo, ZERO, Bytes.ofUnsignedLong(LINEA_GAS_LIMIT_MINIMUM));
+    wcpCallToGEQ(0, data, EWord.of(LINEA_GAS_LIMIT_MINIMUM));
 
     // row i + 1
-    wcpCallToLEQ(1, dataHi, dataLo, ZERO, Bytes.ofUnsignedLong(LINEA_GAS_LIMIT_MAXIMUM));
+    wcpCallToLEQ(1, data, EWord.of(LINEA_GAS_LIMIT_MAXIMUM));
 
     if (!firstBlockInConflation) {
-      Bytes prevGasLimit = Bytes.ofUnsignedLong(prevBlockHeader.getGasLimit());
+      EWord prevGasLimit = EWord.of(prevBlockHeader.getGasLimit());
       // row i + 2
-      Bytes maxDeviation =
-          eucCall(2, prevGasLimit, Bytes.ofUnsignedLong(GAS_LIMIT_ADJUSTMENT_FACTOR));
+      Bytes maxDeviation = eucCall(2, prevGasLimit, EWord.of(GAS_LIMIT_ADJUSTMENT_FACTOR));
       // row i + 3
-      wcpCallToLT(
-          3,
-          dataHi,
-          dataLo,
-          ZERO,
-          Bytes.ofUnsignedLong(prevGasLimit.toLong() + maxDeviation.toLong()));
+      wcpCallToLT(3, data, EWord.of(prevGasLimit.toLong() + maxDeviation.toLong()));
 
       // row i + 4
       wcpCallToGT(
           4,
-          dataHi,
-          dataLo,
-          ZERO,
-          Bytes.ofUnsignedLong(
-              prevGasLimit.toLong() - maxDeviation.toLong())); // TODO: double check this
+          data,
+          EWord.of(prevGasLimit.toLong() - maxDeviation.toLong())); // TODO: double check this
     }
   }
 
   private void handleChainId() {
-    dataHi = ZERO;
-    dataLo = EWord.of(chainId).lo();
+    data = EWord.of(chainId);
 
     // row i
-    wcpCallToGEQ(0, dataHi, dataLo, ZERO, ZERO);
+    wcpCallToGEQ(0, data, EWord.ZERO);
   }
 
   private void handleBaseFee() {
-    dataHi = ZERO;
-    dataLo =
-        EWord.of(blockHeader.getBaseFee().get().getAsBigInteger()).lo(); // TODO: change to baseFee
+    data = EWord.of(blockHeader.getBaseFee().get().getAsBigInteger());
 
     // row i
-    wcpCallToGEQ(0, dataHi, dataLo, ZERO, ZERO);
+    wcpCallToGEQ(0, data, EWord.ZERO);
   }
 
   @Override
@@ -252,17 +232,16 @@ public class BlockdataOperation extends ModuleOperation {
           .coinbaseHi(blockHeader.getCoinbase().slice(0, 4).toLong())
           .coinbaseLo(blockHeader.getCoinbase().slice(4, LLARGE))
           .blockGasLimit(blockHeader.getGasLimit())
-          .basefee(
-              blockHeader.getBaseFee().get().getAsBigInteger().longValue()) // TODO: add baseFee
+          .basefee(blockHeader.getBaseFee().get().getAsBigInteger().longValue())
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
           .relTxNumMax((short) relTxMax)
-          .dataHi(dataHi)
-          .dataLo(dataLo)
-          .arg1Hi(arg1Hi[ct])
-          .arg1Lo(arg1Lo[ct])
-          .arg2Hi(arg2Hi[ct])
-          .arg2Lo(arg2Lo[ct])
+          .dataHi(data.hi())
+          .dataLo(data.lo())
+          .arg1Hi(arg1[ct].hi())
+          .arg1Lo(arg1[ct].lo())
+          .arg2Hi(arg2[ct].hi())
+          .arg2Lo(arg2[ct].lo())
           .res(res[ct])
           .exoInst(exoInst[ct])
           .wcpFlag(wcpFlag[ct])
@@ -273,19 +252,12 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   // Module call macros
-  private boolean wcpCallTo(
-      int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo, int inst) {
-    checkArgument(arg1Hi.bitLength() / 8 <= 16);
-    checkArgument(arg1Lo.bitLength() / 8 <= 16);
-    checkArgument(arg2Hi.bitLength() / 8 <= 16);
-    checkArgument(arg2Lo.bitLength() / 8 <= 16);
-    final EWord arg1 = EWord.of(Bytes.concatenate(arg1Hi, arg1Lo));
-    final EWord arg2 = EWord.of(Bytes.concatenate(arg2Hi, arg2Lo));
+  private boolean wcpCallTo(int w, EWord arg1, EWord arg2, int inst) {
+    checkArgument(arg1.bitLength() / 8 <= 32);
+    checkArgument(arg2.bitLength() / 8 <= 32);
 
-    this.arg1Hi[w] = arg1Hi;
-    this.arg1Lo[w] = arg1Lo;
-    this.arg2Hi[w] = arg2Hi;
-    this.arg2Lo[w] = arg2Lo;
+    this.arg1[w] = arg1;
+    this.arg2[w] = arg2;
 
     final boolean r;
     r =
@@ -307,36 +279,34 @@ public class BlockdataOperation extends ModuleOperation {
     return r;
   }
 
-  private boolean wcpCallToLT(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
-    return wcpCallTo(w, arg1Hi, arg1Lo, arg2Hi, arg2Lo, EVM_INST_LT);
+  private boolean wcpCallToLT(int w, EWord arg1, EWord arg2) {
+    return wcpCallTo(w, arg1, arg2, EVM_INST_LT);
   }
 
-  private boolean wcpCallToGT(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
-    return wcpCallTo(w, arg1Hi, arg1Lo, arg2Hi, arg2Lo, EVM_INST_GT);
+  private boolean wcpCallToGT(int w, EWord arg1, EWord arg2) {
+    return wcpCallTo(w, arg1, arg2, EVM_INST_GT);
   }
 
-  private boolean wcpCallToLEQ(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
-    return wcpCallTo(w, arg1Hi, arg1Lo, arg2Hi, arg2Lo, WCP_INST_LEQ);
+  private boolean wcpCallToLEQ(int w, EWord arg1, EWord arg2) {
+    return wcpCallTo(w, arg1, arg2, WCP_INST_LEQ);
   }
 
-  private boolean wcpCallToGEQ(int w, Bytes arg1Hi, Bytes arg1Lo, Bytes arg2Hi, Bytes arg2Lo) {
-    return wcpCallTo(w, arg1Hi, arg1Lo, arg2Hi, arg2Lo, WCP_INST_GEQ);
+  private boolean wcpCallToGEQ(int w, EWord arg1, EWord arg2) {
+    return wcpCallTo(w, arg1, arg2, WCP_INST_GEQ);
   }
 
-  private boolean wcpCallToISZERO(int w, Bytes arg1Hi, Bytes arg1Lo) {
-    return wcpCallTo(w, arg1Hi, arg1Lo, ZERO, ZERO, EVM_INST_ISZERO);
+  private boolean wcpCallToISZERO(int w, EWord arg1) {
+    return wcpCallTo(w, arg1, EWord.ZERO, EVM_INST_ISZERO);
   }
 
-  private Bytes eucCall(int w, Bytes arg1Lo, Bytes arg2Lo) {
-    checkArgument(arg1Lo.bitLength() / 8 <= 16);
-    checkArgument(arg2Lo.bitLength() / 8 <= 16);
+  private Bytes eucCall(int w, EWord arg1, EWord arg2) {
+    checkArgument(arg1.bitLength() / 8 <= 16);
+    checkArgument(arg2.bitLength() / 8 <= 16);
 
-    this.arg1Hi[w] = ZERO;
-    this.arg1Lo[w] = arg1Lo;
-    this.arg2Hi[w] = ZERO;
-    this.arg2Lo[w] = arg2Lo;
+    this.arg1[w] = arg1;
+    this.arg2[w] = arg2;
 
-    res[w] = euc.callEUC(arg1Lo, arg2Lo).quotient();
+    res[w] = euc.callEUC(arg1, arg2).quotient();
 
     wcpFlag[w] = false;
     eucFlag[w] = true;

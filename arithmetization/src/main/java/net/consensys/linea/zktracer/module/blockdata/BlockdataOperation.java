@@ -28,6 +28,7 @@ import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMI
 import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MINIMUM;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 
 import lombok.EqualsAndHashCode;
@@ -50,15 +51,8 @@ public class BlockdataOperation extends ModuleOperation {
   private final Bytes chainId;
   private final BlockHeader blockHeader;
   private final BlockHeader prevBlockHeader;
-  private final Bytes ZERO = Bytes.fromHexString("0x00000000000000000000000000000000");
-  private final EWord POWER_256_4 =
-      EWord.of(
-          Bytes.fromHexString(
-              "0x0000000000000000000000000000000000000000000000000000000100000000"));
-  private final EWord POWER_256_6 =
-      EWord.of(
-          Bytes.fromHexString(
-              "0x0000000000000000000000000000000000000000000000000001000000000000"));
+  private final EWord POWER_256_20 = EWord.of(BigInteger.ONE.shiftLeft(20 * 8));
+  private final EWord POWER_256_6 = EWord.of(BigInteger.ONE.shiftLeft(6 * 8));
 
   private final boolean firstBlockInConflation;
   private final int ctMax;
@@ -106,9 +100,9 @@ public class BlockdataOperation extends ModuleOperation {
     this.arg2 = new EWord[ctMax];
     this.res = new Bytes[ctMax];
     Arrays.fill(exoInst, UnsignedByte.ZERO);
-    Arrays.fill(arg1, ZERO);
-    Arrays.fill(arg2, ZERO);
-    Arrays.fill(res, ZERO);
+    Arrays.fill(arg1, EWord.ZERO);
+    Arrays.fill(arg2, EWord.ZERO);
+    Arrays.fill(res, EWord.ZERO);
 
     // Handle opcodes
     switch (opCode) {
@@ -139,7 +133,7 @@ public class BlockdataOperation extends ModuleOperation {
   private void handleCoinbase() {
     data = EWord.ofHexString(blockHeader.getCoinbase().toHexString());
     // row i
-    wcpCallToLT(0, data, POWER_256_4);
+    wcpCallToLT(0, data, POWER_256_20);
   }
 
   private void handleTimestamp() {

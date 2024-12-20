@@ -49,7 +49,7 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
       TransactionProcessingMetadata transactionProcessingMetadata,
       Transients transients) {
     super(hub, (short) 4);
-    hub.defers().scheduleForPostTransaction(this);
+    hub.defers().scheduleForEndTransaction(this);
 
     txMetadata = transactionProcessingMetadata;
     final Address senderAddress = txMetadata.getBesuTransaction().getSender();
@@ -87,7 +87,8 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
   }
 
   @Override
-  public void resolvePostTransaction(Hub hub, WorldView world, Transaction tx, boolean statusCode) {
+  public void resolveAtEndTransaction(
+      Hub hub, WorldView world, Transaction tx, boolean statusCode) {
     checkArgument(statusCode, "TX_SKIP transactions should be successful");
     checkArgument(txMetadata.statusCode(), "meta data suggests an unsuccessful TX_SKIP");
 

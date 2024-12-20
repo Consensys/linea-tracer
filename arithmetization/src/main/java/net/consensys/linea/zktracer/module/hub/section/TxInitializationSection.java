@@ -61,7 +61,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 8);
-    hub.defers().scheduleForPostTransaction(this);
+    hub.defers().scheduleForEndTransaction(this);
 
     hubStamp = hub.stamp();
     accountFragmentFactory = hub.factories().accountFragment();
@@ -86,7 +86,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
             deploymentInfo.getDeploymentStatus(senderAddress));
     senderGasPaymentNew =
         senderGasPayment.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth().raiseNonceByOne();
-
 
     final Wei value = (Wei) tx.getBesuTransaction().getValue();
 
@@ -169,7 +168,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   }
 
   @Override
-  public void resolvePostTransaction(
+  public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
     if (!isSuccessful) {

@@ -521,6 +521,8 @@ public class Hub implements Module {
     }
   }
 
+  // the sender already received its gas refund
+  // the coinbase already received its gas reward
   public void traceEndTransaction(
       WorldView world,
       Transaction tx,
@@ -534,7 +536,7 @@ public class Hub implements Module {
 
     txStack.current().completeLineaTransaction(this, isSuccessful, logs, selfDestructs);
 
-    defers.resolvePostTransaction(this, world, tx, isSuccessful);
+    defers.resolveAtEndTransaction(this, world, tx, isSuccessful);
 
     // Warn: we need to call MMIO after resolving the defers
     for (Module m : modules) {

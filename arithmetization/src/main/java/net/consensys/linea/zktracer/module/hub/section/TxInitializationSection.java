@@ -199,27 +199,28 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (!isSuccessful) {
-      senderUndoingValueTransferNew =
-          senderUndoingValueTransfer.deepCopy().setDeploymentNumber(hub).incrementBalanceBy(value);
 
+      senderUndoingValueTransfer = senderValueTransferNew.deepCopy().setDeploymentNumber(hub);
+      senderUndoingValueTransferNew = senderValueTransfer.deepCopy().setDeploymentNumber(hub);
+
+      recipientUndoingValueReception =
+          recipientValueReceptionNew.deepCopy().setDeploymentNumber(hub);
       recipientUndoingValueReceptionNew =
-          recipientUndoingValueReception
-              .deepCopy()
-              .setDeploymentNumber(hub)
-              .decrementBalanceBy(value);
+          recipientUndoingValueReception.deepCopy().setDeploymentNumber(hub);
 
-      // TODO: "this happens second" in the issue, what does it mean?
-      // ACC i+5 (sender)
-      this.addFragment(
+      final int revertStamp = hub.currentFrame().revertStamp();
+
+      this.addFragment( // ACC i + 5 (sender)
           accountFragmentFactory.make(
-              senderUndoingValueTransfer, senderUndoingValueTransferNew, senderDomSubStamps));
+              senderUndoingValueTransfer,
+              senderUndoingValueTransferNew,
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 3)));
 
-      // ACC i+6 (recipient)
-      this.addFragment(
+      this.addFragment( // ACC i + 6 (recipient)
           accountFragmentFactory.make(
               recipientUndoingValueReception,
               recipientUndoingValueReceptionNew,
-              recipientDomSubStamps));
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 4)));
     }
 
     this.addFragment(initializationContextFragment); // CON i + 5/7

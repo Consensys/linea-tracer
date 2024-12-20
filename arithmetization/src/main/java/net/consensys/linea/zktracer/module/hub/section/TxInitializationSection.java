@@ -60,6 +60,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
   final DomSubStampsSubFragment senderDomSubStamps;
   final DomSubStampsSubFragment recipientDomSubStamps;
+  @Getter private final ContextFragment initializationContextFragment;
 
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 5);
@@ -190,6 +191,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
                 recipientDomSubStamps)
             .requiresRomlex(true));
 
+    initializationContextFragment = ContextFragment.initializeExecutionContext(hub);
     hub.state.setProcessingPhase(TX_EXEC);
   }
 
@@ -220,7 +222,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
               recipientDomSubStamps));
     }
 
-    // CON i+7
-    this.addFragment(ContextFragment.initializeExecutionContext(hub));
+    this.addFragment(initializationContextFragment); // CON i + 5/7
   }
 }

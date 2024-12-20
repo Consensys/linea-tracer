@@ -96,7 +96,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
     if (recipientAccount != null) {
       recipientValueReception =
-          isSelfCredit(hub)
+          senderIsRecipient(hub)
               ? senderValueTransferNew
               : AccountSnapshot.canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
                   .setWarmthTo(tx.isRecipientPreWarmed());
@@ -199,7 +199,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     this.addFragment(initializationContextFragment); // CON i + 5/7
   }
 
-  private boolean isSelfCredit(Hub hub) {
+  public static boolean senderIsRecipient(Hub hub) {
     final TransactionProcessingMetadata tx = hub.txStack().current();
     final Address senderAddress = tx.getSender();
     final Address recipientAddress = tx.getEffectiveRecipient();

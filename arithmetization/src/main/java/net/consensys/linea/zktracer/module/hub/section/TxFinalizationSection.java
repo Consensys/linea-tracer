@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.*;
 
-import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -28,170 +27,100 @@ import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TxFinalizationSection extends TraceSection implements PostTransactionDefer {
   private final TransactionProcessingMetadata txMetadata;
 
-  private AccountSnapshot senderFinalization;
-  private AccountSnapshot senderFinalizationNew;
+  private AccountSnapshot sender;
+  private AccountSnapshot senderNew;
 
-  private AccountSnapshot coinbaseFinalization;
-  private AccountSnapshot coinbaseFinalizationNew;
+  private AccountSnapshot coinbase;
+  private AccountSnapshot coinbaseNew;
 
   public TxFinalizationSection(Hub hub, WorldView world, boolean exceptionOrRevert) {
     super(hub, (short) 4);
-
+    hub.defers().scheduleForEndTransaction(this);
     txMetadata = hub.txStack().current();
-
-    final Address senderAddress = txMetadata.getSender();
-    final Address coinbaseAddress = txMetadata.getCoinbase();
-
-    senderFinalization =
-        exceptionOrRevert
-            ? hub.txStack().getInitializationSection().getSenderValueTransferNew()
-            : AccountSnapshot.canonical(hub, world, senderAddress);
-    coinbaseFinalization = AccountSnapshot.canonical(hub, world, coinbaseAddress);
-
-    hub.defers().scheduleForPostTransaction(this);
   }
 
   @Override
-  public void resolvePostTransaction(
+  public void resolveAtEndTransaction(
       Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
 
-    final boolean coinbaseWarmth = txMetadata.isCoinbaseWarmAtTransactionEnd();
-
-    final Address senderAddress = senderFinalization.address();
-    senderFinalizationNew =
-        AccountSnapshot.canonical(hub, world, senderAddress)
-            .turnOnWarmth(); // purely constraints based
-
-    final Address coinbaseAddress = coinbaseFinalization.address();
-    coinbaseFinalizationNew =
-        AccountSnapshot.canonical(hub, world, coinbaseAddress)
-            .setWarmthTo(coinbaseWarmth); // purely constraints based
-
-    DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     checkArgument(isSuccessful == txMetadata.statusCode());
 
-    // TODO: do we switch off the deployment status at the end of a deployment ?
-    // checkArgument(
-    //     !deploymentInfo.getDeploymentStatus(senderAddress),
-    //     "The sender may not be under deployment");
-    // checkArgument(
-    //     !deploymentInfo.getDeploymentStatus(recipientAddress),
-    //     "The recipient may not be under deployment");
+    DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     checkArgument(
-        !deploymentInfo.getDeploymentStatus(coinbaseAddress),
+        !deploymentInfo.getDeploymentStatus(txMetadata.getCoinbase()),
         "The coinbase may not be under deployment");
 
-    if (isSuccessful) {
-      successFinalization(hub);
-    } else {
-      failureFinalization(hub);
-    }
-  }
-
-  private void successFinalization(Hub hub) {
-    // TODO: are the assignments here correct?
-    // ACC i+0 (sender)
-    senderFinalizationNew =
-        senderFinalization.deepCopy().incrementBalanceBy(txMetadata.getGasRefundInWei());
+    setSnapshots(hub, world);
 
     final AccountFragment senderAccountFragment =
         hub.factories()
             .accountFragment()
             .make(
-                    senderFinalization,
-                    senderFinalizationNew,
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
-
-    // ACC i+1 (coinbase) (depending on weather the sender is the coinbase or not)
-    coinbaseFinalizationNew =
-        !txMetadata.senderIsCoinbase()
-            ? coinbaseFinalization.deepCopy().incrementBalanceBy(txMetadata.getCoinbaseReward())
-            : coinbaseFinalization
-                .deepCopy()
-                .incrementBalanceBy(
-                    txMetadata.getGasRefundInWei().add(txMetadata.getCoinbaseReward()));
+                sender,
+                senderNew,
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)); //
 
     final AccountFragment coinbaseAccountFragment =
         hub.factories()
             .accountFragment()
-            .make(
-                    senderFinalization,
-                    coinbaseFinalizationNew,
+            .makeWithTrm(
+                coinbase,
+                coinbaseNew,
+                coinbase.address(),
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
-    this.addFragments(senderAccountFragment, coinbaseAccountFragment);
-
-    // TXN i+2
-    final TransactionFragment currentTransactionFragment =
-        TransactionFragment.prepare(hub.txStack().current());
-    this.addFragment(currentTransactionFragment);
+    this.addFragment(senderAccountFragment);
+    this.addFragment(coinbaseAccountFragment);
+    this.addFragment(TransactionFragment.prepare(hub.txStack().current())); // TXN i+2
   }
 
-  private void failureFinalization(Hub hub) {
-    if (txMetadata.noAddressCollisions()) {
+  /**
+   * 1. snapshot the coinbase, this yields coinbaseNew
+   *
+   * <p>2. undo the gas reward, this yields coinbase
+   *
+   * <p>3.1. if {@link #senderIsCoinbase(Hub)} set {@link #senderNew} = {@link #coinbase}.deepCopy()
+   *
+   * <p>3.2. else set {@link #senderNew} = snapshot the sender
+   *
+   * <p>4. get sender by undoing the left over gas refund which is already implicitly in coinbase
+   *
+   * <p><b>N.B.</b> The processing is independent of the success or failure of the transaction.
+   */
+  private void setSnapshots(Hub hub, WorldView world) {
+    final Address senderAddress = txMetadata.getSender();
+    final Address coinbaseAddress = txMetadata.getCoinbase();
 
-      final AccountFragment senderAccountFragment =
-          hub.factories()
-              .accountFragment()
-              .make(
-                      senderFinalization,
-                      senderFinalizationNew,
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
-
-      final AccountFragment coinbaseAccountFragment =
-          hub.factories()
-              .accountFragment()
-              .make(
-                      coinbaseFinalization,
-                      coinbaseFinalizationNew,
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
-
-      this.addFragments(senderAccountFragment, coinbaseAccountFragment);
-
-    } else {
-      // TODO: should we treat differently the sender != coinbase case from the sender == coinbase
-      //  in the failure finalization case, too?
-
-      final Wei transactionValue = (Wei) txMetadata.getBesuTransaction().getValue();
-
-      // FIRST ROW
-      final AccountSnapshot senderSnapshotAfterValueAndGasRefunds =
-          senderFinalization
-              .deepCopy()
-              .incrementBalanceBy(transactionValue)
-              .incrementBalanceBy(txMetadata.getGasRefundInWei());
-
-      final AccountFragment senderAccountFragment =
-          hub.factories()
-              .accountFragment()
-              .make(
-                      senderFinalization,
-                  senderSnapshotAfterValueAndGasRefunds,
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
-
-      // THIRD ROW
-      final AccountSnapshot coinbaseSnapshotBefore =
-          coinbaseFinalizationNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
-
-      final AccountFragment coinbaseAccountFragment =
-          hub.factories()
-              .accountFragment()
-              .make(
-                  coinbaseSnapshotBefore,
-                      coinbaseFinalizationNew,
-                  DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
-
-      this.addFragments(senderAccountFragment, coinbaseAccountFragment);
+    if (senderIsCoinbase(hub)) {
+      checkState(coinbaseWarmth());
     }
-    final TransactionFragment currentTransactionFragment =
-        TransactionFragment.prepare(hub.txStack().current());
 
-    this.addFragment(currentTransactionFragment);
+    coinbaseNew =
+        AccountSnapshot.canonical(hub, world, coinbaseAddress)
+            .setWarmthTo(coinbaseWarmth())
+            .setDeploymentInfo(hub);
+    coinbase = coinbaseNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
+
+    senderNew =
+        senderIsCoinbase(hub)
+            ? coinbase.deepCopy().setWarmthTo(true)
+            : AccountSnapshot.canonical(hub, world, senderAddress).setWarmthTo(true);
+    sender = senderNew.deepCopy().decrementBalanceBy(txMetadata.getGasRefundInWei());
+  }
+
+  private boolean coinbaseWarmth() {
+    return txMetadata.isCoinbaseWarmAtTransactionEnd();
+  }
+
+  public static boolean senderIsCoinbase(Hub hub) {
+    final TransactionProcessingMetadata tx = hub.txStack().current();
+    final Address senderAddress = tx.getSender();
+    final Address coinbaseAddress = tx.getCoinbase();
+    return coinbaseAddress.equals(senderAddress);
   }
 }

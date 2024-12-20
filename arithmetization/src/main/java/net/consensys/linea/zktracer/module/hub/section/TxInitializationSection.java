@@ -45,7 +45,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   @Getter private final AccountSnapshot senderGasPayment;
   @Getter private final AccountSnapshot senderGasPaymentNew;
 
-  final Wei value;
   @Getter private final AccountSnapshot senderValueTransfer;
   @Getter private final AccountSnapshot senderValueTransferNew;
 
@@ -61,11 +60,11 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   @Getter private final ContextFragment initializationContextFragment;
 
   public TxInitializationSection(Hub hub, WorldView world) {
-    super(hub, (short) 5);
+    super(hub, (short) 8);
+    hub.defers().scheduleForPostTransaction(this);
+
     hubStamp = hub.stamp();
     accountFragmentFactory = hub.factories().accountFragment();
-
-    hub.defers().scheduleForPostTransaction(this);
 
     hub.txStack().setInitializationSection(this);
 
@@ -88,7 +87,8 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     senderGasPaymentNew =
         senderGasPayment.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth().raiseNonceByOne();
 
-    value = (Wei) tx.getBesuTransaction().getValue();
+
+    final Wei value = (Wei) tx.getBesuTransaction().getValue();
 
     senderValueTransfer = senderGasPaymentNew.deepCopy();
     senderValueTransferNew = senderValueTransfer.deepCopy().decrementBalanceBy(value);

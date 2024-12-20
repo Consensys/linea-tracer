@@ -58,8 +58,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   @Getter private AccountSnapshot recipientUndoingValueReception;
   @Getter private AccountSnapshot recipientUndoingValueReceptionNew;
 
-  final DomSubStampsSubFragment senderDomSubStamps;
-  final DomSubStampsSubFragment recipientDomSubStamps;
   @Getter private final ContextFragment initializationContextFragment;
 
   public TxInitializationSection(Hub hub, WorldView world) {
@@ -87,7 +85,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
             tx.isSenderPreWarmed(),
             deploymentInfo.deploymentNumber(senderAddress),
             deploymentInfo.getDeploymentStatus(senderAddress));
-    senderDomSubStamps = DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0);
 
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     value = (Wei) tx.getBesuTransaction().getValue();
@@ -151,9 +148,14 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     }
     recipientUndoingValueReception = recipientValueReceptionNew.deepCopy();
 
-    recipientDomSubStamps = DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1);
 
     final TransactionFragment txFragment = TransactionFragment.prepare(tx);
+    this.addFragment( // ACC i + 2 (sender: gas payment)
+        accountFragmentFactory.makeWithTrm(
+            senderGasPayment,
+            senderGasPaymentNew,
+            senderAddress,
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0)));
 
     // MISC i+0
     this.addFragments(ImcFragment.forTxInit(hub));
@@ -163,33 +165,31 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
     accountFragmentFactory = hub.factories().accountFragment();
 
-    // ACC i+2 (sender)
-    this.addFragment(
-        accountFragmentFactory.make(senderGasPayment, senderGasPaymentNew, senderDomSubStamps));
 
-    // ACC i+3 (sender)
-    this.addFragment(
+    this.addFragment( // ACC i + 3 (sender: value transfer)
         accountFragmentFactory.make(
-            senderValueTransfer, senderValueTransferNew, senderDomSubStamps));
+            senderValueTransfer,
+            senderValueTransferNew,
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1)));
 
-    // ACC i+4 (recipient)
-    this.addFragment(
+    this.addFragment( // ACC i + 4 (recipient: value reception)
         accountFragmentFactory
             .makeWithTrm(
                 recipientValueReception,
                 recipientValueReceptionNew,
-                // Note that this depends on weather the sender is equal to the recipient
                 recipientAddress,
-                recipientDomSubStamps)
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2))
             .requiresRomlex(true));
 
     initializationContextFragment = ContextFragment.initializeExecutionContext(hub);
+
     hub.state.setProcessingPhase(TX_EXEC);
   }
 
   @Override
   public void resolvePostTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+
     if (!isSuccessful) {
 
       senderUndoingValueTransfer = senderValueTransferNew.deepCopy().setDeploymentNumber(hub);
@@ -217,6 +217,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
     this.addFragment(initializationContextFragment); // CON i + 5/7
   }
+
   private boolean isSelfCredit(Hub hub) {
     final TransactionProcessingMetadata tx = hub.txStack().current();
     final Address senderAddress = tx.getSender();

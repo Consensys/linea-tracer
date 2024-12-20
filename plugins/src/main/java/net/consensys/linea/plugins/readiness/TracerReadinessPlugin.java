@@ -172,10 +172,15 @@ public class TracerReadinessPlugin extends AbstractLineaOptionsPlugin {
         RequestLimiterDispatcher.getLimiter(
             RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY);
 
-    return synchronizationService.isInitialSyncPhaseDone()
+    if(!synchronizationService.isInitialSyncPhaseDone()) {
+      log.info("Initial sync phase not done yet");
+      return false;
+    }
+
+    return
         // TODO: Temporarily disabled.
         //        && isInSync.get()
-        && !requestLimiter.isNodeAtMaxCapacity();
+        !requestLimiter.isNodeAtMaxCapacity();
   }
 
   @Override

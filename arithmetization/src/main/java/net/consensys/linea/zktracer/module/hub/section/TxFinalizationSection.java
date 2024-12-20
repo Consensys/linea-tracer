@@ -17,6 +17,9 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.*;
 
+import java.util.List;
+import java.util.Set;
+
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -25,18 +28,20 @@ import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TxFinalizationSection extends TraceSection implements PostTransactionDefer {
   private final TransactionProcessingMetadata txMetadata;
 
-  private AccountSnapshot sender;
-  private AccountSnapshot senderNew;
+  private AccountSnapshot senderGasRefund;
+  private AccountSnapshot senderGasRefundNew;
 
-  private AccountSnapshot coinbase;
-  private AccountSnapshot coinbaseNew;
+  private AccountSnapshot coinbaseGasRefund;
+  private AccountSnapshot coinbaseGasRefundNew;
 
   public TxFinalizationSection(Hub hub, WorldView world, boolean exceptionOrRevert) {
     super(hub, (short) 4);
@@ -61,17 +66,17 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
         hub.factories()
             .accountFragment()
             .make(
-                sender,
-                senderNew,
+                senderGasRefund,
+                senderGasRefundNew,
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)); //
 
     final AccountFragment coinbaseAccountFragment =
         hub.factories()
             .accountFragment()
             .makeWithTrm(
-                coinbase,
-                coinbaseNew,
-                coinbase.address(),
+                coinbaseGasRefund,
+                coinbaseGasRefundNew,
+                coinbaseGasRefund.address(),
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
     this.addFragment(senderAccountFragment);
@@ -80,15 +85,23 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
   }
 
   /**
-   * 1. snapshot the coinbase, this yields coinbaseNew
+   * Extracting the snapshots for the sender and the coinbase does not work as one may expect. One
+   * has to start with the `New` versions of the snapshots and then deduce the `Old` versions. This
+   * is due to that this method is called in the {@link
+   * OperationTracer#traceEndTransaction(WorldView, Transaction, boolean, Bytes, List, long, Set,
+   * long)} method, when gas refunds have already been honored, both for the sender and the
+   * coinbase.
+   *
+   * <p>1. snapshot the coinbase, this yields coinbaseNew
    *
    * <p>2. undo the gas reward, this yields coinbase
    *
-   * <p>3.1. if {@link #senderIsCoinbase(Hub)} set {@link #senderNew} = {@link #coinbase}.deepCopy()
+   * <p>3.1. if {@link #senderIsCoinbase(Hub)} set {@link #senderGasRefundNew} = {@link
+   * #coinbaseGasRefund}.deepCopy()
    *
-   * <p>3.2. else set {@link #senderNew} = snapshot the sender
+   * <p>3.2. else set {@link #senderGasRefundNew} = snapshot the sender
    *
-   * <p>4. get sender by undoing the left over gas refund which is already implicitly in coinbase
+   * <p>4. get sender by undoing the leftover gas refund which is already implicitly in coinbase
    *
    * <p><b>N.B.</b> The processing is independent of the success or failure of the transaction.
    */
@@ -100,17 +113,19 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
       checkState(coinbaseWarmth());
     }
 
-    coinbaseNew =
+    coinbaseGasRefundNew =
         AccountSnapshot.canonical(hub, world, coinbaseAddress)
             .setWarmthTo(coinbaseWarmth())
             .setDeploymentInfo(hub);
-    coinbase = coinbaseNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
+    coinbaseGasRefund =
+        coinbaseGasRefundNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
 
-    senderNew =
+    senderGasRefundNew =
         senderIsCoinbase(hub)
-            ? coinbase.deepCopy().setWarmthTo(true)
-            : AccountSnapshot.canonical(hub, world, senderAddress).setWarmthTo(true);
-    sender = senderNew.deepCopy().decrementBalanceBy(txMetadata.getGasRefundInWei());
+            ? coinbaseGasRefund.deepCopy().setWarmthTo(true)
+            : AccountSnapshot.canonical(hub, world, senderAddress);
+    senderGasRefund =
+        senderGasRefundNew.deepCopy().decrementBalanceBy(txMetadata.getGasRefundInWei());
   }
 
   private boolean coinbaseWarmth() {

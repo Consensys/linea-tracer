@@ -38,6 +38,7 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TxInitializationSection extends TraceSection implements PostTransactionDefer {
+  @Getter private final int hubStamp;
   @Getter private final AccountSnapshot senderGasPayment;
   @Getter private final AccountSnapshot senderGasPaymentNew;
 
@@ -61,6 +62,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 5);
+    hubStamp = hub.stamp();
 
     // This ensures resolvePostTransaction is executed
     hub.defers().scheduleForPostTransaction(this);

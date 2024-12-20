@@ -131,12 +131,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     final Bytecode initCode = new Bytecode(tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
 
     recipientValueReceptionNew = recipientValueReception.deepCopy();
-    Wei incrementToApplyToRecipientBalance;
-    if (isSelfCredit) {
-      incrementToApplyToRecipientBalance = value.subtract(gasCost);
-    } else {
-      incrementToApplyToRecipientBalance = value;
-    }
 
     if (isDeployment) {
       Preconditions.checkState(
@@ -148,14 +142,12 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
       recipientValueReceptionNew
           .raiseNonceByOne()
-          .incrementBalanceBy(incrementToApplyToRecipientBalance)
+          .incrementBalanceBy(value)
           .code(initCode)
           .turnOnWarmth()
           .setDeploymentInfo(deploymentInfo);
     } else {
-      recipientValueReceptionNew
-          .incrementBalanceBy(incrementToApplyToRecipientBalance)
-          .turnOnWarmth();
+      recipientValueReceptionNew.incrementBalanceBy(value).turnOnWarmth();
     }
     recipientUndoingValueReception = recipientValueReceptionNew.deepCopy();
 

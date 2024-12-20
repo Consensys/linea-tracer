@@ -148,8 +148,9 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     }
     recipientUndoingValueReception = recipientValueReceptionNew.deepCopy();
 
+    this.addFragments(ImcFragment.forTxInit(hub)); // MISC i + 0
+    this.addFragment(TransactionFragment.prepare(tx)); // TXN i + 1
 
-    final TransactionFragment txFragment = TransactionFragment.prepare(tx);
     this.addFragment( // ACC i + 2 (sender: gas payment)
         accountFragmentFactory.makeWithTrm(
             senderGasPayment,
@@ -157,15 +158,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
             senderAddress,
             DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0)));
 
-    // MISC i+0
-    this.addFragments(ImcFragment.forTxInit(hub));
-
-    // TXN i+1
-    this.addFragment(txFragment);
-
     accountFragmentFactory = hub.factories().accountFragment();
-
-
     this.addFragment( // ACC i + 3 (sender: value transfer)
         accountFragmentFactory.make(
             senderValueTransfer,

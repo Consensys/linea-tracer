@@ -38,44 +38,47 @@ import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class TxInitializationSection extends TraceSection implements PostTransactionDefer {
+
   @Getter private final int hubStamp;
+  final AccountFragment.AccountFragmentFactory accountFragmentFactory;
+
   @Getter private final AccountSnapshot senderGasPayment;
   @Getter private final AccountSnapshot senderGasPaymentNew;
 
-  @Getter private final AccountSnapshot senderValueTransfer; // = senderGasPaymentNew
+  final Wei value;
+  @Getter private final AccountSnapshot senderValueTransfer;
   @Getter private final AccountSnapshot senderValueTransferNew;
 
   @Getter private final AccountSnapshot recipientValueReception;
   @Getter private final AccountSnapshot recipientValueReceptionNew;
 
-  @Getter private final AccountSnapshot senderUndoingValueTransfer; // = senderValueTransferNew
+  @Getter private AccountSnapshot senderUndoingValueTransfer;
   @Getter private AccountSnapshot senderUndoingValueTransferNew;
 
-  @Getter private final AccountSnapshot recipientUndoingValueReception;
-  // = recipientValueReceptionNew
+  @Getter private AccountSnapshot recipientUndoingValueReception;
   @Getter private AccountSnapshot recipientUndoingValueReceptionNew;
 
-  final AccountFragment.AccountFragmentFactory accountFragmentFactory;
-  final Wei value;
   final DomSubStampsSubFragment senderDomSubStamps;
   final DomSubStampsSubFragment recipientDomSubStamps;
 
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 5);
     hubStamp = hub.stamp();
+    accountFragmentFactory = hub.factories().accountFragment();
 
-    // This ensures resolvePostTransaction is executed
     hub.defers().scheduleForPostTransaction(this);
 
     hub.txStack().setInitializationSection(this);
 
     final TransactionProcessingMetadata tx = hub.txStack().current();
-    final boolean isDeployment = tx.isDeployment();
+    final Address senderAddress = tx.getSender();
     final Address recipientAddress = tx.getEffectiveRecipient();
+    final Account senderAccount = world.get(senderAddress);
     final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
 
-    final Address senderAddress = tx.getSender();
-    final Account senderAccount = world.get(senderAddress);
+    final boolean isDeployment = tx.isDeployment();
+    final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
+    final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
 
     senderGasPayment =
         AccountSnapshot.fromAccount(

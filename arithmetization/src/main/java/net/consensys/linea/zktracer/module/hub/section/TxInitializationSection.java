@@ -85,24 +85,14 @@ public class TxInitializationSection extends TraceSection implements PostTransac
             tx.isSenderPreWarmed(),
             deploymentInfo.deploymentNumber(senderAddress),
             deploymentInfo.getDeploymentStatus(senderAddress));
+    senderGasPaymentNew =
+        senderGasPayment.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth().raiseNonceByOne();
 
-    final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     value = (Wei) tx.getBesuTransaction().getValue();
-    final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
-    final Wei valueAndGasCost = gasCost.add(value);
 
-    senderGasPaymentNew = senderGasPayment.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth();
     senderValueTransfer = senderGasPaymentNew.deepCopy();
+    senderValueTransferNew = senderValueTransfer.deepCopy().decrementBalanceBy(value);
 
-    senderValueTransferNew =
-        senderValueTransfer
-            .deepCopy()
-            .decrementBalanceBy(valueAndGasCost)
-            .turnOnWarmth()
-            .raiseNonceByOne();
-    senderUndoingValueTransfer = senderValueTransferNew.deepCopy();
-
-    final boolean isSelfCredit = recipientAddress.equals(senderAddress);
     final Account recipientAccount = world.get(recipientAddress);
 
     if (recipientAccount != null) {
@@ -158,7 +148,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
             senderAddress,
             DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0)));
 
-    accountFragmentFactory = hub.factories().accountFragment();
     this.addFragment( // ACC i + 3 (sender: value transfer)
         accountFragmentFactory.make(
             senderValueTransfer,

@@ -635,12 +635,12 @@ public class Hub implements Module {
 
       this.currentFrame().initializeFrame(frame);
 
-      defers.resolveUponContextEntry(this, frame);
-
       for (Module m : modules) {
         m.traceContextEnter(frame);
       }
     }
+
+    defers.resolveUponContextEntry(this, frame);
   }
 
   @Override

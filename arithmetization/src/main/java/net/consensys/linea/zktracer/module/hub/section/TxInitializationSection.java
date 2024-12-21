@@ -137,7 +137,10 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     }
     recipientUndoingValueReception = recipientValueReceptionNew.deepCopy();
 
-    this.addFragments(ImcFragment.forTxInit(hub)); // MISC i + 0
+    ImcFragment miscFragment = ImcFragment.forTxInit(hub);
+    hub.defers().scheduleForContextEntry(miscFragment);
+
+    this.addFragment(miscFragment); // MISC i + 0
     this.addFragment(TransactionFragment.prepare(tx)); // TXN i + 1
 
     this.addFragment( // ACC i + 2 (sender: gas payment)
@@ -179,7 +182,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
       recipientUndoingValueReception =
           recipientValueReceptionNew.deepCopy().setDeploymentNumber(hub);
       recipientUndoingValueReceptionNew =
-          recipientUndoingValueReception.deepCopy().setDeploymentNumber(hub);
+          recipientValueReception.deepCopy().setDeploymentNumber(hub).turnOnWarmth();
 
       final int revertStamp = hub.currentFrame().revertStamp();
 

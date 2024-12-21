@@ -23,9 +23,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_GEQ;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
-import static net.consensys.linea.zktracer.module.constants.Trace.GAS_LIMIT_ADJUSTMENT_FACTOR;
-import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MAXIMUM;
-import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MINIMUM;
+import static net.consensys.linea.zktracer.module.constants.Trace.*;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
@@ -225,8 +223,8 @@ public class BlockdataOperation extends ModuleOperation {
           .inst(UnsignedByte.of(opCode.byteValue()))
           .coinbaseHi(blockHeader.getCoinbase().slice(0, 4).toLong())
           .coinbaseLo(blockHeader.getCoinbase().slice(4, LLARGE))
-          .blockGasLimit(blockHeader.getGasLimit())
-          .basefee(blockHeader.getBaseFee().get().getAsBigInteger().longValue())
+          .blockGasLimit(Bytes.ofUnsignedLong(blockHeader.getGasLimit()))
+          .basefee(Bytes.ofUnsignedLong(blockHeader.getBaseFee().get().getAsBigInteger().longValue()))
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
           .relTxNumMax((short) relTxMax)

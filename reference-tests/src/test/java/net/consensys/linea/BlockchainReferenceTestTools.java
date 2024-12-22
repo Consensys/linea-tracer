@@ -225,20 +225,32 @@ public class BlockchainReferenceTestTools {
     // EOF tests are written against an older version of the spec.
     PARAMS.ignore("/stEOF/");
 
-    // MODEXP calls with one of base_byte_size, exponent_byte_size, modulus_byte_size > 512
-    PARAMS.ignore("modexp_d28g0v0_London[London]");
-    PARAMS.ignore("modexp_d29g0v0_London[London]");
-    PARAMS.ignore("modexp_d29g1v0_London[London]");
-    PARAMS.ignore("modexp_d29g2v0_London[London]");
-    PARAMS.ignore("modexp_d29g3v0_London[London]");
-    PARAMS.ignore("modexp_d2g0v0_London[London]");
-    PARAMS.ignore("modexp_d30g0v0_London[London]");
-    PARAMS.ignore("modexp_d30g1v0_London[London]");
-    PARAMS.ignore("modexp_d30g2v0_London[London]");
-    PARAMS.ignore("modexp_d30g3v0_London[London]");
-    PARAMS.ignore("modexp_d36g0v0_London[London]");
-    PARAMS.ignore("modexp_d37g0v0_London[London]");
-
+    // MODEXP calls with one of base byte size (bbs), exponent byte size (ebs), modulus byte size
+    // (mbs) > 512
+    PARAMS.ignore("modexp_d28g0v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d28g1v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d28g2v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d28g3v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d29g0v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d29g1v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d29g2v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d29g3v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d2g0v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d2g1v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d2g2v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d2g3v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d30g0v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d30g1v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d30g2v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d30g3v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d36g0v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d36g1v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d36g2v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d36g3v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d37g0v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d37g1v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d37g2v0_London\\[London\\]");
+    PARAMS.ignore("modexp_d37g3v0_London\\[London\\]");
   }
 
   private BlockchainReferenceTestTools() {

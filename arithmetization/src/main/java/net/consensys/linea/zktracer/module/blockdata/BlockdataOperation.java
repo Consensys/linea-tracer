@@ -224,7 +224,8 @@ public class BlockdataOperation extends ModuleOperation {
           .coinbaseHi(blockHeader.getCoinbase().slice(0, 4).toLong())
           .coinbaseLo(blockHeader.getCoinbase().slice(4, LLARGE))
           .blockGasLimit(Bytes.ofUnsignedLong(blockHeader.getGasLimit()))
-          .basefee(Bytes.ofUnsignedLong(blockHeader.getBaseFee().get().getAsBigInteger().longValue()))
+          .basefee(
+              Bytes.ofUnsignedLong(blockHeader.getBaseFee().get().getAsBigInteger().longValue()))
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
           .relTxNumMax((short) relTxMax)

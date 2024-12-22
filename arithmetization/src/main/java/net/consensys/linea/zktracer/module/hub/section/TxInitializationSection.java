@@ -77,7 +77,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     final boolean isDeployment = tx.isDeployment();
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
-
     senderGasPayment =
         AccountSnapshot.fromAccount(
             senderAccount,

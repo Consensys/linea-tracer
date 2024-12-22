@@ -120,14 +120,87 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("randomStatetest94_\\w+");
 
     // Balance is more than 128 bits
+    PARAMS.ignore("CALLCODE_Bounds2_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CALLCODE_Bounds2_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CALLCODE_Bounds3_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CALLCODE_Bounds3_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CALLCODE_Bounds4_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CALLCODE_Bounds4_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CALLCODE_Bounds4_d0g2v0_London\\[London\\]");
+    PARAMS.ignore("CALLCODE_Bounds_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CALLCODE_Bounds_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CALL_Bounds2_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CALL_Bounds2_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CALL_Bounds2a_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CALL_Bounds2a_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CALL_Bounds3_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CALL_Bounds3_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CALL_Bounds3_d0g2v0_London\\[London\\]");
+    PARAMS.ignore("CALL_Bounds_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CALL_Bounds_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CREATE2_Bounds2_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CREATE2_Bounds2_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CREATE2_Bounds3_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CREATE2_Bounds3_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CREATE2_Bounds3_d0g2v0_London\\[London\\]");
+    PARAMS.ignore("CREATE2_Bounds_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CREATE2_Bounds_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CREATE_Bounds2_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CREATE_Bounds2_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CREATE_Bounds3_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CREATE_Bounds3_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("CREATE_Bounds3_d0g2v0_London\\[London\\]");
+    PARAMS.ignore("CREATE_Bounds_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("CREATE_Bounds_d0g1v0_London\\[London\\]");
     PARAMS.ignore("Call1024PreCalls_d0g0v0_London\\[London\\]");
     PARAMS.ignore("Call1024PreCalls_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("Call1024PreCalls_d0g2v0_London\\[London\\]");
+    PARAMS.ignore("Create2OnDepth1023_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("Create2OnDepth1024_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("Create2Recursive_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("Create2Recursive_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("DELEGATECALL_Bounds2_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("DELEGATECALL_Bounds2_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("DELEGATECALL_Bounds3_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("DELEGATECALL_Bounds3_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("DELEGATECALL_Bounds3_d0g2v0_London\\[London\\]");
+    PARAMS.ignore("DELEGATECALL_Bounds_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("DELEGATECALL_Bounds_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("DelegateCallSpam_London\\[London\\]");
+    PARAMS.ignore("HighGasLimit_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("MSTORE_Bounds2_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("MSTORE_Bounds2_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("MSTORE_Bounds2a_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("MSTORE_Bounds2a_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("MSTORE_Bounds_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("MSTORE_Bounds_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("OutOfGasContractCreation_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("OutOfGasContractCreation_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("OutOfGasContractCreation_d1g0v0_London\\[London\\]");
+    PARAMS.ignore("OutOfGasContractCreation_d1g1v0_London\\[London\\]");
+    PARAMS.ignore("OverflowGasRequire2_d0g0v0_London\\[London\\]");
     PARAMS.ignore("OverflowGasRequire_London\\[London\\]");
+    PARAMS.ignore("RETURN_Bounds_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("RETURN_Bounds_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("RETURN_Bounds_d0g2v0_London\\[London\\]");
     PARAMS.ignore("StrangeContractCreation_London\\[London\\]");
     PARAMS.ignore("SuicideIssue_London\\[London\\]");
-    PARAMS.ignore("DelegateCallSpam_London\\[London\\]");
-    PARAMS.ignore("OverflowGasRequire2_d0g0v0_London\\[London\\]");
-    PARAMS.ignore("HighGasLimit_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("static_CALL_Bounds2_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("static_CALL_Bounds2_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("static_CALL_Bounds2a_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("static_CALL_Bounds2a_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("static_CALL_Bounds3_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("static_CALL_Bounds3_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("static_CALL_Bounds_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("static_CALL_Bounds_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("static_Call1024PreCalls2_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("static_Call1024PreCalls2_d1g0v0_London\\[London\\]");
+    PARAMS.ignore("static_Call1024PreCalls3_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("static_Call1024PreCalls3_d1g0v0_London\\[London\\]");
+    PARAMS.ignore("static_Call1024PreCalls_d1g0v0_London\\[London\\]");
+    PARAMS.ignore("static_RETURN_BoundsOOG_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("static_RETURN_BoundsOOG_d1g0v0_London\\[London\\]");
+    PARAMS.ignore("static_RETURN_Bounds_d0g0v0_London\\[London\\]");
 
     // Deployment transaction to an account with nonce / code
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g0v0_London\\[London\\]");
@@ -151,6 +224,21 @@ public class BlockchainReferenceTestTools {
 
     // EOF tests are written against an older version of the spec.
     PARAMS.ignore("/stEOF/");
+
+    // MODEXP calls with one of base_byte_size, exponent_byte_size, modulus_byte_size > 512
+    PARAMS.ignore("modexp_d28g0v0_London[London]");
+    PARAMS.ignore("modexp_d29g0v0_London[London]");
+    PARAMS.ignore("modexp_d29g1v0_London[London]");
+    PARAMS.ignore("modexp_d29g2v0_London[London]");
+    PARAMS.ignore("modexp_d29g3v0_London[London]");
+    PARAMS.ignore("modexp_d2g0v0_London[London]");
+    PARAMS.ignore("modexp_d30g0v0_London[London]");
+    PARAMS.ignore("modexp_d30g1v0_London[London]");
+    PARAMS.ignore("modexp_d30g2v0_London[London]");
+    PARAMS.ignore("modexp_d30g3v0_London[London]");
+    PARAMS.ignore("modexp_d36g0v0_London[London]");
+    PARAMS.ignore("modexp_d37g0v0_London[London]");
+
   }
 
   private BlockchainReferenceTestTools() {

@@ -5,6 +5,11 @@ on:
     - cron: 0 21 * * 1-5
   workflow_dispatch:
     inputs:
+      test_filter:
+        description: Filter tests to run (via Gradle)
+        required: false
+        type: string
+        default: "BlockchainReferenceTest_*"
       failed_module:
         description: Specific module to filter from failed tests
         required: false
@@ -63,7 +68,7 @@ jobs:
         run: mv ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTests.json ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTests-input.json
 
       - name: Run reference blockchain tests
-        run: GOMEMLIMIT=32GiB ./gradlew referenceBlockchainTests -x spotlessCheck
+        run: GOMEMLIMIT=32GiB ./gradlew referenceBlockchainTests -x spotlessCheck --tests "${{ inputs.test_filter }}"
         timeout-minutes: 360
         env:
           REFERENCE_TESTS_PARALLELISM: 2
@@ -90,7 +95,7 @@ jobs:
           path: reference-tests/build/reports/tests/**/*
 
       - name: Extract Metrics
-        if: always()
+        if: ${{ failure() || cancelled() }}
         run: |
           # Gather metrics
           SUCCESS_COUNTER=$(cat $JSON_REPORT | sed -e "s/.*\"successCounter\":\([0-9]*\).*/\1/")
@@ -103,7 +108,8 @@ jobs:
           echo "ABORTED=$ABORTED_COUNTER" >> $GITHUB_ENV
           echo "DISABLED=$DISABLED_COUNTER" >> $GITHUB_ENV
         env:
-          JSON_REPORT: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTes
+          JSON_REPORT: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/BlockchainReferenceTestOutcome.json
+
       - name: Failure Notification
         if: ${{ failure() || cancelled() }}
         uses: slackapi/slack-github-action@v2.0.0
@@ -112,4 +118,4 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
              name: "Daily Blockchain"
-             status: "${{ job.status }}, ${{ env.SUCCESS }} successful, ${{ env.FAILED }} failed, ${{ env.ABORTED }} aborted, ${{ env.DISABLED }} disabled."
+             status: "${{ env.SUCCESS }} successful, ${{ env.FAILED }} failed, ${{ env.ABORTED }} aborted, ${{ env.DISABLED }} disabled"

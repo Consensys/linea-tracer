@@ -89,6 +89,21 @@ jobs:
           name: blockchain-refrence-tests-report
           path: reference-tests/build/reports/tests/**/*
 
+      - name: Extract Metrics
+        if: always()
+        run: |
+          # Gather metrics
+          SUCCESS_COUNTER=$(cat $JSON_REPORT | sed -e "s/.*\"successCounter\":\([0-9]*\).*/\1/")
+          FAILED_COUNTER=$(cat $JSON_REPORT | sed -e "s/.*\"failedCounter\":\([0-9]*\).*/\1/")
+          ABORTED_COUNTER=$(cat $JSON_REPORT | sed -e "s/.*\"abortedCounter\":\([0-9]*\).*/\1/")
+          DISABLED_COUNTER=$(cat $JSON_REPORT | sed -e "s/.*\"disabledCounter\":\([0-9]*\).*/\1/")
+          # Set environment variables
+          echo "SUCCESS=$SUCCESS_COUNTER" >> $GITHUB_ENV
+          echo "FAILED=$FAILED_COUNTER" >> $GITHUB_ENV
+          echo "ABORTED=$ABORTED_COUNTER" >> $GITHUB_ENV
+          echo "DISABLED=$DISABLED_COUNTER" >> $GITHUB_ENV
+        env:
+          JSON_REPORT: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTes
       - name: Failure Notification
         if: ${{ failure() || cancelled() }}
         uses: slackapi/slack-github-action@v2.0.0
@@ -97,4 +112,4 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
              name: "Daily Blockchain"
-             status: "${{ job.status }}"
+             status: "${{ job.status }}, ${{ env.SUCCESS }} successful, ${{ env.FAILED }} failed, ${{ env.ABORTED }} aborted, ${{ env.DISABLED }} disabled."

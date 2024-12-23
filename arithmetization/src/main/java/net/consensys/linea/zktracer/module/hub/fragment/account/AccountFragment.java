@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
-import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -190,9 +189,7 @@ public final class AccountFragment
     codeFragmentIndex =
         requiresRomlex
             ? hub.getCfiByMetaData(
-                        newState.address(),
-                        newState.deploymentNumber(),
-                        newState.deploymentStatus())
+                newState.address(), newState.deploymentNumber(), newState.deploymentStatus())
             : 0;
   }
 }

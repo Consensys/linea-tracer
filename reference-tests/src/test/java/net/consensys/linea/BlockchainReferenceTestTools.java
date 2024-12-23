@@ -225,8 +225,15 @@ public class BlockchainReferenceTestTools {
     // EOF tests are written against an older version of the spec.
     PARAMS.ignore("/stEOF/");
 
-    // MODEXP calls with one of base byte size (bbs), exponent byte size (ebs), modulus byte size
-    // (mbs) > 512
+    /**
+     * We ignore the following tests because they satisfy one of the following:
+     *
+     * <p>- bbs > 512, bbs ≡ base byte size
+     *
+     * <p>- ebs > 512, ebs ≡ exponent byte size
+     *
+     * <p>- mbs > 512, mbs ≡ modulus byte size
+     */
     PARAMS.ignore("modexp_d28g0v0_London\\[London\\]");
     PARAMS.ignore("modexp_d28g1v0_London\\[London\\]");
     PARAMS.ignore("modexp_d28g2v0_London\\[London\\]");

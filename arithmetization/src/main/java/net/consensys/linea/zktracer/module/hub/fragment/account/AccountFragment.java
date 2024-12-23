@@ -189,12 +189,10 @@ public final class AccountFragment
     existsInfinity = world.get(newState.address()) != null;
     codeFragmentIndex =
         requiresRomlex
-            ? hub.romLex()
-                .getCodeFragmentIndexByMetadata(
-                    ContractMetadata.make(
+            ? hub.getCfiByMetaData(
                         newState.address(),
                         newState.deploymentNumber(),
-                        newState.deploymentStatus()))
+                        newState.deploymentStatus())
             : 0;
   }
 }

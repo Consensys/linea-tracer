@@ -122,7 +122,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
     senderGasRefundNew =
         senderIsCoinbase(hub)
-            ? coinbaseGasRefund.deepCopy().setWarmthTo(true)
+            ? coinbaseGasRefund.deepCopy()
             : AccountSnapshot.canonical(hub, world, senderAddress);
     senderGasRefund =
         senderGasRefundNew.deepCopy().decrementBalanceBy(txMetadata.getGasRefundInWei());

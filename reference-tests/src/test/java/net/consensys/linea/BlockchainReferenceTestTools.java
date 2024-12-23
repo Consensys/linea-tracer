@@ -251,6 +251,25 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("modexp_d37g1v0_London\\[London\\]");
     PARAMS.ignore("modexp_d37g2v0_London\\[London\\]");
     PARAMS.ignore("modexp_d37g3v0_London\\[London\\]");
+
+    // unsupported behaviour: uncle blocks, re-orgs, forks, side chain (?)
+    PARAMS.ignore("ChainAtoChainBCallContractFormA_London\\[London\\]");
+    PARAMS.ignore("ChainAtoChainB_London\\[London\\]");
+    PARAMS.ignore("ChainAtoChainB_difficultyB_London\\[London\\]");
+    PARAMS.ignore("ChainAtoChainBtoChainA_London\\[London\\]");
+    PARAMS.ignore("ForkStressTest_London\\[London\\]");
+    PARAMS.ignore("RPC_API_Test_London\\[London\\]");
+    PARAMS.ignore("newChainFrom4Block_London\\[London\\]");
+    PARAMS.ignore("newChainFrom5Block_London\\[London\\]");
+    PARAMS.ignore("newChainFrom6Block_London\\[London\\]");
+    PARAMS.ignore("sideChainWithMoreTransactions2_London\\[London\\]");
+    PARAMS.ignore("sideChainWithMoreTransactions_London\\[London\\]");
+    PARAMS.ignore("sideChainWithNewMaxDifficultyStartingFromBlock3AfterBlock4_London\\[London\\]");
+    PARAMS.ignore("uncleBlockAtBlock3AfterBlock3_London\\[London\\]");
+    PARAMS.ignore("uncleBlockAtBlock3afterBlock4_London\\[London\\]");
+
+    // not sure what this test is doing
+    // PARAMS.ignore("CallContractFromNotBestBlock_London\\[London\\]");
   }
 
   private BlockchainReferenceTestTools() {

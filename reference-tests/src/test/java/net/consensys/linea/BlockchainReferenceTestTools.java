@@ -258,7 +258,6 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("ChainAtoChainB_difficultyB_London\\[London\\]");
     PARAMS.ignore("ChainAtoChainBtoChainA_London\\[London\\]");
     PARAMS.ignore("ForkStressTest_London\\[London\\]");
-    PARAMS.ignore("RPC_API_Test_London\\[London\\]");
     PARAMS.ignore("newChainFrom4Block_London\\[London\\]");
     PARAMS.ignore("newChainFrom5Block_London\\[London\\]");
     PARAMS.ignore("newChainFrom6Block_London\\[London\\]");
@@ -268,8 +267,9 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("uncleBlockAtBlock3AfterBlock3_London\\[London\\]");
     PARAMS.ignore("uncleBlockAtBlock3afterBlock4_London\\[London\\]");
 
-    // not sure what this test is doing
+    // not sure what these tests are doing
     // PARAMS.ignore("CallContractFromNotBestBlock_London\\[London\\]");
+    // PARAMS.ignore("RPC_API_Test_London\\[London\\]");
   }
 
   private BlockchainReferenceTestTools() {

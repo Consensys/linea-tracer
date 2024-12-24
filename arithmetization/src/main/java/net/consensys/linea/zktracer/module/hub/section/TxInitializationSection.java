@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.section;
 
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 
-import com.google.common.base.Preconditions;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -77,6 +77,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     final boolean isDeployment = tx.isDeployment();
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
+
     senderGasPayment =
         AccountSnapshot.fromAccount(
             senderAccount,
@@ -108,23 +109,35 @@ public class TxInitializationSection extends TraceSection implements PostTransac
               deploymentInfo.getDeploymentStatus(recipientAddress));
     }
 
-    if (isDeployment) {
-      deploymentInfo.newDeploymentWithExecutionAt(
-          recipientAddress, tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
-    }
-
-    final Bytecode initCode = new Bytecode(tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
+    checkState(
+            !recipientValueReception.deploymentStatus(),
+            "recipient should not have been undergoing deployment before transaction start");
 
     recipientValueReceptionNew = recipientValueReception.deepCopy();
 
     if (isDeployment) {
-      Preconditions.checkState(
-          !recipientValueReception.deploymentStatus()
-              && deploymentInfo.getDeploymentStatus(recipientAddress)
-              && recipientValueReception.deploymentNumber() + 1
-                  == deploymentInfo.deploymentNumber(recipientAddress),
-          "Deployment status should be true and deployment number should be positive");
+      if (recipientAccount != null) {
+        checkState(
+                recipientAccount.getCode().equals(Bytes.EMPTY),
+                "the recipient of a deployment transaction must have empty code");
+        checkState(
+                recipientAccount.getNonce() == 0,
+                "the recipient of a deployment transaction must have zero nonce");
+      }
 
+      deploymentInfo.newDeploymentWithExecutionAt(
+          recipientAddress, tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
+
+      // this should be useless
+      checkState(
+          deploymentInfo.getDeploymentStatus(recipientAddress),
+          "at this point the recipient should be undergoing deployment");
+      checkState(
+          recipientValueReception.deploymentNumber() + 1
+              == deploymentInfo.deploymentNumber(recipientAddress),
+          "Deployment status should be true and deployment number should have incremented by 1");
+
+      final Bytecode initCode = new Bytecode(tx.getBesuTransaction().getInit().orElse(Bytes.EMPTY));
       recipientValueReceptionNew
           .raiseNonceByOne()
           .incrementBalanceBy(value)

@@ -88,7 +88,7 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("dynamicAccountOverwriteEmpty_d0g0v0_London\\[London\\]");
 
     // ignore tests that are failing because there is an account with nonce 0 and
-    // non empty code which can't happen in Linea since we are post LONDON only.
+    // non empty code which can't happen in Linea since we are post LONDON
     PARAMS.ignore("InitCollision_d0g0v0_London\\[London\\]");
     PARAMS.ignore("InitCollision_d1g0v0_London\\[London\\]");
     PARAMS.ignore("InitCollision_d2g0v0_London\\[London\\]");
@@ -212,6 +212,11 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g1v0_London\\[London\\]");
     PARAMS.ignore("TransactionCollisionToEmptyButNonce_d0g1v1_London\\[London\\]");
     PARAMS.ignore("createJS_ExampleContract_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("initCollidingWithNonEmptyAccount_d0g0v0_London\\[London\\]");
+    PARAMS.ignore("initCollidingWithNonEmptyAccount_d1g0v0_London\\[London\\]");
+    PARAMS.ignore("initCollidingWithNonEmptyAccount_d2g0v0_London\\[London\\]");
+    PARAMS.ignore("initCollidingWithNonEmptyAccount_d3g0v0_London\\[London\\]");
+    PARAMS.ignore("initCollidingWithNonEmptyAccount_d4g0v0_London\\[London\\]");
 
     // Don't do time-consuming tests.
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");

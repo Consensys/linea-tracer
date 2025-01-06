@@ -55,17 +55,18 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   /* Store the number of call (capped to 2) of BLOCKHASH of a BLOCK_NUMBER*/
   private final Map<Bytes32, Integer> numberOfCall = new HashMap<>();
 
-  private long absoluteBlockNumber;
-  private short relativeBlock;
+  private short relBlock;
+  private long absBlock;
 
-  private Bytes32 opcodeArgument;
+  private Bytes32 blockhashArg;
+
   private boolean lowerBound;
   private boolean upperBound;
 
   public Blockhash(Hub hub, Wcp wcp) {
     this.hub = hub;
     this.wcp = wcp;
-    this.relativeBlock = 0;
+    this.relBlock = 0;
   }
 
   @Override
@@ -75,8 +76,8 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   @Override
   public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
-    relativeBlock += 1;
-    absoluteBlockNumber = processableBlockHeader.getNumber();
+    relBlock += 1;
+    absBlock = processableBlockHeader.getNumber();
   }
 
   @Override
@@ -84,21 +85,20 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     checkArgument(opCode == OpCode.BLOCKHASH, "Expected BLOCKHASH opcode");
 
-    opcodeArgument = Bytes32.leftPad(frame.getStackItem(0));
-    lowerBound =
-        wcp.callGEQ(
-            opcodeArgument, Bytes.ofUnsignedLong(absoluteBlockNumber - BLOCKHASH_MAX_HISTORY));
-    upperBound = wcp.callLT(opcodeArgument, Bytes.ofUnsignedLong(absoluteBlockNumber));
+    blockhashArg = Bytes32.leftPad(frame.getStackItem(0));
+
+    // TODO: lowerBound and upperBound are not used anymore here, move logic inside
+    lowerBound = wcp.callGEQ(blockhashArg, Bytes.ofUnsignedLong(absBlock - BLOCKHASH_MAX_HISTORY));
+    upperBound = wcp.callLT(blockhashArg, Bytes.ofUnsignedLong(absBlock));
 
     hub.defers().scheduleForPostExecution(this);
 
     /* To prove the lex order of BLOCK_NUMBER_HI/LO, we call WCP at endConflation, so we need to add rows in WCP now.
     If a BLOCK_NUMBER is already called at least two times, no need for additional rows in WCP*/
-    final int numberOfCall = this.numberOfCall.getOrDefault(opcodeArgument, 0);
+    final int numberOfCall = this.numberOfCall.getOrDefault(blockhashArg, 0);
     if (numberOfCall < 2) {
-      wcp.additionalRows.add(
-          Math.max(Math.min(LLARGE, opcodeArgument.trimLeadingZeros().size()), 1));
-      this.numberOfCall.replace(opcodeArgument, numberOfCall, numberOfCall + 1);
+      wcp.additionalRows.add(Math.max(Math.min(LLARGE, blockhashArg.trimLeadingZeros().size()), 1));
+      this.numberOfCall.replace(blockhashArg, numberOfCall, numberOfCall + 1);
     }
   }
 
@@ -108,12 +108,10 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     if (opCode == OpCode.BLOCKHASH) {
-      final Bytes32 result = Bytes32.leftPad(frame.getStackItem(0));
-      operations.add(
-          new BlockhashOperation(
-              relativeBlock, opcodeArgument, absoluteBlockNumber, lowerBound, upperBound, result));
-      if (result != Bytes32.ZERO) {
-        blockHashMap.put(opcodeArgument, result);
+      final Bytes32 blockhashRes = Bytes32.leftPad(frame.getStackItem(0));
+      operations.add(new BlockhashOperation(relBlock, blockhashArg, absBlock, blockhashRes));
+      if (blockhashRes != Bytes32.ZERO) {
+        blockHashMap.put(blockhashArg, blockhashRes);
       }
     }
   }
@@ -123,10 +121,10 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     OperationSetModule.super.traceEndConflation(state);
     sortedOperations = sortOperations(new BlockhashComparator());
     if (!sortedOperations.isEmpty()) {
-      wcp.callGEQ(sortedOperations.getFirst().opcodeArgument(), Bytes32.ZERO);
+      wcp.callGEQ(sortedOperations.getFirst().blockhashArg(), Bytes32.ZERO);
       for (int i = 1; i < sortedOperations.size(); i++) {
         wcp.callGEQ(
-            sortedOperations.get(i).opcodeArgument(), sortedOperations.get(i - 1).opcodeArgument());
+            sortedOperations.get(i).blockhashArg(), sortedOperations.get(i - 1).blockhashArg());
       }
     }
   }
@@ -140,12 +138,13 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
     for (BlockhashOperation op : sortedOperations) {
-      final Bytes32 hash =
-          op.result() == Bytes32.ZERO
-              ? this.blockHashMap.getOrDefault(op.opcodeArgument(), Bytes32.ZERO)
-              : op.result();
+      final Bytes32 blockhashVal =
+          op.blockhashRes() == Bytes32.ZERO
+              ? this.blockHashMap.getOrDefault(op.blockhashArg(), Bytes32.ZERO)
+              : op.blockhashRes();
 
-      op.trace(trace, hash);
+      op.traceMacro(trace, blockhashVal);
+      op.tracePreprocessing(trace);
     }
   }
 }

@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.blockhash;
 
+import static net.consensys.linea.zktracer.module.blockhash.Trace.nROWS_PRPRC;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -26,66 +29,36 @@ import org.apache.tuweni.bytes.Bytes32;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 @RequiredArgsConstructor
 public class BlockhashOperation extends ModuleOperation {
-  @Getter @EqualsAndHashCode.Include private final short relativeBlock;
-  @Getter @EqualsAndHashCode.Include private final Bytes32 opcodeArgument;
-  private final long absoluteBlockNumber;
-  private final boolean lowerBound;
-  private final boolean upperBound;
-  @Getter private final Bytes32 result;
+  @Getter @EqualsAndHashCode.Include private final short relBlock;
+  @Getter @EqualsAndHashCode.Include private final Bytes32 blockhashArg;
+  private final long absBlock;
+  @Getter private final Bytes32 blockhashRes;
 
   @Override
   protected int computeLineCount() {
     return 1;
   }
 
-  public void trace(Trace trace, final Bytes32 hash) {
+  public void traceMacro(Trace trace, final Bytes32 blockhashVal) {
     trace
         .iomf(true)
-        /*
-         .blockNumberHi(opcodeArgument.slice(0, LLARGE))
-         .blockNumberLo(opcodeArgument.slice(LLARGE, LLARGE))
-         .resHi(result.slice(0, LLARGE))
-         .resLo(result.slice(LLARGE, LLARGE))
-         .relBlock(relativeBlock)
-         .absBlock(absoluteBlockNumber)
-         .lowerBoundCheck(lowerBound)
-         .upperBoundCheck(upperBound)
-         .inRange(lowerBound && upperBound)
-         .blockHashHi(hash.slice(0, LLARGE))
-         .blockHashLo(hash.slice(LLARGE, LLARGE))
-         .byteHi0(UnsignedByte.of(hash.get(0)))
-         .byteHi1(UnsignedByte.of(hash.get(1)))
-         .byteHi2(UnsignedByte.of(hash.get(2)))
-         .byteHi3(UnsignedByte.of(hash.get(3)))
-         .byteHi4(UnsignedByte.of(hash.get(4)))
-         .byteHi5(UnsignedByte.of(hash.get(5)))
-         .byteHi6(UnsignedByte.of(hash.get(6)))
-         .byteHi7(UnsignedByte.of(hash.get(7)))
-         .byteHi8(UnsignedByte.of(hash.get(8)))
-         .byteHi9(UnsignedByte.of(hash.get(9)))
-         .byteHi10(UnsignedByte.of(hash.get(10)))
-         .byteHi11(UnsignedByte.of(hash.get(11)))
-         .byteHi12(UnsignedByte.of(hash.get(12)))
-         .byteHi13(UnsignedByte.of(hash.get(13)))
-         .byteHi14(UnsignedByte.of(hash.get(14)))
-         .byteHi15(UnsignedByte.of(hash.get(15)))
-         .byteLo0(UnsignedByte.of(hash.get(LLARGE + 0)))
-         .byteLo1(UnsignedByte.of(hash.get(LLARGE + 1)))
-         .byteLo2(UnsignedByte.of(hash.get(LLARGE + 2)))
-         .byteLo3(UnsignedByte.of(hash.get(LLARGE + 3)))
-         .byteLo4(UnsignedByte.of(hash.get(LLARGE + 4)))
-         .byteLo5(UnsignedByte.of(hash.get(LLARGE + 5)))
-         .byteLo6(UnsignedByte.of(hash.get(LLARGE + 6)))
-         .byteLo7(UnsignedByte.of(hash.get(LLARGE + 7)))
-         .byteLo8(UnsignedByte.of(hash.get(LLARGE + 8)))
-         .byteLo9(UnsignedByte.of(hash.get(LLARGE + 9)))
-         .byteLo10(UnsignedByte.of(hash.get(LLARGE + 10)))
-         .byteLo11(UnsignedByte.of(hash.get(LLARGE + 11)))
-         .byteLo12(UnsignedByte.of(hash.get(LLARGE + 12)))
-         .byteLo13(UnsignedByte.of(hash.get(LLARGE + 13)))
-         .byteLo14(UnsignedByte.of(hash.get(LLARGE + 14)))
-         .byteLo15(UnsignedByte.of(hash.get(LLARGE + 15)))
-        */
-        .validateRow();
+        .macro(true)
+        .ct(0)
+        .ctMax(0)
+        .pMacroRelBlock(relBlock)
+        .pMacroAbsBlock(absBlock)
+        .pMacroBlockhashValHi(blockhashVal.slice(0, LLARGE))
+        .pMacroBlockhashValLo(blockhashVal.slice(LLARGE, LLARGE))
+        .pMacroBlockhashArgHi(blockhashArg.slice(0, LLARGE))
+        .pMacroBlockhashArgLo(blockhashArg.slice(LLARGE, LLARGE))
+        .pMacroBlockhashResHi(blockhashRes.slice(0, LLARGE))
+        .pMacroBlockhashResLo(blockhashRes.slice(LLARGE, LLARGE))
+        .fillAndValidateRow();
+  }
+
+  public void tracePreprocessing(Trace trace) {
+    for (int ct = 0; ct < nROWS_PRPRC; ct++) {
+      trace.iomf(true).prprc(true).ct(ct).ctMax(nROWS_PRPRC - 1).fillAndValidateRow();
+    }
   }
 }

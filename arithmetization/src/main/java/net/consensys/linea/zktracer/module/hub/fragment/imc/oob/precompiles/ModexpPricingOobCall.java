@@ -55,7 +55,7 @@ public class ModexpPricingOobCall extends OobCall {
         .data4(booleanToBytes(ramSuccess))
         .data5(bigIntegerToBytes(returnGas))
         .data6(bigIntegerToBytes(exponentLog))
-        .data7(Bytes.of(maxMbsBbs))
+        .data7(bigIntegerToBytes(BigInteger.valueOf(maxMbsBbs)))
         .data8(booleanToBytes(returnAtCapacityNonZero))
         .data9(ZERO);
   }
@@ -71,7 +71,7 @@ public class ModexpPricingOobCall extends OobCall {
         .pMiscOobData4(booleanToBytes(ramSuccess))
         .pMiscOobData5(bigIntegerToBytes(returnGas))
         .pMiscOobData6(bigIntegerToBytes(exponentLog))
-        .pMiscOobData7(Bytes.of(maxMbsBbs))
+        .pMiscOobData7(bigIntegerToBytes(BigInteger.valueOf(maxMbsBbs)))
         .pMiscOobData8(booleanToBytes(returnAtCapacityNonZero))
         .pMiscOobData9(ZERO);
   }

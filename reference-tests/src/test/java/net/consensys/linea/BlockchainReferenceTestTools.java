@@ -40,8 +40,6 @@ import net.consensys.linea.reporting.TestOutcome;
 import net.consensys.linea.reporting.TestOutcomeWriterTool;
 import net.consensys.linea.testing.ExecutionEnvironment;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
-import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
 import org.hyperledger.besu.ethereum.MainnetBlockValidator;
 import org.hyperledger.besu.ethereum.ProtocolContext;
 import org.hyperledger.besu.ethereum.chain.MutableBlockchain;
@@ -226,6 +224,10 @@ public class BlockchainReferenceTestTools {
     // {@link TxInitializationSection}. This triggers a NPE when tracing, as at some point
     // {@link TraceSection#nextSection} is null in {@link TraceSection#computeContextNumberNew()}.
     PARAMS.ignore("FailedCreateRevertsDeletion_d0g0v0_London\\[London\\]");
+
+    // Ignore the following test as it is not supported in Linea.
+    // See [issue #1678](https://github.com/Consensys/linea-tracer/issues/1678)
+    PARAMS.ignore("suicideStorageCheck_London\\[London\\]");
 
     // Don't do time-consuming tests.
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");

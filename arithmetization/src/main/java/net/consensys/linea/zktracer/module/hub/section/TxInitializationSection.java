@@ -110,19 +110,19 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     }
 
     checkState(
-            !recipientValueReception.deploymentStatus(),
-            "recipient should not have been undergoing deployment before transaction start");
+        !recipientValueReception.deploymentStatus(),
+        "recipient should not have been undergoing deployment before transaction start");
 
     recipientValueReceptionNew = recipientValueReception.deepCopy();
 
     if (isDeployment) {
       if (recipientAccount != null) {
         checkState(
-                recipientAccount.getCode().equals(Bytes.EMPTY),
-                "the recipient of a deployment transaction must have empty code");
+            recipientAccount.getCode().equals(Bytes.EMPTY),
+            "the recipient of a deployment transaction must have empty code");
         checkState(
-                recipientAccount.getNonce() == 0,
-                "the recipient of a deployment transaction must have zero nonce");
+            recipientAccount.getNonce() == 0,
+            "the recipient of a deployment transaction must have zero nonce");
       }
 
       deploymentInfo.newDeploymentWithExecutionAt(

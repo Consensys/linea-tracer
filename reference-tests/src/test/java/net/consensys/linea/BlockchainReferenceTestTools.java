@@ -40,6 +40,8 @@ import net.consensys.linea.reporting.TestOutcome;
 import net.consensys.linea.reporting.TestOutcomeWriterTool;
 import net.consensys.linea.testing.ExecutionEnvironment;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
+import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
 import org.hyperledger.besu.ethereum.MainnetBlockValidator;
 import org.hyperledger.besu.ethereum.ProtocolContext;
 import org.hyperledger.besu.ethereum.chain.MutableBlockchain;
@@ -218,27 +220,28 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d3g0v0_London\\[London\\]");
     PARAMS.ignore("initCollidingWithNonEmptyAccount_d4g0v0_London\\[London\\]");
 
+    // Deployment transaction to an account with zero nonce, empty code (and zero balance) but
+    // nonempty storage. Given [EIP-7610](https://github.com/ethereum/EIPs/pull/8161), no Besu
+    // execution takes place, which means that no TraceSection's are created beyond the
+    // {@link TxInitializationSection}. This triggers a NPE when tracing, as at some point
+    // {@link TraceSection#nextSection} is null in {@link TraceSection#computeContextNumberNew()}.
+    PARAMS.ignore("FailedCreateRevertsDeletion_d0g0v0_London\\[London\\]");
+
     // Don't do time-consuming tests.
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");
     PARAMS.ignore("loopMul_*");
 
     // Inconclusive fork choice rule, since in merge CL should be choosing forks and setting the
-    // chain head.
-    // Perfectly valid test pre-merge.
+    // chain head. Perfectly valid test pre-merge.
     PARAMS.ignore("UncleFromSideChain_(Merge|Shanghai|Cancun|Prague|Osaka|Bogota)");
 
     // EOF tests are written against an older version of the spec.
     PARAMS.ignore("/stEOF/");
 
-    /**
-     * We ignore the following tests because they satisfy one of the following:
-     *
-     * <p>- bbs > 512, bbs ≡ base byte size
-     *
-     * <p>- ebs > 512, ebs ≡ exponent byte size
-     *
-     * <p>- mbs > 512, mbs ≡ modulus byte size
-     */
+    // We ignore the following tests because they satisfy one of the following:
+    // - bbs > 512, bbs ≡ base byte size
+    // - ebs > 512, ebs ≡ exponent byte size
+    // - mbs > 512, mbs ≡ modulus byte size
     PARAMS.ignore("modexp_d28g0v0_London\\[London\\]");
     PARAMS.ignore("modexp_d28g1v0_London\\[London\\]");
     PARAMS.ignore("modexp_d28g2v0_London\\[London\\]");

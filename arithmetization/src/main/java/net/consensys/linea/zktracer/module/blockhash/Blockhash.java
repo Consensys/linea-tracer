@@ -115,6 +115,8 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   public void traceEndConflation(WorldView state) {
     // TODO: should we create the operation just here once we can order it wrt blockhashArg?
     // TODO: no need to call WCP here
+    // TODO: is this called before commit? We may create the operation in the same spot as before
+    //  but add the prevBlockhashArg here
     OperationSetModule.super.traceEndConflation(state);
     sortedOperations = sortOperations(new BlockhashComparator());
     if (!sortedOperations.isEmpty()) {

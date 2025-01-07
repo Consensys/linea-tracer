@@ -236,8 +236,8 @@ public class ModexpTests {
 
   /**
    * This test was extracted from {@link BlockchainReferenceTest_339}, specifically {@link
-   * modexp_modsize0_returndatasize_d4g0v0_London}. It <b>FAILS</b> as our tests don't have
-   * a popping mechanism.
+   * modexp_modsize0_returndatasize_d4g0v0_London}. It <b>FAILS</b> as our tests don't have a
+   * popping mechanism.
    */
   @Disabled
   @Test

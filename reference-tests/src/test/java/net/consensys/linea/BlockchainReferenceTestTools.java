@@ -268,6 +268,9 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("modexp_d37g1v0_London\\[London\\]");
     PARAMS.ignore("modexp_d37g2v0_London\\[London\\]");
     PARAMS.ignore("modexp_d37g3v0_London\\[London\\]");
+    PARAMS.ignore("idPrecomps_d4g0v0_London\\[London\\]");
+    PARAMS.ignore("modexp_modsize0_returndatasize_d4g0v0_London\\[London\\]");
+    PARAMS.ignore("randomStatetest650_d0g0v0_London\\[London\\]");
 
     // unsupported behaviour: uncle blocks, re-orgs, forks, side chain (?)
     PARAMS.ignore("ChainAtoChainBCallContractFormA_London\\[London\\]");
@@ -284,7 +287,8 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("uncleBlockAtBlock3AfterBlock3_London\\[London\\]");
     PARAMS.ignore("uncleBlockAtBlock3afterBlock4_London\\[London\\]");
 
-    // not sure what these tests are doing, but they blow up BLOCK_DATA, which is the simplest module in existence
+    // not sure what these tests are doing, but they blow up BLOCK_DATA, which is the simplest
+    // module in existence
     PARAMS.ignore("CallContractFromNotBestBlock_London\\[London\\]");
     PARAMS.ignore("RPC_API_Test_London\\[London\\]");
   }

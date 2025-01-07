@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.blockhash;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
@@ -51,7 +50,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   /* Stores the result of BLOCKHASH if the result of the opcode is not 0 */
   private final Map<Bytes32, Bytes32> blockHashMap = new HashMap<>();
   /* Store the number of call (capped to 2) of BLOCKHASH of a BLOCK_NUMBER*/
-  private final Map<Bytes32, Integer> numberOfCall = new HashMap<>();
+  // private final Map<Bytes32, Integer> numberOfCall = new HashMap<>();
 
   private short relBlock;
   private long absBlock;
@@ -84,14 +83,15 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
     hub.defers().scheduleForPostExecution(this);
 
-    // TODO: this below not necessary
+    // TODO: code below is maybe not necessary
     /* To prove the lex order of BLOCK_NUMBER_HI/LO, we call WCP at endConflation, so we need to add rows in WCP now.
     If a BLOCK_NUMBER is already called at least two times, no need for additional rows in WCP*/
-    final int numberOfCall = this.numberOfCall.getOrDefault(blockhashArg, 0);
-    if (numberOfCall < 2) {
-      wcp.additionalRows.add(Math.max(Math.min(LLARGE, blockhashArg.trimLeadingZeros().size()), 1));
-      this.numberOfCall.replace(blockhashArg, numberOfCall, numberOfCall + 1);
-    }
+    // final int numberOfCall = this.numberOfCall.getOrDefault(blockhashArg, 0);
+    // if (numberOfCall < 2) {
+    //  wcp.additionalRows.add(Math.max(Math.min(LLARGE, blockhashArg.trimLeadingZeros().size()),
+    // 1));
+    //  this.numberOfCall.replace(blockhashArg, numberOfCall, numberOfCall + 1);
+    // }
   }
 
   @Override
@@ -101,10 +101,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     if (opCode == OpCode.BLOCKHASH) {
       final Bytes32 blockhashRes = Bytes32.leftPad(frame.getStackItem(0));
-      // TODO: here we should pass prevBlockhashArg instead
-      operations.add(
-          new BlockhashOperation(
-              relBlock, absBlock, blockhashArg, blockhashArg, blockhashRes, wcp));
+      operations.add(new BlockhashOperation(relBlock, absBlock, blockhashArg, blockhashRes, wcp));
       if (blockhashRes != Bytes32.ZERO) {
         blockHashMap.put(blockhashArg, blockhashRes);
       }
@@ -113,19 +110,8 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   @Override
   public void traceEndConflation(WorldView state) {
-    // TODO: should we create the operation just here once we can order it wrt blockhashArg?
-    // TODO: no need to call WCP here
-    // TODO: is this called before commit? We may create the operation in the same spot as before
-    //  but add the prevBlockhashArg here
     OperationSetModule.super.traceEndConflation(state);
     sortedOperations = sortOperations(new BlockhashComparator());
-    if (!sortedOperations.isEmpty()) {
-      wcp.callGEQ(sortedOperations.getFirst().blockhashArg(), Bytes32.ZERO);
-      for (int i = 1; i < sortedOperations.size(); i++) {
-        wcp.callGEQ(
-            sortedOperations.get(i).blockhashArg(), sortedOperations.get(i - 1).blockhashArg());
-      }
-    }
   }
 
   @Override
@@ -136,14 +122,19 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
     final Trace trace = new Trace(buffers);
+    Bytes32 prevBlockhashArg = Bytes32.ZERO;
+
     for (BlockhashOperation op : sortedOperations) {
       final Bytes32 blockhashVal =
           op.blockhashRes() == Bytes32.ZERO
               ? this.blockHashMap.getOrDefault(op.blockhashArg(), Bytes32.ZERO)
               : op.blockhashRes();
 
+      op.triggerHandlePreprocessing(prevBlockhashArg);
       op.traceMacro(trace, blockhashVal);
       op.tracePreprocessing(trace);
+
+      prevBlockhashArg = op.blockhashArg();
     }
   }
 }

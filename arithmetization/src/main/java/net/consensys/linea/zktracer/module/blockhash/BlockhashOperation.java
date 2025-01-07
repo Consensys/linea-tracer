@@ -50,7 +50,6 @@ public class BlockhashOperation extends ModuleOperation {
       final short relBlock,
       final long absBlock,
       final Bytes32 blockhashArg,
-      final Bytes prevBlockhashArg,
       final Bytes32 blockhashRes,
       final Wcp wcp) {
     this.relBlock = relBlock;
@@ -58,6 +57,9 @@ public class BlockhashOperation extends ModuleOperation {
     this.blockhashArg = blockhashArg;
     this.blockhashRes = blockhashRes;
     this.wcp = wcp;
+  }
+
+  void triggerHandlePreprocessing(Bytes32 prevBlockhashArg) {
     handlePreprocessing(
         prevBlockhashArg.slice(0, LLARGE),
         prevBlockhashArg.slice(LLARGE, LLARGE),

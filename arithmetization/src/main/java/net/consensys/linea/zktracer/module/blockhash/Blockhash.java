@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.blockhash;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.BLOCKHASH_MAX_HISTORY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 
 import java.nio.MappedByteBuffer;
@@ -33,7 +32,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
@@ -60,9 +58,6 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   private Bytes32 blockhashArg;
 
-  private boolean lowerBound;
-  private boolean upperBound;
-
   public Blockhash(Hub hub, Wcp wcp) {
     this.hub = hub;
     this.wcp = wcp;
@@ -87,12 +82,9 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
     blockhashArg = Bytes32.leftPad(frame.getStackItem(0));
 
-    // TODO: lowerBound and upperBound are not used anymore here, move logic inside
-    lowerBound = wcp.callGEQ(blockhashArg, Bytes.ofUnsignedLong(absBlock - BLOCKHASH_MAX_HISTORY));
-    upperBound = wcp.callLT(blockhashArg, Bytes.ofUnsignedLong(absBlock));
-
     hub.defers().scheduleForPostExecution(this);
 
+    // TODO: this below not necessary
     /* To prove the lex order of BLOCK_NUMBER_HI/LO, we call WCP at endConflation, so we need to add rows in WCP now.
     If a BLOCK_NUMBER is already called at least two times, no need for additional rows in WCP*/
     final int numberOfCall = this.numberOfCall.getOrDefault(blockhashArg, 0);
@@ -121,6 +113,8 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   @Override
   public void traceEndConflation(WorldView state) {
+    // TODO: should we create the operation just here once we can order it wrt blockhashArg?
+    // TODO: no need to call WCP here
     OperationSetModule.super.traceEndConflation(state);
     sortedOperations = sortOperations(new BlockhashComparator());
     if (!sortedOperations.isEmpty()) {

@@ -109,7 +109,10 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     if (opCode == OpCode.BLOCKHASH) {
       final Bytes32 blockhashRes = Bytes32.leftPad(frame.getStackItem(0));
-      operations.add(new BlockhashOperation(relBlock, blockhashArg, absBlock, blockhashRes));
+      // TODO: here we should pass prevBlockhashArg instead
+      operations.add(
+          new BlockhashOperation(
+              relBlock, absBlock, blockhashArg, blockhashArg, blockhashRes, wcp));
       if (blockhashRes != Bytes32.ZERO) {
         blockHashMap.put(blockhashArg, blockhashRes);
       }

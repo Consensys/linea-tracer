@@ -148,7 +148,8 @@ public class RlpTxn implements OperationListModule<RlpTxnOperation> {
     this.reconstructedRlpLt = Bytes.EMPTY;
     this.reconstructedRlpLx = Bytes.EMPTY;
     Bytes besuRlpLt =
-        encodeOpaqueBytes((org.hyperledger.besu.ethereum.core.Transaction) operation.tx(), BLOCK_BODY);
+        encodeOpaqueBytes(
+            (org.hyperledger.besu.ethereum.core.Transaction) operation.tx(), BLOCK_BODY);
     // the encodeOpaqueBytes method already concatenate with the first byte "transaction  type"
     if (traceValue.txType == 0) {
       traceValue.rlpLtByteSize = innerRlpSize(besuRlpLt.size());

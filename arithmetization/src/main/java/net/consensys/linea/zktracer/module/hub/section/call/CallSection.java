@@ -370,6 +370,13 @@ public class CallSection extends TraceSection
         && ((ModexpSubsection) precompileSubsection).transactionWillBePopped) {
       hub.defers().unscheduleForContextReEntry(this, hub.currentFrame());
       hub.defers().unscheduleForPostTransaction(this);
+      System.out.println(
+          "WARNING: Illegal MODEXP arguments at"
+              + "\n\tHUB_STAMP  = "
+              + hubStamp()
+              + "\n\tABS_TX_NUM = "
+              + hub.txStack().getCurrentAbsNumber()
+              + "\nTransaction must be popped!");
     }
   }
 

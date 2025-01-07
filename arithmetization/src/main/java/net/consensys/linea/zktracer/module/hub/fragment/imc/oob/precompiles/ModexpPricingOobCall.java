@@ -25,7 +25,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
-import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 @Setter

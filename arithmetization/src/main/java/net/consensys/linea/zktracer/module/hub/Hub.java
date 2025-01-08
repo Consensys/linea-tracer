@@ -202,7 +202,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  private final TxnData txnData = new TxnData(wcp, euc);
+  private final TxnData txnData = new TxnData(this, wcp, euc);
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -294,6 +294,7 @@ public class Hub implements Module {
    */
   public boolean failureConditionForCreates = false;
 
+  public Address coinbaseAddress;
   public boolean coinbaseWarmthAtTransactionEnd = false;
 
   /**
@@ -551,6 +552,7 @@ public class Hub implements Module {
 
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
+      coinbaseAddress = frame.getMiningBeneficiary();
       if (state.getProcessingPhase() == TX_SKIP) {
         checkState(currentTraceSection() instanceof TxSkipSection);
         ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);

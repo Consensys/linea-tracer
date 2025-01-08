@@ -498,6 +498,7 @@ public class Hub implements Module {
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
+      Address coinbaseAddress = Address.fromHexString("8f81e2e3f8b46467523463835f965ffe476e1c9e");
       new TxSkipSection(this, world, transactionProcessingMetadata, transients);
     } else {
       if (transactionProcessingMetadata.requiresPrewarming()) {
@@ -550,6 +551,10 @@ public class Hub implements Module {
 
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
+      if (state.getProcessingPhase() == TX_SKIP) {
+        checkState(currentTraceSection() instanceof TxSkipSection);
+        ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
+      }
       final TransactionProcessingMetadata currentTransaction = transients().tx();
       final Address recipientAddress = frame.getRecipientAddress();
       final Address senderAddress = frame.getSenderAddress();

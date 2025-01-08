@@ -89,11 +89,13 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
   }
 
   /**
-   * The coinbase address isn't necessarily that of the block. We do, however, obtain it via the {@link MessageFrame} of the hub.
+   * The coinbase address isn't necessarily that of the block. We do, however, obtain it via the
+   * {@link MessageFrame} of the hub.
    */
   public void coinbaseSnapshots(Hub hub, MessageFrame frame) {
     final Address coinbaseAddress = frame.getMiningBeneficiary();
-    coinbase = canonical(hub, frame.getWorldUpdater(), coinbaseAddress, isPrecompile(coinbaseAddress));
+    coinbase =
+        canonical(hub, frame.getWorldUpdater(), coinbaseAddress, isPrecompile(coinbaseAddress));
     checkArgument(!hub.deploymentStatusOf(coinbaseAddress));
   }
 
@@ -169,7 +171,7 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
 
     // transaction fragment
     final TransactionFragment transactionFragment =
-        TransactionFragment.prepare(hub.txStack().current());
+        TransactionFragment.prepare(hub, hub.txStack().current());
 
     this.addFragment(senderAccountFragment);
     this.addFragment(recipientAccountFragment);

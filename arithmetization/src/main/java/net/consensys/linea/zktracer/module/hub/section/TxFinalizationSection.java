@@ -81,7 +81,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
     this.addFragment(senderAccountFragment);
     this.addFragment(coinbaseAccountFragment);
-    this.addFragment(TransactionFragment.prepare(hub.txStack().current())); // TXN i+2
+    this.addFragment(TransactionFragment.prepare(hub, hub.txStack().current())); // TXN i+2
   }
 
   /**
@@ -107,7 +107,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
    */
   private void setSnapshots(Hub hub, WorldView world) {
     final Address senderAddress = txMetadata.getSender();
-    final Address coinbaseAddress = txMetadata.getCoinbase();
+    final Address coinbaseAddress = hub.coinbaseAddress;
 
     if (senderIsCoinbase(hub)) {
       checkState(coinbaseWarmth());

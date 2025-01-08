@@ -153,7 +153,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     hub.defers().scheduleForContextEntry(miscFragment);
 
     this.addFragment(miscFragment); // MISC i + 0
-    this.addFragment(TransactionFragment.prepare(tx)); // TXN i + 1
+    this.addFragment(TransactionFragment.prepare(hub, tx)); // TXN i + 1
 
     this.addFragment( // ACC i + 2 (sender: gas payment)
         accountFragmentFactory.makeWithTrm(

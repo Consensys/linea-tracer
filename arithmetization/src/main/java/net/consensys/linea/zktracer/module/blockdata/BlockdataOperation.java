@@ -34,6 +34,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
@@ -44,6 +45,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 @Accessors(fluent = true)
 @Getter
 public class BlockdataOperation extends ModuleOperation {
+  private final Hub hub;
   private final Wcp wcp;
   private final Euc euc;
   private final Bytes chainId;
@@ -68,6 +70,7 @@ public class BlockdataOperation extends ModuleOperation {
   private final boolean[] eucFlag;
 
   public BlockdataOperation(
+          Hub hub,
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       int relTxMax,
@@ -77,6 +80,7 @@ public class BlockdataOperation extends ModuleOperation {
       OpCode opCode,
       long firstBlockNumber) {
     // Data from blockHeader
+    this.hub = hub;
     this.blockHeader = blockHeader;
     this.prevBlockHeader = prevBlockHeader;
 
@@ -129,7 +133,7 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   private void handleCoinbase() {
-    data = EWord.ofHexString(blockHeader.getCoinbase().toHexString());
+    data = EWord.ofHexString(hub.coinbaseAddress.toHexString());
     // row i
     wcpCallToLT(0, data, POWER_256_20);
   }
@@ -223,8 +227,8 @@ public class BlockdataOperation extends ModuleOperation {
           .isChainid(opCode == OpCode.CHAINID)
           .isBasefee(opCode == OpCode.BASEFEE)
           .inst(UnsignedByte.of(opCode.byteValue()))
-          .coinbaseHi(blockHeader.getCoinbase().slice(0, 4).toLong())
-          .coinbaseLo(blockHeader.getCoinbase().slice(4, LLARGE))
+          .coinbaseHi(hub.coinbaseAddress.slice(0, 4).toLong())
+          .coinbaseLo(hub.coinbaseAddress.slice(4, LLARGE))
           .blockGasLimit(Bytes.ofUnsignedLong(blockHeader.getGasLimit()))
           .basefee(
               Bytes.ofUnsignedLong(blockHeader.getBaseFee().get().getAsBigInteger().longValue()))

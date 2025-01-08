@@ -80,6 +80,7 @@ public class Blockdata implements Module {
       for (OpCode opCode : opCodes) {
         BlockdataOperation operation =
             new BlockdataOperation(
+                    txnData.hub(),
                 blockHeader,
                 prevBlockHeader,
                 txnData.currentBlock().getNbOfTxsInBlock(),

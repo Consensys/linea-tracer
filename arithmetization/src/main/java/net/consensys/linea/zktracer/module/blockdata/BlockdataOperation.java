@@ -168,17 +168,19 @@ public class BlockdataOperation extends ModuleOperation {
     data = EWord.of(blockHeader.getGasLimit());
 
     // row i
-    wcpCallToGEQ(0, data, EWord.of(LINEA_GAS_LIMIT_MINIMUM));
+    wcpCallToGEQ(0, data, EWord.of(ETHEREUM_GAS_LIMIT_MINIMUM));
 
     // row i + 1
-    wcpCallToLEQ(1, data, EWord.of(Bytes.ofUnsignedLong(LINEA_GAS_LIMIT_MAXIMUM)));
+    wcpCallToLEQ(1, data, EWord.of(Bytes.ofUnsignedLong(ETHEREUM_GAS_LIMIT_MAXIMUM)));
 
     if (!firstBlockInConflation) {
       EWord prevGasLimit = EWord.of(prevBlockHeader.getGasLimit());
       // row i + 2
       Bytes maxDeviation = eucCall(2, prevGasLimit, EWord.of(GAS_LIMIT_ADJUSTMENT_FACTOR));
       // row i + 3
-      wcpCallToLT(3, data, EWord.of(prevGasLimit.toLong() + maxDeviation.toLong()));
+      BigInteger safeGasLimitUpperBound =
+          prevGasLimit.getAsBigInteger().add(maxDeviation.toBigInteger());
+      wcpCallToLT(3, data, EWord.of(safeGasLimitUpperBound));
 
       // row i + 4
       wcpCallToGT(

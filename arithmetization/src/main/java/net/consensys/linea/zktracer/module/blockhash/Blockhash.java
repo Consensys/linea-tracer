@@ -55,6 +55,9 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   private Bytes32 blockhashArg;
 
+  /* Store the number of call (capped to 2) of BLOCKHASH of a BLOCK_NUMBER */
+  // private final Map<Bytes32, Integer> numberOfCall = new HashMap<>();
+
   public Blockhash(Hub hub, Wcp wcp) {
     this.hub = hub;
     this.wcp = wcp;
@@ -80,6 +83,16 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
     blockhashArg = Bytes32.leftPad(frame.getStackItem(0));
 
     hub.defers().scheduleForPostExecution(this);
+
+    // TODO: code below is maybe not necessary
+    /* To prove the lex order of BLOCK_NUMBER_HI/LO, we call WCP at endConflation, so we need to add rows in WCP now.
+    If a BLOCK_NUMBER is already called at least two times, no need for additional rows in WCP*/
+    // final int numberOfCall = this.numberOfCall.getOrDefault(blockhashArg, 0);
+    // if (numberOfCall < 2) {
+    //  wcp.additionalRows.add(Math.max(Math.min(LLARGE, blockhashArg.trimLeadingZeros().size()),
+    // 1));
+    //  this.numberOfCall.replace(blockhashArg, numberOfCall, numberOfCall + 1);
+    // }
   }
 
   @Override

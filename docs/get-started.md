@@ -83,7 +83,7 @@ ______________________________________________________________________
 ./gradlew clean referenceTests
 
 # Run single reference test via gradle, e.g for net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583
-./gradlew :reference-tests:referenceTests --tests "net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583"
+./gradlew :reference-tests:referenceBlockchainTests --tests "net.consensys.linea.generated.blockchain.BlockchainReferenceTest_583"
 ```
 
 ______________________________________________________________________

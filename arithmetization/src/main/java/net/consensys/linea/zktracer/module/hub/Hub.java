@@ -294,6 +294,8 @@ public class Hub implements Module {
    */
   public boolean failureConditionForCreates = false;
 
+  public boolean coinbaseWarmthAtTransactionEnd = false;
+
   /**
    * @return a list of all modules for which to generate traces
    */
@@ -653,14 +655,13 @@ public class Hub implements Module {
     if (frame.getDepth() == 0) {
       final long leftOverGas = frame.getRemainingGas();
       final long gasRefund = frame.getGasRefund();
-      final boolean coinbaseIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
 
       txStack
           .current()
           .setPreFinalisationValues(
               leftOverGas,
               gasRefund,
-              coinbaseIsWarm,
+              coinbaseWarmthAtTransactionEnd,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
       if (state.getProcessingPhase() != TX_SKIP
@@ -737,6 +738,7 @@ public class Hub implements Module {
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
       this.state.setProcessingPhase(TX_FINL);
+      coinbaseWarmthAtTransactionEnd = frame.isAddressWarm(txStack.current().getCoinbase());
       new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }

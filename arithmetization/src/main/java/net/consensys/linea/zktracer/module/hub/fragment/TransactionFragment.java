@@ -34,14 +34,14 @@ public final class TransactionFragment implements TraceFragment {
   private final TransactionProcessingMetadata transactionProcessingMetadata;
   @Setter private TraceSection parentSection;
 
-  private TransactionFragment(Hub hub, TransactionProcessingMetadata transactionProcessingMetadata) {
+  private TransactionFragment(
+      Hub hub, TransactionProcessingMetadata transactionProcessingMetadata) {
     this.hub = hub;
     this.transactionProcessingMetadata = transactionProcessingMetadata;
   }
 
   public static TransactionFragment prepare(
-          Hub hub,
-      TransactionProcessingMetadata transactionProcessingMetadata) {
+      Hub hub, TransactionProcessingMetadata transactionProcessingMetadata) {
     return new TransactionFragment(hub, transactionProcessingMetadata);
   }
 

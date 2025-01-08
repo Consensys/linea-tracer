@@ -70,7 +70,7 @@ public class BlockdataOperation extends ModuleOperation {
   private final boolean[] eucFlag;
 
   public BlockdataOperation(
-          Hub hub,
+      Hub hub,
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
       int relTxMax,

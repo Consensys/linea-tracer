@@ -65,15 +65,18 @@ public class BlockhashOperation extends ModuleOperation {
     final Bytes currBHArgHi = blockhashArg.slice(0, LLARGE);
     final Bytes curBHArgLo = blockhashArg.slice(LLARGE, LLARGE);
 
+    // NOTE: w goes from 0 to 4 because it refers to the array
+    // however, rows go from i+1 to i+5 because it refers the MACRO row (index i)
     // row i + 1
-    wcpCallToLEQ(1, prevBHArgHi, prevBHArgLo, currBHArgHi, curBHArgLo);
+    wcpCallToLEQ(0, prevBHArgHi, prevBHArgLo, currBHArgHi, curBHArgLo);
 
     // row i + 2
-    boolean sameBHArg = wcpCallToEQ(2, prevBHArgHi, prevBHArgLo, currBHArgHi, curBHArgLo);
+    boolean sameBHArg = wcpCallToEQ(1, prevBHArgHi, prevBHArgLo, currBHArgHi, curBHArgLo);
 
     // row i + 3
     boolean res3 =
-        wcpCallToLEQ(3, Bytes.of(0), Bytes.of(256), Bytes.of(0), Bytes.ofUnsignedLong(absBlock));
+        wcpCallToLEQ(
+            2, Bytes.of(0), Bytes.ofUnsignedInt(256), Bytes.of(0), Bytes.ofUnsignedLong(absBlock));
     long minimalReachable = 0;
     if (res3) {
       minimalReachable = absBlock - 256;
@@ -81,12 +84,12 @@ public class BlockhashOperation extends ModuleOperation {
 
     // row i + 4
     boolean upperBoundOk =
-        wcpCallToLT(4, currBHArgHi, curBHArgLo, Bytes.of(0), Bytes.ofUnsignedLong(absBlock));
+        wcpCallToLT(3, currBHArgHi, curBHArgLo, Bytes.of(0), Bytes.ofUnsignedLong(absBlock));
 
     // row i + 5
     boolean lowerBoundOk =
         wcpCallToLEQ(
-            5, Bytes.of(0), Bytes.ofUnsignedLong(minimalReachable), currBHArgHi, curBHArgLo);
+            4, Bytes.of(0), Bytes.ofUnsignedLong(minimalReachable), currBHArgHi, curBHArgLo);
   }
 
   @Override

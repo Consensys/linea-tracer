@@ -59,16 +59,12 @@ public class BlockhashOperation extends ModuleOperation {
     this.wcp = wcp;
   }
 
-  void triggerHandlePreprocessing(Bytes32 prevBlockhashArg) {
-    handlePreprocessing(
-        prevBlockhashArg.slice(0, LLARGE),
-        prevBlockhashArg.slice(LLARGE, LLARGE),
-        blockhashArg.slice(0, LLARGE),
-        blockhashArg.slice(LLARGE, LLARGE));
-  }
+  void handlePreprocessing(Bytes32 prevBlockhashArg) {
+    final Bytes prevBHArgHi = prevBlockhashArg.slice(0, LLARGE);
+    final Bytes prevBHArgLo = prevBlockhashArg.slice(LLARGE, LLARGE);
+    final Bytes currBHArgHi = blockhashArg.slice(0, LLARGE);
+    final Bytes curBHArgLo = blockhashArg.slice(LLARGE, LLARGE);
 
-  private void handlePreprocessing(
-      Bytes prevBHArgHi, Bytes prevBHArgLo, Bytes currBHArgHi, Bytes curBHArgLo) {
     // row i + 1
     wcpCallToLEQ(1, prevBHArgHi, prevBHArgLo, currBHArgHi, curBHArgLo);
 

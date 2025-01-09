@@ -326,5 +326,4 @@ public class TransactionProcessingMetadata {
   public Bytes getTransactionCallData() {
     return besuTransaction.getData().orElse(Bytes.EMPTY);
   }
-
 }

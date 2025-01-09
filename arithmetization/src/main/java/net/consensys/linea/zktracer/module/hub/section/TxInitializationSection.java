@@ -157,20 +157,24 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     miscFragment = ImcFragment.forTxInit(hub);
     hub.defers().scheduleForContextEntry(miscFragment);
 
-    gasPaymentAccountFragment = accountFragmentFactory.makeWithTrm(
+    gasPaymentAccountFragment =
+        accountFragmentFactory.makeWithTrm(
             senderGasPayment,
             senderGasPaymentNew,
             senderGasPayment.address(),
             DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
-    valueSendingAccountFragment = accountFragmentFactory.make(
+    valueSendingAccountFragment =
+        accountFragmentFactory.make(
             senderValueTransfer,
             senderValueTransferNew,
             DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
-    valueReceptionAccountFragment = accountFragmentFactory.makeWithTrm(
-                    recipientValueReception,
-                    recipientValueReceptionNew,
-                    recipientValueReception.address(),
-                    DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 2))
+    valueReceptionAccountFragment =
+        accountFragmentFactory
+            .makeWithTrm(
+                recipientValueReception,
+                recipientValueReceptionNew,
+                recipientValueReception.address(),
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 2))
             .requiresRomlex(true);
 
     initializationContextFragment = ContextFragment.initializeExecutionContext(hub);
@@ -186,7 +190,7 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     this.addFragment(TransactionFragment.prepare(hub, hub.txStack().current())); // TXN i + 1
     this.addFragment(gasPaymentAccountFragment); // ACC i + 2 (sender: gas payment)
     this.addFragment(valueSendingAccountFragment); // ACC i + 3 (sender: value transfer)
-    this.addFragment(valueReceptionAccountFragment ); // ACC i + 4 (recipient: value reception)
+    this.addFragment(valueReceptionAccountFragment); // ACC i + 4 (recipient: value reception)
 
     if (!isSuccessful) {
 

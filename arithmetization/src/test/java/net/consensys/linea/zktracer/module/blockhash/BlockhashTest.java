@@ -17,11 +17,22 @@ package net.consensys.linea.zktracer.module.blockhash;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.BLOCKHASH_MAX_HISTORY;
 
+import java.util.List;
+
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
+import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.crypto.KeyPair;
+import org.hyperledger.besu.crypto.SECP256K1;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -157,6 +168,92 @@ public class BlockhashTest {
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
                 .compile())
+        .run();
+  }
+
+  @Test
+  void multiBlockTest1() {
+    // Block 1
+    Bytes program1 = BytecodeCompiler.newProgram().op(OpCode.NUMBER).op(OpCode.BLOCKHASH).compile();
+
+    // Block 2
+    Bytes program2 =
+        BytecodeCompiler.newProgram()
+            .push(1)
+            .op(OpCode.NUMBER)
+            .op(OpCode.SUB)
+            .op(OpCode.BLOCKHASH)
+            .compile();
+
+    twoBlocksTest(program1, program2);
+  }
+
+  @Test
+  void multiBlockTest2() {
+    // Block no longer available
+    // Block 1
+    Bytes program1 =
+        BytecodeCompiler.newProgram()
+            .push(256)
+            .op(OpCode.NUMBER)
+            .op(OpCode.SUB)
+            .op(OpCode.BLOCKHASH)
+            .compile();
+
+    // Block 2
+    Bytes program2 =
+        BytecodeCompiler.newProgram()
+            .push(257)
+            .op(OpCode.NUMBER)
+            .op(OpCode.SUB)
+            .op(OpCode.BLOCKHASH)
+            .compile();
+
+    twoBlocksTest(program1, program2);
+  }
+
+  void twoBlocksTest(Bytes program1, Bytes program2) {
+    KeyPair keyPair = new SECP256K1().generateKeyPair();
+    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+
+    ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+
+    ToyAccount receiverAccount1 =
+        ToyAccount.builder()
+            .balance(Wei.ONE)
+            .nonce(6)
+            .address(Address.fromHexString("0x111111"))
+            .code(program1)
+            .build();
+
+    ToyAccount receiverAccount2 =
+        ToyAccount.builder()
+            .balance(Wei.ONE)
+            .nonce(6)
+            .address(Address.fromHexString("0x222222"))
+            .code(program2)
+            .build();
+
+    Transaction tx1 =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(receiverAccount1)
+            .keyPair(keyPair)
+            .build();
+
+    Transaction tx2 =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(receiverAccount2)
+            .keyPair(keyPair)
+            .build();
+
+    MultiBlockExecutionEnvironment.builder()
+        .accounts(List.of(senderAccount, receiverAccount1, receiverAccount2))
+        .addBlock(List.of(tx1))
+        .addBlock(List.of(tx2))
+        .build()
         .run();
   }
 }

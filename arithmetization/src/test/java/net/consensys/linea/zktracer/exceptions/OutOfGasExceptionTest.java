@@ -39,6 +39,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -174,5 +175,32 @@ public class OutOfGasExceptionTest {
     return (transfersValue ? GAS_CONST_G_CALL_VALUE : 0)
         + (targetAddressExists ? 0 : (transfersValue ? GAS_CONST_G_NEW_ACCOUNT : 0))
         + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
+  }
+
+  @Test
+  void outOfGasExceptionSStore() {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+        .push(2) // value
+        .push(1) // key
+        .op(OpCode.SSTORE);
+
+    program
+        .push(1)
+        . // key
+        op(OpCode.SLOAD);
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+
+    // SSTORE: current_value == original_value and original value == 0 -> 20000, cold 2100
+    // SLOAD: warm 100
+    // TODO: use constants to explain costs
+    bytecodeRunner.run(
+        (long) GAS_CONST_G_TRANSACTION + (long) 3 * GAS_CONST_G_VERY_LOW + 22100 + 100);
+
+    assertEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 }

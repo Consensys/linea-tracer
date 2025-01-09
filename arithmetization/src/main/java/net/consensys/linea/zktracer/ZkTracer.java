@@ -126,6 +126,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
       header.putInt(traceMap.size());
       for (ColumnHeader h : traceMap) {
         final String name = h.name();
+        // System.out.println(name);
         header.putShort((short) name.length());
         header.put(name.getBytes());
         header.put((byte) h.bytesPerElement());

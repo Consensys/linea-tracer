@@ -29,7 +29,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class BlockhashTest {
 
   @Test
-  void someBlockhash() {
+  void severalBlockhash() {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
 
@@ -141,6 +141,21 @@ public class BlockhashTest {
 
                 // TODO: add test with different block in the conflated batch
 
+                .compile())
+        .run();
+  }
+
+  @Test
+  void singleBlockhash() {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+
+                // arg of BlockHash is Blocknumber +1
+                .op(OpCode.NUMBER)
+                .push(1)
+                .op(OpCode.ADD)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
                 .compile())
         .run();
   }

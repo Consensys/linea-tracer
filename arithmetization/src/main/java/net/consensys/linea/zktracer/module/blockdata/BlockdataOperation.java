@@ -23,9 +23,9 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_GEQ;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
-import static net.consensys.linea.zktracer.module.constants.Trace.ETHEREUM_GAS_LIMIT_MAXIMUM;
-import static net.consensys.linea.zktracer.module.constants.Trace.ETHEREUM_GAS_LIMIT_MINIMUM;
 import static net.consensys.linea.zktracer.module.constants.Trace.GAS_LIMIT_ADJUSTMENT_FACTOR;
+import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MAXIMUM;
+import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MINIMUM;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
@@ -170,10 +170,10 @@ public class BlockdataOperation extends ModuleOperation {
     data = EWord.of(blockHeader.getGasLimit());
 
     // row i
-    wcpCallToGEQ(0, data, EWord.of(ETHEREUM_GAS_LIMIT_MINIMUM));
+    wcpCallToGEQ(0, data, EWord.of(LINEA_GAS_LIMIT_MINIMUM));
 
     // row i + 1
-    wcpCallToLEQ(1, data, EWord.of(ETHEREUM_GAS_LIMIT_MAXIMUM));
+    wcpCallToLEQ(1, data, EWord.of(LINEA_GAS_LIMIT_MAXIMUM));
 
     if (!firstBlockInConflation) {
       EWord prevGasLimit = EWord.of(prevBlockHeader.getGasLimit());

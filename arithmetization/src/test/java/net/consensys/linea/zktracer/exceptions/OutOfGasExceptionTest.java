@@ -17,7 +17,9 @@ package net.consensys.linea.zktracer.exceptions;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_VALUE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COLD_SLOAD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_SSET;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TRANSACTION;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_VERY_LOW;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
@@ -39,11 +41,11 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class OutOfGasExceptionTest {
@@ -177,8 +179,9 @@ public class OutOfGasExceptionTest {
         + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
   }
 
-  @Test
-  void outOfGasExceptionSStore() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionSStore(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -193,14 +196,24 @@ public class OutOfGasExceptionTest {
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
 
-    // SSTORE: current_value == original_value and original value == 0 -> 20000, cold 2100
-    // SLOAD: warm 100
-    // TODO: use constants to explain costs
     bytecodeRunner.run(
-        (long) GAS_CONST_G_TRANSACTION + (long) 3 * GAS_CONST_G_VERY_LOW + 22100 + 100);
+        (long) GAS_CONST_G_TRANSACTION
+            + (long) 3 * GAS_CONST_G_VERY_LOW // 3 PUSH
+            + GAS_CONST_G_SSET
+            // SSTORE cost since current_value == original_value
+            // and original_value == 0 (20000)
+            + GAS_CONST_G_COLD_SLOAD // SSTORE cost since slot is cold (2100)
+            + GAS_CONST_G_WARM_ACCESS
+            + cornerCase); // SLOAD (100)
 
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 }

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.exceptions;
 
+import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_VALUE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COLD_SLOAD;
@@ -51,16 +52,24 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class OutOfGasExceptionTest {
 
   // TODO: can we generalize this test to treat all opcodes, warm and cold and types of gas costs?
-  //  currently only CALL is treated separately
+  //  currently only CALL and SLOAD are treated separately
   @ParameterizedTest
   @MethodSource("outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostSource")
   void outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostTest(
       OpCode opCode, int opCodeStaticCost, int nPushes, int corneCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    boolean isPush = opCode.getData().isPush();
+
     for (int i = 0; i < nPushes; i++) {
-      // When the opCode we wish to test is PUSHx, we push on the stack a nonzero argument
-      program.push(isPush ? 1 : 0);
+      // In order to disambiguate between empty stack items and writing a result of 0 on the stack
+      // we push small integers to the stack which all produce non-zero results
+
+      int pushedValue = switch (opCode) {
+        case OpCode.BLOCKHASH -> Math.toIntExact(DEFAULT_BLOCK_NUMBER) - 1;
+        default -> 7 * i + 5;
+      };
+
+      program.push(pushedValue);
+      // TODO: LOG is failing due to memory expansion cost that is not taken into consideration yet
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
@@ -179,6 +188,10 @@ public class OutOfGasExceptionTest {
         + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
   }
 
+  /**
+   * We provide a non-zero value in storage so to disambiguate between writing the value in storage
+   * to the stack and writing 0 to the stack.
+   */
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionSStore(int cornerCase) {
@@ -198,11 +211,12 @@ public class OutOfGasExceptionTest {
 
     bytecodeRunner.run(
         (long) GAS_CONST_G_TRANSACTION
-            + (long) 3 * GAS_CONST_G_VERY_LOW // 3 PUSH
+            + (long) 2 * GAS_CONST_G_VERY_LOW // 2 PUSH
             + GAS_CONST_G_SSET
             // SSTORE cost since current_value == original_value
             // and original_value == 0 (20000)
             + GAS_CONST_G_COLD_SLOAD // SSTORE cost since slot is cold (2100)
+            + (long) GAS_CONST_G_VERY_LOW // PUSH
             + GAS_CONST_G_WARM_ACCESS
             + cornerCase); // SLOAD (100)
 

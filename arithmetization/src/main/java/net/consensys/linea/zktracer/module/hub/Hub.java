@@ -745,7 +745,7 @@ public class Hub implements Module {
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
       this.state.setProcessingPhase(TX_FINL);
-      coinbaseWarmthAtTransactionEnd = frame.isAddressWarm(txStack.current().getCoinbase());
+      coinbaseWarmthAtTransactionEnd = frame.isAddressWarm(coinbaseAddress);
       new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }

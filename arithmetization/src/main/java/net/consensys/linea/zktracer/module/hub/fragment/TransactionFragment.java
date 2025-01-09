@@ -31,12 +31,14 @@ import org.hyperledger.besu.datatypes.TransactionType;
 
 public final class TransactionFragment implements TraceFragment {
   private final Hub hub;
+  private final Address coinbaseAddress;
   private final TransactionProcessingMetadata transactionProcessingMetadata;
   @Setter private TraceSection parentSection;
 
   private TransactionFragment(
       Hub hub, TransactionProcessingMetadata transactionProcessingMetadata) {
     this.hub = hub;
+    this.coinbaseAddress = Address.wrap(hub.coinbaseAddress.copy());
     this.transactionProcessingMetadata = transactionProcessingMetadata;
   }
 
@@ -50,7 +52,6 @@ public final class TransactionFragment implements TraceFragment {
     final Transaction tx = transactionProcessingMetadata.getBesuTransaction();
     final Address to = transactionProcessingMetadata.getEffectiveRecipient();
     final Address from = transactionProcessingMetadata.getSender();
-    final Address coinbase = transactionProcessingMetadata.getCoinbase();
 
     return trace
         .peekAtTransaction(true)
@@ -82,7 +83,7 @@ public final class TransactionFragment implements TraceFragment {
             Bytes.minimalBytes(transactionProcessingMetadata.getRefundCounterMax()))
         .pTransactionRefundEffective(
             Bytes.minimalBytes(transactionProcessingMetadata.getGasRefunded()))
-        .pTransactionCoinbaseAddressHi(highPart(hub.coinbaseAddress))
-        .pTransactionCoinbaseAddressLo(lowPart(hub.coinbaseAddress));
+        .pTransactionCoinbaseAddressHi(highPart(coinbaseAddress))
+        .pTransactionCoinbaseAddressLo(lowPart(coinbaseAddress));
   }
 }

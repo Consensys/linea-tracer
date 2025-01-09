@@ -42,12 +42,17 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   @Getter private final int hubStamp;
   final AccountFragment.AccountFragmentFactory accountFragmentFactory;
 
+  ImcFragment miscFragment;
+
+  private final AccountFragment gasPaymentAccountFragment;
   @Getter private final AccountSnapshot senderGasPayment;
   @Getter private final AccountSnapshot senderGasPaymentNew;
 
+  private final AccountFragment valueSendingAccountFragment;
   @Getter private final AccountSnapshot senderValueTransfer;
   @Getter private final AccountSnapshot senderValueTransferNew;
 
+  private final AccountFragment valueReceptionAccountFragment;
   @Getter private final AccountSnapshot recipientValueReception;
   @Getter private final AccountSnapshot recipientValueReceptionNew;
 
@@ -149,33 +154,24 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     }
     recipientUndoingValueReception = recipientValueReceptionNew.deepCopy();
 
-    ImcFragment miscFragment = ImcFragment.forTxInit(hub);
+    miscFragment = ImcFragment.forTxInit(hub);
     hub.defers().scheduleForContextEntry(miscFragment);
 
-    this.addFragment(miscFragment); // MISC i + 0
-    this.addFragment(TransactionFragment.prepare(hub, tx)); // TXN i + 1
-
-    this.addFragment( // ACC i + 2 (sender: gas payment)
-        accountFragmentFactory.makeWithTrm(
+    gasPaymentAccountFragment = accountFragmentFactory.makeWithTrm(
             senderGasPayment,
             senderGasPaymentNew,
-            senderAddress,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0)));
-
-    this.addFragment( // ACC i + 3 (sender: value transfer)
-        accountFragmentFactory.make(
+            senderGasPayment.address(),
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+    valueSendingAccountFragment = accountFragmentFactory.make(
             senderValueTransfer,
             senderValueTransferNew,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1)));
-
-    this.addFragment( // ACC i + 4 (recipient: value reception)
-        accountFragmentFactory
-            .makeWithTrm(
-                recipientValueReception,
-                recipientValueReceptionNew,
-                recipientAddress,
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2))
-            .requiresRomlex(true));
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
+    valueReceptionAccountFragment = accountFragmentFactory.makeWithTrm(
+                    recipientValueReception,
+                    recipientValueReceptionNew,
+                    recipientValueReception.address(),
+                    DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 2))
+            .requiresRomlex(true);
 
     initializationContextFragment = ContextFragment.initializeExecutionContext(hub);
 
@@ -185,6 +181,12 @@ public class TxInitializationSection extends TraceSection implements PostTransac
   @Override
   public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+
+    this.addFragment(miscFragment); // MISC i + 0
+    this.addFragment(TransactionFragment.prepare(hub, hub.txStack().current())); // TXN i + 1
+    this.addFragment(gasPaymentAccountFragment); // ACC i + 2 (sender: gas payment)
+    this.addFragment(valueSendingAccountFragment); // ACC i + 3 (sender: value transfer)
+    this.addFragment(valueReceptionAccountFragment ); // ACC i + 4 (recipient: value reception)
 
     if (!isSuccessful) {
 

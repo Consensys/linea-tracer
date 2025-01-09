@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.math.BigInteger;
 
+import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
@@ -44,12 +45,15 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
 
   final TransactionProcessingMetadata txMetadata;
 
+  Address senderAddress;
   AccountSnapshot sender;
   AccountSnapshot senderNew;
 
+  Address recipientAddress;
   AccountSnapshot recipient;
   AccountSnapshot recipientNew;
 
+  Address coinbaseAddress;
   AccountSnapshot coinbase;
   AccountSnapshot coinbaseNew;
 
@@ -62,8 +66,8 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
     hub.defers().scheduleForEndTransaction(this);
 
     txMetadata = transactionProcessingMetadata;
-    final Address senderAddress = txMetadata.getBesuTransaction().getSender();
-    final Address recipientAddress = txMetadata.getEffectiveRecipient();
+    senderAddress = txMetadata.getBesuTransaction().getSender();
+    recipientAddress = txMetadata.getEffectiveRecipient();
 
     sender = canonical(hub, world, senderAddress, isPrecompile(senderAddress));
     recipient = canonical(hub, world, recipientAddress, isPrecompile(recipientAddress));
@@ -93,7 +97,7 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
    * {@link MessageFrame} of the hub.
    */
   public void coinbaseSnapshots(Hub hub, MessageFrame frame) {
-    final Address coinbaseAddress = frame.getMiningBeneficiary();
+    coinbaseAddress = frame.getMiningBeneficiary();
     coinbase =
         canonical(hub, frame.getWorldUpdater(), coinbaseAddress, isPrecompile(coinbaseAddress));
     checkArgument(!hub.deploymentStatusOf(coinbaseAddress));
@@ -113,7 +117,7 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
 
     final Wei value = (Wei) txMetadata.getBesuTransaction().getValue();
 
-    if (txMetadata.senderAddressCollision()) {
+    if (senderAddressCollision()) {
       BigInteger gasUsed = BigInteger.valueOf(txMetadata.getGasUsed());
       BigInteger gasPrice = BigInteger.valueOf(txMetadata.getEffectiveGasPrice());
       BigInteger gasCost = gasUsed.multiply(gasPrice);
@@ -125,17 +129,17 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
               .raiseNonceByOne();
     }
 
-    if (txMetadata.senderIsRecipient()) {
+    if (senderIsRecipient()) {
       recipient = senderNew.deepCopy();
       recipientNew = recipient.deepCopy().incrementBalanceBy(value);
     } else {
-      if (txMetadata.recipientIsCoinbase()) {
+      if (recipientIsCoinbase()) {
         recipientNew = coinbaseNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
         recipient = recipientNew.deepCopy().decrementBalanceBy(value);
       }
     }
 
-    if (txMetadata.coinbaseAddressCollision()) {
+    if (coinbaseAddressCollision()) {
       coinbase = coinbaseNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
     }
 
@@ -177,5 +181,37 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
     this.addFragment(recipientAccountFragment);
     this.addFragment(coinbaseAccountFragment);
     this.addFragment(transactionFragment);
+  }
+
+  public boolean senderIsRecipient() {
+    return senderAddress.equals(recipientAddress);
+  }
+
+  public boolean senderIsCoinbase() {
+    return senderAddress.equals(coinbaseAddress);
+  }
+
+  public boolean recipientIsCoinbase() {
+    return recipientAddress.equals(coinbaseAddress);
+  }
+
+  public boolean senderAddressCollision() {
+    return senderIsRecipient() || senderIsCoinbase();
+  }
+
+  public boolean recipientAddressCollision() {
+    return senderIsRecipient() || recipientIsCoinbase();
+  }
+
+  public boolean coinbaseAddressCollision() {
+    return senderIsCoinbase() || recipientIsCoinbase();
+  }
+
+  public boolean addressCollision() {
+    return senderIsRecipient() || senderIsCoinbase() || recipientIsCoinbase();
+  }
+
+  public boolean noAddressCollisions() {
+    return !addressCollision();
   }
 }

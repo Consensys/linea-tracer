@@ -57,7 +57,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
     DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     checkArgument(
-        !deploymentInfo.getDeploymentStatus(txMetadata.getCoinbase()),
+        !deploymentInfo.getDeploymentStatus(hub.coinbaseAddress),
         "The coinbase may not be under deployment");
 
     setSnapshots(hub, world);
@@ -135,7 +135,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
   public static boolean senderIsCoinbase(Hub hub) {
     final TransactionProcessingMetadata tx = hub.txStack().current();
     final Address senderAddress = tx.getSender();
-    final Address coinbaseAddress = tx.getCoinbase();
+    final Address coinbaseAddress = hub.coinbaseAddress;
     return coinbaseAddress.equals(senderAddress);
   }
 }

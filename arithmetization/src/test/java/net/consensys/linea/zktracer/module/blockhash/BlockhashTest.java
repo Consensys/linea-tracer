@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -39,6 +40,9 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class BlockhashTest {
@@ -238,57 +242,60 @@ public class BlockhashTest {
             .collect(Collectors.toList()));
   }
 
-  void twoBlocksTest(Bytes program1, Bytes program2) {
-    KeyPair keyPair1 = new SECP256K1().generateKeyPair();
-    KeyPair keyPair2 = new SECP256K1().generateKeyPair();
-    Address senderAddress1 = Address.extract(Hash.hash(keyPair1.getPublicKey().getEncodedBytes()));
-    Address senderAddress2 = Address.extract(Hash.hash(keyPair2.getPublicKey().getEncodedBytes()));
+  // TODO: move this to blockData tests
 
-    ToyAccount senderAccount1 =
-        ToyAccount.builder().balance(Wei.fromEth(10)).nonce(1).address(senderAddress1).build();
-
-    ToyAccount senderAccount2 =
-        ToyAccount.builder().balance(Wei.fromEth(10)).nonce(3).address(senderAddress2).build();
-
-    ToyAccount receiverAccount1 =
-        ToyAccount.builder()
-            .balance(Wei.ONE)
-            .nonce(5)
-            .address(Address.fromHexString("0x111111"))
-            .code(program1)
-            .build();
-
-    ToyAccount receiverAccount2 =
-        ToyAccount.builder()
-            .balance(Wei.ONE)
-            .nonce(7)
-            .address(Address.fromHexString("0x222222"))
-            .code(program2)
-            .build();
-
-    Transaction tx1 =
-        ToyTransaction.builder()
-            .sender(senderAccount1)
-            .to(receiverAccount1)
-            .keyPair(keyPair1)
-            .build();
-
-    Transaction tx2 =
-        ToyTransaction.builder()
-            .sender(senderAccount2)
-            .to(receiverAccount2)
-            .keyPair(keyPair2)
-            .build();
-
-    MultiBlockExecutionEnvironment.builder()
-        .accounts(List.of(senderAccount1, senderAccount2, receiverAccount1, receiverAccount2))
-        .addBlock(List.of(tx1))
-        .addBlock(List.of(tx2))
-        .build()
-        .run();
+  enum NextGasLimitScenario {
+    IN_RANGE_SAME,
+    IN_RANGE_INCREMENT,
+    IN_RANGE_DECREMENT,
+    IN_RANGE_MAX,
+    IN_RANGE_MIN,
+    OUT_OF_RANGE_INCREMENT,
+    OUT_OF_RANGE_DECREMENT
   }
 
+  @ParameterizedTest
+  @MethodSource("blockDataVariableGasLimitTestSource")
+  void blockDataVariableGasLimitTest(long gasLimit, NextGasLimitScenario nextGasLimitScenario) {
+    Bytes program = BytecodeCompiler.newProgram().push(1).compile();
+
+    long maxDeviation = gasLimit / 1024;
+
+    long nextGasLimit =
+        switch (nextGasLimitScenario) {
+          case IN_RANGE_SAME -> gasLimit;
+          case IN_RANGE_INCREMENT -> gasLimit + maxDeviation / 2;
+          case IN_RANGE_DECREMENT -> gasLimit - maxDeviation / 2;
+          case IN_RANGE_MAX -> gasLimit + maxDeviation - 1;
+          case IN_RANGE_MIN -> gasLimit - maxDeviation + 1;
+          case OUT_OF_RANGE_INCREMENT -> gasLimit + maxDeviation;
+          case OUT_OF_RANGE_DECREMENT -> gasLimit - maxDeviation;
+        };
+
+    multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit));
+  }
+
+  private static Stream<Arguments> blockDataVariableGasLimitTestSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    // TODO: use LINEA_BLOCK_GAS_LIMIT_MIN, LINEA_BLOCK_GAS_LIMIT_MAX and something in between,
+    // e.g., 100M
+    List<Long> gasLimits = List.of(61_000_000L, 100_000_000L, 2_000_000_000L);
+    for (Long gasLimit : gasLimits) {
+      for (NextGasLimitScenario nextGasLimitScenario : NextGasLimitScenario.values()) {
+        arguments.add(Arguments.of(gasLimit, nextGasLimitScenario));
+      }
+    }
+    return arguments.stream();
+  }
+
+  // Support methods
   void multiBlocksTest(List<Bytes> programs) {
+    multiBlocksTest(programs, List.of());
+  }
+
+  void multiBlocksTest(List<Bytes> programs, List<Long> gasLimits) {
+    Preconditions.checkArgument(gasLimits.isEmpty() || programs.size() == gasLimits.size());
+
     List<KeyPair> keyPairs = new ArrayList<>();
     List<Address> senderAddresses = new ArrayList<>();
     List<ToyAccount> senderAccounts = new ArrayList<>();
@@ -326,9 +333,15 @@ public class BlockhashTest {
             .accounts(
                 Stream.concat(senderAccounts.stream(), receiverAccounts.stream())
                     .collect(Collectors.toList()));
-    for (Transaction tx : transactions) {
-      builder.addBlock(List.of(tx));
+
+    for (int i = 0; i < transactions.size(); i++) {
+      if (gasLimits.isEmpty()) {
+        builder.addBlock(List.of(transactions.get(i)));
+      } else {
+        builder.addBlock(List.of(transactions.get(i)), gasLimits.get(i));
+      }
     }
+
     builder.build().run();
   }
 }

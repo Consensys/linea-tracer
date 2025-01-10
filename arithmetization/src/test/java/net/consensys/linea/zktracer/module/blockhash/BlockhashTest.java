@@ -30,6 +30,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.zktracer.module.blockdata.NextGasLimitScenario;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -52,114 +53,90 @@ public class BlockhashTest {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
 
-                // arg of BlockHash is Blocknumber +1
+                // arg is NUMBER - 1
+                .push(1)
+                .op(OpCode.NUMBER)
+                .op(OpCode.SUB)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg is NUMBER
+                .op(OpCode.NUMBER)
+                .op(OpCode.BLOCKHASH)
+                .op(OpCode.POP)
+
+                // arg is NUMBER + 1
                 .op(OpCode.NUMBER)
                 .push(1)
                 .op(OpCode.ADD)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // arg of BlockHash is Blocknumber
-                .op(OpCode.NUMBER)
-                .op(OpCode.BLOCKHASH)
-                .op(OpCode.POP)
-
-                // arg of BlockHash is ridiculously big
+                // arg is ridiculously big
                 .push(256)
                 .op(OpCode.NUMBER)
                 .op(OpCode.MUL)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // arg of BlockHash is ridiculously small
+                // arg is NUMBER / 256 << NUMBER
                 .push(256)
                 .op(OpCode.NUMBER)
                 .op(OpCode.DIV)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // arg of BlockHash is 0
+                // arg is 0 << NUMBER
                 .push(0)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // arg of BlockHash is 1 (ie ridiculously small)
+                // arg is 1 << NUMBER
                 .push(1)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // another arg of BlockHash is ridiculously big
+                // arg is ridiculously big
                 .push(
                     Bytes.fromHexString(
-                        "0x123456789012345678901234567890123456789012345678901234567890"))
+                        "0x123456789012345678901234567890123456789012345678901234567890ffff"))
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // arg of BlockHash is Blocknumber -256 -2
+                // arg of BlockHash is NUMBER - (256 + 2)
                 .push(BLOCKHASH_MAX_HISTORY + 2)
                 .op(OpCode.NUMBER)
                 .op(OpCode.SUB)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // arg of BlockHash is Blocknumber -256 -1
+                // arg of BlockHash is NUMBER - (256 + 1)
                 .push(BLOCKHASH_MAX_HISTORY + 1)
                 .op(OpCode.NUMBER)
                 .op(OpCode.SUB)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // arg of BlockHash is Blocknumber -256
+                // arg of BlockHash is NUMBER - 256
                 .push(BLOCKHASH_MAX_HISTORY)
                 .op(OpCode.NUMBER)
                 .op(OpCode.SUB)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // arg of BlockHash is Blocknumber -256 +1
+                // arg of BlockHash is NUMBER - (256 - 1)
                 .push(BLOCKHASH_MAX_HISTORY - 1)
                 .op(OpCode.NUMBER)
                 .op(OpCode.SUB)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
 
-                // arg of BlockHash is Blocknumber -256 +2
+                // arg of BlockHash is NUMBER - (256 - 2)
                 .push(BLOCKHASH_MAX_HISTORY - 2)
                 .op(OpCode.NUMBER)
                 .op(OpCode.SUB)
                 .op(OpCode.BLOCKHASH)
                 .op(OpCode.POP)
-
-                // arg of BlockHash is Blocknumber  -1
-                .push(1)
-                .op(OpCode.NUMBER)
-                .op(OpCode.ADD)
-                .op(OpCode.BLOCKHASH)
-                .op(OpCode.POP)
-
-                // Duplicate of arg of BlockHash is Blocknumber  -1
-                .push(1)
-                .op(OpCode.NUMBER)
-                .op(OpCode.ADD)
-                .op(OpCode.BLOCKHASH)
-                .op(OpCode.POP)
-
-                // Truplicate of arg of BlockHash is Blocknumber  -1
-                .push(1)
-                .op(OpCode.NUMBER)
-                .op(OpCode.ADD)
-                .op(OpCode.BLOCKHASH)
-                .op(OpCode.POP)
-
-                // arg of BlockHash is Blocknumber  -2
-                .push(2)
-                .op(OpCode.NUMBER)
-                .op(OpCode.ADD)
-                .op(OpCode.BLOCKHASH)
-                .op(OpCode.POP)
-
-                // TODO: add test with different block in the conflated batch
-
                 .compile())
         .run();
   }
@@ -244,56 +221,13 @@ public class BlockhashTest {
 
   // TODO: move this to blockData tests
 
-  enum NextGasLimitScenario {
-    IN_RANGE_SAME,
-    IN_RANGE_INCREMENT,
-    IN_RANGE_DECREMENT,
-    IN_RANGE_MAX,
-    IN_RANGE_MIN,
-    OUT_OF_RANGE_INCREMENT,
-    OUT_OF_RANGE_DECREMENT
-  }
-
-  @ParameterizedTest
-  @MethodSource("blockDataVariableGasLimitTestSource")
-  void blockDataVariableGasLimitTest(long gasLimit, NextGasLimitScenario nextGasLimitScenario) {
-    Bytes program = BytecodeCompiler.newProgram().push(1).compile();
-
-    long maxDeviation = gasLimit / 1024;
-
-    long nextGasLimit =
-        switch (nextGasLimitScenario) {
-          case IN_RANGE_SAME -> gasLimit;
-          case IN_RANGE_INCREMENT -> gasLimit + maxDeviation / 2;
-          case IN_RANGE_DECREMENT -> gasLimit - maxDeviation / 2;
-          case IN_RANGE_MAX -> gasLimit + maxDeviation - 1;
-          case IN_RANGE_MIN -> gasLimit - maxDeviation + 1;
-          case OUT_OF_RANGE_INCREMENT -> gasLimit + maxDeviation;
-          case OUT_OF_RANGE_DECREMENT -> gasLimit - maxDeviation;
-        };
-
-    multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit));
-  }
-
-  private static Stream<Arguments> blockDataVariableGasLimitTestSource() {
-    List<Arguments> arguments = new ArrayList<>();
-    // TODO: use LINEA_BLOCK_GAS_LIMIT_MIN, LINEA_BLOCK_GAS_LIMIT_MAX and something in between,
-    // e.g., 100M
-    List<Long> gasLimits = List.of(61_000_000L, 100_000_000L, 2_000_000_000L);
-    for (Long gasLimit : gasLimits) {
-      for (NextGasLimitScenario nextGasLimitScenario : NextGasLimitScenario.values()) {
-        arguments.add(Arguments.of(gasLimit, nextGasLimitScenario));
-      }
-    }
-    return arguments.stream();
-  }
 
   // Support methods
   void multiBlocksTest(List<Bytes> programs) {
     multiBlocksTest(programs, List.of());
   }
 
-  void multiBlocksTest(List<Bytes> programs, List<Long> gasLimits) {
+  public static void multiBlocksTest(List<Bytes> programs, List<Long> gasLimits) {
     Preconditions.checkArgument(gasLimits.isEmpty() || programs.size() == gasLimits.size());
 
     List<KeyPair> keyPairs = new ArrayList<>();
@@ -301,6 +235,7 @@ public class BlockhashTest {
     List<ToyAccount> senderAccounts = new ArrayList<>();
     List<ToyAccount> receiverAccounts = new ArrayList<>();
     List<Transaction> transactions = new ArrayList<>();
+
     for (int i = 0; i < programs.size(); i++) {
       Bytes program = programs.get(i);
       keyPairs.add(new SECP256K1().generateKeyPair());

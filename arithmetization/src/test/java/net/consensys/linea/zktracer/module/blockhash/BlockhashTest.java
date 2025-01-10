@@ -172,7 +172,7 @@ public class BlockhashTest {
   }
 
   @Test
-  void multiBlockTest1() {
+  void blockhashArgumentUpperRangeCheckMultiBlockTest() {
     // Block 1
     Bytes program1 = BytecodeCompiler.newProgram().op(OpCode.NUMBER).op(OpCode.BLOCKHASH).compile();
 
@@ -189,7 +189,7 @@ public class BlockhashTest {
   }
 
   @Test
-  void multiBlockTest2() {
+  void blockhashArgumentLowerRangeCheckMultiBlockTest() {
     // Block no longer available
     // Block 1
     Bytes program1 =
@@ -213,16 +213,21 @@ public class BlockhashTest {
   }
 
   void twoBlocksTest(Bytes program1, Bytes program2) {
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+    KeyPair keyPair1 = new SECP256K1().generateKeyPair();
+    KeyPair keyPair2 = new SECP256K1().generateKeyPair();
+    Address senderAddress1 = Address.extract(Hash.hash(keyPair1.getPublicKey().getEncodedBytes()));
+    Address senderAddress2 = Address.extract(Hash.hash(keyPair2.getPublicKey().getEncodedBytes()));
 
-    ToyAccount senderAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+    ToyAccount senderAccount1 =
+        ToyAccount.builder().balance(Wei.fromEth(10)).nonce(1).address(senderAddress1).build();
+
+    ToyAccount senderAccount2 =
+        ToyAccount.builder().balance(Wei.fromEth(10)).nonce(3).address(senderAddress2).build();
 
     ToyAccount receiverAccount1 =
         ToyAccount.builder()
             .balance(Wei.ONE)
-            .nonce(6)
+            .nonce(5)
             .address(Address.fromHexString("0x111111"))
             .code(program1)
             .build();
@@ -230,27 +235,27 @@ public class BlockhashTest {
     ToyAccount receiverAccount2 =
         ToyAccount.builder()
             .balance(Wei.ONE)
-            .nonce(6)
+            .nonce(7)
             .address(Address.fromHexString("0x222222"))
             .code(program2)
             .build();
 
     Transaction tx1 =
         ToyTransaction.builder()
-            .sender(senderAccount)
+            .sender(senderAccount1)
             .to(receiverAccount1)
-            .keyPair(keyPair)
+            .keyPair(keyPair1)
             .build();
 
     Transaction tx2 =
         ToyTransaction.builder()
-            .sender(senderAccount)
+            .sender(senderAccount2)
             .to(receiverAccount2)
-            .keyPair(keyPair)
+            .keyPair(keyPair2)
             .build();
 
     MultiBlockExecutionEnvironment.builder()
-        .accounts(List.of(senderAccount, receiverAccount1, receiverAccount2))
+        .accounts(List.of(senderAccount1, senderAccount2, receiverAccount1, receiverAccount2))
         .addBlock(List.of(tx1))
         .addBlock(List.of(tx2))
         .build()

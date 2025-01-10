@@ -54,7 +54,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   private long absBlock;
 
   private Bytes32 blockhashArg;
-  
+
   public Blockhash(Hub hub, Wcp wcp) {
     this.hub = hub;
     this.wcp = wcp;

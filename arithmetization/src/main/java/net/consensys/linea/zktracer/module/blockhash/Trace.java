@@ -31,7 +31,6 @@ import org.apache.tuweni.bytes.Bytes;
  */
 public class Trace {
   public static final int BLOCKHASH_DEPTH = 0x6;
-  public static final int NEGATIVE_OF_BLOCKHASH_DEPTH = 0x6;
   public static final int ROFF___ABS___comparison_to_256 = 0x3;
   public static final int ROFF___BLOCKHASH_arguments___equality_test = 0x2;
   public static final int ROFF___BLOCKHASH_arguments___monotony = 0x1;
@@ -52,11 +51,12 @@ public class Trace {
   private final MappedByteBuffer blockhashValLo;
   private final MappedByteBuffer ct;
   private final MappedByteBuffer ctMax;
+  private final MappedByteBuffer exoInst;
   private final MappedByteBuffer exoRes;
   private final MappedByteBuffer iomf;
   private final MappedByteBuffer macro;
   private final MappedByteBuffer prprc;
-  private final MappedByteBuffer relBlockXorExoInst;
+  private final MappedByteBuffer relBlock;
 
   static List<ColumnHeader> headers(int length) {
     List<ColumnHeader> headers = new ArrayList<>();
@@ -69,11 +69,12 @@ public class Trace {
     headers.add(new ColumnHeader("blockhash.BLOCKHASH_VAL_LO", 16, length));
     headers.add(new ColumnHeader("blockhash.CT", 1, length));
     headers.add(new ColumnHeader("blockhash.CT_MAX", 1, length));
+    headers.add(new ColumnHeader("blockhash.EXO_INST", 1, length));
     headers.add(new ColumnHeader("blockhash.EXO_RES", 1, length));
     headers.add(new ColumnHeader("blockhash.IOMF", 1, length));
     headers.add(new ColumnHeader("blockhash.MACRO", 1, length));
     headers.add(new ColumnHeader("blockhash.PRPRC", 1, length));
-    headers.add(new ColumnHeader("blockhash.REL_BLOCK_xor_EXO_INST", 1, length));
+    headers.add(new ColumnHeader("blockhash.REL_BLOCK", 2, length));
     return headers;
   }
 
@@ -87,11 +88,12 @@ public class Trace {
     this.blockhashValLo = buffers.get(6);
     this.ct = buffers.get(7);
     this.ctMax = buffers.get(8);
-    this.exoRes = buffers.get(9);
-    this.iomf = buffers.get(10);
-    this.macro = buffers.get(11);
-    this.prprc = buffers.get(12);
-    this.relBlockXorExoInst = buffers.get(13);
+    this.exoInst = buffers.get(9);
+    this.exoRes = buffers.get(10);
+    this.iomf = buffers.get(11);
+    this.macro = buffers.get(12);
+    this.prprc = buffers.get(13);
+    this.relBlock = buffers.get(14);
   }
 
   public int size() {
@@ -157,10 +159,10 @@ public class Trace {
   }
 
   public Trace pMacroAbsBlock(final long b) {
-    if (filled.get(7)) {
+    if (filled.get(8)) {
       throw new IllegalStateException("blockhash.macro/ABS_BLOCK already set");
     } else {
-      filled.set(7);
+      filled.set(8);
     }
 
     if (b >= 281474976710656L) {
@@ -177,10 +179,10 @@ public class Trace {
   }
 
   public Trace pMacroBlockhashArgHi(final Bytes b) {
-    if (filled.get(8)) {
+    if (filled.get(9)) {
       throw new IllegalStateException("blockhash.macro/BLOCKHASH_ARG_HI already set");
     } else {
-      filled.set(8);
+      filled.set(9);
     }
 
     // Trim array to size
@@ -203,10 +205,10 @@ public class Trace {
   }
 
   public Trace pMacroBlockhashArgLo(final Bytes b) {
-    if (filled.get(9)) {
+    if (filled.get(10)) {
       throw new IllegalStateException("blockhash.macro/BLOCKHASH_ARG_LO already set");
     } else {
-      filled.set(9);
+      filled.set(10);
     }
 
     // Trim array to size
@@ -229,10 +231,10 @@ public class Trace {
   }
 
   public Trace pMacroBlockhashResHi(final Bytes b) {
-    if (filled.get(10)) {
+    if (filled.get(11)) {
       throw new IllegalStateException("blockhash.macro/BLOCKHASH_RES_HI already set");
     } else {
-      filled.set(10);
+      filled.set(11);
     }
 
     // Trim array to size
@@ -255,10 +257,10 @@ public class Trace {
   }
 
   public Trace pMacroBlockhashResLo(final Bytes b) {
-    if (filled.get(11)) {
+    if (filled.get(12)) {
       throw new IllegalStateException("blockhash.macro/BLOCKHASH_RES_LO already set");
     } else {
-      filled.set(11);
+      filled.set(12);
     }
 
     // Trim array to size
@@ -281,10 +283,10 @@ public class Trace {
   }
 
   public Trace pMacroBlockhashValHi(final Bytes b) {
-    if (filled.get(12)) {
+    if (filled.get(13)) {
       throw new IllegalStateException("blockhash.macro/BLOCKHASH_VAL_HI already set");
     } else {
-      filled.set(12);
+      filled.set(13);
     }
 
     // Trim array to size
@@ -307,10 +309,10 @@ public class Trace {
   }
 
   public Trace pMacroBlockhashValLo(final Bytes b) {
-    if (filled.get(13)) {
+    if (filled.get(14)) {
       throw new IllegalStateException("blockhash.macro/BLOCKHASH_VAL_LO already set");
     } else {
-      filled.set(13);
+      filled.set(14);
     }
 
     // Trim array to size
@@ -333,25 +335,26 @@ public class Trace {
   }
 
   public Trace pMacroRelBlock(final long b) {
-    if (filled.get(6)) {
+    if (filled.get(7)) {
       throw new IllegalStateException("blockhash.macro/REL_BLOCK already set");
     } else {
-      filled.set(6);
+      filled.set(7);
     }
 
-    if (b >= 256L) {
+    if (b >= 65536L) {
       throw new IllegalArgumentException("blockhash.macro/REL_BLOCK has invalid value (" + b + ")");
     }
-    relBlockXorExoInst.put((byte) b);
+    relBlock.put((byte) (b >> 8));
+    relBlock.put((byte) b);
 
     return this;
   }
 
   public Trace pPreprocessingExoArg1Hi(final Bytes b) {
-    if (filled.get(8)) {
+    if (filled.get(9)) {
       throw new IllegalStateException("blockhash.preprocessing/EXO_ARG_1_HI already set");
     } else {
-      filled.set(8);
+      filled.set(9);
     }
 
     // Trim array to size
@@ -374,10 +377,10 @@ public class Trace {
   }
 
   public Trace pPreprocessingExoArg1Lo(final Bytes b) {
-    if (filled.get(9)) {
+    if (filled.get(10)) {
       throw new IllegalStateException("blockhash.preprocessing/EXO_ARG_1_LO already set");
     } else {
-      filled.set(9);
+      filled.set(10);
     }
 
     // Trim array to size
@@ -400,10 +403,10 @@ public class Trace {
   }
 
   public Trace pPreprocessingExoArg2Hi(final Bytes b) {
-    if (filled.get(10)) {
+    if (filled.get(11)) {
       throw new IllegalStateException("blockhash.preprocessing/EXO_ARG_2_HI already set");
     } else {
-      filled.set(10);
+      filled.set(11);
     }
 
     // Trim array to size
@@ -426,10 +429,10 @@ public class Trace {
   }
 
   public Trace pPreprocessingExoArg2Lo(final Bytes b) {
-    if (filled.get(11)) {
+    if (filled.get(12)) {
       throw new IllegalStateException("blockhash.preprocessing/EXO_ARG_2_LO already set");
     } else {
-      filled.set(11);
+      filled.set(12);
     }
 
     // Trim array to size
@@ -462,7 +465,7 @@ public class Trace {
       throw new IllegalArgumentException(
           "blockhash.preprocessing/EXO_INST has invalid value (" + b + ")");
     }
-    relBlockXorExoInst.put((byte) b);
+    exoInst.put((byte) b);
 
     return this;
   }
@@ -492,35 +495,35 @@ public class Trace {
   }
 
   public Trace validateRow() {
-    if (!filled.get(7)) {
-      throw new IllegalStateException("blockhash.ABS_BLOCK has not been filled");
-    }
-
     if (!filled.get(8)) {
-      throw new IllegalStateException(
-          "blockhash.BLOCKHASH_ARG_HI_xor_EXO_ARG_1_HI has not been filled");
+      throw new IllegalStateException("blockhash.ABS_BLOCK has not been filled");
     }
 
     if (!filled.get(9)) {
       throw new IllegalStateException(
-          "blockhash.BLOCKHASH_ARG_LO_xor_EXO_ARG_1_LO has not been filled");
+          "blockhash.BLOCKHASH_ARG_HI_xor_EXO_ARG_1_HI has not been filled");
     }
 
     if (!filled.get(10)) {
       throw new IllegalStateException(
-          "blockhash.BLOCKHASH_RES_HI_xor_EXO_ARG_2_HI has not been filled");
+          "blockhash.BLOCKHASH_ARG_LO_xor_EXO_ARG_1_LO has not been filled");
     }
 
     if (!filled.get(11)) {
       throw new IllegalStateException(
-          "blockhash.BLOCKHASH_RES_LO_xor_EXO_ARG_2_LO has not been filled");
+          "blockhash.BLOCKHASH_RES_HI_xor_EXO_ARG_2_HI has not been filled");
     }
 
     if (!filled.get(12)) {
-      throw new IllegalStateException("blockhash.BLOCKHASH_VAL_HI has not been filled");
+      throw new IllegalStateException(
+          "blockhash.BLOCKHASH_RES_LO_xor_EXO_ARG_2_LO has not been filled");
     }
 
     if (!filled.get(13)) {
+      throw new IllegalStateException("blockhash.BLOCKHASH_VAL_HI has not been filled");
+    }
+
+    if (!filled.get(14)) {
       throw new IllegalStateException("blockhash.BLOCKHASH_VAL_LO has not been filled");
     }
 
@@ -530,6 +533,10 @@ public class Trace {
 
     if (!filled.get(1)) {
       throw new IllegalStateException("blockhash.CT_MAX has not been filled");
+    }
+
+    if (!filled.get(6)) {
+      throw new IllegalStateException("blockhash.EXO_INST has not been filled");
     }
 
     if (!filled.get(5)) {
@@ -548,8 +555,8 @@ public class Trace {
       throw new IllegalStateException("blockhash.PRPRC has not been filled");
     }
 
-    if (!filled.get(6)) {
-      throw new IllegalStateException("blockhash.REL_BLOCK_xor_EXO_INST has not been filled");
+    if (!filled.get(7)) {
+      throw new IllegalStateException("blockhash.REL_BLOCK has not been filled");
     }
 
     filled.clear();
@@ -559,31 +566,31 @@ public class Trace {
   }
 
   public Trace fillAndValidateRow() {
-    if (!filled.get(7)) {
+    if (!filled.get(8)) {
       absBlock.position(absBlock.position() + 6);
     }
 
-    if (!filled.get(8)) {
+    if (!filled.get(9)) {
       blockhashArgHiXorExoArg1Hi.position(blockhashArgHiXorExoArg1Hi.position() + 16);
     }
 
-    if (!filled.get(9)) {
+    if (!filled.get(10)) {
       blockhashArgLoXorExoArg1Lo.position(blockhashArgLoXorExoArg1Lo.position() + 16);
     }
 
-    if (!filled.get(10)) {
+    if (!filled.get(11)) {
       blockhashResHiXorExoArg2Hi.position(blockhashResHiXorExoArg2Hi.position() + 16);
     }
 
-    if (!filled.get(11)) {
+    if (!filled.get(12)) {
       blockhashResLoXorExoArg2Lo.position(blockhashResLoXorExoArg2Lo.position() + 16);
     }
 
-    if (!filled.get(12)) {
+    if (!filled.get(13)) {
       blockhashValHi.position(blockhashValHi.position() + 16);
     }
 
-    if (!filled.get(13)) {
+    if (!filled.get(14)) {
       blockhashValLo.position(blockhashValLo.position() + 16);
     }
 
@@ -593,6 +600,10 @@ public class Trace {
 
     if (!filled.get(1)) {
       ctMax.position(ctMax.position() + 1);
+    }
+
+    if (!filled.get(6)) {
+      exoInst.position(exoInst.position() + 1);
     }
 
     if (!filled.get(5)) {
@@ -611,8 +622,8 @@ public class Trace {
       prprc.position(prprc.position() + 1);
     }
 
-    if (!filled.get(6)) {
-      relBlockXorExoInst.position(relBlockXorExoInst.position() + 1);
+    if (!filled.get(7)) {
+      relBlock.position(relBlock.position() + 2);
     }
 
     filled.clear();

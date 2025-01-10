@@ -98,7 +98,7 @@ public class Trace {
     headers.add(new ColumnHeader("blockdata.IS_GASLIMIT", 1, length));
     headers.add(new ColumnHeader("blockdata.IS_NUMBER", 1, length));
     headers.add(new ColumnHeader("blockdata.IS_TIMESTAMP", 1, length));
-    headers.add(new ColumnHeader("blockdata.REL_BLOCK", 1, length));
+    headers.add(new ColumnHeader("blockdata.REL_BLOCK", 2, length));
     headers.add(new ColumnHeader("blockdata.REL_TX_NUM_MAX", 2, length));
     headers.add(new ColumnHeader("blockdata.RES", 16, length));
     headers.add(new ColumnHeader("blockdata.WCP_FLAG", 1, length));
@@ -574,9 +574,10 @@ public class Trace {
       filled.set(24);
     }
 
-    if (b >= 256L) {
+    if (b >= 65536L) {
       throw new IllegalArgumentException("blockdata.REL_BLOCK has invalid value (" + b + ")");
     }
+    relBlock.put((byte) (b >> 8));
     relBlock.put((byte) b);
 
     return this;
@@ -853,7 +854,7 @@ public class Trace {
     }
 
     if (!filled.get(24)) {
-      relBlock.position(relBlock.position() + 1);
+      relBlock.position(relBlock.position() + 2);
     }
 
     if (!filled.get(25)) {

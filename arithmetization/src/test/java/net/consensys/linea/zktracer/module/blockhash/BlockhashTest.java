@@ -17,7 +17,11 @@ package net.consensys.linea.zktracer.module.blockhash;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.BLOCKHASH_MAX_HISTORY;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -185,11 +189,21 @@ public class BlockhashTest {
             .op(OpCode.BLOCKHASH)
             .compile();
 
-    twoBlocksTest(program1, program2);
+    multiBlocksTest(List.of(program1, program2));
   }
 
   @Test
   void blockhashArgumentLowerRangeCheckMultiBlockTest() {
+    Bytes fillerProgram = BytecodeCompiler.newProgram().op(OpCode.COINBASE).compile();
+
+    Bytes program0 =
+        BytecodeCompiler.newProgram()
+            .push(1)
+            .op(OpCode.NUMBER)
+            .op(OpCode.SUB)
+            .op(OpCode.BLOCKHASH)
+            .compile();
+
     // Block no longer available
     // Block 1
     Bytes program1 =
@@ -209,7 +223,19 @@ public class BlockhashTest {
             .op(OpCode.BLOCKHASH)
             .compile();
 
-    twoBlocksTest(program1, program2);
+    Bytes program3 =
+        BytecodeCompiler.newProgram()
+            .push(16)
+            .op(OpCode.NUMBER)
+            .op(OpCode.SUB)
+            .op(OpCode.BLOCKHASH)
+            .compile();
+
+    multiBlocksTest(
+        Stream.concat(
+                Collections.nCopies(256, fillerProgram).stream(),
+                List.of(program0, program1, program2, program3).stream())
+            .collect(Collectors.toList()));
   }
 
   void twoBlocksTest(Bytes program1, Bytes program2) {
@@ -260,5 +286,49 @@ public class BlockhashTest {
         .addBlock(List.of(tx2))
         .build()
         .run();
+  }
+
+  void multiBlocksTest(List<Bytes> programs) {
+    List<KeyPair> keyPairs = new ArrayList<>();
+    List<Address> senderAddresses = new ArrayList<>();
+    List<ToyAccount> senderAccounts = new ArrayList<>();
+    List<ToyAccount> receiverAccounts = new ArrayList<>();
+    List<Transaction> transactions = new ArrayList<>();
+    for (int i = 0; i < programs.size(); i++) {
+      Bytes program = programs.get(i);
+      keyPairs.add(new SECP256K1().generateKeyPair());
+      senderAddresses.add(
+          Address.extract(
+              Hash.hash(keyPairs.get(keyPairs.size() - 1).getPublicKey().getEncodedBytes())));
+      senderAccounts.add(
+          ToyAccount.builder()
+              .balance(Wei.fromEth(1 + i))
+              .nonce(3 + i)
+              .address(senderAddresses.get(senderAddresses.size() - 1))
+              .build());
+      receiverAccounts.add(
+          ToyAccount.builder()
+              .balance(Wei.ONE)
+              .nonce(5 + i)
+              .address(Address.fromHexString("0x" + (20 + i)))
+              .code(program)
+              .build());
+      transactions.add(
+          ToyTransaction.builder()
+              .sender(senderAccounts.get(senderAccounts.size() - 1))
+              .to(receiverAccounts.get(receiverAccounts.size() - 1))
+              .keyPair(keyPairs.get(keyPairs.size() - 1))
+              .build());
+    }
+
+    MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
+        MultiBlockExecutionEnvironment.builder()
+            .accounts(
+                Stream.concat(senderAccounts.stream(), receiverAccounts.stream())
+                    .collect(Collectors.toList()));
+    for (Transaction tx : transactions) {
+      builder.addBlock(List.of(tx));
+    }
+    builder.build().run();
   }
 }

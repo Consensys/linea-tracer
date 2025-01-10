@@ -64,7 +64,7 @@ public class ExecutionEnvironment {
       BlockHeaderBuilder.createDefault()
           .number(ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER)
           .timestamp(123456789)
-          .parentHash(Hash.EMPTY)
+          .parentHash(Hash.EMPTY_TRIE_HASH)
           .nonce(0)
           .blockHeaderFunctions(new CliqueBlockHeaderFunctions());
 

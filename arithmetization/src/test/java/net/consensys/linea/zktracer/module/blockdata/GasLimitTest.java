@@ -16,8 +16,7 @@ package net.consensys.linea.zktracer.module.blockdata;
 
 import static net.consensys.linea.zktracer.MultiBlockUtils.multiBlocksTest;
 import static net.consensys.linea.zktracer.module.blockdata.NextGasLimitScenario.*;
-import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MAXIMUM;
-import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MINIMUM;
+import static net.consensys.linea.zktracer.module.constants.Trace.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +70,8 @@ public class GasLimitTest {
     List<Arguments> arguments = new ArrayList<>();
     // TODO: use LINEA_BLOCK_GAS_LIMIT_MIN, LINEA_BLOCK_GAS_LIMIT_MAX and something in between,
     // e.g., 100M
-    List<Long> gasLimits = List.of((long) LINEA_GAS_LIMIT_MINIMUM, 100_000_000L, (long) LINEA_GAS_LIMIT_MAXIMUM);
+    List<Long> gasLimits =
+        List.of((long) LINEA_GAS_LIMIT_MINIMUM, 100_000_000L, (long) LINEA_GAS_LIMIT_MAXIMUM);
     for (Long gasLimit : gasLimits) {
       for (NextGasLimitScenario scenario : values()) {
         arguments.add(Arguments.of(gasLimit, scenario));
@@ -81,7 +81,7 @@ public class GasLimitTest {
   }
 
   private long nextGasLimit(long gasLimit, NextGasLimitScenario nextGasLimitScenario) {
-    long maxDeviation = gasLimit / 1024;
+    long maxDeviation = gasLimit / GAS_LIMIT_ADJUSTMENT_FACTOR;
     return switch (nextGasLimitScenario) {
       case IN_RANGE_SAME -> gasLimit;
       case IN_RANGE_INCREMENT -> gasLimit + maxDeviation / 2;
@@ -95,7 +95,7 @@ public class GasLimitTest {
   }
 
   private boolean isInRange(long gasLimit, long nextGasLimit) {
-    long maxDeviation = gasLimit / 1024;
+    long maxDeviation = gasLimit / GAS_LIMIT_ADJUSTMENT_FACTOR;
     return nextGasLimit < gasLimit + maxDeviation && nextGasLimit > gasLimit - maxDeviation;
   }
 }

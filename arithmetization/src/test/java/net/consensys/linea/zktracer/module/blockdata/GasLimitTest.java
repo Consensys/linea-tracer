@@ -81,7 +81,7 @@ public class GasLimitTest {
   }
 
   private long nextGasLimit(long gasLimit, NextGasLimitScenario nextGasLimitScenario) {
-    long maxDeviation = gasLimit / GAS_LIMIT_ADJUSTMENT_FACTOR;
+    long maxDeviation = maxDeviation(gasLimit);
     return switch (nextGasLimitScenario) {
       case IN_RANGE_SAME -> gasLimit;
       case IN_RANGE_INCREMENT -> gasLimit + maxDeviation / 2;
@@ -95,7 +95,11 @@ public class GasLimitTest {
   }
 
   private boolean isInRange(long gasLimit, long nextGasLimit) {
-    long maxDeviation = gasLimit / GAS_LIMIT_ADJUSTMENT_FACTOR;
+    long maxDeviation = maxDeviation(gasLimit);
     return nextGasLimit < gasLimit + maxDeviation && nextGasLimit > gasLimit - maxDeviation;
+  }
+
+  private long maxDeviation(long gasLimit) {
+    return gasLimit / GAS_LIMIT_ADJUSTMENT_FACTOR;
   }
 }

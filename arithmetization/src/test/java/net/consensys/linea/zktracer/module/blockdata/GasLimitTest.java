@@ -16,6 +16,8 @@ package net.consensys.linea.zktracer.module.blockdata;
 
 import static net.consensys.linea.zktracer.MultiBlockUtils.multiBlocksTest;
 import static net.consensys.linea.zktracer.module.blockdata.NextGasLimitScenario.*;
+import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MAXIMUM;
+import static net.consensys.linea.zktracer.module.constants.Trace.LINEA_GAS_LIMIT_MINIMUM;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,7 @@ public class GasLimitTest {
   void legalGasLimitVariationsTest() {
     Bytes p = BytecodeCompiler.newProgram().push(1).compile();
 
-    long gasLimit = 61_000_000L;
+    long gasLimit = LINEA_GAS_LIMIT_MINIMUM;
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_INCREMENT)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
@@ -50,7 +52,7 @@ public class GasLimitTest {
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
 
-    gasLimit = 2_000_000_000L;
+    gasLimit = LINEA_GAS_LIMIT_MAXIMUM;
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_DECREMENT)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
@@ -69,7 +71,7 @@ public class GasLimitTest {
     List<Arguments> arguments = new ArrayList<>();
     // TODO: use LINEA_BLOCK_GAS_LIMIT_MIN, LINEA_BLOCK_GAS_LIMIT_MAX and something in between,
     // e.g., 100M
-    List<Long> gasLimits = List.of(61_000_000L, 100_000_000L, 2_000_000_000L);
+    List<Long> gasLimits = List.of((long) LINEA_GAS_LIMIT_MINIMUM, 100_000_000L, (long) LINEA_GAS_LIMIT_MAXIMUM);
     for (Long gasLimit : gasLimits) {
       for (NextGasLimitScenario scenario : values()) {
         arguments.add(Arguments.of(gasLimit, scenario));
@@ -90,5 +92,10 @@ public class GasLimitTest {
       case OUT_OF_RANGE_DECREMENT -> gasLimit - maxDeviation;
       case OUT_OF_RANGE_GENERIC -> 200_000_000L;
     };
+  }
+
+  private boolean isInRange(long gasLimit, long nextGasLimit) {
+    long maxDeviation = gasLimit / 1024;
+    return nextGasLimit < gasLimit + maxDeviation && nextGasLimit > gasLimit - maxDeviation;
   }
 }

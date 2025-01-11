@@ -69,7 +69,7 @@ public class GasLimitTest {
   private static Stream<Arguments> blockDataVariableGasLimitTestSource() {
     List<Arguments> arguments = new ArrayList<>();
     // TODO: use LINEA_BLOCK_GAS_LIMIT_MIN, LINEA_BLOCK_GAS_LIMIT_MAX and something in between,
-    // e.g., 100M
+    //  e.g., 100M
     List<Long> gasLimits =
         List.of(
             0L,

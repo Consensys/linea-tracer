@@ -21,6 +21,15 @@ public enum NextGasLimitScenario {
     IN_RANGE_MAX,
     IN_RANGE_MIN,
     OUT_OF_RANGE_INCREMENT,
-    OUT_OF_RANGE_DECREMENT
+    OUT_OF_RANGE_DECREMENT,
+    OUT_OF_RANGE_GENERIC;
+
+    public boolean isInRange() {
+        return this == IN_RANGE_SAME || this == IN_RANGE_INCREMENT || this == IN_RANGE_DECREMENT;
+    }
+
+    public boolean isOutOfRange() {
+        return this == OUT_OF_RANGE_INCREMENT || this == OUT_OF_RANGE_DECREMENT || this == IN_RANGE_MAX || this == IN_RANGE_MIN;
+    }
 }
 

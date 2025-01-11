@@ -35,22 +35,25 @@ import static net.consensys.linea.zktracer.module.blockhash.BlockhashTest.multiB
 public class GasLimitTest {
 
     @Test
-    void singleVariableGasLimitTest() {
+    void legalGasLimitVariationsTest() {
         Bytes program = BytecodeCompiler.newProgram().push(1).compile();
-        // long gasLimit = 61_000_000L;
-        long gasLimit = 100_000_000L;
-        // long gasLimit = 2_000_000_000L;
 
-        NextGasLimitScenario scenario = IN_RANGE_SAME;
-        // NextGasLimitScenario scenario = IN_RANGE_SAME;
-        // NextGasLimitScenario scenario = IN_RANGE_INCREMENT;
-        // NextGasLimitScenario scenario = IN_RANGE_DECREMENT;
-        // NextGasLimitScenario scenario = IN_RANGE_MAX;
-        // NextGasLimitScenario scenario = IN_RANGE_MIN;
-        // NextGasLimitScenario scenario = OUT_OF_RANGE_INCREMENT;
-        // NextGasLimitScenario scenario = OUT_OF_RANGE_DECREMENT;
+        long gasLimit = 61_000_000L;
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_INCREMENT)));
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
 
-        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, scenario)));
+        gasLimit = 100_000_000L;
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_INCREMENT)));
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_DECREMENT)));
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
+
+        gasLimit = 2_000_000_000L;
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_DECREMENT)));
+        multiBlocksTest(List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
     }
 
     @ParameterizedTest
@@ -67,8 +70,8 @@ public class GasLimitTest {
         // e.g., 100M
         List<Long> gasLimits = List.of(61_000_000L, 100_000_000L, 2_000_000_000L);
         for (Long gasLimit : gasLimits) {
-            for (NextGasLimitScenario nextGasLimitScenario : values()) {
-                arguments.add(Arguments.of(gasLimit, nextGasLimitScenario));
+            for (NextGasLimitScenario scenario : values()) {
+                arguments.add(Arguments.of(gasLimit, scenario));
             }
         }
         return arguments.stream();
@@ -85,6 +88,7 @@ public class GasLimitTest {
                     case IN_RANGE_MIN -> gasLimit - maxDeviation + 1;
                     case OUT_OF_RANGE_INCREMENT -> gasLimit + maxDeviation;
                     case OUT_OF_RANGE_DECREMENT -> gasLimit - maxDeviation;
+                    case OUT_OF_RANGE_GENERIC -> 200_000_000L;
                 };
     }
 }

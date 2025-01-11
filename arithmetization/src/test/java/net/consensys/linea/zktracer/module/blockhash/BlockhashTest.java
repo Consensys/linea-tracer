@@ -30,7 +30,6 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyTransaction;
-import net.consensys.linea.zktracer.module.blockdata.NextGasLimitScenario;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -41,9 +40,6 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class BlockhashTest {
@@ -220,7 +216,6 @@ public class BlockhashTest {
   }
 
   // TODO: move this to blockData tests
-
 
   // Support methods
   void multiBlocksTest(List<Bytes> programs) {

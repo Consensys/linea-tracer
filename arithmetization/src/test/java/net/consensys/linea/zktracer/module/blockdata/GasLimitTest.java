@@ -36,35 +36,24 @@ public class GasLimitTest {
 
   @Test
   void legalGasLimitVariationsTest() {
-    Bytes program = BytecodeCompiler.newProgram().push(1).compile();
+    Bytes p = BytecodeCompiler.newProgram().push(1).compile();
 
     long gasLimit = 61_000_000L;
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_INCREMENT)));
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_INCREMENT)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
 
     gasLimit = 100_000_000L;
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_INCREMENT)));
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_DECREMENT)));
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_INCREMENT)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_DECREMENT)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
 
     gasLimit = 2_000_000_000L;
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_DECREMENT)));
-    multiBlocksTest(
-        List.of(program, program), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_DECREMENT)));
+    multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
   }
 
   @ParameterizedTest

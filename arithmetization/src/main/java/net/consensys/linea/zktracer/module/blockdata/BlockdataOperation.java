@@ -172,9 +172,11 @@ public class BlockdataOperation extends ModuleOperation {
     data = EWord.of(blockHeader.getGasLimit());
 
     // row i
-    wcpCallToGEQ(0, data, EWord.of(ETHEREUM_GAS_LIMIT_MAXIMUM));
+    // comparison to minimum
+    wcpCallToGEQ(0, data, EWord.of(ETHEREUM_GAS_LIMIT_MINIMUM));
 
     // row i + 1
+    // comparison to maximum
     wcpCallToLEQ(1, data, EWord.of(Bytes.ofUnsignedLong(ETHEREUM_GAS_LIMIT_MAXIMUM)));
 
     if (!firstBlockInConflation) {

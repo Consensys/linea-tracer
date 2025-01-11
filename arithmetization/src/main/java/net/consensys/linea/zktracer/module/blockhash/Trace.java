@@ -31,6 +31,7 @@ import org.apache.tuweni.bytes.Bytes;
  */
 public class Trace {
   public static final int BLOCKHASH_DEPTH = 0x6;
+  public static final int NEGATIVE_OF_BLOCKHASH_DEPTH = -0x6;
   public static final int ROFF___ABS___comparison_to_256 = 0x3;
   public static final int ROFF___BLOCKHASH_arguments___equality_test = 0x2;
   public static final int ROFF___BLOCKHASH_arguments___monotony = 0x1;

@@ -71,7 +71,13 @@ public class GasLimitTest {
     // TODO: use LINEA_BLOCK_GAS_LIMIT_MIN, LINEA_BLOCK_GAS_LIMIT_MAX and something in between,
     // e.g., 100M
     List<Long> gasLimits =
-        List.of((long) LINEA_GAS_LIMIT_MINIMUM, 100_000_000L, (long) LINEA_GAS_LIMIT_MAXIMUM);
+        List.of(
+            0L,
+            (long) ETHEREUM_GAS_LIMIT_MINIMUM,
+            (long) LINEA_GAS_LIMIT_MINIMUM,
+            100_000_000L,
+            (long) LINEA_GAS_LIMIT_MAXIMUM,
+            Long.MAX_VALUE);
     for (Long gasLimit : gasLimits) {
       for (NextGasLimitScenario scenario : values()) {
         arguments.add(Arguments.of(gasLimit, scenario));

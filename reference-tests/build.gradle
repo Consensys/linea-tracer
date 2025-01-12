@@ -55,6 +55,7 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 }
 
 tasks.register('referenceBlockchainTests', Test) {
+  dependsOn(buildReferenceTestsZkevmBin)
   description = 'Runs ETH reference blockchain tests.'
   dependsOn generateBlockchainReferenceTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
@@ -69,6 +70,7 @@ tasks.register('referenceBlockchainTests', Test) {
 }
 
 tasks.register('referenceGeneralStateTests', Test) {
+  dependsOn(buildReferenceTestsZkevmBin)
   description = 'Runs ETH reference general state tests.'
   dependsOn generateGeneralStateReferenceTests
 
@@ -88,9 +90,6 @@ tasks.register('referenceGeneralStateTests', Test) {
   tasks.named("referenceBlockchainTests"),
 ].forEach {
   it.configure {
-    dependsOn buildReferenceTestsZkevmBin
-    environment.put("ZKEVM_BIN", "zkevm_for_reference_tests.bin")
-
     systemProperty("junit.jupiter.execution.timeout.default", "15 m")  // 5 minutes
     systemProperty("junit.jupiter.execution.parallel.enabled", "true")
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")

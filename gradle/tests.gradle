@@ -21,7 +21,6 @@ jacoco {
 }
 
 apply plugin: 'com.adarshr.test-logger'
-
 /*
   * Pass some system properties provided on the gradle command line to test executions for
   * convenience.
@@ -133,6 +132,9 @@ tasks.test.configure {
 }
 
 tasks.register("fastReplayTests", Test) {
+
+  dependsOn blockdataLinea
+
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")

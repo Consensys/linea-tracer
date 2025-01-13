@@ -35,6 +35,23 @@ tasks.register("hub", TraceFilesTask) {
 }
 
 //
+// Special case: blockdata - trace file differ between Ethereum and Linea for gas limit purposes
+//
+tasks.register("blockdataEthereum", TraceFilesTask) {
+    group "Trace files generation"
+    dependsOn corsetExists
+    module = 'blockdata'
+    files = ['blockdata/constants.lisp', 'blockdata/columns.lisp', 'blockdata/constants-ethereum.lisp']
+}
+
+tasks.register("blockdataLinea", TraceFilesTask) {
+    group "Trace files generation"
+    dependsOn corsetExists
+    module = 'blockdata'
+    files = ['blockdata/constants.lisp', 'blockdata/columns.lisp', 'blockdata/constants-linea.lisp']
+}
+
+//
 // Reference table
 //
 tasks.register('instdecoder', TraceFilesTask) {
@@ -75,7 +92,7 @@ tasks.register('binreftable', TraceFilesTask) {
 //
 // Put here modules following the conventional MODULE/columns.lisp, MODULE/constants.lisp naming scheme.
 //
-['mmu', 'blake2fmodexpdata', 'blockdata', 'oob', 'exp', 'rlptxrcpt', 'rlpaddr', 'shakiradata', 'mxp', 'ecdata'].each {moduleName ->
+['mmu', 'blake2fmodexpdata', 'oob', 'exp', 'rlptxrcpt', 'rlpaddr', 'shakiradata', 'mxp', 'ecdata'].each {moduleName ->
     tasks.register(moduleName, TraceFilesTask) {
         group "Trace files generation"
         dependsOn corsetExists

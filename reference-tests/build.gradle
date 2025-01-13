@@ -23,6 +23,7 @@ apply from: rootProject.file("gradle/tests.gradle")
 apply from: rootProject.file("gradle/dependency-management.gradle")
 apply from: rootProject.file('gradle/common-dependencies.gradle')
 apply from: rootProject.file("gradle/lint.gradle")
+apply from: rootProject.file("gradle/trace-files.gradle")
 
 configurations.configureEach {
   exclude module: 'log4j-api'
@@ -56,6 +57,7 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
+  dependsOn blockdataEthereum
   dependsOn generateBlockchainReferenceTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 
@@ -70,6 +72,7 @@ tasks.register('referenceBlockchainTests', Test) {
 
 tasks.register('referenceGeneralStateTests', Test) {
   description = 'Runs ETH reference general state tests.'
+  dependsOn blockdataEthereum
   dependsOn generateGeneralStateReferenceTests
 
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "GeneralStateReferenceTestOutcome.json")

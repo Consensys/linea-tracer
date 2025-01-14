@@ -59,8 +59,9 @@ public class GasLimitTest {
   }
 
   /**
-   * The test below deliberately contains test vectors that are expected to fail. The test is @Disabled as
-   * a consequence.
+   * The test below deliberately contains test vectors that are expected to fail. The test
+   * is @Disabled as a consequence.
+   *
    * @param gasLimit
    * @param nextGasLimitScenario
    */

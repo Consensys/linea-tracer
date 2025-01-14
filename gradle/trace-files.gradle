@@ -139,7 +139,8 @@ tasks.register('buildTracer') {
     dependsOn 'instdecoder'
     dependsOn 'shfreftable'
     dependsOn 'binreftable'
-    dependsOn 'bin', 'blockhash', 'euc', 'mmio', 'shf', 'wcp', 'rlptxn', 'rom', 'romlex', 'trm', 'stp', 'loginfo', 'logdata', 'gas'
+    // 'blockhash" is removed from the list below because of manual change on NEGATIVE_OF_BLOCKHASH_DEPTH
+    dependsOn 'bin', 'euc', 'mmio', 'shf', 'wcp', 'rlptxn', 'rom', 'romlex', 'trm', 'stp', 'loginfo', 'logdata', 'gas'
     dependsOn 'mmu', 'blake2fmodexpdata', 'oob', 'exp', 'rlptxrcpt', 'rlpaddr', 'shakiradata', 'mxp', 'ecdata'
     dependsOn 'txndata'
     dependsOn 'constants'

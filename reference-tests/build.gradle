@@ -57,7 +57,6 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
-  dependsOn buildTracerWithBlockdataEthereum
   dependsOn generateBlockchainReferenceTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 
@@ -90,6 +89,7 @@ tasks.register('referenceGeneralStateTests', Test) {
   tasks.named("referenceBlockchainTests"),
 ].forEach {
   it.configure {
+    dependsOn buildTracerWithBlockdataEthereum
     dependsOn buildReferenceTestsZkevmBin
     environment.put("ZKEVM_BIN", "zkevm_for_reference_tests.bin")
 

@@ -180,8 +180,6 @@ public class Hub implements Module {
     return state.lineCounter().lineCount();
   }
 
-  @Getter private final BigInteger chainId;
-
   /** List of all modules of the ZK-evm */
   // stateless modules
   @Getter private final Wcp wcp = new Wcp();
@@ -204,7 +202,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  private final TxnData txnData = new TxnData(wcp, euc);
+  private final TxnData txnData = new TxnData(this, wcp, euc);
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -296,6 +294,9 @@ public class Hub implements Module {
    */
   public boolean failureConditionForCreates = false;
 
+  public Address coinbaseAddress;
+  public boolean coinbaseWarmthAtTransactionEnd = false;
+
   /**
    * @return a list of all modules for which to generate traces
    */
@@ -381,17 +382,14 @@ public class Hub implements Module {
         .toList();
   }
 
-  public Hub(
-      final Address l2l1ContractAddress,
-      final Bytes l2l1Topic,
-      final BigInteger nonnegativeChainId) {
-    checkState(nonnegativeChainId.signum() >= 0);
-    chainId = nonnegativeChainId;
+  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic, final BigInteger chainId) {
+    checkState(chainId.signum() >= 0);
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
-    blockdata = new Blockdata(wcp, txnData, rlpTxn, chainId);
+    blockdata = new Blockdata(wcp, euc, txnData);
+    blockdata.setChainId(chainId);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -501,6 +499,7 @@ public class Hub implements Module {
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.setProcessingPhase(TX_SKIP);
+      Address coinbaseAddress = Address.fromHexString("8f81e2e3f8b46467523463835f965ffe476e1c9e");
       new TxSkipSection(this, world, transactionProcessingMetadata, transients);
     } else {
       if (transactionProcessingMetadata.requiresPrewarming()) {
@@ -521,6 +520,8 @@ public class Hub implements Module {
     }
   }
 
+  // the sender already received its gas refund
+  // the coinbase already received its gas reward
   public void traceEndTransaction(
       WorldView world,
       Transaction tx,
@@ -534,7 +535,7 @@ public class Hub implements Module {
 
     txStack.current().completeLineaTransaction(this, isSuccessful, logs, selfDestructs);
 
-    defers.resolvePostTransaction(this, world, tx, isSuccessful);
+    defers.resolveAtEndTransaction(this, world, tx, isSuccessful);
 
     // Warn: we need to call MMIO after resolving the defers
     for (Module m : modules) {
@@ -551,6 +552,11 @@ public class Hub implements Module {
 
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
+      coinbaseAddress = frame.getMiningBeneficiary();
+      if (state.getProcessingPhase() == TX_SKIP) {
+        checkState(currentTraceSection() instanceof TxSkipSection);
+        ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
+      }
       final TransactionProcessingMetadata currentTransaction = transients().tx();
       final Address recipientAddress = frame.getRecipientAddress();
       final Address senderAddress = frame.getSenderAddress();
@@ -638,12 +644,12 @@ public class Hub implements Module {
 
       this.currentFrame().initializeFrame(frame);
 
-      defers.resolveUponContextEntry(this, frame);
-
       for (Module m : modules) {
         m.traceContextEnter(frame);
       }
     }
+
+    defers.resolveUponContextEntry(this, frame);
   }
 
   @Override
@@ -656,14 +662,13 @@ public class Hub implements Module {
     if (frame.getDepth() == 0) {
       final long leftOverGas = frame.getRemainingGas();
       final long gasRefund = frame.getGasRefund();
-      final boolean coinbaseIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
 
       txStack
           .current()
           .setPreFinalisationValues(
               leftOverGas,
               gasRefund,
-              coinbaseIsWarm,
+              coinbaseWarmthAtTransactionEnd,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
       if (state.getProcessingPhase() != TX_SKIP
@@ -738,8 +743,12 @@ public class Hub implements Module {
       this.unlatchStack(frame, currentSection);
     }
 
-    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
+    if (frame.getDepth() == 0 && (isExceptional() || opCode().isHalt())) {
       this.state.setProcessingPhase(TX_FINL);
+      coinbaseWarmthAtTransactionEnd = frame.isAddressWarm(coinbaseAddress);
+    }
+
+    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
       new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }

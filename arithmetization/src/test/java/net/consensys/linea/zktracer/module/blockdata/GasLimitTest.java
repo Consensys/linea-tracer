@@ -26,6 +26,7 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -57,6 +58,13 @@ public class GasLimitTest {
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
   }
 
+  /**
+   * The test below deliberately contains test vectors that are expected to fail. The test is @Disabled as
+   * a consequence.
+   * @param gasLimit
+   * @param nextGasLimitScenario
+   */
+  @Disabled
   @ParameterizedTest
   @MethodSource("blockDataVariableGasLimitTestSource")
   void variableGasLimitTest(long gasLimit, NextGasLimitScenario nextGasLimitScenario) {

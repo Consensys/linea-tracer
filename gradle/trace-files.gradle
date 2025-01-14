@@ -122,7 +122,7 @@ tasks.register('buildTracer') {
     dependsOn 'instdecoder'
     dependsOn 'shfreftable'
     dependsOn 'binreftable'
-    dependsOn 'bin', 'blockhash', 'euc', 'mmio', 'shf', 'wcp', 'rlptxn', 'rom', 'romlex', 'trm', 'stp', 'loginfo', 'logdata', 'gas'
+    dependsOn 'bin', 'euc', 'mmio', 'shf', 'wcp', 'rlptxn', 'rom', 'romlex', 'trm', 'stp', 'loginfo', 'logdata', 'gas'
     dependsOn 'mmu', 'blake2fmodexpdata', 'blockdata', 'oob', 'exp', 'rlptxrcpt', 'rlpaddr', 'shakiradata', 'mxp', 'ecdata'
     dependsOn 'txndata'
     dependsOn 'constants'

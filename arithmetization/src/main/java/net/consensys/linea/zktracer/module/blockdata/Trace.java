@@ -32,6 +32,8 @@ import org.apache.tuweni.bytes.Bytes;
  * Please DO NOT ATTEMPT TO MODIFY this code directly.
  */
 public class Trace {
+  public static final int GAS_LIMIT_MAXIMUM = 0x77359400;
+  public static final int GAS_LIMIT_MINIMUM = 0x3a2c940;
   public static final int nROWS_BF = 0x1;
   public static final int nROWS_CB = 0x1;
   public static final int nROWS_DEPTH = 0xd;

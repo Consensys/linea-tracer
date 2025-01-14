@@ -20,7 +20,7 @@ plugins {
 apply from: rootProject.file("gradle/corset.gradle")
 apply from: rootProject.file("gradle/java.gradle")
 //apply from: rootProject.file("gradle/tests.gradle")
-//apply from: rootProject.file("gradle/trace-files.gradle")
+apply from: rootProject.file("gradle/trace-files.gradle")
 apply from: rootProject.file("gradle/dependency-management.gradle")
 apply from: rootProject.file('gradle/common-dependencies.gradle')
 apply from: rootProject.file("gradle/lint.gradle")
@@ -57,6 +57,7 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 
 tasks.register('referenceBlockchainTests', Test) {
   description = 'Runs ETH reference blockchain tests.'
+  dependsOn buildTracerWithBlockdataEthereum
   dependsOn generateBlockchainReferenceTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 

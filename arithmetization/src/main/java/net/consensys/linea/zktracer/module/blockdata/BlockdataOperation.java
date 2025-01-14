@@ -29,7 +29,6 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -58,7 +57,7 @@ public class BlockdataOperation extends ModuleOperation {
 
   private final boolean firstBlockInConflation;
   private final int ctMax;
-  @EqualsAndHashCode.Include @Getter private final OpCode opCode;
+  private final OpCode opCode;
   private final long firstBlockNumber;
   private final int relTxMax;
   private final long relBlock;
@@ -176,10 +175,10 @@ public class BlockdataOperation extends ModuleOperation {
 
     // row i
     // comparison to minimum
-      wcpCallToGEQ(0, data, EWord.of(GAS_LIMIT_MINIMUM));
+    wcpCallToGEQ(0, data, EWord.of(GAS_LIMIT_MINIMUM));
 
     // row i + 1
-      // comparison to maximum
+    // comparison to maximum
     wcpCallToLEQ(1, data, EWord.of(Bytes.ofUnsignedLong(GAS_LIMIT_MAXIMUM)));
 
     if (!firstBlockInConflation) {

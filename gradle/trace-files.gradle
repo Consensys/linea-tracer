@@ -132,6 +132,8 @@ tasks.register('binreftable', TraceFilesTask) {
     }
 }
 
+// Task which generates all Trace.java (and related) files using
+// corset.
 tasks.register('buildTracer') {
     group "Trace files generation"
     dependsOn 'add', 'ext', 'mul', 'mod'
@@ -143,20 +145,21 @@ tasks.register('buildTracer') {
     dependsOn 'mmu', 'blake2fmodexpdata', 'oob', 'exp', 'rlptxrcpt', 'rlpaddr', 'shakiradata', 'mxp', 'ecdata'
     dependsOn 'txndata'
     dependsOn 'constants'
+    
+    def chain = System.getProperty('blockchain')
+    // Conditional dependsOn
+    if(chain == null || chain == "Linea") {
+        print("Building for Linea...\n")
+        dependsOn 'blockdataLinea'        
+    } else if(chain == "Ethereum") {
+        dependsOn 'blockdataEthereum'
+        print("Building for Ethereum...\n")        
+    } else {
+        // Force build failure if unknown chain.
+        println("*** unknown target chain.  Try '-Dblockchain=Linea' or '-Dblockchain=Ethereum'\n\n")
+        assert false
+    }
 }
-
-tasks.register('buildTracerWithBlockdataEthereum') {
-    dependsOn buildTracer
-    group "Trace files generation"
-    dependsOn 'blockdataEthereum'
-}
-
-tasks.register('buildTracerWithBlockdataLinea') {
-    dependsOn buildTracer
-    group "Trace files generation"
-    dependsOn 'blockdataLinea'
-}
-
 
 // Configure default build task to require the tracer is built first.
 compileJava.dependsOn 'buildTracer'

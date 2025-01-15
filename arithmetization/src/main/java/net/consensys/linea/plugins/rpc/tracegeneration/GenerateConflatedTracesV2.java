@@ -28,9 +28,9 @@ import net.consensys.linea.tracewriter.TraceWriter;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.ServiceManager;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 import org.hyperledger.besu.plugin.services.TraceService;
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
-
 /**
  * Sets up an RPC endpoint for generating conflated file trace. This class provides an RPC endpoint
  * named 'generateConflatedTracesToFileV0' under the 'rollup' namespace. When this endpoint is
@@ -91,7 +91,7 @@ public class GenerateConflatedTracesV2 {
 
     final long fromBlock = params.startBlockNumber();
     final long toBlock = params.endBlockNumber();
-    final ZkTracer tracer = new ZkTracer();
+    final ZkTracer tracer = new ZkTracer(BesuServiceProvider.getBesuService(besuContext, BlockchainService.class).getChainId().orElseThrow());
     final TraceWriter traceWriter = new TraceWriter(tracer);
 
     traceService.trace(

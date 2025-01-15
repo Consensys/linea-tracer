@@ -203,7 +203,11 @@ public class ReplayExecutionEnvironment {
           new BlockBody(
               blockSnapshot.txs().stream().map(TransactionSnapshot::toTransaction).toList(),
               new ArrayList<>());
-      tracer.traceStartBlock(header, body);
+      final Address miningBeneficiary =
+          useCoinbaseAddressFromBlockHeader
+              ? header.getCoinbase()
+              : CliqueHelpers.getProposerOfBlock(header);
+      tracer.traceStartBlock(header, miningBeneficiary);
 
       for (TransactionSnapshot txs : blockSnapshot.txs()) {
         final Transaction tx = txs.toTransaction();
@@ -214,9 +218,7 @@ public class ReplayExecutionEnvironment {
                 updater,
                 header,
                 tx,
-                useCoinbaseAddressFromBlockHeader
-                    ? header.getCoinbase()
-                    : CliqueHelpers.getProposerOfBlock(header),
+                miningBeneficiary,
                 buildOperationTracer(tx, txs.getOutcome(), tracer, txResultChecking),
                 blockHashLookup,
                 false,

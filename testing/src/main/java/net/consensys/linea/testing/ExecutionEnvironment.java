@@ -65,6 +65,7 @@ public class ExecutionEnvironment {
           .number(ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER)
           .timestamp(123456789)
           .parentHash(Hash.EMPTY_TRIE_HASH)
+          .baseFee(ToyExecutionEnvironmentV2.DEFAULT_BASE_FEE)
           .nonce(0)
           .blockHeaderFunctions(new CliqueBlockHeaderFunctions());
 

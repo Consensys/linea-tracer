@@ -52,7 +52,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class OutOfGasExceptionTest {
 
   // TODO: can we generalize this test to treat all opcodes, warm and cold and types of gas costs?
-  //  currently only CALL and SLOAD are treated separately
   @ParameterizedTest
   @MethodSource("outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostSource")
   void outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostTest(
@@ -63,19 +62,22 @@ public class OutOfGasExceptionTest {
       // In order to disambiguate between empty stack items and writing a result of 0 on the stack
       // we push small integers to the stack which all produce non-zero results
 
-      int pushedValue = switch (opCode) {
-        case OpCode.BLOCKHASH -> Math.toIntExact(DEFAULT_BLOCK_NUMBER) - 1;
-        default -> 7 * i + 5;
-      };
-
+      int pushedValue =
+          switch (opCode) {
+            case OpCode.BLOCKHASH -> Math.toIntExact(DEFAULT_BLOCK_NUMBER) - 1;
+            case OpCode.SELFDESTRUCT -> 100; // address of an empty account
+            case OpCode.EXP -> i == 0 ? 5 : 2; // EXP 2 5 (2 ** 5)
+            default -> 7 * i + 5;
+          };
       program.push(pushedValue);
-      // TODO: LOG is failing due to memory expansion cost that is not taken into consideration yet
     }
     program.op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     int opCodeDynamicCost =
         switch (opCode) {
-          case OpCode.SELFDESTRUCT -> GAS_CONST_G_NEW_ACCOUNT + GAS_CONST_G_COLD_ACCOUNT_ACCESS;
+          case OpCode.SELFDESTRUCT -> GAS_CONST_G_NEW_ACCOUNT
+              + GAS_CONST_G_COLD_ACCOUNT_ACCESS; // since the account is empty
+          case OpCode.EXP -> 50; // since the exponent requires 1 byte
           default -> 0;
         };
 
@@ -106,7 +108,14 @@ public class OutOfGasExceptionTest {
       if (opCodeStaticCost > 0
           && opCode != OpCode.MLOAD // MLOAD needs the memory expansion cost
           && opCode != OpCode.MSTORE8 // MSTORE8 needs the memory expansion cost
-          && opCode != OpCode.MSTORE) { // MSTORE needs the memory expansion cost
+          && opCode != OpCode.MSTORE // MSTORE needs the memory expansion cost
+          && opCode != OpCode.RETURNDATACOPY // RETURNDATACOPY needs the memory expansion cost
+          && opCode != OpCode.CALLDATACOPY // CALLDATACOPY needs the memory expansion cost
+          && opCode != OpCode.CODECOPY // CODECOPY needs the memory expansion cost
+          && opCode != OpCode.SHA3 // SHA3 needs the memory expansion cost
+          && !opCodeData.isCreate() // CREATE needs the memory expansion cost
+          && !opCodeData.isLog()) // LOG needs the memory expansion cost
+      {
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, -1));
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 0));
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 1));

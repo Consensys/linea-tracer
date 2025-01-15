@@ -5,6 +5,11 @@ on:
     - cron: "0 4 * * 1"
   workflow_dispatch:
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+  
 jobs:
   tests:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
@@ -58,7 +63,7 @@ jobs:
           go-corset: true
 
       - name: Run Weekly tests
-        run: GOMEMLIMIT=196GiB ./gradlew weeklyTests
+        run: GOMEMLIMIT=96GiB ./gradlew weeklyTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable

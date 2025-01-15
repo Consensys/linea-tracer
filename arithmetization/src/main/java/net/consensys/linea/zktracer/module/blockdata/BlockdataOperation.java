@@ -20,16 +20,15 @@ import static net.consensys.linea.zktracer.module.blockdata.Trace.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ISZERO;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_LIMIT_ADJUSTMENT_FACTOR;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_GEQ;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
-import static net.consensys.linea.zktracer.module.constants.Trace.*;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
 import java.util.Arrays;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
@@ -58,7 +57,7 @@ public class BlockdataOperation extends ModuleOperation {
 
   private final boolean firstBlockInConflation;
   private final int ctMax;
-  @EqualsAndHashCode.Include @Getter private final OpCode opCode;
+  private final OpCode opCode;
   private final long firstBlockNumber;
   private final int relTxMax;
   private final long relBlock;
@@ -176,11 +175,11 @@ public class BlockdataOperation extends ModuleOperation {
 
     // row i
     // comparison to minimum
-    wcpCallToGEQ(0, data, EWord.of(LINEA_GAS_LIMIT_MINIMUM));
+    wcpCallToGEQ(0, data, EWord.of(GAS_LIMIT_MINIMUM));
 
     // row i + 1
     // comparison to maximum
-    wcpCallToLEQ(1, data, EWord.of(Bytes.ofUnsignedLong(LINEA_GAS_LIMIT_MAXIMUM)));
+    wcpCallToLEQ(1, data, EWord.of(Bytes.ofUnsignedLong(GAS_LIMIT_MAXIMUM)));
 
     if (!firstBlockInConflation) {
       EWord prevGasLimit = EWord.of(prevBlockHeader.getGasLimit());

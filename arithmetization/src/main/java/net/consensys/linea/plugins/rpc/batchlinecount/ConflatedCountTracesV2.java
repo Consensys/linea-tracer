@@ -86,7 +86,11 @@ public class ConflatedCountTracesV2 {
 
     final long fromBlock = params.startBlockNumber();
     final long toBlock = params.endBlockNumber();
-    final ZkTracer tracer = new ZkTracer(BesuServiceProvider.getBesuService(besuContext, BlockchainService.class).getChainId().orElseThrow());
+    final ZkTracer tracer =
+        new ZkTracer(
+            BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
+                .getChainId()
+                .orElseThrow());
 
     traceService.trace(
         fromBlock,

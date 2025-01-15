@@ -98,7 +98,12 @@ public class GenerateLineCountsV2 {
                 .computeIfAbsent(
                     requestedBlockNumber,
                     blockNumber -> {
-                      final ZkTracer tracer = new ZkTracer(BesuServiceProvider.getBesuService(besuContext, BlockchainService.class).getChainId().orElseThrow());
+                      final ZkTracer tracer =
+                          new ZkTracer(
+                              BesuServiceProvider.getBesuService(
+                                      besuContext, BlockchainService.class)
+                                  .getChainId()
+                                  .orElseThrow());
                       traceService.trace(
                           blockNumber,
                           blockNumber,

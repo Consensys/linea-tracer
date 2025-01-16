@@ -51,10 +51,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 @ExtendWith(UnitTestWatcher.class)
 public class OutOfGasExceptionTest {
 
-  // TODO: can we generalize this test to treat all opcodes, warm and cold and types of gas costs?
   @ParameterizedTest
-  @MethodSource("outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostSource")
-  void outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostTest(
+  @MethodSource("outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource")
+  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTest(
       OpCode opCode, int opCodeStaticCost, int nPushes, int corneCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
@@ -65,9 +64,10 @@ public class OutOfGasExceptionTest {
       int pushedValue =
           switch (opCode) {
             case OpCode.BLOCKHASH -> Math.toIntExact(DEFAULT_BLOCK_NUMBER) - 1;
-            case OpCode.SELFDESTRUCT -> 100; // address of an empty account
             case OpCode.EXP -> i == 0 ? 5 : 2; // EXP 2 5 (2 ** 5)
-            default -> 7 * i + 5;
+            default -> 7 * i + 11;
+              // small integer but greater than 10, so as when it represents an address
+              // it is not the one of a precompile contract
           };
       program.push(pushedValue);
     }
@@ -78,6 +78,10 @@ public class OutOfGasExceptionTest {
           case OpCode.SELFDESTRUCT -> GAS_CONST_G_NEW_ACCOUNT
               + GAS_CONST_G_COLD_ACCOUNT_ACCESS; // since the account is empty
           case OpCode.EXP -> 50; // since the exponent requires 1 byte
+          case OpCode.SLOAD -> GAS_CONST_G_COLD_SLOAD; // since the slot is cold
+          case OpCode.BALANCE,
+              OpCode.EXTCODEHASH,
+              OpCode.EXTCODESIZE -> GAS_CONST_G_COLD_ACCOUNT_ACCESS; // since the account is cold
           default -> 0;
         };
 
@@ -98,24 +102,28 @@ public class OutOfGasExceptionTest {
     }
   }
 
-  static Stream<Arguments>
-      outOfGasExceptionColdWithPositiveStaticCostAndNoMemoryExpansionCostSource() {
+  static Stream<Arguments> outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (OpCodeData opCodeData : opCodeToOpCodeDataMap.values()) {
       OpCode opCode = opCodeData.mnemonic();
       int opCodeStaticCost = opCodeData.stackSettings().staticGas().cost();
       int nPushes = opCodeData.stackSettings().delta(); // number of items popped from the stack
-      if (opCodeStaticCost > 0
-          && opCode != OpCode.MLOAD // MLOAD needs the memory expansion cost
-          && opCode != OpCode.MSTORE8 // MSTORE8 needs the memory expansion cost
-          && opCode != OpCode.MSTORE // MSTORE needs the memory expansion cost
-          && opCode != OpCode.RETURNDATACOPY // RETURNDATACOPY needs the memory expansion cost
-          && opCode != OpCode.CALLDATACOPY // CALLDATACOPY needs the memory expansion cost
+      if (opCode != OpCode.CALLDATACOPY // CALLDATACOPY needs the memory expansion cost
           && opCode != OpCode.CODECOPY // CODECOPY needs the memory expansion cost
+          && opCode != OpCode.EXTCODECOPY // EXTCODECOPY needs the memory expansion cost
+          && opCode != OpCode.INVALID // INVALID consumes all gas left
+          && opCode != OpCode.MLOAD // MLOAD needs the memory expansion cost
+          && opCode != OpCode.MSTORE // MSTORE needs the memory expansion cost
+          && opCode != OpCode.MSTORE8 // MSTORE8 needs the memory expansion cost
+          && opCode != OpCode.RETURN // RETURN needs the memory expansion cost
+          && opCode != OpCode.RETURNDATACOPY // RETURNDATACOPY needs the memory expansion cost
+          && opCode != OpCode.REVERT // REVERT needs the memory expansion cost
           && opCode != OpCode.SHA3 // SHA3 needs the memory expansion cost
+          && opCode != OpCode.STOP // STOP does not consume gas
+          && !opCodeData.isCall() // CALL family is managed separately
           && !opCodeData.isCreate() // CREATE needs the memory expansion cost
-          && !opCodeData.isLog()) // LOG needs the memory expansion cost
-      {
+          && !opCodeData.isLog() // LOG needs the memory expansion cost
+      ) {
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, -1));
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 0));
         arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 1));

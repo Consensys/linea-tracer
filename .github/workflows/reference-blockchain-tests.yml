@@ -44,12 +44,11 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           go-corset: true
-        
+
       - name: Generate block chain reference tests
         run: ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.caching=true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
-          ZKEVM_BIN: "zkevm_for_reference_tests.go.bin"
 
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v6

@@ -37,6 +37,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -753,6 +754,8 @@ public class Hub implements Module {
     }
   }
 
+  @Getter @Setter public long gasCostAccumulator = 0;
+
   /**
    * Compares the gas costs between Linea and Besu. The total cost should be the same for both, but
    * it is batched/split differently. This is especially true for opcodes requiring memory
@@ -770,6 +773,19 @@ public class Hub implements Module {
     long lineaGasCost = currentSection.commonValues.gasCost();
     long lineaGasCostExcludingDeploymentCost =
         currentSection.commonValues.gasCostExcluduingDeploymentCost();
+
+    gasCostAccumulator += besuGasCost;
+
+    System.out.println(
+        "Retrieved in the Hub: "
+            + "opCode: "
+            + opCode().name()
+            + " ,besuGasCost: "
+            + besuGasCost
+            + " ,OOGX: "
+            + (besuGasCost > frame.getRemainingGas())
+            + " ,remainingGas: "
+            + frame.getRemainingGas());
 
     if (operationResult.getHaltReason() != null) {
 

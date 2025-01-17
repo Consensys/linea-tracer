@@ -149,6 +149,8 @@ public class Exceptions {
             + (required > frame.getRemainingGas())
             + " ,remainingGas: "
             + frame.getRemainingGas());
+    GasCostSingleton gasCostSingleton = GasCostSingleton.getInstance();
+    gasCostSingleton.incrementGasCost(required);
     return required > frame.getRemainingGas();
   }
 

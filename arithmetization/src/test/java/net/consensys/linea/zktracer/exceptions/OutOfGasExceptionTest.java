@@ -38,8 +38,10 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.zktracer.module.hub.signals.GasCostSingleton;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,7 +56,7 @@ public class OutOfGasExceptionTest {
   @ParameterizedTest
   @MethodSource("outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource")
   void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTest(
-      OpCode opCode, int opCodeStaticCost, int nPushes, int corneCase) {
+      OpCode opCode, int opCodeStaticCost, int nPushes, int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     for (int i = 0; i < nPushes; i++) {
@@ -85,13 +87,20 @@ public class OutOfGasExceptionTest {
           default -> 0;
         };
 
-    bytecodeRunner.run(
-        (long) GAS_CONST_G_TRANSACTION
+    final long gasCost =
+        GAS_CONST_G_TRANSACTION
             + (long) nPushes * GAS_CONST_G_VERY_LOW
             + opCodeStaticCost
-            + opCodeDynamicCost
-            + corneCase);
-    if (corneCase == -1) {
+            + opCodeDynamicCost;
+    bytecodeRunner.run(gasCost + cornerCase);
+
+    // TODO: understand why the gas cost is not the same as the one calculated
+    //  if the two programs start from the same state, then the gas cost should be the same
+    //  and we can use getGastCost to obtain the gas cost without computing it explicitly
+    //  we may create another instance of the tracer to run programs just to estimate the gas cost
+    // assertEquals(gasCost, getGasCost(program.compile()));
+
+    if (cornerCase == -1) {
       assertEquals(
           OUT_OF_GAS_EXCEPTION,
           bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
@@ -155,7 +164,7 @@ public class OutOfGasExceptionTest {
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
 
-    long gasLimit =
+    long gasCost =
         GAS_CONST_G_TRANSACTION
             + // base gas cost
             (isWarm ? GAS_CONST_G_VERY_LOW + GAS_CONST_G_COLD_ACCOUNT_ACCESS : 0) // PUSH + BALANCE
@@ -169,9 +178,9 @@ public class OutOfGasExceptionTest {
               .nonce(10)
               .address(Address.fromHexString("ca11ee"))
               .build();
-      bytecodeRunner.run(gasLimit + cornerCase, List.of(calleeAccount));
+      bytecodeRunner.run(gasCost + cornerCase, List.of(calleeAccount));
     } else {
-      bytecodeRunner.run(gasLimit + cornerCase);
+      bytecodeRunner.run(gasCost + cornerCase);
     }
 
     if (cornerCase == -1) {
@@ -246,5 +255,18 @@ public class OutOfGasExceptionTest {
           OUT_OF_GAS_EXCEPTION,
           bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     }
+  }
+
+  public static long getGasCost(Bytes program) {
+    // Retrieve singleton instance
+    GasCostSingleton gasCostSingleton = GasCostSingleton.getInstance();
+    // Set gas cost to 0
+    gasCostSingleton.setGasCost(0);
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
+    bytecodeRunner.run();
+
+    // Return gas cost
+    return GAS_CONST_G_TRANSACTION + gasCostSingleton.getGasCost();
   }
 }

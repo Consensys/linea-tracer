@@ -69,7 +69,8 @@ public class Reaper {
   /** Collect the account address read / written by the current transaction */
   private AddressReaper txAddresses = null;
 
-  public void enterBlock(final BlockHeader header, final BlockBody body, final Address miningBeneficiary) {
+  public void enterBlock(
+      final BlockHeader header, final BlockBody body, final Address miningBeneficiary) {
     this.blocks.add(
         BlockSnapshot.of((org.hyperledger.besu.ethereum.core.BlockHeader) header, body));
     this.conflationAddresses.touch(header.getCoinbase()); // ToDo: replace with miningBeneficiary?

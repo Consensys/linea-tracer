@@ -12,20 +12,26 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.zktracer.module.blockdata;
 
-package net.consensys.linea.zktracer.module.hub.section;
+public enum NextGasLimitScenario {
+  IN_RANGE_SAME,
+  IN_RANGE_INCREMENT,
+  IN_RANGE_DECREMENT,
+  IN_RANGE_MAX,
+  IN_RANGE_MIN,
+  OUT_OF_RANGE_INCREMENT,
+  OUT_OF_RANGE_DECREMENT,
+  OUT_OF_RANGE_GENERIC;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+  public boolean isInRange() {
+    return this == IN_RANGE_SAME || this == IN_RANGE_INCREMENT || this == IN_RANGE_DECREMENT;
+  }
 
-public class TransactionSection extends TraceSection {
-
-  public TransactionSection(Hub hub) {
-    // 2 = 1 + 1     (stack, transaction)
-    // 3 = 1 + 1 + 1 (stack, transaction, context)
-    super(hub, Exceptions.none(hub.pch().exceptions()) ? (short) 2 : (short) 3);
-
-    this.addStackAndFragments(hub, TransactionFragment.prepare(hub, hub.txStack().current()));
+  public boolean isOutOfRange() {
+    return this == OUT_OF_RANGE_INCREMENT
+        || this == OUT_OF_RANGE_DECREMENT
+        || this == IN_RANGE_MAX
+        || this == IN_RANGE_MIN;
   }
 }

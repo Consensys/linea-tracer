@@ -202,7 +202,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  private final TxnData txnData = new TxnData(wcp, euc);
+  private final TxnData txnData = new TxnData(this, wcp, euc);
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -293,6 +293,9 @@ public class Hub implements Module {
    * reset with every new opcode.
    */
   public boolean failureConditionForCreates = false;
+
+  public Address coinbaseAddress;
+  public boolean coinbaseWarmthAtTransactionEnd = false;
 
   /**
    * @return a list of all modules for which to generate traces
@@ -470,12 +473,14 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
+  public void traceStartBlock(
+      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
+    this.coinbaseAddress = miningBeneficiary;
     state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
-    this.transients().block().update(processableBlockHeader);
+    this.transients().block().update(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
     for (Module m : modules) {
-      m.traceStartBlock(processableBlockHeader);
+      m.traceStartBlock(processableBlockHeader, miningBeneficiary);
     }
   }
 
@@ -516,6 +521,8 @@ public class Hub implements Module {
     }
   }
 
+  // the sender already received its gas refund
+  // the coinbase already received its gas reward
   public void traceEndTransaction(
       WorldView world,
       Transaction tx,
@@ -529,7 +536,7 @@ public class Hub implements Module {
 
     txStack.current().completeLineaTransaction(this, isSuccessful, logs, selfDestructs);
 
-    defers.resolvePostTransaction(this, world, tx, isSuccessful);
+    defers.resolveAtEndTransaction(this, world, tx, isSuccessful);
 
     // Warn: we need to call MMIO after resolving the defers
     for (Module m : modules) {
@@ -546,6 +553,10 @@ public class Hub implements Module {
 
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
+      if (state.getProcessingPhase() == TX_SKIP) {
+        checkState(currentTraceSection() instanceof TxSkipSection);
+        ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
+      }
       final TransactionProcessingMetadata currentTransaction = transients().tx();
       final Address recipientAddress = frame.getRecipientAddress();
       final Address senderAddress = frame.getSenderAddress();
@@ -633,12 +644,12 @@ public class Hub implements Module {
 
       this.currentFrame().initializeFrame(frame);
 
-      defers.resolveUponContextEntry(this, frame);
-
       for (Module m : modules) {
         m.traceContextEnter(frame);
       }
     }
+
+    defers.resolveUponContextEntry(this, frame);
   }
 
   @Override
@@ -651,14 +662,13 @@ public class Hub implements Module {
     if (frame.getDepth() == 0) {
       final long leftOverGas = frame.getRemainingGas();
       final long gasRefund = frame.getGasRefund();
-      final boolean coinbaseIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
 
       txStack
           .current()
           .setPreFinalisationValues(
               leftOverGas,
               gasRefund,
-              coinbaseIsWarm,
+              coinbaseWarmthAtTransactionEnd,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
       if (state.getProcessingPhase() != TX_SKIP
@@ -733,8 +743,12 @@ public class Hub implements Module {
       this.unlatchStack(frame, currentSection);
     }
 
-    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
+    if (frame.getDepth() == 0 && (isExceptional() || opCode().isHalt())) {
       this.state.setProcessingPhase(TX_FINL);
+      coinbaseWarmthAtTransactionEnd = frame.isAddressWarm(coinbaseAddress);
+    }
+
+    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
       new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }

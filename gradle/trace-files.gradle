@@ -41,14 +41,14 @@ tasks.register("blockdataEthereum", TraceFilesTask) {
     group "Trace files generation"
     dependsOn corsetExists
     module = 'blockdata'
-    files = ['blockdata/constants.lisp', 'blockdata/columns.lisp', 'blockdata/processing/gaslimit/ethereum.lisp']
+    files = ['constants/constants.lisp', 'blockdata/constants.lisp', 'blockdata/columns.lisp', 'blockdata/processing/gaslimit/ethereum.lisp']
 }
 
 tasks.register("blockdataLinea", TraceFilesTask) {
     group "Trace files generation"
     dependsOn corsetExists
     module = 'blockdata'
-    files = ['blockdata/constants.lisp', 'blockdata/columns.lisp', 'blockdata/processing/gaslimit/linea.lisp']
+    files = ['constants/constants.lisp', 'blockdata/constants.lisp', 'blockdata/columns.lisp', 'blockdata/processing/gaslimit/linea.lisp']
 }
 
 //

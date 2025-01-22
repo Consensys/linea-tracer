@@ -73,7 +73,7 @@ public class Reaper {
       final BlockHeader header, final BlockBody body, final Address miningBeneficiary) {
     this.blocks.add(
         BlockSnapshot.of((org.hyperledger.besu.ethereum.core.BlockHeader) header, body));
-    this.conflationAddresses.touch(header.getCoinbase()); // ToDo: replace with miningBeneficiary?
+    this.conflationAddresses.touch(miningBeneficiary); // ToDo: replace with miningBeneficiary?
     txIndex = 0; // reset
   }
 

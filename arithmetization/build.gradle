@@ -76,10 +76,11 @@ jar {
   }
 }
 
-/*jacocoTestReport {
+jacocoTestReport {
   reports {
+    xml.required = true
   }
-}*/
+}
 
 sonar {
   properties {
@@ -93,6 +94,6 @@ sonar {
   }
 }
 
-// project.tasks["sonar"].dependsOn "jacocoTestReport"
+project.tasks["sonar"].dependsOn "jacocoTestReport"
 
 apply from: rootProject.file("gradle/publishing.gradle")

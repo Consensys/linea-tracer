@@ -55,6 +55,12 @@ public class OutOfGasExceptionTest {
   @MethodSource("outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource")
   void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTest(
       OpCode opCode, int opCodeStaticCost, int nPushes, int cornerCase) {
+    outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
+        opCode, opCodeStaticCost, nPushes, cornerCase);
+  }
+
+  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
+      OpCode opCode, int opCodeStaticCost, int nPushes, int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     for (int i = 0; i < nPushes; i++) {
@@ -138,6 +144,18 @@ public class OutOfGasExceptionTest {
     }
     return arguments.stream();
   }
+
+  /*
+  @Test
+  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostSingleTest() {
+    OpCode opCode = OpCode.SSTORE;
+    int opCodeStaticCost = 0;
+    int nPushes = 2;
+    int cornerCase = 0;
+    outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
+        opCode, opCodeStaticCost, nPushes, cornerCase);
+  }
+   */
 
   @ParameterizedTest
   @MethodSource("outOfGasExceptionCallSource")

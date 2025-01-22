@@ -754,6 +754,7 @@ public class Hub implements Module {
     }
   }
 
+  // TODO: bind it to the frame so as to compute the gasCost per frame
   @Getter @Setter public long gasCostAccumulator = 0;
 
   /**

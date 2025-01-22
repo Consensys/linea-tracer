@@ -55,6 +55,12 @@ public class OutOfGasExceptionTest {
   @MethodSource("outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource")
   void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTest(
       OpCode opCode, int opCodeStaticCost, int nPushes, int cornerCase) {
+    outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
+        opCode, opCodeStaticCost, nPushes, cornerCase);
+  }
+
+  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
+      OpCode opCode, int opCodeStaticCost, int nPushes, int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     for (int i = 0; i < nPushes; i++) {
@@ -82,6 +88,8 @@ public class OutOfGasExceptionTest {
           case OpCode.BALANCE,
               OpCode.EXTCODEHASH,
               OpCode.EXTCODESIZE -> GAS_CONST_G_COLD_ACCOUNT_ACCESS; // since the account is cold
+          case OpCode.SSTORE -> GAS_CONST_G_SSET
+              + GAS_CONST_G_COLD_SLOAD; // value set from zero to non-zero and slot is cold
           default -> 0;
         };
 
@@ -136,6 +144,18 @@ public class OutOfGasExceptionTest {
     }
     return arguments.stream();
   }
+
+  /*
+  @Test
+  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostSingleTest() {
+    OpCode opCode = OpCode.SSTORE;
+    int opCodeStaticCost = 0;
+    int nPushes = 2;
+    int cornerCase = 0;
+    outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
+        opCode, opCodeStaticCost, nPushes, cornerCase);
+  }
+   */
 
   @ParameterizedTest
   @MethodSource("outOfGasExceptionCallSource")

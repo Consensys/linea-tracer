@@ -23,8 +23,8 @@ jacocoTestReport {
 
 sonar {
   properties {
-    property "sonar.projectKey", "myProjectKey"
-    property "sonar.organization", "myOrganization"
+    property "sonar.projectKey", "linea-tracer"
+    //property "sonar.organization", "myOrganization"
     property "sonar.host.url", "localhost:80"
     //property "sonar.sources", "src/main/java"
     property "sonar.login", "admin"
@@ -32,6 +32,5 @@ sonar {
 //        property "sonar.exclusions", "src/main/java/com/foo/Foo.java"
   }
 }
-// project.tasks["sonar"].dependsOn "jacocoTestReport"
 
 version = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : 'snapshot'

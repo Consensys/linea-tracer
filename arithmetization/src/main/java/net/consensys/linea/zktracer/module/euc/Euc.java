@@ -49,6 +49,18 @@ public class Euc implements OperationSetModule<EucOperation> {
   }
 
   @Override
+  public void enterTransaction() {
+    OperationSetModule.super.enterTransaction();
+    additionalRows.lineCount();
+  }
+
+  @Override
+  public void popTransaction() {
+    OperationSetModule.super.popTransaction();
+    additionalRows.pop();
+  }
+
+  @Override
   public List<ColumnHeader> columnsHeaders() {
     return Trace.headers(this.lineCount());
   }

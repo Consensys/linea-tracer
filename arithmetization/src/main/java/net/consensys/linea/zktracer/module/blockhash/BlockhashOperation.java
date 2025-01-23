@@ -70,7 +70,7 @@ public class BlockhashOperation extends ModuleOperation {
     final boolean blockNumberGreaterThan256 =
         wcpCallToLEQ(
             2,
-            Bytes32.leftPad(Bytes.of(BLOCKHASH_MAX_HISTORY)),
+            Bytes32.leftPad(Bytes.minimalBytes(BLOCKHASH_MAX_HISTORY)),
             Bytes32.leftPad(Bytes.ofUnsignedLong(absBlock)));
     final long minimalReachable = blockNumberGreaterThan256 ? absBlock - BLOCKHASH_MAX_HISTORY : 0;
 

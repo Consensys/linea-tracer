@@ -8,4 +8,30 @@ buildscript {
     besuPluginDir = File.createTempDir("plugins")
   }
 }
+
+plugins {
+  id 'java-library'
+  id "jacoco"
+  id "org.sonarqube" version "4.3.1.3277"
+}
+
+jacocoTestReport {
+  reports {
+    xml.required = true
+  }
+}
+
+sonar {
+  properties {
+    property "sonar.projectKey", "myProjectKey"
+    property "sonar.organization", "myOrganization"
+    property "sonar.host.url", "localhost:80"
+    //property "sonar.sources", "src/main/java"
+    property "sonar.login", "admin"
+    property "sonar.password", "Adminadmin123*"
+//        property "sonar.exclusions", "src/main/java/com/foo/Foo.java"
+  }
+}
+// project.tasks["sonar"].dependsOn "jacocoTestReport"
+
 version = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : 'snapshot'

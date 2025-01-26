@@ -10,7 +10,7 @@ use Getopt::Long 'HelpMessage';
 my $start;
 # Last block to replay
 my $end;
-# Shadow node hostnamt
+# Shadow node hostname
 my $shadownode_fqdn = 'ec2-107-21-85-50.compute-1.amazonaws.com'; # default value
 # Maybe the user needs a specific ssh key
 my $ssh_key = '';

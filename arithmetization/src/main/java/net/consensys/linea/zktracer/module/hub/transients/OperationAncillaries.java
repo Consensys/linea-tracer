@@ -16,18 +16,13 @@
 package net.consensys.linea.zktracer.module.hub.transients;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.UtilCalculator.allButOneSixtyFourth;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 

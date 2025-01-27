@@ -312,9 +312,4 @@ public class CallFrame {
   public static OpCode getOpCode(MessageFrame frame) {
     return OpCode.of(0xFF & frame.getCurrentOperation().getOpcode());
   }
-
-  /** Get to fucking work GitHub */
-  public void squashReturnData() {
-    returnDataRange(MemoryRange.EMPTY);
-  }
 }

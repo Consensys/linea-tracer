@@ -54,6 +54,11 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
       Hub hub, WorldView world, Transaction tx, boolean isSuccessful) {
 
     checkArgument(isSuccessful == txMetadata.statusCode());
+    // checkArgument(
+    //     hub.messageFrame().isAddressWarm(tx.getSender()), "The sender should be warm at TX_FINL");
+    // checkArgument(
+    //     hub.messageFrame().isAddressWarm(hub.txStack().current().getEffectiveRecipient()),
+    //     "The recipient should be warm at TX_FINL");
 
     DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     checkArgument(
@@ -123,7 +128,7 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
     senderGasRefundNew =
         senderIsCoinbase(hub)
             ? coinbaseGasRefund.deepCopy()
-            : AccountSnapshot.canonical(hub, world, senderAddress);
+            : AccountSnapshot.canonical(hub, world, senderAddress).turnOnWarmth();
     senderGasRefund =
         senderGasRefundNew.deepCopy().decrementBalanceBy(txMetadata.getGasRefundInWei());
   }

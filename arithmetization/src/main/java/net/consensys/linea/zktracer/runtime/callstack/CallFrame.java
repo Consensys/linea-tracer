@@ -90,7 +90,7 @@ public class CallFrame {
   @Getter private final MemoryRange callDataRange; // immutable
   @Getter private final MemoryRange returnAtRange; // immutable
   @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY; // mutable
-  @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY; // set at exit time
+  @Getter @Setter private MemoryRange outputDataRange; // set at exit time
 
   @Getter private boolean executionPaused = false;
   @Getter @Setter private long lastValidGasNext = 0;
@@ -203,6 +203,7 @@ public class CallFrame {
     this.parentId = parentId;
     this.callDataRange = callDataRange;
     this.returnAtRange = returnAtRange;
+    this.outputDataRange = new MemoryRange(contextNumber);
   }
 
   public boolean isRoot() {

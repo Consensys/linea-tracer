@@ -101,10 +101,8 @@ public class TxInitializationSection extends TraceSection implements PostTransac
 
     if (recipientAccount != null) {
       recipientValueReception =
-          senderIsRecipient(hub)
-              ? senderValueTransferNew
-              : AccountSnapshot.canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
-                  .setWarmthTo(tx.isRecipientPreWarmed());
+          AccountSnapshot.canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
+              .setWarmthTo(tx.isRecipientPreWarmed());
     } else {
       recipientValueReception =
           AccountSnapshot.fromAddress(
@@ -218,13 +216,5 @@ public class TxInitializationSection extends TraceSection implements PostTransac
     }
 
     this.addFragment(initializationContextFragment); // CON i + 5/7
-  }
-
-  public static boolean senderIsRecipient(Hub hub) {
-    final TransactionProcessingMetadata tx = hub.txStack().current();
-    final Address senderAddress = tx.getSender();
-    final Address recipientAddress = tx.getEffectiveRecipient();
-
-    return recipientAddress.equals(senderAddress);
   }
 }

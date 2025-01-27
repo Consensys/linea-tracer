@@ -186,10 +186,10 @@ public final class AccountFragment
   public void resolvePostConflation(Hub hub, WorldView world) {
     deploymentNumberInfinity = hub.deploymentNumberOf(newState.address());
     existsInfinity = world.get(newState.address()) != null;
-    codeFragmentIndex =
-        requiresRomlex
-            ? hub.getCfiByMetaData(
-                newState.address(), newState.deploymentNumber(), newState.deploymentStatus())
-            : 0;
+    try {
+      codeFragmentIndex = hub.getCfiByMetaData(newState.address(), newState.deploymentNumber(), newState.deploymentStatus());
+    } catch (RuntimeException e) {
+      codeFragmentIndex = 0;
+    }
   }
 }

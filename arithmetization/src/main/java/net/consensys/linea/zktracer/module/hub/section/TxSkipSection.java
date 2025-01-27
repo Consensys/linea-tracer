@@ -135,7 +135,7 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
       if (recipientIsCoinbase()) {
         recipientNew = coinbaseNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
         recipient = recipientNew.deepCopy().decrementBalanceBy(value);
-        if (txMetadata.isDeployment()){
+        if (txMetadata.isDeployment()) {
           recipient.decrementNonceByOne().decrementDeploymentNumberByOne();
         }
       }

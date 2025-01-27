@@ -55,7 +55,8 @@ public class TxFinalizationSection extends TraceSection implements PostTransacti
 
     checkArgument(isSuccessful == txMetadata.statusCode());
     // checkArgument(
-    //     hub.messageFrame().isAddressWarm(tx.getSender()), "The sender should be warm at TX_FINL");
+    //     hub.messageFrame().isAddressWarm(tx.getSender()), "The sender should be warm at
+    // TX_FINL");
     // checkArgument(
     //     hub.messageFrame().isAddressWarm(hub.txStack().current().getEffectiveRecipient()),
     //     "The recipient should be warm at TX_FINL");

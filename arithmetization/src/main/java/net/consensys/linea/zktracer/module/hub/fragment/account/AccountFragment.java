@@ -187,7 +187,9 @@ public final class AccountFragment
     deploymentNumberInfinity = hub.deploymentNumberOf(newState.address());
     existsInfinity = world.get(newState.address()) != null;
     try {
-      codeFragmentIndex = hub.getCfiByMetaData(newState.address(), newState.deploymentNumber(), newState.deploymentStatus());
+      codeFragmentIndex =
+          hub.getCfiByMetaData(
+              newState.address(), newState.deploymentNumber(), newState.deploymentStatus());
     } catch (RuntimeException e) {
       codeFragmentIndex = 0;
     }

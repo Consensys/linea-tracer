@@ -180,8 +180,7 @@ public class TransactionProcessingMetadata {
     hubStampTransactionEnd = hub.stamp();
     this.logs = logs;
     for (Address address : selfDestructs) {
-      destructedAccountsSnapshot.add(
-          AccountSnapshot.canonical(hub, address));
+      destructedAccountsSnapshot.add(AccountSnapshot.canonical(hub, address));
     }
 
     determineSelfDestructTimeStamp();

@@ -11,14 +11,7 @@ buildscript {
 
 plugins {
   id 'java-library'
-  id "jacoco"
   id "org.sonarqube" version "4.3.1.3277"
-}
-
-jacocoTestReport {
-  reports {
-    xml.required = true
-  }
 }
 
 sonar {
@@ -29,6 +22,9 @@ sonar {
     //property "sonar.sources", "src/main/java"
     property "sonar.login", "admin"
     property "sonar.password", "Adminadmin123*"
+    property "sonar.coverage.jacoco.xmlReportPaths",
+            "${project.projectDir}/reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/jacocoReferenceBlockchainTestsReport.xml"
+            // "${project.projectDir}/arithmetization/build/reports/jacoco/jacoco/jacocoTestReport.xml"
 //        property "sonar.exclusions", "src/main/java/com/foo/Foo.java"
   }
 }

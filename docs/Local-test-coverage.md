@@ -42,7 +42,12 @@ Go to `localhost:80` in your browser and login with the credentials `admin/Admin
 
 ## Launch Sonar task with gradle
 
-Run `jacocoTestReport`  gradle task in verification group
+Run unit and/or reference tests tasks locally with
+
+```
+GOMEMLIMIT=26GiB ./gradlew :arithmetization:test
+GOMEMLIMIT=26GiB ./gradlew -Dblockchain=Ethereum referenceBlockchainTests
+```
 
 Then run `sonar` gradle task in verification group
 

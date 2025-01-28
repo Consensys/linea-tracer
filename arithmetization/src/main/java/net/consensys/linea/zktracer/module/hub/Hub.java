@@ -733,8 +733,6 @@ public class Hub implements Module {
     if (isExceptional()) {
       this.currentTraceSection()
           .exceptionalContextFragment(ContextFragment.executionProvidesEmptyReturnData(this));
-      this.squashCurrentFrameOutputData();
-      this.squashParentFrameReturnData();
     }
 
     defers.resolvePostExecution(this, frame, operationResult);
@@ -1100,7 +1098,7 @@ public class Hub implements Module {
   }
 
   public void squashParentFrameReturnData() {
-    callStack.parentCallFrame().outputDataRange(MemoryRange.EMPTY);
+    callStack.parentCallFrame().returnDataRange(MemoryRange.EMPTY);
   }
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {

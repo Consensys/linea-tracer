@@ -56,7 +56,7 @@ public class TxFinalTest {
   final Address depAddress =
       Address.extract(getCreateRawAddress(senderAddress, senderAccount.getNonce()));
 
-  // not possible smcCallSenderIsRecipient() {}
+  // TODO: add smcCallSenderIsRecipient() {}, not possible before EIP-7702
 
   @Test
   void smcCallSenderIsCoinbase() {
@@ -98,7 +98,7 @@ public class TxFinalTest {
         .run();
   }
 
-  // not possible smcCallTripleCollision() {}
+  // TODO: add smcCallTripleCollision() {}, not possible before EIP-7702
 
   // good luck for finding the right nonce ;) deploymentSenderIsRecipient() {}
 

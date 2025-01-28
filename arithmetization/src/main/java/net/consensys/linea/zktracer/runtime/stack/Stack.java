@@ -161,7 +161,8 @@ public class Stack {
             1, StackItem.pop((short) (height - depth), botValue, stackStampWithOffset(0))),
         new IndexedStackOperation(2, StackItem.pop(height, topValue, stackStampWithOffset(1))),
         new IndexedStackOperation(
-            3, StackItem.pushImmediate((short) (height - depth), topValue, stackStampWithOffset(2))),
+            3,
+            StackItem.pushImmediate((short) (height - depth), topValue, stackStampWithOffset(2))),
         new IndexedStackOperation(
             4, StackItem.pushImmediate(height, botValue, stackStampWithOffset(3))));
   }

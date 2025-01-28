@@ -21,6 +21,7 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -55,6 +56,35 @@ public class FailureWillRevertTest {
     prepareLanding(program);
     selfCall(program, callOpCode, 0xffff, 0x01);
     appendRevert(program, 31, 7);
+
+    BytecodeRunner.of(program).run();
+  }
+
+  @Test
+  public void banalAdditionTest() {
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    sloadFrom(program, 0x00); // puts 0 on stack
+    addX(program, 0x01);
+    sstoreAt(program, 0x00);
+    sloadFrom(program, 0x00); // puts 1 on stack
+    addX(program, 0x01);
+    sstoreAt(program, 0x00);
+    appendRevert(program, 31, 7);
+
+    BytecodeRunner.of(program).run();
+  }
+
+  /**
+   * This test was written in the debugging of stack consistency. It showed us that the "top" and
+   * "bottom" elements involved in a SWAPX operation were mixed up in the implmentation (of the swap
+   * stack pattern.)
+   */
+  @Test
+  public void banalSwapTest() {
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program.push(1).push(2).op(SWAP1).push(3).op(SWAP1);
 
     BytecodeRunner.of(program).run();
   }

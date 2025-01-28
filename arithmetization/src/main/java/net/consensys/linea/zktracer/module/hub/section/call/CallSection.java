@@ -605,8 +605,14 @@ public class CallSection extends TraceSection
   private void completeSmcFailureWillRevert(Hub hub) {
     scenarioFragment.setScenario(CALL_SMC_FAILURE_WILL_REVERT);
 
-    calleeThird = calleeSecondNew.deepCopy().setDeploymentNumber(hub);
-    calleeThirdNew = calleeFirst.deepCopy().setDeploymentNumber(hub);
+    if (isSelfCall()) {
+      calleeThird = callerSecondNew.deepCopy().setDeploymentNumber(hub);
+      calleeThirdNew = callerFirst.deepCopy().setDeploymentNumber(hub);
+    } else {
+      calleeThird = calleeSecondNew.deepCopy().setDeploymentNumber(hub);
+      calleeThirdNew = calleeFirst.deepCopy().setDeploymentNumber(hub);
+    }
+
     // this (should) work for both self calls and foreign address calls
     final AccountFragment undoingCalleeWarmthAccountFragment =
         factory

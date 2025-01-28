@@ -26,13 +26,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
-/**
- * The following uses a smart contract that calls itself but stops after one iteration. At which
- * point it reverts and its caller reverts, too.
- */
 @ExtendWith(UnitTestWatcher.class)
 public class FailureWillRevertTest {
 
+  /**
+   * The following uses a smart contract that calls itself but stops after one iteration. At which
+   * point it reverts and its caller reverts, too. The test modifies storage of the underlying
+   * account at both depths. These changes thus get reverted.
+   */
   @ParameterizedTest
   @EnumSource(
       value = OpCode.class,
@@ -54,7 +55,7 @@ public class FailureWillRevertTest {
     appendRevert(program, 13, 9); // + 5
     // top is zero execution path
     prepareLanding(program);
-    selfCall(program, callOpCode, 0xffff, 0x01);
+    selfCall(program, callOpCode, 0xffff, 0x10);
     appendRevert(program, 31, 7);
 
     BytecodeRunner.of(program).run();
@@ -76,9 +77,9 @@ public class FailureWillRevertTest {
   }
 
   /**
-   * This test was written in the debugging of stack consistency. It showed us that the "top" and
-   * "bottom" elements involved in a SWAPX operation were mixed up in the implmentation (of the swap
-   * stack pattern.)
+   * This test was written in the debugging of stack-consistency. It showed us that the "top" and
+   * "bottom" elements involved in a <b>SWAPX</b> operation were mixed up in the implementation (of
+   * the swap stack pattern.)
    */
   @Test
   public void banalSwapTest() {
@@ -89,6 +90,7 @@ public class FailureWillRevertTest {
     BytecodeRunner.of(program).run();
   }
 
+  /** Similar to {@link #singleSelfCallFailureWillRevertTest(OpCode)} but with two self calls. */
   @ParameterizedTest
   @EnumSource(
       value = OpCode.class,

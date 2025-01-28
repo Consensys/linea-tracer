@@ -105,8 +105,6 @@ public class TxInitializationSection extends TraceSection implements PostTransac
               ? senderValueTransferNew
               : AccountSnapshot.canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
                   .setWarmthTo(tx.isRecipientPreWarmed());
-      AccountSnapshot.canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
-          .setWarmthTo(tx.isRecipientPreWarmed());
     } else {
       recipientValueReception =
           AccountSnapshot.fromAddress(

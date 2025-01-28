@@ -77,6 +77,11 @@ tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
   reports {
     xml.required = true
   }
+
+  additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+  classDirectories =  files(sourceSets.main.output)
+  sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+
   executionData(referenceBlockchainTests)
 }
 

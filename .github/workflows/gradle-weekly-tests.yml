@@ -48,7 +48,7 @@ jobs:
              name: "Weekly (Go-Corset)"
              status: "${{ job.status }}"
 
-  go-corset-tests:
+  weekly-tests:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
     continue-on-error: true
     steps:

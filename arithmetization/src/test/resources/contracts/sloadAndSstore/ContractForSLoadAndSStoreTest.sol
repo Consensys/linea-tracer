@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-contract ContractForTestingSLoadAndSStore {
+contract ContractForSLoadAndSStoreTest {
     uint256 public counter = 0;
     uint256 public constant COUNTER_THRESHOLD_FOR_REVERT = 5;
     address public nextInstanceAddress;
@@ -26,7 +26,7 @@ contract ContractForTestingSLoadAndSStore {
         require(counter < COUNTER_THRESHOLD_FOR_REVERT, "counter reached COUNTER_THRESHOLD_FOR_REVERT");
         // Invoke same function of the contract at nextInstanceAddress
         if (nextInstanceAddress != address(0)) {
-            ContractForTestingSLoadAndSStore(nextInstanceAddress).incrementAndCall(counter);
+            ContractForSLoadAndSStoreTest(nextInstanceAddress).incrementAndCall(counter);
         }
     }
 }

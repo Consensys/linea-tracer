@@ -118,6 +118,7 @@ tasks.withType(Test).configureEach {
 jacocoTestReport {
   reports {
     xml.required = true
+    html.required = true
   }
 }
 

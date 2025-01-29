@@ -76,6 +76,7 @@ tasks.register('referenceBlockchainTests', Test) {
 tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
   reports {
     xml.required = true
+    html.required = true
   }
 
   additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)

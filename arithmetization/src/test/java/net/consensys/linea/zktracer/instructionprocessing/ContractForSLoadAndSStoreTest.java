@@ -56,7 +56,7 @@ public class ContractForSLoadAndSStoreTest {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address userAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
     ToyAccount userAccount =
-        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(1).address(userAddress).build();
+        ToyAccount.builder().balance(Wei.fromEth(100)).nonce(1).address(userAddress).build();
 
     // A
     ToyAccount contractAccountA =
@@ -181,6 +181,7 @@ public class ContractForSLoadAndSStoreTest {
             .value(Wei.ZERO)
             .keyPair(keyPair)
             .nonce(6L)
+            .gasLimit(0xffffffffL)
             .build();
 
     List<ToyAccount> accounts =

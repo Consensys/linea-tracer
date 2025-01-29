@@ -97,7 +97,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-reference-tests-coverage-report
-          path: reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/jacocoReferenceBlockchainTestsReport.xml
+          path: reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/**/*
 
       - name: Extract Metrics
         if: ${{ failure() || cancelled() }}

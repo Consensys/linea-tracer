@@ -89,7 +89,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jacoco-unit-test-coverage-report
-          path: arithmetization/build/reports/jacoco/test/jacocoTestReport.xml
+          path: arithmetization/build/reports/jacoco/test/**/*
 
   go-corset-unit-tests:
     needs: [ build ]

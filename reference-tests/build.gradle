@@ -76,12 +76,19 @@ tasks.register('referenceBlockchainTests', Test) {
 tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
   reports {
     xml.required = true
-    html.required = true
   }
 
   additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
   classDirectories =  files(sourceSets.main.output)
   sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+
+ /* classDirectories = files(files(sourceSets.main.output).files.collect {
+      fileTree(dir: "${project.projectDir}", exclude: [
+              'reference-tests/**',
+              'testing/**'
+      ])
+  })
+*/
 
   executionData(referenceBlockchainTests)
 }

@@ -78,9 +78,10 @@ tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
     xml.required = true
   }
 
-  additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
-  classDirectories =  files(sourceSets.main.output)
-  sourceDirectories = files(sourceSets.main.allSource.srcDirs)
+  sourceSets project(":arithmetization").sourceSets.main
+  // additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
+  // classDirectories =  files(sourceSets.main.output)
+  // sourceDirectories = files(sourceSets.main.allSource.srcDirs)
 
  /* classDirectories = files(files(sourceSets.main.output).files.collect {
       fileTree(dir: "${project.projectDir}", exclude: [

@@ -22,11 +22,11 @@ sonar {
     //property "sonar.sources", "src/main/java"
     property "sonar.login", "admin"
     property "sonar.password", "Adminadmin123*"
-
+    property "sonar.coverage.exclusions", "reference-tests/**/*, testing/**/*, **/*/Trace.java"
     //property "sonar.coverage.jacoco.xmlReportPaths", "${buildDir}/reports/jacoco/testCodeCoverageReport/testCodeCoverageReport.xml"
     property "sonar.coverage.jacoco.xmlReportPaths",
-           "${project.projectDir}/reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/jacocoReferenceBlockchainTestsReport.xml"
-           // "${project.projectDir}/arithmetization/build/reports/jacoco/test/jacocoTestReport.xml"
+           // "${project.projectDir}/reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/jacocoReferenceBlockchainTestsReport.xml"
+           "${project.projectDir}/arithmetization/build/reports/jacoco/test/jacocoTestReport.xml"
 //        property "sonar.exclusions", "src/main/java/com/foo/Foo.java"
   }
 }

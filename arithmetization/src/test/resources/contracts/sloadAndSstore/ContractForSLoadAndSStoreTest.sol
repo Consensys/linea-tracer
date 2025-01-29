@@ -2,18 +2,18 @@
 pragma solidity ^0.8.0;
 
 contract ContractForSLoadAndSStoreTest {
-    uint256 public counter = 0;
+    uint256 public counter;
     uint256 public constant COUNTER_THRESHOLD_FOR_REVERT = 5;
     address public nextInstanceAddress;
     event CounterUpdated(uint256 counter);
 
-    constructor(address _nextInstanceAddress) {
+    function setNextInstanceAddress(address _nextInstanceAddress) external {
         // Provide
-        // 0x0000000000000000000000000000000000000000 for instantiating E
-        // address of E for instantiating D
-        // address of D for instantiating C
-        // address of C for instantiating B
-        // address of B for instantiating A
+        // 0x0000000000000000000000000000000000000000 to E
+        // address of E for to D
+        // address of D for to C
+        // address of C for to B
+        // address of B for to A
         nextInstanceAddress = _nextInstanceAddress;
     }
 

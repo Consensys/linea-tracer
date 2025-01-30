@@ -944,10 +944,10 @@ public class OobOperation extends ModuleOperation {
     } else {
       noCall(4);
     }
-    insufficientGasForPrecompile = insufficientGas;
 
     // Set hubSuccess
     final boolean hubSuccess = isMultipleOf192 && !insufficientGas;
+    insufficientGasForPrecompile = !hubSuccess; // TODO: this is for testing purposes, not accurate
     prcCommonOobCall.setHubSuccess(hubSuccess);
 
     // Set returnGas

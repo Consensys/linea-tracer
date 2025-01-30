@@ -99,6 +99,13 @@ jobs:
           name: jacoco-reference-tests-coverage-report
           path: reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/**/*
 
+      - name: Upload jacoco exec test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-reference-tests-exec
+          path: reference-tests/build/jacoco/referenceBlockchainTests.exec
+
       - name: Extract Metrics
         if: ${{ failure() || cancelled() }}
         run: |

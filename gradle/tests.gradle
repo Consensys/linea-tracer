@@ -118,8 +118,10 @@ tasks.withType(Test).configureEach {
 jacocoTestReport {
   reports {
     xml.required = true
-    html.required = true
   }
+
+  // executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+
 }
 
 tasks.test.configure {

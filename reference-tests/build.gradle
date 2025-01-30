@@ -79,20 +79,12 @@ tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
   }
 
   sourceSets project(":arithmetization").sourceSets.main
-  // executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-  // additionalSourceDirs = files(sourceSets.main.allSource.srcDirs)
-  // classDirectories =  files(sourceSets.main.output)
-  // sourceDirectories = files(sourceSets.main.allSource.srcDirs)
 
- /* classDirectories = files(files(sourceSets.main.output).files.collect {
-      fileTree(dir: "${project.projectDir}", exclude: [
-              'reference-tests/**',
-              'testing/**'
-      ])
-  })
-*/
-
+  // Comment line below to run task for both exec files from Unit + Reference tests
   executionData(referenceBlockchainTests)
+
+  // Uncomment line below to run task both exec files from Unit + Reference tests
+  // executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 }
 
 tasks.register('referenceGeneralStateTests', Test) {

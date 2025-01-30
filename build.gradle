@@ -17,13 +17,15 @@ plugins {
 sonar {
   properties {
     property "sonar.projectKey", "linea-tracer"
-    property "sonar.organization", "myOrganization"
     property "sonar.host.url", "localhost:80"
     property "sonar.login", "admin"
     property "sonar.password", "Adminadmin123*"
     property "sonar.coverage.exclusions", "reference-tests/**/*, testing/**/*, **/*/Trace.java"
     property "sonar.coverage.jacoco.xmlReportPaths",
+            // Path for Unit test jacoco report only
           // "${project.projectDir}/arithmetization/build/reports/jacoco/test/jacocoTestReport.xml"
+            // Path for Reference tests or Unit+Reference test
+            // For a concatenated report, run jacocoReferenceBlockchainTestsReport task with both exec files first
           "${project.projectDir}/reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/jacocoReferenceBlockchainTestsReport.xml"
   }
 }

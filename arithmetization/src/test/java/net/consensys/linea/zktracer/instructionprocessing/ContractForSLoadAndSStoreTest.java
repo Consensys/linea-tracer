@@ -38,7 +38,6 @@ public class ContractForSLoadAndSStoreTest {
 
   /* NOTE: The contracts in this test are compiled by using
   solc *.sol --bin-runtime --evm-version london -o compiledContracts
-  i.e., we do not include the init code of the contracts in the bytecode
   */
 
   @Test
@@ -183,6 +182,15 @@ public class ContractForSLoadAndSStoreTest {
             .nonce(6L)
             .gasLimit(0xffffffL)
             .build();
+
+    /* Expected behaviour: the contract will call itself recursively until the depth reaches 5
+     * EOA A.incrementAndCall(0)
+     * A. 1 < 5 -> B.incrementAndCall(1)
+     * B. 2 < 5 -> C.incrementAndCall(2)
+     * C. 3 < 5 -> D.incrementAndCall(3)
+     * D. 4 < 5 -> E.incrementAndCall(4)
+     * E. 5 = 5 -> REVERT
+     */
 
     List<ToyAccount> accounts =
         List.of(

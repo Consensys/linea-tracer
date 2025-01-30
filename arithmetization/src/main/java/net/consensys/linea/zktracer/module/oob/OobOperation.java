@@ -125,6 +125,7 @@ public class OobOperation extends ModuleOperation {
   private final BigInteger[] outgoingResLo;
 
   private BigInteger precompileCost;
+  boolean insufficientGasForPrecompile;
 
   // Modules for lookups
   private final Add add;
@@ -862,6 +863,7 @@ public class OobOperation extends ModuleOperation {
     final boolean insufficientGas =
         callToLT(
             2, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
+    insufficientGasForPrecompile = insufficientGas;
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
@@ -898,6 +900,7 @@ public class OobOperation extends ModuleOperation {
     final boolean insufficientGas =
         callToLT(
             3, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
+    insufficientGasForPrecompile = insufficientGas;
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
@@ -941,6 +944,7 @@ public class OobOperation extends ModuleOperation {
     } else {
       noCall(4);
     }
+    insufficientGasForPrecompile = insufficientGas;
 
     // Set hubSuccess
     final boolean hubSuccess = isMultipleOf192 && !insufficientGas;
@@ -1120,6 +1124,7 @@ public class OobOperation extends ModuleOperation {
             prcModexpPricingOobCall.getCallGas(),
             BigInteger.ZERO,
             precompileCost);
+    insufficientGasForPrecompile = ramSuccess;
 
     // Set ramSuccess
     prcModexpPricingOobCall.setRamSuccess(ramSuccess);
@@ -1198,6 +1203,7 @@ public class OobOperation extends ModuleOperation {
             prcBlake2FParamsOobCall.getCalleeGas(),
             BigInteger.ZERO,
             prcBlake2FParamsOobCall.getBlakeR()); // = ramSuccess
+    insufficientGasForPrecompile = !sufficientGas;
 
     // row i + 1
     final boolean fIsABit =

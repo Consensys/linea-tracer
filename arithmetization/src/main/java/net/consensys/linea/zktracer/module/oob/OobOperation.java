@@ -1124,7 +1124,7 @@ public class OobOperation extends ModuleOperation {
             prcModexpPricingOobCall.getCallGas(),
             BigInteger.ZERO,
             precompileCost);
-    insufficientGasForPrecompile = ramSuccess;
+    insufficientGasForPrecompile = !ramSuccess;
 
     // Set ramSuccess
     prcModexpPricingOobCall.setRamSuccess(ramSuccess);

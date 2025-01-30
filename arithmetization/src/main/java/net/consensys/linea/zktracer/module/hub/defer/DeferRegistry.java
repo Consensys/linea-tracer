@@ -35,6 +35,7 @@ public class DeferRegistry
         ContextExitDefer,
         PostRollbackDefer,
         EndTransactionDefer,
+        AfterTransactionFinalizationDefer,
         PostConflationDefer {
 
   /** A list of actions deferred until the end of the current opcode execution */
@@ -51,6 +52,9 @@ public class DeferRegistry
 
   /** A list of actions deferred to the end of the current transaction */
   private final List<EndTransactionDefer> endTransactionDefers = new ArrayList<>();
+
+  /** A list of actions deferred to after the TX_FINL phase of the current transaction */
+  private final List<AfterTransactionFinalizationDefer> afterTransactionFinalizationDefers = new ArrayList<>();
 
   /** A list of actions deferred until the end of the current conflation execution */
   private final List<PostConflationDefer> postConflationDefers = new ArrayList<>();
@@ -83,6 +87,11 @@ public class DeferRegistry
   /** Schedule an action to be executed at the end of the current transaction. */
   public void scheduleForEndTransaction(EndTransactionDefer defer) {
     endTransactionDefers.add(defer);
+  }
+
+  /** Schedule an action to be executed after TX_FINL. */
+  public void scheduleForAfterTransactionFinalization(AfterTransactionFinalizationDefer defer) {
+    afterTransactionFinalizationDefers.add(defer);
   }
 
   /** Schedule an action to be executed at the end of the current transaction. */
@@ -129,6 +138,12 @@ public class DeferRegistry
       defer.resolveAtEndTransaction(hub, world, tx, isSuccessful);
     }
     endTransactionDefers.clear();
+  }
+
+  public void resolveAfterTransactionFinalization(Hub hub, WorldView worldView) {
+    for (AfterTransactionFinalizationDefer defer : afterTransactionFinalizationDefers) {
+      defer.resolveAfterTransactionFinalization(hub, worldView);
+    }
   }
 
   /**

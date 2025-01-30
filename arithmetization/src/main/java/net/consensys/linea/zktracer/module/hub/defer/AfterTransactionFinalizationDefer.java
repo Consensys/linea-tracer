@@ -15,15 +15,16 @@
 package net.consensys.linea.zktracer.module.hub.defer;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
- * Actions which get deferred to {@link PostTransactionFinalizationDefer} are those
+ * Actions which get deferred to {@link AfterTransactionFinalizationDefer} are those
  * actions that should be performed after the TX_FINL phase of transaction processing.
  * These include
  *
  * <p>- the account wiping of successful <b>SELFDESTRUCT</b>'s
  */
-public interface PostTransactionFinalizationDefer {
+public interface AfterTransactionFinalizationDefer {
 
-    void resolvePostTransactionFinalization(Hub hub);
+    void resolveAfterTransactionFinalization(Hub hub, WorldView view);
 }

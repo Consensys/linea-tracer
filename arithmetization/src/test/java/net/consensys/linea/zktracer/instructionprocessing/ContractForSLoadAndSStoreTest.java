@@ -181,7 +181,7 @@ public class ContractForSLoadAndSStoreTest {
             .value(Wei.ZERO)
             .keyPair(keyPair)
             .nonce(6L)
-            .gasLimit(0xffffffffL)
+            .gasLimit(0xffffffL)
             .build();
 
     List<ToyAccount> accounts =

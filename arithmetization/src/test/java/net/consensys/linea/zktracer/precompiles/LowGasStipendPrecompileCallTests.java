@@ -26,7 +26,10 @@ public class LowGasStipendPrecompileCallTests {
         BytecodeCompiler.newProgram()
             .push(isZeroArgument ? 0 : 1) // retSize
             .push(isZeroArgument ? 0 : 1) // retOffset
-            .push(isZeroArgument ? 0 : 1) // argsSize
+            .push(
+                isZeroArgument
+                    ? 0
+                    : (precompileAddress == Address.ALTBN128_PAIRING ? 192 : 1)) // argsSize
             .push(isZeroArgument ? 0 : 1) // argsOffset
             .push(0) // value
             .push(precompileAddress) // address

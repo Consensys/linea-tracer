@@ -941,13 +941,13 @@ public class OobOperation extends ModuleOperation {
       insufficientGas =
           callToLT(
               4, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
+      insufficientGasForPrecompile = insufficientGas;
     } else {
       noCall(4);
     }
 
     // Set hubSuccess
     final boolean hubSuccess = isMultipleOf192 && !insufficientGas;
-    insufficientGasForPrecompile = !hubSuccess; // TODO: this is for testing purposes, not accurate
     prcCommonOobCall.setHubSuccess(hubSuccess);
 
     // Set returnGas

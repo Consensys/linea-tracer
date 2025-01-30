@@ -22,7 +22,7 @@ import java.util.Set;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -34,7 +34,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class TxFinalizationSection extends TraceSection implements PostTransactionDefer {
+public class TxFinalizationSection extends TraceSection implements EndTransactionDefer {
   private final TransactionProcessingMetadata txMetadata;
 
   private AccountSnapshot senderGasRefund;

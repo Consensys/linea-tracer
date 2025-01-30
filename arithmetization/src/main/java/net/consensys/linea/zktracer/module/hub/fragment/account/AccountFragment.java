@@ -33,7 +33,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
 import net.consensys.linea.zktracer.module.hub.defer.PostConflationDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
@@ -46,7 +46,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 public final class AccountFragment
-    implements TraceFragment, PostTransactionDefer, PostConflationDefer {
+    implements TraceFragment, EndTransactionDefer, PostConflationDefer {
 
   @Getter private final AccountSnapshot oldState;
   @Getter private final AccountSnapshot newState;

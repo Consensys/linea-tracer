@@ -119,9 +119,6 @@ jacocoTestReport {
   reports {
     xml.required = true
   }
-
-  // executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-
 }
 
 tasks.test.configure {

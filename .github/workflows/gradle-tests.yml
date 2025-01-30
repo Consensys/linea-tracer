@@ -91,6 +91,13 @@ jobs:
           name: jacoco-unit-test-coverage-report
           path: arithmetization/build/reports/jacoco/test/**/*
 
+      - name: Upload jacoco exec test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-unit-tests-exec
+          path: arithmetization/build/jacoco/test.exec
+
   go-corset-unit-tests:
     needs: [ build ]
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl

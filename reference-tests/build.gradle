@@ -92,7 +92,7 @@ tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
   })
 */
 
-  // (referenceBlockchainTests)
+  executionData(referenceBlockchainTests)
 }
 
 tasks.register('referenceGeneralStateTests', Test) {

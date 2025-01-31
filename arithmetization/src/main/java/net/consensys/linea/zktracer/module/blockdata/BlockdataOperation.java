@@ -52,8 +52,8 @@ public class BlockdataOperation extends ModuleOperation {
   private final BlockHeader blockHeader;
   private final BlockHeader prevBlockHeader;
   private final Address coinbaseAddress;
-  private final EWord POWER_256_20 = EWord.of(BigInteger.ONE.shiftLeft(20 * 8));
-  private final EWord POWER_256_6 = EWord.of(BigInteger.ONE.shiftLeft(6 * 8));
+  private static final EWord POWER_256_20 = EWord.of(BigInteger.ONE.shiftLeft(20 * 8));
+  private static final EWord POWER_256_6 = EWord.of(BigInteger.ONE.shiftLeft(6 * 8));
 
   private final boolean firstBlockInConflation;
   private final int ctMax;

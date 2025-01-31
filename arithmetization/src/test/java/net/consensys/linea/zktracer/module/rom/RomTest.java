@@ -18,12 +18,16 @@ package net.consensys.linea.zktracer.module.rom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Stream;
 
 import kotlin.Pair;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,6 +36,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class RomTest {
+
+  private final Random SEED = new Random(666);
+  private static final Bytes JUMPDEST_BYTES = Bytes.minimalBytes(OpCode.JUMPDEST.byteValue());
 
   @ParameterizedTest
   @MethodSource("incompletePushRomTestSource")
@@ -69,5 +76,33 @@ public class RomTest {
     }
 
     BytecodeRunner.of(program.compile()).run();
+  }
+
+  @Tag("Weekly")
+  @ParameterizedTest
+  @MethodSource("jumpDestMaskingRomTestSource")
+  void jumpdestMasking(final int x, final int jumpdDestPosition) {
+    BytecodeRunner.of(
+            BytecodeCompiler.newProgram()
+                .push(jumpDestInPushArgument(x, jumpdDestPosition))
+                .compile())
+        .run();
+  }
+
+  private static Stream<Arguments> jumpDestMaskingRomTestSource() {
+    final List<Arguments> inputs = new ArrayList<>();
+    for (int x = 1; x <= 32; x++) {
+      for (int jumpdestPosition = 0; jumpdestPosition < x; jumpdestPosition++) {
+        inputs.add(Arguments.of(x, jumpdestPosition));
+      }
+    }
+    return inputs.stream();
+  }
+
+  private Bytes jumpDestInPushArgument(int x, int jumpDestPosition) {
+    final int leftBytes = jumpDestPosition;
+    final int rightBytes = x - jumpDestPosition - 1;
+    return Bytes.concatenate(
+        Bytes.random(leftBytes, SEED), JUMPDEST_BYTES, Bytes.random(rightBytes, SEED));
   }
 }

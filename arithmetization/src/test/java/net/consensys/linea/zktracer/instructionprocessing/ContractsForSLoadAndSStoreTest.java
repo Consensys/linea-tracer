@@ -79,7 +79,7 @@ public class ContractsForSLoadAndSStoreTest {
             .gasLimit(0xffffffL)
             .build();
 
-    List<ToyAccount> accounts = List.of(userAccount);
+    List<ToyAccount> accounts = List.of(userAccount, contractAccount);
 
     ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder()

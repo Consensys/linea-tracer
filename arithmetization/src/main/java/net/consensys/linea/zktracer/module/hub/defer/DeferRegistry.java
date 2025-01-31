@@ -54,7 +54,8 @@ public class DeferRegistry
   private final List<EndTransactionDefer> endTransactionDefers = new ArrayList<>();
 
   /** A list of actions deferred to after the TX_FINL phase of the current transaction */
-  private final List<AfterTransactionFinalizationDefer> afterTransactionFinalizationDefers = new ArrayList<>();
+  private final List<AfterTransactionFinalizationDefer> afterTransactionFinalizationDefers =
+      new ArrayList<>();
 
   /** A list of actions deferred until the end of the current conflation execution */
   private final List<PostConflationDefer> postConflationDefers = new ArrayList<>();

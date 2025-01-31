@@ -20,8 +20,8 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
- * A {@link EndTransactionDefer} represents an object, whose execution will be deferred until after the current
- * transaction has been executed.
+ * A {@link EndTransactionDefer} represents an object, whose execution will be deferred until after
+ * the current transaction has been executed.
  */
 public interface EndTransactionDefer {
   /**

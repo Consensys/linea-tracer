@@ -1,36 +1,21 @@
-# ChatGPT generated : )
-
 import csv
 import argparse
 
 def process_range(int1, int2):
-    ranges = []
-    start = int1
-    while start <= int2:
-        end = min((start // 10 + 1) * 10 - 1, int2)
-        ranges.append(f"{start}-{end}")
-        start = end + 1
-    ranges.append('###############')
-    return ranges
+    return [f"{start}-{min((start // 10 + 1) * 10 - 1, int2)}" for start in range(int1, int2 + 1, 10)]
 
 def read_csv(input_file):
-    data = []
     with open(input_file, mode='r', newline='') as file:
-        reader = csv.reader(file)
-        for row in reader:
-            data.append(row)
-    return data
+        return list(csv.reader(file))
 
 def write_csv(output_file, data):
     with open(output_file, mode='w', newline='') as file:
-        writer = csv.writer(file)
-        for row in data:
-            writer.writerow(row)
+        csv.writer(file).writerows(data)
 
 def main(input_file, output_file):
     data = read_csv(input_file)
-
     processed_data = []
+
     for row in data:
         if not row:  # Empty row
             processed_data.append(row)
@@ -40,9 +25,7 @@ def main(input_file, output_file):
             try:
                 int1, int2 = map(int, row[0].split('-'))
                 if int1 < int2:
-                    sliced_ranges = process_range(int1, int2)
-                    for r in sliced_ranges:
-                        processed_data.append([r])
+                    processed_data.extend([[r] for r in process_range(int1, int2)])
                 else:
                     print(f"Skipping invalid range: {row}")
             except ValueError:

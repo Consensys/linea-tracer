@@ -45,10 +45,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class SelfdestructSection extends TraceSection
-    implements
-        PostRollbackDefer,
-        EndTransactionDefer,
-        AfterTransactionFinalizationDefer {
+    implements PostRollbackDefer, EndTransactionDefer, AfterTransactionFinalizationDefer {
 
   final int id;
   final int hubStamp;
@@ -94,8 +91,7 @@ public class SelfdestructSection extends TraceSection
     // SCN fragment
     selfdestructScenarioFragment = new SelfdestructScenarioFragment();
     if (Exceptions.any(exceptions)) {
-      selfdestructScenarioFragment.setScenario(
-          SELFDESTRUCT_EXCEPTION);
+      selfdestructScenarioFragment.setScenario(SELFDESTRUCT_EXCEPTION);
     }
 
     // CON fragment (1)
@@ -238,8 +234,7 @@ public class SelfdestructSection extends TraceSection
 
     selfDestructWasReverted = true;
 
-    selfdestructScenarioFragment.setScenario(
-        SELFDESTRUCT_WILL_REVERT);
+    selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WILL_REVERT);
   }
 
   @Override
@@ -275,25 +270,7 @@ public class SelfdestructSection extends TraceSection
     if (hubStamp == hubStampOfTheActionableSelfDestruct) {
       selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
 
-      hub.defers().scheduleForAfterTransactionFinalization(this);
-    } else {
-      selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
-      this.addFragment(finalUnexceptionalContextFragment);
-    }
-
-  }
-
-  @Override
-  public void resolveAfterTransactionFinalization(
-      Hub hub, WorldView state) {
-
-      hub.transients()
-          .conflation()
-          .deploymentInfo()
-          .deploymentUpdateForSuccessfulSelfDestruct(selfdestructor.address());
-
-      accountWipingNew = selfdestructorNew.wipe(hub.transients().conflation().deploymentInfo());
-
+      accountWipingNew = accountWiping.deepCopy();
       // the hub's defers.resolvePostTransaction() gets called after the
       // hub's completeLineaTransaction which in turn calls
       // freshDeploymentNumberFinishingSelfdestruct()
@@ -306,8 +283,25 @@ public class SelfdestructSection extends TraceSection
                   accountWipingNew,
                   DomSubStampsSubFragment.selfdestructDomSubStamps(hub, hubStamp));
 
-    this.addFragment(accountWipingFragment);
-    this.addFragment(finalUnexceptionalContextFragment);
+      this.addFragment(accountWipingFragment);
+      this.addFragment(finalUnexceptionalContextFragment);
+
+      hub.defers().scheduleForAfterTransactionFinalization(this);
+    } else {
+      selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
+      this.addFragment(finalUnexceptionalContextFragment);
+    }
+  }
+
+  @Override
+  public void resolveAfterTransactionFinalization(Hub hub, WorldView state) {
+
+    hub.transients()
+        .conflation()
+        .deploymentInfo()
+        .deploymentUpdateForSuccessfulSelfDestruct(selfdestructor.address());
+
+    accountWipingNew.wipe(hub.transients().conflation().deploymentInfo());
   }
 
   private boolean selfdestructTargetsItself() {

@@ -31,14 +31,66 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(UnitTestWatcher.class)
-public class ContractForSLoadAndSStoreTest {
+public class ContractsForSLoadAndSStoreTest {
   // See https://github.com/Consensys/linea-tracer/issues/1660 for documentation
 
-  /* NOTE: The contracts in this test are compiled by using
+  /* NOTE: The contracts in this test class are compiled by using
   solc *.sol --bin-runtime --evm-version london -o compiledContracts
   */
+  @ParameterizedTest
+  @ValueSource(booleans = {true, false})
+  void contractForSLoadAndSStoreRecursiveTest(boolean rootReverts) {
+    // arithmetization/src/test/resources/contracts/sloadAndSstore/ContractForSLoadAndSStoreRecursiveTest.sol
+    String contractCodeAsString =
+        "608060405234801561001057600080fd5b50600436106100415760003560e01c806361bc221a1461004657806388310653146100645780639b2eb7e714610080575b600080fd5b61004e61009e565b60405161005b9190610211565b60405180910390f35b61007e60048036038101906100799190610269565b6100a4565b005b6100886101f3565b6040516100959190610211565b60405180910390f35b60005481565b60016000546100b391906102c5565b6000819055507f4785d80d2593e2cb7a3331d31eb5106408bdde2aab0db9e9b616b036a1b6039d6000546040516100ea9190610211565b60405180910390a16005600054101561010757610106816100a4565b5b80610124576000600260005461011d9190610328565b1415610137565b600060026000546101359190610328565b145b81610177576040518060400160405280601a81526020017f5245564552542064756520746f206576656e20636f756e7465720000000000008152506101ae565b6040518060400160405280601981526020017f5245564552542064756520746f206f646420636f756e746572000000000000008152505b906101ef576040517f08c379a00000000000000000000000000000000000000000000000000000000081526004016101e691906103e9565b60405180910390fd5b5050565b600581565b6000819050919050565b61020b816101f8565b82525050565b60006020820190506102266000830184610202565b92915050565b600080fd5b60008115159050919050565b61024681610231565b811461025157600080fd5b50565b6000813590506102638161023d565b92915050565b60006020828403121561027f5761027e61022c565b5b600061028d84828501610254565b91505092915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601160045260246000fd5b60006102d0826101f8565b91506102db836101f8565b92508282019050808211156102f3576102f2610296565b5b92915050565b7f4e487b7100000000000000000000000000000000000000000000000000000000600052601260045260246000fd5b6000610333826101f8565b915061033e836101f8565b92508261034e5761034d6102f9565b5b828206905092915050565b600081519050919050565b600082825260208201905092915050565b60005b83811015610393578082015181840152602081019050610378565b60008484015250505050565b6000601f19601f8301169050919050565b60006103bb82610359565b6103c58185610364565b93506103d5818560208601610375565b6103de8161039f565b840191505092915050565b6000602082019050818103600083015261040381846103b0565b90509291505056fea264697066735822122073b2d35e0c56e5d162763cef9a8b0eb8dc9fa62d82bbab6843f20dc1057fba0c64736f6c63430008190033";
+    Address address = Address.fromHexString("0x0498B7c793D7432Cd9dB27fb02fc9cfdBAfA1Fd3");
+
+    // User address
+    KeyPair keyPair = new SECP256K1().generateKeyPair();
+    Address userAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+    ToyAccount userAccount =
+        ToyAccount.builder().balance(Wei.fromEth(100)).nonce(1).address(userAddress).build();
+
+    ToyAccount contractAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(2)
+            .address(address)
+            .code(Bytes.fromHexString(contractCodeAsString))
+            .build();
+
+    // Initiate recursive calls
+    Transaction txToInitiateRecursiveCalls =
+        ToyTransaction.builder()
+            .sender(userAccount)
+            .to(contractAccount)
+            .payload(
+                Bytes.fromHexString(
+                    "0x88310653000000000000000000000000000000000000000000000000000000000000000"
+                        + (rootReverts ? "1" : "0")))
+            .transactionType(TransactionType.FRONTIER)
+            .value(Wei.ZERO)
+            .keyPair(keyPair)
+            .nonce(1L)
+            .gasLimit(0xffffffL)
+            .build();
+
+    List<ToyAccount> accounts = List.of(userAccount);
+
+    ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder()
+            .accounts(accounts)
+            .transactions(List.of(txToInitiateRecursiveCalls))
+            .transactionProcessingResultValidator(
+                TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+            .build();
+
+    toyExecutionEnvironmentV2.run();
+  }
 
   @Test
   void contractForSLoadAndSStoreTest() {
@@ -168,8 +220,8 @@ public class ContractForSLoadAndSStoreTest {
             .nonce(5L)
             .build();
 
-    // Initiate recursive calls
-    Transaction txToAToInitiateRecursiveCalls =
+    // Initiate calls
+    Transaction txToAToInitiateCalls =
         ToyTransaction.builder()
             .sender(userAccount)
             .to(contractAccountA)
@@ -182,15 +234,6 @@ public class ContractForSLoadAndSStoreTest {
             .nonce(6L)
             .gasLimit(0xffffffL)
             .build();
-
-    /* Expected behaviour: the contract will call itself recursively until the depth reaches 5
-     * EOA A.incrementAndCall(0)
-     * A. 1 < 5 -> B.incrementAndCall(1)
-     * B. 2 < 5 -> C.incrementAndCall(2)
-     * C. 3 < 5 -> D.incrementAndCall(3)
-     * D. 4 < 5 -> E.incrementAndCall(4)
-     * E. 5 = 5 -> REVERT
-     */
 
     List<ToyAccount> accounts =
         List.of(
@@ -211,7 +254,7 @@ public class ContractForSLoadAndSStoreTest {
                     txToCToSetNextInstanceAddress,
                     txToDToSetNextInstanceAddress,
                     txToEToSetNextInstanceAddress,
-                    txToAToInitiateRecursiveCalls))
+                    txToAToInitiateCalls))
             .transactionProcessingResultValidator(
                 TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .build();

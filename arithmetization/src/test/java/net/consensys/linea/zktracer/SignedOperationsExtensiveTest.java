@@ -83,11 +83,16 @@ public class SignedOperationsExtensiveTest {
   static Stream<Arguments> signExtendTestSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (String firstByte : List.of("00", "ff", "7f", "81", "ff")) {
-      for (int nTrailingBytes : List.of(0, 15, 16, 31)) {
+      for (int nTrailingBytes : List.of(0, 15, 16, 30, 31)) {
         int seed = firstByte.hashCode() * (nTrailingBytes + 1);
-        // this is just a way generate a different seed for each combination deterministically
+        // This is just a way generate a different seed for each combination deterministically
         String b = firstByte + randomBytes(nTrailingBytes, seed);
+        // In this case the most significant byte of b represents the sign
         arguments.add(Arguments.of(b, b.length() / 2 - 1));
+        // In this other case we assume there is always 00 as a prefix
+        if (nTrailingBytes != 31) {
+          arguments.add(Arguments.of(b, b.length() / 2));
+        }
       }
     }
     return arguments.stream();

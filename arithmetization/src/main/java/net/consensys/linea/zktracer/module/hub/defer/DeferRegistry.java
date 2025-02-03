@@ -145,6 +145,7 @@ public class DeferRegistry
     for (AfterTransactionFinalizationDefer defer : afterTransactionFinalizationDefers) {
       defer.resolveAfterTransactionFinalization(hub, worldView);
     }
+    afterTransactionFinalizationDefers.clear();
   }
 
   /**

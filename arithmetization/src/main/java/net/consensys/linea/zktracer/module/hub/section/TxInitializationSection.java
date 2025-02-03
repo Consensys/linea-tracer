@@ -79,6 +79,8 @@ public class TxInitializationSection extends TraceSection implements EndTransact
     final Account senderAccount = world.get(senderAddress);
     final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
 
+    Address failureAddress = Address.fromHexString("0x6295ee1b4f6dd65047762f924ecd367c17eabf8f");
+
     final boolean isDeployment = tx.isDeployment();
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
@@ -201,6 +203,12 @@ public class TxInitializationSection extends TraceSection implements EndTransact
           recipientValueReceptionNew.deepCopy().setDeploymentNumber(hub);
       recipientUndoingValueReceptionNew =
           recipientValueReception.deepCopy().setDeploymentNumber(hub).turnOnWarmth();
+
+      if (tx.getTo().isEmpty()) {
+        recipientUndoingValueReception
+            .deploymentStatus(true)
+            .code(recipientValueReceptionNew.code());
+      }
 
       final int revertStamp = hub.currentFrame().revertStamp();
 

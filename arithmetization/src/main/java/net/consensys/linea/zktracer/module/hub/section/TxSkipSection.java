@@ -112,7 +112,7 @@ public class TxSkipSection extends TraceSection implements EndTransactionDefer {
     // may have to be modified in case of address collision
     senderNew = canonical(hub, world, sender.address(), isPrecompile(sender.address()));
     recipientNew = canonical(hub, world, recipient.address(), isPrecompile(recipient.address()));
-    coinbaseNew = canonical(hub, world, coinbase.address(), isPrecompile(recipient.address()));
+    coinbaseNew = canonical(hub, world, coinbase.address(), isPrecompile(coinbase.address()));
 
     final Wei value = (Wei) txMetadata.getBesuTransaction().getValue();
 

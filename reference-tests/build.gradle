@@ -79,12 +79,7 @@ tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
   }
 
   sourceSets project(":arithmetization").sourceSets.main
-
-  // Comment line below to run task for both exec files from Unit + Reference tests
   executionData(referenceBlockchainTests)
-
-  // Uncomment line below to run task both exec files from Unit + Reference tests
-  // executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 }
 
 tasks.register('referenceGeneralStateTests', Test) {

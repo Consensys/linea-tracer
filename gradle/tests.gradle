@@ -212,3 +212,15 @@ tasks.register("weeklyTests", Test) {
     includeTags("weekly")
   }
 }
+
+// Gradle task to concatenate Unit and Reference tests exec files
+tasks.register("jacocoUnitAndReferenceTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+    html.outputLocation = layout.buildDirectory.dir('reports/jacocoConcatenate/html')
+    xml.outputLocation = layout.buildDirectory.file('reports/jacocoConcatenate/jacocoUnitAndReferenceTestsReport.xml')
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
+}

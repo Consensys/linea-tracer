@@ -59,7 +59,13 @@ Paste the exec files in the following paths :
 - for reference tests
   `/referenceBlockchainTests/build/jacoco/referenceBlockchainTests.exec`
 
-Run the jacocoReferenceBlockchainTestsReport task with the right `executionData` uncommented/commented
+Run the jacocoUnitAndReferenceTestsReport task
+
+```
+./gradlew jacocoUnitAndReferenceTestsReport
+```
+
+Note: if an xml report already exists, delete it to generate it again, else the task will be marked as Skipped.
 
 ## Launch local Sonarqube server
 
@@ -81,9 +87,13 @@ Go to `localhost:80` in your browser and login with the credentials `admin/Admin
 
 ## Launch Sonar task with gradle
 
-Configure `sonar.coverage.jacoco.xmlReportPaths` to match the path of the xml report you want to view. If you have concatenated two reports, default to the latter path (see comment in task).
+Then run `sonar` gradle task in verification group with the corresponding property depending on the coverage score you want to display
 
-Then run `sonar` gradle task in verification group
+```
+./gradlew sonar -Dtests=Unit
+./gradlew sonar -Dtests=Reference
+./gradlew sonar -Dtests=Both
+```
 
 Go to `localhost:80/projects` in your browser and check the results
 

@@ -103,7 +103,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-reference-tests-exec
+          name: jacoco-reference-tests-exec-file
           path: reference-tests/build/jacoco/referenceBlockchainTests.exec
 
       - name: Extract Metrics

@@ -88,14 +88,14 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-unit-test-coverage-report
+          name: jacoco-unit-tests-coverage-report
           path: arithmetization/build/reports/jacoco/test/**/*
 
       - name: Upload jacoco exec test
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-unit-tests-exec
+          name: jacoco-unit-tests-exec-file
           path: arithmetization/build/jacoco/test.exec
 
   go-corset-unit-tests:

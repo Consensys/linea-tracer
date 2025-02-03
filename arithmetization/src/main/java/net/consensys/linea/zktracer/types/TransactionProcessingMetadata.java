@@ -175,12 +175,12 @@ public class TransactionProcessingMetadata {
   }
 
   public void completeLineaTransaction(
-      Hub hub, final boolean statusCode, final List<Log> logs, final Set<Address> selfDestructs) {
+      Hub hub, WorldView world, final boolean statusCode, final List<Log> logs, final Set<Address> selfDestructs) {
     this.statusCode = statusCode;
     hubStampTransactionEnd = hub.stamp();
     this.logs = logs;
     for (Address address : selfDestructs) {
-      destructedAccountsSnapshot.add(AccountSnapshot.canonical(hub, address));
+      destructedAccountsSnapshot.add(AccountSnapshot.canonical(hub, world, address));
     }
 
     determineSelfDestructTimeStamp();

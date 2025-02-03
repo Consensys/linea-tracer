@@ -534,10 +534,9 @@ public class Hub implements Module {
 
     // TODO: add the following resolution this.defers.resolvePostRollback(this, ...
 
-    txStack.current().completeLineaTransaction(this, isSuccessful, logs, selfDestructs);
+    txStack.current().completeLineaTransaction(this, world, isSuccessful, logs, selfDestructs);
     defers.resolveAtEndTransaction(this, world, tx, isSuccessful);
     defers.resolveAfterTransactionFinalization(this, world);
-    defers.resolveAtEndTransaction(this, world, tx, isSuccessful);
 
     // Warn: we need to call MMIO after resolving the defers
     for (Module m : modules) {

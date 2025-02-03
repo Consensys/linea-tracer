@@ -199,6 +199,8 @@ public class CallSection extends TraceSection
     callerFirst = canonical(hub, callerAddress);
     calleeFirst = canonical(hub, calleeAddress);
 
+    Address failureAddress = Address.fromHexString("0xc07f1349a887643be65b34e234e1b3161f62dc30");
+
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
       this.oogXCall(hub);
@@ -636,11 +638,11 @@ public class CallSection extends TraceSection
       scenarioFragment.setScenario(CALL_PRC_SUCCESS_WILL_REVERT);
     }
 
-    callerSecond = callerFirstNew.deepCopy().setDeploymentInfo(hub);
-    callerSecondNew = callerFirst.deepCopy().setDeploymentInfo(hub);
+    callerSecond = callerFirstNew.deepCopy().setDeploymentNumber(hub);
+    callerSecondNew = callerFirst.deepCopy().setDeploymentNumber(hub);
 
-    calleeSecond = calleeFirstNew.deepCopy().setDeploymentInfo(hub);
-    calleeSecondNew = calleeFirst.deepCopy().setDeploymentInfo(hub);
+    calleeSecond = calleeFirstNew.deepCopy().setDeploymentNumber(hub);
+    calleeSecondNew = calleeFirst.deepCopy().setDeploymentNumber(hub);
 
     final AccountFragment undoingCallerAccountFragment =
         factory

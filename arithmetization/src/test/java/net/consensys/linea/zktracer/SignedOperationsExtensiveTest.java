@@ -84,7 +84,9 @@ public class SignedOperationsExtensiveTest {
     List<Arguments> arguments = new ArrayList<>();
     for (String firstByte : List.of("00", "ff", "7f", "81", "ff")) {
       for (int nTrailingBytes : List.of(0, 15, 16, 31)) {
-        String b = firstByte + randomBytes(nTrailingBytes, 7);
+        int seed = firstByte.hashCode() * (nTrailingBytes + 1);
+        // this is just a way generate a different seed for each combination deterministically
+        String b = firstByte + randomBytes(nTrailingBytes, seed);
         arguments.add(Arguments.of(b, b.length() / 2 - 1));
       }
     }

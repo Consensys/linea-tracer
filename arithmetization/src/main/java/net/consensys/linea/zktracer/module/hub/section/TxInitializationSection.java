@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;

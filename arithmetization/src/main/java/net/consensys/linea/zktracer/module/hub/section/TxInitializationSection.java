@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
@@ -78,8 +79,6 @@ public class TxInitializationSection extends TraceSection implements EndTransact
     final Address recipientAddress = tx.getEffectiveRecipient();
     final Account senderAccount = world.get(senderAddress);
     final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
-
-    Address failureAddress = Address.fromHexString("0x6295ee1b4f6dd65047762f924ecd367c17eabf8f");
 
     final boolean isDeployment = tx.isDeployment();
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());

@@ -577,11 +577,11 @@ public class CallSection extends TraceSection
   private void completeEoaSuccessWillRevert(Hub hub) {
     scenarioFragment.setScenario(CALL_EOA_SUCCESS_WILL_REVERT);
 
-    callerSecond = reEntryCallerSnapshot.deepCopy().setDeploymentInfo(hub);
-    callerSecondNew = callerFirst.deepCopy().setDeploymentInfo(hub);
+    callerSecond = reEntryCallerSnapshot.deepCopy().setDeploymentNumber(hub);
+    callerSecondNew = callerFirst.deepCopy().setDeploymentNumber(hub);
 
-    calleeSecond = reEntryCalleeSnapshot.deepCopy().setDeploymentInfo(hub);
-    calleeSecondNew = calleeFirst.deepCopy().setDeploymentInfo(hub);
+    calleeSecond = reEntryCalleeSnapshot.deepCopy().setDeploymentNumber(hub);
+    calleeSecondNew = calleeFirst.deepCopy().setDeploymentNumber(hub);
 
     final AccountFragment undoingCallerAccountFragment =
         factory

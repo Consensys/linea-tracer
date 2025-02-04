@@ -43,16 +43,19 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class ShakiraInputsExtensiveTests {
 
   private final Random SEED = new Random(666);
-  private final List<Integer> SIZE = List.of(0, 1, 2, 8, 15, 16, 17, 31, 32, 33);
+  private final List<Integer> SIZE =
+      List.of(0, 1, 2, 8, 15, 16, 17, 31, 32, 33, 254, 255, 256, 257, 258, 259);
   private final List<Integer> OFFSET =
       List.of(0, 1, 2, 15, 16, 17, 23, 31, 32, 33, 255, 256, 257, 65535, 65535, 65537);
   private final List<OpCode> INSTRUCTION =
-      List.of(CALL, CALLCODE, STATICCALL, DELEGATECALL, SHA3, RETURN, CREATE2);
+      List.of(CALL, CALLCODE, STATICCALL, DELEGATECALL, SHA3, CREATE2, RETURN);
+
+  private static final short CREATE_OPCODE_LENGTH = 21;
 
   @Tag("Weekly")
   @ParameterizedTest
   @MethodSource("inputs")
-  void jumpdestMasking(final int size, final int offset, final OpCode instruction) {
+  void shakiraInputTesting(final int size, final int offset, final OpCode instruction) {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram()
                 .op(CALLDATASIZE)
@@ -109,25 +112,34 @@ public class ShakiraInputsExtensiveTests {
       case RETURN:
         {
           return BytecodeCompiler.newProgram()
-              .push(0)
               .push(
                   rightPadTo(
                       Bytes.concatenate(
+                          // size
+                          Bytes.of(CALLDATASIZE.byteValue()),
+                          Bytes.of(PUSH2.byteValue()),
+                          Bytes.ofUnsignedShort(CREATE_OPCODE_LENGTH),
+                          Bytes.of(SUB.byteValue()),
+                          // offset
+                          Bytes.of(PUSH2.byteValue()),
+                          Bytes.ofUnsignedShort(CREATE_OPCODE_LENGTH),
+                          // destOffset
+                          Bytes.of(PUSH2.byteValue()),
+                          Bytes.ofUnsignedShort(0),
+                          Bytes.of(CALLDATACOPY.byteValue()),
                           Bytes.of(PUSH2.byteValue()),
                           Bytes.ofUnsignedShort(size),
                           Bytes.of(PUSH4.byteValue()),
                           Bytes.ofUnsignedInt(offset),
                           Bytes.of(RETURN.byteValue())),
                       WORD_SIZE))
+              .push(0)
               .op(MSTORE)
               .op(CALLDATASIZE)
               .push(0)
-              .push(9)
+              .push(CREATE_OPCODE_LENGTH)
               .op(CALLDATACOPY)
-              // The memory is now PUSH size PUSH offset RETURN RANDOM CALLDATA
-              .push(9)
-              .op(CALLDATASIZE)
-              .op(ADD) // size
+              .op(MSIZE) // size
               .push(0) // offset
               .push(0) // value
               .op(CREATE)

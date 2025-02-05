@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 contract FundsSender {
-    enum Case {
+    enum CallCase {
         BASE,
         SEND_ALL,
         INVOKE_TIP_THE_SENDER
@@ -14,7 +14,7 @@ contract FundsSender {
         address payable _contractFR1,
         address payable _contractFR2,
         bool _mustRevert,
-        Case _case
+        CallCase _callCase
     ) external {
         require(
             address(this).balance == 21 ether,
@@ -38,7 +38,7 @@ contract FundsSender {
         (success, ) = address(this).call{value: 5 ether}("");
         require(success, "call 5 failed");
 
-        if (_case == Case.BASE) {
+        if (_callCase == CallCase.BASE) {
             (success, ) = _contractFR1.call{value: 6 ether}("");
             require(success, "call 6 failed");
             /*
@@ -47,14 +47,14 @@ contract FundsSender {
             FR2 ends uo with              4 ether
             */
         }
-        if (_case == Case.SEND_ALL) {
+        if (_callCase == CallCase.SEND_ALL) {
             sendAll(_contractFR1);
             /*
             FS  ends up with 2 + 5      =  0 ether
             FR1 ends up with 1 + 3 + 13 = 17 ether
             FR2 ends uo with               4 ether
             */
-        } else if (_case == Case.INVOKE_TIP_THE_SENDER) {
+        } else if (_callCase == CallCase.INVOKE_TIP_THE_SENDER) {
             invokeTipTheSender(_contractFR1, 6 ether);
             /*
             FS  ends up with 2 + 5 + 3 = 10 ether
@@ -72,7 +72,7 @@ contract FundsSender {
     }
 
     function invokeTipTheSender(address payable _contractFR1, uint256 _amount)
-        internal
+    internal
     {
         (bool success, ) = _contractFR1.call{value: _amount}(
             abi.encodeWithSignature("tipTheSender()")

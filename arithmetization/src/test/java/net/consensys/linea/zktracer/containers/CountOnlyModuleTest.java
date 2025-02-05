@@ -41,8 +41,8 @@ public class CountOnlyModuleTest {
 
     countingOnlyModule.addPrecompileLimit(1);
     countingOnlyModule.commitTransactions();
-    countingOnlyModule.addPrecompileLimit(2);
-    assertThat(countingOnlyModule.lineCount()).isEqualTo(3);
+    countingOnlyModule.addPrecompileLimit(1);
+    assertThat(countingOnlyModule.lineCount()).isEqualTo(2);
     countingOnlyModule.popTransactions();
     assertThat(countingOnlyModule.lineCount()).isEqualTo(1);
 

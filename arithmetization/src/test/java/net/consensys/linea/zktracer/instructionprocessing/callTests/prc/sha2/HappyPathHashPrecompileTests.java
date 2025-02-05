@@ -37,24 +37,21 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * We test the interactions between the <b>call data</b> range, the <b>return at</b> range and
- * <b>return data</b> ranges for <b>SHA2-256</b>, <b>RIPEMD-160</b> and <b>IDENTITY</b>. For the
- * present tests we will only consider the happy path i.e.
+ * <b>Happy path</b> tests for <b>SHA2-256</b>, <b>RIPEMD-160</b> and <b>IDENTITY</b>, i.e. the
+ * present tests we will only consider calls to these precompiles where
  *
- * <p>- always provide sufficient gas (thus ensuring <b>scenario/PRC_SUCCESS</b>)
+ * <p>- the precompile is provided with sufficient gas (ensuring <b>scenario/PRC_SUCCESS</b>)
  *
- * <p>- no <b>REVERT</b>s (so that value only matters in terms of pricing)
+ * <p>- nothing <b>REVERT</b>s (thus value only matters in terms of pricing)
  *
- * <p>To avoid trivialities we pre-populate memory with nonzero values. We optionally force
+ * <p>To avoid trivialities we pre-populate memory with nonzero values. We force
  * interactions between the <b>call data</b> range, the <b>return at</b> range and <b>return
- * data</b> ranges. Indeed, we consider both the <b>DISJOINT</b> and the <b>OVERLAP</b> cases. I.e.
- * the case where the <b>call data</b> range, the <b>return at</b> range as well as the <b>return
- * data</b> overlaps with these.
+ * data</b> ranges in the <b>OVERLAP</b> case.
  *
- * <p>We finally force interactions between stack and memory via <b>RETURNDATA[SIZE/COPY]</b> and
+ * <p>After the call we interact with return data via <b>RETURNDATA[SIZE/COPY]</b> and
  * <b>MLOAD</b>.
  */
-public class OffsetHappyPathTests {
+public class HappyPathHashPrecompileTests {
 
   @ParameterizedTest
   @MethodSource("happyPathHashPrecompileParameters")

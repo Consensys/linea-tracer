@@ -55,12 +55,6 @@ public class OutOfGasExceptionTest {
   @MethodSource("outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource")
   void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTest(
       OpCode opCode, int opCodeStaticCost, int nPushes, int cornerCase) {
-    outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
-        opCode, opCodeStaticCost, nPushes, cornerCase);
-  }
-
-  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
-      OpCode opCode, int opCodeStaticCost, int nPushes, int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     for (int i = 0; i < nPushes; i++) {
@@ -100,7 +94,8 @@ public class OutOfGasExceptionTest {
             + opCodeDynamicCost;
     bytecodeRunner.run(gasCost + cornerCase);
 
-    // This is to ensure that the gas cost is correctly calculated
+    // TODO: this is to ensure that the gas cost is correctly calculated
+    //  this may change when the gas accumulator will be associated to the frame
     assertEquals(gasCost, GAS_CONST_G_TRANSACTION + bytecodeRunner.getHub().gasCostAccumulator());
 
     if (cornerCase == -1) {

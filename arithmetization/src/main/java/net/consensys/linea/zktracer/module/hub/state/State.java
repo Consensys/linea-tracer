@@ -27,19 +27,19 @@ import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
-import net.consensys.linea.zktracer.module.hub.state.State.HubState.Stamps;
+import net.consensys.linea.zktracer.module.hub.state.State.HubTransactionState.Stamps;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
 public class State {
-  private final StackedList<HubState> state = new StackedList<>();
+  private final StackedList<HubTransactionState> state = new StackedList<>();
 
   @Getter
   @Accessors(fluent = true)
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
 
-  public HubState current() {
+  public HubTransactionState current() {
     return state.getLast();
   }
 
@@ -123,7 +123,7 @@ public class State {
    * @return the trace builder
    */
   public Trace commit(Trace hubTrace) {
-    for (HubState state : this.state.getAll()) {
+    for (HubTransactionState state : state.getAll()) {
       state.hubTraceSections().commit(hubTrace);
     }
     return hubTrace;
@@ -135,7 +135,7 @@ public class State {
 
   public void enterTransaction() {
     if (state.isEmpty()) {
-      state.add(new HubState());
+      state.add(new HubTransactionState());
     } else {
       state.add(current().spinOff());
     }
@@ -154,22 +154,22 @@ public class State {
   /** Describes the Hub state during a given transaction. */
   @Accessors(fluent = true)
   @Getter
-  public static class HubState {
+  public static class HubTransactionState {
     Stamps stamps;
     HubTraceSections hubTraceSections;
 
-    HubState() {
+    HubTransactionState() {
       stamps = new Stamps();
       hubTraceSections = new HubTraceSections();
     }
 
-    public HubState(Stamps stamps) {
+    public HubTransactionState(Stamps stamps) {
       this.stamps = stamps;
       hubTraceSections = new HubTraceSections();
     }
 
-    HubState spinOff() {
-      return new HubState(stamps.snapshot());
+    HubTransactionState spinOff() {
+      return new HubTransactionState(stamps.snapshot());
     }
 
     /**

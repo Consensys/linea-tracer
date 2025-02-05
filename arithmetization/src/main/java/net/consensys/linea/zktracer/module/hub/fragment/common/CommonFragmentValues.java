@@ -48,7 +48,7 @@ public class CommonFragmentValues {
   public final HubProcessingPhase hubProcessingPhase;
   public final int hubStamp;
   public final CallStack callStack;
-  public final State.HubState.Stamps stamps;
+  public final State.HubTransactionState.Stamps stamps;
   @Setter public int logStamp = -1;
   @Getter final CallFrame callFrame;
   public final short exceptions;

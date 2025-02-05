@@ -61,7 +61,7 @@ public final class StackFragment implements TraceFragment {
   @Getter private final int rawOpCode;
   @Setter private boolean jumpDestinationVettingRequired;
   @Setter private boolean validJumpDestination;
-  private final State.HubState.Stamps stamps;
+  private final State.HubTransactionState.Stamps stamps;
   private final CommonFragmentValues commonFragmentValues;
   private final EWord pushValue;
 

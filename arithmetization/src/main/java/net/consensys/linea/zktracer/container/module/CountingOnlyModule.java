@@ -27,13 +27,13 @@ public interface CountingOnlyModule extends Module {
   CountOnlyOperation counts();
 
   @Override
-  default void enterTransaction() {
-    counts().enter();
+  default void commitTransactions() {
+    counts().commitTransactions();
   }
 
   @Override
-  default void popTransaction() {
-    counts().pop();
+  default void popTransactions() {
+    counts().popTransactions();
   }
 
   @Override

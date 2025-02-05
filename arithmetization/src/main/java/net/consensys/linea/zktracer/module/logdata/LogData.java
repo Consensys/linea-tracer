@@ -42,20 +42,20 @@ public class LogData implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    lineCounter.enter();
+  public void commitTransactions() {
+    lineCounter.commitTransactions();
   }
 
   @Override
-  public void popTransaction() {
-    lineCounter.pop();
+  public void popTransactions() {
+    lineCounter.popTransactions();
   }
 
   /* WARN: make sure this is called after rlpTxnRcpt as we need the operation of the current transaction */
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
     Preconditions.checkArgument(
-        rlpTxnRcpt.operations().operationsInTransaction().size() == 1,
+        rlpTxnRcpt.operations().operationsInTransactionBundle().size() == 1,
         "We should have only one transaction receipt operation per transaction");
     lineCounter.add(lineCountForLogData(rlpTxnRcpt.operations().getLast()));
   }

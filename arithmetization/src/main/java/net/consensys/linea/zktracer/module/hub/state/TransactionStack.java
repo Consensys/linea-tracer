@@ -13,14 +13,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
-
-import java.util.ArrayList;
-import java.util.List;
+package net.consensys.linea.zktracer.module.hub.state;
 
 import lombok.Getter;
 import lombok.Setter;
-import net.consensys.linea.zktracer.container.StackedContainer;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -28,9 +26,9 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public class TransactionStack implements StackedContainer {
-  private final List<TransactionProcessingMetadata> transactions =
-      new ArrayList<>(200); // TODO: write the allocated memory from .toml file
+public class TransactionStack {
+  private final StackedList<TransactionProcessingMetadata> transactions =
+      new StackedList<>(); // TODO: write the allocated memory from .toml file
   private int currentAbsNumber;
   private int relativeTransactionNumber;
   @Setter @Getter public TxInitializationSection initializationSection;
@@ -41,24 +39,22 @@ public class TransactionStack implements StackedContainer {
 
   /* WARN: can't be called if currentAbsNumber == 1*/
   public TransactionProcessingMetadata previous() {
-    return this.transactions.get(this.transactions.size() - 2);
+    return transactions.get(transactions.size() - 2);
   }
 
   public TransactionProcessingMetadata getByAbsoluteTransactionNumber(final int id) {
-    return this.transactions.get(id - 1);
+    return transactions.get(id - 1);
   }
 
-  @Override
-  public void enter() {
-    this.currentAbsNumber += 1;
-    this.relativeTransactionNumber += 1;
+  public void commitTransactions() {
+    transactions.commitTransactions();
   }
 
-  @Override
-  public void pop() {
-    this.transactions.remove(this.current());
-    this.currentAbsNumber -= 1;
-    this.relativeTransactionNumber -= 1;
+  public void popTransactions() {
+    final int numberOfTransactionToPop = transactions.operationsInTransactionBundle().size();
+    transactions.popTransactions();
+    this.currentAbsNumber -= numberOfTransactionToPop;
+    this.relativeTransactionNumber -= numberOfTransactionToPop;
   }
 
   public void resetBlock() {
@@ -66,7 +62,8 @@ public class TransactionStack implements StackedContainer {
   }
 
   public void enterTransaction(final WorldView world, final Transaction tx, Block block) {
-    this.enter();
+    currentAbsNumber += 1;
+    relativeTransactionNumber += 1;
 
     final TransactionProcessingMetadata newTx =
         new TransactionProcessingMetadata(
@@ -76,7 +73,7 @@ public class TransactionStack implements StackedContainer {
   }
 
   public void setCodeFragmentIndex(Hub hub) {
-    for (TransactionProcessingMetadata tx : transactions) {
+    for (TransactionProcessingMetadata tx : transactions.getAll()) {
       final int cfi =
           tx.requiresCfiUpdate()
               ? hub.getCfiByMetaData(

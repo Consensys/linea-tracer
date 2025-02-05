@@ -27,13 +27,13 @@ public interface OperationListModule<E extends ModuleOperation> extends Module {
   ModuleOperationStackedList<E> operations();
 
   @Override
-  default void enterTransaction() {
-    operations().enter();
+  default void commitTransactions() {
+    operations().commitTransactions();
   }
 
   @Override
-  default void popTransaction() {
-    operations().pop();
+  default void popTransactions() {
+    operations().popTransactions();
   }
 
   @Override

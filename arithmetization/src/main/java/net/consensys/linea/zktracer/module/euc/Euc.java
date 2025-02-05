@@ -30,6 +30,8 @@ import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
@@ -49,15 +51,21 @@ public class Euc implements OperationSetModule<EucOperation> {
   }
 
   @Override
-  public void enterTransaction() {
-    OperationSetModule.super.enterTransaction();
-    additionalRows.lineCount();
+  public void commitTransactions() {
+    OperationSetModule.super.commitTransactions();
+    additionalRows.commitTransactions();
   }
 
   @Override
-  public void popTransaction() {
-    OperationSetModule.super.popTransaction();
-    additionalRows.pop();
+  public void popTransactions() {
+    OperationSetModule.super.popTransactions();
+    additionalRows.popTransactions();
+  }
+
+  @Override
+  public void traceStartBlock(
+      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
+    additionalRows.commitTransactions();
   }
 
   @Override

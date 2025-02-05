@@ -31,14 +31,14 @@ public class L2L1Logs implements Module {
   }
 
   @Override
-  public void enterTransaction() {}
+  public void commitTransactions() {}
 
   @Override
-  public void popTransaction() {}
+  public void popTransactions() {}
 
   @Override
   public int lineCount() {
-    return this.l2Block.l2l1LogsCount();
+    return l2Block.l2l1LogsCount();
   }
 
   @Override

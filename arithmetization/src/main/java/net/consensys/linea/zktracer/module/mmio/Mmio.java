@@ -56,18 +56,18 @@ public class Mmio implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    lineCounter.enter();
+  public void commitTransactions() {
+    lineCounter.commitTransactions();
   }
 
   @Override
-  public void popTransaction() {
-    lineCounter.pop();
+  public void popTransactions() {
+    lineCounter.popTransactions();
   }
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
-    for (MmuOperation o : mmu.operations().operationsInTransaction()) {
+    for (MmuOperation o : mmu.operations().operationsInTransactionBundle()) {
       lineCounter.add(o.mmioLineCount());
     }
   }

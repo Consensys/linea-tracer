@@ -34,10 +34,10 @@ public class Rom implements Module {
   }
 
   @Override
-  public void enterTransaction() {}
+  public void commitTransactions() {}
 
   @Override
-  public void popTransaction() {}
+  public void popTransactions() {}
 
   @Override
   public int lineCount() {

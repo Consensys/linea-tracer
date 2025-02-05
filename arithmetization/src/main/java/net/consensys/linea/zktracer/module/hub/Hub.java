@@ -66,6 +66,8 @@ import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
+import net.consensys.linea.zktracer.module.hub.state.State;
+import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
@@ -432,24 +434,25 @@ public class Hub implements Module {
   }
 
   @Override
-  public void enterTransaction() {
-    // Note: txStack.enter(); happens at traceStartTransaction as it requires world, etc
-    state.enter();
-    transients.conflation().stackHeightChecksForStackUnderflows().enter();
-    transients.conflation().stackHeightChecksForStackOverflows().enter();
+  public void commitTransactions() {
+    txStack.commitTransactions();
+    state.commitTransactions();
+
+    transients.conflation().stackHeightChecksForStackUnderflows().commitTransactions();
+    transients.conflation().stackHeightChecksForStackOverflows().commitTransactions();
     for (Module m : modules) {
-      m.enterTransaction();
+      m.commitTransactions();
     }
   }
 
   @Override
-  public void popTransaction() {
-    txStack.pop();
-    state.pop();
-    transients.conflation().stackHeightChecksForStackUnderflows().pop();
-    transients.conflation().stackHeightChecksForStackOverflows().pop();
+  public void popTransactions() {
+    txStack.popTransactions();
+    state.popTransactions();
+    transients.conflation().stackHeightChecksForStackUnderflows().popTransactions();
+    transients.conflation().stackHeightChecksForStackOverflows().popTransactions();
     for (Module m : modules) {
-      m.popTransaction();
+      m.popTransactions();
     }
   }
 
@@ -497,17 +500,17 @@ public class Hub implements Module {
 
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
 
-    this.enterTransaction();
+    state.enterTransaction();
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
-      state.setProcessingPhase(TX_SKIP);
+      state.processingPhase(TX_SKIP);
       new TxSkipSection(this, world, transactionProcessingMetadata, transients);
     } else {
       if (transactionProcessingMetadata.requiresPrewarming()) {
-        state.setProcessingPhase(TX_WARM);
+        state.processingPhase(TX_WARM);
         new TxPreWarmingMacroSection(world, this);
       }
-      state.setProcessingPhase(TX_INIT);
+      state.processingPhase(TX_INIT);
       new TxInitializationSection(this, world);
     }
 
@@ -544,7 +547,7 @@ public class Hub implements Module {
     }
 
     // Compute the line counting of the HUB of the current transaction
-    state.lineCounter().add(state.currentTxTrace().lineCount());
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
   }
 
   @Override
@@ -553,7 +556,7 @@ public class Hub implements Module {
 
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
-      if (state.getProcessingPhase() == TX_SKIP) {
+      if (state.processingPhase() == TX_SKIP) {
         checkState(currentTraceSection() instanceof TxSkipSection);
         ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
       }
@@ -671,9 +674,9 @@ public class Hub implements Module {
               coinbaseWarmthAtTransactionEnd,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
-      if (state.getProcessingPhase() != TX_SKIP
+      if (state.processingPhase() != TX_SKIP
           && frame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
-        this.state.setProcessingPhase(TX_FINL);
+        state.processingPhase(TX_FINL);
         new TxFinalizationSection(this, frame.getWorldUpdater(), false);
       }
     }
@@ -699,7 +702,7 @@ public class Hub implements Module {
 
   public void tracePreExecution(final MessageFrame frame) {
     checkArgument(
-        this.state().processingPhase == TX_EXEC,
+        this.state().processingPhase() == TX_EXEC,
         "There can't be any execution if the HUB is not in execution phase");
 
     this.processStateExec(frame);
@@ -717,10 +720,10 @@ public class Hub implements Module {
    */
   public void tracePostExecution(MessageFrame frame, Operation.OperationResult operationResult) {
     checkArgument(
-        this.state().processingPhase == TX_EXEC,
+        state().processingPhase() == TX_EXEC,
         "There can't be any execution if the HUB is not in execution phase");
 
-    final TraceSection currentSection = state.currentTxTrace().currentSection();
+    final TraceSection currentSection = state.currentTransactionHubSections().currentSection();
 
     compareLineaAndBesuGasCosts(frame, operationResult);
 
@@ -744,7 +747,7 @@ public class Hub implements Module {
     }
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode().isHalt())) {
-      this.state.setProcessingPhase(TX_FINL);
+      state.processingPhase(TX_FINL);
       coinbaseWarmthAtTransactionEnd = frame.isAddressWarm(coinbaseAddress);
     }
 
@@ -765,7 +768,7 @@ public class Hub implements Module {
    */
   private void compareLineaAndBesuGasCosts(
       MessageFrame frame, Operation.OperationResult operationResult) {
-    TraceSection currentSection = state.currentTxTrace().currentSection();
+    TraceSection currentSection = state.currentTransactionHubSections().currentSection();
     long besuGasCost = operationResult.getGasCost();
     long lineaGasCost = currentSection.commonValues.gasCost();
     long lineaGasCostExcludingDeploymentCost =
@@ -820,7 +823,7 @@ public class Hub implements Module {
      * <p>If the transaction is of TX_SKIP type then it is a deployment it has empty code and is
      * immediately set to the deployed state
      */
-    if (state.processingPhase == TX_SKIP) {
+    if (state.processingPhase() == TX_SKIP) {
       checkArgument(!deploymentStatusOfBytecodeAddress());
       return;
     }
@@ -937,19 +940,19 @@ public class Hub implements Module {
   }
 
   public TraceSection currentTraceSection() {
-    return state.currentTxTrace().currentSection();
+    return state.currentTransactionHubSections().currentSection();
   }
 
   public TraceSection previousTraceSection() {
-    return state.currentTxTrace().previousSection();
+    return state.currentTransactionHubSections().previousSection();
   }
 
   public TraceSection previousTraceSection(int n) {
-    return state.currentTxTrace().previousSection(n);
+    return state.currentTransactionHubSections().previousSection(n);
   }
 
   public void addTraceSection(TraceSection section) {
-    state.currentTxTrace().add(section);
+    state.currentTransactionHubSections().add(section);
   }
 
   public void unlatchStack(MessageFrame frame, TraceSection section) {
@@ -1003,7 +1006,7 @@ public class Hub implements Module {
   //  execution after a CALL / CREATE ? One of them is
   //  necessarily false ...
   public long remainingGas() {
-    return this.state().getProcessingPhase() == TX_EXEC
+    return this.state().processingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()
         : 0;
   }

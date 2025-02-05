@@ -143,18 +143,34 @@ public class Utilities {
     program.op(RETURNDATASIZE).push(0).push(targetOffset);
   }
 
-  public static void partialReturnDataCopyAt(BytecodeCompiler program, int targetOffset) {
+  /**
+   * Copies <b>1 / 2</b> of the return data starting at offset <b>RDS / 3</b> (internal to return data) into memory at targetOffset.
+   * @param program
+   * @param targetOffset
+   */
+  public static void copyHalfOfReturnDataOmittingTheFirstThirdOfIt(BytecodeCompiler program, int targetOffset) {
     pushRdsOverArgOntoTheStack(program, 2); // source size   ≡ rds/2
     pushRdsOverArgOntoTheStack(program, 3); // source offset ≡ rds/3
     program.push(targetOffset);
   }
 
+  /**
+   * Loads the (right 0 padded) first <b>RDS ∧ 32</b> bytes from return data onto the stack.
+   *
+   * <p><b>Note.</b>  if <b>RDS < 32</b>.
+   * @param program
+   * @param offset
+   */
   public static void loadFirstReturnDataWordOntoStack(BytecodeCompiler program, int offset) {
     squashMemoryWordAtOffset(program, offset);
     pushMinOfRdsAnd32OntoStack(program); // leaves min(RDS, 32) on the stack
     program.push(0).push(offset).op(RETURNDATACOPY).push(offset).op(MLOAD);
   }
 
+  /**
+   * Pushes the integer <b>RDS ∧ 32 = min(RDS, 32)</b> onto the stack.
+   * @param program
+   */
   public static void pushMinOfRdsAnd32OntoStack(BytecodeCompiler program) {
     program
         .push(WORD_SIZE)
@@ -162,7 +178,7 @@ public class Utilities {
         .op(LT) // stack: [ c | ... [, where c ≡ [RDS < 32]
         .op(DUP1)
         .push(1)
-        .op(SUB) // stack: [ d | c | ... [, where d ≡ [RDS ≥ 32]
+        .op(SUB) // stack: [ d | c | ... [, where d ≡ ¬c ≡ [RDS ≥ 32]
         .push(WORD_SIZE)
         .op(MUL) // stack: [ (d ? 32 : 0) | c | ... [
         .op(SWAP1) // stack: [ c | (d ? 32 : 0) | ... [
@@ -172,17 +188,27 @@ public class Utilities {
     ;
   }
 
+  /**
+   * Squashes the word in memory at (byte)<b>offset</b>, i.e. replaces it with <b>0x 00 .. 00</b>.
+   * @param program
+   * @param offset
+   */
   public static void squashMemoryWordAtOffset(BytecodeCompiler program, int offset) {
     program.push(0).push(offset).op(MSTORE);
   }
 
+  /**
+   * Pushes <b>RDS / arg</b> onto the stack.
+   * @param program
+   * @param arg
+   */
   public static void pushRdsOverArgOntoTheStack(BytecodeCompiler program, int arg) {
     program.push(arg).op(RETURNDATASIZE).op(DIV);
   }
 
   /**
-   * {@link #populateMemory} populates memory with <b>nWords</b> words chosen cyclically from 6 EVM
-   * words obtained by repeating the strings "aa", "bb", "cc", "dd", "ee", "ff" 32 times each.
+   * {@link #populateMemory} populates memory with <b>nWords</b>  chosen cyclically from the set of 6 EVM
+   * words obtained by repeating the strings <b>aa</b>, <b>bb</b>, ..., <b>ff</b> 32 times.
    *
    * @param program
    * @param nWords

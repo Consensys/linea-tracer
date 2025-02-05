@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.sha2;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition.OVERLAP;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.accounts;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
@@ -27,7 +26,6 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
-import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CallOffset;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CallSize;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.HashPrecompile;
@@ -69,7 +67,7 @@ public class OffsetHappyPathTests {
 
     populateMemory(program);
     appendHashPrecompileCall(program, callOpcode, precompile, cdo, cds, rao, rac, relPos);
-    partialReturnDataCopyAt(program, relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
+    copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
     BytecodeRunner.of(program.compile()).run(accounts);
   }

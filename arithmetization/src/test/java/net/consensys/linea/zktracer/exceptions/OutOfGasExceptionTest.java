@@ -218,7 +218,7 @@ public class OutOfGasExceptionTest {
    */
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
-  void outOfGasExceptionSStore(int cornerCase) {
+  void outOfGasExceptionSLoad(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program

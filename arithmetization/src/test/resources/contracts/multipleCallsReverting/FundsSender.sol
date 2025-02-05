@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.4.24;
 
 contract FundsSender {
     enum CallCase {
@@ -8,11 +8,17 @@ contract FundsSender {
         INVOKE_TIP_THE_SENDER
     }
 
-    receive() external payable {}
+    bool useCallCode;
+
+    function() external payable {}
+
+    function turnOnUseCallCode() public {
+        useCallCode = true;
+    }
 
     function transferFunds(
-        address payable _contractFR1,
-        address payable _contractFR2,
+        address _contractFR1,
+        address _contractFR2,
         bool _mustRevert,
         CallCase _callCase
     ) external {
@@ -23,25 +29,25 @@ contract FundsSender {
 
         bool success;
 
-        (success, ) = _contractFR1.call{value: 1 ether}("");
+        success = callx(_contractFR1, 1 ether);
         require(success, "call 1 failed");
 
-        (success, ) = address(this).call{value: 2 ether}("");
+        success = callx(address(this), 2 ether);
         require(success, "call 2 failed");
 
-        (success, ) = _contractFR1.call{value: 3 ether}("");
+        success = callx(_contractFR1, 3 ether);
         require(success, "call 3 failed");
 
-        (success, ) = _contractFR2.call{value: 4 ether}("");
+        success = callx(_contractFR2, 4 ether);
         require(success, "call 4 failed");
 
-        (success, ) = address(this).call{value: 5 ether}("");
+        success = callx(address(this), 5 ether);
         require(success, "call 5 failed");
 
         if (_callCase == CallCase.BASE) {
-            (success, ) = _contractFR1.call{value: 6 ether}("");
+            success = callx(_contractFR1, 6 ether);
             require(success, "call 6 failed");
-            /*
+            /* if useCallCode is false
             FS  ends up with 2 + 5     =  7 ether
             FR1 ends up with 1 + 3 + 6 = 10 ether
             FR2 ends uo with              4 ether
@@ -49,14 +55,14 @@ contract FundsSender {
         }
         if (_callCase == CallCase.SEND_ALL) {
             sendAll(_contractFR1);
-            /*
+            /* if useCallCode is false
             FS  ends up with 2 + 5      =  0 ether
             FR1 ends up with 1 + 3 + 13 = 17 ether
             FR2 ends uo with               4 ether
             */
         } else if (_callCase == CallCase.INVOKE_TIP_THE_SENDER) {
             invokeTipTheSender(_contractFR1, 6 ether);
-            /*
+            /* if useCallCode is false
             FS  ends up with 2 + 5 + 3 = 10 ether
             FR1 ends up with 1 + 3 + 3 = 7  ether
             FR2 ends uo with             4  ether
@@ -66,17 +72,37 @@ contract FundsSender {
         require(!_mustRevert, "revert transferFunds");
     }
 
-    function sendAll(address payable _contractFR1) internal {
-        (bool success, ) = _contractFR1.call{value: address(this).balance}("");
+    function sendAll(address _contractFR1) internal {
+        bool success;
+        success = callx(_contractFR1, address(this).balance);
         require(success, "call 6 with send all failed");
     }
 
-    function invokeTipTheSender(address payable _contractFR1, uint256 _amount)
-    internal
-    {
-        (bool success, ) = _contractFR1.call{value: _amount}(
-            abi.encodeWithSignature("tipTheSender()")
-        );
+    function invokeTipTheSender(address _contractFR1, uint256 _value) internal {
+        bool success;
+        if (useCallCode) {
+            success = _contractFR1.callcode.value(_value)(
+                abi.encodeWithSignature("tipTheSender(bool)", useCallCode)
+            );
+        } else {
+            success = _contractFR1.call.value(_value)(
+                abi.encodeWithSignature("tipTheSender(bool)", useCallCode)
+            );
+        }
         require(success, "call 5 with invoke tip the sender failed");
+    }
+
+    // Support function
+    function callx(address _contractAddress, uint256 _value)
+        internal
+        returns (bool)
+    {
+        bool success;
+        if (useCallCode) {
+            success = _contractAddress.callcode.value(_value)("");
+        } else {
+            success = _contractAddress.call.value(_value)("");
+        }
+        return success;
     }
 }

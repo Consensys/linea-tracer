@@ -1,12 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.4.24;
 
 contract FundsReceiver1 {
-    receive() external payable {}
+    function() external payable {}
 
-    function tipTheSender() external payable {
+    function tipTheSender(bool _useCallCode) external payable {
         uint256 refundAmount = msg.value / 2;
-        (bool success, ) = msg.sender.call{value: refundAmount}("");
+        bool success;
+        if (_useCallCode) {
+            success = msg.sender.callcode.value(refundAmount)("");
+        } else {
+            success = msg.sender.call.value(refundAmount)("");
+        }
         require(success, "FR1 could not tip the sender");
     }
 }

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.4.24;
 
 contract FundsReceiver2 {
-    receive() external payable {}
+    function() external payable {}
 }

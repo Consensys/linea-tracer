@@ -267,4 +267,38 @@ public class OutOfGasExceptionTest {
           bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     }
   }
+
+  /** Test to write a non-zero value in storage */
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionSStoreTrue(int cornerCase) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+        .push(2) // value
+        .push(1) // key
+        .op(OpCode.SSTORE);
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+
+    long gasCost =
+        (long) GAS_CONST_G_TRANSACTION
+            + (long) 2 * GAS_CONST_G_VERY_LOW // 2 PUSH
+            + GAS_CONST_G_SSET
+            // SSTORE cost since current_value == original_value
+            // and original_value == 0 (20000)
+            + GAS_CONST_G_COLD_SLOAD; // SSTORE cost since slot is cold (2100)
+
+    bytecodeRunner.run(gasCost + cornerCase);
+
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
+  }
 }

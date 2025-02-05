@@ -34,7 +34,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-@ExtendWith(UnitTestWatcher.class)
 public class ContractsForSLoadAndSStoreTest {
   // See https://github.com/Consensys/linea-tracer/issues/1660 for documentation
 

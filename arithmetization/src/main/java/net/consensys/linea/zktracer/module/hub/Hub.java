@@ -777,17 +777,6 @@ public class Hub implements Module {
 
     gasCostAccumulator += besuGasCost;
 
-    System.out.println(
-        "Retrieved in the Hub: "
-            + "opCode: "
-            + opCode().name()
-            + " ,besuGasCost: "
-            + besuGasCost
-            + " ,OOGX: "
-            + (besuGasCost > frame.getRemainingGas())
-            + " ,remainingGas: "
-            + frame.getRemainingGas());
-
     if (operationResult.getHaltReason() != null) {
 
       return;

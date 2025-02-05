@@ -100,8 +100,7 @@ public class OutOfGasExceptionTest {
             + opCodeDynamicCost;
     bytecodeRunner.run(gasCost + cornerCase);
 
-    // TODO: this is just to check if the gasCostAccumulator works
-    //  it seems inconsistent only in the case of SSTORE at the moment
+    // This is to ensure that the gas cost is correctly calculated
     assertEquals(gasCost, GAS_CONST_G_TRANSACTION + bytecodeRunner.getHub().gasCostAccumulator());
 
     if (cornerCase == -1) {
@@ -144,18 +143,6 @@ public class OutOfGasExceptionTest {
     }
     return arguments.stream();
   }
-
-  /*
-  @Test
-  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostSingleTest() {
-    OpCode opCode = OpCode.SSTORE;
-    int opCodeStaticCost = 0;
-    int nPushes = 2;
-    int cornerCase = 0;
-    outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
-        opCode, opCodeStaticCost, nPushes, cornerCase);
-  }
-   */
 
   @ParameterizedTest
   @MethodSource("outOfGasExceptionCallSource")

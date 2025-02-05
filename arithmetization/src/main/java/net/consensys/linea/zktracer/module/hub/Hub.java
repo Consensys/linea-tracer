@@ -37,7 +37,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ColumnHeader;
@@ -241,6 +240,9 @@ public class Hub implements Module {
 
   private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
   private final BlakeRounds blakeRounds = new BlakeRounds();
+
+  // TODO: bind it to the frame so as to compute the gasCost per frame
+  @Getter private long gasCostAccumulator = 0;
 
   private List<Module> precompileLimitModules() {
 
@@ -753,9 +755,6 @@ public class Hub implements Module {
       new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }
-
-  // TODO: bind it to the frame so as to compute the gasCost per frame
-  @Getter @Setter public long gasCostAccumulator = 0;
 
   /**
    * Compares the gas costs between Linea and Besu. The total cost should be the same for both, but

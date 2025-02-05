@@ -128,17 +128,6 @@ public class Utilities {
         .op(MSTORE);
   }
 
-  /**
-   * Populates memory with 6 words of data, namely
-   *
-   * <p><b>0x aa ... aa bb ... bb cc ... cc dd ... dd ee ... ee ff ... ff</b>
-   *
-   * <p>starting at offset 0. This provides 192 = 6*32 nonzero bytes in RAM.
-   */
-  public static void populateMemory(BytecodeCompiler program) {
-    populateMemory(program, 6, 0);
-  }
-
   public static void fullReturnDataCopyAt(BytecodeCompiler program, int targetOffset) {
     program.op(RETURNDATASIZE).push(0).push(targetOffset);
   }
@@ -204,6 +193,17 @@ public class Utilities {
    */
   public static void pushRdsOverArgOntoTheStack(BytecodeCompiler program, int arg) {
     program.push(arg).op(RETURNDATASIZE).op(DIV);
+  }
+
+  /**
+   * Populates memory with 6 words of data, namely
+   *
+   * <p><b>0x aa ... aa bb ... bb cc ... cc dd ... dd ee ... ee ff ... ff</b>
+   *
+   * <p>starting at offset 0. This provides 192 = 6*32 nonzero bytes in RAM.
+   */
+  public static void populateMemory(BytecodeCompiler program) {
+    populateMemory(program, 6, 0);
   }
 
   /**

@@ -38,17 +38,21 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * We test the interactions between the <b>call data</b> range, the <b>return at</b> range and
- * <b>return data</b> ranges. For the present tests we will only consider the happy path i.e.
+ * <b>return data</b> ranges for <b>SHA2-256</b>, <b>RIPEMD-160</b> and <b>IDENTITY</b>. For the
+ * present tests we will only consider the happy path i.e.
  *
  * <p>- always provide sufficient gas (thus ensuring <b>scenario/PRC_SUCCESS</b>)
  *
  * <p>- no <b>REVERT</b>s (so that value only matters in terms of pricing)
  *
- * <p>To avoid trivialities we make memory contain nonzero stuff. We will also include interactions
- * between stack and memory. This will be done via <b>RETURNDATA[SIZE/COPY]</b> and <b>MLOAD</b>. We
- * will consider both the disjoint case and the case where the call data range (CD0, CDS) and the
- * "return at" range (R@O, R@C) overlap, as well as when the target range of the
- * <b>RETURNDATACOPY</b> overlaps with these.
+ * <p>To avoid trivialities we pre-populate memory with nonzero values. We optionally force
+ * interactions between the <b>call data</b> range, the <b>return at</b> range and <b>return
+ * data</b> ranges. Indeed, we consider both the <b>DISJOINT</b> and the <b>OVERLAP</b> cases. I.e.
+ * the case where the <b>call data</b> range, the <b>return at</b> range as well as the <b>return
+ * data</b> overlaps with these.
+ *
+ * <p>We finally force interactions between stack and memory via <b>RETURNDATA[SIZE/COPY]</b> and
+ * <b>MLOAD</b>.
  */
 public class OffsetHappyPathTests {
 
@@ -84,8 +88,7 @@ public class OffsetHappyPathTests {
               for (HashPrecompile precompile : HashPrecompile.values()) {
                 for (OpCode callOpcode : CallOpCodes) {
                   argumentsList.add(
-                      Arguments.of(
-                          callOpcode, precompile, cdo, cds, rao, rac, relPos));
+                      Arguments.of(callOpcode, precompile, cdo, cds, rao, rac, relPos));
                 }
               }
             }

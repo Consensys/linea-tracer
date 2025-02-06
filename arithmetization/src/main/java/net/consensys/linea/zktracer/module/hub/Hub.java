@@ -865,7 +865,7 @@ public class Hub implements Module {
     transients.conflation().deploymentInfo().markAsNotUnderDeployment(bytecodeAddress);
   }
 
-  public int getCfiByMetaData(
+  public int getCodeFragmentIndexByMetaData(
       final Address address, final int deploymentNumber, final boolean deploymentStatus) {
     return this.romLex()
         .getCodeFragmentIndexByMetadata(

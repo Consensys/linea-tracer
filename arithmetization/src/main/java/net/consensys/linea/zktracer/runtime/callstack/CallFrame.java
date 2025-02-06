@@ -78,7 +78,7 @@ public class CallFrame {
   public int getCodeFragmentIndex(Hub hub) {
     return this == CallFrame.EMPTY || type == CallFrameType.TRANSACTION_CALL_DATA_HOLDER
         ? 0
-        : hub.getCfiByMetaData(byteCodeAddress, byteCodeDeploymentNumber, isDeployment);
+        : hub.getCodeFragmentIndexByMetaData(byteCodeAddress, byteCodeDeploymentNumber, isDeployment);
   }
 
   @Getter @Setter private int pc;

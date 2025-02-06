@@ -199,8 +199,6 @@ public class CallSection extends TraceSection
     callerFirst = canonical(hub, callerAddress);
     calleeFirst = canonical(hub, calleeAddress);
 
-    Address failureAddress = Address.fromHexString("0xc07f1349a887643be65b34e234e1b3161f62dc30");
-
     // OOGX case
     if (Exceptions.outOfGasException(exceptions)) {
       this.oogXCall(hub);

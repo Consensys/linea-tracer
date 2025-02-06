@@ -58,8 +58,8 @@ public class HappyPathHashPrecompileTests {
   @ParameterizedTest
   @MethodSource("happyPathHashPrecompileParameters")
   public void happyPathWipeReturnDataHappyPathHashPrecompileTests(
-      OpCode callOpcode,
-      HashPrecompile precompile,
+      OpCode call,
+      HashPrecompile prc,
       CallOffset cdo,
       CallSize cds,
       CallOffset rao,
@@ -71,19 +71,17 @@ public class HappyPathHashPrecompileTests {
     populateMemory(program);
 
     // happy path 1
-    appendHappyPathPrecompileCall(
-        program, callOpcode, FULL, precompile, cdo, cds, rao, rac, relPos);
+    appendHappyPathPrecompileCall(program, call, FULL, prc, cdo, cds, rao, rac, relPos);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
     // return data wiping
-    appendInsufficientBalanceCall(program, callOpcode, 20_000, precompile.getAddress(), 1, 2, 3, 4);
+    appendInsufficientBalanceCall(program, call, 20_000, prc.getAddress(), 1, 2, 3, 4);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
     // happy path 2
-    appendHappyPathPrecompileCall(
-        program, callOpcode, FULL, precompile.next(), cdo, cds, rao, rac, relPos);
+    appendHappyPathPrecompileCall(program, call, FULL, prc.next(), cdo, cds, rao, rac, relPos);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 

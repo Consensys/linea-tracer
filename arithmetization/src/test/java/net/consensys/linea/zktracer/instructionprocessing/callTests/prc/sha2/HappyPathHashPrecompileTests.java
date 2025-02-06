@@ -28,7 +28,6 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -125,7 +124,7 @@ public class HappyPathHashPrecompileTests {
       CallSize cds,
       CallOffset rao,
       CallSize rac,
-      RelativeRangePosition relativeRangePosition) {
+      RelativeRangePosition relPos) {
 
     // if DISJOINT the "return at range"; it lives among words 2 and 3 of RAM
     switch (rac) {
@@ -136,9 +135,9 @@ public class HappyPathHashPrecompileTests {
 
     switch (rao) {
       case ALIGNED -> program.push(
-          (relativeRangePosition == OVERLAP ? 0 : 2 * WORD_SIZE) + precompile.smallOffset1());
+          (relPos == OVERLAP ? 0 : 2 * WORD_SIZE) + precompile.smallOffset1());
       case MISALIGNED -> program.push(
-          (relativeRangePosition == OVERLAP ? 0 : 2 * WORD_SIZE) + 4 + precompile.smallOffset1());
+          (relPos == OVERLAP ? 0 : 2 * WORD_SIZE) + 4 + precompile.smallOffset1());
       case INFINITY -> program.push("ff".repeat(32));
     }
 
@@ -157,18 +156,15 @@ public class HappyPathHashPrecompileTests {
       case INFINITY -> program.push("ff".repeat(32));
     }
 
-    Address prcAddress =
-        switch (precompile) {
-          case SHA256 -> Address.SHA256;
-          case RIPEMD160 -> Address.RIPEMD160;
-          case IDENTITY -> Address.ID;
-        };
-    program.push(prcAddress);
+    // push address
+    program.push(precompile.getAddress());
 
+    // push value if required
     if (callOpcode.callHasValueArgument()) {
       program.push(1);
     }
 
+    // push gas parameter
     int cost = precompile.cost(callDataSize);
     switch (gasParameter) {
       case ZERO -> program.push(0);

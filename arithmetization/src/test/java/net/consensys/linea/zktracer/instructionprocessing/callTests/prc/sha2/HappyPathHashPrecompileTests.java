@@ -69,8 +69,10 @@ public class HappyPathHashPrecompileTests {
 
     populateMemory(program);
 
+    // Note: we provide zero value, otherwise the precompile would receive a G_stipend = 2300 gas
+    // bonus, offsetting our gas cost computation
     // happy path 1
-    appendHappyPathPrecompileCall(program, call, FULL, prc, cdo, cds, rao, rac, relPos);
+    appendHappyPathPrecompileCall(program, call, FULL, 0, prc, cdo, cds, rao, rac, relPos);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
@@ -80,7 +82,7 @@ public class HappyPathHashPrecompileTests {
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
     // happy path 2
-    appendHappyPathPrecompileCall(program, call, FULL, prc.next(), cdo, cds, rao, rac, relPos);
+    appendHappyPathPrecompileCall(program, call, FULL, 0, prc.next(), cdo, cds, rao, rac, relPos);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
@@ -119,6 +121,7 @@ public class HappyPathHashPrecompileTests {
       BytecodeCompiler program,
       OpCode callOpcode,
       GasParameter gasParameter,
+      int value,
       HashPrecompile precompile,
       CallOffset cdo,
       CallSize cds,
@@ -159,9 +162,8 @@ public class HappyPathHashPrecompileTests {
     // push address
     program.push(precompile.getAddress());
 
-    // push value if required
     if (callOpcode.callHasValueArgument()) {
-      program.push(1);
+      program.push(value);
     }
 
     // push gas parameter

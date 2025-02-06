@@ -14,8 +14,43 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 
+import org.hyperledger.besu.datatypes.Address;
+
 public enum HashPrecompile {
   SHA256,
   RIPEMD160,
-  IDENTITY
+  IDENTITY;
+
+  public Address getAddress() {
+    Address address = switch (this) {
+      case SHA256 -> Address.SHA256;
+      case RIPEMD160 -> Address.RIPEMD160;
+      case IDENTITY -> Address.ID;
+    };
+    return address;
+  }
+
+  public HashPrecompile next() {
+    return switch (this) {
+      case SHA256 -> RIPEMD160;
+      case RIPEMD160 -> IDENTITY;
+      case IDENTITY -> SHA256;
+    };
+  }
+
+  public int smallOffset1() {
+    return switch (this) {
+      case SHA256 -> 1;
+      case RIPEMD160 -> 4;
+      case IDENTITY -> 2;
+    };
+  }
+
+  public int smallOffset2() {
+    return switch (this) {
+      case SHA256 -> 3;
+      case RIPEMD160 -> 8;
+      case IDENTITY -> 7;
+    };
+  }
 }

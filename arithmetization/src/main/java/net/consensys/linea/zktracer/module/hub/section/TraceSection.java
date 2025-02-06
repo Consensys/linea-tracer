@@ -127,7 +127,7 @@ public class TraceSection {
     commonValues.codeFragmentIndex(
         currentPhase == TX_EXEC
             ? hub()
-                .getCfiByMetaData(
+                .getCodeFragmentIndexByMetaData(
                     commonValues.callFrame().byteCodeAddress(),
                     commonValues.callFrame().byteCodeDeploymentNumber(),
                     commonValues.callFrame().isDeployment())
@@ -234,8 +234,8 @@ public class TraceSection {
               commonValues,
               stackLineCounter,
               nonStackLineCounter,
-              hub().state.stamps().mmu(),
-              hub().state.stamps().mxp());
+              hub().state.mmuStamp(),
+              hub().state.mxpStamp());
       commonFragment.trace(hubTrace);
       hubTrace.fillAndValidateRow();
     }

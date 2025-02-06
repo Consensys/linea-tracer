@@ -14,7 +14,6 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.sha2;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition.*;
@@ -36,21 +35,21 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
- * <b>Happy path</b> tests for <b>SHA2-256</b>, <b>RIPEMD-160</b> and <b>IDENTITY</b>. The
- * present tests pertain to precompile calls where
+ * <b>Happy path</b> tests for <b>SHA2-256</b>, <b>RIPEMD-160</b> and <b>IDENTITY</b>. The present
+ * tests pertain to precompile calls where
  *
  * <p>- the precompile is provided with sufficient gas (ensuring <b>scenario/PRC_SUCCESS</b>)
  *
  * <p>- nothing <b>REVERT</b>s (thus value only matters in terms of pricing)
  *
- * <p>To avoid trivialities we pre-populate memory with nonzero values. We force
- * interactions between the <b>call data</b> range, the <b>return at</b> range and <b>return
- * data</b> ranges in the <b>OVERLAP</b> case.
+ * <p>To avoid trivialities we pre-populate memory with nonzero values. We force interactions
+ * between the <b>call data</b> range, the <b>return at</b> range and <b>return data</b> ranges in
+ * the <b>OVERLAP</b> case.
  *
- * <p>After the call we interact with return data via <b>RETURNDATA[SIZE/COPY]</b> and
- * <b>MLOAD</b>.
+ * <p>After the call we interact with return data via <b>RETURNDATA[SIZE/COPY]</b> and <b>MLOAD</b>.
  *
- * <p>The tests do more: we then wipe the return data and start all over again with the next precompile.
+ * <p>The tests do more: we then wipe the return data and start all over again with the next
+ * precompile.
  */
 public class HappyPathHashPrecompileTests {
 
@@ -72,7 +71,8 @@ public class HappyPathHashPrecompileTests {
     populateMemory(program);
 
     // happy path 1
-    appendHappyPathHashPrecompileCall(program, callOpcode, FULL, precompile, cdo, cds, rao, rac, relPos);
+    appendHappyPathPrecompileCall(
+        program, callOpcode, FULL, precompile, cdo, cds, rao, rac, relPos);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
@@ -82,7 +82,8 @@ public class HappyPathHashPrecompileTests {
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
     // happy path 2
-    appendHappyPathHashPrecompileCall(program, callOpcode, FULL, precompile.next(), cdo, cds, rao, rac, relPos);
+    appendHappyPathPrecompileCall(
+        program, callOpcode, FULL, precompile.next(), cdo, cds, rao, rac, relPos);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
     loadFirstReturnDataWordOntoStack(program, relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
@@ -117,11 +118,11 @@ public class HappyPathHashPrecompileTests {
     return argumentsList.stream();
   }
 
-  public void appendHappyPathHashPrecompileCall(
+  public void appendHappyPathPrecompileCall(
       BytecodeCompiler program,
       OpCode callOpcode,
       GasParameter gasParameter,
-      HashPrecompile hashPrecompile,
+      HashPrecompile precompile,
       CallOffset cdo,
       CallSize cds,
       CallOffset rao,
@@ -136,65 +137,49 @@ public class HappyPathHashPrecompileTests {
     }
 
     switch (rao) {
-      case ALIGNED -> program.push((relativeRangePosition == OVERLAP ? 0 : 2 * WORD_SIZE) + hashPrecompile.smallOffset1());
-      case MISALIGNED -> program.push((relativeRangePosition == OVERLAP ? 0 : 2 * WORD_SIZE) + 4 + hashPrecompile.smallOffset1());
+      case ALIGNED -> program.push(
+          (relativeRangePosition == OVERLAP ? 0 : 2 * WORD_SIZE) + precompile.smallOffset1());
+      case MISALIGNED -> program.push(
+          (relativeRangePosition == OVERLAP ? 0 : 2 * WORD_SIZE) + 4 + precompile.smallOffset1());
       case INFINITY -> program.push("ff".repeat(32));
     }
 
     // call data can occupy up to 52 bytes; it lives among words 0 and 1 of RAM
     int callDataSize =
-    switch (cds) {
-      case ZERO -> 0;
-      case WORD -> WORD_SIZE;
-      case OTHER -> otherCds;
-    };
+        switch (cds) {
+          case ZERO -> 0;
+          case WORD -> WORD_SIZE;
+          case OTHER -> otherCds;
+        };
     program.push(callDataSize);
 
     switch (cdo) {
-      case ALIGNED -> program.push(0 + hashPrecompile.smallOffset2());
-      case MISALIGNED -> program.push(13 + hashPrecompile.smallOffset2());
+      case ALIGNED -> program.push(0 + precompile.smallOffset2());
+      case MISALIGNED -> program.push(13 + precompile.smallOffset2());
       case INFINITY -> program.push("ff".repeat(32));
     }
 
     Address prcAddress =
-            switch (hashPrecompile) {
-              case SHA256 -> Address.SHA256;
-              case RIPEMD160 -> Address.RIPEMD160;
-              case IDENTITY -> Address.ID;
-            };
+        switch (precompile) {
+          case SHA256 -> Address.SHA256;
+          case RIPEMD160 -> Address.RIPEMD160;
+          case IDENTITY -> Address.ID;
+        };
     program.push(prcAddress);
 
     if (callOpcode.callHasValueArgument()) {
       program.push(1);
     }
 
-    int cost = precompileCost(hashPrecompile, callDataSize);
+    int cost = precompile.cost(callDataSize);
     switch (gasParameter) {
       case ZERO -> program.push(0);
-      case EXACT_MO -> program.push( cost - 1);
+      case EXACT_MO -> program.push(cost - 1);
       case EXACT -> program.push(cost);
       case EXACT_PO -> program.push(cost + 1);
       case FULL -> program.op(GAS);
     }
 
     program.op(callOpcode);
-  }
-
-  private int precompileCost(HashPrecompile hashPrecompile, int callDataSize) {
-    int nWords = nWords(callDataSize);
-    return switch (hashPrecompile) {
-      case SHA256 -> 60 + 12 * nWords;
-      case RIPEMD160 -> 600 + 120 * nWords;
-      case IDENTITY -> 15 + 3 * nWords;
-    };
-  }
-
-  private int nWords(int sizeInBytes) {
-    checkArgument(sizeInBytes >= 0);
-    if (sizeInBytes == 0) {
-      return 0;
-    } else {
-      return (sizeInBytes + WORD_SIZE - 1) / WORD_SIZE;
-    }
   }
 }

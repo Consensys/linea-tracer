@@ -15,9 +15,9 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 
 public enum GasParameter {
-    ZERO,
-    EXACT_MO, // MO ≡ minus one
-    EXACT,
-    EXACT_PO, // PO ≡ plus one
-    FULL,
+  ZERO,
+  EXACT_MO, // MO ≡ minus one
+  EXACT,
+  EXACT_PO, // PO ≡ plus one
+  FULL,
 }

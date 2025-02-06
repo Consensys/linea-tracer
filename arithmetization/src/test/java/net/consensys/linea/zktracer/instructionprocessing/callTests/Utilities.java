@@ -133,11 +133,14 @@ public class Utilities {
   }
 
   /**
-   * Copies <b>1 / 2</b> of the return data starting at offset <b>RDS / 3</b> (internal to return data) into memory at targetOffset.
+   * Copies <b>1 / 2</b> of the return data starting at offset <b>RDS / 3</b> (internal to return
+   * data) into memory at targetOffset.
+   *
    * @param program
    * @param targetOffset
    */
-  public static void copyHalfOfReturnDataOmittingTheFirstThirdOfIt(BytecodeCompiler program, int targetOffset) {
+  public static void copyHalfOfReturnDataOmittingTheFirstThirdOfIt(
+      BytecodeCompiler program, int targetOffset) {
     pushRdsOverArgOntoTheStack(program, 2); // source size   ≡ rds/2
     pushRdsOverArgOntoTheStack(program, 3); // source offset ≡ rds/3
     program.push(targetOffset);
@@ -146,7 +149,8 @@ public class Utilities {
   /**
    * Loads the (right 0 padded) first <b>RDS ∧ 32</b> bytes from return data onto the stack.
    *
-   * <p><b>Note.</b>  if <b>RDS < 32</b>.
+   * <p><b>Note.</b> if <b>RDS < 32</b>.
+   *
    * @param program
    * @param offset
    */
@@ -158,6 +162,7 @@ public class Utilities {
 
   /**
    * Pushes the integer <b>RDS ∧ 32 = min(RDS, 32)</b> onto the stack.
+   *
    * @param program
    */
   public static void pushMinOfRdsAnd32OntoStack(BytecodeCompiler program) {
@@ -179,6 +184,7 @@ public class Utilities {
 
   /**
    * Squashes the word in memory at (byte)<b>offset</b>, i.e. replaces it with <b>0x 00 .. 00</b>.
+   *
    * @param program
    * @param offset
    */
@@ -188,6 +194,7 @@ public class Utilities {
 
   /**
    * Pushes <b>RDS / arg</b> onto the stack.
+   *
    * @param program
    * @param arg
    */
@@ -207,8 +214,8 @@ public class Utilities {
   }
 
   /**
-   * {@link #populateMemory} populates memory with <b>nWords</b>  chosen cyclically from the set of 6 EVM
-   * words obtained by repeating the strings <b>aa</b>, <b>bb</b>, ..., <b>ff</b> 32 times.
+   * {@link #populateMemory} populates memory with <b>nWords</b> chosen cyclically from the set of 6
+   * EVM words obtained by repeating the strings <b>aa</b>, <b>bb</b>, ..., <b>ff</b> 32 times.
    *
    * @param program
    * @param nWords

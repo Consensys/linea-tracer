@@ -19,38 +19,29 @@ import static org.identityconnectors.common.ByteUtil.randomBytes;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@Tag("weekly")
+@TestMethodOrder(MethodOrderer.Alphanumeric.class) // Fixes the execution order of the tests
+@TestInstance(TestInstance.Lifecycle.PER_CLASS) // Allows non-static @MethodSource
 public class SignedOperationsExtensiveTest {
   // See https://github.com/Consensys/linea-tracer/issues/1182 for documentation
-
-  static final String ZERO = "00".repeat(32);
-  static final String ONE = "00".repeat(31) + "01";
-
-  // 10^3 < SMALL_1 < SMALL_2 < 10^9
-  static final String SMALL_1 = "66" + randomBytes(1, 1);
-  static final String SMALL_2 = "66" + randomBytes(2, 2);
-
-  static final String LARGE_1 = randomBytes(16, 3);
-  static final String LARGE_2 = "01" + randomBytes(16, 4);
-
-  static final String RND_POS = "7f" + randomBytes(31, 5); // < 0x80 ...
-  static final String RND_NEG = "81" + randomBytes(31, 6); // > 0x80 ...
-
-  static final String NEG_ONE = "ff".repeat(32);
-
-  static String[] VALUES = {
-    ZERO, ONE, SMALL_1, SMALL_2, LARGE_1, LARGE_2, RND_POS, RND_NEG, NEG_ONE
-  };
+  Random RANDOM = new Random(123);
 
   @ParameterizedTest
   @MethodSource("signedComparisonsModDivTestSource")
@@ -60,7 +51,52 @@ public class SignedOperationsExtensiveTest {
     bytecodeRunner.run();
   }
 
-  static Stream<Arguments> signedComparisonsModDivTestSource() {
+  Stream<Arguments> signedComparisonsModDivTestSource() {
+    final String ZERO = "00".repeat(32);
+    final String ONE = "00".repeat(31) + "01";
+
+    // 10^3 < SMALL_1 < SMALL_2 < 10^9
+    final String SMALL_1 = "66" + randomBytes(1);
+    final String SMALL_2 = "66" + randomBytes(2);
+
+    final String LARGE_1 = randomBytes(16);
+    final String LARGE_2 = "01" + randomBytes(16);
+
+    final String MIN_NEG = "80" + "00".repeat(31);
+    final String MAX_POS = "7f" + "ff".repeat(31);
+
+    final String NEG_ONE = "ff".repeat(32);
+
+    final String[] RND_POS =
+        IntStream.range(0, 10)
+            .mapToObj(
+                i ->
+                    (new BigInteger(randomBytes(32), 16).and(new BigInteger(MAX_POS, 16)))
+                        .toString(16))
+            .toArray(String[]::new);
+    // e.g., "7f" + randomBytes(31, 5); // < 0x80 ...
+
+    final String[] RND_NEG =
+        IntStream.range(0, 10)
+            .mapToObj(
+                i ->
+                    (new BigInteger(randomBytes(32), 16).or(new BigInteger(MIN_NEG, 16)))
+                        .toString(16))
+            .toArray(String[]::new);
+    // e.g., "81" + randomBytes(31, 6); // > 0x80 ...
+
+    final String[] RND =
+        Stream.concat(Arrays.stream(RND_POS), Arrays.stream(RND_NEG)).toArray(String[]::new);
+
+    String[] VALUES =
+        Stream.concat(
+                Arrays.stream(
+                    new String[] {
+                      ZERO, ONE, SMALL_1, SMALL_2, LARGE_1, LARGE_2, MIN_NEG, MAX_POS, NEG_ONE
+                    }),
+                Arrays.stream(RND))
+            .toArray(String[]::new);
+
     List<Arguments> arguments = new ArrayList<>();
     for (OpCode opCode : List.of(OpCode.SLT, OpCode.SGT, OpCode.SMOD, OpCode.SDIV)) {
       for (String a : VALUES) {
@@ -74,24 +110,36 @@ public class SignedOperationsExtensiveTest {
 
   @ParameterizedTest
   @MethodSource("signExtendTestSource")
-  void signExtendTest(String b, int x) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram().push(x).push(b).op(OpCode.SIGNEXTEND);
+  void signExtendTest(String position, String value) {
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram().push(value).push(position).op(OpCode.SIGNEXTEND);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
   }
 
-  static Stream<Arguments> signExtendTestSource() {
+  Stream<Arguments> signExtendTestSource() {
+    final String[] positions =
+        Stream.concat(
+                IntStream.rangeClosed(0, 32).mapToObj(BigInteger::valueOf),
+                Arrays.stream(
+                    new BigInteger[] {
+                      BigInteger.valueOf(0xFF),
+                      BigInteger.valueOf(256).pow(16).subtract(BigInteger.ONE),
+                      BigInteger.valueOf(256).pow(16),
+                      BigInteger.valueOf(256).pow(16).add(BigInteger.ONE),
+                      BigInteger.valueOf(256).pow(32).subtract(BigInteger.ONE)
+                    }))
+            .map(n -> n.toString(16))
+            .toArray(String[]::new);
+
+    final String[] bytes = {"00", "56", "7f", "80", "c2", "ff"};
+
     List<Arguments> arguments = new ArrayList<>();
-    for (String firstByte : List.of("00", "ff", "7f", "81", "ff")) {
-      for (int nTrailingBytes : List.of(0, 15, 16, 30, 31)) {
-        int seed = firstByte.hashCode() * (nTrailingBytes + 1);
-        // This is just a way generate a different seed for each combination deterministically
-        String b = firstByte + randomBytes(nTrailingBytes, seed);
-        // In this case the most significant byte of b represents the sign
-        arguments.add(Arguments.of(b, b.length() / 2 - 1));
-        // In this other case we assume there is always 00 as a prefix
-        if (nTrailingBytes != 31) {
-          arguments.add(Arguments.of(b, b.length() / 2));
+    for (int i = 0; i < 32; i++) {
+      for (String b : bytes) {
+        for (String position : positions) {
+          String value = "11".repeat(i) + b + "ff".repeat(31 - i);
+          arguments.add(Arguments.of(position, value));
         }
       }
     }
@@ -99,11 +147,10 @@ public class SignedOperationsExtensiveTest {
   }
 
   // Support method
-  private static String randomBytes(int n, long seed) {
-    Random random = new Random(seed);
+  private String randomBytes(int n) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < n; i++) {
-      sb.append(String.format("%02x", new BigInteger(8, random).byteValue()));
+      sb.append(String.format("%02x", new BigInteger(8, RANDOM).byteValue()));
     }
     return sb.toString();
   }

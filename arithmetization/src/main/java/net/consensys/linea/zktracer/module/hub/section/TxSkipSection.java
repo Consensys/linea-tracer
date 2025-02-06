@@ -117,9 +117,9 @@ public class TxSkipSection extends TraceSection implements EndTransactionDefer {
     final Wei value = (Wei) txMetadata.getBesuTransaction().getValue();
 
     if (senderAddressCollision()) {
-      BigInteger gasUsed = BigInteger.valueOf(txMetadata.getGasUsed());
-      BigInteger gasPrice = BigInteger.valueOf(txMetadata.getEffectiveGasPrice());
-      BigInteger gasCost = gasUsed.multiply(gasPrice);
+      final BigInteger gasUsed = BigInteger.valueOf(txMetadata.getGasUsed());
+      final BigInteger gasPrice = BigInteger.valueOf(txMetadata.getEffectiveGasPrice());
+      final BigInteger gasCost = gasUsed.multiply(gasPrice);
       senderNew =
           sender
               .deepCopy()
@@ -135,6 +135,9 @@ public class TxSkipSection extends TraceSection implements EndTransactionDefer {
       if (recipientIsCoinbase()) {
         recipientNew = coinbaseNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
         recipient = recipientNew.deepCopy().decrementBalanceBy(value);
+        if (txMetadata.isDeployment()) {
+          recipient.decrementNonceByOne().decrementDeploymentNumberByOne();
+        }
       }
     }
 

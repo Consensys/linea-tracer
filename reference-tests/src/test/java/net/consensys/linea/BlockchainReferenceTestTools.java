@@ -54,6 +54,7 @@ import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.referencetests.BlockchainReferenceTestCaseSpec;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestProtocolSchedules;
 import org.hyperledger.besu.ethereum.rlp.RLPException;
+import org.hyperledger.besu.ethereum.trie.diffbased.common.provider.WorldStateQueryParams;
 import org.hyperledger.besu.testutil.JsonTestParameters;
 import org.junit.jupiter.api.Assumptions;
 
@@ -419,8 +420,10 @@ public class BlockchainReferenceTestTools {
     final BlockHeader genesisBlockHeader = spec.getGenesisBlockHeader();
     final MutableWorldState worldState =
         spec.getWorldStateArchive()
-            .getMutable(genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash())
-            .get();
+            .getWorldState(
+                WorldStateQueryParams.withStateRootAndBlockHashAndUpdateNodeHead(
+                    genesisBlockHeader.getStateRoot(), genesisBlockHeader.getHash()))
+            .orElseThrow();
 
     log.info(
         "checking roothash {} is {}", worldState.rootHash(), genesisBlockHeader.getStateRoot());
@@ -465,6 +468,8 @@ public class BlockchainReferenceTestTools {
                 ? HeaderValidationMode.LIGHT
                 : HeaderValidationMode.FULL;
 
+        // Note: somehow this function is calling traceEndBlock through
+        // blockValidator.validateAndProcessBlock
         final BlockImportResult importResult =
             blockImporter.importBlock(context, block, validationMode, validationMode);
         log.info(
@@ -478,7 +483,6 @@ public class BlockchainReferenceTestTools {
                 importResult.isImported(),
                 candidateBlock.isValid());
 
-        zkTracer.traceEndBlock(block.getHeader(), block.getBody());
       } catch (final RLPException e) {
         log.info("caught RLP exception, checking it's invalid {}", candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();

@@ -28,7 +28,9 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -vw -b1024 --ansi-escapes=false --report --air
+          GOCORSET_FLAGS: -vw --ansi-escapes=false --report --mir
+          ZKEVM_BIN: "zkevm.bin"
+          NIGHTLY_TESTS_PARALLELISM: 2
 
       - name: Upload test report
         if: ${{ always() }}

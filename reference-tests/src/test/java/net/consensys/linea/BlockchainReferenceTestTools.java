@@ -292,7 +292,8 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CallContractFromNotBestBlock_London\\[London\\]");
     PARAMS.ignore("RPC_API_Test_London\\[London\\]");
 
-    // the following tests blow up due monetary creation pre PoS where the COINBASE would get paid 2 Eth at the end of every block
+    // the following tests blow up due monetary creation pre PoS where the COINBASE would get paid 2
+    // Eth at the end of every block
     // TODO: re-enable post Paris
     PARAMS.ignore("correct_London\\[London\\]");
     PARAMS.ignore("incorrectUncleTimestamp4_London\\[London\\]");

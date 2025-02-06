@@ -1,5 +1,6 @@
 package net.consensys.linea.zktracer.exceptions;
 
+import static net.consensys.linea.zktracer.DynamicGasCostUtils.getDynamicGasCost;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,14 +28,12 @@ public class OutOfGasMemExpExceptionTest {
         .push(0) // offset
         .op(OpCode.MSTORE);
 
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostWithoutMStoreExpCost =
-        (long) GAS_CONST_G_TRANSACTION
-            + (long) 2 * GAS_CONST_G_VERY_LOW // 2 PUSH
-            + GAS_CONST_G_MEMORY;
+    long gasCostMinusOne = (long) GAS_CONST_G_TRANSACTION + getDynamicGasCost(pgCompile) - 1;
 
-    bytecodeRunner.run(gasCostWithoutMStoreExpCost);
+    bytecodeRunner.run(gasCostMinusOne);
     assertEquals(
         OUT_OF_GAS_EXCEPTION,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
@@ -53,14 +52,12 @@ public class OutOfGasMemExpExceptionTest {
         .push(0) // offset
         .op(OpCode.MSTORE8);
 
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostWithoutMStore8ExpCost =
-        (long) GAS_CONST_G_TRANSACTION
-            + (long) 2 * GAS_CONST_G_VERY_LOW // 2 PUSH
-            + GAS_CONST_G_MEMORY;
+    long gasCostMinusOne = (long) GAS_CONST_G_TRANSACTION + getDynamicGasCost(pgCompile) - 1;
 
-    bytecodeRunner.run(gasCostWithoutMStore8ExpCost);
+    bytecodeRunner.run(gasCostMinusOne);
     assertEquals(
         OUT_OF_GAS_EXCEPTION,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
@@ -80,20 +77,15 @@ public class OutOfGasMemExpExceptionTest {
         .op(OpCode.MSTORE);
 
     program
-        .push(33) // value
+        .push(17) // value
         .op(OpCode.MLOAD);
 
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostWithoutMLoadExpCost =
-        (long) GAS_CONST_G_TRANSACTION
-            + (long) 2 * GAS_CONST_G_VERY_LOW // 2 PUSH
-            + GAS_CONST_G_MEMORY // MSTORE
-            + 3 // Dynamic cost for this MSTORE
-            + GAS_CONST_G_VERY_LOW // 1 PUSH
-            + GAS_CONST_G_MEMORY; // MLOAD
+    long gasCostMinusOne = (long) GAS_CONST_G_TRANSACTION + getDynamicGasCost(pgCompile) - 1;
 
-    bytecodeRunner.run(gasCostWithoutMLoadExpCost);
+    bytecodeRunner.run(gasCostMinusOne);
     assertEquals(
         OUT_OF_GAS_EXCEPTION,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());

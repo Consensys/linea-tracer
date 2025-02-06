@@ -191,6 +191,8 @@ public final class AccountFragment
           hub.getCodeFragmentIndexByMetaData(
               newState.address(), newState.deploymentNumber(), newState.deploymentStatus());
     } catch (RuntimeException e) {
+      // getCfi should NEVER throw en exception when requiresRomLex ≡ true
+      checkState(!requiresRomlex);
       codeFragmentIndex = 0;
     }
   }

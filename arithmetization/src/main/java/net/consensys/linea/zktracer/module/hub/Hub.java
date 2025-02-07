@@ -537,9 +537,9 @@ public class Hub implements Module {
 
     // TODO: add the following resolution this.defers.resolvePostRollback(this, ...
 
-    txStack.current().completeLineaTransaction(this, isSuccessful, logs, selfDestructs);
-
+    txStack.current().completeLineaTransaction(this, world, isSuccessful, logs, selfDestructs);
     defers.resolveAtEndTransaction(this, world, tx, isSuccessful);
+    defers.resolveAfterTransactionFinalization(this, world);
 
     // Warn: we need to call MMIO after resolving the defers
     for (Module m : modules) {
@@ -736,8 +736,6 @@ public class Hub implements Module {
     if (isExceptional()) {
       this.currentTraceSection()
           .exceptionalContextFragment(ContextFragment.executionProvidesEmptyReturnData(this));
-      this.squashCurrentFrameOutputData();
-      this.squashParentFrameReturnData();
     }
 
     defers.resolvePostExecution(this, frame, operationResult);
@@ -748,7 +746,10 @@ public class Hub implements Module {
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode().isHalt())) {
       state.processingPhase(TX_FINL);
-      coinbaseWarmthAtTransactionEnd = frame.isAddressWarm(coinbaseAddress);
+      coinbaseWarmthAtTransactionEnd =
+          isExceptional() || opCode() == REVERT
+              ? txStack.current().coinbaseWarmthAfterTxInit(this)
+              : frame.isAddressWarm(coinbaseAddress);
     }
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
@@ -773,6 +774,8 @@ public class Hub implements Module {
     long lineaGasCost = currentSection.commonValues.gasCost();
     long lineaGasCostExcludingDeploymentCost =
         currentSection.commonValues.gasCostExcluduingDeploymentCost();
+
+    gasCostAccumulator += besuGasCost;
 
     if (operationResult.getHaltReason() != null) {
 
@@ -867,7 +870,7 @@ public class Hub implements Module {
     transients.conflation().deploymentInfo().markAsNotUnderDeployment(bytecodeAddress);
   }
 
-  public int getCfiByMetaData(
+  public int getCodeFragmentIndexByMetaData(
       final Address address, final int deploymentNumber, final boolean deploymentStatus) {
     return this.romLex()
         .getCodeFragmentIndexByMetadata(

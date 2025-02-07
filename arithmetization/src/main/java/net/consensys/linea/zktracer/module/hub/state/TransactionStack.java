@@ -79,7 +79,7 @@ public class TransactionStack {
     for (TransactionProcessingMetadata tx : transactions.getAll()) {
       final int cfi =
           tx.requiresCfiUpdate()
-              ? hub.getCfiByMetaData(
+              ? hub.getCodeFragmentIndexByMetaData(
                   tx.getEffectiveRecipient(),
                   tx.getUpdatedRecipientAddressDeploymentNumberAtTransactionStart(),
                   tx.isUpdatedRecipientAddressDeploymentStatusAtTransactionStart())

@@ -135,7 +135,6 @@ public class TestOutcomeWriterTool {
               line.substring(line.indexOf("failing constraint") + "failing constraint".length())
                   .replace(':', ' ');
 
-
           getPairFromString(failingConstraints, pairs);
         }
       }

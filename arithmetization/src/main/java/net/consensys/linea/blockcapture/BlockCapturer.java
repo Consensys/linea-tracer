@@ -69,8 +69,9 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
   public void traceEndConflation(WorldView state) {}
 
   @Override
-  public void traceStartBlock(BlockHeader blockHeader, BlockBody blockBody) {
-    this.reaper.enterBlock(blockHeader, blockBody);
+  public void traceStartBlock(
+      BlockHeader blockHeader, BlockBody blockBody, final Address miningBeneficiary) {
+    this.reaper.enterBlock(blockHeader, blockBody, miningBeneficiary);
   }
 
   @Override
@@ -173,7 +174,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
             // Sanity check block within last 256 blocks.
             if (blockNumber < currentBlockNumber && (currentBlockNumber - blockNumber) <= 256) {
               // Use enclosing frame to determine hash
-              Hash blockHash = frame.getBlockHashLookup().apply(blockNumber);
+              Hash blockHash = frame.getBlockHashLookup().apply(frame, blockNumber);
               // Record it was seen
               this.reaper.touchBlockHash(blockNumber, blockHash);
             }

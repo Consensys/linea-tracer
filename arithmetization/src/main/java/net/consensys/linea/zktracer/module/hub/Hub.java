@@ -113,6 +113,7 @@ import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
+import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -180,8 +181,6 @@ public class Hub implements Module {
     return state.lineCounter().lineCount();
   }
 
-  @Getter private final BigInteger chainId;
-
   /** List of all modules of the ZK-evm */
   // stateless modules
   @Getter private final Wcp wcp = new Wcp();
@@ -204,7 +203,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  private final TxnData txnData = new TxnData(wcp, euc);
+  private final TxnData txnData = new TxnData(this, wcp, euc);
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -241,6 +240,9 @@ public class Hub implements Module {
 
   private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
   private final BlakeRounds blakeRounds = new BlakeRounds();
+
+  // TODO: bind it to the frame so as to compute the gasCost per frame
+  @Getter private long gasCostAccumulator = 0;
 
   private List<Module> precompileLimitModules() {
 
@@ -295,6 +297,9 @@ public class Hub implements Module {
    * reset with every new opcode.
    */
   public boolean failureConditionForCreates = false;
+
+  public Address coinbaseAddress;
+  public boolean coinbaseWarmthAtTransactionEnd = false;
 
   /**
    * @return a list of all modules for which to generate traces
@@ -381,17 +386,13 @@ public class Hub implements Module {
         .toList();
   }
 
-  public Hub(
-      final Address l2l1ContractAddress,
-      final Bytes l2l1Topic,
-      final BigInteger nonnegativeChainId) {
-    checkState(nonnegativeChainId.signum() >= 0);
-    chainId = nonnegativeChainId;
+  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic, final BigInteger chainId) {
+    checkState(chainId.signum() >= 0);
     l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
     l2L1Logs = new L2L1Logs(l2Block);
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
-    blockdata = new Blockdata(wcp, txnData, rlpTxn, chainId);
+    blockdata = new Blockdata(wcp, euc, txnData, EWord.of(chainId));
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -475,12 +476,14 @@ public class Hub implements Module {
   }
 
   @Override
-  public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
+  public void traceStartBlock(
+      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
+    this.coinbaseAddress = miningBeneficiary;
     state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
-    this.transients().block().update(processableBlockHeader);
+    this.transients().block().update(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
     for (Module m : modules) {
-      m.traceStartBlock(processableBlockHeader);
+      m.traceStartBlock(processableBlockHeader, miningBeneficiary);
     }
   }
 
@@ -521,6 +524,8 @@ public class Hub implements Module {
     }
   }
 
+  // the sender already received its gas refund
+  // the coinbase already received its gas reward
   public void traceEndTransaction(
       WorldView world,
       Transaction tx,
@@ -532,9 +537,9 @@ public class Hub implements Module {
 
     // TODO: add the following resolution this.defers.resolvePostRollback(this, ...
 
-    txStack.current().completeLineaTransaction(this, isSuccessful, logs, selfDestructs);
-
-    defers.resolvePostTransaction(this, world, tx, isSuccessful);
+    txStack.current().completeLineaTransaction(this, world, isSuccessful, logs, selfDestructs);
+    defers.resolveAtEndTransaction(this, world, tx, isSuccessful);
+    defers.resolveAfterTransactionFinalization(this, world);
 
     // Warn: we need to call MMIO after resolving the defers
     for (Module m : modules) {
@@ -551,6 +556,10 @@ public class Hub implements Module {
 
     // root and transaction call data context's
     if (frame.getDepth() == 0) {
+      if (state.getProcessingPhase() == TX_SKIP) {
+        checkState(currentTraceSection() instanceof TxSkipSection);
+        ((TxSkipSection) currentTraceSection()).coinbaseSnapshots(this, frame);
+      }
       final TransactionProcessingMetadata currentTransaction = transients().tx();
       final Address recipientAddress = frame.getRecipientAddress();
       final Address senderAddress = frame.getSenderAddress();
@@ -638,12 +647,12 @@ public class Hub implements Module {
 
       this.currentFrame().initializeFrame(frame);
 
-      defers.resolveUponContextEntry(this, frame);
-
       for (Module m : modules) {
         m.traceContextEnter(frame);
       }
     }
+
+    defers.resolveUponContextEntry(this, frame);
   }
 
   @Override
@@ -656,14 +665,13 @@ public class Hub implements Module {
     if (frame.getDepth() == 0) {
       final long leftOverGas = frame.getRemainingGas();
       final long gasRefund = frame.getGasRefund();
-      final boolean coinbaseIsWarm = frame.isAddressWarm(txStack.current().getCoinbase());
 
       txStack
           .current()
           .setPreFinalisationValues(
               leftOverGas,
               gasRefund,
-              coinbaseIsWarm,
+              coinbaseWarmthAtTransactionEnd,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
 
       if (state.getProcessingPhase() != TX_SKIP
@@ -728,8 +736,6 @@ public class Hub implements Module {
     if (isExceptional()) {
       this.currentTraceSection()
           .exceptionalContextFragment(ContextFragment.executionProvidesEmptyReturnData(this));
-      this.squashCurrentFrameOutputData();
-      this.squashParentFrameReturnData();
     }
 
     defers.resolvePostExecution(this, frame, operationResult);
@@ -738,8 +744,15 @@ public class Hub implements Module {
       this.unlatchStack(frame, currentSection);
     }
 
-    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
+    if (frame.getDepth() == 0 && (isExceptional() || opCode().isHalt())) {
       this.state.setProcessingPhase(TX_FINL);
+      coinbaseWarmthAtTransactionEnd =
+          isExceptional() || opCode() == REVERT
+              ? txStack.current().coinbaseWarmthAfterTxInit(this)
+              : frame.isAddressWarm(coinbaseAddress);
+    }
+
+    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
       new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }
@@ -761,6 +774,8 @@ public class Hub implements Module {
     long lineaGasCost = currentSection.commonValues.gasCost();
     long lineaGasCostExcludingDeploymentCost =
         currentSection.commonValues.gasCostExcluduingDeploymentCost();
+
+    gasCostAccumulator += besuGasCost;
 
     if (operationResult.getHaltReason() != null) {
 
@@ -855,7 +870,7 @@ public class Hub implements Module {
     transients.conflation().deploymentInfo().markAsNotUnderDeployment(bytecodeAddress);
   }
 
-  public int getCfiByMetaData(
+  public int getCodeFragmentIndexByMetaData(
       final Address address, final int deploymentNumber, final boolean deploymentStatus) {
     return this.romLex()
         .getCodeFragmentIndexByMetadata(
@@ -1091,7 +1106,7 @@ public class Hub implements Module {
   }
 
   public void squashParentFrameReturnData() {
-    callStack.parentCallFrame().outputDataRange(MemoryRange.EMPTY);
+    callStack.parentCallFrame().returnDataRange(MemoryRange.EMPTY);
   }
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {

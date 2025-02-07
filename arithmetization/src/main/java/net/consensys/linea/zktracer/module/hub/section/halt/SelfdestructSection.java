@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.module.hub.section.halt;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructScenarioFragment.SelfdestructScenario.*;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_GAS_EXCEPTION;
 
 import java.util.ArrayList;
@@ -24,8 +25,9 @@ import java.util.Map;
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.AfterTransactionFinalizationDefer;
+import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -43,7 +45,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class SelfdestructSection extends TraceSection
-    implements PostRollbackDefer, PostTransactionDefer {
+    implements PostRollbackDefer, EndTransactionDefer, AfterTransactionFinalizationDefer {
 
   final int id;
   final int hubStamp;
@@ -89,8 +91,7 @@ public class SelfdestructSection extends TraceSection
     // SCN fragment
     selfdestructScenarioFragment = new SelfdestructScenarioFragment();
     if (Exceptions.any(exceptions)) {
-      selfdestructScenarioFragment.setScenario(
-          SelfdestructScenarioFragment.SelfdestructScenario.SELFDESTRUCT_EXCEPTION);
+      selfdestructScenarioFragment.setScenario(SELFDESTRUCT_EXCEPTION);
     }
 
     // CON fragment (1)
@@ -156,7 +157,7 @@ public class SelfdestructSection extends TraceSection
     }
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
-    hub.defers().scheduleForPostTransaction(this);
+    hub.defers().scheduleForEndTransaction(this);
 
     // Modify the current account and the recipient account
     // - The current account has its balance reduced to 0 (i+2)
@@ -233,12 +234,11 @@ public class SelfdestructSection extends TraceSection
 
     selfDestructWasReverted = true;
 
-    selfdestructScenarioFragment.setScenario(
-        SelfdestructScenarioFragment.SelfdestructScenario.SELFDESTRUCT_WILL_REVERT);
+    selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WILL_REVERT);
   }
 
   @Override
-  public void resolvePostTransaction(
+  public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
     if (selfDestructWasReverted) {
@@ -254,11 +254,8 @@ public class SelfdestructSection extends TraceSection
 
     checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
 
-    // We modify the account fragment to reflect the self-destruct time
-    final int hubStampOfTheActionableSelfDestruct = effectiveSelfDestructMap.get(ephemeralAccount);
-
-    checkArgument(hubStamp >= hubStampOfTheActionableSelfDestruct);
-
+    // This grabs the accounts right after the coinbase and sender got their gas money back
+    // in particular this will get the coinbase address post gas reward.
     accountWiping =
         transactionProcessingMetadata.getDestructedAccountsSnapshot().stream()
             .filter(
@@ -266,18 +263,14 @@ public class SelfdestructSection extends TraceSection
             .findFirst()
             .orElseThrow(() -> new IllegalStateException("Account not found"));
 
+    // We modify the account fragment to reflect the self-destruct time
+    final int hubStampOfTheActionableSelfDestruct = effectiveSelfDestructMap.get(ephemeralAccount);
+    checkArgument(hubStamp >= hubStampOfTheActionableSelfDestruct);
+
     if (hubStamp == hubStampOfTheActionableSelfDestruct) {
-      selfdestructScenarioFragment.setScenario(
-          SelfdestructScenarioFragment.SelfdestructScenario
-              .SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
+      selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WONT_REVERT_NOT_YET_MARKED);
 
-      hub.transients()
-          .conflation()
-          .deploymentInfo()
-          .deploymentUpdateForSuccessfulSelfDestruct(selfdestructor.address());
-
-      accountWipingNew = selfdestructorNew.wipe(hub.transients().conflation().deploymentInfo());
-
+      accountWipingNew = accountWiping.deepCopy();
       // the hub's defers.resolvePostTransaction() gets called after the
       // hub's completeLineaTransaction which in turn calls
       // freshDeploymentNumberFinishingSelfdestruct()
@@ -291,13 +284,24 @@ public class SelfdestructSection extends TraceSection
                   DomSubStampsSubFragment.selfdestructDomSubStamps(hub, hubStamp));
 
       this.addFragment(accountWipingFragment);
-    } else {
-      selfdestructScenarioFragment.setScenario(
-          SelfdestructScenarioFragment.SelfdestructScenario
-              .SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
-    }
+      this.addFragment(finalUnexceptionalContextFragment);
 
-    this.addFragment(finalUnexceptionalContextFragment);
+      hub.defers().scheduleForAfterTransactionFinalization(this);
+    } else {
+      selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
+      this.addFragment(finalUnexceptionalContextFragment);
+    }
+  }
+
+  @Override
+  public void resolveAfterTransactionFinalization(Hub hub, WorldView state) {
+
+    hub.transients()
+        .conflation()
+        .deploymentInfo()
+        .deploymentUpdateForSuccessfulSelfDestruct(selfdestructor.address());
+
+    accountWipingNew.wipe(hub.transients().conflation().deploymentInfo());
   }
 
   private boolean selfdestructTargetsItself() {

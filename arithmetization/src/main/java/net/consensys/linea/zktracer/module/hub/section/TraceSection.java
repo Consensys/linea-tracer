@@ -127,7 +127,7 @@ public class TraceSection {
     commonValues.codeFragmentIndex(
         currentPhase == TX_EXEC
             ? hub()
-                .getCfiByMetaData(
+                .getCodeFragmentIndexByMetaData(
                     commonValues.callFrame().byteCodeAddress(),
                     commonValues.callFrame().byteCodeDeploymentNumber(),
                     commonValues.callFrame().isDeployment())
@@ -150,6 +150,14 @@ public class TraceSection {
     final HubProcessingPhase currentPhase = commonValues.hubProcessingPhase;
     if (currentPhase == TX_WARM || currentPhase == TX_FINL || currentPhase == TX_SKIP) {
       return 0;
+    }
+
+    if (nextSection == null) {
+      throw new RuntimeException(
+          "NPE: nextSection is "
+              + nextSection
+              + ", current section is of type "
+              + this.getClass().getTypeName());
     }
     return nextSection.commonValues.hubProcessingPhase == TX_EXEC
         ? nextSection.commonValues.callFrame().contextNumber()
@@ -226,8 +234,8 @@ public class TraceSection {
               commonValues,
               stackLineCounter,
               nonStackLineCounter,
-              hub().state.stamps().mmu(),
-              hub().state.stamps().mxp());
+              hub().state.mmuStamp(),
+              hub().state.mxpStamp());
       commonFragment.trace(hubTrace);
       hubTrace.fillAndValidateRow();
     }

@@ -28,7 +28,7 @@ import java.util.OptionalLong;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.apache.tuweni.bytes.Bytes32;
-import org.hyperledger.besu.config.GenesisConfigFile;
+import org.hyperledger.besu.config.GenesisConfig;
 import org.hyperledger.besu.config.GenesisConfigOptions;
 import org.hyperledger.besu.consensus.clique.CliqueBlockHeaderFunctions;
 import org.hyperledger.besu.consensus.clique.CliqueForksSchedulesFactory;
@@ -38,6 +38,7 @@ import org.hyperledger.besu.crypto.SignatureAlgorithm;
 import org.hyperledger.besu.crypto.SignatureAlgorithmFactory;
 import org.hyperledger.besu.cryptoservices.KeyPairSecurityModule;
 import org.hyperledger.besu.cryptoservices.NodeKey;
+import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.chain.BadBlockManager;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
@@ -55,15 +56,26 @@ import org.slf4j.Logger;
 
 public class ExecutionEnvironment {
   public static final String CORSET_VALIDATION_RESULT = "Corset validation result: ";
-  static GenesisConfigFile GENESIS_CONFIG =
-      GenesisConfigFile.fromSource(GenesisConfigFile.class.getResource("/linea.json"));
+
+  static GenesisConfig GENESIS_CONFIG =
+      GenesisConfig.fromSource(GenesisConfig.class.getResource("/linea.json"));
+
+  static final BlockHeaderBuilder DEFAULT_BLOCK_HEADER_BUILDER =
+      BlockHeaderBuilder.createDefault()
+          .number(ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER)
+          .timestamp(123456789)
+          .parentHash(Hash.EMPTY_TRIE_HASH)
+          .baseFee(ToyExecutionEnvironmentV2.DEFAULT_BASE_FEE)
+          .nonce(0)
+          .blockHeaderFunctions(new CliqueBlockHeaderFunctions());
 
   public static void checkTracer(
       ZkTracer zkTracer, CorsetValidator corsetValidator, Optional<Logger> logger) {
     Path traceFilePath = null;
     boolean traceValidated = false;
     try {
-      traceFilePath = Files.createTempFile(null, ".lt");
+      String prefix = constructTestPrefix();
+      traceFilePath = Files.createTempFile(prefix, ".lt");
       zkTracer.writeToFile(traceFilePath);
       final Path finalTraceFilePath = traceFilePath;
       logger.ifPresent(log -> log.debug("trace written to {}", finalTraceFilePath));
@@ -88,6 +100,7 @@ public class ExecutionEnvironment {
 
   public static BlockHeaderBuilder getLineaBlockHeaderBuilder(
       Optional<BlockHeader> parentBlockHeader) {
+
     BlockHeaderBuilder blockHeaderBuilder =
         parentBlockHeader.isPresent()
             ? BlockHeaderBuilder.fromHeader(parentBlockHeader.get())
@@ -96,7 +109,7 @@ public class ExecutionEnvironment {
                 .parentHash(parentBlockHeader.get().getHash())
                 .nonce(parentBlockHeader.get().getNonce() + 1)
                 .blockHeaderFunctions(new CliqueBlockHeaderFunctions())
-            : BlockHeaderBuilder.createDefault();
+            : DEFAULT_BLOCK_HEADER_BUILDER;
 
     return blockHeaderBuilder
         .baseFee(Wei.of(LINEA_BASE_FEE))
@@ -148,5 +161,31 @@ public class ExecutionEnvironment {
     final KeyPairSecurityModule keyPairSecurityModule = new KeyPairSecurityModule(keyPair);
 
     return new NodeKey(keyPairSecurityModule);
+  }
+
+  private static final String LINEA_PACKAGE = "net.consensys.linea.";
+
+  /**
+   * Construct a suitable prefix for the temporary lt file generated based on the method name of the
+   * test. This is done by walking up the stack looking for a calling method whose classname ends
+   * with "Test". Having found such a method, its name is then used as the test prefix. If no method
+   * is found, then this simply returns null --- which is completely safe in this context.
+   *
+   * @return
+   */
+  public static String constructTestPrefix() {
+    for (StackTraceElement ste : Thread.currentThread().getStackTrace()) {
+      String className = ste.getClassName();
+      if (className.endsWith("Test") || className.endsWith("Tests")) {
+        // Yes, it is.  Now tidy up the name.
+        String name = ste.getClassName().replace(LINEA_PACKAGE, "").replace(".", "_");
+        // Done
+        return name + "_" + ste.getMethodName() + "_";
+      }
+    }
+    // Failed, so return null.  This is fine as it just means the generate lt file will not have an
+    // informative
+    // prefix.
+    return null;
   }
 }

@@ -15,11 +15,14 @@
 
 plugins {
   id "common-plugins"
+  id 'jacoco'
+}
+jacoco {
+  toolVersion = '0.8.12'
 }
 
 apply from: rootProject.file("gradle/corset.gradle")
 apply from: rootProject.file("gradle/java.gradle")
-apply from: rootProject.file("gradle/tests.gradle")
 apply from: rootProject.file("gradle/dependency-management.gradle")
 apply from: rootProject.file('gradle/common-dependencies.gradle')
 apply from: rootProject.file("gradle/lint.gradle")
@@ -55,23 +58,35 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 }
 
 tasks.register('referenceBlockchainTests', Test) {
+  dependsOn(buildReferenceTestsZkevmBin)
+  finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
   dependsOn generateBlockchainReferenceTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 
   boolean isCiServer = System.getenv().containsKey("CI")
   minHeapSize = isCiServer ? "8g" :"4g"
-  maxHeapSize = isCiServer ? "50g" : "8g"
+  maxHeapSize = isCiServer ? "32g" : "8g"
 
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
   }
 }
 
+tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData(referenceBlockchainTests)
+}
+
 tasks.register('referenceGeneralStateTests', Test) {
+  dependsOn(buildReferenceTestsZkevmBin)
   description = 'Runs ETH reference general state tests.'
   dependsOn generateGeneralStateReferenceTests
-
+  // Record zkevm.bin for CorsetValidator
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "GeneralStateReferenceTestOutcome.json")
 
   useJUnitPlatform {
@@ -88,10 +103,11 @@ tasks.register('referenceGeneralStateTests', Test) {
   tasks.named("referenceBlockchainTests"),
 ].forEach {
   it.configure {
-    dependsOn buildReferenceTestsZkevmBin
-    environment.put("ZKEVM_BIN", "zkevm_for_reference_tests.bin")
-
-    systemProperty("junit.jupiter.execution.timeout.default", "5 m")  // 5 minutes
+    // Record zkevm.bin for CorsetValidator
+    environment.put("ZKEVM_BIN", System.getenv("ZKEVM_BIN") ?: "zkevm_for_reference_tests.bin")
+    // Configure parallelism
+    environment.put("blockchain", System.getenv("blockchain") ?: "Ethereum")
+    systemProperty("junit.jupiter.execution.timeout.default", "15 m")  // 5 minutes
     systemProperty("junit.jupiter.execution.parallel.enabled", "true")
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
     systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")

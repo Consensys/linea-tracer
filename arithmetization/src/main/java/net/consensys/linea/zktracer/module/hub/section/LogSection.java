@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.hub.section;
 import static com.google.common.base.Preconditions.*;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.runtime.LogData;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class LogSection extends TraceSection implements PostTransactionDefer {
+public class LogSection extends TraceSection implements EndTransactionDefer {
 
   private MmuCall mmuCall;
 
@@ -69,7 +69,7 @@ public class LogSection extends TraceSection implements PostTransactionDefer {
     // the unexceptional case
     checkArgument(Exceptions.none(exceptions));
 
-    hub.defers().scheduleForPostTransaction(this);
+    hub.defers().scheduleForEndTransaction(this);
 
     final LogData logData = new LogData(hub);
     checkArgument(logData.nontrivialLog() == mxpCall.mayTriggerNontrivialMmuOperation);
@@ -87,7 +87,7 @@ public class LogSection extends TraceSection implements PostTransactionDefer {
   }
 
   @Override
-  public void resolvePostTransaction(
+  public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final boolean logReverted = commonValues.callFrame().willRevert();
     if (logReverted) {

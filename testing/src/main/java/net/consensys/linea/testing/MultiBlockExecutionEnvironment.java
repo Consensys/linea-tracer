@@ -15,6 +15,8 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BLOCK_GAS_LIMIT;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +26,7 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.*;
+import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.ethereum.core.*;
 
 @Builder
@@ -47,12 +50,18 @@ public class MultiBlockExecutionEnvironment {
     private List<BlockSnapshot> blocks = new ArrayList<>();
 
     public MultiBlockExecutionEnvironmentBuilder addBlock(List<Transaction> transactions) {
+      return addBlock(transactions, LINEA_BLOCK_GAS_LIMIT);
+    }
+
+    public MultiBlockExecutionEnvironmentBuilder addBlock(
+        List<Transaction> transactions, long gasLimit) {
       BlockHeaderBuilder blockHeaderBuilder =
           this.blocks.isEmpty()
               ? ExecutionEnvironment.getLineaBlockHeaderBuilder(Optional.empty())
               : ExecutionEnvironment.getLineaBlockHeaderBuilder(
                   Optional.of(this.blocks.getLast().header().toBlockHeader()));
       blockHeaderBuilder.coinbase(ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS);
+      blockHeaderBuilder.gasLimit(gasLimit);
       BlockBody blockBody = new BlockBody(transactions, Collections.emptyList());
       this.blocks.add(BlockSnapshot.of(blockHeaderBuilder.buildBlockHeader(), blockBody));
 
@@ -62,6 +71,7 @@ public class MultiBlockExecutionEnvironment {
 
   public void run() {
     ReplayExecutionEnvironment.builder()
+        .zkTracer(new ZkTracer(ToyExecutionEnvironmentV2.CHAIN_ID))
         .useCoinbaseAddressFromBlockHeader(true)
         .transactionProcessingResultValidator(this.transactionProcessingResultValidator)
         .build()

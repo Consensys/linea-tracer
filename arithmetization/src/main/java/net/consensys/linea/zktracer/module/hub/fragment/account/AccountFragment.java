@@ -32,12 +32,11 @@ import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.defer.DeferRegistry;
+import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostConflationDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
-import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -47,7 +46,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
 public final class AccountFragment
-    implements TraceFragment, PostTransactionDefer, PostConflationDefer {
+    implements TraceFragment, EndTransactionDefer, PostConflationDefer {
 
   @Getter private final AccountSnapshot oldState;
   @Getter private final AccountSnapshot newState;
@@ -111,7 +110,7 @@ public final class AccountFragment
 
     // This allows us to properly fill MARKED_FOR_SELFDESTRUCT and MARKED_FOR_SELFDESTRUCT_NEW,
     // among other things
-    hub.defers().scheduleForPostTransaction(this);
+    hub.defers().scheduleForEndTransaction(this);
   }
 
   @Override
@@ -155,8 +154,8 @@ public final class AccountFragment
         .pAccountMarkedForSelfdestruct(markedForSelfDestruct)
         .pAccountMarkedForSelfdestructNew(markedForSelfDestructNew)
         .pAccountDeploymentNumber(oldState.deploymentNumber())
-        .pAccountDeploymentNumberNew(newState.deploymentNumber())
         .pAccountDeploymentStatus(oldState.deploymentStatus())
+        .pAccountDeploymentNumberNew(newState.deploymentNumber())
         .pAccountDeploymentStatusNew(newState.deploymentStatus())
         .pAccountDeploymentNumberInfty(deploymentNumberInfinity)
         .pAccountDeploymentStatusInfty(existsInfinity)
@@ -166,7 +165,7 @@ public final class AccountFragment
   }
 
   @Override
-  public void resolvePostTransaction(
+  public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
@@ -187,14 +186,14 @@ public final class AccountFragment
   public void resolvePostConflation(Hub hub, WorldView world) {
     deploymentNumberInfinity = hub.deploymentNumberOf(newState.address());
     existsInfinity = world.get(newState.address()) != null;
-    codeFragmentIndex =
-        requiresRomlex
-            ? hub.romLex()
-                .getCodeFragmentIndexByMetadata(
-                    ContractMetadata.make(
-                        newState.address(),
-                        newState.deploymentNumber(),
-                        newState.deploymentStatus()))
-            : 0;
+    try {
+      codeFragmentIndex =
+          hub.getCodeFragmentIndexByMetaData(
+              newState.address(), newState.deploymentNumber(), newState.deploymentStatus());
+    } catch (RuntimeException e) {
+      // getCfi should NEVER throw en exception when requiresRomLex ≡ true
+      checkState(!requiresRomlex);
+      codeFragmentIndex = 0;
+    }
   }
 }

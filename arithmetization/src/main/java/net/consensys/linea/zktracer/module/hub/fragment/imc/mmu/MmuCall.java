@@ -41,7 +41,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.State;
 import net.consensys.linea.zktracer.module.hub.Trace;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.*;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
@@ -68,7 +68,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Setter
 @Getter
 @Accessors(fluent = true)
-public class MmuCall implements TraceSubFragment, PostTransactionDefer {
+public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   protected boolean traceMe = true;
 
   protected int instruction = 0;
@@ -140,7 +140,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   public MmuCall(final Hub hub, final int instruction) {
-    hub.defers().scheduleForPostTransaction(this);
+    hub.defers().scheduleForEndTransaction(this);
     this.instruction = instruction;
   }
 
@@ -783,8 +783,8 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   @Override
-  public Trace trace(Trace trace, State.TxState.Stamps stamps) {
-    stamps.incrementMmuStamp();
+  public Trace trace(Trace trace, State hubState) {
+    hubState.incrementMmuStamp();
     return trace
         .pMiscMmuFlag(true)
         .pMiscMmuInst(instruction)
@@ -805,7 +805,7 @@ public class MmuCall implements TraceSubFragment, PostTransactionDefer {
   }
 
   @Override
-  public void resolvePostTransaction(
+  public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     if (traceMe) {
       hub.mmu().call(this);

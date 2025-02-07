@@ -5,6 +5,11 @@ on:
     - cron: 0 21 * * 1-5
   workflow_dispatch:
     inputs:
+      test_filter:
+        description: Filter tests to run (via Gradle)
+        required: false
+        type: string
+        default: "BlockchainReferenceTest_*"
       failed_module:
         description: Specific module to filter from failed tests
         required: false
@@ -18,6 +23,10 @@ on:
         required: false
         type: string
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   blockchain-reference-tests:
     runs-on: [ubuntu-latest-128]
@@ -30,23 +39,16 @@ jobs:
         id: extract_branch
         run: |
             echo "branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
+
+      - name: Setup Test Environment
+        uses: ./.github/actions/setup-environment
         with:
-          java-version: 21
-          distribution: temurin
-
-      - name: Setup Go Corset
-        uses: ./.github/actions/setup-go-corset
-
-      - name: Generate zkevm_for_reference_tests.bin
-        run: cd ./linea-constraints; make zkevm_for_reference_tests.bin -B; cd ..
+          go-corset: true
 
       - name: Generate block chain reference tests
-        run:  ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.parallel=true -Dorg.gradle.caching=true
+        run: ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.caching=true
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
-          CORSET_FLAGS: fields,expand,expand,expand
 
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v6
@@ -63,13 +65,13 @@ jobs:
         run: mv ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTests.json ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTests-input.json
 
       - name: Run reference blockchain tests
-        run: ./gradlew referenceBlockchainTests -x spotlessCheck
-        timeout-minutes: 180
+        run: GOMEMLIMIT=32GiB ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck --tests "${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}"
+        timeout-minutes: 360
         env:
-          REFERENCE_TESTS_PARALLELISM: 7
+          REFERENCE_TESTS_PARALLELISM: 2
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
+          GOCORSET_FLAGS: -b1024 -vw --ansi-escapes=false --report --air
           FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
           FAILED_MODULE: ${{ inputs.failed_module || '' }}
           FAILED_CONSTRAINT: ${{ inputs.failed_constraint || '' }}
@@ -89,6 +91,36 @@ jobs:
           name: blockchain-refrence-tests-report
           path: reference-tests/build/reports/tests/**/*
 
+      - name: Upload jacoco test coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-reference-tests-coverage-report
+          path: reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/**/*
+
+      - name: Upload jacoco exec test
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-reference-tests-exec-file
+          path: reference-tests/build/jacoco/referenceBlockchainTests.exec
+
+      - name: Extract Metrics
+        if: ${{ failure() || cancelled() }}
+        run: |
+          # Gather metrics
+          SUCCESS_COUNTER=$(cat $JSON_REPORT | sed -e "s/.*\"successCounter\":\([0-9]*\).*/\1/")
+          FAILED_COUNTER=$(cat $JSON_REPORT | sed -e "s/.*\"failedCounter\":\([0-9]*\).*/\1/")
+          ABORTED_COUNTER=$(cat $JSON_REPORT | sed -e "s/.*\"abortedCounter\":\([0-9]*\).*/\1/")
+          DISABLED_COUNTER=$(cat $JSON_REPORT | sed -e "s/.*\"disabledCounter\":\([0-9]*\).*/\1/")
+          # Set environment variables
+          echo "SUCCESS=$SUCCESS_COUNTER" >> $GITHUB_ENV
+          echo "FAILED=$FAILED_COUNTER" >> $GITHUB_ENV
+          echo "ABORTED=$ABORTED_COUNTER" >> $GITHUB_ENV
+          echo "DISABLED=$DISABLED_COUNTER" >> $GITHUB_ENV
+        env:
+          JSON_REPORT: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/BlockchainReferenceTestOutcome.json
+
       - name: Failure Notification
         if: ${{ failure() || cancelled() }}
         uses: slackapi/slack-github-action@v2.0.0
@@ -97,4 +129,4 @@ jobs:
           webhook-type: webhook-trigger
           payload: |
              name: "Daily Blockchain"
-             status: "${{ job.status }}"
+             status: "${{ env.SUCCESS }} successful, ${{ env.FAILED }} failed, ${{ env.ABORTED }} aborted, ${{ env.DISABLED }} disabled"

@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.types;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -51,7 +52,6 @@ public class TransactionProcessingMetadata {
   final int relativeBlockNumber;
 
   final Transaction besuTransaction;
-  final Address coinbase;
   final long baseFee;
 
   final boolean isDeployment;
@@ -131,7 +131,6 @@ public class TransactionProcessingMetadata {
       final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
     relativeBlockNumber = block.blockNumber();
-    coinbase = block.coinbaseAddress();
     baseFee = block.baseFee().toLong();
 
     besuTransaction = transaction;
@@ -146,8 +145,10 @@ public class TransactionProcessingMetadata {
     // Note: Besu's dataCost computation contains
     // - the 21_000 transaction cost (we deduce it)
     // - the contract creation cost in case of deployment (we set deployment to false to not add it)
+    // - the baseline gas (gas for access lists and 7702 authorizations) is set to zero, because we
+    // only consider the cost of the transaction payload
     dataCost =
-        ZkTracer.gasCalculator.transactionIntrinsicGasCost(besuTransaction.getPayload(), false)
+        ZkTracer.gasCalculator.transactionIntrinsicGasCost(besuTransaction.getPayload(), false, 0)
             - GAS_CONST_G_TRANSACTION;
     accessListCost =
         besuTransaction.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);
@@ -175,14 +176,16 @@ public class TransactionProcessingMetadata {
   }
 
   public void completeLineaTransaction(
-      Hub hub, final boolean statusCode, final List<Log> logs, final Set<Address> selfDestructs) {
+      Hub hub,
+      WorldView world,
+      final boolean statusCode,
+      final List<Log> logs,
+      final Set<Address> selfDestructs) {
     this.statusCode = statusCode;
     hubStampTransactionEnd = hub.stamp();
     this.logs = logs;
     for (Address address : selfDestructs) {
-      destructedAccountsSnapshot.add(
-          AccountSnapshot.fromAddress(
-              address, true, hub.deploymentNumberOf(address), hub.deploymentStatusOf(address)));
+      destructedAccountsSnapshot.add(AccountSnapshot.canonical(hub, world, address));
     }
 
     determineSelfDestructTimeStamp();
@@ -329,36 +332,22 @@ public class TransactionProcessingMetadata {
     return besuTransaction.getData().orElse(Bytes.EMPTY);
   }
 
-  public boolean senderIsRecipient() {
-    return besuTransaction.getTo().isPresent()
-        && besuTransaction.getTo().get().equals(besuTransaction.getSender());
-  }
+  public boolean coinbaseWarmthAfterTxInit(Hub hub) {
+    final Address coinbaseAddress = hub.coinbaseAddress;
+    final boolean coinbaseIsInAccessList =
+        this.getBesuTransaction()
+            .getAccessList()
+            .map(
+                accessList ->
+                    accessList.stream().anyMatch(entry -> entry.address().equals(coinbaseAddress)))
+            .orElse(false);
+    final boolean coinbaseIsPrecompile = isPrecompile(coinbaseAddress);
+    final boolean coinbaseIsSender = this.getSender().equals(coinbaseAddress);
+    final boolean coinbaseIsRecipient = this.getEffectiveRecipient().equals(coinbaseAddress);
 
-  public boolean senderIsCoinbase() {
-    return besuTransaction.getSender().equals(coinbase);
-  }
-
-  public boolean recipientIsCoinbase() {
-    return besuTransaction.getTo().isPresent() && besuTransaction.getTo().get().equals(coinbase);
-  }
-
-  public boolean senderAddressCollision() {
-    return senderIsRecipient() || senderIsCoinbase();
-  }
-
-  public boolean recipientAddressCollision() {
-    return senderIsRecipient() || recipientIsCoinbase();
-  }
-
-  public boolean coinbaseAddressCollision() {
-    return senderIsCoinbase() || recipientIsCoinbase();
-  }
-
-  public boolean addressCollision() {
-    return senderIsRecipient() || senderIsCoinbase() || recipientIsCoinbase();
-  }
-
-  public boolean noAddressCollisions() {
-    return !addressCollision();
+    return coinbaseIsInAccessList
+        || coinbaseIsPrecompile
+        || coinbaseIsSender
+        || coinbaseIsRecipient;
   }
 }

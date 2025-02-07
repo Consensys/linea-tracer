@@ -82,7 +82,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   public ZkTracer() {
     this(
         LineaL1L2BridgeSharedConfiguration.EMPTY,
-        Bytes.fromHexString("c0ffee").toBigInteger().abs());
+        Bytes.fromHexString("c0ffee").toUnsignedBigInteger());
   }
 
   public ZkTracer(BigInteger nonnegativeChainId) {
@@ -91,9 +91,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   public ZkTracer(
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    BigInteger nonnegativeChainId = chainId.abs();
-    this.hub =
-        new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), nonnegativeChainId);
+    ;
+    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chainId);
     for (Module m : this.hub.getModulesToCount()) {
       if (!spillings.containsKey(m.moduleKey())) {
         throw new IllegalStateException(
@@ -174,9 +173,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   @Override
-  public void traceStartBlock(final ProcessableBlockHeader processableBlockHeader) {
+  public void traceStartBlock(
+      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
     try {
-      this.hub.traceStartBlock(processableBlockHeader);
+      this.hub.traceStartBlock(processableBlockHeader, miningBeneficiary);
       this.debugMode.ifPresent(DebugMode::traceEndConflation);
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
@@ -184,10 +184,11 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   @Override
-  public void traceStartBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+  public void traceStartBlock(
+      final BlockHeader blockHeader, final BlockBody blockBody, final Address miningBeneficiary) {
     try {
-      this.hub.traceStartBlock(blockHeader);
-      this.debugMode.ifPresent(x -> x.traceStartBlock(blockHeader, blockBody));
+      this.hub.traceStartBlock(blockHeader, miningBeneficiary);
+      this.debugMode.ifPresent(x -> x.traceStartBlock(blockHeader, blockBody, miningBeneficiary));
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }

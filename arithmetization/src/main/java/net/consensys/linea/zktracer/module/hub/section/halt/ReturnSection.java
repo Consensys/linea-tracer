@@ -25,8 +25,8 @@ import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextReEntryDefer;
+import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -53,7 +53,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 public class ReturnSection extends TraceSection
-    implements ContextReEntryDefer, PostRollbackDefer, PostTransactionDefer {
+    implements ContextReEntryDefer, PostRollbackDefer, EndTransactionDefer {
 
   final boolean returnFromMessageCall;
   final boolean returnFromDeployment;
@@ -202,7 +202,7 @@ public class ReturnSection extends TraceSection
           .scheduleForContextReEntry(
               this, hub.callStack().parentCallFrame()); // post deployment account snapshot
       hub.defers().scheduleForPostRollback(this, callFrame); // undo deployment
-      hub.defers().scheduleForPostTransaction(this); // inserting the final context row;
+      hub.defers().scheduleForEndTransaction(this); // inserting the final context row;
 
       squashParentContextReturnData = ContextFragment.executionProvidesEmptyReturnData(hub);
       deploymentAddress = frame.getRecipientAddress();
@@ -307,7 +307,7 @@ public class ReturnSection extends TraceSection
   }
 
   @Override
-  public void resolvePostTransaction(
+  public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
     checkArgument(returnFromDeployment);

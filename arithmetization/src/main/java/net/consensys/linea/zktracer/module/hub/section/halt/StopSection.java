@@ -20,8 +20,8 @@ import static net.consensys.linea.zktracer.module.hub.fragment.ContextFragment.r
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -36,7 +36,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class StopSection extends TraceSection implements PostRollbackDefer, PostTransactionDefer {
+public class StopSection extends TraceSection implements PostRollbackDefer, EndTransactionDefer {
 
   final int hubStamp;
   final Address address;
@@ -55,7 +55,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
         "STOP is incapable of triggering an exception but "
             + Exceptions.prettyStringOf(OpCode.STOP, exceptions));
 
-    hub.defers().scheduleForPostTransaction(this); // always
+    hub.defers().scheduleForEndTransaction(this); // always
 
     hubStamp = hub.stamp();
     address = hub.messageFrame().getContractAddress();
@@ -142,7 +142,7 @@ public class StopSection extends TraceSection implements PostRollbackDefer, Post
    * @param isSuccessful
    */
   @Override
-  public void resolvePostTransaction(
+  public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
     this.addFragments(this.parentContextReturnDataReset);
   }

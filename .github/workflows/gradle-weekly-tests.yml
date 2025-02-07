@@ -5,6 +5,11 @@ on:
     - cron: "0 4 * * 1"
   workflow_dispatch:
 
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   tests:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-med
@@ -28,7 +33,7 @@ jobs:
 
       - name: Upload test report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nightly-tests-report
           path: build/reports/tests/**/*
@@ -43,7 +48,7 @@ jobs:
              name: "Weekly (Go-Corset)"
              status: "${{ job.status }}"
 
-  go-corset-tests:
+  weekly-tests:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
     continue-on-error: true
     steps:
@@ -58,11 +63,11 @@ jobs:
           go-corset: true
 
       - name: Run Weekly tests
-        run: GOMEMLIMIT=196GiB ./gradlew weeklyTests
+        run: GOMEMLIMIT=96GiB ./gradlew weeklyTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -wd --ansi-escapes=false --report --air
+          GOCORSET_FLAGS: -vw -b1024 --ansi-escapes=false --report --air
 
       - name: Failure Notification
         if: ${{ failure() || cancelled() }}

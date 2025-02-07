@@ -83,11 +83,6 @@ public class StackedList<E> {
     return size() == 0;
   }
 
-  public boolean contains(Object o) {
-    return operationsInTransactionBundle().contains(o)
-        || operationsCommitedToTheConflation().contains(o);
-  }
-
   public boolean add(E e) {
     return operationsInTransactionBundle().add(e);
   }

@@ -30,7 +30,7 @@ import net.consensys.linea.zktracer.module.hub.section.TraceSection;
  */
 @Getter
 @Accessors(fluent = true)
-public class HubTraceSections {
+public class TraceSections {
   /** The {@link TraceSection} of which this transaction trace is made of */
   private final List<TraceSection> trace = new ArrayList<>();
 

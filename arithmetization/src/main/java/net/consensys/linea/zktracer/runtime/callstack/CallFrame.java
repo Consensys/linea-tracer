@@ -106,8 +106,7 @@ public class CallFrame {
   }
 
   public void rememberGasNextBeforePausing(Hub hub) {
-    lastValidGasNext =
-        hub.state.current().hubTraceSections().currentSection().commonValues.gasNext();
+    lastValidGasNext = hub.state.current().traceSections().currentSection().commonValues.gasNext();
   }
 
   // revert related information

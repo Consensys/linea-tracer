@@ -112,8 +112,8 @@ public class State {
   /**
    * @return the current transaction trace elements
    */
-  public HubTraceSections currentTransactionHubSections() {
-    return current().hubTraceSections;
+  public TraceSections currentTransactionHubSections() {
+    return current().traceSections;
   }
 
   /**
@@ -124,7 +124,7 @@ public class State {
    */
   public Trace commit(Trace hubTrace) {
     for (HubTransactionState state : state.getAll()) {
-      state.hubTraceSections().commit(hubTrace);
+      state.traceSections().commit(hubTrace);
     }
     return hubTrace;
   }
@@ -156,16 +156,16 @@ public class State {
   @Getter
   public static class HubTransactionState {
     Stamps stamps;
-    HubTraceSections hubTraceSections;
+    TraceSections traceSections;
 
     HubTransactionState() {
       stamps = new Stamps();
-      hubTraceSections = new HubTraceSections();
+      traceSections = new TraceSections();
     }
 
     public HubTransactionState(Stamps stamps) {
       this.stamps = stamps;
-      hubTraceSections = new HubTraceSections();
+      traceSections = new TraceSections();
     }
 
     HubTransactionState spinOff() {

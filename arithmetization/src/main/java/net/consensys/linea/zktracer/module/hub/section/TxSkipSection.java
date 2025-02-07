@@ -23,7 +23,7 @@ import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.defer.PostTransactionDefer;
+import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -37,10 +37,10 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
  * SkippedTransaction latches data at the pre-execution of the transaction data that will be used
- * later, through a {@link PostTransactionDefer}, to generate the trace chunks required for the
+ * later, through a {@link EndTransactionDefer}, to generate the trace chunks required for the
  * proving of a pure transaction.
  */
-public class TxSkipSection extends TraceSection implements PostTransactionDefer {
+public class TxSkipSection extends TraceSection implements EndTransactionDefer {
 
   final TransactionProcessingMetadata txMetadata;
 
@@ -112,14 +112,14 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
     // may have to be modified in case of address collision
     senderNew = canonical(hub, world, sender.address(), isPrecompile(sender.address()));
     recipientNew = canonical(hub, world, recipient.address(), isPrecompile(recipient.address()));
-    coinbaseNew = canonical(hub, world, coinbase.address(), isPrecompile(recipient.address()));
+    coinbaseNew = canonical(hub, world, coinbase.address(), isPrecompile(coinbase.address()));
 
     final Wei value = (Wei) txMetadata.getBesuTransaction().getValue();
 
     if (senderAddressCollision()) {
-      BigInteger gasUsed = BigInteger.valueOf(txMetadata.getGasUsed());
-      BigInteger gasPrice = BigInteger.valueOf(txMetadata.getEffectiveGasPrice());
-      BigInteger gasCost = gasUsed.multiply(gasPrice);
+      final BigInteger gasUsed = BigInteger.valueOf(txMetadata.getGasUsed());
+      final BigInteger gasPrice = BigInteger.valueOf(txMetadata.getEffectiveGasPrice());
+      final BigInteger gasCost = gasUsed.multiply(gasPrice);
       senderNew =
           sender
               .deepCopy()
@@ -135,6 +135,9 @@ public class TxSkipSection extends TraceSection implements PostTransactionDefer 
       if (recipientIsCoinbase()) {
         recipientNew = coinbaseNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
         recipient = recipientNew.deepCopy().decrementBalanceBy(value);
+        if (txMetadata.isDeployment()) {
+          recipient.decrementNonceByOne().decrementDeploymentNumberByOne();
+        }
       }
     }
 

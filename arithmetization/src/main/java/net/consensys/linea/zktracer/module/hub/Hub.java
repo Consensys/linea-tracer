@@ -680,10 +680,6 @@ public class Hub implements Module {
       if (state.processingPhase() != TX_SKIP
           && frame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
         state.processingPhase(TX_FINL);
-        coinbaseWarmthAtTransactionEnd =
-            isExceptional() || opCode() == REVERT
-                ? txStack.current().coinbaseWarmthAfterTxInit(this)
-                : frame.isAddressWarm(coinbaseAddress);
         new TxFinalizationSection(this, frame.getWorldUpdater(), false);
       }
     }
@@ -743,8 +739,6 @@ public class Hub implements Module {
     if (isExceptional()) {
       this.currentTraceSection()
           .exceptionalContextFragment(ContextFragment.executionProvidesEmptyReturnData(this));
-      this.squashCurrentFrameOutputData();
-      this.squashParentFrameReturnData();
     }
 
     defers.resolvePostExecution(this, frame, operationResult);
@@ -755,7 +749,10 @@ public class Hub implements Module {
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode().isHalt())) {
       state.processingPhase(TX_FINL);
-      coinbaseWarmthAtTransactionEnd = frame.isAddressWarm(coinbaseAddress);
+      coinbaseWarmthAtTransactionEnd =
+          isExceptional() || opCode() == REVERT
+              ? txStack.current().coinbaseWarmthAfterTxInit(this)
+              : frame.isAddressWarm(coinbaseAddress);
     }
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
@@ -780,6 +777,8 @@ public class Hub implements Module {
     long lineaGasCost = currentSection.commonValues.gasCost();
     long lineaGasCostExcludingDeploymentCost =
         currentSection.commonValues.gasCostExcluduingDeploymentCost();
+
+    gasCostAccumulator += besuGasCost;
 
     if (operationResult.getHaltReason() != null) {
 
@@ -1110,7 +1109,7 @@ public class Hub implements Module {
   }
 
   public void squashParentFrameReturnData() {
-    callStack.parentCallFrame().outputDataRange(MemoryRange.EMPTY);
+    callStack.parentCallFrame().returnDataRange(MemoryRange.EMPTY);
   }
 
   public CallFrame getLastChildCallFrame(final CallFrame parentFrame) {

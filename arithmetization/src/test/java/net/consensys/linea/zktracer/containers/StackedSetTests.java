@@ -50,7 +50,7 @@ public class StackedSetTests {
     chunks.add(ONE_PLUS_ONE);
     chunks.add(ONE_PLUS_ONE);
     Assertions.assertEquals(1, chunks.size());
-    chunks.popTransactions();
+    chunks.popTransactionBundle();
     Assertions.assertEquals(0, chunks.size());
   }
 
@@ -61,12 +61,12 @@ public class StackedSetTests {
     chunks.add(ONE_PLUS_ONE);
     Assertions.assertEquals(1, chunks.size());
 
-    chunks.commitTransactions();
+    chunks.commitTransactionBundle();
     chunks.add(ONE_PLUS_ONE);
     Assertions.assertEquals(1, chunks.size());
     chunks.add(ONE_PLUS_TWO);
     Assertions.assertEquals(2, chunks.size());
-    chunks.popTransactions();
+    chunks.popTransactionBundle();
     Assertions.assertEquals(1, chunks.size());
   }
 }

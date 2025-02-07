@@ -54,13 +54,13 @@ public class L2Block implements Module {
   }
 
   @Override
-  public void commitTransactions() {
+  public void commitTransactionBundle() {
     this.sizesRlpEncodedTxs.push(0);
     this.l2l1LogSizes.push(new ArrayList<>());
   }
 
   @Override
-  public void popTransactions() {
+  public void popTransactionBundle() {
     this.sizesRlpEncodedTxs.pop();
     this.l2l1LogSizes.pop();
   }

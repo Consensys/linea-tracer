@@ -33,7 +33,7 @@ public interface Module {
   default void traceStartConflation(final long blockCount) {}
 
   default void traceEndConflation(final WorldView state) {
-    this.commitTransactions();
+    this.commitTransactionBundle();
   }
 
   default void traceStartBlock(
@@ -56,13 +56,13 @@ public interface Module {
    * Called when a bundle of transaction execution is cancelled; should revert the state of the
    * module.
    */
-  void popTransactions();
+  void popTransactionBundle();
 
   /**
    * Called when a bundle of transactions is committed. Those transactions can't be cancelled
    * afterward.
    */
-  void commitTransactions();
+  void commitTransactionBundle();
 
   int lineCount();
 

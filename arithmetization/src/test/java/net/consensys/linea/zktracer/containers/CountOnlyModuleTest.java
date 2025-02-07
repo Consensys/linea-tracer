@@ -36,14 +36,14 @@ public class CountOnlyModuleTest {
     countingOnlyModule.addPrecompileLimit(1);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(2);
 
-    countingOnlyModule.popTransactions();
+    countingOnlyModule.popTransactionBundle();
     assertThat(countingOnlyModule.lineCount()).isEqualTo(0);
 
     countingOnlyModule.addPrecompileLimit(1);
-    countingOnlyModule.commitTransactions();
+    countingOnlyModule.commitTransactionBundle();
     countingOnlyModule.addPrecompileLimit(1);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(2);
-    countingOnlyModule.popTransactions();
+    countingOnlyModule.popTransactionBundle();
     assertThat(countingOnlyModule.lineCount()).isEqualTo(1);
 
     state = new ZkTracer();

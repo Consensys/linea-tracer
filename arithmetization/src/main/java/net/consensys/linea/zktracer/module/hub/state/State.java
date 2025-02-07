@@ -141,14 +141,14 @@ public class State {
     }
   }
 
-  public void popTransactions() {
-    state.popTransactions();
-    lineCounter.popTransactions();
+  public void popTransactionBundle() {
+    state.popTransactionBundle();
+    lineCounter.popTransactionBundle();
   }
 
-  public void commitTransactions() {
-    state.commitTransactions();
-    lineCounter.commitTransactions();
+  public void commitTransactionBundle() {
+    state.commitTransactionBundle();
+    lineCounter.commitTransactionBundle();
   }
 
   /** Describes the Hub state during a given transaction. */

@@ -31,10 +31,10 @@ public class L2L1Logs implements Module {
   }
 
   @Override
-  public void commitTransactions() {}
+  public void commitTransactionBundle() {}
 
   @Override
-  public void popTransactions() {}
+  public void popTransactionBundle() {}
 
   @Override
   public int lineCount() {

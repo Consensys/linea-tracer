@@ -51,21 +51,21 @@ public class Euc implements OperationSetModule<EucOperation> {
   }
 
   @Override
-  public void commitTransactions() {
-    OperationSetModule.super.commitTransactions();
-    additionalRows.commitTransactions();
+  public void commitTransactionBundle() {
+    OperationSetModule.super.commitTransactionBundle();
+    additionalRows.commitTransactionBundle();
   }
 
   @Override
-  public void popTransactions() {
-    OperationSetModule.super.popTransactions();
-    additionalRows.popTransactions();
+  public void popTransactionBundle() {
+    OperationSetModule.super.popTransactionBundle();
+    additionalRows.popTransactionBundle();
   }
 
   @Override
   public void traceStartBlock(
       final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
-    additionalRows.commitTransactions();
+    additionalRows.commitTransactionBundle();
   }
 
   @Override

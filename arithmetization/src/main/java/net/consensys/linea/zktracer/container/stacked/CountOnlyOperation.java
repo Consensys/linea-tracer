@@ -27,12 +27,12 @@ public class CountOnlyOperation {
   private int countCommitedToTheConflation = 0;
   @Getter private int countInTransactionBundle = 0;
 
-  public void commitTransactions() {
+  public void commitTransactionBundle() {
     countCommitedToTheConflation += countInTransactionBundle;
     countInTransactionBundle = 0;
   }
 
-  public void popTransactions() {
+  public void popTransactionBundle() {
     countInTransactionBundle = 0;
   }
 

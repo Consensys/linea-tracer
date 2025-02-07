@@ -434,25 +434,25 @@ public class Hub implements Module {
   }
 
   @Override
-  public void commitTransactions() {
-    txStack.commitTransactions();
-    state.commitTransactions();
+  public void commitTransactionBundle() {
+    txStack.commitTransactionBundle();
+    state.commitTransactionBundle();
 
-    transients.conflation().stackHeightChecksForStackUnderflows().commitTransactions();
-    transients.conflation().stackHeightChecksForStackOverflows().commitTransactions();
+    transients.conflation().stackHeightChecksForStackUnderflows().commitTransactionBundle();
+    transients.conflation().stackHeightChecksForStackOverflows().commitTransactionBundle();
     for (Module m : modules) {
-      m.commitTransactions();
+      m.commitTransactionBundle();
     }
   }
 
   @Override
-  public void popTransactions() {
-    txStack.popTransactions();
-    state.popTransactions();
-    transients.conflation().stackHeightChecksForStackUnderflows().popTransactions();
-    transients.conflation().stackHeightChecksForStackOverflows().popTransactions();
+  public void popTransactionBundle() {
+    txStack.popTransactionBundle();
+    state.popTransactionBundle();
+    transients.conflation().stackHeightChecksForStackUnderflows().popTransactionBundle();
+    transients.conflation().stackHeightChecksForStackOverflows().popTransactionBundle();
     for (Module m : modules) {
-      m.popTransactions();
+      m.popTransactionBundle();
     }
   }
 

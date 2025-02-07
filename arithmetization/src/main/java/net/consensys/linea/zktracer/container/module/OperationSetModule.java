@@ -31,13 +31,13 @@ public interface OperationSetModule<E extends ModuleOperation> extends Module {
   ModuleOperationStackedSet<E> operations();
 
   @Override
-  default void commitTransactions() {
-    operations().commitTransactions();
+  default void commitTransactionBundle() {
+    operations().commitTransactionBundle();
   }
 
   @Override
-  default void popTransactions() {
-    operations().popTransactions();
+  default void popTransactionBundle() {
+    operations().popTransactionBundle();
   }
 
   @Override

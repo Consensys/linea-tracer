@@ -84,25 +84,25 @@ public class Wcp implements Module {
   }
 
   @Override
-  public void commitTransactions() {
+  public void commitTransactionBundle() {
     for (ModuleOperationStackedSet<WcpOperation> operationsSet : operations) {
-      operationsSet.commitTransactions();
+      operationsSet.commitTransactionBundle();
     }
-    additionalRows.commitTransactions();
+    additionalRows.commitTransactionBundle();
   }
 
   @Override
-  public void popTransactions() {
+  public void popTransactionBundle() {
     for (ModuleOperationStackedSet<WcpOperation> operationsSet : operations) {
-      operationsSet.popTransactions();
+      operationsSet.popTransactionBundle();
     }
-    additionalRows.popTransactions();
+    additionalRows.popTransactionBundle();
   }
 
   @Override
   public void traceStartBlock(
       final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
-    additionalRows.commitTransactions();
+    additionalRows.commitTransactionBundle();
   }
 
   @Override

@@ -34,7 +34,7 @@ public class CountOnlyTests {
     state.add(3);
     assertThat(state.lineCount()).isEqualTo(4);
 
-    state.popTransactions();
+    state.popTransactionBundle();
     assertThat(state.lineCount()).isEqualTo(0);
 
     state.add(1);
@@ -42,16 +42,16 @@ public class CountOnlyTests {
 
     state.add(3);
     assertThat(state.lineCount()).isEqualTo(4);
-    state.commitTransactions();
+    state.commitTransactionBundle();
     assertThat(state.lineCount()).isEqualTo(4);
-    state.popTransactions();
+    state.popTransactionBundle();
     assertThat(state.lineCount()).isEqualTo(4);
 
     state.add(2);
     state.add(2);
     assertThat(state.lineCount()).isEqualTo(8);
 
-    state.popTransactions();
+    state.popTransactionBundle();
     assertThat(state.lineCount()).isEqualTo(4);
 
     state.add(0);

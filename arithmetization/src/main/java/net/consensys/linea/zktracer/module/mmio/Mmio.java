@@ -55,13 +55,13 @@ public class Mmio implements Module {
   }
 
   @Override
-  public void commitTransactions() {
+  public void commitTransactionBundle() {
     lineCounter.add(lineCountOfLastTransactionBundle());
-    lineCounter.commitTransactions();
+    lineCounter.commitTransactionBundle();
   }
 
   @Override
-  public void popTransactions() {}
+  public void popTransactionBundle() {}
 
   private int lineCountOfLastTransactionBundle() {
     int count = 0;

@@ -39,12 +39,12 @@ public class StackedList<E> {
     operationsInTransactionBundle = new ArrayList<>(expectedTransactionNumberOperations);
   }
 
-  public void commitTransactions() {
+  public void commitTransactionBundle() {
     operationsCommitedToTheConflation.addAll(operationsInTransactionBundle);
     operationsInTransactionBundle.clear();
   }
 
-  public void popTransactions() {
+  public void popTransactionBundle() {
     operationsInTransactionBundle.clear();
   }
 

@@ -41,13 +41,13 @@ public class LogData implements Module {
   }
 
   @Override
-  public void commitTransactions() {
-    lineCounter.commitTransactions();
+  public void commitTransactionBundle() {
+    lineCounter.commitTransactionBundle();
   }
 
   @Override
-  public void popTransactions() {
-    lineCounter.popTransactions();
+  public void popTransactionBundle() {
+    lineCounter.popTransactionBundle();
   }
 
   /* WARN: make sure this is called after rlpTxnRcpt as we need the operation of the current transaction */

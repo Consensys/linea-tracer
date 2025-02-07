@@ -48,14 +48,14 @@ public class ModuleOperationStackedList<E extends ModuleOperation> extends Stack
     super(expectedConflationNumberOperations, expectedTransactionNumberOperations);
   }
 
-  public void commitTransactions() {
-    super.commitTransactions();
-    lineCounter.commitTransactions();
+  public void commitTransactionBundle() {
+    super.commitTransactionBundle();
+    lineCounter.commitTransactionBundle();
   }
 
-  public void popTransactions() {
-    super.popTransactions();
-    lineCounter.popTransactions();
+  public void popTransactionBundle() {
+    super.popTransactionBundle();
+    lineCounter.popTransactionBundle();
   }
 
   public int lineCount() {
@@ -90,6 +90,6 @@ public class ModuleOperationStackedList<E extends ModuleOperation> extends Stack
     conflationFinished = true;
     operationsCommitedToTheConflation().addAll(operationsInTransactionBundle());
     operationsInTransactionBundle().clear();
-    lineCounter.commitTransactions(); // this is not mandatory but it is more consistent
+    lineCounter.commitTransactionBundle(); // this is not mandatory but it is more consistent
   }
 }

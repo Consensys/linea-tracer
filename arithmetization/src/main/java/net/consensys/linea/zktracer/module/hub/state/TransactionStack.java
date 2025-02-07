@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.state;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
@@ -46,19 +48,20 @@ public class TransactionStack {
     return transactions.get(id - 1);
   }
 
-  public void commitTransactions() {
-    transactions.commitTransactions();
+  public void commitTransactionBundle() {
+    transactions.commitTransactionBundle();
   }
 
-  public void popTransactions() {
+  public void popTransactionBundle() {
     final int numberOfTransactionToPop = transactions.operationsInTransactionBundle().size();
-    transactions.popTransactions();
-    this.currentAbsNumber -= numberOfTransactionToPop;
-    this.relativeTransactionNumber -= numberOfTransactionToPop;
+    transactions.popTransactionBundle();
+    currentAbsNumber -= numberOfTransactionToPop;
+    relativeTransactionNumber -= numberOfTransactionToPop;
+    checkState(relativeTransactionNumber >= 0);
   }
 
   public void resetBlock() {
-    this.relativeTransactionNumber = 0;
+    relativeTransactionNumber = 0;
   }
 
   public void enterTransaction(final WorldView world, final Transaction tx, Block block) {

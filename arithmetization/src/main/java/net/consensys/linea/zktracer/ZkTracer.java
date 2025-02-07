@@ -308,14 +308,14 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   /**
    * When called, erase all tracing related to the bundle of all transactions since the last {@link
-   * commitTransactions()}
+   * commitTransactionBundle()}
    */
-  public void popTransactions() {
-    hub.popTransactions();
+  public void popTransactionBundle() {
+    hub.popTransactionBundle();
   }
 
-  public void commitTransactions() {
-    hub.commitTransactions();
+  public void commitTransactionBundle() {
+    hub.commitTransactionBundle();
   }
 
   public Map<String, Integer> getModulesLineCount() {

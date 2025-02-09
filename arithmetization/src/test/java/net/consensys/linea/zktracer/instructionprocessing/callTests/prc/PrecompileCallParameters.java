@@ -27,17 +27,26 @@ public class PrecompileCallParameters {
   public final CallSize rac;
   public final RelativeRangePosition relPos;
 
-    public PrecompileCallParameters(OpCode call, GasParameter gas, HashPrecompile prc, int value, CallOffset cdo, CallSize cds, CallOffset rao, CallSize rac, RelativeRangePosition relPos) {
-        this.call = call;
-        this.gas = gas;
-        this.prc = prc;
-        this.value = value;
-        this.cdo = cdo;
-        this.cds = cds;
-        this.rao = rao;
-        this.rac = rac;
-        this.relPos = relPos;
-    }
+  public PrecompileCallParameters(
+      OpCode call,
+      GasParameter gas,
+      HashPrecompile prc,
+      int value,
+      CallOffset cdo,
+      CallSize cds,
+      CallOffset rao,
+      CallSize rac,
+      RelativeRangePosition relPos) {
+    this.call = call;
+    this.gas = gas;
+    this.prc = prc;
+    this.value = value;
+    this.cdo = cdo;
+    this.cds = cds;
+    this.rao = rao;
+    this.rac = rac;
+    this.relPos = relPos;
+  }
 
   public PrecompileCallParameters next() {
     return new PrecompileCallParameters(call, gas, prc.next(), value, cdo, cds, rao, rac, relPos);

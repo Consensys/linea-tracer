@@ -15,25 +15,25 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.sha2;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.sha2.ParameterGeneration.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -76,19 +76,35 @@ public class HappyPathHashPrecompileTests {
 
   private final int otherCds = 39;
 
+  public static Stream<Arguments> happyPathHashPrecompileParameters() {
+    return ParameterGeneration.happyPathHashPrecompileParameters();
+  }
+
   /**
-   * In the case where everything happens in the root context.
+   * MESSAGE_CALL transaction case
    *
    * @param params
    */
   @ParameterizedTest
   @MethodSource("happyPathHashPrecompileParameters")
+  @Tag("weekly")
   public void happyPathPrecompileMessageCallTransactionTest(PrecompileCallParameters params) {
 
     BytecodeCompiler program = happyPathWipeReturnDataHappyPathProgram(params);
-
     BytecodeRunner.of(program.compile()).run(Wei.fromEth(1), 61_000_000L);
+  }
 
+  /**
+   * CONTRACT_DEPLOYMENT transaction case
+   *
+   * @param params
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathHashPrecompileParameters")
+  @Tag("weekly")
+  public void happyPathPrecompileDeploymentTransactionTest(PrecompileCallParameters params) {
+
+    BytecodeCompiler program = happyPathWipeReturnDataHappyPathProgram(params);
     Transaction deploymentTransaction =
         ToyTransaction.builder()
             .sender(userAccount)
@@ -98,38 +114,13 @@ public class HappyPathHashPrecompileTests {
             .payload(program.compile()) // init code
             .value(Wei.of(1_000_000_000L))
             .build();
-  }
 
-  /**
-   * Generates test parameters for the happy path tests.
-   *
-   * @return Stream of test parameters
-   */
-  public static Stream<Arguments> happyPathHashPrecompileParameters() {
-    List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
-
-    List<Arguments> argumentsList = new ArrayList<>();
-    for (OpCode callOpcode : CallOpCodes) {
-      for (GasParameter gas : GasParameter.values()) {
-        for (HashPrecompile precompile : HashPrecompile.values()) {
-          for (CallOffset cdo : CallOffset.values()) {
-            for (CallSize cds : CallSize.values()) {
-              for (CallOffset rao : CallOffset.values()) {
-                for (CallSize rac : CallSize.values()) {
-                  for (RelativeRangePosition relPos : RelativeRangePosition.values()) {
-                    argumentsList.add(
-                            Arguments.of(
-                                    new PrecompileCallParameters(
-                                            callOpcode, gas, precompile, 1, cdo, cds, rao, rac, relPos)));
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-    return argumentsList.stream();
+    ToyExecutionEnvironmentV2.builder()
+        .transaction(deploymentTransaction)
+        .accounts(List.of(userAccount))
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run();
   }
 
   public void appendHappyPathPrecompileCall(
@@ -201,8 +192,7 @@ public class HappyPathHashPrecompileTests {
     loadFirstReturnDataWordOntoStack(program, params.relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
     // return data wiping
-    appendInsufficientBalanceCall(
-        program, params.call, 20_000, params.prc.getAddress(), 1, 2, 3, 4);
+    appendInsufficientBalanceCall(program, CALL, 20_000, params.prc.getAddress(), 1, 2, 3, 4);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(
         program, params.relPos == OVERLAP ? 4 : 4 * WORD_SIZE);
     loadFirstReturnDataWordOntoStack(program, params.relPos == OVERLAP ? 15 : 5 * WORD_SIZE);

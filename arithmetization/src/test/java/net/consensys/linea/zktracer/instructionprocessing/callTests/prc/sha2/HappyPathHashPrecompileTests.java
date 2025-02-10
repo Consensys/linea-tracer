@@ -16,23 +16,19 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.sha2;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.sha2.ParameterGeneration.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static org.hyperledger.besu.datatypes.TransactionType.FRONTIER;
 
 import java.util.List;
 import java.util.stream.Stream;
 
-import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.testing.BytecodeRunner;
-import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
-import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
-import org.hyperledger.besu.datatypes.TransactionType;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -58,26 +54,63 @@ import org.junit.jupiter.params.provider.MethodSource;
  * <p>To give full details, we will test the following scenario which we call <b>happy path
  * precompile</b>:
  *
- * <p>1. happy path precompile CALL
+ * <p>- happy path precompile CALL
  *
- * <p>2. play with (precompile) return data
+ * <p>- play with (precompile) return data
  *
- * <p>3. wipe return data
+ * <p>- wipe return data
  *
- * <p>4. happy path
+ * <p>- (different) happy path precompile CALL
  *
- * <p>5. play with (precompile) return data
+ * <p>- play with (precompile) return data
  *
- * <p>In various setups: in the root context of a <b>MESSAGE_CALL_TRANSACTION</b> or a
- * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b>, at depth 1 in a <b>MESSAGE_CALL_FROM_ROOT</b>,
- * <b>DURING_DEPLOYMENT</b> or <b>AFTER_DEPLOYMENT</b>.
+ * <p>In various setups:
+ *
+ * <p>- at depth 0 in the root context of a <b>MESSAGE_CALL_TRANSACTION</b>
+ *
+ * <p>- at depth 0 in the root context of a <b>CONTRACT_DEPLOYMENT_TRANSACTION</b>
+ *
+ * <p>- at depth 1 in a <b>MESSAGE_CALL_FROM_ROOT</b>
+ *
+ * <p>- at depth 1 in a <b>DURING_DEPLOYMENT</b>
+ *
+ * <p>- at depth 1 in a <b>AFTER_DEPLOYMENT</b>
  */
 public class HappyPathHashPrecompileTests {
 
+  final Address rootAddress = Address.fromHexString("7007");
+  final ToyAccount.ToyAccountBuilder root =
+          ToyAccount.builder()
+                  .address(rootAddress)
+                  .balance(Wei.of(65536L))
+                  .nonce(1865);
+
+  final Address chadPrcEnjoyerAddress = Address.fromHexString("cbad");
+  final ToyAccount.ToyAccountBuilder chadPrcEnjoyer =
+          ToyAccount.builder()
+                  .address(chadPrcEnjoyerAddress)
+                  .balance(Wei.of(1024L))
+                  .nonce(64);
+
+  final Address initCodeHolderAddress = Address.fromHexString("f00d");
+  final ToyAccount.ToyAccountBuilder initCodeHolder = ToyAccount.builder()
+          .address(initCodeHolderAddress)
+          .balance(Wei.of(0x1337L))
+          .nonce(127);
+
+  final ToyTransaction.ToyTransactionBuilder transaction =
+          ToyTransaction.builder()
+                  .sender(userAccount)
+                  .keyPair(keyPair)
+                  .transactionType(FRONTIER)
+                  .gasLimit(0xffffffL)
+                  .value(Wei.of(1_000_000_000L));
+
+
   private final int otherCds = 39;
 
-  public static Stream<Arguments> happyPathHashPrecompileParameters() {
-    return ParameterGeneration.happyPathHashPrecompileParameters();
+  public static Stream<Arguments> happyPathHashPrecompileParameterGeneration() {
+    return ParameterGeneration.happyPathHashPrecompileParameterGeneration();
   }
 
   /**
@@ -86,12 +119,12 @@ public class HappyPathHashPrecompileTests {
    * @param params
    */
   @ParameterizedTest
-  @MethodSource("happyPathHashPrecompileParameters")
-  @Tag("weekly")
-  public void happyPathPrecompileMessageCallTransactionTest(PrecompileCallParameters params) {
-
-    BytecodeCompiler program = happyPathWipeReturnDataHappyPathProgram(params);
-    BytecodeRunner.of(program.compile()).run(Wei.fromEth(1), 61_000_000L);
+  @MethodSource("happyPathHashPrecompileParameterGeneration")
+  public void messageCallTransactionTest(PrecompileCallParameters params) {
+    if (!params.willRevert) {
+      BytecodeCompiler program = happyPathWipeReturnDataHappyPathProgram(params);
+      BytecodeRunner.of(program.compile()).run(Wei.fromEth(1), 61_000_000L);
+    }
   }
 
   /**
@@ -100,27 +133,110 @@ public class HappyPathHashPrecompileTests {
    * @param params
    */
   @ParameterizedTest
-  @MethodSource("happyPathHashPrecompileParameters")
-  @Tag("weekly")
-  public void happyPathPrecompileDeploymentTransactionTest(PrecompileCallParameters params) {
+  @MethodSource("happyPathHashPrecompileParameterGeneration")
+  public void deploymentTransactionTest(PrecompileCallParameters params) {
 
-    BytecodeCompiler program = happyPathWipeReturnDataHappyPathProgram(params);
-    Transaction deploymentTransaction =
-        ToyTransaction.builder()
-            .sender(userAccount)
-            .keyPair(keyPair)
-            .transactionType(TransactionType.FRONTIER)
-            .gasLimit(0xffffffL)
-            .payload(program.compile()) // init code
-            .value(Wei.of(1_000_000_000L))
-            .build();
+    BytecodeCompiler txInitCode = happyPathWipeReturnDataHappyPathProgram(params);
+    if (params.willRevert) revertWith(txInitCode, 0, 0);
+
+    transaction.payload(txInitCode.compile()); // init code
 
     ToyExecutionEnvironmentV2.builder()
-        .transaction(deploymentTransaction)
+        .transaction(transaction.build())
         .accounts(List.of(userAccount))
         .zkTracerValidator(zkTracer -> {})
         .build()
         .run();
+  }
+
+  /**
+   * MESSAGE_CALL_FROM_ROOT case:
+   * <p>- the transaction is a MESSAGE_CALL targeting {@code callDataAddressCaller}
+   * <p>- the ROOT contract is therefore {@code callDataAddressCaller}
+   * <p>- the ROOT calls the {@code chadPrcEnjoyer} contract which executes the <b>happy path</b>
+   * <p>- the ROOT optionally reverts
+   *
+   * @param params
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathHashPrecompileParameterGeneration")
+  public void messageCallFromRootTest(PrecompileCallParameters params) {
+
+    BytecodeCompiler rootCode = BytecodeCompiler.newProgram();
+    appendCallToAddressInCallData(rootCode, CALL);
+    if (params.willRevert) revertWith(rootCode, 0, 0); // we let the ROOT revert
+
+    root.code(rootCode.compile());
+
+    BytecodeCompiler chadPrcEnjoyerCode = happyPathWipeReturnDataHappyPathProgram(params);
+    chadPrcEnjoyer.code(chadPrcEnjoyerCode.compile());
+
+    transaction
+            .to(root.build())
+            .payload(chadPrcEnjoyerAddress);
+
+    ToyExecutionEnvironmentV2.builder()
+            .accounts(List.of(userAccount, root.build(), chadPrcEnjoyer.build()))
+            .transaction(transaction.build())
+            .build()
+            .run();
+  }
+
+  /**
+   * The {@link #root} contract fully copies the code of the account whose address is in the {@link #transaction} call data.
+   * This account is the {@link #chadPrcEnjoyer}. That code is then used as the initialization code of a <b>CREATE</b>.
+   * The whole operation optionally <b>REVERT</b>'s.
+   * @param params
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathHashPrecompileParameterGeneration")
+  public void happyPathDuringCreate(PrecompileCallParameters params) {
+
+    BytecodeCompiler useForeignCodeAsInitCode = BytecodeCompiler.newProgram();
+    copyForeignCodeAndRunItAsInitCode(useForeignCodeAsInitCode, chadPrcEnjoyerAddress);
+    if (params.willRevert) revertWith(useForeignCodeAsInitCode, 0, 0);
+
+    root.code(useForeignCodeAsInitCode.compile());
+
+    chadPrcEnjoyer.code(happyPathWipeReturnDataHappyPathProgram(params).compile());
+
+    transaction.to(root.build());
+
+    ToyExecutionEnvironmentV2.builder()
+            .accounts(List.of(userAccount, root.build(), chadPrcEnjoyer.build()))
+            .transaction(transaction.build())
+            .build()
+            .run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("happyPathHashPrecompileParameterGeneration")
+  public void happyPathAfterCreate(PrecompileCallParameters params) {
+
+    chadPrcEnjoyer.code(happyPathWipeReturnDataHappyPathProgram(params).compile());
+
+    BytecodeCompiler foreignByteCodeDeployer = BytecodeCompiler.newProgram();
+    deployForeignCode(foreignByteCodeDeployer, chadPrcEnjoyerAddress);
+    initCodeHolder.code(foreignByteCodeDeployer.compile());
+
+    int key = 65537; // 0x 01 00 01
+    BytecodeCompiler rootCode = BytecodeCompiler.newProgram();
+    copyForeignCodeAndRunItAsInitCode(rootCode, initCodeHolderAddress);
+    sstoreTopOfStackTo(rootCode, key); // store deployment address
+    pushSeveral(rootCode, 0, 0, 0, 0, 1);
+    sloadFrom(rootCode, key);
+    rootCode.op(GAS).op(CALL); // call the deployed contract
+    if (params.willRevert) revertWith(rootCode, 0, 0);
+
+    root.code(rootCode.compile());
+
+    transaction.to(root.build());
+
+    ToyExecutionEnvironmentV2.builder()
+            .accounts(List.of(userAccount, root.build(), chadPrcEnjoyer.build(), initCodeHolder.build()))
+            .transaction(transaction.build())
+            .build()
+            .run();
   }
 
   public void appendHappyPathPrecompileCall(
@@ -156,12 +272,12 @@ public class HappyPathHashPrecompileTests {
       case INFINITY -> program.push("ff".repeat(32));
     }
 
-    // push address
-    program.push(params.prc.getAddress());
-
     if (params.call.callHasValueArgument()) {
       program.push(params.value);
     }
+
+    // push address
+    program.push(params.prc.getAddress());
 
     // push gas parameter
     int cost = params.prc.cost(callDataSize);

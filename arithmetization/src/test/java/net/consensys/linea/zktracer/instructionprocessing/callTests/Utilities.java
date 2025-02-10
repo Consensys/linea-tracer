@@ -229,4 +229,78 @@ public class Utilities {
           .op(MSTORE);
     }
   }
+
+  /**
+   * Appends byte code to the {@code program} that loads the first word of call data onto the stack
+   * and interprets it as an address like so:
+   *
+   * <p><b>[address | xx ... xx]</b>
+   *
+   * <p>It then calls into this address.
+   *
+   * @param program
+   * @param callOpCode
+   */
+  public static void appendCallToAddressInCallData(BytecodeCompiler program, OpCode callOpCode) {
+    checkArgument(callOpCode.isCall());
+
+    pushSeveral(program, 0, 0, 0, 0);
+    if (callOpCode.callHasValueArgument()) {
+      program.push(256); // value
+    }
+    callDataLoadFrom(program, 0); // [address | 00 ... 00], 12 zero bytes at the end
+    rightShiftTopOfStackToProduceAddress(program); // address
+    program.op(GAS).op(callOpCode);
+  }
+
+  public static void copyForeignCodeAndRunItAsInitCode(BytecodeCompiler program, Address foreignAddress) {
+
+    program.push(foreignAddress).op(EXTCODESIZE); // ] EXTCS ]
+    pushSeveral(program, 0, 0); // ] EXTCS | 0 | 0 ]
+    program.push(foreignAddress); // ] EXTCS | 0 | 0 | foreignAddress ]
+    program.op(EXTCODECOPY);
+    program.op(MSIZE);
+    pushSeveral(program, 0, 0); // ] MSIZE | 0 | 0 ]
+    program.op(CREATE);
+  }
+
+  /**
+   * <b>EXTCODECOPY</b>'s all of {@code foreignAddress}'s byte code and returns it.
+   *
+   * @param program
+   * @param foreignAddress
+   */
+  public static void deployForeignCode(BytecodeCompiler program, Address foreignAddress) {
+    program.push(foreignAddress).op(EXTCODESIZE); // ] EXTCS ]
+    pushSeveral(program, 0, 0);
+    program.push(foreignAddress); // ] EXTCS | 0 | 0 | foreignAddress ]
+    program.op(EXTCODECOPY); // full copy of foreign code
+    program.op(MSIZE).push(0).op(RETURN); // return memory in full
+  }
+
+  public static void sstoreTopOfStackTo(BytecodeCompiler program, int storageKey) {
+    program.push(storageKey).op(MSTORE);
+  }
+
+  public static void sloadFrom(BytecodeCompiler program, int storageKey) {
+    program.push(storageKey).op(SLOAD);
+  }
+
+  public static void rightShiftTopOfStackToProduceAddress(BytecodeCompiler program) {
+    program.push(8 * 12).op(SHR);
+  }
+
+  public static void revertWith(BytecodeCompiler program, int offset, int size) {
+    program.push(size).push(offset).op(REVERT);
+  }
+
+  public static void callDataLoadFrom(BytecodeCompiler program, int offset) {
+    program.push(offset).op(CALLDATALOAD);
+  }
+
+  public static void pushSeveral(BytecodeCompiler program, int... values) {
+    for (int value : values) {
+      program.push(value);
+    }
+  }
 }

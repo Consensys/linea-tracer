@@ -32,7 +32,7 @@ public class ParameterGeneration {
    *
    * @return Stream of test parameters
    */
-  public static Stream<Arguments> happyPathHashPrecompileParameters() {
+  public static Stream<Arguments> happyPathHashPrecompileParameterGeneration() {
     List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
 
     List<Arguments> argumentsList = new ArrayList<>();
@@ -45,9 +45,11 @@ public class ParameterGeneration {
                 for (CallSize rac : CallSize.values()) {
                   for (RelativeRangePosition relPos : RelativeRangePosition.values()) {
                     argumentsList.add(
-                        Arguments.of(
-                            new PrecompileCallParameters(
-                                callOpcode, gas, precompile, 1, cdo, cds, rao, rac, relPos)));
+                            Arguments.of(
+                                    new PrecompileCallParameters(
+                                            callOpcode, gas, precompile, 1, cdo, cds, rao, rac, relPos, true),
+                                    new PrecompileCallParameters(
+                                            callOpcode, gas, precompile, 1, cdo, cds, rao, rac, relPos, false)));
                   }
                 }
               }

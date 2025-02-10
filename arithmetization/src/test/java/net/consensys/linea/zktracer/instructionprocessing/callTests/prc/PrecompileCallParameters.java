@@ -26,6 +26,7 @@ public class PrecompileCallParameters {
   public final CallOffset rao;
   public final CallSize rac;
   public final RelativeRangePosition relPos;
+  public final boolean willRevert;
 
   public PrecompileCallParameters(
       OpCode call,
@@ -36,7 +37,8 @@ public class PrecompileCallParameters {
       CallSize cds,
       CallOffset rao,
       CallSize rac,
-      RelativeRangePosition relPos) {
+      RelativeRangePosition relPos,
+      boolean willRevert) {
     this.call = call;
     this.gas = gas;
     this.prc = prc;
@@ -46,9 +48,10 @@ public class PrecompileCallParameters {
     this.rao = rao;
     this.rac = rac;
     this.relPos = relPos;
+    this.willRevert = willRevert;
   }
 
   public PrecompileCallParameters next() {
-    return new PrecompileCallParameters(call, gas, prc.next(), value, cdo, cds, rao, rac, relPos);
+    return new PrecompileCallParameters(call, gas, prc.next(), value, cdo, cds, rao, rac, relPos, willRevert);
   }
 }

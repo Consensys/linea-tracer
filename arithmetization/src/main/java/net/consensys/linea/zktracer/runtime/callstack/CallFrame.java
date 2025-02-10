@@ -78,7 +78,8 @@ public class CallFrame {
   public int getCodeFragmentIndex(Hub hub) {
     return this == CallFrame.EMPTY || type == CallFrameType.TRANSACTION_CALL_DATA_HOLDER
         ? 0
-        : hub.getCfiByMetaData(byteCodeAddress, byteCodeDeploymentNumber, isDeployment);
+        : hub.getCodeFragmentIndexByMetaData(
+            byteCodeAddress, byteCodeDeploymentNumber, isDeployment);
   }
 
   @Getter @Setter private int pc;
@@ -90,7 +91,7 @@ public class CallFrame {
   @Getter private final MemoryRange callDataRange; // immutable
   @Getter private final MemoryRange returnAtRange; // immutable
   @Getter @Setter private MemoryRange returnDataRange = MemoryRange.EMPTY; // mutable
-  @Getter @Setter private MemoryRange outputDataRange = MemoryRange.EMPTY; // set at exit time
+  @Getter @Setter private MemoryRange outputDataRange; // set at exit time
 
   @Getter private boolean executionPaused = false;
   @Getter @Setter private long lastValidGasNext = 0;
@@ -106,7 +107,7 @@ public class CallFrame {
   }
 
   public void rememberGasNextBeforePausing(Hub hub) {
-    lastValidGasNext = hub.state.current().txTrace().currentSection().commonValues.gasNext();
+    lastValidGasNext = hub.state.current().traceSections().currentSection().commonValues.gasNext();
   }
 
   // revert related information
@@ -203,6 +204,7 @@ public class CallFrame {
     this.parentId = parentId;
     this.callDataRange = callDataRange;
     this.returnAtRange = returnAtRange;
+    this.outputDataRange = new MemoryRange(contextNumber);
   }
 
   public boolean isRoot() {
@@ -311,10 +313,5 @@ public class CallFrame {
 
   public static OpCode getOpCode(MessageFrame frame) {
     return OpCode.of(0xFF & frame.getCurrentOperation().getOpcode());
-  }
-
-  /** Get to fucking work GitHub */
-  public void squashReturnData() {
-    returnDataRange(MemoryRange.EMPTY);
   }
 }

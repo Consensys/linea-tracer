@@ -35,6 +35,10 @@ import org.junit.jupiter.api.Test;
 
 public class NoCFIDuplicateTests {
 
+  /**
+   * This test checks that teh ROM_LEX doesn't create duplicate of CFI when calling twice the same
+   * contract.
+   */
   @Test
   void noCfiDuplicate() {
     final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();

@@ -18,7 +18,6 @@ import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_MAINNET;
 
 import net.consensys.linea.UnitTestWatcher;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,7 +38,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
  * <p>See https://github.com/Consensys/linea-tracer/issues/1121
  */
 @Tag("nightly")
-@Disabled
 @ExtendWith(UnitTestWatcher.class)
 public class Issue1126Tests {
   @Test

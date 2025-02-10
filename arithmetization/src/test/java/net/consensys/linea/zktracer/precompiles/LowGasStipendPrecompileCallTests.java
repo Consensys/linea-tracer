@@ -15,8 +15,16 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
+import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
 import static org.hyperledger.besu.datatypes.Address.BLAKE2B_F_COMPRESSION;
+import static org.hyperledger.besu.datatypes.Address.ECREC;
+import static org.hyperledger.besu.datatypes.Address.ID;
+import static org.hyperledger.besu.datatypes.Address.MODEXP;
+import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
+import static org.hyperledger.besu.datatypes.Address.SHA256;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -35,9 +43,27 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class LowGasStipendPrecompileCallTests {
 
+  enum ValueParameter {
+    ZERO,
+    NON_ZERO;
+
+    boolean isZeroArgument() {
+      return this == ZERO;
+    }
+  }
+
+  enum GasParameter {
+    ZERO,
+    ONE,
+    COST_MINUS_ONE,
+    COST,
+    COST_PLUS_ONE;
+  }
+
   @ParameterizedTest
   @MethodSource("lowGasStipendPrecompileCallTestSource")
-  void lowGasStipendPrecompileCallTest(Address precompileAddress, boolean isZeroArgument) {
+  void lowGasStipendPrecompileCallTest(
+      Address precompileAddress, ValueParameter valueParameter, GasParameter gasParameter) {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // In order to actually trigger the insufficient we need to:
@@ -47,24 +73,60 @@ public class LowGasStipendPrecompileCallTests {
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
       program
           .push(0xab) // r (as r is 4 bytes, it is padded to 0xab000000)
-          .push(isZeroArgument ? 0 : 1) // offset
+          .push(valueParameter.isZeroArgument() ? 0 : 1) // offset
           .op(OpCode.MSTORE8);
       argsSize = 213;
     } else if (precompileAddress == ALTBN128_PAIRING) {
       argsSize = 192;
     } else {
-      argsSize = isZeroArgument ? 0 : 1;
+      argsSize = valueParameter.isZeroArgument() ? 0 : 1;
     }
+
+    int precompileCost = 0;
+    if (precompileAddress.equals(ECREC)) {
+      precompileCost = 3000;
+    } else if (precompileAddress.equals(SHA256)) {
+      precompileCost = 60;
+    } else if (precompileAddress.equals(RIPEMD160)) {
+      precompileCost = 600;
+    } else if (precompileAddress.equals(ID)) {
+      precompileCost = 15;
+    } else if (precompileAddress.equals(MODEXP)) {
+      precompileCost = 200;
+    } else if (precompileAddress.equals(ALTBN128_ADD)) {
+      precompileCost = 150;
+    } else if (precompileAddress.equals(ALTBN128_MUL)) {
+      precompileCost = 6000;
+    } else if (precompileAddress.equals(ALTBN128_PAIRING)) {
+      precompileCost = 45000;
+    } else if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
+      precompileCost = 0xab000000;
+    } else {
+      throw new IllegalArgumentException("Unknown precompile address");
+    }
+
+    // In case funds are sent to the precompile contract, the precompile cost is increased by 2300
+    int extraCost = valueParameter.isZeroArgument() ? 0 : 2300;
+    precompileCost += extraCost;
+
+    int gas =
+        switch (gasParameter) {
+          case ZERO -> 0;
+          case ONE -> 1;
+          case COST_MINUS_ONE -> precompileCost - 1;
+          case COST -> precompileCost;
+          case COST_PLUS_ONE -> precompileCost + 1;
+        };
 
     // Common program for all precompile calls
     program
-        .push(isZeroArgument ? 0 : 1) // retSize
-        .push(isZeroArgument ? 0 : 1) // retOffset
+        .push(valueParameter.isZeroArgument() ? 0 : 1) // retSize
+        .push(valueParameter.isZeroArgument() ? 0 : 1) // retOffset
         .push(argsSize) // argsSize
-        .push(isZeroArgument ? 0 : 1) // argsOffset
-        .push(0) // value
+        .push(valueParameter.isZeroArgument() ? 0 : 1) // argsOffset
+        .push(valueParameter.isZeroArgument() ? 0 : 1) // value
         .push(precompileAddress) // address
-        .push(1) // gas, that is deliberately insufficient
+        .push(gas) // gas, that is deliberately insufficient
         .op(OpCode.CALL)
         .compile();
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
@@ -79,21 +141,30 @@ public class LowGasStipendPrecompileCallTests {
       insufficientGasForPrecompile =
           insufficientGasForPrecompile || operation.isInsufficientGasForPrecompile();
     }
-    assertTrue(insufficientGasForPrecompile);
+
+    if (gasParameter == GasParameter.ZERO
+        || gasParameter == GasParameter.ONE
+        || gasParameter == GasParameter.COST_MINUS_ONE) {
+      assertTrue(insufficientGasForPrecompile);
+    } else {
+      assertFalse(insufficientGasForPrecompile);
+    }
   }
 
   static Stream<Arguments> lowGasStipendPrecompileCallTestSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (boolean isZeroArgument : new boolean[] {true, false}) {
-      arguments.add(Arguments.of(Address.ECREC, isZeroArgument));
-      arguments.add(Arguments.of(Address.SHA256, isZeroArgument));
-      arguments.add(Arguments.of(Address.RIPEMD160, isZeroArgument));
-      arguments.add(Arguments.of(Address.ID, isZeroArgument));
-      arguments.add(Arguments.of(Address.MODEXP, isZeroArgument));
-      arguments.add(Arguments.of(Address.ALTBN128_ADD, isZeroArgument));
-      arguments.add(Arguments.of(Address.ALTBN128_MUL, isZeroArgument));
-      arguments.add(Arguments.of(Address.ALTBN128_PAIRING, isZeroArgument));
-      arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, isZeroArgument));
+    for (ValueParameter valueParameter : ValueParameter.values()) {
+      for (GasParameter gasParameter : GasParameter.values()) {
+        arguments.add(Arguments.of(ECREC, valueParameter, gasParameter));
+        arguments.add(Arguments.of(SHA256, valueParameter, gasParameter));
+        arguments.add(Arguments.of(RIPEMD160, valueParameter, gasParameter));
+        arguments.add(Arguments.of(ID, valueParameter, gasParameter));
+        arguments.add(Arguments.of(MODEXP, valueParameter, gasParameter));
+        arguments.add(Arguments.of(ALTBN128_ADD, valueParameter, gasParameter));
+        arguments.add(Arguments.of(ALTBN128_MUL, valueParameter, gasParameter));
+        arguments.add(Arguments.of(Address.ALTBN128_PAIRING, valueParameter, gasParameter));
+        arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, valueParameter, gasParameter));
+      }
     }
     return arguments.stream();
   }

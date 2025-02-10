@@ -15,6 +15,10 @@
 
 plugins {
   id "common-plugins"
+  id 'jacoco'
+}
+jacoco {
+  toolVersion = '0.8.12'
 }
 
 apply from: rootProject.file("gradle/corset.gradle")
@@ -55,6 +59,7 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 
 tasks.register('referenceBlockchainTests', Test) {
   dependsOn(buildReferenceTestsZkevmBin)
+  finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
   dependsOn generateBlockchainReferenceTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
@@ -66,6 +71,15 @@ tasks.register('referenceBlockchainTests', Test) {
   useJUnitPlatform {
     includeTags("BlockchainReferenceTest")
   }
+}
+
+tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData(referenceBlockchainTests)
 }
 
 tasks.register('referenceGeneralStateTests', Test) {
@@ -92,6 +106,7 @@ tasks.register('referenceGeneralStateTests', Test) {
     // Record zkevm.bin for CorsetValidator
     environment.put("ZKEVM_BIN", System.getenv("ZKEVM_BIN") ?: "zkevm_for_reference_tests.bin")
     // Configure parallelism
+    environment.put("blockchain", System.getenv("blockchain") ?: "Ethereum")
     systemProperty("junit.jupiter.execution.timeout.default", "15 m")  // 5 minutes
     systemProperty("junit.jupiter.execution.parallel.enabled", "true")
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")

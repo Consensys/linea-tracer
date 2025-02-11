@@ -135,15 +135,7 @@ public class HappyPathHashPrecompileTests {
   }
 
   /**
-   * MESSAGE_CALL_FROM_ROOT case:
-   *
-   * <p>- the transaction is a MESSAGE_CALL targeting {@code callDataAddressCaller}
-   *
-   * <p>- the ROOT contract is therefore {@code callDataAddressCaller}
-   *
-   * <p>- the ROOT calls the {@code chadPrcEnjoyer} contract which executes the <b>happy path</b>
-   *
-   * <p>- the ROOT optionally reverts
+   * MESSAGE_CALL_FROM_ROOT case.
    *
    * @param params
    */
@@ -209,7 +201,7 @@ public class HappyPathHashPrecompileTests {
     program.push(callDataSize);
 
     switch (params.cdo) {
-      case ALIGNED -> program.push(0 + params.prc.smallOffset2());
+      case ALIGNED -> program.push(params.prc.smallOffset2());
       case MISALIGNED -> program.push(13 + params.prc.smallOffset2());
       case INFINITY -> program.push("ff".repeat(32));
     }
@@ -282,9 +274,11 @@ public class HappyPathHashPrecompileTests {
   }
 
   /**
-   * We provide {@link #foreignCodeOwner} with {@code foreignCode} as its byte code. We provide
-   * {@link #root} with byte code that copies the code of {@link #foreignCodeOwnerAddress} and runs
-   * it as initialization code. {@link #root} optionally reverts.
+   * - We provide {@link #foreignCodeOwner} with {@code foreignCode} as its byte code
+   *
+   * <p>- We provide {@link #root} with byte code that <b>(a)</b> copies the code of {@link
+   * #foreignCodeOwner} to RAM, <b>(b)</b> runs it as the init code of a <b>CREATE</b> and
+   * <b>(c)</b> optionally reverts.
    *
    * @param foreignCode
    * @param embedRevertIntoInitCode
@@ -309,8 +303,10 @@ public class HappyPathHashPrecompileTests {
   }
 
   /**
-   * {@link #chadPrcEnjoyer} is given {@code providedCode} as its byte code. The {@code root} of the
-   * transaction calls {@link #chadPrcEnjoyer}. It then optionally reverts.
+   * - We provide {@link #chadPrcEnjoyer} with {@code providedCode} as its byte code
+   *
+   * <p>- We provide {@code root} with byte code that calls {@link #chadPrcEnjoyer} and optionally
+   * reverts.
    *
    * @param providedCode
    * @param revertRoot
@@ -335,9 +331,9 @@ public class HappyPathHashPrecompileTests {
   }
 
   /**
-   * - We provide {@link #root} with byte code that (<i>a</i>) copies {@link #initCodeOwner}'s code
-   * and runs it as the init code of a <b>CREATE</b> (<i>b</i>) <b>CALL</b>'s into the newly
-   * deployed contract (<i>c</i>) and optionally reverts.
+   * - We provide {@link #root} with byte code that (<b>a</b>) copies {@link #initCodeOwner}'s code
+   * and runs it as the init code of a <b>CREATE</b> (<b>b</b>) <b>CALL</b>'s into the newly
+   * deployed contract (<b>c</b>) and optionally reverts.
    *
    * <p>- We provide {@link #initCodeOwner} with byte code that copies the code of {@link
    * #foreignCodeOwnerAddress} and <b>RETURN</b>'s it.

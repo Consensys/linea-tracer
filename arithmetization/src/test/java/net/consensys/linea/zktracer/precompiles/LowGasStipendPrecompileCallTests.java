@@ -86,11 +86,11 @@ public class LowGasStipendPrecompileCallTests {
     if (precompileAddress.equals(ECREC)) {
       precompileCost = 3000;
     } else if (precompileAddress.equals(SHA256)) {
-      precompileCost = 60;
+      precompileCost = (5 + (argsSize + 31) / 32) * 12;
     } else if (precompileAddress.equals(RIPEMD160)) {
-      precompileCost = 600;
+      precompileCost = (5 + (argsSize + 31) / 32) * 120;
     } else if (precompileAddress.equals(ID)) {
-      precompileCost = 15;
+      precompileCost = (5 + (argsSize + 31) / 32) * 3;
     } else if (precompileAddress.equals(MODEXP)) {
       precompileCost = 200;
     } else if (precompileAddress.equals(ALTBN128_ADD)) {
@@ -98,7 +98,7 @@ public class LowGasStipendPrecompileCallTests {
     } else if (precompileAddress.equals(ALTBN128_MUL)) {
       precompileCost = 6000;
     } else if (precompileAddress.equals(ALTBN128_PAIRING)) {
-      precompileCost = 45000;
+      precompileCost = 45000 + 34000 * (argsSize / 192);
     } else if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
       precompileCost = 0xab000000;
     } else {
@@ -106,8 +106,8 @@ public class LowGasStipendPrecompileCallTests {
     }
 
     // In case funds are sent to the precompile contract, the precompile cost is increased by 2300
-    int extraCost = valueParameter.isZeroArgument() ? 0 : 2300;
-    precompileCost += extraCost;
+    // int extraCost = valueParameter.isZeroArgument() ? 0 : 2300;
+    // precompileCost += extraCost;
 
     int gas =
         switch (gasParameter) {
@@ -159,7 +159,10 @@ public class LowGasStipendPrecompileCallTests {
         arguments.add(Arguments.of(SHA256, valueParameter, gasParameter));
         arguments.add(Arguments.of(RIPEMD160, valueParameter, gasParameter));
         arguments.add(Arguments.of(ID, valueParameter, gasParameter));
-        arguments.add(Arguments.of(MODEXP, valueParameter, gasParameter));
+        if (valueParameter == ValueParameter.ZERO) {
+          // The NON_ZERO case will be treated in a separate test
+          arguments.add(Arguments.of(MODEXP, valueParameter, gasParameter));
+        }
         arguments.add(Arguments.of(ALTBN128_ADD, valueParameter, gasParameter));
         arguments.add(Arguments.of(ALTBN128_MUL, valueParameter, gasParameter));
         arguments.add(Arguments.of(Address.ALTBN128_PAIRING, valueParameter, gasParameter));

@@ -41,6 +41,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
  */
 @Accessors(fluent = true)
 public final class BytecodeRunner {
+  // TODO: refacto default value
   public static final long DEFAULT_GAS_LIMIT = 61_000_000L;
   private final Bytes byteCode;
   ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2;

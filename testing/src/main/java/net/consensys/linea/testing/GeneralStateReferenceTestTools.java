@@ -101,7 +101,7 @@ public class GeneralStateReferenceTestTools {
       // This check is performed within the `BlockImporter` rather than inside the
       // `TransactionProcessor`, so these tests are skipped.
       if (transaction.getGasLimit() > blockHeader.getGasLimit() - blockHeader.getGasUsed()) {
-        throw new IllegalArgumentException("Transaction gas limit higher that avaliable in block");
+        throw new IllegalArgumentException("Transaction gas limit higher that available in block");
       }
 
       result =

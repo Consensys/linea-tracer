@@ -1,7 +1,7 @@
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.module.blockdata.Trace.GAS_LIMIT_MAXIMUM;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TRANSACTION;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BLOCK_GAS_LIMIT;
 
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -21,7 +21,7 @@ public class DynamicGasCostUtils {
    * call. The total gas cost is the gas cost of the frame + the gas cost of the transaction
    */
   public static long getGasCostForMessageCall(Bytes compiledCode) {
-    final EVM evm = MainnetEVMs.frontier(EvmConfiguration.DEFAULT);
+    final EVM evm = MainnetEVMs.london(EvmConfiguration.DEFAULT);
 
     final MessageFrame.Builder messageFrameBuilderDefaultValues =
         MessageFrameBuilderDefaultValues();
@@ -29,7 +29,8 @@ public class DynamicGasCostUtils {
     final MessageFrame initialMessageFrame =
         messageFrameBuilderDefaultValues
             .type(MessageFrame.Type.MESSAGE_CALL)
-            .initialGas(GAS_LIMIT_MAXIMUM)
+            .initialGas(LINEA_BLOCK_GAS_LIMIT)
+            .value(Wei.ZERO)
             .code(evm.getCodeUncached(compiledCode))
             .build();
 
@@ -39,7 +40,7 @@ public class DynamicGasCostUtils {
 
     long remainingGasCost = initialMessageFrame.getRemainingGas();
 
-    return GAS_CONST_G_TRANSACTION + GAS_LIMIT_MAXIMUM - remainingGasCost;
+    return GAS_CONST_G_TRANSACTION + LINEA_BLOCK_GAS_LIMIT - remainingGasCost;
   }
 
   private static MessageFrame.Builder MessageFrameBuilderDefaultValues() {
@@ -56,7 +57,6 @@ public class DynamicGasCostUtils {
         .contract(Address.ZERO)
         .inputData(Bytes32.ZERO)
         .sender(Address.ZERO)
-        .value(Wei.ZERO)
         .apparentValue(Wei.ZERO)
         .completer(messageFrame -> {});
   }

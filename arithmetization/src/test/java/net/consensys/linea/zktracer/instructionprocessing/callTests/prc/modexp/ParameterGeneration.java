@@ -14,80 +14,64 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import org.junit.jupiter.params.provider.Arguments;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.STATICCALL;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.STATICCALL;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import org.junit.jupiter.params.provider.Arguments;
 
 public class ParameterGeneration {
 
-    /**
-     * Generates test parameters for the happy path tests of <b>MODEXP</b>.
-     *
-     * @return Stream of test parameters
-     */
-    public static Stream<Arguments> happyPathParameterGeneration() {
-        List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
+  /**
+   * Generates test parameters for the happy path tests of <b>MODEXP</b>.
+   *
+   * @return Stream of test parameters
+   */
+  public static Stream<Arguments> happyPathParameterGeneration() {
+    List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
 
-        List<Arguments> argumentsList = new ArrayList<>();
+    List<Arguments> argumentsList = new ArrayList<>();
 
-        for (OpCode opCode : CallOpCodes) {
-            for (GasParameter gas : GasParameter.values()) {
-                for (ByteSizeParameter bbs : ByteSizeParameter.values()) {
-                    for (ByteSizeParameter ebs : ByteSizeParameter.values()) {
-                        for (ByteSizeParameter mbs : ByteSizeParameter.values()) {
-                            for (ModexpCallDataSizeParameter cds : ModexpCallDataSizeParameter.values()) {
-                                for (ReturnAtParameter returnAt : ReturnAtParameter.values()) {
-                                    for (RelativeRangePosition relPos : RelativeRangePosition.values()) {
-                                        argumentsList.add(
-                                                Arguments.of(
-                                                        new ModexpCallParameters(
-                                                                opCode,
-                                                                gas,
-                                                                new CallDataParameter(
-                                                                        bbs,
-                                                                        ebs,
-                                                                        mbs,
-                                                                        cds
-                                                                ),
-                                                                returnAt,
-                                                                relPos,
-                                                                false
-                                                        )
-                                                )
-                                        );
+    for (OpCode opCode : CallOpCodes) {
+      for (GasParameter gas : GasParameter.values()) {
+        for (ByteSizeParameter bbs : ByteSizeParameter.values()) {
+          for (ByteSizeParameter ebs : ByteSizeParameter.values()) {
+            for (ByteSizeParameter mbs : ByteSizeParameter.values()) {
+              for (ModexpCallDataSizeParameter cds : ModexpCallDataSizeParameter.values()) {
+                for (ReturnAtParameter returnAt : ReturnAtParameter.values()) {
+                  for (RelativeRangePosition relPos : RelativeRangePosition.values()) {
+                    argumentsList.add(
+                        Arguments.of(
+                            new ModexpCallParameters(
+                                opCode,
+                                gas,
+                                new ModexpCallDataParameters(bbs, ebs, mbs, cds),
+                                returnAt,
+                                relPos,
+                                false)));
 
-                                        argumentsList.add(
-                                                Arguments.of(
-                                                        new ModexpCallParameters(
-                                                                opCode,
-                                                                gas,
-                                                                new CallDataParameter(
-                                                                        bbs,
-                                                                        ebs,
-                                                                        mbs,
-                                                                        cds
-                                                                ),
-                                                                returnAt,
-                                                                relPos,
-                                                                false
-                                                        )
-                                                )
-                                        );
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    argumentsList.add(
+                        Arguments.of(
+                            new ModexpCallParameters(
+                                opCode,
+                                gas,
+                                new ModexpCallDataParameters(bbs, ebs, mbs, cds),
+                                returnAt,
+                                relPos,
+                                false)));
+                  }
                 }
+              }
             }
+          }
         }
-        return argumentsList.stream();
+      }
     }
+    return argumentsList.stream();
+  }
 }

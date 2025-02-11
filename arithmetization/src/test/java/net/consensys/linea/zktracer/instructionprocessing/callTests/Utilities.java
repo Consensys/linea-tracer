@@ -276,11 +276,15 @@ public class Utilities {
    * @param foreignAddress
    */
   public static void copyForeignCodeAndReturnIt(BytecodeCompiler program, Address foreignAddress) {
+    copyForeignCodeToRam(program, foreignAddress);
+    program.op(MSIZE).push(0).op(RETURN); // return memory in full
+  }
+
+  public static void copyForeignCodeToRam(BytecodeCompiler program, Address foreignAddress) {
     program.push(foreignAddress).op(EXTCODESIZE); // ] EXTCS ]
     pushSeveral(program, 0, 0);
     program.push(foreignAddress); // ] EXTCS | 0 | 0 | foreignAddress ]
     program.op(EXTCODECOPY); // full copy of foreign code
-    program.op(MSIZE).push(0).op(RETURN); // return memory in full
   }
 
   public static void sstoreTopOfStackTo(BytecodeCompiler program, int storageKey) {

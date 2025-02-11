@@ -20,7 +20,7 @@ public class ModexpCallParameters {
 
   public final OpCode call;
   public final GasParameter gas;
-  public final CallDataParameter callData;
+  public final ModexpCallDataParameters callData;
   public final ReturnAtParameter returnAt;
   public final RelativeRangePosition relPos;
   public final boolean willRevert;
@@ -28,7 +28,7 @@ public class ModexpCallParameters {
   public ModexpCallParameters(
       OpCode call,
       GasParameter gas,
-      CallDataParameter callData,
+      ModexpCallDataParameters callData,
       ReturnAtParameter returnAt,
       RelativeRangePosition relPos,
       boolean willRevert) {

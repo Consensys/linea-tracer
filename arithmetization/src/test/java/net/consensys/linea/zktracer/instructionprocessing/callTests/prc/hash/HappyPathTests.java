@@ -75,7 +75,7 @@ public class HappyPathTests {
   public void messageCallTransactionTest(HashPrecompileCallParameters params) {
     if (!params.willRevert) {
       BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
-      BytecodeRunner.of(rootCode.compile()).run(Wei.fromEth(1), 61_000_000L);
+      BytecodeRunner.of(rootCode).run(Wei.fromEth(1), 61_000_000L);
     }
   }
 

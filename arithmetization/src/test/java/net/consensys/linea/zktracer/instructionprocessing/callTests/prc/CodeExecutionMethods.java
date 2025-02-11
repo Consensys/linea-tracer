@@ -62,6 +62,14 @@ public class CodeExecutionMethods {
   public static final ToyAccount.ToyAccountBuilder foreignCodeOwner =
       ToyAccount.builder().address(foreignCodeOwnerAddress).balance(Wei.of(0x1789L)).nonce(255);
 
+  public static final Address modexpMemoryHolderAddress1 = Address.fromHexString("d00d");
+  public static final ToyAccount.ToyAccountBuilder modexpMemoryHolder1 =
+      ToyAccount.builder().address(modexpMemoryHolderAddress1).balance(Wei.of(0x2025)).nonce(0x11aaff);
+
+  public static final Address modexpMemoryHolderAddress2 = Address.fromHexString("d00d");
+  public static final ToyAccount.ToyAccountBuilder modexpMemoryHolder2 =
+          ToyAccount.builder().address(modexpMemoryHolderAddress2).balance(Wei.of(0x2025)).nonce(0x11aaff);
+
   public static final ToyTransaction.ToyTransactionBuilder transaction =
       ToyTransaction.builder()
           .sender(userAccount)

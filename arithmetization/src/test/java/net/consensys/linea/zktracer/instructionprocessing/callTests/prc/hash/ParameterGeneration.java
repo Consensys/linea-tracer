@@ -28,7 +28,8 @@ import org.junit.jupiter.params.provider.Arguments;
 public class ParameterGeneration {
 
   /**
-   * Generates test parameters for the happy path tests.
+   * Generates test parameters for the happy path tests of hash precompiles, that is
+   * <b>RIPEMD160</b>, <b>SHA256</b>, and <b>IDENTITY</b>.
    *
    * <p><b>Note.</b> We provide zero value. We thus avoid having to account for the G_callstipend.
    *
@@ -50,7 +51,7 @@ public class ParameterGeneration {
                     // adding PrecompileCallParameters
                     argumentsList.add(
                         Arguments.of(
-                            new PrecompileCallParameters(
+                            new HashPrecompileCallParameters(
                                 callOpcode,
                                 gas,
                                 precompile,
@@ -63,7 +64,7 @@ public class ParameterGeneration {
                                 true)));
                     argumentsList.add(
                         Arguments.of(
-                            new PrecompileCallParameters(
+                            new HashPrecompileCallParameters(
                                 callOpcode,
                                 gas,
                                 precompile,

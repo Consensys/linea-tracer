@@ -16,49 +16,27 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 
-public class PrecompileCallParameters {
+public class ModexpCallParameters {
+
   public final OpCode call;
-  public GasParameter gas;
-  public final HashPrecompile prc;
-  public ValueParameter value;
-  public final CallOffset cdo;
-  public final CallSize cds;
-  public final CallOffset rao;
-  public final CallSize rac;
+  public final GasParameter gas;
+  public final CallDataParameter callData;
+  public final ReturnAtParameter returnAt;
   public final RelativeRangePosition relPos;
   public final boolean willRevert;
 
-  public PrecompileCallParameters(
+  public ModexpCallParameters(
       OpCode call,
       GasParameter gas,
-      HashPrecompile prc,
-      ValueParameter value,
-      CallOffset cdo,
-      CallSize cds,
-      CallOffset rao,
-      CallSize rac,
+      CallDataParameter callData,
+      ReturnAtParameter returnAt,
       RelativeRangePosition relPos,
       boolean willRevert) {
     this.call = call;
     this.gas = gas;
-    this.prc = prc;
-    this.value = value;
-    this.cdo = cdo;
-    this.cds = cds;
-    this.rao = rao;
-    this.rac = rac;
+    this.callData = callData;
+    this.returnAt = returnAt;
     this.relPos = relPos;
     this.willRevert = willRevert;
-  }
-
-  public PrecompileCallParameters next() {
-    return new PrecompileCallParameters(
-        call, gas, prc.next(), value, cdo, cds, rao, rac, relPos, willRevert);
-  }
-
-  public final boolean willMxpx() {
-    final boolean callDataMxpx = (cds != CallSize.ZERO) && (cdo == CallOffset.INFINITY);
-    final boolean returnAtMxpx = (rac != CallSize.ZERO) && (rao == CallOffset.INFINITY);
-    return callDataMxpx || returnAtMxpx;
   }
 }

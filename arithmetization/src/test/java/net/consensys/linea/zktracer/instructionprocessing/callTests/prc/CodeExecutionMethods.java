@@ -15,7 +15,6 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.copyForeignCodeAndReturnIt;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;

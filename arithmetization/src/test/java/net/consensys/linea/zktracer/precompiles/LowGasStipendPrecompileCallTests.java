@@ -75,17 +75,19 @@ public class LowGasStipendPrecompileCallTests {
     // - Set the r value of BLAKE2F to something greater than the gas stipend
     final int value = valueParameter.isZeroArgument() ? 0 : 1;
     final int argsSize; // depends on the called precompile
-    final int argsOffset = valueParameter.isZeroArgument() ? 0 : 1;
+    int argsOffset = valueParameter.isZeroArgument() ? 0 : 1;
     final int retSize = valueParameter.isZeroArgument() ? 0 : 1;
     final int retOffset = valueParameter.isZeroArgument() ? 0 : 1;
 
     // BLAKE2F specific parameters
     int rFirstByte = valueParameter.isZeroArgument() ? 0 : 0x12;
-    int r = rFirstByte * (1 << 24); // as r is 4 bytes, rFirstByte is right padded
+    int r = rFirstByte << 8;
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
       program
           .push(rFirstByte) // For simplicity, we only set the first byte of r
-          .push(valueParameter.isZeroArgument() ? 0 : 1) // offset
+          .push(argsOffset + 2) // offset
+          // Writing rFirstByte at this offset
+          // allows to have r = 0x00000000 or r = 0x00001200
           .op(OpCode.MSTORE8);
       argsSize = 213;
     } else if (precompileAddress == ALTBN128_PAIRING) {
@@ -184,7 +186,10 @@ public class LowGasStipendPrecompileCallTests {
     // We assert that the insufficientGasForPrecompile flag is set correctly
     if (gasParameter == GasParameter.COST
         || gasParameter == GasParameter.COST_PLUS_ONE
-        || (precompileAddress.equals(BLAKE2B_F_COMPRESSION) && r == 0)) {
+        || (precompileAddress.equals(BLAKE2B_F_COMPRESSION) && r == 0) // precompileCost is 0
+        || (precompileAddress.equals(ALTBN128_ADD)
+            && value > 0) // precompileCost is 150 but stipend is at least 2300
+    ) {
       assertFalse(insufficientGasForPrecompile);
     } else {
       assertTrue(insufficientGasForPrecompile);
@@ -209,8 +214,6 @@ public class LowGasStipendPrecompileCallTests {
         arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, valueParameter, gasParameter));
       }
     }
-    // arguments.clear();
-    // arguments.add(Arguments.of(RIPEMD160, ValueParameter.NON_ZERO, GasParameter.ZERO));
     return arguments.stream();
   }
 

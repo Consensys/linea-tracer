@@ -20,7 +20,7 @@ public class PrecompileCallParameters {
   public final OpCode call;
   public GasParameter gas;
   public final HashPrecompile prc;
-  public int value;
+  public ValueParameter value;
   public final CallOffset cdo;
   public final CallSize cds;
   public final CallOffset rao;
@@ -32,7 +32,7 @@ public class PrecompileCallParameters {
       OpCode call,
       GasParameter gas,
       HashPrecompile prc,
-      int value,
+      ValueParameter value,
       CallOffset cdo,
       CallSize cds,
       CallOffset rao,
@@ -52,6 +52,13 @@ public class PrecompileCallParameters {
   }
 
   public PrecompileCallParameters next() {
-    return new PrecompileCallParameters(call, gas, prc.next(), value, cdo, cds, rao, rac, relPos, willRevert);
+    return new PrecompileCallParameters(
+        call, gas, prc.next(), value, cdo, cds, rao, rac, relPos, willRevert);
+  }
+
+  public final boolean willMxpx() {
+    final boolean callDataMxpx = (cds != CallSize.ZERO) && (cdo == CallOffset.INFINITY);
+    final boolean returnAtMxpx = (rac != CallSize.ZERO) && (rao == CallOffset.INFINITY);
+    return callDataMxpx || returnAtMxpx;
   }
 }

@@ -241,22 +241,27 @@ public class Utilities {
    * @param program
    * @param callOpCode
    */
-  public static void appendCallToAddressInCallData(BytecodeCompiler program, OpCode callOpCode) {
+  public static void appendCallTo(BytecodeCompiler program, OpCode callOpCode, Address address) {
     checkArgument(callOpCode.isCall());
 
     pushSeveral(program, 0, 0, 0, 0);
     if (callOpCode.callHasValueArgument()) {
       program.push(256); // value
     }
-    callDataLoadFrom(program, 0); // [address | 00 ... 00], 12 zero bytes at the end
-    rightShiftTopOfStackToProduceAddress(program); // address
-    program.op(GAS).op(callOpCode);
+    program.push(address).op(GAS).op(callOpCode);
   }
 
-  public static void copyForeignCodeAndRunItAsInitCode(BytecodeCompiler program, Address foreignAddress) {
+  /**
+   * Performs a full copy of the code at {@code foreignAddress} and runs it as initialization code.
+   *
+   * @param program
+   * @param foreignAddress
+   */
+  public static void copyForeignCodeAndRunItAsInitCode(
+      BytecodeCompiler program, Address foreignAddress) {
 
     program.push(foreignAddress).op(EXTCODESIZE); // ] EXTCS ]
-    pushSeveral(program, 0, 0); // ] EXTCS | 0 | 0 ]
+    pushSeveral(program, 0, 0);
     program.push(foreignAddress); // ] EXTCS | 0 | 0 | foreignAddress ]
     program.op(EXTCODECOPY);
     program.op(MSIZE);
@@ -270,7 +275,7 @@ public class Utilities {
    * @param program
    * @param foreignAddress
    */
-  public static void deployForeignCode(BytecodeCompiler program, Address foreignAddress) {
+  public static void copyForeignCodeAndReturnIt(BytecodeCompiler program, Address foreignAddress) {
     program.push(foreignAddress).op(EXTCODESIZE); // ] EXTCS ]
     pushSeveral(program, 0, 0);
     program.push(foreignAddress); // ] EXTCS | 0 | 0 | foreignAddress ]

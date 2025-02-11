@@ -30,9 +30,11 @@ public class ParameterGeneration {
   /**
    * Generates test parameters for the happy path tests.
    *
+   * <p><b>Note.</b> We provide zero value. We thus avoid having to account for the G_callstipend.
+   *
    * @return Stream of test parameters
    */
-  public static Stream<Arguments> happyPathHashPrecompileParameterGeneration() {
+  public static Stream<Arguments> happyPathParameterGeneration() {
     List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
 
     List<Arguments> argumentsList = new ArrayList<>();
@@ -44,12 +46,34 @@ public class ParameterGeneration {
               for (CallOffset rao : CallOffset.values()) {
                 for (CallSize rac : CallSize.values()) {
                   for (RelativeRangePosition relPos : RelativeRangePosition.values()) {
+
+                    // adding PrecompileCallParameters
                     argumentsList.add(
-                            Arguments.of(
-                                    new PrecompileCallParameters(
-                                            callOpcode, gas, precompile, 1, cdo, cds, rao, rac, relPos, true),
-                                    new PrecompileCallParameters(
-                                            callOpcode, gas, precompile, 1, cdo, cds, rao, rac, relPos, false)));
+                        Arguments.of(
+                            new PrecompileCallParameters(
+                                callOpcode,
+                                gas,
+                                precompile,
+                                ValueParameter.ZERO,
+                                cdo,
+                                cds,
+                                rao,
+                                rac,
+                                relPos,
+                                true)));
+                    argumentsList.add(
+                        Arguments.of(
+                            new PrecompileCallParameters(
+                                callOpcode,
+                                gas,
+                                precompile,
+                                ValueParameter.ZERO,
+                                cdo,
+                                cds,
+                                rao,
+                                rac,
+                                relPos,
+                                false)));
                   }
                 }
               }

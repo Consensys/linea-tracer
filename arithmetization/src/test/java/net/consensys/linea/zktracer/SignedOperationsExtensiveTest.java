@@ -120,16 +120,18 @@ public class SignedOperationsExtensiveTest {
   Stream<Arguments> signExtendTestSource() {
     final String[] positions =
         Stream.concat(
-                IntStream.rangeClosed(0, 32).mapToObj(BigInteger::valueOf),
-                Arrays.stream(
-                    new BigInteger[] {
-                      BigInteger.valueOf(0xFF),
-                      BigInteger.valueOf(256).pow(16).subtract(BigInteger.ONE),
-                      BigInteger.valueOf(256).pow(16),
-                      BigInteger.valueOf(256).pow(16).add(BigInteger.ONE),
-                      BigInteger.valueOf(256).pow(32).subtract(BigInteger.ONE)
-                    }))
-            .map(n -> n.toString(16))
+                Stream.concat(
+                        IntStream.rangeClosed(0, 32).mapToObj(BigInteger::valueOf),
+                        Arrays.stream(
+                            new BigInteger[] {
+                              BigInteger.valueOf(0xFF),
+                              BigInteger.valueOf(256).pow(16).subtract(BigInteger.ONE),
+                              BigInteger.valueOf(256).pow(16),
+                              BigInteger.valueOf(256).pow(16).add(BigInteger.ONE),
+                              BigInteger.valueOf(256).pow(32).subtract(BigInteger.ONE)
+                            }))
+                    .map(n -> n.toString(16)),
+                Stream.of(randomBytes(32))) // random value
             .toArray(String[]::new);
 
     final String[] bytes = {"00", "56", "7f", "80", "c2", "ff"};
@@ -138,8 +140,13 @@ public class SignedOperationsExtensiveTest {
     for (int i = 0; i < 32; i++) {
       for (String b : bytes) {
         for (String position : positions) {
-          String value = "11".repeat(i) + b + "ff".repeat(31 - i);
-          arguments.add(Arguments.of(position, value));
+          String value1 = "00".repeat(i) + b + "00".repeat(31 - i);
+          String value2 = "11".repeat(i) + b + "ff".repeat(31 - i);
+          String value3 = "ff".repeat(i) + b + "00".repeat(31 - i);
+
+          arguments.add(Arguments.of(position, value1));
+          arguments.add(Arguments.of(position, value2));
+          arguments.add(Arguments.of(position, value3));
         }
       }
     }

@@ -12,22 +12,18 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.sha2;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.hash;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition.*;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
-import static org.hyperledger.besu.datatypes.TransactionType.FRONTIER;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -62,44 +58,8 @@ import org.junit.jupiter.params.provider.MethodSource;
  * <p>- (different) happy path precompile CALL
  *
  * <p>- play with (precompile) return data
- *
- * <p>In various setups:
- *
- * <p>- at depth 0 in the root context of a <b>MESSAGE_CALL_TRANSACTION</b>
- *
- * <p>- at depth 0 in the root context of a <b>CONTRACT_DEPLOYMENT_TRANSACTION</b>
- *
- * <p>- at depth 1 in a <b>MESSAGE_CALL_FROM_ROOT</b>
- *
- * <p>- at depth 1 in a <b>DURING_DEPLOYMENT</b>
- *
- * <p>- at depth 1 in a <b>AFTER_DEPLOYMENT</b>
  */
 public class HappyPathHashPrecompileTests {
-
-  final Address rootAddress = Address.fromHexString("7007");
-  final ToyAccount.ToyAccountBuilder root =
-      ToyAccount.builder().address(rootAddress).balance(Wei.of(65536L)).nonce(1865);
-
-  final Address chadPrcEnjoyerAddress = Address.fromHexString("cbad");
-  final ToyAccount.ToyAccountBuilder chadPrcEnjoyer =
-      ToyAccount.builder().address(chadPrcEnjoyerAddress).balance(Wei.of(1024L)).nonce(64);
-
-  final Address initCodeOwnerAddress = Address.fromHexString("1717");
-  final ToyAccount.ToyAccountBuilder initCodeOwner =
-      ToyAccount.builder().address(initCodeOwnerAddress).balance(Wei.of(0x1337L)).nonce(127);
-
-  final Address foreignCodeOwnerAddress = Address.fromHexString("f00d");
-  final ToyAccount.ToyAccountBuilder foreignCodeOwner =
-      ToyAccount.builder().address(foreignCodeOwnerAddress).balance(Wei.of(0x1789L)).nonce(255);
-
-  final ToyTransaction.ToyTransactionBuilder transaction =
-      ToyTransaction.builder()
-          .sender(userAccount)
-          .keyPair(keyPair)
-          .transactionType(FRONTIER)
-          .gasLimit(0xffffffL)
-          .value(Wei.of(1_000_000_000L));
 
   public static Stream<Arguments> happyPathParameterGeneration() {
     return ParameterGeneration.happyPathParameterGeneration();
@@ -147,9 +107,10 @@ public class HappyPathHashPrecompileTests {
   }
 
   /**
-   * The {@link #root} contract fully copies the code of the account whose address is in the {@link
-   * #transaction} call data. This account is the {@link #chadPrcEnjoyer}. That code is then used as
-   * the initialization code of a <b>CREATE</b>. The whole operation optionally <b>REVERT</b>'s.
+   * The {@link CodeExecutionMethods#root} contract fully copies the code of the account whose
+   * address is in the {@link CodeExecutionMethods#transaction} call data. This account is the
+   * {@link CodeExecutionMethods#chadPrcEnjoyer}. That code is then used as the initialization code
+   * of a <b>CREATE</b>. The whole operation optionally <b>REVERT</b>'s.
    *
    * @param params
    */
@@ -258,120 +219,5 @@ public class HappyPathHashPrecompileTests {
     loadFirstReturnDataWordOntoStack(program, params.relPos == OVERLAP ? 15 : 5 * WORD_SIZE);
 
     return program;
-  }
-
-  public void runDeploymentTransactionWithProvidedCodeAsInitCode(
-      BytecodeCompiler transactionInitCode) {
-
-    transaction.payload(transactionInitCode.compile()); // init code
-
-    ToyExecutionEnvironmentV2.builder()
-        .transaction(transaction.build())
-        .accounts(List.of(userAccount))
-        .zkTracerValidator(zkTracer -> {})
-        .build()
-        .run();
-  }
-
-  /**
-   * - We provide {@link #foreignCodeOwner} with {@code foreignCode} as its byte code
-   *
-   * <p>- We provide {@link #root} with byte code that <b>(a)</b> copies the code of {@link
-   * #foreignCodeOwner} to RAM, <b>(b)</b> runs it as the init code of a <b>CREATE</b> and
-   * <b>(c)</b> optionally reverts.
-   *
-   * @param foreignCode
-   * @param embedRevertIntoInitCode
-   */
-  public void runForeignByteCodeAsInitCode(
-      BytecodeCompiler foreignCode, boolean embedRevertIntoInitCode) {
-
-    foreignCodeOwner.code(foreignCode.compile());
-
-    BytecodeCompiler rootCode = BytecodeCompiler.newProgram();
-    copyForeignCodeAndRunItAsInitCode(rootCode, foreignCodeOwnerAddress);
-    if (embedRevertIntoInitCode) revertWith(rootCode, 0, 0);
-    root.code(rootCode.compile());
-
-    transaction.to(root.build());
-
-    ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(userAccount, root.build(), foreignCodeOwner.build()))
-        .transaction(transaction.build())
-        .build()
-        .run();
-  }
-
-  /**
-   * - We provide {@link #chadPrcEnjoyer} with {@code providedCode} as its byte code
-   *
-   * <p>- We provide {@code root} with byte code that calls {@link #chadPrcEnjoyer} and optionally
-   * reverts.
-   *
-   * @param providedCode
-   * @param revertRoot
-   */
-  public void runMessageCallToAccountEndowedWithProvidedCode(
-      BytecodeCompiler providedCode, boolean revertRoot) {
-
-    chadPrcEnjoyer.code(providedCode.compile());
-
-    BytecodeCompiler rootCode = BytecodeCompiler.newProgram();
-    appendCallTo(rootCode, CALL, chadPrcEnjoyerAddress);
-    if (revertRoot) revertWith(rootCode, 0, 0); // we let the ROOT revert
-    root.code(rootCode.compile());
-
-    transaction.to(root.build());
-
-    ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(userAccount, root.build(), chadPrcEnjoyer.build()))
-        .transaction(transaction.build())
-        .build()
-        .run();
-  }
-
-  /**
-   * - We provide {@link #root} with byte code that (<b>a</b>) copies {@link #initCodeOwner}'s code
-   * and runs it as the init code of a <b>CREATE</b> (<b>b</b>) <b>CALL</b>'s into the newly
-   * deployed contract (<b>c</b>) and optionally reverts.
-   *
-   * <p>- We provide {@link #initCodeOwner} with byte code that copies the code of {@link
-   * #foreignCodeOwnerAddress} and <b>RETURN</b>'s it.
-   *
-   * <p>- We provide {@link #foreignCodeOwner} with {@code foreignCode} as its byte code.
-   *
-   * @param foreignCode
-   * @param rootReverts
-   */
-  public void runCreateDeployingForeignCodeAndCallIntoIt(
-      BytecodeCompiler foreignCode, boolean rootReverts) {
-
-    // ROOT code
-    int key = 65537; // 0x 01 00 01
-    BytecodeCompiler rootCode = BytecodeCompiler.newProgram();
-    copyForeignCodeAndRunItAsInitCode(rootCode, initCodeOwnerAddress);
-    sstoreTopOfStackTo(rootCode, key); // store deployment address
-    pushSeveral(rootCode, 0, 0, 0, 0, 0); // zero value
-    sloadFrom(rootCode, key);
-    rootCode.op(GAS).op(CALL); // call the deployed contract
-    if (rootReverts) revertWith(rootCode, 0, 0);
-    root.code(rootCode.compile());
-
-    // init code owner code
-    BytecodeCompiler initCode = BytecodeCompiler.newProgram();
-    copyForeignCodeAndReturnIt(initCode, foreignCodeOwnerAddress);
-    initCodeOwner.code(initCode.compile());
-
-    // foreign code owner code
-    foreignCodeOwner.code(foreignCode.compile());
-
-    transaction.to(root.build());
-
-    ToyExecutionEnvironmentV2.builder()
-        .accounts(
-            List.of(userAccount, root.build(), foreignCodeOwner.build(), initCodeOwner.build()))
-        .transaction(transaction.build())
-        .build()
-        .run();
   }
 }

@@ -1,6 +1,6 @@
 package net.consensys.linea.zktracer.exceptions;
 
-import static net.consensys.linea.zktracer.DynamicGasCostUtils.getDynamicGasCost;
+import static net.consensys.linea.zktracer.DynamicGasCostUtils.getGasCostForMessageCall;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,7 +31,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne = (long) GAS_CONST_G_TRANSACTION + getDynamicGasCost(pgCompile) - 1;
+    long gasCostMinusOne = getGasCostForMessageCall(pgCompile) - 1;
 
     bytecodeRunner.run(gasCostMinusOne);
     assertEquals(
@@ -55,7 +55,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne = (long) GAS_CONST_G_TRANSACTION + getDynamicGasCost(pgCompile) - 1;
+    long gasCostMinusOne = getGasCostForMessageCall(pgCompile) - 1;
 
     bytecodeRunner.run(gasCostMinusOne);
     assertEquals(
@@ -83,7 +83,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne = (long) GAS_CONST_G_TRANSACTION + getDynamicGasCost(pgCompile) - 1;
+    long gasCostMinusOne = getGasCostForMessageCall(pgCompile) - 1;
 
     bytecodeRunner.run(gasCostMinusOne);
     assertEquals(

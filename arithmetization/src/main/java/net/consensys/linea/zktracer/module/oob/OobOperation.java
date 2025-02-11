@@ -126,6 +126,8 @@ public class OobOperation extends ModuleOperation {
 
   private BigInteger precompileCost;
   boolean insufficientGasForPrecompile;
+  long expectedGas;
+  long givenGas;
 
   // Modules for lookups
   private final Add add;
@@ -1203,6 +1205,7 @@ public class OobOperation extends ModuleOperation {
             prcBlake2FParamsOobCall.getCalleeGas(),
             BigInteger.ZERO,
             prcBlake2FParamsOobCall.getBlakeR()); // = ramSuccess
+    precompileCost = prcBlake2FParamsOobCall.getBlakeR();
     insufficientGasForPrecompile = !sufficientGas;
 
     // row i + 1

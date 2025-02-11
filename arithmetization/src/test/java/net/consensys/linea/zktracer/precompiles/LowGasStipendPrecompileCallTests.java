@@ -24,9 +24,11 @@ import static org.hyperledger.besu.datatypes.Address.ID;
 import static org.hyperledger.besu.datatypes.Address.MODEXP;
 import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
 import static org.hyperledger.besu.datatypes.Address.SHA256;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -70,9 +72,11 @@ public class LowGasStipendPrecompileCallTests {
     // - Set a specific args size from BLAKE2F AND EC_PAIRING
     // - Set the r value of BLAKE2F to something greater than the gas stipend
     int argsSize;
+    int rFirstByte = valueParameter.isZeroArgument() ? 0 : 0x12;
+    int r = rFirstByte * (1 << 24);
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
       program
-          .push(0xab) // r (as r is 4 bytes, it is padded to 0xab000000)
+          .push(rFirstByte) // rFirstByte (as r is 4 bytes, rFirstByte is padded to 0x12000000)
           .push(valueParameter.isZeroArgument() ? 0 : 1) // offset
           .op(OpCode.MSTORE8);
       argsSize = 213;
@@ -100,14 +104,10 @@ public class LowGasStipendPrecompileCallTests {
     } else if (precompileAddress.equals(ALTBN128_PAIRING)) {
       precompileCost = 45000 + 34000 * (argsSize / 192);
     } else if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
-      precompileCost = 0xab000000;
+      precompileCost = r;
     } else {
       throw new IllegalArgumentException("Unknown precompile address");
     }
-
-    // In case funds are sent to the precompile contract, the precompile cost is increased by 2300
-    // int extraCost = valueParameter.isZeroArgument() ? 0 : 2300;
-    // precompileCost += extraCost;
 
     int gas =
         switch (gasParameter) {
@@ -118,6 +118,10 @@ public class LowGasStipendPrecompileCallTests {
           case COST_PLUS_ONE -> precompileCost + 1;
         };
 
+    // In case funds are sent to the precompile contract, a gas bonus of 2300 is added
+    int gasBonus = valueParameter.isZeroArgument() ? 0 : 2300;
+    gas += gasBonus;
+
     // Common program for all precompile calls
     program
         .push(valueParameter.isZeroArgument() ? 0 : 1) // retSize
@@ -126,7 +130,7 @@ public class LowGasStipendPrecompileCallTests {
         .push(valueParameter.isZeroArgument() ? 0 : 1) // argsOffset
         .push(valueParameter.isZeroArgument() ? 0 : 1) // value
         .push(precompileAddress) // address
-        .push(gas) // gas, that is deliberately insufficient
+        .push(gas) // gas
         .op(OpCode.CALL)
         .compile();
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
@@ -136,18 +140,26 @@ public class LowGasStipendPrecompileCallTests {
     // Here we check if OOB detects the insufficient gas for the precompile call
     // As the number of OOB operation required is variable, we iterate over all the operations
     boolean insufficientGasForPrecompile = false;
+    BigInteger actualPrecompileCost = BigInteger.ZERO;
     for (int i = 0; i < hub.oob().operations().size(); i++) {
       final OobOperation operation = hub.oob().operations().get(i);
       insufficientGasForPrecompile =
           insufficientGasForPrecompile || operation.isInsufficientGasForPrecompile();
+      if (operation.getPrecompileCost() != null) {
+        actualPrecompileCost = operation.getPrecompileCost();
+      }
     }
 
-    if (gasParameter == GasParameter.ZERO
-        || gasParameter == GasParameter.ONE
-        || gasParameter == GasParameter.COST_MINUS_ONE) {
-      assertTrue(insufficientGasForPrecompile);
-    } else {
-      assertFalse(insufficientGasForPrecompile);
+    assertEquals(BigInteger.valueOf(precompileCost), actualPrecompileCost);
+
+    if (valueParameter.isZeroArgument()) {
+      if (gasParameter == GasParameter.COST
+          || gasParameter == GasParameter.COST_PLUS_ONE
+          || (precompileAddress.equals(BLAKE2B_F_COMPRESSION) && r == 0)) {
+        assertFalse(insufficientGasForPrecompile);
+      } else {
+        assertTrue(insufficientGasForPrecompile);
+      }
     }
   }
 
@@ -169,6 +181,8 @@ public class LowGasStipendPrecompileCallTests {
         arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, valueParameter, gasParameter));
       }
     }
+    // arguments.clear();
+    // arguments.add(Arguments.of(RIPEMD160, ValueParameter.NON_ZERO, GasParameter.ZERO));
     return arguments.stream();
   }
 }

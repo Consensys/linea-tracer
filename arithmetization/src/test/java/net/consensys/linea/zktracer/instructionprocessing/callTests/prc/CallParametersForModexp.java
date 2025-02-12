@@ -16,19 +16,19 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 
 import net.consensys.linea.zktracer.opcode.OpCode;
 
-public class ModexpCallParameters {
+public class CallParametersForModexp {
 
   public final OpCode call;
   public final GasParameter gas;
-  public final ModexpCallDataParameters callData;
+  public final CallDataParametersForModexp callData;
   public final ReturnAtParameter returnAt;
   public final RelativeRangePosition relPos;
   public final boolean willRevert;
 
-  public ModexpCallParameters(
+  public CallParametersForModexp(
       OpCode call,
       GasParameter gas,
-      ModexpCallDataParameters callData,
+      CallDataParametersForModexp callData,
       ReturnAtParameter returnAt,
       RelativeRangePosition relPos,
       boolean willRevert) {

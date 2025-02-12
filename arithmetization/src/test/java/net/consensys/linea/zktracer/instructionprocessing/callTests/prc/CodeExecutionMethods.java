@@ -15,8 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
 import static org.hyperledger.besu.datatypes.TransactionType.FRONTIER;
@@ -33,16 +32,16 @@ import org.hyperledger.besu.datatypes.Wei;
 /**
  * The following class provides methods to run code in the following contexts:
  *
- * <p>- at depth 0 in the root context of a <b>MESSAGE_CALL_TRANSACTION</b>
+ * <p>- <b>MESSAGE_CALL_TRANSACTION</b>: at depth 0 in the root context of a
  *
- * <p>- at depth 0 in the root context of a <b>CONTRACT_DEPLOYMENT_TRANSACTION</b>
+ * <p>- <b>CONTRACT_DEPLOYMENT_TRANSACTION</b>: at depth 0 in the root context of a
  *
- * <p>- at depth 1 in a <b>MESSAGE_CALL_FROM_ROOT</b>, i.e. as code executed in a <b>CALL</b>
+ * <p>- <b>MESSAGE_CALL_FROM_ROOT</b>: at depth 1 as the byte code executed in a <b>CALL</b>
  *
- * <p>- at depth 1 in a <b>DURING_DEPLOYMENT</b>, i.e. as the init code of a <b>CREATE</b>
+ * <p>- <b>DURING_DEPLOYMENT</b>: at depth 1 as the init code of a <b>CREATE</b>
  *
- * <p>- at depth 1 in a <b>AFTER_DEPLOYMENT</b>, i.e. after deploying it with a <b>CREATE</b> and
- * calling the newly deployed contract
+ * <p>- <b>AFTER_DEPLOYMENT</b>: at depth 1, after deploying it with a <b>CREATE</b>, as the byte code
+ * executed in a <b>CALL</b> to the newly deployed contract
  */
 public class CodeExecutionMethods {
 
@@ -69,7 +68,7 @@ public class CodeExecutionMethods {
           .balance(Wei.of(0x2025))
           .nonce(0x11aaff);
 
-  public static final Address modexpMemoryHolderAddress2 = Address.fromHexString("d00d");
+  public static final Address modexpMemoryHolderAddress2 = Address.fromHexString("dada");
   public static final ToyAccount.ToyAccountBuilder modexpMemoryHolder2 =
       ToyAccount.builder()
           .address(modexpMemoryHolderAddress2)
@@ -87,6 +86,26 @@ public class CodeExecutionMethods {
   /**
    * Construct transaction with {@code transactionInitCode} as its init code.
    *
+   * @param rootCode
+   */
+  public static void runMessageCallTransactionWithProvidedCodeAsRootCode(
+          BytecodeCompiler rootCode) {
+
+    root.code(rootCode.compile());
+
+    transaction.to(root.build());
+
+    ToyExecutionEnvironmentV2.builder()
+            .transaction(transaction.build())
+            .accounts(listOfAccounts())
+            .zkTracerValidator(zkTracer -> {})
+            .build()
+            .run();
+  }
+
+  /**
+   * Construct transaction with {@code transactionInitCode} as its init code.
+   *
    * @param transactionInitCode
    */
   public static void runDeploymentTransactionWithProvidedCodeAsInitCode(
@@ -96,7 +115,7 @@ public class CodeExecutionMethods {
 
     ToyExecutionEnvironmentV2.builder()
         .transaction(transaction.build())
-        .accounts(List.of(userAccount))
+        .accounts(listOfAccounts())
         .zkTracerValidator(zkTracer -> {})
         .build()
         .run();
@@ -126,7 +145,7 @@ public class CodeExecutionMethods {
     transaction.to(root.build());
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(userAccount, root.build(), foreignCodeOwner.build()))
+        .accounts(listOfAccounts())
         .transaction(transaction.build())
         .build()
         .run();
@@ -155,7 +174,7 @@ public class CodeExecutionMethods {
     transaction.to(root.build());
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(userAccount, root.build(), chadPrcEnjoyer.build()))
+        .accounts(listOfAccounts())
         .transaction(transaction.build())
         .build()
         .run();
@@ -200,10 +219,20 @@ public class CodeExecutionMethods {
     transaction.to(root.build());
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(
-            List.of(userAccount, root.build(), foreignCodeOwner.build(), initCodeOwner.build()))
+        .accounts(listOfAccounts())
         .transaction(transaction.build())
         .build()
         .run();
+  }
+
+  private static List<ToyAccount> listOfAccounts() {
+    return List.of(
+        userAccount,
+        root.build(),
+        initCodeOwner.build(),
+        foreignCodeOwner.build(),
+        chadPrcEnjoyer.build(),
+        modexpMemoryHolder1.build(),
+        modexpMemoryHolder2.build());
   }
 }

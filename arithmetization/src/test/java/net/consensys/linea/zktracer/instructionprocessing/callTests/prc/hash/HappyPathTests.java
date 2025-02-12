@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -59,6 +60,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  *
  * <p>- play with (precompile) return data
  */
+@Tag("weekly")
 public class HappyPathTests {
 
   public static Stream<Arguments> happyPathParameterGeneration() {
@@ -66,7 +68,9 @@ public class HappyPathTests {
   }
 
   /**
-   * MESSAGE_CALL transaction case
+   * <b>MESSAGE_CALL_TRANSACTION</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
    *
    * @param params
    */
@@ -75,12 +79,14 @@ public class HappyPathTests {
   public void messageCallTransactionTest(HashPrecompileCallParameters params) {
     if (!params.willRevert) {
       BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
-      BytecodeRunner.of(rootCode).run(Wei.fromEth(1), 61_000_000L);
+      runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
     }
   }
 
   /**
-   * CONTRACT_DEPLOYMENT transaction case
+   * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
    *
    * @param params
    */
@@ -95,7 +101,9 @@ public class HappyPathTests {
   }
 
   /**
-   * MESSAGE_CALL_FROM_ROOT case.
+   * <b>MESSAGE_CALL_FROM_ROOT</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
    *
    * @param params
    */

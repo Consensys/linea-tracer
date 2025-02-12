@@ -16,73 +16,116 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
-import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@Tag("weekly")
 public class HappyPathTests {
 
   private final boolean variant1 = true;
   private final boolean variant2 = false;
 
   /**
-   * MESSAGE_CALL transaction case
+   * <b>MESSAGE_CALL_TRANSACTION</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
    *
    * @param params
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void messageCallTransactionTest(ModexpCallParameters params) {
-    populateCodeOfMemoryHolderAccounts(params);
+  public void messageCallTransactionTest(CallParametersForModexp params) {
+    setCodeOfHolderAccounts(params);
     BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
-    BytecodeRunner.of(rootCode).run(Wei.fromEth(1), 61_000_000L);
+    runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
   }
 
   /**
-   * Non-parametric test to make sure things are working as expected.
+   * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
+   *
+   * @param params
    */
+  @ParameterizedTest
+  @MethodSource("happyPathParameterGeneration")
+  public void deploymentTransactionTest(CallParametersForModexp params) {
+
+    BytecodeCompiler txInitCode = happyPathWipeReturnDataHappyPathProgram(params);
+    if (params.willRevert) revertWith(txInitCode, 0, 0);
+
+    runDeploymentTransactionWithProvidedCodeAsInitCode(txInitCode);
+  }
+
+  /**
+   * <b>MESSAGE_CALL_FROM_ROOT</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
+   *
+   * @param params
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathParameterGeneration")
+  public void messageCallFromRootTest(CallParametersForModexp params) {
+    BytecodeCompiler chadPrcEnjoyerCode = happyPathWipeReturnDataHappyPathProgram(params);
+    runMessageCallToAccountEndowedWithProvidedCode(chadPrcEnjoyerCode, params.willRevert);
+  }
+
+  /** Non-parametric test to make sure things are working as expected. */
   @Test
   public void singleMessageCallTransactionTest() {
 
-    ModexpCallDataParameters callDataParameters = new ModexpCallDataParameters(
+    CallDataParametersForModexp callDataParameters =
+        new CallDataParametersForModexp(
             ByteSizeParameter.SMALL, // bbs
             ByteSizeParameter.SMALL, // ebs
             ByteSizeParameter.MAX, // mbs
             ModexpCallDataSizeParameter.MODULUS_FULL // cds
-    );
-    ModexpCallParameters params = new ModexpCallParameters(
-            CALL,
+            );
+    CallParametersForModexp params =
+        new CallParametersForModexp(
+            STATICCALL,
             GasParameter.FULL,
             callDataParameters,
             ReturnAtParameter.FULL,
             RelativeRangePosition.OVERLAP,
-            true
-    );
-    populateCodeOfMemoryHolderAccounts(params);
+            true);
+    setCodeOfHolderAccounts(params);
     BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
-    BytecodeRunner.of(rootCode).run(Wei.fromEth(1), 61_000_000L);
+    runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
   }
 
-  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(ModexpCallParameters params) {
+  /**
+   * {@link #happyPathWipeReturnDataHappyPathProgram} constructs the byte code for the <b>happy path</b>
+   * testing of <b>MODEXP</b>. This code does the following:
+   *
+   * <p>- populate memory with the data for first MODEXP call
+   * <p>- perform first MODEXP call and play around with its return data
+   * <p>- wipe return data
+   * <p>- populate memory with the data for second MODEXP call
+   * <p>- perform second MODEXP call and play around with its return data
+   * @param params
+   * @return
+   */
+  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParametersForModexp params) {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // populate memory with the data for first MODEXP call
     copyForeignCodeToRam(program, modexpMemoryHolderAddress1);
 
-    // happy path 1
+    // happy path: first MODEXP call
     appendHappyPathPrecompileCall(program, params, variant1);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x0140);
     loadFirstReturnDataWordOntoStack(program, 0x02ff);
@@ -96,7 +139,7 @@ public class HappyPathTests {
     // populate memory with the data for second MODEXP call
     copyForeignCodeToRam(program, modexpMemoryHolderAddress2);
 
-    // happy path 2
+    // happy path: second MODEXP call
     appendHappyPathPrecompileCall(program, params, variant2);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x026c);
     loadFirstReturnDataWordOntoStack(program, 0x02ff);
@@ -104,10 +147,17 @@ public class HappyPathTests {
     return program;
   }
 
-  private void populateCodeOfMemoryHolderAccounts(ModexpCallParameters params) {
+  /**
+   * Populate the byte code of {@link CodeExecutionMethods#modexpMemoryHolder1} and {@link
+   * CodeExecutionMethods#modexpMemoryHolder2} with "byte code" that is well-formed data for a
+   * MODEXP call.
+   *
+   * @param params
+   */
+  private void setCodeOfHolderAccounts(CallParametersForModexp params) {
 
-    String code1 = params.callData.codeWhichWillBecomeMemoryOfModexpCall(variant1);
-    String code2 = params.callData.codeWhichWillBecomeMemoryOfModexpCall(variant2);
+    String code1 = params.callData.wellFormedCallDataForModexpCall(variant1);
+    String code2 = params.callData.wellFormedCallDataForModexpCall(variant2);
 
     modexpMemoryHolder1.code(Bytes.fromHexString(code1));
     modexpMemoryHolder2.code(Bytes.fromHexString(code2));
@@ -117,8 +167,14 @@ public class HappyPathTests {
     return ParameterGeneration.happyPathParameterGeneration();
   }
 
+  /**
+   * Constructs a CALL to the MODEXP precompile in terms of {@link CallParametersForModexp}.
+   * @param program
+   * @param params
+   * @param variant
+   */
   public void appendHappyPathPrecompileCall(
-      BytecodeCompiler program, ModexpCallParameters params, boolean variant) {
+          BytecodeCompiler program, CallParametersForModexp params, boolean variant) {
 
     int cds = params.callData.memorySize(variant);
 
@@ -165,5 +221,7 @@ public class HappyPathTests {
       case EXACT_PO -> program.push(cost + 1);
       case FULL -> program.op(GAS);
     }
+
+    program.op(params.call);
   }
 }

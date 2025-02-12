@@ -19,13 +19,13 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
-public class ModexpCallDataParameters {
+public class CallDataParametersForModexp {
   public final ByteSizeParameter bbs;
   public final ByteSizeParameter ebs;
   public final ByteSizeParameter mbs;
   public final ModexpCallDataSizeParameter cds;
 
-  public ModexpCallDataParameters(
+  public CallDataParametersForModexp(
       ByteSizeParameter bbs,
       ByteSizeParameter ebs,
       ByteSizeParameter mbs,
@@ -40,9 +40,21 @@ public class ModexpCallDataParameters {
     return 3 * WORD_SIZE + this.bbsShort(variant) + this.ebsShort(variant) + this.mbsShort(variant);
   }
 
-  public String codeWhichWillBecomeMemoryOfModexpCall(boolean variant) {
+  /**
+   * Constructs a byte string of the form
+   * <p> <b>[ bbs | ebs | mbs | BASE | EXPN | MDLS ]</b>
+   * <p> where <b>BASE</b>, <b>EXPN</b> and <b>MDLS</b> are the base, exponent and modulus respectively,
+   * measure <b>bbs</b>, <b>ebs</b> and <b>mbs</b> bytes respectively, and
+   * <b>bbs</b>, <b>ebs</b> and <b>mbs</b> are <b>32</b>-byte integers (which the arithmetization
+   * requires to be ≤ 512 = 0x0200.)
+   * @return
+   */
+  public String wellFormedCallDataForModexpCall(boolean variant) {
 
-    String memoryContents = this.bbs(variant).substring(2) + this.ebs(variant).substring(2) + this.mbs(variant).substring(2);
+    String memoryContents =
+        this.bbs(variant).substring(2)
+            + this.ebs(variant).substring(2)
+            + this.mbs(variant).substring(2);
 
     return memoryContents
         + (variant ? BASE_512_a : BASE_512_b).substring(0, 2 * this.bbsShort(variant))

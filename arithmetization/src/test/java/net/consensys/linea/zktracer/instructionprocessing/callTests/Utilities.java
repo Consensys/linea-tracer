@@ -99,7 +99,7 @@ public class Utilities {
         .push(rao)
         .push(cds)
         .push(cdo)
-        .op(BALANCE)
+        .op(SELFBALANCE)
         .push(1)
         .op(ADD) // puts balance + 1 on the stack
         .push(to)

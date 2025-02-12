@@ -17,6 +17,6 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 public enum ByteSizeParameter {
   ZERO,
   ONE,
-  SMALL,
+  MODERATE,
   MAX;
 }

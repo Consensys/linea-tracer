@@ -66,7 +66,7 @@ public class CallDataParametersForModexp {
     return switch (this.bbs) {
       case ZERO -> 0;
       case ONE -> 1;
-      case SMALL -> (short) (variant ? 0x01a3 : 0x0101);
+      case MODERATE -> (short) (variant ? 0x01a3 : 0x0101);
       case MAX -> 0x0200;
     };
   }
@@ -75,7 +75,7 @@ public class CallDataParametersForModexp {
     return switch (this.ebs) {
       case ZERO -> 0x00;
       case ONE -> 0x01;
-      case SMALL -> (short) (variant ? 0xf1 : 0x012a);
+      case MODERATE -> (short) (variant ? 0xf1 : 0x012a);
       case MAX -> 0x0200;
     };
   }
@@ -84,7 +84,7 @@ public class CallDataParametersForModexp {
     return switch (this.mbs) {
       case ZERO -> 0x00;
       case ONE -> 0x01;
-      case SMALL -> (short) (variant ? 0x012f : 0xd1);
+      case MODERATE -> (short) (variant ? 0x016f : 0xd1);
       case MAX -> 0x0200;
     };
   }

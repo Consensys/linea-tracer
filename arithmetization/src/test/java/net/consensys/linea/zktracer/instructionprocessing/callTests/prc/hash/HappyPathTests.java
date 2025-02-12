@@ -104,8 +104,6 @@ public class HappyPathTests {
    * <b>MESSAGE_CALL_FROM_ROOT</b> case.
    * <p> See {@link CodeExecutionMethods} for
    * documentation and context.
-   *
-   * @param params
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
@@ -115,7 +113,11 @@ public class HappyPathTests {
   }
 
   /**
-   * The {@link CodeExecutionMethods#root} contract fully copies the code of the account whose
+   * <b>DURING_DEPLOYMENT</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
+   *
+   * <p>The {@link CodeExecutionMethods#root} contract fully copies the code of the account whose
    * address is in the {@link CodeExecutionMethods#transaction} call data. This account is the
    * {@link CodeExecutionMethods#chadPrcEnjoyer}. That code is then used as the initialization code
    * of a <b>CREATE</b>. The whole operation optionally <b>REVERT</b>'s.
@@ -125,17 +127,20 @@ public class HappyPathTests {
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
   public void happyPathDuringCreate(HashPrecompileCallParameters params) {
-
     if (!params.willMxpx()) {
       BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
       runForeignByteCodeAsInitCode(foreignCode, params.willRevert);
     }
   }
 
+  /**
+   * <b>AFTER_DEPLOYMENT</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
+   */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
   public void happyPathAfterCreate(HashPrecompileCallParameters params) {
-
     if (!params.willMxpx()) {
       BytecodeCompiler chadPrcEnjoyerCode = happyPathWipeReturnDataHappyPathProgram(params);
       runCreateDeployingForeignCodeAndCallIntoIt(chadPrcEnjoyerCode, params.willRevert);

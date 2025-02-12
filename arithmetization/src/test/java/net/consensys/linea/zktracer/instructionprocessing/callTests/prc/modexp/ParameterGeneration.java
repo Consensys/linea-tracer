@@ -66,7 +66,7 @@ public class ParameterGeneration {
                 for (RelativeRangePosition relPos : RelativeRangePosition.values()) { // 2
                   argumentsList.add(
                       Arguments.of(
-                          new CallParametersForModexp(
+                          new ModexpCallParameters(
                               opCode,
                               GasParameter.FULL,
                               new CallDataParametersForModexp(bbs, ebs, mbs, cds),
@@ -76,7 +76,7 @@ public class ParameterGeneration {
 
                   argumentsList.add(
                       Arguments.of(
-                          new CallParametersForModexp(
+                          new ModexpCallParameters(
                               opCode,
                               GasParameter.FULL,
                               new CallDataParametersForModexp(bbs, ebs, mbs, cds),

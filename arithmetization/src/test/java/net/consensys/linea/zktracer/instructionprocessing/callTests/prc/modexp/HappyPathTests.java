@@ -30,7 +30,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-@Tag("weekly")
+// @Tag("weekly")
 public class HappyPathTests {
 
   private final boolean variant1 = true;
@@ -45,8 +45,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void messageCallTransactionTest(CallParametersForModexp params) {
-    setCodeOfHolderAccounts(params);
+  public void messageCallTransactionTest(ModexpCallParameters params) {
     BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
     runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
   }
@@ -60,7 +59,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void deploymentTransactionTest(CallParametersForModexp params) {
+  public void deploymentTransactionTest(ModexpCallParameters params) {
 
     BytecodeCompiler txInitCode = happyPathWipeReturnDataHappyPathProgram(params);
     if (params.willRevert) revertWith(txInitCode, 0, 0);
@@ -77,9 +76,40 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void messageCallFromRootTest(CallParametersForModexp params) {
+  public void messageCallFromRootTest(ModexpCallParameters params) {
     BytecodeCompiler chadPrcEnjoyerCode = happyPathWipeReturnDataHappyPathProgram(params);
     runMessageCallToAccountEndowedWithProvidedCode(chadPrcEnjoyerCode, params.willRevert);
+  }
+
+  /**
+   * <b>DURING_DEPLOYMENT</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
+   *
+   * <p>The {@link CodeExecutionMethods#root} contract fully copies the code of the account whose
+   * address is in the {@link CodeExecutionMethods#transaction} call data. This account is the
+   * {@link CodeExecutionMethods#chadPrcEnjoyer}. That code is then used as the initialization code
+   * of a <b>CREATE</b>. The whole operation optionally <b>REVERT</b>'s.
+   *
+   * @param params
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathParameterGeneration")
+  public void happyPathDuringCreate(ModexpCallParameters params) {
+      BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
+      runForeignByteCodeAsInitCode(foreignCode, params.willRevert);
+  }
+
+  /**
+   * <b>AFTER_DEPLOYMENT</b> case.
+   * <p> See {@link CodeExecutionMethods} for
+   * documentation and context.
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathParameterGeneration")
+  public void happyPathAfterCreate(ModexpCallParameters params) {
+      BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
+      runCreateDeployingForeignCodeAndCallIntoIt(foreignCode, params.willRevert);
   }
 
   /** Non-parametric test to make sure things are working as expected. */
@@ -88,13 +118,13 @@ public class HappyPathTests {
 
     CallDataParametersForModexp callDataParameters =
         new CallDataParametersForModexp(
-            ByteSizeParameter.SMALL, // bbs
-            ByteSizeParameter.SMALL, // ebs
+            ByteSizeParameter.MODERATE, // bbs
+            ByteSizeParameter.MODERATE, // ebs
             ByteSizeParameter.MAX, // mbs
             ModexpCallDataSizeParameter.MODULUS_FULL // cds
             );
-    CallParametersForModexp params =
-        new CallParametersForModexp(
+    ModexpCallParameters params =
+        new ModexpCallParameters(
             STATICCALL,
             GasParameter.FULL,
             callDataParameters,
@@ -118,7 +148,9 @@ public class HappyPathTests {
    * @param params
    * @return
    */
-  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParametersForModexp params) {
+  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(ModexpCallParameters params) {
+
+    setCodeOfHolderAccounts(params);
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
@@ -154,7 +186,7 @@ public class HappyPathTests {
    *
    * @param params
    */
-  private void setCodeOfHolderAccounts(CallParametersForModexp params) {
+  private void setCodeOfHolderAccounts(ModexpCallParameters params) {
 
     String code1 = params.callData.wellFormedCallDataForModexpCall(variant1);
     String code2 = params.callData.wellFormedCallDataForModexpCall(variant2);
@@ -168,13 +200,13 @@ public class HappyPathTests {
   }
 
   /**
-   * Constructs a CALL to the MODEXP precompile in terms of {@link CallParametersForModexp}.
+   * Constructs a CALL to the MODEXP precompile in terms of {@link ModexpCallParameters}.
    * @param program
    * @param params
    * @param variant
    */
   public void appendHappyPathPrecompileCall(
-          BytecodeCompiler program, CallParametersForModexp params, boolean variant) {
+          BytecodeCompiler program, ModexpCallParameters params, boolean variant) {
 
     int cds = params.callData.memorySize(variant);
 

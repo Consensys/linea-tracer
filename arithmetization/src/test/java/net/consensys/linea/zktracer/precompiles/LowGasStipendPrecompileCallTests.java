@@ -43,6 +43,8 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.oob.OobOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -91,6 +93,12 @@ public class LowGasStipendPrecompileCallTests {
     // BLAKE2F specific parameters
     final int rLeadingByte = argumentCase.isZeroCase() ? 0 : 0x12;
     final int r = rLeadingByte << 8;
+
+    // MODEXP specific parameters
+    final int bbs = 0x02;
+    final int ebs = 0x03;
+    final int mbs = 0x04;
+
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
       program
           .push(rLeadingByte) // For simplicity, we only set the first byte of r
@@ -110,6 +118,21 @@ public class LowGasStipendPrecompileCallTests {
       int nWords = 1024;
       cds = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
       populateMemory(program, nWords, rac);
+    } else if (precompileAddress == MODEXP) {
+      cds = 96 + bbs + ebs + mbs;
+      program
+          .push(Bytes32.leftPad(Bytes.of(bbs)))
+          .push(0)
+          .op(OpCode.MSTORE)
+          .push(Bytes32.leftPad(Bytes.of(ebs)))
+          .push(32)
+          .op(OpCode.MSTORE)
+          .push(Bytes32.leftPad(Bytes.of(mbs)))
+          .push(64)
+          .op(OpCode.MSTORE)
+          .push(Bytes32.rightPad(Bytes.fromHexString("0xba7e" + "000ec7" + "0000080d")))
+          .push(96)
+          .op(OpCode.MSTORE);
     } else {
       // Default case
       cds = getArgument(argumentCase);
@@ -139,7 +162,7 @@ public class LowGasStipendPrecompileCallTests {
 
     // Common program for all precompile calls
     program
-        .push(getReturnAtCapacity(precompileAddress, cds)) // rac
+        .push(getReturnAtCapacity(precompileAddress, cds, mbs)) // rac
         .push(rao) // rao
         .push(cds) // cds
         .push(rac) // rac
@@ -214,20 +237,22 @@ public class LowGasStipendPrecompileCallTests {
    *
    * @param precompileAddress the address of the precompile contract.
    * @param cds the call data size. Beyond the case of ID, this value is ignored.
+   * @param mbs the modulo byte size. Beyond the case of MODEXP, this value is ignored.
    * @return the computed return rac.
    */
-  private static int getReturnAtCapacity(Address precompileAddress, int cds) {
+  private static int getReturnAtCapacity(Address precompileAddress, int cds, int mbs) {
     final int rac;
     if (precompileAddress == ECREC
         || precompileAddress == SHA256
         || precompileAddress == RIPEMD160
-        || precompileAddress == ALTBN128_PAIRING
-        || precompileAddress == MODEXP) {
+        || precompileAddress == ALTBN128_PAIRING) {
       rac = WORD_SIZE;
     } else if (precompileAddress == ALTBN128_ADD
         || precompileAddress == ALTBN128_MUL
         || precompileAddress == BLAKE2B_F_COMPRESSION) {
       rac = 2 * WORD_SIZE;
+    } else if (precompileAddress == MODEXP) {
+      rac = mbs;
     } else if (precompileAddress == ID) {
       rac = cds;
     } else {

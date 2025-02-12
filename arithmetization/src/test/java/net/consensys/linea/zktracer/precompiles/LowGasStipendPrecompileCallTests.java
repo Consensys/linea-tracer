@@ -16,7 +16,9 @@
 package net.consensys.linea.zktracer.precompiles;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.populateMemory;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE_MO;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
@@ -84,17 +86,16 @@ public class LowGasStipendPrecompileCallTests {
     final int value = valueParameter.isZeroArgument() ? 0 : 1;
     final int argsSize; // depends on the called precompile
     final int argsOffset = valueParameter.isZeroArgument() ? 0 : 1;
-    final int retSize = valueParameter.isZeroArgument() ? 0 : 1;
     final int retOffset = valueParameter.isZeroArgument() ? 0 : 1;
 
     // BLAKE2F specific parameters
-    int rFirstByte = valueParameter.isZeroArgument() ? 0 : 0x12;
-    int r = rFirstByte << 8;
+    int rLeadingByte = valueParameter.isZeroArgument() ? 0 : 0x12;
+    int r = rLeadingByte << 8;
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
       program
-          .push(rFirstByte) // For simplicity, we only set the first byte of r
+          .push(rLeadingByte) // For simplicity, we only set the first byte of r
           .push(argsOffset + 2) // offset
-          // Writing rFirstByte at this offset
+          // Writing rLeadingByte at this offset
           // allows to have r = 0x00000000 or r = 0x00001200
           .op(OpCode.MSTORE8);
       argsSize = 213;
@@ -133,13 +134,12 @@ public class LowGasStipendPrecompileCallTests {
             || gasParameter == GasParameter.COST_PLUS_ONE)
         && !precompileAddress.equals(ALTBN128_ADD)
         && !precompileAddress.equals(MODEXP)) {
-      final int gasBonus = 2300;
-      gas -= gasBonus;
+      gas -= GAS_CONST_G_CALL_STIPEND;
     }
 
     // Common program for all precompile calls
     program
-        .push(retSize) // retSize
+        .push(getRetSize(precompileAddress, argsSize)) // retSize
         .push(retOffset) // retOffset
         .push(argsSize) // argsSize
         .push(argsOffset) // argsOffset
@@ -207,6 +207,33 @@ public class LowGasStipendPrecompileCallTests {
   // Support methods
 
   /**
+   * Computes the return size based on the precompile address, and arguments size in the case of ID.
+   *
+   * @param precompileAddress the address of the precompile contract.
+   * @param argsSize the size of the arguments for ID. For other precompiles, this value is ignored.
+   * @return the computed return size.
+   */
+  private static int getRetSize(Address precompileAddress, int argsSize) {
+    final int retSize;
+    if (precompileAddress == ECREC
+        || precompileAddress == SHA256
+        || precompileAddress == RIPEMD160
+        || precompileAddress == ALTBN128_PAIRING
+        || precompileAddress == MODEXP) {
+      retSize = WORD_SIZE;
+    } else if (precompileAddress == ALTBN128_ADD
+        || precompileAddress == ALTBN128_MUL
+        || precompileAddress == BLAKE2B_F_COMPRESSION) {
+      retSize = 2 * WORD_SIZE;
+    } else if (precompileAddress == ID) {
+      retSize = argsSize;
+    } else {
+      throw new IllegalArgumentException("Unknown precompile address");
+    }
+    return retSize;
+  }
+
+  /**
    * Computes the precompile cost based on the precompile address, arguments size, and r value in
    * case of BLAKE2F.
    *
@@ -220,11 +247,11 @@ public class LowGasStipendPrecompileCallTests {
     if (precompileAddress.equals(ECREC)) {
       precompileCost = 3000;
     } else if (precompileAddress.equals(SHA256)) {
-      precompileCost = (5 + (argsSize + 31) / 32) * 12;
+      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 12;
     } else if (precompileAddress.equals(RIPEMD160)) {
-      precompileCost = (5 + (argsSize + 31) / 32) * 120;
+      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 120;
     } else if (precompileAddress.equals(ID)) {
-      precompileCost = (5 + (argsSize + 31) / 32) * 3;
+      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 3;
     } else if (precompileAddress.equals(MODEXP)) {
       precompileCost = 200;
     } else if (precompileAddress.equals(ALTBN128_ADD)) {

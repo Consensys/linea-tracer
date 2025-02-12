@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.populateMemory;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
-import static net.consensys.linea.zktracer.opcode.OpCode.MSTORE;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -47,12 +48,17 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class LowGasStipendPrecompileCallTests {
 
+  // Enums for the different testing scenarios
   enum ValueParameter {
     ZERO,
     NON_ZERO;
 
     boolean isZeroArgument() {
       return this == ZERO;
+    }
+
+    boolean isNonZeroArgument() {
+      return this == NON_ZERO;
     }
   }
 
@@ -72,10 +78,12 @@ public class LowGasStipendPrecompileCallTests {
 
     // In order to actually trigger the insufficient we need to:
     // - Set a specific args size for BLAKE2F and EC_PAIRING
-    // - Set the r value of BLAKE2F to something greater than the gas stipend
+    // - Set the r value of BLAKE2F to have precompileCost > gasBonus
+    // - Populate the memory with a large enough number of words for SHA256, RIPEMD160, and ID
+    //   to have precompileCost > gasBonus.
     final int value = valueParameter.isZeroArgument() ? 0 : 1;
     final int argsSize; // depends on the called precompile
-    int argsOffset = valueParameter.isZeroArgument() ? 0 : 1;
+    final int argsOffset = valueParameter.isZeroArgument() ? 0 : 1;
     final int retSize = valueParameter.isZeroArgument() ? 0 : 1;
     final int retOffset = valueParameter.isZeroArgument() ? 0 : 1;
 
@@ -91,49 +99,26 @@ public class LowGasStipendPrecompileCallTests {
           .op(OpCode.MSTORE8);
       argsSize = 213;
     } else if (precompileAddress == ALTBN128_PAIRING) {
+      // EC_PAIRING specific parameters
       argsSize = 192;
     } else if ((precompileAddress == SHA256
             || precompileAddress == RIPEMD160
             || precompileAddress == ID)
-        && !valueParameter.isZeroArgument()) {
+        && valueParameter.isNonZeroArgument()) {
+      // SHA256, RIPEMD160, and ID specific parameters
       int nWords = 1024;
       argsSize = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
       populateMemory(program, nWords, argsOffset);
     } else {
+      // Default case
       argsSize = valueParameter.isZeroArgument() ? 0 : 1;
     }
 
-    final int precompileCost;
-    if (precompileAddress.equals(ECREC)) {
-      precompileCost = 3000;
-    } else if (precompileAddress.equals(SHA256)) {
-      precompileCost = (5 + (argsSize + 31) / 32) * 12;
-    } else if (precompileAddress.equals(RIPEMD160)) {
-      precompileCost = (5 + (argsSize + 31) / 32) * 120;
-    } else if (precompileAddress.equals(ID)) {
-      precompileCost = (5 + (argsSize + 31) / 32) * 3;
-    } else if (precompileAddress.equals(MODEXP)) {
-      precompileCost = 200;
-    } else if (precompileAddress.equals(ALTBN128_ADD)) {
-      precompileCost = 150;
-    } else if (precompileAddress.equals(ALTBN128_MUL)) {
-      precompileCost = 6000;
-    } else if (precompileAddress.equals(ALTBN128_PAIRING)) {
-      precompileCost = 45000 + 34000 * (argsSize / 192);
-    } else if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
-      precompileCost = r;
-    } else {
-      throw new IllegalArgumentException("Unknown precompile address");
-    }
+    // Compute the precompile cost
+    final int precompileCost = getPrecompileCost(precompileAddress, argsSize, r);
 
-    int gas =
-        switch (gasParameter) {
-          case ZERO -> 0;
-          case ONE -> 1;
-          case COST_MINUS_ONE -> precompileCost - 1;
-          case COST -> precompileCost;
-          case COST_PLUS_ONE -> precompileCost + 1;
-        };
+    // Compute the gas stipend in the different testing scenarios
+    int gas = getGas(gasParameter, precompileCost);
 
     // In case funds are sent to the precompile contract (valueParameter == NON_ZERO)
     // a gas bonus of 2300 is added to the transaction (gas stipend).
@@ -142,7 +127,7 @@ public class LowGasStipendPrecompileCallTests {
     // COST_PLUS_ONE).
     // Note that we exclude the case of MODEXP as it is treated in a separate test
     // and the case of ALTBN128_ADD as it has a fixed gas cost of 150.
-    if (!valueParameter.isZeroArgument()
+    if (valueParameter.isNonZeroArgument()
         && (gasParameter == GasParameter.COST_MINUS_ONE
             || gasParameter == GasParameter.COST
             || gasParameter == GasParameter.COST_PLUS_ONE)
@@ -167,28 +152,30 @@ public class LowGasStipendPrecompileCallTests {
     bytecodeRunner.run(1_000_000L); // huge gas limit
     final Hub hub = bytecodeRunner.getHub();
 
-    // Here we check if OOB detects the insufficient gas for the precompile call.
-    // As the number of OOB operation required is variable, we iterate over all the operations.
-    boolean insufficientGasForPrecompile = false;
-    BigInteger actualPrecompileCost = BigInteger.ZERO;
-    for (int i = 0; i < hub.oob().operations().size(); i++) {
-      final OobOperation operation = hub.oob().operations().get(i);
-      insufficientGasForPrecompile =
-          insufficientGasForPrecompile || operation.isInsufficientGasForPrecompile();
-      if (operation.getPrecompileCost() != null) {
-        actualPrecompileCost = operation.getPrecompileCost();
-      }
-    }
+    // Here we check if OOB detects the insufficient gas for the precompile call
+    // and the precompile cost computed by OOB.
+    // As the number of OOB operation required is variable, we look for it over all the operations.
+    boolean insufficientGasForPrecompile =
+        hub.oob().operations().stream().anyMatch(OobOperation::isInsufficientGasForPrecompile);
+
+    BigInteger precompileCostComputedByOOB =
+        hub.oob().operations().stream()
+            .map(OobOperation::getPrecompileCost)
+            .filter(Objects::nonNull)
+            .findFirst()
+            .orElse(BigInteger.ZERO);
 
     // We assert that the precompileCost we compute here is the same as the one computed in OOB
-    assertEquals(BigInteger.valueOf(precompileCost), actualPrecompileCost);
+    assertEquals(BigInteger.valueOf(precompileCost), precompileCostComputedByOOB);
 
-    // We assert that the insufficientGasForPrecompile flag is set correctly
+    // We assert that the insufficientGasForPrecompile flag is set correctly in OOB
     if (gasParameter == GasParameter.COST
         || gasParameter == GasParameter.COST_PLUS_ONE
-        || (precompileAddress.equals(BLAKE2B_F_COMPRESSION) && r == 0) // precompileCost is 0
+        || (precompileAddress.equals(BLAKE2B_F_COMPRESSION)
+            && r == 0) // precompileCost is 0 so gas cannot be insufficient
         || (precompileAddress.equals(ALTBN128_ADD)
-            && value > 0) // precompileCost is 150 but stipend is at least 2300
+            && value > 0) // precompileCost is 150 but stipend is at least 2300 so gas cannot be
+    // insufficient
     ) {
       assertFalse(insufficientGasForPrecompile);
     } else {
@@ -217,24 +204,57 @@ public class LowGasStipendPrecompileCallTests {
     return arguments.stream();
   }
 
-  // TODO: do not replicate this method
-  //  use the one in
-  // arithmetization/src/test/java/net/consensys/linea/zktracer/instructionprocessing/callTests/Utilities.java
-  //  after merge
+  // Support methods
+
   /**
-   * {@link #populateMemory} populates memory with <b>nWords</b> chosen cyclically from the set of 6
-   * EVM words obtained by repeating the strings <b>aa</b>, <b>bb</b>, ..., <b>ff</b> 32 times.
+   * Computes the precompile cost based on the precompile address, arguments size, and r value in
+   * case of BLAKE2F.
    *
-   * @param program
-   * @param nWords
+   * @param precompileAddress the address of the precompile contract.
+   * @param argsSize the size of the arguments.
+   * @param r the r value for BLAKE2F. For other precompiles, this value is ignored.
+   * @return the computed precompile cost.
    */
-  public static void populateMemory(BytecodeCompiler program, int nWords, int offset) {
-    List<String> abcdef = List.of("aa", "bb", "cc", "dd", "ee", "ff");
-    for (int i = 0; i < nWords; i++) {
-      program
-          .push(abcdef.get(i % abcdef.size()).repeat(WORD_SIZE)) // value, a 32 byte word
-          .push(offset + i * WORD_SIZE) // offset
-          .op(MSTORE);
+  private static int getPrecompileCost(Address precompileAddress, int argsSize, int r) {
+    final int precompileCost;
+    if (precompileAddress.equals(ECREC)) {
+      precompileCost = 3000;
+    } else if (precompileAddress.equals(SHA256)) {
+      precompileCost = (5 + (argsSize + 31) / 32) * 12;
+    } else if (precompileAddress.equals(RIPEMD160)) {
+      precompileCost = (5 + (argsSize + 31) / 32) * 120;
+    } else if (precompileAddress.equals(ID)) {
+      precompileCost = (5 + (argsSize + 31) / 32) * 3;
+    } else if (precompileAddress.equals(MODEXP)) {
+      precompileCost = 200;
+    } else if (precompileAddress.equals(ALTBN128_ADD)) {
+      precompileCost = 150;
+    } else if (precompileAddress.equals(ALTBN128_MUL)) {
+      precompileCost = 6000;
+    } else if (precompileAddress.equals(ALTBN128_PAIRING)) {
+      precompileCost = 45000 + 34000 * (argsSize / 192);
+    } else if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
+      precompileCost = r;
+    } else {
+      throw new IllegalArgumentException("Unknown precompile address");
     }
+    return precompileCost;
+  }
+
+  /**
+   * Computes the gas stipend based on the gas parameter and precompile cost.
+   *
+   * @param gasParameter the gas parameter.
+   * @param precompileCost the precompile cost.
+   * @return the computed gas stipend.
+   */
+  private static int getGas(GasParameter gasParameter, int precompileCost) {
+    return switch (gasParameter) {
+      case ZERO -> 0;
+      case ONE -> 1;
+      case COST_MINUS_ONE -> precompileCost - 1;
+      case COST -> precompileCost;
+      case COST_PLUS_ONE -> precompileCost + 1;
+    };
   }
 }

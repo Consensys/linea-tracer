@@ -51,20 +51,20 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class LowGasStipendPrecompileCallTests {
 
   // Enums for the different testing scenarios
-  enum ValueParameter {
+  enum ArgumentCase {
     ZERO,
     NON_ZERO;
 
-    boolean isZeroArgument() {
+    boolean isZeroCase() {
       return this == ZERO;
     }
 
-    boolean isNonZeroArgument() {
+    boolean isNonZeroCase() {
       return this == NON_ZERO;
     }
   }
 
-  enum GasParameter {
+  enum GasCase {
     ZERO,
     ONE,
     COST_MINUS_ONE,
@@ -75,7 +75,7 @@ public class LowGasStipendPrecompileCallTests {
   @ParameterizedTest
   @MethodSource("lowGasStipendPrecompileCallTestSource")
   void lowGasStipendPrecompileCallTest(
-      Address precompileAddress, ValueParameter valueParameter, GasParameter gasParameter) {
+      Address precompileAddress, ArgumentCase argumentCase, GasCase gasCase) {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // In order to actually trigger the insufficient we need to:
@@ -83,55 +83,55 @@ public class LowGasStipendPrecompileCallTests {
     // - Set the r value of BLAKE2F to have precompileCost > gasBonus
     // - Populate the memory with a large enough number of words for SHA256, RIPEMD160, and ID
     //   to have precompileCost > gasBonus.
-    final int value = valueParameter.isZeroArgument() ? 0 : 1;
-    final int argsSize; // depends on the called precompile
-    final int argsOffset = valueParameter.isZeroArgument() ? 0 : 1;
-    final int retOffset = valueParameter.isZeroArgument() ? 0 : 1;
+    final int value = getArgument(argumentCase);
+    final int cds; // depends on the called precompile
+    final int rac = getArgument(argumentCase);
+    final int rao = getArgument(argumentCase);
 
     // BLAKE2F specific parameters
-    int rLeadingByte = valueParameter.isZeroArgument() ? 0 : 0x12;
-    int r = rLeadingByte << 8;
+    final int rLeadingByte = argumentCase.isZeroCase() ? 0 : 0x12;
+    final int r = rLeadingByte << 8;
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
       program
           .push(rLeadingByte) // For simplicity, we only set the first byte of r
-          .push(argsOffset + 2) // offset
+          .push(rac + 2) // offset
           // Writing rLeadingByte at this offset
           // allows to have r = 0x00000000 or r = 0x00001200
           .op(OpCode.MSTORE8);
-      argsSize = 213;
+      cds = 213;
     } else if (precompileAddress == ALTBN128_PAIRING) {
       // EC_PAIRING specific parameters
-      argsSize = 192;
+      cds = 192;
     } else if ((precompileAddress == SHA256
             || precompileAddress == RIPEMD160
             || precompileAddress == ID)
-        && valueParameter.isNonZeroArgument()) {
+        && argumentCase.isNonZeroCase()) {
       // SHA256, RIPEMD160, and ID specific parameters
       int nWords = 1024;
-      argsSize = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
-      populateMemory(program, nWords, argsOffset);
+      cds = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
+      populateMemory(program, nWords, rac);
     } else {
       // Default case
-      argsSize = valueParameter.isZeroArgument() ? 0 : 1;
+      cds = getArgument(argumentCase);
     }
 
     // Compute the precompile cost
-    final int precompileCost = getPrecompileCost(precompileAddress, argsSize, r);
+    final int precompileCost = getPrecompileCost(precompileAddress, cds, r);
 
     // Compute the gas stipend in the different testing scenarios
-    int gas = getGas(gasParameter, precompileCost);
+    int gas = getGas(gasCase, precompileCost);
 
-    // In case funds are sent to the precompile contract (valueParameter == NON_ZERO)
-    // a gas bonus of 2300 is added to the transaction (gas stipend).
-    // We now deduce that gas bonus from the gas stipend to trigger the
+    // In case funds are sent to the precompile contract (argumentCase == NON_ZERO)
+    // a gas stipend of 2300 is added to the transaction.
+    // We now deduce that gas stipend from the gas given to the transaction to trigger
     // insufficient gas for the precompile call in the non-trivial cases (COST_MINUS_ONE, COST,
     // COST_PLUS_ONE).
     // Note that we exclude the case of MODEXP as it is treated in a separate test
     // and the case of ALTBN128_ADD as it has a fixed gas cost of 150.
-    if (valueParameter.isNonZeroArgument()
-        && (gasParameter == GasParameter.COST_MINUS_ONE
-            || gasParameter == GasParameter.COST
-            || gasParameter == GasParameter.COST_PLUS_ONE)
+    if (argumentCase.isNonZeroCase()
+        && (gasCase == GasCase.COST_MINUS_ONE
+            || gasCase == GasCase.COST
+            || gasCase == GasCase.COST_PLUS_ONE)
         && !precompileAddress.equals(ALTBN128_ADD)
         && !precompileAddress.equals(MODEXP)) {
       gas -= GAS_CONST_G_CALL_STIPEND;
@@ -139,10 +139,10 @@ public class LowGasStipendPrecompileCallTests {
 
     // Common program for all precompile calls
     program
-        .push(getRetSize(precompileAddress, argsSize)) // retSize
-        .push(retOffset) // retOffset
-        .push(argsSize) // argsSize
-        .push(argsOffset) // argsOffset
+        .push(getReturnAtCapacity(precompileAddress, cds)) // rac
+        .push(rao) // rao
+        .push(cds) // cds
+        .push(rac) // rac
         .push(value) // value
         .push(precompileAddress) // address
         .push(gas) // gas
@@ -169,8 +169,8 @@ public class LowGasStipendPrecompileCallTests {
     assertEquals(BigInteger.valueOf(precompileCost), precompileCostComputedByOOB);
 
     // We assert that the insufficientGasForPrecompile flag is set correctly in OOB
-    if (gasParameter == GasParameter.COST
-        || gasParameter == GasParameter.COST_PLUS_ONE
+    if (gasCase == GasCase.COST
+        || gasCase == GasCase.COST_PLUS_ONE
         || (precompileAddress.equals(BLAKE2B_F_COMPRESSION)
             && r == 0) // precompileCost is 0 so gas cannot be insufficient
         || (precompileAddress.equals(ALTBN128_ADD)
@@ -185,52 +185,55 @@ public class LowGasStipendPrecompileCallTests {
 
   static Stream<Arguments> lowGasStipendPrecompileCallTestSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (ValueParameter valueParameter : ValueParameter.values()) {
-      for (GasParameter gasParameter : GasParameter.values()) {
-        arguments.add(Arguments.of(ECREC, valueParameter, gasParameter));
-        arguments.add(Arguments.of(SHA256, valueParameter, gasParameter));
-        arguments.add(Arguments.of(RIPEMD160, valueParameter, gasParameter));
-        arguments.add(Arguments.of(ID, valueParameter, gasParameter));
-        if (valueParameter == ValueParameter.ZERO) {
+    for (ArgumentCase argumentCase : ArgumentCase.values()) {
+      for (GasCase gasCase : GasCase.values()) {
+        arguments.add(Arguments.of(ECREC, argumentCase, gasCase));
+        arguments.add(Arguments.of(SHA256, argumentCase, gasCase));
+        arguments.add(Arguments.of(RIPEMD160, argumentCase, gasCase));
+        arguments.add(Arguments.of(ID, argumentCase, gasCase));
+        if (argumentCase == ArgumentCase.ZERO) {
           // The NON_ZERO for MODEXP case will be treated in a separate test
-          arguments.add(Arguments.of(MODEXP, valueParameter, gasParameter));
+          arguments.add(Arguments.of(MODEXP, argumentCase, gasCase));
         }
-        arguments.add(Arguments.of(ALTBN128_ADD, valueParameter, gasParameter));
-        arguments.add(Arguments.of(ALTBN128_MUL, valueParameter, gasParameter));
-        arguments.add(Arguments.of(Address.ALTBN128_PAIRING, valueParameter, gasParameter));
-        arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, valueParameter, gasParameter));
+        arguments.add(Arguments.of(ALTBN128_ADD, argumentCase, gasCase));
+        arguments.add(Arguments.of(ALTBN128_MUL, argumentCase, gasCase));
+        arguments.add(Arguments.of(Address.ALTBN128_PAIRING, argumentCase, gasCase));
+        arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, argumentCase, gasCase));
       }
     }
     return arguments.stream();
   }
 
   // Support methods
+  private static int getArgument(ArgumentCase argumentCase) {
+    return argumentCase.isZeroCase() ? 0 : 1;
+  }
 
   /**
-   * Computes the return size based on the precompile address, and arguments size in the case of ID.
+   * Computes the rac based on the precompile address, and cds in the case of ID.
    *
    * @param precompileAddress the address of the precompile contract.
-   * @param argsSize the size of the arguments for ID. For other precompiles, this value is ignored.
-   * @return the computed return size.
+   * @param cds the call data size. Beyond the case of ID, this value is ignored.
+   * @return the computed return rac.
    */
-  private static int getRetSize(Address precompileAddress, int argsSize) {
-    final int retSize;
+  private static int getReturnAtCapacity(Address precompileAddress, int cds) {
+    final int rac;
     if (precompileAddress == ECREC
         || precompileAddress == SHA256
         || precompileAddress == RIPEMD160
         || precompileAddress == ALTBN128_PAIRING
         || precompileAddress == MODEXP) {
-      retSize = WORD_SIZE;
+      rac = WORD_SIZE;
     } else if (precompileAddress == ALTBN128_ADD
         || precompileAddress == ALTBN128_MUL
         || precompileAddress == BLAKE2B_F_COMPRESSION) {
-      retSize = 2 * WORD_SIZE;
+      rac = 2 * WORD_SIZE;
     } else if (precompileAddress == ID) {
-      retSize = argsSize;
+      rac = cds;
     } else {
       throw new IllegalArgumentException("Unknown precompile address");
     }
-    return retSize;
+    return rac;
   }
 
   /**
@@ -238,20 +241,20 @@ public class LowGasStipendPrecompileCallTests {
    * case of BLAKE2F.
    *
    * @param precompileAddress the address of the precompile contract.
-   * @param argsSize the size of the arguments.
-   * @param r the r value for BLAKE2F. For other precompiles, this value is ignored.
+   * @param cds the call data size.
+   * @param r the r value for BLAKE2F. For other precompile contracts, this value is ignored.
    * @return the computed precompile cost.
    */
-  private static int getPrecompileCost(Address precompileAddress, int argsSize, int r) {
+  private static int getPrecompileCost(Address precompileAddress, int cds, int r) {
     final int precompileCost;
     if (precompileAddress.equals(ECREC)) {
       precompileCost = 3000;
     } else if (precompileAddress.equals(SHA256)) {
-      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 12;
+      precompileCost = (5 + (cds + WORD_SIZE_MO) / WORD_SIZE) * 12;
     } else if (precompileAddress.equals(RIPEMD160)) {
-      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 120;
+      precompileCost = (5 + (cds + WORD_SIZE_MO) / WORD_SIZE) * 120;
     } else if (precompileAddress.equals(ID)) {
-      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 3;
+      precompileCost = (5 + (cds + WORD_SIZE_MO) / WORD_SIZE) * 3;
     } else if (precompileAddress.equals(MODEXP)) {
       precompileCost = 200;
     } else if (precompileAddress.equals(ALTBN128_ADD)) {
@@ -259,7 +262,7 @@ public class LowGasStipendPrecompileCallTests {
     } else if (precompileAddress.equals(ALTBN128_MUL)) {
       precompileCost = 6000;
     } else if (precompileAddress.equals(ALTBN128_PAIRING)) {
-      precompileCost = 45000 + 34000 * (argsSize / 192);
+      precompileCost = 45000 + 34000 * (cds / 192);
     } else if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
       precompileCost = r;
     } else {
@@ -269,14 +272,14 @@ public class LowGasStipendPrecompileCallTests {
   }
 
   /**
-   * Computes the gas stipend based on the gas parameter and precompile cost.
+   * Computes the gas based on the gas parameter and precompile cost.
    *
-   * @param gasParameter the gas parameter.
+   * @param gasCase the gas case.
    * @param precompileCost the precompile cost.
-   * @return the computed gas stipend.
+   * @return the computed gas.
    */
-  private static int getGas(GasParameter gasParameter, int precompileCost) {
-    return switch (gasParameter) {
+  private static int getGas(GasCase gasCase, int precompileCost) {
+    return switch (gasCase) {
       case ZERO -> 0;
       case ONE -> 1;
       case COST_MINUS_ONE -> precompileCost - 1;

@@ -23,10 +23,11 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ModexpCallParameters;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -44,6 +45,31 @@ public class HappyPathTests {
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
   public void messageCallTransactionTest(ModexpCallParameters params) {
+    populateCodeOfMemoryHolderAccounts(params);
+    BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
+    BytecodeRunner.of(rootCode).run(Wei.fromEth(1), 61_000_000L);
+  }
+
+  /**
+   * Non-parametric test to make sure things are working as expected.
+   */
+  @Test
+  public void singleMessageCallTransactionTest() {
+
+    ModexpCallDataParameters callDataParameters = new ModexpCallDataParameters(
+            ByteSizeParameter.SMALL, // bbs
+            ByteSizeParameter.SMALL, // ebs
+            ByteSizeParameter.MAX, // mbs
+            ModexpCallDataSizeParameter.MODULUS_FULL // cds
+    );
+    ModexpCallParameters params = new ModexpCallParameters(
+            CALL,
+            GasParameter.FULL,
+            callDataParameters,
+            ReturnAtParameter.FULL,
+            RelativeRangePosition.OVERLAP,
+            true
+    );
     populateCodeOfMemoryHolderAccounts(params);
     BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
     BytecodeRunner.of(rootCode).run(Wei.fromEth(1), 61_000_000L);

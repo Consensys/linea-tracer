@@ -37,34 +37,33 @@ public class ParameterGeneration {
 
     List<Arguments> argumentsList = new ArrayList<>();
 
-    for (OpCode opCode : CallOpCodes) {
-      for (GasParameter gas : GasParameter.values()) {
-        for (ByteSizeParameter bbs : ByteSizeParameter.values()) {
-          for (ByteSizeParameter ebs : ByteSizeParameter.values()) {
-            for (ByteSizeParameter mbs : ByteSizeParameter.values()) {
-              for (ModexpCallDataSizeParameter cds : ModexpCallDataSizeParameter.values()) {
-                for (ReturnAtParameter returnAt : ReturnAtParameter.values()) {
-                  for (RelativeRangePosition relPos : RelativeRangePosition.values()) {
-                    argumentsList.add(
-                        Arguments.of(
-                            new ModexpCallParameters(
-                                opCode,
-                                gas,
-                                new ModexpCallDataParameters(bbs, ebs, mbs, cds),
-                                returnAt,
-                                relPos,
-                                false)));
+    for (OpCode opCode : CallOpCodes) { // 4
+      // for (GasParameter gas : GasParameter.values()) { // 5
+      for (ByteSizeParameter bbs : ByteSizeParameter.values()) { // 4
+        for (ByteSizeParameter ebs : ByteSizeParameter.values()) { // 4
+          for (ByteSizeParameter mbs : ByteSizeParameter.values()) { // 4
+            for (ModexpCallDataSizeParameter cds : ModexpCallDataSizeParameter.values()) { // 9
+              for (ReturnAtParameter returnAt : ReturnAtParameter.values()) { // 4
+                for (RelativeRangePosition relPos : RelativeRangePosition.values()) { // 2
+                  argumentsList.add(
+                      Arguments.of(
+                          new ModexpCallParameters(
+                              opCode,
+                              GasParameter.FULL,
+                              new ModexpCallDataParameters(bbs, ebs, mbs, cds),
+                              returnAt,
+                              relPos,
+                              false)));
 
-                    argumentsList.add(
-                        Arguments.of(
-                            new ModexpCallParameters(
-                                opCode,
-                                gas,
-                                new ModexpCallDataParameters(bbs, ebs, mbs, cds),
-                                returnAt,
-                                relPos,
-                                false)));
-                  }
+                  argumentsList.add(
+                      Arguments.of(
+                          new ModexpCallParameters(
+                              opCode,
+                              GasParameter.FULL,
+                              new ModexpCallDataParameters(bbs, ebs, mbs, cds),
+                              returnAt,
+                              relPos,
+                              false)));
                 }
               }
             }
@@ -72,6 +71,7 @@ public class ParameterGeneration {
         }
       }
     }
+    // }
     return argumentsList.stream();
   }
 }

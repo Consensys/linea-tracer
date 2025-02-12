@@ -42,12 +42,12 @@ public class ModexpCallDataParameters {
 
   public String codeWhichWillBecomeMemoryOfModexpCall(boolean variant) {
 
-    String memoryContents = this.bbs(variant) + this.ebs(variant) + this.mbs(variant);
+    String memoryContents = this.bbs(variant).substring(2) + this.ebs(variant).substring(2) + this.mbs(variant).substring(2);
 
     return memoryContents
-        + (variant ? BASE_512_a : BASE_512_b).substring(0, this.bbsShort(variant))
-        + (variant ? BASE_512_a : BASE_512_b).substring(0, this.ebsShort(variant))
-        + (variant ? BASE_512_a : BASE_512_b).substring(0, this.mbsShort(variant));
+        + (variant ? BASE_512_a : BASE_512_b).substring(0, 2 * this.bbsShort(variant))
+        + (variant ? EXPN_512_a : EXPN_512_b).substring(0, 2 * this.ebsShort(variant))
+        + (variant ? MDLS_512_a : MDLS_512_b).substring(0, 2 * this.mbsShort(variant));
   }
 
   private short bbsShort(boolean variant) {
@@ -61,8 +61,8 @@ public class ModexpCallDataParameters {
 
   private short ebsShort(boolean variant) {
     return switch (this.ebs) {
-      case ZERO -> 0;
-      case ONE -> 1;
+      case ZERO -> 0x00;
+      case ONE -> 0x01;
       case SMALL -> (short) (variant ? 0xf1 : 0x012a);
       case MAX -> 0x0200;
     };
@@ -70,8 +70,8 @@ public class ModexpCallDataParameters {
 
   private short mbsShort(boolean variant) {
     return switch (this.mbs) {
-      case ZERO -> 0;
-      case ONE -> 1;
+      case ZERO -> 0x00;
+      case ONE -> 0x01;
       case SMALL -> (short) (variant ? 0x012f : 0xd1);
       case MAX -> 0x0200;
     };

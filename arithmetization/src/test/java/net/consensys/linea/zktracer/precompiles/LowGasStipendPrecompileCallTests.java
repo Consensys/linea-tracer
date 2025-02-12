@@ -124,20 +124,20 @@ public class LowGasStipendPrecompileCallTests {
       argsSize = 96 + bbs + ebs + mbs;
       program
           .push(Bytes32.leftPad(Bytes.of(bbs)))
-          .push(0)
+          .push(0) // offset
           .op(OpCode.MSTORE)
           .push(Bytes32.leftPad(Bytes.of(ebs)))
-          .push(32)
+          .push(32) // offset
           .op(OpCode.MSTORE)
           .push(Bytes32.leftPad(Bytes.of(mbs)))
-          .push(64)
+          .push(64) // offset
           .op(OpCode.MSTORE)
           .push(Bytes32.rightPad(Bytes.fromHexString("0xba7e" + "000ec7" + "0000080d")))
-          .push(96)
+          .push(96) // offset
           .op(OpCode.MSTORE);
     } else {
       // Default case
-      argsSize = argumentCase.isZeroCase() ? 0 : 1;
+      argsSize = argumentCase.isZeroCase() ? 0 : 1; // TODO: is this meaningful / useful?
     }
 
     // Compute the return size

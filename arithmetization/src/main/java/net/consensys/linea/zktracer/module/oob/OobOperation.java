@@ -126,8 +126,6 @@ public class OobOperation extends ModuleOperation {
 
   private BigInteger precompileCost;
   boolean insufficientGasForPrecompile;
-  long expectedGas;
-  long givenGas;
 
   // Modules for lookups
   private final Add add;

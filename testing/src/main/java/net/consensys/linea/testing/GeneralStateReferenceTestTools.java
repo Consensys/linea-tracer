@@ -15,6 +15,7 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BLOCK_GAS_LIMIT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
@@ -27,6 +28,8 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
+import org.apache.tuweni.bytes.Bytes32;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.BlobGas;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
@@ -41,7 +44,10 @@ import org.hyperledger.besu.ethereum.referencetests.ReferenceTestBlockchain;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
 import org.hyperledger.besu.ethereum.rlp.RLP;
 import org.hyperledger.besu.ethereum.vm.BlockchainBasedBlockHashLookup;
+import org.hyperledger.besu.evm.EVM;
 import org.hyperledger.besu.evm.account.Account;
+import org.hyperledger.besu.evm.fluent.SimpleBlockValues;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 
@@ -169,6 +175,84 @@ public class GeneralStateReferenceTestTools {
             });
 
     ExecutionEnvironment.checkTracer(tracer, CORSET_VALIDATOR, Optional.of(log));
+  }
+
+  @SneakyThrows
+  public static long executeTestOnlyForGasCost(
+      final GeneralStateTestCaseEipSpec spec,
+      final ProtocolSpec protocolSpec,
+      final List<ToyAccount> accounts) {
+    final BlockHeader blockHeader = spec.getBlockHeader();
+    final ReferenceTestWorldState initialWorldState = spec.getInitialWorldState();
+    final List<Transaction> transactions = new ArrayList<>();
+    for (int i = 0; i < spec.getTransactionsCount(); i++) {
+      Transaction transaction = spec.getTransaction(i);
+
+      // Sometimes the tests ask us assemble an invalid transaction.  If we have
+      // no valid transaction then there is no test.  GeneralBlockChain tests
+      // will handle the case where we receive the TXs in a serialized form.
+      if (transaction == null) {
+        return 0;
+      }
+
+      transactions.add(transaction);
+    }
+
+    final BlockBody blockBody = new BlockBody(transactions, new ArrayList<>());
+    final MutableWorldState worldState = initialWorldState;
+    //     final MutableWorldState worldState = initialWorldState.copy();
+    final WorldUpdater worldStateUpdater = worldState.updater();
+    final MainnetTransactionProcessor processor = protocolSpec.getTransactionProcessor();
+    final EVM evm = protocolSpec.getEvm();
+    final ReferenceTestBlockchain blockchain = new ReferenceTestBlockchain(blockHeader.getNumber());
+    final Wei blobGasPrice =
+        protocolSpec
+            .getFeeMarket()
+            .blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
+
+    long result = 0;
+    for (Transaction transaction : blockBody.getTransactions()) {
+      // Several of the GeneralStateTests check if the transaction could potentially
+      // consume more gas than is left for the block it's attempted to be included in.
+      // This check is performed within the `BlockImporter` rather than inside the
+      // `TransactionProcessor`, so these tests are skipped.
+      if (transaction.getGasLimit() > blockHeader.getGasLimit() - blockHeader.getGasUsed()) {
+        throw new IllegalArgumentException("Transaction gas limit higher that available in block");
+      }
+
+      // MessageFrame testFrame = new MessageFrame(MessageFrame.Type.MESSAGE_CALL,
+      // worldStateUpdater, LINEA_BLOCK_GAS_LIMIT, accounts.get(1).getAddress(), Address.ZERO,
+      // Bytes32.ZERO, accounts.get(0).getAddress(), Wei.ZERO, Wei.ZERO,
+      // evm.getCodeUncached(accounts.get(1).getCode()), false, messageFrame -> {}, )
+      MessageFrame initialMessageFrame =
+          MessageFrame.builder()
+              // .address(accounts.get(2).getAddress())
+              .worldUpdater(worldStateUpdater)
+              .originator(accounts.get(0).getAddress())
+              .gasPrice(Wei.ONE)
+              .blobGasPrice(Wei.ONE)
+              .blockValues(new SimpleBlockValues())
+              .miningBeneficiary(Address.ZERO)
+              .blockHashLookup((__, ___) -> Hash.ZERO)
+              .address(Address.fromHexString("0x1111111111111111111111111111111111111111"))
+              .contract(Address.fromHexString("0x1111111111111111111111111111111111111111"))
+              .inputData(Bytes32.ZERO)
+              .sender(accounts.get(0).getAddress())
+              .apparentValue(Wei.ZERO)
+              .completer(messageFrame -> {})
+              .type(MessageFrame.Type.MESSAGE_CALL)
+              .initialGas(LINEA_BLOCK_GAS_LIMIT)
+              .code(evm.getCodeUncached(accounts.get(1).getCode()))
+              // TODO: variable
+              .value(Wei.of(1))
+              .build();
+
+      initialMessageFrame.setState(MessageFrame.State.CODE_EXECUTING);
+      processor.process(initialMessageFrame, null);
+
+      result = LINEA_BLOCK_GAS_LIMIT - initialMessageFrame.getRemainingGas();
+    }
+    return result;
   }
 
   private static boolean shouldClearEmptyAccounts(final String eip) {

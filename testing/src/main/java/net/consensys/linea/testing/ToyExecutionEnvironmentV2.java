@@ -80,6 +80,17 @@ public class ToyExecutionEnvironmentV2 {
         zkTracerValidator);
   }
 
+  public long runForGasCost() {
+    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN_ID);
+    GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
+        this.buildGeneralStateTestCaseSpec(protocolSpec);
+
+    long result =
+        GeneralStateReferenceTestTools.executeTestOnlyForGasCost(
+            generalStateTestCaseEipSpec, protocolSpec, this.accounts);
+    return result;
+  }
+
   public Hub getHub() {
     return tracer.getHub();
   }

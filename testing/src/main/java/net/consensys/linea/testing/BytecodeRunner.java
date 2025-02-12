@@ -139,6 +139,54 @@ public final class BytecodeRunner {
     toyExecutionEnvironmentV2.run();
   }
 
+  // Ad-hoc senderBalance, accounts
+  public long runOnlyForGasCost(
+      Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts) {
+    checkArgument(byteCode != null, "byteCode cannot be empty");
+
+    KeyPair keyPair = new SECP256K1().generateKeyPair();
+    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+
+    final ToyAccount senderAccount =
+        ToyAccount.builder().balance(senderBalance).nonce(5).address(senderAddress).build();
+
+    final Long selectedGasLimit = Optional.of(gasLimit).orElse(DEFAULT_GAS_LIMIT);
+
+    final ToyAccount receiverAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(6)
+            .address(Address.fromHexString("0x1111111111111111111111111111111111111111"))
+            .code(byteCode)
+            .build();
+
+    final Transaction tx =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(receiverAccount)
+            .value(Wei.of(272)) // 256 + 16, easier for debugging
+            .keyPair(keyPair)
+            .gasLimit(selectedGasLimit)
+            .gasPrice(Wei.of(8))
+            .build();
+
+    List<ToyAccount> accounts = new ArrayList<>();
+    accounts.add(senderAccount);
+    accounts.add(receiverAccount);
+    accounts.addAll(additionalAccounts);
+
+    toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder()
+            .transactionProcessingResultValidator(
+                TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+            .accounts(accounts)
+            .zkTracerValidator(zkTracerValidator)
+            .transaction(tx)
+            .build();
+    long result = toyExecutionEnvironmentV2.runForGasCost();
+    return result;
+  }
+
   public Hub getHub() {
     return toyExecutionEnvironmentV2.getHub();
   }

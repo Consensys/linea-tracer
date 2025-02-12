@@ -17,14 +17,7 @@ package net.consensys.linea.zktracer.exceptions;
 
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
 import static net.consensys.linea.zktracer.DynamicGasCostUtils.getGasCostForMessageCall;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_VALUE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COLD_SLOAD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_SSET;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TRANSACTION;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_VERY_LOW;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.opcode.OpCodes.opCodeToOpCodeDataMap;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -181,19 +173,21 @@ public class OutOfGasExceptionTest {
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+    long gasCost = 0;
 
-    long gasCost = getGasCostForMessageCall(pgCompile);
-
-    /*    log.info("Estimation: " + gasCostEst);*/
-
-    /*    long gasCost =
-        GAS_CONST_G_TRANSACTION
-            + // base gas cost
-            (isWarm ? GAS_CONST_G_VERY_LOW + GAS_CONST_G_COLD_ACCOUNT_ACCESS : 0) // PUSH + BALANCE
-            + 7 * GAS_CONST_G_VERY_LOW // 7 PUSH
-            + callGasCost(value != 0, targetAddressExists, isWarm); // CALL
-
-    log.info("Gas cost exact: " + gasCost);*/
+    if (targetAddressExists) {
+      final ToyAccount calleeAccount =
+          ToyAccount.builder()
+              .balance(Wei.fromEth(1))
+              .nonce(10)
+              .address(Address.fromHexString("ca11ee"))
+              .build();
+      gasCost =
+          bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of(calleeAccount))
+              + 21000;
+    } else {
+      gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of()) + 21000;
+    }
 
     if (targetAddressExists) {
       final ToyAccount calleeAccount =
@@ -220,7 +214,7 @@ public class OutOfGasExceptionTest {
 
   static Stream<Arguments> outOfGasExceptionCallSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (int value : new int[] {0}) {
+    for (int value : new int[] {0, 1}) {
       for (int cornerCase : new int[] {-1, 0, 1}) {
         arguments.add(Arguments.of(value, true, true, cornerCase));
         arguments.add(Arguments.of(value, true, false, cornerCase));
@@ -228,14 +222,6 @@ public class OutOfGasExceptionTest {
       }
     }
     return arguments.stream();
-  }
-
-  private long callGasCost(boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
-    Preconditions.checkArgument(
-        !(isWarm && !targetAddressExists), "isWarm implies targetAddressExists");
-    return (transfersValue ? GAS_CONST_G_CALL_VALUE : 0)
-        + (targetAddressExists ? 0 : (transfersValue ? GAS_CONST_G_NEW_ACCOUNT : 0))
-        + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
   }
 
   /**

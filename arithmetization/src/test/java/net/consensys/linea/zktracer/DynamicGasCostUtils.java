@@ -49,7 +49,6 @@ public class DynamicGasCostUtils {
         .originator(Address.ZERO)
         .gasPrice(Wei.ONE)
         .blobGasPrice(Wei.ONE)
-        .worldUpdater(new SimpleWorld())
         .blockValues(new SimpleBlockValues())
         .miningBeneficiary(Address.ZERO)
         .blockHashLookup((__, ___) -> Hash.ZERO)

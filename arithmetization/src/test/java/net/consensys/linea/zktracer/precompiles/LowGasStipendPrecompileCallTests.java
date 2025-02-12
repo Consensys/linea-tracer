@@ -85,10 +85,12 @@ public class LowGasStipendPrecompileCallTests {
     // - Set the r value of BLAKE2F to have precompileCost > gasBonus
     // - Populate the memory with a large enough number of words for SHA256, RIPEMD160, and ID
     //   to have precompileCost > gasBonus.
-    final int value = getArgument(argumentCase);
-    final int cds; // depends on the called precompile
-    final int rac = getArgument(argumentCase);
-    final int rao = getArgument(argumentCase);
+    final int value = argumentCase.isZeroCase() ? 0 : 1;
+    final int argsSize; // depends on the called precompile
+    final int argsOffset = 0;
+
+    // retSize is defined below
+    final int retOffset = 13;
 
     // BLAKE2F specific parameters
     final int rLeadingByte = argumentCase.isZeroCase() ? 0 : 0x12;
@@ -102,24 +104,24 @@ public class LowGasStipendPrecompileCallTests {
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
       program
           .push(rLeadingByte) // For simplicity, we only set the first byte of r
-          .push(rac + 2) // offset
+          .push(argsOffset + 2) // offset
           // Writing rLeadingByte at this offset
           // allows to have r = 0x00000000 or r = 0x00001200
           .op(OpCode.MSTORE8);
-      cds = 213;
+      argsSize = 213;
     } else if (precompileAddress == ALTBN128_PAIRING) {
       // EC_PAIRING specific parameters
-      cds = 192;
+      argsSize = 192;
     } else if ((precompileAddress == SHA256
             || precompileAddress == RIPEMD160
             || precompileAddress == ID)
         && argumentCase.isNonZeroCase()) {
       // SHA256, RIPEMD160, and ID specific parameters
       int nWords = 1024;
-      cds = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
-      populateMemory(program, nWords, rac);
+      argsSize = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
+      populateMemory(program, nWords, argsOffset);
     } else if (precompileAddress == MODEXP) {
-      cds = 96 + bbs + ebs + mbs;
+      argsSize = 96 + bbs + ebs + mbs;
       program
           .push(Bytes32.leftPad(Bytes.of(bbs)))
           .push(0)
@@ -135,11 +137,14 @@ public class LowGasStipendPrecompileCallTests {
           .op(OpCode.MSTORE);
     } else {
       // Default case
-      cds = getArgument(argumentCase);
+      argsSize = argumentCase.isZeroCase() ? 0 : 1;
     }
 
+    // Compute the return size
+    final int retSize = getRetSize(precompileAddress, argsSize, mbs);
+
     // Compute the precompile cost
-    final int precompileCost = getPrecompileCost(precompileAddress, cds, r);
+    final int precompileCost = getPrecompileCost(precompileAddress, argsSize, r);
 
     // Compute the gas stipend in the different testing scenarios
     int gas = getGas(gasCase, precompileCost);
@@ -162,10 +167,10 @@ public class LowGasStipendPrecompileCallTests {
 
     // Common program for all precompile calls
     program
-        .push(getReturnAtCapacity(precompileAddress, cds, mbs)) // rac
-        .push(rao) // rao
-        .push(cds) // cds
-        .push(rac) // rac
+        .push(retSize) // retSize
+        .push(retOffset) // retOffset
+        .push(argsSize) // argsSize
+        .push(argsOffset) // argsOffset
         .push(value) // value
         .push(precompileAddress) // address
         .push(gas) // gas
@@ -228,19 +233,15 @@ public class LowGasStipendPrecompileCallTests {
   }
 
   // Support methods
-  private static int getArgument(ArgumentCase argumentCase) {
-    return argumentCase.isZeroCase() ? 0 : 1;
-  }
-
   /**
-   * Computes the rac based on the precompile address, and cds in the case of ID.
+   * Computes the retSize based on the precompile address, and argsSize in the case of ID.
    *
    * @param precompileAddress the address of the precompile contract.
-   * @param cds the call data size. Beyond the case of ID, this value is ignored.
+   * @param argsSize the call data size. Beyond the case of ID, this value is ignored.
    * @param mbs the modulo byte size. Beyond the case of MODEXP, this value is ignored.
    * @return the computed return rac.
    */
-  private static int getReturnAtCapacity(Address precompileAddress, int cds, int mbs) {
+  private static int getRetSize(Address precompileAddress, int argsSize, int mbs) {
     final int rac;
     if (precompileAddress == ECREC
         || precompileAddress == SHA256
@@ -254,7 +255,7 @@ public class LowGasStipendPrecompileCallTests {
     } else if (precompileAddress == MODEXP) {
       rac = mbs;
     } else if (precompileAddress == ID) {
-      rac = cds;
+      rac = argsSize;
     } else {
       throw new IllegalArgumentException("Unknown precompile address");
     }
@@ -266,20 +267,20 @@ public class LowGasStipendPrecompileCallTests {
    * case of BLAKE2F.
    *
    * @param precompileAddress the address of the precompile contract.
-   * @param cds the call data size.
+   * @param argsSize the call data size.
    * @param r the r value for BLAKE2F. For other precompile contracts, this value is ignored.
    * @return the computed precompile cost.
    */
-  private static int getPrecompileCost(Address precompileAddress, int cds, int r) {
+  private static int getPrecompileCost(Address precompileAddress, int argsSize, int r) {
     final int precompileCost;
     if (precompileAddress.equals(ECREC)) {
       precompileCost = 3000;
     } else if (precompileAddress.equals(SHA256)) {
-      precompileCost = (5 + (cds + WORD_SIZE_MO) / WORD_SIZE) * 12;
+      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 12;
     } else if (precompileAddress.equals(RIPEMD160)) {
-      precompileCost = (5 + (cds + WORD_SIZE_MO) / WORD_SIZE) * 120;
+      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 120;
     } else if (precompileAddress.equals(ID)) {
-      precompileCost = (5 + (cds + WORD_SIZE_MO) / WORD_SIZE) * 3;
+      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 3;
     } else if (precompileAddress.equals(MODEXP)) {
       precompileCost = 200;
     } else if (precompileAddress.equals(ALTBN128_ADD)) {
@@ -287,7 +288,7 @@ public class LowGasStipendPrecompileCallTests {
     } else if (precompileAddress.equals(ALTBN128_MUL)) {
       precompileCost = 6000;
     } else if (precompileAddress.equals(ALTBN128_PAIRING)) {
-      precompileCost = 45000 + 34000 * (cds / 192);
+      precompileCost = 45000 + 34000 * (argsSize / 192);
     } else if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
       precompileCost = r;
     } else {

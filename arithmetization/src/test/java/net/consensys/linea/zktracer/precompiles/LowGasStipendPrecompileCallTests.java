@@ -282,7 +282,7 @@ public class LowGasStipendPrecompileCallTests {
     } else if (precompileAddress.equals(ID)) {
       precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 3;
     } else if (precompileAddress.equals(MODEXP)) {
-      precompileCost = 200;
+      precompileCost = 200; // TODO: check this
     } else if (precompileAddress.equals(ALTBN128_ADD)) {
       precompileCost = 150;
     } else if (precompileAddress.equals(ALTBN128_MUL)) {

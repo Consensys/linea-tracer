@@ -41,7 +41,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class rlptxnTests {
+public class RlptxnTests {
 
   private static final Random SEED = new Random(666);
 
@@ -141,12 +141,16 @@ public class rlptxnTests {
     final Address address3 = Address.ZERO;
     final Bytes32 storage1 = Bytes32.wrap(Bytes.random(WORD_SIZE, SEED));
     final Bytes32 storage2 = Bytes32.wrap(Bytes.random(WORD_SIZE, SEED));
+    final Bytes32 storage3 = Bytes32.ZERO;
 
     final AccessListEntry entry1 = new AccessListEntry(address1, List.of());
     final AccessListEntry entry2 = new AccessListEntry(address1, List.of(storage1));
     final AccessListEntry entry3 = new AccessListEntry(address2, List.of(storage1));
     final AccessListEntry entry4 =
-        new AccessListEntry(address3, List.of(storage1, storage1, storage2, storage2, storage1));
+        new AccessListEntry(
+            address3,
+            List.of(
+                storage1, storage1, storage2, storage3, storage3, storage2, storage1, storage3));
 
     final List<List<AccessListEntry>> accessLists =
         List.of(
@@ -155,7 +159,8 @@ public class rlptxnTests {
             List.of(entry2), // 1 address, 1 storage, byte size < 56
             List.of(
                 entry1, entry2, entry3, entry4, entry1,
-                entry4) // duplicates, warming precompile, stupid stuff, zero address ...
+                entry4) // duplicates, warming precompile, stupid stuff, zero address, zero storage
+            // ...
             );
 
     for (TransactionType txType : possibleTxType) {

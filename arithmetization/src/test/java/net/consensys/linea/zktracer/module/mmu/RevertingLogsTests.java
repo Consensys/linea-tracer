@@ -28,20 +28,36 @@ import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
-import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 
+/**
+ * This test aims at testing a mixture of un reverted, selfreverted (STATIC exception, or REVERT),
+ * and get reverted LOGX in order to tests that the MMU and LOG stamps work as intended wrt
+ * reverting LOGX operations
+ */
 public class RevertingLogsTests {
 
-  private static final Bytes CALLDATACOPY =
+  private static final Bytes POPULATE_MEMORY =
       newProgram()
           .op(OpCode.CALLDATASIZE) // size
           .push(0) // offset
           .push(0) // dest offset
           .op(OpCode.CALLDATACOPY)
           .compile();
+
+  private static final Bytes TOPIC_1 =
+      Bytes.fromHexString("0x000007031c100000000007031c100000000007031c100000000007031c100000");
+
+  private static final Bytes TOPIC_2 =
+      Bytes.fromHexString("0x000007031c200000000007031c200000000007031c200000000007031c200000");
+
+  private static final Bytes TOPIC_3 =
+      Bytes.fromHexString("0x000007031c300000000007031c300000000007031c300000000007031c300000");
+
+  private static final Bytes TOPIC_4 =
+      Bytes.fromHexString("0x000007031c400000000007031c400000000007031c400000000007031c400000");
 
   private static final Bytes LOG0 =
       newProgram()
@@ -52,9 +68,7 @@ public class RevertingLogsTests {
 
   private static final Bytes LOG1 =
       newProgram()
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c100000000007031c100000000007031c100000000007031c100000")) // topic 1
+          .push(TOPIC_1)
           .push(18) // size
           .push(0x1) // offset
           .op(OpCode.LOG1)
@@ -62,12 +76,8 @@ public class RevertingLogsTests {
 
   private static final Bytes LOG2 =
       newProgram()
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c200000000007031c200000000007031c200000000007031c200000")) // topic 2
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c100000000007031c100000000007031c100000000007031c100000")) // topic 1
+          .push(TOPIC_2) // topic 2
+          .push(TOPIC_1) // topic 1
           .push(18) // size
           .push(0x1) // offset
           .op(OpCode.LOG2)
@@ -75,34 +85,20 @@ public class RevertingLogsTests {
 
   private static final Bytes LOG3 =
       newProgram()
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c300000000007031c300000000007031c300000000007031c300000")) // topic 3
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c200000000007031c200000000007031c200000000007031c200000")) // topic 2
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c100000000007031c100000000007031c100000000007031c100000")) // topic 1
+          .push(TOPIC_3) // topic 3
+          .push(TOPIC_2) // topic 2
+          .push(TOPIC_1) // topic 1
           .push(18) // size
           .push(0x1) // offset
-          .op(OpCode.LOG4)
+          .op(OpCode.LOG3)
           .compile();
 
   private static final Bytes LOG4 =
       newProgram()
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c400000000007031c400000000007031c400000000007031c400000")) // topic 4
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c300000000007031c300000000007031c300000000007031c300000")) // topic 3
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c200000000007031c200000000007031c200000000007031c200000")) // topic 2
-          .push(
-              Bytes.fromHexString(
-                  "0x000007031c100000000007031c100000000007031c100000000007031c100000")) // topic 1
+          .push(TOPIC_4) // topic 4
+          .push(TOPIC_3) // topic 3
+          .push(TOPIC_2) // topic 2
+          .push(TOPIC_1) // topic 1
           .push(18) // size
           .push(0x1) // offset
           .op(OpCode.LOG4)
@@ -111,10 +107,10 @@ public class RevertingLogsTests {
   private static final Bytes REVERT = newProgram().push(0).push(0).op(OpCode.REVERT).compile();
 
   private static final Bytes SELFREVERT_LOG_BYTECODE =
-      newProgram().immediate(CALLDATACOPY).immediate(LOG3).immediate(REVERT).compile();
+      newProgram().immediate(POPULATE_MEMORY).immediate(LOG3).immediate(REVERT).compile();
 
   private static final Bytes NON_REVERTING_LOG_BYTECODE =
-      newProgram().immediate(CALLDATACOPY).immediate(LOG4).compile();
+      newProgram().immediate(POPULATE_MEMORY).immediate(LOG4).compile();
 
   private static final ToyAccount nonRevertingLogSMC =
       ToyAccount.builder()
@@ -133,13 +129,13 @@ public class RevertingLogsTests {
   private static final ToyAccount callNonRevertLogAndSelfRevert =
       ToyAccount.builder()
           .address(Address.fromHexString("0xcccccccccccccccccccccccccccccccccccccccc"))
-          .code(Bytes.concatenate(call(nonRevertingLogSMC.getAddress()), REVERT))
+          .code(Bytes.concatenate(call(nonRevertingLogSMC.getAddress(), false), REVERT))
           .balance(Wei.of(10000))
           .build();
 
-  private static Bytes call(Address address) {
+  private static Bytes call(Address address, boolean staticCall) {
     return newProgram()
-        .immediate(CALLDATACOPY)
+        .immediate(POPULATE_MEMORY)
         .push(0) // retSize
         .push(0) // retOffset
         .op(OpCode.MSIZE) // arg size
@@ -147,7 +143,7 @@ public class RevertingLogsTests {
         .push(1) // value
         .push(address) // address
         .push(100000) // gas
-        .op(OpCode.CALL)
+        .op(staticCall ? OpCode.STATICCALL : OpCode.CALL)
         .compile();
   }
 
@@ -166,13 +162,14 @@ public class RevertingLogsTests {
             .address(Address.fromHexString("0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef"))
             .code(
                 Bytes.concatenate(
-                    CALLDATACOPY,
+                    POPULATE_MEMORY,
                     LOG0,
-                    call(nonRevertingLogSMC.getAddress()),
+                    call(nonRevertingLogSMC.getAddress(), false),
+                    call(nonRevertingLogSMC.getAddress(), true),
                     LOG1,
-                    call(selfRevertingLogSMC.getAddress()),
+                    call(selfRevertingLogSMC.getAddress(), false),
                     LOG2,
-                    call(callNonRevertLogAndSelfRevert.getAddress()),
+                    call(callNonRevertLogAndSelfRevert.getAddress(), false),
                     LOG4))
             .build();
 
@@ -180,8 +177,6 @@ public class RevertingLogsTests {
         ToyTransaction.builder()
             .sender(senderAccount)
             .keyPair(keyPair)
-            .transactionType(TransactionType.FRONTIER)
-            .value(Wei.ONE)
             .gasLimit(1000000L)
             .gasPrice(Wei.of(10L))
             .payload(

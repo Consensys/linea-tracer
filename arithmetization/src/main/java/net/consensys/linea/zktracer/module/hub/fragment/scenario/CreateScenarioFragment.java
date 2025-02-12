@@ -65,9 +65,7 @@ public class CreateScenarioFragment implements TraceFragment {
   }
 
   public boolean isFailedCreate() {
-    return scenario.isAnyOf(
-        CreateScenario.CREATE_FAILURE_CONDITION_WILL_REVERT,
-        CreateScenario.CREATE_FAILURE_CONDITION_WONT_REVERT);
+    return scenario.isAnyOf(CreateScenario.CREATE_FAILURE_CONDITION_WONT_REVERT);
   }
 
   @Override

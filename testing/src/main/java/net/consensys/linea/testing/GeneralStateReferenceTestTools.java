@@ -179,82 +179,45 @@ public class GeneralStateReferenceTestTools {
       final GeneralStateTestCaseEipSpec spec,
       final ProtocolSpec protocolSpec,
       final List<ToyAccount> accounts) {
-    final BlockHeader blockHeader = spec.getBlockHeader();
-    final ReferenceTestWorldState initialWorldState = spec.getInitialWorldState();
-    final List<Transaction> transactions = new ArrayList<>();
-    for (int i = 0; i < spec.getTransactionsCount(); i++) {
-      Transaction transaction = spec.getTransaction(i);
-
-      // Sometimes the tests ask us assemble an invalid transaction.  If we have
-      // no valid transaction then there is no test.  GeneralBlockChain tests
-      // will handle the case where we receive the TXs in a serialized form.
-      if (transaction == null) {
-        return 0;
-      }
-
-      transactions.add(transaction);
-    }
-
-    final BlockBody blockBody = new BlockBody(transactions, new ArrayList<>());
-    final MutableWorldState worldState = initialWorldState;
-    //     final MutableWorldState worldState = initialWorldState.copy();
+    final MutableWorldState worldState = spec.getInitialWorldState();
     final WorldUpdater worldStateUpdater = worldState.updater();
     final MainnetTransactionProcessor processor = protocolSpec.getTransactionProcessor();
     final EVM evm = protocolSpec.getEvm();
-    final ReferenceTestBlockchain blockchain = new ReferenceTestBlockchain(blockHeader.getNumber());
-    final Wei blobGasPrice =
-        protocolSpec
-            .getFeeMarket()
-            .blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
 
-    long result = 0;
-    for (Transaction transaction : blockBody.getTransactions()) {
-      // Several of the GeneralStateTests check if the transaction could potentially
-      // consume more gas than is left for the block it's attempted to be included in.
-      // This check is performed within the `BlockImporter` rather than inside the
-      // `TransactionProcessor`, so these tests are skipped.
-      if (transaction.getGasLimit() > blockHeader.getGasLimit() - blockHeader.getGasUsed()) {
-        throw new IllegalArgumentException("Transaction gas limit higher that available in block");
-      }
+    SimpleBlockValues blockValues = new SimpleBlockValues();
+    blockValues.setBaseFee(Optional.of(Wei.of(1)));
+    Account senderAccount = accounts.get(0);
+    Account receiverAccount = accounts.get(1);
 
-      // MessageFrame testFrame = new MessageFrame(MessageFrame.Type.MESSAGE_CALL,
-      // worldStateUpdater, LINEA_BLOCK_GAS_LIMIT, accounts.get(1).getAddress(), Address.ZERO,
-      // Bytes32.ZERO, accounts.get(0).getAddress(), Wei.ZERO, Wei.ZERO,
-      // evm.getCodeUncached(accounts.get(1).getCode()), false, messageFrame -> {}, )
-      SimpleBlockValues blockValues = new SimpleBlockValues();
-      blockValues.setBaseFee(Optional.of(Wei.of(1)));
-      MessageFrame initialMessageFrame =
-          MessageFrame.builder()
-              // .address(accounts.get(2).getAddress())
-              .worldUpdater(worldStateUpdater)
-              .originator(accounts.get(0).getAddress())
-              .gasPrice(Wei.ONE)
-              .blobGasPrice(Wei.ONE)
-              .blockValues(blockValues)
-              .miningBeneficiary(Address.ZERO)
-              .blockHashLookup((__, ___) -> Hash.ZERO)
-              .address(Address.fromHexString("0x1111111111111111111111111111111111111111"))
-              .contract(Address.fromHexString("0x1111111111111111111111111111111111111111"))
-              .inputData(Bytes32.ZERO)
-              .sender(accounts.get(0).getAddress())
-              .apparentValue(Wei.ZERO)
-              .completer(messageFrame -> {})
-              .type(MessageFrame.Type.MESSAGE_CALL)
-              .initialGas(LINEA_BLOCK_GAS_LIMIT)
-              .code(evm.getCodeUncached(accounts.get(1).getCode()))
-              // TODO: variable
-              .value(Wei.of(1))
-              .build();
+    MessageFrame initialMessageFrame =
+        MessageFrame.builder()
+            .worldUpdater(worldStateUpdater)
+            .gasPrice(Wei.ONE)
+            .blobGasPrice(Wei.ONE)
+            .blockValues(blockValues)
+            .miningBeneficiary(Address.ZERO)
+            .blockHashLookup((__, ___) -> Hash.ZERO)
+            .completer(messageFrame -> {})
+            .inputData(Bytes32.ZERO)
+            .apparentValue(Wei.ZERO)
+            // TODO: variable
+            .value(Wei.of(1))
+            .originator(senderAccount.getAddress())
+            .address(receiverAccount.getAddress())
+            .contract(receiverAccount.getAddress())
+            .sender(senderAccount.getAddress())
+            // For gas cost purposes, we don't care about the Type of the message frame
+            .type(MessageFrame.Type.MESSAGE_CALL)
+            .initialGas(LINEA_BLOCK_GAS_LIMIT)
+            .code(evm.getCodeUncached(receiverAccount.getCode()))
+            .build();
 
-      initialMessageFrame.setState(MessageFrame.State.CODE_EXECUTING);
-      Deque<MessageFrame> messageFrameStack = initialMessageFrame.getMessageFrameStack();
-      while (!messageFrameStack.isEmpty()) {
-        processor.process(messageFrameStack.peekFirst(), new ZkTracer());
-      }
-
-      result = LINEA_BLOCK_GAS_LIMIT - initialMessageFrame.getRemainingGas();
+    Deque<MessageFrame> messageFrameStack = initialMessageFrame.getMessageFrameStack();
+    while (!messageFrameStack.isEmpty()) {
+      processor.process(messageFrameStack.peekFirst(), new ZkTracer());
     }
-    return result;
+
+    return LINEA_BLOCK_GAS_LIMIT - initialMessageFrame.getRemainingGas();
   }
 
   private static boolean shouldClearEmptyAccounts(final String eip) {

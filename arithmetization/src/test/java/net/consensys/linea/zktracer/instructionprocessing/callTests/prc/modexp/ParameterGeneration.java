@@ -64,25 +64,26 @@ public class ParameterGeneration {
               for (CallDataSizeParameter cds : CallDataSizeParameter.values()) { // 9
                 for (ReturnAtParameter returnAt : ReturnAtParameter.values()) { // 4
                   for (RelativeRangePosition relPos : RelativeRangePosition.values()) { // 2
-                    argumentsList.add(
-                        Arguments.of(
-                            new CallParameter(
-                                opCode,
-                                gas,
-                                new CallDataParameter(bbs, ebs, mbs, cds),
-                                returnAt,
-                                relPos,
-                                false)));
 
                     argumentsList.add(
                         Arguments.of(
-                            new CallParameter(
+                            new CallParameters(
                                 opCode,
                                 gas,
                                 new CallDataParameter(bbs, ebs, mbs, cds),
                                 returnAt,
                                 relPos,
                                 true)));
+
+                    argumentsList.add(
+                        Arguments.of(
+                            new CallParameters(
+                                opCode,
+                                gas,
+                                new CallDataParameter(bbs, ebs, mbs, cds),
+                                returnAt,
+                                relPos,
+                                false)));
                   }
                 }
               }

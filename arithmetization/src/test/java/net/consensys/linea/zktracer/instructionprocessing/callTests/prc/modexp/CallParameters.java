@@ -19,7 +19,7 @@ import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.Relative
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
-public class CallParameter {
+public class CallParameters {
 
   public final OpCode call;
   public final GasParameter gas;
@@ -28,7 +28,7 @@ public class CallParameter {
   public final RelativeRangePosition relPos;
   public final boolean willRevert;
 
-  public CallParameter(
+  public CallParameters(
       OpCode call,
       GasParameter gas,
       CallDataParameter callData,

@@ -39,15 +39,11 @@ public class HappyPathTests {
   private final boolean variant2 = false;
 
   /**
-   * <b>MESSAGE_CALL_TRANSACTION</b> case.
-   *
-   * <p>See {@link CodeExecutionMethods} for documentation and context.
-   *
-   * @param params
+   * <b>MESSAGE_CALL_TRANSACTION</b> case, see {@link CodeExecutionMethods}.
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void messageCallTransactionTest(CallParameter params) {
+  public void messageCallTransactionTest(CallParameters params) {
     BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
     runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
   }
@@ -61,7 +57,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void deploymentTransactionTest(CallParameter params) {
+  public void deploymentTransactionTest(CallParameters params) {
 
     BytecodeCompiler txInitCode = happyPathWipeReturnDataHappyPathProgram(params);
     if (params.willRevert) revertWith(txInitCode, 0, 0);
@@ -78,7 +74,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void messageCallFromRootTest(CallParameter params) {
+  public void messageCallFromRootTest(CallParameters params) {
     BytecodeCompiler chadPrcEnjoyerCode = happyPathWipeReturnDataHappyPathProgram(params);
     runMessageCallToAccountEndowedWithProvidedCode(chadPrcEnjoyerCode, params.willRevert);
   }
@@ -97,7 +93,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void happyPathDuringCreate(CallParameter params) {
+  public void happyPathDuringCreate(CallParameters params) {
     BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
     runForeignByteCodeAsInitCode(foreignCode, params.willRevert);
   }
@@ -109,7 +105,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void happyPathAfterCreate(CallParameter params) {
+  public void happyPathAfterCreate(CallParameters params) {
     BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
     runCreateDeployingForeignCodeAndCallIntoIt(foreignCode, params.willRevert);
   }
@@ -124,8 +120,8 @@ public class HappyPathTests {
             MAX, // mbs
             CallDataSizeParameter.MODULUS_FULL // cds
             );
-    CallParameter params =
-        new CallParameter(
+    CallParameters params =
+        new CallParameters(
             CALL,
             GasParameter.COST_MO,
                 callDataParameter,
@@ -147,8 +143,8 @@ public class HappyPathTests {
             MODERATE, // mbs
             CallDataSizeParameter.MODULUS_FULL // cds
             );
-    CallParameter params =
-        new CallParameter(
+    CallParameters params =
+        new CallParameters(
             STATICCALL,
             GasParameter.COST,
                 callDataParameter,
@@ -177,7 +173,7 @@ public class HappyPathTests {
    * @param params
    * @return
    */
-  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParameter params) {
+  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParameters params) {
 
     setCodeOfHolderAccounts(params);
 
@@ -215,7 +211,7 @@ public class HappyPathTests {
    *
    * @param params
    */
-  private void setCodeOfHolderAccounts(CallParameter params) {
+  private void setCodeOfHolderAccounts(CallParameters params) {
 
     String code1 = params.callData.wellFormedCallDataForModexpCall(variant1);
     String code2 = params.callData.wellFormedCallDataForModexpCall(variant2);
@@ -229,14 +225,14 @@ public class HappyPathTests {
   }
 
   /**
-   * Constructs a CALL to the MODEXP precompile in terms of {@link CallParameter}.
+   * Constructs a CALL to the MODEXP precompile in terms of {@link CallParameters}.
    *
    * @param program
    * @param params
    * @param variant
    */
   public void appendHappyPathPrecompileCall(
-          BytecodeCompiler program, CallParameter params, boolean variant) {
+          BytecodeCompiler program, CallParameters params, boolean variant) {
 
     int cds = params.callData.memorySize(variant);
 
@@ -264,7 +260,7 @@ public class HappyPathTests {
     // pushing cdo onto the stack
     program.push(0);
 
-    // pushing zero value onto the stack
+    // pushing value onto the stack
     if (params.call.callHasValueArgument()) {
       program.push(1);
     }

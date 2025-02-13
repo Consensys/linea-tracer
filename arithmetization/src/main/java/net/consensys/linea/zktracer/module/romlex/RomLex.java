@@ -16,11 +16,8 @@
 package net.consensys.linea.zktracer.module.romlex;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
-import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
-import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.nio.MappedByteBuffer;
 import java.util.*;
@@ -266,6 +263,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
       Trace trace) {
     final Hash codeHash =
         operation.metadata().underDeployment() ? Hash.EMPTY : Hash.hash(operation.byteCode());
+    /*
     trace
         .codeFragmentIndex(cfi)
         .codeFragmentIndexInfty(codeFragmentIndexInfinity)
@@ -279,6 +277,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
         .codeHashHi(codeHash.slice(0, LLARGE))
         .codeHashLo(codeHash.slice(LLARGE, LLARGE))
         .validateRow();
+     */
   }
 
   public void determineCodeFragmentIndex() {

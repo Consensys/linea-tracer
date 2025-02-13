@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utili
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE_MO;
+import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
@@ -122,17 +123,35 @@ public class LowGasStipendPrecompileCallTests {
       populateMemory(program, nWords, argsOffset);
     } else if (precompileAddress == MODEXP) {
       argsSize = 96 + bbs + ebs + mbs;
+      final int fOfMax = (Math.max(bbs, mbs) + 7) / 8 * (Math.max(bbs, mbs) + 7) / 8;
+      final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
+      final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
+      final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
+      final Bytes32 bemPadded =
+          Bytes32.rightPad(Bytes.fromHexString("0xba7e" + "000ec7" + "0000080d"));
+      final BigInteger bigNumerator =
+          BigInteger.valueOf(fOfMax)
+              .multiply(
+                  OobOperation.computeExponentLog(
+                          Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bemPadded),
+                          BigInteger.valueOf(argsSize),
+                          BigInteger.valueOf(bbs),
+                          BigInteger.valueOf(ebs),
+                          BigInteger.valueOf(mbs))
+                      .max(BigInteger.ONE));
+      final BigInteger bigQuotient = bigNumerator.divide(BigInteger.valueOf(G_QUADDIVISOR));
+
       program
-          .push(Bytes32.leftPad(Bytes.of(bbs)))
+          .push(bbsPadded)
           .push(0) // offset
           .op(OpCode.MSTORE)
-          .push(Bytes32.leftPad(Bytes.of(ebs)))
+          .push(bbsPadded)
           .push(32) // offset
           .op(OpCode.MSTORE)
-          .push(Bytes32.leftPad(Bytes.of(mbs)))
+          .push(mbsPadded)
           .push(64) // offset
           .op(OpCode.MSTORE)
-          .push(Bytes32.rightPad(Bytes.fromHexString("0xba7e" + "000ec7" + "0000080d")))
+          .push(bemPadded)
           .push(96) // offset
           .op(OpCode.MSTORE);
     } else {

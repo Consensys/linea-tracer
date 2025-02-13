@@ -68,6 +68,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -364,42 +365,11 @@ public class OobOperation extends ModuleOperation {
       final Bytes paddedCallData =
           cds.intValue() < 96 ? rightPadTo(unpaddedCallData, 96) : unpaddedCallData;
 
-      // cds and the data below can be int when compared (after size check)
       final BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
       final BigInteger ebs = paddedCallData.slice(32, 32).toUnsignedBigInteger();
       final BigInteger mbs = paddedCallData.slice(64, 32).toUnsignedBigInteger();
 
-      // Check if bbs, ebs and mbs are <= 512
-      if (bbs.compareTo(BigInteger.valueOf(512)) > 0
-          || ebs.compareTo(BigInteger.valueOf(512)) > 0
-          || mbs.compareTo(BigInteger.valueOf(512)) > 0) {
-        throw new IllegalArgumentException("byte sizes are too big");
-      }
-
-      // pad paddedCallData to 96 + bbs + ebs
-      final Bytes doublePaddedCallData =
-          cds.intValue() < 96 + bbs.intValue() + ebs.intValue()
-              ? rightPadTo(paddedCallData, 96 + bbs.intValue() + ebs.intValue())
-              : paddedCallData;
-
-      final BigInteger leadingBytesOfExponent =
-          doublePaddedCallData
-              .slice(96 + bbs.intValue(), min(ebs.intValue(), 32))
-              .toUnsignedBigInteger();
-
-      BigInteger exponentLog;
-      if (ebs.intValue() <= 32 && leadingBytesOfExponent.signum() == 0) {
-        exponentLog = BigInteger.ZERO;
-      } else if (ebs.intValue() <= 32 && leadingBytesOfExponent.signum() != 0) {
-        exponentLog = BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR));
-      } else if (ebs.intValue() > 32 && leadingBytesOfExponent.signum() != 0) {
-        exponentLog =
-            BigInteger.valueOf(8)
-                .multiply(ebs.subtract(BigInteger.valueOf(32)))
-                .add(BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR)));
-      } else {
-        exponentLog = BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
-      }
+      BigInteger exponentLog = computeExponentLog(paddedCallData, cds, bbs, ebs, mbs);
 
       switch (oobCall.oobInstruction) {
         case OOB_INST_MODEXP_CDS -> {
@@ -485,6 +455,44 @@ public class OobOperation extends ModuleOperation {
         }
         default -> throw new RuntimeException("no opcode or precompile flag was set to true");
       }
+    }
+  }
+
+  // Support method for MODEXP
+  public static BigInteger computeExponentLog(
+      Bytes paddedCallData, BigInteger cds, BigInteger bbs, BigInteger ebs, BigInteger mbs) {
+    Preconditions.checkArgument(paddedCallData.size() >= 96);
+
+    // cds and the data below can be int when compared (after size check)
+
+    // Check if bbs, ebs and mbs are <= 512
+    if (bbs.compareTo(BigInteger.valueOf(512)) > 0
+        || ebs.compareTo(BigInteger.valueOf(512)) > 0
+        || mbs.compareTo(BigInteger.valueOf(512)) > 0) {
+      throw new IllegalArgumentException("byte sizes are too big");
+    }
+
+    // pad paddedCallData to 96 + bbs + ebs
+    final Bytes doublePaddedCallData =
+        cds.intValue() < 96 + bbs.intValue() + ebs.intValue()
+            ? rightPadTo(paddedCallData, 96 + bbs.intValue() + ebs.intValue())
+            : paddedCallData;
+
+    final BigInteger leadingBytesOfExponent =
+        doublePaddedCallData
+            .slice(96 + bbs.intValue(), min(ebs.intValue(), 32))
+            .toUnsignedBigInteger();
+
+    if (ebs.intValue() <= 32 && leadingBytesOfExponent.signum() == 0) {
+      return BigInteger.ZERO;
+    } else if (ebs.intValue() <= 32 && leadingBytesOfExponent.signum() != 0) {
+      return BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR));
+    } else if (ebs.intValue() > 32 && leadingBytesOfExponent.signum() != 0) {
+      return BigInteger.valueOf(8)
+          .multiply(ebs.subtract(BigInteger.valueOf(32)))
+          .add(BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR)));
+    } else {
+      return BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
     }
   }
 

@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.exceptions;
 
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
-import static net.consensys.linea.zktracer.DynamicGasCostUtils.getGasCostForMessageCall;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.opcode.OpCodes.opCodeToOpCodeDataMap;
@@ -252,7 +251,7 @@ public class OutOfGasExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = getGasCostForMessageCall(pgCompile);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
     bytecodeRunner.run(gasCost + cornerCase);
 
@@ -282,7 +281,7 @@ public class OutOfGasExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
 
-    long gasCost = getGasCostForMessageCall(pgCompile);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
     bytecodeRunner.run(gasCost + cornerCase);
 

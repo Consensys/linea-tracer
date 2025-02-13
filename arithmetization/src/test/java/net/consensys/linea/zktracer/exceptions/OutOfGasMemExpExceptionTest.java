@@ -1,7 +1,5 @@
 package net.consensys.linea.zktracer.exceptions;
 
-import static net.consensys.linea.zktracer.DynamicGasCostUtils.getGasCostForMessageCall;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -37,7 +35,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = getGasCostForMessageCall(pgCompile);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -68,7 +66,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = getGasCostForMessageCall(pgCompile);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -103,7 +101,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = getGasCostForMessageCall(pgCompile);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {

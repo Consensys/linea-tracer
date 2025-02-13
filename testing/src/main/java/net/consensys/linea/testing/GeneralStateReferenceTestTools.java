@@ -18,10 +18,7 @@ package net.consensys.linea.testing;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LINEA_BLOCK_GAS_LIMIT;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 import lombok.SneakyThrows;
@@ -250,7 +247,10 @@ public class GeneralStateReferenceTestTools {
               .build();
 
       initialMessageFrame.setState(MessageFrame.State.CODE_EXECUTING);
-      processor.process(initialMessageFrame, null);
+      Deque<MessageFrame> messageFrameStack = initialMessageFrame.getMessageFrameStack();
+      while (!messageFrameStack.isEmpty()) {
+        processor.process(messageFrameStack.peekFirst(), new ZkTracer());
+      }
 
       result = LINEA_BLOCK_GAS_LIMIT - initialMessageFrame.getRemainingGas();
     }

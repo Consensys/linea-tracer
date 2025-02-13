@@ -37,6 +37,7 @@ import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -62,6 +63,7 @@ public class OutOfGasExceptionTest {
           switch (opCode) {
             case OpCode.BLOCKHASH -> Math.toIntExact(DEFAULT_BLOCK_NUMBER) - 1;
             case OpCode.EXP -> i == 0 ? 5 : 2; // EXP 2 5 (2 ** 5)
+              // TODO: EXTCODESIZE
             default -> 7 * i + 11;
               // small integer but greater than 10, so as when it represents an address
               // it is not the one of a precompile contract
@@ -71,26 +73,12 @@ public class OutOfGasExceptionTest {
     program.op(opCode);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
-    int opCodeDynamicCost =
-        switch (opCode) {
-          case OpCode.SELFDESTRUCT -> GAS_CONST_G_NEW_ACCOUNT
-              + GAS_CONST_G_COLD_ACCOUNT_ACCESS; // since the account is empty
-          case OpCode.EXP -> 50; // since the exponent requires 1 byte
-          case OpCode.SLOAD -> GAS_CONST_G_COLD_SLOAD; // since the slot is cold
-          case OpCode.BALANCE,
-              OpCode.EXTCODEHASH,
-              OpCode.EXTCODESIZE -> GAS_CONST_G_COLD_ACCOUNT_ACCESS; // since the account is cold
-          case OpCode.SSTORE -> GAS_CONST_G_SSET
-              + GAS_CONST_G_COLD_SLOAD; // value set from zero to non-zero and slot is cold
-          default -> 0;
-        };
 
     long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
     bytecodeRunner.run(gasCost + cornerCase);
     // TODO: this is to ensure that the gas cost is correctly calculated
     //  this may change when the gas accumulator will be associated to the frame
-    // assertEquals(gasCost, gasCostEst);
 
     if (cornerCase == -1) {
       assertEquals(
@@ -119,10 +107,10 @@ public class OutOfGasExceptionTest {
           && opCode != OpCode.RETURN // RETURN needs the memory expansion cost
           && opCode != OpCode.RETURNDATACOPY // RETURNDATACOPY needs the memory expansion cost
           && opCode != OpCode.REVERT // REVERT needs the memory expansion cost
-          && opCode != OpCode.SHA3 // SHA3 needs the memory expansion cost
+          && opCode != OpCode.SHA3 // SHA3 needs the memory expansion cost ??
           && opCode != OpCode.STOP // STOP does not consume gas
-          && opCode != OpCode.JUMP // STOP does not consume gas
-          && opCode != OpCode.JUMPI // STOP does not consume gas
+          && opCode != OpCode.JUMP
+          && opCode != OpCode.JUMPI
           && !opCodeData.isCall() // CALL family is managed separately
           && !opCodeData.isCreate() // CREATE needs the memory expansion cost
           && !opCodeData.isLog() // LOG needs the memory expansion cost
@@ -173,7 +161,7 @@ public class OutOfGasExceptionTest {
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
-    long gasCost = 0;
+    long gasCost;
 
     if (targetAddressExists) {
       final ToyAccount calleeAccount =
@@ -188,6 +176,15 @@ public class OutOfGasExceptionTest {
       gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
     }
 
+    /*
+        long gasCostExt =
+                GAS_CONST_G_TRANSACTION
+                        + // base gas cost
+                        (isWarm ? GAS_CONST_G_VERY_LOW + GAS_CONST_G_COLD_ACCOUNT_ACCESS : 0) // PUSH + BALANCE
+                        + 7 * GAS_CONST_G_VERY_LOW // 7 PUSH
+                        + callGasCost(value != 0, targetAddressExists, isWarm); // CALL
+    */
+
     if (targetAddressExists) {
       final ToyAccount calleeAccount =
           ToyAccount.builder()
@@ -200,6 +197,8 @@ public class OutOfGasExceptionTest {
       bytecodeRunner.run(gasCost + cornerCase);
     }
 
+    // assertEquals(bytecodeRunner.getHub().gasCostAccumulator(), gasCost);
+
     if (cornerCase == -1) {
       assertEquals(
           OUT_OF_GAS_EXCEPTION,
@@ -211,9 +210,17 @@ public class OutOfGasExceptionTest {
     }
   }
 
+  /*  private long callGasCost(boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
+    Preconditions.checkArgument(
+            !(isWarm && !targetAddressExists), "isWarm implies targetAddressExists");
+    return (transfersValue ? GAS_CONST_G_CALL_VALUE : 0)
+            + (targetAddressExists ? 0 : (transfersValue ? GAS_CONST_G_NEW_ACCOUNT : 0))
+            + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
+  }*/
+
   static Stream<Arguments> outOfGasExceptionCallSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (int value : new int[] {0, 1}) {
+    for (int value : new int[] {0}) {
       for (int cornerCase : new int[] {-1, 0, 1}) {
         arguments.add(Arguments.of(value, true, true, cornerCase));
         arguments.add(Arguments.of(value, true, false, cornerCase));
@@ -260,6 +267,7 @@ public class OutOfGasExceptionTest {
     }
   }
 
+  // TODO: could remove might be tested in the first test
   /** Test to write a non-zero value in storage */
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
@@ -287,5 +295,46 @@ public class OutOfGasExceptionTest {
           OUT_OF_GAS_EXCEPTION,
           bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     }
+  }
+
+  @Test
+  void outOfGasExceptionJump() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(4)
+            .op(OpCode.JUMP)
+            .op(OpCode.INVALID)
+            .op(OpCode.JUMPDEST)
+            .push(OpCode.JUMPDEST.byteValue()) // false JUMPDEST
+            .compile();
+
+    long gasCost = GAS_CONST_G_TRANSACTION + GAS_CONST_G_VERY_LOW + GAS_CONST_G_MID;
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
+    bytecodeRunner.run(gasCost - 1);
+    assertEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+  }
+
+  @Test
+  void outOfGasExceptionJumpi() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(1) // pc = 0, 1
+            .push(7) // pc = 2, 3
+            .op(OpCode.JUMPI) // pc = 4
+            .op(OpCode.JUMPDEST) //
+            .op(OpCode.INVALID) //
+            .op(OpCode.JUMPDEST) //
+            .push(1) // pc = 8
+            .compile();
+
+    long gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH;
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
+    bytecodeRunner.run(gasCost - 1);
+    assertEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 }

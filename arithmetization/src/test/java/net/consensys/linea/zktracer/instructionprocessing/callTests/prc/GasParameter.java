@@ -14,10 +14,11 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 
+/** Enumerates the different gas parameters for a precompile call. */
 public enum GasParameter {
   ZERO,
-  EXACT_MO, // MO ≡ minus one
-  EXACT,
-  EXACT_PO, // PO ≡ plus one
+  COST_MO, // MO ≡ minus one
+  COST,
   FULL,
+  MAX
 }

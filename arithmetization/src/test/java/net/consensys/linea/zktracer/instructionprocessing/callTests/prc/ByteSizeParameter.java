@@ -17,6 +17,13 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 public enum ByteSizeParameter {
   ZERO,
   ONE,
+  /**
+   * {@link #SHORT} stands for a {@link ByteSizeParameter} that is shorter than <b>32</b> bytes.
+   * This is interesting in particular for the exponent byte size (<b>ebs</b>): pricing necessitates
+   * extracting the leading word from the exponent, which is poses extra difficulties when the
+   * exponent is {@link #SHORT}.
+   */
+  SHORT,
   MODERATE,
   MAX;
 }

@@ -24,7 +24,6 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
-import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -69,8 +68,8 @@ public class HappyPathTests {
 
   /**
    * <b>MESSAGE_CALL_TRANSACTION</b> case.
-   * <p> See {@link CodeExecutionMethods} for
-   * documentation and context.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
    *
    * @param params
    */
@@ -85,8 +84,8 @@ public class HappyPathTests {
 
   /**
    * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case.
-   * <p> See {@link CodeExecutionMethods} for
-   * documentation and context.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
    *
    * @param params
    */
@@ -102,8 +101,8 @@ public class HappyPathTests {
 
   /**
    * <b>MESSAGE_CALL_FROM_ROOT</b> case.
-   * <p> See {@link CodeExecutionMethods} for
-   * documentation and context.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
@@ -114,8 +113,8 @@ public class HappyPathTests {
 
   /**
    * <b>DURING_DEPLOYMENT</b> case.
-   * <p> See {@link CodeExecutionMethods} for
-   * documentation and context.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
    *
    * <p>The {@link CodeExecutionMethods#root} contract fully copies the code of the account whose
    * address is in the {@link CodeExecutionMethods#transaction} call data. This account is the
@@ -135,8 +134,8 @@ public class HappyPathTests {
 
   /**
    * <b>AFTER_DEPLOYMENT</b> case.
-   * <p> See {@link CodeExecutionMethods} for
-   * documentation and context.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
@@ -195,10 +194,10 @@ public class HappyPathTests {
     int cost = params.prc.cost(callDataSize);
     switch (params.gas) {
       case ZERO -> program.push(0);
-      case EXACT_MO -> program.push(cost - 1);
-      case EXACT -> program.push(cost);
-      case EXACT_PO -> program.push(cost + 1);
+      case COST_MO -> program.push(cost - 1);
+      case COST -> program.push(cost);
       case FULL -> program.op(GAS);
+      case MAX -> program.push("ff".repeat(32));
     }
 
     program.op(params.call);

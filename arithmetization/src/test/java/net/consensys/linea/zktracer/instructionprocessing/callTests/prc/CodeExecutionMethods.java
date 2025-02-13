@@ -40,8 +40,8 @@ import org.hyperledger.besu.datatypes.Wei;
  *
  * <p>- <b>DURING_DEPLOYMENT</b>: at depth 1 as the init code of a <b>CREATE</b>
  *
- * <p>- <b>AFTER_DEPLOYMENT</b>: at depth 1, after deploying it with a <b>CREATE</b>, as the byte code
- * executed in a <b>CALL</b> to the newly deployed contract
+ * <p>- <b>AFTER_DEPLOYMENT</b>: at depth 1, after deploying it with a <b>CREATE</b>, as the byte
+ * code executed in a <b>CALL</b> to the newly deployed contract
  */
 public class CodeExecutionMethods {
 
@@ -89,18 +89,18 @@ public class CodeExecutionMethods {
    * @param rootCode
    */
   public static void runMessageCallTransactionWithProvidedCodeAsRootCode(
-          BytecodeCompiler rootCode) {
+      BytecodeCompiler rootCode) {
 
     root.code(rootCode.compile());
 
     transaction.to(root.build());
 
     ToyExecutionEnvironmentV2.builder()
-            .transaction(transaction.build())
-            .accounts(listOfAccounts())
-            .zkTracerValidator(zkTracer -> {})
-            .build()
-            .run();
+        .transaction(transaction.build())
+        .accounts(listOfAccounts())
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run();
   }
 
   /**

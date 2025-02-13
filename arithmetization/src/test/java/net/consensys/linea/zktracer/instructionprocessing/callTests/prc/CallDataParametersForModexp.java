@@ -14,15 +14,25 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
 
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+
+import java.math.BigInteger;
 
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class CallDataParametersForModexp {
+  /** base byte size. */
   public final ByteSizeParameter bbs;
+
+  /** exponent byte size. */
   public final ByteSizeParameter ebs;
+
+  /** modulus byte size. */
   public final ByteSizeParameter mbs;
+
+  /** call data size. */
   public final ModexpCallDataSizeParameter cds;
 
   public CallDataParametersForModexp(
@@ -36,36 +46,86 @@ public class CallDataParametersForModexp {
     this.cds = cds;
   }
 
+  public int gasCost(boolean variant) {
+    return gasCost(
+        this.bbsShort(variant), this.ebsShort(variant), this.mbsShort(variant), expn(variant));
+  }
+
+  /**
+   * @param bbs
+   * @param ebs
+   * @param mbs
+   * @param Exponent must be a hex string without the <b>0x</b> prefix
+   * @return
+   */
+  private int gasCost(short bbs, short ebs, short mbs, String Exponent) {
+
+    int maxBbsMbs = Math.max(bbs, mbs);
+    int fOfMax = f(maxBbsMbs);
+
+    String leadingWord =
+        (ebs <= WORD_SIZE) ? Exponent.substring(0, 2 * ebs) : Exponent.substring(0, 2 * WORD_SIZE);
+    BigInteger leadingWordBigInt = new BigInteger(leadingWord, 16);
+    checkState(leadingWordBigInt.signum() >= 0, "Leading word must be non-negative");
+    int floorOfLog = leadingWordBigInt.bitLength() == 0 ? 0 : leadingWordBigInt.bitLength() - 1;
+    int lEprime = (ebs <= WORD_SIZE) ? floorOfLog : floorOfLog + 8 * (ebs - WORD_SIZE);
+    int maxLEprimeOne = Math.max(lEprime, 1);
+
+    return Math.max(200, (fOfMax * maxLEprimeOne) / 3);
+  }
+
+  private int f(int x) {
+    int ceil = (x + 7) / 8;
+    return ceil * ceil;
+  }
+
   public int memorySize(boolean variant) {
     return 3 * WORD_SIZE + this.bbsShort(variant) + this.ebsShort(variant) + this.mbsShort(variant);
   }
 
   /**
-   * Constructs a byte string of the form
-   * <p> <b>[ bbs | ebs | mbs | BASE | EXPN | MDLS ]</b>
-   * <p> where <b>BASE</b>, <b>EXPN</b> and <b>MDLS</b> are the base, exponent and modulus respectively,
-   * measure <b>bbs</b>, <b>ebs</b> and <b>mbs</b> bytes respectively, and
-   * <b>bbs</b>, <b>ebs</b> and <b>mbs</b> are <b>32</b>-byte integers (which the arithmetization
-   * requires to be ≤ 512 = 0x0200.)
+   * Constructs a well-formed a byte string of the form
+   *
+   * <p><b>[ bbs | ebs | mbs | BASE | EXPN | MDLS ]</b>
+   *
+   * <p>where the base <b>BASE</b>, exponent <b>EXPN</b> and modulus <b>MDLS</b> measure <b>bbs</b>,
+   * <b>ebs</b> and <b>mbs</b> bytes respectively, and <b>bbs</b>, <b>ebs</b> and <b>mbs</b> are
+   * <b>32</b>-byte integers (required to be ≤ 512 = 0x0200 by the arithmetization.)
+   *
    * @return
    */
   public String wellFormedCallDataForModexpCall(boolean variant) {
 
+    // starting at index 2 eliminates the 0x prefix
     String memoryContents =
         this.bbs(variant).substring(2)
             + this.ebs(variant).substring(2)
             + this.mbs(variant).substring(2);
 
+    // every byte is represented by two hexadecimal characters, whence the factor of 2
     return memoryContents
-        + (variant ? BASE_512_a : BASE_512_b).substring(0, 2 * this.bbsShort(variant))
-        + (variant ? EXPN_512_a : EXPN_512_b).substring(0, 2 * this.ebsShort(variant))
-        + (variant ? MDLS_512_a : MDLS_512_b).substring(0, 2 * this.mbsShort(variant));
+        + base(variant).substring(0, 2 * this.bbsShort(variant))
+        + expn(variant).substring(0, 2 * this.ebsShort(variant))
+        + mdls(variant).substring(0, 2 * this.mbsShort(variant));
+  }
+
+  private String base(boolean variant) {
+    return variant ? BASE_512_a : BASE_512_b;
+  }
+
+  private String expn(boolean variant) {
+    return variant ? EXPN_512_a : EXPN_512_b;
+  }
+
+  private String mdls(boolean variant) {
+    return variant ? MDLS_512_a : MDLS_512_b;
   }
 
   private short bbsShort(boolean variant) {
     return switch (this.bbs) {
       case ZERO -> 0;
       case ONE -> 1;
+      case SHORT -> 0x1f;
       case MODERATE -> (short) (variant ? 0x01a3 : 0x0101);
       case MAX -> 0x0200;
     };
@@ -75,6 +135,7 @@ public class CallDataParametersForModexp {
     return switch (this.ebs) {
       case ZERO -> 0x00;
       case ONE -> 0x01;
+      case SHORT -> 0x12;
       case MODERATE -> (short) (variant ? 0xf1 : 0x012a);
       case MAX -> 0x0200;
     };
@@ -84,6 +145,7 @@ public class CallDataParametersForModexp {
     return switch (this.mbs) {
       case ZERO -> 0x00;
       case ONE -> 0x01;
+      case SHORT -> 0x0d;
       case MODERATE -> (short) (variant ? 0x016f : 0xd1);
       case MAX -> 0x0200;
     };
@@ -111,7 +173,7 @@ public class CallDataParametersForModexp {
   static String BASE_512_b =
       "4c594c0a14b26df4357980b0e3daf7b4c7e5c85c703f529a0a5d7a3bda9854d738b54bad23c6e9c4674b503d17ad60dda0fc68789aebfadf64e1c0b4f5e0917edbace443548bfb65755828da15e17b0c672c05d0de0f0d516ef2b1b23842fdcd96a181eff693851ef41cfbdab3eb1664cee9d0ad7fc78a70aa112f71f4a3311eda30a1c1adc62251154382b555df4b22aabef45d8dfb417262bb5da9a45ba5d6bcb1542f24cddb58b1fc56102a57f296fe125bf5ead5b115b2e7317f7950e869fa19e7becd516015428f0e67da4aaca0ccd7cfe6e00072f9b63830ffac60e13cf8e4b31db0f2464f35c9f1650f1edcc3ac424a9e7f3509e270a606428209d7522f3a7e35ebef7cb267c87cf8805c48eba6cca87ec44e81112ad25ef72d487be71cb6a021eb7ded009d3f7536a6f47d9362fdf22f0b01c9071f0ae05b3afc04574dce57f9219d821296f5067c5814bd95a22cf1b4d4aec3bceaea8ccb6abb318228306e9c6433795241796a844403dea79be8e5df88fb54134f73ffddfbae3b6e995fb582c5638a17cd7c7a957dc0ad36ec5e04815ec293f544bb13ad73270eafb5220c02173d8ff78ea774887ef2a119f7625d4866d131a05a9c4df2537a56bd623ea338f5b2aeb026c395318d7957a29558a4844a0a7ca31ad77ab0dc77a5d31d54df598a2ac0fad9db855ab299c0546ca2545729ae41584b82b55d6b061f9c";
   static String EXPN_512_b =
-      "0254e59f9eb9de451161f0f2a5bfebcce1422179e69258468b74a98fcca79f2a156eae7aaa5418b2bc45b33d643cee08b1228ebf08ea29995019689ffad602473c52276d91d04abe3bdeb0f48324da2ddd43e6dcdde860c6ca9dd9d8232b0b4db931b2391a86b20400aaa96e085b6b90b8a562a7fa6a052a389660e99169ca065e12b939b0647e0ae6c762d61e0739ee06f862abbd5fe72f46092fb15505114194fc82435cacb1500a1b6a677200101809e5e701e7bd2385853183e3d5b2167a5f006d801940c620ec7d8763084272a76a23b8c401adee3efa424fa1702f1b936fa0d6017328339f54e1aa64919aaaff6333fe148c60ad57de2f62c2d05b2b73aef9f18088cb3141d7be05739723303b1761aaa9459507f1cf5118fc306e0854bf42f9ded226417f7ccae38e4222239236d4f33edff6e53012f4e0b0a8316b966aa75908dcb40a703c2688cffb33a940851556dfc08b151461726c88293b9f77199c5c9e4dec70fbf3ef0d84e2328ab48e15fb20cc0aa8dba18b2ddf901de27c4af3d74bcbd1ff606fe0434218c6e3966657bd0f375f8aad5ed178887e3d37159d109cf30ee961a20090d17e33075c9da626402a04901c7364abc222dcd883f65a72e649972a23f8b55c79515e8f5b8c0149fc816c91214fda785bce80042c0170c5c0a1467a569a61f380eb47e0b299d2848bb2b7ae22cfe472a4e5a3614fc6";
+      "0003e59f9eb9de451161f0f2a5bfebcce1422179e69258468b74a98fcca79f2a156eae7aaa5418b2bc45b33d643cee08b1228ebf08ea29995019689ffad602473c52276d91d04abe3bdeb0f48324da2ddd43e6dcdde860c6ca9dd9d8232b0b4db931b2391a86b20400aaa96e085b6b90b8a562a7fa6a052a389660e99169ca065e12b939b0647e0ae6c762d61e0739ee06f862abbd5fe72f46092fb15505114194fc82435cacb1500a1b6a677200101809e5e701e7bd2385853183e3d5b2167a5f006d801940c620ec7d8763084272a76a23b8c401adee3efa424fa1702f1b936fa0d6017328339f54e1aa64919aaaff6333fe148c60ad57de2f62c2d05b2b73aef9f18088cb3141d7be05739723303b1761aaa9459507f1cf5118fc306e0854bf42f9ded226417f7ccae38e4222239236d4f33edff6e53012f4e0b0a8316b966aa75908dcb40a703c2688cffb33a940851556dfc08b151461726c88293b9f77199c5c9e4dec70fbf3ef0d84e2328ab48e15fb20cc0aa8dba18b2ddf901de27c4af3d74bcbd1ff606fe0434218c6e3966657bd0f375f8aad5ed178887e3d37159d109cf30ee961a20090d17e33075c9da626402a04901c7364abc222dcd883f65a72e649972a23f8b55c79515e8f5b8c0149fc816c91214fda785bce80042c0170c5c0a1467a569a61f380eb47e0b299d2848bb2b7ae22cfe472a4e5a3614fc6";
   static String MDLS_512_b =
       "52c17a8a52b76004c769c98ae510914b17c516f5d9b1fecf0a3b4b89c0f4c415ef31699855362601b4991b2b3ced962c7c23e8ea958ffc28e59711d270cebf7709de66cb29f8e6dcf7161745529444073dbce14d5a99dea405da9472d66d26abacba626e1c797c155a8119058afbdfd2923cb91cd18c37ebfc736d0c0457041c24822031bea6b09e3b8e9b7f1f724121be221d399ef7f2070b16b3b37b953bc19ab46cafb13a742b185e1a126f22d89373a8b09c57de4d7c5a556e6bc9de527134b7b1b7fd6ad883889f96f3253b2b90de4cf82dc35d1b839fd0ca308cd7e4d950d2890a6af5c7f7fbff9a11892cdd90f058e2e719ec91d990c9f53e19607f7a7a105be37083be8e6ec78fed09170399a58963dc5f2d0457f1b311036eba270b44e88bbf5f3b0704d79e37e4ed9a901416a8495f502c39bdfe5aded946ae55f59b6285fc05b8e0ea50710e50cbf896001cb1fdc0c8bbbc3629f8a901dc3d3c3d5aff0112b2adae83119692f12b4c1f36e1b0628d1522804c15360ea9413a702079412a29f60c578052f7cf02a86b28a9d8e95785fa6d7d2fb2964e8d25489ff0077fa5776ac32bef08bf84a7f172ab21ac8817b79bf83a565209820193cd307451dc6f5a01f29e795e27b4d82a87d8a6eeeab3fa06c914b0e05c240acf9ac51a7f863ec8fb246d78b576ffa4426ff31dbe08dd8d81ce2fe69c191c8a13486e51";
 }

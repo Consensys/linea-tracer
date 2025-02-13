@@ -12,23 +12,26 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
-public class ModexpCallParameters {
+public class CallParameter {
 
   public final OpCode call;
   public final GasParameter gas;
-  public final CallDataParametersForModexp callData;
+  public final CallDataParameter callData;
   public final ReturnAtParameter returnAt;
   public final RelativeRangePosition relPos;
   public final boolean willRevert;
 
-  public ModexpCallParameters(
+  public CallParameter(
       OpCode call,
       GasParameter gas,
-      CallDataParametersForModexp callData,
+      CallDataParameter callData,
       ReturnAtParameter returnAt,
       RelativeRangePosition relPos,
       boolean willRevert) {

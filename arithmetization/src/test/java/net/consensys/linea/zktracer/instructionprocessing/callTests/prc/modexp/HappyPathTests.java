@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ByteSizeParameter.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp.ByteSizeParameter.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
@@ -47,7 +47,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void messageCallTransactionTest(ModexpCallParameters params) {
+  public void messageCallTransactionTest(CallParameter params) {
     BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
     runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
   }
@@ -61,7 +61,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void deploymentTransactionTest(ModexpCallParameters params) {
+  public void deploymentTransactionTest(CallParameter params) {
 
     BytecodeCompiler txInitCode = happyPathWipeReturnDataHappyPathProgram(params);
     if (params.willRevert) revertWith(txInitCode, 0, 0);
@@ -78,7 +78,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void messageCallFromRootTest(ModexpCallParameters params) {
+  public void messageCallFromRootTest(CallParameter params) {
     BytecodeCompiler chadPrcEnjoyerCode = happyPathWipeReturnDataHappyPathProgram(params);
     runMessageCallToAccountEndowedWithProvidedCode(chadPrcEnjoyerCode, params.willRevert);
   }
@@ -97,7 +97,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void happyPathDuringCreate(ModexpCallParameters params) {
+  public void happyPathDuringCreate(CallParameter params) {
     BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
     runForeignByteCodeAsInitCode(foreignCode, params.willRevert);
   }
@@ -109,7 +109,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void happyPathAfterCreate(ModexpCallParameters params) {
+  public void happyPathAfterCreate(CallParameter params) {
     BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
     runCreateDeployingForeignCodeAndCallIntoIt(foreignCode, params.willRevert);
   }
@@ -117,18 +117,18 @@ public class HappyPathTests {
   /** Non-parametric test to make sure things are working as expected. */
   @Test
   public void singleMessageCallTransactionTest() {
-    CallDataParametersForModexp callDataParameters =
-        new CallDataParametersForModexp(
+    CallDataParameter callDataParameter =
+        new CallDataParameter(
             MODERATE, // bbs
             MODERATE, // ebs
             MAX, // mbs
-            ModexpCallDataSizeParameter.MODULUS_FULL // cds
+            CallDataSizeParameter.MODULUS_FULL // cds
             );
-    ModexpCallParameters params =
-        new ModexpCallParameters(
+    CallParameter params =
+        new CallParameter(
             CALL,
             GasParameter.COST_MO,
-            callDataParameters,
+                callDataParameter,
             ReturnAtParameter.FULL,
             RelativeRangePosition.OVERLAP,
             true);
@@ -140,18 +140,18 @@ public class HappyPathTests {
   /** Non-parametric test to make sure things are working as expected. */
   @Test
   public void singleMessageCallTransactionTest2() {
-    CallDataParametersForModexp callDataParameters =
-        new CallDataParametersForModexp(
+    CallDataParameter callDataParameter =
+        new CallDataParameter(
             MAX, // bbs
             SHORT, // ebs
             MODERATE, // mbs
-            ModexpCallDataSizeParameter.MODULUS_FULL // cds
+            CallDataSizeParameter.MODULUS_FULL // cds
             );
-    ModexpCallParameters params =
-        new ModexpCallParameters(
+    CallParameter params =
+        new CallParameter(
             STATICCALL,
             GasParameter.COST,
-            callDataParameters,
+                callDataParameter,
             ReturnAtParameter.FULL,
             RelativeRangePosition.OVERLAP,
             true);
@@ -177,7 +177,7 @@ public class HappyPathTests {
    * @param params
    * @return
    */
-  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(ModexpCallParameters params) {
+  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParameter params) {
 
     setCodeOfHolderAccounts(params);
 
@@ -215,7 +215,7 @@ public class HappyPathTests {
    *
    * @param params
    */
-  private void setCodeOfHolderAccounts(ModexpCallParameters params) {
+  private void setCodeOfHolderAccounts(CallParameter params) {
 
     String code1 = params.callData.wellFormedCallDataForModexpCall(variant1);
     String code2 = params.callData.wellFormedCallDataForModexpCall(variant2);
@@ -229,14 +229,14 @@ public class HappyPathTests {
   }
 
   /**
-   * Constructs a CALL to the MODEXP precompile in terms of {@link ModexpCallParameters}.
+   * Constructs a CALL to the MODEXP precompile in terms of {@link CallParameter}.
    *
    * @param program
    * @param params
    * @param variant
    */
   public void appendHappyPathPrecompileCall(
-      BytecodeCompiler program, ModexpCallParameters params, boolean variant) {
+          BytecodeCompiler program, CallParameter params, boolean variant) {
 
     int cds = params.callData.memorySize(variant);
 

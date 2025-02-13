@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 
 public enum ByteSizeParameter {
   ZERO,

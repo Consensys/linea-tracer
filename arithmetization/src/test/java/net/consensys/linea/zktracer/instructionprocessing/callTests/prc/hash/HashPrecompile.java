@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.hash;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;

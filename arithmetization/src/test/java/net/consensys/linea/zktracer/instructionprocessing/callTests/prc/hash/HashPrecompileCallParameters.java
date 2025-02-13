@@ -12,8 +12,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.hash;
 
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
 public class HashPrecompileCallParameters {

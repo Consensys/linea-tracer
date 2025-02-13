@@ -12,10 +12,10 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 
 /**
- * {@link ModexpCallDataSizeParameter} represents different call data sizes for <b>CALL</b>'s to the
+ * {@link CallDataSizeParameter} represents different call data sizes for <b>CALL</b>'s to the
  * <b>MODEXP</b> precompile. The interpretation goes as follows:
  *
  * <p>- {@link #EMPTY} for empty call data (cds ≡ 0)
@@ -38,7 +38,7 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
  *
  * <p>- {@link #LARGE} for call data larger than required (cds > 96 + bbs + bbs + mbs)
  */
-public enum ModexpCallDataSizeParameter {
+public enum CallDataSizeParameter {
   EMPTY,
   BBS,
   EBS,

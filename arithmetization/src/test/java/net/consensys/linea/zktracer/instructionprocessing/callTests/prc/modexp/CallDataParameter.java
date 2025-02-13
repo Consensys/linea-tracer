@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
@@ -22,7 +22,7 @@ import java.math.BigInteger;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
-public class CallDataParametersForModexp {
+public class CallDataParameter {
   /** base byte size. */
   public final ByteSizeParameter bbs;
 
@@ -33,13 +33,13 @@ public class CallDataParametersForModexp {
   public final ByteSizeParameter mbs;
 
   /** call data size. */
-  public final ModexpCallDataSizeParameter cds;
+  public final CallDataSizeParameter cds;
 
-  public CallDataParametersForModexp(
+  public CallDataParameter(
       ByteSizeParameter bbs,
       ByteSizeParameter ebs,
       ByteSizeParameter mbs,
-      ModexpCallDataSizeParameter cds) {
+      CallDataSizeParameter cds) {
     this.bbs = bbs;
     this.ebs = ebs;
     this.mbs = mbs;

@@ -38,7 +38,7 @@ public class ParameterGeneration {
    * <p>- {@code bbs}, {@code ebs}, {@code mbs} are {@link ByteSizeParameter} values for
    * <b>MODEXP</b>, either 0, 1, something small, or the maximum (512)
    *
-   * <p>- {@code cds} is one of the {@link ModexpCallDataSizeParameter} values, which dictates how
+   * <p>- {@code cds} is one of the {@link CallDataSizeParameter} values, which dictates how
    * much of the parameters in RAM (<b>bbs</b>, <b>ebs</b>, <b>mbs</b>, <b>BASE</b>, <b>EXPONENT</b>
    * and <b>MODULUS</b>) actually get passed down to <b>MODEXP</b>
    *
@@ -61,25 +61,25 @@ public class ParameterGeneration {
         for (ByteSizeParameter bbs : ByteSizeParameter.values()) { // 5
           for (ByteSizeParameter ebs : ByteSizeParameter.values()) { // 5
             for (ByteSizeParameter mbs : ByteSizeParameter.values()) { // 5
-              for (ModexpCallDataSizeParameter cds : ModexpCallDataSizeParameter.values()) { // 9
+              for (CallDataSizeParameter cds : CallDataSizeParameter.values()) { // 9
                 for (ReturnAtParameter returnAt : ReturnAtParameter.values()) { // 4
                   for (RelativeRangePosition relPos : RelativeRangePosition.values()) { // 2
                     argumentsList.add(
                         Arguments.of(
-                            new ModexpCallParameters(
+                            new CallParameter(
                                 opCode,
                                 gas,
-                                new CallDataParametersForModexp(bbs, ebs, mbs, cds),
+                                new CallDataParameter(bbs, ebs, mbs, cds),
                                 returnAt,
                                 relPos,
                                 false)));
 
                     argumentsList.add(
                         Arguments.of(
-                            new ModexpCallParameters(
+                            new CallParameter(
                                 opCode,
                                 gas,
-                                new CallDataParametersForModexp(bbs, ebs, mbs, cds),
+                                new CallDataParameter(bbs, ebs, mbs, cds),
                                 returnAt,
                                 relPos,
                                 true)));

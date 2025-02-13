@@ -224,6 +224,8 @@ public class GeneralStateReferenceTestTools {
       // worldStateUpdater, LINEA_BLOCK_GAS_LIMIT, accounts.get(1).getAddress(), Address.ZERO,
       // Bytes32.ZERO, accounts.get(0).getAddress(), Wei.ZERO, Wei.ZERO,
       // evm.getCodeUncached(accounts.get(1).getCode()), false, messageFrame -> {}, )
+      SimpleBlockValues blockValues = new SimpleBlockValues();
+      blockValues.setBaseFee(Optional.of(Wei.of(1)));
       MessageFrame initialMessageFrame =
           MessageFrame.builder()
               // .address(accounts.get(2).getAddress())
@@ -231,7 +233,7 @@ public class GeneralStateReferenceTestTools {
               .originator(accounts.get(0).getAddress())
               .gasPrice(Wei.ONE)
               .blobGasPrice(Wei.ONE)
-              .blockValues(new SimpleBlockValues())
+              .blockValues(blockValues)
               .miningBeneficiary(Address.ZERO)
               .blockHashLookup((__, ___) -> Hash.ZERO)
               .address(Address.fromHexString("0x1111111111111111111111111111111111111111"))

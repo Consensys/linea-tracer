@@ -14,6 +14,10 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing;
 
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
 import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
@@ -21,6 +25,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -50,6 +55,38 @@ public class JumpTest {
             .compile();
     System.out.println(bytecode.toHexString());
     BytecodeRunner.of(bytecode).run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("provideJumpScenario")
+  void jumpScenarioOOGXTest(String description, String pcNew) {
+    final Bytes bytecodeGasCost =
+        BytecodeCompiler.newProgram()
+            .push(pcNew)
+            .op(OpCode.JUMP)
+            .op(OpCode.INVALID)
+            .op(OpCode.JUMPDEST)
+            .push(OpCode.JUMPDEST.byteValue()) // false JUMPDEST
+            .compile();
+
+    long gasCost =
+        BytecodeRunner.of(bytecodeGasCost).runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of())
+            + 21000;
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(pcNew)
+            .op(OpCode.JUMP)
+            .op(OpCode.INVALID)
+            .op(OpCode.JUMPDEST)
+            .push(OpCode.JUMPDEST.byteValue()) // false JUMPDEST
+            .compile();
+    System.out.println(bytecode.toHexString());
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
+    bytecodeRunner.run(gasCost - 1);
+    assertEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 
   private static Stream<Arguments> provideJumpScenario() {

@@ -16,6 +16,7 @@
 package net.consensys.linea.testing;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TRANSACTION;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -184,7 +185,7 @@ public final class BytecodeRunner {
             .transaction(tx)
             .build();
     long result = toyExecutionEnvironmentV2.runForGasCost();
-    return result;
+    return result + GAS_CONST_G_TRANSACTION;
   }
 
   public Hub getHub() {

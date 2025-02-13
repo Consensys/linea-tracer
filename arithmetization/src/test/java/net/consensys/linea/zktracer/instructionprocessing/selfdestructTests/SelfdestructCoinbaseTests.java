@@ -43,6 +43,29 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 public class SelfdestructCoinbaseTests {
 
+  /**
+   * This test aims to test the SELFDESTRUCT of the COINBASE address in various scenarii: - root
+   * context is deployment - coinbase / recipient address collision - coinbase is deployed prior to
+   * the transaction - the transaction is reverted
+   */
+  static final ToyAccount CHECKING_COINBASE =
+      ToyAccount.builder()
+          .code(
+              BytecodeCompiler.newProgram()
+                  .op(OpCode.COINBASE)
+                  .op(OpCode.BALANCE)
+                  .op(OpCode.POP)
+                  .op(OpCode.COINBASE)
+                  .op(OpCode.EXTCODESIZE)
+                  .push(0)
+                  .push(0)
+                  .op(OpCode.COINBASE)
+                  .op(OpCode.EXTCODECOPY)
+                  .op(OpCode.COINBASE)
+                  .op(OpCode.EXTCODEHASH)
+                  .compile())
+          .build();
+
   @ParameterizedTest
   @MethodSource("selfDestructCoinbaseInputs")
   void selfdestructCoinbaseTests(
@@ -106,9 +129,7 @@ public class SelfdestructCoinbaseTests {
         ToyTransaction.builder()
             .sender(senderAccount)
             .keyPair(senderKeyPair)
-            .value(Wei.of(123))
-            .gasLimit(100000L)
-            .payload(BytecodeCompiler.newProgram().op(OpCode.COINBASE).op(OpCode.BALANCE).compile())
+            .to(CHECKING_COINBASE)
             .nonce(senderAccount.getNonce() + 1)
             .build();
 

@@ -171,8 +171,10 @@ public class OutOfGasExceptionTest {
               .build();
       gasCost =
           bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of(calleeAccount));
+      bytecodeRunner.run(gasCost + cornerCase, List.of(calleeAccount));
     } else {
       gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+      bytecodeRunner.run(gasCost + cornerCase);
     }
 
     /*
@@ -183,20 +185,6 @@ public class OutOfGasExceptionTest {
                         + 7 * GAS_CONST_G_VERY_LOW // 7 PUSH
                         + callGasCost(value != 0, targetAddressExists, isWarm); // CALL
     */
-
-    if (targetAddressExists) {
-      final ToyAccount calleeAccount =
-          ToyAccount.builder()
-              .balance(Wei.fromEth(1))
-              .nonce(10)
-              .address(Address.fromHexString("ca11ee"))
-              .build();
-      bytecodeRunner.run(gasCost + cornerCase, List.of(calleeAccount));
-    } else {
-      bytecodeRunner.run(gasCost + cornerCase);
-    }
-
-    // assertEquals(bytecodeRunner.getHub().gasCostAccumulator(), gasCost);
 
     if (cornerCase == -1) {
       assertEquals(

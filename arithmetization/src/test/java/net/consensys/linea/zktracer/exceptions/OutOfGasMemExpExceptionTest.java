@@ -4,6 +4,7 @@ import static net.consensys.linea.zktracer.DynamicGasCostUtils.getGasCostForMess
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.List;
 
@@ -13,8 +14,9 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class OutOfGasMemExpExceptionTest {
@@ -22,8 +24,9 @@ public class OutOfGasMemExpExceptionTest {
    * Trigger out of gas exception for a MSTORE operation with a gas limit that is too low to cover
    * the memory expansion
    */
-  @Test
-  void outOfGasExceptionMStore() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionMStore(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -34,20 +37,27 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne = getGasCostForMessageCall(pgCompile) - 1;
+    long gasCost = getGasCostForMessageCall(pgCompile);
 
-    bytecodeRunner.run(gasCostMinusOne);
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 
   /**
    * Trigger out of gas exception for a MSTORE8 operation with a gas limit that is too low to cover
    * the memory expansion
    */
-  @Test
-  void outOfGasExceptionMStore8() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionMStore8(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -58,20 +68,27 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne = getGasCostForMessageCall(pgCompile) - 1;
+    long gasCost = getGasCostForMessageCall(pgCompile);
 
-    bytecodeRunner.run(gasCostMinusOne);
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 
   /**
    * Trigger out of gas exception for a MLOAD operation with a gas limit that is too low to cover
    * its memory expansion
    */
-  @Test
-  void outOfGasExceptionMLoad() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionMLoad(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -86,16 +103,23 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne = getGasCostForMessageCall(pgCompile) - 1;
+    long gasCost = getGasCostForMessageCall(pgCompile);
 
-    bytecodeRunner.run(gasCostMinusOne);
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 
-  @Test
-  void outOfGasExceptionCallDataCopy() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionCallDataCopy(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -107,17 +131,23 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne =
-        bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of()) - 1;
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
-    bytecodeRunner.run(gasCostMinusOne);
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 
-  @Test
-  void outOfGasExceptionCodeCopy() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionCodeCopy(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -132,17 +162,23 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne =
-        bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of()) - 1;
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
-    bytecodeRunner.run(gasCostMinusOne);
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 
-  @Test
-  void outOfGasExceptionExtCodeCopy() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionExtCodeCopy(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -171,17 +207,23 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne =
-        bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of()) - 1;
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
-    bytecodeRunner.run(gasCostMinusOne);
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 
-  @Test
-  void outOfGasExceptionReturn() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionReturn(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -197,17 +239,23 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne =
-        bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of()) - 1;
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
-    bytecodeRunner.run(gasCostMinusOne);
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 
-  @Test
-  void outOfGasExceptionReturnDataCopy() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionReturnDataCopy(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -249,17 +297,23 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne =
-        bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of()) - 1;
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
-    bytecodeRunner.run(gasCostMinusOne);
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 
-  @Test
-  void outOfGasExceptionRevert() {
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionRevert(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -275,12 +329,17 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCostMinusOne =
-        bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of()) - 1;
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 
-    bytecodeRunner.run(gasCostMinusOne);
-    assertEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
   }
 }

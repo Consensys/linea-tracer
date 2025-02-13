@@ -101,6 +101,7 @@ public class LowGasStipendPrecompileCallTests {
     final int bbs = 0x02;
     final int ebs = 0x03;
     final int mbs = 0x04;
+    BigInteger bigQuotient = BigInteger.ZERO;
 
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
       program
@@ -139,7 +140,7 @@ public class LowGasStipendPrecompileCallTests {
                           BigInteger.valueOf(ebs),
                           BigInteger.valueOf(mbs))
                       .max(BigInteger.ONE));
-      final BigInteger bigQuotient = bigNumerator.divide(BigInteger.valueOf(G_QUADDIVISOR));
+      bigQuotient = bigNumerator.divide(BigInteger.valueOf(G_QUADDIVISOR));
 
       program
           .push(bbsPadded)
@@ -163,7 +164,8 @@ public class LowGasStipendPrecompileCallTests {
     final int retSize = getRetSize(precompileAddress, argsSize, mbs);
 
     // Compute the precompile cost
-    final int precompileCost = getPrecompileCost(precompileAddress, argsSize, r);
+    final int precompileCost =
+        getPrecompileCost(precompileAddress, argsSize, r, bigQuotient.intValueExact());
 
     // Compute the gas stipend in the different testing scenarios
     int gas = getGas(gasCase, precompileCost);
@@ -288,9 +290,12 @@ public class LowGasStipendPrecompileCallTests {
    * @param precompileAddress the address of the precompile contract.
    * @param argsSize the call data size.
    * @param r the r value for BLAKE2F. For other precompile contracts, this value is ignored.
+   * @param bigQuotient the big quotient for MODEXP. For other precompile contracts, this value is
+   *     ignored.
    * @return the computed precompile cost.
    */
-  private static int getPrecompileCost(Address precompileAddress, int argsSize, int r) {
+  private static int getPrecompileCost(
+      Address precompileAddress, int argsSize, int r, int bigQuotient) {
     final int precompileCost;
     if (precompileAddress.equals(ECREC)) {
       precompileCost = 3000;
@@ -301,7 +306,7 @@ public class LowGasStipendPrecompileCallTests {
     } else if (precompileAddress.equals(ID)) {
       precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 3;
     } else if (precompileAddress.equals(MODEXP)) {
-      precompileCost = 200; // TODO: check this
+      precompileCost = Math.max(200, bigQuotient);
     } else if (precompileAddress.equals(ALTBN128_ADD)) {
       precompileCost = 150;
     } else if (precompileAddress.equals(ALTBN128_MUL)) {

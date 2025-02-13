@@ -121,7 +121,7 @@ public class SelfdestructCoinbaseTests {
                         : callingCoinbaseAccount)
             .keyPair(senderKeyPair)
             .value(Wei.of(123))
-            .gasLimit(100000L)
+            .gasLimit(1000000L)
             .payload(selfDestructorCoinbaseAccount.getCode())
             .build();
 
@@ -130,6 +130,7 @@ public class SelfdestructCoinbaseTests {
             .sender(senderAccount)
             .keyPair(senderKeyPair)
             .to(CHECKING_COINBASE)
+            .gasLimit(10000000L)
             .nonce(senderAccount.getNonce() + 1)
             .build();
 

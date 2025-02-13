@@ -78,7 +78,10 @@ public class LowGasStipendPrecompileCallTests {
   @ParameterizedTest
   @MethodSource("lowGasStipendPrecompileCallTestSource")
   void lowGasStipendPrecompileCallTest(
-      Address precompileAddress, ArgumentCase argumentCase, GasCase gasCase) {
+      Address precompileAddress,
+      ArgumentCase argumentCase,
+      GasCase gasCase,
+      boolean modexpCostGT200) {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // In order to actually trigger the insufficient we need to:
@@ -93,71 +96,42 @@ public class LowGasStipendPrecompileCallTests {
     // retSize is defined below
     final int retOffset = 13;
 
+    // TODO: consider creating test for different families of precompile contracts:
+    //  - BLAKE2F
+    //  - ECPAIRING
+    //  - SHA256, RIPEMD160, ID
+    //  - MODEXP
+    //  - ECADD, ECMUL, ECRECOVER
+
     // BLAKE2F specific parameters
     final int rLeadingByte = argumentCase.isZeroCase() ? 0 : 0x12;
     final int r = rLeadingByte << 8;
 
     // MODEXP specific parameters
-    final int bbs = 0x02;
-    final int ebs = 0x03;
-    final int mbs = 0x04;
+    final int bbs = modexpCostGT200 ? 0x01 : 0x02;
+    final int ebs = modexpCostGT200 ? 0x06 : 0x03;
+    final int mbs = modexpCostGT200 ? 0x19 : 0x04;
     BigInteger bigQuotient = BigInteger.ZERO;
 
+    // Prepare the arguments for the different precompile calls
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
-      program
-          .push(rLeadingByte) // For simplicity, we only set the first byte of r
-          .push(argsOffset + 2) // offset
-          // Writing rLeadingByte at this offset
-          // allows to have r = 0x00000000 or r = 0x00001200
-          .op(OpCode.MSTORE8);
       argsSize = 213;
+      prepareBlake2F(program, rLeadingByte, argsOffset);
     } else if (precompileAddress == ALTBN128_PAIRING) {
-      // EC_PAIRING specific parameters
       argsSize = 192;
     } else if ((precompileAddress == SHA256
             || precompileAddress == RIPEMD160
             || precompileAddress == ID)
         && argumentCase.isNonZeroCase()) {
-      // SHA256, RIPEMD160, and ID specific parameters
-      int nWords = 1024;
+      final int nWords = 1024;
       argsSize = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
-      populateMemory(program, nWords, argsOffset);
+      prepareSha256Ripemd160Id(program, nWords, argsOffset);
     } else if (precompileAddress == MODEXP) {
       argsSize = 96 + bbs + ebs + mbs;
-      final int fOfMax = (Math.max(bbs, mbs) + 7) / 8 * (Math.max(bbs, mbs) + 7) / 8;
-      final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
-      final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
-      final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
-      final Bytes32 bemPadded =
-          Bytes32.rightPad(Bytes.fromHexString("0xba7e" + "000ec7" + "0000080d"));
-      final BigInteger bigNumerator =
-          BigInteger.valueOf(fOfMax)
-              .multiply(
-                  OobOperation.computeExponentLog(
-                          Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bemPadded),
-                          BigInteger.valueOf(argsSize),
-                          BigInteger.valueOf(bbs),
-                          BigInteger.valueOf(ebs),
-                          BigInteger.valueOf(mbs))
-                      .max(BigInteger.ONE));
-      bigQuotient = bigNumerator.divide(BigInteger.valueOf(G_QUADDIVISOR));
-
-      program
-          .push(bbsPadded)
-          .push(0) // offset
-          .op(OpCode.MSTORE)
-          .push(bbsPadded)
-          .push(32) // offset
-          .op(OpCode.MSTORE)
-          .push(mbsPadded)
-          .push(64) // offset
-          .op(OpCode.MSTORE)
-          .push(bemPadded)
-          .push(96) // offset
-          .op(OpCode.MSTORE);
+      bigQuotient = prepareModexp(bbs, mbs, ebs, argsSize, program);
     } else {
-      // Default case
-      argsSize = argumentCase.isZeroCase() ? 0 : 1; // TODO: is this meaningful / useful?
+      // ECADD, ECMUL, ECRECOVER cases
+      argsSize = argumentCase.isZeroCase() ? 0 : 1;
     }
 
     // Compute the return size
@@ -234,26 +208,79 @@ public class LowGasStipendPrecompileCallTests {
 
   static Stream<Arguments> lowGasStipendPrecompileCallTestSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (ArgumentCase argumentCase : ArgumentCase.values()) {
-      for (GasCase gasCase : GasCase.values()) {
-        arguments.add(Arguments.of(ECREC, argumentCase, gasCase));
-        arguments.add(Arguments.of(SHA256, argumentCase, gasCase));
-        arguments.add(Arguments.of(RIPEMD160, argumentCase, gasCase));
-        arguments.add(Arguments.of(ID, argumentCase, gasCase));
-        if (argumentCase == ArgumentCase.ZERO) {
-          // The NON_ZERO for MODEXP case will be treated in a separate test
-          arguments.add(Arguments.of(MODEXP, argumentCase, gasCase));
-        }
-        arguments.add(Arguments.of(ALTBN128_ADD, argumentCase, gasCase));
-        arguments.add(Arguments.of(ALTBN128_MUL, argumentCase, gasCase));
-        arguments.add(Arguments.of(Address.ALTBN128_PAIRING, argumentCase, gasCase));
-        arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, argumentCase, gasCase));
+    for (GasCase gasCase : GasCase.values()) {
+      for (ArgumentCase argumentCase : ArgumentCase.values()) {
+        arguments.add(Arguments.of(ECREC, argumentCase, gasCase, false));
+        arguments.add(Arguments.of(SHA256, argumentCase, gasCase, false));
+        arguments.add(Arguments.of(RIPEMD160, argumentCase, gasCase, false));
+        arguments.add(Arguments.of(ID, argumentCase, gasCase, false));
+        arguments.add(Arguments.of(ALTBN128_ADD, argumentCase, gasCase, false));
+        arguments.add(Arguments.of(ALTBN128_MUL, argumentCase, gasCase, false));
+        arguments.add(Arguments.of(Address.ALTBN128_PAIRING, argumentCase, gasCase, false));
+        arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, argumentCase, gasCase, false));
       }
+      // The NON_ZERO for MODEXP case will be treated in a separate test
+      arguments.add(Arguments.of(MODEXP, ArgumentCase.ZERO, gasCase, false));
+      arguments.add(Arguments.of(MODEXP, ArgumentCase.ZERO, gasCase, true));
     }
     return arguments.stream();
   }
 
   // Support methods
+  private static void prepareBlake2F(BytecodeCompiler program, int rLeadingByte, int argsOffset) {
+    program
+        .push(rLeadingByte) // For simplicity, we only set the first byte of r
+        .push(argsOffset + 2) // offset
+        // Writing rLeadingByte at this offset
+        // allows to have r = 0x00000000 or r = 0x00001200
+        .op(OpCode.MSTORE8);
+  }
+
+  private void prepareSha256Ripemd160Id(BytecodeCompiler program, int nWords, int argsOffset) {
+    populateMemory(program, nWords, argsOffset);
+  }
+
+  private static BigInteger prepareModexp(
+      int bbs, int mbs, int ebs, int argsSize, BytecodeCompiler program) {
+    final int words = (Math.max(bbs, mbs) + 7) / 8;
+    final int fOfMax = words * words;
+    final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
+    final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
+    final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
+    final Bytes32 bemPadded =
+        Bytes32.rightPad(
+            Bytes.fromHexString("0x" + "aa".repeat(bbs) + "ff".repeat(ebs) + "bb".repeat(mbs)));
+    // Note that is an arbitrary value respecting bbs, ebs, mbs
+
+    program
+        .push(bbsPadded)
+        .push(0) // offset
+        .op(OpCode.MSTORE)
+        .push(ebsPadded)
+        .push(32) // offset
+        .op(OpCode.MSTORE)
+        .push(mbsPadded)
+        .push(64) // offset
+        .op(OpCode.MSTORE)
+        .push(bemPadded)
+        .push(96) // offset
+        .op(OpCode.MSTORE);
+
+    final Bytes paddedCallData = Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bemPadded);
+    final BigInteger bigNumerator =
+        BigInteger.valueOf(fOfMax)
+            .multiply(
+                OobOperation.computeExponentLog(
+                        paddedCallData,
+                        BigInteger.valueOf(argsSize),
+                        BigInteger.valueOf(bbs),
+                        BigInteger.valueOf(ebs),
+                        BigInteger.valueOf(mbs))
+                    .max(BigInteger.ONE));
+
+    return bigNumerator.divide(BigInteger.valueOf(G_QUADDIVISOR)); // bigQuotient;
+  }
+
   /**
    * Computes the retSize based on the precompile address, and argsSize in the case of ID.
    *

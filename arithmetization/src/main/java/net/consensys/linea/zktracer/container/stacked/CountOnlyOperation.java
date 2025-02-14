@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.container.stacked;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 
 @Accessors(fluent = true)
@@ -26,7 +25,7 @@ import lombok.experimental.Accessors;
 public class CountOnlyOperation {
 
   private int countCommitedToTheConflation = 0;
-  @Getter @Setter private int countInTransactionBundle = 0;
+  @Getter private int countInTransactionBundle = 0;
 
   public void commitTransactionBundle() {
     countCommitedToTheConflation += countInTransactionBundle;

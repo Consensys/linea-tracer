@@ -163,19 +163,26 @@ public class RlptxnTests {
             // ...
             );
 
+    final List<BigInteger> signatures = List.of(BigInteger.ZERO);
+
     for (TransactionType txType : possibleTxType) {
       for (int isDeployment = 0; isDeployment <= 1; isDeployment++) {
         for (BigInteger value : values) {
           for (Bytes payload : payloads) {
-            if (txType == FRONTIER) {
-              arguments.add(
-                  Arguments.of(txType, isDeployment == 1, value, payload, List.of(), false));
-              arguments.add(
-                  Arguments.of(txType, isDeployment == 1, value, payload, List.of(), true));
-            } else {
-              for (List<AccessListEntry> accessList : accessLists) {
+            for (BigInteger signature : signatures) {
+              if (txType == FRONTIER) {
                 arguments.add(
-                    Arguments.of(txType, isDeployment == 1, value, payload, accessList, false));
+                    Arguments.of(
+                        txType, isDeployment == 1, value, payload, List.of(), false, signature));
+                arguments.add(
+                    Arguments.of(
+                        txType, isDeployment == 1, value, payload, List.of(), true, signature));
+              } else {
+                for (List<AccessListEntry> accessList : accessLists) {
+                  arguments.add(
+                      Arguments.of(
+                          txType, isDeployment == 1, value, payload, accessList, false, signature));
+                }
               }
             }
           }

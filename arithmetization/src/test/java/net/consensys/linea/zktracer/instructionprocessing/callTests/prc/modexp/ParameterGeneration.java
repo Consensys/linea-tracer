@@ -38,9 +38,9 @@ public class ParameterGeneration {
    * <p>- {@code bbs}, {@code ebs}, {@code mbs} are {@link ByteSizeParameter} values for
    * <b>MODEXP</b>, either 0, 1, something small, or the maximum (512)
    *
-   * <p>- {@code cds} is one of the {@link CallDataSizeParameter} values, which dictates how
-   * much of the parameters in RAM (<b>bbs</b>, <b>ebs</b>, <b>mbs</b>, <b>BASE</b>, <b>EXPONENT</b>
-   * and <b>MODULUS</b>) actually get passed down to <b>MODEXP</b>
+   * <p>- {@code cds} is one of the {@link CallDataSizeParameter} values, which dictates how much of
+   * the parameters in RAM (<b>bbs</b>, <b>ebs</b>, <b>mbs</b>, <b>BASE</b>, <b>EXPONENT</b> and
+   * <b>MODULUS</b>) actually get passed down to <b>MODEXP</b>
    *
    * <p>- {@code returnAt} is one of the {@link ReturnAtParameter} values, which dictates how much
    * of the return data will be written to RAM, it can be <b>EMPTY</b>, <b>PARTIAL</b> or

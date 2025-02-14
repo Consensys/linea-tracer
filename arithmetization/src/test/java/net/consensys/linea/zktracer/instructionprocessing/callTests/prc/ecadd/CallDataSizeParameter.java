@@ -15,15 +15,15 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd;
 
 public enum CallDataSizeParameter {
-    ZERO,
-    NONEMPTY_1f,
-    NONEMPTY_20,
-    NONEMPTY_3f,
-    NONEMPTY_40,
-    NONEMPTY_5f,
-    NONEMPTY_60,
-    NONEMPTY_7f,
-    NONEMPTY_80,
-    FULL,
-    LARGE
+  ZERO,
+  NONEMPTY_1f,
+  NONEMPTY_20,
+  NONEMPTY_3f,
+  NONEMPTY_40,
+  NONEMPTY_5f,
+  NONEMPTY_60,
+  NONEMPTY_7f,
+  NONEMPTY_80,
+  FULL,
+  LARGE
 }

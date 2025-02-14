@@ -63,17 +63,11 @@ public class CodeExecutionMethods {
 
   public static final Address codeHolderAddress1 = Address.fromHexString("d00d");
   public static final ToyAccount.ToyAccountBuilder codeHolder1 =
-      ToyAccount.builder()
-          .address(codeHolderAddress1)
-          .balance(Wei.of(0x2025))
-          .nonce(0x11aaff);
+      ToyAccount.builder().address(codeHolderAddress1).balance(Wei.of(0x2025)).nonce(0x11aaff);
 
   public static final Address codeHolderAddress2 = Address.fromHexString("dada");
   public static final ToyAccount.ToyAccountBuilder codeHolder2 =
-      ToyAccount.builder()
-          .address(codeHolderAddress2)
-          .balance(Wei.of(0x2025))
-          .nonce(0x11aaff);
+      ToyAccount.builder().address(codeHolderAddress2).balance(Wei.of(0x2025)).nonce(0x11aaff);
 
   public static final ToyTransaction.ToyTransactionBuilder transaction =
       ToyTransaction.builder()

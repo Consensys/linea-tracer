@@ -106,9 +106,15 @@ public class Utils {
   }
 
   public static String getConstraintVersion() {
-    final String version =
-            Toml.parse(Utils.class.getClassLoader().getResourceAsStream("constraints.toml"))
-                    .getString("constraint-version");
+    final String version;
+    try {
+      version =
+              Toml.parse(Utils.class.getClassLoader().getResourceAsStream("constraints.toml"))
+                      .getString("constraint-version");
+
+    } catch (IOException e){
+      throw new RuntimeException("Constraint version not found", e);
+    }
     return version;
   }
 

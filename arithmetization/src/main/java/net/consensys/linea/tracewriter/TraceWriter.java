@@ -29,13 +29,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.types.Utils;
 
 @Slf4j
 @RequiredArgsConstructor
 public class TraceWriter {
   private static final String TRACE_FILE_EXTENSION = ".lt";
   private static final String TRACE_TEMP_FILE_EXTENSION = ".lt.tmp";
-
+  private static final String constraintVersion = Utils.getConstraintVersion();
   private final ZkTracer tracer;
 
   @SneakyThrows(IOException.class)
@@ -46,7 +47,7 @@ public class TraceWriter {
       final String expectedTracesEngineVersion) {
     // Generate the original and final trace file name.
     final String origTraceFileName =
-        generateOutputFileName(startBlockNumber, endBlockNumber, expectedTracesEngineVersion);
+        generateOutputFileName(startBlockNumber, endBlockNumber, expectedTracesEngineVersion, constraintVersion);
     // Generate and resolve the original and final trace file path.
     final Path origTraceFilePath =
         generateOutputFilePath(tracesOutputDirPath, origTraceFileName + TRACE_FILE_EXTENSION);
@@ -100,10 +101,10 @@ public class TraceWriter {
   }
 
   private String generateOutputFileName(
-      final long startBlockNumber,
-      final long endBlockNumber,
-      final String expectedTracesEngineVersion) {
-    return "%s-%s.conflated.%s"
-        .formatted(startBlockNumber, endBlockNumber, expectedTracesEngineVersion);
+          final long startBlockNumber,
+          final long endBlockNumber,
+          final String expectedTracesEngineVersion, String constraintVersion) {
+    return "%s-%s.conflated.%s.%s"
+        .formatted(startBlockNumber, endBlockNumber, expectedTracesEngineVersion, constraintVersion);
   }
 }

@@ -105,6 +105,13 @@ public class Utils {
     return new BigInteger(hexString, 16).add(BigInteger.valueOf(offset)).toString(16);
   }
 
+  public static String getConstraintVersion() {
+    final String version =
+            Toml.parse(Utils.class.getClassLoader().getResourceAsStream("constraints.toml"))
+                    .getString("constraint-version");
+    return version;
+  }
+
   public static Map<String, Integer> computeSpillings() throws IOException {
     final Map<String, Integer> spillings = new HashMap<>();
 

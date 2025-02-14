@@ -288,23 +288,15 @@ public class Utilities {
   }
 
   public static void sstoreTopOfStackTo(BytecodeCompiler program, int storageKey) {
-    program.push(storageKey).op(MSTORE);
+    program.push(storageKey).op(SSTORE);
   }
 
   public static void sloadFrom(BytecodeCompiler program, int storageKey) {
     program.push(storageKey).op(SLOAD);
   }
 
-  public static void rightShiftTopOfStackToProduceAddress(BytecodeCompiler program) {
-    program.push(8 * 12).op(SHR);
-  }
-
   public static void revertWith(BytecodeCompiler program, int offset, int size) {
     program.push(size).push(offset).op(REVERT);
-  }
-
-  public static void callDataLoadFrom(BytecodeCompiler program, int offset) {
-    program.push(offset).op(CALLDATALOAD);
   }
 
   public static void pushSeveral(BytecodeCompiler program, int... values) {

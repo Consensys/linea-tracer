@@ -12,20 +12,23 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
 
+/**
+ * Call data size parameters for the ECMUL precompile. We provision for either a collection of
+ * complete EVM words or a collection of EVM words with the final one either missing one byte or
+ * being just 11 bytes.
+ */
 public enum CallDataSizeParameter {
   EMPTY,
   // partial words
-  NONEMPTY_1f,
-  NONEMPTY_3f,
-  NONEMPTY_5f,
-  NONEMPTY_7f,
+  NONEMPTY_1f, // 32 -  1 bytes
+  NONEMPTY_3f, // 64 -  1 bytes
+  NONEMPTY_4d, // 64 + 11 bytes
   // full words
   NONEMPTY_20,
   NONEMPTY_40,
   NONEMPTY_60,
-  NONEMPTY_80,
   FULL,
   LARGE
 }

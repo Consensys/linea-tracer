@@ -101,7 +101,7 @@ public class HappyPathTests {
         new CallParameters(
             CALL,
             GasParameter.COST_MO,
-            MemoryContentParameter.WELLFORMED_POINTS,
+            MemoryContentParameter.WELL_FORMED_POINTS,
             CallDataSizeParameter.FULL,
             ReturnAtParameter.FULL,
             true);
@@ -134,10 +134,10 @@ public class HappyPathTests {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    // populate memory with the data for first MODEXP call
+    // populate memory with the data for first ECADD call
     copyForeignCodeToRam(program, codeHolderAddress1);
 
-    // happy path: first MODEXP call
+    // happy path: first ECADD call
     appendHappyPathPrecompileCall(program, params);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x0140);
     loadFirstReturnDataWordOntoStack(program, 0x02ff);
@@ -151,7 +151,7 @@ public class HappyPathTests {
     // populate memory with the data for second MODEXP call
     copyForeignCodeToRam(program, codeHolderAddress2);
 
-    // happy path: second MODEXP call
+    // happy path: second ECADD call
     appendHappyPathPrecompileCall(program, params);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x026c);
     loadFirstReturnDataWordOntoStack(program, 0x02ff);
@@ -190,14 +190,16 @@ public class HappyPathTests {
 
     // push the cds onto the stack
     switch (params.cds) {
-      case ZERO -> program.push(0);
+      case EMPTY -> program.push(0);
+        // partial words
       case NONEMPTY_1f -> program.push(0x1f);
-      case NONEMPTY_20 -> program.push(0x20);
       case NONEMPTY_3f -> program.push(0x3f);
-      case NONEMPTY_40 -> program.push(0x40);
       case NONEMPTY_5f -> program.push(0x5f);
-      case NONEMPTY_60 -> program.push(0x60);
       case NONEMPTY_7f -> program.push(0x7f);
+        // full words
+      case NONEMPTY_20 -> program.push(0x20);
+      case NONEMPTY_40 -> program.push(0x40);
+      case NONEMPTY_60 -> program.push(0x60);
       case NONEMPTY_80 -> program.push(0x80);
       case FULL -> program.op(MSIZE);
       case LARGE -> program.push("ff".repeat(WORD_SIZE));
@@ -215,7 +217,7 @@ public class HappyPathTests {
 
     // push gas onto the stack
     switch (params.gas) {
-      case ZERO -> program.push(0); // remains interesting in the nonzero value case
+      case ZERO -> program.push(0); // interesting in the nonzero value case
       case COST_MO -> program.push(149);
       case COST -> program.push(150);
       case FULL -> program.op(GAS);

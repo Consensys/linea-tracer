@@ -23,7 +23,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 public enum MemoryContentParameter {
   ZEROS,
-  WELLFORMED_POINTS,
+  WELL_FORMED_POINTS,
   MIXED,
   MALFORMED_AT_1f,
   MALFORMED_AT_3f,
@@ -39,24 +39,29 @@ public enum MemoryContentParameter {
   }
 
   // coordinates for 5 curve points
-  private static final String A_X =
+  public static final String A_X =
       "08d555288636cfb5abeac1d38a828fc4d975fb8def9f63a34f8c91701b5478d1";
-  private static final String A_Y =
+  public static final String A_Y =
       "2fe58eb05ff7bed143c398b0b62e18e8b0327a3be8250b2923ea29e6773a65f5";
-  private static final String B_X =
+  public static final String B_X =
       "0d89e2e42be7fbda9358a2689c73af3ecd519728359f175ee7919d31c8f61d5d";
-  private static final String B_Y =
+  public static final String B_Y =
       "0eb7c8cfbbe0a89bf12697e97b482c3a91ff985ba456f1684a0b68efa2933019";
-  private static final String C_X =
+  public static final String C_X =
       "070375d4eec4f22aa3ad39cb40ccd73d2dbab6de316e75f81dc2948a996795d5";
-  private static final String C_Y =
+  public static final String C_Y =
       "041b98f07f44aa55ce8bd97e32cacf55f1e42229d540d5e7a767d1138a5da656";
-  private static final String D_X =
+  public static final String D_X =
       "185f6f5cf93c8afa0461a948c2da7c403b6f8477c488155dfa8d2da1c62517b8";
-  private static final String D_Y =
+  public static final String D_Y =
       "13d83d7a51eb18fdb51225873c87d44f883e770ce2ca56c305d02d6cb99ca5b8";
-  private static final String RND =
+  public static final String RND =
       "e2db57e640f49001c04ca5cb36e72f97af535c4d7620a48b96f8d0475afcaee569dcf211255b9ce6c05178cdf45152650496523591db85dadc328f6cb57e94ad83a66cca880b9fc02154c6941457158585230a843f38778f1d4cd6cbb42c778bcc5f05ab1c8306b59db726b705e3f782017a4dcaa04694b5c62e645445ede56b";
+
+  public static final String ZERO_WORD = "00".repeat(WORD_SIZE);
+  public static final String MAX_BYTE = "00".repeat(WORD_SIZE_MO) + "ff";
+  public static final String MAX_WORD = "ff".repeat(WORD_SIZE);
+  public static final int WORD_HEX_SIZE = 2 * WORD_SIZE;
 
   /**
    * Constructs a slice of bytes of the following form
@@ -77,27 +82,23 @@ public enum MemoryContentParameter {
    */
   public BytecodeCompiler memoryContents() {
 
-    final String ZERO = "00".repeat(WORD_SIZE);
-    final String MAX_BYTE = "00".repeat(WORD_SIZE_MO) + "ff";
-    final String MAX_WORD = "ff".repeat(WORD_SIZE);
-
     // Note that 4 = 2 * 2. We need 4 * 32 hex characters for the data representing a point.
     String pointData =
         switch (this) {
-          case ZEROS -> "00".repeat(4 * WORD_SIZE);
-          case WELLFORMED_POINTS -> variant ? A_X + A_Y + B_X + B_Y : C_X + C_Y + D_X + D_Y;
+          case ZEROS -> ZERO_WORD.repeat(4);
+          case WELL_FORMED_POINTS -> variant ? A_X + A_Y + B_X + B_Y : C_X + C_Y + D_X + D_Y;
           case MIXED -> variant
-              ? A_X + A_Y + RND.substring(13, 13 + 4 * WORD_SIZE)
-              : C_X + C_Y + RND.substring(99, 99 + 4 * WORD_SIZE);
+              ? A_X + A_Y + RND.substring(13, 13 + 2 * WORD_HEX_SIZE)
+              : C_X + C_Y + RND.substring(99, 99 + 2 * WORD_HEX_SIZE);
           case MALFORMED_AT_1f -> MAX_BYTE + (variant ? A_Y + B_X + B_Y : C_Y + D_X + D_Y);
-          case MALFORMED_AT_3f -> ZERO + MAX_BYTE + (variant ? B_X + B_Y : D_X + D_Y);
-          case MALFORMED_AT_5f -> ZERO.repeat(2) + MAX_BYTE + (variant ? B_Y : D_Y);
-          case MALFORMED_AT_7f -> ZERO.repeat(3) + MAX_BYTE;
+          case MALFORMED_AT_3f -> ZERO_WORD + MAX_BYTE + (variant ? B_X + B_Y : D_X + D_Y);
+          case MALFORMED_AT_5f -> ZERO_WORD.repeat(2) + MAX_BYTE + (variant ? B_Y : D_Y);
+          case MALFORMED_AT_7f -> ZERO_WORD.repeat(3) + MAX_BYTE;
           case RANDOM -> RND;
           case MAX -> MAX_WORD.repeat(4);
         };
 
-    final boolean correctLength = pointData.length() == 2 * 4 * WORD_SIZE;
+    final boolean correctLength = pointData.length() == 4 * WORD_HEX_SIZE;
     checkState(correctLength);
 
     String memoryContentsString = pointData + MAX_WORD;

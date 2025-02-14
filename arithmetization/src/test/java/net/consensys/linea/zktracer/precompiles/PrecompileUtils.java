@@ -23,7 +23,7 @@ public class PrecompileUtils {
   static final int GAS_CONST_ECADD = 150;
   static final int GAS_CONST_ECMUL = 6000;
   static final int GAS_CONST_ECPAIRING = 45000;
-  static final int GAS_CONST_ECPAIRING_WORD = 34000;
+  static final int GAS_CONST_ECPAIRING_PAIR = 34000;
   static final int GAS_CONST_BLAKE2_PER_ROUND = 1;
   static final int PRC_ECPAIRING_SIZE = 6 * WORD_SIZE;
   static final int PRC_BLAKE2F_SIZE = 213;
@@ -107,7 +107,7 @@ public class PrecompileUtils {
   }
 
   private static int getECPAIRINGCost(int cds) {
-    return GAS_CONST_ECPAIRING + GAS_CONST_ECPAIRING_WORD * (cds / PRC_ECPAIRING_SIZE);
+    return GAS_CONST_ECPAIRING + GAS_CONST_ECPAIRING_PAIR * (cds / PRC_ECPAIRING_SIZE);
   }
 
   private static int getBLAKE2FCost(int r) {

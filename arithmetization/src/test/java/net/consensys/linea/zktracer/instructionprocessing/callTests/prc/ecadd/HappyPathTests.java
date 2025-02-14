@@ -17,10 +17,9 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp.CallDataParameter;
 import org.hyperledger.besu.datatypes.Address;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -30,13 +29,11 @@ import java.util.stream.Stream;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.modexpMemoryHolderAddress2;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp.ByteSizeParameter.MAX;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp.ByteSizeParameter.MODERATE;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.codeHolderAddress2;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
-
+@Tag("weekly")
 public class HappyPathTests {
 
     /**
@@ -45,8 +42,64 @@ public class HappyPathTests {
     @ParameterizedTest
     @MethodSource("happyPathParameterGeneration")
     public void messageCallTransactionTest(CallParameters params) {
+
         BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
+        if (params.willRevert) revertWith(rootCode, 0, 5 * WORD_SIZE);
+
         runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
+    }
+
+    /**
+     * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case, see {@link CodeExecutionMethods}.
+     */
+    @ParameterizedTest
+    @MethodSource("happyPathParameterGeneration")
+    public void deploymentTransactionTest(CallParameters params) {
+
+        BytecodeCompiler txInitCode = happyPathWipeReturnDataHappyPathProgram(params);
+        if (params.willRevert) revertWith(txInitCode, 0, 5 * WORD_SIZE);
+
+        runDeploymentTransactionWithProvidedCodeAsInitCode(txInitCode);
+    }
+
+    /**
+     * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case, see {@link CodeExecutionMethods}.
+     */
+    @ParameterizedTest
+    @MethodSource("happyPathParameterGeneration")
+    public void messageCallFromRootTest(CallParameters params) {
+
+        BytecodeCompiler txInitCode = happyPathWipeReturnDataHappyPathProgram(params);
+        if (params.willRevert) revertWith(txInitCode, 0, 0);
+
+        runDeploymentTransactionWithProvidedCodeAsInitCode(txInitCode);
+    }
+
+    /**
+     * <b>DURING_DEPLOYMENT</b> case, see {@link CodeExecutionMethods}.
+     *
+     * <p>The {@link CodeExecutionMethods#root} contract fully copies the code of the account whose
+     * address is in the {@link CodeExecutionMethods#transaction} call data. This account is the
+     * {@link CodeExecutionMethods#chadPrcEnjoyer}. That code is then used as the initialization code
+     * of a <b>CREATE</b>. The whole operation optionally <b>REVERT</b>'s.
+     *
+     * @param params
+     */
+    @ParameterizedTest
+    @MethodSource("happyPathParameterGeneration")
+    public void happyPathDuringCreate(CallParameters params) {
+        BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
+        runForeignByteCodeAsInitCode(foreignCode, params.willRevert);
+    }
+
+    /**
+     * <b>AFTER_DEPLOYMENT</b> case, see {@link CodeExecutionMethods}.
+     */
+    @ParameterizedTest
+    @MethodSource("happyPathParameterGeneration")
+    public void happyPathAfterCreate(CallParameters params) {
+        BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
+        runCreateDeployingForeignCodeAndCallIntoIt(foreignCode, params.willRevert);
     }
 
     /** Non-parametric test to make sure things are working as expected. */
@@ -91,7 +144,7 @@ private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParameters 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // populate memory with the data for first MODEXP call
-    copyForeignCodeToRam(program, modexpMemoryHolderAddress1);
+    copyForeignCodeToRam(program, codeHolderAddress1);
 
     // happy path: first MODEXP call
     appendHappyPathPrecompileCall(program, params);
@@ -105,7 +158,7 @@ private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParameters 
     loadFirstReturnDataWordOntoStack(program, 48);
 
     // populate memory with the data for second MODEXP call
-    copyForeignCodeToRam(program, modexpMemoryHolderAddress2);
+    copyForeignCodeToRam(program, codeHolderAddress2);
 
     // happy path: second MODEXP call
     appendHappyPathPrecompileCall(program, params);
@@ -122,8 +175,8 @@ private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParameters 
 
         BytecodeCompiler code2 = params.memoryContent.memoryContents();
 
-        modexpMemoryHolder1.code(code1.compile());
-        modexpMemoryHolder2.code(code1.compile());
+        codeHolder1.code(code1.compile());
+        codeHolder2.code(code2.compile());
     }
 
     public static Stream<Arguments> happyPathParameterGeneration() {

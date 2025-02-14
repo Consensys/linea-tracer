@@ -28,6 +28,9 @@ import org.junit.jupiter.params.provider.Arguments;
 
 public class ParameterGeneration {
 
+  /**
+   * Parameter generation for <b>ECADD</b> testing.
+   */
   public static Stream<Arguments> happyPathParameterGeneration() {
     List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
     List<GasParameter> GasParameters =

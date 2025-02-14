@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp.ByteSizeParameter.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import java.util.stream.Stream;
@@ -44,16 +45,15 @@ public class HappyPathTests {
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
   public void messageCallTransactionTest(CallParameters params) {
+
     BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
+    if (params.willRevert) revertWith(rootCode, 0, 0);
+
     runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
   }
 
   /**
-   * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case.
-   *
-   * <p>See {@link CodeExecutionMethods} for documentation and context.
-   *
-   * @param params
+   * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case, see {@link CodeExecutionMethods}.
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
@@ -66,11 +66,7 @@ public class HappyPathTests {
   }
 
   /**
-   * <b>MESSAGE_CALL_FROM_ROOT</b> case.
-   *
-   * <p>See {@link CodeExecutionMethods} for documentation and context.
-   *
-   * @param params
+   * <b>MESSAGE_CALL_FROM_ROOT</b> case, see {@link CodeExecutionMethods}.
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
@@ -80,9 +76,7 @@ public class HappyPathTests {
   }
 
   /**
-   * <b>DURING_DEPLOYMENT</b> case.
-   *
-   * <p>See {@link CodeExecutionMethods} for documentation and context.
+   * <b>DURING_DEPLOYMENT</b> case, see {@link CodeExecutionMethods}.
    *
    * <p>The {@link CodeExecutionMethods#root} contract fully copies the code of the account whose
    * address is in the {@link CodeExecutionMethods#transaction} call data. This account is the
@@ -99,9 +93,7 @@ public class HappyPathTests {
   }
 
   /**
-   * <b>AFTER_DEPLOYMENT</b> case.
-   *
-   * <p>See {@link CodeExecutionMethods} for documentation and context.
+   * <b>AFTER_DEPLOYMENT</b> case, see {@link CodeExecutionMethods}.
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
@@ -180,7 +172,7 @@ public class HappyPathTests {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // populate memory with the data for first MODEXP call
-    copyForeignCodeToRam(program, modexpMemoryHolderAddress1);
+    copyForeignCodeToRam(program, codeHolderAddress1);
 
     // happy path: first MODEXP call
     appendHappyPathPrecompileCall(program, params, variant1);
@@ -194,7 +186,7 @@ public class HappyPathTests {
     loadFirstReturnDataWordOntoStack(program, 48);
 
     // populate memory with the data for second MODEXP call
-    copyForeignCodeToRam(program, modexpMemoryHolderAddress2);
+    copyForeignCodeToRam(program, codeHolderAddress2);
 
     // happy path: second MODEXP call
     appendHappyPathPrecompileCall(program, params, variant2);
@@ -205,8 +197,8 @@ public class HappyPathTests {
   }
 
   /**
-   * Populate the byte code of {@link CodeExecutionMethods#modexpMemoryHolder1} and {@link
-   * CodeExecutionMethods#modexpMemoryHolder2} with "byte code" that is well-formed data for a
+   * Populate the byte code of {@link CodeExecutionMethods#codeHolder1} and {@link
+   * CodeExecutionMethods#codeHolder2} with "byte code" that is well-formed data for a
    * MODEXP call.
    *
    * @param params
@@ -216,8 +208,8 @@ public class HappyPathTests {
     String code1 = params.callData.wellFormedCallDataForModexpCall(variant1);
     String code2 = params.callData.wellFormedCallDataForModexpCall(variant2);
 
-    modexpMemoryHolder1.code(Bytes.fromHexString(code1));
-    modexpMemoryHolder2.code(Bytes.fromHexString(code2));
+    codeHolder1.code(Bytes.fromHexString(code1));
+    codeHolder2.code(Bytes.fromHexString(code2));
   }
 
   public static Stream<Arguments> happyPathParameterGeneration() {

@@ -61,17 +61,17 @@ public class CodeExecutionMethods {
   public static final ToyAccount.ToyAccountBuilder foreignCodeOwner =
       ToyAccount.builder().address(foreignCodeOwnerAddress).balance(Wei.of(0x1789L)).nonce(255);
 
-  public static final Address modexpMemoryHolderAddress1 = Address.fromHexString("d00d");
-  public static final ToyAccount.ToyAccountBuilder modexpMemoryHolder1 =
+  public static final Address codeHolderAddress1 = Address.fromHexString("d00d");
+  public static final ToyAccount.ToyAccountBuilder codeHolder1 =
       ToyAccount.builder()
-          .address(modexpMemoryHolderAddress1)
+          .address(codeHolderAddress1)
           .balance(Wei.of(0x2025))
           .nonce(0x11aaff);
 
-  public static final Address modexpMemoryHolderAddress2 = Address.fromHexString("dada");
-  public static final ToyAccount.ToyAccountBuilder modexpMemoryHolder2 =
+  public static final Address codeHolderAddress2 = Address.fromHexString("dada");
+  public static final ToyAccount.ToyAccountBuilder codeHolder2 =
       ToyAccount.builder()
-          .address(modexpMemoryHolderAddress2)
+          .address(codeHolderAddress2)
           .balance(Wei.of(0x2025))
           .nonce(0x11aaff);
 
@@ -232,7 +232,7 @@ public class CodeExecutionMethods {
         initCodeOwner.build(),
         foreignCodeOwner.build(),
         chadPrcEnjoyer.build(),
-        modexpMemoryHolder1.build(),
-        modexpMemoryHolder2.build());
+        codeHolder1.build(),
+        codeHolder2.build());
   }
 }

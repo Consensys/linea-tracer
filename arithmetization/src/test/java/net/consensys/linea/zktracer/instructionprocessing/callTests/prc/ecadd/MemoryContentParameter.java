@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE_MO;
 
 import net.consensys.linea.testing.BytecodeCompiler;
+import org.apache.tuweni.bytes.Bytes;
 
 public enum MemoryContentParameter {
   ZEROS,
@@ -58,16 +59,21 @@ public enum MemoryContentParameter {
       "e2db57e640f49001c04ca5cb36e72f97af535c4d7620a48b96f8d0475afcaee569dcf211255b9ce6c05178cdf45152650496523591db85dadc328f6cb57e94ad83a66cca880b9fc02154c6941457158585230a843f38778f1d4cd6cbb42c778bcc5f05ab1c8306b59db726b705e3f782017a4dcaa04694b5c62e645445ede56b";
 
   /**
-   * Constructs "byte code" of the following form
+   * Constructs a slice of bytes of the following form
    *
    * <p><b>[ W_1 | W_2 | W_3 | W_4 | ff .. ff ]</b>
    *
-   * <p>for various EVM words <b>W_k</b>. These may or may not contain x/y coordinates of curve points.
-   * The final <b>32</b> bytes are all set to <b>ff</b> and <i>may</i> get overwritten with return
-   * data after the precompile call.
+   * <p>for various EVM words <b>W_k</b>. These may or may not contain x/y coordinates of curve
+   * points. The final <b>32</b> bytes are all set to <b>ff</b> and <i>may</i> get overwritten with
+   * return data after the precompile call.
    *
-   * <p><b>Note.</b> The purpose of the resulting 'byte code' is to be <b>EXTCODECOPY</b>'ed to
-   * memory and used as input to a call to <b>ECADD</b>.
+   * <p>Wrt the EVM words <b>W_k</b>, there are several cases: coordinates of actual curve points,
+   * coordinates of the form <b>00 .. 00 ff</b> that don't match the other coordinate, <b>00 .. 00
+   * 00</b>, just random bytes ...
+   *
+   * <p><b>Note.</b> The purpose of the resulting slice of bytes is to become the 'byte code' of
+   * some account whose 'byte code' is to be <b>EXTCODECOPY</b>'ed to memory and used as input to a
+   * call to <b>ECADD</b>.
    */
   public BytecodeCompiler memoryContents() {
 
@@ -97,7 +103,7 @@ public enum MemoryContentParameter {
     String memoryContentsString = pointData + MAX_WORD;
 
     BytecodeCompiler memoryContents = BytecodeCompiler.newProgram();
-    memoryContents.immediate(memoryContentsString.getBytes());
+    memoryContents.immediate(Bytes.fromHexString(memoryContentsString));
 
     return memoryContents;
   }

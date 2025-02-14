@@ -125,8 +125,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
     if (tx.getInit().isPresent() && !tx.getInit().get().isEmpty()) {
       final Address deploymentAddress = Address.contractAddress(tx.getSender(), tx.getNonce());
       final RomOperation operation =
-          new RomOperation(
-              ContractMetadata.canonical(hub, deploymentAddress), false, false, tx.getInit().get());
+          new RomOperation(ContractMetadata.canonical(hub, deploymentAddress), tx.getInit().get());
 
       operations.add(operation);
     }
@@ -141,8 +140,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
 
                 final Address calledAddress = tx.getTo().get();
                 final RomOperation operation =
-                    new RomOperation(
-                        ContractMetadata.canonical(hub, calledAddress), true, false, code);
+                    new RomOperation(ContractMetadata.canonical(hub, calledAddress), code);
 
                 operations.add(operation);
               }
@@ -189,7 +187,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
         final ContractMetadata contractMetadata =
             ContractMetadata.make(
                 deploymentAddress, hub.deploymentNumberOf(deploymentAddress), false);
-        final RomOperation chunk = new RomOperation(contractMetadata, false, true, byteCode);
+        final RomOperation chunk = new RomOperation(contractMetadata, byteCode);
         operations.add(chunk);
       }
 
@@ -202,8 +200,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
                 byteCode -> {
                   if (!byteCode.isEmpty()) {
                     final RomOperation operation =
-                        new RomOperation(
-                            ContractMetadata.canonical(hub, calleeAddress), true, false, byteCode);
+                        new RomOperation(ContractMetadata.canonical(hub, calleeAddress), byteCode);
                     operations.add(operation);
                   }
                 });
@@ -230,10 +227,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
                   if (!byteCode.isEmpty()) {
                     final RomOperation operation =
                         new RomOperation(
-                            ContractMetadata.canonical(hub, foreignCodeAddress),
-                            true,
-                            false,
-                            byteCode);
+                            ContractMetadata.canonical(hub, foreignCodeAddress), byteCode);
 
                     operations.add(operation);
                   }
@@ -253,7 +247,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
 
     final ContractMetadata contractMetadata = ContractMetadata.canonical(hub, address);
 
-    final RomOperation operation = new RomOperation(contractMetadata, true, false, byteCode);
+    final RomOperation operation = new RomOperation(contractMetadata, byteCode);
     operations.add(operation);
     createDefers.trigger(contractMetadata);
   }

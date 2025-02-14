@@ -18,8 +18,9 @@ package net.consensys.linea.zktracer.precompiles;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.populateMemory;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE_MO;
-import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
+import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.PRC_BLAKE2F_SIZE;
+import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.PRC_ECPAIRING_SIZE;
+import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getPrecompileCost;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
@@ -111,14 +112,14 @@ public class LowGasStipendPrecompileCallTests {
     final int bbs = modexpCostGT200 ? 0x01 : 0x02;
     final int ebs = modexpCostGT200 ? 0x06 : 0x03;
     final int mbs = modexpCostGT200 ? 0x19 : 0x04;
-    BigInteger bigQuotient = BigInteger.ZERO;
+    BigInteger exponentLog = BigInteger.ZERO;
 
     // Prepare the arguments for the different precompile calls
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
-      argsSize = 213;
+      argsSize = PRC_BLAKE2F_SIZE;
       prepareBlake2F(program, rLeadingByte, argsOffset);
     } else if (precompileAddress == ALTBN128_PAIRING) {
-      argsSize = 192;
+      argsSize = PRC_ECPAIRING_SIZE;
     } else if ((precompileAddress == SHA256
             || precompileAddress == RIPEMD160
             || precompileAddress == ID)
@@ -128,7 +129,7 @@ public class LowGasStipendPrecompileCallTests {
       prepareSha256Ripemd160Id(program, nWords, argsOffset);
     } else if (precompileAddress == MODEXP) {
       argsSize = 96 + bbs + ebs + mbs;
-      bigQuotient = prepareModexp(bbs, mbs, ebs, argsSize, program);
+      exponentLog = prepareModexp(bbs, mbs, ebs, argsSize, program);
     } else {
       // ECADD, ECMUL, ECRECOVER cases
       argsSize = argumentCase.isZeroCase() ? 0 : 1;
@@ -139,7 +140,7 @@ public class LowGasStipendPrecompileCallTests {
 
     // Compute the precompile cost
     final int precompileCost =
-        getPrecompileCost(precompileAddress, argsSize, r, bigQuotient.intValueExact());
+        getPrecompileCost(precompileAddress, argsSize, bbs, mbs, exponentLog, r);
 
     // Compute the gas stipend in the different testing scenarios
     int gas = getGas(gasCase, precompileCost);
@@ -242,8 +243,6 @@ public class LowGasStipendPrecompileCallTests {
 
   private static BigInteger prepareModexp(
       int bbs, int mbs, int ebs, int argsSize, BytecodeCompiler program) {
-    final int words = (Math.max(bbs, mbs) + 7) / 8;
-    final int fOfMax = words * words;
     final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
     final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
     final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
@@ -266,19 +265,14 @@ public class LowGasStipendPrecompileCallTests {
         .push(96) // offset
         .op(OpCode.MSTORE);
 
-    final Bytes paddedCallData = Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bemPadded);
-    final BigInteger bigNumerator =
-        BigInteger.valueOf(fOfMax)
-            .multiply(
-                OobOperation.computeExponentLog(
-                        paddedCallData,
-                        BigInteger.valueOf(argsSize),
-                        BigInteger.valueOf(bbs),
-                        BigInteger.valueOf(ebs),
-                        BigInteger.valueOf(mbs))
-                    .max(BigInteger.ONE));
-
-    return bigNumerator.divide(BigInteger.valueOf(G_QUADDIVISOR)); // bigQuotient;
+    // This is computed here for convenience, and it is used for pricing the MODEXP precompile
+    return OobOperation.computeExponentLog(
+            Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bemPadded),
+            BigInteger.valueOf(argsSize),
+            BigInteger.valueOf(bbs),
+            BigInteger.valueOf(ebs),
+            BigInteger.valueOf(mbs))
+        .max(BigInteger.ONE);
   }
 
   /**
@@ -308,44 +302,6 @@ public class LowGasStipendPrecompileCallTests {
       throw new IllegalArgumentException("Unknown precompile address");
     }
     return rac;
-  }
-
-  /**
-   * Computes the precompile cost based on the precompile address, arguments size, and r value in
-   * case of BLAKE2F.
-   *
-   * @param precompileAddress the address of the precompile contract.
-   * @param argsSize the call data size.
-   * @param r the r value for BLAKE2F. For other precompile contracts, this value is ignored.
-   * @param bigQuotient the big quotient for MODEXP. For other precompile contracts, this value is
-   *     ignored.
-   * @return the computed precompile cost.
-   */
-  private static int getPrecompileCost(
-      Address precompileAddress, int argsSize, int r, int bigQuotient) {
-    final int precompileCost;
-    if (precompileAddress.equals(ECREC)) {
-      precompileCost = 3000;
-    } else if (precompileAddress.equals(SHA256)) {
-      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 12;
-    } else if (precompileAddress.equals(RIPEMD160)) {
-      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 120;
-    } else if (precompileAddress.equals(ID)) {
-      precompileCost = (5 + (argsSize + WORD_SIZE_MO) / WORD_SIZE) * 3;
-    } else if (precompileAddress.equals(MODEXP)) {
-      precompileCost = Math.max(200, bigQuotient);
-    } else if (precompileAddress.equals(ALTBN128_ADD)) {
-      precompileCost = 150;
-    } else if (precompileAddress.equals(ALTBN128_MUL)) {
-      precompileCost = 6000;
-    } else if (precompileAddress.equals(ALTBN128_PAIRING)) {
-      precompileCost = 45000 + 34000 * (argsSize / 192);
-    } else if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
-      precompileCost = r;
-    } else {
-      throw new IllegalArgumentException("Unknown precompile address");
-    }
-    return precompileCost;
   }
 
   /**

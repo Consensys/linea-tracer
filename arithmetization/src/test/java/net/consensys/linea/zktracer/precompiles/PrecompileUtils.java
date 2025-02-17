@@ -15,6 +15,20 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_BLAKE2_PER_ROUND;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_ECADD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_ECMUL;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_ECPAIRING;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_ECPAIRING_PAIR;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_ECRECOVER;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_IDENTITY;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_IDENTITY_WORD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_MODEXP;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_RIPEMD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_RIPEMD_WORD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_SHA2;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_SHA2_WORD;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PRC_ECPAIRING_SIZE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE_MO;
 import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
@@ -25,23 +39,6 @@ import java.math.BigInteger;
 import org.hyperledger.besu.datatypes.Address;
 
 public class PrecompileUtils {
-
-  // TODO: get these constants from GlobalConstants.java when available
-  static final int GAS_CONST_ECRECOVER = 3000;
-  static final int GAS_CONST_SHA256 = 60;
-  static final int GAS_CONST_SHA256_WORD = 12;
-  static final int GAS_CONST_RIPEMD160 = 600;
-  static final int GAS_CONST_RIPEMD160_WORD = 120;
-  static final int GAS_CONST_IDENTITY = 15;
-  static final int GAS_CONST_IDENTITY_WORD = 3;
-  static final int GAS_CONST_MODEXP = 200;
-  static final int GAS_CONST_ECADD = 150;
-  static final int GAS_CONST_ECMUL = 6000;
-  static final int GAS_CONST_ECPAIRING = 45000;
-  static final int GAS_CONST_ECPAIRING_PAIR = 34000;
-  static final int GAS_CONST_BLAKE2_PER_ROUND = 1;
-  static final int PRC_ECPAIRING_SIZE = 6 * WORD_SIZE;
-  static final int PRC_BLAKE2F_SIZE = 213;
 
   /**
    * Computes the precompile cost based on the precompile address, arguments size, and r value in
@@ -91,12 +88,12 @@ public class PrecompileUtils {
 
   private static int getSHA256Cost(int cds) {
     final int words = (cds + WORD_SIZE_MO) / WORD_SIZE;
-    return GAS_CONST_SHA256 + words * GAS_CONST_SHA256_WORD;
+    return GAS_CONST_SHA2 + words * GAS_CONST_SHA2_WORD;
   }
 
   private static int getRIPEMD160Cost(int cds) {
     final int words = (cds + WORD_SIZE_MO) / WORD_SIZE;
-    return GAS_CONST_RIPEMD160 + words * GAS_CONST_RIPEMD160_WORD;
+    return GAS_CONST_RIPEMD + words * GAS_CONST_RIPEMD_WORD;
   }
 
   private static int getIDCost(int cds) {

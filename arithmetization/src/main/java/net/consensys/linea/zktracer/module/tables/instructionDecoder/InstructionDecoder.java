@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.tuweni.bytes.Bytes;
 
 public final class InstructionDecoder implements Module {
   private static void traceFamily(OpCodeData op, Trace trace) {
@@ -125,7 +126,7 @@ public final class InstructionDecoder implements Module {
       traceStackSettings(op, trace);
       traceBillingSettings(op, trace);
       trace
-          .opcode(UnsignedByte.of(i))
+          .opcode(Bytes.ofUnsignedInt(i))
           .isPush(op.isPush())
           .isJumpdest(op.isJumpDest())
           .validateRow();

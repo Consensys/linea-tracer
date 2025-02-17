@@ -91,11 +91,11 @@ public class LowGasStipendPrecompileCallTests {
     // - Populate the memory with a large enough number of words for SHA256, RIPEMD160, and ID
     //   to have precompileCost > gasBonus.
     final int value = argumentCase.isZeroCase() ? 0 : 1;
-    final int argsSize; // depends on the called precompile
-    final int argsOffset = 0;
+    final int callDataSize; // depends on the called precompile
+    final int callDataOffset = 0;
 
     // retSize is defined below
-    final int retOffset = 13;
+    final int returnAtOffset = 13;
 
     // TODO: consider creating test for different families of precompile contracts:
     //  - BLAKE2F
@@ -116,31 +116,31 @@ public class LowGasStipendPrecompileCallTests {
 
     // Prepare the arguments for the different precompile calls
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
-      argsSize = PRC_BLAKE2F_SIZE;
-      prepareBlake2F(program, rLeadingByte, argsOffset);
+      callDataSize = PRC_BLAKE2F_SIZE;
+      prepareBlake2F(program, rLeadingByte, callDataOffset);
     } else if (precompileAddress == ALTBN128_PAIRING) {
-      argsSize = PRC_ECPAIRING_SIZE;
+      callDataSize = PRC_ECPAIRING_SIZE;
     } else if ((precompileAddress == SHA256
             || precompileAddress == RIPEMD160
             || precompileAddress == ID)
         && argumentCase.isNonZeroCase()) {
       final int nWords = 1024;
-      argsSize = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
-      prepareSha256Ripemd160Id(program, nWords, argsOffset);
+      callDataSize = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
+      prepareSha256Ripemd160Id(program, nWords, callDataOffset);
     } else if (precompileAddress == MODEXP) {
-      argsSize = 96 + bbs + ebs + mbs;
-      exponentLog = prepareModexp(bbs, mbs, ebs, argsSize, program);
+      callDataSize = 96 + bbs + ebs + mbs;
+      exponentLog = prepareModexp(bbs, mbs, ebs, callDataSize, program);
     } else {
       // ECADD, ECMUL, ECRECOVER cases
-      argsSize = argumentCase.isZeroCase() ? 0 : 1;
+      callDataSize = argumentCase.isZeroCase() ? 0 : 1;
     }
 
     // Compute the return size
-    final int retSize = getRetSize(precompileAddress, argsSize, mbs);
+    final int returnAtCapacity = getReturnAtCapacity(precompileAddress, callDataSize, mbs);
 
     // Compute the precompile cost
     final int precompileCost =
-        getPrecompileCost(precompileAddress, argsSize, bbs, mbs, exponentLog, r);
+        getPrecompileCost(precompileAddress, callDataSize, bbs, mbs, exponentLog, r);
 
     // Compute the gas stipend in the different testing scenarios
     int gas = getGas(gasCase, precompileCost);
@@ -163,10 +163,10 @@ public class LowGasStipendPrecompileCallTests {
 
     // Common program for all precompile calls
     program
-        .push(retSize) // retSize
-        .push(retOffset) // retOffset
-        .push(argsSize) // argsSize
-        .push(argsOffset) // argsOffset
+        .push(returnAtCapacity) // returnAtCapacity
+        .push(returnAtOffset) // returnAtOffset
+        .push(callDataSize) // callDataSize
+        .push(callDataOffset) // callDataOffset
         .push(value) // value
         .push(precompileAddress) // address
         .push(gas) // gas
@@ -228,21 +228,22 @@ public class LowGasStipendPrecompileCallTests {
   }
 
   // Support methods
-  private static void prepareBlake2F(BytecodeCompiler program, int rLeadingByte, int argsOffset) {
+  private static void prepareBlake2F(
+      BytecodeCompiler program, int rLeadingByte, int callDataOffset) {
     program
         .push(rLeadingByte) // For simplicity, we only set the first byte of r
-        .push(argsOffset + 2) // offset
+        .push(callDataOffset + 2) // offset
         // Writing rLeadingByte at this offset
         // allows to have r = 0x00000000 or r = 0x00001200
         .op(OpCode.MSTORE8);
   }
 
-  private void prepareSha256Ripemd160Id(BytecodeCompiler program, int nWords, int argsOffset) {
-    populateMemory(program, nWords, argsOffset);
+  private void prepareSha256Ripemd160Id(BytecodeCompiler program, int nWords, int callDataOffset) {
+    populateMemory(program, nWords, callDataOffset);
   }
 
   private static BigInteger prepareModexp(
-      int bbs, int mbs, int ebs, int argsSize, BytecodeCompiler program) {
+      int bbs, int mbs, int ebs, int callDataSize, BytecodeCompiler program) {
     final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
     final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
     final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
@@ -268,7 +269,7 @@ public class LowGasStipendPrecompileCallTests {
     // This is computed here for convenience, and it is used for pricing the MODEXP precompile
     return OobOperation.computeExponentLog(
             Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bemPadded),
-            BigInteger.valueOf(argsSize),
+            BigInteger.valueOf(callDataSize),
             BigInteger.valueOf(bbs),
             BigInteger.valueOf(ebs),
             BigInteger.valueOf(mbs))
@@ -276,32 +277,33 @@ public class LowGasStipendPrecompileCallTests {
   }
 
   /**
-   * Computes the retSize based on the precompile address, and argsSize in the case of ID.
+   * Computes the returnAtCapacity based on the precompile address, and callDataSize in the case of
+   * ID.
    *
    * @param precompileAddress the address of the precompile contract.
-   * @param argsSize the call data size. Beyond the case of ID, this value is ignored.
+   * @param callDataSize the call data size. Beyond the case of ID, this value is ignored.
    * @param mbs the modulo byte size. Beyond the case of MODEXP, this value is ignored.
    * @return the computed return rac.
    */
-  private static int getRetSize(Address precompileAddress, int argsSize, int mbs) {
-    final int rac;
+  private static int getReturnAtCapacity(Address precompileAddress, int callDataSize, int mbs) {
+    final int returnAtCapacity;
     if (precompileAddress == ECREC
         || precompileAddress == SHA256
         || precompileAddress == RIPEMD160
         || precompileAddress == ALTBN128_PAIRING) {
-      rac = WORD_SIZE;
+      returnAtCapacity = WORD_SIZE;
     } else if (precompileAddress == ALTBN128_ADD
         || precompileAddress == ALTBN128_MUL
         || precompileAddress == BLAKE2B_F_COMPRESSION) {
-      rac = 2 * WORD_SIZE;
+      returnAtCapacity = 2 * WORD_SIZE;
     } else if (precompileAddress == MODEXP) {
-      rac = mbs;
+      returnAtCapacity = mbs;
     } else if (precompileAddress == ID) {
-      rac = argsSize;
+      returnAtCapacity = callDataSize;
     } else {
       throw new IllegalArgumentException("Unknown precompile address");
     }
-    return rac;
+    return returnAtCapacity;
   }
 
   /**

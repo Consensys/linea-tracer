@@ -53,9 +53,7 @@ public class ModexpEffectiveCall implements CountingOnlyModule {
 
   @Override
   public int lineCount() {
-    return transactionContainsIllegalOperation
-        ? MAX_VALUE
-        : CountingOnlyModule.super.lineCount();
+    return transactionContainsIllegalOperation ? MAX_VALUE : CountingOnlyModule.super.lineCount();
   }
 
   @Override

@@ -1,5 +1,8 @@
 # Changelog
 
+## beta-v1.2.0-rc4
+* fix: apply overflow protection to MODEXP limits
+
 ## beta-v1.2.0-rc3
 * Update Linea Besu to 25.1-delivery44 (#1742)
 * clean: remove dead code (#1733)

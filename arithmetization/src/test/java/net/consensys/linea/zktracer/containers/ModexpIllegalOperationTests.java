@@ -36,7 +36,7 @@ public class ModexpIllegalOperationTests {
     countingOnlyModule.addPrecompileLimit(MAX_VALUE);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(MAX_VALUE);
 
-    countingOnlyModule.popTransactionBundle();
+    countingOnlyModule.popTransaction();
     assertThat(countingOnlyModule.lineCount()).isEqualTo(0);
   }
 
@@ -53,7 +53,7 @@ public class ModexpIllegalOperationTests {
     countingOnlyModule.addPrecompileLimit(1);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(MAX_VALUE);
 
-    countingOnlyModule.popTransactionBundle();
+    countingOnlyModule.popTransaction();
     assertThat(countingOnlyModule.lineCount()).isEqualTo(0);
   }
 
@@ -68,7 +68,7 @@ public class ModexpIllegalOperationTests {
     countingOnlyModule.addPrecompileLimit(MAX_VALUE);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(MAX_VALUE);
 
-    countingOnlyModule.popTransactionBundle();
+    countingOnlyModule.popTransaction();
     assertThat(countingOnlyModule.lineCount()).isEqualTo(0);
   }
 }

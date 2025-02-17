@@ -1,8 +1,7 @@
 package net.consensys.linea.zktracer.exceptions;
 
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 
@@ -348,29 +347,65 @@ public class OutOfGasMemExpExceptionTest {
           bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     }
   }
-  /*
+
   @ParameterizedTest
-  @ValueSource(ints = {0})
+  @ValueSource(ints = {-1})
   void outOfGasExceptionCreate(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
-            // constructor
-            .push(
-                    Bytes.fromHexString(
-                            "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
-            .push(0) // offset
-            .op(OpCode.MSTORE)
-            .push(
-                    Bytes.fromHexString(
-                            "0xFF60005260206000F30000000000000000000000000000000000000000000000")) // value
-            .push(32) // offset
-            .op(OpCode.MSTORE)
-            // Create the contract
-            .push(41)
-            .push(0)
-            .push(0)
-            .op(OpCode.CREATE);
+        // constructor
+        .push(
+            Bytes.fromHexString(
+                "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
+        .push(0) // offset
+        .op(OpCode.MSTORE)
+        .push(
+            Bytes.fromHexString(
+                "0xFF60005260206000F30000000000000000000000000000000000000000000000")) // value
+        .push(32) // offset
+        .op(OpCode.MSTORE)
+        // Create the contract
+        .push(41)
+        .push(0)
+        .push(0)
+        .op(OpCode.CREATE);
+
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+
+    bytecodeRunner.run(59551L + cornerCase);
+    if (cornerCase == -1) {
+      assertTrue(
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException()
+                  == OUT_OF_GAS_EXCEPTION
+              || bytecodeRunner.getHub().previousTraceSection(2).commonValues.tracedException()
+                  == OUT_OF_GAS_EXCEPTION);
+
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection(2).commonValues.tracedException());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionLog0(int cornerCase) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+        .push(Bytes.fromHexString("0x7F")) // value
+        .push(0) // offset
+        .op(OpCode.MSTORE)
+        .push(32) // size
+        .push(1) // offset to trigger mem expansion
+        .op(OpCode.LOG0);
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
@@ -380,14 +415,162 @@ public class OutOfGasMemExpExceptionTest {
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
       assertEquals(
-              OUT_OF_GAS_EXCEPTION,
-              // The exception is thrown in the previous trace section
-              bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     } else {
       assertNotEquals(
-              OUT_OF_GAS_EXCEPTION,
-              // The exception is thrown in the previous trace section
-              bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     }
-  }*/
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionLog1(int cornerCase) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+        .push(Bytes.fromHexString("0x7F")) // value
+        .push(0) // offset
+        .op(OpCode.MSTORE)
+        .push(
+            Bytes.fromHexString(
+                "0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 1
+        .push(32) // size
+        .push(1) // offset to trigger mem expansion
+        .op(OpCode.LOG1);
+
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionLog2(int cornerCase) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+        .push(Bytes.fromHexString("0x7F")) // value
+        .push(0) // offset
+        .op(OpCode.MSTORE)
+        .push(
+            Bytes.fromHexString(
+                "0x2FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 2
+        .push(
+            Bytes.fromHexString(
+                "0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 1
+        .push(32) // size
+        .push(1) // offset to trigger mem expansion
+        .op(OpCode.LOG2);
+
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionLog3(int cornerCase) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+        .push(Bytes.fromHexString("0x7F")) // value
+        .push(0) // offset
+        .op(OpCode.MSTORE)
+        .push(
+            Bytes.fromHexString(
+                "0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 3
+        .push(
+            Bytes.fromHexString(
+                "0x2FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 2
+        .push(
+            Bytes.fromHexString(
+                "0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 1
+        .push(32) // size
+        .push(1) // offset to trigger mem expansion
+        .op(OpCode.LOG3);
+
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionLog4(int cornerCase) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+        .push(Bytes.fromHexString("0x7F")) // value
+        .push(0) // offset
+        .op(OpCode.MSTORE)
+        .push(
+            Bytes.fromHexString(
+                "0x4FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 4
+        .push(
+            Bytes.fromHexString(
+                "0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 3
+        .push(
+            Bytes.fromHexString(
+                "0x2FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 2
+        .push(
+            Bytes.fromHexString(
+                "0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 1
+        .push(32) // size
+        .push(1) // offset to trigger mem expansion
+        .op(OpCode.LOG4);
+
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+          OUT_OF_GAS_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
+  }
 }

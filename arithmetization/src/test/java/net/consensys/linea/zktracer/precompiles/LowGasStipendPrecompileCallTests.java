@@ -76,6 +76,15 @@ public class LowGasStipendPrecompileCallTests {
     COST_PLUS_ONE;
   }
 
+  /**
+   * Parameterized test for low gas stipend precompile call.
+   *
+   * @param precompileAddress the address of the precompile contract.
+   * @param argumentCase the argument case (zero or non-zero), when meaningful.
+   * @param gasCase the gas case (zero, one, cost minus one, cost, cost plus one).
+   * @param modexpCostGT200 flag indicating if the MODEXP cost is greater than 200. It is ignored
+   *     for other precompile contracts.
+   */
   @ParameterizedTest
   @MethodSource("lowGasStipendPrecompileCallTestSource")
   void lowGasStipendPrecompileCallTest(

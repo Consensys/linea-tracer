@@ -16,7 +16,7 @@
 package net.consensys.linea.testing;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TRANSACTION;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,36 +66,46 @@ public final class BytecodeRunner {
 
   // Default run method
   public void run() {
-    this.run(Wei.fromEth(1), (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT, List.of());
+    this.run(Wei.fromEth(1), (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT, List.of(), Bytes.EMPTY);
   }
 
   // Ad-hoc senderBalance
   public void run(Wei senderBalance) {
-    this.run(senderBalance, (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT, List.of());
+    this.run(senderBalance, (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT, List.of(), Bytes.EMPTY);
   }
 
   // Ad-hoc gasLimit
   public void run(Long gasLimit) {
-    this.run(Wei.fromEth(1), gasLimit, List.of());
+    this.run(Wei.fromEth(1), gasLimit, List.of(), Bytes.EMPTY);
   }
 
   // Ad-hoc senderBalance and gasLimit
   public void run(Wei senderBalance, Long gasLimit) {
-    this.run(senderBalance, gasLimit, List.of());
+    this.run(senderBalance, gasLimit, List.of(), Bytes.EMPTY);
   }
 
   // Ad-hoc accounts
   public void run(List<ToyAccount> additionalAccounts) {
-    this.run(Wei.fromEth(1), (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT, additionalAccounts);
+    this.run(
+        Wei.fromEth(1),
+        (long) GlobalConstants.LINEA_BLOCK_GAS_LIMIT,
+        additionalAccounts,
+        Bytes.EMPTY);
   }
 
   // Ad-hoc gasLimit and accounts
   public void run(Long gasLimit, List<ToyAccount> additionalAccounts) {
-    this.run(Wei.fromEth(1), gasLimit, additionalAccounts);
+    this.run(Wei.fromEth(1), gasLimit, additionalAccounts, Bytes.EMPTY);
   }
 
   // Ad-hoc senderBalance, gasLimit and accounts
   public void run(Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts) {
+    this.run(senderBalance, gasLimit, additionalAccounts, Bytes.EMPTY);
+  }
+
+  // Ad-hoc senderBalance, gasLimit, accounts and payload
+  public void run(
+      Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts, Bytes payload) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
 
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -114,15 +124,18 @@ public final class BytecodeRunner {
             .code(byteCode)
             .build();
 
-    final Transaction tx =
+    final ToyTransaction.ToyTransactionBuilder txBuilder =
         ToyTransaction.builder()
             .sender(senderAccount)
             .to(receiverAccount)
             .value(Wei.of(272)) // 256 + 16, easier for debugging
             .keyPair(keyPair)
             .gasLimit(selectedGasLimit)
-            .gasPrice(Wei.of(8))
-            .build();
+            .gasPrice(Wei.of(8));
+    if (!payload.isEmpty()) {
+      txBuilder.payload(payload);
+    }
+    final Transaction tx = txBuilder.build();
 
     List<ToyAccount> accounts = new ArrayList<>();
     accounts.add(senderAccount);
@@ -140,9 +153,16 @@ public final class BytecodeRunner {
     toyExecutionEnvironmentV2.run();
   }
 
-  // Ad-hoc senderBalance, accounts
+  // Ad-hoc senderBalance, gasLimit and accounts
   public long runOnlyForGasCost(
       Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts) {
+    return this.runOnlyForGasCost(senderBalance, gasLimit, additionalAccounts, Bytes.EMPTY);
+  }
+
+  // TODO: add runs for overloading
+  // Ad-hoc senderBalance, accounts and calldata
+  public long runOnlyForGasCost(
+      Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts, Bytes calldata) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
 
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -165,10 +185,23 @@ public final class BytecodeRunner {
     accounts.addAll(additionalAccounts);
 
     toyExecutionEnvironmentV2 = ToyExecutionEnvironmentV2.builder().accounts(accounts).build();
-    long result = toyExecutionEnvironmentV2.runForGasCost();
+    long result = toyExecutionEnvironmentV2.runForGasCost(calldata);
 
-    // Add the transaction cost bef return
-    return result + GAS_CONST_G_TRANSACTION;
+    // TODO: replace with intrinsic gas cost
+    long nonZeroCallDataCost = 0;
+    long countZero = 0;
+    for (int i = 0; i < calldata.size(); i++) {
+      if (calldata.get(i) == 0) countZero++;
+    }
+
+    if (!calldata.isEmpty()) {
+      nonZeroCallDataCost =
+          GAS_CONST_G_TX_DATA_ZERO * countZero
+              + GAS_CONST_G_TX_DATA_NONZERO * (calldata.size() - countZero);
+    }
+    ;
+    // Add the transaction cost and calldata cost bef return
+    return result + GAS_CONST_G_TRANSACTION + nonZeroCallDataCost;
   }
 
   public Hub getHub() {

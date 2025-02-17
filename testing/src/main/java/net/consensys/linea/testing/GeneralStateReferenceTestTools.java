@@ -25,7 +25,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ZkTracer;
-import org.apache.tuweni.bytes.Bytes32;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.BlobGas;
 import org.hyperledger.besu.datatypes.Hash;
@@ -178,7 +178,8 @@ public class GeneralStateReferenceTestTools {
   public static long executeTestOnlyForGasCost(
       final GeneralStateTestCaseEipSpec spec,
       final ProtocolSpec protocolSpec,
-      final List<ToyAccount> accounts) {
+      final List<ToyAccount> accounts,
+      final Bytes calldata) {
     final MutableWorldState worldState = spec.getInitialWorldState();
     final WorldUpdater worldStateUpdater = worldState.updater();
     final MainnetTransactionProcessor processor = protocolSpec.getTransactionProcessor();
@@ -198,10 +199,10 @@ public class GeneralStateReferenceTestTools {
             .miningBeneficiary(Address.ZERO)
             .blockHashLookup((__, ___) -> Hash.ZERO)
             .completer(messageFrame -> {})
-            .inputData(Bytes32.ZERO)
             .apparentValue(Wei.ZERO)
             // TODO: variable
             .value(Wei.of(1))
+            .inputData(calldata)
             .originator(senderAccount.getAddress())
             .address(receiverAccount.getAddress())
             .contract(receiverAccount.getAddress())

@@ -59,7 +59,7 @@ public class OutOfGasMemExpExceptionTest {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
-        .push(Bytes.fromHexString("0xFFFF")) // value
+        .push(Bytes.fromHexString("0xFF")) // value
         .push(0) // offset
         .op(OpCode.MSTORE8);
 
@@ -90,7 +90,9 @@ public class OutOfGasMemExpExceptionTest {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
-        .push(Bytes.fromHexString("0xFF")) // value
+        .push(
+            Bytes.fromHexString(
+                "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
         .push(0) // offset
         .op(OpCode.MSTORE);
 
@@ -120,18 +122,21 @@ public class OutOfGasMemExpExceptionTest {
   void outOfGasExceptionCallDataCopy(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
+    Bytes calldata =
+        Bytes.fromHexString("0x7FFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
     program
-        .push(32) // value
-        .push(0) // offset
-        .push(0) // offset
+        .push(31) // value
+        .push(1) // offset
+        .push(2) // offset
         .op(OpCode.CALLDATACOPY);
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost =
+        bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of(), calldata);
 
-    bytecodeRunner.run(gasCost + cornerCase);
+    bytecodeRunner.run(Wei.fromEth(1), gasCost + cornerCase, List.of(), calldata);
     if (cornerCase == -1) {
       assertEquals(
           OUT_OF_GAS_EXCEPTION,
@@ -340,4 +345,44 @@ public class OutOfGasMemExpExceptionTest {
           bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     }
   }
+  /*
+  @ParameterizedTest
+  @ValueSource(ints = {-1, 0, 1})
+  void outOfGasExceptionCreate(int cornerCase) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+            // constructor
+            .push(
+                    Bytes.fromHexString(
+                            "0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
+            .push(0) // offset
+            .op(OpCode.MSTORE)
+            .push(
+                    Bytes.fromHexString(
+                            "0xFF60005260206000F30000000000000000000000000000000000000000000000")) // value
+            .push(32) // offset
+            .op(OpCode.MSTORE)
+            // Create the contract
+            .push(41)
+            .push(0)
+            .push(0)
+            .op(OpCode.CREATE);
+
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+
+    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+
+    bytecodeRunner.run(gasCost + cornerCase);
+    if (cornerCase == -1) {
+      assertEquals(
+              OUT_OF_GAS_EXCEPTION,
+              bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    } else {
+      assertNotEquals(
+              OUT_OF_GAS_EXCEPTION,
+              bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
+  }*/
 }

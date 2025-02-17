@@ -37,6 +37,7 @@ import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -45,6 +46,7 @@ public class RlptxnTests {
 
   private static final Random SEED = new Random(666);
 
+  @Tag("nightly")
   @ParameterizedTest
   @MethodSource("rlpInputs")
   void testRlpTxn(

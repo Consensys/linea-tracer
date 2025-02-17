@@ -22,7 +22,7 @@ public class CallParameters {
 
   public final OpCode call;
   public final GasParameter gas;
-  public final MemoryContentParameter memoryContent;
+  public final MemoryContentsParameter memoryContent;
   public final CallDataSizeParameter cds;
   public final ReturnAtParameter returnAt;
   public final boolean willRevert;
@@ -30,7 +30,7 @@ public class CallParameters {
   public CallParameters(
       OpCode call,
       GasParameter gas,
-      MemoryContentParameter memoryContent,
+      MemoryContentsParameter memoryContent,
       CallDataSizeParameter cds,
       ReturnAtParameter returnAt,
       boolean willRevert) {

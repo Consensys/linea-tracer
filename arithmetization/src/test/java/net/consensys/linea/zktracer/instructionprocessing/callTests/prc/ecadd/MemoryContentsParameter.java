@@ -21,7 +21,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD
 import net.consensys.linea.testing.BytecodeCompiler;
 import org.apache.tuweni.bytes.Bytes;
 
-public enum MemoryContentParameter {
+public enum MemoryContentsParameter {
   ZEROS,
   WELL_FORMED_POINTS,
   MIXED,

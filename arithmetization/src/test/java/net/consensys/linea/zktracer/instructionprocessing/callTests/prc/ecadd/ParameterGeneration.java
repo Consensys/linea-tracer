@@ -63,7 +63,7 @@ public class ParameterGeneration {
 
     for (OpCode opCode : CallOpCodes) { // 4
       for (GasParameter gas : GasParameters) { // 4
-        for (MemoryContentParameter memoryContent : MemoryContentParameter.values()) { // 9
+        for (MemoryContentsParameter memoryContent : MemoryContentsParameter.values()) { // 9
           for (CallDataSizeParameter cds : CallDataSizeParameter.values()) { // 10
             for (ReturnAtParameter returnAt : ReturnAtParameters) { // 3
 

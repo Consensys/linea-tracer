@@ -101,7 +101,7 @@ public class HappyPathTests {
         new CallParameters(
             CALL,
             GasParameter.COST_MO,
-            MemoryContentParameter.WELL_FORMED_POINTS,
+            MemoryContentsParameter.WELL_FORMED_POINTS,
             CallDataSizeParameter.FULL,
             ReturnAtParameter.FULL,
             true);

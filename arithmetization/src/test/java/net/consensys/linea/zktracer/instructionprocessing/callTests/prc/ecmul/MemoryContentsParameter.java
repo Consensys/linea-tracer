@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
 
 import static com.google.common.base.Preconditions.checkState;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContentParameter.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContentsParameter.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -23,7 +23,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 /**
  * Enumerates the different memory contents parameters for a precompile call. Similarly to {@link
- * net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContentParameter},
+ * net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContentsParameter},
  * memory content comprises a certain number of data words and one final EVM word where the
  * <b>CALL</b> instruction will be required to write its return data:
  *

@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
 import static java.lang.Integer.MAX_VALUE;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.BLAKE2f_R_SIZE;
 
 import java.math.BigInteger;
 
@@ -46,7 +47,7 @@ public final class BlakeRounds implements CountingOnlyModule {
   }
 
   public void addPrecompileLimit(final Bytes r) {
-    Preconditions.checkArgument(r.bitLength() <= 32, "r is at most 4 bytes long");
+    Preconditions.checkArgument(r.size() == BLAKE2f_R_SIZE, "r is 4 bytes long");
     final BigInteger rBI = r.toUnsignedBigInteger();
     // check if r is greater or equal to Integer.MAX_VALUE
     if (rBI.compareTo(INTEGER_MAX_VALUE_BI) >= 0) {

@@ -16,8 +16,8 @@
 package net.consensys.linea.zktracer.module.precompileLimits;
 
 import static java.lang.Integer.MAX_VALUE;
-import static net.consensys.linea.zktracer.types.Conversions.ONE;
-import static net.consensys.linea.zktracer.types.Conversions.ZERO;
+import static net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpDataOperation.BLAKE2f_R_SIZE;
+import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import net.consensys.linea.zktracer.ZkTracer;
@@ -27,9 +27,13 @@ import org.junit.jupiter.api.Test;
 
 public class BlakeRoundsTests {
 
-  private static final Bytes MAX_INTEGER = Bytes.minimalBytes(MAX_VALUE);
-  private static final Bytes MAX_INTEGER_MO = Bytes.minimalBytes(MAX_VALUE - 1);
-  private static final Bytes MAX_INTEGER_PO = Bytes.minimalBytes((long) MAX_VALUE + 1);
+  private static final Bytes ONE = leftPadTo(Bytes.minimalBytes(1), BLAKE2f_R_SIZE);
+  private static final Bytes ZERO = leftPadTo(Bytes.minimalBytes(0), BLAKE2f_R_SIZE);
+  private static final Bytes MAX_INTEGER = leftPadTo(Bytes.minimalBytes(MAX_VALUE), BLAKE2f_R_SIZE);
+  private static final Bytes MAX_INTEGER_MO =
+      leftPadTo(Bytes.minimalBytes(MAX_VALUE - 1), BLAKE2f_R_SIZE);
+  private static final Bytes MAX_INTEGER_PO =
+      leftPadTo(Bytes.minimalBytes((long) MAX_VALUE + 1), BLAKE2f_R_SIZE);
 
   @Test
   void checkWoCommit() {

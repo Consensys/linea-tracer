@@ -83,12 +83,13 @@ public class RlptxnTests {
                     .op(MLOAD)
                     .op(ADD)
                     .compile())
+            .balance(Wei.ONE)
             .build();
 
     final Transaction transaction =
         ToyTransaction.builder()
             .sender(senderAccount)
-            .gasLimit(Long.MAX_VALUE)
+            .gasLimit(1000000L)
             .keyPair(senderKeyPair)
             .transactionType(type)
             .value(Wei.of(value))

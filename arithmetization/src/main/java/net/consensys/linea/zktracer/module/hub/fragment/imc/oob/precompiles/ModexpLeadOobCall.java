@@ -16,8 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles;
 
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_MODEXP_LEAD;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.math.BigInteger;
 
@@ -53,9 +52,9 @@ public class ModexpLeadOobCall extends OobCall {
         .data3(bigIntegerToBytes(ebs))
         .data4(booleanToBytes(loadLead))
         .data5(ZERO)
-        .data6(Bytes.of(cdsCutoff))
-        .data7(Bytes.of(ebsCutoff))
-        .data8(Bytes.of(subEbs32))
+        .data6(Bytes.ofUnsignedInt(cdsCutoff))
+        .data7(Bytes.ofUnsignedInt(ebsCutoff))
+        .data8(Bytes.ofUnsignedInt(subEbs32))
         .data9(ZERO);
   }
 
@@ -69,9 +68,9 @@ public class ModexpLeadOobCall extends OobCall {
         .pMiscOobData3(bigIntegerToBytes(ebs))
         .pMiscOobData4(booleanToBytes(loadLead))
         .pMiscOobData5(ZERO)
-        .pMiscOobData6(Bytes.of(cdsCutoff))
-        .pMiscOobData7(Bytes.of(ebsCutoff))
-        .pMiscOobData8(Bytes.of(subEbs32))
+        .pMiscOobData6(Bytes.ofUnsignedInt(cdsCutoff))
+        .pMiscOobData7(Bytes.ofUnsignedInt(ebsCutoff))
+        .pMiscOobData8(Bytes.ofUnsignedInt(subEbs32))
         .pMiscOobData9(ZERO);
   }
 }

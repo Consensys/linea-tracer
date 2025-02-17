@@ -86,7 +86,7 @@ public class LowGasStipendPrecompileCallTests {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // In order to actually trigger the insufficient we need to:
-    // - Set a specific args size for BLAKE2F and EC_PAIRING
+    // - Set a specific callDataSize for BLAKE2F and EC_PAIRING
     // - Set the r value of BLAKE2F to have precompileCost > gasBonus
     // - Populate the memory with a large enough number of words for SHA256, RIPEMD160, and ID
     //   to have precompileCost > gasBonus.
@@ -96,13 +96,6 @@ public class LowGasStipendPrecompileCallTests {
 
     // retSize is defined below
     final int returnAtOffset = 13;
-
-    // TODO: consider creating test for different families of precompile contracts:
-    //  - BLAKE2F
-    //  - ECPAIRING
-    //  - SHA256, RIPEMD160, ID
-    //  - MODEXP
-    //  - ECADD, ECMUL, ECRECOVER
 
     // BLAKE2F specific parameters
     final int rLeadingByte = argumentCase.isZeroCase() ? 0 : 0x12;
@@ -151,7 +144,7 @@ public class LowGasStipendPrecompileCallTests {
     // insufficient gas for the precompile call in the non-trivial cases (COST_MINUS_ONE, COST,
     // COST_PLUS_ONE).
     // Note that we exclude the case of MODEXP as it is treated in a separate test
-    // and the case of ALTBN128_ADD as it has a fixed gas cost of 150.
+    // and the case of ECADD as it has a fixed gas cost of 150.
     if (argumentCase.isNonZeroCase()
         && (gasCase == GasCase.COST_MINUS_ONE
             || gasCase == GasCase.COST

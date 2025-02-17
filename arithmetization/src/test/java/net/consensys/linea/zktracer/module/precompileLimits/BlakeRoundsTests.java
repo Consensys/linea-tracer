@@ -52,13 +52,13 @@ public class BlakeRoundsTests {
     blakeRounds.addPrecompileLimit(MAX_INTEGER_MO);
     assertThat(blakeRounds.lineCount()).isEqualTo(MAX_VALUE);
 
-    blakeRounds.popTransactionBundle();
+    blakeRounds.popTransaction();
     assertThat(blakeRounds.lineCount()).isEqualTo(0);
 
     blakeRounds.addPrecompileLimit(MAX_INTEGER_MO);
     assertThat(blakeRounds.lineCount()).isEqualTo(MAX_INTEGER_MO.toInt());
 
-    blakeRounds.popTransactionBundle();
+    blakeRounds.popTransaction();
     assertThat(blakeRounds.lineCount()).isEqualTo(0);
 
     blakeRounds.addPrecompileLimit(MAX_INTEGER_PO);
@@ -73,28 +73,28 @@ public class BlakeRoundsTests {
     blakeRounds.addPrecompileLimit(ONE);
     assertThat(blakeRounds.lineCount()).isEqualTo(1);
 
-    blakeRounds.commitTransactionBundle();
+    blakeRounds.enterTransaction();
     assertThat(blakeRounds.lineCount()).isEqualTo(1);
 
     blakeRounds.addPrecompileLimit(MAX_INTEGER);
     assertThat(blakeRounds.lineCount()).isEqualTo(MAX_VALUE);
-    blakeRounds.popTransactionBundle();
+    blakeRounds.popTransaction();
     assertThat(blakeRounds.lineCount()).isEqualTo(1);
 
     blakeRounds.addPrecompileLimit(MAX_INTEGER_MO);
     assertThat(blakeRounds.lineCount()).isEqualTo(MAX_VALUE);
-    blakeRounds.popTransactionBundle();
+    blakeRounds.popTransaction();
     assertThat(blakeRounds.lineCount()).isEqualTo(1);
 
     blakeRounds.addPrecompileLimit(MAX_INTEGER_PO);
     assertThat(blakeRounds.lineCount()).isEqualTo(MAX_VALUE);
-    blakeRounds.popTransactionBundle();
+    blakeRounds.popTransaction();
     assertThat(blakeRounds.lineCount()).isEqualTo(1);
 
     blakeRounds.addPrecompileLimit(ONE);
     assertThat(blakeRounds.lineCount()).isEqualTo(2);
 
-    blakeRounds.commitTransactionBundle();
+    blakeRounds.enterTransaction();
     assertThat(blakeRounds.lineCount()).isEqualTo(2);
   }
 }

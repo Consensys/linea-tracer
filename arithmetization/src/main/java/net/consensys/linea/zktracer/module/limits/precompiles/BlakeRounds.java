@@ -74,8 +74,8 @@ public final class BlakeRounds implements CountingOnlyModule {
   }
 
   @Override
-  public void popTransactionBundle() {
-    CountingOnlyModule.super.popTransactionBundle();
+  public void popTransaction() {
+    CountingOnlyModule.super.popTransaction();
     transactionBundleContainsIllegalOperation(false);
   }
 }

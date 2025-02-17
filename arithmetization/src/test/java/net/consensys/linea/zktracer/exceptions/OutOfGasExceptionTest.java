@@ -267,7 +267,7 @@ public class OutOfGasExceptionTest {
         .op(OpCode.SSTORE);
 
     Bytes pgCompile = program.compile();
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
     long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
 

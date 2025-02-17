@@ -160,7 +160,7 @@ public class OutOfGasMemExpExceptionTest {
         .push(3) // size
         .push(0) // offset
         .push(32) // destoffset
-        .op(OpCode.CODECOPY);
+        .op(OpCode.CODECOPY); // Should copy 60fa60 (first 3 bytes of the code)
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
@@ -262,7 +262,7 @@ public class OutOfGasMemExpExceptionTest {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
-        // constructor
+        // 1. Constructor
         .push(
             Bytes.fromHexString(
                 "0x7F7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
@@ -278,20 +278,23 @@ public class OutOfGasMemExpExceptionTest {
                 "0x000000000060205260296000F300000000000000000000000000000000000000")) // value
         .push(64) // offset
         .op(OpCode.MSTORE)
-        // Create the contract
-        .push(77)
+        // 2. Create the contract
+        .push(77) // size
         .push(0)
         .push(0)
         .op(OpCode.CREATE)
-        .push(0)
-        .push(0)
-        .push(0)
-        .push(0)
-        .op(OpCode.DUP5)
-        .push(Bytes.fromHexString("0xFFFFFFFF"))
+        // 3. Execute static call
+        .push(32) // byte size from return data
+        .push(0) // retOffset
+        .push(0) // byte size calldata
+        .push(0) // argsOffset
+        .op(OpCode.DUP5) // Address of the contract deployed above
+        .push(Bytes.fromHexString("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL)
+        // 4. Clean the stack
         .op(OpCode.POP)
         .op(OpCode.POP)
+        // 5. Return data copy
         .push(32)
         .push(0)
         .push(65)
@@ -327,7 +330,7 @@ public class OutOfGasMemExpExceptionTest {
         .op(OpCode.MSTORE)
         .push(3) // value
         .push(30) // offset
-        .op(OpCode.RETURN);
+        .op(OpCode.REVERT);
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
@@ -347,7 +350,7 @@ public class OutOfGasMemExpExceptionTest {
   }
   /*
   @ParameterizedTest
-  @ValueSource(ints = {-1, 0, 1})
+  @ValueSource(ints = {0})
   void outOfGasExceptionCreate(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
@@ -378,10 +381,12 @@ public class OutOfGasMemExpExceptionTest {
     if (cornerCase == -1) {
       assertEquals(
               OUT_OF_GAS_EXCEPTION,
+              // The exception is thrown in the previous trace section
               bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     } else {
       assertNotEquals(
               OUT_OF_GAS_EXCEPTION,
+              // The exception is thrown in the previous trace section
               bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     }
   }*/

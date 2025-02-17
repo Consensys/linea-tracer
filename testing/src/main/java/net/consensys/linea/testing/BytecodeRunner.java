@@ -161,8 +161,9 @@ public final class BytecodeRunner {
 
   // TODO: add runs for overloading
   // Ad-hoc senderBalance, accounts and calldata
+  // Does not include : accessListGas, codeDelegationGas
   public long runOnlyForGasCost(
-      Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts, Bytes calldata) {
+      Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts, Bytes payload) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
 
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -179,29 +180,29 @@ public final class BytecodeRunner {
             .code(byteCode)
             .build();
 
+    final ToyTransaction.ToyTransactionBuilder txBuilder =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(receiverAccount)
+            .value(Wei.of(272)) // 256 + 16, easier for debugging
+            .keyPair(keyPair)
+            .gasLimit(61_000_000L)
+            .gasPrice(Wei.of(8));
+
+    if (!payload.isEmpty()) {
+      txBuilder.payload(payload);
+    }
+    final Transaction tx = txBuilder.build();
+
     List<ToyAccount> accounts = new ArrayList<>();
     accounts.add(senderAccount);
     accounts.add(receiverAccount);
     accounts.addAll(additionalAccounts);
 
     toyExecutionEnvironmentV2 = ToyExecutionEnvironmentV2.builder().accounts(accounts).build();
-    long result = toyExecutionEnvironmentV2.runForGasCost(calldata);
+    long result = toyExecutionEnvironmentV2.runForGasCost(payload);
 
-    // TODO: replace with intrinsic gas cost
-    long nonZeroCallDataCost = 0;
-    long countZero = 0;
-    for (int i = 0; i < calldata.size(); i++) {
-      if (calldata.get(i) == 0) countZero++;
-    }
-
-    if (!calldata.isEmpty()) {
-      nonZeroCallDataCost =
-          GAS_CONST_G_TX_DATA_ZERO * countZero
-              + GAS_CONST_G_TX_DATA_NONZERO * (calldata.size() - countZero);
-    }
-    ;
-    // Add the transaction cost and calldata cost bef return
-    return result + GAS_CONST_G_TRANSACTION + nonZeroCallDataCost;
+    return result;
   }
 
   public Hub getHub() {

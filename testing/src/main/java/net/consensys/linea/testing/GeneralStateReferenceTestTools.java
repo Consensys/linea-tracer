@@ -179,7 +179,7 @@ public class GeneralStateReferenceTestTools {
       final GeneralStateTestCaseEipSpec spec,
       final ProtocolSpec protocolSpec,
       final List<ToyAccount> accounts,
-      final Bytes calldata) {
+      final Bytes payload) {
     final MutableWorldState worldState = spec.getInitialWorldState();
     final WorldUpdater worldStateUpdater = worldState.updater();
     final MainnetTransactionProcessor processor = protocolSpec.getTransactionProcessor();
@@ -202,7 +202,7 @@ public class GeneralStateReferenceTestTools {
             .apparentValue(Wei.ZERO)
             // TODO: variable
             .value(Wei.of(1))
-            .inputData(calldata)
+            .inputData(payload)
             .originator(senderAccount.getAddress())
             .address(receiverAccount.getAddress())
             .contract(receiverAccount.getAddress())
@@ -218,7 +218,12 @@ public class GeneralStateReferenceTestTools {
       processor.process(messageFrameStack.peekFirst(), new ZkTracer());
     }
 
-    return LINEA_BLOCK_GAS_LIMIT - initialMessageFrame.getRemainingGas();
+    long intrinsicTxCostWithNoAccessOrDelegationCost =
+        evm.getGasCalculator().transactionIntrinsicGasCost(payload, false, 0);
+
+    return LINEA_BLOCK_GAS_LIMIT
+        - initialMessageFrame.getRemainingGas()
+        + intrinsicTxCostWithNoAccessOrDelegationCost;
   }
 
   private static boolean shouldClearEmptyAccounts(final String eip) {

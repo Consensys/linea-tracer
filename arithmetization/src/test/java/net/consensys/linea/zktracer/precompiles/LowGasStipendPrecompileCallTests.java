@@ -274,14 +274,10 @@ public class LowGasStipendPrecompileCallTests {
         .op(OpCode.MSTORE);
 
     // This is computed here for convenience, and it is used for pricing the MODEXP precompile
-    return OobOperation.computeExponentLog(
-            Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bemPadded),
-            BigInteger.valueOf(callDataSize),
-            BigInteger.valueOf(bbs),
-            BigInteger.valueOf(ebs),
-            BigInteger.valueOf(mbs))
-        .max(BigInteger.ONE)
-        .intValue();
+    return Math.max(
+        OobOperation.computeExponentLog(
+            Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bemPadded), callDataSize, bbs, ebs),
+        1);
   }
 
   /**

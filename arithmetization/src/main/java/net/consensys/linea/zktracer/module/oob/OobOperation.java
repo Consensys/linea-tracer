@@ -369,8 +369,14 @@ public class OobOperation extends ModuleOperation {
       final BigInteger ebs = paddedCallData.slice(32, 32).toUnsignedBigInteger();
       final BigInteger mbs = paddedCallData.slice(64, 32).toUnsignedBigInteger();
 
-      BigInteger exponentLog = computeExponentLog(paddedCallData, cds, bbs, ebs, mbs);
-
+      // Check if bbs, ebs and mbs are <= 512
+      if (bbs.compareTo(BigInteger.valueOf(512)) > 0
+          || ebs.compareTo(BigInteger.valueOf(512)) > 0
+          || mbs.compareTo(BigInteger.valueOf(512)) > 0) {
+        throw new IllegalArgumentException("byte sizes are too big");
+      }
+      int exponentLog =
+          computeExponentLog(paddedCallData, cds.intValue(), bbs.intValue(), ebs.intValue());
       switch (oobCall.oobInstruction) {
         case OOB_INST_MODEXP_CDS -> {
           final ModexpCallDataSizeOobCall prcModexpCdsCall = (ModexpCallDataSizeOobCall) oobCall;
@@ -417,7 +423,7 @@ public class OobOperation extends ModuleOperation {
           final ModexpPricingOobCall prcModexpPricingOobCall = (ModexpPricingOobCall) oobCall;
           // prcModexpPricingOobCall.setCallGas(calleeGas);
           prcModexpPricingOobCall.setReturnAtCapacity(returnAtCapacity);
-          prcModexpPricingOobCall.setExponentLog(exponentLog);
+          prcModexpPricingOobCall.setExponentLog(BigInteger.valueOf(exponentLog));
           prcModexpPricingOobCall.setMaxMbsBbs(maxMbsBbs);
           setModexpPricing(prcModexpPricingOobCall);
         }
@@ -459,40 +465,24 @@ public class OobOperation extends ModuleOperation {
   }
 
   // Support method for MODEXP
-  public static BigInteger computeExponentLog(
-      Bytes paddedCallData, BigInteger cds, BigInteger bbs, BigInteger ebs, BigInteger mbs) {
+  public static int computeExponentLog(Bytes paddedCallData, int cds, int bbs, int ebs) {
     Preconditions.checkArgument(paddedCallData.size() >= 96);
-
-    // cds and the data below can be int when compared (after size check)
-
-    // Check if bbs, ebs and mbs are <= 512
-    if (bbs.compareTo(BigInteger.valueOf(512)) > 0
-        || ebs.compareTo(BigInteger.valueOf(512)) > 0
-        || mbs.compareTo(BigInteger.valueOf(512)) > 0) {
-      throw new IllegalArgumentException("byte sizes are too big");
-    }
 
     // pad paddedCallData to 96 + bbs + ebs
     final Bytes doublePaddedCallData =
-        cds.intValue() < 96 + bbs.intValue() + ebs.intValue()
-            ? rightPadTo(paddedCallData, 96 + bbs.intValue() + ebs.intValue())
-            : paddedCallData;
+        cds < 96 + bbs + ebs ? rightPadTo(paddedCallData, 96 + bbs + ebs) : paddedCallData;
 
     final BigInteger leadingBytesOfExponent =
-        doublePaddedCallData
-            .slice(96 + bbs.intValue(), min(ebs.intValue(), 32))
-            .toUnsignedBigInteger();
+        doublePaddedCallData.slice(96 + bbs, min(ebs, 32)).toUnsignedBigInteger();
 
-    if (ebs.intValue() <= 32 && leadingBytesOfExponent.signum() == 0) {
-      return BigInteger.ZERO;
-    } else if (ebs.intValue() <= 32 && leadingBytesOfExponent.signum() != 0) {
-      return BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR));
-    } else if (ebs.intValue() > 32 && leadingBytesOfExponent.signum() != 0) {
-      return BigInteger.valueOf(8)
-          .multiply(ebs.subtract(BigInteger.valueOf(32)))
-          .add(BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR)));
+    if (ebs <= 32 && leadingBytesOfExponent.signum() == 0) {
+      return 0;
+    } else if (ebs <= 32 && leadingBytesOfExponent.signum() != 0) {
+      return log2(leadingBytesOfExponent, RoundingMode.FLOOR);
+    } else if (ebs > 32 && leadingBytesOfExponent.signum() != 0) {
+      return 8 * (ebs - 32) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
     } else {
-      return BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
+      return 8 * (ebs - 32);
     }
   }
 

@@ -219,10 +219,9 @@ public final class BytecodeRunner {
     accounts.add(receiverAccount);
     accounts.addAll(additionalAccounts);
 
-    toyExecutionEnvironmentV2 = ToyExecutionEnvironmentV2.builder().accounts(accounts).build();
-    long result = toyExecutionEnvironmentV2.runForGasCost(payload);
-
-    return result;
+    toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder().accounts(accounts).transaction(tx).build();
+    return toyExecutionEnvironmentV2.runForGasCost();
   }
 
   public Hub getHub() {

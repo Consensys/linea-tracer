@@ -61,7 +61,6 @@ public class OutOfGasExceptionTest {
             case OpCode.BLOCKHASH -> Math.toIntExact(DEFAULT_BLOCK_NUMBER) - 1;
             case OpCode.EXP -> i == 0 ? 5 : 2; // EXP 2 5 (2 ** 5)
             default -> 7 * i + 11;
-              // TODO: check if works with EXTCODESIZE
               // small integer but greater than 10, so as when it represents an address
               // it is not the one of a precompile contract
           };
@@ -71,7 +70,7 @@ public class OutOfGasExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
 
@@ -109,11 +108,14 @@ public class OutOfGasExceptionTest {
           && opCode
               != OpCode.JUMPI // JUMPI needs a valid bytecode to jump to, see outOfGasExceptionJumpi
           // below
+          && opCode != OpCode.SLOAD // SLOAD a non-zero value, see outOfGasExceptionSLoad below
           && !opCodeData.isCall() // CALL family is managed separately
           && !opCodeData.isCreate() // CREATE needs the memory expansion cost
           && !opCodeData.isLog() // LOG needs the memory expansion cost
       ) {
         arguments.add(Arguments.of(opCode, nPushes, -1));
+        System.out.println(opCode);
+        System.out.println(nPushes);
         arguments.add(Arguments.of(opCode, nPushes, 0));
         arguments.add(Arguments.of(opCode, nPushes, 1));
       }
@@ -159,11 +161,10 @@ public class OutOfGasExceptionTest {
               .nonce(10)
               .address(Address.fromHexString("ca11ee"))
               .build();
-      gasCost =
-          bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of(calleeAccount));
+      gasCost = bytecodeRunner.runOnlyForGasCost(List.of(calleeAccount));
       bytecodeRunner.run(gasCost + cornerCase, List.of(calleeAccount));
     } else {
-      gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+      gasCost = bytecodeRunner.runOnlyForGasCost();
       bytecodeRunner.run(gasCost + cornerCase);
     }
 
@@ -214,8 +215,8 @@ public class OutOfGasExceptionTest {
     for (int value : new int[] {1}) {
       int[] cornerCaseSet = value == 0 ? new int[] {-1, 0, 1} : new int[] {2300};
       for (int cornerCase : cornerCaseSet) {
-        /*        arguments.add(Arguments.of(value, true, true, cornerCase));
-        arguments.add(Arguments.of(value, true, false, cornerCase));*/
+        arguments.add(Arguments.of(value, true, true, cornerCase));
+        arguments.add(Arguments.of(value, true, false, cornerCase));
         arguments.add(Arguments.of(value, false, false, cornerCase));
       }
     }
@@ -244,38 +245,7 @@ public class OutOfGasExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
-
-    bytecodeRunner.run(gasCost + cornerCase);
-
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
-  }
-
-  // TODO: could remove might be tested in the first test
-
-  /** Test to write a non-zero value in storage */
-  @ParameterizedTest
-  @ValueSource(ints = {-1, 0, 1})
-  void outOfGasExceptionSStore(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
-
-    program
-        .push(2) // value
-        .push(1) // key
-        .op(OpCode.SSTORE);
-
-    Bytes pgCompile = program.compile();
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
-
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
 

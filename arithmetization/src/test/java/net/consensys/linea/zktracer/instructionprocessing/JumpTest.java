@@ -14,8 +14,6 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
-
 import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;

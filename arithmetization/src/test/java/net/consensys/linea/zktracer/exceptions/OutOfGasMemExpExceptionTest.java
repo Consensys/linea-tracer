@@ -34,7 +34,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -65,7 +65,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -102,7 +102,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -132,8 +132,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost =
-        bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of(), calldata);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(calldata);
 
     bytecodeRunner.run(Wei.fromEth(1), gasCost + cornerCase, List.of(), calldata);
     if (cornerCase == -1) {
@@ -164,7 +163,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -209,7 +208,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -241,7 +240,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -302,7 +301,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -334,7 +333,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -380,7 +379,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
 
@@ -421,7 +420,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -455,7 +454,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -491,7 +490,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -530,7 +529,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {
@@ -572,7 +571,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(Wei.fromEth(1), 61_000_000L, List.of());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
     if (cornerCase == -1) {

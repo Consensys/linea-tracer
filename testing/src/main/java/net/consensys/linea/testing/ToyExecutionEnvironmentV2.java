@@ -26,7 +26,6 @@ import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
@@ -81,13 +80,13 @@ public class ToyExecutionEnvironmentV2 {
         zkTracerValidator);
   }
 
-  public long runForGasCost(Bytes payload) {
+  public long runForGasCost() {
     ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN_ID);
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 
     return GeneralStateReferenceTestTools.executeTestOnlyForGasCost(
-        generalStateTestCaseEipSpec, protocolSpec, this.accounts, payload);
+        generalStateTestCaseEipSpec, protocolSpec, this.accounts);
   }
 
   public Hub getHub() {

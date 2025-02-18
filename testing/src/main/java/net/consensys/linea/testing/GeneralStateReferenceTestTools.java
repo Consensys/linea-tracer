@@ -178,8 +178,7 @@ public class GeneralStateReferenceTestTools {
   public static long executeTestOnlyForGasCost(
       final GeneralStateTestCaseEipSpec spec,
       final ProtocolSpec protocolSpec,
-      final List<ToyAccount> accounts,
-      final Bytes payload) {
+      final List<ToyAccount> accounts) {
     final MutableWorldState worldState = spec.getInitialWorldState();
     final WorldUpdater worldStateUpdater = worldState.updater();
     final MainnetTransactionProcessor processor = protocolSpec.getTransactionProcessor();
@@ -189,6 +188,7 @@ public class GeneralStateReferenceTestTools {
     blockValues.setBaseFee(Optional.of(Wei.of(1)));
     Account senderAccount = accounts.get(0);
     Account receiverAccount = accounts.get(1);
+    Bytes txPayload = spec.getTransaction(0).getPayload();
 
     MessageFrame initialMessageFrame =
         MessageFrame.builder()
@@ -202,7 +202,7 @@ public class GeneralStateReferenceTestTools {
             .apparentValue(Wei.ZERO)
             // TODO: variable
             .value(Wei.of(1))
-            .inputData(payload)
+            .inputData(txPayload)
             .originator(senderAccount.getAddress())
             .address(receiverAccount.getAddress())
             .contract(receiverAccount.getAddress())
@@ -219,7 +219,7 @@ public class GeneralStateReferenceTestTools {
     }
 
     long intrinsicTxCostWithNoAccessOrDelegationCost =
-        evm.getGasCalculator().transactionIntrinsicGasCost(payload, false, 0);
+        evm.getGasCalculator().transactionIntrinsicGasCost(txPayload, false, 0);
 
     return LINEA_BLOCK_GAS_LIMIT
         - initialMessageFrame.getRemainingGas()

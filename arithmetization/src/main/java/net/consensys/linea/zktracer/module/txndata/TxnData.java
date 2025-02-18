@@ -70,12 +70,8 @@ public class TxnData implements OperationListModule<TxndataOperation> {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    try {
       currentBlock().setNbOfTxsInBlock(currentTx().tx.getRelativeTransactionNumber());
       currentTx().setCallWcpLastTxOfBlock(currentBlock().getBlockGasLimit());
-    } catch (Exception e) {
-      System.out.println("Error in TxnData.traceEndBlock: " + e.getMessage());
-    }
   }
 
   @Override

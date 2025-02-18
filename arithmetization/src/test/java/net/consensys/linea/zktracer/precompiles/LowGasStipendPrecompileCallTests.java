@@ -55,7 +55,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class LowGasStipendPrecompileCallTests {
 
   // Enums for the different testing scenarios
-  enum ArgumentCase {
+  enum ValueCase {
     ZERO,
     NON_ZERO;
 
@@ -76,65 +76,69 @@ public class LowGasStipendPrecompileCallTests {
     COST_PLUS_ONE;
   }
 
+  // BLAKE2F specific parameters
+  int rLeadingByte = 0;
+  int r = 0;
+
+  // MODEXP specific parameters
+  int bbs = 0;
+  int ebs = 0;
+  int mbs = 0;
+  int exponentLog = 0;
+
   /**
    * Parameterized test for low gas stipend precompile call.
    *
    * @param precompileAddress the address of the precompile contract.
-   * @param argumentCase the argument case (zero or non-zero), when meaningful.
+   * @param valueCase the value case (zero or non-zero).
    * @param gasCase the gas case (zero, one, cost minus one, cost, cost plus one).
-   * @param modexpCostGT200 flag indicating if the MODEXP cost is greater than 200. It is ignored
-   *     for other precompile contracts.
+   * @param modexpCostGT200OrBlake2fRoundsGT0 flag indicating if the MODEXP cost is greater than 200
+   *     or if the BLAKE2F rounds are greater than 0. It is ignored for other precompile contracts.
    */
   @ParameterizedTest
   @MethodSource("lowGasStipendPrecompileCallTestSource")
   void lowGasStipendPrecompileCallTest(
       Address precompileAddress,
-      ArgumentCase argumentCase,
+      ValueCase valueCase,
       GasCase gasCase,
-      boolean modexpCostGT200) {
+      boolean modexpCostGT200OrBlake2fRoundsGT0) {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // In order to actually trigger the insufficient we need to:
     // - Set a specific callDataSize for BLAKE2F and EC_PAIRING
-    // - Set the r value of BLAKE2F to have precompileCost > gasBonus
+    // - Set the r value of BLAKE2F to have precompileCost > callStipend
     // - Populate the memory with a large enough number of words for SHA256, RIPEMD160, and ID
-    //   to have precompileCost > gasBonus.
-    final int value = argumentCase.isZeroCase() ? 0 : 1;
+    //   to have precompileCost > callStipend.
+    final int value = valueCase.isZeroCase() ? 0 : 1;
     final int callDataSize; // depends on the called precompile
     final int callDataOffset = 0;
 
-    // retSize is defined below
+    // returnAtCapacity is defined below
     final int returnAtOffset = 13;
-
-    // BLAKE2F specific parameters
-    final int rLeadingByte = argumentCase.isZeroCase() ? 0 : 0x12;
-    final int r = rLeadingByte << 8;
-
-    // MODEXP specific parameters
-    final int bbs = modexpCostGT200 ? 0x01 : 0x02;
-    final int ebs = modexpCostGT200 ? 0x06 : 0x03;
-    final int mbs = modexpCostGT200 ? 0x19 : 0x04;
-    BigInteger exponentLog = BigInteger.ZERO;
 
     // Prepare the arguments for the different precompile calls
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
+      rLeadingByte = modexpCostGT200OrBlake2fRoundsGT0 ? 0 : 0x12;
+      r = rLeadingByte << 8;
       callDataSize = PRC_BLAKE2F_SIZE;
       prepareBlake2F(program, rLeadingByte, callDataOffset);
     } else if (precompileAddress == ALTBN128_PAIRING) {
       callDataSize = PRC_ECPAIRING_SIZE;
     } else if ((precompileAddress == SHA256
-            || precompileAddress == RIPEMD160
-            || precompileAddress == ID)
-        && argumentCase.isNonZeroCase()) {
+        || precompileAddress == RIPEMD160
+        || precompileAddress == ID)) {
       final int nWords = 1024;
-      callDataSize = nWords * WORD_SIZE; // This guarantees that precompileCost > gasBonus
+      callDataSize = nWords * WORD_SIZE; // This guarantees that precompileCost > callStipend
       prepareSha256Ripemd160Id(program, nWords, callDataOffset);
     } else if (precompileAddress == MODEXP) {
+      bbs = modexpCostGT200OrBlake2fRoundsGT0 ? 1 : 2;
+      ebs = modexpCostGT200OrBlake2fRoundsGT0 ? 6 : 3;
+      mbs = modexpCostGT200OrBlake2fRoundsGT0 ? 19 : 4;
       callDataSize = 96 + bbs + ebs + mbs;
       exponentLog = prepareModexp(bbs, mbs, ebs, callDataSize, program);
     } else {
       // ECADD, ECMUL, ECRECOVER cases
-      callDataSize = argumentCase.isZeroCase() ? 0 : 1;
+      callDataSize = 1; // This is an arbitrary value
     }
 
     // Compute the return size
@@ -147,14 +151,14 @@ public class LowGasStipendPrecompileCallTests {
     // Compute the gas stipend in the different testing scenarios
     int gas = getGas(gasCase, precompileCost);
 
-    // In case funds are sent to the precompile contract (argumentCase == NON_ZERO)
+    // In case funds are sent to the precompile contract (valueCase == NON_ZERO)
     // a gas stipend of 2300 is added to the transaction.
     // We now deduce that gas stipend from the gas given to the transaction to trigger
     // insufficient gas for the precompile call in the non-trivial cases (COST_MINUS_ONE, COST,
     // COST_PLUS_ONE).
     // Note that we exclude the case of MODEXP as it is treated in a separate test
     // and the case of ECADD as it has a fixed gas cost of 150.
-    if (argumentCase.isNonZeroCase()
+    if (valueCase.isNonZeroCase()
         && (gasCase == GasCase.COST_MINUS_ONE
             || gasCase == GasCase.COST
             || gasCase == GasCase.COST_PLUS_ONE)
@@ -212,19 +216,20 @@ public class LowGasStipendPrecompileCallTests {
   static Stream<Arguments> lowGasStipendPrecompileCallTestSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (GasCase gasCase : GasCase.values()) {
-      for (ArgumentCase argumentCase : ArgumentCase.values()) {
-        arguments.add(Arguments.of(ECREC, argumentCase, gasCase, false));
-        arguments.add(Arguments.of(SHA256, argumentCase, gasCase, false));
-        arguments.add(Arguments.of(RIPEMD160, argumentCase, gasCase, false));
-        arguments.add(Arguments.of(ID, argumentCase, gasCase, false));
-        arguments.add(Arguments.of(ALTBN128_ADD, argumentCase, gasCase, false));
-        arguments.add(Arguments.of(ALTBN128_MUL, argumentCase, gasCase, false));
-        arguments.add(Arguments.of(Address.ALTBN128_PAIRING, argumentCase, gasCase, false));
-        arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, argumentCase, gasCase, false));
+      for (ValueCase valueCase : ValueCase.values()) {
+        arguments.add(Arguments.of(ECREC, valueCase, gasCase, false));
+        arguments.add(Arguments.of(SHA256, valueCase, gasCase, false));
+        arguments.add(Arguments.of(RIPEMD160, valueCase, gasCase, false));
+        arguments.add(Arguments.of(ID, valueCase, gasCase, false));
+        arguments.add(Arguments.of(ALTBN128_ADD, valueCase, gasCase, false));
+        arguments.add(Arguments.of(ALTBN128_MUL, valueCase, gasCase, false));
+        arguments.add(Arguments.of(Address.ALTBN128_PAIRING, valueCase, gasCase, false));
+        arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, valueCase, gasCase, false));
+        arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, valueCase, gasCase, true));
       }
       // The NON_ZERO for MODEXP case will be treated in a separate test
-      arguments.add(Arguments.of(MODEXP, ArgumentCase.ZERO, gasCase, false));
-      arguments.add(Arguments.of(MODEXP, ArgumentCase.ZERO, gasCase, true));
+      arguments.add(Arguments.of(MODEXP, ValueCase.ZERO, gasCase, false));
+      arguments.add(Arguments.of(MODEXP, ValueCase.ZERO, gasCase, true));
     }
     return arguments.stream();
   }
@@ -244,7 +249,7 @@ public class LowGasStipendPrecompileCallTests {
     populateMemory(program, nWords, callDataOffset);
   }
 
-  private static BigInteger prepareModexp(
+  private static int prepareModexp(
       int bbs, int mbs, int ebs, int callDataSize, BytecodeCompiler program) {
     final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
     final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
@@ -275,7 +280,8 @@ public class LowGasStipendPrecompileCallTests {
             BigInteger.valueOf(bbs),
             BigInteger.valueOf(ebs),
             BigInteger.valueOf(mbs))
-        .max(BigInteger.ONE);
+        .max(BigInteger.ONE)
+        .intValue();
   }
 
   /**

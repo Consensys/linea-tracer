@@ -34,8 +34,6 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD
 import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
 import static org.hyperledger.besu.datatypes.Address.*;
 
-import java.math.BigInteger;
-
 import org.hyperledger.besu.datatypes.Address;
 
 public class PrecompileUtils {
@@ -58,7 +56,7 @@ public class PrecompileUtils {
    * @return the computed precompile cost.
    */
   public static int getPrecompileCost(
-      Address precompileAddress, int cds, int bbs, int mbs, BigInteger exponentLog, int r) {
+      Address precompileAddress, int cds, int bbs, int mbs, int exponentLog, int r) {
     if (precompileAddress.equals(ECREC)) {
       return getECRECCost();
     } else if (precompileAddress.equals(SHA256)) {
@@ -101,13 +99,11 @@ public class PrecompileUtils {
     return GAS_CONST_IDENTITY + words * GAS_CONST_IDENTITY_WORD;
   }
 
-  static int getMODEXPCost(int bbs, int mbs, BigInteger exponentLog) {
-    final int words = (Math.max(bbs, mbs) + 7) / 8;
-    final int fOfMax = words * words;
-    final BigInteger bigNumerator =
-        BigInteger.valueOf(fOfMax).multiply(exponentLog.max(BigInteger.ONE));
-    final BigInteger bigQuotient = bigNumerator.divide(BigInteger.valueOf(G_QUADDIVISOR));
-    return Math.max(GAS_CONST_MODEXP, bigQuotient.intValueExact());
+  static int getMODEXPCost(int bbs, int mbs, int exponentLog) {
+    final int fOfMax = ((Math.max(bbs, mbs) + 7) / 8) * ((Math.max(bbs, mbs) + 7) / 8);
+    final int bigNumerator = fOfMax * Math.max(exponentLog, 1);
+    final int bigQuotient = bigNumerator / G_QUADDIVISOR;
+    return Math.max(GAS_CONST_MODEXP, bigQuotient);
   }
 
   private static int getECADDCost() {

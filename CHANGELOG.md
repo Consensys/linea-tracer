@@ -1,5 +1,11 @@
 # Changelog
 
+## beta-v1.3-rc5
+* fix: catch NPE in TXN_DATA if no transactions are processed
+
+## beta-v1.3-rc3
+* fix `gradle.properties` to point to the right release
+
 ## beta-v1.3-rc3
 * constraints commit update
 * update `go-corset` to commit ab7f2d5 (#1822)

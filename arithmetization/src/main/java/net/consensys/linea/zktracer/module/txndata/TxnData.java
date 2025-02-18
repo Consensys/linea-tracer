@@ -70,8 +70,8 @@ public class TxnData implements OperationListModule<TxndataOperation> {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-      currentBlock().setNbOfTxsInBlock(currentTx().tx.getRelativeTransactionNumber());
-      currentTx().setCallWcpLastTxOfBlock(currentBlock().getBlockGasLimit());
+    currentBlock().setNbOfTxsInBlock(currentTx().tx.getRelativeTransactionNumber());
+    currentTx().setCallWcpLastTxOfBlock(currentBlock().getBlockGasLimit());
   }
 
   @Override

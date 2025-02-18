@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
  */
 public class RevertingLogsTests {
 
-  private static final Bytes POPULATE_MEMORY =
+  public static final Bytes POPULATE_MEMORY =
       newProgram()
           .op(OpCode.CALLDATASIZE) // size
           .push(0) // offset
@@ -104,7 +104,7 @@ public class RevertingLogsTests {
           .op(OpCode.LOG4)
           .compile();
 
-  private static final Bytes REVERT = newProgram().push(0).push(0).op(OpCode.REVERT).compile();
+  public static final Bytes REVERT = newProgram().push(0).push(0).op(OpCode.REVERT).compile();
 
   private static final Bytes SELFREVERT_LOG_BYTECODE =
       newProgram().immediate(POPULATE_MEMORY).immediate(LOG3).immediate(REVERT).compile();
@@ -133,7 +133,7 @@ public class RevertingLogsTests {
           .balance(Wei.of(10000))
           .build();
 
-  private static Bytes call(Address address, boolean staticCall) {
+  public static Bytes call(Address address, boolean staticCall) {
     return newProgram()
         .immediate(POPULATE_MEMORY)
         .push(0) // retSize

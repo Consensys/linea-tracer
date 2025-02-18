@@ -118,7 +118,7 @@ public class LowGasStipendPrecompileCallTests {
 
     // Prepare the arguments for the different precompile calls
     if (precompileAddress == BLAKE2B_F_COMPRESSION) {
-      rLeadingByte = modexpCostGT200OrBlake2fRoundsGT0 ? 0 : 0x12;
+      rLeadingByte = modexpCostGT200OrBlake2fRoundsGT0 ? 0x12 : 0;
       r = rLeadingByte << 8;
       callDataSize = PRC_BLAKE2F_SIZE;
       prepareBlake2F(program, rLeadingByte, callDataOffset);

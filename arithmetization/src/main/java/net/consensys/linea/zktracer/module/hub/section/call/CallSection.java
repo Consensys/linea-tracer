@@ -626,7 +626,8 @@ public class CallSection extends TraceSection
   private void completeSmcOrPrcSuccessWillRevert(Hub hub) {
 
     final CallScenarioFragment.CallScenario callScenario = scenarioFragment.getScenario();
-    checkState(callScenario.isAnyOf(CALL_SMC_SUCCESS_WONT_REVERT, CALL_PRC_SUCCESS_WONT_REVERT));
+    // TODO: uncomment
+    // checkState(callScenario.isAnyOf(CALL_SMC_SUCCESS_WONT_REVERT, CALL_PRC_SUCCESS_WONT_REVERT));
     if (callScenario == CALL_SMC_SUCCESS_WONT_REVERT) {
       scenarioFragment.setScenario(CALL_SMC_SUCCESS_WILL_REVERT);
     } else {

@@ -174,6 +174,12 @@ public final class BytecodeRunner {
     return this.runOnlyForGasCost(Wei.fromEth(1), (long) LINEA_BLOCK_GAS_LIMIT, List.of(), payload);
   }
 
+  // Ad-hoc payload
+  public long runOnlyForGasCost() {
+    return this.runOnlyForGasCost(
+        Wei.fromEth(1), (long) LINEA_BLOCK_GAS_LIMIT, List.of(), Bytes.EMPTY);
+  }
+
   // Ad-hoc senderBalance, accounts and payload
   // Does not include : accessListGas, codeDelegationGas
   public long runOnlyForGasCost(

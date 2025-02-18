@@ -153,14 +153,28 @@ public final class BytecodeRunner {
     toyExecutionEnvironmentV2.run();
   }
 
+  /*
+  BytecodeRunner: runOnlyForGasCost section
+   */
+
   // Ad-hoc senderBalance, gasLimit and accounts
   public long runOnlyForGasCost(
       Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts) {
     return this.runOnlyForGasCost(senderBalance, gasLimit, additionalAccounts, Bytes.EMPTY);
   }
 
-  // TODO: add runs for overloading
-  // Ad-hoc senderBalance, accounts and calldata
+  // Ad-hoc accounts
+  public long runOnlyForGasCost(List<ToyAccount> additionalAccounts) {
+    return this.runOnlyForGasCost(
+        Wei.fromEth(1), (long) LINEA_BLOCK_GAS_LIMIT, additionalAccounts, Bytes.EMPTY);
+  }
+
+  // Ad-hoc payload
+  public long runOnlyForGasCost(Bytes payload) {
+    return this.runOnlyForGasCost(Wei.fromEth(1), (long) LINEA_BLOCK_GAS_LIMIT, List.of(), payload);
+  }
+
+  // Ad-hoc senderBalance, accounts and payload
   // Does not include : accessListGas, codeDelegationGas
   public long runOnlyForGasCost(
       Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts, Bytes payload) {
@@ -186,7 +200,7 @@ public final class BytecodeRunner {
             .to(receiverAccount)
             .value(Wei.of(272)) // 256 + 16, easier for debugging
             .keyPair(keyPair)
-            .gasLimit(61_000_000L)
+            .gasLimit(gasLimit)
             .gasPrice(Wei.of(8));
 
     if (!payload.isEmpty()) {

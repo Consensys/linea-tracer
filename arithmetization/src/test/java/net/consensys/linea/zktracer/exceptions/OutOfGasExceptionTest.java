@@ -47,10 +47,9 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class OutOfGasExceptionTest {
 
   @ParameterizedTest
-  // @ValueSource(ints = {0})
   @MethodSource("outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource")
   void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTest(
-      OpCode opCode, int opCodeStaticCost, int nPushes, int cornerCase) {
+      OpCode opCode, int nPushes, int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     for (int i = 0; i < nPushes; i++) {
@@ -91,7 +90,6 @@ public class OutOfGasExceptionTest {
     List<Arguments> arguments = new ArrayList<>();
     for (OpCodeData opCodeData : opCodeToOpCodeDataMap.values()) {
       OpCode opCode = opCodeData.mnemonic();
-      int opCodeStaticCost = opCodeData.stackSettings().staticGas().cost();
       int nPushes = opCodeData.stackSettings().delta(); // number of items popped from the stack
       if (opCode != OpCode.CALLDATACOPY // CALLDATACOPY needs the memory expansion cost
           && opCode != OpCode.CODECOPY // CODECOPY needs the memory expansion cost
@@ -115,29 +113,20 @@ public class OutOfGasExceptionTest {
           && !opCodeData.isCreate() // CREATE needs the memory expansion cost
           && !opCodeData.isLog() // LOG needs the memory expansion cost
       ) {
-        arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, -1));
-        arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 0));
-        arguments.add(Arguments.of(opCode, opCodeStaticCost, nPushes, 1));
+        arguments.add(Arguments.of(opCode, nPushes, -1));
+        arguments.add(Arguments.of(opCode, nPushes, 0));
+        arguments.add(Arguments.of(opCode, nPushes, 1));
       }
     }
     return arguments.stream();
   }
 
-  /*
-  @Test
-  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostSingleTest() {
-    OpCode opCode = OpCode.SSTORE;
-    int opCodeStaticCost = 0;
-    int nPushes = 2;
-    int cornerCase = 0;
-    outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostBody(
-        opCode, opCodeStaticCost, nPushes, cornerCase);
-  }
-   */
-
-  // TODO: works with no value, to continue
   @ParameterizedTest
   @MethodSource("outOfGasExceptionCallSource")
+  /*
+  When value is transferred
+  -> Add additional call stipend (2300) to avoid OOGX in order to complete the call execution, even if no code is executed
+   */
   void outOfGasExceptionCallTest(
       int value, boolean targetAddressExists, boolean isWarm, int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
@@ -178,36 +167,53 @@ public class OutOfGasExceptionTest {
       bytecodeRunner.run(gasCost + cornerCase);
     }
 
-    /*        long gasCostExt =
-    GAS_CONST_G_TRANSACTION
-            + // base gas cost
-            (isWarm ? GAS_CONST_G_VERY_LOW + GAS_CONST_G_COLD_ACCOUNT_ACCESS : 0) // PUSH + BALANCE
-            + 7 * GAS_CONST_G_VERY_LOW // 7 PUSH
-            + callGasCost(value != 0, targetAddressExists, isWarm); // CALL*/
+    /*
+                long gasCostExt =
+        GAS_CONST_G_TRANSACTION
+                + // base gas cost
+                (isWarm ? GAS_CONST_G_VERY_LOW + GAS_CONST_G_COLD_ACCOUNT_ACCESS : 0) // PUSH + BALANCE
+                + 7 * GAS_CONST_G_VERY_LOW // 7 PUSH
+                + callGasCost(value != 0, targetAddressExists, isWarm); // CALL
+    */
 
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    if (value == 0) {
+      if (cornerCase == -1) {
+        assertEquals(
+            OUT_OF_GAS_EXCEPTION,
+            bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+      } else {
+        assertNotEquals(
+            OUT_OF_GAS_EXCEPTION,
+            bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+      }
     } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+      if (cornerCase == 2299) {
+        assertEquals(
+            OUT_OF_GAS_EXCEPTION,
+            bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+      } else {
+        assertNotEquals(
+            OUT_OF_GAS_EXCEPTION,
+            bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+      }
     }
   }
 
-  /*  private long callGasCost(boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
-    Preconditions.checkArgument(
-            !(isWarm && !targetAddressExists), "isWarm implies targetAddressExists");
-    return (transfersValue ? GAS_CONST_G_CALL_VALUE : 0)
-            + (targetAddressExists ? 0 : (transfersValue ? GAS_CONST_G_NEW_ACCOUNT : 0))
-            + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
-  }*/
+  /*
+      private long callGasCost(boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
+      Preconditions.checkArgument(
+              !(isWarm && !targetAddressExists), "isWarm implies targetAddressExists");
+      return (transfersValue ? GAS_CONST_G_CALL_VALUE : 0)
+              + (targetAddressExists ? 0 : (transfersValue ? GAS_CONST_G_NEW_ACCOUNT : 0))
+              + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
+    }
+  */
 
   static Stream<Arguments> outOfGasExceptionCallSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (int value : new int[] {0}) {
-      for (int cornerCase : new int[] {-1, 0, 1}) {
+    for (int value : new int[] {0, 1}) {
+      int[] cornerCaseSet = value == 0 ? new int[] {-1, 0, 1} : new int[] {2299, 2300, 2301};
+      for (int cornerCase : cornerCaseSet) {
         arguments.add(Arguments.of(value, true, true, cornerCase));
         arguments.add(Arguments.of(value, true, false, cornerCase));
         arguments.add(Arguments.of(value, false, false, cornerCase));

@@ -23,8 +23,10 @@ import java.util.List;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -141,7 +143,7 @@ public class OutOfGasMemExpExceptionTest {
     program
         .push(31) // value
         .push(1) // offset
-        .push(2) // offset
+        .push(2) // offset, trigger mem expansion
         .op(OpCode.CALLDATACOPY);
 
     Bytes pgCompile = program.compile();
@@ -274,51 +276,52 @@ public class OutOfGasMemExpExceptionTest {
   void outOfGasExceptionReturnDataCopy(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
+    final ToyAccount codeOwnerAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(10)
+            .address(Address.fromHexString("c0de"))
+            // Constructor that returns 32 FF
+            .code(
+                Bytes.fromHexString(
+                    "7f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6000527fff60005260206000f3000000000000000000000000000000000000000000000060205260296000f300000000000000000000000000000000000000"))
+            .build();
+
     program
-        // 1. Constructor
-        .push(
-            Bytes.fromHexString(
-                "0x7F7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
-        .push(0) // offset
-        .op(OpCode.MSTORE)
-        .push(
-            Bytes.fromHexString(
-                "0xFF6000527FFF60005260206000F3000000000000000000000000000000000000")) // value
-        .push(32) // offset
-        .op(OpCode.MSTORE)
-        .push(
-            Bytes.fromHexString(
-                "0x000000000060205260296000F300000000000000000000000000000000000000")) // value
-        .push(64) // offset
-        .op(OpCode.MSTORE)
-        // 2. Create the contract
-        .push(77) // size
+        // 1. Create contract - returns 32FF
+        .push(codeOwnerAccount.getAddress())
+        .op(OpCode.EXTCODESIZE)
+        .op(OpCode.DUP1)
+        .push(0)
+        .push(0)
+        .push(codeOwnerAccount.getAddress())
+        .op(OpCode.EXTCODECOPY)
         .push(0)
         .push(0)
         .op(OpCode.CREATE)
-        // 3. Execute static call
-        .push(32) // byte size from return data
+        // 2. Execute static call
+        .push(0) // byte size of return data
         .push(0) // retOffset
         .push(0) // byte size calldata
         .push(0) // argsOffset
         .op(OpCode.DUP5) // Address of the contract deployed above
         .push(Bytes.fromHexString("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL)
-        // 4. Clean the stack
+        // 3. Clean the stack
         .op(OpCode.POP)
         .op(OpCode.POP)
-        // 5. Return data copy
-        .push(32)
-        .push(0)
-        .push(65)
+        // 4. Return data copy
+        .push(32) // size
+        .push(0) // offset
+        .push(65) // destoffset, trigger mem expansion
         .op(OpCode.RETURNDATACOPY);
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(codeOwnerAccount));
 
-    bytecodeRunner.run(gasCost + cornerCase);
+    bytecodeRunner.run(gasCost + cornerCase, List.of(codeOwnerAccount));
     if (cornerCase == -1) {
       assertEquals(
           OUT_OF_GAS_EXCEPTION,
@@ -449,7 +452,6 @@ public class OutOfGasMemExpExceptionTest {
     }
   }
 
-  // TODO: check log with debug
   @ParameterizedTest
   @ValueSource(ints = {0})
   void outOfGasExceptionLog1(int cornerCase) {

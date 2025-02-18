@@ -29,6 +29,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class IllegalModexpTest {
   @Test
   void test() {
-    replay(LINEA_MAINNET, "result.json.gz");
+    replay(LINEA_SEPOLIA, "result.json");
   }
 }

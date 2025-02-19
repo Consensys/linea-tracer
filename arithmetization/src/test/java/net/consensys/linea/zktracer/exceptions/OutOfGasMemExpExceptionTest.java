@@ -54,15 +54,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   /**
@@ -85,15 +79,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   /**
@@ -122,15 +110,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -141,7 +123,7 @@ public class OutOfGasMemExpExceptionTest {
     Bytes calldata =
         Bytes.fromHexString("0x7FFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
     program
-        .push(31) // value
+        .push(31) // size
         .push(1) // offset
         .push(2) // offset, trigger mem expansion
         .op(OpCode.CALLDATACOPY);
@@ -152,15 +134,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost(calldata);
 
     bytecodeRunner.run(Wei.fromEth(1), gasCost + cornerCase, List.of(), calldata);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -183,15 +159,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -228,15 +198,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -250,7 +214,7 @@ public class OutOfGasMemExpExceptionTest {
                 "0xF00000000000000000000000000000000000000000000000000000000000FFAA")) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
-        .push(3) // value
+        .push(3) // size
         .push(30) // offset
         .op(OpCode.RETURN);
 
@@ -260,15 +224,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -322,15 +280,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(codeOwnerAccount));
 
     bytecodeRunner.run(gasCost + cornerCase, List.of(codeOwnerAccount));
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -354,15 +306,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -441,15 +387,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -474,15 +414,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -510,15 +444,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -549,15 +477,9 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 
   @ParameterizedTest
@@ -591,14 +513,8 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
-    if (cornerCase == -1) {
-      assertEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    } else {
-      assertNotEquals(
-          OUT_OF_GAS_EXCEPTION,
-          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-    }
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
   }
 }

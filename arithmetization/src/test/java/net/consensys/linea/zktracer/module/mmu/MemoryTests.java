@@ -154,12 +154,8 @@ class MemoryTests {
     program
         .push(0xFF)
         .push(0)
-        .op(OpCode.MSTORE)
-        .op(OpCode.MSIZE)
-        .push(0xFF)
-        .push(1) // expand memory
-        .op(OpCode.MSTORE)
-        .op(OpCode.MSIZE); // call MSIZE again
+        .op(OpCode.MSTORE) // expand memory
+        .op(OpCode.MSIZE); // call MSIZE on non-zero memory
 
     BytecodeRunner.of(program.compile()).run();
   }

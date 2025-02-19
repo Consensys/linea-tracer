@@ -186,8 +186,7 @@ public class LowGasStipendPrecompileCallTests {
         .push(value) // value
         .push(precompileAddress) // address
         .push(gas) // gas
-        .op(OpCode.CALL)
-        .compile();
+        .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(61_000_000L, additionalAccounts);
     final Hub hub = bytecodeRunner.getHub();

@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -93,9 +95,13 @@ public class ModexpTestForSequencer {
             .transactionProcessingResultValidator(
                 TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .build();
-    // TODO: add try catch to catch the exception assert that what is failing is what is expected to
-    //  fail only
-    toyExecutionEnvironmentV2.run();
+
+    try {
+      toyExecutionEnvironmentV2.run();
+    } catch (IllegalArgumentException e) {
+      // This is expected when the input is invalid
+      assertTrue(willFailDueToConstraints);
+    }
   }
 
   private Stream<Arguments> modexpTestForSequencerSource() {

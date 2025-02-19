@@ -42,12 +42,14 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.oob.OobOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -85,9 +87,16 @@ public class LowGasStipendPrecompileCallTests {
   int ebs = 0;
   int mbs = 0;
   int exponentLog = 0;
+  static Address codeOwnerAddress = Address.fromHexString("0x" + "77".repeat(20));
 
   /**
-   * Parameterized test for low gas stipend precompile call.
+   * Parameterized test for low gas stipend precompile call. In this family of tests we call every
+   * precompile with hand-crafted gas parameters in the CALL. The frame itself is provided with
+   * ample gas, but we choose the gas parameter to be equal to the execution cost of the precompile
+   * contract (up to -1, 0, +1). This allows us to deliberately trigger failures in the precompiles
+   * due to insufficient gas and test that, on the contrary, calls to precompiles with *exactly* the
+   * right amount of gas are successful (given that other conditions are met in terms of the
+   * contents of the call data).
    *
    * @param precompileAddress the address of the precompile contract.
    * @param valueCase the value case (zero or non-zero).
@@ -133,7 +142,7 @@ public class LowGasStipendPrecompileCallTests {
     } else if (precompileAddress == MODEXP) {
       bbs = modexpCostGT200OrBlake2fRoundsGT0 ? 1 : 2;
       ebs = modexpCostGT200OrBlake2fRoundsGT0 ? 6 : 3;
-      mbs = modexpCostGT200OrBlake2fRoundsGT0 ? 19 : 4;
+      mbs = modexpCostGT200OrBlake2fRoundsGT0 ? 25 : 4;
       callDataSize = 96 + bbs + ebs + mbs;
       exponentLog = prepareModexp(bbs, mbs, ebs, callDataSize, program);
     } else {
@@ -141,23 +150,23 @@ public class LowGasStipendPrecompileCallTests {
       callDataSize = 1; // This is an arbitrary value
     }
 
-    // Compute the return size
-    final int returnAtCapacity = getReturnAtCapacity(precompileAddress, callDataSize, mbs);
+    // Set returnAtCapacity equal to the expected return size of the precompile call
+    final int returnAtCapacity = getExpectedReturnAtCapacity(precompileAddress, callDataSize, mbs);
 
     // Compute the precompile cost
     final int precompileCost =
         getPrecompileCost(precompileAddress, callDataSize, bbs, mbs, exponentLog, r);
 
-    // Compute the gas stipend in the different testing scenarios
+    // Compute the gas parameter of the CALL in the different testing scenarios
     int gas = getGas(gasCase, precompileCost);
 
     // In case funds are sent to the precompile contract (valueCase == NON_ZERO)
-    // a gas stipend of 2300 is added to the transaction.
+    // a gas stipend of 2300 is added to the precompile's frame initial gas.
     // We now deduce that gas stipend from the gas given to the transaction to trigger
     // insufficient gas for the precompile call in the non-trivial cases (COST_MINUS_ONE, COST,
     // COST_PLUS_ONE).
     // Note that we exclude the case of MODEXP as it is treated in a separate test
-    // and the case of ECADD as it has a fixed gas cost of 150.
+    // and the case of ECADD as it has a fixed gas cost of 150 < 2300.
     if (valueCase.isNonZeroCase()
         && (gasCase == GasCase.COST_MINUS_ONE
             || gasCase == GasCase.COST
@@ -179,7 +188,25 @@ public class LowGasStipendPrecompileCallTests {
         .op(OpCode.CALL)
         .compile();
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
-    bytecodeRunner.run(1_000_000L); // huge gas limit
+
+    List<ToyAccount> additionalAccounts = new ArrayList<>();
+
+    if (precompileAddress == MODEXP) {
+      // This contract is used to store the code of the MODEXP precompile
+      // Specifically, EXTCODECOPY will be used to copy the code of this contract in memory.
+      final ToyAccount codeOwnerAccount =
+          ToyAccount.builder()
+              .balance(Wei.fromEth(1))
+              .nonce(7)
+              .address(codeOwnerAddress)
+              .code(
+                  Bytes.fromHexString(
+                      "0x" + "aa".repeat(bbs) + "ff".repeat(ebs) + "bb".repeat(mbs)))
+              .build();
+      additionalAccounts.add(codeOwnerAccount);
+    }
+
+    bytecodeRunner.run(61_000_000L, additionalAccounts);
     final Hub hub = bytecodeRunner.getHub();
 
     // Here we check if OOB detects the insufficient gas for the precompile call
@@ -254,24 +281,16 @@ public class LowGasStipendPrecompileCallTests {
     final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
     final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
     final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
-    final Bytes32 bemPadded =
-        Bytes32.rightPad(
-            Bytes.fromHexString("0x" + "aa".repeat(bbs) + "ff".repeat(ebs) + "bb".repeat(mbs)));
-    // Note that is an arbitrary value respecting bbs, ebs, mbs
+    final Bytes bemPadded =
+        Bytes.fromHexString("0x" + "aa".repeat(bbs) + "ff".repeat(ebs) + "bb".repeat(mbs));
 
     program
-        .push(bbsPadded)
+        .push(codeOwnerAddress)
+        .op(OpCode.EXTCODESIZE) // size
         .push(0) // offset
-        .op(OpCode.MSTORE)
-        .push(ebsPadded)
-        .push(32) // offset
-        .op(OpCode.MSTORE)
-        .push(mbsPadded)
-        .push(64) // offset
-        .op(OpCode.MSTORE)
-        .push(bemPadded)
-        .push(96) // offset
-        .op(OpCode.MSTORE);
+        .push(0) // destOffset
+        .push(codeOwnerAddress) // address
+        .op(OpCode.EXTCODECOPY);
 
     // This is computed here for convenience, and it is used for pricing the MODEXP precompile
     return Math.max(
@@ -281,15 +300,16 @@ public class LowGasStipendPrecompileCallTests {
   }
 
   /**
-   * Computes the returnAtCapacity based on the precompile address, and callDataSize in the case of
-   * ID.
+   * Computes the expected returnAtCapacity based on the precompile address, and callDataSize in the
+   * case of ID.
    *
    * @param precompileAddress the address of the precompile contract.
    * @param callDataSize the call data size. Beyond the case of ID, this value is ignored.
    * @param mbs the modulo byte size. Beyond the case of MODEXP, this value is ignored.
-   * @return the computed return rac.
+   * @return the computed return at capacity.
    */
-  private static int getReturnAtCapacity(Address precompileAddress, int callDataSize, int mbs) {
+  private static int getExpectedReturnAtCapacity(
+      Address precompileAddress, int callDataSize, int mbs) {
     final int returnAtCapacity;
     if (precompileAddress == ECREC
         || precompileAddress == SHA256

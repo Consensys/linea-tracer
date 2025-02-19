@@ -14,20 +14,20 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork;
 
-import net.consensys.linea.testing.BytecodeCompiler;
-
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolder1;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolder2;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+
 public interface MemoryContents {
 
-    void switchVariants();
+  void switchVariants();
 
-    BytecodeCompiler memoryContents();
+  BytecodeCompiler memoryContents();
 
-    default void setCodeOfHolderAccounts() {
-        memoryContentsHolder1.code(this.memoryContents().compile());
-        this.switchVariants();
-        memoryContentsHolder2.code(this.memoryContents().compile());
-    }
+  default void setCodeOfHolderAccounts() {
+    memoryContentsHolder1.code(this.memoryContents().compile());
+    this.switchVariants();
+    memoryContentsHolder2.code(this.memoryContents().compile());
+  }
 }

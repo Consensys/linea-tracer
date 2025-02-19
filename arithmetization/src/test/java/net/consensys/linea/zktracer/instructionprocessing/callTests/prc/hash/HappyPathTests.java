@@ -146,8 +146,7 @@ public class HappyPathTests {
     }
   }
 
-  public void appendHappyPathPrecompileCall(
-      BytecodeCompiler program, CallParameters params) {
+  public void appendHappyPathPrecompileCall(BytecodeCompiler program, CallParameters params) {
 
     // if DISJOINT the "return at range"; it lives among words 2 and 3 of RAM
     switch (params.rac) {
@@ -203,8 +202,7 @@ public class HappyPathTests {
     program.op(params.call);
   }
 
-  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(
-      CallParameters params) {
+  private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParameters params) {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 

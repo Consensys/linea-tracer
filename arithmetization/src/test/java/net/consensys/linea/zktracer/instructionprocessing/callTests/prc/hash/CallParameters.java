@@ -53,8 +53,7 @@ public class CallParameters {
   }
 
   public CallParameters next() {
-    return new CallParameters(
-        call, gas, prc.next(), value, cdo, cds, rao, rac, relPos, willRevert);
+    return new CallParameters(call, gas, prc.next(), value, cdo, cds, rao, rac, relPos, willRevert);
   }
 
   public final boolean willMxpx() {

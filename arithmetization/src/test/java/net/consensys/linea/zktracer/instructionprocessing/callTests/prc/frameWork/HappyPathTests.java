@@ -14,75 +14,84 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork;
 
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.revertWith;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.runCreateDeployingForeignCodeAndCallIntoIt;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.revertWith;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.runCreateDeployingForeignCodeAndCallIntoIt;
-
 public abstract class HappyPathTests<T extends CallParameters> {
 
-    /**
-     * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case.
-     *
-     * <p>See {@link CodeExecutionMethods} for documentation and context.
-     *
-     * @param params
-     */
-    @ParameterizedTest
-    @MethodSource("happyPathParameterGeneration")
-    public void deploymentTransactionTest(T params) {
+  /** <b>MESSAGE_CALL_TRANSACTION</b> case, see {@link CodeExecutionMethods}. */
+  @ParameterizedTest
+  @MethodSource("happyPathParameterGeneration")
+  public void messageCallTransactionTest(T callParameter) {
 
-        BytecodeCompiler txInitCode = params.happyPathWipeReturnDataHappyPathProgram();
-        if (params.willRevert()) revertWith(txInitCode, 0, 0);
+    BytecodeCompiler rootCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    if (callParameter.willRevert()) revertWith(rootCode, 0, 5 * WORD_SIZE);
 
-        runDeploymentTransactionWithProvidedCodeAsInitCode(txInitCode);
-    }
+    runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
+  }
 
-    /**
-     * <b>MESSAGE_CALL_FROM_ROOT</b> case.
-     *
-     * <p>See {@link CodeExecutionMethods} for documentation and context.
-     */
-    @ParameterizedTest
-    @MethodSource("happyPathParameterGeneration")
-    public void messageCallFromRootTest(T params) {
-        BytecodeCompiler chadPrcEnjoyerCode = params.happyPathWipeReturnDataHappyPathProgram();
-        runMessageCallToAccountEndowedWithProvidedCode(chadPrcEnjoyerCode, params.willRevert());
-    }
+  /**
+   * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
+   *
+   * @param callParameter
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathParameterGeneration")
+  public void deploymentTransactionTest(T callParameter) {
 
-    /**
-     * <b>DURING_DEPLOYMENT</b> case.
-     *
-     * <p>See {@link CodeExecutionMethods} for documentation and context.
-     *
-     * <p>The {@link CodeExecutionMethods#root} contract fully copies the code of the account whose
-     * address is in the {@link CodeExecutionMethods#transaction} call data. This account is the
-     * {@link CodeExecutionMethods#chadPrcEnjoyer}. That code is then used as the initialization code
-     * of a <b>CREATE</b>. The whole operation optionally <b>REVERT</b>'s.
-     *
-     * @param params
-     */
-    @ParameterizedTest
-    @MethodSource("happyPathParameterGeneration")
-    public void happyPathDuringCreate(T params) {
-            BytecodeCompiler foreignCode = params.happyPathWipeReturnDataHappyPathProgram();
-            runForeignByteCodeAsInitCode(foreignCode, params.willRevert());
-    }
+    BytecodeCompiler txInitCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    if (callParameter.willRevert()) revertWith(txInitCode, 0, 0);
 
-    /**
-     * <b>AFTER_DEPLOYMENT</b> case.
-     *
-     * <p>See {@link CodeExecutionMethods} for documentation and context.
-     */
-    @ParameterizedTest
-    @MethodSource("happyPathParameterGeneration")
-    public void happyPathAfterCreate(T params) {
-            BytecodeCompiler chadPrcEnjoyerCode = params.happyPathWipeReturnDataHappyPathProgram();
-            runCreateDeployingForeignCodeAndCallIntoIt(chadPrcEnjoyerCode, params.willRevert());
-    }
+    runDeploymentTransactionWithProvidedCodeAsInitCode(txInitCode);
+  }
 
+  /**
+   * <b>MESSAGE_CALL_FROM_ROOT</b> case.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathParameterGeneration")
+  public void messageCallFromRootTest(T callParameter) {
+    BytecodeCompiler chadPrcEnjoyerCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    runMessageCallToAccountEndowedWithProvidedCode(chadPrcEnjoyerCode, callParameter.willRevert());
+  }
+
+  /**
+   * <b>DURING_DEPLOYMENT</b> case.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
+   *
+   * <p>The {@link CodeExecutionMethods#root} contract fully copies the code of the account whose
+   * address is in the {@link CodeExecutionMethods#transaction} call data. This account is the
+   * {@link CodeExecutionMethods#chadPrcEnjoyer}. That code is then used as the initialization code
+   * of a <b>CREATE</b>. The whole operation optionally <b>REVERT</b>'s.
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathParameterGeneration")
+  public void happyPathDuringCreate(T callParameter) {
+    BytecodeCompiler foreignCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    runForeignByteCodeAsInitCode(foreignCode, callParameter.willRevert());
+  }
+
+  /**
+   * <b>AFTER_DEPLOYMENT</b> case.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
+   */
+  @ParameterizedTest
+  @MethodSource("happyPathParameterGeneration")
+  public void happyPathAfterCreate(T callParameter) {
+    BytecodeCompiler chadPrcEnjoyerCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    runCreateDeployingForeignCodeAndCallIntoIt(chadPrcEnjoyerCode, callParameter.willRevert());
+  }
 }

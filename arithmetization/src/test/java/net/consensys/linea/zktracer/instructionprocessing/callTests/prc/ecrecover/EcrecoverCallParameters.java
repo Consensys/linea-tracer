@@ -14,16 +14,18 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecover;
 
-import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import org.hyperledger.besu.datatypes.Address;
-
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
-public class CallParameters implements net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.CallParameters {
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.CallParameters;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import org.hyperledger.besu.datatypes.Address;
+
+public class EcrecoverCallParameters
+    implements CallParameters {
 
   public final OpCode call;
   public final GasParameter gas;
@@ -32,7 +34,7 @@ public class CallParameters implements net.consensys.linea.zktracer.instructionp
   public final ReturnAtParameter returnAt;
   public final boolean willRevert;
 
-  public CallParameters(
+  public EcrecoverCallParameters(
       OpCode call,
       GasParameter gas,
       MemoryContents memoryContent,
@@ -51,7 +53,8 @@ public class CallParameters implements net.consensys.linea.zktracer.instructionp
     return willRevert;
   }
 
-  public net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.MemoryContents memoryContents() {
+  public net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.MemoryContents
+      memoryContents() {
     return memoryContents;
   }
 
@@ -61,7 +64,7 @@ public class CallParameters implements net.consensys.linea.zktracer.instructionp
     switch (returnAt) {
       case EMPTY -> program.push(0);
       case PARTIAL -> program.push(
-              12 + 6); // the first 12 bytes are zeros for successful ECRECOVER calls
+          12 + 6); // the first 12 bytes are zeros for successful ECRECOVER calls
       case FULL -> program.push(WORD_SIZE);
     }
 
@@ -97,5 +100,24 @@ public class CallParameters implements net.consensys.linea.zktracer.instructionp
     }
 
     program.op(call);
+  }
+
+  @Override
+  public String toString() {
+    return
+        "EcrecoverCallParameters{"
+            + "call="
+            + call
+            + ", gas="
+            + gas
+            + ", memoryContents="
+            + memoryContents
+            + ", cds="
+            + cds
+            + ", returnAt="
+            + returnAt
+            + ", willRevert="
+            + willRevert
+            + '}';
   }
 }

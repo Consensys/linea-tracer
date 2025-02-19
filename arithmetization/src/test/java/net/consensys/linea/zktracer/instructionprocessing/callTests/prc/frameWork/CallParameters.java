@@ -14,51 +14,55 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork;
 
-import net.consensys.linea.testing.BytecodeCompiler;
-import org.hyperledger.besu.datatypes.Address;
-
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolderAddress1;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolderAddress2;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import org.hyperledger.besu.datatypes.Address;
+
 public interface CallParameters {
 
-    boolean willRevert();
+  boolean willRevert();
 
-    MemoryContents memoryContents();
+  MemoryContents memoryContents();
 
-    void appendHappyPathPrecompileCall(BytecodeCompiler program);
+  void appendHappyPathPrecompileCall(BytecodeCompiler program);
 
-    default BytecodeCompiler happyPathWipeReturnDataHappyPathProgram() {
+  /**
+   * {@link #happyPathWipeReturnDataHappyPathProgram} constructs the byte code for the <b>happy
+   * path</b> testing of the relevant <b>PRECOMPILE</b>.
+   */
+  default BytecodeCompiler happyPathWipeReturnDataHappyPathProgram() {
 
-        BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-        // populate foreign accounts' byte code with call data
-        this.memoryContents().setCodeOfHolderAccounts();
+    // populate foreign accounts' byte code with call data
+    this.memoryContents().setCodeOfHolderAccounts();
 
-        // populate memory with the data for first PRECOMPILE call
-        copyForeignCodeToRam(program, memoryContentsHolderAddress1);
+    // populate memory with the data for first PRECOMPILE call
+    copyForeignCodeToRam(program, memoryContentsHolderAddress1);
 
-        // happy path: first PRECOMPILE call
-        this.appendHappyPathPrecompileCall(program);
-        copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x2a);
-        loadFirstReturnDataWordOntoStack(program, 0x02ff);
+    // happy path: first PRECOMPILE call
+    this.appendHappyPathPrecompileCall(program);
+    copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x2a);
+    loadFirstReturnDataWordOntoStack(program, 0x02ff);
 
-        // return data wiping
-        appendInsufficientBalanceCall(
-                program, CALL, 34_000, Address.fromHexString("b077c0ffee1337"), 13, 15, 17, 19);
-        copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 21);
-        loadFirstReturnDataWordOntoStack(program, 48);
+    // return data wiping
+    appendInsufficientBalanceCall(
+        program, CALL, 34_000, Address.fromHexString("b077c0ffee1337"), 13, 15, 17, 19);
+    copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 21);
+    loadFirstReturnDataWordOntoStack(program, 48);
 
-        // populate memory with the data for second PRECOMPILE call
-        copyForeignCodeToRam(program, memoryContentsHolderAddress2);
+    // populate memory with the data for second PRECOMPILE call
+    copyForeignCodeToRam(program, memoryContentsHolderAddress2);
 
-        // happy path: second PRECOMPILE call
-        this.appendHappyPathPrecompileCall(program);
-        copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x026c);
-        loadFirstReturnDataWordOntoStack(program, 0x00);
+    // happy path: second PRECOMPILE call
+    this.appendHappyPathPrecompileCall(program);
+    copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x026c);
+    loadFirstReturnDataWordOntoStack(program, 0x00);
 
-        return program;
-    }
+    return program;
+  }
 }

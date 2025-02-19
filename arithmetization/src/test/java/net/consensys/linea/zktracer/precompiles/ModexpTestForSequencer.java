@@ -45,7 +45,7 @@ public class ModexpTestForSequencer {
 
   @ParameterizedTest
   @MethodSource("modexpTestForSequencerSource")
-  void modexpTestForSequencer(Bytes input) {
+  void modexpTestForSequencer(Bytes input, boolean willFailDueToConstraints) {
     // arithmetization/src/test/resources/contracts/modexp/ModexpContract.sol
     // solc-select use 0.8.20
     // solc *.sol --bin-runtime --evm-version london -o compiledContracts
@@ -93,21 +93,28 @@ public class ModexpTestForSequencer {
             .transactionProcessingResultValidator(
                 TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .build();
-
+    // TODO: add try catch to catch the exception assert that what is failing is what is expected to
+    //  fail only
     toyExecutionEnvironmentV2.run();
   }
 
   private Stream<Arguments> modexpTestForSequencerSource() {
     List<Arguments> arguments = new ArrayList<>();
     for (ModexpCallDataWordVariants w1 : ModexpCallDataWordVariants.values()) {
-      arguments.add(Arguments.of(w1.getW()));
+      arguments.add(Arguments.of(w1.getW(), w1.isInvalid()));
       for (ModexpCallDataWordVariants w2 : ModexpCallDataWordVariants.values()) {
-        arguments.add(Arguments.of(Bytes.concatenate(w1.getW(), w2.getW())));
+        arguments.add(
+            Arguments.of(
+                Bytes.concatenate(w1.getW(), w2.getW()), w1.isInvalid() || w2.isInvalid()));
         for (ModexpCallDataWordVariants w3 : ModexpCallDataWordVariants.values()) {
-          arguments.add(Arguments.of(Bytes.concatenate(w1.getW(), w2.getW(), w3.getW())));
           arguments.add(
               Arguments.of(
-                  Bytes.concatenate(w1.getW(), w2.getW(), w3.getW(), Bytes.random(1536, RANDOM))));
+                  Bytes.concatenate(w1.getW(), w2.getW(), w3.getW()),
+                  w1.isInvalid() || w2.isInvalid() || w3.isInvalid()));
+          arguments.add(
+              Arguments.of(
+                  Bytes.concatenate(w1.getW(), w2.getW(), w3.getW(), Bytes.random(1536, RANDOM)),
+                  w1.isInvalid() || w2.isInvalid() || w3.isInvalid()));
         }
       }
     }

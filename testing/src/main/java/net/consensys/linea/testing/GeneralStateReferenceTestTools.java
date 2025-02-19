@@ -188,7 +188,9 @@ public class GeneralStateReferenceTestTools {
     blockValues.setBaseFee(Optional.of(Wei.of(1)));
     Account senderAccount = accounts.get(0);
     Account receiverAccount = accounts.get(1);
-    Bytes txPayload = spec.getTransaction(0).getPayload();
+    Transaction tx = spec.getTransaction(0);
+    Bytes txPayload = tx.getPayload();
+    Wei txValue = tx.getValue();
 
     MessageFrame initialMessageFrame =
         MessageFrame.builder()
@@ -200,8 +202,7 @@ public class GeneralStateReferenceTestTools {
             .blockHashLookup((__, ___) -> Hash.ZERO)
             .completer(messageFrame -> {})
             .apparentValue(Wei.ZERO)
-            // TODO: variable
-            .value(Wei.of(1))
+            .value(txValue)
             .inputData(txPayload)
             .originator(senderAccount.getAddress())
             .address(receiverAccount.getAddress())

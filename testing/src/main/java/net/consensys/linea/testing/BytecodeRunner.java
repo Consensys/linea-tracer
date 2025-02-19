@@ -157,12 +157,6 @@ public final class BytecodeRunner {
   BytecodeRunner: runOnlyForGasCost section
    */
 
-  // Ad-hoc senderBalance, gasLimit and accounts
-  public long runOnlyForGasCost(
-      Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts) {
-    return this.runOnlyForGasCost(senderBalance, gasLimit, additionalAccounts, Bytes.EMPTY);
-  }
-
   // Ad-hoc accounts
   public long runOnlyForGasCost(List<ToyAccount> additionalAccounts) {
     return this.runOnlyForGasCost(
@@ -181,6 +175,7 @@ public final class BytecodeRunner {
   }
 
   // Ad-hoc senderBalance, accounts and payload
+  // Uses LondonGasCalculator - update for fork upgrades
   // Does not include : accessListGas, codeDelegationGas
   public long runOnlyForGasCost(
       Wei senderBalance, Long gasLimit, List<ToyAccount> additionalAccounts, Bytes payload) {
@@ -212,6 +207,7 @@ public final class BytecodeRunner {
     if (!payload.isEmpty()) {
       txBuilder.payload(payload);
     }
+
     final Transaction tx = txBuilder.build();
 
     List<ToyAccount> accounts = new ArrayList<>();

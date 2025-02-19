@@ -138,8 +138,6 @@ public class OutOfGasExceptionTest {
       program.push("ca11ee").op(OpCode.BALANCE);
     }
 
-    int stipend = 0;
-
     program
         .push(0) // return at capacity
         .push(0) // return at offset
@@ -147,7 +145,7 @@ public class OutOfGasExceptionTest {
         .push(0) // call data offset
         .push(value) // value
         .push("ca11ee") // address
-        .push(stipend) // gas
+        .push(0) // gas for subcontext (floored at 2300)
         .op(OpCode.CALL);
 
     Bytes pgCompile = program.compile();
@@ -167,15 +165,6 @@ public class OutOfGasExceptionTest {
       gasCost = bytecodeRunner.runOnlyForGasCost();
       bytecodeRunner.run(gasCost + cornerCase);
     }
-
-    /*
-                long gasCostExt =
-        GAS_CONST_G_TRANSACTION
-                + // base gas cost
-                (isWarm ? GAS_CONST_G_VERY_LOW + GAS_CONST_G_COLD_ACCOUNT_ACCESS : 0) // PUSH + BALANCE
-                + 7 * GAS_CONST_G_VERY_LOW // 7 PUSH
-                + callGasCost(value != 0, targetAddressExists, isWarm); // CALL
-    */
 
     if (value == 0) {
       if (cornerCase == -1) {
@@ -200,20 +189,10 @@ public class OutOfGasExceptionTest {
     }
   }
 
-  /*
-      private long callGasCost(boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
-      Preconditions.checkArgument(
-              !(isWarm && !targetAddressExists), "isWarm implies targetAddressExists");
-      return (transfersValue ? GAS_CONST_G_CALL_VALUE : 0)
-              + (targetAddressExists ? 0 : (transfersValue ? GAS_CONST_G_NEW_ACCOUNT : 0))
-              + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
-    }
-  */
-
   static Stream<Arguments> outOfGasExceptionCallSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (int value : new int[] {1}) {
-      int[] cornerCaseSet = value == 0 ? new int[] {-1, 0, 1} : new int[] {2300};
+    for (int value : new int[] {0, 1}) {
+      int[] cornerCaseSet = value == 0 ? new int[] {-1, 0, 1} : new int[] {2299, 2300, 2301};
       for (int cornerCase : cornerCaseSet) {
         arguments.add(Arguments.of(value, true, true, cornerCase));
         arguments.add(Arguments.of(value, true, false, cornerCase));
@@ -275,7 +254,7 @@ public class OutOfGasExceptionTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
     long gasCost;
     if (cornerCase == -1) {
-      // JUMP needs a valid bytecode to jump to
+      // JUMP needs JUMPDEST to jump to
       // Calculate the gas cost to trigger OOGX on JUMP and not on the last but one opcode
       gasCost = GAS_CONST_G_TRANSACTION + GAS_CONST_G_VERY_LOW + GAS_CONST_G_MID;
     } else {
@@ -312,7 +291,7 @@ public class OutOfGasExceptionTest {
 
     long gasCost;
     if (cornerCase == -1) {
-      // JUMP needs a valid bytecode to jump to
+      // JUMPI needs JUMPDEST to jump to
       // Calculate the gas cost to trigger OOGX on JUMPI and not on the last but one opcode
       gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH;
     } else {

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.romlex;
 
+import static net.consensys.linea.zktracer.Utils.*;
 import static net.consensys.linea.zktracer.module.mmu.RevertingLogsTests.*;
 
 import java.util.List;

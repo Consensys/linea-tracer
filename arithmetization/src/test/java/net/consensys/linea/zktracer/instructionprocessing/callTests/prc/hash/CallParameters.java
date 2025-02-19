@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.hash;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
-public class HashPrecompileCallParameters {
+public class CallParameters {
   public final OpCode call;
   public GasParameter gas;
   public final HashPrecompile prc;
@@ -29,7 +29,7 @@ public class HashPrecompileCallParameters {
   public final RelativeRangePosition relPos;
   public final boolean willRevert;
 
-  public HashPrecompileCallParameters(
+  public CallParameters(
       OpCode call,
       GasParameter gas,
       HashPrecompile prc,
@@ -52,8 +52,8 @@ public class HashPrecompileCallParameters {
     this.willRevert = willRevert;
   }
 
-  public HashPrecompileCallParameters next() {
-    return new HashPrecompileCallParameters(
+  public CallParameters next() {
+    return new CallParameters(
         call, gas, prc.next(), value, cdo, cds, rao, rac, relPos, willRevert);
   }
 

@@ -26,7 +26,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
  * <p><b>[ h | v | r | s ]</b>
  *
  * <p>where <b>h</b>, <b>v</b>, <b>r</b> and <b>s</b> are <b>32</b>-byte integers and with the
- * precise contents being dictated by the enum. Most values of {@link MemoryContentsParameter}
+ * precise contents being dictated by the enum. Most values of {@link MemoryContents}
  * values are self-explanatory. We will test in particular:
  *
  * <p>- {@link #MALFORMED_AT_7f_BUT_SALVAGEABLE} for cases where s is correct <i>save for its final
@@ -38,7 +38,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
  * <p>- {@link #BOUNDARY_R} and {@link #BOUNDARY_S}: cases where <b>r</b> or <b>s</b> are equal to
  * <b>0</b> or the <b>secp256k1n</b> prime
  */
-public enum MemoryContentsParameter {
+public enum MemoryContents implements net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.MemoryContents {
   ZEROS,
   WELL_FORMED,
   MALFORMED_AT_7f_BUT_SALVAGEABLE,
@@ -111,12 +111,12 @@ public enum MemoryContentsParameter {
           RND.substring(192, 192 + WORD_HEX_SIZE));
 
   /**
-   * {@link #memoryContents} converts the {@link MemoryContentsParameter} into a {@link
+   * {@link #memoryContents} converts the {@link MemoryContents} into a {@link
    * BytecodeCompiler} (from which we will later extract a byte slice) containing "interesting"
    * memory contents for a <b>ECRECOVER</b> call.
    *
    * <p><b>Note.</b> Calling this method twice in a row on the same {@link
-   * MemoryContentsParameter}'s generally results in two different outputs. Indeed, this method
+   * MemoryContents}'s generally results in two different outputs. Indeed, this method
    * starts by switching the {@link #variant}.
    *
    * @return

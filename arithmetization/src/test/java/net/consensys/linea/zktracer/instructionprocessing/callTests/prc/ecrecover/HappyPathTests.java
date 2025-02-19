@@ -16,7 +16,6 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecov
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolder2;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
@@ -100,7 +99,7 @@ public class HappyPathTests {
    */
   private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(CallParameters params) {
 
-    setCodeOfHolderAccounts(params);
+    params.setCodeOfHolderAccounts();
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
@@ -129,18 +128,8 @@ public class HappyPathTests {
     return program;
   }
 
-  private void setCodeOfHolderAccounts(CallParameters params) {
-
-    // implicitly switches variants thus producing different contents
-    BytecodeCompiler contents1 = params.memoryContent.memoryContents();
-    BytecodeCompiler contents2 = params.memoryContent.memoryContents();
-
-    memoryContentsHolder1.code(contents1.compile());
-    memoryContentsHolder2.code(contents2.compile());
-  }
-
   public static Stream<Arguments> happyPathParameterGeneration() {
-    return ParameterGeneration.happyPathParameterGeneration();
+    return ParameterGeneration.parameterGeneration();
   }
 
   /** Constructs a call to the <b>ECRECOVER</b> precompile in terms of {@link CallParameters}. */

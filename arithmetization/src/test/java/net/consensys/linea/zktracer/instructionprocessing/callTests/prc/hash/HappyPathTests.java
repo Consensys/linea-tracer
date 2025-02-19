@@ -75,7 +75,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void messageCallTransactionTest(HashPrecompileCallParameters params) {
+  public void messageCallTransactionTest(CallParameters params) {
     if (!params.willRevert) {
       BytecodeCompiler rootCode = happyPathWipeReturnDataHappyPathProgram(params);
       runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
@@ -91,7 +91,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void deploymentTransactionTest(HashPrecompileCallParameters params) {
+  public void deploymentTransactionTest(CallParameters params) {
 
     BytecodeCompiler txInitCode = happyPathWipeReturnDataHappyPathProgram(params);
     if (params.willRevert) revertWith(txInitCode, 0, 0);
@@ -106,7 +106,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void messageCallFromRootTest(HashPrecompileCallParameters params) {
+  public void messageCallFromRootTest(CallParameters params) {
     BytecodeCompiler chadPrcEnjoyerCode = happyPathWipeReturnDataHappyPathProgram(params);
     runMessageCallToAccountEndowedWithProvidedCode(chadPrcEnjoyerCode, params.willRevert);
   }
@@ -125,7 +125,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void happyPathDuringCreate(HashPrecompileCallParameters params) {
+  public void happyPathDuringCreate(CallParameters params) {
     if (!params.willMxpx()) {
       BytecodeCompiler foreignCode = happyPathWipeReturnDataHappyPathProgram(params);
       runForeignByteCodeAsInitCode(foreignCode, params.willRevert);
@@ -139,7 +139,7 @@ public class HappyPathTests {
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
-  public void happyPathAfterCreate(HashPrecompileCallParameters params) {
+  public void happyPathAfterCreate(CallParameters params) {
     if (!params.willMxpx()) {
       BytecodeCompiler chadPrcEnjoyerCode = happyPathWipeReturnDataHappyPathProgram(params);
       runCreateDeployingForeignCodeAndCallIntoIt(chadPrcEnjoyerCode, params.willRevert);
@@ -147,7 +147,7 @@ public class HappyPathTests {
   }
 
   public void appendHappyPathPrecompileCall(
-      BytecodeCompiler program, HashPrecompileCallParameters params) {
+      BytecodeCompiler program, CallParameters params) {
 
     // if DISJOINT the "return at range"; it lives among words 2 and 3 of RAM
     switch (params.rac) {
@@ -204,7 +204,7 @@ public class HappyPathTests {
   }
 
   private BytecodeCompiler happyPathWipeReturnDataHappyPathProgram(
-      HashPrecompileCallParameters params) {
+      CallParameters params) {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 

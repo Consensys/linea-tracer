@@ -51,7 +51,7 @@ public class ParameterGeneration {
                     // adding PrecompileCallParameters
                     argumentsList.add(
                         Arguments.of(
-                            new HashPrecompileCallParameters(
+                            new CallParameters(
                                 callOpcode,
                                 gas,
                                 precompile,
@@ -64,7 +64,7 @@ public class ParameterGeneration {
                                 true)));
                     argumentsList.add(
                         Arguments.of(
-                            new HashPrecompileCallParameters(
+                            new CallParameters(
                                 callOpcode,
                                 gas,
                                 precompile,

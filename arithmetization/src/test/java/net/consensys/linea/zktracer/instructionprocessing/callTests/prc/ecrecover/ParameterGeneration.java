@@ -28,7 +28,7 @@ import org.junit.jupiter.params.provider.Arguments;
 
 public class ParameterGeneration {
 
-  public static Stream<Arguments> happyPathParameterGeneration() {
+  public static Stream<Arguments> parameterGeneration() {
     List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
     List<GasParameter> GasParameters = List.of(ZERO, COST_MO, COST, FULL);
     List<ReturnAtParameter> ReturnAtParameters =
@@ -38,7 +38,7 @@ public class ParameterGeneration {
 
     for (OpCode opCode : CallOpCodes) { // 4
       for (GasParameter gas : GasParameters) { // 4
-        for (MemoryContentsParameter memoryContent : MemoryContentsParameter.values()) { // 9
+        for (MemoryContents memoryContent : MemoryContents.values()) { // 9
           for (CallDataSizeParameter cds : CallDataSizeParameter.values()) { // 10
             for (ReturnAtParameter returnAt : ReturnAtParameters) { // 3
 

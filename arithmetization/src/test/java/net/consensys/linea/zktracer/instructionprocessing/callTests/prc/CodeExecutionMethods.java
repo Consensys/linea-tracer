@@ -32,11 +32,11 @@ import org.hyperledger.besu.datatypes.Wei;
 /**
  * The following class provides methods to run code in the following contexts:
  *
- * <p>- <b>MESSAGE_CALL_TRANSACTION</b>: at depth 0 in the root context of a
+ * <p>- <b>MESSAGE_CALL_TRANSACTION</b>: at depth 0 in the root context of a message call transaction
  *
- * <p>- <b>CONTRACT_DEPLOYMENT_TRANSACTION</b>: at depth 0 in the root context of a
+ * <p>- <b>CONTRACT_DEPLOYMENT_TRANSACTION</b>: at depth 0 in the root context of a contract deployment transaction
  *
- * <p>- <b>MESSAGE_CALL_FROM_ROOT</b>: at depth 1 as the byte code executed in a <b>CALL</b>
+ * <p>- <b>MESSAGE_CALL_FROM_ROOT</b>: at depth 1 as the byte code executed in a <b>CALL</b> to a SMC
  *
  * <p>- <b>DURING_DEPLOYMENT</b>: at depth 1 as the init code of a <b>CREATE</b>
  *

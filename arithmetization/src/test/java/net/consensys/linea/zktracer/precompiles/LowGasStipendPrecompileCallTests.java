@@ -86,8 +86,9 @@ public class LowGasStipendPrecompileCallTests {
   int bbs = 0;
   int ebs = 0;
   int mbs = 0;
+  List<ToyAccount> additionalAccounts = new ArrayList<>();
+  Address codeOwnerAddress = Address.fromHexString("0xC0DE");
   int exponentLog = 0;
-  static Address codeOwnerAddress = Address.fromHexString("0x" + "77".repeat(20));
 
   /**
    * Parameterized test for low gas stipend precompile call. In this family of tests we call every
@@ -144,7 +145,7 @@ public class LowGasStipendPrecompileCallTests {
       ebs = modexpCostGT200OrBlake2fRoundsGT0 ? 6 : 3;
       mbs = modexpCostGT200OrBlake2fRoundsGT0 ? 25 : 4;
       callDataSize = 96 + bbs + ebs + mbs;
-      exponentLog = prepareModexp(bbs, mbs, ebs, callDataSize, program);
+      prepareModexp(bbs, mbs, ebs, callDataSize, program);
     } else {
       // ECADD, ECMUL, ECRECOVER cases
       callDataSize = 1; // This is an arbitrary value
@@ -188,24 +189,6 @@ public class LowGasStipendPrecompileCallTests {
         .op(OpCode.CALL)
         .compile();
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
-
-    List<ToyAccount> additionalAccounts = new ArrayList<>();
-
-    if (precompileAddress == MODEXP) {
-      // This contract is used to store the code of the MODEXP precompile
-      // Specifically, EXTCODECOPY will be used to copy the code of this contract in memory.
-      final ToyAccount codeOwnerAccount =
-          ToyAccount.builder()
-              .balance(Wei.fromEth(1))
-              .nonce(7)
-              .address(codeOwnerAddress)
-              .code(
-                  Bytes.fromHexString(
-                      "0x" + "aa".repeat(bbs) + "ff".repeat(ebs) + "bb".repeat(mbs)))
-              .build();
-      additionalAccounts.add(codeOwnerAccount);
-    }
-
     bytecodeRunner.run(61_000_000L, additionalAccounts);
     final Hub hub = bytecodeRunner.getHub();
 
@@ -262,8 +245,7 @@ public class LowGasStipendPrecompileCallTests {
   }
 
   // Support methods
-  private static void prepareBlake2F(
-      BytecodeCompiler program, int rLeadingByte, int callDataOffset) {
+  private void prepareBlake2F(BytecodeCompiler program, int rLeadingByte, int callDataOffset) {
     program
         .push(rLeadingByte) // For simplicity, we only set the first byte of r
         .push(callDataOffset + 2) // offset
@@ -276,14 +258,29 @@ public class LowGasStipendPrecompileCallTests {
     populateMemory(program, nWords, callDataOffset);
   }
 
-  private static int prepareModexp(
+  private void prepareModexp(
       int bbs, int mbs, int ebs, int callDataSize, BytecodeCompiler program) {
     final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
     final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
     final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
-    final Bytes bemPadded =
+    final Bytes bem =
         Bytes.fromHexString("0x" + "aa".repeat(bbs) + "ff".repeat(ebs) + "bb".repeat(mbs));
+    final Bytes modexpInput = Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bem);
 
+    // codeOwnerAccount owns the bytecode that will be given as input to MODEXP through EXTCODECOPY
+    final ToyAccount codeOwnerAccount =
+        ToyAccount.builder()
+            .balance(Wei.of(0))
+            .nonce(1)
+            .address(codeOwnerAddress)
+            .code(modexpInput)
+            .build();
+    additionalAccounts = List.of(codeOwnerAccount);
+
+    // This is computed here for convenience, and it is used for pricing the MODEXP precompile
+    exponentLog = Math.max(OobOperation.computeExponentLog(modexpInput, callDataSize, bbs, ebs), 1);
+
+    // Copy to offset 0 the code of codeOwnerAccount
     program
         .push(codeOwnerAddress)
         .op(OpCode.EXTCODESIZE) // size
@@ -291,12 +288,6 @@ public class LowGasStipendPrecompileCallTests {
         .push(0) // destOffset
         .push(codeOwnerAddress) // address
         .op(OpCode.EXTCODECOPY);
-
-    // This is computed here for convenience, and it is used for pricing the MODEXP precompile
-    return Math.max(
-        OobOperation.computeExponentLog(
-            Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bemPadded), callDataSize, bbs, ebs),
-        1);
   }
 
   /**

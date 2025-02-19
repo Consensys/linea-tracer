@@ -145,7 +145,7 @@ public class LowGasStipendPrecompileCallTests {
       ebs = modexpCostGT200OrBlake2fRoundsGT0 ? 6 : 3;
       mbs = modexpCostGT200OrBlake2fRoundsGT0 ? 25 : 4;
       callDataSize = 96 + bbs + ebs + mbs;
-      prepareModexp(bbs, mbs, ebs, callDataSize, program);
+      prepareModexp(bbs, mbs, ebs, callDataOffset, callDataSize, program);
     } else {
       // ECADD, ECMUL, ECRECOVER cases
       callDataSize = 1; // This is an arbitrary value
@@ -259,7 +259,7 @@ public class LowGasStipendPrecompileCallTests {
   }
 
   private void prepareModexp(
-      int bbs, int mbs, int ebs, int callDataSize, BytecodeCompiler program) {
+      int bbs, int mbs, int ebs, int targetOffset, int callDataSize, BytecodeCompiler program) {
     final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
     final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
     final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
@@ -280,12 +280,12 @@ public class LowGasStipendPrecompileCallTests {
     // This is computed here for convenience, and it is used for pricing the MODEXP precompile
     exponentLog = Math.max(OobOperation.computeExponentLog(modexpInput, callDataSize, bbs, ebs), 1);
 
-    // Copy to offset 0 the code of codeOwnerAccount
+    // Copy to targetOffset the code of codeOwnerAccount
     program
         .push(codeOwnerAddress)
         .op(OpCode.EXTCODESIZE) // size
         .push(0) // offset
-        .push(0) // destOffset
+        .push(targetOffset) // targetOffset
         .push(codeOwnerAddress) // address
         .op(OpCode.EXTCODECOPY);
   }

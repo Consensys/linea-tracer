@@ -1,5 +1,18 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourths;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_VALUE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_TRANSACTION;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_VERY_LOW;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
+import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Test;
 
 /*
@@ -35,5 +48,41 @@ public class sixtyThreeSixtyFourthsTests {
         An option may be sending some value to the contract first to do not pay this 25000 during the test.
      */
 
+    final BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program.push(4096 - 32).op(OpCode.MLOAD);
+
+    long cost =
+        GAS_CONST_G_TRANSACTION
+            + GAS_CONST_G_VERY_LOW // PUSH
+            + GAS_CONST_G_VERY_LOW
+            + 416 // MLOAD
+            + GAS_CONST_G_VERY_LOW * 7 // 7 PUSHes
+        ; // + callGasCostExcludingMemoryExpansion(false, true, false); ?
+
+    program
+        .push(0) // returnAtCapacity
+        .push(0) // returnAtOffset
+        .push(0) // callDataSize
+        .push(0) // callDataOffset
+        .push(0) // value
+        .push(ALTBN128_ADD) // address
+        .push(150) // gas
+        .op(OpCode.CALL);
+
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
+
+    bytecodeRunner.run(cost - 1);
+
+    assertEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+  }
+
+  private long callGasCostExcludingMemoryExpansion(
+      boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
+    return (transfersValue ? GAS_CONST_G_CALL_VALUE : 0)
+        + (targetAddressExists ? 0 : (transfersValue ? GAS_CONST_G_NEW_ACCOUNT : 0))
+        + (isWarm ? GAS_CONST_G_WARM_ACCESS : GAS_CONST_G_COLD_ACCOUNT_ACCESS);
   }
 }

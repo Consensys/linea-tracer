@@ -14,81 +14,81 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecover;
 
-import net.consensys.linea.testing.BytecodeCompiler;
-import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
-
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContentsParameter.MAX_WORD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
-public record EcRecoverTuple(
-    String h,
-    String v,
-    String r,
-    String s
-) {
+import net.consensys.linea.testing.BytecodeCompiler;
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 
-    public static String SECP_256_K1N = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
-    public static String ZERO = "00".repeat(WORD_SIZE);
+public record EcRecoverTuple(String h, String v, String r, String s) {
 
-    /**
-     * {@link #memoryContents} converts the {@link EcRecoverTuple} into the byte slice
-     *
-     * <p><b>[ h | v | r | s | ff .. ff ]</b>
-     *
-     * <p>and optionally on {@code changeFinalByteOfS} modifies the final byte of <b>s</b>.
-     * As per usual, the purpose of the last EVM word is to be overwritten by return data.
-     * @param changeFinalByteOfS
-     * @return
-     */
-    public BytecodeCompiler memoryContents(boolean changeFinalByteOfS) {
-        Bytes hBytes = Bytes32.leftPad(Bytes.fromHexString(h));
-        Bytes vBytes = Bytes32.leftPad(Bytes.fromHexString(v));
-        Bytes rBytes = Bytes32.leftPad(Bytes.fromHexString(r));
-        Bytes sBytes = Bytes32.leftPad(Bytes.fromHexString(s));
+  public static String SECP_256_K1N =
+      "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141";
+  public static String ZERO = "00".repeat(WORD_SIZE);
 
-        if (changeFinalByteOfS) {
-            sBytes = sBytes.xor(Bytes32.leftPad(Bytes.ofUnsignedLong(0xff)));
-        }
+  /**
+   * {@link #memoryContents} converts the {@link EcRecoverTuple} into the byte slice
+   *
+   * <p><b>[ h | v | r | s | ff .. ff ]</b>
+   *
+   * <p>and optionally on {@code changeFinalByteOfS} modifies the final byte of <b>s</b>. As per
+   * usual, the purpose of the last EVM word is to be overwritten by return data.
+   *
+   * @param changeFinalByteOfS
+   * @return
+   */
+  public BytecodeCompiler memoryContents(boolean changeFinalByteOfS) {
+    Bytes hBytes = Bytes32.leftPad(Bytes.fromHexString(h));
+    Bytes vBytes = Bytes32.leftPad(Bytes.fromHexString(v));
+    Bytes rBytes = Bytes32.leftPad(Bytes.fromHexString(r));
+    Bytes sBytes = Bytes32.leftPad(Bytes.fromHexString(s));
 
-        Bytes pointData = Bytes.concatenate(hBytes, vBytes, rBytes, sBytes, Bytes.fromHexString(MAX_WORD));
-
-        checkState(pointData.size() == 5 * WORD_SIZE);
-
-        BytecodeCompiler memoryContents = BytecodeCompiler.newProgram();
-        memoryContents.immediate(pointData);
-
-        return memoryContents;
+    if (changeFinalByteOfS) {
+      sBytes = sBytes.xor(Bytes32.leftPad(Bytes.ofUnsignedLong(0xff)));
     }
 
-    /**
-     * {@link #replaceR} produces a copy of {@code this} with {@link #r} replaced by either
-     *
-     * <p>- {@link #ZERO}
-     * <p>- {@link #SECP_256_K1N}
-     *
-     * @param useZero
-     * @return
-     */
-    public EcRecoverTuple replaceR(boolean useZero) {
-        return new EcRecoverTuple(h, v, zeroOrPrime(useZero), s);
-    }
+    Bytes pointData =
+        Bytes.concatenate(hBytes, vBytes, rBytes, sBytes, Bytes.fromHexString(MAX_WORD));
 
-    /**
-     * {@link #replaceS} produces a copy of {@code this} with {@link #s} replaced by either
-     *
-     * <p>- {@link #ZERO}
-     * <p>- {@link #SECP_256_K1N}
-     *
-     * @param useZero
-     * @return
-     */
-    public EcRecoverTuple replaceS(boolean useZero) {
-        return new EcRecoverTuple(h, v, r, zeroOrPrime(useZero));
-    }
+    checkState(pointData.size() == 5 * WORD_SIZE);
 
-    private String zeroOrPrime(boolean returnZero) {
-        return returnZero ? ZERO : SECP_256_K1N;
-    }
+    BytecodeCompiler memoryContents = BytecodeCompiler.newProgram();
+    memoryContents.immediate(pointData);
+
+    return memoryContents;
+  }
+
+  /**
+   * {@link #replaceR} produces a copy of {@code this} with {@link #r} replaced by either
+   *
+   * <p>- {@link #ZERO}
+   *
+   * <p>- {@link #SECP_256_K1N}
+   *
+   * @param useZero
+   * @return
+   */
+  public EcRecoverTuple replaceR(boolean useZero) {
+    return new EcRecoverTuple(h, v, zeroOrPrime(useZero), s);
+  }
+
+  /**
+   * {@link #replaceS} produces a copy of {@code this} with {@link #s} replaced by either
+   *
+   * <p>- {@link #ZERO}
+   *
+   * <p>- {@link #SECP_256_K1N}
+   *
+   * @param useZero
+   * @return
+   */
+  public EcRecoverTuple replaceS(boolean useZero) {
+    return new EcRecoverTuple(h, v, r, zeroOrPrime(useZero));
+  }
+
+  private String zeroOrPrime(boolean returnZero) {
+    return returnZero ? ZERO : SECP_256_K1N;
+  }
 }

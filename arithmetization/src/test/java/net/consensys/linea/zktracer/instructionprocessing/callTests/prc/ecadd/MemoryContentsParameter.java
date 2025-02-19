@@ -82,6 +82,9 @@ public enum MemoryContentsParameter {
    */
   public BytecodeCompiler memoryContents() {
 
+    // we switch with every call
+    this.switchVariants();
+
     // Note that 4 = 2 * 2. We need 4 * 32 hex characters for the data representing a point.
     String pointData =
         switch (this) {

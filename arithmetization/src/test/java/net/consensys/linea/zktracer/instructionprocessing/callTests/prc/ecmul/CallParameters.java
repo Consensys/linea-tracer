@@ -14,13 +14,13 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
 
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolder1;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolder2;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
 import net.consensys.linea.zktracer.opcode.OpCode;
-
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.codeHolder1;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.codeHolder2;
 
 public class CallParameters {
   public final OpCode call;
@@ -45,18 +45,12 @@ public class CallParameters {
     this.willRevert = willRevert;
   }
 
-  public void switchVariants() {
-    memoryContent.switchVariants();
-  }
-
   public void setCodeOfHolderAccounts() {
 
     BytecodeCompiler code1 = this.memoryContent.memoryContents();
-    this.switchVariants();
-
     BytecodeCompiler code2 = this.memoryContent.memoryContents();
 
-    codeHolder1.code(code1.compile());
-    codeHolder2.code(code2.compile());
+    memoryContentsHolder1.code(code1.compile());
+    memoryContentsHolder2.code(code2.compile());
   }
 }

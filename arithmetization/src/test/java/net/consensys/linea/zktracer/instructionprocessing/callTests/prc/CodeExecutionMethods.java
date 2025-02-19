@@ -47,27 +47,33 @@ public class CodeExecutionMethods {
 
   public static final Address rootAddress = Address.fromHexString("7007");
   public static final ToyAccount.ToyAccountBuilder root =
-      ToyAccount.builder().address(rootAddress).balance(Wei.of(65536L)).nonce(1865);
+      ToyAccount.builder().address(rootAddress).balance(Wei.of(0xff1122ccL)).nonce(1865);
 
   public static final Address chadPrcEnjoyerAddress = Address.fromHexString("cbad");
   public static final ToyAccount.ToyAccountBuilder chadPrcEnjoyer =
-      ToyAccount.builder().address(chadPrcEnjoyerAddress).balance(Wei.of(1024L)).nonce(64);
+      ToyAccount.builder().address(chadPrcEnjoyerAddress).balance(Wei.of(0xff003300L)).nonce(64);
 
   public static final Address initCodeOwnerAddress = Address.fromHexString("1717");
   public static final ToyAccount.ToyAccountBuilder initCodeOwner =
-      ToyAccount.builder().address(initCodeOwnerAddress).balance(Wei.of(0x1337L)).nonce(127);
+      ToyAccount.builder().address(initCodeOwnerAddress).balance(Wei.of(0xff1337L)).nonce(127);
 
   public static final Address foreignCodeOwnerAddress = Address.fromHexString("f00d");
   public static final ToyAccount.ToyAccountBuilder foreignCodeOwner =
-      ToyAccount.builder().address(foreignCodeOwnerAddress).balance(Wei.of(0x1789L)).nonce(255);
+      ToyAccount.builder().address(foreignCodeOwnerAddress).balance(Wei.of(0xff1789L)).nonce(255);
 
-  public static final Address codeHolderAddress1 = Address.fromHexString("d00d");
-  public static final ToyAccount.ToyAccountBuilder codeHolder1 =
-      ToyAccount.builder().address(codeHolderAddress1).balance(Wei.of(0x2025)).nonce(0x11aaff);
+  public static final Address memoryContentsHolderAddress1 = Address.fromHexString("d00d");
+  public static final ToyAccount.ToyAccountBuilder memoryContentsHolder1 =
+      ToyAccount.builder()
+          .address(memoryContentsHolderAddress1)
+          .balance(Wei.of(0xff2025L))
+          .nonce(0x11aaff);
 
-  public static final Address codeHolderAddress2 = Address.fromHexString("dada");
-  public static final ToyAccount.ToyAccountBuilder codeHolder2 =
-      ToyAccount.builder().address(codeHolderAddress2).balance(Wei.of(0x2025)).nonce(0x11aaff);
+  public static final Address memoryContentsHolderAddress2 = Address.fromHexString("dada");
+  public static final ToyAccount.ToyAccountBuilder memoryContentsHolder2 =
+      ToyAccount.builder()
+          .address(memoryContentsHolderAddress2)
+          .balance(Wei.of(0xff1776L))
+          .nonce(0x11aabb);
 
   public static final ToyTransaction.ToyTransactionBuilder transaction =
       ToyTransaction.builder()
@@ -226,7 +232,7 @@ public class CodeExecutionMethods {
         initCodeOwner.build(),
         foreignCodeOwner.build(),
         chadPrcEnjoyer.build(),
-        codeHolder1.build(),
-        codeHolder2.build());
+        memoryContentsHolder1.build(),
+        memoryContentsHolder2.build());
   }
 }

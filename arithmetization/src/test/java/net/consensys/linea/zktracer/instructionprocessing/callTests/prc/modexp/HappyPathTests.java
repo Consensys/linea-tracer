@@ -163,7 +163,7 @@ public class HappyPathTests {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // populate memory with the data for first MODEXP call
-    copyForeignCodeToRam(program, codeHolderAddress1);
+    copyForeignCodeToRam(program, memoryContentsHolderAddress1);
 
     // happy path: first MODEXP call
     appendHappyPathPrecompileCall(program, params, variant1);
@@ -177,7 +177,7 @@ public class HappyPathTests {
     loadFirstReturnDataWordOntoStack(program, 48);
 
     // populate memory with the data for second MODEXP call
-    copyForeignCodeToRam(program, codeHolderAddress2);
+    copyForeignCodeToRam(program, memoryContentsHolderAddress2);
 
     // happy path: second MODEXP call
     appendHappyPathPrecompileCall(program, params, variant2);
@@ -188,8 +188,9 @@ public class HappyPathTests {
   }
 
   /**
-   * Populate the byte code of {@link CodeExecutionMethods#codeHolder1} and {@link
-   * CodeExecutionMethods#codeHolder2} with "byte code" that is well-formed data for a MODEXP call.
+   * Populate the byte code of {@link CodeExecutionMethods#memoryContentsHolder1} and {@link
+   * CodeExecutionMethods#memoryContentsHolder2} with "byte code" that is well-formed data for a
+   * MODEXP call.
    *
    * @param params
    */
@@ -198,8 +199,8 @@ public class HappyPathTests {
     String code1 = params.callData.wellFormedCallDataForModexpCall(variant1);
     String code2 = params.callData.wellFormedCallDataForModexpCall(variant2);
 
-    codeHolder1.code(Bytes.fromHexString(code1));
-    codeHolder2.code(Bytes.fromHexString(code2));
+    memoryContentsHolder1.code(Bytes.fromHexString(code1));
+    memoryContentsHolder2.code(Bytes.fromHexString(code2));
   }
 
   public static Stream<Arguments> happyPathParameterGeneration() {

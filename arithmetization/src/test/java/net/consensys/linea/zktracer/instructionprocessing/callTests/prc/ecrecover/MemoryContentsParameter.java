@@ -90,13 +90,13 @@ public enum MemoryContentsParameter {
           "4f8ae3bd7535248d0bd448298cc2e2071e56992d0774dc340c368ae950852ada");
 
   /**
-   * {@link #EVM_CODES_EXAMPLE_MANIPULATED} is derived rom that of {@link #EVM_CODES_EXAMPLE} via
+   * {@link #EVM_CODES_EXAMPLE_MALLEABLE} is derived from {@link #EVM_CODES_EXAMPLE} via
    *
-   * <p>switch v to other value (27 ↔ 28)
+   * <p>- switching v to other value (27 ↔ 28)
    *
-   * <p>{@link EcRecoverTuple#SECP_256_K1N} - s
+   * <p>- switching s to its opposite (s' ← {@link EcRecoverTuple#SECP_256_K1N} - s)
    */
-  public static final EcRecoverTuple EVM_CODES_EXAMPLE_MANIPULATED =
+  public static final EcRecoverTuple EVM_CODES_EXAMPLE_MALLEABLE =
       new EcRecoverTuple(
           "456e9aea5e197a1f1af7a3e85a3212fa4049a3ba34c2289b4c860fc0b0c64ef3",
           "27",
@@ -111,8 +111,9 @@ public enum MemoryContentsParameter {
           RND.substring(192, 192 + WORD_HEX_SIZE));
 
   /**
-   * {@link #memoryContents} converts the {@link MemoryContentsParameter} into a byte slice
-   * containing "interesting" memory contents for a <b>ECRECOVER</b> call.
+   * {@link #memoryContents} converts the {@link MemoryContentsParameter} into a {@link
+   * BytecodeCompiler} (from which we will later extract a byte slice) containing "interesting"
+   * memory contents for a <b>ECRECOVER</b> call.
    *
    * <p><b>Note.</b> Calling this method twice in a row on the same {@link
    * MemoryContentsParameter}'s generally results in two different outputs. Indeed, this method
@@ -161,7 +162,7 @@ public enum MemoryContentsParameter {
       case MALLEABLE -> {
         return variant
             ? EVM_CODES_EXAMPLE.memoryContents(false)
-            : EVM_CODES_EXAMPLE_MANIPULATED.memoryContents(false);
+            : EVM_CODES_EXAMPLE_MALLEABLE.memoryContents(false);
       }
       default -> throw new RuntimeException("Unknown MemoryContentsParameter");
     }

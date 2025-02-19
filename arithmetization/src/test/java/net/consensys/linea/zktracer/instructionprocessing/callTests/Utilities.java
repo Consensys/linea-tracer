@@ -169,16 +169,16 @@ public class Utilities {
     program
         .push(WORD_SIZE)
         .op(RETURNDATASIZE)
-        .op(LT) // stack: [ c | ... [, where c ≡ [RDS < 32]
+        .op(LT) // stack: | ... | c ], where c ≡ [RDS < 32]
         .op(DUP1)
         .push(1)
-        .op(SUB) // stack: [ d | c | ... [, where d ≡ ¬c ≡ [RDS ≥ 32]
+        .op(SUB) // stack: | ... | c | d ], where d ≡ ¬c ≡ [RDS ≥ 32]
         .push(WORD_SIZE)
-        .op(MUL) // stack: [ (d ? 32 : 0) | c | ... [
-        .op(SWAP1) // stack: [ c | (d ? 32 : 0) | ... [
+        .op(MUL) // stack: | ... | c | (d ? 32 : 0) ]
+        .op(SWAP1) // stack:  | ... | (d ? 32 : 0) | c ]
         .op(RETURNDATASIZE)
-        .op(MUL) // stack: [ (c ? RDS : 0) | (d ? 32 : 0) | ... [
-        .op(ADD) // stack: [ min(RDS, 32) | ... [
+        .op(MUL) // stack: | ... | (d ? 32 : 0) | (c ? RDS : 0) ]
+        .op(ADD) // stack: | ... | min(RDS, 32) ]
     ;
   }
 

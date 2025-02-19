@@ -14,47 +14,47 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
 
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
-import net.consensys.linea.zktracer.opcode.OpCode;
-import org.junit.jupiter.params.provider.Arguments;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.STATICCALL;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.STATICCALL;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import org.junit.jupiter.params.provider.Arguments;
 
 public class ParameterGeneration {
 
-    public static Stream<Arguments> happyPathParameterGeneration() {
-        List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
-        List<GasParameter> GasParameters =
-                List.of(GasParameter.ZERO, GasParameter.COST_MO, GasParameter.COST, GasParameter.FULL);
-        List<ReturnAtParameter> ReturnAtParameters =
-                List.of(ReturnAtParameter.EMPTY, ReturnAtParameter.PARTIAL, ReturnAtParameter.FULL);
+  public static Stream<Arguments> happyPathParameterGeneration() {
+    List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
+    List<GasParameter> GasParameters =
+        List.of(GasParameter.ZERO, GasParameter.COST_MO, GasParameter.COST, GasParameter.FULL);
+    List<ReturnAtParameter> ReturnAtParameters =
+        List.of(ReturnAtParameter.EMPTY, ReturnAtParameter.PARTIAL, ReturnAtParameter.FULL);
 
-        List<Arguments> argumentsList = new ArrayList<>();
+    List<Arguments> argumentsList = new ArrayList<>();
 
-        for (OpCode opCode : CallOpCodes) { // 4
-            for (GasParameter gas : GasParameters) { // 4
-                for (MemoryContentsParameter memoryContent : MemoryContentsParameter.values()) { // 9
-                    for (CallDataSizeParameter cds : CallDataSizeParameter.values()) { // 10
-                        for (ReturnAtParameter returnAt : ReturnAtParameters) { // 3
+    for (OpCode opCode : CallOpCodes) { // 4
+      for (GasParameter gas : GasParameters) { // 4
+        for (MemoryContentsParameter memoryContent : MemoryContentsParameter.values()) { // 9
+          for (CallDataSizeParameter cds : CallDataSizeParameter.values()) { // 10
+            for (ReturnAtParameter returnAt : ReturnAtParameters) { // 3
 
-                            argumentsList.add(
-                                    Arguments.of(
-                                            new CallParameters(opCode, gas, memoryContent, cds, returnAt, true)));
+              argumentsList.add(
+                  Arguments.of(
+                      new CallParameters(opCode, gas, memoryContent, cds, returnAt, true)));
 
-                            argumentsList.add(
-                                    Arguments.of(
-                                            new CallParameters(opCode, gas, memoryContent, cds, returnAt, false)));
-                        }
-                    }
-                }
+              argumentsList.add(
+                  Arguments.of(
+                      new CallParameters(opCode, gas, memoryContent, cds, returnAt, false)));
             }
+          }
         }
-        return argumentsList.stream();
+      }
     }
+    return argumentsList.stream();
+  }
 }

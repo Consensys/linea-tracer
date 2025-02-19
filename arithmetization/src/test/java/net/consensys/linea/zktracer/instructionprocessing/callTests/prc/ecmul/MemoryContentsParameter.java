@@ -60,7 +60,16 @@ public enum MemoryContentsParameter {
     variant = !variant;
   }
 
+  /**
+   * <b>Note.</b> Calling this method twice in a row on the same {@link MemoryContentsParameter}'s
+   * generally results in two different outputs. Indeed, this method starts by switching the {@link
+   * #variant}.
+   *
+   * @return
+   */
   public BytecodeCompiler memoryContents() {
+
+    this.switchVariants();
 
     int nBytes = 11;
 

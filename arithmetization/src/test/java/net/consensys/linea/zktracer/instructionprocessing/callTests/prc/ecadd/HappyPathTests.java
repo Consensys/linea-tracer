@@ -16,7 +16,7 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.codeHolderAddress2;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolderAddress2;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
@@ -113,17 +113,7 @@ public class HappyPathTests {
 
   /**
    * {@link #happyPathWipeReturnDataHappyPathProgram} constructs the byte code for the <b>happy
-   * path</b> testing of <b>MODEXP</b>. This code does the following:
-   *
-   * <p>- populate memory with the data for first MODEXP call
-   *
-   * <p>- perform first MODEXP call and play around with its return data
-   *
-   * <p>- wipe return data
-   *
-   * <p>- populate memory with the data for second MODEXP call
-   *
-   * <p>- perform second MODEXP call and play around with its return data
+   * path</b> testing of <b>ECADD</b>. This code does the following:
    *
    * @param params
    * @return
@@ -135,7 +125,7 @@ public class HappyPathTests {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // populate memory with the data for first ECADD call
-    copyForeignCodeToRam(program, codeHolderAddress1);
+    copyForeignCodeToRam(program, memoryContentsHolderAddress1);
 
     // happy path: first ECADD call
     appendHappyPathPrecompileCall(program, params);
@@ -149,7 +139,7 @@ public class HappyPathTests {
     loadFirstReturnDataWordOntoStack(program, 48);
 
     // populate memory with the data for second MODEXP call
-    copyForeignCodeToRam(program, codeHolderAddress2);
+    copyForeignCodeToRam(program, memoryContentsHolderAddress2);
 
     // happy path: second ECADD call
     appendHappyPathPrecompileCall(program, params);
@@ -162,12 +152,10 @@ public class HappyPathTests {
   private void setCodeOfHolderAccounts(CallParameters params) {
 
     BytecodeCompiler code1 = params.memoryContent.memoryContents();
-    params.switchVariants();
-
     BytecodeCompiler code2 = params.memoryContent.memoryContents();
 
-    codeHolder1.code(code1.compile());
-    codeHolder2.code(code2.compile());
+    memoryContentsHolder1.code(code1.compile());
+    memoryContentsHolder2.code(code2.compile());
   }
 
   public static Stream<Arguments> happyPathParameterGeneration() {

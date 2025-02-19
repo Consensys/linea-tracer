@@ -20,25 +20,25 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 
 public class CallParameters {
 
-    public final OpCode call;
-    public final GasParameter gas;
-    public final MemoryContentsParameter memoryContent;
-    public final CallDataSizeParameter cds;
-    public final ReturnAtParameter returnAt;
-    public final boolean willRevert;
+  public final OpCode call;
+  public final GasParameter gas;
+  public final MemoryContentsParameter memoryContent;
+  public final CallDataSizeParameter cds;
+  public final ReturnAtParameter returnAt;
+  public final boolean willRevert;
 
-    public CallParameters(
-            OpCode call,
-            GasParameter gas,
-            MemoryContentsParameter memoryContent,
-            CallDataSizeParameter cds,
-            ReturnAtParameter returnAt,
-            boolean willRevert) {
-        this.call = call;
-        this.gas = gas;
-        this.memoryContent = memoryContent;
-        this.cds = cds;
-        this.returnAt = returnAt;
-        this.willRevert = willRevert;
-    }
+  public CallParameters(
+      OpCode call,
+      GasParameter gas,
+      MemoryContentsParameter memoryContent,
+      CallDataSizeParameter cds,
+      ReturnAtParameter returnAt,
+      boolean willRevert) {
+    this.call = call;
+    this.gas = gas;
+    this.memoryContent = memoryContent;
+    this.cds = cds;
+    this.returnAt = returnAt;
+    this.willRevert = willRevert;
+  }
 }

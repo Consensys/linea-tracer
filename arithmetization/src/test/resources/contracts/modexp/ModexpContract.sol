@@ -22,7 +22,7 @@ contract ModexpContract {
                 callDataOffset,
                 callDataSize,
                 returnAtOffset,
-                32  // returnAtCapacity
+                0  // returnAtCapacity
             )
         }
         return output;

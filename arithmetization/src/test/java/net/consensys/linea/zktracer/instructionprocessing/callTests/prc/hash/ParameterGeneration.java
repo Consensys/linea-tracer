@@ -35,7 +35,7 @@ public class ParameterGeneration {
    *
    * @return Stream of test parameters
    */
-  public static Stream<Arguments> happyPathParameterGeneration() {
+  public static Stream<Arguments> parameterGeneration() {
     List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
 
     List<Arguments> argumentsList = new ArrayList<>();
@@ -60,8 +60,10 @@ public class ParameterGeneration {
                                 cds,
                                 rao,
                                 rac,
+                                new MemoryContents(),
                                 relPos,
                                 true)));
+
                     argumentsList.add(
                         Arguments.of(
                             new CallParameters(
@@ -73,6 +75,7 @@ public class ParameterGeneration {
                                 cds,
                                 rao,
                                 rac,
+                                new MemoryContents(),
                                 relPos,
                                 false)));
                   }

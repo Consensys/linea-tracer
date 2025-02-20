@@ -10,6 +10,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.oob.OobOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
 /*
@@ -43,6 +44,8 @@ public class SixtyThreeSixtyFourthsTests {
       An option may be sending some value to the contract first to do not pay this 25000 during the test.
    */
 
+  final Bytes gas = Bytes.fromHexString("ff".repeat(32));
+
   @Test
   void sixtyThreeSixtyFourthsEcAddTest() {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
@@ -55,7 +58,7 @@ public class SixtyThreeSixtyFourthsTests {
         .push(0) // callDataOffset
         .push(0) // value
         .push(ALTBN128_ADD) // address
-        .push(getECADDCost() * 10) // gas
+        .push(gas) // gas
         .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
 
@@ -83,7 +86,7 @@ public class SixtyThreeSixtyFourthsTests {
       .push(0) // callDataOffset
       .push(0) // value
       .push(ALTBN128_MUL) // address
-      .push(getECMULCost()*10) // gas
+      .push(gas) // gas
       .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
 

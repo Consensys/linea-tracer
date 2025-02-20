@@ -166,7 +166,7 @@ public class OutOfGasMemExpExceptionTest {
 
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
-  void outOfGasExceptionExtCodeCopy(int cornerCase) {
+  void outOfGasExceptionWarmExtCodeCopy(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
@@ -185,7 +185,7 @@ public class OutOfGasMemExpExceptionTest {
         .push(41)
         .push(0)
         .push(0)
-        .op(OpCode.CREATE)
+        .op(OpCode.CREATE) // Address is warm
         .push(32) // size
         .push(0) // offset
         .push(33) // destoffset
@@ -198,6 +198,38 @@ public class OutOfGasMemExpExceptionTest {
     long gasCost = bytecodeRunner.runOnlyForGasCost();
 
     bytecodeRunner.run(gasCost + cornerCase);
+
+    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
+        cornerCase, bytecodeRunner);
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {0})
+  void outOfGasExceptionColdExtCodeCopy(int cornerCase) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    final int foreignCodeSize = 70;
+
+    final ToyAccount codeOwnerAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(10)
+            .address(Address.fromHexString("c0deadd7e55"))
+            .code(Bytes.fromHexString("ff".repeat(foreignCodeSize)))
+            .build();
+    program
+        .push(foreignCodeSize + 3) // size
+        .push(11) // offset
+        .push(33) // destoffset
+        .push("c0deadd7e55") // Address is cold
+        .op(OpCode.EXTCODECOPY);
+
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+
+    long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(codeOwnerAccount));
+
+    bytecodeRunner.run(gasCost + cornerCase, List.of(codeOwnerAccount));
 
     ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
         cornerCase, bytecodeRunner);
@@ -234,7 +266,7 @@ public class OutOfGasMemExpExceptionTest {
   void outOfGasExceptionReturnDataCopy(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    final ToyAccount codeOwnerAccount =
+    final ToyAccount returnDataProviderAccount =
         ToyAccount.builder()
             .balance(Wei.fromEth(1))
             .nonce(10)
@@ -242,33 +274,21 @@ public class OutOfGasMemExpExceptionTest {
             // Constructor that returns 32 FF
             .code(
                 Bytes.fromHexString(
-                    "7f7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff6000527fff60005260206000f3000000000000000000000000000000000000000000000060205260296000f300000000000000000000000000000000000000"))
+                    "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"))
             .build();
 
     program
-        // 1. Create contract - returns 32FF
-        .push(codeOwnerAccount.getAddress())
-        .op(OpCode.EXTCODESIZE)
-        .op(OpCode.DUP1)
-        .push(0)
-        .push(0)
-        .push(codeOwnerAccount.getAddress())
-        .op(OpCode.EXTCODECOPY)
-        .push(0)
-        .push(0)
-        .op(OpCode.CREATE)
-        // 2. Execute static call
+        // 1. Execute static call
         .push(0) // byte size of return data
         .push(0) // retOffset
         .push(0) // byte size calldata
         .push(0) // argsOffset
-        .op(OpCode.DUP5) // Address of the contract deployed above
-        .push(Bytes.fromHexString("0xFFFFFFFF")) // gas
+        .push("c0de") // Address of 'return data provider' account
+        .op(OpCode.GAS) // gas
         .op(OpCode.STATICCALL)
-        // 3. Clean the stack
+        // 2. Clean the stack
         .op(OpCode.POP)
-        .op(OpCode.POP)
-        // 4. Return data copy
+        // 3. Return data copy
         .push(32) // size
         .push(0) // offset
         .push(65) // destoffset, trigger mem expansion
@@ -277,9 +297,9 @@ public class OutOfGasMemExpExceptionTest {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(codeOwnerAccount));
+    long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(returnDataProviderAccount));
 
-    bytecodeRunner.run(gasCost + cornerCase, List.of(codeOwnerAccount));
+    bytecodeRunner.run(gasCost + cornerCase, List.of(returnDataProviderAccount));
 
     ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
         cornerCase, bytecodeRunner);

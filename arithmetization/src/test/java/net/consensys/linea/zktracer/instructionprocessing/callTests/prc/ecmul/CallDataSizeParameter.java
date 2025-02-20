@@ -24,7 +24,7 @@ public enum CallDataSizeParameter {
   // partial words
   NONEMPTY_1f, // 32 -  1 bytes
   NONEMPTY_3f, // 64 -  1 bytes
-  NONEMPTY_4d, // 64 + 11 bytes
+  NONEMPTY_4d, // 64 + 13 bytes
   // full words
   NONEMPTY_20,
   NONEMPTY_40,

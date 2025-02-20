@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.e
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
 import org.apache.tuweni.bytes.Bytes;
 
 /**
@@ -29,7 +30,7 @@ import org.apache.tuweni.bytes.Bytes;
  *
  * <p><b>[ COORD_X | COORD_Y || MULITIPLIER || ff .. ff ] </b>
  */
-public enum MemoryContentsParameter {
+public enum MemoryContents implements PrecompileCallMemoryContents {
   /** <b>[ ZEROS | ZEROS || ZEROS || ff .. ff ]</b> */
   ZEROS,
 
@@ -56,23 +57,12 @@ public enum MemoryContentsParameter {
 
   public boolean variant = false;
 
-  public void switchVariants() {
+  public void switchBetweenVariants() {
     variant = !variant;
   }
 
-  /**
-   * <b>Note.</b> Calling this method twice in a row on the same {@link MemoryContentsParameter}'s
-   * generally results in two different outputs. Indeed, this method starts by switching the {@link
-   * #variant}.
-   *
-   * @return
-   */
   public BytecodeCompiler memoryContents() {
-
-    this.switchVariants();
-
     int nBytes = 11;
-
     String pointData =
         switch (this) {
           case ZEROS -> ZERO_WORD.repeat(3);

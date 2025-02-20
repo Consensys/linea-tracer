@@ -1,0 +1,58 @@
+/*
+ * Copyright Consensys Software Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
+
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.COST;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul.MemoryContents.WELL_FORMED_POINT_AND_NONTRIVIAL_MULTIPLIER;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallTests;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
+
+import java.util.stream.Stream;
+
+@Tag("weekly")
+public class Tests extends PrecompileCallTests<CallParameters> {
+
+  public static Stream<Arguments> happyPathParameterGeneration() {
+    return ParameterGeneration.parameterGeneration();
+  }
+
+  /** Non-parametric test to make sure things are working as expected. */
+  @Test
+  public void singleMessageCallTransactionTest() {
+    CallParameters params =
+        new CallParameters(
+            CALL,
+            COST,
+            WELL_FORMED_POINT_AND_NONTRIVIAL_MULTIPLIER,
+            CallDataSizeParameter.FULL,
+            ReturnAtParameter.FULL,
+            true);
+
+    BytecodeCompiler rootCode = params.customPrecompileCallsSeparatedByReturnDataWipingOperation();
+    if (params.willRevert()) revertWith(rootCode, 3 * WORD_SIZE, 2 * WORD_SIZE);
+
+    runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
+  }
+}

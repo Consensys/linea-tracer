@@ -32,7 +32,7 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters> {
    * <p>See {@link CodeExecutionMethods} for documentation and context.
    */
   @ParameterizedTest
-  @MethodSource("happyPathParameterGeneration")
+  @MethodSource("parameterGeneration")
   public void messageCallTransactionTest(T callParameter) {
 
     BytecodeCompiler rootCode =
@@ -48,7 +48,7 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters> {
    * <p>See {@link CodeExecutionMethods} for documentation and context.
    */
   @ParameterizedTest
-  @MethodSource("happyPathParameterGeneration")
+  @MethodSource("parameterGeneration")
   public void deploymentTransactionTest(T callParameter) {
 
     BytecodeCompiler txInitCode =
@@ -64,7 +64,7 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters> {
    * <p>See {@link CodeExecutionMethods} for documentation and context.
    */
   @ParameterizedTest
-  @MethodSource("happyPathParameterGeneration")
+  @MethodSource("parameterGeneration")
   public void messageCallFromRootTest(T callParameter) {
     BytecodeCompiler chadPrcEnjoyerCode =
         callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation();
@@ -82,7 +82,7 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters> {
    * of a <b>CREATE</b>. The whole operation optionally <b>REVERT</b>'s.
    */
   @ParameterizedTest
-  @MethodSource("happyPathParameterGeneration")
+  @MethodSource("parameterGeneration")
   public void happyPathDuringCreate(T callParameter) {
     BytecodeCompiler foreignCode =
         callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation();
@@ -95,7 +95,7 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters> {
    * <p>See {@link CodeExecutionMethods} for documentation and context.
    */
   @ParameterizedTest
-  @MethodSource("happyPathParameterGeneration")
+  @MethodSource("parameterGeneration")
   public void happyPathAfterCreate(T callParameter) {
     BytecodeCompiler chadPrcEnjoyerCode =
         callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation();

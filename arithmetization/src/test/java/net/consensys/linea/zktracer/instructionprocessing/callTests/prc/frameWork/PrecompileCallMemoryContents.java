@@ -21,13 +21,13 @@ import net.consensys.linea.testing.BytecodeCompiler;
 
 public interface PrecompileCallMemoryContents {
 
-  void switchBetweenVariants();
+  void switchVariant();
 
   BytecodeCompiler memoryContents();
 
   default void setCodeOfHolderAccounts() {
     memoryContentsHolder1.code(this.memoryContents().compile());
-    this.switchBetweenVariants();
+    this.switchVariant();
     memoryContentsHolder2.code(this.memoryContents().compile());
   }
 }

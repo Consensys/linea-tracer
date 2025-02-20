@@ -12,14 +12,14 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.COST;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul.MemoryContents.WELL_FORMED_POINT_AND_NONTRIVIAL_MULTIPLIER;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.COST_MO;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.WELL_FORMED_POINTS;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
+import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
@@ -29,14 +29,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
 
-import java.util.stream.Stream;
-
 @Tag("weekly")
 public class Tests extends PrecompileCallTests<CallParameters> {
-
-  public static Stream<Arguments> parameterGeneration() {
-    return ParameterGeneration.parameterGeneration();
-  }
 
   /** Non-parametric test to make sure things are working as expected. */
   @Test
@@ -44,15 +38,17 @@ public class Tests extends PrecompileCallTests<CallParameters> {
     CallParameters params =
         new CallParameters(
             CALL,
-            COST,
-            WELL_FORMED_POINT_AND_NONTRIVIAL_MULTIPLIER,
+            COST_MO,
+            WELL_FORMED_POINTS,
             CallDataSizeParameter.FULL,
             ReturnAtParameter.FULL,
             true);
 
     BytecodeCompiler rootCode = params.customPrecompileCallsSeparatedByReturnDataWipingOperation();
-    if (params.willRevert()) revertWith(rootCode, 3 * WORD_SIZE, 2 * WORD_SIZE);
-
     runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
+  }
+
+  public static Stream<Arguments> parameterGeneration() {
+    return ParameterGeneration.parameterGeneration();
   }
 }

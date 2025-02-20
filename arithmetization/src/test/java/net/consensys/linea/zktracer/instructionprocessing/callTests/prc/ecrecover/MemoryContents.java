@@ -14,8 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecover;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContentsParameter.RND;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContentsParameter.WORD_HEX_SIZE;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.RND;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.WORD_HEX_SIZE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -51,7 +51,7 @@ public enum MemoryContents implements PrecompileCallMemoryContents {
 
   boolean variant = false;
 
-  public void switchBetweenVariants() {
+  public void switchVariant() {
     variant = !variant;
   }
 
@@ -125,7 +125,7 @@ public enum MemoryContents implements PrecompileCallMemoryContents {
   public BytecodeCompiler memoryContents() {
 
     // we switch with every call
-    switchBetweenVariants();
+    switchVariant();
 
     switch (this) {
       case ZEROS -> {

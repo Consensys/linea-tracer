@@ -36,10 +36,10 @@ public interface PrecompileCallParameters {
    */
   default BytecodeCompiler customPrecompileCallsSeparatedByReturnDataWipingOperation() {
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
-
     // populate foreign accounts' byte code with call data
     this.memoryContents().setCodeOfHolderAccounts();
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // populate memory with the data for first PRECOMPILE call
     copyForeignCodeToRam(program, memoryContentsHolderAddress1);

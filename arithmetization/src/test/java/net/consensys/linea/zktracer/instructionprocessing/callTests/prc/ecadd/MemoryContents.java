@@ -19,9 +19,10 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE_MO;
 
 import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
 import org.apache.tuweni.bytes.Bytes;
 
-public enum MemoryContentsParameter {
+public enum MemoryContents implements PrecompileCallMemoryContents {
   ZEROS,
   WELL_FORMED_POINTS,
   MIXED,
@@ -33,10 +34,6 @@ public enum MemoryContentsParameter {
   MAX;
 
   boolean variant = false;
-
-  public void switchVariants() {
-    variant = !variant;
-  }
 
   // coordinates for 5 curve points
   public static final String A_X =
@@ -63,7 +60,12 @@ public enum MemoryContentsParameter {
   public static final String MAX_WORD = "ff".repeat(WORD_SIZE);
   public static final int WORD_HEX_SIZE = 2 * WORD_SIZE;
 
-  /**
+    @Override
+    public void switchVariant() {
+        variant = !variant;
+    }
+
+    /**
    * Constructs a slice of bytes of the following form
    *
    * <p><b>[ W_1 | W_2 | W_3 | W_4 | ff .. ff ]</b>
@@ -81,9 +83,6 @@ public enum MemoryContentsParameter {
    * call to <b>ECADD</b>.
    */
   public BytecodeCompiler memoryContents() {
-
-    // we switch with every call
-    this.switchVariants();
 
     // Note that 4 = 2 * 2. We need 4 * 32 hex characters for the data representing a point.
     String pointData =

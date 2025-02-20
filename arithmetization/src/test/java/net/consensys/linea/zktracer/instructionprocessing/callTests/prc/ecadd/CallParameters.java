@@ -14,15 +14,23 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd;
 
+import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallParameters;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.hyperledger.besu.datatypes.Address;
 
-public class CallParameters {
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
+import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
+
+public class CallParameters implements PrecompileCallParameters {
 
   public final OpCode call;
   public final GasParameter gas;
-  public final MemoryContentsParameter memoryContent;
+  public final MemoryContents memoryContents;
   public final CallDataSizeParameter cds;
   public final ReturnAtParameter returnAt;
   public final boolean willRevert;
@@ -30,19 +38,95 @@ public class CallParameters {
   public CallParameters(
       OpCode call,
       GasParameter gas,
-      MemoryContentsParameter memoryContent,
+      MemoryContents memoryContents,
       CallDataSizeParameter cds,
       ReturnAtParameter returnAt,
       boolean willRevert) {
     this.call = call;
     this.gas = gas;
-    this.memoryContent = memoryContent;
+    this.memoryContents = memoryContents;
     this.cds = cds;
     this.returnAt = returnAt;
     this.willRevert = willRevert;
   }
 
-  public void switchVariants() {
-    memoryContent.switchVariants();
+  @Override
+  public boolean willRevert() {
+    return willRevert;
+  }
+
+  @Override
+  public PrecompileCallMemoryContents memoryContents() {
+    return memoryContents;
+  }
+
+  @Override
+  public void appendCustomPrecompileCall(BytecodeCompiler program) {
+    // push r@c onto the stack
+    switch (returnAt) {
+      case EMPTY -> program.push(0);
+      case PARTIAL -> program.push(23);
+      case FULL -> program.push(2 * WORD_SIZE);
+      default -> throw new RuntimeException("Unsupported returnAt parameter");
+    }
+
+    // push the r@o onto the stack
+    program.push(4 * WORD_SIZE);
+
+    // push the cds onto the stack
+    switch (cds) {
+      case EMPTY -> program.push(0);
+      // partial words
+      case NONEMPTY_1f -> program.push(0x1f);
+      case NONEMPTY_3f -> program.push(0x3f);
+      case NONEMPTY_5f -> program.push(0x5f);
+      case NONEMPTY_7f -> program.push(0x7f);
+      // full words
+      case NONEMPTY_20 -> program.push(0x20);
+      case NONEMPTY_40 -> program.push(0x40);
+      case NONEMPTY_60 -> program.push(0x60);
+      case NONEMPTY_80 -> program.push(0x80);
+      case FULL -> program.op(MSIZE);
+      case LARGE -> program.push("ff".repeat(WORD_SIZE));
+    }
+
+    // push the cdo onto the stack;
+    program.push(0);
+
+    // if appropriate, push the value onto the stack
+    if (call.callHasValueArgument()) {
+      program.push(willRevert ? 0x0200 : 0);
+    }
+
+    program.push(Address.ALTBN128_ADD);
+
+    // push gas onto the stack
+    switch (gas) {
+      case ZERO -> program.push(0); // interesting in the nonzero value case
+      case COST_MO -> program.push(149);
+      case COST -> program.push(150);
+      case FULL -> program.op(GAS);
+      default -> throw new RuntimeException("Unsupported gas parameter");
+    }
+
+    program.op(call);
+  }
+
+  @Override
+  public String toString() {
+    return "CallParameters{"
+        + "call="
+        + call
+        + ", gas="
+        + gas
+        + ", memoryContents="
+        + memoryContents
+        + ", cds="
+        + cds
+        + ", returnAt="
+        + returnAt
+        + ", willRevert="
+        + willRevert
+        + '}';
   }
 }

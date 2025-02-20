@@ -1,13 +1,12 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourths;
 
-import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getECADDCost;
-import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getECMULCost;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.oob.OobOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -62,10 +61,39 @@ public class SixtyThreeSixtyFourthsTests {
         .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
 
-    final long gasCost = bytecodeRunner.runOnlyForGasCost();
+    final long gasCost = bytecodeRunner.runOnlyForGasCost(); // 21693
     bytecodeRunner.run(gasCost);
 
     // providedGas = 63/64 * (250 - 100) + 2300 * 0 = 148 > 150
+    // Indeed, without the 63/64 factor, the providedGas would be enough
+
+    final boolean insufficientGasForPrecompile =
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(OobOperation::isInsufficientGasForPrecompile);
+    assertTrue(insufficientGasForPrecompile);
+  }
+
+  @Test
+  void sixtyThreeSixtyFourthsEcAddTestWithValue() {
+    final BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program.push(4096 - 32).op(OpCode.MLOAD);
+    program
+        .push(0) // returnAtCapacity
+        .push(0) // returnAtOffset
+        .push(0) // callDataSize
+        .push(0) // callDataOffset
+        .push(1) // value
+        .push(ALTBN128_ADD) // address
+        .push(gas) // gas
+        .op(OpCode.CALL);
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
+
+    final long gasCost = bytecodeRunner.runOnlyForGasCost();
+    // 53393 = 21693 + GlobalConstants.GAS_CONST_G_CALL_VALUE + GlobalConstants.GAS_CONST_G_NEW_ACCOUNT
+    bytecodeRunner.run(gasCost);
+
+    // providedGas = ...
     // Indeed, without the 63/64 factor, the providedGas would be enough
 
     final boolean insufficientGasForPrecompile =
@@ -80,25 +108,34 @@ public class SixtyThreeSixtyFourthsTests {
 
     program.push(4096 - 32).op(OpCode.MLOAD);
     program
-      .push(0) // returnAtCapacity
-      .push(0) // returnAtOffset
-      .push(0) // callDataSize
-      .push(0) // callDataOffset
-      .push(0) // value
-      .push(ALTBN128_MUL) // address
-      .push(gas) // gas
-      .op(OpCode.CALL);
+        .push(0) // returnAtCapacity
+        .push(0) // returnAtOffset
+        .push(0) // callDataSize
+        .push(0) // callDataOffset
+        .push(0) // value
+        .push(ALTBN128_MUL) // address
+        .push(gas) // gas
+        .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
 
-    final long gasCost = bytecodeRunner.runOnlyForGasCost();
+    final long gasCost = bytecodeRunner.runOnlyForGasCost(); // 27543
     bytecodeRunner.run(gasCost);
 
     // providedGas = 63/64 * (6100 - 100) + 2300 * 0 = 5907  > 6000
     // Indeed, without the 63/64 factor, the providedGas would be enough
 
     final boolean insufficientGasForPrecompile =
-      bytecodeRunner.getHub().oob().operations().stream()
-        .anyMatch(OobOperation::isInsufficientGasForPrecompile);
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(OobOperation::isInsufficientGasForPrecompile);
     assertTrue(insufficientGasForPrecompile);
+  }
+
+  private long callGasCostExcludingMemoryExpansion(
+      boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
+    return (transfersValue ? GlobalConstants.GAS_CONST_G_CALL_VALUE : 0)
+        + (targetAddressExists ? 0 : (transfersValue ? GlobalConstants.GAS_CONST_G_NEW_ACCOUNT : 0))
+        + (isWarm
+            ? GlobalConstants.GAS_CONST_G_WARM_ACCESS
+            : GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS);
   }
 }

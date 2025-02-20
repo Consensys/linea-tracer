@@ -80,45 +80,45 @@ public class PrecompileUtils {
     }
   }
 
-  private static int getECRECCost() {
+  public static int getECRECCost() {
     return GAS_CONST_ECRECOVER;
   }
 
-  private static int getSHA256Cost(int cds) {
+  public static int getSHA256Cost(int cds) {
     final int words = (cds + WORD_SIZE_MO) / WORD_SIZE;
     return GAS_CONST_SHA2 + words * GAS_CONST_SHA2_WORD;
   }
 
-  private static int getRIPEMD160Cost(int cds) {
+  public static int getRIPEMD160Cost(int cds) {
     final int words = (cds + WORD_SIZE_MO) / WORD_SIZE;
     return GAS_CONST_RIPEMD + words * GAS_CONST_RIPEMD_WORD;
   }
 
-  private static int getIDCost(int cds) {
+  public static int getIDCost(int cds) {
     final int words = (cds + WORD_SIZE_MO) / WORD_SIZE;
     return GAS_CONST_IDENTITY + words * GAS_CONST_IDENTITY_WORD;
   }
 
-  static int getMODEXPCost(int bbs, int mbs, int exponentLog) {
+  public static int getMODEXPCost(int bbs, int mbs, int exponentLog) {
     final int fOfMax = ((Math.max(bbs, mbs) + 7) / 8) * ((Math.max(bbs, mbs) + 7) / 8);
     final int bigNumerator = fOfMax * Math.max(exponentLog, 1);
     final int bigQuotient = bigNumerator / G_QUADDIVISOR;
     return Math.max(GAS_CONST_MODEXP, bigQuotient);
   }
 
-  private static int getECADDCost() {
+  public static int getECADDCost() {
     return GAS_CONST_ECADD;
   }
 
-  private static int getECMULCost() {
+  public static int getECMULCost() {
     return GAS_CONST_ECMUL;
   }
 
-  private static int getECPAIRINGCost(int cds) {
+  public static int getECPAIRINGCost(int cds) {
     return GAS_CONST_ECPAIRING + GAS_CONST_ECPAIRING_PAIR * (cds / PRC_ECPAIRING_SIZE);
   }
 
-  private static int getBLAKE2FCost(int r) {
+  public static int getBLAKE2FCost(int r) {
     return GAS_CONST_BLAKE2_PER_ROUND * r;
   }
 }

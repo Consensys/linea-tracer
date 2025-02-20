@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -101,26 +103,38 @@ public class ModexpTestForSequencer {
     } catch (IllegalArgumentException e) {
       // This is expected when the input is invalid
       assertTrue(willFailDueToConstraints);
+      return;
     }
+    assertFalse(willFailDueToConstraints);
   }
 
   private Stream<Arguments> modexpTestForSequencerSource() {
     List<Arguments> arguments = new ArrayList<>();
+    // Note that a short byte size WORD can be places only at the end of the input
+    // Including it may mess with the willFailDueToConstraints flag
     for (ModexpCallDataWordVariants w1 : ModexpCallDataWordVariants.values()) {
       arguments.add(Arguments.of(w1.getW(), w1.isInvalid()));
+      if (w1.isShort()) {
+        continue;
+      }
       for (ModexpCallDataWordVariants w2 : ModexpCallDataWordVariants.values()) {
         arguments.add(
             Arguments.of(
                 Bytes.concatenate(w1.getW(), w2.getW()), w1.isInvalid() || w2.isInvalid()));
+        if (w2.isShort()) {
+          continue;
+        }
         for (ModexpCallDataWordVariants w3 : ModexpCallDataWordVariants.values()) {
           arguments.add(
               Arguments.of(
                   Bytes.concatenate(w1.getW(), w2.getW(), w3.getW()),
                   w1.isInvalid() || w2.isInvalid() || w3.isInvalid()));
-          arguments.add(
-              Arguments.of(
-                  Bytes.concatenate(w1.getW(), w2.getW(), w3.getW(), Bytes.random(1536, RANDOM)),
-                  w1.isInvalid() || w2.isInvalid() || w3.isInvalid()));
+          if (!w3.isShort()) {
+            arguments.add(
+                Arguments.of(
+                    Bytes.concatenate(w1.getW(), w2.getW(), w3.getW(), Bytes.random(1536, RANDOM)),
+                    w1.isInvalid() || w2.isInvalid() || w3.isInvalid()));
+          }
         }
       }
     }
@@ -158,6 +172,10 @@ public class ModexpTestForSequencer {
           || this.getW() == MIN_ILLEGAL_SHORT.getW()
           || this.getW() == ILLEGAL_SHORTEST.getW()
           || this.getW() == MAX_WORD.getW();
+    }
+
+    public boolean isShort() {
+      return this.getW().size() < WORD_SIZE;
     }
   }
 }

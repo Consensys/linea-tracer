@@ -22,7 +22,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallTests;
 import org.junit.jupiter.api.Tag;

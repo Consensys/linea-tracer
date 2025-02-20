@@ -14,6 +14,10 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd;
 
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
+import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
@@ -21,10 +25,6 @@ import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWor
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallParameters;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
-
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
-import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
-import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 
 public class CallParameters implements PrecompileCallParameters {
 
@@ -76,12 +76,12 @@ public class CallParameters implements PrecompileCallParameters {
     // push the cds onto the stack
     switch (cds) {
       case EMPTY -> program.push(0);
-      // partial words
+        // partial words
       case NONEMPTY_1f -> program.push(0x1f);
       case NONEMPTY_3f -> program.push(0x3f);
       case NONEMPTY_5f -> program.push(0x5f);
       case NONEMPTY_7f -> program.push(0x7f);
-      // full words
+        // full words
       case NONEMPTY_20 -> program.push(0x20);
       case NONEMPTY_40 -> program.push(0x40);
       case NONEMPTY_60 -> program.push(0x60);

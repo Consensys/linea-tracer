@@ -57,7 +57,5 @@ public class CallParameters implements PrecompileCallParameters {
   }
 
   @Override
-  public void appendCustomPrecompileCall(BytecodeCompiler program) {
-
-  }
+  public void appendCustomPrecompileCall(BytecodeCompiler program) {}
 }

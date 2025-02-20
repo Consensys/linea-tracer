@@ -21,15 +21,14 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.e
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
+import java.util.stream.Stream;
+
 import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallTests;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
-
-import java.util.stream.Stream;
 
 @Tag("weekly")
 public class Tests extends PrecompileCallTests<CallParameters> {

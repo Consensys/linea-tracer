@@ -60,12 +60,12 @@ public enum MemoryContents implements PrecompileCallMemoryContents {
   public static final String MAX_WORD = "ff".repeat(WORD_SIZE);
   public static final int WORD_HEX_SIZE = 2 * WORD_SIZE;
 
-    @Override
-    public void switchVariant() {
-        variant = !variant;
-    }
+  @Override
+  public void switchVariant() {
+    variant = !variant;
+  }
 
-    /**
+  /**
    * Constructs a slice of bytes of the following form
    *
    * <p><b>[ W_1 | W_2 | W_3 | W_4 | ff .. ff ]</b>

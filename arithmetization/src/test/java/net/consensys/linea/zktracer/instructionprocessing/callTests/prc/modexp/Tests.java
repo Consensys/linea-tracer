@@ -18,6 +18,8 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.C
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp.ByteSizeParameter.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
+import java.util.stream.Stream;
+
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul.ParameterGeneration;
@@ -25,8 +27,6 @@ import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWor
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
-
-import java.util.stream.Stream;
 
 @Tag("weekly")
 public class Tests extends PrecompileCallTests<CallParameters> {
@@ -49,7 +49,7 @@ public class Tests extends PrecompileCallTests<CallParameters> {
         new CallParameters(
             CALL,
             GasParameter.COST_MO,
-                memoryContents,
+            memoryContents,
             ReturnAtParameter.FULL,
             RelativeRangePosition.OVERLAP,
             true);
@@ -72,7 +72,7 @@ public class Tests extends PrecompileCallTests<CallParameters> {
         new CallParameters(
             STATICCALL,
             GasParameter.COST,
-                memoryContents,
+            memoryContents,
             ReturnAtParameter.FULL,
             RelativeRangePosition.OVERLAP,
             true);

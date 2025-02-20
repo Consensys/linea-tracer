@@ -14,18 +14,22 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolder1;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolder2;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
+import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallParameters;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.hyperledger.besu.datatypes.Address;
 
-public class CallParameters {
+public class CallParameters implements PrecompileCallParameters {
   public final OpCode call;
   public final GasParameter gas;
-  public final MemoryContentsParameter memoryContent;
+  public final MemoryContents memoryContents;
   public final CallDataSizeParameter cds;
   public final ReturnAtParameter returnAt;
   public final boolean willRevert;
@@ -33,24 +37,93 @@ public class CallParameters {
   public CallParameters(
       OpCode call,
       GasParameter gas,
-      MemoryContentsParameter memoryContent,
+      MemoryContents memoryContents,
       CallDataSizeParameter cds,
       ReturnAtParameter returnAt,
       boolean willRevert) {
     this.call = call;
     this.gas = gas;
-    this.memoryContent = memoryContent;
+    this.memoryContents = memoryContents;
     this.cds = cds;
     this.returnAt = returnAt;
     this.willRevert = willRevert;
   }
 
-  public void setCodeOfHolderAccounts() {
+  @Override
+  public boolean willRevert() {
+    return willRevert;
+  }
 
-    BytecodeCompiler code1 = this.memoryContent.memoryContents();
-    BytecodeCompiler code2 = this.memoryContent.memoryContents();
+  @Override
+  public PrecompileCallMemoryContents memoryContents() {
+    return memoryContents;
+  }
 
-    memoryContentsHolder1.code(code1.compile());
-    memoryContentsHolder2.code(code2.compile());
+  @Override
+  public void appendCustomPrecompileCall(BytecodeCompiler program) {
+    // push r@c onto the stack
+    switch (this.returnAt) {
+      case EMPTY -> program.push(0);
+      case PARTIAL -> program.push(23);
+      case FULL -> program.push(2 * WORD_SIZE);
+      default -> throw new RuntimeException("Unsupported returnAt parameter");
+    }
+
+    // push the r@o onto the stack
+    program.push(3 * WORD_SIZE);
+
+    // push the cds onto the stack
+    switch (cds) {
+      case EMPTY -> program.push(0);
+        // partial words
+      case NONEMPTY_1f -> program.push(0x1f);
+      case NONEMPTY_3f -> program.push(0x3f);
+        // full words
+      case NONEMPTY_20 -> program.push(0x20);
+      case NONEMPTY_40 -> program.push(0x40);
+      case NONEMPTY_60 -> program.push(0x60);
+      case FULL -> program.op(MSIZE);
+      case LARGE -> program.push("ff".repeat(WORD_SIZE));
+    }
+
+    // push the cdo onto the stack;
+    program.push(0);
+
+    // if appropriate, push the value onto the stack
+    if (call.callHasValueArgument()) {
+      program.push(0x0400);
+    }
+
+    program.push(Address.ALTBN128_MUL);
+
+    // push gas onto the stack
+    int callStipend = call.callHasValueArgument() ? 2_300 : 0;
+    switch (gas) {
+      case ZERO -> program.push(0); // interesting in the nonzero value case
+      case COST_MO -> program.push(6_000 - callStipend - 1);
+      case COST -> program.push(6_000 - callStipend);
+      case FULL -> program.op(GAS);
+      default -> throw new RuntimeException("Unsupported gas parameter");
+    }
+
+    program.op(call);
+  }
+
+  @Override
+  public String toString() {
+    return "EcmulCallParameters{"
+        + "call="
+        + call
+        + ", gas="
+        + gas
+        + ", memoryContents="
+        + memoryContents
+        + ", cds="
+        + cds
+        + ", returnAt="
+        + returnAt
+        + ", willRevert="
+        + willRevert
+        + '}';
   }
 }

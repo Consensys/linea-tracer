@@ -14,10 +14,15 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecover;
 
-/** */
-public enum CallDataSizeParameter {
-  EMPTY,
-  MISSING_FINAL_BYTE_OF_R,
-  MISSING_FINAL_BYTE_OF_S,
-  FULL;
+import java.util.stream.Stream;
+
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallTests;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.provider.Arguments;
+
+@Tag("weekly")
+public class Tests extends PrecompileCallTests<CallParameters> {
+  public static Stream<Arguments> parameterGeneration() {
+    return ParameterGeneration.parameterGeneration();
+  }
 }

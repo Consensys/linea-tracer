@@ -15,21 +15,22 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
 
 import static com.google.common.base.Preconditions.checkState;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContentsParameter.*;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.*;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
 import org.apache.tuweni.bytes.Bytes;
 
 /**
  * Enumerates the different memory contents parameters for a precompile call. Similarly to {@link
- * net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContentsParameter},
- * memory content comprises a certain number of data words and one final EVM word where the
- * <b>CALL</b> instruction will be required to write its return data:
+ * net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents}, memory
+ * content comprises a certain number of data words and one final EVM word where the <b>CALL</b>
+ * instruction will be required to write its return data:
  *
  * <p><b>[ COORD_X | COORD_Y || MULITIPLIER || ff .. ff ] </b>
  */
-public enum MemoryContentsParameter {
+public enum MemoryContents implements PrecompileCallMemoryContents {
   /** <b>[ ZEROS | ZEROS || ZEROS || ff .. ff ]</b> */
   ZEROS,
 
@@ -56,23 +57,12 @@ public enum MemoryContentsParameter {
 
   public boolean variant = false;
 
-  public void switchVariants() {
+  public void switchVariant() {
     variant = !variant;
   }
 
-  /**
-   * <b>Note.</b> Calling this method twice in a row on the same {@link MemoryContentsParameter}'s
-   * generally results in two different outputs. Indeed, this method starts by switching the {@link
-   * #variant}.
-   *
-   * @return
-   */
   public BytecodeCompiler memoryContents() {
-
-    this.switchVariants();
-
     int nBytes = 11;
-
     String pointData =
         switch (this) {
           case ZEROS -> ZERO_WORD.repeat(3);

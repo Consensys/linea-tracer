@@ -52,7 +52,7 @@ public class ParameterGeneration {
    * <p>- <b>ReturnAtParameter</b> the return at parameter to be tested; return data will be written
    * on the aforementioned blackened word in RAM;
    */
-  public static Stream<Arguments> happyPathParameterGeneration() {
+  public static Stream<Arguments> parameterGeneration() {
     List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
     List<GasParameter> GasParameters =
         List.of(GasParameter.ZERO, GasParameter.COST_MO, GasParameter.COST, GasParameter.FULL);
@@ -63,7 +63,7 @@ public class ParameterGeneration {
 
     for (OpCode opCode : CallOpCodes) { // 4
       for (GasParameter gas : GasParameters) { // 4
-        for (MemoryContentsParameter memoryContent : MemoryContentsParameter.values()) { // 9
+        for (MemoryContents memoryContent : MemoryContents.values()) { // 9
           for (CallDataSizeParameter cds : CallDataSizeParameter.values()) { // 10
             for (ReturnAtParameter returnAt : ReturnAtParameters) { // 3
 

@@ -14,6 +14,15 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 
+/**
+ * Used to describe one of the three byte size parameters of a <b>MODEXP</b> call:
+ *
+ * <p>- <b>bbs</b>: base byte size
+ *
+ * <p>- <b>ebs</b>: exponent byte size
+ *
+ * <p>- <b>mbs</b>: modulus byte size
+ */
 public enum ByteSizeParameter {
   ZERO,
   ONE,

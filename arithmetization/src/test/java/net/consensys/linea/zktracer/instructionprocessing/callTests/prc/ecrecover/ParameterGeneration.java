@@ -44,11 +44,11 @@ public class ParameterGeneration {
 
               argumentsList.add(
                   Arguments.of(
-                      new EcrecoverCallParameters(opCode, gas, memoryContent, cds, returnAt, true)));
+                      new CallParameters(opCode, gas, memoryContent, cds, returnAt, true)));
 
               argumentsList.add(
                   Arguments.of(
-                      new EcrecoverCallParameters(opCode, gas, memoryContent, cds, returnAt, false)));
+                      new CallParameters(opCode, gas, memoryContent, cds, returnAt, false)));
             }
           }
         }

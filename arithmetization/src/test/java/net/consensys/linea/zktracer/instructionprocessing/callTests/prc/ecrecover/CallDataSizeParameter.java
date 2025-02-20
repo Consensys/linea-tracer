@@ -14,11 +14,10 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecover;
 
+/** */
 public enum CallDataSizeParameter {
   EMPTY,
-  // partial data
   MISSING_FINAL_BYTE_OF_R,
   MISSING_FINAL_BYTE_OF_S,
-  // full data
   FULL;
 }

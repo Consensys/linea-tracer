@@ -20,30 +20,30 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.CallParameters;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallParameters;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 
-public class EcrecoverCallParameters
-    implements CallParameters {
+public class CallParameters implements PrecompileCallParameters {
 
   public final OpCode call;
   public final GasParameter gas;
-  public final EcrecoverMemoryContents ecrecoverMemoryContents;
+  public final MemoryContents memoryContents;
   public final CallDataSizeParameter cds;
   public final ReturnAtParameter returnAt;
   public final boolean willRevert;
 
-  public EcrecoverCallParameters(
+  public CallParameters(
       OpCode call,
       GasParameter gas,
-      EcrecoverMemoryContents memoryContent,
+      MemoryContents memoryContent,
       CallDataSizeParameter cds,
       ReturnAtParameter returnAt,
       boolean willRevert) {
     this.call = call;
     this.gas = gas;
-    this.ecrecoverMemoryContents = memoryContent;
+    this.memoryContents = memoryContent;
     this.cds = cds;
     this.returnAt = returnAt;
     this.willRevert = willRevert;
@@ -53,12 +53,11 @@ public class EcrecoverCallParameters
     return willRevert;
   }
 
-  public net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.MemoryContents
-      memoryContents() {
-    return ecrecoverMemoryContents;
+  public PrecompileCallMemoryContents memoryContents() {
+    return memoryContents;
   }
 
-  public void appendHappyPathPrecompileCall(BytecodeCompiler program) {
+  public void appendCustomPrecompileCall(BytecodeCompiler program) {
 
     // push r@c onto the stack
     switch (returnAt) {
@@ -104,20 +103,19 @@ public class EcrecoverCallParameters
 
   @Override
   public String toString() {
-    return
-        "EcrecoverCallParameters{"
-            + "call="
-            + call
-            + ", gas="
-            + gas
-            + ", memoryContents="
-            + ecrecoverMemoryContents
-            + ", cds="
-            + cds
-            + ", returnAt="
-            + returnAt
-            + ", willRevert="
-            + willRevert
-            + '}';
+    return "EcrecoverCallParameters{"
+        + "call="
+        + call
+        + ", gas="
+        + gas
+        + ", memoryContents="
+        + memoryContents
+        + ", cds="
+        + cds
+        + ", returnAt="
+        + returnAt
+        + ", willRevert="
+        + willRevert
+        + '}';
   }
 }

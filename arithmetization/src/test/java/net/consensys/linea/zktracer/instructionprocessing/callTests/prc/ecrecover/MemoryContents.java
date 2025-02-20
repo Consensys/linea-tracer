@@ -19,7 +19,7 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.e
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.MemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
 
 /**
  * Memory for <b>ECRECOVER</b> testing will be made to contain inputs of the form
@@ -27,8 +27,8 @@ import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWor
  * <p><b>[ h | v | r | s ]</b>
  *
  * <p>where <b>h</b>, <b>v</b>, <b>r</b> and <b>s</b> are <b>32</b>-byte integers and with the
- * precise contents being dictated by the enum. Most values of {@link EcrecoverMemoryContents}
- * values are self-explanatory. We will test in particular:
+ * precise contents being dictated by the enum. Most values of {@link MemoryContents} values are
+ * self-explanatory. We will test in particular:
  *
  * <p>- {@link #MALFORMED_AT_7f_BUT_SALVAGEABLE} for cases where s is correct <i>save for its final
  * byte</i> which would have to be <b>0x00</b> to be valid but instead is <b>0xff</b>; the point
@@ -39,7 +39,7 @@ import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWor
  * <p>- {@link #BOUNDARY_R} and {@link #BOUNDARY_S}: cases where <b>r</b> or <b>s</b> are equal to
  * <b>0</b> or the <b>secp256k1n</b> prime
  */
-public enum EcrecoverMemoryContents implements MemoryContents {
+public enum MemoryContents implements PrecompileCallMemoryContents {
   ZEROS,
   WELL_FORMED,
   MALFORMED_AT_7f_BUT_SALVAGEABLE,
@@ -51,7 +51,7 @@ public enum EcrecoverMemoryContents implements MemoryContents {
 
   boolean variant = false;
 
-  public void switchVariants() {
+  public void switchBetweenVariants() {
     variant = !variant;
   }
 
@@ -112,20 +112,20 @@ public enum EcrecoverMemoryContents implements MemoryContents {
           RND.substring(192, 192 + WORD_HEX_SIZE));
 
   /**
-   * {@link #memoryContents} converts the {@link EcrecoverMemoryContents} into a {@link
-   * BytecodeCompiler} (from which we will later extract a byte slice) containing "interesting"
-   * memory contents for a <b>ECRECOVER</b> call.
+   * {@link #memoryContents} converts the {@link MemoryContents} into a {@link BytecodeCompiler}
+   * (from which we will later extract a byte slice) containing "interesting" memory contents for a
+   * <b>ECRECOVER</b> call.
    *
-   * <p><b>Note.</b> Calling this method twice in a row on the same {@link
-   * EcrecoverMemoryContents}'s generally results in two different outputs. Indeed, this method
-   * starts by switching the {@link #variant}.
+   * <p><b>Note.</b> Calling this method twice in a row on the same {@link MemoryContents}'s
+   * generally results in two different outputs. Indeed, this method starts by switching the {@link
+   * #variant}.
    *
    * @return
    */
   public BytecodeCompiler memoryContents() {
 
     // we switch with every call
-    switchVariants();
+    switchBetweenVariants();
 
     switch (this) {
       case ZEROS -> {

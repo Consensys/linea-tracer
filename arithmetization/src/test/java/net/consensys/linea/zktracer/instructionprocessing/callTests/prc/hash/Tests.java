@@ -18,7 +18,6 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utili
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.COST;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition.*;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul.MemoryContents.WELL_FORMED_POINT_AND_NONTRIVIAL_MULTIPLIER;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
@@ -26,7 +25,6 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul.CallDataSizeParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallTests;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -69,18 +67,18 @@ public class Tests extends PrecompileCallTests<CallParameters> {
   @Test
   public void singleMessageCallTransactionTest() {
     CallParameters params =
-            new CallParameters(
-                    CALL,
-                    COST,
-                    HashPrecompile.IDENTITY,
-                    ValueParameter.ZERO,
-                    CallOffset.ALIGNED,
-                    CallSize.WORD,
-                    CallOffset.MISALIGNED,
-                    CallSize.WORD,
-                    new MemoryContents(),
-                    OVERLAP,
-                    true);
+        new CallParameters(
+            CALL,
+            COST,
+            HashPrecompile.IDENTITY,
+            ValueParameter.ZERO,
+            CallOffset.ALIGNED,
+            CallSize.WORD,
+            CallOffset.MISALIGNED,
+            CallSize.WORD,
+            new MemoryContents(),
+            OVERLAP,
+            true);
 
     BytecodeCompiler rootCode = params.customPrecompileCallsSeparatedByReturnDataWipingOperation();
     if (params.willRevert()) revertWith(rootCode, 3 * WORD_SIZE, 2 * WORD_SIZE);

@@ -19,15 +19,15 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.C
 
 import net.consensys.linea.testing.BytecodeCompiler;
 
-public interface MemoryContents {
+public interface PrecompileCallMemoryContents {
 
-  void switchVariants();
+  void switchBetweenVariants();
 
   BytecodeCompiler memoryContents();
 
   default void setCodeOfHolderAccounts() {
     memoryContentsHolder1.code(this.memoryContents().compile());
-    this.switchVariants();
+    this.switchBetweenVariants();
     memoryContentsHolder2.code(this.memoryContents().compile());
   }
 }

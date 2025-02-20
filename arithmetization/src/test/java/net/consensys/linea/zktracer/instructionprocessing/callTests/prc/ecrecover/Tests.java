@@ -16,13 +16,12 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecov
 
 import java.util.stream.Stream;
 
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.HappyPathTests;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.HappyPathPrecompileCallTests;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.provider.Arguments;
 
 @Tag("weekly")
-public class EcrecoverTests extends HappyPathTests<EcrecoverCallParameters> {
-
+public class HappyPathTests extends HappyPathPrecompileCallTests<CallParameters> {
   public static Stream<Arguments> happyPathParameterGeneration() {
     return ParameterGeneration.parameterGeneration();
   }

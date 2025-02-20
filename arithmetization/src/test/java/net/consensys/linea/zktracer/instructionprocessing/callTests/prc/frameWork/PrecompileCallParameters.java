@@ -22,19 +22,19 @@ import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import net.consensys.linea.testing.BytecodeCompiler;
 import org.hyperledger.besu.datatypes.Address;
 
-public interface CallParameters {
+public interface PrecompileCallParameters {
 
   boolean willRevert();
 
-  MemoryContents memoryContents();
+  PrecompileCallMemoryContents memoryContents();
 
-  void appendHappyPathPrecompileCall(BytecodeCompiler program);
+  void appendCustomPrecompileCall(BytecodeCompiler program);
 
   /**
-   * {@link #happyPathWipeReturnDataHappyPathProgram} constructs the byte code for the <b>happy
-   * path</b> testing of the relevant <b>PRECOMPILE</b>.
+   * {@link #customPrecompileCallsSeparatedByReturnDataWipingOperation} constructs the byte code for
+   * the <b>happy path</b> testing of the relevant <b>PRECOMPILE</b>.
    */
-  default BytecodeCompiler happyPathWipeReturnDataHappyPathProgram() {
+  default BytecodeCompiler customPrecompileCallsSeparatedByReturnDataWipingOperation() {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
@@ -44,8 +44,8 @@ public interface CallParameters {
     // populate memory with the data for first PRECOMPILE call
     copyForeignCodeToRam(program, memoryContentsHolderAddress1);
 
-    // happy path: first PRECOMPILE call
-    this.appendHappyPathPrecompileCall(program);
+    // first PRECOMPILE call
+    this.appendCustomPrecompileCall(program);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x2a);
     loadFirstReturnDataWordOntoStack(program, 0x02ff);
 
@@ -58,8 +58,8 @@ public interface CallParameters {
     // populate memory with the data for second PRECOMPILE call
     copyForeignCodeToRam(program, memoryContentsHolderAddress2);
 
-    // happy path: second PRECOMPILE call
-    this.appendHappyPathPrecompileCall(program);
+    // second PRECOMPILE call
+    this.appendCustomPrecompileCall(program);
     copyHalfOfReturnDataOmittingTheFirstThirdOfIt(program, 0x026c);
     loadFirstReturnDataWordOntoStack(program, 0x00);
 

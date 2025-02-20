@@ -24,14 +24,19 @@ import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExec
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public abstract class HappyPathTests<T extends CallParameters> {
+public abstract class PrecompileCallTests<T extends PrecompileCallParameters> {
 
-  /** <b>MESSAGE_CALL_TRANSACTION</b> case, see {@link CodeExecutionMethods}. */
+  /**
+   * <b>MESSAGE_CALL_TRANSACTION</b> case.
+   *
+   * <p>See {@link CodeExecutionMethods} for documentation and context.
+   */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
   public void messageCallTransactionTest(T callParameter) {
 
-    BytecodeCompiler rootCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    BytecodeCompiler rootCode =
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation();
     if (callParameter.willRevert()) revertWith(rootCode, 0, 5 * WORD_SIZE);
 
     runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
@@ -41,14 +46,13 @@ public abstract class HappyPathTests<T extends CallParameters> {
    * <b>CONTRACT_DEPLOYMENT_TRANSACTION</b> case.
    *
    * <p>See {@link CodeExecutionMethods} for documentation and context.
-   *
-   * @param callParameter
    */
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
   public void deploymentTransactionTest(T callParameter) {
 
-    BytecodeCompiler txInitCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    BytecodeCompiler txInitCode =
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation();
     if (callParameter.willRevert()) revertWith(txInitCode, 0, 0);
 
     runDeploymentTransactionWithProvidedCodeAsInitCode(txInitCode);
@@ -62,7 +66,8 @@ public abstract class HappyPathTests<T extends CallParameters> {
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
   public void messageCallFromRootTest(T callParameter) {
-    BytecodeCompiler chadPrcEnjoyerCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    BytecodeCompiler chadPrcEnjoyerCode =
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation();
     runMessageCallToAccountEndowedWithProvidedCode(chadPrcEnjoyerCode, callParameter.willRevert());
   }
 
@@ -79,7 +84,8 @@ public abstract class HappyPathTests<T extends CallParameters> {
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
   public void happyPathDuringCreate(T callParameter) {
-    BytecodeCompiler foreignCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    BytecodeCompiler foreignCode =
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation();
     runForeignByteCodeAsInitCode(foreignCode, callParameter.willRevert());
   }
 
@@ -91,7 +97,8 @@ public abstract class HappyPathTests<T extends CallParameters> {
   @ParameterizedTest
   @MethodSource("happyPathParameterGeneration")
   public void happyPathAfterCreate(T callParameter) {
-    BytecodeCompiler chadPrcEnjoyerCode = callParameter.happyPathWipeReturnDataHappyPathProgram();
+    BytecodeCompiler chadPrcEnjoyerCode =
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation();
     runCreateDeployingForeignCodeAndCallIntoIt(chadPrcEnjoyerCode, callParameter.willRevert());
   }
 }

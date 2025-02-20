@@ -29,7 +29,7 @@ public class EcrecoverCallParameters
 
   public final OpCode call;
   public final GasParameter gas;
-  public final MemoryContents memoryContents;
+  public final EcrecoverMemoryContents ecrecoverMemoryContents;
   public final CallDataSizeParameter cds;
   public final ReturnAtParameter returnAt;
   public final boolean willRevert;
@@ -37,13 +37,13 @@ public class EcrecoverCallParameters
   public EcrecoverCallParameters(
       OpCode call,
       GasParameter gas,
-      MemoryContents memoryContent,
+      EcrecoverMemoryContents memoryContent,
       CallDataSizeParameter cds,
       ReturnAtParameter returnAt,
       boolean willRevert) {
     this.call = call;
     this.gas = gas;
-    this.memoryContents = memoryContent;
+    this.ecrecoverMemoryContents = memoryContent;
     this.cds = cds;
     this.returnAt = returnAt;
     this.willRevert = willRevert;
@@ -55,7 +55,7 @@ public class EcrecoverCallParameters
 
   public net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.MemoryContents
       memoryContents() {
-    return memoryContents;
+    return ecrecoverMemoryContents;
   }
 
   public void appendHappyPathPrecompileCall(BytecodeCompiler program) {
@@ -111,7 +111,7 @@ public class EcrecoverCallParameters
             + ", gas="
             + gas
             + ", memoryContents="
-            + memoryContents
+            + ecrecoverMemoryContents
             + ", cds="
             + cds
             + ", returnAt="

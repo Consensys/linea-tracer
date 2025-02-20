@@ -16,11 +16,10 @@
 package net.consensys.linea.zktracer.opcode;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.type.CollectionType;
@@ -32,8 +31,8 @@ import net.consensys.linea.zktracer.json.JsonConverter;
 public class OpCodes {
   private static final JsonConverter YAML_CONVERTER = JsonConverter.builder().enableYaml().build();
 
-  public static Map<Integer, OpCodeData> valueToOpCodeDataMap;
-  public static Map<OpCode, OpCodeData> opCodeToOpCodeDataMap;
+  private static final short OPCODES_LIST_SIZE = 256;
+  static List<OpCodeData> opCodes = new ArrayList<>(OPCODES_LIST_SIZE);
 
   static {
     init();
@@ -51,12 +50,19 @@ public class OpCodes {
     CollectionType typeReference =
         TypeFactory.defaultInstance().constructCollectionType(List.class, OpCodeData.class);
 
-    List<OpCodeData> opCodes =
+    List<OpCodeData> opCodesLocal =
         YAML_CONVERTER.getObjectMapper().treeToValue(rootNode, typeReference);
 
-    valueToOpCodeDataMap = opCodes.stream().collect(Collectors.toMap(OpCodeData::value, e -> e));
-    opCodeToOpCodeDataMap =
-        opCodes.stream().collect(Collectors.toMap(OpCodeData::mnemonic, e -> e));
+    initOpcodes(opCodesLocal);
+  }
+
+  private static void initOpcodes(final List<OpCodeData> opCodesLocal) {
+    for (int i = 0; i < OPCODES_LIST_SIZE; i++) {
+      opCodes.add(null);
+    }
+    for (OpCodeData opCodeData : opCodesLocal) {
+      opCodes.set(opCodeData.value(), opCodeData);
+    }
   }
 
   /**
@@ -70,7 +76,9 @@ public class OpCodes {
       throw new IllegalArgumentException("No OpCode with value %s is defined.".formatted(value));
     }
 
-    return valueToOpCodeDataMap.getOrDefault(value, OpCodeData.forNonOpCodes(value));
+    return Optional.ofNullable(opCodes.get(value))
+        .orElseThrow(
+            () -> new IllegalArgumentException("No OpCode number %d is defined.".formatted(value)));
   }
 
   /**
@@ -80,7 +88,7 @@ public class OpCodes {
    * @return an instance of {@link OpCodeData} corresponding to mnemonic of type {@link OpCode}.
    */
   public static OpCodeData of(final OpCode code) {
-    return Optional.ofNullable(opCodeToOpCodeDataMap.get(code))
+    return Optional.ofNullable(opCodes.get(code.getOpcode()))
         .orElseThrow(
             () ->
                 new IllegalArgumentException(

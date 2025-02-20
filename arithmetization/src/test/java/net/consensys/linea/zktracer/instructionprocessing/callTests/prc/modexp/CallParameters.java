@@ -14,16 +14,19 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.modexp;
 
+import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallParameters;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
-public class CallParameters {
+public class CallParameters implements PrecompileCallParameters {
 
   public final OpCode call;
   public final GasParameter gas;
-  public final CallDataParameter callData;
+  public final MemoryContents callData;
   public final ReturnAtParameter returnAt;
   public final RelativeRangePosition relPos;
   public final boolean willRevert;
@@ -31,15 +34,30 @@ public class CallParameters {
   public CallParameters(
       OpCode call,
       GasParameter gas,
-      CallDataParameter callData,
+      MemoryContents memoryContents,
       ReturnAtParameter returnAt,
       RelativeRangePosition relPos,
       boolean willRevert) {
     this.call = call;
     this.gas = gas;
-    this.callData = callData;
+    this.callData = memoryContents;
     this.returnAt = returnAt;
     this.relPos = relPos;
     this.willRevert = willRevert;
+  }
+
+  @Override
+  public boolean willRevert() {
+    return willRevert;
+  }
+
+  @Override
+  public PrecompileCallMemoryContents memoryContents() {
+    return callData;
+  }
+
+  @Override
+  public void appendCustomPrecompileCall(BytecodeCompiler program) {
+
   }
 }

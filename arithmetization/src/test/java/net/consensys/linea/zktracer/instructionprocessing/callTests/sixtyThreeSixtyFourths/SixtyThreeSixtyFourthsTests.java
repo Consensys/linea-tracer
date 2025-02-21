@@ -1,18 +1,42 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourths;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_VALUE;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
+import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
+import static org.hyperledger.besu.datatypes.Address.BLAKE2B_F_COMPRESSION;
+import static org.hyperledger.besu.datatypes.Address.ECREC;
+import static org.hyperledger.besu.datatypes.Address.ID;
+import static org.hyperledger.besu.datatypes.Address.MODEXP;
+import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
+import static org.hyperledger.besu.datatypes.Address.SHA256;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+import com.google.common.base.Function;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.oob.OobOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.precompiles.PrecompileUtils;
 import org.apache.tuweni.bytes.Bytes;
-import org.junit.jupiter.api.Test;
+import org.hyperledger.besu.datatypes.Address;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /*
  * Copyright Consensys Software Inc.
@@ -28,63 +52,94 @@ import org.junit.jupiter.api.Test;
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SixtyThreeSixtyFourthsTests {
 
   /*
-  A transaction needs to target an SMC that will:
-    - expand memory by executing an MLOAD at offset 4096 - 32 = 4064
-    - do a CALL type instruction to a precompile contract
-    - the gas we provide to the precompile contract should cover the cases below.
+  Cases to cover:
 
-      Cases to cover:
-      - value = 0
-      - value = 1 | targetAddressExists = false, true
-
-      Optionally:
-      - memoryExpansionBeforeCallToPrc = false, true | value = 0
-      - memoryExpansionBeforeCallToPrc = false, true | value = 1 | targetAddressExists = false, true
-
-   * Generic case:
-      executionCostOfProgramBeforeFinalCallToPRC =
-        value = 0 || !targetAddressExists : 21000 + MLOAD + PUSHEes
-        value = 1 && targetAddressExists  : 21000 + MLOAD + PUSHEes + CALL (to send value to the precompile so as targetAddressExists = true)
-      remainingGasBeforeCall = gasLimit - executionCostOfProgramBeforeFinalCallToPRC
-      callOpcodeCost = 100 + (value > 0 && !targetAddressExists ? 25000 : 0) + (value > 0 ? 9000 : 0)
-
-      For cornerCase = -1, 0 find gasLimit such that:
-        providedGas = 63/64 * (remainingGasBeforeCall - callOpcodeCost) + (value > 0 ? 2300 : 0) = precompileGasCost + cornerCase
-
-      Note that the value > 0 case is meaningful only when
-      precompileGasCost + cornerCase >= 2300 as otherwise being able to pay for the call,
-      that is remainingGasBeforeCall - callOpcodeCost >= 0, implies we can pay for the precompile, too (and we are
-      interested in the case in which we can't pay for the precompile).
-
-   Let x = remainingGasBeforeCall
-   Let y = gasLimit
-
-   Find y = x - executionCostOfProgramBeforeFinalCallToPRC such that:
-
-   * value = 0
-     63/64 * (x - 100) = precompileGasCost - 1, precompileGasCost
-
+  * value = 0
+  If precompileGasCost >= 2300 then we are interested in:
    * value = 1, targetAddressExists = false
-     63/64 * (x - 100 - 25000 - 9000) + 2300 = precompileGasCost - 1, precompileGasCost
-
    * value = 1, targetAddressExists = true
-     63/64 * (x - 100 - 9000) + 2300 = precompileGasCost - 1, precompileGasCost
 
-   BLAKE2F requires an input that is not 0 to have a cost greater than 2300.
-   MODEXP also requires a special treatment to get a cost greater than 2300 (as it may be 200).
-   Otherwise, call data size is the only aspect we care.
-   */
+  Note: BLAKE2F and MODEXP requires a non-zero non-trivial input to have a cost greater than 2300.
+  Other precompiles only require a proper call data size.
+  */
 
   final Bytes gas = Bytes.fromHexString("ff".repeat(32));
 
-  // TODO: check the documentation here is consistent with the one in the issue and change the tests
-  //  below accordingly
+  // Generic program before the final call to the precompile when the target address does not exist
+  final BytecodeCompiler preCallTargetAddressDoesNotExistProgram =
+      BytecodeCompiler.newProgram()
+          .push(4096 - 32)
+          .op(OpCode.MLOAD)
+          .push(0) // returnAtCapacity
+          .push(0) // returnAtOffset
+          .push(0) // callDataSize
+          .push(0) // callDataOffset
+          .push(0) // value
+          .push(0) // address (this is 0 as the cost of PUSH is always the same)
+          .push(gas); // gas
 
-  @Test
-  void sixtyThreeSixtyFourthsEcAddTest() {
+  // Cost of the generic program before the final call to the precompile when the target address
+  // does not exist
+  final long preCallTargetAddressDoesNotExistProgramGas =
+      BytecodeRunner.of(preCallTargetAddressDoesNotExistProgram).runOnlyForGasCost();
+
+  // Cost of the generic program before the final call to the precompile when the target address
+  // exists
+  Map<Address, Long> preCallTargetAddressExistsProgramGasMap = new HashMap<>();
+
+  @BeforeAll
+  void computePreCallTargetAddressExistsProgramGasOnceForAll() {
+    // Generic program before the final call to the precompile when the target address exists
+    final Function<Address, BytecodeCompiler> preCallTargetAddressExistsProgram =
+        (address) ->
+            BytecodeCompiler.newProgram()
+                .push(0) // returnAtCapacity
+                .push(0) // returnAtOffset
+                .push(0) // callDataSize
+                .push(0) // callDataOffset
+                .push(0) // value
+                .push(address) // address
+                .push(gas) // gas
+                .op(OpCode.CALL)
+                .push(4096 - 32)
+                .op(OpCode.MLOAD)
+                .push(0) // returnAtCapacity
+                .push(0) // returnAtOffset
+                .push(0) // callDataSize
+                .push(0) // callDataOffset
+                .push(0) // value
+                .push(0) // address (this is 0 as the cost of PUSH is always the same)
+                .push(gas); // gas
+    // Cost of the generic program before the final call to the precompile when the target address
+    // exists
+    final Function<Address, Long> preCallTargetAddressExistsProgramGas =
+        (address) ->
+            BytecodeRunner.of(preCallTargetAddressExistsProgram.apply(address)).runOnlyForGasCost();
+    for (Address address :
+        List.of(
+            ECREC,
+            SHA256,
+            RIPEMD160,
+            ID,
+            MODEXP,
+            ALTBN128_ADD,
+            ALTBN128_MUL,
+            ALTBN128_PAIRING,
+            BLAKE2B_F_COMPRESSION)) {
+      preCallTargetAddressExistsProgramGasMap.put(
+          address, preCallTargetAddressExistsProgramGas.apply(address));
+    }
+  }
+
+  @ParameterizedTest
+  @MethodSource("sixtyThreeSixtyFourthsEcAddTestSource")
+  void sixtyThreeSixtyFourthsEcAddTest(
+      long gasLimit, boolean insufficientGasForPrecompileExpected) {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program.push(4096 - 32).op(OpCode.MLOAD);
@@ -98,104 +153,65 @@ public class SixtyThreeSixtyFourthsTests {
         .push(gas) // gas
         .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
+    bytecodeRunner.run(gasLimit);
 
-    final long gasCost = bytecodeRunner.runOnlyForGasCost();
-    // 21693
-    bytecodeRunner.run(gasCost);
-
-    // providedGas = 63/64 * (250 - 100) + 2300 * 0 = 148 > 150
-    // Indeed, without the 63/64 factor, the providedGas would be enough
+    // insufficientGasForPrecompileExpected = true  => targetCalleeGas = 63/64 * (252 - 100) = 150
+    // insufficientGasForPrecompileExpected = false => targetCalleeGas = 63/64 * (251 - 100) = 149
 
     assertNotEquals(
         OUT_OF_GAS_EXCEPTION,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
 
-    final boolean insufficientGasForPrecompile =
+    final boolean insufficientGasForPrecompileActual =
         bytecodeRunner.getHub().oob().operations().stream()
             .anyMatch(OobOperation::isInsufficientGasForPrecompile);
-    assertTrue(insufficientGasForPrecompile);
+
+    assertEquals(insufficientGasForPrecompileExpected, insufficientGasForPrecompileActual);
   }
 
-  @Test
-  void sixtyThreeSixtyFourthsEcAddTestWithValue() {
-    final BytecodeCompiler program = BytecodeCompiler.newProgram();
+  Stream<Arguments> sixtyThreeSixtyFourthsEcAddTestSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    final long targetCalleeGas = PrecompileUtils.getECADDCost();
+    final long gasLimitEnough =
+        getGasLimit(targetCalleeGas, false, true, preCallTargetAddressDoesNotExistProgramGas);
+    final long gasLimitNotEnough =
+        getGasLimit(targetCalleeGas - 1, false, true, preCallTargetAddressDoesNotExistProgramGas);
+    arguments.add(Arguments.of(gasLimitEnough, false));
+    arguments.add(Arguments.of(gasLimitNotEnough, true));
+    return arguments.stream();
+  }
 
-    program.push(4096 - 32).op(OpCode.MLOAD);
-    program
-        .push(0) // returnAtCapacity
-        .push(0) // returnAtOffset
-        .push(0) // callDataSize
-        .push(0) // callDataOffset
-        .push(1) // value
-        .push(ALTBN128_ADD) // address
-        .push(gas) // gas
-        .op(OpCode.CALL);
-    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
-
-    final long gasCost = bytecodeRunner.runOnlyForGasCost();
-    // 53393 = 21693 + 9000 + 25000 - 2300
-    bytecodeRunner.run(gasCost + (2300 - 150));
-
-    // providedGas =
-    // 63/64 * (31950 + (2300 - 150) - 9000 - 25000 - 100) + 2300 * 1 = 2300  > 150
-
-    // As long as we can pay for the call, we can pay for the precompile
-
-    assertNotEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-
-    /*
-    final boolean insufficientGasForPrecompile =
-        bytecodeRunner.getHub().oob().operations().stream()
-            .anyMatch(OobOperation::isInsufficientGasForPrecompile);
-    assertTrue(insufficientGasForPrecompile);
+  // Support methods
+  long getGasLimit(
+      long targetCalleeGas,
+      boolean transfersValue,
+      boolean targetAddressExists,
+      long preCallProgramGas) {
+    /* gasLimit = preCallProgramGasCost + gasPreCall
+    /  63/64 * (gasPreCall - gasUpFront) + stipend = targetCalleeGas
+    /  x = gasPreCall - gasUpFront
+    /  k = x / 64 (integer division)
+    /  l = x - 64 * k
+    /  63 * k + l + stipend = targetCalleeGas
+    / find gasLimit going backwards
     */
+    final long stipend = transfersValue ? GlobalConstants.GAS_CONST_G_CALL_STIPEND : 0;
+    final long l = (targetCalleeGas - stipend) % 63;
+    final long k = (targetCalleeGas - stipend - l) / 63;
+    checkArgument(63 * k + l + stipend == targetCalleeGas);
+    final long gasUpfront = getGasUpfront(transfersValue, targetAddressExists);
+    final long gasPreCall = (targetCalleeGas - stipend) * 64 / 63 + gasUpfront;
+    return preCallProgramGas + gasPreCall; // gasLimit
   }
 
-  @Test
-  void sixtyThreeSixtyFourthsEcMulTest() {
-    final BytecodeCompiler program = BytecodeCompiler.newProgram();
-
-    program.push(4096 - 32).op(OpCode.MLOAD);
-    program
-        .push(0) // returnAtCapacity
-        .push(0) // returnAtOffset
-        .push(0) // callDataSize
-        .push(0) // callDataOffset
-        .push(0) // value
-        .push(ALTBN128_MUL) // address
-        .push(gas) // gas
-        .op(OpCode.CALL);
-    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
-
-    final long gasCost = bytecodeRunner.runOnlyForGasCost();
-    // 27543
-    bytecodeRunner.run(gasCost);
-
-    // providedGas = 63/64 * (6100 - 100) + 2300 * 0 = 5907  > 6000
-    // Indeed, without the 63/64 factor, the providedGas would be enough
-
-    assertNotEquals(
-        OUT_OF_GAS_EXCEPTION,
-        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-
-    final boolean insufficientGasForPrecompile =
-        bytecodeRunner.getHub().oob().operations().stream()
-            .anyMatch(OobOperation::isInsufficientGasForPrecompile);
-    assertTrue(insufficientGasForPrecompile);
-  }
-
-  private long callGasCostExcludingMemoryExpansion(
-      boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
-    // GAS_CONST_G_CALL_VALUE = 9000
-    // GAS_CONST_G_NEW_ACCOUNT = 25000
+  long getGasUpfront(boolean transfersValue, boolean targetAddressExists) {
     // GAS_CONST_G_WARM_ACCESS = 100
     // GAS_CONST_G_COLD_ACCOUNT_ACCESS = 2600
-    return (transfersValue ? GlobalConstants.GAS_CONST_G_CALL_VALUE : 0)
-        + (targetAddressExists ? 0 : (transfersValue ? GlobalConstants.GAS_CONST_G_NEW_ACCOUNT : 0))
-        + (isWarm
-            ? GlobalConstants.GAS_CONST_G_WARM_ACCESS
-            : GlobalConstants.GAS_CONST_G_COLD_ACCOUNT_ACCESS);
+    // GAS_CONST_G_CALL_VALUE = 9000
+    // GAS_CONST_G_NEW_ACCOUNT = 25000
+    return GAS_CONST_G_WARM_ACCESS
+        + (transfersValue
+            ? GAS_CONST_G_CALL_VALUE + (targetAddressExists ? 0 : GAS_CONST_G_NEW_ACCOUNT)
+            : 0);
   }
 }

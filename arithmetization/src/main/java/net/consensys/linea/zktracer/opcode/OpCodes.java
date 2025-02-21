@@ -77,8 +77,7 @@ public class OpCodes {
     }
 
     return Optional.ofNullable(opCodeDataList.get(value))
-        .orElseThrow(
-            () -> new IllegalArgumentException("No OpCode number %d is defined.".formatted(value)));
+        .orElse(OpCodeData.forNonOpCodes(value));
   }
 
   /**

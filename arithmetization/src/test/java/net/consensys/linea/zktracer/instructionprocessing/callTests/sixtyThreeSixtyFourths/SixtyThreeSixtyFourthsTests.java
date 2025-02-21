@@ -41,6 +41,14 @@ public class SixtyThreeSixtyFourthsTests {
       NOTE: in case the precompile contract does not exist in the world state, we may pay an additional 25000 gas cost when
       transferring value in the call from SMC to PRC. We need to check if they exist in the world state.
       An option may be sending some value to the contract first to do not pay this 25000 during the test.
+
+      Cases to cover:
+      - value = 0
+      - value = 1, targetAddressExists = false, true
+
+      Optionally:
+      - memoryExpansionBeforeCallToPrc = false, true, value = 0
+      - memoryExpansionBeforeCallToPrc = false, true, value = 1, targetAddressExists = false, true
    */
 
   final Bytes gas = Bytes.fromHexString("ff".repeat(32));

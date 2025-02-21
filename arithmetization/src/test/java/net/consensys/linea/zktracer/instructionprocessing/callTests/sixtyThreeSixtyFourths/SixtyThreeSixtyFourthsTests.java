@@ -1,7 +1,9 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourths;
 
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -32,26 +34,53 @@ public class SixtyThreeSixtyFourthsTests {
   A transaction needs to target an SMC that will:
     - expand memory by executing an MLOAD at offset 4096 - 32 = 4064
     - do a CALL type instruction to a precompile contract
-    - the gas we provide to the precompile contract should be:
-        providedGas = 63/64 * (remainingGasBeforeCall - callOpcodeCost) + callStipend * (valueIsNonZero ? 1 : 0).
-      this gas should be insufficient to pay for the execution of the precompile contract (cornerCase = -1, 0, 1).
-      This means that I need to find the GAS_LIMIT for the transaction such that providedGas = precompileGasCost + cornerCase.
-      Specifically, the GAS_LIMIT influences the remainingGas (note that we pay the MLOAD, PUSHEes etc and the 21000,
-      GAS_CONST_G_TRANSACTION).
-      NOTE: in case the precompile contract does not exist in the world state, we may pay an additional 25000 gas cost when
-      transferring value in the call from SMC to PRC. We need to check if they exist in the world state.
-      An option may be sending some value to the contract first to do not pay this 25000 during the test.
+    - the gas we provide to the precompile contract should cover the cases below.
 
       Cases to cover:
       - value = 0
-      - value = 1, targetAddressExists = false, true
+      - value = 1 | targetAddressExists = false, true
 
       Optionally:
-      - memoryExpansionBeforeCallToPrc = false, true, value = 0
-      - memoryExpansionBeforeCallToPrc = false, true, value = 1, targetAddressExists = false, true
+      - memoryExpansionBeforeCallToPrc = false, true | value = 0
+      - memoryExpansionBeforeCallToPrc = false, true | value = 1 | targetAddressExists = false, true
+
+   * Generic case:
+      executionCostOfProgramBeforeFinalCallToPRC =
+        value = 0 || !targetAddressExists : 21000 + MLOAD + PUSHEes
+        value = 1 && targetAddressExists  : 21000 + MLOAD + PUSHEes + CALL (to send value to the precompile so as targetAddressExists = true)
+      remainingGasBeforeCall = gasLimit - executionCostOfProgramBeforeFinalCallToPRC
+      callOpcodeCost = 100 + (value > 0 && !targetAddressExists ? 25000 : 0) + (value > 0 ? 9000 : 0)
+
+      For cornerCase = -1, 0 find gasLimit such that:
+        providedGas = 63/64 * (remainingGasBeforeCall - callOpcodeCost) + (value > 0 ? 2300 : 0) = precompileGasCost + cornerCase
+
+      Note that the value > 0 case is meaningful only when
+      precompileGasCost + cornerCase >= 2300 as otherwise being able to pay for the call,
+      that is remainingGasBeforeCall - callOpcodeCost >= 0, implies we can pay for the precompile, too (and we are
+      interested in the case in which we can't pay for the precompile).
+
+   Let x = remainingGasBeforeCall
+   Let y = gasLimit
+
+   Find y = x - executionCostOfProgramBeforeFinalCallToPRC such that:
+
+   * value = 0
+     63/64 * (x - 100) = precompileGasCost - 1, precompileGasCost
+
+   * value = 1, targetAddressExists = false
+     63/64 * (x - 100 - 25000 - 9000) + 2300 = precompileGasCost - 1, precompileGasCost
+
+   * value = 1, targetAddressExists = true
+     63/64 * (x - 100 - 9000) + 2300 = precompileGasCost - 1, precompileGasCost
+
+   BLAKE2F is the only case that requires a input that is not 0 to have a cost greater than 2300.
+   Otherwise, call data size is the only aspect we care.
    */
 
   final Bytes gas = Bytes.fromHexString("ff".repeat(32));
+
+  // TODO: check the documentation here is consistent with the one in the issue and change the tests
+  //  below accordingly
 
   @Test
   void sixtyThreeSixtyFourthsEcAddTest() {
@@ -69,11 +98,16 @@ public class SixtyThreeSixtyFourthsTests {
         .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
 
-    final long gasCost = bytecodeRunner.runOnlyForGasCost(); // 21693
+    final long gasCost = bytecodeRunner.runOnlyForGasCost();
+    // 21693
     bytecodeRunner.run(gasCost);
 
     // providedGas = 63/64 * (250 - 100) + 2300 * 0 = 148 > 150
     // Indeed, without the 63/64 factor, the providedGas would be enough
+
+    assertNotEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
 
     final boolean insufficientGasForPrecompile =
         bytecodeRunner.getHub().oob().operations().stream()
@@ -98,16 +132,24 @@ public class SixtyThreeSixtyFourthsTests {
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
 
     final long gasCost = bytecodeRunner.runOnlyForGasCost();
-    // 53393 = 21693 + GlobalConstants.GAS_CONST_G_CALL_VALUE + GlobalConstants.GAS_CONST_G_NEW_ACCOUNT
-    bytecodeRunner.run(gasCost);
+    // 53393 = 21693 + 9000 + 25000 - 2300
+    bytecodeRunner.run(gasCost + (2300 - 150));
 
-    // providedGas = ...
-    // Indeed, without the 63/64 factor, the providedGas would be enough
+    // providedGas =
+    // 63/64 * (31950 + (2300 - 150) - 9000 - 25000 - 100) + 2300 * 1 = 2300  > 150
 
+    // As long as we can pay for the call, we can pay for the precompile
+
+    assertNotEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+
+    /*
     final boolean insufficientGasForPrecompile =
         bytecodeRunner.getHub().oob().operations().stream()
             .anyMatch(OobOperation::isInsufficientGasForPrecompile);
     assertTrue(insufficientGasForPrecompile);
+    */
   }
 
   @Test
@@ -126,11 +168,16 @@ public class SixtyThreeSixtyFourthsTests {
         .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
 
-    final long gasCost = bytecodeRunner.runOnlyForGasCost(); // 27543
+    final long gasCost = bytecodeRunner.runOnlyForGasCost();
+    // 27543
     bytecodeRunner.run(gasCost);
 
     // providedGas = 63/64 * (6100 - 100) + 2300 * 0 = 5907  > 6000
     // Indeed, without the 63/64 factor, the providedGas would be enough
+
+    assertNotEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
 
     final boolean insufficientGasForPrecompile =
         bytecodeRunner.getHub().oob().operations().stream()
@@ -140,6 +187,10 @@ public class SixtyThreeSixtyFourthsTests {
 
   private long callGasCostExcludingMemoryExpansion(
       boolean transfersValue, boolean targetAddressExists, boolean isWarm) {
+    // GAS_CONST_G_CALL_VALUE = 9000
+    // GAS_CONST_G_NEW_ACCOUNT = 25000
+    // GAS_CONST_G_WARM_ACCESS = 100
+    // GAS_CONST_G_COLD_ACCOUNT_ACCESS = 2600
     return (transfersValue ? GlobalConstants.GAS_CONST_G_CALL_VALUE : 0)
         + (targetAddressExists ? 0 : (transfersValue ? GlobalConstants.GAS_CONST_G_NEW_ACCOUNT : 0))
         + (isWarm

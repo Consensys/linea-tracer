@@ -196,9 +196,10 @@ public class SixtyThreeSixtyFourthsTests {
     / find gasLimit going backwards
     */
     final long stipend = transfersValue ? GlobalConstants.GAS_CONST_G_CALL_STIPEND : 0;
+    checkArgument(targetCalleeGas >= stipend);
     final long l = (targetCalleeGas - stipend) % 63;
     final long k = (targetCalleeGas - stipend - l) / 63;
-    checkArgument(63 * k + l + stipend == targetCalleeGas);
+    checkArgument(targetCalleeGas == 63 * k + l + stipend);
     final long gasUpfront = getGasUpfront(transfersValue, targetAddressExists);
     final long gasPreCall = (targetCalleeGas - stipend) * 64 / 63 + gasUpfront;
     return preCallProgramGas + gasPreCall; // gasLimit

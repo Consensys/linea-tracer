@@ -32,7 +32,7 @@ public class OpCodes {
   private static final JsonConverter YAML_CONVERTER = JsonConverter.builder().enableYaml().build();
 
   private static final short OPCODES_LIST_SIZE = 256;
-  static List<OpCodeData> opCodes = new ArrayList<>(OPCODES_LIST_SIZE);
+  public static List<OpCodeData> opCodeDataList = new ArrayList<>(OPCODES_LIST_SIZE);
 
   static {
     init();
@@ -58,10 +58,10 @@ public class OpCodes {
 
   private static void initOpcodes(final List<OpCodeData> opCodesLocal) {
     for (int i = 0; i < OPCODES_LIST_SIZE; i++) {
-      opCodes.add(null);
+      opCodeDataList.add(null);
     }
     for (OpCodeData opCodeData : opCodesLocal) {
-      opCodes.set(opCodeData.value(), opCodeData);
+      opCodeDataList.set(opCodeData.value(), opCodeData);
     }
   }
 
@@ -76,7 +76,7 @@ public class OpCodes {
       throw new IllegalArgumentException("No OpCode with value %s is defined.".formatted(value));
     }
 
-    return Optional.ofNullable(opCodes.get(value))
+    return Optional.ofNullable(opCodeDataList.get(value))
         .orElseThrow(
             () -> new IllegalArgumentException("No OpCode number %d is defined.".formatted(value)));
   }
@@ -88,7 +88,7 @@ public class OpCodes {
    * @return an instance of {@link OpCodeData} corresponding to mnemonic of type {@link OpCode}.
    */
   public static OpCodeData of(final OpCode code) {
-    return Optional.ofNullable(opCodes.get(code.getOpcode()))
+    return Optional.ofNullable(opCodeDataList.get(code.getOpcode()))
         .orElseThrow(
             () ->
                 new IllegalArgumentException(

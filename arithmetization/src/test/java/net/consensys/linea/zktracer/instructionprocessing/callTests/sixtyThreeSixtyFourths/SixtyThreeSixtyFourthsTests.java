@@ -73,7 +73,8 @@ public class SixtyThreeSixtyFourthsTests {
    * value = 1, targetAddressExists = true
      63/64 * (x - 100 - 9000) + 2300 = precompileGasCost - 1, precompileGasCost
 
-   BLAKE2F is the only case that requires a input that is not 0 to have a cost greater than 2300.
+   BLAKE2F requires an input that is not 0 to have a cost greater than 2300.
+   MODEXP also requires a special treatment to get a cost greater than 2300 (as it may be 200).
    Otherwise, call data size is the only aspect we care.
    */
 

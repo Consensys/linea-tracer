@@ -23,7 +23,8 @@ public class CallDataRange {
   public boolean isEmpty = false;
 
   public CallDataRange(int firstPoint, int finalPoint) {
-    checkArgument(finalPoint >= firstPoint, "final point must be greater than or equal to first point");
+    checkArgument(
+        finalPoint >= firstPoint, "final point must be greater than or equal to first point");
     this.firstPoint = firstPoint;
     this.finalPoint = finalPoint;
   }
@@ -47,9 +48,7 @@ public class CallDataRange {
   }
 
   public int numberOfPairsOfPoints() {
-    return isEmpty()
-            ? 0
-            : (finalPoint() - firstPoint() + 1);
+    return isEmpty() ? 0 : (finalPoint() - firstPoint() + 1);
   }
 
   @Override

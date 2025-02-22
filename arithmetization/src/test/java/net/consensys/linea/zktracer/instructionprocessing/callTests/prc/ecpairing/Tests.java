@@ -14,31 +14,42 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing;
 
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.provider.Arguments;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.revertWith;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.runMessageCallTransactionWithProvidedCodeAsRootCode;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.COST;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.MemoryContents.TOTAL_NUMBER_OF_PAIRS_OF_POINTS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 
 import java.util.stream.Stream;
 
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.COST;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.MemoryContents.TOTAL_NUMBER_OF_PAIRS_OF_POINTS;
-import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallTests;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
 
-public class Tests {
+@Tag("weekly")
+public class Tests extends PrecompileCallTests<CallParameters> {
 
-    public static Stream<Arguments> parameterGeneration() {
-        return ParameterGeneration.parameterGeneration();
-    }
+  public static Stream<Arguments> parameterGeneration() {
+    return ParameterGeneration.parameterGeneration();
+  }
 
-    @Test
-    public void singleMessageCallTransactionTest() {
-        new CallParameters(
-                CALL,
-                COST,
-                new MemoryContents(SmallPoint.INFINITY, LargePoint.INFINITY),
-                new CallDataRange(0, TOTAL_NUMBER_OF_PAIRS_OF_POINTS - 1),
-                ReturnAtParameter.FULL,
-                true);
-        );
-    }
+  @Test
+  public void singleMessageCallTransactionTest() {
+      CallParameters params = new CallParameters(
+        CALL,
+        COST,
+        new MemoryContents(SmallPoint.INFINITY, LargePoint.INFINITY),
+        new CallDataRange(0, TOTAL_NUMBER_OF_PAIRS_OF_POINTS - 1),
+        ReturnAtParameter.FULL,
+        true);
+
+    BytecodeCompiler rootCode = params.customPrecompileCallsSeparatedByReturnDataWipingOperation();
+    if (params.willRevert()) revertWith(rootCode, 3 * WORD_SIZE, 2 * WORD_SIZE);
+
+    runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode);
+  }
 }

@@ -12,6 +12,30 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.ecdata.ecpairing;
-public class LargePointCandidate {
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing;
+
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+
+public enum LargePointCandidate {
+  // valid points
+  INFINITY,
+  VALID_LARGE_POINT,
+  // invalid points
+  RAND,
+  RE_X_NOT_IN_FIELD,
+  IM_X_NOT_IN_FIELD,
+  RE_Y_NOT_IN_FIELD,
+  IM_Y_NOT_IN_FIELD,
+  NOT_ON_CURVE,
+  NOT_IN_SUBGROUP;
+
+  public boolean isValid() {
+    return this == INFINITY || this == VALID_LARGE_POINT;
+  }
+
+  public boolean isInfinity() {
+    return this == INFINITY;
+  }
+
+  public static String POINT_AT_INFINITY = "00".repeat(4 * WORD_SIZE);
 }

@@ -12,6 +12,27 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.ecdata.ecpairing;
-public class SmallPointCandidate {
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing;
+
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+
+public enum SmallPointCandidate {
+  // valid points
+  INFINITY,
+  VALID_SMALL_POINT,
+  // invalid points
+  X_NOT_IN_FIELD,
+  Y_NOT_IN_FIELD,
+  NOT_ON_CURVE,
+  RAND;
+
+  public boolean isValid() {
+    return this == INFINITY || this == VALID_SMALL_POINT;
+  }
+
+  public boolean isInfinity() {
+    return this == INFINITY;
+  }
+
+  public static String POINT_AT_INFINITY = "00".repeat(2 * WORD_SIZE);
 }

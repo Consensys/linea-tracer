@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
 
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.STATICCALL;
 
@@ -30,8 +31,7 @@ public class ParameterGeneration {
 
   public static Stream<Arguments> parameterGeneration() {
     List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
-    List<GasParameter> GasParameters =
-        List.of(GasParameter.ZERO, GasParameter.COST_MO, GasParameter.COST, GasParameter.FULL);
+    List<GasParameter> GasParameters = List.of(ZERO, COST_MO, COST, PLENTY);
     List<ReturnAtParameter> ReturnAtParameters =
         List.of(ReturnAtParameter.EMPTY, ReturnAtParameter.PARTIAL, ReturnAtParameter.FULL);
 

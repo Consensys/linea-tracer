@@ -13,9 +13,5 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing;
-
-public enum CallDataParameter {
-  EMPTY,
-  SINGLE_PAIR_OF_POINTS,
-  RANGE_OF_PAIRS_OF_POINTS;
+public class ParameterGeneration {
 }

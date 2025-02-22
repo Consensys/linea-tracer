@@ -15,8 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
-import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
-import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
@@ -102,7 +101,7 @@ public class CallParameters implements PrecompileCallParameters {
       case ZERO -> program.push(0); // interesting in the nonzero value case
       case COST_MO -> program.push(6_000 - callStipend - 1);
       case COST -> program.push(6_000 - callStipend);
-      case FULL -> program.op(GAS);
+      case PLENTY -> program.push(2).op(GAS).op(DIV); // half of gas
       default -> throw new RuntimeException("Unsupported gas parameter");
     }
 

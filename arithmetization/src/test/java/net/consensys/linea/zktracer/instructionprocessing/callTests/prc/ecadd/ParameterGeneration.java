@@ -55,7 +55,7 @@ public class ParameterGeneration {
   public static Stream<Arguments> parameterGeneration() {
     List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
     List<GasParameter> GasParameters =
-        List.of(GasParameter.ZERO, GasParameter.COST_MO, GasParameter.COST, GasParameter.FULL);
+        List.of(GasParameter.ZERO, GasParameter.COST_MO, GasParameter.COST, GasParameter.PLENTY);
     List<ReturnAtParameter> ReturnAtParameters =
         List.of(ReturnAtParameter.EMPTY, ReturnAtParameter.PARTIAL, ReturnAtParameter.FULL);
 

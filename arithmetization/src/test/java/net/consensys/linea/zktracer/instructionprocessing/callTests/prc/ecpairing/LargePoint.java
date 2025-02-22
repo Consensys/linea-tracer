@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.RND;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.WORD_HEX_SIZE;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.MemoryContents.G2_POINT_5;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.SmallPoint.RANDOM_HEX_STRING;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
 public enum LargePoint {
@@ -48,7 +49,7 @@ public enum LargePoint {
         switch (this) {
           case INFINITY -> LARGE_POINT_AT_INFINITY;
           case VALID_LARGE_POINT -> G2_POINT_5;
-          case RAND -> RND.substring(36, 36 + 4 * WORD_HEX_SIZE);
+          case RAND -> RANDOM_HEX_STRING.substring(31, 31 + 4 * WORD_HEX_SIZE);
           case RE_X_NOT_IN_FIELD -> IN_RANGE_SAVE_FOR_LARGE_RE_X;
           case IM_X_NOT_IN_FIELD -> IN_RANGE_SAVE_FOR_LARGE_IM_X;
           case RE_Y_NOT_IN_FIELD -> IN_RANGE_SAVE_FOR_LARGE_RE_Y;

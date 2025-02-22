@@ -94,7 +94,7 @@ public class CallParameters implements PrecompileCallParameters {
       case ZERO -> program.push(0); // interesting in the nonzero value case
       case COST_MO -> program.push(3000 - callStipend - 1);
       case COST -> program.push(3000 - callStipend);
-      case FULL -> program.op(GAS);
+      case PLENTY -> program.push(2).op(GAS).op(DIV); // half of gas
       default -> throw new RuntimeException("Unsupported gas parameter");
     }
 

@@ -16,7 +16,7 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.hash;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition.OVERLAP;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
-import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
@@ -126,7 +126,7 @@ public class CallParameters implements PrecompileCallParameters {
       case ZERO -> program.push(0);
       case COST_MO -> program.push(cost - 1);
       case COST -> program.push(cost);
-      case FULL -> program.op(GAS);
+      case PLENTY -> program.push(2).op(GAS).op(DIV); // half of gas
       case MAX -> program.push("ff".repeat(32));
     }
 

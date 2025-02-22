@@ -85,7 +85,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
     // TODO: replace 192 with the appropriate constant (maybe add to GlobalConstants)
     checkState(
         memoryContentsBytes.size()
-            == TOTAL_NUMBER_OF_PAIRS_OF_POINTS * SIZE_OF_PAIR_OF_POINTS + WORD_SIZE * 2);
+            == TOTAL_NUMBER_OF_PAIRS_OF_POINTS * SIZE_OF_PAIR_OF_POINTS + WORD_SIZE);
 
     BytecodeCompiler memoryContents = BytecodeCompiler.newProgram();
     return memoryContents.immediate(memoryContentsBytes);

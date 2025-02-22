@@ -20,7 +20,7 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.e
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.MemoryContents.C1_POINT_4;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
-public enum SmallPointCandidate {
+public enum SmallPoint {
   // valid points
   INFINITY,
   VALID_SMALL_POINT,

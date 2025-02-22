@@ -20,7 +20,7 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.e
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.MemoryContents.G2_POINT_5;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
-public enum LargePointCandidate {
+public enum LargePoint {
   // valid points
   INFINITY,
   VALID_LARGE_POINT,

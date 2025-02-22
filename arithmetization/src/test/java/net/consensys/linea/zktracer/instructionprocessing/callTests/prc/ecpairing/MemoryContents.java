@@ -15,9 +15,8 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing;
 
 import static com.google.common.base.Preconditions.checkState;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.WORD_HEX_SIZE;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.LargePointCandidate.LARGE_POINT_AT_INFINITY;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.SmallPointCandidate.SMALL_POINT_AT_INFINITY;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.LargePoint.LARGE_POINT_AT_INFINITY;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.SmallPoint.SMALL_POINT_AT_INFINITY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -41,8 +40,8 @@ import org.apache.tuweni.bytes.Bytes;
  *         <li>for {@link #variant} ≡ <code>true</code> <b>e(P)∙e(Q)∙e(R) ≡ 1</b>
  *         <li>for {@link #variant} ≡ <code>false</code> <b>e(P)∙e(Q)∙e(R)∙e(S) ≡ 1</b>
  *       </ul>
- *   <li><b>τ</b> is a {@link SmallPointCandidate} which will vary
- *   <li><b>θ</b> is a {@link LargePointCandidate} which will vary
+ *   <li><b>τ</b> is a {@link SmallPoint} which will vary
+ *   <li><b>θ</b> is a {@link LargePoint} which will vary
  * </ul>
  *
  * <b>Note.</b> The <b>CENTER_PAIR</b> is the only component in this setup which may cause failure
@@ -52,11 +51,12 @@ import org.apache.tuweni.bytes.Bytes;
  * range.
  */
 public class MemoryContents implements PrecompileCallMemoryContents {
-  private final int NUMBER_OF_PAIRS_OF_POINTS_IN_MEMORY = 12;
+  public static final int TOTAL_NUMBER_OF_PAIRS_OF_POINTS = 12;
+  public static final int SIZE_OF_PAIR_OF_POINTS = 192;
   private final String RETURN_DATA_STRIP = "ff".repeat(WORD_SIZE);
 
-  public final SmallPointCandidate small;
-  public final LargePointCandidate large;
+  public final SmallPoint small;
+  public final LargePoint large;
 
   public boolean centerPairIsValid() {
     return small.isValid() && large.isValid();
@@ -66,7 +66,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
     return centerPairIsValid() && (small.isInfinity() || large.isInfinity());
   }
 
-  public MemoryContents(SmallPointCandidate small, LargePointCandidate large) {
+  public MemoryContents(SmallPoint small, LargePoint large) {
     this.small = small;
     this.large = large;
   }
@@ -84,7 +84,8 @@ public class MemoryContents implements PrecompileCallMemoryContents {
         Bytes.fromHexString(leftPairs() + CenterPair() + rightPairs() + RETURN_DATA_STRIP);
     // TODO: replace 192 with the appropriate constant (maybe add to GlobalConstants)
     checkState(
-        memoryContentsBytes.size() == NUMBER_OF_PAIRS_OF_POINTS_IN_MEMORY * 192 + WORD_SIZE * 2);
+        memoryContentsBytes.size()
+            == TOTAL_NUMBER_OF_PAIRS_OF_POINTS * SIZE_OF_PAIR_OF_POINTS + WORD_SIZE * 2);
 
     BytecodeCompiler memoryContents = BytecodeCompiler.newProgram();
     return memoryContents.immediate(memoryContentsBytes);
@@ -217,9 +218,6 @@ public class MemoryContents implements PrecompileCallMemoryContents {
 
   @Override
   public String toString() {
-    return "MemoryContents{" +
-        "small=" + small +
-        ", large=" + large +
-        '}';
+    return "MemoryContents{" + "small=" + small + ", large=" + large + '}';
   }
 }

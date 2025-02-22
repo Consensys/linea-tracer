@@ -14,7 +14,46 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing;
 
-public enum CallDataParameter {
-  EMPTY,
-  RANGE_OF_PAIRS_OF_POINTS;
+import static com.google.common.base.Preconditions.checkArgument;
+
+public class CallDataRange {
+
+  private final int firstPoint;
+  private final int finalPoint;
+  public boolean isEmpty = false;
+
+  public CallDataRange(int firstPoint, int finalPoint) {
+    checkArgument(finalPoint >= firstPoint, "final point must be greater than or equal to first point");
+    this.firstPoint = firstPoint;
+    this.finalPoint = finalPoint;
+  }
+
+  public CallDataRange() {
+    this.firstPoint = 0;
+    this.finalPoint = 0;
+    this.isEmpty = true;
+  }
+
+  public boolean isEmpty() {
+    return isEmpty;
+  }
+
+  public int firstPoint() {
+    return firstPoint;
+  }
+
+  public int finalPoint() {
+    return finalPoint;
+  }
+
+  public int numberOfPairsOfPoints() {
+    return isEmpty()
+            ? 0
+            : (finalPoint() - firstPoint() + 1);
+  }
+
+  @Override
+  public String toString() {
+    return "CallDataRange{" + "first point=" + firstPoint + ", final point=" + finalPoint + '}';
+  }
 }

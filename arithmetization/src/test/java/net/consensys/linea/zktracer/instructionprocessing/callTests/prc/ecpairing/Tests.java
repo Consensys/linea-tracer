@@ -13,5 +13,32 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing;
+
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.provider.Arguments;
+
+import java.util.stream.Stream;
+
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter.COST;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.MemoryContents.TOTAL_NUMBER_OF_PAIRS_OF_POINTS;
+import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
+
 public class Tests {
+
+    public static Stream<Arguments> parameterGeneration() {
+        return ParameterGeneration.parameterGeneration();
+    }
+
+    @Test
+    public void singleMessageCallTransactionTest() {
+        new CallParameters(
+                CALL,
+                COST,
+                new MemoryContents(SmallPoint.INFINITY, LargePoint.INFINITY),
+                new CallDataRange(0, TOTAL_NUMBER_OF_PAIRS_OF_POINTS - 1),
+                ReturnAtParameter.FULL,
+                true);
+        );
+    }
 }

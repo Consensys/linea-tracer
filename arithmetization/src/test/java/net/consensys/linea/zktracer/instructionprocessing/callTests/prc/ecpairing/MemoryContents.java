@@ -15,6 +15,8 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing;
 
 import static com.google.common.base.Preconditions.checkState;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.LargePointCandidate.LARGE_POINT_AT_INFINITY;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.SmallPointCandidate.SMALL_POINT_AT_INFINITY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -49,8 +51,9 @@ import org.apache.tuweni.bytes.Bytes;
  * range.
  */
 public class MemoryContents implements PrecompileCallMemoryContents {
-  public final int NUMBER_OF_PAIRS_OF_POINTS_IN_MEMORY = 12;
+  private final int NUMBER_OF_PAIRS_OF_POINTS_IN_MEMORY = 12;
   private final String RETURN_DATA_STRIP = "ff".repeat(WORD_SIZE);
+
   public final SmallPointCandidate small;
   public final LargePointCandidate large;
 
@@ -87,19 +90,70 @@ public class MemoryContents implements PrecompileCallMemoryContents {
   }
 
   private String leftPairs() {
-    throw new RuntimeException("memoryContents not implemented");
+    return (C1_POINT_1 + LARGE_POINT_AT_INFINITY)
+        + (SMALL_POINT_AT_INFINITY + LARGE_POINT_AT_INFINITY)
+        + NEGATIVE_P
+        + (SMALL_POINT_AT_INFINITY + G2_POINT_1)
+        + (variant ? TRIPLE_P : QUADRUPLE_P)
+        + (C1_POINT_2 + LARGE_POINT_AT_INFINITY)
+        + (variant ? TRIPLE_R : QUADRUPLE_R)
+        + (variant ? TRIPLE_Q : QUADRUPLE_Q)
+        + (SMALL_POINT_AT_INFINITY + G2_POINT_2);
   }
 
   private String CenterPair() {
-    return small.toString() + large.toString();
+    return small.hexString() + large.hexString();
   }
 
   private String rightPairs() {
-    throw new RuntimeException("memoryContents not implemented");
+    return (SMALL_POINT_AT_INFINITY + G2_POINT_3)
+        + (variant ? C1_POINT_3 + G2_POINT_4 : QUADRUPLE_S);
   }
 
   // All values below are obtained from Ivo's comment
   // https://github.com/Consensys/linea-tracer/issues/822#issuecomment-2260511164
+
+  private static final String C1_POINT_1 =
+      "26d7d8759964ac70b4d5cdf698ad5f70da246752481ea37da637551a60a2a57f"
+          + "13991eda70bd3bd91c43e7c93f8f89c949bd271ba8f9f5a38bce7248f1f6056b";
+  private static final String C1_POINT_2 =
+      "1760ca14c35b8978c10ba226b4654e4c925218417ec23731c29da60f481c2c0a"
+          + "16206149ae732094afbc9921444e04cae6e093a0e73f3212a5e9f93a04f7f07a";
+  private static final String C1_POINT_3 =
+      "214eb4ed76fa9ea509001fa6d4a1ddc86ac42da639fba6e4956b4045dd74fa26"
+          + "0a847e7fee1a9b1c6166724ec7eea284fd71506e31371674164f860ac641b0e4";
+  private static final String C1_POINT_4 =
+      "1cbcc5ae2ad1e062ffbfe7858b0f962d24656075da7f168779afb5167da8e946"
+          + "1504db20d014e62edf9b2105d8fc6c62919351144cfdd8c6e12c3290d9903a79";
+  private static final String C1_POINT_5 =
+      "117e59d40acc2608b961101994f76516f4cd4204af85de7d499c2b9043e0d771"
+          + "2c76b5677261cc2851a41b75f03497ef99522c1c29a4f4d2aba921997cec664a";
+
+  private static final String G2_POINT_1 =
+      "13eb8555f322c3885846df8a505693a0012493a30c34196a529f964a684c0cb2"
+          + "18335a998f3db61d3d0b63cd1371789a9a8a5ed4fb1a4adaa20ab9573251a9d0"
+          + "20494259608bfb4cd04716ba62e1350ce90d00d8af00a5170f46f59ae72d060c"
+          + "257a64fbc5a9cf9c3f7be349d09efa099305fe61f364c31c082ef6a81c815c1d";
+  private static final String G2_POINT_2 =
+      "2f1e9fe1d767c3ee1f801d43e4238a28cb4f94d3e644b2c43e236a503eade386"
+          + "14675488459758a6e2f0bebcf5cd4c70c0c6d9733575c999a09418ae773ae6b5"
+          + "0ae82edaac30d3ff28ea0c4d8e43e39622b47a19beb334a4216994e3a98a796a"
+          + "237392d458d5e3a479ebb4feac87c4371150ea86ee61f3268f5b65bca02daa4a";
+  private static final String G2_POINT_3 =
+      "210c2d4972a76beee46732b60ed998e2e60769847350553f274523a7a9b23d17"
+          + "0dd0cf966d5a0ef6d560e7dc949b48839e14e26bb8e22d08029b17e1f916de8b"
+          + "22a8f09fd8c34454c77a7aeb7d7d6e00e160cdf03700c1e503b7e0cabf9aba3c"
+          + "2090ce9e959dcf086d024dd626111301fd559aab1b4a475bb4c59cd7f598af83";
+  private static final String G2_POINT_4 =
+      "15746a21d15b2ffb960a9cb93426fc05f20921467c23f89494966d13e1507e87"
+          + "29670f195cd081b64b28dae6420ad919a7ca8a5c3a0ae5c313420cd4aca339af"
+          + "056e6142247149ea3505c5adbd6f3d1af9f51d50fdd2cdcd637221ee9ef80a3c"
+          + "025f9828f38707d5cb94e8905be933d4ae03e7f084e250a2c65f0c856035a2a4";
+  private static final String G2_POINT_5 =
+      "22007e1404f2d2f0a9b676095daef5b4d49be05df224ef98a2cd00da756900d9"
+          + "1d8281748ef6cd4dd40149ce6f2afbcc26f3d2499cb484b0a4c21872f9816171"
+          + "191fc3a7eb19e1f750c5c3dc7a008c8d35dc08feb1de5dd24f293bc2fd84a739"
+          + "16dca8731c250e792423469ab23a2f7d4891d55d43da021f6ce572f268e2cab9";
 
   private static final String NEGATIVE_P =
       "05dcb6449ff95e1a04c3132ce3be82a897811d2087e082e0399985449942a45b"
@@ -164,4 +218,12 @@ public class MemoryContents implements PrecompileCallMemoryContents {
           + "2e04f5f992061adf169ef7423bc2f8748ca8fe437036e44a5a24b32bdbae8754"
           + "056d39d4c664d7bf3417673a870f94749311be2f4e4c5fdfe6563b1593fcc00e"
           + "18b849ea2b045d9b94d2e1d8daa843ef2c98577bb7c98d6004eb8982f561fd0f";
+
+  @Override
+  public String String() {
+    return "MemoryContents{" +
+        "small=" + small +
+        ", large=" + large +
+        '}';
+  }
 }

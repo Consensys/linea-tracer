@@ -34,5 +34,24 @@ public enum SmallPointCandidate {
     return this == INFINITY;
   }
 
-  public static String POINT_AT_INFINITY = "00".repeat(2 * WORD_SIZE);
+  public static String SMALL_POINT_AT_INFINITY = "00".repeat(2 * WORD_SIZE);
+
+  public String hexString() {
+    switch (this) {
+      case INFINITY:
+        return SMALL_POINT_AT_INFINITY;
+      case VALID_SMALL_POINT:
+        return "0x1" + "00".repeat(2 * WORD_SIZE - 1);
+      case X_NOT_IN_FIELD:
+        return "0x1" + "00".repeat(2 * WORD_SIZE - 1);
+      case Y_NOT_IN_FIELD:
+        return "0x1" + "00".repeat(2 * WORD_SIZE - 1);
+      case NOT_ON_CURVE:
+        return "0x1" + "00".repeat(2 * WORD_SIZE - 1);
+      case RAND:
+        return "0x1" + "00".repeat(2 * WORD_SIZE - 1);
+      default:
+        throw new IllegalArgumentException("Invalid point candidate");
+    }
+  }
 }

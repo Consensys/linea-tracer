@@ -37,5 +37,30 @@ public enum LargePointCandidate {
     return this == INFINITY;
   }
 
-  public static String POINT_AT_INFINITY = "00".repeat(4 * WORD_SIZE);
+  public static String LARGE_POINT_AT_INFINITY = "00".repeat(4 * WORD_SIZE);
+
+  public String hexString() {
+    switch (this) {
+        case INFINITY:
+            return LARGE_POINT_AT_INFINITY;
+        case VALID_LARGE_POINT:
+            return "0x1" + "00".repeat(4 * WORD_SIZE - 1);
+        case RAND:
+            return "0x1" + "00".repeat(4 * WORD_SIZE - 1);
+        case RE_X_NOT_IN_FIELD:
+            return "0x1" + "00".repeat(4 * WORD_SIZE - 1);
+        case IM_X_NOT_IN_FIELD:
+            return "0x1" + "00".repeat(4 * WORD_SIZE - 1);
+        case RE_Y_NOT_IN_FIELD:
+            return "0x1" + "00".repeat(4 * WORD_SIZE - 1);
+        case IM_Y_NOT_IN_FIELD:
+            return "0x1" + "00".repeat(4 * WORD_SIZE - 1);
+        case NOT_ON_CURVE:
+            return "0x1" + "00".repeat(4 * WORD_SIZE - 1);
+        case NOT_IN_SUBGROUP:
+            return "0x1" + "00".repeat(4 * WORD_SIZE - 1);
+        default:
+            throw new RuntimeException("Invalid point candidate");
+    }
+  }
 }

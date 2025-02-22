@@ -21,8 +21,8 @@ import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallParameters;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallMemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallParameters;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 

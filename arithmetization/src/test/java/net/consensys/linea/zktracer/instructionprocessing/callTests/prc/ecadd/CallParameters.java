@@ -15,14 +15,13 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd;
 
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
-import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
-import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallParameters;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallMemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallParameters;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 
@@ -105,7 +104,7 @@ public class CallParameters implements PrecompileCallParameters {
       case ZERO -> program.push(0); // interesting in the nonzero value case
       case COST_MO -> program.push(149);
       case COST -> program.push(150);
-      case FULL -> program.op(GAS);
+      case PLENTY -> program.push(2).op(GAS).op(DIV); // provide half of available gas
       default -> throw new RuntimeException("Unsupported gas parameter");
     }
 

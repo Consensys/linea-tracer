@@ -18,8 +18,8 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.GasParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.RelativeRangePosition;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallParameters;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallMemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallParameters;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
 public class CallParameters implements PrecompileCallParameters {

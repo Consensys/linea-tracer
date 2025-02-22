@@ -19,7 +19,7 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.e
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallMemoryContents;
 
 /**
  * Memory for <b>ECRECOVER</b> testing will be made to contain inputs of the form

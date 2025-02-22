@@ -20,7 +20,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD
 import java.math.BigInteger;
 
 import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork.PrecompileCallMemoryContents;
+import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallMemoryContents;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 

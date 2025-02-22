@@ -12,7 +12,7 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.frameWork;
+package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.revertWith;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;

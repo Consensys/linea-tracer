@@ -19,6 +19,6 @@ public enum GasParameter {
   ZERO,
   COST_MO, // MO ≡ minus one
   COST,
-  FULL,
+  PLENTY,
   MAX
 }

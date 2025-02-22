@@ -12,17 +12,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecover;
-
-import java.util.stream.Stream;
-
-import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallTests;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.params.provider.Arguments;
-
-@Tag("weekly")
-public class Tests extends PrecompileCallTests<CallParameters> {
-  public static Stream<Arguments> parameterGeneration() {
-    return ParameterGeneration.parameterGeneration();
-  }
+package net.consensys.linea.zktracer.module.ecdata.ecpairing;
+public class SmallPointCandidate {
 }

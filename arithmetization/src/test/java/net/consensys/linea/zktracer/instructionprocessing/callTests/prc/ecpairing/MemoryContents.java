@@ -49,9 +49,10 @@ import org.apache.tuweni.bytes.Bytes;
  * range.
  */
 public class MemoryContents implements PrecompileCallMemoryContents {
+  public final int NUMBER_OF_PAIRS_OF_POINTS_IN_MEMORY = 12;
+  private final String RETURN_DATA_STRIP = "ff".repeat(WORD_SIZE);
   public final SmallPointCandidate small;
   public final LargePointCandidate large;
-  ;
 
   public boolean centerPairIsValid() {
     return small.isValid() && large.isValid();
@@ -66,8 +67,6 @@ public class MemoryContents implements PrecompileCallMemoryContents {
     this.large = large;
   }
 
-  public final int NUMBER_OF_PAIRS_OF_POINTS_IN_MEMORY = 12;
-  private final String RETURN_DATA_STRIP = "ff".repeat(WORD_SIZE);
   boolean variant = false;
 
   @Override
@@ -77,8 +76,9 @@ public class MemoryContents implements PrecompileCallMemoryContents {
 
   @Override
   public BytecodeCompiler memoryContents() {
-    String memoryContentsString = leftPairs() + CenterPair() + rightPairs() + RETURN_DATA_STRIP;
-    Bytes memoryContentsBytes = Bytes.fromHexString(memoryContentsString);
+    Bytes memoryContentsBytes =
+        Bytes.fromHexString(leftPairs() + CenterPair() + rightPairs() + RETURN_DATA_STRIP);
+    // TODO: replace 192 with the appropriate constant (maybe add to GlobalConstants)
     checkState(
         memoryContentsBytes.size() == NUMBER_OF_PAIRS_OF_POINTS_IN_MEMORY * 192 + WORD_SIZE * 2);
 
@@ -100,7 +100,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
 
   // All values below are obtained from Ivo's comment
   // https://github.com/Consensys/linea-tracer/issues/822#issuecomment-2260511164
-  
+
   private static final String NEGATIVE_P =
       "05dcb6449ff95e1a04c3132ce3be82a897811d2087e082e0399985449942a45b"
           + "0cb5122006e9b7ceb5307fa4015b132b3945bb972c83459f598659fc4b5a9d32"

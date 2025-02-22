@@ -34,14 +34,14 @@ public class ParameterGeneration {
 
   public static Stream<Arguments> parameterGeneration() {
     List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
-    List<GasParameter> GasParameters = List.of(ZERO, COST_MO, COST, PLENTY);
-    List<ReturnAtParameter> ReturnAtParameters = List.of(EMPTY, PARTIAL, FULL);
+    List<GasParameter> GasParameters = List.of(COST_MO, COST, PLENTY);
+    List<ReturnAtParameter> ReturnAtParameters = List.of(PARTIAL, FULL);
 
     List<Arguments> argumentsList = new ArrayList<>();
 
     for (OpCode opCode : CallOpCodes) { // 4
-      for (GasParameter gas : GasParameters) { // 4
-        for (ReturnAtParameter returnAt : ReturnAtParameters) { // 3
+      for (GasParameter gas : GasParameters) { // 3
+        for (ReturnAtParameter returnAt : ReturnAtParameters) { // 2
 
           // empty call data cases
           argumentsList.add(

@@ -53,6 +53,6 @@ public class CallDataRange {
 
   @Override
   public String toString() {
-    return "CallDataRange{" + "first point=" + firstPoint + ", final point=" + finalPoint + '}';
+    return "{" + "first point=" + firstPoint + ", final point=" + finalPoint + '}';
   }
 }

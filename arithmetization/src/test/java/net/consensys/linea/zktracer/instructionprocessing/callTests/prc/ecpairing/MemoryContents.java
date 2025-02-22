@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing;
 
 import static com.google.common.base.Preconditions.checkState;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.WORD_HEX_SIZE;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.LargePointCandidate.LARGE_POINT_AT_INFINITY;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.SmallPointCandidate.SMALL_POINT_AT_INFINITY;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
@@ -122,7 +123,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
   private static final String C1_POINT_3 =
       "214eb4ed76fa9ea509001fa6d4a1ddc86ac42da639fba6e4956b4045dd74fa26"
           + "0a847e7fee1a9b1c6166724ec7eea284fd71506e31371674164f860ac641b0e4";
-  private static final String C1_POINT_4 =
+  public static final String C1_POINT_4 =
       "1cbcc5ae2ad1e062ffbfe7858b0f962d24656075da7f168779afb5167da8e946"
           + "1504db20d014e62edf9b2105d8fc6c62919351144cfdd8c6e12c3290d9903a79";
   private static final String C1_POINT_5 =
@@ -149,7 +150,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
           + "29670f195cd081b64b28dae6420ad919a7ca8a5c3a0ae5c313420cd4aca339af"
           + "056e6142247149ea3505c5adbd6f3d1af9f51d50fdd2cdcd637221ee9ef80a3c"
           + "025f9828f38707d5cb94e8905be933d4ae03e7f084e250a2c65f0c856035a2a4";
-  private static final String G2_POINT_5 =
+  public static final String G2_POINT_5 =
       "22007e1404f2d2f0a9b676095daef5b4d49be05df224ef98a2cd00da756900d9"
           + "1d8281748ef6cd4dd40149ce6f2afbcc26f3d2499cb484b0a4c21872f9816171"
           + "191fc3a7eb19e1f750c5c3dc7a008c8d35dc08feb1de5dd24f293bc2fd84a739"
@@ -170,7 +171,6 @@ public class MemoryContents implements PrecompileCallMemoryContents {
           + "07d8d8329e62324af8091e3a4ffe5a57cb8664d1f5f6838c55261177118e9313"
           + "230f1851ba0d3d7d36c8603c7118c86bd2b6a7a1610c4af9e907cb702beff1d8"
           + "12843e703009c1c1a2f1088dcf4d91e9ed43189aa6327cae9a68be22a1aee5cb";
-
   private static final String TRIPLE_Q =
       "05dcb6449ff95e1a04c3132ce3be82a897811d2087e082e0399985449942a45b"
           + "0cb5122006e9b7ceb5307fa4015b132b3945bb972c83459f598659fc4b5a9d32"
@@ -178,7 +178,6 @@ public class MemoryContents implements PrecompileCallMemoryContents {
           + "00a5a6c2ec01c4d1374078ae1bbea91dea8e938c1275226a1ce51db5e7de53d1"
           + "2da43ecc11a0095a72454bb08fb4d1116facadcab482a1107ae67a12bb3c19f2"
           + "1e2f128bf79945a370324b82c36c1e63509b122c023bd8163495526bb030a216";
-
   private static final String TRIPLE_R =
       "1296d042f33ccbb814746e187aa20af49bd503356de4846abee08da9e32ae2ac"
           + "0b980019d2af83b353aa8c2efda45f16ce523b99452118be7ae5dd1e92e0e4ec"
@@ -194,7 +193,6 @@ public class MemoryContents implements PrecompileCallMemoryContents {
           + "07d8d8329e62324af8091e3a4ffe5a57cb8664d1f5f6838c55261177118e9313"
           + "230f1851ba0d3d7d36c8603c7118c86bd2b6a7a1610c4af9e907cb702beff1d8"
           + "12843e703009c1c1a2f1088dcf4d91e9ed43189aa6327cae9a68be22a1aee5cb";
-
   private static final String QUADRUPLE_Q =
       "05dcb6449ff95e1a04c3132ce3be82a897811d2087e082e0399985449942a45b"
           + "0cb5122006e9b7ceb5307fa4015b132b3945bb972c83459f598659fc4b5a9d32"
@@ -202,7 +200,6 @@ public class MemoryContents implements PrecompileCallMemoryContents {
           + "00a5a6c2ec01c4d1374078ae1bbea91dea8e938c1275226a1ce51db5e7de53d1"
           + "2da43ecc11a0095a72454bb08fb4d1116facadcab482a1107ae67a12bb3c19f2"
           + "1e2f128bf79945a370324b82c36c1e63509b122c023bd8163495526bb030a216";
-
   private static final String QUADRUPLE_R =
       "1296d042f33ccbb814746e187aa20af49bd503356de4846abee08da9e32ae2ac"
           + "0b980019d2af83b353aa8c2efda45f16ce523b99452118be7ae5dd1e92e0e4ec"
@@ -210,7 +207,6 @@ public class MemoryContents implements PrecompileCallMemoryContents {
           + "2c5be308b741fee6607eea4980779483339372c80494a43189ab6613f2ac6b00"
           + "0a56a2a107cc154cade228f3da75a714a7de0738b9ebd455f3f73c4c3c43136b"
           + "1d98bf24e00f830334bdf3334135c5aa55b6fd4e88e87b1aee72fb1550970879";
-
   private static final String QUADRUPLE_S =
       "0baab17525d29e5d7c34a5cdb6558e8427f5c79206e009b4b1e8b91a4c827f1c"
           + "18cb7444434d59d126ccc48244daa9a3709140bfa58bff81751d42b647211a91"
@@ -220,7 +216,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
           + "18b849ea2b045d9b94d2e1d8daa843ef2c98577bb7c98d6004eb8982f561fd0f";
 
   @Override
-  public String String() {
+  public String toString() {
     return "MemoryContents{" +
         "small=" + small +
         ", large=" + large +

@@ -39,13 +39,14 @@ public class Tests extends PrecompileCallTests<CallParameters> {
 
   @Test
   public void singleMessageCallTransactionTest() {
-      CallParameters params = new CallParameters(
-        CALL,
-        COST,
-        new MemoryContents(SmallPoint.INFINITY, LargePoint.INFINITY),
-        new CallDataRange(0, TOTAL_NUMBER_OF_PAIRS_OF_POINTS - 1),
-        ReturnAtParameter.FULL,
-        true);
+    CallParameters params =
+        new CallParameters(
+            CALL,
+            COST,
+            new MemoryContents(SmallPoint.INFINITY, LargePoint.INFINITY),
+            new CallDataRange(0, TOTAL_NUMBER_OF_PAIRS_OF_POINTS - 1),
+            ReturnAtParameter.FULL,
+            true);
 
     BytecodeCompiler rootCode = params.customPrecompileCallsSeparatedByReturnDataWipingOperation();
     if (params.willRevert()) revertWith(rootCode, 3 * WORD_SIZE, 2 * WORD_SIZE);

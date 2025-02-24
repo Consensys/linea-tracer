@@ -80,6 +80,10 @@ public class PrecompileUtils {
     }
   }
 
+  public static int getPrecompileCost(Address precompileAddress, int cds) {
+    return getPrecompileCost(precompileAddress, cds, 0, 0, 0, 0);
+  }
+
   private static int words(int sizeInBytes) {
     return (sizeInBytes + WORD_SIZE_MO) / WORD_SIZE;
   }

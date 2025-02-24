@@ -5,6 +5,7 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
+import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.POP;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
@@ -20,21 +21,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.google.common.base.Function;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.oob.OobOperation;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.precompiles.PrecompileUtils;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -72,72 +70,41 @@ public class SixtyThreeSixtyFourthsTests {
 
   final Bytes INFINITE_GAS = Bytes.fromHexString("ff".repeat(32));
 
-  final Bytes expandMemoryTo4096 =
-      BytecodeCompiler.newProgram().push(4096 - 32).op(MLOAD).op(POP).compile();
-
-  // Generic program before the final call to the precompile when the target address does not exist
-  final BytecodeCompiler preCallTargetAddressDoesNotExistProgram =
-      BytecodeCompiler.newProgram()
-          .immediate(expandMemoryTo4096)
-          .push(0) // returnAtCapacity
-          .push(0) // returnAtOffset
-          .push(0) // callDataSize
-          .push(0) // callDataOffset
-          .push(0) // value
-          .push(0) // address (this is 0 as the cost of PUSH is always the same)
-          .push(INFINITE_GAS); // gas
-
   // Cost of the generic program before the final call to the precompile when the target address
   // does not exist
   final long preCallTargetAddressDoesNotExistProgramGas =
-      BytecodeRunner.of(preCallTargetAddressDoesNotExistProgram).runOnlyForGasCost();
+      BytecodeRunner.of(
+              BytecodeCompiler.newProgram()
+                  .immediate(expandMemoryTo4096())
+                  .immediate(pushCallArguments(INFINITE_GAS, Address.ZERO, 0, false))
+                  .compile())
+          .runOnlyForGasCost();
+  // address is 0 as we are interested in the cost of the corresponding PUSH only
 
   // Cost of the generic program before the final call to the precompile when the target address
-  // exists
-  Map<Address, Long> preCallTargetAddressExistsProgramGasMap = new HashMap<>();
-
-  @BeforeAll
-  void computePreCallTargetAddressExistsProgramGasOnceForAll() {
-    // Generic program before the final call to the precompile when the target address exists
-    final Function<Address, BytecodeCompiler> preCallTargetAddressExistsProgram =
-        (address) ->
-            BytecodeCompiler.newProgram()
-                .push(0) // returnAtCapacity
-                .push(0) // returnAtOffset
-                .push(0) // callDataSize
-                .push(0) // callDataOffset
-                .push(1) // value
-                .push(address) // address
-                .push(INFINITE_GAS) // gas
-                .op(OpCode.CALL)
-                .immediate(expandMemoryTo4096)
-                .push(0) // returnAtCapacity
-                .push(0) // returnAtOffset
-                .push(0) // callDataSize
-                .push(0) // callDataOffset
-                .push(0) // value
-                .push(0) // address (this is 0 as the cost of PUSH is always the same)
-                .push(INFINITE_GAS); // gas
-    // Cost of the generic program before the final call to the precompile when the target address
-    // exists
-    final Function<Address, Long> preCallTargetAddressExistsProgramGas =
-        (address) ->
-            BytecodeRunner.of(preCallTargetAddressExistsProgram.apply(address)).runOnlyForGasCost();
-    for (Address address :
-        List.of(
-            ECREC,
-            SHA256,
-            RIPEMD160,
-            ID,
-            MODEXP,
-            ALTBN128_ADD,
-            ALTBN128_MUL,
-            ALTBN128_PAIRING,
-            BLAKE2B_F_COMPRESSION)) {
-      preCallTargetAddressExistsProgramGasMap.put(
-          address, preCallTargetAddressExistsProgramGas.apply(address));
-    }
-  }
+  // exists (note that for BLAKE2F nad MODEXP we need to write non-zero non-trivial inputs in
+  // memory)
+  final Map<Address, Long> preCallTargetAddressExistsProgramGasMap =
+      Stream.of(
+              ECREC,
+              SHA256,
+              RIPEMD160,
+              ID,
+              MODEXP,
+              ALTBN128_ADD,
+              ALTBN128_MUL,
+              ALTBN128_PAIRING,
+              BLAKE2B_F_COMPRESSION)
+          .collect(
+              Collectors.toMap(
+                  address -> address,
+                  address ->
+                      BytecodeRunner.of(
+                                  BytecodeCompiler.newProgram()
+                                      .immediate(call(INFINITE_GAS, address, 0, true))
+                                      .compile())
+                              .runOnlyForGasCost()
+                          + preCallTargetAddressDoesNotExistProgramGas));
 
   @ParameterizedTest
   @MethodSource("sixtyThreeSixtyFourthsEcAddTestSource")
@@ -145,16 +112,8 @@ public class SixtyThreeSixtyFourthsTests {
       long gasLimit, boolean insufficientGasForPrecompileExpected) {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    program.immediate(expandMemoryTo4096);
-    program
-        .push(0) // returnAtCapacity
-        .push(0) // returnAtOffset
-        .push(0) // callDataSize
-        .push(0) // callDataOffset
-        .push(0) // value
-        .push(ALTBN128_ADD) // address
-        .push(INFINITE_GAS) // gas
-        .op(OpCode.CALL);
+    program.immediate(expandMemoryTo4096()).immediate(call(INFINITE_GAS, ALTBN128_ADD, 0, false));
+
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(gasLimit);
 
@@ -185,6 +144,29 @@ public class SixtyThreeSixtyFourthsTests {
   }
 
   // Support methods
+  Bytes expandMemoryTo4096() {
+    return BytecodeCompiler.newProgram().push(4096 - 32).op(MLOAD).op(POP).compile();
+  }
+
+  Bytes pushCallArguments(Bytes gas, Address address, int cds, boolean transfersValue) {
+    return BytecodeCompiler.newProgram()
+        .push(0) // returnAtCapacity
+        .push(0) // returnAtOffset
+        .push(cds) // callDataSize
+        .push(0) // callDataOffset
+        .push(transfersValue ? 1 : 0) // value
+        .push(address) // address
+        .push(gas) // gas
+        .compile();
+  }
+
+  Bytes call(Bytes gas, Address address, int cds, boolean transfersValue) {
+    return BytecodeCompiler.newProgram()
+        .immediate(pushCallArguments(gas, address, cds, transfersValue))
+        .op(CALL)
+        .compile();
+  }
+
   long getGasLimit(
       long targetCalleeGas,
       boolean transfersValue,

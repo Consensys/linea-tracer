@@ -4,10 +4,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_VALUE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
+import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PRC_BLAKE2F_SIZE;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
+import static net.consensys.linea.zktracer.opcode.OpCode.MSTORE8;
 import static net.consensys.linea.zktracer.opcode.OpCode.POP;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
@@ -30,11 +32,15 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.oob.OobOperation;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.precompiles.PrecompileUtils;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -67,57 +73,55 @@ public class SixtyThreeSixtyFourthsTests {
    * value = 1, targetAddressExists = true
 
   Note: BLAKE2F and MODEXP requires a non-zero non-trivial input to have a cost greater than 2300.
-  Other precompiles only require a proper call data size.
+  Other precompiles only require a proper call data size at most.
   */
 
   final Bytes INFINITE_GAS = Bytes.fromHexString("ff".repeat(32));
 
-  // Cost of the generic program before the final call to the precompile when the target address
-  // does not exist
-  final long preCallTargetAddressDoesNotExistProgramGas =
-      BytecodeRunner.of(
-              BytecodeCompiler.newProgram()
-                  .immediate(expandMemoryTo1024Words())
-                  .immediate(pushCallArguments(INFINITE_GAS, Address.ZERO, 0, false))
-                  .compile())
-          .runOnlyForGasCost();
-  // address is 0 as we are interested in the cost of the corresponding PUSH only
+  // BLAKE2F specific parameters
+  final int rLeadingByte = 0x09;
+  final int r = rLeadingByte << 8;
 
-  final Map<Address, Integer> cdsEnsuringCostGEQStipendMap =
-      new HashMap<>() {
-        {
-          put(ECREC, 0);
-          put(SHA256, 1024 * WORD_SIZE);
-          put(RIPEMD160, 1024 * WORD_SIZE);
-          put(ID, 1024 * WORD_SIZE);
-          put(MODEXP, 0); // TODO: adjust this value as needed
-          put(ALTBN128_ADD, 0);
-          put(ALTBN128_MUL, 0);
-          put(ALTBN128_PAIRING, 0);
-          put(BLAKE2B_F_COMPRESSION, 0); // TODO: adjust this value as needed
-        }
-      };
+  // MODEXP specific parameters
+  int bbs = 2;
+  int ebs = 6;
+  int mbs = 128;
+  int exponentLog = 0;
+  List<ToyAccount> additionalAccounts = new ArrayList<>();
+  Address codeOwnerAddress = Address.fromHexString("0xC0DE");
 
-  // Cost of the generic program before the final call to the precompile when the target address
-  // exists (note that for BLAKE2F nad MODEXP we need to write non-zero non-trivial inputs in
-  // memory)
-  final Map<Address, Long> preCallTargetAddressExistsProgramGasMap =
-      cdsEnsuringCostGEQStipendMap.keySet().stream()
+  // Cost of preCallProgram in different scenarios:
+  // (address, transfersValue) -> gasCost
+  final Map<Address, Map<Boolean, Long>> preCallProgramGasMap =
+      Stream.of(
+              ECREC,
+              SHA256,
+              RIPEMD160,
+              ID,
+              MODEXP,
+              ALTBN128_ADD,
+              ALTBN128_MUL,
+              ALTBN128_PAIRING,
+              BLAKE2B_F_COMPRESSION)
           .collect(
               Collectors.toMap(
                   address -> address,
                   address ->
-                      BytecodeRunner.of(
-                              BytecodeCompiler.newProgram()
-                                  .immediate(expandMemoryTo1024Words())
-                                  .immediate(call(INFINITE_GAS, address, 0, true))
-                                  .immediate(
-                                      pushCallArguments(INFINITE_GAS, Address.ZERO, 0, false))
-                                  .compile())
-                          .runOnlyForGasCost()));
+                      new HashMap<>() {
+                        {
+                          put(
+                              false,
+                              BytecodeRunner.of(preCallProgram(address, false, false, 0))
+                                  .runOnlyForGasCost(additionalAccounts));
+                          put(
+                              true,
+                              BytecodeRunner.of(preCallProgram(address, false, true, 0))
+                                  .runOnlyForGasCost(additionalAccounts));
+                        }
+                      }));
 
-  // address, csd are 0 and transferValue is false as we are interested in the cost of the
-  // corresponding PUSHes only
+  // Note: transferValue = false and cds = 0 as we are interested only in the cost of the
+  // corresponding PUSHes here
 
   @ParameterizedTest
   @MethodSource("fixedCostLTStipendTestSource")
@@ -127,9 +131,7 @@ public class SixtyThreeSixtyFourthsTests {
 
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    program
-        .immediate(expandMemoryTo1024Words())
-        .immediate(call(INFINITE_GAS, ALTBN128_ADD, 0, false));
+    program.immediate(preCallProgram(ALTBN128_ADD, false, false, 0)).op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(gasLimit);
@@ -159,15 +161,15 @@ public class SixtyThreeSixtyFourthsTests {
               targetCalleeGas + cornerCase,
               false,
               false,
-              preCallTargetAddressDoesNotExistProgramGas);
+              preCallProgramGasMap.get(ALTBN128_ADD).get(false));
       arguments.add(Arguments.of(gasLimit, cornerCase == -1));
     }
     return arguments.stream();
   }
 
   @ParameterizedTest
-  @MethodSource("costGEQStipendWithZeroInputTest")
-  void costGEQStipendWithZeroInputTest(
+  @MethodSource("costGEQStipendTest")
+  void costGEQStipendTest(
       Address address,
       long gasLimit,
       boolean insufficientGasForPrecompileExpected,
@@ -177,13 +179,10 @@ public class SixtyThreeSixtyFourthsTests {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
     // ECREC, SHA256, RIPEMD160, ID, ALTBN128_MUL and ALTBN128_PAIRING fall in this scenario
 
-    program
-        .immediate(expandMemoryTo1024Words())
-        .immediate(targetAddressExists ? call(INFINITE_GAS, address, 0, true) : Bytes.EMPTY)
-        .immediate(call(INFINITE_GAS, address, cds, transfersValue));
+    program.immediate(preCallProgram(address, transfersValue, targetAddressExists, cds)).op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
-    bytecodeRunner.run(gasLimit);
+    bytecodeRunner.run(gasLimit, additionalAccounts);
 
     // ECMUL case:
 
@@ -219,11 +218,25 @@ public class SixtyThreeSixtyFourthsTests {
     assertEquals(insufficientGasForPrecompileExpected, insufficientGasForPrecompileActual);
   }
 
-  Stream<Arguments> costGEQStipendWithZeroInputTest() {
+  Stream<Arguments> costGEQStipendTest() {
     List<Arguments> arguments = new ArrayList<>();
-    for (Address address : List.of(ECREC, SHA256, RIPEMD160, ID, ALTBN128_MUL, ALTBN128_PAIRING)) {
-      final int cds = cdsEnsuringCostGEQStipendMap.get(address);
-      final long targetCalleeGas = PrecompileUtils.getPrecompileCost(address, cds);
+    for (Address address :
+        List.of(
+            ECREC,
+            SHA256,
+            RIPEMD160,
+            ID,
+            MODEXP,
+            ALTBN128_MUL,
+            ALTBN128_PAIRING,
+            BLAKE2B_F_COMPRESSION)) {
+      final int cds = getCallDataSize(address);
+      final long targetCalleeGas =
+          address == BLAKE2B_F_COMPRESSION
+              ? PrecompileUtils.getBLAKE2FCost(r)
+              : address == MODEXP
+                  ? PrecompileUtils.getMODEXPCost(bbs, mbs, exponentLog)
+                  : PrecompileUtils.getPrecompileCost(address, cds);
       for (int cornerCase : List.of(0, -1)) {
         for (boolean transfersValue : List.of(true, false)) {
           for (boolean targetAddressExists : List.of(true, false)) {
@@ -235,9 +248,7 @@ public class SixtyThreeSixtyFourthsTests {
                     targetCalleeGas + cornerCase,
                     transfersValue,
                     targetAddressExists,
-                    targetAddressExists
-                        ? preCallTargetAddressExistsProgramGasMap.get(address)
-                        : preCallTargetAddressDoesNotExistProgramGas);
+                    preCallProgramGasMap.get(address).get(targetAddressExists));
             arguments.add(
                 Arguments.of(
                     address, gasLimit, cornerCase == -1, transfersValue, targetAddressExists, cds));
@@ -249,8 +260,35 @@ public class SixtyThreeSixtyFourthsTests {
   }
 
   // Support methods
+  Bytes preCallProgram(
+      Address address, boolean transfersValue, boolean targetAddressExists, int cds) {
+    return BytecodeCompiler.newProgram()
+        .immediate(expandMemoryTo1024Words())
+        .immediate(
+            targetAddressExists
+                ? call(
+                    INFINITE_GAS,
+                    address,
+                    address == BLAKE2B_F_COMPRESSION
+                        ? PRC_BLAKE2F_SIZE
+                        : 0, // For BLAKE2F we need a meaningful cds for the call to succeed
+                    true)
+                : Bytes.EMPTY)
+        .immediate(address == MODEXP ? storeModexpInput(bbs, mbs, ebs) : Bytes.EMPTY)
+        .immediate(address == BLAKE2B_F_COMPRESSION ? storeBlake2fInput(rLeadingByte) : Bytes.EMPTY)
+        .immediate(pushCallArguments(INFINITE_GAS, address, cds, transfersValue))
+        .compile();
+  }
+
   Bytes expandMemoryTo1024Words() {
     return BytecodeCompiler.newProgram().push(1024 * WORD_SIZE).op(MLOAD).op(POP).compile();
+  }
+
+  Bytes call(Bytes gas, Address address, int cds, boolean transfersValue) {
+    return BytecodeCompiler.newProgram()
+        .immediate(pushCallArguments(gas, address, cds, transfersValue))
+        .op(CALL)
+        .compile();
   }
 
   Bytes pushCallArguments(Bytes gas, Address address, int cds, boolean transfersValue) {
@@ -265,10 +303,42 @@ public class SixtyThreeSixtyFourthsTests {
         .compile();
   }
 
-  Bytes call(Bytes gas, Address address, int cds, boolean transfersValue) {
+  // TODO: the two methods below are essentially duplicates of the ones in
+  //  LowGasStipendPrecompileCallTests. Consider unifying them in a common class.
+  Bytes storeBlake2fInput(int rLeadingByte) {
+    return BytecodeCompiler.newProgram().push(rLeadingByte).push(2).op(MSTORE8).compile();
+  }
+
+  private Bytes storeModexpInput(int bbs, int mbs, int ebs) {
+    final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
+    final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
+    final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
+    final Bytes bem =
+        Bytes.fromHexString("0x" + "aa".repeat(bbs) + "ff".repeat(ebs) + "bb".repeat(mbs));
+    final Bytes modexpInput = Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bem);
+
+    // codeOwnerAccount owns the bytecode that will be given as input to MODEXP through EXTCODECOPY
+    final ToyAccount codeOwnerAccount =
+        ToyAccount.builder()
+            .balance(Wei.of(0))
+            .nonce(1)
+            .address(codeOwnerAddress)
+            .code(modexpInput)
+            .build();
+    additionalAccounts = List.of(codeOwnerAccount);
+
+    // This is computed here for convenience, and it is used for pricing the MODEXP precompile
+    exponentLog =
+        Math.max(OobOperation.computeExponentLog(modexpInput, 96 + bbs + ebs + mbs, bbs, ebs), 1);
+
+    // Copy to targetOffset the code of codeOwnerAccount
     return BytecodeCompiler.newProgram()
-        .immediate(pushCallArguments(gas, address, cds, transfersValue))
-        .op(CALL)
+        .push(codeOwnerAddress)
+        .op(OpCode.EXTCODESIZE) // size
+        .push(0) // offset
+        .push(0) // targetOffset
+        .push(codeOwnerAddress) // address
+        .op(OpCode.EXTCODECOPY)
         .compile();
   }
 
@@ -304,5 +374,17 @@ public class SixtyThreeSixtyFourthsTests {
         + (transfersValue
             ? GAS_CONST_G_CALL_VALUE + (targetAddressExists ? 0 : GAS_CONST_G_NEW_ACCOUNT)
             : 0);
+  }
+
+  int getCallDataSize(Address address) {
+    if (address == SHA256 || address == RIPEMD160 || address == ID) {
+      return 1024 * WORD_SIZE; // Ensures cost is greater than stipend
+    } else if (address == MODEXP) {
+      return 96 + bbs + ebs + mbs; // Ensures cost is greater than stipend with non-zero non-trivial
+    } else if (address == BLAKE2B_F_COMPRESSION) {
+      return PRC_BLAKE2F_SIZE; // Ensures cost is greater than stipend with non-zero non-trivial input
+    } else {
+      return 0;
+    }
   }
 }

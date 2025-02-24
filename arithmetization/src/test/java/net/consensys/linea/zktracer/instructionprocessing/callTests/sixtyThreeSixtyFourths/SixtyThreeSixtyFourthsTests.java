@@ -5,6 +5,8 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
+import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
+import static net.consensys.linea.zktracer.opcode.OpCode.POP;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
@@ -68,20 +70,22 @@ public class SixtyThreeSixtyFourthsTests {
   Other precompiles only require a proper call data size.
   */
 
-  final Bytes gas = Bytes.fromHexString("ff".repeat(32));
+  final Bytes INFINITE_GAS = Bytes.fromHexString("ff".repeat(32));
+
+  final Bytes expandMemoryTo4096 =
+      BytecodeCompiler.newProgram().push(4096 - 32).op(MLOAD).op(POP).compile();
 
   // Generic program before the final call to the precompile when the target address does not exist
   final BytecodeCompiler preCallTargetAddressDoesNotExistProgram =
       BytecodeCompiler.newProgram()
-          .push(4096 - 32)
-          .op(OpCode.MLOAD)
+          .immediate(expandMemoryTo4096)
           .push(0) // returnAtCapacity
           .push(0) // returnAtOffset
           .push(0) // callDataSize
           .push(0) // callDataOffset
           .push(0) // value
           .push(0) // address (this is 0 as the cost of PUSH is always the same)
-          .push(gas); // gas
+          .push(INFINITE_GAS); // gas
 
   // Cost of the generic program before the final call to the precompile when the target address
   // does not exist
@@ -102,19 +106,18 @@ public class SixtyThreeSixtyFourthsTests {
                 .push(0) // returnAtOffset
                 .push(0) // callDataSize
                 .push(0) // callDataOffset
-                .push(0) // value
+                .push(1) // value
                 .push(address) // address
-                .push(gas) // gas
+                .push(INFINITE_GAS) // gas
                 .op(OpCode.CALL)
-                .push(4096 - 32)
-                .op(OpCode.MLOAD)
+                .immediate(expandMemoryTo4096)
                 .push(0) // returnAtCapacity
                 .push(0) // returnAtOffset
                 .push(0) // callDataSize
                 .push(0) // callDataOffset
                 .push(0) // value
                 .push(0) // address (this is 0 as the cost of PUSH is always the same)
-                .push(gas); // gas
+                .push(INFINITE_GAS); // gas
     // Cost of the generic program before the final call to the precompile when the target address
     // exists
     final Function<Address, Long> preCallTargetAddressExistsProgramGas =
@@ -142,7 +145,7 @@ public class SixtyThreeSixtyFourthsTests {
       long gasLimit, boolean insufficientGasForPrecompileExpected) {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
-    program.push(4096 - 32).op(OpCode.MLOAD);
+    program.immediate(expandMemoryTo4096);
     program
         .push(0) // returnAtCapacity
         .push(0) // returnAtOffset
@@ -150,7 +153,7 @@ public class SixtyThreeSixtyFourthsTests {
         .push(0) // callDataOffset
         .push(0) // value
         .push(ALTBN128_ADD) // address
-        .push(gas) // gas
+        .push(INFINITE_GAS) // gas
         .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(gasLimit);
@@ -200,12 +203,12 @@ public class SixtyThreeSixtyFourthsTests {
     final long l = (targetCalleeGas - stipend) % 63;
     final long k = (targetCalleeGas - stipend - l) / 63;
     checkArgument(targetCalleeGas == 63 * k + l + stipend);
-    final long gasUpfront = getGasUpfront(transfersValue, targetAddressExists);
+    final long gasUpfront = getUpfrontGasCost(transfersValue, targetAddressExists);
     final long gasPreCall = (targetCalleeGas - stipend) * 64 / 63 + gasUpfront;
     return preCallProgramGas + gasPreCall; // gasLimit
   }
 
-  long getGasUpfront(boolean transfersValue, boolean targetAddressExists) {
+  long getUpfrontGasCost(boolean transfersValue, boolean targetAddressExists) {
     // GAS_CONST_G_WARM_ACCESS = 100
     // GAS_CONST_G_COLD_ACCOUNT_ACCESS = 2600
     // GAS_CONST_G_CALL_VALUE = 9000

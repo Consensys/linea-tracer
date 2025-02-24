@@ -80,23 +80,24 @@ public class PrecompileUtils {
     }
   }
 
+  private static int words(int sizeInBytes) {
+    return (sizeInBytes + WORD_SIZE_MO) / WORD_SIZE;
+  }
+
   public static int getECRECCost() {
     return GAS_CONST_ECRECOVER;
   }
 
   public static int getSHA256Cost(int cds) {
-    final int words = (cds + WORD_SIZE_MO) / WORD_SIZE;
-    return GAS_CONST_SHA2 + words * GAS_CONST_SHA2_WORD;
+    return GAS_CONST_SHA2 + words(cds) * GAS_CONST_SHA2_WORD;
   }
 
   public static int getRIPEMD160Cost(int cds) {
-    final int words = (cds + WORD_SIZE_MO) / WORD_SIZE;
-    return GAS_CONST_RIPEMD + words * GAS_CONST_RIPEMD_WORD;
+    return GAS_CONST_RIPEMD + words(cds) * GAS_CONST_RIPEMD_WORD;
   }
 
   public static int getIDCost(int cds) {
-    final int words = (cds + WORD_SIZE_MO) / WORD_SIZE;
-    return GAS_CONST_IDENTITY + words * GAS_CONST_IDENTITY_WORD;
+    return GAS_CONST_IDENTITY + words(cds) * GAS_CONST_IDENTITY_WORD;
   }
 
   public static int getMODEXPCost(int bbs, int mbs, int exponentLog) {

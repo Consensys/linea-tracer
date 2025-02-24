@@ -13,13 +13,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.signals;
+package net.consensys.linea.zktracer.module.hub;
 
 public enum WarmingScenarii {
-    NO_WARMING,
-    WARMING_SENDER,
-    WARMING_RECIPIENT,
-    WARMING_COINBASE,
-    WARMING_PRECOMPILE,
-    WARMING_TO_BE_DEPLOYED_STORAGE
+  NO_WARMING,
+  WARMING_SENDER,
+  WARMING_RECIPIENT,
+  WARMING_COINBASE,
+  WARMING_PRECOMPILE,
+  WARMING_TO_BE_DEPLOYED_STORAGE,
+  RANDOM_ADDRESS_DUPLICATE
 }

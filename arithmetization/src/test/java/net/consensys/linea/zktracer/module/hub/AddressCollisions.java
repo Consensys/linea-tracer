@@ -20,5 +20,17 @@ public enum AddressCollisions {
   SENDER_IS_RECIPEINT,
   SENDER_IS_COINBASE,
   RECIPIENT_IS_COINBASE,
-  TRIPLE_COLLISION
+  TRIPLE_COLLISION;
+
+  public static boolean senderRecipientCollision(final AddressCollisions collision) {
+    return collision == SENDER_IS_RECIPEINT || collision == TRIPLE_COLLISION;
+  }
+
+  public static boolean senderCoinbaseCollision(final AddressCollisions collision) {
+    return collision == SENDER_IS_COINBASE || collision == TRIPLE_COLLISION;
+  }
+
+  public static boolean recipientCoinbaseCollision(final AddressCollisions collision) {
+    return collision == RECIPIENT_IS_COINBASE || collision == TRIPLE_COLLISION;
+  }
 }

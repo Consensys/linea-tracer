@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blockhash;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import java.nio.MappedByteBuffer;
 import java.util.HashMap;
@@ -30,6 +30,7 @@ import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -76,21 +77,19 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
   }
 
   @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    checkArgument(opCode == OpCode.BLOCKHASH, "Expected BLOCKHASH opcode");
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode, short exception) {
+    if (opcode == BLOCKHASH && Exceptions.none(exception)) {
 
-    blockhashArg = Bytes32.leftPad(frame.getStackItem(0));
+      blockhashArg = Bytes32.leftPad(frame.getStackItem(0));
 
-    hub.defers().scheduleForPostExecution(this);
+      hub.defers().scheduleForPostExecution(this);
+    }
   }
 
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
 
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    checkArgument(opCode == OpCode.BLOCKHASH);
     final Bytes32 blockhashRes = Bytes32.leftPad(frame.getStackItem(0));
     operations.add(new BlockhashOperation(relBlock, absBlock, blockhashArg, blockhashRes, wcp));
     // We have 4 LLARGE and one OLI call to WCP, made at the end of the conflation, so we need to

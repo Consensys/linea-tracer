@@ -33,7 +33,6 @@ import org.hyperledger.besu.evm.internal.Words;
 
 /** Encode the exceptions that may be triggered by the execution of an instruction. */
 public class Exceptions {
-  private Exceptions() {}
 
   public static final short NONE = 0; // no exceptions occurred
   public static final short INVALID_OPCODE = 1; // unknown opcode

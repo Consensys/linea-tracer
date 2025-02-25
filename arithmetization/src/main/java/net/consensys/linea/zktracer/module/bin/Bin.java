@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.bin;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import java.nio.MappedByteBuffer;
 import java.util.List;
 
@@ -26,6 +28,7 @@ import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -45,14 +48,22 @@ public class Bin implements OperationSetModule<BinOperation> {
   }
 
   @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
-    final Bytes32 arg2 =
-        opCode == OpCode.NOT ? Bytes32.ZERO : Bytes32.leftPad(frame.getStackItem(1));
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode, short exception) {
+    if ((opcode == AND
+            || opcode == OR
+            || opcode == XOR
+            || opcode == NOT
+            || opcode == SIGNEXTEND
+            || opcode == BYTE)
+        && !Exceptions.outOfGasException(exception)) {
 
-    operations.add(
-        new BinOperation(opCode, BaseBytes.fromBytes32(arg1), BaseBytes.fromBytes32(arg2)));
+      final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
+      final Bytes32 arg2 =
+          opcode == OpCode.NOT ? Bytes32.ZERO : Bytes32.leftPad(frame.getStackItem(1));
+
+      operations.add(
+          new BinOperation(opcode, BaseBytes.fromBytes32(arg1), BaseBytes.fromBytes32(arg2)));
+    }
   }
 
   @Override

@@ -844,33 +844,6 @@ public class Hub implements Module {
         .processInstruction(this, frame, MULTIPLIER___STACK_STAMP * (stamp() + 1));
   }
 
-  void triggerModules(MessageFrame frame) {
-    if (pch.signals().add()) {
-      add.tracePreOpcode(frame);
-    }
-    if (pch.signals().bin()) {
-      bin.tracePreOpcode(frame);
-    }
-    if (pch.signals().mul()) {
-      mul.tracePreOpcode(frame);
-    }
-    if (pch.signals().ext()) {
-      ext.tracePreOpcode(frame);
-    }
-    if (pch.signals().mod()) {
-      mod.tracePreOpcode(frame);
-    }
-    if (pch.signals().wcp()) {
-      wcp.tracePreOpcode(frame);
-    }
-    if (pch.signals().shf()) {
-      shf.tracePreOpcode(frame);
-    }
-    if (pch.signals().blockhash()) {
-      blockhash.tracePreOpcode(frame);
-    }
-  }
-
   public int stamp() {
     return state.stamps().hub();
   }
@@ -929,9 +902,13 @@ public class Hub implements Module {
     pch.setup(frame);
 
     this.handleStack(frame);
-    this.triggerModules(frame);
 
     if (currentFrame().stack().isOk()) {
+      // Trigger basic operations modules
+      for (Module m : modules) {
+        m.tracePreOpcode(frame, opCode(), pch.exceptions());
+      }
+      // Tracer for the HUB
       this.traceOpcode(frame);
     } else {
       this.squashCurrentFrameOutputData();

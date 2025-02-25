@@ -647,8 +647,6 @@ public class Hub implements Module {
 
   @Override
   public void traceContextExit(MessageFrame frame) {
-    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
-
     exitDeploymentFromDeploymentInfoPov(frame);
 
     // We take a snapshot before exiting the transaction
@@ -684,7 +682,6 @@ public class Hub implements Module {
   public void traceContextReEnter(MessageFrame frame) {
     // Note: the update of the currentId call frame is made during traceContextExit of the child
     // frame
-    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
     defers.resolveUponContextReEntry(this, this.currentFrame());
     this.unlatchStack(frame, this.currentFrame().childSpanningSection());
   }
@@ -913,9 +910,8 @@ public class Hub implements Module {
 
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
-        // Only pop from the stack if no exceptions have been encountered
-        // TODO: when we call this from contextReenter, pch.exceptions is not the one from the
-        // caller/creater ?
+        // Note: when we call this from contextReenter, pch.exceptions is the one from the last
+        // opcode of the caller/creater ?
         if (Exceptions.none(pch.exceptions())) {
           result = frame.getStackItem(0).copy();
         }

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.populateMemory;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_BLAKE2_PER_ROUND;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_ECADD;
 import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_ECMUL;
@@ -34,6 +35,10 @@ import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD
 import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
 import static org.hyperledger.besu.datatypes.Address.*;
 
+import net.consensys.linea.testing.BytecodeCompiler;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 
 public class PrecompileUtils {
@@ -125,5 +130,90 @@ public class PrecompileUtils {
 
   public static int getBLAKE2FCost(int r) {
     return GAS_CONST_BLAKE2_PER_ROUND * r;
+  }
+
+  // Methods to prepare inputs for certain precompiles
+
+  // BLAKE2F
+  static void prepareBlake2F(BytecodeCompiler program, int rLeadingByte, int offset) {
+    program
+        .push(rLeadingByte) // For simplicity, we only set the first byte of r
+        .push(offset) // offset
+        .op(OpCode.MSTORE8);
+  }
+
+  public static Bytes prepareBlake2F(int rLeadingByte, int offset) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    prepareBlake2F(program, rLeadingByte, offset);
+    return program.compile();
+  }
+
+  // SHA256, RIPEMD160, ID
+  static void prepareSha256Ripemd160Id(BytecodeCompiler program, int nWords, int offset) {
+    populateMemory(program, nWords, offset);
+  }
+
+  static Bytes prepareSha256Ripemd160Id(int nWords, int offset) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    prepareSha256Ripemd160Id(program, nWords, offset);
+    return program.compile();
+  }
+
+  // MODEXP
+  public static Bytes generateModexpInput(int bbs, int mbs, int ebs) {
+    final Bytes32 bbsPadded = Bytes32.leftPad(Bytes.of(bbs));
+    final Bytes32 ebsPadded = Bytes32.leftPad(Bytes.of(ebs));
+    final Bytes32 mbsPadded = Bytes32.leftPad(Bytes.of(mbs));
+    final Bytes bem =
+        Bytes.fromHexString("0x" + "aa".repeat(bbs) + "ff".repeat(ebs) + "bb".repeat(mbs));
+    return Bytes.concatenate(bbsPadded, ebsPadded, mbsPadded, bem);
+  }
+
+  static void prepareModexp(
+      BytecodeCompiler program, Bytes modexpInput, int targetOffset, Address codeOwnerAddress) {
+    // Copy to targetOffset the code of codeOwnerAccount
+    program
+        .push(codeOwnerAddress)
+        .op(OpCode.EXTCODESIZE) // size
+        .push(0) // offset
+        .push(targetOffset) // targetOffset
+        .push(codeOwnerAddress) // address
+        .op(OpCode.EXTCODECOPY);
+  }
+
+  public static Bytes prepareModexp(Bytes modexpInput, int targetOffset, Address codeOwnerAddress) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    prepareModexp(program, modexpInput, targetOffset, codeOwnerAddress);
+    return program.compile();
+  }
+
+  /**
+   * Computes the expected returnAtCapacity based on the precompile address, and callDataSize in the
+   * case of ID.
+   *
+   * @param precompileAddress the address of the precompile contract.
+   * @param callDataSize the call data size. Beyond the case of ID, this value is ignored.
+   * @param mbs the modulo byte size. Beyond the case of MODEXP, this value is ignored.
+   * @return the computed return at capacity.
+   */
+  static int getExpectedReturnAtCapacity(Address precompileAddress, int callDataSize, int mbs) {
+    final int returnAtCapacity;
+    if (precompileAddress == ECREC
+        || precompileAddress == SHA256
+        || precompileAddress == RIPEMD160
+        || precompileAddress == ALTBN128_PAIRING) {
+      returnAtCapacity = WORD_SIZE;
+    } else if (precompileAddress == ALTBN128_ADD
+        || precompileAddress == ALTBN128_MUL
+        || precompileAddress == BLAKE2B_F_COMPRESSION) {
+      returnAtCapacity = 2 * WORD_SIZE;
+    } else if (precompileAddress == MODEXP) {
+      returnAtCapacity = mbs;
+    } else if (precompileAddress == ID) {
+      returnAtCapacity = callDataSize;
+    } else {
+      throw new IllegalArgumentException("Unknown precompile address");
+    }
+    return returnAtCapacity;
   }
 }

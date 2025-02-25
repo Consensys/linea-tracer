@@ -1,3 +1,18 @@
+/*
+ * Copyright Consensys Software Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourths;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -83,10 +98,10 @@ public class SixtyThreeSixtyFourthsTests {
   final int r = rLeadingByte << 8;
 
   // MODEXP specific parameters
-  int bbs = 2;
-  int ebs = 6;
-  int mbs = 128;
-  int exponentLog = 0;
+  final int bbs = 2;
+  final int ebs = 6;
+  final int mbs = 128;
+  int exponentLog; // If necessary, computed in storeModexpInput
   List<ToyAccount> additionalAccounts = new ArrayList<>();
   Address codeOwnerAddress = Address.fromHexString("0xC0DE");
 
@@ -123,11 +138,19 @@ public class SixtyThreeSixtyFourthsTests {
   // Note: transferValue = false and cds = 0 as we are interested only in the cost of the
   // corresponding PUSHes here
 
+  /**
+   * Parameterized test for the ECADD precompile, that has a fixed cost of 150.
+   *
+   * @param gasLimit the gas limit for the transaction. It is either as much as needed for the ECADD
+   *     call or slightly less.
+   * @param insufficientGasForPrecompileExpected flag indicating if insufficient gas for ECADD is
+   *     expected.
+   */
   @ParameterizedTest
-  @MethodSource("fixedCostLTStipendTestSource")
-  void fixedCostLTStipendTest(long gasLimit, boolean insufficientGasForPrecompileExpected) {
-    // Only ECADD falls in this scenario and whenever transferValue = true, gas is enough
-    // Thus, we only test the case in which transferValue = false
+  @MethodSource("fixedCostEcAddTestSource")
+  void fixedCostEcAddTest(long gasLimit, boolean insufficientGasForPrecompileExpected) {
+    // Whenever transferValue = true, gas is enough
+    // so we only test the case in which transferValue = false
 
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
@@ -135,11 +158,6 @@ public class SixtyThreeSixtyFourthsTests {
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(gasLimit);
-
-    // insufficientGasForPrecompileExpected = true  =>
-    // targetCalleeGas = 63/64 * (252 - 100) = 150
-    // insufficientGasForPrecompileExpected = false =>
-    // targetCalleeGas = 63/64 * (251 - 100) = 149
 
     assertNotEquals(
         OUT_OF_GAS_EXCEPTION,
@@ -152,7 +170,7 @@ public class SixtyThreeSixtyFourthsTests {
     assertEquals(insufficientGasForPrecompileExpected, insufficientGasForPrecompileActual);
   }
 
-  Stream<Arguments> fixedCostLTStipendTestSource() {
+  Stream<Arguments> fixedCostEcAddTestSource() {
     List<Arguments> arguments = new ArrayList<>();
     final long targetCalleeGas = PrecompileUtils.getECADDCost();
     for (int cornerCase : List.of(0, -1)) {
@@ -167,6 +185,20 @@ public class SixtyThreeSixtyFourthsTests {
     return arguments.stream();
   }
 
+  /**
+   * Parameterized test for precompile calls where the cost is greater than or equal to the stipend
+   * (every precompile except ECADD, as long as cds and inputs are properly selected).
+   *
+   * @param address the address of the precompile contract.
+   * @param gasLimit the gas limit for the transaction. It is either as much as needed for the
+   *     precompile call or slightly less.
+   * @param insufficientGasForPrecompileExpected flag indicating if insufficient gas for precompile
+   *     is expected.
+   * @param transfersValue flag indicating if the call to the precompile transfers value.
+   * @param targetAddressExists flag indicating if the precompile target address exists at the
+   *     moment of the final call.
+   * @param cds the call data size.
+   */
   @ParameterizedTest
   @MethodSource("costGEQStipendTest")
   void costGEQStipendTest(
@@ -177,35 +209,10 @@ public class SixtyThreeSixtyFourthsTests {
       boolean targetAddressExists,
       int cds) {
     final BytecodeCompiler program = BytecodeCompiler.newProgram();
-    // ECREC, SHA256, RIPEMD160, ID, ALTBN128_MUL and ALTBN128_PAIRING fall in this scenario
-
     program.immediate(preCallProgram(address, transfersValue, targetAddressExists, cds)).op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(gasLimit, additionalAccounts);
-
-    // ECMUL case:
-
-    // transferValue = false, targetAddressExists = false
-
-    // insufficientGasForPrecompileExpected = true  =>
-    // targetCalleeGas = 63/64 * (6195 - 100) = 6000
-    // insufficientGasForPrecompileExpected = false =>
-    // targetCalleeGas = 63/64 * (6194 - 100) = 5999
-
-    // transfersValue = true, targetAddressExists = false
-
-    // insufficientGasForPrecompileExpected = true  =>
-    // targetCalleeGas = 63/64 * (37858 - (100 + 9000 + 25000)) + 2300 = 6000
-    // insufficientGasForPrecompileExpected = false =>
-    // targetCalleeGas = 63/64 * (37857 - (100 + 9000 + 25000)) + 2300 = 5999
-
-    // transfersValue = true, targetAddressExists = true
-
-    // insufficientGasForPrecompileExpected = true  =>
-    // targetCalleeGas = 63/64 * (12858 - (100 + 9000)) + 2300 = 6000
-    // insufficientGasForPrecompileExpected = false =>
-    // targetCalleeGas = 63/64 * (12857 - (100 + 9000)) + 2300 = 5999
 
     assertNotEquals(
         OUT_OF_GAS_EXCEPTION,
@@ -263,25 +270,21 @@ public class SixtyThreeSixtyFourthsTests {
   Bytes preCallProgram(
       Address address, boolean transfersValue, boolean targetAddressExists, int cds) {
     return BytecodeCompiler.newProgram()
-        .immediate(expandMemoryTo1024Words())
-        .immediate(
-            targetAddressExists
-                ? call(
-                    INFINITE_GAS,
-                    address,
-                    address == BLAKE2B_F_COMPRESSION
-                        ? PRC_BLAKE2F_SIZE
-                        : 0, // For BLAKE2F we need a meaningful cds for the call to succeed
-                    true)
-                : Bytes.EMPTY)
+        .immediate(expandMemoryTo2048Words())
+        .immediate(targetAddressExists ? successfullySummonIntoExistence(address) : Bytes.EMPTY)
         .immediate(address == MODEXP ? storeModexpInput(bbs, mbs, ebs) : Bytes.EMPTY)
         .immediate(address == BLAKE2B_F_COMPRESSION ? storeBlake2fInput(rLeadingByte) : Bytes.EMPTY)
         .immediate(pushCallArguments(INFINITE_GAS, address, cds, transfersValue))
         .compile();
   }
 
-  Bytes expandMemoryTo1024Words() {
-    return BytecodeCompiler.newProgram().push(1024 * WORD_SIZE).op(MLOAD).op(POP).compile();
+  Bytes expandMemoryTo2048Words() {
+    return expandMemoryTo(2048);
+  }
+
+  Bytes expandMemoryTo(int words) {
+    checkArgument(words >= 1);
+    return BytecodeCompiler.newProgram().push((words - 1) * WORD_SIZE).op(MLOAD).op(POP).compile();
   }
 
   Bytes call(Bytes gas, Address address, int cds, boolean transfersValue) {
@@ -301,6 +304,16 @@ public class SixtyThreeSixtyFourthsTests {
         .push(address) // address
         .push(gas) // gas
         .compile();
+  }
+
+  Bytes successfullySummonIntoExistence(Address address) {
+    return call(
+        INFINITE_GAS,
+        address,
+        address == BLAKE2B_F_COMPRESSION
+            ? PRC_BLAKE2F_SIZE
+            : 0, // For BLAKE2F we need a meaningful cds for the call to succeed
+        true);
   }
 
   // TODO: the two methods below are essentially duplicates of the ones in
@@ -349,9 +362,10 @@ public class SixtyThreeSixtyFourthsTests {
       long preCallProgramGas) {
     /* gasLimit = preCallProgramGasCost + gasPreCall
     /  63/64 * (gasPreCall - gasUpFront) + stipend = targetCalleeGas
-    /  x = gasPreCall - gasUpFront
-    /  k = x / 64 (integer division)
-    /  l = x - 64 * k
+    /  x = gasPreCall - gasUpFront = 64 * k + l
+    /  x !≡ 63 % 64 => (x - 63) % 64 != 0
+    /  k = floor(x / 64)
+    /  l = x % 64
     /  63 * k + l + stipend = targetCalleeGas
     / find gasLimit going backwards
     */
@@ -361,7 +375,7 @@ public class SixtyThreeSixtyFourthsTests {
     final long k = (targetCalleeGas - stipend - l) / 63;
     checkArgument(targetCalleeGas == 63 * k + l + stipend);
     final long gasUpfront = getUpfrontGasCost(transfersValue, targetAddressExists);
-    final long gasPreCall = (targetCalleeGas - stipend) * 64 / 63 + gasUpfront;
+    final long gasPreCall = 64 * k + l + gasUpfront;
     return preCallProgramGas + gasPreCall; // gasLimit
   }
 
@@ -382,7 +396,8 @@ public class SixtyThreeSixtyFourthsTests {
     } else if (address == MODEXP) {
       return 96 + bbs + ebs + mbs; // Ensures cost is greater than stipend with non-zero non-trivial
     } else if (address == BLAKE2B_F_COMPRESSION) {
-      return PRC_BLAKE2F_SIZE; // Ensures cost is greater than stipend with non-zero non-trivial input
+      return PRC_BLAKE2F_SIZE; // Ensures cost is greater than stipend with non-zero non-trivial
+      // input
     } else {
       return 0;
     }

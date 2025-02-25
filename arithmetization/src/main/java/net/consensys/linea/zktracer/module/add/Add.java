@@ -53,7 +53,7 @@ public class Add implements OperationSetModule<AddOperation> {
     if ((opcode == ADD || opcode == SUB) && !Exceptions.outOfGasException(exception)) {
       operations.add(
           new AddOperation(
-              OpCode.of(frame.getCurrentOperation().getOpcode()),
+              opcode,
               Bytes32.leftPad(frame.getStackItem(0)),
               Bytes32.leftPad(frame.getStackItem(1))));
     }

@@ -386,7 +386,6 @@ public class MxpOperation extends ModuleOperation {
   }
 
   protected void setAccWAndLastTwoBytesOfByteR() {
-    // @TODO: do it also for other cases
     if (this.getMxpExecutionPath() == mxpExecutionPath.NON_TRIVIAL) {
       if (typeMxp != MxpType.TYPE_4) {
         return;

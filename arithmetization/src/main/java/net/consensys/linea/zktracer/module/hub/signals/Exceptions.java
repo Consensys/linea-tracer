@@ -54,13 +54,6 @@ public class Exceptions {
   }
 
   /**
-   * @return true if no stack exception has been raised
-   */
-  public static boolean noStackException(final short bitmask) {
-    return !stackException(bitmask);
-  }
-
-  /**
    * @return true if any exception flag has been raised, i.e., at least one exception flag is raised
    */
   public static boolean any(final short bitmask) {

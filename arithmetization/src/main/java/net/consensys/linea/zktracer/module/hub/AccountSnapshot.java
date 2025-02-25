@@ -258,9 +258,4 @@ public class AccountSnapshot {
 
     return new AccountSnapshot(address, nonce, balance, true, code, deploymentNumber, false);
   }
-
-  public AccountSnapshot copyDeploymentInfoFrom(AccountSnapshot snapshot) {
-    return this.deploymentNumber(snapshot.deploymentNumber)
-        .deploymentStatus(snapshot.deploymentStatus);
-  }
 }

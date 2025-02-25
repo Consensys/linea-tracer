@@ -15,13 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.signals;
 
-import java.util.Set;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
@@ -34,12 +31,6 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class Signals {
-  private static final Set<InstructionFamily> AUTOMATIC_GAS_MODULE_TRIGGER =
-      Set.of(
-          InstructionFamily.CREATE,
-          InstructionFamily.CALL,
-          InstructionFamily.HALT,
-          InstructionFamily.INVALID);
 
   @Getter private boolean add;
   @Getter private boolean blockhash;
@@ -61,19 +52,6 @@ public class Signals {
     mod = false;
     wcp = false;
     shf = false;
-  }
-
-  public Signals snapshot() {
-    Signals r = new Signals(null);
-    r.add = this.add;
-    r.blockhash = this.blockhash;
-    r.bin = this.bin;
-    r.mul = this.mul;
-    r.ext = this.ext;
-    r.mod = this.mod;
-    r.wcp = this.wcp;
-    r.shf = this.shf;
-    return r;
   }
 
   /**

@@ -949,10 +949,6 @@ public class Hub implements Module {
     }
   }
 
-  // TODO: how do these implementations of remainingGas()
-  //  and expectedGas() behave with respect to resuming
-  //  execution after a CALL / CREATE ? One of them is
-  //  necessarily false ...
   public long remainingGas() {
     return this.state().processingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()

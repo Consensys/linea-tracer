@@ -92,8 +92,8 @@ public class CommonFragmentValues {
     this.heightNew = callFrame.stack().getHeightNew();
 
     // TODO: partial solution, will not work in general
-    this.gasExpected = isExec ? computeGasExpected() : 0;
-    this.gasActual = isExec ? computeGasRemaining() : 0;
+    this.gasExpected = computeGasExpected();
+    this.gasActual = computeGasRemaining();
     this.gasCost = isExec ? computeGasCost() : 0;
     this.gasNext = isExec ? computeGasNext(exceptions) : 0;
     this.gasCostExcluduingDeploymentCost = isExec ? computeGasCostExcludingDeploymentCost() : 0;
@@ -211,9 +211,9 @@ public class CommonFragmentValues {
 
   public long computeGasExpected() {
 
-    final CallFrame currentFrame = hub.currentFrame();
-
     if (hub.state().processingPhase() != TX_EXEC) return 0;
+
+    final CallFrame currentFrame = hub.currentFrame();
 
     if (currentFrame.executionPaused()) {
       currentFrame.unpauseCurrentFrame();

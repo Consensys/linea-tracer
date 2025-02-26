@@ -15,10 +15,10 @@
 package net.consensys.linea.zktracer.module.blockdata;
 
 import static net.consensys.linea.zktracer.MultiBlockUtils.multiBlocksTest;
+import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.Trace.Blockdata.GAS_LIMIT_MAXIMUM;
+import static net.consensys.linea.zktracer.Trace.Blockdata.GAS_LIMIT_MINIMUM;
 import static net.consensys.linea.zktracer.module.blockdata.NextGasLimitScenario.*;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.GAS_LIMIT_MAXIMUM;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.GAS_LIMIT_MINIMUM;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
 
 import java.util.ArrayList;
 import java.util.List;

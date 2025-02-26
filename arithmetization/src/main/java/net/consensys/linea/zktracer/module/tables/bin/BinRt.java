@@ -15,10 +15,7 @@
 
 package net.consensys.linea.zktracer.module.tables.bin;
 
-import java.nio.MappedByteBuffer;
-import java.util.List;
-
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -41,17 +38,11 @@ public class BinRt implements Module {
     return 3 * 256 * 256 + 256; // 256*256 lines for AND, OR and XOR, and 256 lines for NOT
   }
 
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-
+  public void commit(Trace trace) {
     // AND
     UnsignedByte opCode = UnsignedByte.of(OpCode.AND.byteValue());
-
+    Trace.Binreftable binrt = trace.binreftable;
+    //
     for (short input1 = 0; input1 <= 255; input1++) {
       final Bytes input1Bytes = Bytes.of(input1);
       final UnsignedByte input1UByte = UnsignedByte.of(input1);
@@ -61,7 +52,7 @@ public class BinRt implements Module {
         final UnsignedByte input2UByte = UnsignedByte.of(input2);
 
         final UnsignedByte result = UnsignedByte.of(input1Bytes.and(input2Bytes).get(0));
-        trace
+        binrt
             .inst(opCode)
             .resultByte(result)
             .inputByte1(input1UByte)
@@ -82,7 +73,7 @@ public class BinRt implements Module {
         final UnsignedByte input2UByte = UnsignedByte.of(input2);
 
         final UnsignedByte result = UnsignedByte.of(input1Bytes.or(input2Bytes).get(0));
-        trace
+        binrt
             .inst(opCode)
             .resultByte(result)
             .inputByte1(input1UByte)
@@ -103,7 +94,7 @@ public class BinRt implements Module {
         final UnsignedByte input2UByte = UnsignedByte.of(input2);
 
         final UnsignedByte result = UnsignedByte.of(input1Bytes.xor(input2Bytes).get(0));
-        trace
+        binrt
             .inst(opCode)
             .resultByte(result)
             .inputByte1(input1UByte)
@@ -120,7 +111,7 @@ public class BinRt implements Module {
       final UnsignedByte input1UByte = UnsignedByte.of(input1);
 
       final UnsignedByte result = UnsignedByte.of(input1Bytes.not().get(0));
-      trace
+      binrt
           .inst(opCode)
           .resultByte(result)
           .inputByte1(input1UByte)

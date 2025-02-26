@@ -165,4 +165,4 @@ tasks.register('buildTracer') {
 }
 
 // Configure default build task to require the tracer is built first.
-compileJava.dependsOn 'buildTracer'
+//compileJava.dependsOn 'buildTracer'

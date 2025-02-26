@@ -19,12 +19,10 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.SMOD;
 
 import java.math.BigInteger;
-import java.nio.MappedByteBuffer;
-import java.util.List;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -53,17 +51,11 @@ public class Mod implements OperationSetModule<ModOperation> {
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
+  public void commit(Trace trace) {
     int stamp = 0;
     for (ModOperation op : operations.sortOperations(new ModOperationComparator())) {
-      op.trace(trace, ++stamp);
+      op.trace(trace.mod, ++stamp);
     }
-  }
-
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
   }
 
   /**

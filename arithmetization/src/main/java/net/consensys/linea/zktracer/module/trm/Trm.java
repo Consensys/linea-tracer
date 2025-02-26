@@ -15,14 +15,11 @@
 
 package net.consensys.linea.zktracer.module.trm;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
-
-import java.nio.MappedByteBuffer;
-import java.util.List;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.types.EWord;
@@ -54,17 +51,10 @@ public class Trm implements OperationSetModule<TrmOperation> {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-
+  public void commit(Trace trace) {
     int stamp = 0;
     for (TrmOperation operation : operations.sortOperations(new TrmOperationComparator())) {
-      operation.trace(trace, ++stamp);
+      operation.trace(trace.trm, ++stamp);
     }
   }
 }

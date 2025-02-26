@@ -15,10 +15,7 @@
 
 package net.consensys.linea.zktracer.module.tables.shf;
 
-import java.nio.MappedByteBuffer;
-import java.util.List;
-
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -40,17 +37,12 @@ public record ShfRt() implements Module {
     return 256 * 9;
   }
 
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
+  public void commit(Trace trace) {
     for (int a = 0; a <= 255; a++) {
       final UnsignedByte unsignedByteA = UnsignedByte.of(a);
       for (int uShp = 0; uShp <= 8; uShp++) {
         trace
+            .shfreftable
             .byte1(UnsignedByte.of(a))
             .las(unsignedByteA.shiftLeft(8 - uShp))
             .mshp(UnsignedByte.of(uShp))

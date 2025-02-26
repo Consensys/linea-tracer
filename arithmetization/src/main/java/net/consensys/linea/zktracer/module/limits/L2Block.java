@@ -23,7 +23,6 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
@@ -118,11 +117,6 @@ public class L2Block implements Module {
             + ABI_OFFSET_BYTES; // abi overheads for the blockdata struct.
 
     return l1Size;
-  }
-
-  @Override
-  public List<ColumnHeader> columnsHeaders() {
-    throw new IllegalStateException("non-tracing module");
   }
 
   @Override

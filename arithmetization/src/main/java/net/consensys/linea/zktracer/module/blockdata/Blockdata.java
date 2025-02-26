@@ -15,15 +15,14 @@
 
 package net.consensys.linea.zktracer.module.blockdata;
 
-import static net.consensys.linea.zktracer.module.blockdata.Trace.GAS_LIMIT_MAXIMUM;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.nROWS_DEPTH;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.Trace.Blockdata.GAS_LIMIT_MAXIMUM;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DEPTH;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
 
-import java.nio.MappedByteBuffer;
 import java.util.*;
 
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -120,16 +119,9 @@ public class Blockdata implements Module {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
-  }
-
-  @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-
+  public void commit(Trace trace) {
     for (BlockdataOperation blockData : operations) {
-      blockData.trace(trace);
+      blockData.trace(trace.blockdata);
     }
   }
 }

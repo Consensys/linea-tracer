@@ -26,7 +26,6 @@ import java.util.function.Supplier;
 
 import com.google.common.base.Suppliers;
 import lombok.Builder;
-import lombok.Getter;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -44,12 +43,12 @@ public class ToyAccount implements MutableAccount {
 
   private boolean mutable = true;
 
-  @Getter private Address address;
-  @Getter private final Supplier<Hash> addressHash = Suppliers.memoize(() -> address.addressHash());
-  @Getter private long nonce;
-  @Getter private Wei balance;
-  @Getter private Bytes code;
-  @Getter private Supplier<Hash> codeHash = Suppliers.memoize(() -> Hash.hash(code));
+  private Address address;
+  private final Supplier<Hash> addressHash = Suppliers.memoize(() -> address.addressHash());
+  private long nonce;
+  private Wei balance;
+  private Bytes code;
+  private Supplier<Hash> codeHash = Suppliers.memoize(() -> Hash.hash(code));
   final Map<UInt256, UInt256> storage = new HashMap<>();
   final KeyPair keyPair;
 
@@ -70,8 +69,38 @@ public class ToyAccount implements MutableAccount {
   }
 
   @Override
+  public Address getAddress() {
+    return address;
+  }
+
+  @Override
   public boolean isStorageEmpty() {
     return storage.isEmpty();
+  }
+
+  @Override
+  public Hash getAddressHash() {
+    return addressHash.get();
+  }
+
+  @Override
+  public long getNonce() {
+    return nonce;
+  }
+
+  @Override
+  public Wei getBalance() {
+    return balance;
+  }
+
+  @Override
+  public Bytes getCode() {
+    return code;
+  }
+
+  @Override
+  public Hash getCodeHash() {
+    return codeHash.get();
   }
 
   @Override

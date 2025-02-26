@@ -354,8 +354,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -375,8 +376,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -395,8 +397,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -415,8 +418,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -435,8 +439,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   // Failing cases
@@ -462,8 +467,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -485,8 +491,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -508,8 +515,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   // offset just greater cases
@@ -533,8 +541,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -557,8 +566,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -580,8 +590,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -603,8 +614,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   // offset big left cases
@@ -626,8 +638,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -648,8 +661,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -671,8 +685,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -694,8 +709,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   // offset big right cases
@@ -717,8 +733,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -740,8 +757,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -763,8 +781,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   @Test
@@ -786,8 +805,9 @@ public class OobRdcTest {
     // Chunk with index 1 is the one corresponding to IDENTITY precompile
     // precompileCost = (5 + ceil) * 3 where ceil = 1
     // cds is trivially 0 in initReturnDataCopyProgramUsingIdentityPrecompile
-    assertTrue(bytecodeRunner.getHub().oob().operations().stream()
-      .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
+    assertTrue(
+        bytecodeRunner.getHub().oob().operations().stream()
+            .anyMatch(op -> op.getPrecompileCost().equals(BigInteger.valueOf(18))));
   }
 
   // Support methods

@@ -38,13 +38,15 @@ import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RlptxnTests {
 
-  private static final Random SEED = new Random(666);
+  private final Random SEED = new Random(666);
 
   @Tag("nightly")
   @ParameterizedTest
@@ -109,7 +111,7 @@ public class RlptxnTests {
         .run();
   }
 
-  private static Stream<Arguments> rlpInputs() {
+  private Stream<Arguments> rlpInputs() {
     final List<Arguments> arguments = new ArrayList<>();
 
     final List<TransactionType> possibleTxType = List.of(FRONTIER, ACCESS_LIST, EIP1559);

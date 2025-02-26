@@ -141,21 +141,7 @@ public class AddressColisionWarmingAndDeploymentTests {
     appendAccessListEntry(
         accessList,
         warming1,
-        senderAddress,
-        effectiveToAddress,
-        coinBaseAddress,
-        recipientAccount.getAddress(),
-        deployment);
-    appendAccessListEntry(
-        accessList,
         warming2,
-        senderAddress,
-        effectiveToAddress,
-        coinBaseAddress,
-        recipientAccount.getAddress(),
-        deployment);
-    appendAccessListEntry(
-        accessList,
         warming3,
         senderAddress,
         effectiveToAddress,
@@ -186,38 +172,47 @@ public class AddressColisionWarmingAndDeploymentTests {
 
   private void appendAccessListEntry(
       List<AccessListEntry> accessList,
-      WarmingScenarii scenario,
+      WarmingScenarii warming1,
+      WarmingScenarii warming2,
+      WarmingScenarii warming3,
       Address senderAddress,
       Address effectiveToAddress,
       Address coinbaseAddress,
       Address recipientAddress,
       boolean isDeployment) {
-    switch (scenario) {
-      case NO_WARMING -> {}
-      case WARMING_SENDER -> accessList.add(new AccessListEntry(senderAddress, List.of()));
-      case WARMING_EFFECTIVE_RECIPIENT -> accessList.add(
-          new AccessListEntry(effectiveToAddress, List.of()));
-      case WARMING_COINBASE -> accessList.add(new AccessListEntry(coinbaseAddress, List.of()));
-      case WARMING_PRECOMPILE -> {
-        accessList.add(new AccessListEntry(Address.MODEXP, List.of()));
-        accessList.add(
-            new AccessListEntry(Address.ID, List.of(Bytes32.ZERO, Bytes32.repeat((byte) 1))));
-      }
-      case WARMING_TO_BE_DEPLOYED_STORAGE -> {
-        final Address deployerAddress = isDeployment ? senderAddress : recipientAddress;
-        final Address deployedAddress =
-            Address.extract(getCreate2RawAddress(deployerAddress, Bytes32.ZERO, INITCODE_HASH));
-        accessList.add(new AccessListEntry(deployedAddress, List.of(STD_KEY, Bytes32.ZERO)));
-      }
-      case RANDOM_ADDRESS_DUPLICATE -> {
-        accessList.add(
-            new AccessListEntry(
-                Address.wrap(leftPadTo(Bytes.fromHexString("0xbadb077"), Address.SIZE)),
-                List.of(Bytes32.ZERO, Bytes32.repeat((byte) 1))));
-        accessList.add(
-            new AccessListEntry(
-                Address.wrap(rightPadTo(Bytes.fromHexString("0xxbadb077"), Address.SIZE)),
-                List.of()));
+
+    final List<WarmingScenarii> scenarii = List.of(warming1, warming2, warming3);
+
+    for (WarmingScenarii scenario : scenarii) {
+
+      switch (scenario) {
+        case NO_WARMING -> {}
+        case WARMING_SENDER -> accessList.add(new AccessListEntry(senderAddress, List.of()));
+        case WARMING_EFFECTIVE_RECIPIENT -> accessList.add(
+            new AccessListEntry(effectiveToAddress, List.of()));
+        case WARMING_COINBASE -> accessList.add(new AccessListEntry(coinbaseAddress, List.of()));
+        case WARMING_PRECOMPILE -> {
+          accessList.add(new AccessListEntry(Address.MODEXP, List.of()));
+          accessList.add(
+              new AccessListEntry(Address.ID, List.of(Bytes32.ZERO, Bytes32.repeat((byte) 1))));
+        }
+        case WARMING_TO_BE_DEPLOYED_STORAGE -> {
+          final Address deployerAddress = isDeployment ? senderAddress : recipientAddress;
+          final Address deployedAddress =
+              Address.extract(getCreate2RawAddress(deployerAddress, Bytes32.ZERO, INITCODE_HASH));
+          accessList.add(new AccessListEntry(deployedAddress, List.of(STD_KEY, Bytes32.ZERO)));
+        }
+        case RANDOM_ADDRESS_DUPLICATE -> {
+          accessList.add(
+              new AccessListEntry(
+                  Address.wrap(leftPadTo(Bytes.fromHexString("0xbadb077"), Address.SIZE)),
+                  List.of(Bytes32.ZERO, Bytes32.repeat((byte) 1))));
+          accessList.add(
+              new AccessListEntry(
+                  Address.wrap(rightPadTo(Bytes.fromHexString("0xxbadb077"), Address.SIZE)),
+                  List.of()));
+        }
+        default -> throw new IllegalArgumentException("Unknown scenario: " + scenario);
       }
     }
   }

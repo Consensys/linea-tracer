@@ -27,7 +27,6 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -48,8 +47,8 @@ public class Ext implements OperationSetModule<ExtOperation> {
   }
 
   @Override
-  public void tracePreOpcode(MessageFrame frame, OpCode opcode, short exception) {
-    if ((opcode == ADDMOD || opcode == MULMOD) && !Exceptions.outOfGasException(exception)) {
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
+    if (opcode == ADDMOD || opcode == MULMOD) {
       operations.add(
           new ExtOperation(
               opcode,

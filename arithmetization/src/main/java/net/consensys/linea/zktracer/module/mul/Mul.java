@@ -27,7 +27,6 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -47,8 +46,8 @@ public class Mul implements OperationSetModule<MulOperation> {
   }
 
   @Override
-  public void tracePreOpcode(MessageFrame frame, OpCode opcode, short exception) {
-    if ((opcode == MUL || opcode == EXP) && !Exceptions.outOfGasException(exception)) {
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
+    if (opcode == MUL || opcode == EXP) {
       final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
       final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
 

@@ -903,11 +903,14 @@ public class Hub implements Module {
 
     this.handleStack(frame);
 
-    if (currentFrame().stack().isOk()) {
-      // Trigger basic operations modules
+    // Trigger basic operations modules
+    if (Exceptions.none(pch.exceptions())) {
       for (Module m : modules) {
-        m.tracePreOpcode(frame, opCode(), pch.exceptions());
+        m.tracePreOpcode(frame, opCode());
       }
+    }
+
+    if (currentFrame().stack().isOk()) {
       // Tracer for the HUB
       this.traceOpcode(frame);
     } else {

@@ -148,14 +148,19 @@ public class BlockwiseDeplNoTest {
         .build()
         .run();
 
-    MultiBlockExecutionEnvironment.getHub();
+    // As the state manager feature is not available anymore, we are not able to keep track of the
+    // deployment number per address
+    // However, in the trace we have all the sections and fragments to replay and record the values
+    // that the state manager used to keep track of while tracing was ongoing
 
-    Map<AddrBlockPair, Integer> minDeplNoBlock = new HashMap<>();
-    Map<AddrBlockPair, Integer> maxDeplNoBlock = new HashMap<>();
+    // Map to keep track of the deployment number per address
+    Map<Address, Map<Integer, Integer>> minDeplNoBlock = new HashMap<>();
+    Map<Address, Map<Integer, Integer>> maxDeplNoBlock = new HashMap<>();
 
+    // We count the number of transactions in the hub, here we have 11
     int txCount = MultiBlockExecutionEnvironment.getHub().state().txCount();
-
     for (int txNb = 0; txNb < txCount; txNb++) {
+      // We retrieve the trace section list for each transaction
       List<TraceSection> traceSectionList =
           MultiBlockExecutionEnvironment.getHub()
               .state()
@@ -164,17 +169,27 @@ public class BlockwiseDeplNoTest {
               .get(txNb)
               .traceSections()
               .trace();
-      // int lenTraceSectionList = traceSectionList.size();
-
-      List<TraceFragment> traceFragmentList = traceSectionList.get(0).fragments();
-
-      for (int i = 2; i <= 4; i++) {
-        TraceFragment traceFragment = traceFragmentList.get(i);
-        AccountFragment accountFragment = (AccountFragment) traceFragment;
-        Address address = accountFragment.oldState().address();
-        int relBlokNo = accountFragment.transactionProcessingMetadata().getRelativeBlockNumber();
-        int deplNo = accountFragment.newState().deploymentNumber();
-        updateDeplNoBlockMaps(address, relBlokNo, deplNo, minDeplNoBlock, maxDeplNoBlock);
+      // For each trace section
+      for (TraceSection traceSection : traceSectionList) {
+        // We check if there are fragments
+        if (!traceSection.fragments().isEmpty()) {
+          List<TraceFragment> traceFragmentList = traceSection.fragments();
+          for (TraceFragment traceFragment : traceFragmentList) {
+            // If there are any, we cast them to AccountFragment
+            // If an exception occurs, it means the Fragment is not an AccountFragment so we
+            // disregard it and continue
+            try {
+              AccountFragment accountFragment = (AccountFragment) traceFragment;
+              Address address = accountFragment.oldState().address();
+              int relBlokNo =
+                  accountFragment.transactionProcessingMetadata().getRelativeBlockNumber();
+              int deplNo = accountFragment.newState().deploymentNumber();
+              updateDeplNoBlockMaps(address, relBlokNo, deplNo, minDeplNoBlock, maxDeplNoBlock);
+            } catch (Exception e) {
+              // ignore
+            }
+          }
+        }
       }
     }
 
@@ -204,9 +219,8 @@ public class BlockwiseDeplNoTest {
     // blocks are numbered starting from 1
     for (int block = 1; block <= noBlocks; block++) {
       for (int i = 0; i < keys.length; i++) {
-        AddrBlockPair key = new AddrBlockPair(keys[i], block);
-        Integer minNo = minDeplNoBlock.get(key);
-        Integer maxNo = maxDeplNoBlock.get(key);
+        Integer minNo = minDeplNoBlock.get(keys[i]).get(block);
+        Integer maxNo = maxDeplNoBlock.get(keys[i]).get(block);
         // asserts for the first and last storage values in conflation
         // -1 due to block numbering
         assertEquals(expectedMin[block - 1][i], minNo);
@@ -217,33 +231,26 @@ public class BlockwiseDeplNoTest {
     System.out.println("Done");
   }
 
-  public static class AddrBlockPair {
-    private Address address;
-    private int blockNumber;
-
-    public AddrBlockPair(Address addr, int blockNumber) {
-      this.address = addr;
-      this.blockNumber = blockNumber;
-    }
-  }
-
   public void updateDeplNoBlockMaps(
       Address address,
       int blockNumber,
       int currentDeplNo,
-      Map<AddrBlockPair, Integer> minDeplNoBlock,
-      Map<AddrBlockPair, Integer> maxDeplNoBlock) {
-    AddrBlockPair addrBlockPair = new AddrBlockPair(address, blockNumber);
-    if (minDeplNoBlock.containsKey(addrBlockPair)) {
+      Map<Address, Map<Integer, Integer>> minDeplNoBlock,
+      Map<Address, Map<Integer, Integer>> maxDeplNoBlock) {
+    if (minDeplNoBlock.containsKey(address)
+        && minDeplNoBlock.get(address).containsKey(blockNumber)) {
       // the maps already contain deployment info for this address, and this is not the first one in
       // the block
       // since it is not the first, we do not update the minDeplNoBlock
       // but we update the maxDeplNoBlock
-      maxDeplNoBlock.put(addrBlockPair, currentDeplNo);
+      maxDeplNoBlock.put(address, new HashMap<>());
+      maxDeplNoBlock.get(address).put(blockNumber, currentDeplNo);
     } else {
       // this is the first time we have a deployment at this address in the block
-      minDeplNoBlock.put(addrBlockPair, currentDeplNo);
-      maxDeplNoBlock.put(addrBlockPair, currentDeplNo);
+      minDeplNoBlock.put(address, new HashMap<>());
+      minDeplNoBlock.get(address).put(blockNumber, currentDeplNo);
+      maxDeplNoBlock.put(address, new HashMap<>());
+      maxDeplNoBlock.get(address).put(blockNumber, currentDeplNo);
     }
   }
 }

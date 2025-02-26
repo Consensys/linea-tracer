@@ -81,8 +81,14 @@ public class AddressColisionWarmingAndDeploymentTests {
     for (int skip = 0; skip <= 1; skip++) {
       for (AddressCollisions collision : AddressCollisions.values()) {
         for (int isDeployment = 0; isDeployment <= 1; isDeployment++) {
-          for (WarmingScenarii warming : WarmingScenarii.values()) {
-            arguments.add(Arguments.of(skip == 1, collision, isDeployment == 1, warming));
+          for (WarmingScenarii warming1 : WarmingScenarii.values()) {
+            for (WarmingScenarii warming2 : WarmingScenarii.values()) {
+              for (WarmingScenarii warming3 : WarmingScenarii.values()) {
+                arguments.add(
+                    Arguments.of(
+                        skip == 1, collision, isDeployment == 1, warming1, warming2, warming3));
+              }
+            }
           }
         }
       }
@@ -94,7 +100,12 @@ public class AddressColisionWarmingAndDeploymentTests {
   @ParameterizedTest
   @MethodSource("inputs")
   void addressCollisionWarmingAndDeployment(
-      boolean skip, AddressCollisions collision, boolean deployment, WarmingScenarii warming) {
+      boolean skip,
+      AddressCollisions collision,
+      boolean deployment,
+      WarmingScenarii warming1,
+      WarmingScenarii warming2,
+      WarmingScenarii warming3) {
 
     // not possible to have a sender and recipient collision
     if ((deployment || !skip) && senderRecipientCollision(collision)) {
@@ -102,11 +113,13 @@ public class AddressColisionWarmingAndDeploymentTests {
     }
 
     // there is no point as we skip the tx
-    if (skip && warming == WarmingScenarii.WARMING_TO_BE_DEPLOYED_STORAGE) {
+    if (skip && (warming1 == WarmingScenarii.WARMING_TO_BE_DEPLOYED_STORAGE)
+        || (warming2 == WarmingScenarii.WARMING_TO_BE_DEPLOYED_STORAGE)
+        || (warming3 == WarmingScenarii.WARMING_TO_BE_DEPLOYED_STORAGE)) {
       return;
     }
 
-    final ToyAccount receiverAccount =
+    final ToyAccount recipientAccount =
         ToyAccount.builder()
             .balance(Wei.fromEth(12))
             .nonce(128)
@@ -114,7 +127,7 @@ public class AddressColisionWarmingAndDeploymentTests {
             .code(skip ? Bytes.EMPTY : CREATE2_AND_SSTORE)
             .build();
 
-    final Address effectiveToAddress = receiverAccount.getAddress();
+    final Address effectiveToAddress = recipientAccount.getAddress();
 
     Address coinBaseAddress = DEFAULT_COINBASE_ADDRESS;
     if (recipientCoinbaseCollision(collision)) {
@@ -125,18 +138,73 @@ public class AddressColisionWarmingAndDeploymentTests {
     }
 
     final List<AccessListEntry> accessList = new ArrayList<>();
-    switch (warming) {
+    appendAccessListEntry(
+        accessList,
+        warming1,
+        senderAddress,
+        effectiveToAddress,
+        coinBaseAddress,
+        recipientAccount.getAddress(),
+        deployment);
+    appendAccessListEntry(
+        accessList,
+        warming2,
+        senderAddress,
+        effectiveToAddress,
+        coinBaseAddress,
+        recipientAccount.getAddress(),
+        deployment);
+    appendAccessListEntry(
+        accessList,
+        warming3,
+        senderAddress,
+        effectiveToAddress,
+        coinBaseAddress,
+        recipientAccount.getAddress(),
+        deployment);
+
+    final Transaction tx =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(deployment ? null : recipientAccount)
+            .keyPair(senderKeyPair)
+            .gasLimit(300000L)
+            .transactionType(TransactionType.ACCESS_LIST)
+            .accessList(accessList)
+            .value(Wei.of(1000))
+            .payload(deployment && !skip ? CREATE2_AND_SSTORE : Bytes.EMPTY)
+            .build();
+
+    ToyExecutionEnvironmentV2.builder()
+        .accounts(List.of(senderAccount, recipientAccount))
+        .transaction(tx)
+        .coinbase(coinBaseAddress)
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run();
+  }
+
+  private void appendAccessListEntry(
+      List<AccessListEntry> accessList,
+      WarmingScenarii scenario,
+      Address senderAddress,
+      Address effectiveToAddress,
+      Address coinbaseAddress,
+      Address recipientAddress,
+      boolean isDeployment) {
+    switch (scenario) {
       case NO_WARMING -> {}
       case WARMING_SENDER -> accessList.add(new AccessListEntry(senderAddress, List.of()));
-      case WARMING_RECIPIENT -> accessList.add(new AccessListEntry(effectiveToAddress, List.of()));
-      case WARMING_COINBASE -> accessList.add(new AccessListEntry(coinBaseAddress, List.of()));
+      case WARMING_EFFECTIVE_RECIPIENT -> accessList.add(
+          new AccessListEntry(effectiveToAddress, List.of()));
+      case WARMING_COINBASE -> accessList.add(new AccessListEntry(coinbaseAddress, List.of()));
       case WARMING_PRECOMPILE -> {
         accessList.add(new AccessListEntry(Address.MODEXP, List.of()));
         accessList.add(
             new AccessListEntry(Address.ID, List.of(Bytes32.ZERO, Bytes32.repeat((byte) 1))));
       }
       case WARMING_TO_BE_DEPLOYED_STORAGE -> {
-        final Address deployerAddress = deployment ? senderAddress : receiverAccount.getAddress();
+        final Address deployerAddress = isDeployment ? senderAddress : recipientAddress;
         final Address deployedAddress =
             Address.extract(getCreate2RawAddress(deployerAddress, Bytes32.ZERO, INITCODE_HASH));
         accessList.add(new AccessListEntry(deployedAddress, List.of(STD_KEY, Bytes32.ZERO)));
@@ -152,25 +220,5 @@ public class AddressColisionWarmingAndDeploymentTests {
                 List.of()));
       }
     }
-
-    final Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(deployment ? null : receiverAccount)
-            .keyPair(senderKeyPair)
-            .gasLimit(300000L)
-            .transactionType(TransactionType.ACCESS_LIST)
-            .accessList(accessList)
-            .value(Wei.of(1000))
-            .payload(deployment && !skip ? CREATE2_AND_SSTORE : Bytes.EMPTY)
-            .build();
-
-    ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, receiverAccount))
-        .transaction(tx)
-        .coinbase(coinBaseAddress)
-        .zkTracerValidator(zkTracer -> {})
-        .build()
-        .run();
   }
 }

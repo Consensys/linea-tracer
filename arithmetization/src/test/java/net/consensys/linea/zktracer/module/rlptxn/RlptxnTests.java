@@ -46,6 +46,11 @@ import org.junit.jupiter.params.provider.MethodSource;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RlptxnTests {
 
+  /**
+   * This test is a parameterized test that tests the RLP encoding of a transaction, checking
+   * different combinations of : - transaction types, - values, - payloads, - access lists, - chain
+   * id (empty or not), - signatures.
+   */
   private final Random SEED = new Random(666);
 
   @Tag("nightly")
@@ -129,6 +134,7 @@ public class RlptxnTests {
     final List<Bytes> payloads =
         List.of(
             Bytes.EMPTY,
+            Bytes.of(0),
             Bytes.of(1),
             bigIntegerToBytes(BigInteger.valueOf(127)),
             bigIntegerToBytes(BigInteger.valueOf(128)),

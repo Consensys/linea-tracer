@@ -140,7 +140,7 @@ tasks.test.configure {
 }
 
 tasks.register("fastReplayTests", Test) {
-  dependsOn(buildZkevmBin)
+  dependsOn(buildOldReplayTestsZkevmBin)
 
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)

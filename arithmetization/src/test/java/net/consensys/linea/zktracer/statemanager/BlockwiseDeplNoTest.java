@@ -15,11 +15,18 @@
 
 package net.consensys.linea.zktracer.statemanager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 
@@ -143,6 +150,34 @@ public class BlockwiseDeplNoTest {
 
     MultiBlockExecutionEnvironment.getHub();
 
+    Map<AddrBlockPair, Integer> minDeplNoBlock = new HashMap<>();
+    Map<AddrBlockPair, Integer> maxDeplNoBlock = new HashMap<>();
+
+    int txCount = MultiBlockExecutionEnvironment.getHub().state().txCount();
+
+    for (int txNb = 0; txNb < txCount; txNb++) {
+      List<TraceSection> traceSectionList =
+          MultiBlockExecutionEnvironment.getHub()
+              .state()
+              .getState()
+              .operationsInTransactionBundle()
+              .get(txNb)
+              .traceSections()
+              .trace();
+      // int lenTraceSectionList = traceSectionList.size();
+
+      List<TraceFragment> traceFragmentList = traceSectionList.get(0).fragments();
+
+      for (int i = 2; i <= 4; i++) {
+        TraceFragment traceFragment = traceFragmentList.get(i);
+        AccountFragment accountFragment = (AccountFragment) traceFragment;
+        Address address = accountFragment.oldState().address();
+        int relBlokNo = accountFragment.transactionProcessingMetadata().getRelativeBlockNumber();
+        int deplNo = accountFragment.newState().deploymentNumber();
+        updateDeplNoBlockMaps(address, relBlokNo, deplNo, minDeplNoBlock, maxDeplNoBlock);
+      }
+    }
+
     // prepare data for asserts
     // expected first values for the keys we are testing
     int noBlocks = 3;
@@ -169,19 +204,46 @@ public class BlockwiseDeplNoTest {
     // blocks are numbered starting from 1
     for (int block = 1; block <= noBlocks; block++) {
       for (int i = 0; i < keys.length; i++) {
-        /*                StateManagerMetadata.AddrBlockPair key =
-                new StateManagerMetadata.AddrBlockPair(
-                        keys[i],
-                        block);
-        Integer minNo = minDeplNoMap.get(key);
-        Integer maxNo = maxDeplNoMap.get(key);*/
+        AddrBlockPair key = new AddrBlockPair(keys[i], block);
+        Integer minNo = minDeplNoBlock.get(key);
+        Integer maxNo = maxDeplNoBlock.get(key);
         // asserts for the first and last storage values in conflation
         // -1 due to block numbering
-        /*              assertEquals(expectedMin[block-1][i], minNo);
-        assertEquals(expectedMax[block-1][i], maxNo);*/
+        assertEquals(expectedMin[block - 1][i], minNo);
+        assertEquals(expectedMax[block - 1][i], maxNo);
       }
     }
 
     System.out.println("Done");
+  }
+
+  public static class AddrBlockPair {
+    private Address address;
+    private int blockNumber;
+
+    public AddrBlockPair(Address addr, int blockNumber) {
+      this.address = addr;
+      this.blockNumber = blockNumber;
+    }
+  }
+
+  public void updateDeplNoBlockMaps(
+      Address address,
+      int blockNumber,
+      int currentDeplNo,
+      Map<AddrBlockPair, Integer> minDeplNoBlock,
+      Map<AddrBlockPair, Integer> maxDeplNoBlock) {
+    AddrBlockPair addrBlockPair = new AddrBlockPair(address, blockNumber);
+    if (minDeplNoBlock.containsKey(addrBlockPair)) {
+      // the maps already contain deployment info for this address, and this is not the first one in
+      // the block
+      // since it is not the first, we do not update the minDeplNoBlock
+      // but we update the maxDeplNoBlock
+      maxDeplNoBlock.put(addrBlockPair, currentDeplNo);
+    } else {
+      // this is the first time we have a deployment at this address in the block
+      minDeplNoBlock.put(addrBlockPair, currentDeplNo);
+      maxDeplNoBlock.put(addrBlockPair, currentDeplNo);
+    }
   }
 }

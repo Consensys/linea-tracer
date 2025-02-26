@@ -58,7 +58,7 @@ public final class AccountFragment
   private boolean markedForSelfDestruct;
   private boolean markedForSelfDestructNew;
   final int hubStamp;
-  final TransactionProcessingMetadata transactionProcessingMetadata;
+  @Getter final TransactionProcessingMetadata transactionProcessingMetadata;
 
   /**
    * {@link AccountFragment} creation requires access to a {@link DeferRegistry} for post-conflation

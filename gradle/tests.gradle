@@ -167,7 +167,7 @@ tasks.register("jacocoFastReplayTestsReport", JacocoReport) {
 }
 
 tasks.register("nightlyReplayTests", Test) {
-  dependsOn(buildZkevmBin)
+  dependsOn(buildOldReplayTestsZkevmBin)
 
   boolean isCiServer = System.getenv().containsKey("CI")
   maxHeapSize = isCiServer ? "32g" : "8g"

@@ -50,8 +50,6 @@ public final class AccountFragment
 
   @Getter private final AccountSnapshot oldState;
   @Getter private final AccountSnapshot newState;
-  @Setter private int deploymentNumberInfinity = 0; // retconned on conflation end
-  @Setter private boolean existsInfinity = false; // retconned on conflation end
   @Setter private boolean requiresRomlex;
   private int codeFragmentIndex;
   private final Optional<Bytes> addressToTrim;
@@ -182,8 +180,8 @@ public final class AccountFragment
 
   @Override
   public void resolvePostConflation(Hub hub, WorldView world) {
-    deploymentNumberInfinity = hub.deploymentNumberOf(newState.address());
-    existsInfinity = world.get(newState.address()) != null;
+    // Note: we DO need the CFI, even if we don't have the romlex flag on, for CFI consistency
+    // argument.
     try {
       codeFragmentIndex =
           hub.getCodeFragmentIndexByMetaData(

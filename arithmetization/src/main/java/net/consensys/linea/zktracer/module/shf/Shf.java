@@ -25,7 +25,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -42,9 +41,9 @@ public class Shf implements OperationSetModule<ShfOperation> {
     return "SHF";
   }
 
-  public void tracePreOpcode(MessageFrame frame, OpCode opcode, short exception) {
-    if ((opcode == SHL || opcode == SHR || opcode == SAR)
-        && !Exceptions.outOfGasException(exception)) {
+  @Override
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
+    if (opcode == SHL || opcode == SHR || opcode == SAR) {
 
       final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
       final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));

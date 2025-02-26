@@ -53,11 +53,12 @@ public class AddressColisionWarmingAndDeploymentTests {
   private static final Address RECIPIENT_STD_ADDRESS =
       Address.wrap(leftPadTo(Bytes.fromHexString("0xdeadbeef"), Address.SIZE));
 
-  private static final Bytes32 STD_KEY = Bytes32.wrap(Bytes.fromHexString("0xdeadbeef"));
+  private static final Bytes32 STD_KEY =
+      Bytes32.wrap(leftPadTo(Bytes.fromHexString("0xdeadbeef"), Bytes32.SIZE));
   private static final Bytes SSTORE_INITCODE =
       BytecodeCompiler.newProgram()
-          .push("Ox7a12e") // value
-          .push(STD_KEY) // key
+          .push(Bytes.fromHexString("0x7a12e0")) // value
+          .push(STD_KEY.trimLeadingZeros()) // key
           .op(OpCode.SSTORE)
           .compile();
 

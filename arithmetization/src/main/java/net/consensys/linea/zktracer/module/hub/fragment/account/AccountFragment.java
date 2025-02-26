@@ -157,8 +157,6 @@ public final class AccountFragment
         .pAccountDeploymentStatus(oldState.deploymentStatus())
         .pAccountDeploymentNumberNew(newState.deploymentNumber())
         .pAccountDeploymentStatusNew(newState.deploymentStatus())
-        .pAccountDeploymentNumberInfty(deploymentNumberInfinity)
-        .pAccountDeploymentStatusInfty(existsInfinity)
         .pAccountTrmFlag(addressToTrim.isPresent())
         .pAccountTrmRawAddressHi(addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
         .pAccountIsPrecompile(isPrecompile(oldState.address()));

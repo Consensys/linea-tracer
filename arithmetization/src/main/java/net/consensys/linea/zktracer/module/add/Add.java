@@ -29,7 +29,6 @@ import net.consensys.linea.zktracer.ColumnHeader;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -49,8 +48,8 @@ public class Add implements OperationSetModule<AddOperation> {
   }
 
   @Override
-  public void tracePreOpcode(MessageFrame frame, OpCode opcode, short exception) {
-    if ((opcode == ADD || opcode == SUB) && !Exceptions.outOfGasException(exception)) {
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
+    if ((opcode == ADD || opcode == SUB)) {
       operations.add(
           new AddOperation(
               opcode,

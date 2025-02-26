@@ -51,7 +51,7 @@ public interface Module {
 
   default void traceContextExit(MessageFrame frame) {}
 
-  default void tracePreOpcode(MessageFrame frame, OpCode opcode, short exception) {}
+  default void tracePreOpcode(MessageFrame frame, OpCode opcode) {}
 
   /**
    * Called when a bundle of transaction execution is cancelled; should revert the state of the

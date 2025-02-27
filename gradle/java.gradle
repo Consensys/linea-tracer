@@ -53,3 +53,9 @@ static def getCheckedOutGitCommitHash() {
   def hashLength = 8
   "git rev-parse HEAD".execute().text.take(hashLength)
 }
+
+// Configure default build task to require the tracer is built first.
+// This only makes sense for projects which need the tracer.
+if (project.tasks.findByName('buildTracer')) {
+    compileJava.dependsOn 'buildTracer'
+}

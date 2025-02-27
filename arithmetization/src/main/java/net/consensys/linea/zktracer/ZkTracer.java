@@ -112,7 +112,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         modules.stream().flatMap(m -> m.columnHeaders().stream()).toList();
 
     try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
-      Trace trace = Trace.of(file, headers);
+      Trace trace = Trace.of(file, headers, new byte[0]);
       // Commit each module
       for (Module m : modules) {
         m.commit(trace);

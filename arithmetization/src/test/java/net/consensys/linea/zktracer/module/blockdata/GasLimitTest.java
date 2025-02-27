@@ -43,7 +43,7 @@ public class GasLimitTest {
   void legalGasLimitVariationsTest() {
     Bytes p = BytecodeCompiler.newProgram().push(1).compile();
 
-    long gasLimit = GAS_LIMIT_MINIMUM;
+    long gasLimit = GAS_LIMIT_MINIMUM.longValueExact();
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_INCREMENT)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
@@ -55,7 +55,7 @@ public class GasLimitTest {
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MAX)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));
 
-    gasLimit = GAS_LIMIT_MAXIMUM;
+    gasLimit = GAS_LIMIT_MAXIMUM.longValueExact();
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_SAME)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_DECREMENT)));
     multiBlocksTest(List.of(p, p), List.of(gasLimit, nextGasLimit(gasLimit, IN_RANGE_MIN)));

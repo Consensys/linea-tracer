@@ -189,7 +189,7 @@ public class BlockdataOperation extends ModuleOperation {
 
     // row i + 1
     // comparison to maximum
-    wcpCallToLEQ(1, data, EWord.of(Bytes.ofUnsignedLong(GAS_LIMIT_MAXIMUM)));
+    wcpCallToLEQ(1, data, EWord.of(GAS_LIMIT_MAXIMUM));
 
     if (!firstBlockInConflation) {
       final EWord prevGasLimit = EWord.of(prevBlockHeader.getGasLimit());

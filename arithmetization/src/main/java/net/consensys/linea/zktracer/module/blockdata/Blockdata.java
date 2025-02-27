@@ -69,7 +69,7 @@ public class Blockdata implements Module {
             + 1
             + 6 // for NUMBER
             + 1 // for DIFFICULTY
-            + Bytes.minimalBytes(GAS_LIMIT_MAXIMUM).size() * 4 // for GASLIMIT
+            + (GAS_LIMIT_MAXIMUM.toByteArray().length * 4) // for GASLIMIT
             + LLARGE // for CHAINID
             + LLARGE // for BASEFEE
         );

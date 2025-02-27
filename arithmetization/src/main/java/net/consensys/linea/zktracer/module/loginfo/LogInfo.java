@@ -22,6 +22,8 @@ import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_NO_LOG_ENT
 import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_TOPIC_BASE;
 import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
@@ -63,6 +65,11 @@ public class LogInfo implements Module {
   @Override
   public int lineCount() {
     return lineCounter.lineCount();
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Loginfo.headers(this.lineCount());
   }
 
   @Override

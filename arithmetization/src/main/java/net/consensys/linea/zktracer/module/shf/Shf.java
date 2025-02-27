@@ -16,6 +16,9 @@
 package net.consensys.linea.zktracer.module.shf;
 
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
+import java.util.List;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
@@ -45,6 +48,11 @@ public class Shf implements OperationSetModule<ShfOperation> {
       final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
       operations.add(new ShfOperation(opcode, arg1, arg2));
     }
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Shf.headers(this.lineCount());
   }
 
   @Override

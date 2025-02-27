@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.euc;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -64,6 +65,11 @@ public class Euc implements OperationSetModule<EucOperation> {
   public void traceStartBlock(
       final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
     additionalRows.commitTransactionBundle();
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Euc.headers(this.lineCount());
   }
 
   @Override

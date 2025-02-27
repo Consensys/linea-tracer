@@ -119,6 +119,11 @@ public class Blockdata implements Module {
   }
 
   @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Blockdata.headers(this.lineCount());
+  }
+
+  @Override
   public void commit(Trace trace) {
     for (BlockdataOperation blockData : operations) {
       blockData.trace(trace.blockdata);

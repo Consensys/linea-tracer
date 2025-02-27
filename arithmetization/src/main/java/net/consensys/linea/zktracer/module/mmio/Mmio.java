@@ -31,6 +31,8 @@ import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_VANISHES;
 import static net.consensys.linea.zktracer.module.mmio.MmioData.isFastOperation;
 import static net.consensys.linea.zktracer.module.mmio.MmioData.lineCountOfMmioInstruction;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
@@ -71,6 +73,11 @@ public class Mmio implements Module {
   @Override
   public int lineCount() {
     return lineCounter.lineCount() + lineCountOfLastTransactionBundle();
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Mmio.headers(this.lineCount());
   }
 
   @Override

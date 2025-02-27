@@ -16,6 +16,9 @@
 package net.consensys.linea.zktracer.module.bin;
 
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -58,6 +61,11 @@ public class Bin implements OperationSetModule<BinOperation> {
       operations.add(
           new BinOperation(opcode, BaseBytes.fromBytes32(arg1), BaseBytes.fromBytes32(arg2)));
     }
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Bin.headers(this.lineCount());
   }
 
   @Override

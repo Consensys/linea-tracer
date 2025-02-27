@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -36,6 +38,11 @@ public class Mxp implements OperationListModule<MxpOperation> {
   @Override
   public String moduleKey() {
     return "MXP";
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Mxp.headers(this.lineCount());
   }
 
   @Override

@@ -16,6 +16,9 @@
 package net.consensys.linea.zktracer.module.mul;
 
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -54,6 +57,11 @@ public class Mul implements OperationSetModule<MulOperation> {
   @Override
   public int lineCount() {
     return 1 + operations.lineCount();
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Mul.headers(this.lineCount());
   }
 
   @Override

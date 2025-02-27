@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.shakiradata;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -67,6 +69,11 @@ public class ShakiraData implements OperationListModule<ShakiraDataOperation> {
       case RIPEMD -> ripemdBlocks.addPrecompileLimit(operation.inputSize());
       default -> throw new IllegalArgumentException("Precompile type not supported by SHAKIRA");
     }
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Shakiradata.headers(this.lineCount());
   }
 
   @Override

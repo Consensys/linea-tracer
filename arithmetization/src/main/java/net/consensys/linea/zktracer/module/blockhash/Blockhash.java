@@ -15,10 +15,9 @@
 
 package net.consensys.linea.zktracer.module.blockhash;
 
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
-import java.nio.MappedByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,8 +100,8 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   /**
    * Operations are sorted wrt blockhashArg and the wcp module is called accordingly. We must call
-   * the WCP module before calling {@link #commit(Trace)} as the headers sizes must
-   * be computed with the final list of operations ready.
+   * the WCP module before calling {@link #commit(Trace)} as the headers sizes must be computed with
+   * the final list of operations ready.
    */
   @Override
   public void traceEndConflation(WorldView state) {
@@ -113,6 +112,11 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
       op.handlePreprocessing(prevBlockhashArg);
       prevBlockhashArg = op.blockhashArg();
     }
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Blockhash.headers(this.lineCount());
   }
 
   @Override

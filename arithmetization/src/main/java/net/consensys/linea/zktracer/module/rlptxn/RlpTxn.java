@@ -1197,6 +1197,11 @@ public class RlpTxn implements OperationListModule<RlpTxnOperation> {
   }
 
   @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Rlptxn.headers(this.lineCount());
+  }
+
+  @Override
   public void commit(Trace trace) {
     int absTxNum = 0;
     for (RlpTxnOperation op : operations.getAll()) {

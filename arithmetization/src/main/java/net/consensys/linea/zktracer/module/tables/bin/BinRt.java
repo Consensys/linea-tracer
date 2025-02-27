@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.tables.bin;
 
+import java.util.List;
+
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -36,6 +38,11 @@ public class BinRt implements Module {
   @Override
   public int lineCount() {
     return 3 * 256 * 256 + 256; // 256*256 lines for AND, OR and XOR, and 256 lines for NOT
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Binreftable.headers(this.lineCount());
   }
 
   public void commit(Trace trace) {

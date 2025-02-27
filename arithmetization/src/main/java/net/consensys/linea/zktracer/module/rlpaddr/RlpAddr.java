@@ -32,6 +32,7 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -299,6 +300,11 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
     } else {
       traceCreate2(stamp, operation, trace);
     }
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Rlpaddr.headers(this.lineCount());
   }
 
   @Override

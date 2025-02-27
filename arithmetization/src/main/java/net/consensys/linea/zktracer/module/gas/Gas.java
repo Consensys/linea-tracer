@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.gas;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -53,6 +54,11 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
     this.commonValues = commonValues;
     this.gasParameters = gasParameters;
     hub.defers().scheduleForPostExecution(this);
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Gas.headers(this.lineCount());
   }
 
   @Override

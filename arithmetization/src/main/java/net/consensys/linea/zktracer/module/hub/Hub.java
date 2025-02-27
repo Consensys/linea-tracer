@@ -167,6 +167,11 @@ public class Hub implements Module {
   }
 
   @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Hub.headers(this.lineCount());
+  }
+
+  @Override
   public void commit(Trace trace) {
     state.commit(trace.hub);
   }

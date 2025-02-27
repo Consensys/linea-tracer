@@ -108,9 +108,11 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     maybeThrowTracingExceptions();
 
     final List<Module> modules = hub.getModulesToTrace();
+    final List<Trace.ColumnHeader> headers =
+        modules.stream().flatMap(m -> m.columnHeaders().stream()).toList();
 
     try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
-      Trace trace = Trace.of(file);
+      Trace trace = Trace.of(file, headers);
       // Commit each module
       for (Module m : modules) {
         m.commit(trace);

@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.mmu;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -41,6 +43,11 @@ public class Mmu implements OperationListModule<MmuOperation> {
   @Override
   public String moduleKey() {
     return "MMU";
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Mmu.headers(this.lineCount());
   }
 
   @Override

@@ -294,6 +294,11 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
   }
 
   @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Romlex.headers(this.lineCount());
+  }
+
+  @Override
   public void commit(Trace trace) {
     final int codeFragmentIndexInfinity = operations.size();
 

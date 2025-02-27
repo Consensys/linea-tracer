@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.tables.instructionDecoder;
 
+import java.util.List;
+
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
@@ -101,6 +103,11 @@ public final class InstructionDecoder implements Module {
   @Override
   public int lineCount() {
     return 256;
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Instdecoder.headers(this.lineCount());
   }
 
   @Override

@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.opcode.OpCode.ADD;
 import static net.consensys.linea.zktracer.opcode.OpCode.SUB;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +55,11 @@ public class Add implements OperationSetModule<AddOperation> {
               Bytes32.leftPad(frame.getStackItem(0)),
               Bytes32.leftPad(frame.getStackItem(1))));
     }
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Add.headers(this.lineCount());
   }
 
   @Override

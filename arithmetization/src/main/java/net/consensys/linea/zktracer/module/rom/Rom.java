@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.rom;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
@@ -39,6 +41,11 @@ public class Rom implements Module {
   @Override
   public int lineCount() {
     return romLex.operations().lineCount();
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Rom.headers(this.lineCount());
   }
 
   @Override

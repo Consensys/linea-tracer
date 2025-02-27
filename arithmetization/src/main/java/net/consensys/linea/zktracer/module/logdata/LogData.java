@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.logdata;
 
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
+import java.util.List;
+
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
@@ -72,6 +74,11 @@ public class LogData implements Module {
 
   private int indexMax(Log log) {
     return log.getData().isEmpty() ? 0 : (log.getData().size() - 1) / 16;
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Logdata.headers(this.lineCount());
   }
 
   @Override

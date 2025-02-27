@@ -764,6 +764,11 @@ public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
   }
 
   @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Rlptxrcpt.headers(this.lineCount());
+  }
+
+  @Override
   public void commit(Trace trace) {
     int absLogNumMax = 0;
     for (RlpTxrcptOperation op : operations.getAll()) {

@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.trm;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
@@ -48,6 +50,11 @@ public class Trm implements OperationSetModule<TrmOperation> {
 
   public Address callTrimming(Bytes rawAddress) {
     return callTrimming(Bytes32.leftPad(rawAddress));
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Trm.headers(this.lineCount());
   }
 
   @Override

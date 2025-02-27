@@ -16,6 +16,9 @@
 package net.consensys.linea.zktracer.module.ext;
 
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -70,6 +73,11 @@ public class Ext implements OperationSetModule<ExtOperation> {
 
   public Bytes callMULMOD(Bytes _arg1, Bytes _arg2, Bytes _arg3) {
     return this.call(OpCode.MULMOD, _arg1, _arg2, _arg3);
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Ext.headers(this.lineCount());
   }
 
   @Override

@@ -88,6 +88,11 @@ public class TxnData implements OperationListModule<TxndataOperation> {
   }
 
   @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Txndata.headers(this.lineCount());
+  }
+
+  @Override
   public void commit(Trace trace) {
     final int absTxNumMax = operations.size();
 

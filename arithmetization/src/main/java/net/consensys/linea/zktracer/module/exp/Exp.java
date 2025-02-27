@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.exp;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -44,6 +46,11 @@ public class Exp implements OperationSetModule<ExpOperation> {
 
   public void call(ExpCall expCall) {
     operations.add(new ExpOperation(expCall, wcp, hub));
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Exp.headers(this.lineCount());
   }
 
   @Override

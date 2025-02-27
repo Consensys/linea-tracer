@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.SMOD;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -48,6 +49,11 @@ public class Mod implements OperationSetModule<ModOperation> {
 
       operations.add(new ModOperation(opcode, arg1, arg2));
     }
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Mod.headers(this.lineCount());
   }
 
   @Override

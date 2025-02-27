@@ -131,6 +131,11 @@ public class Wcp implements Module {
   }
 
   @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Wcp.headers(this.lineCount());
+  }
+
+  @Override
   public void commit(Trace trace) {
     int stamp = 0;
     final WcpOperationComparator comparator = new WcpOperationComparator();

@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.tables.shf;
 
+import java.util.List;
+
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.types.UnsignedByte;
@@ -35,6 +37,11 @@ public record ShfRt() implements Module {
   @Override
   public int lineCount() {
     return 256 * 9;
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Shfreftable.headers(this.lineCount());
   }
 
   public void commit(Trace trace) {

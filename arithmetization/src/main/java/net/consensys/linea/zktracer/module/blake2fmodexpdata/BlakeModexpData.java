@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -62,6 +64,11 @@ public class BlakeModexpData implements OperationListModule<BlakeModexpDataOpera
   private void callWcpForIdCheck(final int operationID) {
     wcp.callLT(previousID, operationID);
     previousID = operationID;
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Blake2fmodexpdata.headers(this.lineCount());
   }
 
   @Override

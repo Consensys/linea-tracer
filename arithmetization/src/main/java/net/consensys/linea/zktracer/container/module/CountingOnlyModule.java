@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.container.module;
 
+import java.util.List;
+
 import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
@@ -41,6 +43,11 @@ public interface CountingOnlyModule extends Module {
   default void addPrecompileLimit(final int count) {
     Preconditions.checkArgument(count >= 0, "Must be positive");
     counts().add(count);
+  }
+
+  @Override
+  default List<Trace.ColumnHeader> columnHeaders() {
+    throw new IllegalStateException("should never be called");
   }
 
   @Override

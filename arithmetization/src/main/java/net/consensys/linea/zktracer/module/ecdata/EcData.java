@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
+import java.util.List;
 import java.util.Set;
 
 import lombok.Getter;
@@ -61,6 +62,11 @@ public class EcData implements OperationListModule<EcDataOperation> {
   @Override
   public String moduleKey() {
     return "EC_DATA";
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Ecdata.headers(this.lineCount());
   }
 
   @Override

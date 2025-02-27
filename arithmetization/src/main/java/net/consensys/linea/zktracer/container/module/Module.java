@@ -15,8 +15,10 @@
 
 package net.consensys.linea.zktracer.container.module;
 
-import net.consensys.linea.zktracer.opcode.OpCode;
+import java.util.List;
+
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -63,6 +65,8 @@ public interface Module {
   void commitTransactionBundle();
 
   int lineCount();
+
+  List<Trace.ColumnHeader> columnHeaders();
 
   default void commit(Trace trace) {
     throw new UnsupportedOperationException();

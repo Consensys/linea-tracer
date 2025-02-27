@@ -18,12 +18,14 @@ package net.consensys.linea.zktracer.module.oob;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
@@ -104,6 +106,11 @@ public class Oob implements OperationSetModule<OobOperation> {
           .outgoingResLo(bigIntegerToBytes(oobOperation.getOutgoingResLo()[ct]))
           .validateRow();
     }
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Oob.headers(this.lineCount());
   }
 
   @Override

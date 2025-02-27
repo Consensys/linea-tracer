@@ -65,7 +65,7 @@ jobs:
         run: mv ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTests.json ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/failedBlockchainReferenceTests-input.json
 
       - name: Run reference blockchain tests
-        run: GOMEMLIMIT=32GiB ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck --tests "${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}"
+        run: GOMEMLIMIT=20GiB ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck --tests "${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}"
         timeout-minutes: 360
         env:
           REFERENCE_TESTS_PARALLELISM: 4
@@ -91,18 +91,18 @@ jobs:
           name: blockchain-refrence-tests-report
           path: reference-tests/build/reports/tests/**/*
 
-      - name: Upload jacoco test coverage report
+      - name: Upload jacoco blockchain tests coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-reference-tests-coverage-report
+          name: jacoco-blockchain-tests-coverage-report
           path: reference-tests/build/reports/jacoco/jacocoReferenceBlockchainTestsReport/**/*
 
-      - name: Upload jacoco exec test
+      - name: Upload jacoco blockchain tests exec file
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-reference-tests-exec-file
+          name: jacoco-blockchain-tests-exec-file
           path: reference-tests/build/jacoco/referenceBlockchainTests.exec
 
       - name: Extract Metrics

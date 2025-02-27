@@ -31,7 +31,7 @@ def ZKEVM_OLD_REPLAY_BIN = System.getenv("ZKEVM_BIN") ?: "zkevm_for_old_replay_t
 // Allowing overriding the default zkevm.bin file.
 def ZKEVM_REFTESTS_BIN = System.getenv("ZKEVM_BIN") ?: "zkevm_for_reference_tests.bin"
 // Specify where the trace file should be generated.
-def TRACE_FILE = "src/main/java/net/consensys/linea/zktracer/Trace.java"
+def TRACE_FILE = "arithmetization/src/main/java/net/consensys/linea/zktracer/Trace.java"
 // Specify package to use for trace file
 def TRACE_PKG = "net.consensys.linea.zktracer"
 
@@ -105,25 +105,30 @@ tasks.register('buildTracer', Exec) {
     group "Trace files generation"
 
     def chain = System.getProperty('blockchain')
-    def zkevmbin = ZKEVM_BIN
+    def zkevmBin = ZKEVM_BIN
+    def traceJava = getRootProject().file(TRACE_FILE)    
     // Conditional dependsOn
     if (chain == null) {
         print("No chain provided, building for Linea\n")
+        dependsOn 'buildZkevmBin'
     } else if (chain == "Linea") {
         print("Building for Linea\n")
+        dependsOn 'buildZkevmBin'
     } else if (chain == "Ethereum") {
         print("Building for Ethereum\n")
-        zkevmbin = ZKEVM_REFTESTS_BIN
+        dependsOn 'buildReferenceTestsZkevmBin'
+        zkevmBin = ZKEVM_REFTESTS_BIN
     } else if (chain == "OldLinea") {
         print("Building for Old Linea\n")
-        zkevmbin = ZKEVM_OLD_REPLAY_BIN
+        dependsOn 'buildOldReplayTestsZkevmBin'
+        zkevmBin = ZKEVM_OLD_REPLAY_BIN
     } else {
         // Force build failure if unknown chain.
         println("*** unknown target chain.  Try '-Dblockchain=Linea' or '-Dblockchain=Ethereum'\n\n")
         assert false
     }
     // Configure full path to zkevm.bin
-    zkevmbin = getRootProject().file('linea-constraints/' + zkevmbin)
+    zkevmBin = getRootProject().file('linea-constraints/' + zkevmBin)
     // Run go-corset generation
-    commandLine 'go-corset','generate','-p',TRACE_PKG,'-o',TRACE_FILE,zkevmbin
+    commandLine 'go-corset','generate','-p',TRACE_PKG,'-o',traceJava,zkevmBin
 }

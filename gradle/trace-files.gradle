@@ -134,7 +134,7 @@ tasks.register('binreftable', TraceFilesTask) {
 
 // Task which generates all Trace.java (and related) files using
 // corset.
-tasks.register('buildTracer') {
+tasks.register('buildTracer2') {
     group "Trace files generation"
     dependsOn 'add', 'ext', 'mul', 'mod'
     dependsOn 'hub'
@@ -164,5 +164,37 @@ tasks.register('buildTracer') {
     }
 }
 
+def TRACE_FILE = "src/main/java/net/consensys/linea/zktracer/Trace.java"
+def TRACE_PKG = "net.consensys.linea.zktracer"
+
+// Allowing overriding the default zkevm.bin file.
+def ZKEVM_BIN = System.getenv("ZKEVM_BIN") ?: "zkevm.bin"
+// Allowing overriding the default zkevm.bin file.
+def ZKEVM_REFTESTS_BIN = System.getenv("ZKEVM_BIN") ?: "zkevm_for_reference_tests.bin"
+
+// Task which generates all Trace.java (and related) files using
+// corset.
+tasks.register('buildTracer', Exec) {
+    group "Trace files generation"
+
+    def chain = System.getProperty('blockchain')
+    def zkevmbin = ZKEVM_BIN
+    // Conditional dependsOn
+    if (chain == null) {
+        print("No chain provided, building for Linea\n")
+    } else if (chain == "Linea") {
+        print("Building for Linea\n")
+    } else if (chain == "Ethereum") {
+        print("Building for Ethereum\n")
+        zkevmbin = ZKEVM_REFTESTS_BIN
+    } else {
+        // Force build failure if unknown chain.
+        println("*** unknown target chain.  Try '-Dblockchain=Linea' or '-Dblockchain=Ethereum'\n\n")
+        assert false
+    }
+    // Run go-corset generation
+    commandLine 'go-corset','generate','-p',TRACE_PKG,'-o',TRACE_FILE, getRootProject().projectDir.toString() + '/linea-constraints/' + zkevmbin
+}
+
 // Configure default build task to require the tracer is built first.
-//compileJava.dependsOn 'buildTracer'
+compileJava.dependsOn 'buildTracer'

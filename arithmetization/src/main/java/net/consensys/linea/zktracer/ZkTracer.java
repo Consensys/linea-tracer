@@ -118,11 +118,11 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     final List<Trace.ColumnHeader> headers =
         modules.stream().flatMap(m -> m.columnHeaders().stream()).toList();
     // Configure metadata
-    final Map<String,String> metadata = Trace.metadata();
-    metadata.put("chainId",this.chainId.toString());
-    metadata.put("startBlock",Long.toString(this.startBlock));
-    metadata.put("endBlock",Long.toString(this.endBlock));
-    metadata.put("releaseVersion",ZkTracer.class.getPackage().getSpecificationVersion());
+    final Map<String, String> metadata = Trace.metadata();
+    metadata.put("chainId", this.chainId.toString());
+    metadata.put("startBlock", Long.toString(this.startBlock));
+    metadata.put("endBlock", Long.toString(this.endBlock));
+    metadata.put("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
     //
     try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
       Trace trace = Trace.of(file, headers, getMetadataBytes(metadata));
@@ -338,7 +338,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     return modulesLineCount;
   }
 
-  public static byte[] getMetadataBytes(Map<String,String> metadata) throws IOException {
+  public static byte[] getMetadataBytes(Map<String, String> metadata) throws IOException {
     ObjectWriter mapper = new ObjectMapper().writer();
     return mapper.writeValueAsBytes(metadata);
   }

@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.blockdata;
 import static net.consensys.linea.zktracer.Trace.Blockdata.GAS_LIMIT_MAXIMUM;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DEPTH;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.util.*;
 
@@ -69,7 +70,7 @@ public class Blockdata implements Module {
             + 1
             + 6 // for NUMBER
             + 1 // for DIFFICULTY
-            + (GAS_LIMIT_MAXIMUM.toByteArray().length * 4) // for GASLIMIT
+            + (bigIntegerToBytes(GAS_LIMIT_MAXIMUM).size() * 4) // for GASLIMIT
             + LLARGE // for CHAINID
             + LLARGE // for BASEFEE
         );

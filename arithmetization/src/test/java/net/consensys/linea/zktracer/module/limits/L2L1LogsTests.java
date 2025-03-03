@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.limits;
 
-import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.SEPOLIA_DEFAULT;
+import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
 import static net.consensys.linea.zktracer.Utils.call;
 import static net.consensys.linea.zktracer.Utils.delegateCall;
 import static org.junit.jupiter.api.Assertions.*;
@@ -48,11 +48,11 @@ public class L2L1LogsTests {
     final ToyAccount l2l1LogSMC =
         ToyAccount.builder()
             .balance(Wei.fromEth(1))
-            .address(SEPOLIA_DEFAULT.contract())
+            .address(TEST_DEFAULT.contract())
             .code(
                 BytecodeCompiler.newProgram()
                     // LOG1 with right topic, and no data
-                    .push(SEPOLIA_DEFAULT.topic()) // topic
+                    .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
                     .push(0) // offset
                     .op(OpCode.LOG1)
@@ -63,7 +63,7 @@ public class L2L1LogsTests {
                     .push(Bytes.of(4)) // topic 4
                     .push(Bytes.of(3)) // topic 3
                     .push(Bytes.of(2)) // topic 2
-                    .push(SEPOLIA_DEFAULT.topic()) // topic 1
+                    .push(TEST_DEFAULT.topic()) // topic 1
                     .push(15) //  size
                     .push(0) // offset
                     .op(OpCode.LOG1)
@@ -110,7 +110,7 @@ public class L2L1LogsTests {
             .code(
                 BytecodeCompiler.newProgram()
                     // LOG1 with right topic, and no data
-                    .push(SEPOLIA_DEFAULT.topic()) // topic
+                    .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
                     .push(0) // offset
                     .op(OpCode.LOG1)
@@ -124,7 +124,7 @@ public class L2L1LogsTests {
             .code(
                 BytecodeCompiler.newProgram()
                     // LOG1 with right topic, and no data
-                    .push(SEPOLIA_DEFAULT.topic()) // topic
+                    .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
                     .push(0) // offset
                     .op(OpCode.LOG1)
@@ -138,11 +138,11 @@ public class L2L1LogsTests {
     final ToyAccount l2l1LogSMC =
         ToyAccount.builder()
             .balance(Wei.fromEth(1))
-            .address(SEPOLIA_DEFAULT.contract())
+            .address(TEST_DEFAULT.contract())
             .code(
                 BytecodeCompiler.newProgram()
                     // LOG2 with right topic, not at the right place
-                    .push(SEPOLIA_DEFAULT.topic()) // topic 2
+                    .push(TEST_DEFAULT.topic()) // topic 2
                     .push(Bytes.of(1)) // topic 1
                     .push(0) //  size
                     .push(0) // offset

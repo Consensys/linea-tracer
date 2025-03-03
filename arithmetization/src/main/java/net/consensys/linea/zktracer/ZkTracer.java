@@ -75,12 +75,12 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   public ZkTracer() {
     this(
-        LineaL1L2BridgeSharedConfiguration.SEPOLIA_DEFAULT,
+        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT,
         Bytes.fromHexString("c0ffee").toUnsignedBigInteger());
   }
 
   public ZkTracer(BigInteger nonnegativeChainId) {
-    this(LineaL1L2BridgeSharedConfiguration.SEPOLIA_DEFAULT, nonnegativeChainId);
+    this(LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, nonnegativeChainId);
   }
 
   public ZkTracer(

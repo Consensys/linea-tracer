@@ -160,6 +160,13 @@ public class BlockwiseDeplNoTest {
     // We count the number of transactions in the hub, here we have 11
     int txCount = MultiBlockExecutionEnvironment.getHub().state().txCount();
     for (int txNb = 0; txNb < txCount; txNb++) {
+      // Relative block number is constant per transaction
+      // Tx number starts from 1
+      int relBlokNo =
+          MultiBlockExecutionEnvironment.getHub()
+              .txStack()
+              .getByAbsoluteTransactionNumber(txNb + 1)
+              .getRelativeBlockNumber();
       // We retrieve the trace section list for each transaction
       List<TraceSection> traceSectionList =
           MultiBlockExecutionEnvironment.getHub()
@@ -171,23 +178,18 @@ public class BlockwiseDeplNoTest {
               .trace();
       // For each trace section
       for (TraceSection traceSection : traceSectionList) {
-        // We check if there are fragments
-        if (!traceSection.fragments().isEmpty()) {
-          List<TraceFragment> traceFragmentList = traceSection.fragments();
-          for (TraceFragment traceFragment : traceFragmentList) {
-            // If there are any, we cast them to AccountFragment
-            // If an exception occurs, it means the Fragment is not an AccountFragment so we
-            // disregard it and continue
-            try {
-              AccountFragment accountFragment = (AccountFragment) traceFragment;
-              Address address = accountFragment.oldState().address();
-              int relBlokNo =
-                  accountFragment.transactionProcessingMetadata().getRelativeBlockNumber();
-              int deplNo = accountFragment.newState().deploymentNumber();
-              updateDeplNoBlockMaps(address, relBlokNo, deplNo, minDeplNoBlock, maxDeplNoBlock);
-            } catch (Exception e) {
-              // ignore
-            }
+        // We iterate over the fragments
+        for (TraceFragment traceFragment : traceSection.fragments()) {
+          // We cast them to AccountFragment
+          // If an exception occurs, it means the Fragment is not an AccountFragment so we
+          // disregard it and continue
+          try {
+            AccountFragment accountFragment = (AccountFragment) traceFragment;
+            Address address = accountFragment.oldState().address();
+            int deplNo = accountFragment.newState().deploymentNumber();
+            updateDeplNoBlockMaps(address, relBlokNo, deplNo, minDeplNoBlock, maxDeplNoBlock);
+          } catch (Exception e) {
+            // ignore
           }
         }
       }

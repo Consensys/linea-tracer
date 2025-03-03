@@ -92,6 +92,8 @@ public class L2Block implements Module {
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
+    numberOfTransactions.add(1);
+
     for (Log log : tx.getLogs()) {
       if (isL2L1Log(log)) {
         l2l1LogSizes.add(log.getData().size());

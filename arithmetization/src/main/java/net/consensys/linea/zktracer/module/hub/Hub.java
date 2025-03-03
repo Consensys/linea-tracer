@@ -220,7 +220,7 @@ public class Hub implements Module {
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
-  private final Keccak keccak;
+  @Getter private final Keccak keccak;
   private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
   private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
@@ -281,7 +281,7 @@ public class Hub implements Module {
           ecPairingMillerLoops,
           ecPairingFinalExponentiations);
 
-  private final L2Block l2Block;
+  @Getter private final L2Block l2Block;
   @Getter private final L2L1Logs l2L1Logs;
 
   /** list of module than can be modified during execution */

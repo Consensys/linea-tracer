@@ -34,6 +34,7 @@ import org.hyperledger.besu.evm.log.LogTopic;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class L2Block implements Module {
+  private final L2L1Logs l2l1Logs;
   private final Address l2l1Address;
   private final LogTopic l2l1Topic;
 
@@ -128,16 +129,19 @@ public class L2Block implements Module {
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
     for (Log log : tx.getLogs()) {
-      if (log.getLogger().equals(l2l1Address) && log.getTopics().contains(l2l1Topic)) {
-        this.l2l1LogSizes.peek().add(log.getData().size());
+      if (isL2L1Log(log)) {
+        l2l1LogSizes.peek().add(log.getData().size());
+        // The L2L1Logs module counts only the number of L2->L1 logs
+        l2l1Logs.addLimit(1);
       }
     }
 
-    this.sizesRlpEncodedTxs.push(
-        this.sizesRlpEncodedTxs.pop() + tx.getBesuTransaction().encoded().size());
+    sizesRlpEncodedTxs.push(sizesRlpEncodedTxs.pop() + tx.getBesuTransaction().encoded().size());
   }
 
-  public int l2l1LogsCount() {
-    return this.l2l1LogSizes.stream().mapToInt(List::size).sum();
+  private boolean isL2L1Log(Log log) {
+    return log.getLogger().equals(l2l1Address)
+        && !log.getTopics().isEmpty()
+        && log.getTopics().getFirst().equals(l2l1Topic);
   }
 }

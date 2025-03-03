@@ -31,7 +31,7 @@ public final class EcPairingMillerLoops implements CountingOnlyModule {
   }
 
   @Override
-  public void addPrecompileLimit(final int numberEffectiveCall) {
+  public void addLimit(final int numberEffectiveCall) {
     // Preconditions.checkArgument(numberEffectiveCall <= ?, "can't add more than ? effective
     // precompile call at a time");
     counts.add(numberEffectiveCall);

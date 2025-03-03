@@ -379,8 +379,8 @@ public class Hub implements Module {
 
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic, final BigInteger chainId) {
     checkState(chainId.signum() >= 0);
-    l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    l2L1Logs = new L2L1Logs(l2Block);
+    l2L1Logs = new L2L1Logs();
+    l2Block = new L2Block(l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     blockdata = new Blockdata(wcp, euc, txnData, EWord.of(chainId));

@@ -37,7 +37,7 @@ public final class Sha256Blocks implements CountingOnlyModule {
   }
 
   @Override
-  public void addPrecompileLimit(final int count) {
+  public void addLimit(final int count) {
     final int blockCount = numberOfSha256Blocks(count);
     counts.add(blockCount);
   }

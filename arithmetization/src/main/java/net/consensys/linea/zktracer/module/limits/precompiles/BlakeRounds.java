@@ -42,7 +42,7 @@ public final class BlakeRounds implements CountingOnlyModule {
   }
 
   @Override
-  public void addPrecompileLimit(final int count) {
+  public void addLimit(final int count) {
     throw new UnsupportedOperationException("Not implemented");
   }
 

@@ -40,7 +40,7 @@ public interface CountingOnlyModule extends Module {
     return counts().lineCount();
   }
 
-  default void addPrecompileLimit(final int count) {
+  default void addLimit(final int count) {
     Preconditions.checkArgument(count >= 0, "Must be positive");
     counts().add(count);
   }

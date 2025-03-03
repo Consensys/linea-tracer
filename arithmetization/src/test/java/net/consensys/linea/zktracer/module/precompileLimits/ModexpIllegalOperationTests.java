@@ -28,12 +28,12 @@ public class ModexpIllegalOperationTests {
     final ZkTracer state = new ZkTracer();
     final ModexpEffectiveCall countingOnlyModule = state.getHub().modexpEffectiveCall();
 
-    countingOnlyModule.addPrecompileLimit(1);
+    countingOnlyModule.addLimit(1);
 
-    countingOnlyModule.addPrecompileLimit(MAX_VALUE);
+    countingOnlyModule.addLimit(MAX_VALUE);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(MAX_VALUE);
 
-    countingOnlyModule.addPrecompileLimit(MAX_VALUE);
+    countingOnlyModule.addLimit(MAX_VALUE);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(MAX_VALUE);
 
     countingOnlyModule.popTransactionBundle();
@@ -45,12 +45,12 @@ public class ModexpIllegalOperationTests {
     final ZkTracer state = new ZkTracer();
     final ModexpEffectiveCall countingOnlyModule = state.getHub().modexpEffectiveCall();
 
-    countingOnlyModule.addPrecompileLimit(1);
+    countingOnlyModule.addLimit(1);
 
-    countingOnlyModule.addPrecompileLimit(MAX_VALUE);
+    countingOnlyModule.addLimit(MAX_VALUE);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(MAX_VALUE);
 
-    countingOnlyModule.addPrecompileLimit(1);
+    countingOnlyModule.addLimit(1);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(MAX_VALUE);
 
     countingOnlyModule.popTransactionBundle();
@@ -62,10 +62,10 @@ public class ModexpIllegalOperationTests {
     final ZkTracer state = new ZkTracer();
     final ModexpEffectiveCall countingOnlyModule = state.getHub().modexpEffectiveCall();
 
-    countingOnlyModule.addPrecompileLimit(MAX_VALUE);
+    countingOnlyModule.addLimit(MAX_VALUE);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(MAX_VALUE);
 
-    countingOnlyModule.addPrecompileLimit(MAX_VALUE);
+    countingOnlyModule.addLimit(MAX_VALUE);
     assertThat(countingOnlyModule.lineCount()).isEqualTo(MAX_VALUE);
 
     countingOnlyModule.popTransactionBundle();

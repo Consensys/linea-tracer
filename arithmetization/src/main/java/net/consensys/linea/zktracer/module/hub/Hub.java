@@ -207,7 +207,7 @@ public class Hub implements Module {
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
-  @Getter private final RlpAddr rlpAddr = new RlpAddr(this, trm);
+  @Getter private final RlpAddr rlpAddr;
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
   @Getter private final Mxp mxp = new Mxp();
@@ -221,7 +221,6 @@ public class Hub implements Module {
    * precompile to meet the prover limits
    */
   private final Keccak keccak;
-
   private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
   private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
@@ -385,6 +384,7 @@ public class Hub implements Module {
     l2Block = new L2Block(l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
+    rlpAddr = new RlpAddr(this, trm, keccak);
     blockdata = new Blockdata(wcp, euc, txnData, EWord.of(chainId));
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);

@@ -28,6 +28,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Accessors(fluent = true)
 @Getter
@@ -37,10 +38,8 @@ public class L2Block implements Module {
   private final Address l2l1Address;
   private final LogTopic l2l1Topic;
 
-  private static final int L1_MSG_INDICES_BYTES = 8;
-  private static final int L1_TIMESTAMPS_BYTES = 8;
-  private static final int ABI_OFFSET_BYTES = 32;
-  private static final int ABI_LEN_BYTES = 32;
+  private final short TIMESTAMP_BYTESIZE = 32 / 8;
+  private final short NB_TX_IN_BLOCK_BYTESIZE = 16 / 8;
 
   /** The number of transaction */
   private final CountOnlyOperation numberOfTransactions = new CountOnlyOperation();
@@ -50,6 +49,9 @@ public class L2Block implements Module {
 
   /** The byte size of the L2->L1 logs messages of the conflation */
   private final CountOnlyOperation l2l1LogSizes = new CountOnlyOperation();
+
+  /** The number of block of the current conflation */
+  private short nbBlock = 0;
 
   @Override
   public String moduleKey() {
@@ -74,44 +76,13 @@ public class L2Block implements Module {
   public int lineCount() {
 
     return sizesRlpEncodedTxs.lineCount()
-        + l2l1LogSizes.lineCount()
 
         // Calculates the data size related to the abi encoding of the list of the
-        // from addresses. The field is a simple array of bytes20. We need to take
-        // into account the offset and the length in the ABI encoding.
+        // from addresses. The field is a simple array of bytes20.
         + numberOfTransactions.lineCount() * Address.SIZE
-        + ABI_OFFSET_BYTES
-        + ABI_LEN_BYTES
 
-        // Accumulates the data occupied for the hashes of the L2 to L1 messages
-        // hashes each of them occupies 32 bytes. Also accounts for the overheads
-        // of L2 and L1 messages encoding.
-        + Hash.SIZE * l2l1LogSizes.lineCount()
-        + ABI_OFFSET_BYTES
-        + ABI_LEN_BYTES
-
-        // Account for the overheads of sending the resulting root hash, the
-        // timestamp and the L1 msg reception. For a sequence of conflated L2 blocks
-        // , we will need to also need to send the initial timestamp and the parent
-        // state root hash. Since we cannot forsee, at this point, the number of
-        // blocks that will be conflated together with this block we make the worst
-        // assumption that the block will be conflated alone. This corresponds to
-        // counting twice the root hash and the timestamps. For the L1 messages, we
-        // unfortunately do not have the data in the tracer yet. For that reason,
-        // we also make a worst-case assumption that that every transaction is a
-        // batch reception on layer 2. Finally, since what is sent on L1 is an array
-        // of L2BlockData, we also make a worst-case assumption that the block will
-        // be alone in the structure and account for the ABI encoding.
-        + 2 * L1_TIMESTAMPS_BYTES
-        + // the timestamp
-        2 * Hash.SIZE
-        + // the root hash
-        L1_MSG_INDICES_BYTES * numberOfTransactions.lineCount()
-        + ABI_LEN_BYTES
-        + ABI_OFFSET_BYTES
-        + // the L1 messages
-        ABI_LEN_BYTES
-        + ABI_OFFSET_BYTES; // abi overheads for the blockdata struct.
+        // Calculates the data size related to the block
+        + nbBlock * (TIMESTAMP_BYTESIZE + Hash.SIZE + NB_TX_IN_BLOCK_BYTESIZE);
   }
 
   @Override
@@ -136,6 +107,12 @@ public class L2Block implements Module {
     // to encode the length of each sub bytes array). This overhead is also
     // incurred by the top-level array, hence the +1.
     sizesRlpEncodedTxs.add(tx.getBesuTransaction().encoded().size());
+  }
+
+  @Override
+  public void traceStartBlock(
+      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
+    nbBlock++;
   }
 
   private boolean isL2L1Log(Log log) {

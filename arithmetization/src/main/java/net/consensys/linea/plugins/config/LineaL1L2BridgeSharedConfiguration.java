@@ -25,6 +25,7 @@ import org.hyperledger.besu.datatypes.Address;
 public record LineaL1L2BridgeSharedConfiguration(Address contract, Bytes topic)
     implements LineaOptionsConfiguration {
 
+  // = Hash(MessageSent(address,address,uint256,uint256,uint256,bytes,bytes32))
   private static Bytes LINEA_L2L1TOPIC =
       Bytes.fromHexString("0xe856c2b8bd4eb0027ce32eeaf595c21b0b6b4644b326e5b7bd80a1cf8db72e6c");
 

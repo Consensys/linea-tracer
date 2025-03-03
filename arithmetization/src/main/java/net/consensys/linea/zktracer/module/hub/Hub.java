@@ -255,7 +255,9 @@ public class Hub implements Module {
         modexpEffectiveCall,
         ripemdBlocks,
         blakeEffectiveCall,
-        blakeRounds);
+        blakeRounds,
+        l2Block,
+        l2L1Logs);
   }
 
   /*
@@ -281,7 +283,7 @@ public class Hub implements Module {
           ecPairingFinalExponentiations);
 
   private final L2Block l2Block;
-  private final L2L1Logs l2L1Logs;
+  @Getter private final L2L1Logs l2L1Logs;
 
   /** list of module than can be modified during execution */
   private final List<Module> modules;

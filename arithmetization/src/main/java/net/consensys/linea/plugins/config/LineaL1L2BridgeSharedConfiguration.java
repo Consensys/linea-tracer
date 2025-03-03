@@ -24,6 +24,16 @@ import org.hyperledger.besu.datatypes.Address;
 @Builder(toBuilder = true)
 public record LineaL1L2BridgeSharedConfiguration(Address contract, Bytes topic)
     implements LineaOptionsConfiguration {
+
+  private static Bytes LINEA_L2L1TOPIC =
+      Bytes.fromHexString("0xe856c2b8bd4eb0027ce32eeaf595c21b0b6b4644b326e5b7bd80a1cf8db72e6c");
+
+  public static final LineaL1L2BridgeSharedConfiguration SEPOLIA_DEFAULT =
+      LineaL1L2BridgeSharedConfiguration.builder()
+          .contract(Address.fromHexString("0x971e727e956690b9957be6d51Ec16E73AcAC83A7"))
+          .topic(LINEA_L2L1TOPIC)
+          .build();
+
   public static final LineaL1L2BridgeSharedConfiguration EMPTY =
       LineaL1L2BridgeSharedConfiguration.builder()
           .contract(Address.ZERO)

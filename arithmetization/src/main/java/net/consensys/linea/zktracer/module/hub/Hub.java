@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___STACK_STAMP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
@@ -380,6 +381,9 @@ public class Hub implements Module {
 
   public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic, final BigInteger chainId) {
     checkState(chainId.signum() >= 0);
+    if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
+      log.info("WARN: Using default testing L2L1 contract address");
+    }
     l2L1Logs = new L2L1Logs();
     l2Block = new L2Block(l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);

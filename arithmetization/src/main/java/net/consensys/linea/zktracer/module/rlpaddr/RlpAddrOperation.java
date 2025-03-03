@@ -47,7 +47,7 @@ public final class RlpAddrOperation extends ModuleOperation {
       Keccak keccak, Bytes32 rawDepAddress, OpCode opCode, BigInteger nonce, Address address) {
     this(rawDepAddress, opCode, nonce, address, Bytes32.ZERO, Bytes32.ZERO);
     // We hash RLP (Address + nonce) which is at most 1 + (1+20) + (1+8) = 31 bytes
-    keccak.addLimit(31);
+    keccak.updateTally(31);
   }
 
   // CREATE2 operation
@@ -61,7 +61,7 @@ public final class RlpAddrOperation extends ModuleOperation {
       BigInteger nonce) {
     this(rawHash, opCode, nonce, address, salt, kec);
     // We hash (0xFF + Address + SALT + KECCAK256(initcode)) which is 1+20+32+32 = 85 bytes
-    keccak.addLimit(85);
+    keccak.updateTally(85);
   }
 
   @Override

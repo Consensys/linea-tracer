@@ -93,7 +93,7 @@ public class KeccakBlocksTests {
     final int txKeccak =
         numberOfKeccakBloc(txRlpSize)
             + 1
-            + 1; // numberOfKeccakBloc(txRlpSize) + 1 for the tx + 2 for EcRecover
+            + 1; // numberOfKeccakBloc(txRlpSize) + 1 for the tx + 1 for EcRecover
     final int rlpAddrKeccak = 1 + 1; // 1 for CREATE, 1 for CRETAE2
     assertEquals(txKeccak + rlpAddrKeccak, keccak.lineCount());
 

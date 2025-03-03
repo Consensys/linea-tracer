@@ -98,7 +98,7 @@ public class L2Block implements Module {
       if (isL2L1Log(log)) {
         l2l1LogSizes.add(log.getData().size());
         // The L2L1Logs module counts only the number of L2->L1 logs
-        l2l1Logs.addLimit(1);
+        l2l1Logs.updateTally(1);
       }
     }
 

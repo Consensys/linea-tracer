@@ -41,7 +41,7 @@ public class Keccak implements CountingOnlyModule {
   }
 
   @Override
-  public void addLimit(final int count) {
+  public void updateTally(final int count) {
     final int blockCount = numberOfKeccakBloc(count);
     counts.add(blockCount);
   }

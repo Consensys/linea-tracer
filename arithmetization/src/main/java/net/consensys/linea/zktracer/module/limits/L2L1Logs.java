@@ -34,7 +34,7 @@ public final class L2L1Logs implements CountingOnlyModule {
   }
 
   @Override
-  public void addLimit(final int numberEffectiveCall) {
+  public void updateTally(final int numberEffectiveCall) {
     checkArgument(numberEffectiveCall == 1, "can't add more than one l2l1Log event at a time");
     counts.add(numberEffectiveCall);
   }

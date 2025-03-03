@@ -64,7 +64,6 @@ public class Keccak implements CountingOnlyModule {
         + (txCount + ecRecoverCount) * numberOfKeccakBloc(PUBKEY_BYTES)
 
         // From deployed contracts, number of Keccak block for SHA3 and CREATE2, and from RLP_ADDR
-        // TODO:
         + counts.lineCount();
   }
 

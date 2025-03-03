@@ -9,9 +9,13 @@ interface ICreate2Special {
 }
 
 /**
- * @notice LoopContract
+ * @notice LoopContractWithImmediateCallBack
  */
-contract LoopContract {
+contract LoopContractWithImmediateCallBack {
+
+    constructor() {
+        ICreate2Special(0xd8b934580fcE35a11B58C6D73aDeE468a2833fa8).create2WithCodeC();
+    }
 
     function callBackB(address addB) public {
         ICreate2Special(addB).create2WithCodeC();

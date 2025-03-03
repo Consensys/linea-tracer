@@ -59,9 +59,10 @@ public class Keccak implements CountingOnlyModule {
     final int ecRecoverCount = ecRecoverEffectiveCall.lineCount();
 
     // From tx RLPs, used both for both the signature verification and the
-    // public input computation.
-    return numberOfKeccakBloc(l2Block.sizesRlpEncodedTxs().lineCount())
-        + txCount
+    // public input computation. As l2Block.sizesRlpEncodedTxs().lineCount() gives the size of the
+    // concatenation of all
+    // the RLP-encoded transactions, we add txCount to not miss keccak blocks.
+    return (numberOfKeccakBloc(l2Block.sizesRlpEncodedTxs().lineCount()) + txCount)
         // From ecRecover precompiles,
         // This accounts for the keccak of the recovered public keys to derive the
         // addresses. This also accounts for the transactions signatures

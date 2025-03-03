@@ -98,6 +98,12 @@ public class KeccakBlocksTests {
     assertEquals(txKeccak + rlpAddrKeccak, keccak.lineCount());
 
     // check lineCount of l2Block
-    assertEquals(txRlpSize + 20 + 38, l2Block.lineCount());
+    assertEquals(
+        txRlpSize
+            // nbTransaction * Address.SIZE
+            + Address.SIZE
+            // nbBlock * (TIMESTAMP_BYTESIZE + Hash.SIZE + NB_TX_IN_BLOCK_BYTESIZE)
+            + 38,
+        l2Block.lineCount());
   }
 }

@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.module.limits;
 
-import java.util.List;
-
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -56,13 +54,14 @@ public class Keccak implements CountingOnlyModule {
 
   @Override
   public int lineCount() {
-    final int l2L1LogsCount = this.l2Block.l2l1LogSizes().stream().mapToInt(List::size).sum();
-    final int txCount = this.l2Block.sizesRlpEncodedTxs().size();
+    final int l2L1LogsCount = l2Block.l2l1LogSizes().lineCount();
+    final int txCount = l2Block.numberOfTransactions().lineCount();
     final int ecRecoverCount = ecRecoverEffectiveCall.lineCount();
 
     // From tx RLPs, used both for both the signature verification and the
     // public input computation.
-    return this.l2Block.sizesRlpEncodedTxs().stream().mapToInt(Keccak::numberOfKeccakBloc).sum()
+    return numberOfKeccakBloc(l2Block.sizesRlpEncodedTxs().lineCount())
+        + txCount
         // From ecRecover precompiles,
         // This accounts for the keccak of the recovered public keys to derive the
         // addresses. This also accounts for the transactions signatures

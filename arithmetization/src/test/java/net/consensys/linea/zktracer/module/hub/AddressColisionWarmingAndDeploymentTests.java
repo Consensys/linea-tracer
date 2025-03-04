@@ -37,11 +37,20 @@ import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class AddressColisionWarmingAndDeploymentTests {
+
+  // ** This aims to test skipping, warming, initialization and finalization section, whith
+  // scenarii:
+  // - address collisions
+  // - triggers evm or not
+  // - deployment or not
+  // - up to three AcccessList entry scenarii
+  // */
 
   // sender account
   private static final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
@@ -94,10 +103,10 @@ public class AddressColisionWarmingAndDeploymentTests {
         }
       }
     }
-
     return arguments.stream();
   }
 
+  @Tag("weekly")
   @ParameterizedTest
   @MethodSource("inputs")
   void addressCollisionWarmingAndDeployment(
@@ -114,21 +123,26 @@ public class AddressColisionWarmingAndDeploymentTests {
     }
 
     // there is no point as we skip the tx
-    if (skip && (warming1 == WarmingScenarii.WARMING_TO_BE_DEPLOYED_STORAGE)
-        || (warming2 == WarmingScenarii.WARMING_TO_BE_DEPLOYED_STORAGE)
-        || (warming3 == WarmingScenarii.WARMING_TO_BE_DEPLOYED_STORAGE)) {
+    if (skip
+        && (List.of(warming1, warming2, warming3)
+            .contains(WarmingScenarii.WARMING_TO_BE_DEPLOYED_STORAGE))) {
       return;
     }
 
     final ToyAccount recipientAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(12))
-            .nonce(128)
-            .address(senderRecipientCollision(collision) ? senderAddress : RECIPIENT_STD_ADDRESS)
-            .code(skip ? Bytes.EMPTY : CREATE2_AND_SSTORE)
-            .build();
+        senderRecipientCollision(collision)
+            ? senderAccount
+            : ToyAccount.builder()
+                .balance(Wei.fromEth(12))
+                .nonce(128)
+                .address(RECIPIENT_STD_ADDRESS)
+                .code(skip ? Bytes.EMPTY : CREATE2_AND_SSTORE)
+                .build();
 
-    final Address effectiveToAddress = recipientAccount.getAddress();
+    final Address effectiveToAddress =
+        deployment
+            ? Address.contractAddress(senderAddress, senderAccount.getNonce())
+            : recipientAccount.getAddress();
 
     Address coinBaseAddress = DEFAULT_COINBASE_ADDRESS;
     if (recipientCoinbaseCollision(collision)) {
@@ -162,8 +176,13 @@ public class AddressColisionWarmingAndDeploymentTests {
             .payload(deployment && !skip ? CREATE2_AND_SSTORE : Bytes.EMPTY)
             .build();
 
+    final List<ToyAccount> accounts = new ArrayList<>(List.of(senderAccount));
+    if (!senderRecipientCollision(collision)) {
+      accounts.add(recipientAccount);
+    }
+
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, recipientAccount))
+        .accounts(accounts)
         .transaction(tx)
         .coinbase(coinBaseAddress)
         .zkTracerValidator(zkTracer -> {})
@@ -206,11 +225,11 @@ public class AddressColisionWarmingAndDeploymentTests {
         case RANDOM_ADDRESS_DUPLICATE -> {
           accessList.add(
               new AccessListEntry(
-                  Address.wrap(leftPadTo(Bytes.fromHexString("0xbadb077"), Address.SIZE)),
+                  Address.wrap(leftPadTo(Bytes.fromHexString("0xbadb0770"), Address.SIZE)),
                   List.of(Bytes32.ZERO, Bytes32.repeat((byte) 1))));
           accessList.add(
               new AccessListEntry(
-                  Address.wrap(rightPadTo(Bytes.fromHexString("0xxbadb077"), Address.SIZE)),
+                  Address.wrap(rightPadTo(Bytes.fromHexString("0xbadb0770"), Address.SIZE)),
                   List.of()));
         }
         default -> throw new IllegalArgumentException("Unknown scenario: " + scenario);

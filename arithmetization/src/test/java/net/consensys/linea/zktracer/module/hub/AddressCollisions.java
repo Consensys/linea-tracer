@@ -17,13 +17,13 @@ package net.consensys.linea.zktracer.module.hub;
 
 public enum AddressCollisions {
   NO_COLLISION,
-  SENDER_IS_RECIPEINT,
+  SENDER_IS_RECIPIENT,
   SENDER_IS_COINBASE,
   RECIPIENT_IS_COINBASE,
   TRIPLE_COLLISION;
 
   public static boolean senderRecipientCollision(final AddressCollisions collision) {
-    return collision == SENDER_IS_RECIPEINT || collision == TRIPLE_COLLISION;
+    return collision == SENDER_IS_RECIPIENT || collision == TRIPLE_COLLISION;
   }
 
   public static boolean senderCoinbaseCollision(final AddressCollisions collision) {

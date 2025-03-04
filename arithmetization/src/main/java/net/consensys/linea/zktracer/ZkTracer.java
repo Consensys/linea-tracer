@@ -76,9 +76,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
   // Fields for metadata
-  private long startBlock = Long.MAX_VALUE;
-  private long endBlock = 0;
-  private BigInteger chainId;
+  private final BigInteger chainId;
 
   public ZkTracer() {
     this(
@@ -111,18 +109,27 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
   }
 
-  public void writeToFile(final Path filename) {
+  public void writeToFile(final Path filename, long startBlock, long endBlock) {
     maybeThrowTracingExceptions();
 
     final List<Module> modules = hub.getModulesToTrace();
     final List<Trace.ColumnHeader> headers =
         modules.stream().flatMap(m -> m.columnHeaders().stream()).toList();
     // Configure metadata
-    final Map<String, String> metadata = Trace.metadata();
+    final Map<String, Object> metadata = Trace.metadata();
     metadata.put("chainId", this.chainId.toString());
-    metadata.put("startBlock", Long.toString(this.startBlock));
-    metadata.put("endBlock", Long.toString(this.endBlock));
     metadata.put("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
+    // include block range
+    Map<String,String> range = new HashMap<>();
+    range.put("start", Long.toString(startBlock));
+    range.put("end", Long.toString(endBlock));
+    metadata.put("conflation", range);
+    // include line counts
+    Map<String, String> lineCounts = new HashMap<>();
+    for (Module m : modules) {
+      lineCounts.put(m.moduleKey(), Integer.toString(m.lineCount()));
+    }
+    metadata.put("lineCounts", lineCounts);
     //
     try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
       Trace trace = Trace.of(file, headers, getMetadataBytes(metadata));
@@ -171,9 +178,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
-    // Update block information for trace file metadata
-    this.startBlock = Math.min(this.startBlock, processableBlockHeader.getNumber());
-    this.endBlock = Math.max(this.endBlock, processableBlockHeader.getNumber());
   }
 
   @Override
@@ -185,9 +189,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
     }
-    // Update block information for trace file metadata
-    this.startBlock = Math.min(this.startBlock, blockHeader.getNumber());
-    this.endBlock = Math.max(this.endBlock, blockHeader.getNumber());
   }
 
   @Override
@@ -338,8 +339,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     return modulesLineCount;
   }
 
-  public static byte[] getMetadataBytes(Map<String, String> metadata) throws IOException {
-    ObjectWriter mapper = new ObjectMapper().writer();
-    return mapper.writeValueAsBytes(metadata);
+  /** Object writer is used for generating JSON byte strings. */
+  private static final ObjectWriter objectWriter = new ObjectMapper().writer();
+
+  public static byte[] getMetadataBytes(Map<String, Object> metadata) throws IOException {
+    return objectWriter.writeValueAsBytes(metadata);
   }
 }

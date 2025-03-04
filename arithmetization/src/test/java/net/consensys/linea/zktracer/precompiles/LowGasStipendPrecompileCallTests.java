@@ -15,11 +15,11 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_CALL_STIPEND;
+import static net.consensys.linea.zktracer.Trace.PRC_BLAKE2F_SIZE;
+import static net.consensys.linea.zktracer.Trace.PRC_ECPAIRING_SIZE;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.populateMemory;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PRC_BLAKE2F_SIZE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PRC_ECPAIRING_SIZE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getPrecompileCost;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
@@ -195,10 +195,11 @@ public class LowGasStipendPrecompileCallTests {
     // and the precompile cost computed by OOB.
     // As the number of OOB operation required is variable, we look for it over all the operations.
     boolean insufficientGasForPrecompile =
-        hub.oob().operations().stream().anyMatch(OobOperation::isInsufficientGasForPrecompile);
+        hub.oob().operations().getAll().stream()
+            .anyMatch(OobOperation::isInsufficientGasForPrecompile);
 
     BigInteger precompileCostComputedByOOB =
-        hub.oob().operations().stream()
+        hub.oob().operations().getAll().stream()
             .map(OobOperation::getPrecompileCost)
             .filter(Objects::nonNull)
             .findFirst()

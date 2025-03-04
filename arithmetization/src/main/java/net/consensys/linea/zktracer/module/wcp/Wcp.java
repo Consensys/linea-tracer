@@ -23,12 +23,12 @@ import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LEQbv;
 import static net.consensys.linea.zktracer.module.wcp.WcpOperation.LTbv;
 import static net.consensys.linea.zktracer.module.wcp.WcpOperation.SGTbv;
 import static net.consensys.linea.zktracer.module.wcp.WcpOperation.SLTbv;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
-import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
@@ -106,37 +106,42 @@ public class Wcp implements Module {
   }
 
   @Override
-  public void tracePreOpcode(final MessageFrame frame) {
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
-    final Bytes32 arg2 =
-        (opCode != OpCode.ISZERO) ? Bytes32.leftPad(frame.getStackItem(1)) : Bytes32.ZERO;
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
+    if (opcode == LT
+        || opcode == GT
+        || opcode == SLT
+        || opcode == SGT
+        || opcode == EQ
+        || opcode == ISZERO) {
 
-    switch (opCode) {
-      case LT -> ltOperations.add(new WcpOperation(LTbv, arg1, arg2));
-      case GT -> gtOperations.add(new WcpOperation(GTbv, arg1, arg2));
-      case SLT -> sltOperations.add(new WcpOperation(SLTbv, arg1, arg2));
-      case SGT -> sgtOperations.add(new WcpOperation(SGTbv, arg1, arg2));
-      case EQ -> eqOperations.add(new WcpOperation(EQbv, arg1, arg2));
-      case ISZERO -> isZeroOperations.add(new WcpOperation(ISZERObv, arg1, Bytes32.ZERO));
-      default -> throw new UnsupportedOperationException("Not given a WCP EVM Opcode");
+      final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
+      final Bytes32 arg2 =
+          (opcode != OpCode.ISZERO) ? Bytes32.leftPad(frame.getStackItem(1)) : Bytes32.ZERO;
+
+      switch (opcode) {
+        case LT -> ltOperations.add(new WcpOperation(LTbv, arg1, arg2));
+        case GT -> gtOperations.add(new WcpOperation(GTbv, arg1, arg2));
+        case SLT -> sltOperations.add(new WcpOperation(SLTbv, arg1, arg2));
+        case SGT -> sgtOperations.add(new WcpOperation(SGTbv, arg1, arg2));
+        case EQ -> eqOperations.add(new WcpOperation(EQbv, arg1, arg2));
+        case ISZERO -> isZeroOperations.add(new WcpOperation(ISZERObv, arg1, Bytes32.ZERO));
+        default -> throw new UnsupportedOperationException("Not given a WCP EVM Opcode");
+      }
     }
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Wcp.headers(this.lineCount());
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-
+  public void commit(Trace trace) {
     int stamp = 0;
     final WcpOperationComparator comparator = new WcpOperationComparator();
     for (ModuleOperationStackedSet<WcpOperation> operationsSet : operations) {
       for (WcpOperation operation : operationsSet.sortOperations(comparator)) {
-        operation.trace(trace, ++stamp);
+        operation.trace(trace.wcp, ++stamp);
       }
     }
   }

@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileScenario.PRC_FAILURE_KNOWN_TO_HUB;
@@ -110,11 +110,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
       }
       firstImcFragment.callMmu(firstMmuCall);
 
-      hub.ecData.callEcData(
-          exoModuleOperationId(),
-          flag(),
-          extractCallData(),
-          returnData); // TODO @Lorenzo @Olivier : verify it's at the right position
+      hub.ecData.callEcData(exoModuleOperationId(), flag(), extractCallData(), returnData);
     }
 
     if (!callSuccess) return;

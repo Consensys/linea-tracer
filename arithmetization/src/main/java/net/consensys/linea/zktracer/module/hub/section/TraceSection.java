@@ -28,9 +28,9 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
-import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
@@ -212,12 +212,11 @@ public class TraceSection {
     for (TraceFragment fragment : this.fragments()) {
       if (fragment instanceof StackFragment) {
         ((StackFragment) fragment).jumpDestinationVettingRequired(true);
-        ((StackFragment) fragment).validJumpDestination(invalidJumpDestination);
       }
     }
   }
 
-  public void trace(Trace hubTrace) {
+  public void trace(Trace.Hub hubTrace) {
     int stackLineCounter = -1;
     int nonStackLineCounter = 0;
 

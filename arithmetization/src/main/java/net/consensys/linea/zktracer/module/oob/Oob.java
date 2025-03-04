@@ -18,15 +18,14 @@ package net.consensys.linea.zktracer.module.oob;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
-import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ColumnHeader;
-import net.consensys.linea.zktracer.container.module.OperationListModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
@@ -37,8 +36,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 /** Implementation of a {@link Module} for out of bounds. */
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class Oob implements OperationListModule<OobOperation> {
-  // TODO @Lorenzo why it's not a StateLess module ?
+public class Oob implements OperationSetModule<OobOperation> {
 
   private final Hub hub;
   private final Add add;
@@ -46,8 +44,8 @@ public class Oob implements OperationListModule<OobOperation> {
   private final Wcp wcp;
 
   @Getter
-  private final ModuleOperationStackedList<OobOperation> operations =
-      new ModuleOperationStackedList<>();
+  private final ModuleOperationStackedSet<OobOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -60,7 +58,7 @@ public class Oob implements OperationListModule<OobOperation> {
     operations.add(oobOperation);
   }
 
-  final void traceOperation(final OobOperation oobOperation, int stamp, Trace trace) {
+  final void traceOperation(final OobOperation oobOperation, int stamp, Trace.Oob trace) {
     final int nRows = oobOperation.nRows();
     final OobInstruction oobInstruction = oobOperation.oobCall.oobInstruction;
 
@@ -111,15 +109,15 @@ public class Oob implements OperationListModule<OobOperation> {
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    Trace trace = new Trace(buffers);
-    int stamp = 0;
-    for (OobOperation op : operations.getAll()) {
-      traceOperation(op, ++stamp, trace);
-    }
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Oob.headers(this.lineCount());
   }
 
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  @Override
+  public void commit(Trace trace) {
+    int stamp = 0;
+    for (OobOperation op : operations.getAll()) {
+      traceOperation(op, ++stamp, trace.oob);
+    }
   }
 }

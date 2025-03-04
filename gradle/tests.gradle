@@ -140,8 +140,10 @@ tasks.test.configure {
 }
 
 tasks.register("fastReplayTests", Test) {
-  dependsOn(buildZkevmBin)
-
+  dependsOn(buildOldReplayTestsZkevmBin)
+    // Record zkevm.bin for CorsetValidator
+    environment.put("ZKEVM_BIN", System.getenv("ZKEVM_BIN") ?: "zkevm_for_old_replay_tests.bin")
+    //
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
@@ -155,10 +157,19 @@ tasks.register("fastReplayTests", Test) {
     excludeTags("nightly")
     excludeTags("weekly")
   }
+  finalizedBy(jacocoFastReplayTestsReport)
+}
+
+tasks.register("jacocoFastReplayTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  executionData(fastReplayTests)
 }
 
 tasks.register("nightlyReplayTests", Test) {
-  dependsOn(buildZkevmBin)
+  dependsOn(buildOldReplayTestsZkevmBin)
 
   boolean isCiServer = System.getenv().containsKey("CI")
   maxHeapSize = isCiServer ? "32g" : "8g"
@@ -194,6 +205,15 @@ tasks.register("nightlyTests", Test) {
   useJUnitPlatform {
     includeTags("nightly")
   }
+  finalizedBy(jacocoNightlyTestsReport)
+}
+
+tasks.register("jacocoNightlyTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  executionData(nightlyTests)
 }
 
 tasks.register("weeklyTests", Test) {
@@ -211,10 +231,19 @@ tasks.register("weeklyTests", Test) {
     excludeTags("replay")
     includeTags("weekly")
   }
+  finalizedBy(jacocoWeeklyTestsReport)
 }
 
-// Gradle task to concatenate Unit and Reference tests exec files
-tasks.register("jacocoUnitAndReferenceTestsReport", JacocoReport) {
+tasks.register("jacocoWeeklyTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  executionData(weeklyTests)
+}
+
+// Gradle task to concatenate Unit, FastReplay, Nightly, Weekly and Reference Blockchain and State tests exec files
+tasks.register("jacocoUnitFastReplayWeeklyNightlyReferenceBlockchainAndStateTestsReport", JacocoReport) {
   reports {
     xml.required = true
     html.outputLocation = layout.buildDirectory.dir('reports/jacocoConcatenate/html')
@@ -224,3 +253,8 @@ tasks.register("jacocoUnitAndReferenceTestsReport", JacocoReport) {
   sourceSets project(":arithmetization").sourceSets.main
   executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 }
+
+// Configure default build task to require the tracer is built first.
+// This only makes sense for projects which need the tracer.
+compileJava.dependsOn 'buildTracer'
+

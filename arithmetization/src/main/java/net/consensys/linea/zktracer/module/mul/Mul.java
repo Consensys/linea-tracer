@@ -15,13 +15,14 @@
 
 package net.consensys.linea.zktracer.module.mul;
 
-import java.nio.MappedByteBuffer;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -44,12 +45,13 @@ public class Mul implements OperationSetModule<MulOperation> {
   }
 
   @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = this.hub.opCode();
-    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
-    final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
+    if (opcode == MUL || opcode == EXP) {
+      final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
+      final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
 
-    operations.add(new MulOperation(opCode, arg1, arg2));
+      operations.add(new MulOperation(opcode, arg1, arg2));
+    }
   }
 
   @Override
@@ -58,18 +60,16 @@ public class Mul implements OperationSetModule<MulOperation> {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Mul.headers(this.lineCount());
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-
+  public void commit(Trace trace) {
     int stamp = 0;
     for (MulOperation op : operations.sortOperations(new MulOperationComparator())) {
-      op.trace(trace, ++stamp);
+      op.trace(trace.mul, ++stamp);
     }
-    (new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO)).trace(trace, stamp + 1);
+    (new MulOperation(OpCode.EXP, Bytes32.ZERO, Bytes32.ZERO)).trace(trace.mul, stamp + 1);
   }
 }

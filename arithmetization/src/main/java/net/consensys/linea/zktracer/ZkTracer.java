@@ -120,7 +120,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     metadata.put("chainId", this.chainId.toString());
     metadata.put("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
     // include block range
-    Map<String,String> range = new HashMap<>();
+    Map<String, String> range = new HashMap<>();
     range.put("start", Long.toString(startBlock));
     range.put("end", Long.toString(endBlock));
     metadata.put("conflation", range);

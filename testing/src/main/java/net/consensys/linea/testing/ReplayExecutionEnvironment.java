@@ -148,9 +148,12 @@ public class ReplayExecutionEnvironment {
 
   public void replay(BigInteger chainId, ConflationSnapshot conflation) {
     this.executeFrom(chainId, conflation);
-    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log),
-      conflation.firstBlockNumber(),
-      conflation.lastBlockNumber());
+    ExecutionEnvironment.checkTracer(
+        zkTracer,
+        CORSET_VALIDATOR,
+        Optional.of(log),
+        conflation.firstBlockNumber(),
+        conflation.lastBlockNumber());
   }
 
   /**

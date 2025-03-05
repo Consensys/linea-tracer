@@ -42,7 +42,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-public class AddressColisionWarmingAndDeploymentTests {
+public class AddressCollisionWarmingAndDeploymentTests {
 
   // ** This aims to test skipping, warming, initialization and finalization section, whith
   // scenarii:

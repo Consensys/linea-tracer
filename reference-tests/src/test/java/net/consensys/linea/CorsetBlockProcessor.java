@@ -69,6 +69,7 @@ public class CorsetBlockProcessor extends MainnetBlockProcessor {
     this.zkTracer = zkTracer;
   }
 
+  @Override
   public BlockProcessingResult processBlock(
       final ProtocolContext protocolContext,
       final Blockchain blockchain,

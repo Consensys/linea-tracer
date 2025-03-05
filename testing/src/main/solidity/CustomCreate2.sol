@@ -13,6 +13,7 @@ interface IContractC {
  */
 contract CustomCreate2 is TestingBase {
 
+    address addContractC;
     bytes initCodeC;
     bytes initCodeCWithImmediateCallBack;
     bytes32 salt;
@@ -29,8 +30,11 @@ contract CustomCreate2 is TestingBase {
         salt = saltEx;
     }
 
+    // Custom CREATE2 methods
+
     function create2WithInitCodeC() public {
-        deployWithCreate2(salt, initCodeC);
+        address addC = deployWithCreate2(salt, initCodeC);
+        addContractC = addC;
     }
 
     function create2WithCallBackAfterCreate2() public {
@@ -47,6 +51,8 @@ contract CustomCreate2 is TestingBase {
         doStaticCall(address(this), executePayload, gas, 1);
     }
 
+    // Behavior on demand
+
     function revertOnDemand() pure public {
         revert();
     }
@@ -54,6 +60,43 @@ contract CustomCreate2 is TestingBase {
     function selfDestructOnDemand() public {
         address payable thisAddr = payable(address(this));
         selfdestruct(thisAddr);
+    }
+
+    // Call or StaticCall Contract C
+    function callContractCStoreInMap (uint key, address add, bool staticCall) public {
+        bytes memory executePayload = abi.encodeWithSignature("storeInMap(uint,address)", key, add);
+        if (staticCall) {
+            doStaticCall(addContractC, executePayload, 5000000, 0);
+        } else {
+            doCall(addContractC, executePayload, 5000000, 0);
+        }
+    }
+
+    function callContractCCallBackCustomCreate2(bool staticCall) public {
+        bytes memory executePayload = abi.encodeWithSignature("callBackCustomCreate2(address)", address(this));
+        if (staticCall) {
+            doStaticCall(addContractC, executePayload, 5000000, 0);
+        } else {
+            doCall(addContractC, executePayload, 5000000, 0);
+        }
+    }
+
+    function callContractCRevertOnDemand (bool staticCall) public {
+        bytes memory executePayload = abi.encodeWithSignature("revertOnDemand()");
+        if (staticCall) {
+            doStaticCall(addContractC, executePayload, 5000000, 0);
+        } else {
+            doCall(addContractC, executePayload, 5000000, 0);
+        }
+    }
+
+    function callContractSelfDestructOnDemand (bool staticCall) public {
+        bytes memory executePayload = abi.encodeWithSignature("selfDestructOnDemand()");
+        if (staticCall) {
+            doStaticCall(addContractC, executePayload, 5000000, 0);
+        } else {
+            doCall(addContractC, executePayload, 5000000, 0);
+        }
     }
 
 

@@ -20,6 +20,7 @@ import java.util.Collections;
 import net.consensys.linea.testing.generated.CustomCreate2;
 import org.apache.tuweni.bytes.Bytes;
 import org.web3j.abi.FunctionEncoder;
+import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
 
 public class CustomCreate2Payload {
@@ -49,6 +50,15 @@ public class CustomCreate2Payload {
     Function function =
         new Function(
             CustomCreate2.FUNC_CREATE2WITHINITCODEC, Arrays.asList(), Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes callContractCSelfDestructOnDemand(boolean staticCall) {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CALLCONTRACTSELFDESTRUCTONDEMAND,
+            Arrays.asList(new org.web3j.abi.datatypes.Bool(staticCall)),
+            Collections.<TypeReference<?>>emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 }

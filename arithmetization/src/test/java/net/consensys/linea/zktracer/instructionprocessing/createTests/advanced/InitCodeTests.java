@@ -59,26 +59,18 @@ public class InitCodeTests {
         CustomCreate2Payload.storeSalt(
             "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef");
     Bytes create2WithCodeC = CustomCreate2Payload.create2WithInitCodeC();
+    Bytes callContractCSelfDestructOnDemand =
+        CustomCreate2Payload.callContractCSelfDestructOnDemand(false);
 
     List<ToyTransactionBuilder> txBuilders =
         getTransactionBuilders(
-            customCreate2Account, List.of(storeCodeC, storeSalt, create2WithCodeC));
+            customCreate2Account,
+            List.of(storeCodeC, storeSalt, create2WithCodeC, create2WithCodeC));
 
-    /*    Bytes storeInMap = ContractCPayload.storeInMap(1, "0x789102");
-    Bytes selfDestruct = ContractCPayload.selfDestruct();
+    /*    List<ToyTransactionBuilder> builders = new ArrayList<>();
+    builders.addAll(txBuilders);*/
 
-    List<ToyTransactionBuilder> txBuilders2 = getTransactionBuilders(contractCAccount, List.of(
-    ));
-
-    List<ToyTransactionBuilder> txBuilders3 = getTransactionBuilders(customCreate2Account, List.of(
-    ));*/
-
-    List<ToyTransactionBuilder> builders = new ArrayList<>();
-    builders.addAll(txBuilders);
-    /*    builders.addAll(txBuilders2);
-    builders.addAll(txBuilders3);*/
-
-    List<Transaction> transactions = getTransactions(userAccount, builders);
+    List<Transaction> transactions = getTransactions(userAccount, txBuilders);
 
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(userAccount, customCreate2Account))

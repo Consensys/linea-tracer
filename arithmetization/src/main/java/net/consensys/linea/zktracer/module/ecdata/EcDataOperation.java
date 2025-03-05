@@ -119,8 +119,8 @@ public class EcDataOperation extends ModuleOperation {
 
   // pairing-specific
   @Getter private final int totalPairings;
-  @Getter private int circuitSelectorEcPairingCounter;
-  @Getter private int circuitSelectorG2MembershipCounter;
+  @Getter private int circuitSelectorEcPairingCounter = 0;
+  @Getter private int circuitSelectorG2MembershipCounter = 0;
 
   private final List<Boolean> notOnG2; // counter-constant
   private final List<Boolean> notOnG2Acc; // counter-constant
@@ -596,6 +596,25 @@ public class EcDataOperation extends ModuleOperation {
     }
 
     // This is after all pairings have been processed
+    if (notOnG2AccMax) {
+      circuitSelectorEcPairingCounter = 0;
+      circuitSelectorG2MembershipCounter = 1;
+    } else {
+      if (!overallTrivialPairing.getFirst()) {
+        for (int accPairings = 1; accPairings <= totalPairings; accPairings++) {
+          final int rowsOffset = (accPairings - 1) * (INDEX_MAX_ECPAIRING_DATA_MIN + 1);
+          boolean smallPointIsAtInfinity = isInfinity.get(rowsOffset);
+          boolean largePointIsAtInfinity = isInfinity.get(rowsOffset + CT_MAX_SMALL_POINT + 1);
+          if (!largePointIsAtInfinity) {
+            if (!smallPointIsAtInfinity) {
+              circuitSelectorEcPairingCounter++;
+            } else {
+              circuitSelectorG2MembershipCounter++;
+            }
+          }
+        }
+      }
+    }
 
     // Set result rows
     EWord pairingResult = EWord.ZERO;
@@ -649,18 +668,18 @@ public class EcDataOperation extends ModuleOperation {
       // && conditions is necessary since we want IS_ECPAIRING_DATA
       // We care about G2 membership only if ICP = 1
       final boolean g2MembershipTestRequired =
-          (notOnG2AccMax
+          isData
+              && (notOnG2AccMax
                   ? isLargePoint && !largePointIsAtInfinity && notOnG2.get(i)
                   : isLargePoint && !largePointIsAtInfinity && smallPointIsAtInfinity)
               && internalChecksPassed;
       final boolean acceptablePairOfPointsForPairingCircuit =
-          precompileFlag == PRC_ECPAIRING
+          isData
+              && precompileFlag == PRC_ECPAIRING
               && successBit
               && !notOnG2AccMax
               && !largePointIsAtInfinity
               && !smallPointIsAtInfinity;
-      circuitSelectorEcPairingCounter += acceptablePairOfPointsForPairingCircuit ? 1 : 0;
-      circuitSelectorG2MembershipCounter += g2MembershipTestRequired ? 1 : 0;
 
       if (precompileFlag != PRC_ECPAIRING || !isData) {
         checkArgument(ct == 0);

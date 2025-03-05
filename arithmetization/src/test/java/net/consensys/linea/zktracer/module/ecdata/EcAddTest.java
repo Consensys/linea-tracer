@@ -141,6 +141,7 @@ public class EcAddTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run();
 
+    // check precompile limits line count
     assertEquals(1, bytecodeRunner.getHub().ecAddEffectiveCall().lineCount());
   }
 }

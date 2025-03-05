@@ -596,9 +596,10 @@ public class EcDataOperation extends ModuleOperation {
     }
 
     // This is after all pairings have been processed
+    notOnG2AccMax = internalChecksPassed && notOnG2AccMax;
 
     // Set counters
-    if (notOnG2AccMax) { // TODO: double check if we need && internalChecksPassed
+    if (notOnG2AccMax) {
       circuitSelectorEcPairingCounter = 0;
       circuitSelectorG2MembershipCounter = 1;
     } else {
@@ -664,8 +665,7 @@ public class EcDataOperation extends ModuleOperation {
       boolean notOnG2AccMax =
           precompileFlag == PRC_ECPAIRING
               && isData
-              && this.notOnG2AccMax
-              && internalChecksPassed; // && conditions is necessary since we want IS_ECPAIRING_DATA
+              && this.notOnG2AccMax; // && conditions is necessary since we want IS_ECPAIRING_DATA
       // = 1
       // && conditions is necessary since we want IS_ECPAIRING_DATA
       // We care about G2 membership only if ICP = 1

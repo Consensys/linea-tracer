@@ -596,7 +596,9 @@ public class EcDataOperation extends ModuleOperation {
     }
 
     // This is after all pairings have been processed
-    if (notOnG2AccMax) {
+
+    // Set counters
+    if (notOnG2AccMax) { // TODO: double check if we need && internalChecksPassed
       circuitSelectorEcPairingCounter = 0;
       circuitSelectorG2MembershipCounter = 1;
     } else {

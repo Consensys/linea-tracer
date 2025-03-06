@@ -45,7 +45,7 @@ public class BlakeTests {
     bytecodeRunner.run();
 
     // check precompile limits line count
-    assertEquals(1, bytecodeRunner.getHub().blakeEffectiveCall().lineCount());
+    assertEquals(0, bytecodeRunner.getHub().blakeEffectiveCall().lineCount());
     assertEquals(0, bytecodeRunner.getHub().blakeRounds().lineCount());
   }
 

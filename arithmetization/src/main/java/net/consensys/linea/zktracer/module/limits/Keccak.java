@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.limits;
 
 import static com.google.common.base.Preconditions.checkState;
-import static java.lang.Integer.MAX_VALUE;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +71,6 @@ public class Keccak implements CountingOnlyModule {
   public static int numberOfKeccakBloc(final long dataByteLength) {
     final long r = (dataByteLength + KECCAK_BYTE_RATE - 1) / KECCAK_BYTE_RATE;
     checkState(r < Integer.MAX_VALUE, "demented KECCAK");
-    return r < MAX_VALUE ? (int) r : MAX_VALUE;
+    return (int) r;
   }
 }

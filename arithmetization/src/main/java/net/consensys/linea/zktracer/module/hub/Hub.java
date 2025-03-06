@@ -205,7 +205,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  private final TxnData txnData = new TxnData(this, wcp, euc);
+  @Getter private final TxnData txnData = new TxnData(this, wcp, euc);
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -222,7 +222,7 @@ public class Hub implements Module {
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
-  private final BlockTransactions blockTransactions = new BlockTransactions();
+  private final BlockTransactions blockTransactions = new BlockTransactions(this);
   @Getter private final Keccak keccak;
   private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
@@ -388,7 +388,7 @@ public class Hub implements Module {
       log.info("WARN: Using default testing L2L1 contract address");
     }
     l2L1Logs = new L2L1Logs();
-    l2Block = new L2Block(l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
+    l2Block = new L2Block(blockTransactions, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     rlpAddr = new RlpAddr(this, trm, keccak);

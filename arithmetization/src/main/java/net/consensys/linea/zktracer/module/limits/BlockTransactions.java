@@ -15,16 +15,21 @@
 
 package net.consensys.linea.zktracer.module.limits;
 
+import java.util.List;
+
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import org.hyperledger.besu.evm.worldstate.WorldView;
+import net.consensys.linea.zktracer.module.hub.Hub;
 
 @Getter
 @Accessors(fluent = true)
-public class BlockTransactions implements CountingOnlyModule {
+@RequiredArgsConstructor
+public class BlockTransactions implements Module {
+  private final Hub hub;
   private final CountOnlyOperation counts = new CountOnlyOperation();
 
   @Override
@@ -33,8 +38,22 @@ public class BlockTransactions implements CountingOnlyModule {
   }
 
   @Override
-  public void traceStartTx(
-      WorldView worldView, TransactionProcessingMetadata transactionProcessingMetadata) {
-    counts.add(1);
+  public void popTransactionBundle() {}
+
+  @Override
+  public void commitTransactionBundle() {}
+
+  @Override
+  public int lineCount() {
+    final int hubNumberOfTx = hub.state.txCount();
+    final int txnDataNumberOfTx = hub.txnData().operations().size();
+    assert (hubNumberOfTx == txnDataNumberOfTx);
+
+    return txnDataNumberOfTx;
+  }
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders() {
+    throw new UnsupportedOperationException("Not implemented");
   }
 }

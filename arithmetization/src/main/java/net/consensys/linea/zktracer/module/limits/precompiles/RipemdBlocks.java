@@ -15,11 +15,10 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
-import static java.lang.Integer.MAX_VALUE;
+import static com.google.common.base.Preconditions.checkState;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
@@ -29,7 +28,6 @@ import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 @Accessors(fluent = true)
 public final class RipemdBlocks implements CountingOnlyModule {
   private final CountOnlyOperation counts = new CountOnlyOperation();
-  @Setter private boolean transactionBundleContainsIllegalOperation = false;
   public static final int RIPEMD160_BLOCKSIZE = 64 * 8;
   // If the length is > 2⁶4, we just use the lower 64 bits.
   private static final int RIPEMD160_LENGTH_APPEND = 64;
@@ -43,10 +41,6 @@ public final class RipemdBlocks implements CountingOnlyModule {
   @Override
   public void updateTally(final int count) {
     final int blockCount = numberOfRipemd160locks(count);
-    if (blockCount == MAX_VALUE) {
-      transactionBundleContainsIllegalOperation(true);
-      return;
-    }
     counts.add(blockCount);
   }
 
@@ -56,19 +50,7 @@ public final class RipemdBlocks implements CountingOnlyModule {
             + RIPEMD160_ND_PADDED_ONE
             + RIPEMD160_LENGTH_APPEND
             + (RIPEMD160_BLOCKSIZE - 1);
-    return tmp < Integer.MAX_VALUE ? (int) (tmp / RIPEMD160_BLOCKSIZE) : Integer.MAX_VALUE;
-  }
-
-  @Override
-  public int lineCount() {
-    return transactionBundleContainsIllegalOperation
-        ? MAX_VALUE
-        : CountingOnlyModule.super.lineCount();
-  }
-
-  @Override
-  public void popTransactionBundle() {
-    CountingOnlyModule.super.popTransactionBundle();
-    transactionBundleContainsIllegalOperation(false);
+    checkState(tmp < Integer.MAX_VALUE, "demented RIP");
+    return (int) (tmp / RIPEMD160_BLOCKSIZE);
   }
 }

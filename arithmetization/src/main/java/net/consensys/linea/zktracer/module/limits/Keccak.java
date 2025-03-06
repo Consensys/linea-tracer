@@ -15,11 +15,11 @@
 
 package net.consensys.linea.zktracer.module.limits;
 
+import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Integer.MAX_VALUE;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
@@ -37,8 +37,6 @@ public class Keccak implements CountingOnlyModule {
   private final EcRecoverEffectiveCall ecRecoverEffectiveCall;
   private final L2Block l2Block;
 
-  @Setter private boolean transactionBundleContainsIllegalOperation = false;
-
   @Override
   public String moduleKey() {
     return "BLOCK_KECCAK";
@@ -52,10 +50,6 @@ public class Keccak implements CountingOnlyModule {
 
   @Override
   public int lineCount() {
-    if (transactionBundleContainsIllegalOperation) {
-      return MAX_VALUE;
-    }
-
     final int txCount = l2Block.numberOfTransactions().lineCount();
     final int ecRecoverCount = ecRecoverEffectiveCall.lineCount();
 
@@ -77,12 +71,7 @@ public class Keccak implements CountingOnlyModule {
 
   public static int numberOfKeccakBloc(final long dataByteLength) {
     final long r = (dataByteLength + KECCAK_BYTE_RATE - 1) / KECCAK_BYTE_RATE;
+    checkState(r < Integer.MAX_VALUE, "demented KECCAK");
     return r < MAX_VALUE ? (int) r : MAX_VALUE;
-  }
-
-  @Override
-  public void popTransactionBundle() {
-    CountingOnlyModule.super.popTransactionBundle();
-    transactionBundleContainsIllegalOperation(false);
   }
 }

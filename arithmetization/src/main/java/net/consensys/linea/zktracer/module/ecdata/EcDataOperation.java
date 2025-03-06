@@ -495,7 +495,7 @@ public class EcDataOperation extends ModuleOperation {
 
   void handlePairing() {
     boolean atLeastOneLargePointIsNotInfinity = false;
-    boolean firstLargePointNotInfinity = false;
+    boolean firstLargePointNotAtInfinity = false;
     boolean atLeastOneLargePointIsNotOnG2 = false;
     boolean firstLargePointNotOnG2 = false;
 
@@ -547,12 +547,13 @@ public class EcDataOperation extends ModuleOperation {
       }
 
       // Set isInfinity, overallTrivialPairing, notOnG2, notOnG2Acc
+      if (!largePointIsAtInfinity && !atLeastOneLargePointIsNotInfinity) {
+        atLeastOneLargePointIsNotInfinity = true;
+        firstLargePointNotAtInfinity = true;
+      }
+
       for (int i = 0; i <= INDEX_MAX_ECPAIRING_DATA_MIN; i++) {
-        if (!largePointIsAtInfinity && !atLeastOneLargePointIsNotInfinity) {
-          atLeastOneLargePointIsNotInfinity = true;
-          firstLargePointNotInfinity = true;
-        }
-        if (firstLargePointNotInfinity) {
+        if (firstLargePointNotAtInfinity) {
           if (i > CT_MAX_SMALL_POINT) {
             // Transition should happen at the beginning of large point
             overallTrivialPairing.set(i + rowsOffset, false);
@@ -572,8 +573,8 @@ public class EcDataOperation extends ModuleOperation {
         }
       }
 
-      // Set firstLargePointNotInfinity back to false
-      firstLargePointNotInfinity = false;
+      // Set firstLargePointNotAtInfinity back to false
+      firstLargePointNotAtInfinity = false;
 
       // Set firstLargePointNotOnG2 back to false
       firstLargePointNotOnG2 = false;
@@ -597,21 +598,23 @@ public class EcDataOperation extends ModuleOperation {
     notOnG2AccMax = internalChecksPassed && notOnG2AccMax;
 
     // Set counters
-    if (notOnG2AccMax) {
-      circuitSelectorEcPairingCounter = 0;
-      circuitSelectorG2MembershipCounter = 1;
-    } else {
-      if (!overallTrivialPairing.getFirst()) {
-        for (int accPairings = 1; accPairings <= totalPairings; accPairings++) {
-          final int rowsOffset = (accPairings - 1) * (INDEX_MAX_ECPAIRING_DATA_MIN + 1);
-          final boolean smallPointIsAtInfinity = isInfinity.get(rowsOffset);
-          final boolean largePointIsAtInfinity =
-              isInfinity.get(rowsOffset + CT_MAX_SMALL_POINT + 1);
-          if (!largePointIsAtInfinity) {
-            if (!smallPointIsAtInfinity) {
-              circuitSelectorEcPairingCounter++;
-            } else {
-              circuitSelectorG2MembershipCounter++;
+    if (internalChecksPassed) {
+      if (notOnG2AccMax) {
+        circuitSelectorEcPairingCounter = 0;
+        circuitSelectorG2MembershipCounter = 1;
+      } else {
+        if (!isOverallTrivialPairing()) {
+          for (int accPairings = 1; accPairings <= totalPairings; accPairings++) {
+            final int rowsOffset = (accPairings - 1) * (INDEX_MAX_ECPAIRING_DATA_MIN + 1);
+            final boolean smallPointIsAtInfinity = isInfinity.get(rowsOffset);
+            final boolean largePointIsAtInfinity =
+                isInfinity.get(rowsOffset + CT_MAX_SMALL_POINT + 1);
+            if (!largePointIsAtInfinity) {
+              if (!smallPointIsAtInfinity) {
+                circuitSelectorEcPairingCounter++;
+              } else {
+                circuitSelectorG2MembershipCounter++;
+              }
             }
           }
         }
@@ -830,5 +833,9 @@ public class EcDataOperation extends ModuleOperation {
     }
 
     return Pair.of(wellFormedCoordinates, bIsPointAtInfinity);
+  }
+
+  boolean isOverallTrivialPairing() {
+    return overallTrivialPairing.get(nRowsData - 1);
   }
 }

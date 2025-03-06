@@ -115,13 +115,13 @@ public class EcData implements OperationListModule<EcDataOperation> {
         }
         if (ecDataOperation.internalChecksPassed()
             && !ecDataOperation.notOnG2AccMax()
-            && ecDataOperation.overallTrivialPairing().getLast()) {
+            && ecDataOperation.isOverallTrivialPairing()) {
           ecPairingG2MembershipCalls.updateTally(0);
           // The circuit is never invoked in the case of a trivial pairing
         }
         if (ecDataOperation.internalChecksPassed()
             && !ecDataOperation.notOnG2AccMax()
-            && !ecDataOperation.overallTrivialPairing().getLast()) {
+            && !ecDataOperation.isOverallTrivialPairing()) {
           ecPairingG2MembershipCalls.updateTally(
               ecDataOperation.circuitSelectorG2MembershipCounter());
           // The circuit is invoked as many times as there are points predicted to be on G2

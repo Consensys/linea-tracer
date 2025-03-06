@@ -641,17 +641,18 @@ public class EcPairingTest {
     final EcData ecData = bytecodeRunner.getHub().ecData();
     final EcDataOperation ecDataOperation = ecData.operations().get(0);
     final boolean internalChecksPassed = ecDataOperation.internalChecksPassed();
-    final boolean overallTrivialPairing = ecDataOperation.overallTrivialPairing().getFirst();
     final int circuitSelectorEcPairingCounter = ecDataOperation.circuitSelectorEcPairingCounter();
     final int circuitSelectorG2MembershipCounter =
         ecDataOperation.circuitSelectorG2MembershipCounter();
 
     assertEquals(
-        internalChecksPassed && !overallTrivialPairing ? 1 : 0,
+        circuitSelectorEcPairingCounter > 0 ? 1 : 0,
         bytecodeRunner.getHub().ecPairingFinalExponentiations().lineCount());
+
     assertEquals(
         internalChecksPassed ? circuitSelectorEcPairingCounter : 0,
         bytecodeRunner.getHub().ecPairingMillerLoops().lineCount());
+
     assertEquals(
         internalChecksPassed ? circuitSelectorG2MembershipCounter : 0,
         bytecodeRunner.getHub().ecPairingG2MembershipCalls().lineCount());

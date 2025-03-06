@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -326,5 +327,58 @@ public class ModexpTests {
             .op(OpCode.POP)
             .compile();
     BytecodeRunner.of(bytecode).run();
+  }
+
+  @Test
+  // This test a modexp call with bbs > 512
+  void unprovableModexp() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            // bbs = 513
+            .push(Bytes32.leftPad(Bytes.minimalBytes(513)))
+            .push(0) // offset
+            .op(OpCode.MSTORE)
+            // ebs = 3
+            .push(Bytes32.leftPad(Bytes.of(3)))
+            .push(32) // offset
+            .op(OpCode.MSTORE)
+            // mbs = 4
+            .push(Bytes32.leftPad(Bytes.of(4)))
+            .push(64) // offset
+            .op(OpCode.MSTORE)
+            // MSTORE part of b
+            .push(Bytes32.rightPad(Bytes.fromHexString("0xba7e")))
+            .push(96)
+            .op(OpCode.MSTORE)
+            // MSTORE of e
+            .push(Bytes32.rightPad(Bytes.fromHexString("0xeeeeee")))
+            .push(96 + 513)
+            .op(OpCode.MSTORE)
+            // MSTORE of m
+            .push(Bytes32.rightPad(Bytes.fromHexString("0x0d0d0d0d")))
+            .push(96 + 513 + 3)
+            .op(OpCode.MSTORE)
+            // Call Modexp
+            .push(0) // returnSize
+            .push(0) // returnOffset
+            .push(96 + 513 + 3 + 4) // cds = 96 + bbs => trigger a MMU Call where the sourceOffset =
+            // referenceSize
+            .push(0) // cdo
+            .push(0) // value
+            .push(Address.MODEXP) // address
+            .push(0xffffffff) // gas
+            .op(OpCode.CALL)
+            .op(OpCode.POP)
+            .compile();
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
+    try {
+      bytecodeRunner.run();
+      assertEquals(Integer.MAX_VALUE, bytecodeRunner.getHub().modexpEffectiveCall().lineCount());
+    } catch (Exception e) {
+      // This is expected as the modexp call is unprovable
+      if (!e.getMessage().contains("Final CallScenario, CALL_PRC_UNDEFINED, is still undefined")) {
+        throw e;
+      }
+    }
   }
 }

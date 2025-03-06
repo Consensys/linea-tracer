@@ -33,11 +33,6 @@ public class BlockTransactions implements CountingOnlyModule {
   }
 
   @Override
-  public int lineCount() {
-    return counts.lineCount();
-  }
-
-  @Override
   public void traceStartTx(
       WorldView worldView, TransactionProcessingMetadata transactionProcessingMetadata) {
     counts.add(1);

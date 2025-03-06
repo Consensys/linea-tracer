@@ -129,10 +129,6 @@ public class State {
     return hubTrace;
   }
 
-  public int txCount() {
-    return state.size();
-  }
-
   public void enterTransaction() {
     if (state.isEmpty()) {
       state.add(new HubTransactionState());

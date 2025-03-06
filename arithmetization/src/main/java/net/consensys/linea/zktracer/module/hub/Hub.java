@@ -69,6 +69,7 @@ import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.state.State;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
+import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
@@ -221,6 +222,7 @@ public class Hub implements Module {
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
+  private final BlockTransactions blockTransactions = new BlockTransactions();
   @Getter private final Keccak keccak;
   private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
@@ -244,6 +246,7 @@ public class Hub implements Module {
   private List<Module> precompileLimitModules() {
 
     return List.of(
+        blockTransactions,
         keccak,
         sha256Blocks,
         ecAddEffectiveCall,
@@ -932,10 +935,6 @@ public class Hub implements Module {
     return this.state().processingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()
         : 0;
-  }
-
-  public int cumulatedTxCount() {
-    return state.txCount();
   }
 
   void traceOpcode(MessageFrame frame) {

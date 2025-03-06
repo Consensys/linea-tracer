@@ -84,8 +84,7 @@ public class EcData implements OperationListModule<EcDataOperation> {
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       final Bytes callData,
       final Bytes returnData) {
-    ecDataOperation =
-        EcDataOperation.of(this.wcp, this.ext, id, precompileFlag, callData, returnData);
+    ecDataOperation = EcDataOperation.of(wcp, ext, id, precompileFlag, callData, returnData);
     operations.add(ecDataOperation);
 
     switch (ecDataOperation.precompileFlag()) {

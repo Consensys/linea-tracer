@@ -138,7 +138,7 @@ public class EcDataOperation extends ModuleOperation {
     checkArgument(precompileFlag.isEcdataPrecompile(), "invalid EC type");
 
     this.precompileFlag = precompileFlag;
-    int callDataSize = callData.size();
+    final int callDataSize = callData.size();
     checkArgument(
         callDataSize > 0,
         "EcDataOperation should only be called with nonempty call rightPaddedCallData");
@@ -410,10 +410,10 @@ public class EcDataOperation extends ModuleOperation {
 
     // Compute internal checks
     // row i
-    boolean c1MembershipFirstPoint = callToC1Membership(0, pX, pY).getLeft();
+    final boolean c1MembershipFirstPoint = callToC1Membership(0, pX, pY).getLeft();
 
     // row i + 4
-    boolean c1MembershipSecondPoint = callToC1Membership(4, qX, qY).getLeft();
+    final boolean c1MembershipSecondPoint = callToC1Membership(4, qX, qY).getLeft();
 
     // Complete set hurdle
     hurdle.set(INDEX_MAX_ECADD_DATA, c1MembershipFirstPoint && c1MembershipSecondPoint);
@@ -526,16 +526,16 @@ public class EcDataOperation extends ModuleOperation {
 
       // Compute internal checks
       // row i
-      Pair<Boolean, Boolean> callToC1MembershipReturnedValues =
+      final Pair<Boolean, Boolean> callToC1MembershipReturnedValues =
           callToC1Membership(rowsOffset, aX, aY);
-      boolean c1Membership = callToC1MembershipReturnedValues.getLeft();
-      boolean smallPointIsAtInfinity = callToC1MembershipReturnedValues.getRight();
+      final boolean c1Membership = callToC1MembershipReturnedValues.getLeft();
+      final boolean smallPointIsAtInfinity = callToC1MembershipReturnedValues.getRight();
 
       // row i + 4
-      Pair<Boolean, Boolean> callToWellFormedCoordinatesReturnedValues =
+      final Pair<Boolean, Boolean> callToWellFormedCoordinatesReturnedValues =
           callToWellFormedCoordinates(4 + rowsOffset, bXIm, bXRe, bYIm, bYRe);
-      boolean wellFormedCoordinates = callToWellFormedCoordinatesReturnedValues.getLeft();
-      boolean largePointIsAtInfinity = callToWellFormedCoordinatesReturnedValues.getRight();
+      final boolean wellFormedCoordinates = callToWellFormedCoordinatesReturnedValues.getLeft();
+      final boolean largePointIsAtInfinity = callToWellFormedCoordinatesReturnedValues.getRight();
 
       // Check if the large point is on G2
       final Fq2 bX = Fq2.create(bXRe.toUnsignedBigInteger(), bXIm.toUnsignedBigInteger());
@@ -586,7 +586,7 @@ public class EcDataOperation extends ModuleOperation {
 
         hurdle.set(INDEX_MAX_ECPAIRING_DATA_MIN, internalChecksPassed);
       } else {
-        boolean prevInternalChecksPassed = internalChecksPassed;
+        final boolean prevInternalChecksPassed = internalChecksPassed;
         internalChecksPassed = c1Membership && wellFormedCoordinates && prevInternalChecksPassed;
 
         hurdle.set(
@@ -606,8 +606,9 @@ public class EcDataOperation extends ModuleOperation {
       if (!overallTrivialPairing.getFirst()) {
         for (int accPairings = 1; accPairings <= totalPairings; accPairings++) {
           final int rowsOffset = (accPairings - 1) * (INDEX_MAX_ECPAIRING_DATA_MIN + 1);
-          boolean smallPointIsAtInfinity = isInfinity.get(rowsOffset);
-          boolean largePointIsAtInfinity = isInfinity.get(rowsOffset + CT_MAX_SMALL_POINT + 1);
+          final boolean smallPointIsAtInfinity = isInfinity.get(rowsOffset);
+          final boolean largePointIsAtInfinity =
+              isInfinity.get(rowsOffset + CT_MAX_SMALL_POINT + 1);
           if (!largePointIsAtInfinity) {
             if (!smallPointIsAtInfinity) {
               circuitSelectorEcPairingCounter++;

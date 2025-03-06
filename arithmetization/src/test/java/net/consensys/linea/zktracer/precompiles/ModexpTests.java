@@ -373,12 +373,12 @@ public class ModexpTests {
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
     try {
       bytecodeRunner.run();
-      assertEquals(Integer.MAX_VALUE, bytecodeRunner.getHub().modexpEffectiveCall().lineCount());
     } catch (Exception e) {
       // This is expected as the modexp call is unprovable
       if (!e.getMessage().contains("Final CallScenario, CALL_PRC_UNDEFINED, is still undefined")) {
         throw e;
       }
     }
+    assertEquals(Integer.MAX_VALUE, bytecodeRunner.getHub().modexpEffectiveCall().lineCount());
   }
 }

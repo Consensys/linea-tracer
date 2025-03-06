@@ -29,7 +29,7 @@ jobs:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -vw --ansi-escapes=false --report --mir
-          ZKEVM_BIN: "zkevm.bin"
+          ZKEVM_BIN: "zkevm_for_old_replay_tests.bin"
           NIGHTLY_TESTS_PARALLELISM: 2
 
       - name: Upload test report
@@ -38,6 +38,20 @@ jobs:
         with:
           name: nightly-tests-report
           path: build/reports/tests/**/*
+
+      - name: Upload jacoco nightly tests coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-nightly-tests-coverage-report
+          path: arithmetization/build/reports/jacoco/jacocoNightlyTestsReport/**/*
+
+      - name: Upload jacoco nightly tests exec file
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-nightly-tests-exec-file
+          path: arithmetization/build/jacoco/nightlyTests.exec
 
       - name: Failure Notification
         if: ${{ failure() || cancelled() }}

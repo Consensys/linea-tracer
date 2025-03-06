@@ -21,42 +21,42 @@ import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.util.Map.entry;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EIP2681_MAX_NONCE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ADD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_DIV;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_EQ;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ISZERO;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_MOD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_STIPEND;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_CODE_SIZE;
+import static net.consensys.linea.zktracer.Trace.EIP2681_MAX_NONCE;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_ADD;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_DIV;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_EQ;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_GT;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_ISZERO;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_LT;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_MOD;
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_CALL_STIPEND;
+import static net.consensys.linea.zktracer.Trace.MAX_CODE_SIZE;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_BLAKE2F_CDS;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_BLAKE2F_PARAMS;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CALL;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CDL;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CREATE;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_DEPLOYMENT;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_ECADD;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_ECMUL;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_ECPAIRING;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_ECRECOVER;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_IDENTITY;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_JUMP;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_JUMPI;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_MODEXP_CDS;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_MODEXP_EXTRACT;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_MODEXP_LEAD;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_MODEXP_PRICING;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_MODEXP_XBS;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_RDC;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_RIPEMD;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_SHA2;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_SSTORE;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_XCALL;
+import static net.consensys.linea.zktracer.Trace.Oob.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.*;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_CDS;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_BLAKE2F_PARAMS;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CALL;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CDL;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_CREATE;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_DEPLOYMENT;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_ECADD;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_ECMUL;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_ECPAIRING;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_ECRECOVER;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_IDENTITY;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_JUMP;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_JUMPI;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_CDS;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_EXTRACT;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_LEAD;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_PRICING;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_MODEXP_XBS;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_RDC;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_RIPEMD;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SHA2;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_SSTORE;
-import static net.consensys.linea.zktracer.module.oob.Trace.CT_MAX_XCALL;
-import static net.consensys.linea.zktracer.module.oob.Trace.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.AddressUtils.getDeploymentAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
@@ -68,6 +68,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -125,6 +126,7 @@ public class OobOperation extends ModuleOperation {
   private final BigInteger[] outgoingResLo;
 
   private BigInteger precompileCost;
+  boolean insufficientGasForPrecompile;
 
   // Modules for lookups
   private final Add add;
@@ -193,7 +195,6 @@ public class OobOperation extends ModuleOperation {
     outgoingData4 = new BigInteger[nRows];
     outgoingResLo = new BigInteger[nRows];
 
-    // TODO: ensure that the nonce update for CREATE is not already done
     populateColumns(frame);
   }
 
@@ -331,11 +332,6 @@ public class OobOperation extends ModuleOperation {
     }
 
     final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
-    // Note that this check will disappear since it will be the MXP module taking care of it
-    /* TODO: reenable this check */
-    // if (cds.compareTo(EWord.of(frame.getStackItem(cdsIndex)).loBigInt()) > 0) {
-    //  throw new IllegalArgumentException("cds hi part is non-zero");
-    // }
 
     final BigInteger returnAtCapacity =
         EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
@@ -363,7 +359,6 @@ public class OobOperation extends ModuleOperation {
       final Bytes paddedCallData =
           cds.intValue() < 96 ? rightPadTo(unpaddedCallData, 96) : unpaddedCallData;
 
-      // cds and the data below can be int when compared (after size check)
       final BigInteger bbs = paddedCallData.slice(0, 32).toUnsignedBigInteger();
       final BigInteger ebs = paddedCallData.slice(32, 32).toUnsignedBigInteger();
       final BigInteger mbs = paddedCallData.slice(64, 32).toUnsignedBigInteger();
@@ -374,32 +369,8 @@ public class OobOperation extends ModuleOperation {
           || mbs.compareTo(BigInteger.valueOf(512)) > 0) {
         throw new IllegalArgumentException("byte sizes are too big");
       }
-
-      // pad paddedCallData to 96 + bbs + ebs
-      final Bytes doublePaddedCallData =
-          cds.intValue() < 96 + bbs.intValue() + ebs.intValue()
-              ? rightPadTo(paddedCallData, 96 + bbs.intValue() + ebs.intValue())
-              : paddedCallData;
-
-      final BigInteger leadingBytesOfExponent =
-          doublePaddedCallData
-              .slice(96 + bbs.intValue(), min(ebs.intValue(), 32))
-              .toUnsignedBigInteger();
-
-      BigInteger exponentLog;
-      if (ebs.intValue() <= 32 && leadingBytesOfExponent.signum() == 0) {
-        exponentLog = BigInteger.ZERO;
-      } else if (ebs.intValue() <= 32 && leadingBytesOfExponent.signum() != 0) {
-        exponentLog = BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR));
-      } else if (ebs.intValue() > 32 && leadingBytesOfExponent.signum() != 0) {
-        exponentLog =
-            BigInteger.valueOf(8)
-                .multiply(ebs.subtract(BigInteger.valueOf(32)))
-                .add(BigInteger.valueOf(log2(leadingBytesOfExponent, RoundingMode.FLOOR)));
-      } else {
-        exponentLog = BigInteger.valueOf(8).multiply(ebs.subtract(BigInteger.valueOf(32)));
-      }
-
+      int exponentLog =
+          computeExponentLog(paddedCallData, cds.intValue(), bbs.intValue(), ebs.intValue());
       switch (oobCall.oobInstruction) {
         case OOB_INST_MODEXP_CDS -> {
           final ModexpCallDataSizeOobCall prcModexpCdsCall = (ModexpCallDataSizeOobCall) oobCall;
@@ -446,7 +417,7 @@ public class OobOperation extends ModuleOperation {
           final ModexpPricingOobCall prcModexpPricingOobCall = (ModexpPricingOobCall) oobCall;
           // prcModexpPricingOobCall.setCallGas(calleeGas);
           prcModexpPricingOobCall.setReturnAtCapacity(returnAtCapacity);
-          prcModexpPricingOobCall.setExponentLog(exponentLog);
+          prcModexpPricingOobCall.setExponentLog(BigInteger.valueOf(exponentLog));
           prcModexpPricingOobCall.setMaxMbsBbs(maxMbsBbs);
           setModexpPricing(prcModexpPricingOobCall);
         }
@@ -484,6 +455,28 @@ public class OobOperation extends ModuleOperation {
         }
         default -> throw new RuntimeException("no opcode or precompile flag was set to true");
       }
+    }
+  }
+
+  // Support method for MODEXP
+  public static int computeExponentLog(Bytes paddedCallData, int cds, int bbs, int ebs) {
+    Preconditions.checkArgument(paddedCallData.size() >= 96);
+
+    // pad paddedCallData to 96 + bbs + ebs
+    final Bytes doublePaddedCallData =
+        cds < 96 + bbs + ebs ? rightPadTo(paddedCallData, 96 + bbs + ebs) : paddedCallData;
+
+    final BigInteger leadingBytesOfExponent =
+        doublePaddedCallData.slice(96 + bbs, min(ebs, 32)).toUnsignedBigInteger();
+
+    if (ebs <= 32 && leadingBytesOfExponent.signum() == 0) {
+      return 0;
+    } else if (ebs <= 32 && leadingBytesOfExponent.signum() != 0) {
+      return log2(leadingBytesOfExponent, RoundingMode.FLOOR);
+    } else if (ebs > 32 && leadingBytesOfExponent.signum() != 0) {
+      return 8 * (ebs - 32) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
+    } else {
+      return 8 * (ebs - 32);
     }
   }
 
@@ -821,7 +814,7 @@ public class OobOperation extends ModuleOperation {
             BigInteger.ZERO,
             createOobCall.getCreatorNonce(),
             BigInteger.ZERO,
-            longToUnsignedBigInteger(EIP2681_MAX_NONCE));
+            EIP2681_MAX_NONCE);
 
     // Set aborting condition
     createOobCall.setAbortingCondition(
@@ -862,6 +855,7 @@ public class OobOperation extends ModuleOperation {
     final boolean insufficientGas =
         callToLT(
             2, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
+    insufficientGasForPrecompile = insufficientGas;
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
@@ -898,6 +892,7 @@ public class OobOperation extends ModuleOperation {
     final boolean insufficientGas =
         callToLT(
             3, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
+    insufficientGasForPrecompile = insufficientGas;
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
@@ -938,6 +933,7 @@ public class OobOperation extends ModuleOperation {
       insufficientGas =
           callToLT(
               4, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
+      insufficientGasForPrecompile = insufficientGas;
     } else {
       noCall(4);
     }
@@ -1048,7 +1044,6 @@ public class OobOperation extends ModuleOperation {
       noCall(3);
       // Note: this noCall is not explicitly indicated in the specs since not necessary
       // Here it is done only to initialize the corresponding array elements to fill the trace
-      // TODO: init the lists with zeros (or something equivalent) instead of using noCall
     }
 
     // Set loadLead
@@ -1120,6 +1115,7 @@ public class OobOperation extends ModuleOperation {
             prcModexpPricingOobCall.getCallGas(),
             BigInteger.ZERO,
             precompileCost);
+    insufficientGasForPrecompile = !ramSuccess;
 
     // Set ramSuccess
     prcModexpPricingOobCall.setRamSuccess(ramSuccess);
@@ -1198,6 +1194,8 @@ public class OobOperation extends ModuleOperation {
             prcBlake2FParamsOobCall.getCalleeGas(),
             BigInteger.ZERO,
             prcBlake2FParamsOobCall.getBlakeR()); // = ramSuccess
+    precompileCost = prcBlake2FParamsOobCall.getBlakeR();
+    insufficientGasForPrecompile = !sufficientGas;
 
     // row i + 1
     final boolean fIsABit =

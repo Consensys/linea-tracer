@@ -35,8 +35,8 @@ import net.consensys.linea.blockcapture.snapshots.TransactionResultSnapshot;
 import net.consensys.linea.blockcapture.snapshots.TransactionSnapshot;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.ZkTracer;
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.commons.io.FileUtils;
 import org.apache.tuweni.bytes.Bytes;
@@ -60,11 +60,10 @@ import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 @Slf4j
 public class ReplayExecutionEnvironment {
   /** Chain ID for Linea mainnet */
-  public static final BigInteger LINEA_MAINNET = BigInteger.valueOf(GlobalConstants.LINEA_CHAIN_ID);
+  public static final BigInteger LINEA_MAINNET = BigInteger.valueOf(Trace.LINEA_CHAIN_ID);
 
   /** Chain ID for Linea sepolia */
-  public static final BigInteger LINEA_SEPOLIA =
-      BigInteger.valueOf(GlobalConstants.LINEA_SEPOLIA_CHAIN_ID);
+  public static final BigInteger LINEA_SEPOLIA = BigInteger.valueOf(Trace.LINEA_SEPOLIA_CHAIN_ID);
 
   /** Used for checking resulting trace files. */
   private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
@@ -99,12 +98,12 @@ public class ReplayExecutionEnvironment {
 
   private ZkTracer zkTracer;
 
-  public void checkTracer(String inputFilePath) {
+  public void checkTracer(String inputFilePath, long startBlock, long endBlock) {
     // Generate the output file path based on the input file path
     Path inputPath = Paths.get(inputFilePath);
     String outputFileName = inputPath.getFileName().toString().replace(".json.gz", ".lt");
     Path outputPath = inputPath.getParent().resolve(outputFileName);
-    this.zkTracer.writeToFile(outputPath);
+    this.zkTracer.writeToFile(outputPath, startBlock, endBlock);
     log.info("trace written to `{}`", outputPath);
     // validation is disabled by default for replayBulk
     // assertThat(CORSET_VALIDATOR.validate(outputPath).isValid()).isTrue();
@@ -126,7 +125,12 @@ public class ReplayExecutionEnvironment {
       return;
     }
     this.executeFrom(chainId, conflation);
-    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
+    ExecutionEnvironment.checkTracer(
+        zkTracer,
+        CORSET_VALIDATOR,
+        Optional.of(log),
+        conflation.firstBlockNumber(),
+        conflation.lastBlockNumber());
   }
 
   public void replay(BigInteger chainId, final Reader replayFile, String inputFilePath) {
@@ -139,12 +143,17 @@ public class ReplayExecutionEnvironment {
       return;
     }
     this.executeFrom(chainId, conflation);
-    this.checkTracer(inputFilePath);
+    this.checkTracer(inputFilePath, conflation.firstBlockNumber(), conflation.lastBlockNumber());
   }
 
   public void replay(BigInteger chainId, ConflationSnapshot conflation) {
     this.executeFrom(chainId, conflation);
-    ExecutionEnvironment.checkTracer(zkTracer, CORSET_VALIDATOR, Optional.of(log));
+    ExecutionEnvironment.checkTracer(
+        zkTracer,
+        CORSET_VALIDATOR,
+        Optional.of(log),
+        conflation.firstBlockNumber(),
+        conflation.lastBlockNumber());
   }
 
   /**

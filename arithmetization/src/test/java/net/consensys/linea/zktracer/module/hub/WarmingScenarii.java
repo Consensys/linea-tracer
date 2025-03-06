@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,19 +13,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.shf;
+package net.consensys.linea.zktracer.module.hub;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import net.consensys.linea.zktracer.module.ModuleTrace;
-
-/**
- * WARNING: This code is generated automatically. Any modifications to this code may be overwritten
- * and could lead to unexpected behavior. Please DO NOT ATTEMPT TO MODIFY this code directly.
- */
-record ShfTrace(@JsonProperty("Trace") Trace trace) implements ModuleTrace {
-
-  @Override
-  public int length() {
-    return this.trace.size();
-  }
+public enum WarmingScenarii {
+  NO_WARMING,
+  WARMING_SENDER,
+  WARMING_EFFECTIVE_RECIPIENT,
+  WARMING_COINBASE,
+  WARMING_PRECOMPILE,
+  WARMING_TO_BE_DEPLOYED_STORAGE,
+  RANDOM_ADDRESS_DUPLICATE
 }

@@ -15,12 +15,13 @@
 
 package net.consensys.linea.zktracer.module.shf;
 
-import java.nio.MappedByteBuffer;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import java.util.List;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -40,25 +41,25 @@ public class Shf implements OperationSetModule<ShfOperation> {
   }
 
   @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
-    final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
-    operations.add(
-        new ShfOperation(OpCode.of(frame.getCurrentOperation().getOpcode()), arg1, arg2));
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
+    if (opcode == SHL || opcode == SHR || opcode == SAR) {
+
+      final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
+      final Bytes32 arg2 = Bytes32.leftPad(frame.getStackItem(1));
+      operations.add(new ShfOperation(opcode, arg1, arg2));
+    }
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Shf.headers(this.lineCount());
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-
+  public void commit(Trace trace) {
     int stamp = 0;
     for (ShfOperation op : operations.sortOperations(new ShfOperationComparator())) {
-      op.trace(trace, ++stamp);
+      op.trace(trace.shf, ++stamp);
     }
   }
 }

@@ -15,7 +15,7 @@
 
 package net.consensys.linea.testing;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
+import static net.consensys.linea.zktracer.Trace.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
@@ -58,7 +58,7 @@ public class ExecutionEnvironment {
   public static final String CORSET_VALIDATION_RESULT = "Corset validation result: ";
 
   static GenesisConfig GENESIS_CONFIG =
-      GenesisConfig.fromSource(GenesisConfig.class.getResource("/linea.json"));
+      GenesisConfig.fromSource(ExecutionEnvironment.class.getResource("/linea.json"));
 
   static final BlockHeaderBuilder DEFAULT_BLOCK_HEADER_BUILDER =
       BlockHeaderBuilder.createDefault()
@@ -70,13 +70,17 @@ public class ExecutionEnvironment {
           .blockHeaderFunctions(new CliqueBlockHeaderFunctions());
 
   public static void checkTracer(
-      ZkTracer zkTracer, CorsetValidator corsetValidator, Optional<Logger> logger) {
+      ZkTracer zkTracer,
+      CorsetValidator corsetValidator,
+      Optional<Logger> logger,
+      long startBlock,
+      long endBlock) {
     Path traceFilePath = null;
     boolean traceValidated = false;
     try {
       String prefix = constructTestPrefix();
       traceFilePath = Files.createTempFile(prefix, ".lt");
-      zkTracer.writeToFile(traceFilePath);
+      zkTracer.writeToFile(traceFilePath, startBlock, endBlock);
       final Path finalTraceFilePath = traceFilePath;
       logger.ifPresent(log -> log.debug("trace written to {}", finalTraceFilePath));
       CorsetValidator.Result corsetValidationResult = corsetValidator.validate(traceFilePath);
@@ -113,6 +117,7 @@ public class ExecutionEnvironment {
 
     return blockHeaderBuilder
         .baseFee(Wei.of(LINEA_BASE_FEE))
+        // TODO: refacto this block gas limit
         .gasLimit(LINEA_BLOCK_GAS_LIMIT)
         .difficulty(Difficulty.of(LINEA_DIFFICULTY));
   }

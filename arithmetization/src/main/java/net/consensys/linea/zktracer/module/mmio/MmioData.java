@@ -16,17 +16,17 @@
 package net.consensys.linea.zktracer.module.mmio;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGEMO;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_TO_RAM_ONE_TARGET;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_TO_RAM_TRANSPLANT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_TO_RAM_TWO_TARGET;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_LIMB_VANISHES;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_TRANSPLANT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_TO_RAM_TRANSPLANT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MMIO_INST_RAM_VANISHES;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.Trace.LLARGEMO;
+import static net.consensys.linea.zktracer.Trace.MMIO_INST_LIMB_TO_RAM_ONE_TARGET;
+import static net.consensys.linea.zktracer.Trace.MMIO_INST_LIMB_TO_RAM_TRANSPLANT;
+import static net.consensys.linea.zktracer.Trace.MMIO_INST_LIMB_TO_RAM_TWO_TARGET;
+import static net.consensys.linea.zktracer.Trace.MMIO_INST_LIMB_VANISHES;
+import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_TO_LIMB_ONE_SOURCE;
+import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_TO_LIMB_TRANSPLANT;
+import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_TO_LIMB_TWO_SOURCE;
+import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_TO_RAM_TRANSPLANT;
+import static net.consensys.linea.zktracer.Trace.MMIO_INST_RAM_VANISHES;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.antiPower;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.isolateChunk;
 import static net.consensys.linea.zktracer.module.mmio.MmioPatterns.isolatePrefix;
@@ -164,13 +164,11 @@ public class MmioData {
   }
 
   public static boolean isFastOperation(final int mmioInstruction) {
-    return List.of(
-            MMIO_INST_LIMB_VANISHES,
-            MMIO_INST_LIMB_TO_RAM_TRANSPLANT,
-            MMIO_INST_RAM_TO_LIMB_TRANSPLANT,
-            MMIO_INST_RAM_TO_RAM_TRANSPLANT,
-            MMIO_INST_RAM_VANISHES)
-        .contains(mmioInstruction);
+    return (mmioInstruction == MMIO_INST_LIMB_VANISHES
+        || mmioInstruction == MMIO_INST_LIMB_TO_RAM_TRANSPLANT
+        || mmioInstruction == MMIO_INST_RAM_TO_LIMB_TRANSPLANT
+        || mmioInstruction == MMIO_INST_RAM_TO_RAM_TRANSPLANT
+        || mmioInstruction == MMIO_INST_RAM_VANISHES);
   }
 
   public static int lineCountOfMmioInstruction(final int mmioInstruction) {

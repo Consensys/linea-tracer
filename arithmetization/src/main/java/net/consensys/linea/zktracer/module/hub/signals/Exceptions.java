@@ -15,15 +15,15 @@
 
 package net.consensys.linea.zktracer.module.hub.signals;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EIP_3541_MARKER;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.MAX_CODE_SIZE;
+import static net.consensys.linea.zktracer.Trace.EIP_3541_MARKER;
+import static net.consensys.linea.zktracer.Trace.MAX_CODE_SIZE;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static org.hyperledger.besu.evm.internal.Words.clampedToInt;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.function.Consumer;
 
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -33,7 +33,6 @@ import org.hyperledger.besu.evm.internal.Words;
 
 /** Encode the exceptions that may be triggered by the execution of an instruction. */
 public class Exceptions {
-  private Exceptions() {}
 
   public static final short NONE = 0; // no exceptions occurred
   public static final short INVALID_OPCODE = 1; // unknown opcode
@@ -51,13 +50,6 @@ public class Exceptions {
 
   public static boolean stackException(final short bitmask) {
     return stackOverflow(bitmask) || stackUnderflow(bitmask);
-  }
-
-  /**
-   * @return true if no stack exception has been raised
-   */
-  public static boolean noStackException(final short bitmask) {
-    return !stackException(bitmask);
   }
 
   /**
@@ -201,8 +193,7 @@ public class Exceptions {
   }
 
   private static boolean isOutOfSStore(MessageFrame frame, OpCode opCode) {
-    return opCode == OpCode.SSTORE
-        && frame.getRemainingGas() <= GlobalConstants.GAS_CONST_G_CALL_STIPEND;
+    return opCode == OpCode.SSTORE && frame.getRemainingGas() <= Trace.GAS_CONST_G_CALL_STIPEND;
   }
 
   private static boolean isInvalidCodePrefix(MessageFrame frame) {

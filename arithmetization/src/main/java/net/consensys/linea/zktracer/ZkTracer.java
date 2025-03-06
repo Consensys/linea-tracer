@@ -18,16 +18,15 @@ package net.consensys.linea.zktracer;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
@@ -76,19 +75,22 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   /** Accumulate all the exceptions that happened at tracing time. */
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
+  // Fields for metadata
+  private final BigInteger chainId;
+
   public ZkTracer() {
     this(
-        LineaL1L2BridgeSharedConfiguration.EMPTY,
+        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT,
         Bytes.fromHexString("c0ffee").toUnsignedBigInteger());
   }
 
   public ZkTracer(BigInteger nonnegativeChainId) {
-    this(LineaL1L2BridgeSharedConfiguration.EMPTY, nonnegativeChainId);
+    this(LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, nonnegativeChainId);
   }
 
   public ZkTracer(
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    ;
+    this.chainId = chainId;
     this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chainId);
     for (Module m : this.hub.getModulesToCount()) {
       if (!spillings.containsKey(m.moduleKey())) {
@@ -107,37 +109,35 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
   }
 
-  public void writeToFile(final Path filename) {
+  public void writeToFile(final Path filename, long startBlock, long endBlock) {
     maybeThrowTracingExceptions();
 
-    final List<Module> modules = hub.getModulesToTrace();
-    final List<ColumnHeader> traceMap =
-        modules.stream().flatMap(m -> m.columnsHeaders().stream()).toList();
-    final int headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum() + 4;
-
+    final List<Module> modulesToTrace = hub.getModulesToTrace();
+    final List<Trace.ColumnHeader> headers =
+        modulesToTrace.stream().flatMap(m -> m.columnHeaders().stream()).toList();
+    // Configure metadata
+    final Map<String, Object> metadata = Trace.metadata();
+    metadata.put("chainId", this.chainId.toString());
+    metadata.put("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
+    // include block range
+    final Map<String, String> range = new HashMap<>();
+    range.put("start", Long.toString(startBlock));
+    range.put("end", Long.toString(endBlock));
+    metadata.put("conflation", range);
+    // include line counts
+    final Map<String, String> lineCounts = new HashMap<>();
+    for (Module m : hub.getModulesToCount()) {
+      lineCounts.put(m.moduleKey(), Integer.toString(m.lineCount()));
+    }
+    metadata.put("lineCounts", lineCounts);
+    //
     try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
-      file.setLength(traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum());
-      final MappedByteBuffer header =
-          file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, headerSize);
-
-      header.putInt(traceMap.size());
-      for (ColumnHeader h : traceMap) {
-        final String name = h.name();
-        header.putShort((short) name.length());
-        header.put(name.getBytes());
-        header.put((byte) h.bytesPerElement());
-        header.putInt(h.length());
+      final Trace trace = Trace.of(file, headers, getMetadataBytes(metadata));
+      // Commit each module
+      for (Module m : modulesToTrace) {
+        m.commit(trace);
       }
-      long offset = headerSize;
-      for (Module m : modules) {
-        final List<MappedByteBuffer> buffers = new ArrayList<>();
-        for (ColumnHeader columnHeader : m.columnsHeaders()) {
-          final int columnLength = columnHeader.dataSize();
-          buffers.add(file.getChannel().map(FileChannel.MapMode.READ_WRITE, offset, columnLength));
-          offset += columnLength;
-        }
-        m.commit(buffers);
-      }
+      // Close the file
       file.getChannel().force(false);
     } catch (IOException e) {
       log.error("Error while writing to the file {}", filename);
@@ -337,5 +337,12 @@ public class ZkTracer implements ConflationAwareOperationTracer {
                                             + " not found in spillings.toml"))));
     modulesLineCount.put("BLOCK_TRANSACTIONS", hub.cumulatedTxCount());
     return modulesLineCount;
+  }
+
+  /** Object writer is used for generating JSON byte strings. */
+  private static final ObjectWriter objectWriter = new ObjectMapper().writer();
+
+  public static byte[] getMetadataBytes(Map<String, Object> metadata) throws IOException {
+    return objectWriter.writeValueAsBytes(metadata);
   }
 }

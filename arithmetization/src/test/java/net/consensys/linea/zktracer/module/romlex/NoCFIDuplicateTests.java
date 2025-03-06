@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 public class NoCFIDuplicateTests {
 
   /**
-   * This test checks that teh ROM_LEX doesn't create duplicate of CFI when calling twice the same
+   * This test checks that the ROM_LEX doesn't create duplicate of CFI when calling twice the same
    * contract.
    */
   @Test

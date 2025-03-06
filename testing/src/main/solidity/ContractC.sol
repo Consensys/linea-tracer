@@ -23,7 +23,7 @@ contract ContractC {
         ICustomCreate2(addCustomCreate2).create2WithInitCodeC();
     }
 
-    function revertOnDemand() pure public {
+    function revertOnDemand() public {
         revert();
     }
 

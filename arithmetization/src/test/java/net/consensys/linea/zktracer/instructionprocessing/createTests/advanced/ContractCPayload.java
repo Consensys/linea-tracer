@@ -20,7 +20,6 @@ import java.util.Collections;
 import net.consensys.linea.testing.generated.ContractC;
 import org.apache.tuweni.bytes.Bytes;
 import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
 
 public class ContractCPayload {
@@ -32,16 +31,28 @@ public class ContractCPayload {
             Arrays.asList(
                 new org.web3j.abi.datatypes.generated.Uint256(key),
                 new org.web3j.abi.datatypes.Address(160, add)),
-            Collections.<TypeReference<?>>emptyList());
+            Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
-  public static Bytes selfDestruct() {
+  public static Bytes callBackCustomCreate2(String addCustomCreate2) {
     Function function =
         new Function(
-            ContractC.FUNC_SELFDESTRUCTONDEMAND,
-            Arrays.asList(),
-            Collections.<TypeReference<?>>emptyList());
+            ContractC.FUNC_CALLBACKCUSTOMCREATE2,
+            Arrays.asList(new org.web3j.abi.datatypes.Address(160, addCustomCreate2)),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes revertOnDemand() {
+    Function function =
+        new Function(ContractC.FUNC_REVERTONDEMAND, Arrays.asList(), Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes selfDestructOnDemand() {
+    Function function =
+        new Function(ContractC.FUNC_SELFDESTRUCTONDEMAND, Arrays.asList(), Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 }

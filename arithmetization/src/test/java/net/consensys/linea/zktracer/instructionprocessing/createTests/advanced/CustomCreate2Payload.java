@@ -20,7 +20,6 @@ import java.util.Collections;
 import net.consensys.linea.testing.generated.CustomCreate2;
 import org.apache.tuweni.bytes.Bytes;
 import org.web3j.abi.FunctionEncoder;
-import org.web3j.abi.TypeReference;
 import org.web3j.abi.datatypes.Function;
 
 public class CustomCreate2Payload {
@@ -46,6 +45,17 @@ public class CustomCreate2Payload {
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
+  public static Bytes storeInitCodeCWithImmediateCallBack(String initCodeCWithImmediateCallBack) {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_STOREINITCODECWITHIMMEDIATECALLBACK,
+            Arrays.asList(
+                new org.web3j.abi.datatypes.DynamicBytes(
+                    Bytes.fromHexString(initCodeCWithImmediateCallBack).toArray())),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
   public static Bytes create2WithInitCodeC() {
     Function function =
         new Function(
@@ -53,12 +63,43 @@ public class CustomCreate2Payload {
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
-  public static Bytes callContractCSelfDestructOnDemand(boolean staticCall) {
+  public static Bytes create2WithCallBackAfterCreate2() {
     Function function =
         new Function(
-            CustomCreate2.FUNC_CALLCONTRACTSELFDESTRUCTONDEMAND,
-            Arrays.asList(new org.web3j.abi.datatypes.Bool(staticCall)),
-            Collections.<TypeReference<?>>emptyList());
+            CustomCreate2.FUNC_CREATE2WITHCALLBACKAFTERCREATE2,
+            Arrays.asList(),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes create2WithImmediateCallBack() {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CREATE2WITHIMMEDIATECALLBACK,
+            Arrays.asList(),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes callMyself(Bytes executePayload, Boolean staticCall) {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CALLMYSELF,
+            Arrays.asList(
+                new org.web3j.abi.datatypes.DynamicBytes(executePayload.toArray()),
+                new org.web3j.abi.datatypes.Bool(staticCall)),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes callContractC(Bytes executePayload, Boolean staticCall) {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CALLCONTRACTC,
+            Arrays.asList(
+                new org.web3j.abi.datatypes.DynamicBytes(executePayload.toArray()),
+                new org.web3j.abi.datatypes.Bool(staticCall)),
+            Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 }

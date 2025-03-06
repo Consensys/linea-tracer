@@ -200,9 +200,6 @@ public class TransactionAccountTest {
 
     Address key = fragment.oldState().address();
 
-    // Initialise the Account First and Last map
-    /*    final Map<Address, FragmentFirstAndLast<AccountFragment>>
-    txnAccountFirstAndLastMap = accountFirstAndLastMap;*/
     if (!accountFirstAndLastMap.containsKey(key)) {
       FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
           new FragmentFirstAndLast<AccountFragment>(fragment, fragment, dom, sub, dom, sub);

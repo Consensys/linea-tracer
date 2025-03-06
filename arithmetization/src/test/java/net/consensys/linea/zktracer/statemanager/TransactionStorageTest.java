@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.statemanager;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,8 +28,6 @@ import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import net.consensys.linea.testing.generated.FrameworkEntrypoint;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
-import net.consensys.linea.zktracer.module.hub.section.SloadSection;
-import net.consensys.linea.zktracer.module.hub.section.SstoreSection;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
@@ -35,16 +35,6 @@ import org.junit.jupiter.api.Test;
 
 public class TransactionStorageTest {
   TestContext tc;
-
-  class AddStorageKeyPair {
-    public final String address;
-    public final EWord key;
-
-    public AddStorageKeyPair(String address, EWord key) {
-      this.address = address;
-      this.key = key;
-    }
-  }
 
   @Test
   void testTransactionMapStorage() {
@@ -95,6 +85,7 @@ public class TransactionStorageTest {
         .build()
         .run();
 
+    // Initialize the storageFirstAndLastMap list
     List<Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>>>
         storageFirstAndLastMapList = new ArrayList<>();
 
@@ -102,7 +93,7 @@ public class TransactionStorageTest {
     int txCount = MultiBlockExecutionEnvironment.getHub().state().txCount();
     // We iterate over the transactions
     for (int txNb = 0; txNb < txCount; txNb++) {
-      // We create an storageFirstAndLastMapList for each transaction
+      // We create an storageFirstAndLastMap for each transaction
       storageFirstAndLastMapList.add(new HashMap<>());
       // We retrieve the trace section list
       List<TraceSection> traceSectionList =
@@ -116,60 +107,18 @@ public class TransactionStorageTest {
       // For each trace section
       for (TraceSection traceSection : traceSectionList) {
         // We iterate over the fragments
-        try {
-          SloadSection sloadSection = (SloadSection) traceSection;
-          Address address = sloadSection.getAccountAddress();
-          EWord key = EWord.of(sloadSection.getStorageKey());
-          for (TraceFragment traceFragment : sloadSection.fragments()) {
-            // We cast them to StorageFragment
-            // If an exception occurs, it means the Fragment is not an AccountFragment so we
-            // disregard it and continue
-            try {
-              StorageFragment storageFragment = (StorageFragment) traceFragment;
-              // We update the storageFirstAndLastMapList
-              updateStorageFirstAndLast(
-                  storageFragment, storageFirstAndLastMapList.get(txNb), Map.of(address, key));
-            } catch (Exception e) {
-              // ignore
-            }
-          }
-        } catch (Exception e) {
+        for (TraceFragment traceFragment : traceSection.fragments()) {
+          // We cast them to StorageFragment
+          // If an exception occurs, it means the Fragment is not a StorageFragment so we
+          // disregard it and continue
           try {
-            SstoreSection sstoreSection = (SstoreSection) traceSection;
-            Address address = sstoreSection.getAccountAddress();
-            EWord key = EWord.of(sstoreSection.getStorageKey());
-            for (TraceFragment traceFragment : sstoreSection.fragments()) {
-              // We cast them to StorageFragment
-              // If an exception occurs, it means the Fragment is not an AccountFragment so we
-              // disregard it and continue
-              try {
-                StorageFragment storageFragment = (StorageFragment) traceFragment;
-                // We update the storageFirstAndLastMapList
-                updateStorageFirstAndLast(
-                    storageFragment, storageFirstAndLastMapList.get(txNb), Map.of(address, key));
-              } catch (Exception eee) {
-                /*                try {
-                  TxPreWarmingMacroSection txPreWarmingMacroSection = (TxPreWarmingMacroSection) traceSection;
-                  Address address = txPreWarmingMacroSection.getAccountAddress();
-                  EWord key = EWord.of(txPreWarmingMacroSection.getStorageKey());
-                  for (TraceFragment traceFragment : txPreWarmingMacroSection.fragments()) {
-                    // We cast them to StorageFragment
-                    // If an exception occurs, it means the Fragment is not an AccountFragment so we
-                    // disregard it and continue
-                    try {
-                      StorageFragment storageFragment = (StorageFragment) traceFragment;
-                      // We update the storageFirstAndLastMapList
-                      updateStorageFirstAndLast(storageFragment, storageFirstAndLastMapList.get(txNb), Map.of(address, key));
-                    } catch (Exception eee) {
-                      // ignore
-                    }
-                  }
-                } catch (Exception ee) {
-                  // ignore
-                }*/
-              }
-            }
-          } catch (Exception ee) {
+            StorageFragment storageFragment = (StorageFragment) traceFragment;
+            Address address = storageFragment.getStorageSlotIdentifier().getAddress();
+            EWord key = storageFragment.getStorageSlotIdentifier().getStorageKey();
+            // We update the storageFirstAndLastMapList
+            updateStorageFirstAndLast(
+                storageFragment, storageFirstAndLastMapList.get(txNb), Map.of(address, key));
+          } catch (Exception e) {
             // ignore
           }
         }
@@ -197,27 +146,21 @@ public class TransactionStorageTest {
       },
     };
     // prepare the key pairs
-    Map<Address, EWord> addrStorageKeyMap =
-        Map.of(tc.initialAccounts[0].getAddress(), EWord.of(3L));
-    /*
-            TransactionProcessingMetadata.AddrStorageKeyPair[] keys = {
-                    new TransactionProcessingMetadata.AddrStorageKeyPair(tc.initialAccounts[0].getAddress(), EWord.of(3L)),
-            };
-    */
+    List<Map<Address, EWord>> addrStorageKeyMap =
+        List.of(Map.of(tc.initialAccounts[0].getAddress(), EWord.of(3L)));
 
-    // blocks are numbered starting from 1
-    /*        for (int txCounter = 1; txCounter <= txn.size(); txCounter++) {
-        Map<AddrStorageKeyPair, FragmentFirstAndLast<StorageFragment>>
-                storageMap = txn.get(txCounter-1).getStorageFirstAndLastMap();
-        for (int i = 0; i < keys.length; i++) {
-            FragmentFirstAndLast<StorageFragment>
-                    storageData = storageMap.get(keys[i]);
-            // asserts for the first and last storage values in conflation
-            // -1 due to block numbering
-            assertEquals(expectedFirst[txCounter-1][i], storageData.getFirst().getValueCurrent());
-            assertEquals(expectedLast[txCounter-1][i], storageData.getLast().getValueNext());
-        }
-    }*/
+    for (int txCounter = 0; txCounter < txCount; txCounter++) {
+      Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>> storageMap =
+          storageFirstAndLastMapList.get(txCounter);
+      for (int i = 0; i < addrStorageKeyMap.size(); i++) {
+        FragmentFirstAndLast<StorageFragment> storageData =
+            storageMap.get(addrStorageKeyMap.get(i));
+        // asserts for the first and last storage values in conflation
+        // -1 due to block numbering
+        assertEquals(expectedFirst[txCounter][i], storageData.getFirst().getValueCurrent());
+        assertEquals(expectedLast[txCounter][i], storageData.getLast().getValueNext());
+      }
+    }
 
     System.out.println("Done");
   }
@@ -230,16 +173,12 @@ public class TransactionStorageTest {
     int dom = fragment.getDomSubStampsSubFragment().domStamp();
     int sub = fragment.getDomSubStampsSubFragment().subStamp();
 
-    // Initialise the Storage First and Last map
-    /*          final Map<
-    AddrStorageKeyPair, FragmentFirstAndLast<StorageFragment>>
-    txnStorageFirstAndLastMap = storageFirstAndLastMap;*/
     if (!storageFirstAndLastMap.containsKey(key)) {
       FragmentFirstAndLast<StorageFragment> txnFirstAndLast =
           new FragmentFirstAndLast<StorageFragment>(fragment, fragment, dom, sub, dom, sub);
       storageFirstAndLastMap.put(key, txnFirstAndLast);
     } else {
-      // the storage key has already been acessed for this account
+      // the storage key has already been accessed for this account
       FragmentFirstAndLast<StorageFragment> txnFirstAndLast = storageFirstAndLastMap.get(key);
       // Replace condition
       if (FragmentFirstAndLast.strictlySmallerStamps(

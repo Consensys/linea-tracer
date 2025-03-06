@@ -65,7 +65,12 @@ public class InitCodeTests {
     List<ToyTransactionBuilder> txBuilders =
         getTransactionBuilders(
             customCreate2Account,
-            List.of(storeCodeC, storeSalt, create2WithCodeC, create2WithCodeC));
+            List.of(
+                storeCodeC,
+                storeSalt,
+                create2WithCodeC,
+                callContractCSelfDestructOnDemand,
+                create2WithCodeC));
 
     /*    List<ToyTransactionBuilder> builders = new ArrayList<>();
     builders.addAll(txBuilders);*/

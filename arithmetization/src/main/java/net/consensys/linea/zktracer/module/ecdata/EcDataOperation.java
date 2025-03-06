@@ -529,7 +529,6 @@ public class EcDataOperation extends ModuleOperation {
       final Pair<Boolean, Boolean> callToC1MembershipReturnedValues =
           callToC1Membership(rowsOffset, aX, aY);
       final boolean c1Membership = callToC1MembershipReturnedValues.getLeft();
-      final boolean smallPointIsAtInfinity = callToC1MembershipReturnedValues.getRight();
 
       // row i + 4
       final Pair<Boolean, Boolean> callToWellFormedCoordinatesReturnedValues =
@@ -553,7 +552,6 @@ public class EcDataOperation extends ModuleOperation {
           atLeastOneLargePointIsNotInfinity = true;
           firstLargePointNotInfinity = true;
         }
-
         if (firstLargePointNotInfinity) {
           if (i > CT_MAX_SMALL_POINT) {
             // Transition should happen at the beginning of large point

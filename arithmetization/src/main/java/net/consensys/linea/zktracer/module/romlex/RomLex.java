@@ -179,7 +179,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
         checkArgument(length > 0, "callRomLex for RETURN expects positive size");
 
         byteCode = frame.shadowReadMemory(offset, length);
-        Address deploymentAddress = hub.currentFrame().byteCodeAddress();
+        final Address deploymentAddress = hub.currentFrame().byteCodeAddress();
         final ContractMetadata contractMetadata =
             ContractMetadata.make(
                 deploymentAddress, hub.deploymentNumberOf(deploymentAddress), false);
@@ -285,6 +285,11 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
     // WARN: the line count for the RomLex is the *number of code fragments*, not their actual line
     // count – that's for the ROM.
     return operations.size();
+  }
+
+  @Override
+  public int spillage() {
+    return Trace.Romlex.SPILLAGE;
   }
 
   @Override

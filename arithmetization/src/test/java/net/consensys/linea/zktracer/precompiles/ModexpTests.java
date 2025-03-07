@@ -22,6 +22,8 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,12 +62,17 @@ public class ModexpTests {
             .push(0)
             .push(0)
             .push(0)
-            .push(0x05) // address
+            .push(Address.MODEXP) // address
             .push(0xffff) // gas
             .op(OpCode.CALL)
             .op(OpCode.POP)
             .compile();
-    BytecodeRunner.of(bytecode).run();
+
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
+    bytecodeRunner.run();
+
+    // check precompile limits line count
+    assertEquals(1, bytecodeRunner.getHub().modexpEffectiveCall().lineCount());
   }
 
   @Test
@@ -103,7 +110,12 @@ public class ModexpTests {
             .op(OpCode.CALL)
             .op(OpCode.POP)
             .compile();
-    BytecodeRunner.of(bytecode).run();
+
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
+    bytecodeRunner.run();
+
+    // check precompile limits line count
+    assertEquals(1, bytecodeRunner.getHub().modexpEffectiveCall().lineCount());
   }
 
   @Test
@@ -116,7 +128,11 @@ public class ModexpTests {
     BytecodeCompiler program =
         preparingBaseExponentAndModulusForModexpAndRunningVariousModexps(hexBase, hexExpn, hexModl);
 
-    BytecodeRunner.of(program.compile()).run();
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+
+    // check precompile limits line count
+    assertTrue(bytecodeRunner.getHub().modexpEffectiveCall().lineCount() > 0);
   }
 
   @Test
@@ -129,7 +145,11 @@ public class ModexpTests {
     BytecodeCompiler program =
         preparingBaseExponentAndModulusForModexpAndRunningVariousModexps(hexBase, hexExpn, hexModl);
 
-    BytecodeRunner.of(program.compile()).run();
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run();
+
+    // check precompile limits line count
+    assertTrue(bytecodeRunner.getHub().modexpEffectiveCall().lineCount() > 0);
   }
 
   int byteSize(String hexString) {

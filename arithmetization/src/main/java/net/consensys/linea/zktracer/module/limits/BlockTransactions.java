@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mxp;
+package net.consensys.linea.zktracer.module.limits;
 
 import java.util.List;
 
@@ -22,43 +22,43 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
-import net.consensys.linea.zktracer.container.module.OperationListModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.module.hub.Hub;
 
-/** Implementation of a {@link Module} for memory expansion. */
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public class Mxp implements OperationListModule<MxpOperation> {
-
-  private final ModuleOperationStackedList<MxpOperation> operations =
-      new ModuleOperationStackedList<>();
+public class BlockTransactions implements Module {
+  private final Hub hub;
+  private final CountOnlyOperation counts = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {
-    return "MXP";
+    return "BLOCK_TRANSACTIONS";
   }
 
   @Override
-  public List<Trace.ColumnHeader> columnHeaders() {
-    return Trace.Mxp.headers(this.lineCount());
+  public void popTransactionBundle() {}
+
+  @Override
+  public void commitTransactionBundle() {}
+
+  @Override
+  public int lineCount() {
+    final int hubNumberOfTx = hub.state.txCount();
+    final int txnDataNumberOfTx = hub.txnData().operations().size();
+    assert (hubNumberOfTx == txnDataNumberOfTx);
+
+    return txnDataNumberOfTx;
   }
 
   @Override
   public int spillage() {
-    return Trace.Mxp.SPILLAGE;
+    return 0;
   }
 
   @Override
-  public void commit(Trace trace) {
-    int stamp = 0;
-    for (MxpOperation op : operations.getAll()) {
-      op.trace(++stamp, trace.mxp);
-    }
-  }
-
-  public void call(MxpCall mxpCall) {
-    operations.add(new MxpOperation(mxpCall));
+  public List<Trace.ColumnHeader> columnHeaders() {
+    throw new UnsupportedOperationException("Not implemented");
   }
 }

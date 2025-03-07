@@ -70,6 +70,11 @@ public class EcData implements OperationListModule<EcDataOperation> {
   }
 
   @Override
+  public int spillage() {
+    return Trace.Ecdata.SPILLAGE;
+  }
+
+  @Override
   public void commit(Trace trace) {
     int stamp = 0;
     long previousId = 0;
@@ -84,8 +89,7 @@ public class EcData implements OperationListModule<EcDataOperation> {
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       final Bytes callData,
       final Bytes returnData) {
-    ecDataOperation =
-        EcDataOperation.of(this.wcp, this.ext, id, precompileFlag, callData, returnData);
+    ecDataOperation = EcDataOperation.of(wcp, ext, id, precompileFlag, callData, returnData);
     operations.add(ecDataOperation);
 
     switch (ecDataOperation.precompileFlag()) {
@@ -116,13 +120,13 @@ public class EcData implements OperationListModule<EcDataOperation> {
         }
         if (ecDataOperation.internalChecksPassed()
             && !ecDataOperation.notOnG2AccMax()
-            && ecDataOperation.overallTrivialPairing().getLast()) {
+            && ecDataOperation.isOverallTrivialPairing()) {
           ecPairingG2MembershipCalls.updateTally(0);
           // The circuit is never invoked in the case of a trivial pairing
         }
         if (ecDataOperation.internalChecksPassed()
             && !ecDataOperation.notOnG2AccMax()
-            && !ecDataOperation.overallTrivialPairing().getLast()) {
+            && !ecDataOperation.isOverallTrivialPairing()) {
           ecPairingG2MembershipCalls.updateTally(
               ecDataOperation.circuitSelectorG2MembershipCounter());
           // The circuit is invoked as many times as there are points predicted to be on G2

@@ -15,9 +15,6 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
-import static net.consensys.linea.zktracer.Trace.Oob.G_QUADDIVISOR;
-import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.populateMemory;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLAKE2_PER_ROUND;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_ECADD;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_ECMUL;
@@ -31,8 +28,11 @@ import static net.consensys.linea.zktracer.Trace.GAS_CONST_RIPEMD;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_RIPEMD_WORD;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_SHA2;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_SHA2_WORD;
+import static net.consensys.linea.zktracer.Trace.Oob.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.Trace.PRC_ECPAIRING_SIZE;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE_MO;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.populateMemory;
 import static org.hyperledger.besu.datatypes.Address.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;

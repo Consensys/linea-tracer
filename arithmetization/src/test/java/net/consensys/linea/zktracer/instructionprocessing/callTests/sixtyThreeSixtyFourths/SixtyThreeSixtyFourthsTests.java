@@ -16,11 +16,12 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeSixtyFourths;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_CALL_VALUE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_NEW_ACCOUNT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_CONST_G_WARM_ACCESS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.PRC_BLAKE2F_SIZE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_CALL_STIPEND;
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_CALL_VALUE;
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_NEW_ACCOUNT;
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_WARM_ACCESS;
+import static net.consensys.linea.zktracer.Trace.PRC_BLAKE2F_SIZE;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
@@ -54,7 +55,6 @@ import java.util.stream.Stream;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.oob.OobOperation;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -359,7 +359,7 @@ public class SixtyThreeSixtyFourthsTests {
     /  63 * k + l + stipend = targetCalleeGas
     /  find gasLimit going backwards
     */
-    final long stipend = transfersValue ? GlobalConstants.GAS_CONST_G_CALL_STIPEND : 0;
+    final long stipend = transfersValue ? GAS_CONST_G_CALL_STIPEND : 0;
     checkArgument(targetCalleeGas >= stipend);
     final long l = (targetCalleeGas - stipend) % 63;
     final long k = (targetCalleeGas - stipend - l) / 63;

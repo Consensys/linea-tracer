@@ -45,17 +45,6 @@ public class CustomCreate2Payload {
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
-  public static Bytes storeInitCodeCWithImmediateCallBack(String initCodeCWithImmediateCallBack) {
-    Function function =
-        new Function(
-            CustomCreate2.FUNC_STOREINITCODECWITHIMMEDIATECALLBACK,
-            Arrays.asList(
-                new org.web3j.abi.datatypes.DynamicBytes(
-                    Bytes.fromHexString(initCodeCWithImmediateCallBack).toArray())),
-            Collections.emptyList());
-    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
-  }
-
   public static Bytes create2WithInitCodeC() {
     Function function =
         new Function(
@@ -67,15 +56,6 @@ public class CustomCreate2Payload {
     Function function =
         new Function(
             CustomCreate2.FUNC_CREATE2WITHCALLBACKAFTERCREATE2,
-            Arrays.asList(),
-            Collections.emptyList());
-    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
-  }
-
-  public static Bytes create2WithImmediateCallBack() {
-    Function function =
-        new Function(
-            CustomCreate2.FUNC_CREATE2WITHIMMEDIATECALLBACK,
             Arrays.asList(),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));

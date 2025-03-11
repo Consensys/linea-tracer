@@ -5,7 +5,6 @@ pragma solidity 0.8.26;
 import {CustomCreate2} from "./CustomCreate2.sol";
 
 interface ICustomCreate2 {
-    function create2WithImmediateCallBack() external;
     function create2WithInitCodeC() external;
 }
 
@@ -14,14 +13,17 @@ interface ICustomCreate2 {
  */
 contract ContractCWithConstructor {
 
-    constructor(uint selector, address addToCallOrStore) {
-        if (selector == 1) {
-            storageMap[selector]=addToCallOrStore;
-        } else if (selector == 2) {
-            ICustomCreate2(addToCallOrStore).create2WithImmediateCallBack();
-        } else if (selector == 3) {
+    constructor() payable {
+        uint256 value = msg.value;
+        // deployment is done by CustomCreate2
+        address from = msg.sender;
+        if (value == 1) {
+            storageMap[value]=from;
+        } else if (value == 2) {
+            ICustomCreate2(from).create2WithInitCodeC();
+        } else if (value == 3) {
             selfDestructOnDemand();
-        } else if (selector == 4) {
+        } else if (value == 4) {
             revertOnDemand();
         }
     }

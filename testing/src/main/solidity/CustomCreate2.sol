@@ -15,15 +15,10 @@ contract CustomCreate2 is TestingBase {
 
     address addContractC;
     bytes initCodeC;
-    bytes initCodeCWithImmediateCallBack;
     bytes32 salt;
 
     function storeInitCodeC(bytes memory code) public {
         initCodeC = code;
-    }
-
-    function storeInitCodeCWithImmediateCallBack(bytes memory codeWith) public {
-        initCodeCWithImmediateCallBack = codeWith;
     }
 
     function storeSalt(bytes32 saltEx) public {
@@ -32,18 +27,14 @@ contract CustomCreate2 is TestingBase {
 
     // Custom CREATE2 methods
 
-    function create2WithInitCodeC() public {
-        address addC = deployWithCreate2(salt, initCodeC);
+    function create2WithInitCodeC() public payable {
+        address addC = deployWithCreate2(salt, initCodeC, false);
         addContractC = addC;
     }
 
-    function create2WithCallBackAfterCreate2() public {
-        address addC = deployWithCreate2(salt, initCodeC);
+    function create2WithCallBackAfterCreate2() public payable {
+        address addC = deployWithCreate2(salt, initCodeC, false);
         IContractC(addC).callBackCustomCreate2(address(this));
-    }
-
-    function create2WithImmediateCallBack() public {
-        deployWithCreate2(salt, initCodeCWithImmediateCallBack);
     }
 
     // Behavior on demand
@@ -67,7 +58,7 @@ contract CustomCreate2 is TestingBase {
 
 
     // Call Contract C
-    function callContractC (bytes memory executePayload, bool staticCall) public {
+    function callContractC(bytes memory executePayload, bool staticCall) public {
         if (staticCall) {
             doStaticCall(addContractC, executePayload, 5000000, 0);
         } else {

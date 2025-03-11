@@ -23,6 +23,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
@@ -43,7 +44,7 @@ public class L2Block implements Module {
   private final short NB_TX_IN_BLOCK_BYTESIZE = 16 / 8;
 
   /** The byte size of the RLP-encoded transaction of the conflation */
-  private final CountOnlyOperation sizesRlpEncodedTxs = new CountOnlyOperation();
+  private final StackedList<Integer> sizesRlpEncodedTxs = new StackedList<>();
 
   /** The byte size of the L2->L1 logs messages of the conflation */
   private final CountOnlyOperation l2l1LogSizes = new CountOnlyOperation();
@@ -71,7 +72,7 @@ public class L2Block implements Module {
   @Override
   public int lineCount() {
 
-    return sizesRlpEncodedTxs.lineCount()
+    return sizesRlpEncodedTxs.getAll().stream().reduce(0, Integer::sum)
 
         // Calculates the data size related to the abi encoding of the list of the
         // from addresses. The field is a simple array of bytes20.

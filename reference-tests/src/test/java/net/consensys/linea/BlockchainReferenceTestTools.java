@@ -39,6 +39,7 @@ import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.reporting.TestOutcome;
 import net.consensys.linea.reporting.TestOutcomeWriterTool;
 import net.consensys.linea.testing.ExecutionEnvironment;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.ethereum.MainnetBlockValidator;
 import org.hyperledger.besu.ethereum.ProtocolContext;
@@ -74,7 +75,7 @@ public class BlockchainReferenceTestTools {
                     testName + "[" + eip + "]", fullPath, spec, NETWORKS_TO_RUN.contains(eip));
               });
 
-  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
+  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator(ChainConfig.ETHEREUM);
 
   static {
     if (NETWORKS_TO_RUN.isEmpty()) {

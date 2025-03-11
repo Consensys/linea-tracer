@@ -62,9 +62,6 @@ import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 @Builder
 @Slf4j
 public class ReplayExecutionEnvironment {
-  /** Used for checking resulting trace files. */
-  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
-
   /**
    * Determines whether to enable block capturing for conflations executed by this environment. This
    * is used for primarily for debugging the block capturer.
@@ -124,7 +121,7 @@ public class ReplayExecutionEnvironment {
     this.executeFrom(chain, conflation);
     ExecutionEnvironment.checkTracer(
         zkTracer,
-        CORSET_VALIDATOR,
+        new CorsetValidator(chain),
         Optional.of(log),
         conflation.firstBlockNumber(),
         conflation.lastBlockNumber());
@@ -147,7 +144,7 @@ public class ReplayExecutionEnvironment {
     this.executeFrom(chain, conflation);
     ExecutionEnvironment.checkTracer(
         zkTracer,
-        CORSET_VALIDATOR,
+        new CorsetValidator(chain),
         Optional.of(log),
         conflation.firstBlockNumber(),
         conflation.lastBlockNumber());

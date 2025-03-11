@@ -58,23 +58,8 @@ tasks.register('buildZkevmBin', Exec) {
 tasks.register('buildTracer', Exec) {
     group "Trace files generation"
     dependsOn 'buildZkevmBin'
-
-    def chain = System.getProperty('blockchain')
+    // Locate target file
     def traceJava = getRootProject().file(TRACE_FILE)    
-    // Conditional dependsOn
-    if (chain == null) {
-        print("No chain provided, building for Linea\n")
-    } else if (chain == "Linea") {
-        print("Building for Linea\n")
-    } else if (chain == "Ethereum") {
-        print("Building for Ethereum\n")
-    } else if (chain == "OldLinea") {
-        print("Building for Old Linea\n")
-    } else {
-        // Force build failure if unknown chain.
-        println("*** unknown target chain.  Try '-Dblockchain=Linea' or '-Dblockchain=Ethereum'\n\n")
-        assert false
-    }
     // Configure full path to zkevm.bin
     def zkevmBin = getRootProject().file('linea-constraints/' + ZKEVM_BIN)
     // Run go-corset generation

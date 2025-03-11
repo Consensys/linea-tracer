@@ -14,8 +14,6 @@
  */
 package net.consensys.linea.replaytests;
 
-import static net.consensys.linea.replaytests.ReplayTestTools.BLOCK_NUMBERS;
-import static net.consensys.linea.replaytests.ReplayTestTools.add;
 import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.zktracer.ChainConfig.OLD_LINEA_MAINNET;
 import static net.consensys.linea.zktracer.ChainConfig.OLD_LINEA_SEPOLIA;
@@ -43,10 +41,9 @@ public class ReplayTests {
   }
 
   /**
-   * bulk-replay of multiple replay files specified by a directory. The conflated traces will be
-   * moved to "conflated" directory once replayed. The replay files will be moved to "replayed"
-   * directory once completed. Note: CORSET_VALIDATOR.validate() is disabled by default for
-   * bulkReplay. Usage: bulkReplay("/path/to/your/directory");
+   * bulk-replay of multiple replay files specified by a directory. The conflated traces will be moved to "conflated"
+   * directory once replayed. The replay files will be moved to "replayed" directory once completed. Note:
+   * CORSET_VALIDATOR.validate() is disabled by default for bulkReplay. Usage: bulkReplay("/path/to/your/directory");
    */
   @Test
   void bulkReplay() {
@@ -168,8 +165,8 @@ public class ReplayTests {
   }
 
   /**
-   * Not sure if we need to keep this replayTest. We were using a source offset instead of the dest
-   * Offset to compute the memory expansion cost, thus creating a fake OOGX
+   * Not sure if we need to keep this replayTest. We were using a source offset instead of the dest Offset to compute
+   * the memory expansion cost, thus creating a fake OOGX
    */
   @Test
   void mainnet1339346ContextRevertTwice() {
@@ -184,34 +181,5 @@ public class ReplayTests {
   @Test
   void incorrectCreationCapture() {
     replay(OLD_LINEA_MAINNET, "4323985.mainnet.json.gz");
-  }
-
-  @Disabled
-  @ParameterizedTest
-  @MethodSource("replayBlockTestSource")
-  void replayBlockTest(int blockNumber) {
-    File file =
-        new File(
-            "../arithmetization/src/test/resources/replays/" + blockNumber + ".mainnet.json.gz");
-    if (!file.exists()) {
-      String[] cmd = {"./scripts/capture.pl", "--start", String.valueOf(blockNumber)};
-      try {
-        ProcessBuilder processBuilder = new ProcessBuilder(cmd);
-        processBuilder.directory(new File("../"));
-        Process process = processBuilder.start();
-        process.waitFor();
-      } catch (InterruptedException | IOException e) {
-        e.printStackTrace();
-      }
-    }
-    replay(OLD_LINEA_MAINNET, blockNumber + ".mainnet.json.gz");
-  }
-
-  static Stream<Arguments> replayBlockTestSource() {
-    // Example of how to add a range
-    add(2435888, 2435889);
-    // Example of how to add a single block
-    add(2435890);
-    return BLOCK_NUMBERS.stream();
   }
 }

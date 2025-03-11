@@ -28,6 +28,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.testing.ExecutionEnvironment;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.BlobGas;
 import org.hyperledger.besu.datatypes.Hash;
@@ -56,7 +57,7 @@ public class GeneralStateReferenceTestTools {
       ReferenceTestProtocolSchedules.create();
   private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
       Arrays.asList("Frontier", "Homestead", "EIP150");
-  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
+  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator(ChainConfig.ETHEREUM);
 
   private static MainnetTransactionProcessor transactionProcessor(final String name) {
     return protocolSpec(name).getTransactionProcessor();

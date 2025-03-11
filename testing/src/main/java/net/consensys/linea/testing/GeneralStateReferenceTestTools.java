@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -52,7 +53,7 @@ import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 public class GeneralStateReferenceTestTools {
   private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
       Arrays.asList("Frontier", "Homestead", "EIP150");
-  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
+  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator(ChainConfig.ETHEREUM);
 
   private GeneralStateReferenceTestTools() {
     // utility class

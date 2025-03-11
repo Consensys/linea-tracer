@@ -12,7 +12,6 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package net.consensys.linea.zktracer;
 
 import java.io.IOException;
@@ -61,29 +60,24 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
   // Fields for metadata
-  private final BigInteger chainId;
+  private final ChainConfig chain;
 
   public ZkTracer() {
-    this(
-        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT,
-        Bytes.fromHexString("c0ffee").toUnsignedBigInteger());
+    this(Bytes.fromHexString("c0ffee").toUnsignedBigInteger());
   }
 
   public ZkTracer(BigInteger nonnegativeChainId) {
-    this(LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, nonnegativeChainId);
+    this(ChainConfig.lineaFromChainId(nonnegativeChainId));
   }
 
-  public ZkTracer(
-      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    this.chainId = chainId;
-    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chainId);
-    // >>>> CHANGE ME >>>>
-    // >>>> CHANGE ME >>>>
-    // >>>> CHANGE ME >>>>
+  public ZkTracer(ChainConfig chain) {
+    this(LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, chain);
+  }
+
+  public ZkTracer(final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, ChainConfig chain) {
+    this.chain = chain;
+    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chain.id);
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
-    // <<<< CHANGE ME <<<<
-    // <<<< CHANGE ME <<<<
-    // <<<< CHANGE ME <<<<
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
   }
@@ -96,7 +90,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         modulesToTrace.stream().flatMap(m -> m.columnHeaders().stream()).toList();
     // Configure metadata
     final Map<String, Object> metadata = Trace.metadata();
-    metadata.put("chainId", this.chainId.toString());
+    metadata.put("chainId", this.chain.id.toString());
     metadata.put("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
     // include block range
     final Map<String, String> range = new HashMap<>();

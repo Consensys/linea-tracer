@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.blockdata;
 
-import static net.consensys.linea.zktracer.Trace.Blockdata.GAS_LIMIT_MAXIMUM;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DEPTH;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -23,6 +22,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import java.util.*;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
@@ -39,7 +39,7 @@ public class Blockdata implements Module {
   private final Wcp wcp;
   private final Euc euc;
   private final TxnData txnData;
-  private final Bytes chainId;
+  private final ChainConfig chain;
 
   private final List<BlockdataOperation> operations = new ArrayList<>();
   private long firstBlockNumber;
@@ -70,7 +70,7 @@ public class Blockdata implements Module {
             + 1
             + 6 // for NUMBER
             + 1 // for DIFFICULTY
-            + (bigIntegerToBytes(GAS_LIMIT_MAXIMUM).size() * 4) // for GASLIMIT
+            + (bigIntegerToBytes(chain.gasLimitMaximum).size() * 4) // for GASLIMIT
             + LLARGE // for CHAINID
             + LLARGE // for BASEFEE
         );
@@ -100,7 +100,7 @@ public class Blockdata implements Module {
               txnData.currentBlock().getNbOfTxsInBlock(),
               wcp,
               euc,
-              chainId,
+              chain,
               opCode,
               firstBlockNumber);
       operations.addLast(operation);

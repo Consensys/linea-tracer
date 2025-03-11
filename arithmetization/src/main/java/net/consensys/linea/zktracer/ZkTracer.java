@@ -76,7 +76,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   public ZkTracer(final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, ChainConfig chain) {
     this.chain = chain;
-    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chain.id);
+    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chain);
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));

@@ -126,6 +126,8 @@ public class GoCorsetValidator extends AbstractExecutable {
     String coverage = System.getenv().get("GOCORSET_COVERAGE");
     // Specify corset binary
     options.add("go-corset");
+    // Set chain properties
+    setChainConstants(options);
     // Specify corset "check" command.
     options.add("check");
     // Add all options
@@ -142,6 +144,24 @@ public class GoCorsetValidator extends AbstractExecutable {
     options.add(zkEvmBin);
     // Done
     return options;
+  }
+
+  /**
+   * Configure the constants as appropriate for the given chain.  For Linea mainnet, do nothing as the defaults
+   * should match (and are what is used by the prover).
+   *
+   * @param options
+   */
+  private void setChainConstants(List<String> options) {
+    if(chain != ChainConfig.LINEA_MAINNET) {
+      options.add("-Sblockdata.GAS_LIMIT_MINIMUM=" + chain.gasLimitMinimum.toString());
+      options.add("-Sblockdata.GAS_LIMIT_MAXIMUM=" + chain.gasLimitMaximum.toString());
+      if(chain.blockGasLimitEnabled) {
+        options.add("-Sblockdata.GAS_LIMIT_ENABLE=1");
+      } else {
+        options.add("-Sblockdata.GAS_LIMIT_ENABLE=0");
+      }
+    }
   }
 
   /**

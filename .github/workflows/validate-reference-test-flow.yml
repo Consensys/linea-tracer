@@ -33,6 +33,7 @@ jobs:
         run: ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck
         timeout-minutes: 15
         env:
+          GENERATE_REF_BLOCKCHAIN_TESTS: false
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -vw --ansi-escapes=false --report --air

@@ -36,12 +36,10 @@ configurations.configureEach {
 tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   refTestTemplateFilePath = "src/test/resources/templates/BlockchainReferenceTest.java.template"
   refTests = "src/test/resources/ethereum-tests/BlockchainTests"
-  print(refTests)
   // Added to run validation on reference test flow, we generate only 1 test file
   def fileName = System.getProperty('file')
   if (fileName != null) {
     refTests = "src/test/resources/ethereum-tests/BlockchainTests/$fileName"
-    print("Here is the fileName" + fileName)
   }
   refTestJsonParamsDirectory = "BlockchainTests"
   refTestJsonParamsExcludedPath = "BlockchainTests/InvalidBlocks/bcExpectSection" // exclude test for test filling tool
@@ -68,7 +66,10 @@ tasks.register('referenceBlockchainTests', Test) {
   dependsOn(buildZkevmBin)
   finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
-  dependsOn generateBlockchainReferenceTests
+  boolean isGenerate = System.getenv('GENERATE_REF_BLOCKCHAIN_TESTS') != null ? System.getenv('GENERATE_REF_BLOCKCHAIN_TESTS').toBoolean() : true;
+  if (isGenerate) {
+    dependsOn generateBlockchainReferenceTests
+  }
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 
   boolean isCiServer = System.getenv().containsKey("CI")

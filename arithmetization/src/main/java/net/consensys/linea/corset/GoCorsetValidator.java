@@ -48,9 +48,8 @@ import net.consensys.linea.zktracer.ChainConfig;
 public class GoCorsetValidator extends AbstractExecutable {
   /** Indicates whether or not this validator is active (i.e. we located the go-corset binary). */
   @Getter private boolean active = false;
-  /**
-   * Details chain configuration.
-   */
+
+  /** Details chain configuration. */
   private ChainConfig chain;
 
   /**
@@ -147,16 +146,16 @@ public class GoCorsetValidator extends AbstractExecutable {
   }
 
   /**
-   * Configure the constants as appropriate for the given chain.  For Linea mainnet, do nothing as the defaults
-   * should match (and are what is used by the prover).
+   * Configure the constants as appropriate for the given chain. For Linea mainnet, do nothing as
+   * the defaults should match (and are what is used by the prover).
    *
    * @param options
    */
   private void setChainConstants(List<String> options) {
-    if(chain != ChainConfig.LINEA_MAINNET) {
+    if (chain != ChainConfig.LINEA_MAINNET) {
       options.add("-Sblockdata.GAS_LIMIT_MINIMUM=" + chain.gasLimitMinimum.toString());
       options.add("-Sblockdata.GAS_LIMIT_MAXIMUM=" + chain.gasLimitMaximum.toString());
-      if(chain.blockGasLimitEnabled) {
+      if (chain.blockGasLimitEnabled) {
         options.add("-Sblockdata.GAS_LIMIT_ENABLE=1");
       } else {
         options.add("-Sblockdata.GAS_LIMIT_ENABLE=0");

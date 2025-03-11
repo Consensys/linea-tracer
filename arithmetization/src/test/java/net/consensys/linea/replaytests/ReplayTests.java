@@ -18,18 +18,10 @@ import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.zktracer.ChainConfig.OLD_LINEA_MAINNET;
 import static net.consensys.linea.zktracer.ChainConfig.OLD_LINEA_SEPOLIA;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.stream.Stream;
-
 import net.consensys.linea.UnitTestWatcher;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 @Tag("replay")
 @ExtendWith(UnitTestWatcher.class)
@@ -41,9 +33,10 @@ public class ReplayTests {
   }
 
   /**
-   * bulk-replay of multiple replay files specified by a directory. The conflated traces will be moved to "conflated"
-   * directory once replayed. The replay files will be moved to "replayed" directory once completed. Note:
-   * CORSET_VALIDATOR.validate() is disabled by default for bulkReplay. Usage: bulkReplay("/path/to/your/directory");
+   * bulk-replay of multiple replay files specified by a directory. The conflated traces will be
+   * moved to "conflated" directory once replayed. The replay files will be moved to "replayed"
+   * directory once completed. Note: CORSET_VALIDATOR.validate() is disabled by default for
+   * bulkReplay. Usage: bulkReplay("/path/to/your/directory");
    */
   @Test
   void bulkReplay() {
@@ -165,8 +158,8 @@ public class ReplayTests {
   }
 
   /**
-   * Not sure if we need to keep this replayTest. We were using a source offset instead of the dest Offset to compute
-   * the memory expansion cost, thus creating a fake OOGX
+   * Not sure if we need to keep this replayTest. We were using a source offset instead of the dest
+   * Offset to compute the memory expansion cost, thus creating a fake OOGX
    */
   @Test
   void mainnet1339346ContextRevertTwice() {

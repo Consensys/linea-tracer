@@ -29,7 +29,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -117,7 +116,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;

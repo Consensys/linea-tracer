@@ -11,7 +11,7 @@ my $start;
 # Last block to replay
 my $end;
 # Shadow node hostnamt
-my $shadownode_fqdn = 'ec2-107-21-85-50.compute-1.amazonaws.com'; # default value
+my $shadownode_fqdn = 'ec2-18-191-129-50.us-east-2.compute.amazonaws.com'; # default value
 # Maybe the user needs a specific ssh key
 my $ssh_key = '';
 # Destination filename
@@ -54,7 +54,7 @@ my $payload = "{
 
 my $cmd = qq(
 ssh ${ssh_key} ec2-user\@${shadownode_fqdn} -C "
-curl -X POST 'http://localhost:8545' --data '$payload' |
+curl -X POST 'http://localhost:15480' --data '$payload' |
 jq '.result.capture' -r | jq . | gzip
 ");
 
@@ -73,7 +73,7 @@ capture - capture conflation replays from a shadow node
   --start      The first block to replay (required)
   --end        The last block to replay (default to <start>)
   --ssh-key    If applicable, path the SSH key to use to connect to the shadow node
-  --server     The shadow node hostname (defaults to `ec2-107-21-85-50.compute-1.amazonaws.com`)
+  --server     The shadow node hostname (defaults to `ec2-18-191-129-50.us-east-2.compute.amazonaws.com`)
   --to         Where to write the replay file (defaults to `arithmetization/src/test/resources/replays/<start>-<end>.json.gz`)
   --help, -h   Print this message
 

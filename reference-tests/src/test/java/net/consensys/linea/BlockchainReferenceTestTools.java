@@ -438,7 +438,7 @@ public class BlockchainReferenceTestTools {
 
     final BigInteger nonnegativeChainId = schedule.getChainId().get().abs();
 
-    final ZkTracer zkTracer = new ZkTracer(nonnegativeChainId);
+    final ZkTracer zkTracer = new ZkTracer(ChainConfig.ETHEREUM);
     zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
 
     for (var candidateBlock : spec.getCandidateBlocks()) {

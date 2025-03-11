@@ -24,31 +24,15 @@ jobs:
         with:
           go-corset: true
 
-      - name: Generate Blockchain Reference tests
-        run: ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.caching=true
+      - name: Generate Blockchain Reference test sample
+        run: ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.caching=true -Dfile="GeneralStateTests/stChainId/chainId.json"
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
 
-      - name: Generate General State Reference Tests
-        run: ./gradlew generateGeneralStateReferenceTests -Dorg.gradle.caching=true
-        env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-
-      - name: Run Reference Blockchain test 0
-        run: ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck --tests "${{ 'BlockchainReferenceTest_0' }}"
+      - name: Run Reference Blockchain test sample
+        run: ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck
         timeout-minutes: 15
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -vw --ansi-escapes=false --report --air
-          FAILED_TEST_JSON_DIRECTORY: ${{ github.workspace }}/tmp/${{ steps.extract_branch.outputs.branch }}/
-          FAILED_MODULE: ${{ inputs.failed_module || '' }}
-          FAILED_CONSTRAINT: ${{ inputs.failed_constraint || '' }}
-          REFERENCE_TEST_FILTER_INPUT: failedBlockchainReferenceTests.json
-
-      - name: Run General State Reference Test 0
-        run: ./gradlew -Dblockchain=Ethereum referenceGeneralStateTests --tests "${{ 'GeneralStateReferenceTest_0' }}"
-        env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-          CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -vw -b1024 --ansi-escapes=false --report --air

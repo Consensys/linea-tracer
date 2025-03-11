@@ -1,5 +1,5 @@
 name: "Validate Reference Test Flow"
-on: [push, pull_request]
+on: [pull_request]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,16 +24,11 @@ jobs:
         with:
           go-corset: true
 
-      - name: Generate Blockchain Reference test sample
-        run: ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.caching=true -Dfile="GeneralStateTests/stChainId/chainId.json"
-        env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-
       - name: Run Reference Blockchain test sample
         run: ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck
         timeout-minutes: 15
         env:
-          GENERATE_REF_BLOCKCHAIN_TESTS: false
+          GENERATE_ONLY_FILE_NAME: GeneralStateTests/stChainId/chainId.json
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -vw --ansi-escapes=false --report --air

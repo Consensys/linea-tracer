@@ -50,12 +50,13 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldUpdater;
 
 @Slf4j
-public class GeneralStateReferenceTestTools {
+public class ToyExecutionTools {
   private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
       Arrays.asList("Frontier", "Homestead", "EIP150");
-  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator(ChainConfig.ETHEREUM);
+  private static final CorsetValidator CORSET_VALIDATOR =
+      new CorsetValidator(ChainConfig.LINEA_MAINNET);
 
-  private GeneralStateReferenceTestTools() {
+  private ToyExecutionTools() {
     // utility class
   }
 
@@ -224,7 +225,7 @@ public class GeneralStateReferenceTestTools {
 
     Deque<MessageFrame> messageFrameStack = initialMessageFrame.getMessageFrameStack();
     while (!messageFrameStack.isEmpty()) {
-      processor.process(messageFrameStack.peekFirst(), new ZkTracer());
+      processor.process(messageFrameStack.peekFirst(), new ZkTracer(ChainConfig.LINEA_MAINNET));
     }
 
     long intrinsicTxCostWithNoAccessOrDelegationCost =

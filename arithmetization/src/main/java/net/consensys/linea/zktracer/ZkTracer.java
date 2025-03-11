@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer;
 
+import static net.consensys.linea.zktracer.ChainConfig.LINEA_MAINNET;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
@@ -62,12 +64,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   // Fields for metadata
   private final ChainConfig chain;
 
-  public ZkTracer() {
-    this(Bytes.fromHexString("c0ffee").toUnsignedBigInteger());
-  }
-
   public ZkTracer(BigInteger nonnegativeChainId) {
-    this(ChainConfig.lineaFromChainId(nonnegativeChainId));
+    this(LINEA_MAINNET(nonnegativeChainId));
   }
 
   public ZkTracer(ChainConfig chain) {

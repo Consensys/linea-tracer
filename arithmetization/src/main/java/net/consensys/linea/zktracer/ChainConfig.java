@@ -100,7 +100,7 @@ public class ChainConfig {
    * @param chainId
    * @return
    */
-  public static ChainConfig lineaFromChainId(BigInteger chainId) {
+  public static ChainConfig LINEA_MAINNET(BigInteger chainId) {
     return new ChainConfig(
         chainId,
         true,

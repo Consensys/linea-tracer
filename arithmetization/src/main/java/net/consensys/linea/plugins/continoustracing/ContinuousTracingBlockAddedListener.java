@@ -27,6 +27,7 @@ import net.consensys.linea.plugins.exception.InvalidBlockTraceException;
 import net.consensys.linea.plugins.exception.InvalidTraceHandlerException;
 import net.consensys.linea.plugins.exception.TraceVerificationException;
 import net.consensys.linea.zktracer.ZkTracer;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.plugin.data.AddedBlockContext;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -59,7 +60,9 @@ public class ContinuousTracingBlockAddedListener implements BesuEvents.BlockAdde
           try {
             final CorsetValidator.Result traceResult =
                 continuousTracer.verifyTraceOfBlock(
-                    blockHeader.getNumber(), blockHash, new ZkTracer());
+                    blockHeader.getNumber(),
+                    blockHash,
+                    new ZkTracer(Bytes.fromHexString("c0ffee").toUnsignedBigInteger()));
             Files.delete(traceResult.traceFile().toPath());
 
             if (!traceResult.isValid()) {

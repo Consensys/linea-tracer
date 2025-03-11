@@ -83,7 +83,7 @@ tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
 }
 
 tasks.register('referenceGeneralStateTests', Test) {
-  dependsOn(buildReferenceTestsZkevmBin)
+  dependsOn(buildZkevmBin)
   finalizedBy(jacocoReferenceGeneralStateTestsReport)
   description = 'Runs ETH reference general state tests.'
   dependsOn generateGeneralStateReferenceTests

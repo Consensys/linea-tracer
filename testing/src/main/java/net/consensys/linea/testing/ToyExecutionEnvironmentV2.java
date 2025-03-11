@@ -74,7 +74,7 @@ public class ToyExecutionEnvironmentV2 {
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 
-    GeneralStateReferenceTestTools.executeTest(
+    ToyExecutionTools.executeTest(
         generalStateTestCaseEipSpec,
         protocolSpec,
         tracer,
@@ -87,7 +87,7 @@ public class ToyExecutionEnvironmentV2 {
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 
-    return GeneralStateReferenceTestTools.executeTestOnlyForGasCost(
+    return ToyExecutionTools.executeTestOnlyForGasCost(
         generalStateTestCaseEipSpec, protocolSpec, this.accounts);
   }
 

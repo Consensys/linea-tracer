@@ -23,7 +23,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
-import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
@@ -35,7 +34,9 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Getter
 @RequiredArgsConstructor
 public class L2Block implements Module {
+
   private final BlockTransactions blockTransactions;
+  private final Keccak keccak;
   private final L2L1Logs l2l1Logs;
   private final Address l2l1Address;
   private final LogTopic l2l1Topic;
@@ -44,7 +45,7 @@ public class L2Block implements Module {
   private final short NB_TX_IN_BLOCK_BYTESIZE = 16 / 8;
 
   /** The byte size of the RLP-encoded transaction of the conflation */
-  private final StackedList<Integer> sizesRlpEncodedTxs = new StackedList<>();
+  private final CountOnlyOperation sizesRlpEncodedTxs = new CountOnlyOperation();
 
   /** The byte size of the L2->L1 logs messages of the conflation */
   private final CountOnlyOperation l2l1LogSizes = new CountOnlyOperation();
@@ -72,7 +73,7 @@ public class L2Block implements Module {
   @Override
   public int lineCount() {
 
-    return sizesRlpEncodedTxs.getAll().stream().reduce(0, Integer::sum)
+    return sizesRlpEncodedTxs.lineCount()
 
         // Calculates the data size related to the abi encoding of the list of the
         // from addresses. The field is a simple array of bytes20.
@@ -108,7 +109,11 @@ public class L2Block implements Module {
     // overhead for each transaction (32 bytes for an offset, and 32 bytes for
     // to encode the length of each sub bytes array). This overhead is also
     // incurred by the top-level array, hence the +1.
-    sizesRlpEncodedTxs.add(tx.getBesuTransaction().encoded().size());
+    final int txDataSize = tx.getBesuTransaction().encoded().size();
+    sizesRlpEncodedTxs.add(txDataSize);
+    // Counts the number of Keccak from tx RLPs, used both for both the signature verification and
+    // the public input computation.
+    keccak.updateTally(txDataSize);
   }
 
   @Override

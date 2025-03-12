@@ -17,6 +17,12 @@ contract CustomCreate2 is TestingBase {
     bytes initCodeC;
     bytes32 salt;
 
+    // Events
+    event CallMyselfFail();
+    event StaticCallMyselfFail();
+    event CallContractCFail();
+    event StaticCallContractCFail();
+
     function storeInitCodeC(bytes memory code) public {
         initCodeC = code;
     }
@@ -28,13 +34,22 @@ contract CustomCreate2 is TestingBase {
     // Custom CREATE2 methods
 
     function create2WithInitCodeC() public payable {
-        address addC = deployWithCreate2(salt, initCodeC, false);
+        address addC = deployWithCreate2(salt, initCodeC);
         addContractC = addC;
     }
 
     function create2WithCallBackAfterCreate2() public payable {
-        address addC = deployWithCreate2(salt, initCodeC, false);
+        address addC = deployWithCreate2(salt, initCodeC);
         IContractC(addC).callBackCustomCreate2(address(this));
+    }
+
+
+    function create2FourTimes() public payable {
+        uint256 max = type(uint256).max;
+        deployWithCreate2_withValue(salt, initCodeC, max);
+        deployWithCreate2_withValue(salt, initCodeC, 0);
+        deployWithCreate2_withValue(salt, initCodeC, max);
+        deployWithCreate2_withValue(salt, initCodeC, 0);
     }
 
     // Behavior on demand
@@ -49,20 +64,34 @@ contract CustomCreate2 is TestingBase {
     }
 
     function callMyself(bytes memory executePayload, bool staticCall) public {
+        bool success;
         if (staticCall) {
-            doStaticCall(address(this), executePayload, 5000000, 0);
+            success = doStaticCall(address(this), executePayload, 5000000, 0);
+            if (!success) {
+                emit StaticCallMyselfFail();
+            }
         } else {
-            doCall(address(this), executePayload, 5000000, 0);
+            success = doCall(address(this), executePayload, 5000000, 0);
+            if (!success) {
+                emit CallMyselfFail();
+            }
         }
     }
 
 
     // Call Contract C
     function callContractC(bytes memory executePayload, bool staticCall) public {
+        bool success;
         if (staticCall) {
-            doStaticCall(addContractC, executePayload, 5000000, 0);
+            success = doStaticCall(addContractC, executePayload, 5000000, 0);
+            if (!success) {
+                emit StaticCallContractCFail();
+            }
         } else {
-            doCall(addContractC, executePayload, 5000000, 0);
+            success = doCall(addContractC, executePayload, 5000000, 0);
+            if (!success) {
+                emit CallContractCFail();
+            }
         }
     }
 

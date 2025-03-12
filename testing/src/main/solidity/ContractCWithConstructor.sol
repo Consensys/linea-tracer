@@ -20,7 +20,17 @@ contract ContractCWithConstructor {
         if (value == 1) {
             storageMap[value]=from;
         } else if (value == 2) {
-            ICustomCreate2(from).create2WithInitCodeC();
+            try ICustomCreate2(from).create2WithInitCodeC() {
+            } catch Error(string memory _err) {
+                assembly {
+                    stop()
+                }
+            } catch (bytes memory _err) {
+                // If no stop here, the deployed bytecode is 0x..33
+                assembly {
+                    stop()
+                }
+            }
         } else if (value == 3) {
             selfDestructOnDemand();
         } else if (value == 4) {

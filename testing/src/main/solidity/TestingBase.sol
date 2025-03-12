@@ -282,7 +282,7 @@ abstract contract TestingBase {
                 mload(_bytecode),
                 _salt
             )
-            if iszero(addr) {
+                if iszero(addr) {
                 revert(0, 0)
             }
         }
@@ -291,6 +291,41 @@ abstract contract TestingBase {
         if (_revertFlag) {
             revert();
         }
+    }
+
+
+    function deployWithCreate2_withValue(
+        bytes32 _salt,
+        bytes memory _bytecode,
+        uint256 _value
+    ) public payable returns (address addr) {
+        assembly {
+            addr := create2(
+                _value,
+                add(_bytecode, 0x20),
+                mload(_bytecode),
+                _salt
+            )
+        }
+
+        emit ContractCreated(addr);
+    }
+
+    function deployWithCreate2_noRevert(
+        bytes32 _salt,
+        bytes memory _bytecode
+    ) public payable returns (address addr) {
+        assembly {
+            let value := callvalue()
+            addr := create2(
+                value,
+                add(_bytecode, 0x20),
+                mload(_bytecode),
+                _salt
+            )
+        }
+
+        emit ContractCreated(addr);
     }
 
     /**

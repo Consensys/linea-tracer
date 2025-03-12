@@ -1,4 +1,4 @@
-name: "Validate Reference Test Flow"
+name: "Validate One Blockchain Test"
 on: [pull_request]
 
 concurrency:
@@ -25,10 +25,10 @@ jobs:
           go-corset: true
 
       - name: Run Reference Blockchain test sample
-        run: ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck
+        run: ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck --tests "${{ 'BlockchainReferenceTest_104' }}"
         timeout-minutes: 15
         env:
-          GENERATE_ONLY_FILE_NAME: GeneralStateTests/stChainId/chainId.json
+          # GENERATE_ONLY_FILE_NAME: GeneralStateTests/stChainId/chainId.json
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -vw --ansi-escapes=false --report --air

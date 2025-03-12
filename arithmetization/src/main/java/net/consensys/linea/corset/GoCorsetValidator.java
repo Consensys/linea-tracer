@@ -157,7 +157,7 @@ public class GoCorsetValidator extends AbstractExecutable {
     if (chain != LINEA_MAINNET) {
       options.add("-Sblockdata.GAS_LIMIT_MINIMUM=" + chain.gasLimitMinimum.toString());
       options.add("-Sblockdata.GAS_LIMIT_MAXIMUM=" + chain.gasLimitMaximum.toString());
-      if (chain.blockGasLimitEnabled) {
+      if (chain.fixedGasLimitEnabled) {
         options.add("-Sblockdata.GAS_LIMIT_ENABLE=1");
       } else {
         options.add("-Sblockdata.GAS_LIMIT_ENABLE=0");

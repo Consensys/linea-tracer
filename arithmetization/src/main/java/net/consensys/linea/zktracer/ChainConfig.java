@@ -67,7 +67,7 @@ public class ChainConfig {
   public final BigInteger id;
 
   /** Determines whether block gas limit is enabled (or not). */
-  public final boolean blockGasLimitEnabled;
+  public final boolean fixedGasLimitEnabled;
 
   /** Determines minimum gas limit for this chain */
   public final BigInteger gasLimitMinimum;
@@ -85,11 +85,11 @@ public class ChainConfig {
 
   private ChainConfig(
       BigInteger chainId,
-      boolean gasLimitEnabled,
+      boolean fixedGasLimitEnabled,
       BigInteger gasLimitMinimum,
       BigInteger gasLimitMaximum) {
     this.id = chainId;
-    this.blockGasLimitEnabled = gasLimitEnabled;
+    this.fixedGasLimitEnabled = fixedGasLimitEnabled;
     this.gasLimitMinimum = gasLimitMinimum;
     this.gasLimitMaximum = gasLimitMaximum;
   }

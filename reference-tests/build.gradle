@@ -37,10 +37,10 @@ tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   refTestTemplateFilePath = "src/test/resources/templates/BlockchainReferenceTest.java.template"
   refTests = "src/test/resources/ethereum-tests/BlockchainTests"
   // Added to run validation on reference test flow - in this case, we only generate 1 test file
-  def fileName = System.getenv('GENERATE_ONLY_FILE_NAME').toString()
+/*  def fileName = System.getenv('GENERATE_ONLY_FILE_NAME').toString()
   if (fileName != null) {
     refTests = "src/test/resources/ethereum-tests/BlockchainTests/$fileName"
-  }
+  }*/
   refTestJsonParamsDirectory = "BlockchainTests"
   refTestJsonParamsExcludedPath = "BlockchainTests/InvalidBlocks/bcExpectSection" // exclude test for test filling tool
   refTestNamePrefix = "BlockchainReferenceTest"

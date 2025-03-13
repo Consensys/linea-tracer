@@ -109,7 +109,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     metadata.put("conflation", range);
     // include line counts
     final Map<String, String> lineCounts = new HashMap<>();
-    for (Module m : hub.getModulesToCount()) {
+    for (Module m : hub.getTracelessModules()) {
       lineCounts.put(m.moduleKey(), Integer.toString(m.lineCount()));
     }
     metadata.put("lineCounts", lineCounts);

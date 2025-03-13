@@ -24,7 +24,7 @@ Add to your ~/.docker/config.json
 
 ## Produce Jacoco test reports
 
-Sonarqube server needs a third party test coverage report to display a coverage score. This test coverage report is produced by Jacoco plugin.
+SonarQube server needs a third party test coverage report to display a coverage score. This test coverage report is produced by Jacoco plugin.
 
 ### For one report
 
@@ -87,7 +87,7 @@ Execute and concatenate the results with the `jacocoUnitFastReplayWeeklyNightlyR
 
 Note: if an xml report already exists, delete it to generate it again, else the task will be marked as Skipped.
 
-## Launch local Sonarqube server
+## Launch local SonarQube server
 
 Run `docker compose up`
 
@@ -105,7 +105,7 @@ curl -u admin:admin -X POST "http://localhost:80/api/users/change_password?login
 
 Go to `localhost:80` in your browser and login with the credentials `admin/Adminadmin123*`
 
-## Coverage score with Sonarqube
+## Coverage score with SonarQube
 
 Launch `sonar` gradle task in verification group with the corresponding property depending on the coverage score you want to display
 
@@ -125,7 +125,7 @@ Go to `localhost:80/projects` in your browser and check the results :
 - line coverage (absolute and %)
 - condition coverage (absolute and %)
 
-## Exit Sonarqube server
+## Exit SonarQube server
 
 ```
 docker compose down

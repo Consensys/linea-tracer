@@ -354,10 +354,7 @@ public class Hub implements Module {
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
-    return Stream.concat(
-            getModulesToTrace().stream(),
-            getTracelessModules().stream())
-        .toList();
+    return Stream.concat(getModulesToTrace().stream(), getTracelessModules().stream()).toList();
   }
 
   public Hub(final ChainConfig chain) {

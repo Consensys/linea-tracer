@@ -55,67 +55,70 @@ public class TransactionAccountTest {
     */
 
     // prepare a multi-block execution of transactions
-    MultiBlockExecutionEnvironment.builder()
-        // initialize accounts
-        .accounts(
-            List.of(
-                tc.initialAccounts[0],
-                tc.externallyOwnedAccounts[0],
-                tc.initialAccounts[2],
-                tc.frameworkEntryPointAccount))
-        // Block 1
-        .addBlock(
-            List.of(
-                tc.newTxFromCalls(
+    final MultiBlockExecutionEnvironment multiBlockEnv =
+        MultiBlockExecutionEnvironment.builder()
+            // initialize accounts
+            .accounts(
+                List.of(
+                    tc.initialAccounts[0],
                     tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    new FrameworkEntrypoint.ContractCall[] {
-                      tc.transferToCall(
-                          tc.addresses[0], tc.addresses[2], 8L, false, BigInteger.ONE),
-                      tc.transferToCall(
-                          tc.addresses[2], tc.addresses[0], 9L, false, BigInteger.ONE),
-                      tc.transferToCall(
-                          tc.addresses[0], tc.addresses[2], 15L, false, BigInteger.ONE),
-                      tc.transferToCall(
-                          tc.addresses[2],
-                          tc.addresses[0],
-                          1234L,
-                          true,
-                          BigInteger.ONE), // revert this one
-                    }),
-                tc.newTxFromCalls(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    new FrameworkEntrypoint.ContractCall[] {
-                      tc.transferToCall(
-                          tc.addresses[0], tc.addresses[2], 200L, false, BigInteger.ONE),
-                      tc.transferToCall(
-                          tc.addresses[2], tc.addresses[0], 500L, false, BigInteger.ONE),
-                      tc.transferToCall(
-                          tc.addresses[2],
-                          tc.addresses[0],
-                          1234L,
-                          true,
-                          BigInteger.ONE), // revert this one
-                      tc.transferToCall(
-                          tc.addresses[0], tc.addresses[2], 900L, false, BigInteger.ONE),
-                    })))
-        .transactionProcessingResultValidator(resultValidator)
-        .build()
-        .run();
+                    tc.initialAccounts[2],
+                    tc.frameworkEntryPointAccount))
+            // Block 1
+            .addBlock(
+                List.of(
+                    tc.newTxFromCalls(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        new FrameworkEntrypoint.ContractCall[] {
+                          tc.transferToCall(
+                              tc.addresses[0], tc.addresses[2], 8L, false, BigInteger.ONE),
+                          tc.transferToCall(
+                              tc.addresses[2], tc.addresses[0], 9L, false, BigInteger.ONE),
+                          tc.transferToCall(
+                              tc.addresses[0], tc.addresses[2], 15L, false, BigInteger.ONE),
+                          tc.transferToCall(
+                              tc.addresses[2],
+                              tc.addresses[0],
+                              1234L,
+                              true,
+                              BigInteger.ONE), // revert this one
+                        }),
+                    tc.newTxFromCalls(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        new FrameworkEntrypoint.ContractCall[] {
+                          tc.transferToCall(
+                              tc.addresses[0], tc.addresses[2], 200L, false, BigInteger.ONE),
+                          tc.transferToCall(
+                              tc.addresses[2], tc.addresses[0], 500L, false, BigInteger.ONE),
+                          tc.transferToCall(
+                              tc.addresses[2],
+                              tc.addresses[0],
+                              1234L,
+                              true,
+                              BigInteger.ONE), // revert this one
+                          tc.transferToCall(
+                              tc.addresses[0], tc.addresses[2], 900L, false, BigInteger.ONE),
+                        })))
+            .transactionProcessingResultValidator(resultValidator)
+            .build();
+
+    multiBlockEnv.run();
 
     List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
         new ArrayList<>();
 
     // We count the number of transactions in the hub
-    int txCount = MultiBlockExecutionEnvironment.getHub().state().txCount();
+    int txCount = multiBlockEnv.getHub().state().txCount();
     // We iterate over the transactions
     for (int txNb = 0; txNb < txCount; txNb++) {
       // We create an accountFirstAndLastMap for each transaction
       accountFirstAndLastMapList.add(new HashMap<>());
       // We retrieve the trace section list
       List<TraceSection> traceSectionList =
-          MultiBlockExecutionEnvironment.getHub()
+          multiBlockEnv
+              .getHub()
               .state()
               .getState()
               .operationsInTransactionBundle()

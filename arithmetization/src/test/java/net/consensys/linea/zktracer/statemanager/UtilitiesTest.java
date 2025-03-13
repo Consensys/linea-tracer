@@ -19,7 +19,6 @@ import java.math.BigInteger;
 import java.util.List;
 
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
-import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import org.junit.jupiter.api.Test;
 
@@ -111,21 +110,21 @@ public class UtilitiesTest {
     this.tc.initializeTestContext();
     TransactionProcessingResultValidator resultValidator =
         new StateManagerTestValidator(tc.frameworkEntryPointAccount, List.of(2));
-    // Using Toy exec env as 2 MultiBlockExecutionEnvironment interfere in the same test suite
-    ToyExecutionEnvironmentV2.builder()
+    MultiBlockExecutionEnvironment.builder()
         .accounts(
             List.of(
                 tc.initialAccounts[0],
                 tc.externallyOwnedAccounts[0],
                 tc.frameworkEntryPointAccount))
-        .transaction(
-            tc.deployWithCreate2(
-                tc.externallyOwnedAccounts[0],
-                tc.keyPairs[0],
-                tc.frameworkEntryPointAddress,
-                "0x0000000000000000000000000000000000000000000000000000000000004312",
-                TestContext.snippetsCodeForCreate2,
-                false))
+        .addBlock(
+            List.of(
+                tc.deployWithCreate2(
+                    tc.externallyOwnedAccounts[0],
+                    tc.keyPairs[0],
+                    tc.frameworkEntryPointAddress,
+                    "0x0000000000000000000000000000000000000000000000000000000000004312",
+                    TestContext.snippetsCodeForCreate2,
+                    false)))
         .transactionProcessingResultValidator(resultValidator)
         .build()
         .run();

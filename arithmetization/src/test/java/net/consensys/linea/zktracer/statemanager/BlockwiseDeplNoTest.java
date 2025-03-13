@@ -49,104 +49,107 @@ public class BlockwiseDeplNoTest {
     // StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
 
     // prepare a multi-block execution of transactions
-    MultiBlockExecutionEnvironment.builder()
-        // initialize accounts
-        .accounts(
-            List.of(
-                tc.initialAccounts[0],
-                tc.externallyOwnedAccounts[0],
-                tc.initialAccounts[2],
-                tc.frameworkEntryPointAccount))
-        // Block 1
-        .addBlock(
-            List.of(
-                tc.deployWithCreate2(
+    final MultiBlockExecutionEnvironment multiBlockEnv =
+        MultiBlockExecutionEnvironment.builder()
+            // initialize accounts
+            .accounts(
+                List.of(
+                    tc.initialAccounts[0],
                     tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.frameworkEntryPointAddress,
-                    tc.salts[0],
-                    TestContext.snippetsCodeForCreate2,
-                    false),
-                tc.selfDestruct(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.newAddresses[0],
-                    tc.frameworkEntryPointAddress,
-                    false,
-                    BigInteger.ONE),
-                tc.deployWithCreate2(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.frameworkEntryPointAddress,
-                    tc.salts[0],
-                    TestContext.snippetsCodeForCreate2,
-                    false),
-                tc.selfDestruct(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.newAddresses[0],
-                    tc.frameworkEntryPointAddress,
-                    false,
-                    BigInteger.ONE)))
-        .addBlock(
-            List.of(
-                tc.deployWithCreate2(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.frameworkEntryPointAddress,
-                    tc.salts[1],
-                    TestContext.snippetsCodeForCreate2,
-                    false),
-                tc.selfDestruct(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.newAddresses[1],
-                    tc.frameworkEntryPointAddress,
-                    false,
-                    BigInteger.ONE)))
-        .addBlock(
-            List.of( // test some reverted calls
-                tc.deployWithCreate2(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.frameworkEntryPointAddress,
-                    tc.salts[2],
-                    TestContext.snippetsCodeForCreate2,
-                    false),
-                tc.selfDestruct(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.newAddresses[2],
-                    tc.frameworkEntryPointAddress,
-                    false,
-                    BigInteger.ONE),
-                tc.deployWithCreate2(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.frameworkEntryPointAddress,
-                    tc.salts[2],
-                    TestContext.snippetsCodeForCreate2,
-                    true),
-                tc.deployWithCreate2(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.frameworkEntryPointAddress,
-                    tc.salts[2],
-                    TestContext.snippetsCodeForCreate2,
-                    false),
-                tc.selfDestruct(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.newAddresses[2],
-                    tc.frameworkEntryPointAddress,
-                    true,
-                    BigInteger.ONE)
-                // since the last self-destruct gets reverted, the last call will not increase the
-                // deplNo
-                ))
-        .transactionProcessingResultValidator(resultValidator)
-        .build()
-        .run();
+                    tc.initialAccounts[2],
+                    tc.frameworkEntryPointAccount))
+            // Block 1
+            .addBlock(
+                List.of(
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[0],
+                        TestContext.snippetsCodeForCreate2,
+                        false),
+                    tc.selfDestruct(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.newAddresses[0],
+                        tc.frameworkEntryPointAddress,
+                        false,
+                        BigInteger.ONE),
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[0],
+                        TestContext.snippetsCodeForCreate2,
+                        false),
+                    tc.selfDestruct(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.newAddresses[0],
+                        tc.frameworkEntryPointAddress,
+                        false,
+                        BigInteger.ONE)))
+            .addBlock(
+                List.of(
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[1],
+                        TestContext.snippetsCodeForCreate2,
+                        false),
+                    tc.selfDestruct(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.newAddresses[1],
+                        tc.frameworkEntryPointAddress,
+                        false,
+                        BigInteger.ONE)))
+            .addBlock(
+                List.of( // test some reverted calls
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[2],
+                        TestContext.snippetsCodeForCreate2,
+                        false),
+                    tc.selfDestruct(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.newAddresses[2],
+                        tc.frameworkEntryPointAddress,
+                        false,
+                        BigInteger.ONE),
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[2],
+                        TestContext.snippetsCodeForCreate2,
+                        true),
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[2],
+                        TestContext.snippetsCodeForCreate2,
+                        false),
+                    tc.selfDestruct(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.newAddresses[2],
+                        tc.frameworkEntryPointAddress,
+                        true,
+                        BigInteger.ONE)
+                    // since the last self-destruct gets reverted, the last call will not increase
+                    // the
+                    // deplNo
+                    ))
+            .transactionProcessingResultValidator(resultValidator)
+            .build();
+
+    multiBlockEnv.run();
 
     // As the state manager feature is not available anymore, we are not able to keep track of the
     // deployment number per address
@@ -158,18 +161,20 @@ public class BlockwiseDeplNoTest {
     Map<Address, Map<Integer, Integer>> maxDeplNoBlock = new HashMap<>();
 
     // We count the number of transactions in the hub, here we have 11
-    int txCount = MultiBlockExecutionEnvironment.getHub().state().txCount();
+    int txCount = multiBlockEnv.getHub().state().txCount();
     for (int txNb = 0; txNb < txCount; txNb++) {
       // Relative block number is constant per transaction
       // Tx number starts from 1
       int relBlokNo =
-          MultiBlockExecutionEnvironment.getHub()
+          multiBlockEnv
+              .getHub()
               .txStack()
               .getByAbsoluteTransactionNumber(txNb + 1)
               .getRelativeBlockNumber();
       // We retrieve the trace section list for each transaction
       List<TraceSection> traceSectionList =
-          MultiBlockExecutionEnvironment.getHub()
+          multiBlockEnv
+              .getHub()
               .state()
               .getState()
               .operationsInTransactionBundle()

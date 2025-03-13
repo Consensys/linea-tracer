@@ -40,7 +40,7 @@ public class MultiBlockExecutionEnvironment {
   private final List<BlockSnapshot> blocks;
 
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
-  private static final ZkTracer tracer = new ZkTracer(CHAIN_ID);
+  private final ZkTracer tracer = new ZkTracer(CHAIN_ID);
 
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was
@@ -83,7 +83,7 @@ public class MultiBlockExecutionEnvironment {
         .replay(ToyExecutionEnvironmentV2.CHAIN_ID, this.buildConflationSnapshot());
   }
 
-  public static Hub getHub() {
+  public Hub getHub() {
     return tracer.getHub();
   }
 

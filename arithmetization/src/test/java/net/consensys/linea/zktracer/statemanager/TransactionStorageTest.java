@@ -52,52 +52,54 @@ public class TransactionStorageTest {
     // StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();
 
     // prepare a multi-block execution of transactions
-    MultiBlockExecutionEnvironment.builder()
-        // initialize accounts
-        .accounts(
-            List.of(
-                tc.initialAccounts[0],
-                tc.externallyOwnedAccounts[0],
-                tc.initialAccounts[2],
-                tc.frameworkEntryPointAccount))
-        // Block 1
-        .addBlock(
-            List.of(
-                tc.newTxFromCalls(
+    final MultiBlockExecutionEnvironment multiBlockEnv =
+        MultiBlockExecutionEnvironment.builder()
+            // initialize accounts
+            .accounts(
+                List.of(
+                    tc.initialAccounts[0],
                     tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    new FrameworkEntrypoint.ContractCall[] {
-                      tc.writeToStorageCall(tc.addresses[0], 3L, 1L, false, BigInteger.ONE),
-                      tc.writeToStorageCall(tc.addresses[0], 3L, 2L, false, BigInteger.ONE),
-                      tc.writeToStorageCall(tc.addresses[0], 3L, 3L, false, BigInteger.ONE),
-                      tc.writeToStorageCall(tc.addresses[0], 3L, 1234L, true, BigInteger.ONE),
-                    }),
-                tc.newTxFromCalls(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    new FrameworkEntrypoint.ContractCall[] {
-                      tc.writeToStorageCall(tc.addresses[0], 3L, 1234L, true, BigInteger.ONE),
-                      tc.writeToStorageCall(tc.addresses[0], 3L, 4L, false, BigInteger.ONE),
-                      tc.writeToStorageCall(tc.addresses[0], 3L, 5L, false, BigInteger.ONE),
-                      tc.writeToStorageCall(tc.addresses[0], 3L, 6L, false, BigInteger.ONE),
-                    })))
-        .transactionProcessingResultValidator(resultValidator)
-        .build()
-        .run();
+                    tc.initialAccounts[2],
+                    tc.frameworkEntryPointAccount))
+            // Block 1
+            .addBlock(
+                List.of(
+                    tc.newTxFromCalls(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        new FrameworkEntrypoint.ContractCall[] {
+                          tc.writeToStorageCall(tc.addresses[0], 3L, 1L, false, BigInteger.ONE),
+                          tc.writeToStorageCall(tc.addresses[0], 3L, 2L, false, BigInteger.ONE),
+                          tc.writeToStorageCall(tc.addresses[0], 3L, 3L, false, BigInteger.ONE),
+                          tc.writeToStorageCall(tc.addresses[0], 3L, 1234L, true, BigInteger.ONE),
+                        }),
+                    tc.newTxFromCalls(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        new FrameworkEntrypoint.ContractCall[] {
+                          tc.writeToStorageCall(tc.addresses[0], 3L, 1234L, true, BigInteger.ONE),
+                          tc.writeToStorageCall(tc.addresses[0], 3L, 4L, false, BigInteger.ONE),
+                          tc.writeToStorageCall(tc.addresses[0], 3L, 5L, false, BigInteger.ONE),
+                          tc.writeToStorageCall(tc.addresses[0], 3L, 6L, false, BigInteger.ONE),
+                        })))
+            .transactionProcessingResultValidator(resultValidator)
+            .build();
+    multiBlockEnv.run();
 
     // Initialize the storageFirstAndLastMap list
     List<Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>>>
         storageFirstAndLastMapList = new ArrayList<>();
 
     // We count the number of transactions in the hub
-    int txCount = MultiBlockExecutionEnvironment.getHub().state().txCount();
+    int txCount = multiBlockEnv.getHub().state().txCount();
     // We iterate over the transactions
     for (int txNb = 0; txNb < txCount; txNb++) {
       // We create an storageFirstAndLastMap for each transaction
       storageFirstAndLastMapList.add(new HashMap<>());
       // We retrieve the trace section list
       List<TraceSection> traceSectionList =
-          MultiBlockExecutionEnvironment.getHub()
+          multiBlockEnv
+              .getHub()
               .state()
               .getState()
               .operationsInTransactionBundle()

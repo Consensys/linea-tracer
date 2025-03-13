@@ -97,7 +97,6 @@ public class UtilitiesTest {
         .transactionProcessingResultValidator(resultValidator)
         .build()
         .run();
-    System.out.println("Done");
   }
 
   // Create 2 has a weird behavior and does not seem to work with the
@@ -128,6 +127,5 @@ public class UtilitiesTest {
         .transactionProcessingResultValidator(resultValidator)
         .build()
         .run();
-    System.out.println("Done");
   }
 }

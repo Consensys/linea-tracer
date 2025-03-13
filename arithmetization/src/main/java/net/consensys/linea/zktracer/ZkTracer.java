@@ -100,8 +100,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     final Map<String, Object> metadata = Trace.metadata();
     metadata.put("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
     metadata.put("chainId", this.chain.id.toString());
-    metadata.put("L2L1LogSmcAddress", this.chain.bridgeConfiguration.contract());
-    metadata.put("L2L1LogTopic", this.chain.bridgeConfiguration.topic());
+    metadata.put("l2L1LogSmcAddress", this.chain.bridgeConfiguration.contract().toString());
+    metadata.put("l2L1LogTopic", this.chain.bridgeConfiguration.topic().toString());
     // include block range
     final Map<String, String> range = new HashMap<>();
     range.put("start", Long.toString(startBlock));

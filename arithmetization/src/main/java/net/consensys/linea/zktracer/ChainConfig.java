@@ -28,7 +28,10 @@ import java.math.BigInteger;
  * from Linea mainnet, are all currently for the purposes of testing.
  */
 public class ChainConfig {
-  /** Represents Linea mainnet as it stands today which enforces the block gas limit. */
+  /**
+   * Represents Linea mainnet as it stands today which enforces the block gas limit (currently two
+   * billion).
+   */
   public static final ChainConfig LINEA_MAINNET =
       new ChainConfig(
           LINEA_CHAIN_ID,
@@ -72,7 +75,7 @@ public class ChainConfig {
   /** Determines minimum gas limit for this chain */
   public final BigInteger gasLimitMinimum;
 
-  /** Determins maximum gas limit for this chain */
+  /** Determines maximum gas limit for this chain */
   public final BigInteger gasLimitMaximum;
 
   private ChainConfig(

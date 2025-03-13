@@ -15,8 +15,8 @@
 
 package net.consensys.linea.testing;
 
-import static net.consensys.linea.zktracer.ChainConfig.OLD_LINEA_MAINNET;
-import static net.consensys.linea.zktracer.ChainConfig.OLD_LINEA_SEPOLIA;
+import static net.consensys.linea.zktracer.ChainConfig.OLD_MAINNET_TESTCONFIG;
+import static net.consensys.linea.zktracer.ChainConfig.OLD_SEPOLIA_TESTCONFIG;
 
 import java.io.File;
 import java.io.IOException;
@@ -344,9 +344,9 @@ public class ReplayExecutionEnvironment {
    * @return
    */
   private static String getChainName(BigInteger chainId) {
-    if (chainId.equals(OLD_LINEA_MAINNET.id)) {
+    if (chainId.equals(OLD_MAINNET_TESTCONFIG.id)) {
       return "mainnet";
-    } else if (chainId.equals(OLD_LINEA_SEPOLIA.id)) {
+    } else if (chainId.equals(OLD_SEPOLIA_TESTCONFIG.id)) {
       return "sepolia";
     } else {
       return String.format("chain%s", chainId.toString());

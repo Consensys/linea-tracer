@@ -15,7 +15,7 @@
 
 package net.consensys.linea.corset;
 
-import static net.consensys.linea.zktracer.ChainConfig.LINEA_MAINNET;
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -154,7 +154,7 @@ public class GoCorsetValidator extends AbstractExecutable {
    * @param options
    */
   private void setChainConstants(List<String> options) {
-    if (chain != LINEA_MAINNET) {
+    if (chain != MAINNET_TESTCONFIG) {
       options.add("-Sblockdata.GAS_LIMIT_MINIMUM=" + chain.gasLimitMinimum.toString());
       options.add("-Sblockdata.GAS_LIMIT_MAXIMUM=" + chain.gasLimitMaximum.toString());
       if (chain.fixedGasLimitEnabled) {

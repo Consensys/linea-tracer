@@ -390,8 +390,11 @@ public class Hub implements Module {
         .toList();
   }
 
-  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic, final ChainConfig chain) {
+  public Hub(final ChainConfig chain) {
     checkState(chain.id.signum() >= 0);
+    Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
+    final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
+    //
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
       log.info("WARN: Using default testing L2L1 contract address");
     }

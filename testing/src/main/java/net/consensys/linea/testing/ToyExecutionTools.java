@@ -54,7 +54,7 @@ public class ToyExecutionTools {
   private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
       Arrays.asList("Frontier", "Homestead", "EIP150");
   private static final CorsetValidator CORSET_VALIDATOR =
-      new CorsetValidator(ChainConfig.LINEA_MAINNET);
+      new CorsetValidator(ChainConfig.MAINNET_TESTCONFIG);
 
   private ToyExecutionTools() {
     // utility class
@@ -225,7 +225,8 @@ public class ToyExecutionTools {
 
     Deque<MessageFrame> messageFrameStack = initialMessageFrame.getMessageFrameStack();
     while (!messageFrameStack.isEmpty()) {
-      processor.process(messageFrameStack.peekFirst(), new ZkTracer(ChainConfig.LINEA_MAINNET));
+      processor.process(
+          messageFrameStack.peekFirst(), new ZkTracer(ChainConfig.MAINNET_TESTCONFIG));
     }
 
     long intrinsicTxCostWithNoAccessOrDelegationCost =

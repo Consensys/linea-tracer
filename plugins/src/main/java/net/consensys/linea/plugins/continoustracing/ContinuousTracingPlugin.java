@@ -95,7 +95,9 @@ public class ContinuousTracingPlugin implements BesuPlugin {
     besuEvents.addBlockAddedListener(
         new ContinuousTracingBlockAddedListener(
             new ContinuousTracer(
-                traceService, new CorsetValidator(ChainConfig.LINEA_MAINNET), tracingConfiguration),
+                traceService,
+                new CorsetValidator(ChainConfig.MAINNET_TESTCONFIG),
+                tracingConfiguration),
             new TraceFailureHandler(SlackNotificationService.create(webHookUrl))));
   }
 

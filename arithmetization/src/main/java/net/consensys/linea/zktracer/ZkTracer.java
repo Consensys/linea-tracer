@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.ChainConfig.LINEA_MAINNET;
+import static net.consensys.linea.zktracer.ChainConfig.LINEA_CHAIN;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -64,17 +64,27 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   // Fields for metadata
   private final ChainConfig chain;
 
-  public ZkTracer(BigInteger nonnegativeChainId) {
-    this(LINEA_MAINNET(nonnegativeChainId));
+  /**
+   * Construct a ZkTracer for a given bridge configuration and chainId. This is used, for example,
+   * by the sequencer for tracing in production, such as on mainnet and/or sepolia.
+   *
+   * @param bridgeConfiguration Configuration for the L1L2 bridge.
+   * @param chainId Identifies the chain being traced.
+   */
+  public ZkTracer(
+      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
+    this(LINEA_CHAIN(bridgeConfiguration, chainId));
   }
 
+  /**
+   * Construct a ZkTracer with a given chain configuration, which could either for a production
+   * environment or a test environment.
+   *
+   * @param chain
+   */
   public ZkTracer(ChainConfig chain) {
-    this(LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, chain);
-  }
-
-  public ZkTracer(final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, ChainConfig chain) {
     this.chain = chain;
-    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chain);
+    this.hub = new Hub(chain);
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));

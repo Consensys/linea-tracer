@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.ChainConfig.LINEA_MAINNET;
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import net.consensys.linea.UnitTestWatcher;
@@ -27,7 +27,7 @@ public class ZkTracerTest {
 
   @Test
   public void createNewTracer() {
-    final ZkTracer zkTracer = new ZkTracer(LINEA_MAINNET);
+    final ZkTracer zkTracer = new ZkTracer(MAINNET_TESTCONFIG);
     assertThat(zkTracer.isExtendedTracing()).isTrue();
   }
 }

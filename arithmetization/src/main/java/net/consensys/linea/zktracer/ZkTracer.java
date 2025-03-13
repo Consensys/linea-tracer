@@ -98,8 +98,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         modulesToTrace.stream().flatMap(m -> m.columnHeaders().stream()).toList();
     // Configure metadata
     final Map<String, Object> metadata = Trace.metadata();
-    metadata.put("chainId", this.chain.id.toString());
     metadata.put("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
+    metadata.put("chainId", this.chain.id.toString());
+    metadata.put("L2L1LogSmcAddress", this.chain.bridgeConfiguration.contract());
+    metadata.put("L2L1LogTopic", this.chain.bridgeConfiguration.topic());
     // include block range
     final Map<String, String> range = new HashMap<>();
     range.put("start", Long.toString(startBlock));

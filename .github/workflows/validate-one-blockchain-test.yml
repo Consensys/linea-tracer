@@ -24,16 +24,10 @@ jobs:
         with:
           go-corset: true
 
-      - name: Generate block chain reference tests
-        run: ./gradlew :reference-tests:generateBlockchainReferenceTests -Dorg.gradle.caching=true
-        env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-
       - name: Run Reference Blockchain test sample
-        run: ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck --tests "BlockchainReferenceTest_0"
+        run: ./gradlew -Dblockchain=Ethereum referenceBlockchainTests -x spotlessCheck --tests "BlockchainReferenceTest_104"
         timeout-minutes: 15
         env:
-          # GENERATE_ONLY_FILE_NAME: GeneralStateTests/stChainId/chainId.json
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -vw --ansi-escapes=false --report --air

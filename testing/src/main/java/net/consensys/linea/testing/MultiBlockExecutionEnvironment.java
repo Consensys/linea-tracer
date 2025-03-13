@@ -27,6 +27,7 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.*;
+import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -41,7 +42,8 @@ public class MultiBlockExecutionEnvironment {
   private final List<BlockSnapshot> blocks;
 
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
-  private final ZkTracer tracer = new ZkTracer(ChainConfig.lineaFromChainId(CHAIN_ID));
+  private final ZkTracer tracer =
+    new ZkTracer(ChainConfig.LINEA_CHAIN(LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT,CHAIN_ID));
 
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was

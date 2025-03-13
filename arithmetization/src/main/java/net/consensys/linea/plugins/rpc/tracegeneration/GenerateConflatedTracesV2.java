@@ -95,7 +95,8 @@ public class GenerateConflatedTracesV2 {
     final long toBlock = params.endBlockNumber();
     final ZkTracer tracer =
         new ZkTracer(
-            LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, // FIXME: is this appropriate?
+            // NOTE: following OK because bridge config only affects line counts for non-tracing modules.
+            LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT,
             BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
                 .getChainId()
                 .orElseThrow());

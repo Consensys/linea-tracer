@@ -683,6 +683,7 @@ public class EcDataOperation extends ModuleOperation {
               && internalChecksPassed;
       final boolean acceptablePairOfPointsForPairingCircuit =
           precompileFlag == PRC_ECPAIRING
+              && isData
               && successBit
               && !notOnG2AccMax
               && !largePointIsAtInfinity

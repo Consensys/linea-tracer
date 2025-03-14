@@ -254,7 +254,7 @@ public class Hub implements Module {
   @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
 
   /** Those modules are used only by the sequencer, they don't have associated trace */
-  private List<Module> tracelessModules() {
+  public List<Module> getTracelessModules() {
     return List.of(
         blockTransactions,
         keccak,
@@ -348,46 +348,13 @@ public class Hub implements Module {
   }
 
   /**
-   * List all the modules for which to generate counters. Intersects with, but is not equal to
-   * {@code getModulesToTrace}.
+   * List all the modules for which to generate counters. This includes all the tracing modules (
+   * {@code getModulesToTrace}) as well as all the so-called traceless modules.
    *
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
-    return Stream.concat(
-            Stream.of(
-                this,
-                add,
-                bin,
-                blakeModexpData,
-                blockdata,
-                blockhash,
-                ecData,
-                exp,
-                ext,
-                euc,
-                gas,
-                logData,
-                logInfo,
-                mmu,
-                mmio,
-                mod,
-                mul,
-                mxp,
-                oob,
-                rlpAddr,
-                rlpTxn,
-                rlpTxnRcpt,
-                rom,
-                romLex,
-                shakiraData,
-                shf,
-                stp,
-                trm,
-                txnData,
-                wcp),
-            Stream.concat(refTableModules.stream(), tracelessModules().stream()))
-        .toList();
+    return Stream.concat(getModulesToTrace().stream(), getTracelessModules().stream()).toList();
   }
 
   public Hub(final ChainConfig chain) {
@@ -399,8 +366,10 @@ public class Hub implements Module {
       log.info("WARN: Using default testing L2L1 contract address");
     }
     l2L1Logs = new L2L1Logs();
-    l2Block = new L2Block(blockTransactions, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
+    keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
+    l2Block =
+        new L2Block(
+            blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     rlpAddr = new RlpAddr(this, trm, keccak);
     blockdata = new Blockdata(wcp, euc, txnData, chain);
@@ -441,7 +410,7 @@ public class Hub implements Module {
                     wcp, /* WARN: must be called BEFORE txnData */
                     txnData,
                     blockdata /* WARN: must be called AFTER txnData */),
-                tracelessModules().stream())
+                getTracelessModules().stream())
             .toList();
   }
 

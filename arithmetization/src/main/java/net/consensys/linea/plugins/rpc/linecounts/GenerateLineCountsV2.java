@@ -45,10 +45,15 @@ public class GenerateLineCountsV2 {
 
   private final ServiceManager besuContext;
   private TraceService traceService;
+  private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
 
-  public GenerateLineCountsV2(final ServiceManager context, final RequestLimiter requestLimiter) {
+  public GenerateLineCountsV2(
+      final ServiceManager context,
+      final RequestLimiter requestLimiter,
+      final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration) {
     this.besuContext = context;
     this.requestLimiter = requestLimiter;
+    this.l1L2BridgeSharedConfiguration = l1L2BridgeSharedConfiguration;
   }
 
   public String getNamespace() {
@@ -101,8 +106,7 @@ public class GenerateLineCountsV2 {
                     blockNumber -> {
                       final ZkTracer tracer =
                           new ZkTracer(
-                              LineaL1L2BridgeSharedConfiguration
-                                  .TEST_DEFAULT, // FIXME: is this appropriate?
+                              l1L2BridgeSharedConfiguration,
                               BesuServiceProvider.getBesuService(
                                       besuContext, BlockchainService.class)
                                   .getChainId()

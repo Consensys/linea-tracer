@@ -91,7 +91,8 @@ public class KeccakBlocksTests {
     // check lineCount of Keccak
     final int txRlpSize = tx.encoded().size();
     final int txKeccak =
-        numberOfKeccakBloc(txRlpSize) + 1; // numberOfKeccakBloc(txRlpSize) + 1 for EcRecover
+        2 * numberOfKeccakBloc(txRlpSize)
+            + 1; // 2 * numberOfKeccakBloc(txRlpSize) + 1 for EcRecover
     final int rlpAddrKeccak = 1 + 1; // 1 for CREATE, 1 for CREATE2
     assertEquals(txKeccak + rlpAddrKeccak, keccak.lineCount());
 

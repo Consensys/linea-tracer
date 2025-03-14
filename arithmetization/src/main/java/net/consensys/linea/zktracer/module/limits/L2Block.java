@@ -114,9 +114,10 @@ public class L2Block implements Module {
     // Counts the number of Keccak from tx RLPs, used both for both the signature verification and
     // the public input computation.
     keccak.updateTally(txDataSize);
-    // TODO: this is for the RLP of the unsigned transaction, not the signed one. This is an upper
-    // bond. Waiting for Besu to expose the method that enables to compute the RLP of the un signed
-    // tx
+    // TODO: this accounts for the message (hash) which the raw transaction signed.
+    // Recall that said message is assembled (re-RLP-ized) from fields of the raw transaction.
+    // This is an upper bound. Waiting for Besu to expose the method which computes said re-RLP-ized
+    // message (length.)
     keccak.updateTally(txDataSize);
   }
 

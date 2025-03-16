@@ -65,7 +65,11 @@ public final class StorageFragment implements TraceFragment {
         .pStorageValueNextIsCurr(valueNext.equals(valueCurrent))
         .pStorageValueNextIsZero(valueNext.isZero())
         .pStorageValueNextIsOrig(valueNext.equals(valueOriginal))
-        .pStorageSloadOperation(purpose == StorageFragmentPurpose.SLOAD_DOING || purpose == StorageFragmentPurpose.SLOAD_UNDOING)
-        .pStorageSstoreOperation(purpose == StorageFragmentPurpose.SSTORE_DOING || purpose == StorageFragmentPurpose.SSTORE_UNDOING);
+        .pStorageSloadOperation(
+            purpose == StorageFragmentPurpose.SLOAD_DOING
+                || purpose == StorageFragmentPurpose.SLOAD_UNDOING)
+        .pStorageSstoreOperation(
+            purpose == StorageFragmentPurpose.SSTORE_DOING
+                || purpose == StorageFragmentPurpose.SSTORE_UNDOING);
   }
 }

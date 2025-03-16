@@ -12,8 +12,9 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package net.consensys.linea.zktracer;
+
+import static net.consensys.linea.zktracer.ChainConfig.LINEA_CHAIN;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -61,29 +62,30 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
   // Fields for metadata
-  private final BigInteger chainId;
+  private final ChainConfig chain;
 
-  public ZkTracer() {
-    this(
-        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT,
-        Bytes.fromHexString("c0ffee").toUnsignedBigInteger());
-  }
-
-  public ZkTracer(BigInteger nonnegativeChainId) {
-    this(LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, nonnegativeChainId);
-  }
-
+  /**
+   * Construct a ZkTracer for a given bridge configuration and chainId. This is used, for example,
+   * by the sequencer for tracing in production, such as on mainnet and/or sepolia.
+   *
+   * @param bridgeConfiguration Configuration for the L1L2 bridge.
+   * @param chainId Identifies the chain being traced.
+   */
   public ZkTracer(
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    this.chainId = chainId;
-    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chainId);
-    // >>>> CHANGE ME >>>>
-    // >>>> CHANGE ME >>>>
-    // >>>> CHANGE ME >>>>
+    this(LINEA_CHAIN(bridgeConfiguration, chainId));
+  }
+
+  /**
+   * Construct a ZkTracer with a given chain configuration, which could either for a production
+   * environment or a test environment.
+   *
+   * @param chain
+   */
+  public ZkTracer(ChainConfig chain) {
+    this.chain = chain;
+    this.hub = new Hub(chain);
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
-    // <<<< CHANGE ME <<<<
-    // <<<< CHANGE ME <<<<
-    // <<<< CHANGE ME <<<<
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
   }
@@ -96,8 +98,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
         modulesToTrace.stream().flatMap(m -> m.columnHeaders().stream()).toList();
     // Configure metadata
     final Map<String, Object> metadata = Trace.metadata();
-    metadata.put("chainId", this.chainId.toString());
     metadata.put("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
+    metadata.put("chainId", this.chain.id.toString());
+    metadata.put("l2L1LogSmcAddress", this.chain.bridgeConfiguration.contract().toString());
+    metadata.put("l2L1LogTopic", this.chain.bridgeConfiguration.topic().toString());
     // include block range
     final Map<String, String> range = new HashMap<>();
     range.put("start", Long.toString(startBlock));
@@ -105,7 +109,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     metadata.put("conflation", range);
     // include line counts
     final Map<String, String> lineCounts = new HashMap<>();
-    for (Module m : hub.getModulesToCount()) {
+    for (Module m : hub.getTracelessModules()) {
       lineCounts.put(m.moduleKey(), Integer.toString(m.lineCount()));
     }
     metadata.put("lineCounts", lineCounts);
@@ -285,10 +289,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     }
   }
 
-  /**
-   * When called, erase all tracing related to the bundle of all transactions since the last {@link
-   * commitTransactionBundle()}
-   */
+  /** When called, erase all tracing related to the bundle of all transactions since the last. */
   public void popTransactionBundle() {
     hub.popTransactionBundle();
   }
@@ -297,6 +298,13 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     hub.commitTransactionBundle();
   }
 
+  /**
+   * Returns the total line count (i.e. including spillage) for both tracing and non-tracing
+   * modules. This method is called directly by the sequencer to determine whether a given
+   * transaction should go ahead. This method is also used to feed the line counting RPC end points.
+   *
+   * @return
+   */
   public Map<String, Integer> getModulesLineCount() {
     maybeThrowTracingExceptions();
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();

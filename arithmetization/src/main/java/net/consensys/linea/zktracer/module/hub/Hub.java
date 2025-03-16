@@ -29,7 +29,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +38,7 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
@@ -116,7 +116,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -255,7 +254,7 @@ public class Hub implements Module {
   @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
 
   /** Those modules are used only by the sequencer, they don't have associated trace */
-  private List<Module> tracelessModules() {
+  public List<Module> getTracelessModules() {
     return List.of(
         blockTransactions,
         keccak,
@@ -349,59 +348,31 @@ public class Hub implements Module {
   }
 
   /**
-   * List all the modules for which to generate counters. Intersects with, but is not equal to
-   * {@code getModulesToTrace}.
+   * List all the modules for which to generate counters. This includes all the tracing modules (
+   * {@code getModulesToTrace}) as well as all the so-called traceless modules.
    *
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
-    return Stream.concat(
-            Stream.of(
-                this,
-                add,
-                bin,
-                blakeModexpData,
-                blockdata,
-                blockhash,
-                ecData,
-                exp,
-                ext,
-                euc,
-                gas,
-                logData,
-                logInfo,
-                mmu,
-                mmio,
-                mod,
-                mul,
-                mxp,
-                oob,
-                rlpAddr,
-                rlpTxn,
-                rlpTxnRcpt,
-                rom,
-                romLex,
-                shakiraData,
-                shf,
-                stp,
-                trm,
-                txnData,
-                wcp),
-            Stream.concat(refTableModules.stream(), tracelessModules().stream()))
-        .toList();
+    return Stream.concat(getModulesToTrace().stream(), getTracelessModules().stream()).toList();
   }
 
-  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic, final BigInteger chainId) {
-    checkState(chainId.signum() >= 0);
+  public Hub(final ChainConfig chain) {
+    checkState(chain.id.signum() >= 0);
+    Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
+    final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
+    //
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
       log.info("WARN: Using default testing L2L1 contract address");
     }
     l2L1Logs = new L2L1Logs();
-    l2Block = new L2Block(blockTransactions, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
+    keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
+    l2Block =
+        new L2Block(
+            blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     rlpAddr = new RlpAddr(this, trm, keccak);
-    blockdata = new Blockdata(wcp, euc, txnData, EWord.of(chainId));
+    blockdata = new Blockdata(wcp, euc, txnData, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -439,7 +410,7 @@ public class Hub implements Module {
                     wcp, /* WARN: must be called BEFORE txnData */
                     txnData,
                     blockdata /* WARN: must be called AFTER txnData */),
-                tracelessModules().stream())
+                getTracelessModules().stream())
             .toList();
   }
 

@@ -16,10 +16,10 @@
 package net.consensys.linea.plugins.rpc.tracegeneration;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import com.google.common.base.Stopwatch;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
@@ -40,7 +40,6 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
  * based on the provided request parameters and writes them to a file.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class GenerateConflatedTracesV2 {
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
 
@@ -50,6 +49,17 @@ public class GenerateConflatedTracesV2 {
   private final ServiceManager besuContext;
   private TraceService traceService;
   private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
+
+  public GenerateConflatedTracesV2(
+      final ServiceManager besuContext,
+      final RequestLimiter requestLimiter,
+      final TracesEndpointConfiguration endpointConfiguration,
+      LineaL1L2BridgeSharedConfiguration lineaL1L2BridgeSharedConfiguration) {
+    this.besuContext = besuContext;
+    this.requestLimiter = requestLimiter;
+    this.tracesOutputPath = Paths.get(endpointConfiguration.tracesOutputPath());
+    this.l1L2BridgeSharedConfiguration = lineaL1L2BridgeSharedConfiguration;
+  }
 
   public String getNamespace() {
     return "linea";

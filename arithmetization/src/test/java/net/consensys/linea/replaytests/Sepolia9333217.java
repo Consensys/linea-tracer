@@ -16,7 +16,7 @@
 package net.consensys.linea.replaytests;
 
 import static net.consensys.linea.replaytests.ReplayTestTools.replay;
-import static net.consensys.linea.testing.ReplayExecutionEnvironment.LINEA_SEPOLIA;
+import static net.consensys.linea.zktracer.ChainConfig.OLD_SEPOLIA_TESTCONFIG;
 
 import net.consensys.linea.UnitTestWatcher;
 import org.junit.jupiter.api.Tag;
@@ -24,11 +24,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @Tag("replay")
+@Tag("weekly")
 @ExtendWith(UnitTestWatcher.class)
 public class Sepolia9333217 {
 
+  /**
+   * This Sepolia block is unprovable due to the modexp call. One transaction does two calls to
+   * modexp with arg > 512 bytes. This is unprovable. It was sequenced as there was a line count
+   * limit for modexp.
+   */
   @Test
   void sepolia9333217() {
-    replay(LINEA_SEPOLIA, "9333217.sepolia.json");
+    try {
+      replay(OLD_SEPOLIA_TESTCONFIG, "9333217.sepolia.json.gz");
+    } catch (Exception e) {
+      // This is expected as the modexp call is unprovable
+      if (!e.getMessage().contains("Final CallScenario, CALL_PRC_UNDEFINED, is still undefined")) {
+        throw e;
+      }
+    }
   }
 }

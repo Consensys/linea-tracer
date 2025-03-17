@@ -271,8 +271,8 @@ abstract contract TestingBase {
      */
     function deployWithCreate2(
         bytes32 _salt,
-        bytes memory _bytecode,
-        bool _revertFlag
+        bytes memory _bytecode
+        //bool _revertFlag
     ) public payable returns (address addr) {
         assembly {
             let value := callvalue()
@@ -288,9 +288,9 @@ abstract contract TestingBase {
         }
 
         emit ContractCreated(addr);
-        if (_revertFlag) {
+/*        if (_revertFlag) {
             revert();
-        }
+        }*/
     }
 
 
@@ -308,7 +308,9 @@ abstract contract TestingBase {
             )
         }
 
-        emit ContractCreated(addr);
+        if (addr != address(0)) {
+            emit ContractCreated(addr);
+        }
     }
 
     function deployWithCreate2_noRevert(
@@ -325,7 +327,9 @@ abstract contract TestingBase {
             )
         }
 
-        emit ContractCreated(addr);
+        if (addr != address(0)) {
+            emit ContractCreated(addr);
+        }
     }
 
     /**

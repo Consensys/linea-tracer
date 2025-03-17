@@ -19,11 +19,14 @@ import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoO
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.ToyTransaction.ToyTransactionBuilder;
+import net.consensys.linea.testing.generated.ContractC;
 import net.consensys.linea.testing.generated.CustomCreate2;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -31,6 +34,7 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.web3j.abi.EventEncoder;
 
 @ExtendWith(UnitTestWatcher.class)
 public class InitCodeTests {
@@ -61,13 +65,15 @@ public class InitCodeTests {
     Bytes storeSalt =
         CustomCreate2Payload.storeSalt(
             "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef");
+    Bytes storeSalt2 =
+        CustomCreate2Payload.storeSalt(
+            "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdee");
     Bytes create2WithInitCodeC = CustomCreate2Payload.create2WithInitCodeC();
     Bytes callContractCStoreInMapPayload =
         CustomCreate2Payload.callContractC(
             ContractCPayload.storeInMap(1, "0x0000000000000000000000000000000000001234"), false);
     Bytes callContractCSelfDestructPayload =
         CustomCreate2Payload.callContractC(ContractCPayload.selfDestructOnDemand(), false);
-    // 1- Fails, create2WithInitCodeC after selfDestruct
     // 2 - Fails OK
     Bytes create2WithCallBackAfterCreate2 = CustomCreate2Payload.create2WithCallBackAfterCreate2();
     // 3 - Passes because of doCall, emits log
@@ -77,30 +83,63 @@ public class InitCodeTests {
     // Bug to check, always StaticCallMyself
     Bytes create2WithStaticCall =
         CustomCreate2Payload.callMyself(CustomCreate2Payload.create2WithInitCodeC(), true);
+    Bytes create2FourTimes = CustomCreate2Payload.create2FourTimes();
+
+    // prepare the transaction validator
+    String contractCreatedEvent = EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
+    String staticCallMyselfFailEvent =
+        EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
+    String immediateRedeploymentFailEvent =
+        EventEncoder.encode(ContractC.IMMEDIATEREDEPLOYMENTFAIL_EVENT);
+    Map<String, List<Integer>> logsMap = new HashMap<>();
+    logsMap.put(contractCreatedEvent, List.of(0, 0, 1, 0, 0, 0, 1, 0, 0, 1));
+    logsMap.put(staticCallMyselfFailEvent, List.of(0, 0, 0, 0, 0, 0, 0, 0, 1, 0));
+    logsMap.put(immediateRedeploymentFailEvent, List.of(0, 0, 0, 0, 0, 0, 1, 0, 0, 0));
+    TransactionProcessingResultValidator create2Validator = new Create2TestValidator(logsMap);
 
     List<Transaction> transactions =
         getTransactions(
             customCreate2Account,
             userAccount,
             List.of(
-                // preparation
+                // CustomCreate2 initialization
                 storeInitCodeC,
                 storeSalt,
-                // start tx
+                // Flow 1 - ContractC deploy, modify storage, self-destruct
+                // ContractC is deployed
+                // Storage is modified
+                // ContractC is self-destructed
+                // Logs: 1 ContractCreated
                 create2WithInitCodeC,
                 callContractCStoreInMapPayload,
                 callContractCSelfDestructPayload,
-                create2WithInitCodeC),
-            List.of(0L, 0L, 0L, 0L, 0L, 2L));
-
-    /*    List<ToyTransactionBuilder> builders = new ArrayList<>();
-    builders.addAll(txBuilders);*/
+                // Flow 2 - Deploy ContractC and try deployment again after in same transaction
+                // Transaction reverts, nothing is deployed
+                // Logs: none
+                create2WithCallBackAfterCreate2,
+                // Flow 3 - Deploy ContractC and deployment attempts redeployment
+                // ContractC deployment attempt with value 2, so immediate redeployment attempted
+                // ContractC is deployed with empty bytecode
+                // Logs: 1 ContractCreated + 1 ImmediateRedeploymentFail
+                create2WithInitCodeC,
+                // Flow 4 - ContractC deployed with staticCall
+                // Logs: 1 StaticCallMyselfFail
+                storeSalt2, // change salt as C is deployed at address
+                create2WithStaticCall,
+                // Flow 5 - ContractC deployed with max value, acceptable value, max value,
+                // acceptable value
+                // First attempt is aborted
+                // Second attempt is successful
+                // Third attempt  is aborted
+                // Fourth attempt fails
+                // Logs: 1 ContractCreated
+                create2FourTimes),
+            List.of(0L, 0L, 0L, 0L, 0L, 0L, 2L, 0L, 0L, 0L));
 
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(userAccount, customCreate2Account))
         .transactions(transactions)
-        .transactionProcessingResultValidator(
-            TransactionProcessingResultValidator.DEFAULT_VALIDATOR)
+        .transactionProcessingResultValidator(create2Validator)
         .build()
         .run();
   }

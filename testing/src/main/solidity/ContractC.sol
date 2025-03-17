@@ -13,6 +13,35 @@ interface ICustomCreate2 {
  */
 contract ContractC {
 
+
+    event ImmediateRedeploymentFail();
+
+    constructor() payable {
+        uint256 value = msg.value;
+        // deployment is done by CustomCreate2
+        address from = msg.sender;
+        if (value == 1) {
+            storageMap[value]=from;
+        } else if (value == 2) {
+            try ICustomCreate2(from).create2WithInitCodeC() {
+            } catch Error(string memory _err) {
+                assembly {
+                    stop()
+                }
+            } catch (bytes memory _err) {
+                emit ImmediateRedeploymentFail();
+                // If no stop here, the deployed bytecode is 0x..33
+                assembly {
+                    stop()
+                }
+            }
+        } else if (value == 3) {
+            selfDestructOnDemand();
+        } else if (value == 4) {
+            revertOnDemand();
+        }
+    }
+
     mapping(uint => address) public storageMap;
 
     function storeInMap(uint key, address add) public {
@@ -31,4 +60,11 @@ contract ContractC {
         address payable thisAddr = payable(address(this));
         selfdestruct(thisAddr);
     }
+
+    // Future usage
+
+    /* function getDeployedCode() view public returns (bytes memory) {
+        return address(this).code;
+    } */
+
 }

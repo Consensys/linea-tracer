@@ -21,6 +21,7 @@ import java.util.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
@@ -35,6 +36,7 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** This class is used to generate trace counters. */
 @Slf4j
+@RequiredArgsConstructor
 public class GenerateLineCountsV2 {
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
   private static final int CACHE_SIZE = 10_000;
@@ -46,15 +48,6 @@ public class GenerateLineCountsV2 {
   private final ServiceManager besuContext;
   private TraceService traceService;
   private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
-
-  public GenerateLineCountsV2(
-      final ServiceManager context,
-      final RequestLimiter requestLimiter,
-      final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration) {
-    this.besuContext = context;
-    this.requestLimiter = requestLimiter;
-    this.l1L2BridgeSharedConfiguration = l1L2BridgeSharedConfiguration;
-  }
 
   public String getNamespace() {
     return "linea";

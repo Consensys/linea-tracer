@@ -44,12 +44,16 @@ public class ConflatedCountTracesV2 {
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
   private final RequestLimiter requestLimiter;
   private final ServiceManager besuContext;
+  private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
   private TraceService traceService;
 
   public ConflatedCountTracesV2(
-      final ServiceManager besuContext, final RequestLimiter requestLimiter) {
+      final ServiceManager besuContext,
+      final RequestLimiter requestLimiter,
+      final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration) {
     this.besuContext = besuContext;
     this.requestLimiter = requestLimiter;
+    this.l1L2BridgeSharedConfiguration = l1L2BridgeSharedConfiguration;
   }
 
   public String getNamespace() {
@@ -89,7 +93,7 @@ public class ConflatedCountTracesV2 {
     final long toBlock = params.endBlockNumber();
     final ZkTracer tracer =
         new ZkTracer(
-            LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, // FIXME: is this appropriate?
+            l1L2BridgeSharedConfiguration,
             BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
                 .getChainId()
                 .orElseThrow());

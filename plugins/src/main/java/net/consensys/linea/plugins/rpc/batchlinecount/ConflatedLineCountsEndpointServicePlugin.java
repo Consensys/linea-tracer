@@ -66,7 +66,7 @@ public class ConflatedLineCountsEndpointServicePlugin extends AbstractLineaShare
             RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY);
 
     final ConflatedCountTracesV2 method =
-        new ConflatedCountTracesV2(besuContext, reqLimiter, l1L2BridgeSharedConfiguration());
+        new ConflatedCountTracesV2(reqLimiter, besuContext, l1L2BridgeSharedConfiguration());
     createAndRegister(method, rpcEndpointService);
   }
 

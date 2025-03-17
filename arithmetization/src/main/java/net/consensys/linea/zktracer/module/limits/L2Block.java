@@ -34,15 +34,15 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Getter
 @RequiredArgsConstructor
 public class L2Block implements Module {
+
+  private final BlockTransactions blockTransactions;
+  private final Keccak keccak;
   private final L2L1Logs l2l1Logs;
   private final Address l2l1Address;
   private final LogTopic l2l1Topic;
 
   private final short TIMESTAMP_BYTESIZE = 32 / 8;
   private final short NB_TX_IN_BLOCK_BYTESIZE = 16 / 8;
-
-  /** The number of transaction */
-  private final CountOnlyOperation numberOfTransactions = new CountOnlyOperation();
 
   /** The byte size of the RLP-encoded transaction of the conflation */
   private final CountOnlyOperation sizesRlpEncodedTxs = new CountOnlyOperation();
@@ -60,14 +60,12 @@ public class L2Block implements Module {
 
   @Override
   public void commitTransactionBundle() {
-    numberOfTransactions.commitTransactionBundle();
     sizesRlpEncodedTxs.commitTransactionBundle();
     l2l1LogSizes.commitTransactionBundle();
   }
 
   @Override
   public void popTransactionBundle() {
-    numberOfTransactions.popTransactionBundle();
     sizesRlpEncodedTxs.popTransactionBundle();
     l2l1LogSizes.popTransactionBundle();
   }
@@ -79,10 +77,15 @@ public class L2Block implements Module {
 
         // Calculates the data size related to the abi encoding of the list of the
         // from addresses. The field is a simple array of bytes20.
-        + numberOfTransactions.lineCount() * Address.SIZE
+        + blockTransactions.lineCount() * Address.SIZE
 
         // Calculates the data size related to the block
         + nbBlock * (TIMESTAMP_BYTESIZE + Hash.SIZE + NB_TX_IN_BLOCK_BYTESIZE);
+  }
+
+  @Override
+  public int spillage() {
+    return 0;
   }
 
   @Override
@@ -92,8 +95,6 @@ public class L2Block implements Module {
 
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
-    numberOfTransactions.add(1);
-
     for (Log log : tx.getLogs()) {
       if (isL2L1Log(log)) {
         l2l1LogSizes.add(log.getData().size());
@@ -108,7 +109,16 @@ public class L2Block implements Module {
     // overhead for each transaction (32 bytes for an offset, and 32 bytes for
     // to encode the length of each sub bytes array). This overhead is also
     // incurred by the top-level array, hence the +1.
-    sizesRlpEncodedTxs.add(tx.getBesuTransaction().encoded().size());
+    final int txDataSize = tx.getBesuTransaction().encoded().size();
+    sizesRlpEncodedTxs.add(txDataSize);
+    // Counts the number of Keccak from tx RLPs, used both for both the signature verification and
+    // the public input computation.
+    keccak.updateTally(txDataSize);
+    // TODO: this accounts for the message (hash) which the raw transaction signed.
+    // Recall that said message is assembled (re-RLP-ized) from fields of the raw transaction.
+    // This is an upper bound. Waiting for Besu to expose the method which computes said re-RLP-ized
+    // message (length.)
+    keccak.updateTally(txDataSize);
   }
 
   @Override

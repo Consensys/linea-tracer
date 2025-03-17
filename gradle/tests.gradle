@@ -140,9 +140,7 @@ tasks.test.configure {
 }
 
 tasks.register("fastReplayTests", Test) {
-  dependsOn(buildOldReplayTestsZkevmBin)
-    // Record zkevm.bin for CorsetValidator
-    environment.put("ZKEVM_BIN", System.getenv("ZKEVM_BIN") ?: "zkevm_for_old_replay_tests.bin")
+  dependsOn(buildZkevmBin)
     //
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)
@@ -165,11 +163,12 @@ tasks.register("jacocoFastReplayTestsReport", JacocoReport) {
     xml.required = true
   }
 
+  sourceSets project(":arithmetization").sourceSets.main
   executionData(fastReplayTests)
 }
 
 tasks.register("nightlyReplayTests", Test) {
-  dependsOn(buildOldReplayTestsZkevmBin)
+  dependsOn(buildZkevmBin)
 
   boolean isCiServer = System.getenv().containsKey("CI")
   maxHeapSize = isCiServer ? "32g" : "8g"
@@ -213,6 +212,7 @@ tasks.register("jacocoNightlyTestsReport", JacocoReport) {
     xml.required = true
   }
 
+  sourceSets project(":arithmetization").sourceSets.main
   executionData(nightlyTests)
 }
 
@@ -239,6 +239,7 @@ tasks.register("jacocoWeeklyTestsReport", JacocoReport) {
     xml.required = true
   }
 
+  sourceSets project(":arithmetization").sourceSets.main
   executionData(weeklyTests)
 }
 
@@ -257,4 +258,3 @@ tasks.register("jacocoUnitFastReplayWeeklyNightlyReferenceBlockchainAndStateTest
 // Configure default build task to require the tracer is built first.
 // This only makes sense for projects which need the tracer.
 compileJava.dependsOn 'buildTracer'
-

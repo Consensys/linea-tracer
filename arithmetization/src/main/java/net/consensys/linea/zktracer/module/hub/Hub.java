@@ -29,7 +29,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -39,6 +38,7 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
@@ -69,6 +69,7 @@ import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.state.State;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
+import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
@@ -115,7 +116,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -182,6 +182,11 @@ public class Hub implements Module {
     return state.lineCounter().lineCount();
   }
 
+  @Override
+  public int spillage() {
+    return Trace.Hub.SPILLAGE;
+  }
+
   /** List of all modules of the ZK-evm */
   // stateless modules
   @Getter private final Wcp wcp = new Wcp();
@@ -204,7 +209,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  private final TxnData txnData = new TxnData(this, wcp, euc);
+  @Getter private final TxnData txnData = new TxnData(this, wcp, euc);
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -221,29 +226,37 @@ public class Hub implements Module {
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
+  private final BlockTransactions blockTransactions = new BlockTransactions(this);
   @Getter private final Keccak keccak;
-  private final Sha256Blocks sha256Blocks = new Sha256Blocks();
+  @Getter private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
-  private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
-  private final EcMulEffectiveCall ecMulEffectiveCall = new EcMulEffectiveCall();
+  @Getter private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
+  @Getter private final EcMulEffectiveCall ecMulEffectiveCall = new EcMulEffectiveCall();
+
+  @Getter
   private final EcRecoverEffectiveCall ecRecoverEffectiveCall = new EcRecoverEffectiveCall();
 
+  @Getter
   private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls =
       new EcPairingG2MembershipCalls();
-  private final EcPairingMillerLoops ecPairingMillerLoops = new EcPairingMillerLoops();
+
+  @Getter private final EcPairingMillerLoops ecPairingMillerLoops = new EcPairingMillerLoops();
+
+  @Getter
   private final EcPairingFinalExponentiations ecPairingFinalExponentiations =
       new EcPairingFinalExponentiations();
 
   @Getter private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
 
-  private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
+  @Getter private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 
-  private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
-  private final BlakeRounds blakeRounds = new BlakeRounds();
+  @Getter private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
+  @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
 
-  private List<Module> precompileLimitModules() {
-
+  /** Those modules are used only by the sequencer, they don't have associated trace */
+  public List<Module> getTracelessModules() {
     return List.of(
+        blockTransactions,
         keccak,
         sha256Blocks,
         ecAddEffectiveCall,
@@ -335,61 +348,31 @@ public class Hub implements Module {
   }
 
   /**
-   * List all the modules for which to generate counters. Intersects with, but is not equal to
-   * {@code getModulesToTrace}.
+   * List all the modules for which to generate counters. This includes all the tracing modules (
+   * {@code getModulesToTrace}) as well as all the so-called traceless modules.
    *
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
-    return Stream.concat(
-            Stream.of(
-                this,
-                add,
-                bin,
-                blakeModexpData,
-                blockdata,
-                blockhash,
-                ecData,
-                exp,
-                ext,
-                euc,
-                gas,
-                logData,
-                logInfo,
-                mmu,
-                mmio,
-                mod,
-                mul,
-                mxp,
-                oob,
-                rlpAddr,
-                rlpTxn,
-                rlpTxnRcpt,
-                rom,
-                romLex,
-                shakiraData,
-                shf,
-                stp,
-                trm,
-                txnData,
-                wcp,
-                l2Block,
-                l2L1Logs),
-            Stream.concat(refTableModules.stream(), precompileLimitModules().stream()))
-        .toList();
+    return Stream.concat(getModulesToTrace().stream(), getTracelessModules().stream()).toList();
   }
 
-  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic, final BigInteger chainId) {
-    checkState(chainId.signum() >= 0);
+  public Hub(final ChainConfig chain) {
+    checkState(chain.id.signum() >= 0);
+    Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
+    final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
+    //
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
       log.info("WARN: Using default testing L2L1 contract address");
     }
     l2L1Logs = new L2L1Logs();
-    l2Block = new L2Block(l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
+    keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
+    l2Block =
+        new L2Block(
+            blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     rlpAddr = new RlpAddr(this, trm, keccak);
-    blockdata = new Blockdata(wcp, euc, txnData, EWord.of(chainId));
+    blockdata = new Blockdata(wcp, euc, txnData, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -427,7 +410,7 @@ public class Hub implements Module {
                     wcp, /* WARN: must be called BEFORE txnData */
                     txnData,
                     blockdata /* WARN: must be called AFTER txnData */),
-                precompileLimitModules().stream())
+                getTracelessModules().stream())
             .toList();
   }
 
@@ -932,10 +915,6 @@ public class Hub implements Module {
     return this.state().processingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()
         : 0;
-  }
-
-  public int cumulatedTxCount() {
-    return state.txCount();
   }
 
   void traceOpcode(MessageFrame frame) {

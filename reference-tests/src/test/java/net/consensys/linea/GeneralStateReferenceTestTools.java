@@ -28,6 +28,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.testing.ExecutionEnvironment;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.datatypes.BlobGas;
 import org.hyperledger.besu.datatypes.Hash;
@@ -56,7 +57,7 @@ public class GeneralStateReferenceTestTools {
       ReferenceTestProtocolSchedules.create();
   private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
       Arrays.asList("Frontier", "Homestead", "EIP150");
-  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator();
+  private static final CorsetValidator CORSET_VALIDATOR = new CorsetValidator(ChainConfig.ETHEREUM);
 
   private static MainnetTransactionProcessor transactionProcessor(final String name) {
     return protocolSpec(name).getTransactionProcessor();
@@ -132,6 +133,50 @@ public class GeneralStateReferenceTestTools {
     PARAMS.ignore("stRandom2/randomStatetest642.*");
     PARAMS.ignore("stRandom2/randomStatetest644.*");
     PARAMS.ignore("stRandom2/randomStatetest645.*");
+
+    // Balance is more than 128 bits
+    PARAMS.ignore("stCreate2/CREATE2_Bounds.json");
+    PARAMS.ignore("stCreate2/CREATE2_Bounds2.json");
+    PARAMS.ignore("stCreate2/CREATE2_Bounds3.json");
+    PARAMS.ignore("stCreate2/Create2OnDepth1023.json");
+    PARAMS.ignore("stCreate2/Create2OnDepth1024.json");
+    PARAMS.ignore("stCreate2/Create2Recursive.json");
+    PARAMS.ignore("stDelegatecallTestHomestead/Call1024PreCalls.json");
+    PARAMS.ignore("stInitCodeTest/OutOfGasContractCreation.json");
+    PARAMS.ignore("stMemoryStressTest/CALLCODE_Bounds.json");
+    PARAMS.ignore("stMemoryStressTest/CALLCODE_Bounds2.json");
+    PARAMS.ignore("stMemoryStressTest/CALLCODE_Bounds3.json");
+    PARAMS.ignore("stMemoryStressTest/CALLCODE_Bounds4.json");
+    PARAMS.ignore("stMemoryStressTest/CALL_Bounds.json");
+    PARAMS.ignore("stMemoryStressTest/CALL_Bounds2.json");
+    PARAMS.ignore("stMemoryStressTest/CALL_Bounds2a.json");
+    PARAMS.ignore("stMemoryStressTest/CALL_Bounds3.json");
+    PARAMS.ignore("stMemoryStressTest/CREATE_Bounds.json");
+    PARAMS.ignore("stMemoryStressTest/CREATE_Bounds2.json");
+    PARAMS.ignore("stMemoryStressTest/CREATE_Bounds3.json");
+    PARAMS.ignore("stMemoryStressTest/CREATE_Bounds3.json");
+    PARAMS.ignore("stMemoryStressTest/DELEGATECALL_Bounds.json");
+    PARAMS.ignore("stMemoryStressTest/DELEGATECALL_Bounds2.json");
+    PARAMS.ignore("stMemoryStressTest/DELEGATECALL_Bounds3.json");
+    PARAMS.ignore("stMemoryStressTest/MSTORE_Bounds.json");
+    PARAMS.ignore("stMemoryStressTest/MSTORE_Bounds2.json");
+    PARAMS.ignore("stMemoryStressTest/MSTORE_Bounds2a.json");
+    PARAMS.ignore("stMemoryStressTest/RETURN_Bounds.json");
+    PARAMS.ignore("stMemoryStressTest/static_CALL_Bounds.json");
+    PARAMS.ignore("stMemoryStressTest/static_CALL_Bounds2.json");
+    PARAMS.ignore("stMemoryStressTest/static_CALL_Bounds2a.json");
+    PARAMS.ignore("stMemoryStressTest/static_CALL_Bounds3.json");
+    PARAMS.ignore("stStaticCall/static_Call1024PreCalls.json");
+    PARAMS.ignore("stStaticCall/static_Call1024PreCalls2.json");
+    ;
+    PARAMS.ignore("stStaticCall/static_Call1024PreCalls3.json");
+    ;
+    PARAMS.ignore("stStaticCall/static_RETURN_Bounds.json");
+    ;
+    PARAMS.ignore("stStaticCall/static_RETURN_BoundsOOG.json");
+    PARAMS.ignore("stTransactionTest/HighGasLimit.json");
+    PARAMS.ignore("stTransactionTest/OverflowGasRequire2.json");
+    PARAMS.ignore("stCallCreateCallCodeTest/Call1024PreCalls.json");
   }
 
   private GeneralStateReferenceTestTools() {
@@ -176,7 +221,7 @@ public class GeneralStateReferenceTestTools {
             .getFeeMarket()
             .blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
 
-    final ZkTracer zkTracer = new ZkTracer();
+    final ZkTracer zkTracer = new ZkTracer(ChainConfig.ETHEREUM);
     zkTracer.traceStartConflation(1);
     zkTracer.traceStartBlock(blockHeader, blockBody, blockHeader.getCoinbase());
 

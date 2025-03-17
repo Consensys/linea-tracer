@@ -15,7 +15,8 @@
 
 package net.consensys.linea.zktracer.module.limits;
 
-import com.google.common.base.Preconditions;
+import static com.google.common.base.Preconditions.checkState;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -33,7 +34,7 @@ public class Keccak implements CountingOnlyModule {
   private static final int KECCAK_BYTE_RATE = KECCAK_BIT_RATE / 8; // TODO: find correct name
 
   private final EcRecoverEffectiveCall ecRecoverEffectiveCall;
-  private final L2Block l2Block;
+  private final BlockTransactions blockTransactions;
 
   @Override
   public String moduleKey() {
@@ -48,28 +49,25 @@ public class Keccak implements CountingOnlyModule {
 
   @Override
   public int lineCount() {
-    final int txCount = l2Block.numberOfTransactions().lineCount();
+    final int txCount = blockTransactions.lineCount();
     final int ecRecoverCount = ecRecoverEffectiveCall.lineCount();
 
     return
-    // From tx RLPs, used both for both the signature verification and the
-    // public input computation. As l2Block.sizesRlpEncodedTxs().lineCount() gives the size of the
-    // concatenation of all
-    // the RLP-encoded transactions, we add txCount to not miss keccak blocks.
-    (numberOfKeccakBloc(l2Block.sizesRlpEncodedTxs().lineCount()) + txCount)
+    // Counts:
+    // - From tx RLPs, used both for both the signature verification and the public input
+    // computation.
+    // - From deployed contracts, number of Keccak block for SHA3 and CREATE2, and from RLP_ADDR
+    counts.lineCount()
         // From ecRecover precompiles,
         // This accounts for the keccak of the recovered public keys to derive the
         // addresses. This also accounts for the transactions signatures
         // verifications.
-        + (txCount + ecRecoverCount) * numberOfKeccakBloc(PUBKEY_BYTES)
-
-        // From deployed contracts, number of Keccak block for SHA3 and CREATE2, and from RLP_ADDR
-        + counts.lineCount();
+        + (txCount + ecRecoverCount) * numberOfKeccakBloc(PUBKEY_BYTES);
   }
 
   public static int numberOfKeccakBloc(final long dataByteLength) {
     final long r = (dataByteLength + KECCAK_BYTE_RATE - 1) / KECCAK_BYTE_RATE;
-    Preconditions.checkState(r < Integer.MAX_VALUE, "demented KECCAK");
+    checkState(r < Integer.MAX_VALUE, "demented KECCAK");
     return (int) r;
   }
 }

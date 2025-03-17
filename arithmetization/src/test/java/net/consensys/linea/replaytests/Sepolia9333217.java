@@ -31,7 +31,7 @@ public class Sepolia9333217 {
   /**
    * This Sepolia block is unprovable due to the modexp call. One transaction does two calls to
    * modexp with arg > 512 bytes. This is unprovable. It was sequenced as there was a line count
-   * limit for modexp.
+   * issue for modexp.
    */
   @Test
   void sepolia9333217() {

@@ -17,11 +17,9 @@ package net.consensys.linea.plugins.rpc.linecounts;
 
 import com.google.auto.service.AutoService;
 import net.consensys.linea.plugins.AbstractLineaPrivateOptionsPlugin;
-import net.consensys.linea.plugins.AbstractLineaSharedOptionsPlugin;
 import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.RequestLimiterDispatcher;
-import net.consensys.linea.plugins.rpc.tracegeneration.TracesEndpointCliOptions;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.ServiceManager;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;
@@ -61,12 +59,8 @@ public class LineCountsEndpointServicePlugin extends AbstractLineaPrivateOptions
         RequestLimiterDispatcher.getLimiter(
             RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY);
 
-    final AbstractLineaSharedOptionsPlugin endpointConfiguration =
-        (AbstractLineaSharedOptionsPlugin)
-            getConfigurationByKey(TracesEndpointCliOptions.CONFIG_KEY).optionsConfig();
-
     final GenerateLineCountsV2 method =
-        new GenerateLineCountsV2(besuContext, reqLimiter, l1L2BridgeSharedConfiguration());
+        new GenerateLineCountsV2(reqLimiter, besuContext, l1L2BridgeSharedConfiguration());
     createAndRegister(method, rpcEndpointService);
   }
 

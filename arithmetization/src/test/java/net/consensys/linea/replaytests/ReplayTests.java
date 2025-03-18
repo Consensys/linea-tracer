@@ -186,6 +186,11 @@ public class ReplayTests {
     replay(OLD_MAINNET_TESTCONFIG, "4323985.mainnet.json.gz");
   }
 
+  @Test
+  void stateManagerIntegrationTest() {
+    replay(OLD_MAINNET_TESTCONFIG, "forbogdandebug.json");
+  }
+
   @Disabled
   @ParameterizedTest
   @MethodSource("replayBlockTestSource")

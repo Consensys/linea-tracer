@@ -26,7 +26,6 @@ import java.util.Map;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.ToyTransaction.ToyTransactionBuilder;
-import net.consensys.linea.testing.generated.ContractC;
 import net.consensys.linea.testing.generated.CustomCreate2;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -84,16 +83,20 @@ public class InitCodeTests {
         EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
     String calledCreate2WithInitCodeCEvent =
         EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
-    String immediateRedeploymentFailEvent =
-        EventEncoder.encode(ContractC.IMMEDIATEREDEPLOYMENTFAIL_EVENT);
     Map<String, List<Integer>> logsMap = new HashMap<>();
 
+    // List all logs expected from each topic
     logsMap.put(contractCreatedEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 1));
     logsMap.put(staticCallMyselfFailEvent, List.of(0, 0, 0, 0, 0, 0, 0, 1, 0));
     logsMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 0));
+    // List status expected per transaction
+    // 0 is FAILED
+    // 1 is SUCCESSFUL
+    List<Integer> txStatuses = List.of(1, 1, 1, 1, 1, 0, 0, 1, 1);
 
     // Instantiate validator
-    TransactionProcessingResultValidator create2Validator = new Create2TestValidator(logsMap);
+    TransactionProcessingResultValidator create2Validator =
+        new SmartContractTestValidator(logsMap, txStatuses);
 
     List<Transaction> transactions =
         getTransactions(
@@ -109,27 +112,32 @@ public class InitCodeTests {
                 // ContractC is deployed
                 // ContractC Storage is modified
                 // ContractC is self-destructed
+                // TXSTATUS : Successfull
                 // LOGS: 1 CalledCreate2WithInitCodeC + 1 ContractCreated
                 create2WithInitCodeC,
                 callContractCStoreInMapPayload,
                 callContractCSelfDestructPayload,
                 // SCENARIO 2 - Deploy ContractC and attempt redeployment after in same transaction
                 // Transaction reverts, nothing is deployed
+                // TXSTATUS : Failed
                 // LOGS: no logs
                 create2WithCallBackAfterCreate2,
                 // SCENARIO 3 - Deploy ContractC and the deployment attempts redeployment
                 // The ContractC deployment is done with value 2 - this value pilots the initcode so
                 // immediate redeployment is attempted
-                // ContractC adds STOP opcode immediate redeployment attempt has failed
+                // While deploying ContractC adds STOP opcode after immediate redeployment attempt
+                // has failed
                 // ContractC is deployed with empty bytecode
-                // LOGS: 1 CalledCreate2WithInitCodeC + 1 ImmediateRedeploymentFailEvent + 1
-                // ContractCreated
-                // Note: we change salt to avoid collision with previous deployment
+                // Call ContractC to modify storage
+                // Revert on demand
+                // Transaction reverts
+                // TXSTATUS : Failed
+                // LOGS: no logs
                 create2CallCAndRevert,
                 // SCENARIO 4 - Attempt ContractC deployment with a staticCall
+                // TXSTATUS : Successfull
                 // LOGS: 1 StaticCallMyselfFail
                 // Note 1 : no CalledCreate2WithInitCodeCEvent as attempt fails prior
-                // Note 2 : we change salt to avoid collision with previous deployment
                 // TODO : check in Besu that it calls CREATE2
                 create2WithStaticCall,
                 // SCENARIO 5 - Four ContractC deployment attempts : (1) with max value, (2)
@@ -139,6 +147,7 @@ public class InitCodeTests {
                 // (2) results in deployment of ContractC
                 // (3) is aborted
                 // (4) fails as it's a collision with attempt (2)
+                // TXSTATUS : Successfull
                 // LOGS: 1 ContractCreated
                 create2FourTimes),
             // Values to pilot initCode : as many as there are transactions

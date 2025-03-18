@@ -28,14 +28,25 @@ import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.evm.log.LogTopic;
 
 @RequiredArgsConstructor
-public class Create2TestValidator implements TransactionProcessingResultValidator {
+public class SmartContractTestValidator implements TransactionProcessingResultValidator {
   @NonNull Map<String, List<Integer>> logsMap;
+  @NonNull List<Integer> txStatuses;
   int txCounter = 0;
 
   @Override
   public void accept(Transaction transaction, TransactionProcessingResult result) {
     TransactionProcessingResultValidator.EMPTY_VALIDATOR.accept(transaction, result);
     System.out.println("Transaction number: " + txCounter);
+
+    // Check that the transaction has the awaited status
+    TransactionProcessingResult.Status resultStatus = result.getStatus();
+    TransactionProcessingResult.Status toValidateStatus =
+        txStatuses.get(txCounter) == 1
+            ? TransactionProcessingResult.Status.SUCCESSFUL
+            : TransactionProcessingResult.Status.FAILED;
+    assertEquals(toValidateStatus, resultStatus);
+
+    // Check that logs from topics listed are present in the transaction
     int totalLogsMapPerTx = 0;
     for (var logsMapEntry : logsMap.entrySet()) {
       int logsMaplogCount = logsMapEntry.getValue().get(txCounter);
@@ -54,13 +65,13 @@ public class Create2TestValidator implements TransactionProcessingResultValidato
         }
       }
 
-      // Check that all logs we've listed are the same as the logs in the result
       if (logsMaplogCount != 0) {
         fail("Log count mismatch for topic: " + logsMapTopic + " and Tx counter: " + txCounter);
       }
     }
 
-    // Check that we have listed all the logs in LogsMap
+    // Global check on number of logs per transaction
+    // (In case some logs were not listed above)
     assertEquals(totalLogsMapPerTx, result.getLogs().size());
 
     txCounter++;

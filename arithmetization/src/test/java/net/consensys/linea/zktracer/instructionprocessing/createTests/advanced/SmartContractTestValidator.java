@@ -49,6 +49,7 @@ public class SmartContractTestValidator implements TransactionProcessingResultVa
     assertEquals(toValidateStatus, resultStatus);
 
     // Check that logs from topics listed are present in the transaction
+    // Check that data from logs topics listed are correct
     int totalLogsMapPerTx = 0;
     for (var logsTopicMapEntry : logsTopicMap.entrySet()) {
       int logsMaplogCount = logsTopicMapEntry.getValue().get(txCounter);
@@ -62,9 +63,9 @@ public class SmartContractTestValidator implements TransactionProcessingResultVa
             String txLogsTopic = txLogsTopics.get(j).toString();
             if (logsMapTopic.toString().equals(txLogsTopic)) {
               logsMaplogCount--;
-
               if ((logsDataMap.get(txLogsTopic) != null)
                   && (logsDataMap.get(txLogsTopic).get(txCounter) != Bytes.EMPTY)) {
+                // Check Data
                 assertEquals(
                     logsDataMap.get(txLogsTopic).get(txCounter).toString(),
                     result.getLogs().get(i).getData().toString());
@@ -74,6 +75,7 @@ public class SmartContractTestValidator implements TransactionProcessingResultVa
         }
       }
 
+      // Check log topics
       if (logsMaplogCount != 0) {
         fail("Log count mismatch for topic: " + logsMapTopic + " and Tx counter: " + txCounter);
       }

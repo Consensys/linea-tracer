@@ -22,6 +22,7 @@ contract CustomCreate2 is TestingBase {
     event StaticCallMyselfFail();
     event CallContractCFail();
     event StaticCallContractCFail();
+    event CalledCreate2WithInitCodeC();
 
     function storeInitCodeC(bytes memory code) public {
         initCodeC = code;
@@ -36,6 +37,7 @@ contract CustomCreate2 is TestingBase {
     function create2WithInitCodeC() public payable {
         address addC = deployWithCreate2(salt, initCodeC);
         addContractC = addC;
+        emit CalledCreate2WithInitCodeC();
     }
 
     function create2WithCallBackAfterCreate2() public payable {

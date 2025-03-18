@@ -41,7 +41,7 @@ public class Create2TestValidator implements TransactionProcessingResultValidato
       if (logCount > 0) {
         for (int i = 0; i < result.getLogs().size(); i++) {
           List<LogTopic> currentLogTopics = result.getLogs().get(i).getTopics();
-          for (int j = 0; i < currentLogTopics.size(); i++) {
+          for (int j = 0; j < currentLogTopics.size(); j++) {
             String topic = currentLogTopics.get(j).toString();
             if (eventTopic.getKey().toString().equals(topic)) {
               logCount--;

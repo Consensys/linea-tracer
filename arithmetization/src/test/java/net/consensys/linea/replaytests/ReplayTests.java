@@ -186,9 +186,14 @@ public class ReplayTests {
     replay(OLD_MAINNET_TESTCONFIG, "4323985.mainnet.json.gz");
   }
 
+  /**
+   * The mainnet conflation below blew up the HUB <> state manager integration. The issue was related
+   * to a <b>SSTOREX</b> exception happening in the wild. Recall that this is the exception triggered when
+   * a <b>SSTORE</b> instruction is executed and the frame contains <b>≤ 2_300</b> gas.
+   */
   @Test
   void stateManagerIntegrationTest() {
-    replay(OLD_MAINNET_TESTCONFIG, "forbogdandebug.json");
+    replay(OLD_MAINNET_TESTCONFIG, "SSTOREX_on_mainnet.json.gz");
   }
 
   @Disabled

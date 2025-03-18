@@ -27,7 +27,7 @@ jobs:
      - name: Run Weekly tests
        run: GOMEMLIMIT=96GiB ./gradlew weeklyTests
        env:
-         JAVA_OPTS: -Dorg.gradle.daemon=true
+         JAVA_OPTS: -Dorg.gradle.daemon=false
          WEEKLY_TESTS_PARALLELISM: 1
          CORSET_FLAGS: disable
          GOCORSET_FLAGS: -vw -b1024 --ansi-escapes=false --report --air
@@ -67,7 +67,7 @@ jobs:
       - name: Run Weekly EcPairing tests
         run: GOMEMLIMIT=96GiB ./gradlew weeklyEcPairingTests
         env:
-          JAVA_OPTS: -Dorg.gradle.daemon=true
+          JAVA_OPTS: -Dorg.gradle.daemon=false
           WEEKLY_TESTS_PARALLELISM: 1
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -vw -b1024 --ansi-escapes=false --report --air

@@ -23,14 +23,16 @@ import java.util.Map;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.evm.log.LogTopic;
 
 @RequiredArgsConstructor
 public class SmartContractTestValidator implements TransactionProcessingResultValidator {
-  @NonNull Map<String, List<Integer>> logsMap;
   @NonNull List<Integer> txStatuses;
+  @NonNull Map<String, List<Integer>> logsTopicMap;
+  @NonNull Map<String, List<Bytes>> logsDataMap;
   int txCounter = 0;
 
   @Override
@@ -48,9 +50,9 @@ public class SmartContractTestValidator implements TransactionProcessingResultVa
 
     // Check that logs from topics listed are present in the transaction
     int totalLogsMapPerTx = 0;
-    for (var logsMapEntry : logsMap.entrySet()) {
-      int logsMaplogCount = logsMapEntry.getValue().get(txCounter);
-      String logsMapTopic = logsMapEntry.getKey();
+    for (var logsTopicMapEntry : logsTopicMap.entrySet()) {
+      int logsMaplogCount = logsTopicMapEntry.getValue().get(txCounter);
+      String logsMapTopic = logsTopicMapEntry.getKey();
       totalLogsMapPerTx = totalLogsMapPerTx + logsMaplogCount;
 
       if (logsMaplogCount > 0) {
@@ -60,6 +62,13 @@ public class SmartContractTestValidator implements TransactionProcessingResultVa
             String txLogsTopic = txLogsTopics.get(j).toString();
             if (logsMapTopic.toString().equals(txLogsTopic)) {
               logsMaplogCount--;
+
+              if ((logsDataMap.get(txLogsTopic) != null)
+                  && (logsDataMap.get(txLogsTopic).get(txCounter) != Bytes.EMPTY)) {
+                assertEquals(
+                    logsDataMap.get(txLogsTopic).get(txCounter).toString(),
+                    result.getLogs().get(i).getData().toString());
+              }
             }
           }
         }

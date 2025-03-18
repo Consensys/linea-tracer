@@ -83,7 +83,7 @@ public class GoCorsetValidator extends AbstractExecutable {
         // Execute corset with a 5s timeout.
         outcome = super.exec(5, commands);
       } catch (Throwable e) {
-        log.error("Corset validation has thrown an exception: %s".formatted(e.getMessage()));
+        log.error("Corset validation has thrown an exception: {}", e.getMessage(), e);
         throw new RuntimeException(e);
       }
       // Manage coverage report

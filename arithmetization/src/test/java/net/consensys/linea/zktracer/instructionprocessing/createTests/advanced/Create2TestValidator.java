@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
 import static org.assertj.core.api.Fail.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 import java.util.Map;
@@ -35,28 +36,33 @@ public class Create2TestValidator implements TransactionProcessingResultValidato
   public void accept(Transaction transaction, TransactionProcessingResult result) {
     TransactionProcessingResultValidator.EMPTY_VALIDATOR.accept(transaction, result);
     System.out.println("Number of logs: " + result.getLogs().size());
+    int totalLogsMapPerTx = 0;
+    for (var logsMapEntry : logsMap.entrySet()) {
+      int logsMaplogCount = logsMapEntry.getValue().get(txCounter);
+      String logsMapTopic = logsMapEntry.getKey();
+      totalLogsMapPerTx = totalLogsMapPerTx + logsMaplogCount;
 
-    for (var eventTopic : logsMap.entrySet()) {
-      int logCount = eventTopic.getValue().get(txCounter);
-      if (logCount > 0) {
+      if (logsMaplogCount > 0) {
         for (int i = 0; i < result.getLogs().size(); i++) {
-          List<LogTopic> currentLogTopics = result.getLogs().get(i).getTopics();
-          for (int j = 0; j < currentLogTopics.size(); j++) {
-            String topic = currentLogTopics.get(j).toString();
-            if (eventTopic.getKey().toString().equals(topic)) {
-              logCount--;
+          List<LogTopic> txLogsTopics = result.getLogs().get(i).getTopics();
+          for (int j = 0; j < txLogsTopics.size(); j++) {
+            String txLogsTopic = txLogsTopics.get(j).toString();
+            if (logsMapTopic.toString().equals(txLogsTopic)) {
+              logsMaplogCount--;
             }
           }
         }
       }
-      if (logCount != 0) {
-        fail(
-            "Log count mismatch for topic: "
-                + eventTopic.getKey()
-                + " and Tx counter: "
-                + txCounter);
+
+      // Check that all logs we've listed are the same as the logs in the result
+      if (logsMaplogCount != 0) {
+        fail("Log count mismatch for topic: " + logsMapTopic + " and Tx counter: " + txCounter);
       }
     }
+
+    // Check that we have listed all the logs in LogsMap
+    assertEquals(totalLogsMapPerTx, result.getLogs().size());
+
     txCounter++;
   }
 }

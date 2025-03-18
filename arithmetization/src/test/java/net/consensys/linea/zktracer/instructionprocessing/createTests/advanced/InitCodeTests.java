@@ -66,12 +66,6 @@ public class InitCodeTests {
     Bytes storeSalt =
         CustomCreate2Payload.storeSalt(
             "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef");
-    Bytes storeSalt2 =
-        CustomCreate2Payload.storeSalt(
-            "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcddd");
-    Bytes storeSalt3 =
-        CustomCreate2Payload.storeSalt(
-            "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcccc");
     Bytes create2WithInitCodeC = CustomCreate2Payload.create2WithInitCodeC();
     Bytes callContractCStoreInMapPayload =
         CustomCreate2Payload.callContractC(
@@ -79,6 +73,7 @@ public class InitCodeTests {
     Bytes callContractCSelfDestructPayload =
         CustomCreate2Payload.callContractC(ContractCPayload.selfDestructOnDemand(), false);
     Bytes create2WithCallBackAfterCreate2 = CustomCreate2Payload.create2WithCallBackAfterCreate2();
+    Bytes create2CallCAndRevert = CustomCreate2Payload.create2CallCAndRevert();
     Bytes create2WithStaticCall =
         CustomCreate2Payload.callMyself(CustomCreate2Payload.create2WithInitCodeC(), true);
     Bytes create2FourTimes = CustomCreate2Payload.create2FourTimes();
@@ -93,10 +88,9 @@ public class InitCodeTests {
         EventEncoder.encode(ContractC.IMMEDIATEREDEPLOYMENTFAIL_EVENT);
     Map<String, List<Integer>> logsMap = new HashMap<>();
 
-    logsMap.put(contractCreatedEvent, List.of(0, 0, 1, 0, 0, 0, 1, 0, 0, 1));
-    logsMap.put(staticCallMyselfFailEvent, List.of(0, 0, 0, 0, 0, 0, 0, 0, 1, 0));
-    logsMap.put(immediateRedeploymentFailEvent, List.of(0, 0, 0, 0, 0, 0, 1, 0, 0, 0));
-    logsMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 0, 1, 0, 0, 0, 1, 0, 0, 0));
+    logsMap.put(contractCreatedEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 1));
+    logsMap.put(staticCallMyselfFailEvent, List.of(0, 0, 0, 0, 0, 0, 0, 1, 0));
+    logsMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 0));
 
     // Instantiate validator
     TransactionProcessingResultValidator create2Validator = new Create2TestValidator(logsMap);
@@ -131,12 +125,12 @@ public class InitCodeTests {
                 // LOGS: 1 CalledCreate2WithInitCodeC + 1 ImmediateRedeploymentFailEvent + 1
                 // ContractCreated
                 // Note: we change salt to avoid collision with previous deployment
-                create2WithInitCodeC,
+                create2CallCAndRevert,
                 // SCENARIO 4 - Attempt ContractC deployment with a staticCall
                 // LOGS: 1 StaticCallMyselfFail
                 // Note 1 : no CalledCreate2WithInitCodeCEvent as attempt fails prior
                 // Note 2 : we change salt to avoid collision with previous deployment
-                storeSalt2,
+                // TODO : check in Besu that it calls CREATE2
                 create2WithStaticCall,
                 // SCENARIO 5 - Four ContractC deployment attempts : (1) with max value, (2)
                 // acceptable value, (3) max value and
@@ -148,7 +142,7 @@ public class InitCodeTests {
                 // LOGS: 1 ContractCreated
                 create2FourTimes),
             // Values to pilot initCode : as many as there are transactions
-            List.of(0L, 0L, 0L, 0L, 0L, 0L, 2L, 0L, 0L, 0L));
+            List.of(0L, 0L, 0L, 0L, 0L, 0L, 2L, 0L, 0L));
 
     ToyExecutionEnvironmentV2.builder()
         .accounts(List.of(userAccount, customCreate2Account))

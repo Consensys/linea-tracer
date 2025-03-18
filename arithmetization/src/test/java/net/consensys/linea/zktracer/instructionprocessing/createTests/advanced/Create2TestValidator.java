@@ -35,7 +35,7 @@ public class Create2TestValidator implements TransactionProcessingResultValidato
   @Override
   public void accept(Transaction transaction, TransactionProcessingResult result) {
     TransactionProcessingResultValidator.EMPTY_VALIDATOR.accept(transaction, result);
-    System.out.println("Number of logs: " + result.getLogs().size());
+    System.out.println("Transaction number: " + txCounter);
     int totalLogsMapPerTx = 0;
     for (var logsMapEntry : logsMap.entrySet()) {
       int logsMaplogCount = logsMapEntry.getValue().get(txCounter);

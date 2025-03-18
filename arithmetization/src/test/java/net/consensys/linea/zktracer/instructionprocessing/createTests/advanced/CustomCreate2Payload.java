@@ -61,6 +61,13 @@ public class CustomCreate2Payload {
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
+  public static Bytes create2CallCAndRevert() {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CREATE2CALLCANDREVERT, Arrays.asList(), Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
   public static Bytes create2FourTimes() {
     Function function =
         new Function(CustomCreate2.FUNC_CREATE2FOURTIMES, Arrays.asList(), Collections.emptyList());

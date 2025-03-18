@@ -45,6 +45,14 @@ contract CustomCreate2 is TestingBase {
         IContractC(addC).callBackCustomCreate2(address(this));
     }
 
+    function create2CallCAndRevert() public payable {
+        address addC = deployWithCreate2(salt, initCodeC);
+        addContractC = addC;
+        addC.call(
+            abi.encodeWithSignature("storeInMap(uint256,address)", msg.value, addC)
+        );
+        revertOnDemand();
+    }
 
     function create2FourTimes() public payable {
         uint256 max = type(uint256).max;

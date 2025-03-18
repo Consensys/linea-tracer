@@ -187,9 +187,10 @@ public class ReplayTests {
   }
 
   /**
-   * The mainnet conflation below blew up the HUB <> state manager integration. The issue was related
-   * to a <b>SSTOREX</b> exception happening in the wild. Recall that this is the exception triggered when
-   * a <b>SSTORE</b> instruction is executed and the frame contains <b>≤ 2_300</b> gas.
+   * The mainnet conflation below blew up the HUB <> state manager integration. The issue was
+   * related to a <b>SSTOREX</b> exception happening in the wild. Recall that this is the exception
+   * triggered when a <b>SSTORE</b> instruction is executed and the frame contains <b>≤ 2_300</b>
+   * gas.
    */
   @Test
   void stateManagerIntegrationTest() {

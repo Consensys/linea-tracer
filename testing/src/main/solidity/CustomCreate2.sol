@@ -56,10 +56,10 @@ contract CustomCreate2 is TestingBase {
 
     function create2FourTimes() public payable {
         uint256 max = type(uint256).max;
-        deployWithCreate2_withValue(salt, initCodeC, max);
-        deployWithCreate2_withValue(salt, initCodeC, 0);
-        deployWithCreate2_withValue(salt, initCodeC, max);
-        deployWithCreate2_withValue(salt, initCodeC, 0);
+        deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
+        deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
+        deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
+        deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
     }
 
     // Behavior on demand

@@ -101,6 +101,9 @@ public class InitCodeTests {
 
     // List all logs expected from each topic
     logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 1));
+    logsTopicMap.put(staticCallMyselfFailEvent, List.of(0, 0, 0, 0, 0, 0, 0, 1, 0));
+    logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 0));
+    // List data expected for each topic
     logsDataMap.put(
         contractCreatedEvent,
         List.of(
@@ -113,8 +116,6 @@ public class InitCodeTests {
             Bytes.EMPTY,
             Bytes.EMPTY,
             expectedContractCAddressLogData));
-    logsTopicMap.put(staticCallMyselfFailEvent, List.of(0, 0, 0, 0, 0, 0, 0, 1, 0));
-    logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 0));
     // List status expected per transaction
     // 0 is FAILED
     // 1 is SUCCESSFUL
@@ -191,6 +192,7 @@ public class InitCodeTests {
 
   /// /////////////////////////////////////////////////////////////////////////////////////////////
   /// Common helpers
+  /// Create transactions with payloads/values for the same user and the same to account
   List<Transaction> getTransactions(
       ToyAccount to, ToyAccount userAccount, List<Bytes> payloads, List<Long> values) {
 

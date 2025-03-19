@@ -16,20 +16,19 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
+import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___STACK_STAMP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
-import static net.consensys.linea.zktracer.module.hub.Trace.MULTIPLIER___STACK_STAMP;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
-import java.math.BigInteger;
-import java.nio.MappedByteBuffer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -39,7 +38,8 @@ import java.util.stream.Stream;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
@@ -69,6 +69,7 @@ import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.state.State;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
+import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L2Block;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
@@ -115,7 +116,6 @@ import net.consensys.linea.zktracer.runtime.callstack.CallStack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.runtime.stack.StackLine;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -168,19 +168,23 @@ public class Hub implements Module {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Hub.headers(this.lineCount());
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-    state.commit(trace);
+  public void commit(Trace trace) {
+    state.commit(trace.hub);
   }
 
   @Override
   public int lineCount() {
     return state.lineCounter().lineCount();
+  }
+
+  @Override
+  public int spillage() {
+    return Trace.Hub.SPILLAGE;
   }
 
   /** List of all modules of the ZK-evm */
@@ -205,11 +209,11 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  private final TxnData txnData = new TxnData(this, wcp, euc);
+  @Getter private final TxnData txnData = new TxnData(this, wcp, euc);
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
-  @Getter private final RlpAddr rlpAddr = new RlpAddr(this, trm);
+  @Getter private final RlpAddr rlpAddr;
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
   @Getter private final Mxp mxp = new Mxp();
@@ -222,30 +226,37 @@ public class Hub implements Module {
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
-  private final Keccak keccak;
+  private final BlockTransactions blockTransactions = new BlockTransactions(this);
+  @Getter private final Keccak keccak;
+  @Getter private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
-  private final Sha256Blocks sha256Blocks = new Sha256Blocks();
+  @Getter private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
+  @Getter private final EcMulEffectiveCall ecMulEffectiveCall = new EcMulEffectiveCall();
 
-  private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
-  private final EcMulEffectiveCall ecMulEffectiveCall = new EcMulEffectiveCall();
+  @Getter
   private final EcRecoverEffectiveCall ecRecoverEffectiveCall = new EcRecoverEffectiveCall();
 
+  @Getter
   private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls =
       new EcPairingG2MembershipCalls();
-  private final EcPairingMillerLoops ecPairingMillerLoops = new EcPairingMillerLoops();
+
+  @Getter private final EcPairingMillerLoops ecPairingMillerLoops = new EcPairingMillerLoops();
+
+  @Getter
   private final EcPairingFinalExponentiations ecPairingFinalExponentiations =
       new EcPairingFinalExponentiations();
 
   @Getter private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
 
-  private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
+  @Getter private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 
-  private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
-  private final BlakeRounds blakeRounds = new BlakeRounds();
+  @Getter private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
+  @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
 
-  private List<Module> precompileLimitModules() {
-
+  /** Those modules are used only by the sequencer, they don't have associated trace */
+  public List<Module> getTracelessModules() {
     return List.of(
+        blockTransactions,
         keccak,
         sha256Blocks,
         ecAddEffectiveCall,
@@ -257,7 +268,9 @@ public class Hub implements Module {
         modexpEffectiveCall,
         ripemdBlocks,
         blakeEffectiveCall,
-        blakeRounds);
+        blakeRounds,
+        l2Block,
+        l2L1Logs);
   }
 
   /*
@@ -282,8 +295,8 @@ public class Hub implements Module {
           ecPairingMillerLoops,
           ecPairingFinalExponentiations);
 
-  private final L2Block l2Block;
-  private final L2L1Logs l2L1Logs;
+  @Getter private final L2Block l2Block;
+  @Getter private final L2L1Logs l2L1Logs;
 
   /** list of module than can be modified during execution */
   private final List<Module> modules;
@@ -335,57 +348,31 @@ public class Hub implements Module {
   }
 
   /**
-   * List all the modules for which to generate counters. Intersects with, but is not equal to
-   * {@code getModulesToTrace}.
+   * List all the modules for which to generate counters. This includes all the tracing modules (
+   * {@code getModulesToTrace}) as well as all the so-called traceless modules.
    *
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
-    return Stream.concat(
-            Stream.of(
-                this,
-                add,
-                bin,
-                blakeModexpData,
-                blockdata,
-                blockhash,
-                ecData,
-                exp,
-                ext,
-                euc,
-                gas,
-                logData,
-                logInfo,
-                mmu,
-                mmio,
-                mod,
-                mul,
-                mxp,
-                oob,
-                rlpAddr,
-                rlpTxn,
-                rlpTxnRcpt,
-                rom,
-                romLex,
-                shakiraData,
-                shf,
-                stp,
-                trm,
-                txnData,
-                wcp,
-                l2Block,
-                l2L1Logs),
-            Stream.concat(refTableModules.stream(), precompileLimitModules().stream()))
-        .toList();
+    return Stream.concat(getModulesToTrace().stream(), getTracelessModules().stream()).toList();
   }
 
-  public Hub(final Address l2l1ContractAddress, final Bytes l2l1Topic, final BigInteger chainId) {
-    checkState(chainId.signum() >= 0);
-    l2Block = new L2Block(l2l1ContractAddress, LogTopic.of(l2l1Topic));
-    l2L1Logs = new L2L1Logs(l2Block);
-    keccak = new Keccak(ecRecoverEffectiveCall, l2Block);
+  public Hub(final ChainConfig chain) {
+    checkState(chain.id.signum() >= 0);
+    Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
+    final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
+    //
+    if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
+      log.info("WARN: Using default testing L2L1 contract address");
+    }
+    l2L1Logs = new L2L1Logs();
+    keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
+    l2Block =
+        new L2Block(
+            blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
-    blockdata = new Blockdata(wcp, euc, txnData, EWord.of(chainId));
+    rlpAddr = new RlpAddr(this, trm, keccak);
+    blockdata = new Blockdata(wcp, euc, txnData, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -423,7 +410,7 @@ public class Hub implements Module {
                     wcp, /* WARN: must be called BEFORE txnData */
                     txnData,
                     blockdata /* WARN: must be called AFTER txnData */),
-                precompileLimitModules().stream())
+                getTracelessModules().stream())
             .toList();
   }
 
@@ -647,8 +634,6 @@ public class Hub implements Module {
 
   @Override
   public void traceContextExit(MessageFrame frame) {
-    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
-
     exitDeploymentFromDeploymentInfoPov(frame);
 
     // We take a snapshot before exiting the transaction
@@ -672,7 +657,6 @@ public class Hub implements Module {
     }
 
     defers.resolveUponContextExit(this, this.currentFrame());
-    // TODO: verify me please @Olivier
     if (this.currentFrame().opCode() == REVERT || Exceptions.any(pch.exceptions())) {
       defers.resolveUponRollback(this, frame, this.currentFrame());
     }
@@ -685,7 +669,6 @@ public class Hub implements Module {
   public void traceContextReEnter(MessageFrame frame) {
     // Note: the update of the currentId call frame is made during traceContextExit of the child
     // frame
-    this.currentFrame().initializeFrame(frame); // TODO: is it needed ?
     defers.resolveUponContextReEntry(this, this.currentFrame());
     this.unlatchStack(frame, this.currentFrame().childSpanningSection());
   }
@@ -848,33 +831,6 @@ public class Hub implements Module {
         .processInstruction(this, frame, MULTIPLIER___STACK_STAMP * (stamp() + 1));
   }
 
-  void triggerModules(MessageFrame frame) {
-    if (pch.signals().add()) {
-      add.tracePreOpcode(frame);
-    }
-    if (pch.signals().bin()) {
-      bin.tracePreOpcode(frame);
-    }
-    if (pch.signals().mul()) {
-      mul.tracePreOpcode(frame);
-    }
-    if (pch.signals().ext()) {
-      ext.tracePreOpcode(frame);
-    }
-    if (pch.signals().mod()) {
-      mod.tracePreOpcode(frame);
-    }
-    if (pch.signals().wcp()) {
-      wcp.tracePreOpcode(frame);
-    }
-    if (pch.signals().shf()) {
-      shf.tracePreOpcode(frame);
-    }
-    if (pch.signals().blockhash()) {
-      blockhash.tracePreOpcode(frame);
-    }
-  }
-
   public int stamp() {
     return state.stamps().hub();
   }
@@ -914,9 +870,8 @@ public class Hub implements Module {
 
       if (line.needsResult()) {
         Bytes result = Bytes.EMPTY;
-        // Only pop from the stack if no exceptions have been encountered
-        // TODO: when we call this from contextReenter, pch.exceptions is not the one from the
-        // caller/creater ?
+        // Note: when we call this from contextReenter, pch.exceptions is the one from the last
+        // opcode of the caller/creater ?
         if (Exceptions.none(pch.exceptions())) {
           result = frame.getStackItem(0).copy();
         }
@@ -934,9 +889,16 @@ public class Hub implements Module {
     pch.setup(frame);
 
     this.handleStack(frame);
-    this.triggerModules(frame);
+
+    // Trigger basic operations modules
+    if (Exceptions.none(pch.exceptions())) {
+      for (Module m : modules) {
+        m.tracePreOpcode(frame, opCode());
+      }
+    }
 
     if (currentFrame().stack().isOk()) {
+      // Tracer for the HUB
       this.traceOpcode(frame);
     } else {
       this.squashCurrentFrameOutputData();
@@ -949,18 +911,10 @@ public class Hub implements Module {
     }
   }
 
-  // TODO: how do these implementations of remainingGas()
-  //  and expectedGas() behave with respect to resuming
-  //  execution after a CALL / CREATE ? One of them is
-  //  necessarily false ...
   public long remainingGas() {
     return this.state().processingPhase() == TX_EXEC
         ? this.currentFrame().frame().getRemainingGas()
         : 0;
-  }
-
-  public int cumulatedTxCount() {
-    return state.txCount();
   }
 
   void traceOpcode(MessageFrame frame) {

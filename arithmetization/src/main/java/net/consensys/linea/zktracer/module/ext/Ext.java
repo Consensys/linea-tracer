@@ -15,18 +15,18 @@
 
 package net.consensys.linea.zktracer.module.ext;
 
-import java.nio.MappedByteBuffer;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -46,14 +46,15 @@ public class Ext implements OperationSetModule<ExtOperation> {
   }
 
   @Override
-  public void tracePreOpcode(final MessageFrame frame) {
-    final OpCodeData opCode = hub.opCodeData();
-    operations.add(
-        new ExtOperation(
-            opCode.mnemonic(),
-            Bytes32.leftPad(frame.getStackItem(0)),
-            Bytes32.leftPad(frame.getStackItem(1)),
-            Bytes32.leftPad(frame.getStackItem(2))));
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
+    if (opcode == ADDMOD || opcode == MULMOD) {
+      operations.add(
+          new ExtOperation(
+              opcode,
+              Bytes32.leftPad(frame.getStackItem(0)),
+              Bytes32.leftPad(frame.getStackItem(1)),
+              Bytes32.leftPad(frame.getStackItem(2))));
+    }
   }
 
   public Bytes call(OpCode opCode, Bytes _arg1, Bytes _arg2, Bytes _arg3) {
@@ -75,17 +76,20 @@ public class Ext implements OperationSetModule<ExtOperation> {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Ext.headers(this.lineCount());
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
+  public int spillage() {
+    return Trace.Ext.SPILLAGE;
+  }
 
+  @Override
+  public void commit(Trace trace) {
     int stamp = 0;
     for (ExtOperation operation : operations.sortOperations(new ExtOperationComparator())) {
-      operation.trace(trace, ++stamp);
+      operation.trace(trace.ext, ++stamp);
     }
   }
 }

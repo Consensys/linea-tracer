@@ -12,22 +12,22 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-
 package net.consensys.linea.zktracer;
+
+import static net.consensys.linea.zktracer.ChainConfig.LINEA_CHAIN;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.math.BigInteger;
-import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.module.DebugMode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.FiniteList;
-import net.consensys.linea.zktracer.types.Utils;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -56,88 +55,72 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
-  private static final Map<String, Integer> spillings;
-
-  static {
-    try {
-      // Load spillings configured in src/main/resources/spillings.toml.
-      spillings = Utils.computeSpillings();
-    } catch (final Exception e) {
-      final String errorMsg =
-          "A problem happened during spillings initialization, cause " + e.getCause();
-      log.error(errorMsg);
-      throw new RuntimeException(e);
-    }
-  }
-
   @Getter private final Hub hub;
   private final Optional<DebugMode> debugMode;
 
   /** Accumulate all the exceptions that happened at tracing time. */
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
-  public ZkTracer() {
-    this(
-        LineaL1L2BridgeSharedConfiguration.EMPTY,
-        Bytes.fromHexString("c0ffee").toUnsignedBigInteger());
-  }
+  // Fields for metadata
+  private final ChainConfig chain;
 
-  public ZkTracer(BigInteger nonnegativeChainId) {
-    this(LineaL1L2BridgeSharedConfiguration.EMPTY, nonnegativeChainId);
-  }
-
+  /**
+   * Construct a ZkTracer for a given bridge configuration and chainId. This is used, for example,
+   * by the sequencer for tracing in production, such as on mainnet and/or sepolia.
+   *
+   * @param bridgeConfiguration Configuration for the L1L2 bridge.
+   * @param chainId Identifies the chain being traced.
+   */
   public ZkTracer(
       final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    ;
-    this.hub = new Hub(bridgeConfiguration.contract(), bridgeConfiguration.topic(), chainId);
-    for (Module m : this.hub.getModulesToCount()) {
-      if (!spillings.containsKey(m.moduleKey())) {
-        throw new IllegalStateException(
-            "Spilling for module " + m.moduleKey() + " not defined in spillings.toml");
-      }
-    }
-    // >>>> CHANGE ME >>>>
-    // >>>> CHANGE ME >>>>
-    // >>>> CHANGE ME >>>>
+    this(LINEA_CHAIN(bridgeConfiguration, chainId));
+  }
+
+  /**
+   * Construct a ZkTracer with a given chain configuration, which could either for a production
+   * environment or a test environment.
+   *
+   * @param chain
+   */
+  public ZkTracer(ChainConfig chain) {
+    this.chain = chain;
+    this.hub = new Hub(chain);
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
-    // <<<< CHANGE ME <<<<
-    // <<<< CHANGE ME <<<<
-    // <<<< CHANGE ME <<<<
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
   }
 
-  public void writeToFile(final Path filename) {
+  public void writeToFile(final Path filename, long startBlock, long endBlock) {
     maybeThrowTracingExceptions();
 
-    final List<Module> modules = hub.getModulesToTrace();
-    final List<ColumnHeader> traceMap =
-        modules.stream().flatMap(m -> m.columnsHeaders().stream()).toList();
-    final int headerSize = traceMap.stream().mapToInt(ColumnHeader::headerSize).sum() + 4;
-
+    final List<Module> modulesToTrace = hub.getModulesToTrace();
+    final List<Trace.ColumnHeader> headers =
+        modulesToTrace.stream().flatMap(m -> m.columnHeaders().stream()).toList();
+    // Configure metadata
+    final Map<String, Object> metadata = Trace.metadata();
+    metadata.put("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
+    metadata.put("chainId", this.chain.id.toString());
+    metadata.put("l2L1LogSmcAddress", this.chain.bridgeConfiguration.contract().toString());
+    metadata.put("l2L1LogTopic", this.chain.bridgeConfiguration.topic().toString());
+    // include block range
+    final Map<String, String> range = new HashMap<>();
+    range.put("start", Long.toString(startBlock));
+    range.put("end", Long.toString(endBlock));
+    metadata.put("conflation", range);
+    // include line counts
+    final Map<String, String> lineCounts = new HashMap<>();
+    for (Module m : hub.getTracelessModules()) {
+      lineCounts.put(m.moduleKey(), Integer.toString(m.lineCount()));
+    }
+    metadata.put("lineCounts", lineCounts);
+    //
     try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
-      file.setLength(traceMap.stream().mapToLong(ColumnHeader::cumulatedSize).sum());
-      final MappedByteBuffer header =
-          file.getChannel().map(FileChannel.MapMode.READ_WRITE, 0, headerSize);
-
-      header.putInt(traceMap.size());
-      for (ColumnHeader h : traceMap) {
-        final String name = h.name();
-        header.putShort((short) name.length());
-        header.put(name.getBytes());
-        header.put((byte) h.bytesPerElement());
-        header.putInt(h.length());
+      final Trace trace = Trace.of(file, headers, getMetadataBytes(metadata));
+      // Commit each module
+      for (Module m : modulesToTrace) {
+        m.commit(trace);
       }
-      long offset = headerSize;
-      for (Module m : modules) {
-        final List<MappedByteBuffer> buffers = new ArrayList<>();
-        for (ColumnHeader columnHeader : m.columnsHeaders()) {
-          final int columnLength = columnHeader.dataSize();
-          buffers.add(file.getChannel().map(FileChannel.MapMode.READ_WRITE, offset, columnLength));
-          offset += columnLength;
-        }
-        m.commit(buffers);
-      }
+      // Close the file
       file.getChannel().force(false);
     } catch (IOException e) {
       log.error("Error while writing to the file {}", filename);
@@ -306,10 +289,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     }
   }
 
-  /**
-   * When called, erase all tracing related to the bundle of all transactions since the last {@link
-   * commitTransactionBundle()}
-   */
+  /** When called, erase all tracing related to the bundle of all transactions since the last. */
   public void popTransactionBundle() {
     hub.popTransactionBundle();
   }
@@ -318,24 +298,28 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     hub.commitTransactionBundle();
   }
 
+  /**
+   * Returns the total line count (i.e. including spillage) for both tracing and non-tracing
+   * modules. This method is called directly by the sequencer to determine whether a given
+   * transaction should go ahead. This method is also used to feed the line counting RPC end points.
+   *
+   * @return
+   */
   public Map<String, Integer> getModulesLineCount() {
     maybeThrowTracingExceptions();
     final HashMap<String, Integer> modulesLineCount = new HashMap<>();
 
-    hub.getModulesToCount()
-        .forEach(
-            m ->
-                modulesLineCount.put(
-                    m.moduleKey(),
-                    m.lineCount()
-                        + Optional.ofNullable(spillings.get(m.moduleKey()))
-                            .orElseThrow(
-                                () ->
-                                    new IllegalStateException(
-                                        "Module "
-                                            + m.moduleKey()
-                                            + " not found in spillings.toml"))));
-    modulesLineCount.put("BLOCK_TRANSACTIONS", hub.cumulatedTxCount());
+    for (Module m : hub.getModulesToCount()) {
+      modulesLineCount.put(m.moduleKey(), m.lineCount() + m.spillage());
+    }
+    //
     return modulesLineCount;
+  }
+
+  /** Object writer is used for generating JSON byte strings. */
+  private static final ObjectWriter objectWriter = new ObjectMapper().writer();
+
+  public static byte[] getMetadataBytes(Map<String, Object> metadata) throws IOException {
+    return objectWriter.writeValueAsBytes(metadata);
   }
 }

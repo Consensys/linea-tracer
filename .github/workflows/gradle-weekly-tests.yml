@@ -12,43 +12,57 @@ concurrency:
 
 jobs:
   weekly-tests:
-   runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
-   continue-on-error: true
-   steps:
-     - name: Checkout repository
-       uses: actions/checkout@v3
-       with:
-         submodules: recursive
-     - name: Setup Test Environment
-       uses: ./.github/actions/setup-environment
-       with:
-         go-corset: true
+    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
-     - name: Run Weekly tests
-       run: GOMEMLIMIT=96GiB ./gradlew weeklyTests
-       env:
-         JAVA_OPTS: -Dorg.gradle.daemon=false
-         WEEKLY_TESTS_PARALLELISM: 1
-         CORSET_FLAGS: disable
-         GOCORSET_FLAGS: -vw -b1024 --ansi-escapes=false --report --air
+      - name: Setup Test Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          go-corset: true
 
-     - name: Upload test report
-       if: always()
-       uses: actions/upload-artifact@v4
-       with:
-         name: weekly-tests-report
-         path: arithmetization/build/reports/tests/**/*
+      - name: Run Weekly tests
+        run: GOMEMLIMIT=96GiB ./gradlew weeklyTests
+        env:
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+          WEEKLY_TESTS_PARALLELISM: 4
+          CORSET_FLAGS: disable
+          GOCORSET_FLAGS: -vw -b1024 --ansi-escapes=false --report --air
 
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: weekly-tests-report
+          path: arithmetization/build/reports/tests/**/*
 
-     - name: Failure Notification
-       if: ${{ failure() || cancelled() }}
-       uses: slackapi/slack-github-action@v2.0.0
-       with:
-         webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
-         webhook-type: webhook-trigger
-         payload: |
-            name: "Weekly (Go-Corset)"
-            status: "${{ job.status }}"
+      - name: Upload jacoco weekly tests coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-weekly-tests-coverage-report
+          path: arithmetization/build/reports/jacoco/jacocoWeeklyTestsReport/**/*
+
+      - name: Upload jacoco weekly tests exec file
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-weekly-tests-exec-file
+          path: arithmetization/build/jacoco/weeklyTests.exec
+
+      - name: Failure Notification
+        if: ${{ failure() || cancelled() }}
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+             name: "Weekly (Go-Corset)"
+             status: "${{ job.status }}"
 
   weekly-ecpairing-tests:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
@@ -86,5 +100,5 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: webhook-trigger
           payload: |
-             name: "Weekly EcPairing (Go-Corset)"
-             status: "${{ job.status }}"
+            name: "Weekly EcPairing (Go-Corset)"
+            status: "${{ job.status }}"

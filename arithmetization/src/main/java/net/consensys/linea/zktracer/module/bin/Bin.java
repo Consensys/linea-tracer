@@ -15,13 +15,14 @@
 
 package net.consensys.linea.zktracer.module.bin;
 
-import java.nio.MappedByteBuffer;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.bytestheta.BaseBytes;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
@@ -45,28 +46,38 @@ public class Bin implements OperationSetModule<BinOperation> {
   }
 
   @Override
-  public void tracePreOpcode(MessageFrame frame) {
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
-    final Bytes32 arg2 =
-        opCode == OpCode.NOT ? Bytes32.ZERO : Bytes32.leftPad(frame.getStackItem(1));
+  public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
+    if (opcode == AND
+        || opcode == OR
+        || opcode == XOR
+        || opcode == NOT
+        || opcode == SIGNEXTEND
+        || opcode == BYTE) {
 
-    operations.add(
-        new BinOperation(opCode, BaseBytes.fromBytes32(arg1), BaseBytes.fromBytes32(arg2)));
-  }
+      final Bytes32 arg1 = Bytes32.leftPad(frame.getStackItem(0));
+      final Bytes32 arg2 =
+          opcode == OpCode.NOT ? Bytes32.ZERO : Bytes32.leftPad(frame.getStackItem(1));
 
-  @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-
-    int stamp = 0;
-    for (BinOperation op : operations.sortOperations(new BinOperationComparator())) {
-      op.traceBinOperation(++stamp, trace);
+      operations.add(
+          new BinOperation(opcode, BaseBytes.fromBytes32(arg1), BaseBytes.fromBytes32(arg2)));
     }
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Bin.headers(this.lineCount());
+  }
+
+  @Override
+  public int spillage() {
+    return Trace.Bin.SPILLAGE;
+  }
+
+  @Override
+  public void commit(Trace trace) {
+    int stamp = 0;
+    for (BinOperation op : operations.sortOperations(new BinOperationComparator())) {
+      op.traceBinOperation(++stamp, trace.bin);
+    }
   }
 }

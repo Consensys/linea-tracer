@@ -20,8 +20,10 @@ import java.util.Optional;
 import java.util.TreeMap;
 
 import com.google.common.base.Stopwatch;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.BesuServiceProvider;
+import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.Validator;
 import net.consensys.linea.plugins.rpc.tracegeneration.TraceRequestParams;
@@ -39,17 +41,13 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
  * based on the provided request parameters and writes them to a file.
  */
 @Slf4j
+@RequiredArgsConstructor
 public class ConflatedCountTracesV2 {
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
   private final RequestLimiter requestLimiter;
   private final ServiceManager besuContext;
+  private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
   private TraceService traceService;
-
-  public ConflatedCountTracesV2(
-      final ServiceManager besuContext, final RequestLimiter requestLimiter) {
-    this.besuContext = besuContext;
-    this.requestLimiter = requestLimiter;
-  }
 
   public String getNamespace() {
     return "linea";
@@ -88,6 +86,7 @@ public class ConflatedCountTracesV2 {
     final long toBlock = params.endBlockNumber();
     final ZkTracer tracer =
         new ZkTracer(
+            l1L2BridgeSharedConfiguration,
             BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
                 .getChainId()
                 .orElseThrow());

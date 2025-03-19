@@ -16,14 +16,21 @@
 package net.consensys.linea.zktracer.module.blockdata;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.*;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_GT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_ISZERO;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.GAS_LIMIT_ADJUSTMENT_FACTOR;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_GEQ;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WCP_INST_LEQ;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_BF;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_CB;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DEPTH;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DF;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_GL;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_ID;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_NB;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_TS;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_GT;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_ISZERO;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_LT;
+import static net.consensys.linea.zktracer.Trace.GAS_LIMIT_ADJUSTMENT_FACTOR;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.Trace.WCP_INST_GEQ;
+import static net.consensys.linea.zktracer.Trace.WCP_INST_LEQ;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
@@ -31,6 +38,8 @@ import java.util.Arrays;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -48,6 +57,8 @@ public class BlockdataOperation extends ModuleOperation {
   private final Hub hub;
   private final Wcp wcp;
   private final Euc euc;
+  private final EWord gasLimitMinimum;
+  private final EWord gasLimitMaximum;
   private final Bytes chainId;
   private final BlockHeader blockHeader;
   private final BlockHeader prevBlockHeader;
@@ -77,7 +88,7 @@ public class BlockdataOperation extends ModuleOperation {
       int relTxMax,
       Wcp wcp,
       Euc euc,
-      Bytes chainId,
+      ChainConfig chain,
       OpCode opCode,
       long firstBlockNumber) {
     // Data from blockHeader
@@ -85,8 +96,9 @@ public class BlockdataOperation extends ModuleOperation {
     this.blockHeader = blockHeader;
     this.prevBlockHeader = prevBlockHeader;
     this.coinbaseAddress = hub.coinbaseAddress;
-
-    this.chainId = chainId;
+    this.gasLimitMinimum = EWord.of(chain.gasLimitMinimum);
+    this.gasLimitMaximum = EWord.of(chain.gasLimitMaximum);
+    this.chainId = EWord.of(chain.id);
     this.ctMax = ctMax(opCode);
     this.firstBlockNumber = firstBlockNumber;
     this.relTxMax = relTxMax;
@@ -175,11 +187,11 @@ public class BlockdataOperation extends ModuleOperation {
 
     // row i
     // comparison to minimum
-    wcpCallToGEQ(0, data, EWord.of(GAS_LIMIT_MINIMUM));
+    wcpCallToGEQ(0, data, gasLimitMinimum);
 
     // row i + 1
     // comparison to maximum
-    wcpCallToLEQ(1, data, EWord.of(Bytes.ofUnsignedLong(GAS_LIMIT_MAXIMUM)));
+    wcpCallToLEQ(1, data, gasLimitMaximum);
 
     if (!firstBlockInConflation) {
       final EWord prevGasLimit = EWord.of(prevBlockHeader.getGasLimit());
@@ -211,7 +223,7 @@ public class BlockdataOperation extends ModuleOperation {
     return ctMax;
   }
 
-  public void trace(Trace trace) {
+  public void trace(Trace.Blockdata trace) {
     for (short ct = 0; ct < ctMax; ct++) {
       trace
           .iomf(true)

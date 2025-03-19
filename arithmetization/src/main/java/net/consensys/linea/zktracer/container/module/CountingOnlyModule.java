@@ -15,11 +15,10 @@
 
 package net.consensys.linea.zktracer.container.module;
 
-import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 
 /** A {@link CountingOnlyModule} is a {@link Module} that only counts certain outcomes. */
@@ -41,18 +40,23 @@ public interface CountingOnlyModule extends Module {
     return counts().lineCount();
   }
 
-  default void addPrecompileLimit(final int count) {
-    Preconditions.checkArgument(count >= 0, "Must be positive");
+  @Override
+  default int spillage() {
+    return 0;
+  }
+
+  default void updateTally(final int count) {
+    Preconditions.checkArgument(count >= 0, "Must be non-negative");
     counts().add(count);
   }
 
   @Override
-  default List<ColumnHeader> columnsHeaders() {
+  default List<Trace.ColumnHeader> columnHeaders() {
     throw new IllegalStateException("should never be called");
   }
 
   @Override
-  default void commit(List<MappedByteBuffer> buffers) {
+  default void commit(Trace trace) {
     throw new IllegalStateException("should never be called");
   }
 }

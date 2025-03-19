@@ -15,13 +15,17 @@
 
 package net.consensys.linea.zktracer.module.loginfo;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.EVM_INST_LOG0;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_LOG0;
+import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_ADDR;
+import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_DATA_SIZE;
+import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_NO_LOG_ENTRY;
+import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_TOPIC_BASE;
+import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA;
 
-import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
@@ -64,14 +68,17 @@ public class LogInfo implements Module {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  public int spillage() {
+    return Trace.Loginfo.SPILLAGE;
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Loginfo.headers(this.lineCount());
+  }
 
+  @Override
+  public void commit(Trace trace) {
     int absLogNumMax = 0;
     for (RlpTxrcptOperation tx : rlpTxnRcpt.operations().getAll()) {
       absLogNumMax += tx.logs().size();
@@ -82,11 +89,11 @@ public class LogInfo implements Module {
     for (RlpTxrcptOperation tx : rlpTxnRcpt.operations().getAll()) {
       absTxNum += 1;
       if (tx.logs().isEmpty()) {
-        traceTxWoLog(absTxNum, absLogNum, absLogNumMax, trace);
+        traceTxWoLog(absTxNum, absLogNum, absLogNumMax, trace.loginfo);
       } else {
         for (Log log : tx.logs()) {
           absLogNum += 1;
-          traceLog(log, absTxNum, absLogNum, absLogNumMax, trace);
+          traceLog(log, absTxNum, absLogNum, absLogNumMax, trace.loginfo);
         }
       }
     }
@@ -105,7 +112,7 @@ public class LogInfo implements Module {
   }
 
   public void traceTxWoLog(
-      final int absTxNum, final int absLogNum, final int absLogNumMax, Trace trace) {
+      final int absTxNum, final int absLogNum, final int absLogNumMax, Trace.Loginfo trace) {
     trace
         .absTxnNumMax(rlpTxnRcpt.operations().size())
         .absTxnNum(absTxNum)
@@ -131,14 +138,18 @@ public class LogInfo implements Module {
         .isLogX2(false)
         .isLogX3(false)
         .isLogX4(false)
-        .phase(LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_NO_LOG_ENTRY)
+        .phase(RLP_RCPT_SUBPHASE_ID_NO_LOG_ENTRY)
         .dataHi(Bytes.EMPTY)
         .dataLo(Bytes.EMPTY)
         .validateRow();
   }
 
   public void traceLog(
-      final Log log, final int absTxNum, final int absLogNum, final int absLogNumMax, Trace trace) {
+      final Log log,
+      final int absTxNum,
+      final int absLogNum,
+      final int absLogNumMax,
+      Trace.Loginfo trace) {
     final int ctMax = ctMax(log);
     final int nbTopic = log.getTopics().size();
     final Bytes32 topic1 = nbTopic >= 1 ? log.getTopics().get(0) : Bytes32.ZERO;
@@ -175,50 +186,42 @@ public class LogInfo implements Module {
       switch (ct) {
         case 0 -> {
           trace
-              .phase(LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_DATA_SIZE)
+              .phase(RLP_RCPT_SUBPHASE_ID_DATA_SIZE)
               .dataHi(Bytes.ofUnsignedInt(log.getData().size()))
               .dataLo(Bytes.ofUnsignedInt(nbTopic))
               .validateRow();
         }
         case 1 -> {
           trace
-              .phase(LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_ADDR)
+              .phase(RLP_RCPT_SUBPHASE_ID_ADDR)
               .dataHi(log.getLogger().slice(0, 4))
               .dataLo(log.getLogger().slice(4, 16))
               .validateRow();
         }
         case 2 -> {
           trace
-              .phase(
-                  LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_TOPIC_BASE
-                      + LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_TOPIC_DELTA)
+              .phase(RLP_RCPT_SUBPHASE_ID_TOPIC_BASE + RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA)
               .dataHi(topic1.slice(0, 16))
               .dataLo(topic1.slice(16, 16))
               .validateRow();
         }
         case 3 -> {
           trace
-              .phase(
-                  LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_TOPIC_BASE
-                      + 2 * LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_TOPIC_DELTA)
+              .phase(RLP_RCPT_SUBPHASE_ID_TOPIC_BASE + 2 * RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA)
               .dataHi(topic2.slice(0, 16))
               .dataLo(topic2.slice(16, 16))
               .validateRow();
         }
         case 4 -> {
           trace
-              .phase(
-                  LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_TOPIC_BASE
-                      + 3 * LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_TOPIC_DELTA)
+              .phase(RLP_RCPT_SUBPHASE_ID_TOPIC_BASE + 3 * RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA)
               .dataHi(topic3.slice(0, 16))
               .dataLo(topic3.slice(16, 16))
               .validateRow();
         }
         case 5 -> {
           trace
-              .phase(
-                  LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_TOPIC_BASE
-                      + 4 * LogInfoTrace.RLPRECEIPT_SUBPHASE_ID_TOPIC_DELTA)
+              .phase(RLP_RCPT_SUBPHASE_ID_TOPIC_BASE + 4 * RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA)
               .dataHi(topic4.slice(0, 16))
               .dataLo(topic4.slice(16, 16))
               .validateRow();

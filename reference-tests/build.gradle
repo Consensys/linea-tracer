@@ -58,7 +58,7 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 }
 
 tasks.register('referenceBlockchainTests', Test) {
-  dependsOn(buildReferenceTestsZkevmBin)
+  dependsOn(buildZkevmBin)
   finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
   dependsOn generateBlockchainReferenceTests
@@ -83,7 +83,8 @@ tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
 }
 
 tasks.register('referenceGeneralStateTests', Test) {
-  dependsOn(buildReferenceTestsZkevmBin)
+  dependsOn(buildZkevmBin)
+  finalizedBy(jacocoReferenceGeneralStateTestsReport)
   description = 'Runs ETH reference general state tests.'
   dependsOn generateGeneralStateReferenceTests
   // Record zkevm.bin for CorsetValidator
@@ -98,13 +99,20 @@ tasks.register('referenceGeneralStateTests', Test) {
   maxHeapSize = isCiServer ? "32g" : "8g"
 }
 
+tasks.register("jacocoReferenceGeneralStateTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData(referenceGeneralStateTests)
+}
+
 [
   tasks.named("referenceGeneralStateTests"),
   tasks.named("referenceBlockchainTests"),
 ].forEach {
   it.configure {
-    // Record zkevm.bin for CorsetValidator
-    environment.put("ZKEVM_BIN", System.getenv("ZKEVM_BIN") ?: "zkevm_for_reference_tests.bin")
     // Configure parallelism
     environment.put("blockchain", System.getenv("blockchain") ?: "Ethereum")
     systemProperty("junit.jupiter.execution.timeout.default", "15 m")  // 5 minutes
@@ -122,6 +130,7 @@ dependencies {
   testImplementation "${besuArtifactGroup}:evm"
   testImplementation "${besuArtifactGroup}.internal:config"
   testImplementation "${besuArtifactGroup}.internal:core"
+  testImplementation group: "${besuArtifactGroup}.internal", name: "core", classifier: "test-support"
   testImplementation "${besuArtifactGroup}.internal:algorithms"
   testImplementation "${besuArtifactGroup}.internal:metrics-core"
   testImplementation "${besuArtifactGroup}.internal:referencetests"
@@ -131,8 +140,8 @@ dependencies {
   testImplementation "${besuArtifactGroup}.internal:util"
   testImplementation "${besuArtifactGroup}:plugin-api"
 
-  testImplementation 'io.tmio:tuweni-bytes'
-  testImplementation 'io.tmio:tuweni-units'
+  testImplementation 'io.consensys.protocols:tuweni-bytes'
+  testImplementation 'io.consensys.protocols:tuweni-units'
 
   testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jdk8'
   testImplementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'

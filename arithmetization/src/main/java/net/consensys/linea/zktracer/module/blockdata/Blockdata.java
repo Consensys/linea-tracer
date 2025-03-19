@@ -15,21 +15,20 @@
 
 package net.consensys.linea.zktracer.module.blockdata;
 
-import static net.consensys.linea.zktracer.module.blockdata.Trace.GAS_LIMIT_MAXIMUM;
-import static net.consensys.linea.zktracer.module.blockdata.Trace.nROWS_DEPTH;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DEPTH;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
-import java.nio.MappedByteBuffer;
 import java.util.*;
 
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -39,7 +38,7 @@ public class Blockdata implements Module {
   private final Wcp wcp;
   private final Euc euc;
   private final TxnData txnData;
-  private final Bytes chainId;
+  private final ChainConfig chain;
 
   private final List<BlockdataOperation> operations = new ArrayList<>();
   private long firstBlockNumber;
@@ -70,7 +69,7 @@ public class Blockdata implements Module {
             + 1
             + 6 // for NUMBER
             + 1 // for DIFFICULTY
-            + Bytes.minimalBytes(GAS_LIMIT_MAXIMUM).size() * 4 // for GASLIMIT
+            + (bigIntegerToBytes(chain.gasLimitMaximum).size() * 4) // for GASLIMIT
             + LLARGE // for CHAINID
             + LLARGE // for BASEFEE
         );
@@ -100,7 +99,7 @@ public class Blockdata implements Module {
               txnData.currentBlock().getNbOfTxsInBlock(),
               wcp,
               euc,
-              chainId,
+              chain,
               opCode,
               firstBlockNumber);
       operations.addLast(operation);
@@ -120,16 +119,19 @@ public class Blockdata implements Module {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  public int spillage() {
+    return Trace.Blockdata.SPILLAGE;
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Blockdata.headers(this.lineCount());
+  }
 
+  @Override
+  public void commit(Trace trace) {
     for (BlockdataOperation blockData : operations) {
-      blockData.trace(trace);
+      blockData.trace(trace.blockdata);
     }
   }
 }

@@ -141,7 +141,7 @@ tasks.test.configure {
 
 tasks.register("fastReplayTests", Test) {
   dependsOn(buildZkevmBin)
-
+    //
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
@@ -155,6 +155,16 @@ tasks.register("fastReplayTests", Test) {
     excludeTags("nightly")
     excludeTags("weekly")
   }
+  finalizedBy(jacocoFastReplayTestsReport)
+}
+
+tasks.register("jacocoFastReplayTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData(fastReplayTests)
 }
 
 tasks.register("nightlyReplayTests", Test) {
@@ -194,6 +204,16 @@ tasks.register("nightlyTests", Test) {
   useJUnitPlatform {
     includeTags("nightly")
   }
+  finalizedBy(jacocoNightlyTestsReport)
+}
+
+tasks.register("jacocoNightlyTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData(nightlyTests)
 }
 
 tasks.register("weeklyTests", Test) {
@@ -212,8 +232,20 @@ tasks.register("weeklyTests", Test) {
     excludeTags("weekly-ecpairing")
     includeTags("weekly")
   }
+  finalizedBy(jacocoWeeklyTestsReport)
 }
 
+tasks.register("jacocoWeeklyTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData(weeklyTests)
+}
+
+// Gradle task to concatenate Unit, FastReplay, Nightly, Weekly and Reference Blockchain and State tests exec files
+tasks.register("jacocoUnitFastReplayWeeklyNightlyReferenceBlockchainAndStateTestsReport", JacocoReport) {
 tasks.register("weeklyEcPairingTests", Test) {
   dependsOn(buildZkevmBin)
 
@@ -243,3 +275,7 @@ tasks.register("jacocoUnitAndReferenceTestsReport", JacocoReport) {
   sourceSets project(":arithmetization").sourceSets.main
   executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 }
+
+// Configure default build task to require the tracer is built first.
+// This only makes sense for projects which need the tracer.
+compileJava.dependsOn 'buildTracer'

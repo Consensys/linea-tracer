@@ -15,10 +15,10 @@
 
 package net.consensys.linea.zktracer.container.module;
 
-import java.nio.MappedByteBuffer;
 import java.util.List;
 
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -50,7 +50,7 @@ public interface Module {
 
   default void traceContextExit(MessageFrame frame) {}
 
-  default void tracePreOpcode(MessageFrame frame) {}
+  default void tracePreOpcode(MessageFrame frame, OpCode opcode) {}
 
   /**
    * Called when a bundle of transaction execution is cancelled; should revert the state of the
@@ -64,11 +64,27 @@ public interface Module {
    */
   void commitTransactionBundle();
 
+  /**
+   * Report the number of lines in the trace of a given module as it stands. Observe that this does
+   * not include spillage information and, hence, is a lower bound on the number of lines in the
+   * final trace.
+   *
+   * @return
+   */
   int lineCount();
 
-  List<ColumnHeader> columnsHeaders();
+  /**
+   * Report spillage required for a given module. Spillage represents additional lines that will be
+   * added on top of the lineCount to the final trace for the module question. As such, this needs
+   * to be incorporated when determine the final line count for a module.
+   *
+   * @return
+   */
+  int spillage();
 
-  default void commit(List<MappedByteBuffer> buffers) {
+  List<Trace.ColumnHeader> columnHeaders();
+
+  default void commit(Trace trace) {
     throw new UnsupportedOperationException();
   }
 }

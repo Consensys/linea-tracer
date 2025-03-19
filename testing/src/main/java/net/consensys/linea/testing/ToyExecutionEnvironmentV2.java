@@ -15,7 +15,8 @@
 
 package net.consensys.linea.testing;
 
-import java.math.BigInteger;
+import static net.consensys.linea.zktracer.Trace.LINEA_BASE_FEE;
+
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 import lombok.Builder;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.datatypes.*;
@@ -36,7 +38,7 @@ import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
 @Builder
 @Slf4j
 public class ToyExecutionEnvironmentV2 {
-  public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
+  public static final ChainConfig CHAIN = ChainConfig.MAINNET_TESTCONFIG;
   public static final Address DEFAULT_COINBASE_ADDRESS =
       Address.fromHexString("0xc019ba5e00000000c019ba5e00000000c019ba5e");
   public static final long DEFAULT_BLOCK_NUMBER = 6678980;
@@ -47,7 +49,7 @@ public class ToyExecutionEnvironmentV2 {
 
   @Builder.Default private final List<ToyAccount> accounts = Collections.emptyList();
   @Builder.Default private final Address coinbase = DEFAULT_COINBASE_ADDRESS;
-  @Builder.Default public static final Wei DEFAULT_BASE_FEE = Wei.of(7);
+  @Builder.Default public static final Wei DEFAULT_BASE_FEE = Wei.of(LINEA_BASE_FEE);
 
   @Singular private final List<Transaction> transactions;
 
@@ -65,14 +67,14 @@ public class ToyExecutionEnvironmentV2 {
 
   @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
 
-  private final ZkTracer tracer = new ZkTracer(CHAIN_ID);
+  private final ZkTracer tracer = new ZkTracer(CHAIN);
 
   public void run() {
-    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN_ID);
+    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id);
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 
-    GeneralStateReferenceTestTools.executeTest(
+    ToyExecutionTools.executeTest(
         generalStateTestCaseEipSpec,
         protocolSpec,
         tracer,
@@ -81,16 +83,20 @@ public class ToyExecutionEnvironmentV2 {
   }
 
   public long runForGasCost() {
-    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN_ID);
+    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id);
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 
-    return GeneralStateReferenceTestTools.executeTestOnlyForGasCost(
+    return ToyExecutionTools.executeTestOnlyForGasCost(
         generalStateTestCaseEipSpec, protocolSpec, this.accounts);
   }
 
   public Hub getHub() {
     return tracer.getHub();
+  }
+
+  public ZkTracer getZkTracer() {
+    return tracer;
   }
 
   public GeneralStateTestCaseEipSpec buildGeneralStateTestCaseSpec(ProtocolSpec protocolSpec) {

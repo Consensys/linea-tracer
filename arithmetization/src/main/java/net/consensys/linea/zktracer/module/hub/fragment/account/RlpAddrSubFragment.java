@@ -15,13 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -45,8 +45,7 @@ public class RlpAddrSubFragment implements TraceSubFragment {
         final MessageFrame frame = hub.currentFrame().frame();
         final Bytes32 salt = Bytes32.leftPad(frame.getStackItem(3));
         final Bytes initCode = OperationAncillaries.initCode(frame);
-        final Bytes32 hash =
-            Hash.keccak256(initCode); // TODO: could be done better, we compute the HASH two times
+        final Bytes32 hash = Hash.keccak256(initCode);
         hub.rlpAddr().callRlpAddrCreate2(frame, salt, hash);
         return new RlpAddrSubFragment((short) 2, deploymentAddress, salt, hash);
       }
@@ -59,7 +58,7 @@ public class RlpAddrSubFragment implements TraceSubFragment {
   }
 
   @Override
-  public Trace trace(Trace trace) {
+  public Trace.Hub trace(Trace.Hub trace) {
     return trace
         .pAccountRlpaddrFlag(true)
         .pAccountRlpaddrRecipe(recipe)

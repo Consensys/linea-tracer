@@ -31,7 +31,6 @@ apply from: rootProject.file("gradle/tests.gradle")
 apply from: rootProject.file("gradle/build-aliases.gradle")
 apply from: rootProject.file("gradle/check-licenses.gradle")
 apply from: rootProject.file("gradle/lint.gradle")
-apply from: rootProject.file("gradle/trace-files.gradle")
 
 dependencies {
   implementation "${besuArtifactGroup}:besu-datatypes"
@@ -49,13 +48,14 @@ dependencies {
 
   implementation 'info.picocli:picocli'
 
-  implementation 'io.tmio:tuweni-bytes'
-  implementation 'io.tmio:tuweni-units'
-  implementation 'io.tmio:tuweni-toml'
+  implementation 'io.consensys.protocols:tuweni-bytes'
+  implementation 'io.consensys.protocols:tuweni-units'
+  implementation 'io.consensys.protocols:tuweni-toml'
 
   implementation 'io.vertx:vertx-web'
 
   testImplementation project(path: ':testing')
+  testImplementation group: "${besuArtifactGroup}.internal", name: "core", classifier: "test-support"
 
   testImplementation 'org.junit.platform:junit-platform-launcher'
 }

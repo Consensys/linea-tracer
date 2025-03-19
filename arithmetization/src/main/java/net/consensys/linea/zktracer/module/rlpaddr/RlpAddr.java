@@ -15,13 +15,13 @@
 
 package net.consensys.linea.zktracer.module.rlpaddr;
 
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.LLARGE;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_ADDR_RECIPE_1;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_ADDR_RECIPE_2;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_INT_SHORT;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.RLP_PREFIX_LIST_SHORT;
-import static net.consensys.linea.zktracer.module.rlpaddr.Trace.MAX_CT_CREATE;
-import static net.consensys.linea.zktracer.module.rlpaddr.Trace.MAX_CT_CREATE2;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.Trace.RLP_ADDR_RECIPE_1;
+import static net.consensys.linea.zktracer.Trace.RLP_ADDR_RECIPE_2;
+import static net.consensys.linea.zktracer.Trace.RLP_PREFIX_INT_SHORT;
+import static net.consensys.linea.zktracer.Trace.RLP_PREFIX_LIST_SHORT;
+import static net.consensys.linea.zktracer.Trace.Rlpaddr.MAX_CT_CREATE;
+import static net.consensys.linea.zktracer.Trace.Rlpaddr.MAX_CT_CREATE2;
 import static net.consensys.linea.zktracer.module.rlputils.Pattern.byteCounting;
 import static net.consensys.linea.zktracer.types.AddressUtils.getCreate2RawAddress;
 import static net.consensys.linea.zktracer.types.AddressUtils.getCreateRawAddress;
@@ -32,17 +32,16 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
-import java.nio.MappedByteBuffer;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ColumnHeader;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
-import net.consensys.linea.zktracer.module.constants.GlobalConstants;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.rlputils.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -63,13 +62,14 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
   private final ModuleOperationStackedSet<RlpAddrOperation> operations =
       new ModuleOperationStackedSet<>();
 
-  private static final Bytes CREATE2_SHIFT = Bytes.minimalBytes(GlobalConstants.CREATE2_SHIFT);
+  private static final Bytes CREATE2_SHIFT = Bytes.minimalBytes(Trace.CREATE2_SHIFT);
   private static final Bytes INT_SHORT = Bytes.minimalBytes(RLP_PREFIX_INT_SHORT);
   private static final UnsignedByte BYTES_LLARGE = UnsignedByte.of(LLARGE);
   final int recipe1NbRows = MAX_CT_CREATE + 1;
 
   private final Hub hub;
   private final Trm trm;
+  private final Keccak keccak;
 
   @Override
   public String moduleKey() {
@@ -85,7 +85,7 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
       final Bytes32 rawTo = getCreateRawAddress(senderAddress, nonce);
       final RlpAddrOperation operation =
           new RlpAddrOperation(
-              rawTo, OpCode.CREATE, longToUnsignedBigInteger(nonce), senderAddress);
+              keccak, rawTo, OpCode.CREATE, longToUnsignedBigInteger(nonce), senderAddress);
       operations.add(operation);
       trm.callTrimming(rawTo);
     }
@@ -97,6 +97,7 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
     final Bytes32 rawCreateAddress = getCreateRawAddress(frame);
     final RlpAddrOperation operation =
         new RlpAddrOperation(
+            keccak,
             rawCreateAddress,
             OpCode.CREATE,
             longToUnsignedBigInteger(frame.getWorldUpdater().get(currentAddress).getNonce()),
@@ -110,6 +111,7 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
     final Bytes32 rawCreate2Address = getCreate2RawAddress(currentAddress, salt, hash);
     final RlpAddrOperation operation =
         new RlpAddrOperation(
+            keccak,
             rawCreate2Address,
             OpCode.CREATE2,
             currentAddress,
@@ -120,7 +122,7 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
     hub.trm().callTrimming(rawCreate2Address);
   }
 
-  private void traceCreate2(int stamp, RlpAddrOperation chunk, Trace trace) {
+  private void traceCreate2(int stamp, RlpAddrOperation chunk, Trace.Rlpaddr trace) {
     final Bytes rawAddressHi = chunk.rawHash().slice(0, LLARGE);
     final long depAddressHi = rawAddressHi.slice(12, 4).toLong();
     final Bytes depAddressLo = chunk.rawHash().slice(LLARGE, LLARGE);
@@ -180,11 +182,11 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
     }
   }
 
-  private void traceCreate(int stamp, RlpAddrOperation chunk, Trace trace) {
+  private void traceCreate(int stamp, RlpAddrOperation chunk, Trace.Rlpaddr trace) {
     final BigInteger nonce = chunk.nonce();
 
-    Bytes nonceShifted = leftPadTo(bigIntegerToBytes(nonce), recipe1NbRows);
-    Boolean tinyNonZeroNonce = true;
+    final Bytes nonceShifted = leftPadTo(bigIntegerToBytes(nonce), recipe1NbRows);
+    boolean tinyNonZeroNonce = true;
     if (nonce.compareTo(BigInteger.ZERO) == 0 || nonce.compareTo(BigInteger.valueOf(128)) >= 0) {
       tinyNonZeroNonce = false;
     }
@@ -296,7 +298,7 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
     }
   }
 
-  private void traceOperation(RlpAddrOperation operation, int stamp, Trace trace) {
+  private void traceOperation(RlpAddrOperation operation, int stamp, Trace.Rlpaddr trace) {
     if (operation.opCode().equals(OpCode.CREATE)) {
       traceCreate(stamp, operation, trace);
     } else {
@@ -305,16 +307,20 @@ public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
   }
 
   @Override
-  public List<ColumnHeader> columnsHeaders() {
-    return Trace.headers(this.lineCount());
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Rlpaddr.headers(this.lineCount());
   }
 
   @Override
-  public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
+  public int spillage() {
+    return Trace.Rlpaddr.SPILLAGE;
+  }
+
+  @Override
+  public void commit(Trace trace) {
     int stamp = 0;
     for (RlpAddrOperation op : operations.sortOperations(new RlpAddrOperationComparator())) {
-      traceOperation(op, ++stamp, trace);
+      traceOperation(op, ++stamp, trace.rlpaddr);
     }
   }
 }

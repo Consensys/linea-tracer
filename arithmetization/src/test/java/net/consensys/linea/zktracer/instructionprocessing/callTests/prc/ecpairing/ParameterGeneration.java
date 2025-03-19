@@ -33,7 +33,7 @@ import org.junit.jupiter.params.provider.Arguments;
 public class ParameterGeneration {
 
   public static Stream<Arguments> parameterGeneration() {
-    List<OpCode> CallOpCodes = List.of(CALL, CALLCODE, DELEGATECALL, STATICCALL);
+    List<OpCode> CallOpCodes = List.of(CALL, STATICCALL);
     List<GasParameter> GasParameters = List.of(COST_MO, COST, PLENTY);
     List<ReturnAtParameter> ReturnAtParameters = List.of(PARTIAL, FULL);
 

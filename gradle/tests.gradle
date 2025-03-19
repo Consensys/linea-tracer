@@ -263,18 +263,6 @@ tasks.register("weeklyEcPairingTests", Test) {
   }
 }
 
-// Gradle task to concatenate Unit and Reference tests exec files
-tasks.register("jacocoUnitAndReferenceTestsReport", JacocoReport) {
-  reports {
-    xml.required = true
-    html.outputLocation = layout.buildDirectory.dir('reports/jacocoConcatenate/html')
-    xml.outputLocation = layout.buildDirectory.file('reports/jacocoConcatenate/jacocoUnitAndReferenceTestsReport.xml')
-  }
-
-  sourceSets project(":arithmetization").sourceSets.main
-  executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-}
-
 // Configure default build task to require the tracer is built first.
 // This only makes sense for projects which need the tracer.
 compileJava.dependsOn 'buildTracer'

@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairi
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.WORD_HEX_SIZE;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.MemoryContents.G2_POINT_5;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 
 public enum LargePoint {
   // valid points

@@ -16,7 +16,7 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairi
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.MemoryContents.SIZE_OF_PAIR_OF_POINTS;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.MemoryContents.TOTAL_NUMBER_OF_PAIRS_OF_POINTS;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.*;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.DIV;
 import static net.consensys.linea.zktracer.opcode.OpCode.GAS;
 

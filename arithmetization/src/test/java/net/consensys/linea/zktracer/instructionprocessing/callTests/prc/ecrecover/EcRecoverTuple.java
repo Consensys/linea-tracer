@@ -16,7 +16,7 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecov
 
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.MAX_WORD;
-import static net.consensys.linea.zktracer.module.constants.GlobalConstants.WORD_SIZE;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import org.apache.tuweni.bytes.Bytes;

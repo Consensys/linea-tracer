@@ -15,8 +15,8 @@
 package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul;
 
 import static com.google.common.base.Preconditions.checkState;
-import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.*;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
+import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.*;
 
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallMemoryContents;

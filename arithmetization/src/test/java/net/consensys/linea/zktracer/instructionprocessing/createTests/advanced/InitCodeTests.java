@@ -28,6 +28,7 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.ToyTransaction.ToyTransactionBuilder;
 import net.consensys.linea.testing.generated.CustomCreate2;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.SmartContractTestValidator;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.Hash;
 import org.hyperledger.besu.datatypes.Address;
@@ -39,6 +40,23 @@ import org.web3j.abi.EventEncoder;
 
 @ExtendWith(UnitTestWatcher.class)
 public class InitCodeTests {
+
+  // This suite aims at testing advanced CREATE2 scenarii using smart contracts
+  // ** CustomCreate2 **
+  // CustomCreate2 is the smart contract used to pilot the deployment of a complex initCodeC
+  // CustomCreate2 stores an initCodeC and a salt used for subsequent deployments
+  // CustomCreate2 has different create2 methods to have deployment scenarii within the same
+  // transaction
+  // CustomCreate2 can CALL/STATICCALL itself and contractC
+  // ** initCodeC **
+  // initCodeC can be piloted by CustomCreate2 via the value passed in the transaction
+  // value 1 Wei enables a storage modification in ContractC
+  // value 2 Wei calls CustomCreate2 back to trigger an immediate redeployment of ContractC
+  // value 3 Wei triggers a self-destruct of ContractC
+  // value 4 Wei triggers a revert on demand
+  // ** ContractC **
+  // ContractC can modify storage, revert on demand, self-destruct on demand, and call back
+  // CustomCreate2 to trigger a redeployment of ContractC
 
   static final Wei defaultBalance = Wei.of(4500L);
 
@@ -141,6 +159,7 @@ public class InitCodeTests {
                 // ContractC is self-destructed
                 // TXSTATUS : Successfull
                 // LOGS: 1 CalledCreate2WithInitCodeC + 1 ContractCreated
+                // Note : 1 CREATE2 opcode called
                 create2WithInitCodeC,
                 callContractCStoreInMapPayload,
                 callContractCSelfDestructPayload,
@@ -148,6 +167,7 @@ public class InitCodeTests {
                 // Transaction reverts, nothing is deployed
                 // TXSTATUS : Failed
                 // LOGS: no logs
+                // Note : 2 CREATE2 opcode called
                 create2WithCallBackAfterCreate2,
                 // SCENARIO 3 - Deploy ContractC and the deployment attempts redeployment
                 // The ContractC deployment is done with value 2 - this value pilots the initcode so
@@ -160,12 +180,13 @@ public class InitCodeTests {
                 // Transaction reverts
                 // TXSTATUS : Failed
                 // LOGS: no logs
+                // Note : 2 CREATE2 opcode called
                 create2CallCAndRevert,
                 // SCENARIO 4 - Attempt ContractC deployment with a staticCall
                 // TXSTATUS : Successfull
                 // LOGS: 1 StaticCallMyselfFail
                 // Note 1 : no CalledCreate2WithInitCodeCEvent as attempt fails prior
-                // TODO : check in Besu that it calls CREATE2
+                // Note : 1 CREATE2 opcode called
                 create2WithStaticCall,
                 // SCENARIO 5 - Four ContractC deployment attempts : (1) with max value, (2)
                 // acceptable value, (3) max value and
@@ -176,6 +197,7 @@ public class InitCodeTests {
                 // (4) fails as it's a collision with attempt (2)
                 // TXSTATUS : Successfull
                 // LOGS: 1 ContractCreated
+                // Note : 4 CREATE2 opcode called
                 create2FourTimes),
             // Values to pilot initCode : as many as there are transactions
             List.of(0L, 0L, 0L, 0L, 0L, 0L, 2L, 0L, 0L));

@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,7 +28,6 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.ToyTransaction.ToyTransactionBuilder;
 import net.consensys.linea.testing.generated.CustomCreate2;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.Hash;
 import org.hyperledger.besu.datatypes.Address;
@@ -187,7 +187,34 @@ public class InitCodeTests {
             .transactionProcessingResultValidator(create2Validator)
             .build();
     toyExecutionEnvironmentV2.run();
-    Hub hub = toyExecutionEnvironmentV2.getHub();
+
+    // Final check on the deployment number of ContractC
+    // deploymentNumber = 0
+    // transaction 3 - create2WithInitCodeC : deploymentNumber ++
+    // Deploys contract C with non empty code
+    // deploymentNumber = 1
+    // transaction 5 - callContractCSelfDestructPayload : deploymentNumber ++
+    // Self-destruct successful increments deployment number
+    // deploymentNumber = 2
+    // transaction 6 - create2WithCallBackAfterCreate2 : deploymentNumber ++
+    // First create2 is successful so increments the deployment number, second create2 makes the
+    // whole transaction revert
+    // deploymentNumber = 3
+    // transaction 7 - create2CallCAndRevert : deploymentNumber ++
+    // Create2 deploys contractC with empty bytecode so increment of the deployment number
+    // deploymentNumber = 4
+    // transaction 9 - create2FourTimes : deploymentNumber ++
+    // Only one create2 is successful so increments the deployment number by 1
+    // deploymentNumber = 5
+    int deploymentNumber =
+        toyExecutionEnvironmentV2
+            .getHub()
+            .transients()
+            .conflation()
+            .deploymentInfo()
+            .deploymentNumber(Address.fromHexString(expectedContractCAddress.toString()));
+    int expectedDeploymentNumber = 5;
+    assertEquals(expectedDeploymentNumber, deploymentNumber);
   }
 
   /// /////////////////////////////////////////////////////////////////////////////////////////////

@@ -235,7 +235,7 @@ tasks.register("weeklyTests", Test) {
   finalizedBy(jacocoWeeklyTestsReport)
 }
 
-tasks.register("jacocoWeeklyTestsReport", JacocoReport) {
+tasks.register("jacocoUnitFastReplayWeeklyNightlyReferenceBlockchainAndStateTestsReport", JacocoReport) {
   reports {
     xml.required = true
   }
@@ -245,7 +245,6 @@ tasks.register("jacocoWeeklyTestsReport", JacocoReport) {
 }
 
 // Gradle task to concatenate Unit, FastReplay, Nightly, Weekly and Reference Blockchain and State tests exec files
-tasks.register("jacocoUnitFastReplayWeeklyNightlyReferenceBlockchainAndStateTestsReport", JacocoReport) {
 tasks.register("weeklyEcPairingTests", Test) {
   dependsOn(buildZkevmBin)
 

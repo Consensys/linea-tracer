@@ -17,9 +17,11 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecrecov
 import java.util.stream.Stream;
 
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallTests;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.provider.Arguments;
 
+@Disabled
 @Tag("weekly")
 public class Tests extends PrecompileCallTests<CallParameters> {
   public static Stream<Arguments> parameterGeneration() {

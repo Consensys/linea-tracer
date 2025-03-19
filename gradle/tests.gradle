@@ -135,6 +135,7 @@ tasks.test.configure {
     excludeTags("nightly")
     excludeTags("replay")
     excludeTags("weekly")
+    excludeTags("weekly-ecpairing")
   }
   finalizedBy(jacocoTestReport)
 }

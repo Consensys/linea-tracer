@@ -236,6 +236,15 @@ tasks.register("weeklyTests", Test) {
   finalizedBy(jacocoWeeklyTestsReport)
 }
 
+tasks.register("jacocoWeeklyTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData(weeklyTests)
+}
+
 tasks.register("jacocoUnitFastReplayWeeklyNightlyReferenceBlockchainAndStateTestsReport", JacocoReport) {
   reports {
     xml.required = true

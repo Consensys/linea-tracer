@@ -62,7 +62,7 @@ import org.junit.jupiter.params.provider.Arguments;
  * <p>- play with (precompile) return data
  */
 @Disabled
-@Tag("weekly")
+@Tag("prc-calltests")
 public class Tests extends PrecompileCallTests<CallParameters> {
 
   /** Non-parametric test to make sure things are working as expected. */

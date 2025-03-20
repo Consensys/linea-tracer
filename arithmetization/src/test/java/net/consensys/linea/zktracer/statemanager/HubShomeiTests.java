@@ -17,7 +17,9 @@ package net.consensys.linea.zktracer.statemanager;
 
 import static net.consensys.linea.testing.BytecodeCompiler.newProgram;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -33,7 +35,9 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 /** Those tests are intended to produce LT trace to test the HUB <-> Shomei lookups. */
 @Tag("weekly")
@@ -64,8 +68,9 @@ public class HubShomeiTests {
    * SLOAD it. In the second transaction we prewarm the same storage key. The aim of this test is to
    * have the bit FIRST_IN_BLOCK and LAST_IN_BLOCK on prewarming rows, not in execution rows
    */
-  @Test
-  void sandwichPrewarming() {
+  @ParameterizedTest
+  @MethodSource("opcodeProvider")
+  void sandwichPrewarming(OpCode opcode) {
 
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -73,11 +78,18 @@ public class HubShomeiTests {
     final ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.of(100000000)).address(senderAddress).build();
 
+    final Bytes code =
+        switch (opcode) {
+          case SSTORE -> Bytes.concatenate(SSTORE1);
+          case SLOAD -> Bytes.concatenate(SSLOAD1);
+          default -> throw new IllegalStateException("Unexpected value: " + opcode);
+        };
+
     final ToyAccount recipientAccount =
         ToyAccount.builder()
             .balance(Wei.of(10000))
             .address(DEFAULT)
-            .code(Bytes.concatenate(SSLOAD1, SSTORE1))
+            .code(Bytes.concatenate(code))
             .build();
 
     final AccessListEntry accessListEntry =
@@ -112,8 +124,9 @@ public class HubShomeiTests {
   }
 
   /** In this test we prewarm two storage key, but only one will be used during execution */
-  @Test
-  void uselessPrewarming() {
+  @ParameterizedTest
+  @MethodSource("opcodeProvider")
+  void uselessPrewarming(OpCode opcode) {
 
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
     final Address senderAddress =
@@ -121,12 +134,15 @@ public class HubShomeiTests {
     final ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.of(100000000)).address(senderAddress).build();
 
+    final Bytes code =
+        switch (opcode) {
+          case SSTORE -> Bytes.concatenate(SSTORE1);
+          case SLOAD -> Bytes.concatenate(SSLOAD1);
+          default -> throw new IllegalStateException("Unexpected value: " + opcode);
+        };
+
     final ToyAccount recipientAccount =
-        ToyAccount.builder()
-            .balance(Wei.of(10000))
-            .address(DEFAULT)
-            .code(Bytes.concatenate(SSLOAD1, SSTORE1))
-            .build();
+        ToyAccount.builder().balance(Wei.of(10000)).address(DEFAULT).code(code).build();
 
     final AccessListEntry accessListEntry =
         new AccessListEntry(recipientAccount.getAddress(), List.of(key1, key2));
@@ -146,5 +162,11 @@ public class HubShomeiTests {
         .transaction(tx)
         .build()
         .run();
+  }
+
+  private static Stream<Arguments> opcodeProvider() {
+    List<Arguments> arguments = new ArrayList<>();
+    arguments.add(Arguments.of(OpCode.SSTORE, OpCode.SLOAD));
+    return arguments.stream();
   }
 }

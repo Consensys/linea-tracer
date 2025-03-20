@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallTests;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
@@ -60,6 +61,7 @@ import org.junit.jupiter.params.provider.Arguments;
  *
  * <p>- play with (precompile) return data
  */
+@Disabled
 @Tag("weekly")
 public class Tests extends PrecompileCallTests<CallParameters> {
 

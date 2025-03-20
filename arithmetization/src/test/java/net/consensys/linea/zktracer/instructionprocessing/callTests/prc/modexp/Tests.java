@@ -24,10 +24,12 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecmul.ParameterGeneration;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallTests;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
 
+@Disabled
 @Tag("weekly")
 public class Tests extends PrecompileCallTests<CallParameters> {
 

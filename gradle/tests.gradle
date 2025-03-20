@@ -245,13 +245,16 @@ tasks.register("jacocoWeeklyTestsReport", JacocoReport) {
   executionData(weeklyTests)
 }
 
+// Gradle task to concatenate Unit, FastReplay, Nightly, Weekly and Reference Blockchain and State tests exec files
 tasks.register("jacocoUnitFastReplayWeeklyNightlyReferenceBlockchainAndStateTestsReport", JacocoReport) {
   reports {
     xml.required = true
+    html.outputLocation = layout.buildDirectory.dir('reports/jacocoConcatenate/html')
+    xml.outputLocation = layout.buildDirectory.file('reports/jacocoConcatenate/jacocoUnitAndReferenceTestsReport.xml')
   }
 
   sourceSets project(":arithmetization").sourceSets.main
-  executionData(weeklyTests)
+  executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
 }
 
 // Gradle task to concatenate Unit, FastReplay, Nightly, Weekly and Reference Blockchain and State tests exec files

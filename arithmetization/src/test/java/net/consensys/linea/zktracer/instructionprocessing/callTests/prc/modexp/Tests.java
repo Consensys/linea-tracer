@@ -30,7 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
 
 @Disabled
-@Tag("weekly")
+@Tag("prc-calltests")
 public class Tests extends PrecompileCallTests<CallParameters> {
 
   public static Stream<Arguments> parameterGeneration() {

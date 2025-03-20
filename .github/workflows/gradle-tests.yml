@@ -67,7 +67,6 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           enable-ssh: ${{ inputs.tests-with-ssh }}
-          go-corset: true
 
       - name: Run unit tests
         run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:test
@@ -115,7 +114,6 @@ jobs:
         uses: ./.github/actions/setup-environment
         with:
           enable-ssh: ${{ inputs.tests-with-ssh }}
-          go-corset: true
 
       - name: Run replay tests
         run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:fastReplayTests

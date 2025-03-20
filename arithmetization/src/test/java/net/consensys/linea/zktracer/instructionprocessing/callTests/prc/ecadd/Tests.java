@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.G
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.WELL_FORMED_POINTS;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
+import java.util.ArrayList;
 import java.util.stream.Stream;
 
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -29,8 +30,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
 
-@Disabled
-@Tag("weekly")
+@Tag("prc-calltests")
 public class Tests extends PrecompileCallTests<CallParameters> {
 
   /** Non-parametric test to make sure things are working as expected. */

@@ -13,7 +13,6 @@ concurrency:
 jobs:
   weekly-replay-tests:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
-    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -58,5 +57,5 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: webhook-trigger
           payload: |
-             name: "Weekly (Go-Corset)"
+             name: "Weekly"
              status: "${{ job.status }}"

@@ -15,62 +15,78 @@
 
 package net.consensys.linea.zktracer.module.trm;
 
-import static net.consensys.linea.zktracer.Trace.LLARGE;
-import static net.consensys.linea.zktracer.module.trm.Trm.MAX_CT;
-import static net.consensys.linea.zktracer.module.trm.Trm.PIVOT_BIT_FLIPS_TO_TRUE;
+import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.Trace.Trm.TRM_CT_MAX;
+import static net.consensys.linea.zktracer.Trace.Trm.TRM_NB_ROWS;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
-import static net.consensys.linea.zktracer.types.Utils.bitDecomposition;
-import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.module.wcp.WcpCall;
 import net.consensys.linea.zktracer.types.EWord;
-import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 
 @Accessors(fluent = true)
-@RequiredArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class TrmOperation extends ModuleOperation {
   @EqualsAndHashCode.Include @Getter private final EWord rawAddress;
+  private final List<WcpCall> wcpCalls = new ArrayList<>(TRM_NB_ROWS);
+  private static final Bytes TWOFIFTYSIX_TO_THE_TWENTY_MO_BYTES =
+      bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWENTY_MO);
+  private static final Bytes TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES =
+      bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWELVE_MO);
+
+  public TrmOperation(EWord rawAddress, Wcp wcp) {
+    this.rawAddress = rawAddress;
+    final Bytes trmAddress = rawAddress.toAddress();
+    wcpCalls.add(
+        0, new WcpCall(wcp, (byte) WCP_INST_LEQ, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_MO_BYTES));
+    wcpCalls.add(
+        1,
+        new WcpCall(
+            wcp, (byte) WCP_INST_LEQ, rawAddress.slice(0, 12), TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES));
+    wcpCalls.add(2, new WcpCall(wcp, (byte) EVM_INST_ISZERO, trmAddress, Bytes.EMPTY));
+    wcpCalls.add(
+        3,
+        new WcpCall(
+            wcp, (byte) WCP_INST_LEQ, trmAddress, Bytes.ofUnsignedShort(NUMBER_OF_PRECOMPILES)));
+  }
 
   void trace(Trace.Trm trace, final int stamp) {
-    final Bytes trmHiBytes =
-        leftPadTo(this.rawAddress.hi().slice(PIVOT_BIT_FLIPS_TO_TRUE, 4), LLARGE);
-    final long trmHi = trmHiBytes.slice(PIVOT_BIT_FLIPS_TO_TRUE, 4).toLong();
-    final Boolean isPrec = isPrecompile(Address.extract(this.rawAddress));
-    final int accLastByte =
-        isPrec ? 9 - (0xff & this.rawAddress.get(31)) : (0xff & this.rawAddress.get(31)) - 10;
-    List<Boolean> ones = bitDecomposition(accLastByte, MAX_CT).bitDecList();
+    final Address trmAddress = rawAddress.toAddress();
+    final boolean isPrec = isPrecompile(trmAddress);
+    final long trmAddrHi = trmAddress.slice(0, 4).toLong();
 
-    for (int ct = 0; ct < MAX_CT; ct++) {
+    for (int ct = 0; ct <= TRM_CT_MAX; ct++) {
       trace
-          .ct(ct)
           .stamp(stamp)
+          .first(ct == 0)
+          .ct(ct)
           .isPrecompile(isPrec)
-          .plateauBit(ct >= PIVOT_BIT_FLIPS_TO_TRUE)
-          .rawAddressHi(this.rawAddress.hi())
-          .rawAddressLo(this.rawAddress.lo())
-          .trmAddressHi(trmHi)
-          .accHi(this.rawAddress.hi().slice(0, ct + 1))
-          .accLo(this.rawAddress.lo().slice(0, ct + 1))
-          .accT(trmHiBytes.slice(0, ct + 1).trimLeadingZeros().toLong())
-          .byteHi(UnsignedByte.of(this.rawAddress.hi().get(ct)))
-          .byteLo(UnsignedByte.of(this.rawAddress.lo().get(ct)))
-          .one(ones.get(ct))
+          .rawAddressHi(rawAddress.hi())
+          .rawAddressLo(rawAddress.lo())
+          .trmAddressHi(trmAddrHi)
+          .inst(wcpCalls.get(ct).instruction())
+          .arg1Hi(wcpCalls.get(ct).arg1Hi())
+          .arg1Lo(wcpCalls.get(ct).arg1Lo())
+          .arg2Hi(wcpCalls.get(ct).arg2Hi())
+          .arg2Lo(wcpCalls.get(ct).arg2Lo())
+          .res(wcpCalls.get(ct).result())
           .validateRow();
     }
   }
 
   @Override
   protected int computeLineCount() {
-    return MAX_CT;
+    return TRM_NB_ROWS;
   }
 }

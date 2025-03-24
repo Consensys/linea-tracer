@@ -33,24 +33,6 @@ public class WcpCall {
   private final Bytes arg2Lo;
   private final boolean result;
 
-  public WcpCall(Wcp wcp, byte instruction, Bytes32 arg1, Bytes32 arg2) {
-    this.instruction = UnsignedByte.of(instruction);
-    this.arg1Hi = arg1.slice(0, LLARGE);
-    this.arg1Lo = arg1.slice(LLARGE, LLARGE);
-    this.arg2Hi = arg2.slice(0, LLARGE);
-    this.arg2Lo = arg2.slice(LLARGE, LLARGE);
-    this.result =
-        switch (instruction) {
-          case EVM_INST_LT -> wcp.callLT(arg1, arg2);
-          case EVM_INST_EQ -> wcp.callEQ(arg1, arg2);
-          case EVM_INST_ISZERO -> wcp.callISZERO(arg1);
-          case EVM_INST_GT -> wcp.callGT(arg1, arg2);
-          case WCP_INST_LEQ -> wcp.callLEQ(arg1, arg2);
-          case WCP_INST_GEQ -> wcp.callGEQ(arg1, arg2);
-          default -> throw new IllegalArgumentException("Unexpected value: " + instruction);
-        };
-  }
-
   public WcpCall(Wcp wcp, byte instruction, Bytes arg1, Bytes arg2) {
     final Bytes32 arg1Bytes32 = Bytes32.leftPad(arg1);
     final Bytes32 arg2Bytes32 = Bytes32.leftPad(arg2);
@@ -70,5 +52,17 @@ public class WcpCall {
           default -> throw new IllegalArgumentException(
               "Unexpected wcp instruction: " + instruction);
         };
+  }
+
+  public static WcpCall ltCall(Wcp wcp, Bytes arg1, Bytes arg2) {
+    return new WcpCall(wcp, (byte) EVM_INST_LT, arg1, arg2);
+  }
+
+  public static WcpCall leqCall(Wcp wcp, Bytes arg1, Bytes arg2) {
+    return new WcpCall(wcp, (byte) WCP_INST_LEQ, arg1, arg2);
+  }
+
+  public static WcpCall isZeroCall(Wcp wcp, Bytes arg1) {
+    return new WcpCall(wcp, (byte) EVM_INST_ISZERO, arg1, Bytes.EMPTY);
   }
 }

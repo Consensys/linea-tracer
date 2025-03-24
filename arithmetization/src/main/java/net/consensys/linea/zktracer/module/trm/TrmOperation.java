@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.trm;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Trm.TRM_CT_MAX;
 import static net.consensys.linea.zktracer.Trace.Trm.TRM_NB_ROWS;
+import static net.consensys.linea.zktracer.module.wcp.WcpCall.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
@@ -48,17 +49,11 @@ public class TrmOperation extends ModuleOperation {
   public TrmOperation(EWord rawAddress, Wcp wcp) {
     this.rawAddress = rawAddress;
     final Bytes trmAddress = rawAddress.toAddress();
-    wcpCalls.add(
-        0, new WcpCall(wcp, (byte) EVM_INST_LT, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_ONE_BYTES));
-    wcpCalls.add(
-        1,
-        new WcpCall(
-            wcp, (byte) WCP_INST_LEQ, rawAddress.slice(0, 12), TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES));
-    wcpCalls.add(2, new WcpCall(wcp, (byte) EVM_INST_ISZERO, trmAddress, Bytes.EMPTY));
-    wcpCalls.add(
-        3,
-        new WcpCall(
-            wcp, (byte) WCP_INST_LEQ, trmAddress, Bytes.ofUnsignedShort(NUMBER_OF_PRECOMPILES)));
+
+    wcpCalls.add(0, ltCall(wcp, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_ONE_BYTES));
+    wcpCalls.add(1, leqCall(wcp, rawAddress.slice(0, 12), TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES));
+    wcpCalls.add(2, isZeroCall(wcp, trmAddress));
+    wcpCalls.add(3, leqCall(wcp, trmAddress, Bytes.ofUnsignedShort(NUMBER_OF_PRECOMPILES)));
   }
 
   void trace(Trace.Trm trace) {

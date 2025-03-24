@@ -56,15 +56,8 @@ public class HubShomeiTests {
   private static final Bytes SSTORE1 =
       newProgram().push(value).push(key1).op(OpCode.SSTORE).compile();
 
-  private static final ToyAccount SLOAD_SSTORE =
-      ToyAccount.builder()
-          .address(Address.fromHexString("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
-          .code(Bytes.concatenate(SSLOAD1, SSTORE1))
-          .balance(Wei.of(98989898))
-          .build();
-
   /**
-   * In this test we have two transactions. In the first one we prewarm a storage key, we SSTORE and
+   * In this test we have two transactions. In the first one we prewarm a storage key, we SSTORE or
    * SLOAD it. In the second transaction we prewarm the same storage key. The aim of this test is to
    * have the bit FIRST_IN_BLOCK and LAST_IN_BLOCK on prewarming rows, not in execution rows
    */

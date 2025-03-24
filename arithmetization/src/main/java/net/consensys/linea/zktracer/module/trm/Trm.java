@@ -63,9 +63,8 @@ public class Trm implements OperationSetModule<TrmOperation> {
 
   @Override
   public void commit(Trace trace) {
-    int stamp = 0;
     for (TrmOperation operation : operations.sortOperations(new TrmOperationComparator())) {
-      operation.trace(trace.trm, ++stamp);
+      operation.trace(trace.trm);
     }
   }
 }

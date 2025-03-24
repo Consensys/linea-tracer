@@ -61,14 +61,14 @@ public class TrmOperation extends ModuleOperation {
             wcp, (byte) WCP_INST_LEQ, trmAddress, Bytes.ofUnsignedShort(NUMBER_OF_PRECOMPILES)));
   }
 
-  void trace(Trace.Trm trace, final int stamp) {
+  void trace(Trace.Trm trace) {
     final Address trmAddress = rawAddress.toAddress();
     final boolean isPrec = isPrecompile(trmAddress);
     final long trmAddrHi = trmAddress.slice(0, 4).toLong();
 
     for (int ct = 0; ct <= TRM_CT_MAX; ct++) {
       trace
-          .stamp(stamp)
+          .iomf(true)
           .first(ct == 0)
           .ct(ct)
           .isPrecompile(isPrec)

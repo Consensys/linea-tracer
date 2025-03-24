@@ -40,8 +40,8 @@ import org.hyperledger.besu.datatypes.Address;
 public class TrmOperation extends ModuleOperation {
   @EqualsAndHashCode.Include @Getter private final EWord rawAddress;
   private final List<WcpCall> wcpCalls = new ArrayList<>(TRM_NB_ROWS);
-  private static final Bytes TWOFIFTYSIX_TO_THE_TWENTY_MO_BYTES =
-      bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWENTY_MO);
+  private static final Bytes TWOFIFTYSIX_TO_THE_TWENTY_ONE_BYTES =
+      bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWENTY_ONE);
   private static final Bytes TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES =
       bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWELVE_MO);
 
@@ -49,7 +49,7 @@ public class TrmOperation extends ModuleOperation {
     this.rawAddress = rawAddress;
     final Bytes trmAddress = rawAddress.toAddress();
     wcpCalls.add(
-        0, new WcpCall(wcp, (byte) WCP_INST_LEQ, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_MO_BYTES));
+        0, new WcpCall(wcp, (byte) EVM_INST_LT, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_ONE_BYTES));
     wcpCalls.add(
         1,
         new WcpCall(

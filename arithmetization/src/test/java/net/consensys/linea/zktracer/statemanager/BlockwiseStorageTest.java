@@ -1,11 +1,18 @@
 package net.consensys.linea.zktracer.statemanager;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.types.EWord;
+import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 
 public class BlockwiseStorageTest {
@@ -37,109 +44,148 @@ public class BlockwiseStorageTest {
             "0x0000000000000000000000000000000000000000000000000000000000000004");
 
     // prepare a multi-block execution of transactions
-    MultiBlockExecutionEnvironment.builder()
-        // initialize accounts
-        .accounts(
-            List.of(
-                tc.initialAccounts[0],
-                tc.externallyOwnedAccounts[0],
-                tc.initialAccounts[2],
-                tc.frameworkEntryPointAccount))
-        // Block 1
-        .addBlock(
-            List.of(
-                tc.writeToStorage(
+    final MultiBlockExecutionEnvironment multiBlockEnv =
+        MultiBlockExecutionEnvironment.builder()
+            // initialize accounts
+            .accounts(
+                List.of(
+                    tc.initialAccounts[0],
                     tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    1L,
-                    false,
-                    BigInteger.ONE),
-                tc.writeToStorage(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    2L,
-                    false,
-                    BigInteger.ONE),
-                tc.writeToStorage(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    3L,
-                    false,
-                    BigInteger.ONE)))
-        .addBlock(
-            List.of(
-                tc.writeToStorage(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    4L,
-                    false,
-                    BigInteger.ONE),
-                tc.writeToStorage(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    5L,
-                    false,
-                    BigInteger.ONE),
-                tc.writeToStorage(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    6L,
-                    false,
-                    BigInteger.ONE)))
-        .addBlock(
-            List.of(
-                tc.writeToStorage(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    7L,
-                    false,
-                    BigInteger.ONE),
-                tc.writeToStorage(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    8L,
-                    false,
-                    BigInteger.ONE),
-                tc.writeToStorage(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    9L,
-                    false,
-                    BigInteger.ONE),
-                tc.writeToStorage(
-                    tc.externallyOwnedAccounts[0],
-                    tc.keyPairs[0],
-                    tc.addresses[0],
-                    3L,
-                    1234L,
-                    true,
-                    BigInteger.ONE)))
-        .transactionProcessingResultValidator(resultValidator)
-        .build()
-        .run();
+                    tc.initialAccounts[2],
+                    tc.frameworkEntryPointAccount))
+            // Block 1
+            .addBlock(
+                List.of(
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        1L,
+                        false,
+                        BigInteger.ONE),
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        2L,
+                        false,
+                        BigInteger.ONE),
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        3L,
+                        false,
+                        BigInteger.ONE)))
+            .addBlock(
+                List.of(
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        4L,
+                        false,
+                        BigInteger.ONE),
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        5L,
+                        false,
+                        BigInteger.ONE),
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        6L,
+                        false,
+                        BigInteger.ONE)))
+            .addBlock(
+                List.of(
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        7L,
+                        false,
+                        BigInteger.ONE),
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        8L,
+                        false,
+                        BigInteger.ONE),
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        9L,
+                        false,
+                        BigInteger.ONE),
+                    tc.writeToStorage(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        3L,
+                        1234L,
+                        true,
+                        BigInteger.ONE)))
+            .transactionProcessingResultValidator(resultValidator)
+            .build();
+
+    multiBlockEnv.run();
 
     /*
             Map<StateManagerMetadata. AddrStorageKeyBlockNumTuple, TransactionProcessingMetadata. FragmentFirstAndLast<StorageFragment>>
                     blockMap = stateManagerMetadata.getStorageFirstLastBlockMap();
     */
+
+    List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
+        new ArrayList<>();
+
+    // We count the number of transactions in the hub
+    int txCount = multiBlockEnv.getHub().state().txCount();
+    // We iterate over the transactions
+    for (int txNb = 0; txNb < txCount; txNb++) {
+      // We create an accountFirstAndLastMap for each transaction
+      accountFirstAndLastMapList.add(new HashMap<>());
+      // We retrieve the trace section list
+      List<TraceSection> traceSectionList =
+          multiBlockEnv
+              .getHub()
+              .state()
+              .getState()
+              .operationsInTransactionBundle()
+              .get(txNb)
+              .traceSections()
+              .trace();
+      // For each trace section
+      for (TraceSection traceSection : traceSectionList) {
+        // We iterate over the fragments
+        for (TraceFragment traceFragment : traceSection.fragments()) {
+          // We cast them to AccountFragment
+          // If an exception occurs, it means the Fragment is not an AccountFragment so we
+          // disregard it and continue
+          try {
+            AccountFragment accountFragment = (AccountFragment) traceFragment;
+            // We update the AccountFirstAndLastMap
+            updateAccountFirstAndLast(accountFragment, accountFirstAndLastMapList.get(txNb));
+          } catch (Exception e) {
+            // ignore
+          }
+        }
+      }
+    }
 
     // prepare data for asserts
     // expected first values for the keys we are testing
@@ -258,4 +304,29 @@ public class BlockwiseStorageTest {
     }
   }*/
 
+  public void updateAccountFirstAndLast(
+      AccountFragment fragment,
+      Map<Address, FragmentFirstAndLast<AccountFragment>> accountFirstAndLastMap) {
+    // Setting the post transaction first and last value
+    int dom = fragment.domSubStampsSubFragment().domStamp();
+    int sub = fragment.domSubStampsSubFragment().subStamp();
+
+    Address key = fragment.oldState().address();
+
+    if (!accountFirstAndLastMap.containsKey(key)) {
+      FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
+          new FragmentFirstAndLast<AccountFragment>(fragment, fragment, dom, sub, dom, sub);
+      accountFirstAndLastMap.put(key, txnFirstAndLast);
+    } else {
+      FragmentFirstAndLast<AccountFragment> txnFirstAndLast = accountFirstAndLastMap.get(key);
+      // Replace condition
+      if (FragmentFirstAndLast.strictlySmallerStamps(
+          txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(), dom, sub)) {
+        txnFirstAndLast.setLast(fragment);
+        txnFirstAndLast.setLastDom(dom);
+        txnFirstAndLast.setLastSub(sub);
+        accountFirstAndLastMap.put(key, txnFirstAndLast);
+      }
+    }
+  }
 }

@@ -41,8 +41,8 @@ import org.hyperledger.besu.datatypes.Address;
 public class TrmOperation extends ModuleOperation {
   @EqualsAndHashCode.Include @Getter private final EWord rawAddress;
   private final List<WcpCall> wcpCalls = new ArrayList<>(TRM_NB_ROWS);
-  private static final Bytes TWOFIFTYSIX_TO_THE_TWENTY_ONE_BYTES =
-      bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWENTY_ONE);
+  private static final Bytes TWOFIFTYSIX_TO_THE_TWENTY_BYTES =
+      bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWENTY);
   private static final Bytes TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES =
       bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWELVE_MO);
 
@@ -50,7 +50,7 @@ public class TrmOperation extends ModuleOperation {
     this.rawAddress = rawAddress;
     final Bytes trmAddress = rawAddress.toAddress();
 
-    wcpCalls.add(0, ltCall(wcp, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_ONE_BYTES));
+    wcpCalls.add(0, ltCall(wcp, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_BYTES));
     wcpCalls.add(1, leqCall(wcp, rawAddress.slice(0, 12), TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES));
     wcpCalls.add(2, isZeroCall(wcp, trmAddress));
     wcpCalls.add(3, leqCall(wcp, trmAddress, Bytes.ofUnsignedShort(NUMBER_OF_PRECOMPILES)));

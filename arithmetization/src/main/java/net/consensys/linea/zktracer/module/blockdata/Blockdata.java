@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.util.*;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
@@ -39,9 +40,8 @@ public class Blockdata implements Module {
   private final Euc euc;
   private final TxnData txnData;
   private final ChainConfig chain;
-
-  private final List<BlockdataOperation> operations = new ArrayList<>();
-  private long firstBlockNumber;
+  @Getter private final List<BlockdataOperation> operations = new ArrayList<>();
+  @Getter private long firstBlockNumber;
 
   private boolean conflationFinished = false;
 

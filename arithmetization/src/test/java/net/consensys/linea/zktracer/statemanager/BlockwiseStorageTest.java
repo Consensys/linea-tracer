@@ -1,18 +1,11 @@
 package net.consensys.linea.zktracer.statemanager;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.types.EWord;
-import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 
 public class BlockwiseStorageTest {
@@ -150,43 +143,6 @@ public class BlockwiseStorageTest {
                     blockMap = stateManagerMetadata.getStorageFirstLastBlockMap();
     */
 
-    List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
-        new ArrayList<>();
-
-    // We count the number of transactions in the hub
-    int txCount = multiBlockEnv.getHub().state().txCount();
-    // We iterate over the transactions
-    for (int txNb = 0; txNb < txCount; txNb++) {
-      // We create an accountFirstAndLastMap for each transaction
-      accountFirstAndLastMapList.add(new HashMap<>());
-      // We retrieve the trace section list
-      List<TraceSection> traceSectionList =
-          multiBlockEnv
-              .getHub()
-              .state()
-              .getState()
-              .operationsInTransactionBundle()
-              .get(txNb)
-              .traceSections()
-              .trace();
-      // For each trace section
-      for (TraceSection traceSection : traceSectionList) {
-        // We iterate over the fragments
-        for (TraceFragment traceFragment : traceSection.fragments()) {
-          // We cast them to AccountFragment
-          // If an exception occurs, it means the Fragment is not an AccountFragment so we
-          // disregard it and continue
-          try {
-            AccountFragment accountFragment = (AccountFragment) traceFragment;
-            // We update the AccountFirstAndLastMap
-            updateAccountFirstAndLast(accountFragment, accountFirstAndLastMapList.get(txNb));
-          } catch (Exception e) {
-            // ignore
-          }
-        }
-      }
-    }
-
     // prepare data for asserts
     // expected first values for the keys we are testing
     int noBlocks = 3;
@@ -214,11 +170,10 @@ public class BlockwiseStorageTest {
       },
     };
     // prepare the key pairs
-    /*        TransactionProcessingMetadata.AddrStorageKeyPair[] rawKeys = {
+    /*           AddrStorageKeyPair[] rawKeys = {
             new TransactionProcessingMetadata.AddrStorageKeyPair(tc.initialAccounts[0].getAddress(), EWord.of(3L)),
-    };*/
-
-    /*        // blocks are numbered starting from 1
+    };
+           // blocks are numbered starting from 1
     for (int block = 1; block <= noBlocks; block++) {
         for (int i = 0; i < rawKeys.length; i++) {
             StateManagerMetadata.AddrStorageKeyBlockNumTuple key =
@@ -235,98 +190,5 @@ public class BlockwiseStorageTest {
     }*/
 
     System.out.println("Done");
-  }
-
-  /*  public void updateBlockMapAccount() {
-    Map<
-            StateManagerMetadata.AddrBlockPair,
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-            blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
-
-    List<TransactionProcessingMetadata> txn = txStack.getTransactions();
-
-    for (TransactionProcessingMetadata metadata : txn) {
-      if (metadata.getRelativeBlockNumber() == transients.block().blockNumber()) {
-        int blockNumber = transients.block().blockNumber();
-        Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-                localMapAccount = metadata.getAccountFirstAndLastMap();
-
-        // Update the block map for the account
-        for (Address addr : localMapAccount.keySet()) {
-          StateManagerMetadata.AddrBlockPair pairAddrBlock =
-                  new StateManagerMetadata.AddrBlockPair(addr, blockNumber);
-
-          // localValue exists for sure because addr belongs to the keySet of the local map
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> localValueAccount =
-                  localMapAccount.get(addr);
-          if (!blockMapAccount.containsKey(pairAddrBlock)) {
-            // the pair is not present in the map
-            blockMapAccount.put(pairAddrBlock, localValueAccount);
-          } else {
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> fetchedValue =
-                    blockMapAccount.get(pairAddrBlock);
-            // we make a copy that will be modified to not change the values already present in the
-            // transaction maps
-            TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
-                    fetchedValue.copy();
-            // update the first part of the blockValue
-            // Todo: Refactor and remove code duplication
-            if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                    localValueAccount.getFirstDom(),
-                    localValueAccount.getFirstSub(),
-                    blockValue.getFirstDom(),
-                    blockValue.getFirstSub())) {
-              // chronologically checks that localValue.First is before blockValue.First
-              // localValue comes chronologically before, and should be the first value of the map.
-              blockValue.setFirst(localValueAccount.getFirst());
-              blockValue.setFirstDom(localValueAccount.getFirstDom());
-              blockValue.setFirstSub(localValueAccount.getFirstSub());
-            }
-
-            // update the last part of the blockValue
-            if (TransactionProcessingMetadata.FragmentFirstAndLast.strictlySmallerStamps(
-                    blockValue.getLastDom(),
-                    blockValue.getLastSub(),
-                    localValueAccount.getLastDom(),
-                    localValueAccount.getLastSub())) {
-              // chronologically checks that blockValue.Last is before localValue.Last
-              // localValue comes chronologically after, and should be the final value of the map.
-              blockValue.setLast(localValueAccount.getLast());
-              blockValue.setLastDom(localValueAccount.getLastDom());
-              blockValue.setLastSub(localValueAccount.getLastSub());
-            }
-            blockMapAccount.put(pairAddrBlock, blockValue);
-
-          }
-
-        }
-      }
-    }
-  }*/
-
-  public void updateAccountFirstAndLast(
-      AccountFragment fragment,
-      Map<Address, FragmentFirstAndLast<AccountFragment>> accountFirstAndLastMap) {
-    // Setting the post transaction first and last value
-    int dom = fragment.domSubStampsSubFragment().domStamp();
-    int sub = fragment.domSubStampsSubFragment().subStamp();
-
-    Address key = fragment.oldState().address();
-
-    if (!accountFirstAndLastMap.containsKey(key)) {
-      FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
-          new FragmentFirstAndLast<AccountFragment>(fragment, fragment, dom, sub, dom, sub);
-      accountFirstAndLastMap.put(key, txnFirstAndLast);
-    } else {
-      FragmentFirstAndLast<AccountFragment> txnFirstAndLast = accountFirstAndLastMap.get(key);
-      // Replace condition
-      if (FragmentFirstAndLast.strictlySmallerStamps(
-          txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(), dom, sub)) {
-        txnFirstAndLast.setLast(fragment);
-        txnFirstAndLast.setLastDom(dom);
-        txnFirstAndLast.setLastSub(sub);
-        accountFirstAndLastMap.put(key, txnFirstAndLast);
-      }
-    }
   }
 }

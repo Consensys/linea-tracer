@@ -30,11 +30,11 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.provider.Arguments;
 
-@Tag("prc-calltests")
+@Tag("weekly")
 public class Tests extends PrecompileCallTests<CallParameters> {
   // Set sample size with potential for override.
   private static final int ECMUL_SAMPLE_SIZE =
-      Integer.parseInt(System.getenv().getOrDefault("PRC_CALLTESTS_SAMPLE_SIZE", "500"));
+      Integer.parseInt(System.getenv().getOrDefault("PRC_CALLTESTS_SAMPLE_SIZE", "700"));
 
   public static Stream<Arguments> parameterGeneration() {
     return randomSampleByDayOfMonth(ECMUL_SAMPLE_SIZE, ParameterGeneration.parameterGeneration())

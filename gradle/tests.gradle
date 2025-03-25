@@ -135,7 +135,6 @@ tasks.test.configure {
     excludeTags("nightly")
     excludeTags("replay")
     excludeTags("weekly")
-    excludeTags("prc-calltests")
   }
   finalizedBy(jacocoTestReport)
 }
@@ -225,12 +224,11 @@ tasks.register("weeklyTests", Test) {
   systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
   systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
   systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
-          System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "1").toInteger())
+          System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "8").toInteger())
 
   useJUnitPlatform {
     excludeTags("nightly")
     excludeTags("replay")
-    excludeTags("prc-calltests")
     includeTags("weekly")
   }
   finalizedBy(jacocoWeeklyTestsReport)
@@ -255,24 +253,6 @@ tasks.register("jacocoUnitFastReplayWeeklyNightlyReferenceBlockchainAndStateTest
 
   sourceSets project(":arithmetization").sourceSets.main
   executionData fileTree(project.rootDir.absolutePath).include("**/build/jacoco/*.exec")
-}
-
-tasks.register("prcCallTests", Test) {
-    dependsOn(buildZkevmBin)
-  //
-  systemProperty("junit.jupiter.execution.parallel.enabled", true)
-  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
-  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
-  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
-  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
-          System.getenv().getOrDefault("PRC_CALLTESTS_PARALLELISM", "8").toInteger())
-
-  useJUnitPlatform {
-    excludeTags("nightly")
-    excludeTags("replay")
-    excludeTags("weekly")
-    includeTags("prc-calltests")
-  }
 }
 
 // Configure default build task to require the tracer is built first.

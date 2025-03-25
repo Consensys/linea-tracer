@@ -22,11 +22,11 @@ import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framewor
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.provider.Arguments;
 
-@Tag("prc-calltests")
+@Tag("weekly")
 public class Tests extends PrecompileCallTests<CallParameters> {
   // Set sample size with potential for override.
   private static final int ECPAIRING_SAMPLE_SIZE =
-      Integer.parseInt(System.getenv().getOrDefault("PRC_CALLTESTS_SAMPLE_SIZE", "500"));
+      Integer.parseInt(System.getenv().getOrDefault("PRC_CALLTESTS_SAMPLE_SIZE", "7500"));
 
   public static Stream<Arguments> parameterGeneration() {
     return randomSampleByDayOfMonth(

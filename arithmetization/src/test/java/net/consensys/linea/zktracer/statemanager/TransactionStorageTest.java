@@ -148,15 +148,15 @@ public class TransactionStorageTest {
       },
     };
     // prepare the key pairs
-    List<Map<Address, EWord>> addrStorageKeyMap =
+    List<Map<Address, EWord>> addrStorageKeyMapList =
         List.of(Map.of(tc.initialAccounts[0].getAddress(), EWord.of(3L)));
 
     for (int txCounter = 0; txCounter < txCount; txCounter++) {
       Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>> storageMap =
           storageFirstAndLastMapList.get(txCounter);
-      for (int i = 0; i < addrStorageKeyMap.size(); i++) {
+      for (int i = 0; i < addrStorageKeyMapList.size(); i++) {
         FragmentFirstAndLast<StorageFragment> storageData =
-            storageMap.get(addrStorageKeyMap.get(i));
+            storageMap.get(addrStorageKeyMapList.get(i));
         // asserts for the first and last storage values in conflation
         // -1 due to block numbering
         assertEquals(expectedFirst[txCounter][i], storageData.getFirst().getValueCurrent());

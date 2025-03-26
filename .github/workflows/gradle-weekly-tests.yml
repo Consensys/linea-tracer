@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  weekly-tests:
+  weekly-unit-tests:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
     steps:
       - name: Checkout repository
@@ -57,5 +57,40 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: webhook-trigger
           payload: |
-             name: "Weekly"
+             name: "Weekly Unit"
              status: "${{ job.status }}"
+
+  weekly-prc-calltests:
+    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Test Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Run Precompile Call tests
+        run: GOMAXPROCS=2 GOMEMLIMIT=5GiB ./gradlew prcCallTests
+        env:
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+          WEEKLY_TESTS_PARALLELISM: 20
+          GOCORSET_FLAGS: -vw -b1024 --ansi-escapes=false --report --hir
+
+      - name: Upload prc calls test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prc-call-tests-report
+          path: arithmetization/build/reports/tests/**/*
+
+      - name: Failure Notification
+        if: ${{ failure() || cancelled() }}
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            name: "Weekly Precompile call"
+            status: "${{ job.status }}"

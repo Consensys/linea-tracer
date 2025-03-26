@@ -60,7 +60,7 @@ import org.junit.jupiter.params.provider.Arguments;
  *
  * <p>- play with (precompile) return data
  */
-@Tag("weekly")
+@Tag("prc-calltests")
 public class Tests extends PrecompileCallTests<CallParameters> {
   // Set sample size with potential for override.
   private static final int HASH_SAMPLE_SIZE =

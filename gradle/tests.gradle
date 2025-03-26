@@ -135,6 +135,7 @@ tasks.test.configure {
     excludeTags("nightly")
     excludeTags("replay")
     excludeTags("weekly")
+    excludeTags("prc-calltests")
   }
   finalizedBy(jacocoTestReport)
 }
@@ -227,11 +228,24 @@ tasks.register("weeklyTests", Test) {
           System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "8").toInteger())
 
   useJUnitPlatform {
-    excludeTags("nightly")
-    excludeTags("replay")
     includeTags("weekly")
   }
   finalizedBy(jacocoWeeklyTestsReport)
+}
+
+tasks.register("prcCallTests", Test) {
+  dependsOn(buildZkevmBin)
+  //
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+          System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "8").toInteger())
+
+  useJUnitPlatform {
+    includeTags("prc-calltests")
+  }
 }
 
 tasks.register("jacocoWeeklyTestsReport", JacocoReport) {

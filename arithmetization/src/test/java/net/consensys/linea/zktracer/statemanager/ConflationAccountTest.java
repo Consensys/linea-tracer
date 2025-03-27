@@ -18,10 +18,7 @@ package net.consensys.linea.zktracer.statemanager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
@@ -32,11 +29,11 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 
-public class BlockwiseAccountTest {
+public class ConflationAccountTest {
   TestContext tc;
 
   @Test
-  void testBlockwiseMapAccount() {
+  void testConflationMapAccount() {
     // initialize the test context
     this.tc = new TestContext();
     this.tc.initializeTestContext();
@@ -44,11 +41,11 @@ public class BlockwiseAccountTest {
     TransactionProcessingResultValidator resultValidator =
         new StateManagerTestValidator(
             tc.frameworkEntryPointAccount,
-            // Creates, writes, reads and self-destructs generate 2 logs,
-            // Reverted operations only have 1 log
-            List.of(3, 3, 3, 3, 3, 3, 3, 3, 3, 1));
-    // fetch the Hub metadata for the state manager maps
-    /*        StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();*/
+            // Creates and self-destructs generate 2 logs,
+            // Transfers generate 3 logs, the 1s are for reverted operations
+            List.of(3, 3, 1, 3, 2, 3, 3, 2, 3, 2, 2, 3, 2, 1)); /*
+        // fetch the Hub metadata for the state manager maps
+        StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();*/
 
     // prepare a multi-block execution of transactions
     final MultiBlockExecutionEnvironment multiBlockEnv =
@@ -60,7 +57,7 @@ public class BlockwiseAccountTest {
                     tc.externallyOwnedAccounts[0],
                     tc.initialAccounts[2],
                     tc.frameworkEntryPointAccount))
-            // Block 1
+            // test account operations for an account prexisting in the state
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -68,25 +65,29 @@ public class BlockwiseAccountTest {
                         tc.keyPairs[0],
                         tc.addresses[0],
                         tc.addresses[2],
-                        1L,
-                        false,
-                        BigInteger.ONE),
-                    tc.transferTo(
-                        tc.externallyOwnedAccounts[0],
-                        tc.keyPairs[0],
-                        tc.addresses[2],
-                        tc.addresses[0],
-                        2L,
-                        false,
-                        BigInteger.ONE),
-                    tc.transferTo(
-                        tc.externallyOwnedAccounts[0],
-                        tc.keyPairs[0],
-                        tc.addresses[0],
-                        tc.addresses[2],
-                        5L,
+                        8L,
                         false,
                         BigInteger.ONE)))
+            .addBlock(
+                List.of(
+                    tc.transferTo(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[2],
+                        tc.addresses[0],
+                        20L,
+                        false,
+                        BigInteger.ONE)))
+            .addBlock(
+                List.of(
+                    tc.transferTo(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        tc.addresses[2],
+                        50L,
+                        true,
+                        BigInteger.ONE))) // this action is reverted
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -96,21 +97,25 @@ public class BlockwiseAccountTest {
                         tc.addresses[2],
                         10L,
                         false,
-                        BigInteger.ONE),
+                        BigInteger.ONE)))
+            // deploy another account ctxt.addresses[3] and perform account operations on it
+            .addBlock(
+                List.of(
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[0],
+                        TestContext.snippetsCodeForCreate2,
+                        false)))
+            .addBlock(
+                List.of(
                     tc.transferTo(
                         tc.externallyOwnedAccounts[0],
                         tc.keyPairs[0],
-                        tc.addresses[2],
                         tc.addresses[0],
-                        20L,
-                        false,
-                        BigInteger.ONE),
-                    tc.transferTo(
-                        tc.externallyOwnedAccounts[0],
-                        tc.keyPairs[0],
-                        tc.addresses[0],
-                        tc.addresses[2],
-                        50L,
+                        tc.newAddresses[0],
+                        49L,
                         false,
                         BigInteger.ONE)))
             .addBlock(
@@ -118,43 +123,88 @@ public class BlockwiseAccountTest {
                     tc.transferTo(
                         tc.externallyOwnedAccounts[0],
                         tc.keyPairs[0],
+                        tc.newAddresses[0],
                         tc.addresses[0],
-                        tc.addresses[2],
-                        100L,
+                        27L,
                         false,
-                        BigInteger.ONE),
+                        BigInteger.ONE)))
+            // deploy another account and self destruct it at the end, redeploy it and change its
+            // balance  again
+            .addBlock(
+                List.of(
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[1],
+                        TestContext.snippetsCodeForCreate2,
+                        false)))
+            .addBlock(
+                List.of(
+                    tc.transferTo(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        tc.newAddresses[1],
+                        98L,
+                        false,
+                        BigInteger.ONE)))
+            .addBlock(
+                List.of(
+                    tc.selfDestruct(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.newAddresses[1],
+                        tc.addresses[2],
+                        false,
+                        BigInteger.ONE)))
+            .addBlock(
+                List.of(
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[1],
+                        TestContext.snippetsCodeForCreate2,
+                        false)))
+            .addBlock(
+                List.of(
+                    tc.transferTo(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.addresses[0],
+                        tc.newAddresses[1],
+                        123L,
+                        false,
+                        BigInteger.ONE)))
+            // deploy a new account and check revert operations on it
+            .addBlock(
+                List.of(
+                    tc.deployWithCreate2(
+                        tc.externallyOwnedAccounts[0],
+                        tc.keyPairs[0],
+                        tc.frameworkEntryPointAddress,
+                        tc.salts[2],
+                        TestContext.snippetsCodeForCreate2,
+                        false)))
+            .addBlock(
+                List.of(
                     tc.transferTo(
                         tc.externallyOwnedAccounts[0],
                         tc.keyPairs[0],
                         tc.addresses[2],
-                        tc.addresses[0],
-                        200L,
-                        false,
-                        BigInteger.ONE),
-                    tc.transferTo(
-                        tc.externallyOwnedAccounts[0],
-                        tc.keyPairs[0],
-                        tc.addresses[0],
-                        tc.addresses[2],
-                        500L,
-                        false,
-                        BigInteger.ONE),
-                    tc.transferTo(
-                        tc.externallyOwnedAccounts[0],
-                        tc.keyPairs[0],
-                        tc.addresses[0],
-                        tc.addresses[2],
-                        1234L,
+                        tc.newAddresses[2],
+                        1L,
                         true,
                         BigInteger.ONE)))
             .transactionProcessingResultValidator(resultValidator)
             .build();
 
     multiBlockEnv.run();
-
-    /*        Map<StateManagerMetadata. AddrBlockPair, TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>>
-    blockMap = stateManagerMetadata.getAccountFirstLastBlockMap();*/
-
+    /*
+            Map<Address, TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>>
+                    conflationMap = stateManagerMetadata.getAccountFirstLastConflationMap();
+    */
     List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
         new ArrayList<>();
 
@@ -191,6 +241,7 @@ public class BlockwiseAccountTest {
         }
       }
     }
+
     List<Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>>> blockMapAccountList =
         new ArrayList<>();
 
@@ -263,84 +314,159 @@ public class BlockwiseAccountTest {
       blockMapAccountList.add(blockMapAccount);
     }
 
+    Map<Address, FragmentFirstAndLast<AccountFragment>> conflationMapAccount = new HashMap<>();
+
+    HashSet<Address> allAccounts = new HashSet<Address>();
+
+    Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
+        blockMapAccountList.get(blockCount - 1);
+
+    // We iterate over the transactions
+    for (int txNb = 0; txNb < txCount; txNb++) {
+
+      Map<Address, FragmentFirstAndLast<AccountFragment>> txnMapAccount =
+          accountFirstAndLastMapList.get(txNb);
+
+      allAccounts.addAll(txnMapAccount.keySet());
+    }
+
+    for (Address addr : allAccounts) {
+      FragmentFirstAndLast<AccountFragment> firstValue = null;
+      // Update the first value of the conflation map for Account
+      // We update the value of the conflation map with the earliest value of the block map
+      // TODO: change transients.block().blockNumber()
+      for (int i = 1; i <= blockCount; i++) {
+        if (blockMapAccount.containsKey(addr) && blockMapAccount.get(addr).containsKey(i)) {
+          firstValue = blockMapAccount.get(addr).get(i);
+          conflationMapAccount.put(addr, firstValue);
+          break;
+        }
+      }
+
+      // Update the last value of the conflation map
+      // We update the last value for the conflation map with the latest blockMap's last values,
+      // if some address is not present in the last block, we ignore the corresponding account
+      for (int i = blockCount; i >= 1; i--) {
+        if (blockMapAccount.containsKey(addr) && blockMapAccount.get(addr).containsKey(i)) {
+          FragmentFirstAndLast<AccountFragment> blockValue = blockMapAccount.get(addr).get(i);
+
+          FragmentFirstAndLast<AccountFragment> updatedValue =
+              new FragmentFirstAndLast<AccountFragment>(
+                  firstValue.getFirst(),
+                  blockValue.getLast(),
+                  firstValue.getFirstDom(),
+                  firstValue.getFirstSub(),
+                  blockValue.getLastDom(),
+                  blockValue.getLastSub());
+          conflationMapAccount.put(addr, updatedValue);
+          break;
+        }
+      }
+    }
+
     // prepare data for asserts
     // expected first values for the keys we are testing
-    int noBlocks = 3;
-    Wei[][] expectedFirst = {
-      {TestContext.defaultBalance, TestContext.defaultBalance},
-      {
-        TestContext.defaultBalance.subtract(1L).add(2L).subtract(5L),
-        TestContext.defaultBalance.add(1L).subtract(2L).add(5L),
-      },
-      {
-        TestContext.defaultBalance
-            .subtract(1L)
-            .add(2L)
-            .subtract(5L)
-            .subtract(10L)
-            .add(20L)
-            .subtract(50L),
-        TestContext.defaultBalance.add(1L).subtract(2L).add(5L).add(10L).subtract(20L).add(50L),
-      },
+    Wei[] expectedFirst = {
+      TestContext.defaultBalance, TestContext.defaultBalance, Wei.of(0L), Wei.of(0L), Wei.of(0L)
     };
     // expected last values for the keys we are testing
-    Wei[][] expectedLast = {
-      {
-        TestContext.defaultBalance.subtract(1L).add(2L).subtract(5L),
-        TestContext.defaultBalance.add(1L).subtract(2L).add(5L),
-      },
-      {
-        TestContext.defaultBalance
-            .subtract(1L)
-            .add(2L)
-            .subtract(5L)
-            .subtract(10L)
-            .add(20L)
-            .subtract(50L),
-        TestContext.defaultBalance.add(1L).subtract(2L).add(5L).add(10L).subtract(20L).add(50L),
-      },
-      {
-        TestContext.defaultBalance
-            .subtract(1L)
-            .add(2L)
-            .subtract(5L)
-            .subtract(10L)
-            .add(20L)
-            .subtract(50L)
-            .subtract(100L)
-            .add(200L)
-            .subtract(500L),
-        TestContext.defaultBalance
-            .add(1L)
-            .subtract(2L)
-            .add(5L)
-            .add(10L)
-            .subtract(20L)
-            .add(50L)
-            .add(100L)
-            .subtract(200L)
-            .add(500L)
-      },
-    };
-    // prepare the key pairs
-    Address[] keys = {
-      tc.initialAccounts[0].getAddress(), tc.initialAccounts[2].getAddress(),
+    Wei[] expectedLast = {
+      TestContext.defaultBalance
+          .subtract(8L)
+          .add(20L)
+          .subtract(10L)
+          .subtract(49L)
+          .add(27L)
+          .subtract(98L)
+          .subtract(123L),
+      TestContext.defaultBalance
+          .add(8L)
+          .subtract(20L)
+          .add(10L)
+          .add(98L), // 98L obtained from the self destruct of the account at ctxt.addresses[4]
+      Wei.of(0L).add(49L).subtract(27L),
+      Wei.of(123L),
+      Wei.of(0L)
     };
 
-    // blocks are numbered starting from 1
-    for (int block = 1; block <= noBlocks; block++) {
-      for (int i = 0; i < keys.length; i++) {
-        FragmentFirstAndLast<AccountFragment> accountData =
-            blockMapAccountList.get(block - 1).get(keys[i]).get(block);
-        // asserts for the first and last storage values in conflation
-        // -1 due to block numbering
-        assertEquals(expectedFirst[block - 1][i], accountData.getFirst().oldState().balance());
-        assertEquals(expectedLast[block - 1][i], accountData.getLast().newState().balance());
-      }
+    // prepare the key pairs
+    Address[] keys = {
+      tc.initialAccounts[0].getAddress(),
+      tc.initialAccounts[2].getAddress(),
+      tc.newAddresses[0],
+      tc.newAddresses[1],
+      tc.newAddresses[2]
+    };
+
+    for (int i = 0; i < keys.length; i++) {
+      System.out.println("Index is " + i);
+      FragmentFirstAndLast<AccountFragment> accountData = conflationMapAccount.get(keys[i]);
+      // asserts for the first and last storage values in conflation
+      assertEquals(expectedFirst[i], accountData.getFirst().oldState().balance());
+      assertEquals(expectedLast[i], accountData.getLast().newState().balance());
     }
 
     System.out.println("Done");
   }
+
+  /*    // Update the conflation level map for the state manager
+  public void updateConflationMapAccount() {
+      Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+              conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
+
+      List<TransactionProcessingMetadata> txn = txStack.getTransactions();
+      HashSet<Address> allAccounts = new HashSet<Address>();
+
+      Map<
+              StateManagerMetadata.AddrBlockPair,
+              TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+              blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
+
+      for (TransactionProcessingMetadata metadata : txn) {
+
+          Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
+                  txnMapAccount = metadata.getAccountFirstAndLastMap();
+
+          allAccounts.addAll(txnMapAccount.keySet());
+      }
+
+      for (Address addr : allAccounts) {
+          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> firstValue = null;
+          // Update the first value of the conflation map for Account
+          // We update the value of the conflation map with the earliest value of the block map
+          for (int i = 1; i <= transients.block().blockNumber(); i++) {
+              StateManagerMetadata.AddrBlockPair pairAddrBlock =
+                      new StateManagerMetadata.AddrBlockPair(addr, i);
+              if (blockMapAccount.containsKey(pairAddrBlock)) {
+                  firstValue = blockMapAccount.get(pairAddrBlock);
+                  conflationMapAccount.put(addr, firstValue);
+                  break;
+              }
+          }
+          // Update the last value of the conflation map
+          // We update the last value for the conflation map with the latest blockMap's last values,
+          // if some address is not present in the last block, we ignore the corresponding account
+          for (int i = transients.block().blockNumber(); i >= 1; i--) {
+              StateManagerMetadata.AddrBlockPair pairAddrBlock =
+                      new StateManagerMetadata.AddrBlockPair(addr, i);
+              if (blockMapAccount.containsKey(pairAddrBlock)) {
+                  TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
+                          blockMapAccount.get(pairAddrBlock);
+
+                  TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> updatedValue =
+                          new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>(
+                                  firstValue.getFirst(),
+                                  blockValue.getLast(),
+                                  firstValue.getFirstDom(),
+                                  firstValue.getFirstSub(),
+                                  blockValue.getLastDom(),
+                                  blockValue.getLastSub());
+                  conflationMapAccount.put(addr, updatedValue);
+                  break;
+              }
+          }
+      }
+  }*/
 
   public void updateAccountFirstAndLast(
       AccountFragment fragment,

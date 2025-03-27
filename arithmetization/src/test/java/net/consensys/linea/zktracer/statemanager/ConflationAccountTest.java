@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.statemanager;
 
+import static net.consensys.linea.zktracer.statemanager.StateManagerUtils.computeAccountFirstAndLastMapList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -209,7 +210,7 @@ public class ConflationAccountTest {
     // Replay the transaction's trace from the hub to compute the first and last values for the
     // account storage
     List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
-        StateManagerUtils.computeAccountFirstAndLastMapList(multiBlockEnv.getHub());
+        computeAccountFirstAndLastMapList(multiBlockEnv.getHub());
 
     Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
         new HashMap<>();

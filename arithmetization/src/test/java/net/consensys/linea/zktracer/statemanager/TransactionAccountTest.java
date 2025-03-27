@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.statemanager;
 
+import static net.consensys.linea.zktracer.statemanager.StateManagerUtils.computeAccountFirstAndLastMapList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -106,9 +107,9 @@ public class TransactionAccountTest {
     int txCount = multiBlockEnv.getHub().state().txCount();
 
     // Replay the transaction's trace from the hub to compute the first and last values for the
-    // account storage
+    // account fragment
     List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
-        StateManagerUtils.computeAccountFirstAndLastMapList(multiBlockEnv.getHub());
+        computeAccountFirstAndLastMapList(multiBlockEnv.getHub());
 
     // prepare data for asserts
     // expected first values for the keys we are testing

@@ -188,13 +188,11 @@ public class BlockwiseStorageTest {
       }
     }
 
-    List<Map<Map<Address, EWord>, Map<Integer, FragmentFirstAndLast<StorageFragment>>>>
-        blockMapStorageList = new ArrayList<>();
+    Map<Map<Address, EWord>, Map<Integer, FragmentFirstAndLast<StorageFragment>>> blockMapStorage =
+        new HashMap<>();
 
     int blockCount = multiBlockEnv.getHub().blockdata().getOperations().size() / 7;
     for (int i = 0; i < blockCount; i++) {
-      Map<Map<Address, EWord>, Map<Integer, FragmentFirstAndLast<StorageFragment>>>
-          blockMapStorage = new HashMap<>();
       int relBlokNoFromBlock =
           (int) multiBlockEnv.getHub().blockdata().getOperations().get(i * 7).relBlock();
       for (int txNb = 0; txNb < txCount; txNb++) {
@@ -215,10 +213,11 @@ public class BlockwiseStorageTest {
             // localValue exists for sure because addr belongs to the keySet of the local map
             FragmentFirstAndLast<StorageFragment> localValueStorage = entry.getValue();
 
-            if (!blockMapStorage.containsKey(addrStorageMapKey)
-                || !blockMapStorage.get(addrStorageMapKey).containsKey(relBlokNoFromBlock)) {
+            if (!blockMapStorage.containsKey(addrStorageMapKey)) {
               // the pair is not present in the map
               blockMapStorage.put(addrStorageMapKey, new HashMap<>());
+              blockMapStorage.get(addrStorageMapKey).put(relBlokNoFromBlock, localValueStorage);
+            } else if (!blockMapStorage.get(addrStorageMapKey).containsKey(relBlokNoFromBlock)) {
               blockMapStorage.get(addrStorageMapKey).put(relBlokNoFromBlock, localValueStorage);
             } else {
               FragmentFirstAndLast<StorageFragment> fetchedValue =
@@ -259,7 +258,6 @@ public class BlockwiseStorageTest {
           }
         }
       }
-      blockMapStorageList.add(blockMapStorage);
     }
 
     // prepare data for asserts
@@ -296,7 +294,7 @@ public class BlockwiseStorageTest {
     for (int block = 1; block <= noBlocks; block++) {
       for (int i = 0; i < addrStorageKeyMapList.size(); i++) {
         FragmentFirstAndLast<StorageFragment> storageData =
-            blockMapStorageList.get(block - 1).get(addrStorageKeyMapList.get(i)).get(block);
+            blockMapStorage.get(addrStorageKeyMapList.get(i)).get(block);
         // asserts for the first and last storage values in conflation
         // -1 due to block numbering
         assertEquals(expectedFirst[block - 1][i], storageData.getFirst().getValueCurrent());

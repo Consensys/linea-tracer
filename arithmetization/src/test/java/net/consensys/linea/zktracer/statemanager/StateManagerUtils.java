@@ -1,9 +1,6 @@
 package net.consensys.linea.zktracer.statemanager;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
@@ -214,5 +211,195 @@ public class StateManagerUtils {
       }
     }
     return blockMapAccount;
+  }
+
+  public static Map<Map<Address, EWord>, Map<Integer, FragmentFirstAndLast<StorageFragment>>>
+      computeBlockMapStorage(
+          Hub hub,
+          List<Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>>>
+              storageFirstAndLastMapList) {
+    Map<Map<Address, EWord>, Map<Integer, FragmentFirstAndLast<StorageFragment>>> blockMapStorage =
+        new HashMap<>();
+
+    int blockCount = hub.blockdata().getOperations().size() / 7;
+    int txCount = hub.state().txCount();
+    for (int i = 0; i < blockCount; i++) {
+      int relBlokNoFromBlock = (int) hub.blockdata().getOperations().get(i * 7).relBlock();
+      for (int txNb = 0; txNb < txCount; txNb++) {
+        int relBlokNoFromTx =
+            hub.txStack().getByAbsoluteTransactionNumber(txNb + 1).getRelativeBlockNumber();
+
+        if (relBlokNoFromTx == relBlokNoFromBlock) {
+          Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap =
+              storageFirstAndLastMapList.get(txNb);
+
+          // Update the block map for storage
+          for (var entry : storageFirstAndLastMap.entrySet()) {
+            Map<Address, EWord> addrStorageMapKey = entry.getKey();
+            // localValue exists for sure because addr belongs to the keySet of the local map
+            FragmentFirstAndLast<StorageFragment> localValueStorage = entry.getValue();
+
+            if (!blockMapStorage.containsKey(addrStorageMapKey)) {
+              // the pair is not present in the map
+              blockMapStorage.put(addrStorageMapKey, new HashMap<>());
+              blockMapStorage.get(addrStorageMapKey).put(relBlokNoFromBlock, localValueStorage);
+            } else if (!blockMapStorage.get(addrStorageMapKey).containsKey(relBlokNoFromBlock)) {
+              blockMapStorage.get(addrStorageMapKey).put(relBlokNoFromBlock, localValueStorage);
+            } else {
+              FragmentFirstAndLast<StorageFragment> fetchedValue =
+                  blockMapStorage.get(addrStorageMapKey).get(relBlokNoFromBlock);
+              // we make a copy that will be modified to not change the values already present in
+              // the
+              // transaction maps
+              FragmentFirstAndLast<StorageFragment> blockValueStorage = fetchedValue.copy();
+              // update the first part of the blockValue
+              // Todo: Refactor and remove code duplication
+              if (FragmentFirstAndLast.strictlySmallerStamps(
+                  localValueStorage.getFirstDom(),
+                  localValueStorage.getFirstSub(),
+                  blockValueStorage.getFirstDom(),
+                  blockValueStorage.getFirstSub())) {
+                // chronologically checks that localValue.First is before blockValue.First
+                // localValue comes chronologically before, and should be the first value of the
+                // map.
+                blockValueStorage.setFirst(localValueStorage.getFirst());
+                blockValueStorage.setFirstDom(localValueStorage.getFirstDom());
+                blockValueStorage.setFirstSub(localValueStorage.getFirstSub());
+              }
+
+              // update the last part of the blockValue
+              if (FragmentFirstAndLast.strictlySmallerStamps(
+                  blockValueStorage.getLastDom(),
+                  blockValueStorage.getLastSub(),
+                  localValueStorage.getLastDom(),
+                  localValueStorage.getLastSub())) {
+                // chronologically checks that blockValue.Last is before localValue.Last
+                // localValue comes chronologically after, and should be the final value of the map.
+                blockValueStorage.setLast(localValueStorage.getLast());
+                blockValueStorage.setLastDom(localValueStorage.getLastDom());
+                blockValueStorage.setLastSub(localValueStorage.getLastSub());
+              }
+              blockMapStorage.get(addrStorageMapKey).put(relBlokNoFromBlock, blockValueStorage);
+            }
+          }
+        }
+      }
+    }
+    return blockMapStorage;
+  }
+
+  public static Map<Address, FragmentFirstAndLast<AccountFragment>> computeConflationMapAccount(
+      Hub hub,
+      List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList,
+      Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount) {
+    Map<Address, FragmentFirstAndLast<AccountFragment>> conflationMapAccount = new HashMap<>();
+
+    int txCount = hub.state().txCount();
+    int blockCount = hub.blockdata().getOperations().size() / 7;
+    HashSet<Address> allAccounts = new HashSet<Address>();
+
+    // We iterate over the transactions
+    for (int txNb = 0; txNb < txCount; txNb++) {
+
+      Map<Address, FragmentFirstAndLast<AccountFragment>> txnMapAccount =
+          accountFirstAndLastMapList.get(txNb);
+
+      allAccounts.addAll(txnMapAccount.keySet());
+    }
+
+    for (Address addr : allAccounts) {
+      FragmentFirstAndLast<AccountFragment> firstValue = null;
+      // Update the first value of the conflation map for Account
+      // We update the value of the conflation map with the earliest value of the block map
+      // TODO: change transients.block().blockNumber()
+      for (int i = 1; i <= blockCount; i++) {
+        if (blockMapAccount.containsKey(addr) && blockMapAccount.get(addr).containsKey(i)) {
+          firstValue = blockMapAccount.get(addr).get(i);
+          conflationMapAccount.put(addr, firstValue);
+          break;
+        }
+      }
+
+      // Update the last value of the conflation map
+      // We update the last value for the conflation map with the latest blockMap's last values,
+      // if some address is not present in the last block, we ignore the corresponding account
+      for (int i = blockCount; i >= 1; i--) {
+        if (blockMapAccount.containsKey(addr) && blockMapAccount.get(addr).containsKey(i)) {
+          FragmentFirstAndLast<AccountFragment> blockValue = blockMapAccount.get(addr).get(i);
+
+          FragmentFirstAndLast<AccountFragment> updatedValue =
+              new FragmentFirstAndLast<AccountFragment>(
+                  firstValue.getFirst(),
+                  blockValue.getLast(),
+                  firstValue.getFirstDom(),
+                  firstValue.getFirstSub(),
+                  blockValue.getLastDom(),
+                  blockValue.getLastSub());
+          conflationMapAccount.put(addr, updatedValue);
+          break;
+        }
+      }
+    }
+    return conflationMapAccount;
+  }
+
+  public static Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>>
+      computeConflationMapStorage(
+          Hub hub,
+          List<Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>>>
+              storageFirstAndLastMapList,
+          Map<Map<Address, EWord>, Map<Integer, FragmentFirstAndLast<StorageFragment>>>
+              blockMapStorage) {
+    Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>> conflationMapStorage =
+        new HashMap<>();
+
+    int txCount = hub.state().txCount();
+    int blockCount = hub.blockdata().getOperations().size() / 7;
+    HashSet<Map<Address, EWord>> allStorage = new HashSet<Map<Address, EWord>>();
+
+    // We iterate over the transactions
+    for (int txNb = 0; txNb < txCount; txNb++) {
+
+      Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>> txnMapAccount =
+          storageFirstAndLastMapList.get(txNb);
+
+      allStorage.addAll(txnMapAccount.keySet());
+    }
+
+    for (Map<Address, EWord> addrStorageKeyPair : allStorage) {
+      FragmentFirstAndLast<StorageFragment> firstValue = null;
+      // Update the first value of the conflation map for Storage
+      // We update the value of the conflation map with the earliest value of the block map
+      for (int i = 1; i <= blockCount; i++) {
+        if (blockMapStorage.containsKey(addrStorageKeyPair)
+            && blockMapStorage.get(addrStorageKeyPair).containsKey(i)) {
+          firstValue = blockMapStorage.get(addrStorageKeyPair).get(i);
+          conflationMapStorage.put(addrStorageKeyPair, firstValue);
+          break;
+        }
+      }
+      // Update the last value of the conflation map
+      // We update the last value for the conflation map with the latest blockMap's last values,
+      // if some address is not present in the last block, we ignore the corresponding account
+      for (int i = blockCount; i >= 1; i--) {
+        if (blockMapStorage.containsKey(addrStorageKeyPair)
+            && blockMapStorage.get(addrStorageKeyPair).containsKey(i)) {
+          FragmentFirstAndLast<StorageFragment> blockValue =
+              blockMapStorage.get(addrStorageKeyPair).get(i);
+
+          FragmentFirstAndLast<StorageFragment> updatedValue =
+              new FragmentFirstAndLast<StorageFragment>(
+                  firstValue.getFirst(),
+                  blockValue.getLast(),
+                  firstValue.getFirstDom(),
+                  firstValue.getFirstSub(),
+                  blockValue.getLastDom(),
+                  blockValue.getLastSub());
+          conflationMapStorage.put(addrStorageKeyPair, updatedValue);
+          break;
+        }
+      }
+    }
+    return conflationMapStorage;
   }
 }

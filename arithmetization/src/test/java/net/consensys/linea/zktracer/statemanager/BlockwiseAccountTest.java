@@ -153,9 +153,6 @@ public class BlockwiseAccountTest {
     /*        Map<StateManagerMetadata. AddrBlockPair, TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>>
     blockMap = stateManagerMetadata.getAccountFirstLastBlockMap();*/
 
-    // Total number of transactions seen in the hub
-    int txCount = multiBlockEnv.getHub().state().txCount();
-
     // Replay the transaction's trace from the hub to compute the first and last values for the
     // account storage
     List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =

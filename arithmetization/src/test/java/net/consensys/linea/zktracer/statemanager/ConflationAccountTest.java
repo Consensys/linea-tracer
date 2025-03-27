@@ -15,8 +15,7 @@
 
 package net.consensys.linea.zktracer.statemanager;
 
-import static net.consensys.linea.zktracer.statemanager.StateManagerUtils.computeAccountFirstAndLastMapList;
-import static net.consensys.linea.zktracer.statemanager.StateManagerUtils.computeBlockMapAccount;
+import static net.consensys.linea.zktracer.statemanager.StateManagerUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -201,69 +200,19 @@ public class ConflationAccountTest {
             .build();
 
     multiBlockEnv.run();
-    /*
-            Map<Address, TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>>
-                    conflationMap = stateManagerMetadata.getAccountFirstLastConflationMap();
-    */
-    // Total number of transactions
-    int txCount = multiBlockEnv.getHub().state().txCount();
 
     // Replay the transaction's trace from the hub to compute the first and last values for the
     // account storage
     List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
         computeAccountFirstAndLastMapList(multiBlockEnv.getHub());
 
-    int blockCount = multiBlockEnv.getHub().blockdata().getOperations().size() / 7;
     // Replay trace from the hub to compute blockMapAccount
     Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
         computeBlockMapAccount(multiBlockEnv.getHub(), accountFirstAndLastMapList);
 
-    Map<Address, FragmentFirstAndLast<AccountFragment>> conflationMapAccount = new HashMap<>();
-
-    HashSet<Address> allAccounts = new HashSet<Address>();
-
-    // We iterate over the transactions
-    for (int txNb = 0; txNb < txCount; txNb++) {
-
-      Map<Address, FragmentFirstAndLast<AccountFragment>> txnMapAccount =
-          accountFirstAndLastMapList.get(txNb);
-
-      allAccounts.addAll(txnMapAccount.keySet());
-    }
-
-    for (Address addr : allAccounts) {
-      FragmentFirstAndLast<AccountFragment> firstValue = null;
-      // Update the first value of the conflation map for Account
-      // We update the value of the conflation map with the earliest value of the block map
-      // TODO: change transients.block().blockNumber()
-      for (int i = 1; i <= blockCount; i++) {
-        if (blockMapAccount.containsKey(addr) && blockMapAccount.get(addr).containsKey(i)) {
-          firstValue = blockMapAccount.get(addr).get(i);
-          conflationMapAccount.put(addr, firstValue);
-          break;
-        }
-      }
-
-      // Update the last value of the conflation map
-      // We update the last value for the conflation map with the latest blockMap's last values,
-      // if some address is not present in the last block, we ignore the corresponding account
-      for (int i = blockCount; i >= 1; i--) {
-        if (blockMapAccount.containsKey(addr) && blockMapAccount.get(addr).containsKey(i)) {
-          FragmentFirstAndLast<AccountFragment> blockValue = blockMapAccount.get(addr).get(i);
-
-          FragmentFirstAndLast<AccountFragment> updatedValue =
-              new FragmentFirstAndLast<AccountFragment>(
-                  firstValue.getFirst(),
-                  blockValue.getLast(),
-                  firstValue.getFirstDom(),
-                  firstValue.getFirstSub(),
-                  blockValue.getLastDom(),
-                  blockValue.getLastSub());
-          conflationMapAccount.put(addr, updatedValue);
-          break;
-        }
-      }
-    }
+    Map<Address, FragmentFirstAndLast<AccountFragment>> conflationMapAccount =
+        computeConflationMapAccount(
+            multiBlockEnv.getHub(), accountFirstAndLastMapList, blockMapAccount);
 
     // prepare data for asserts
     // expected first values for the keys we are testing

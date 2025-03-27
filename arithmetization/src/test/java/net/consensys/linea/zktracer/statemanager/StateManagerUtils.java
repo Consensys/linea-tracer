@@ -1,3 +1,18 @@
+/*
+ * Copyright ConsenSys Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 package net.consensys.linea.zktracer.statemanager;
 
 import java.util.*;
@@ -87,13 +102,10 @@ public class StateManagerUtils {
           // disregard it and continue
           try {
             StorageFragment storageFragment = (StorageFragment) traceFragment;
-            Address address = storageFragment.getStorageSlotIdentifier().getAddress();
-            EWord key = storageFragment.getStorageSlotIdentifier().getStorageKey();
             // We update the storageFirstAndLastMapList
             storageFirstAndLastMapList.set(
                 txNb,
-                updateStorageFirstAndLast(
-                    storageFragment, storageFirstAndLastMapList.get(txNb), Map.of(address, key)));
+                updateStorageFirstAndLast(storageFragment, storageFirstAndLastMapList.get(txNb)));
           } catch (Exception e) {
             // ignore
           }
@@ -133,12 +145,13 @@ public class StateManagerUtils {
   public static Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>>
       updateStorageFirstAndLast(
           StorageFragment fragment,
-          Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap,
-          Map<Address, EWord> key) {
+          Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>> storageFirstAndLastMap) {
     // Setting the post transaction first and last value
     int dom = fragment.getDomSubStampsSubFragment().domStamp();
     int sub = fragment.getDomSubStampsSubFragment().subStamp();
-
+    Address address = fragment.getStorageSlotIdentifier().getAddress();
+    EWord storageKey = fragment.getStorageSlotIdentifier().getStorageKey();
+    Map<Address, EWord> key = Map.of(address, storageKey);
     if (!storageFirstAndLastMap.containsKey(key)) {
       FragmentFirstAndLast<StorageFragment> txnFirstAndLast =
           new FragmentFirstAndLast<StorageFragment>(fragment, fragment, dom, sub, dom, sub);

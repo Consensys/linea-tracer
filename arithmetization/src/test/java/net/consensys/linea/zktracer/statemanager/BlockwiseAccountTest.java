@@ -18,16 +18,13 @@ package net.consensys.linea.zktracer.statemanager;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
-import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
-import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
@@ -155,42 +152,14 @@ public class BlockwiseAccountTest {
     /*        Map<StateManagerMetadata. AddrBlockPair, TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>>
     blockMap = stateManagerMetadata.getAccountFirstLastBlockMap();*/
 
-    List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
-        new ArrayList<>();
-
-    // We count the number of transactions in the hub
+    // Total number of transactions seen in the hub
     int txCount = multiBlockEnv.getHub().state().txCount();
-    // We iterate over the transactions
-    for (int txNb = 0; txNb < txCount; txNb++) {
-      // We create an accountFirstAndLastMap for each transaction
-      accountFirstAndLastMapList.add(new HashMap<>());
-      // We retrieve the trace section list
-      List<TraceSection> traceSectionList =
-          multiBlockEnv
-              .getHub()
-              .state()
-              .getState()
-              .operationsInTransactionBundle()
-              .get(txNb)
-              .traceSections()
-              .trace();
-      // For each trace section
-      for (TraceSection traceSection : traceSectionList) {
-        // We iterate over the fragments
-        for (TraceFragment traceFragment : traceSection.fragments()) {
-          // We cast them to AccountFragment
-          // If an exception occurs, it means the Fragment is not an AccountFragment so we
-          // disregard it and continue
-          try {
-            AccountFragment accountFragment = (AccountFragment) traceFragment;
-            // We update the AccountFirstAndLastMap
-            updateAccountFirstAndLast(accountFragment, accountFirstAndLastMapList.get(txNb));
-          } catch (Exception e) {
-            // ignore
-          }
-        }
-      }
-    }
+
+    // Replay the transaction's trace from the hub to compute the first and last values for the
+    // account storage
+    List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
+        StateManagerUtils.computeAccountFirstAndLastMapList(multiBlockEnv.getHub());
+
     Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
         new HashMap<>();
     int blockCount = multiBlockEnv.getHub().blockdata().getOperations().size() / 7;
@@ -337,31 +306,5 @@ public class BlockwiseAccountTest {
     }
 
     System.out.println("Done");
-  }
-
-  public void updateAccountFirstAndLast(
-      AccountFragment fragment,
-      Map<Address, FragmentFirstAndLast<AccountFragment>> accountFirstAndLastMap) {
-    // Setting the post transaction first and last value
-    int dom = fragment.domSubStampsSubFragment().domStamp();
-    int sub = fragment.domSubStampsSubFragment().subStamp();
-
-    Address key = fragment.oldState().address();
-
-    if (!accountFirstAndLastMap.containsKey(key)) {
-      FragmentFirstAndLast<AccountFragment> txnFirstAndLast =
-          new FragmentFirstAndLast<AccountFragment>(fragment, fragment, dom, sub, dom, sub);
-      accountFirstAndLastMap.put(key, txnFirstAndLast);
-    } else {
-      FragmentFirstAndLast<AccountFragment> txnFirstAndLast = accountFirstAndLastMap.get(key);
-      // Replace condition
-      if (FragmentFirstAndLast.strictlySmallerStamps(
-          txnFirstAndLast.getLastDom(), txnFirstAndLast.getLastSub(), dom, sub)) {
-        txnFirstAndLast.setLast(fragment);
-        txnFirstAndLast.setLastDom(dom);
-        txnFirstAndLast.setLastSub(sub);
-        accountFirstAndLastMap.put(key, txnFirstAndLast);
-      }
-    }
   }
 }

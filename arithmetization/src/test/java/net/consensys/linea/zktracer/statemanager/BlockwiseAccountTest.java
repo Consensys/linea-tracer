@@ -191,13 +191,10 @@ public class BlockwiseAccountTest {
         }
       }
     }
-    List<Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>>> blockMapAccountList =
-        new ArrayList<>();
-
+    Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
+        new HashMap<>();
     int blockCount = multiBlockEnv.getHub().blockdata().getOperations().size() / 7;
     for (int i = 0; i < blockCount; i++) {
-      Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
-          new HashMap<>();
       int relBlokNoFromBlock =
           (int) multiBlockEnv.getHub().blockdata().getOperations().get(i * 7).relBlock();
 
@@ -216,10 +213,12 @@ public class BlockwiseAccountTest {
             Address addr = entry.getKey();
             FragmentFirstAndLast<AccountFragment> localValueAccount = entry.getValue();
 
-            if (!blockMapAccount.containsKey(addr)
-                || !blockMapAccount.get(addr).containsKey(relBlokNoFromBlock)) {
+            if (!blockMapAccount.containsKey(addr)) {
               // the pair is not present in the map
               blockMapAccount.put(addr, new HashMap<>());
+              blockMapAccount.get(addr).put(relBlokNoFromBlock, localValueAccount);
+            } else if (!blockMapAccount.get(addr).containsKey(relBlokNoFromBlock)) {
+              // the pair is present in the map, but the block is not present
               blockMapAccount.get(addr).put(relBlokNoFromBlock, localValueAccount);
             } else {
               FragmentFirstAndLast<AccountFragment> fetchedValue =
@@ -260,7 +259,6 @@ public class BlockwiseAccountTest {
           }
         }
       }
-      blockMapAccountList.add(blockMapAccount);
     }
 
     // prepare data for asserts
@@ -330,8 +328,7 @@ public class BlockwiseAccountTest {
     // blocks are numbered starting from 1
     for (int block = 1; block <= noBlocks; block++) {
       for (int i = 0; i < keys.length; i++) {
-        FragmentFirstAndLast<AccountFragment> accountData =
-            blockMapAccountList.get(block - 1).get(keys[i]).get(block);
+        FragmentFirstAndLast<AccountFragment> accountData = blockMapAccount.get(keys[i]).get(block);
         // asserts for the first and last storage values in conflation
         // -1 due to block numbering
         assertEquals(expectedFirst[block - 1][i], accountData.getFirst().oldState().balance());

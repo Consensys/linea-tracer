@@ -242,13 +242,10 @@ public class ConflationAccountTest {
       }
     }
 
-    List<Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>>> blockMapAccountList =
-        new ArrayList<>();
-
+    Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
+        new HashMap<>();
     int blockCount = multiBlockEnv.getHub().blockdata().getOperations().size() / 7;
     for (int i = 0; i < blockCount; i++) {
-      Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
-          new HashMap<>();
       int relBlokNoFromBlock =
           (int) multiBlockEnv.getHub().blockdata().getOperations().get(i * 7).relBlock();
 
@@ -267,10 +264,12 @@ public class ConflationAccountTest {
             Address addr = entry.getKey();
             FragmentFirstAndLast<AccountFragment> localValueAccount = entry.getValue();
 
-            if (!blockMapAccount.containsKey(addr)
-                || !blockMapAccount.get(addr).containsKey(relBlokNoFromBlock)) {
+            if (!blockMapAccount.containsKey(addr)) {
               // the pair is not present in the map
               blockMapAccount.put(addr, new HashMap<>());
+              blockMapAccount.get(addr).put(relBlokNoFromBlock, localValueAccount);
+            } else if (!blockMapAccount.get(addr).containsKey(relBlokNoFromBlock)) {
+              // the pair is present in the map, but the block is not present
               blockMapAccount.get(addr).put(relBlokNoFromBlock, localValueAccount);
             } else {
               FragmentFirstAndLast<AccountFragment> fetchedValue =
@@ -311,15 +310,11 @@ public class ConflationAccountTest {
           }
         }
       }
-      blockMapAccountList.add(blockMapAccount);
     }
 
     Map<Address, FragmentFirstAndLast<AccountFragment>> conflationMapAccount = new HashMap<>();
 
     HashSet<Address> allAccounts = new HashSet<Address>();
-
-    Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
-        blockMapAccountList.get(blockCount - 1);
 
     // We iterate over the transactions
     for (int txNb = 0; txNb < txCount; txNb++) {
@@ -408,65 +403,6 @@ public class ConflationAccountTest {
 
     System.out.println("Done");
   }
-
-  /*    // Update the conflation level map for the state manager
-  public void updateConflationMapAccount() {
-      Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-              conflationMapAccount = Hub.stateManagerMetadata().getAccountFirstLastConflationMap();
-
-      List<TransactionProcessingMetadata> txn = txStack.getTransactions();
-      HashSet<Address> allAccounts = new HashSet<Address>();
-
-      Map<
-              StateManagerMetadata.AddrBlockPair,
-              TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-              blockMapAccount = Hub.stateManagerMetadata().getAccountFirstLastBlockMap();
-
-      for (TransactionProcessingMetadata metadata : txn) {
-
-          Map<Address, TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>>
-                  txnMapAccount = metadata.getAccountFirstAndLastMap();
-
-          allAccounts.addAll(txnMapAccount.keySet());
-      }
-
-      for (Address addr : allAccounts) {
-          TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> firstValue = null;
-          // Update the first value of the conflation map for Account
-          // We update the value of the conflation map with the earliest value of the block map
-          for (int i = 1; i <= transients.block().blockNumber(); i++) {
-              StateManagerMetadata.AddrBlockPair pairAddrBlock =
-                      new StateManagerMetadata.AddrBlockPair(addr, i);
-              if (blockMapAccount.containsKey(pairAddrBlock)) {
-                  firstValue = blockMapAccount.get(pairAddrBlock);
-                  conflationMapAccount.put(addr, firstValue);
-                  break;
-              }
-          }
-          // Update the last value of the conflation map
-          // We update the last value for the conflation map with the latest blockMap's last values,
-          // if some address is not present in the last block, we ignore the corresponding account
-          for (int i = transients.block().blockNumber(); i >= 1; i--) {
-              StateManagerMetadata.AddrBlockPair pairAddrBlock =
-                      new StateManagerMetadata.AddrBlockPair(addr, i);
-              if (blockMapAccount.containsKey(pairAddrBlock)) {
-                  TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> blockValue =
-                          blockMapAccount.get(pairAddrBlock);
-
-                  TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment> updatedValue =
-                          new TransactionProcessingMetadata.FragmentFirstAndLast<AccountFragment>(
-                                  firstValue.getFirst(),
-                                  blockValue.getLast(),
-                                  firstValue.getFirstDom(),
-                                  firstValue.getFirstSub(),
-                                  blockValue.getLastDom(),
-                                  blockValue.getLastSub());
-                  conflationMapAccount.put(addr, updatedValue);
-                  break;
-              }
-          }
-      }
-  }*/
 
   public void updateAccountFirstAndLast(
       AccountFragment fragment,

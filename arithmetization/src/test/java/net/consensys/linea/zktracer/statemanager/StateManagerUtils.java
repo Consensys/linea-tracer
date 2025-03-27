@@ -2,6 +2,7 @@ package net.consensys.linea.zktracer.statemanager;
 
 import java.util.*;
 
+import net.consensys.linea.zktracer.module.blockdata.Blockdata;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -12,13 +13,29 @@ import org.hyperledger.besu.datatypes.Address;
 
 public class StateManagerUtils {
 
+  public static int getTxCount(Hub hub) {
+    return hub.state().txCount();
+  }
+
+  public static int getBlockOperationsLength(Hub hub) {
+    return Blockdata.getOpCodes().length;
+  }
+
+  public static int getRelBlockNoFromBlock(Hub hub, int blockNb) {
+    return (int)
+        hub.blockdata().getOperations().get(blockNb * getBlockOperationsLength(hub)).relBlock();
+  }
+
+  public static int getBlockCount(Hub hub) {
+    return hub.blockdata().getOperations().size() / getBlockOperationsLength(hub);
+  }
+
   public static List<Map<Address, FragmentFirstAndLast<AccountFragment>>>
       computeAccountFirstAndLastMapList(Hub hub) {
     List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList =
         new ArrayList<>();
 
-    // We count the number of transactions in the hub
-    int txCount = hub.state().txCount();
+    int txCount = getTxCount(hub);
     // We iterate over the transactions
     for (int txNb = 0; txNb < txCount; txNb++) {
       // We create an accountFirstAndLastMap for each transaction
@@ -52,8 +69,8 @@ public class StateManagerUtils {
       computeStorageFirstAndLastMapList(Hub hub) {
     List<Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>>>
         storageFirstAndLastMapList = new ArrayList<>();
-    // We count the number of transactions in the hub
-    int txCount = hub.state().txCount();
+
+    int txCount = getTxCount(hub);
     // We iterate over the transactions
     for (int txNb = 0; txNb < txCount; txNb++) {
       // We create an storageFirstAndLastMap for each transaction
@@ -147,10 +164,10 @@ public class StateManagerUtils {
           List<Map<Address, FragmentFirstAndLast<AccountFragment>>> accountFirstAndLastMapList) {
     Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount =
         new HashMap<>();
-    int blockCount = hub.blockdata().getOperations().size() / 7;
-    int txCount = hub.state().txCount();
+    int blockCount = getBlockCount(hub);
+    int txCount = getTxCount(hub);
     for (int i = 0; i < blockCount; i++) {
-      int relBlokNoFromBlock = (int) hub.blockdata().getOperations().get(i * 7).relBlock();
+      int relBlokNoFromBlock = getRelBlockNoFromBlock(hub, i);
 
       for (int txNb = 0; txNb < txCount; txNb++) {
         int relBlokNoFromTx =
@@ -221,10 +238,10 @@ public class StateManagerUtils {
     Map<Map<Address, EWord>, Map<Integer, FragmentFirstAndLast<StorageFragment>>> blockMapStorage =
         new HashMap<>();
 
-    int blockCount = hub.blockdata().getOperations().size() / 7;
-    int txCount = hub.state().txCount();
+    int blockCount = getBlockCount(hub);
+    int txCount = getTxCount(hub);
     for (int i = 0; i < blockCount; i++) {
-      int relBlokNoFromBlock = (int) hub.blockdata().getOperations().get(i * 7).relBlock();
+      int relBlokNoFromBlock = getRelBlockNoFromBlock(hub, i);
       for (int txNb = 0; txNb < txCount; txNb++) {
         int relBlokNoFromTx =
             hub.txStack().getByAbsoluteTransactionNumber(txNb + 1).getRelativeBlockNumber();
@@ -294,8 +311,8 @@ public class StateManagerUtils {
       Map<Address, Map<Integer, FragmentFirstAndLast<AccountFragment>>> blockMapAccount) {
     Map<Address, FragmentFirstAndLast<AccountFragment>> conflationMapAccount = new HashMap<>();
 
-    int txCount = hub.state().txCount();
-    int blockCount = hub.blockdata().getOperations().size() / 7;
+    int txCount = getTxCount(hub);
+    int blockCount = getBlockCount(hub);
     HashSet<Address> allAccounts = new HashSet<Address>();
 
     // We iterate over the transactions
@@ -353,8 +370,8 @@ public class StateManagerUtils {
     Map<Map<Address, EWord>, FragmentFirstAndLast<StorageFragment>> conflationMapStorage =
         new HashMap<>();
 
-    int txCount = hub.state().txCount();
-    int blockCount = hub.blockdata().getOperations().size() / 7;
+    int txCount = getTxCount(hub);
+    int blockCount = getBlockCount(hub);
     HashSet<Map<Address, EWord>> allStorage = new HashSet<Map<Address, EWord>>();
 
     // We iterate over the transactions

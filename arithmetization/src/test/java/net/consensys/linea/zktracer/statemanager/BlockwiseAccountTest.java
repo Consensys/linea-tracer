@@ -46,7 +46,6 @@ public class BlockwiseAccountTest {
             // Reverted operations only have 1 log
             List.of(3, 3, 3, 3, 3, 3, 3, 3, 3, 1));
     // fetch the Hub metadata for the state manager maps
-    /*        StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();*/
 
     // prepare a multi-block execution of transactions
     final MultiBlockExecutionEnvironment multiBlockEnv =
@@ -149,9 +148,6 @@ public class BlockwiseAccountTest {
             .build();
 
     multiBlockEnv.run();
-
-    /*        Map<StateManagerMetadata. AddrBlockPair, TransactionProcessingMetadata. FragmentFirstAndLast<AccountFragment>>
-    blockMap = stateManagerMetadata.getAccountFirstLastBlockMap();*/
 
     // Replay the transaction's trace from the hub to compute the first and last values for the
     // account storage

@@ -45,6 +45,7 @@ public class Blockdata implements Module {
 
   private boolean conflationFinished = false;
 
+  @Getter
   private static final OpCode[] opCodes = {
     OpCode.COINBASE,
     OpCode.TIMESTAMP,

@@ -53,7 +53,7 @@ public class TrmOperation extends ModuleOperation {
     wcpCalls.add(0, ltCall(wcp, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_BYTES));
     wcpCalls.add(1, leqCall(wcp, rawAddress.slice(0, 12), TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES));
     wcpCalls.add(2, isZeroCall(wcp, trmAddress));
-    wcpCalls.add(3, leqCall(wcp, trmAddress, Bytes.ofUnsignedShort(NUMBER_OF_PRECOMPILES)));
+    wcpCalls.add(3, leqCall(wcp, trmAddress, Bytes.ofUnsignedShort(MAX_PRC_ADDRESS)));
   }
 
   void trace(Trace.Trm trace) {

@@ -44,7 +44,6 @@ tasks.withType(Test).configureEach {
   minHeapSize = "256m"
   // Determine heap limit based on whether CI machine, or not.
   if(System.getenv().containsKey("CI")) {
-      println("Setting JVM max heap limit to 32g")
       maxHeapSize = "32g"
   } else {
       maxHeapSize = "8g"

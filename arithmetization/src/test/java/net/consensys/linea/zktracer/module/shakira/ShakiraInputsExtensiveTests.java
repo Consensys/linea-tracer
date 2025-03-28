@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Stream;
 
+import lombok.experimental.Accessors;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -37,12 +38,15 @@ import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ExtendWith(UnitTestWatcher.class)
+@Execution(ExecutionMode.CONCURRENT)
 public class ShakiraInputsExtensiveTests {
 
   private final Random SEED = new Random(666);

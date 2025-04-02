@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.checkState;
+import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 
 import lombok.Getter;
@@ -65,7 +66,7 @@ public class TxInitializationSection extends TraceSection implements EndTransact
   @Getter private final ContextFragment initializationContextFragment;
 
   public TxInitializationSection(Hub hub, WorldView world) {
-    super(hub, (short) 8);
+    super(hub, (short) 9);
     hub.defers().scheduleForEndTransaction(this);
 
     hubStamp = hub.stamp();
@@ -82,6 +83,9 @@ public class TxInitializationSection extends TraceSection implements EndTransact
     final boolean isDeployment = tx.isDeployment();
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
+
+    final AccountSnapshot coinbase = canonical(hub, hub.coinbaseAddress);
+    if (tx.coinbaseWarmthAfterTxInit())
 
     senderGasPayment =
         AccountSnapshot.fromAccount(
@@ -103,7 +107,7 @@ public class TxInitializationSection extends TraceSection implements EndTransact
       recipientValueReception =
           senderIsRecipient(hub)
               ? senderValueTransferNew
-              : AccountSnapshot.canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
+              : canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
                   .setWarmthTo(tx.isRecipientPreWarmed());
     } else {
       recipientValueReception =

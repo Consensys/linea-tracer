@@ -18,27 +18,31 @@ package net.consensys.linea.zktracer.module.hub.state;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.transients.Block;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
+@Getter
+@Accessors(fluent = true)
 public class BlockStack {
-  private final List<Block> stack = new ArrayList<>();
+  private final List<Block> blocks = new ArrayList<>();
 
   public void newBlock(
       final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
     final int relBlockNumber = currentBlockNumber();
-    stack.add(
+    blocks.add(
         new Block(
             relBlockNumber, miningBeneficiary, (Wei) processableBlockHeader.getBaseFee().get()));
   }
 
   public Block currentBlock() {
-    return stack.getLast();
+    return blocks.getLast();
   }
 
   public int currentBlockNumber() {
-    return stack.size();
+    return blocks.size();
   }
 }

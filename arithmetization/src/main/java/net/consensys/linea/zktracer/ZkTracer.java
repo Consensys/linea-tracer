@@ -36,6 +36,7 @@ import net.consensys.linea.zktracer.exceptions.TracingExceptions;
 import net.consensys.linea.zktracer.module.DebugMode;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.FiniteList;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -321,5 +322,14 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   public static byte[] getMetadataBytes(Map<String, Object> metadata) throws IOException {
     return objectWriter.writeValueAsBytes(metadata);
+  }
+
+  public Set<Address> getAddressesSeenByHubForRelativeBlock(final int relativeBlockNumber) {
+    return hub.blockStack().blocks().get(relativeBlockNumber).addressesSeenByHub();
+  }
+
+  public Map<Address, Set<EWord>> getStoragesSeenByHubForRelativeBlock(
+      final int relativeBlockNumber) {
+    return hub.blockStack().blocks().get(relativeBlockNumber).storagesSeenByHub();
   }
 }

@@ -29,7 +29,6 @@ import org.hyperledger.besu.datatypes.Wei;
 @RequiredArgsConstructor
 @Getter
 public class Block {
-  private final int blockNumber;
   private final Address coinbaseAddress;
   private final Wei baseFee;
 

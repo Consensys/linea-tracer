@@ -32,10 +32,7 @@ public class BlockStack {
 
   public void newBlock(
       final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
-    final int relBlockNumber = currentBlockNumber();
-    blocks.add(
-        new Block(
-            relBlockNumber, miningBeneficiary, (Wei) processableBlockHeader.getBaseFee().get()));
+    blocks.add(new Block(miningBeneficiary, (Wei) processableBlockHeader.getBaseFee().get()));
   }
 
   public Block currentBlock() {

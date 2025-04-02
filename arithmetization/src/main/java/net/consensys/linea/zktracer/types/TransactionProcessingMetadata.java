@@ -49,6 +49,8 @@ public class TransactionProcessingMetadata {
   final int relativeTransactionNumber;
   final int relativeBlockNumber;
 
+  final Address coinbaseAddress;
+
   final Transaction besuTransaction;
   final long baseFee;
 
@@ -127,6 +129,7 @@ public class TransactionProcessingMetadata {
       final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
     relativeBlockNumber = hub.blockStack().currentBlockNumber();
+    coinbaseAddress = hub.coinbaseAddress();
     baseFee = hub.blockStack().currentBlock().baseFee().toLong();
 
     besuTransaction = transaction;
@@ -329,7 +332,6 @@ public class TransactionProcessingMetadata {
   }
 
   public boolean coinbaseWarmthAfterTxInit(Hub hub) {
-    final Address coinbaseAddress = hub.coinbaseAddress;
     final boolean coinbaseIsInAccessList =
         this.getBesuTransaction()
             .getAccessList()

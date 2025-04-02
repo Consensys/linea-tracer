@@ -42,4 +42,8 @@ public class BlockStack {
   public int currentBlockNumber() {
     return blocks.size();
   }
+
+  public Block getBlockByRelativeBlockNumber(final int relativeBlockNumber) {
+    return blocks.get(relativeBlockNumber - 1);
+  }
 }

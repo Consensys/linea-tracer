@@ -308,7 +308,6 @@ public class Hub implements Module {
   /** reference table modules */
   private final List<Module> refTableModules;
 
-  public Address coinbaseAddress;
   public boolean coinbaseWarmthAtTransactionEnd = false;
 
   /**
@@ -463,7 +462,6 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(
       final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
-    coinbaseAddress = miningBeneficiary;
     state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
     blockStack.newBlock(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
@@ -725,7 +723,7 @@ public class Hub implements Module {
       coinbaseWarmthAtTransactionEnd =
           isExceptional() || opCode() == REVERT
               ? txStack.current().coinbaseWarmthAfterTxInit(this)
-              : frame.isAddressWarm(coinbaseAddress);
+              : frame.isAddressWarm(coinbaseAddress());
     }
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
@@ -1058,5 +1056,9 @@ public class Hub implements Module {
 
   public final boolean returnFromDeployment(MessageFrame frame) {
     return opCode() == RETURN && frame.getType() == CONTRACT_CREATION;
+  }
+
+  public Address coinbaseAddress() {
+    return blockStack.currentBlock().coinbaseAddress();
   }
 }

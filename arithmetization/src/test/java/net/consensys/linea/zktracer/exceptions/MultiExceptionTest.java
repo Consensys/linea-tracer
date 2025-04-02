@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.exceptions;
 
+import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.JUMP_FAULT;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.RETURN_DATA_COPY_FAULT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -98,5 +100,32 @@ public class MultiExceptionTest {
     assertEquals(
         RETURN_DATA_COPY_FAULT,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+  }
+
+  @Test
+  void jumpXAndOogxExceptionJumpi() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(1) //
+            .push(6) // i/o 7, Trigger Jump Exception
+            .op(OpCode.JUMPI) //
+            .op(OpCode.JUMPDEST) //
+            .op(OpCode.INVALID) //
+            .op(OpCode.JUMPDEST) //
+            .push(1) // pc = 8
+            .compile();
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
+
+    long gasCost;
+    // JUMPI needs JUMPDEST to jump to
+    // Calculate the gas cost to trigger OOGX on JUMPI and not on the last but one opcode
+    gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH;
+
+    bytecodeRunner.run(gasCost);
+
+    // Jumpx happens before Oogx
+    assertEquals(
+        JUMP_FAULT, bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 }

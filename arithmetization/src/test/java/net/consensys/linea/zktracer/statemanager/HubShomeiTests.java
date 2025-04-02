@@ -16,15 +16,20 @@
 package net.consensys.linea.zktracer.statemanager;
 
 import static net.consensys.linea.testing.BytecodeCompiler.newProgram;
+import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -108,11 +113,26 @@ public class HubShomeiTests {
             .payload(newProgram().push(1).push(1).op(OpCode.ADD).compile())
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, recipientAccount))
-        .transactions(List.of(tx1, tx2))
-        .build()
-        .run();
+    final ToyExecutionEnvironmentV2 executionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder()
+            .accounts(List.of(senderAccount, recipientAccount))
+            .transactions(List.of(tx1, tx2))
+            .build();
+
+    executionEnvironmentV2.run();
+
+    final ZkTracer tracer = executionEnvironmentV2.getZkTracer();
+    final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
+    final Map<Address, Set<EWord>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
+
+    assert (addressSeen.size() == 5);
+    assert (addressSeen.contains(senderAddress));
+    assert (addressSeen.contains(recipientAccount.getAddress()));
+    assert (addressSeen.contains(DEFAULT));
+    assert (addressSeen.contains(DEFAULT_COINBASE_ADDRESS));
+    // last address seen is the effective to of teh second tx
+
+    assert (storageSeen.get(DEFAULT).contains((EWord) key1));
   }
 
   /** In this test we prewarm two storage key, but only one will be used during execution */
@@ -150,11 +170,25 @@ public class HubShomeiTests {
             .to(recipientAccount)
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, recipientAccount))
-        .transaction(tx)
-        .build()
-        .run();
+    final ToyExecutionEnvironmentV2 executionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder()
+            .accounts(List.of(senderAccount, recipientAccount))
+            .transaction(tx)
+            .build();
+    executionEnvironmentV2.run();
+
+    final ZkTracer tracer = executionEnvironmentV2.getZkTracer();
+    final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
+    final Map<Address, Set<EWord>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
+
+    assert (addressSeen.size() == 4);
+    assert (addressSeen.contains(senderAddress));
+    assert (addressSeen.contains(recipientAccount.getAddress()));
+    assert (addressSeen.contains(DEFAULT));
+    assert (addressSeen.contains(DEFAULT_COINBASE_ADDRESS));
+
+    assert (storageSeen.get(DEFAULT).contains((EWord) key1));
+    assert (storageSeen.get(DEFAULT).contains((EWord) key2));
   }
 
   private static Stream<Arguments> opcodeProvider() {

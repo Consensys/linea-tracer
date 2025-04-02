@@ -299,4 +299,13 @@ public class BytecodeCompiler {
     return this.incompletePush(
         w, bigIntegerToBytes(new BigInteger(x.isEmpty() ? "0" : x, 16)).toArray());
   }
+
+  /**
+   * Concatenates a BytecodeCompiler to the current one.
+   *
+   * @param bytecode the BytecodeCompiler to add to the current one.
+   */
+  public void concatenate(BytecodeCompiler bytecode) {
+    this.byteCode.addAll(bytecode.byteCode);
+  }
 }

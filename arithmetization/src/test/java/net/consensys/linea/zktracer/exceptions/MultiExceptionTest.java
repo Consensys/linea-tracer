@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.exceptions;
 
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.RETURN_DATA_COPY_FAULT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.List;
 
 import net.consensys.linea.UnitTestWatcher;
@@ -25,17 +28,18 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class MultiExceptionTest {
 
-  @ParameterizedTest
-  @ValueSource(ints = {-1, 0, 1})
-  void outOfGasExceptionReturnDataCopy(int cornerCase) {
+  @Test
+  void RdcxAndOogxExceptionReturnDataCopy() {
+    BytecodeCompiler programWithoutRdcx = BytecodeCompiler.newProgram();
     BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler programRdcx = BytecodeCompiler.newProgram();
+    BytecodeCompiler postRdcxrogram = BytecodeCompiler.newProgram();
 
     final ToyAccount returnDataProviderAccount =
         ToyAccount.builder()
@@ -48,7 +52,7 @@ public class MultiExceptionTest {
                     "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"))
             .build();
 
-    program
+    programWithoutRdcx
         // 1. Execute static call
         .push(0) // byte size of return data
         .push(0) // retOffset
@@ -59,20 +63,40 @@ public class MultiExceptionTest {
         .op(OpCode.STATICCALL)
         // 2. Clean the stack
         .op(OpCode.POP)
-        // 3. Return data copy
-        .push(32) // size
+        .op(OpCode.RETURNDATASIZE);
+
+    program.concatenate(programWithoutRdcx);
+
+    postRdcxrogram
         .push(0) // offset
         .push(65) // destoffset, trigger mem expansion
         .op(OpCode.RETURNDATACOPY);
 
-    Bytes pgCompile = program.compile();
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+    programRdcx
+        // 4. Doubly exceptional return data copy
+        .push(1)
+        .op(OpCode.ADD); // size = RDS + 1, which will trigger the `returnDataCopyException`
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(returnDataProviderAccount));
+    programWithoutRdcx.concatenate(postRdcxrogram);
+    BytecodeRunner bytecodeRunnerWithoutRdcx = BytecodeRunner.of(programWithoutRdcx.compile());
 
-    bytecodeRunner.run(gasCost + cornerCase, List.of(returnDataProviderAccount));
+    long gasCost = bytecodeRunnerWithoutRdcx.runOnlyForGasCost(List.of(returnDataProviderAccount));
 
-    ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
-        cornerCase, bytecodeRunner);
+    int cornerCase = -1;
+    long gasCostWithRdcx =
+        gasCost
+            + 3 // Push
+            + 3 // ADD
+            + cornerCase; // trigger oogx
+
+    program.concatenate(programRdcx);
+    program.concatenate(postRdcxrogram);
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run(gasCostWithRdcx, List.of(returnDataProviderAccount));
+
+    // Rdcx happens before Oogx
+    assertEquals(
+        RETURN_DATA_COPY_FAULT,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 }

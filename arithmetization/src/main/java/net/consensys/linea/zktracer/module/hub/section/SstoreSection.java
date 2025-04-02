@@ -118,7 +118,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   private StorageFragment doingSstore(Hub hub) {
 
     return new StorageFragment(
-        hub.state,
+        hub,
         new State.StorageSlotIdentifier(
             accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
         valueOriginal,
@@ -127,7 +127,6 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
         incomingWarmth,
         true,
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
-        hub.state.firstAndLastStorageSlotOccurrences.size(),
         SSTORE_DOING);
   }
 
@@ -138,7 +137,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
 
     final StorageFragment undoingSstoreStorageFragment =
         new StorageFragment(
-            hub.state,
+            hub,
             new State.StorageSlotIdentifier(
                 accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
             valueOriginal,
@@ -147,7 +146,6 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
             true,
             incomingWarmth,
             undoingDomSubStamps,
-            hub.state.firstAndLastStorageSlotOccurrences.size(),
             SSTORE_UNDOING);
 
     this.addFragment(undoingSstoreStorageFragment);

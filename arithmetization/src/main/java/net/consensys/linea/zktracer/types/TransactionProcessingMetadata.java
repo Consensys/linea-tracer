@@ -35,7 +35,6 @@ import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
-import net.consensys.linea.zktracer.module.hub.transients.Block;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -121,14 +120,14 @@ public class TransactionProcessingMetadata {
   @Getter final Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
 
   public TransactionProcessingMetadata(
+      final Hub hub,
       final WorldView world,
       final Transaction transaction,
-      final Block block,
       final int relativeTransactionNumber,
       final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
-    relativeBlockNumber = block.blockNumber();
-    baseFee = block.baseFee().toLong();
+    relativeBlockNumber = hub.blockStack().currentBlockNumber();
+    baseFee = hub.blockStack().currentBlock().baseFee().toLong();
 
     besuTransaction = transaction;
     this.relativeTransactionNumber = relativeTransactionNumber;

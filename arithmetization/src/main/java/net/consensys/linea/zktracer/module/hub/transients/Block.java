@@ -15,29 +15,34 @@
 
 package net.consensys.linea.zktracer.module.hub.transients;
 
+import java.util.*;
+
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 /** Stores block-specific information. */
 @Accessors(fluent = true)
+@RequiredArgsConstructor
 @Getter
 public class Block {
-  private int blockNumber = 0;
-  private Address coinbaseAddress;
-  private Wei baseFee;
+  private final int blockNumber;
+  private final Address coinbaseAddress;
+  private final Wei baseFee;
 
-  /**
-   * Update block-specific information on new block entrance.
-   *
-   * @param processableBlockHeader the processable block header
-   */
-  public void update(
-      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
-    this.blockNumber++;
-    this.coinbaseAddress = miningBeneficiary;
-    this.baseFee = Wei.fromQuantity(processableBlockHeader.getBaseFee().orElseThrow());
+  private final Set<Address> addressesSeenByHub = new HashSet<>();
+  private final Map<Address, Set<EWord>> storagesSeenByHub = new HashMap<>();
+
+  public void addAddressSeenByHub(final Address address) {
+    addressesSeenByHub.add(address);
+  }
+
+  public void addStorageSeenByHub(final Address address, final EWord storage) {
+    addressesSeenByHub.add(address); // TODO: @Olivier I think this is useless, do you confirm ?
+    final Set<EWord> storageSet = storagesSeenByHub.computeIfAbsent(address, k -> new HashSet<>());
+    storageSet.add(storage);
   }
 }

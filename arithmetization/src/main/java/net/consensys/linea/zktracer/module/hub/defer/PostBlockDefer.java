@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,23 +12,17 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.hub.fragment.storage;
 
-import java.util.List;
+package net.consensys.linea.zktracer.module.hub.defer;
 
-public enum StorageFragmentPurpose {
-  SLOAD_DOING,
-  SLOAD_UNDOING,
+import net.consensys.linea.zktracer.module.hub.Hub;
+import org.hyperledger.besu.datatypes.Transaction;
 
-  SSTORE_DOING,
-  SSTORE_UNDOING,
-
-  PRE_WARMING;
-
-  private static final List<StorageFragmentPurpose> couldFirstTimeSeen =
-      List.of(SLOAD_DOING, SSTORE_DOING, PRE_WARMING);
-
-  public static boolean maybeFirstTimeSeen(StorageFragmentPurpose purpose) {
-    return couldFirstTimeSeen.contains(purpose);
-  }
+public interface PostBlockDefer {
+  /**
+   * This method will be triggered as soon as the current block has finished its execution.
+   *
+   * @param hub the {@link Hub} in which the {@link Transaction} took place
+   */
+  void resolvePostBlock(Hub hub);
 }

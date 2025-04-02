@@ -116,7 +116,7 @@ public class TxPreWarmingMacroSection {
 
                     final StorageFragment storageFragment =
                         new StorageFragment(
-                            hub.state,
+                            hub,
                             new State.StorageSlotIdentifier(
                                 address, deploymentInfo.deploymentNumber(address), EWord.of(key)),
                             value,
@@ -125,7 +125,6 @@ public class TxPreWarmingMacroSection {
                             seenKeys.computeIfAbsent(address, x -> new HashSet<>()).contains(key),
                             true,
                             DomSubStampsSubFragment.standardDomSubStamps(hub.stamp() + 1, 0),
-                            hub.state.firstAndLastStorageSlotOccurrences.size(),
                             PRE_WARMING);
 
                     new TxPrewarmingSection(hub, storageFragment);

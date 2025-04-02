@@ -37,8 +37,7 @@ public class StateManagerUtils {
   }
 
   public static int getRelBlockNoFromBlock(Hub hub, int blockNb) {
-    return (int)
-        hub.blockdata().getOperations().get(blockNb * getBlockOperationsLength(hub)).relBlock();
+    return hub.blockdata().getOperations().get(blockNb * getBlockOperationsLength(hub)).relBlock();
   }
 
   public static int getBlockCount(Hub hub) {

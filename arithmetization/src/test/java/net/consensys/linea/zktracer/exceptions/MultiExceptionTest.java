@@ -16,8 +16,7 @@
 package net.consensys.linea.zktracer.exceptions;
 
 import static net.consensys.linea.zktracer.Trace.*;
-import static net.consensys.linea.zktracer.module.hub.signals.TracedException.JUMP_FAULT;
-import static net.consensys.linea.zktracer.module.hub.signals.TracedException.RETURN_DATA_COPY_FAULT;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
@@ -96,7 +95,7 @@ public class MultiExceptionTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(gasCostWithRdcx, List.of(returnDataProviderAccount));
 
-    // Rdcx happens before Oogx
+    // Rdcx check happens before Oogx in Besu
     assertEquals(
         RETURN_DATA_COPY_FAULT,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
@@ -124,8 +123,52 @@ public class MultiExceptionTest {
 
     bytecodeRunner.run(gasCost);
 
-    // Jumpx happens before Oogx
+    // Jumpx check happens before Oogx in Besu
     assertEquals(
         JUMP_FAULT, bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+  }
+
+  @Test
+  void staticAndOogxExceptionLog0() {
+    BytecodeCompiler programLog0 = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    programLog0
+        .push(0) // size
+        .push(0) //  offset
+        .op(OpCode.LOG0);
+
+    final ToyAccount Log0ProviderAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(10)
+            .address(Address.fromHexString("c0de"))
+            // Constructor that returns 32 FF
+            .code(programLog0.compile())
+            .build();
+
+    program
+        // 1. Execute static call
+        .push(0) // byte size of return data
+        .push(0) // retOffset
+        .push(0) // byte size calldata
+        .push(0) // argsOffset
+        .push("c0de") // Address of 'return data provider' account
+        .op(OpCode.GAS) // gas
+        .op(OpCode.STATICCALL);
+
+    Bytes pgCompile = program.compile();
+    // long gasCost = bytecodeRunnerWithoutStaticX.runOnlyForGasCost(List.of(Log0ProviderAccount));
+    long gasCost =
+        3 * 4 + 3 + 2 + 2600 + 3 + 3 + 375 + 21000
+            + 6; // 1/64 of 386 gas cost left when we enter child frame
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+
+    bytecodeRunner.run(gasCost - 1, List.of(Log0ProviderAccount));
+
+    // Static check happens before Oogx in Besu
+    assertEquals(
+        STATIC_FAULT,
+        bytecodeRunner.getHub().previousTraceSection(2).commonValues.tracedException());
   }
 }

@@ -45,6 +45,8 @@ public class TxInitializationSection extends TraceSection implements EndTransact
 
   ImcFragment miscFragment;
 
+  private final AccountFragment warmCoinbaseAccountFragment;
+
   private final AccountFragment gasPaymentAccountFragment;
   @Getter private final AccountSnapshot senderGasPayment;
   @Getter private final AccountSnapshot senderGasPaymentNew;
@@ -84,15 +86,16 @@ public class TxInitializationSection extends TraceSection implements EndTransact
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
 
-    final AccountSnapshot coinbase = canonical(hub, hub.coinbaseAddress);
-    if (tx.coinbaseWarmthAfterTxInit())
+    final AccountSnapshot coinbase =
+        canonical(hub, world, hub.coinbaseAddress(), tx.isCoinbasePreWarmed());
+    warmCoinbaseAccountFragment =
+        accountFragmentFactory.makeWithTrm(
+            coinbase,
+            coinbase.deepCopy().turnOnWarmth(),
+            coinbase.address(),
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
 
-    senderGasPayment =
-        AccountSnapshot.fromAccount(
-            senderAccount,
-            tx.isSenderPreWarmed(),
-            deploymentInfo.deploymentNumber(senderAddress),
-            deploymentInfo.getDeploymentStatus(senderAddress));
+    senderGasPayment = canonical(hub, world, senderAccount.getAddress(), tx.isSenderPreWarmed());
     senderGasPaymentNew =
         senderGasPayment.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth().raiseNonceByOne();
 
@@ -107,8 +110,7 @@ public class TxInitializationSection extends TraceSection implements EndTransact
       recipientValueReception =
           senderIsRecipient(hub)
               ? senderValueTransferNew
-              : canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed())
-                  .setWarmthTo(tx.isRecipientPreWarmed());
+              : canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed());
     } else {
       recipientValueReception =
           AccountSnapshot.fromAddress(
@@ -166,19 +168,19 @@ public class TxInitializationSection extends TraceSection implements EndTransact
             senderGasPayment,
             senderGasPaymentNew,
             senderGasPayment.address(),
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
     valueSendingAccountFragment =
         accountFragmentFactory.make(
             senderValueTransfer,
             senderValueTransferNew,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 2));
     valueReceptionAccountFragment =
         accountFragmentFactory
             .makeWithTrm(
                 recipientValueReception,
                 recipientValueReceptionNew,
                 recipientValueReception.address(),
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 2))
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 3))
             .requiresRomlex(true);
 
     initializationContextFragment = ContextFragment.initializeExecutionContext(hub);
@@ -192,9 +194,10 @@ public class TxInitializationSection extends TraceSection implements EndTransact
 
     this.addFragment(miscFragment); // MISC i + 0
     this.addFragment(new TransactionFragment(hub.txStack().current())); // TXN i + 1
-    this.addFragment(gasPaymentAccountFragment); // ACC i + 2 (sender: gas payment)
-    this.addFragment(valueSendingAccountFragment); // ACC i + 3 (sender: value transfer)
-    this.addFragment(valueReceptionAccountFragment); // ACC i + 4 (recipient: value reception)
+
+    this.addFragment(gasPaymentAccountFragment); // ACC i + 3 (sender: gas payment)
+    this.addFragment(valueSendingAccountFragment); // ACC i + 4 (sender: value transfer)
+    this.addFragment(valueReceptionAccountFragment); // ACC i + 5 (recipient: value reception)
 
     if (!isSuccessful) {
 
@@ -214,20 +217,20 @@ public class TxInitializationSection extends TraceSection implements EndTransact
 
       final int revertStamp = hub.currentFrame().revertStamp();
 
-      this.addFragment( // ACC i + 5 (sender)
+      this.addFragment( // ACC i + 6 (sender)
           accountFragmentFactory.make(
               senderUndoingValueTransfer,
               senderUndoingValueTransferNew,
-              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 3)));
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 4)));
 
-      this.addFragment( // ACC i + 6 (recipient)
+      this.addFragment( // ACC i + 7 (recipient)
           accountFragmentFactory.make(
               recipientUndoingValueReception,
               recipientUndoingValueReceptionNew,
-              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 4)));
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 5)));
     }
 
-    this.addFragment(initializationContextFragment); // CON i + 5/7
+    this.addFragment(initializationContextFragment); // CON i + 6/8
   }
 
   public static boolean senderIsRecipient(Hub hub) {

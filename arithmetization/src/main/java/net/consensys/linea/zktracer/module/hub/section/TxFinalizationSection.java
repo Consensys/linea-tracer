@@ -109,14 +109,8 @@ public class TxFinalizationSection extends TraceSection implements EndTransactio
     final Address senderAddress = txMetadata.getSender();
     final Address coinbaseAddress = txMetadata.getCoinbaseAddress();
 
-    if (senderIsCoinbase(hub)) {
-      checkState(coinbaseWarmth());
-    }
-
     coinbaseGasRefundNew =
-        AccountSnapshot.canonical(hub, world, coinbaseAddress)
-            .setWarmthTo(coinbaseWarmth())
-            .setDeploymentInfo(hub);
+        AccountSnapshot.canonical(hub, world, coinbaseAddress, true).setDeploymentInfo(hub);
     coinbaseGasRefund =
         coinbaseGasRefundNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
 
@@ -126,10 +120,6 @@ public class TxFinalizationSection extends TraceSection implements EndTransactio
             : AccountSnapshot.canonical(hub, world, senderAddress).turnOnWarmth();
     senderGasRefund =
         senderGasRefundNew.deepCopy().decrementBalanceBy(txMetadata.getGasRefundInWei());
-  }
-
-  private boolean coinbaseWarmth() {
-    return txMetadata.isCoinbaseWarmAtTransactionEnd();
   }
 
   public static boolean senderIsCoinbase(Hub hub) {

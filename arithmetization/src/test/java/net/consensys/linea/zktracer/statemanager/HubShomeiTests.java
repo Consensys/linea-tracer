@@ -125,14 +125,14 @@ public class HubShomeiTests {
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
     final Map<Address, Set<EWord>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
 
-    assert (addressSeen.size() == 5);
+    assert (addressSeen.size() == 4);
     assert (addressSeen.contains(senderAddress));
     assert (addressSeen.contains(recipientAccount.getAddress()));
-    assert (addressSeen.contains(DEFAULT));
     assert (addressSeen.contains(DEFAULT_COINBASE_ADDRESS));
     // last address seen is the effective to of teh second tx
 
-    assert (storageSeen.get(DEFAULT).contains((EWord) key1));
+    assert (storageSeen.get(DEFAULT).size() == 1);
+    assert (storageSeen.get(DEFAULT).contains(key1));
   }
 
   /** In this test we prewarm two storage key, but only one will be used during execution */
@@ -181,14 +181,14 @@ public class HubShomeiTests {
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
     final Map<Address, Set<EWord>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
 
-    assert (addressSeen.size() == 4);
+    assert (addressSeen.size() == 3);
     assert (addressSeen.contains(senderAddress));
     assert (addressSeen.contains(recipientAccount.getAddress()));
-    assert (addressSeen.contains(DEFAULT));
     assert (addressSeen.contains(DEFAULT_COINBASE_ADDRESS));
 
-    assert (storageSeen.get(DEFAULT).contains((EWord) key1));
-    assert (storageSeen.get(DEFAULT).contains((EWord) key2));
+    assert (storageSeen.get(DEFAULT).size() == 2);
+    assert (storageSeen.get(DEFAULT).contains(key1));
+    assert (storageSeen.get(DEFAULT).contains(key2));
   }
 
   private static Stream<Arguments> opcodeProvider() {

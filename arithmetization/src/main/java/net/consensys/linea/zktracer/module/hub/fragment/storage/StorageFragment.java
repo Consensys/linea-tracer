@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.storage;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.maybeFirstTimeSeen;
+import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.maybeNewStorageSlot;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
@@ -65,7 +65,7 @@ public final class StorageFragment implements TraceFragment, PostBlockDefer {
 
     // This allows us to keep track of account that are accessed by the HUB during the execution of
     // the block
-    if (maybeFirstTimeSeen(purpose)) {
+    if (maybeNewStorageSlot(purpose)) {
       hub.defers().scheduleForPostBlock(this);
     }
   }

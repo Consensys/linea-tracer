@@ -135,7 +135,7 @@ public class HubShomeiTests {
     assert (storageSeen.get(DEFAULT).contains(key1));
   }
 
-  /** In this test we prewarm two storage key, but only one will be used during execution */
+  /** In this test we prewarm two storage keys, but only one will be used during execution */
   @ParameterizedTest
   @MethodSource("opcodeProvider")
   void uselessPrewarming(OpCode opcode) {

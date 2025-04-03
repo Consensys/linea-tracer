@@ -25,10 +25,14 @@ public enum StorageFragmentPurpose {
 
   PRE_WARMING;
 
-  private static final List<StorageFragmentPurpose> couldFirstTimeSeen =
-      List.of(SLOAD_DOING, SSTORE_DOING, PRE_WARMING);
+  private static final List<StorageFragmentPurpose> undoingOperation =
+      List.of(SLOAD_UNDOING, SSTORE_UNDOING);
 
-  public static boolean maybeFirstTimeSeen(StorageFragmentPurpose purpose) {
-    return couldFirstTimeSeen.contains(purpose);
+  public static boolean guaranteedRepeatEncounterOfStorageSlot(StorageFragmentPurpose purpose) {
+    return undoingOperation.contains(purpose);
+  }
+
+  public static boolean maybeNewStorageSlot(StorageFragmentPurpose purpose) {
+    return !guaranteedRepeatEncounterOfStorageSlot(purpose);
   }
 }

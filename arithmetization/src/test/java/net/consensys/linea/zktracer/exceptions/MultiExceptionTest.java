@@ -36,7 +36,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class MultiExceptionTest {
 
   @Test
-  void RdcxAndOogxExceptionReturnDataCopy() {
+  void rdcxAndOogxReturnDataCopy() {
     BytecodeCompiler programWithoutRdcx = BytecodeCompiler.newProgram();
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     BytecodeCompiler programRdcx = BytecodeCompiler.newProgram();
@@ -81,11 +81,13 @@ public class MultiExceptionTest {
     programWithoutRdcx.concatenate(postRdcxrogram);
     BytecodeRunner bytecodeRunnerWithoutRdcx = BytecodeRunner.of(programWithoutRdcx.compile());
 
-    long gasCost = bytecodeRunnerWithoutRdcx.runOnlyForGasCost(List.of(returnDataProviderAccount));
+    // We calculate gas cost without rdcx, else no gas cost is calculated
+    long gasCostWithoutRdcx =
+        bytecodeRunnerWithoutRdcx.runOnlyForGasCost(List.of(returnDataProviderAccount));
 
     int cornerCase = -1;
     long gasCostWithRdcx =
-        gasCost
+        gasCostWithoutRdcx
             + 3 // Push
             + 3 // ADD
             + cornerCase; // trigger oogx
@@ -102,7 +104,29 @@ public class MultiExceptionTest {
   }
 
   @Test
-  void jumpXAndOogxExceptionJumpi() {
+  void jumpxAndOogxJump() {
+    final Bytes bytecode =
+        BytecodeCompiler.newProgram()
+            .push(5) // i/o 4, Trigger Jump Exception
+            .op(OpCode.JUMP)
+            .op(OpCode.INVALID)
+            .op(OpCode.JUMPDEST)
+            .push(OpCode.JUMPDEST.byteValue())
+            .compile();
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
+    // JUMP needs JUMPDEST to jump to
+    // Calculate the gas cost to trigger OOGX on JUMP and not on the last but one opcode
+    long gasCost = GAS_CONST_G_TRANSACTION + GAS_CONST_G_VERY_LOW + GAS_CONST_G_MID;
+
+    bytecodeRunner.run(gasCost);
+
+    assertEquals(
+        JUMP_FAULT, bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+  }
+
+  @Test
+  void jumpixAndOogxJumpi() {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push(1) //

@@ -83,7 +83,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
         new State.StorageSlotIdentifier(
             accountAddress,
             hub.transients().conflation().deploymentInfo().deploymentNumber(accountAddress),
-            EWord.of(storageKey));
+            storageKey);
     hub.state.updateOrInsertStorageSlotOccurrence(storageSlotIdentifier, doingSload);
 
     this.addStackAndFragments(hub, readCurrentContext, miscFragmentForSload, doingSload);
@@ -93,8 +93,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
 
     return new StorageFragment(
         hub,
-        new State.StorageSlotIdentifier(
-            accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
+        new State.StorageSlotIdentifier(accountAddress, accountAddressDeploymentNumber, storageKey),
         valueOriginal,
         valueCurrent,
         valueCurrent,
@@ -118,7 +117,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
         new StorageFragment(
             hub,
             new State.StorageSlotIdentifier(
-                accountAddress, accountAddressDeploymentNumber, EWord.of(storageKey)),
+                accountAddress, accountAddressDeploymentNumber, storageKey),
             valueOriginal,
             valueCurrent,
             valueCurrent,

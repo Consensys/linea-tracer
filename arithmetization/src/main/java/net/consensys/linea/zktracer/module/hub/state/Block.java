@@ -22,7 +22,7 @@ import java.util.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 
@@ -35,17 +35,18 @@ public class Block {
   private final Wei baseFee;
 
   private final Set<Address> addressesSeenByHub = new HashSet<>();
-  private final Map<Address, Set<EWord>> storagesSeenByHub = new HashMap<>();
+  private final Map<Address, Set<Bytes32>> storagesSeenByHub = new HashMap<>();
 
   public void addAddressSeenByHub(final Address address) {
     addressesSeenByHub.add(address);
   }
 
-  public void addStorageSeenByHub(final Address address, final EWord storage) {
+  public void addStorageSeenByHub(final Address address, final Bytes32 storage) {
     checkState(
         addressesSeenByHub.contains(address),
         "attempt to access storage slot of account not yet touched by the HUB");
-    final Set<EWord> storageSet = storagesSeenByHub.computeIfAbsent(address, k -> new HashSet<>());
+    final Set<Bytes32> storageSet =
+        storagesSeenByHub.computeIfAbsent(address, k -> new HashSet<>());
     storageSet.add(storage);
   }
 }

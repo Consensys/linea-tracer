@@ -29,7 +29,6 @@ import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -123,7 +122,7 @@ public class HubShomeiTests {
 
     final ZkTracer tracer = executionEnvironmentV2.getZkTracer();
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
-    final Map<Address, Set<EWord>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
+    final Map<Address, Set<Bytes32>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
 
     assert (addressSeen.size() == 4);
     assert (addressSeen.contains(senderAddress));
@@ -179,7 +178,7 @@ public class HubShomeiTests {
 
     final ZkTracer tracer = executionEnvironmentV2.getZkTracer();
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
-    final Map<Address, Set<EWord>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
+    final Map<Address, Set<Bytes32>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
 
     assert (addressSeen.size() == 3);
     assert (addressSeen.contains(senderAddress));

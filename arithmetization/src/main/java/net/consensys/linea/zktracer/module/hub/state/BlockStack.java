@@ -20,7 +20,6 @@ import java.util.List;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.hub.transients.Block;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;

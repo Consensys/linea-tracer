@@ -25,8 +25,8 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostBlockDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.state.Block;
 import net.consensys.linea.zktracer.module.hub.state.State;
-import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.types.EWord;
 
 @Getter

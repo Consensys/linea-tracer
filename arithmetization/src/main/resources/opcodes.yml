@@ -579,6 +579,15 @@ opcodes:
       delta: 0
       staticGas: G_JUMP_DEST
       flag4: true
+  - mnemonic: PUSH0
+    value: 0x5f
+    instructionFamily: PUSH_POP
+    stackSettings:
+      pattern: ZERO_ONE
+      alpha: 1
+      delta: 0
+      staticGas: G_BASE
+      flag3: true
   - mnemonic: PUSH1
     value: 0x60
     instructionFamily: PUSH_POP

@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.state;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.*;
 
 import lombok.Getter;
@@ -40,7 +42,9 @@ public class Block {
   }
 
   public void addStorageSeenByHub(final Address address, final EWord storage) {
-    addressesSeenByHub.add(address); // TODO: @Olivier I think this is useless, do you confirm ?
+    checkState(
+        addressesSeenByHub.contains(address),
+        "attempt to access storage slot of account not yet touched by the HUB");
     final Set<EWord> storageSet = storagesSeenByHub.computeIfAbsent(address, k -> new HashSet<>());
     storageSet.add(storage);
   }

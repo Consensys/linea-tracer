@@ -233,17 +233,8 @@ public class BlockdataOperation extends ModuleOperation {
           .isChainid(opCode == OpCode.CHAINID)
           .isBasefee(opCode == OpCode.BASEFEE)
           .inst(UnsignedByte.of(opCode.byteValue()))
-          .coinbaseHi(
-              hub.blockStack()
-                  .getBlockByRelativeBlockNumber(relBlock)
-                  .coinbaseAddress()
-                  .slice(0, 4)
-                  .toLong())
-          .coinbaseLo(
-              hub.blockStack()
-                  .getBlockByRelativeBlockNumber(relBlock)
-                  .coinbaseAddress()
-                  .slice(4, LLARGE))
+          .coinbaseHi(blockHeader.getCoinbase().slice(0, 4).toLong())
+          .coinbaseLo(blockHeader.getCoinbase().slice(4, LLARGE))
           .blockGasLimit(Bytes.ofUnsignedLong(blockHeader.getGasLimit()))
           .basefee(
               Bytes.ofUnsignedLong(blockHeader.getBaseFee().get().getAsBigInteger().longValue()))

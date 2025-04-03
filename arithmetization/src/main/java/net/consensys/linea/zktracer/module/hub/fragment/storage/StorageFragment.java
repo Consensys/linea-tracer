@@ -60,7 +60,7 @@ public final class StorageFragment implements TraceFragment, PostBlockDefer {
     this.incomingWarmth = incomingWarmth;
     this.outgoingWarmth = outgoingWarmth;
     domSubStampsSubFragment = domSubSubFragment;
-    blockNumber = hub.blockStack().currentBlockNumber();
+    blockNumber = hub.blockStack().currentRelativeBlockNumber();
     this.purpose = purpose;
 
     // This allows us to keep track of account that are accessed by the HUB during the execution of

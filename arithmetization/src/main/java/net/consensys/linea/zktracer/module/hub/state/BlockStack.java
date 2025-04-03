@@ -38,7 +38,7 @@ public class BlockStack {
     return blocks.getLast();
   }
 
-  public int currentBlockNumber() {
+  public int currentRelativeBlockNumber() {
     return blocks.size();
   }
 

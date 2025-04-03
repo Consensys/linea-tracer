@@ -128,7 +128,7 @@ public class TransactionProcessingMetadata {
       final int relativeTransactionNumber,
       final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
-    relativeBlockNumber = hub.blockStack().currentBlockNumber();
+    relativeBlockNumber = hub.blockStack().currentRelativeBlockNumber();
     coinbaseAddress = hub.coinbaseAddress();
     baseFee = hub.blockStack().currentBlock().baseFee().toLong();
 

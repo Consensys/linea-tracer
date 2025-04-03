@@ -31,6 +31,8 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class MultiExceptionTest {
@@ -103,15 +105,20 @@ public class MultiExceptionTest {
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 
-  @Test
-  void jumpxAndOogxJump() {
+  /**
+   * Trigger a jump exception and an out of gas exception Jump exception can be triggered by a jump
+   * to an invalid destination (here 5) or outside or codesize (here 10)
+   */
+  @ParameterizedTest
+  @ValueSource(ints = {5, 6})
+  void jumpxAndOogxJump(int jumpCounter) {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
-            .push(5) // i/o 4, Trigger Jump Exception
-            .op(OpCode.JUMP)
-            .op(OpCode.INVALID)
-            .op(OpCode.JUMPDEST)
-            .push(OpCode.JUMPDEST.byteValue())
+            .push(jumpCounter) // pc: 0 - 5 i/o 4, Trigger Jump Exception
+            .op(OpCode.JUMP) // pc: 2
+            .op(OpCode.INVALID) // pc: 3
+            .op(OpCode.JUMPDEST) // pc: 4
+            .push(OpCode.JUMPDEST.byteValue()) // pc: 5
             .compile();
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);

@@ -138,12 +138,7 @@ public class BlockdataOperation extends ModuleOperation {
   }
 
   private void handleCoinbase() {
-    data =
-        EWord.ofHexString(
-            hub.blockStack()
-                .getBlockByRelativeBlockNumber(relBlock)
-                .coinbaseAddress()
-                .toHexString());
+    data = EWord.ofHexString(hub.coinbaseAddressOfRelativeBlock(relBlock).toHexString());
     // row i
     wcpCallToLT(0, data, POWER_256_20);
   }
@@ -233,8 +228,8 @@ public class BlockdataOperation extends ModuleOperation {
           .isChainid(opCode == OpCode.CHAINID)
           .isBasefee(opCode == OpCode.BASEFEE)
           .inst(UnsignedByte.of(opCode.byteValue()))
-          .coinbaseHi(blockHeader.getCoinbase().slice(0, 4).toLong())
-          .coinbaseLo(blockHeader.getCoinbase().slice(4, LLARGE))
+          .coinbaseHi(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(0, 4).toLong())
+          .coinbaseLo(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(4, LLARGE))
           .blockGasLimit(Bytes.ofUnsignedLong(blockHeader.getGasLimit()))
           .basefee(
               Bytes.ofUnsignedLong(blockHeader.getBaseFee().get().getAsBigInteger().longValue()))

@@ -1061,4 +1061,8 @@ public class Hub implements Module {
   public Address coinbaseAddress() {
     return blockStack.currentBlock().coinbaseAddress();
   }
+
+  public Address coinbaseAddressOfRelativeBlock(final int relativeBlockNumber) {
+    return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
+  }
 }

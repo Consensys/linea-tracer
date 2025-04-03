@@ -256,9 +256,9 @@ public class OutOfGasExceptionTest {
             .push(1) // pc = 0, 1
             .push(7) // pc = 2, 3
             .op(OpCode.JUMPI) // pc = 4
-            .op(OpCode.JUMPDEST) //
-            .op(OpCode.INVALID) //
-            .op(OpCode.JUMPDEST) //
+            .op(OpCode.JUMPDEST) // pc = 5
+            .op(OpCode.INVALID) // pc = 6
+            .op(OpCode.JUMPDEST) // pc = 7
             .push(1) // pc = 8
             .compile();
 

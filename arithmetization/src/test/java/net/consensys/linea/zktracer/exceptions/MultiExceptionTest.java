@@ -107,7 +107,7 @@ public class MultiExceptionTest {
 
   /**
    * Trigger a jump exception and an out of gas exception Jump exception can be triggered by a jump
-   * to an invalid destination (here 5) or outside or codesize (here 10)
+   * to an invalid destination (here 5) or outside of codesize (here 6)
    */
   @ParameterizedTest
   @ValueSource(ints = {5, 6})
@@ -132,16 +132,21 @@ public class MultiExceptionTest {
         JUMP_FAULT, bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 
-  @Test
-  void jumpixAndOogxJumpi() {
+  /**
+   * Trigger a jumpi exception and an out of gas exception. Jumpi exception can be triggered by a
+   * jump to an invalid destination (here 6) or outside of codesize (here 9)
+   */
+  @ParameterizedTest
+  @ValueSource(ints = {6, 9})
+  void jumpixAndOogxJumpi(int jumpCounter) {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
-            .push(1) //
-            .push(6) // i/o 7, Trigger Jump Exception
-            .op(OpCode.JUMPI) //
-            .op(OpCode.JUMPDEST) //
-            .op(OpCode.INVALID) //
-            .op(OpCode.JUMPDEST) //
+            .push(1) // pc = 0, 1
+            .push(jumpCounter) // pc = 2, 3, i/o 7, Trigger Jump Exception
+            .op(OpCode.JUMPI) // pc = 4
+            .op(OpCode.JUMPDEST) // pc = 5
+            .op(OpCode.INVALID) // pc = 6
+            .op(OpCode.JUMPDEST) // pc = 7
             .push(1) // pc = 8
             .compile();
 
@@ -178,6 +183,10 @@ public class MultiExceptionTest {
             .code(programLog0.compile())
             .build();
 
+    BytecodeRunner bytecodeRunnerLog = BytecodeRunner.of(programLog0.compile());
+    long gasCostTx = bytecodeRunnerLog.runOnlyForGasCost();
+    int gasCostLogPgMinusOne = (int) gasCostTx - GAS_CONST_G_TRANSACTION - 1;
+
     program
         // 1. Execute static call
         .push(0) // byte size of return data
@@ -185,17 +194,17 @@ public class MultiExceptionTest {
         .push(0) // byte size calldata
         .push(0) // argsOffset
         .push("c0de") // Address of 'return data provider' account
-        .op(OpCode.GAS) // gas
+        .push(gasCostLogPgMinusOne) // gas
         .op(OpCode.STATICCALL);
 
-    Bytes pgCompile = program.compile();
-    // long gasCost = bytecodeRunnerWithoutStaticX.runOnlyForGasCost(List.of(Log0ProviderAccount));
-    long gasCost =
-        3 * 4 + 3 + 2 + 2600 + 3 + 3 + 375 + 21000
-            + 6; // 1/64 of 386 gas cost left when we enter child frame
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+    /*    long gasCost =
+    3 * 4 + 3 + 2 + 2600 + 3 + 3 + 375 + 21000
+            + 6; // 1/64 of 386 gas cost left when we enter child frame*/
 
-    bytecodeRunner.run(gasCost - 1, List.of(Log0ProviderAccount));
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+    // Run with linea block gas limit
+    bytecodeRunner.run(List.of(Log0ProviderAccount));
 
     // Static check happens before Oogx in Besu
     assertEquals(

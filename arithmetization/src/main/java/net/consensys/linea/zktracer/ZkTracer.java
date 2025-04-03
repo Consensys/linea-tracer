@@ -325,11 +325,11 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   public Set<Address> getAddressesSeenByHubForRelativeBlock(final int relativeBlockNumber) {
-    return hub.blockStack().blocks().get(relativeBlockNumber).addressesSeenByHub();
+    return hub.blockStack().getBlockByRelativeBlockNumber(relativeBlockNumber).addressesSeenByHub();
   }
 
   public Map<Address, Set<EWord>> getStoragesSeenByHubForRelativeBlock(
       final int relativeBlockNumber) {
-    return hub.blockStack().blocks().get(relativeBlockNumber).storagesSeenByHub();
+    return hub.blockStack().getBlockByRelativeBlockNumber(relativeBlockNumber).storagesSeenByHub();
   }
 }

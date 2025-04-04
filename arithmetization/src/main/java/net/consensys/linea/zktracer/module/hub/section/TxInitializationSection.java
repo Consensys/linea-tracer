@@ -230,13 +230,13 @@ public class TxInitializationSection extends TraceSection implements EndTransact
           accountFragmentFactory.make(
               senderUndoingValueTransfer,
               senderUndoingValueTransferNew,
-              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 4)));
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 3)));
 
       this.addFragment( // ACC i + 7 (recipient)
           accountFragmentFactory.make(
               recipientUndoingValueReception,
               recipientUndoingValueReceptionNew,
-              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 5)));
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 4)));
     }
 
     this.addFragment(initializationContextFragment); // CON i + 6/8

@@ -148,7 +148,7 @@ public class ExecutionEnvironment {
                 MiningConfiguration.MINING_DISABLED,
                 false,
                 new NoOpMetricsSystem())
-                .shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
+            .shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
 
     return builder
         .privacyParameters(PrivacyParameters.DEFAULT)

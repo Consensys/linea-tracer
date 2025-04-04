@@ -41,7 +41,6 @@ import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -428,9 +427,9 @@ public class MxpOperation extends ModuleOperation {
 
   public int ctMax() {
     return switch (this.getMxpExecutionPath()) {
-      case TRIVIAL -> CT_MAX_TRIVIAL;
-      case NON_TRIVIAL_BUT_MXPX -> CT_MAX_NON_TRIVIAL_BUT_MXPX;
-      case NON_TRIVIAL -> CT_MAX_NON_TRIVIAL;
+      case TRIVIAL -> 0;
+      case NON_TRIVIAL_BUT_MXPX -> 0;
+      case NON_TRIVIAL -> 0;
     };
   }
 
@@ -558,7 +557,8 @@ public class MxpOperation extends ModuleOperation {
 
     for (int i = 0; i < nRows; i++) {
       trace
-          .stamp(stamp)
+          .mxpStamp(stamp)
+          /*
           .cn(Bytes.ofUnsignedLong(this.getContextNumber()))
           .ct((short) i)
           .roob(this.isRoob())
@@ -620,6 +620,7 @@ public class MxpOperation extends ModuleOperation {
           .mtntop(this.mxpCall.mayTriggerNontrivialMmuOperation)
           .size1NonzeroNoMxpx(this.mxpCall.getSize1NonZeroNoMxpx())
           .size2NonzeroNoMxpx(this.mxpCall.getSize2NonZeroNoMxpx())
+           */
           .validateRow();
     }
   }

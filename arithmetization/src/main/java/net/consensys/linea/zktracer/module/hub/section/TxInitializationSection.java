@@ -95,7 +95,12 @@ public class TxInitializationSection extends TraceSection implements EndTransact
             coinbase.address(),
             DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
 
-    senderGasPayment = canonical(hub, world, senderAccount.getAddress(), tx.isSenderPreWarmed());
+    senderGasPayment =
+        canonical(
+            hub,
+            world,
+            senderAccount.getAddress(),
+            tx.isSenderPreWarmed() || tx.senderIsCoinbase());
     senderGasPaymentNew =
         senderGasPayment.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth().raiseNonceByOne();
 
@@ -108,14 +113,18 @@ public class TxInitializationSection extends TraceSection implements EndTransact
 
     if (recipientAccount != null) {
       recipientValueReception =
-          senderIsRecipient(hub)
+          tx.senderIsRecipient()
               ? senderValueTransferNew
-              : canonical(hub, world, recipientAddress, tx.isRecipientPreWarmed());
+              : canonical(
+                  hub,
+                  world,
+                  recipientAddress,
+                  tx.isRecipientPreWarmed() || tx.recipientIsCoinbase());
     } else {
       recipientValueReception =
           AccountSnapshot.fromAddress(
               recipientAddress,
-              tx.isRecipientPreWarmed(),
+              tx.isRecipientPreWarmed() || tx.recipientIsCoinbase(),
               deploymentInfo.deploymentNumber(recipientAddress),
               deploymentInfo.getDeploymentStatus(recipientAddress));
     }
@@ -194,7 +203,7 @@ public class TxInitializationSection extends TraceSection implements EndTransact
 
     this.addFragment(miscFragment); // MISC i + 0
     this.addFragment(new TransactionFragment(hub.txStack().current())); // TXN i + 1
-
+    this.addFragment(warmCoinbaseAccountFragment); // ACC i + 2 (warm coinbase)
     this.addFragment(gasPaymentAccountFragment); // ACC i + 3 (sender: gas payment)
     this.addFragment(valueSendingAccountFragment); // ACC i + 4 (sender: value transfer)
     this.addFragment(valueReceptionAccountFragment); // ACC i + 5 (recipient: value reception)
@@ -231,13 +240,5 @@ public class TxInitializationSection extends TraceSection implements EndTransact
     }
 
     this.addFragment(initializationContextFragment); // CON i + 6/8
-  }
-
-  public static boolean senderIsRecipient(Hub hub) {
-    final TransactionProcessingMetadata tx = hub.txStack().current();
-    final Address senderAddress = tx.getSender();
-    final Address recipientAddress = tx.getEffectiveRecipient();
-
-    return recipientAddress.equals(senderAddress);
   }
 }

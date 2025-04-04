@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.types;
 
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -108,10 +107,6 @@ public class TransactionProcessingMetadata {
   @Accessors(fluent = true)
   @Setter
   boolean isCoinbasePreWarmed = false;
-
-  @Accessors(fluent = true)
-  @Setter
-  boolean isCoinbaseWarmAtTransactionEnd = false;
 
   @Setter List<Log> logs;
 
@@ -333,21 +328,15 @@ public class TransactionProcessingMetadata {
     return besuTransaction.getData().orElse(Bytes.EMPTY);
   }
 
-  public boolean coinbaseWarmthAfterTxInit(Hub hub) {
-    final boolean coinbaseIsInAccessList =
-        this.getBesuTransaction()
-            .getAccessList()
-            .map(
-                accessList ->
-                    accessList.stream().anyMatch(entry -> entry.address().equals(coinbaseAddress)))
-            .orElse(false);
-    final boolean coinbaseIsPrecompile = isPrecompile(coinbaseAddress);
-    final boolean coinbaseIsSender = this.getSender().equals(coinbaseAddress);
-    final boolean coinbaseIsRecipient = this.getEffectiveRecipient().equals(coinbaseAddress);
+  public boolean senderIsCoinbase() {
+    return getSender().equals(coinbaseAddress);
+  }
 
-    return coinbaseIsInAccessList
-        || coinbaseIsPrecompile
-        || coinbaseIsSender
-        || coinbaseIsRecipient;
+  public boolean recipientIsCoinbase() {
+    return effectiveRecipient.equals(coinbaseAddress);
+  }
+
+  public boolean senderIsRecipient() {
+    return getSender().equals(effectiveRecipient);
   }
 }

@@ -15,8 +15,7 @@
 
 package net.consensys.linea.zktracer.opcode;
 
-import static net.consensys.linea.zktracer.Trace.EVM_INST_PUSH0;
-import static net.consensys.linea.zktracer.Trace.EVM_INST_PUSH32;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
 
 import java.util.Objects;
@@ -71,12 +70,12 @@ public record OpCodeData(
   }
 
   /**
-   * A method singling out <code>PUSHx</code> instructions.
+   * A method singling out <code>PUSHx</code> with X != 0 instructions.
    *
    * @return <code>true</code> if this opcode is a <code>PUSHx</code>
    */
-  public boolean isPush() {
-    return (EVM_INST_PUSH0 <= value) && (value <= EVM_INST_PUSH32);
+  public boolean isPushX() {
+    return (EVM_INST_PUSH1 <= value) && (value <= EVM_INST_PUSH32);
   }
 
   public boolean isJumpDest() {

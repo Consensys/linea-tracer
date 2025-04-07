@@ -70,7 +70,7 @@ public class ToyExecutionEnvironmentV2 {
   private final ZkTracer tracer = new ZkTracer(CHAIN);
 
   public void run() {
-    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id);
+    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id, "shanghai");
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 
@@ -83,7 +83,7 @@ public class ToyExecutionEnvironmentV2 {
   }
 
   public long runForGasCost() {
-    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id);
+    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id, "shanghai");
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 

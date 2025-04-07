@@ -122,7 +122,7 @@ public class ExecutionEnvironment {
         .difficulty(Difficulty.of(LINEA_DIFFICULTY));
   }
 
-  public static ProtocolSpec getProtocolSpec(BigInteger chainId) {
+  public static ProtocolSpec getProtocolSpec(BigInteger chainId, String fork) {
     BadBlockManager badBlockManager = new BadBlockManager();
     final GenesisConfigOptions genesisConfigOptions = GENESIS_CONFIG.getConfigOptions();
 
@@ -139,16 +139,20 @@ public class ExecutionEnvironment {
             false,
             new NoOpMetricsSystem());
 
-    ProtocolSpecBuilder builder =
-        new MainnetProtocolSpecFactory(
-                Optional.of(chainId),
-                true,
-                OptionalLong.empty(),
-                EvmConfiguration.DEFAULT,
-                MiningConfiguration.MINING_DISABLED,
-                false,
-                new NoOpMetricsSystem())
-            .shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
+    final MainnetProtocolSpecFactory protocol = new MainnetProtocolSpecFactory(
+            Optional.of(chainId),
+            true,
+            OptionalLong.empty(),
+            EvmConfiguration.DEFAULT,
+            MiningConfiguration.MINING_DISABLED,
+            false,
+            new NoOpMetricsSystem());
+
+    final ProtocolSpecBuilder builder = switch (fork){
+      case "london" -> protocol.londonDefinition(GENESIS_CONFIG.getConfigOptions());
+      case "shanghai" -> protocol.shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
+        default -> throw new IllegalArgumentException("Unexpected fork value: " + fork);
+    };
 
     return builder
         .privacyParameters(PrivacyParameters.DEFAULT)

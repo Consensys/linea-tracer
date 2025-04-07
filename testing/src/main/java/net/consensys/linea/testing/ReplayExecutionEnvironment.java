@@ -195,7 +195,7 @@ public class ReplayExecutionEnvironment {
     MutableWorldState world = initWorld(conflation);
     // Construct the transaction processor
     final MainnetTransactionProcessor transactionProcessor =
-        ExecutionEnvironment.getProtocolSpec(chain.id).getTransactionProcessor();
+        ExecutionEnvironment.getProtocolSpec(chain.id, "london").getTransactionProcessor();
     // Begin
     tracer.traceStartConflation(conflation.blocks().size());
     //

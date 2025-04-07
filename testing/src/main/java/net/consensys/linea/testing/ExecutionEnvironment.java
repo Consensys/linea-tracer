@@ -139,7 +139,8 @@ public class ExecutionEnvironment {
             false,
             new NoOpMetricsSystem());
 
-    final MainnetProtocolSpecFactory protocol = new MainnetProtocolSpecFactory(
+    final MainnetProtocolSpecFactory protocol =
+        new MainnetProtocolSpecFactory(
             Optional.of(chainId),
             true,
             OptionalLong.empty(),
@@ -148,11 +149,12 @@ public class ExecutionEnvironment {
             false,
             new NoOpMetricsSystem());
 
-    final ProtocolSpecBuilder builder = switch (fork){
-      case "london" -> protocol.londonDefinition(GENESIS_CONFIG.getConfigOptions());
-      case "shanghai" -> protocol.shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
-        default -> throw new IllegalArgumentException("Unexpected fork value: " + fork);
-    };
+    final ProtocolSpecBuilder builder =
+        switch (fork) {
+          case "london" -> protocol.londonDefinition(GENESIS_CONFIG.getConfigOptions());
+          case "shanghai" -> protocol.shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
+          default -> throw new IllegalArgumentException("Unexpected fork value: " + fork);
+        };
 
     return builder
         .privacyParameters(PrivacyParameters.DEFAULT)

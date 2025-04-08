@@ -15,6 +15,7 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.zktracer.Fork.LONDON;
 import static net.consensys.linea.zktracer.Trace.LINEA_BASE_FEE;
 
 import java.util.*;
@@ -67,10 +68,10 @@ public class ToyExecutionEnvironmentV2 {
 
   @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
 
-  private final ZkTracer tracer = new ZkTracer(CHAIN);
+  private final ZkTracer tracer = new ZkTracer(CHAIN, LONDON);
 
   public void run() {
-    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id, "shanghai");
+    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id, LONDON);
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 
@@ -83,7 +84,7 @@ public class ToyExecutionEnvironmentV2 {
   }
 
   public long runForGasCost() {
-    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id, "shanghai");
+    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id, LONDON);
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 

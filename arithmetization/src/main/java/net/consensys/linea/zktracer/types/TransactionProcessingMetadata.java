@@ -42,7 +42,7 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public class TransactionProcessingMetadata {
+public abstract class TransactionProcessingMetadata {
 
   final int absoluteTransactionNumber;
   final int relativeTransactionNumber;

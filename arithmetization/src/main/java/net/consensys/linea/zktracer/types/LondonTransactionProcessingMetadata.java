@@ -13,16 +13,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.types;
 
-import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.hub.state.ShanghaiTransactionStack;
-import net.consensys.linea.zktracer.module.txndata.module.ShanghaiTxnData;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class ShanghaiHub extends LondonHub {
-  public ShanghaiHub(ChainConfig chain) {
-    super(chain);
-    txnData(new ShanghaiTxnData(this, wcp(), euc()));
-    txStack(new ShanghaiTransactionStack());
+public class LondonTransactionProcessingMetadata extends TransactionProcessingMetadata {
+
+  public LondonTransactionProcessingMetadata(
+      Hub hub,
+      WorldView world,
+      Transaction transaction,
+      int relativeTransactionNumber,
+      int absoluteTransactionNumber) {
+    super(hub, world, transaction, relativeTransactionNumber, absoluteTransactionNumber);
   }
 }

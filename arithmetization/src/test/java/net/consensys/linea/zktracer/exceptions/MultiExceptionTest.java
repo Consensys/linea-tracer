@@ -40,7 +40,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 public class MultiExceptionTest {
 
   @Test
-  void rdcxAndOogxReturnDataCopy() {
+  void rdcAndOogExceptionReturnDataCopy() {
     BytecodeCompiler programWithoutRdcx = BytecodeCompiler.newProgram();
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     BytecodeCompiler programRdcx = BytecodeCompiler.newProgram();
@@ -113,7 +113,7 @@ public class MultiExceptionTest {
    */
   @ParameterizedTest
   @ValueSource(ints = {5, 6})
-  void jumpxAndOogxJump(int jumpCounter) {
+  void jumpAndOogExceptionJump(int jumpCounter) {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push(jumpCounter) // pc: 0 - 5 i/o 4, Trigger Jump Exception
@@ -140,7 +140,7 @@ public class MultiExceptionTest {
    */
   @ParameterizedTest
   @ValueSource(ints = {6, 9})
-  void jumpixAndOogxJumpi(int jumpCounter) {
+  void jumpAndOogExceptionJumpi(int jumpCounter) {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push(1) // pc = 0, 1
@@ -167,7 +167,7 @@ public class MultiExceptionTest {
   }
 
   @Test
-  void staticAndOogxExceptionLog() {
+  void staticAndOogExceptionLog() {
     List<BytecodeCompiler> pgLogList = new ArrayList<>();
     Bytes address1 =
         Bytes.fromHexString("0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
@@ -252,5 +252,43 @@ public class MultiExceptionTest {
           STATIC_FAULT,
           bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
     }
+  }
+
+  // TODO: could merge with log
+  @Test
+  void staticAndOogExceptionSelfDestruct() {
+
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram();
+    calleeProgram.push(0).op(OpCode.SELFDESTRUCT);
+
+    final ToyAccount calleeAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(10)
+            .address(Address.fromHexString("ca11ee"))
+            .code(calleeProgram.compile())
+            .build();
+
+    BytecodeRunner bytecodeRunnerCallee = BytecodeRunner.of(calleeProgram.compile());
+    long gasCostTx = bytecodeRunnerCallee.runOnlyForGasCost();
+    int gasCostMinusOne = (int) gasCostTx - GAS_CONST_G_TRANSACTION - 1;
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    program
+        .push(0) // return at capacity
+        .push(0) // return at offset
+        .push(0) // call data size
+        .push(0) // call data offset
+        .push("ca11ee") // address
+        .push(gasCostMinusOne) // gas
+        .op(OpCode.STATICCALL);
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+
+    bytecodeRunner.run(List.of(calleeAccount));
+
+    assertEquals(
+        STATIC_FAULT,
+        bytecodeRunner.getHub().previousTraceSection(2).commonValues.tracedException());
   }
 }

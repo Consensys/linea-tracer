@@ -44,12 +44,11 @@ public class GenerateLineCountsV2 {
   private static final Cache<Long, Map<String, Integer>> CACHE =
       CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
 
+  private final Fork fork;
   private final RequestLimiter requestLimiter;
-
   private final ServiceManager besuContext;
   private TraceService traceService;
   private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
-  private final Fork fork;
 
   public String getNamespace() {
     return "linea";

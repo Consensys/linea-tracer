@@ -47,61 +47,29 @@ public class MultiExceptionTest {
 
   @Test
   void rdcAndOogExceptionsReturnDataCopy() {
-    BytecodeCompiler programWithoutRdcx = BytecodeCompiler.newProgram();
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
-    BytecodeCompiler programRdcx = BytecodeCompiler.newProgram();
-    BytecodeCompiler postRdcxrogram = BytecodeCompiler.newProgram();
 
-    final ToyAccount returnDataProviderAccount =
+    final ToyAccount codeProviderAccount =
         getAccountWithCode(
             Bytes.fromHexString(
                 "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"));
 
-    programWithoutRdcx
-        // 1. Execute static call
-        .push(0) // byte size of return data
-        .push(0) // retOffset
-        .push(0) // byte size calldata
-        .push(0) // argsOffset
-        .push("c0de") // Address of 'return data provider' account
-        .op(OpCode.GAS) // gas
-        .op(OpCode.STATICCALL)
-        // 2. Clean the stack
-        .op(OpCode.POP)
-        .op(OpCode.RETURNDATASIZE);
-
-    program.concatenate(programWithoutRdcx);
-
-    programRdcx
-        // 3. Trigger exceptional return data copy
-        .push(1)
-        .op(OpCode.ADD); // size = RDS + 1, which will trigger the `returnDataCopyException`
-
-    postRdcxrogram
-        .push(0) // offset
-        .push(65) // destoffset, trigger mem expansion
-        .op(OpCode.RETURNDATACOPY);
-
-    programWithoutRdcx.concatenate(postRdcxrogram);
+    // We calculate gas cost without triggering RDCX (programAddOne), else no gas cost is calculated
+    BytecodeCompiler programWithoutRdcx =
+        getProgramRDC(false, Bytes.ofUnsignedLong(65).trimLeadingZeros());
     BytecodeRunner bytecodeRunnerWithoutRdcx = BytecodeRunner.of(programWithoutRdcx.compile());
-
-    // We calculate gas cost without rdcx, else no gas cost is calculated
     long gasCostWithoutRdcx =
-        bytecodeRunnerWithoutRdcx.runOnlyForGasCost(List.of(returnDataProviderAccount));
+        bytecodeRunnerWithoutRdcx.runOnlyForGasCost(List.of(codeProviderAccount));
 
-    int cornerCase = -1;
-    long gasCostWithRdcx =
-        gasCostWithoutRdcx
-            + 3 // Push
-            + 3 // ADD
-            + cornerCase; // trigger oogx
+    // We compute the final gas cost with RDCX and OOGX trigger
+    int gasCostAddOne = 3 + 3; // Push + ADD
+    long gasCostWithRdcx = gasCostWithoutRdcx + gasCostAddOne - 1; // trigger OOGX
 
-    program.concatenate(programRdcx);
-    program.concatenate(postRdcxrogram);
+    // We run the program with RDCX trigger and gasCost for OOGX
+    BytecodeCompiler program = getProgramRDC(true, Bytes.ofUnsignedLong(65).trimLeadingZeros());
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(gasCostWithRdcx, List.of(returnDataProviderAccount));
+    bytecodeRunner.run(gasCostWithRdcx, List.of(codeProviderAccount));
 
-    // Rdcx check happens before Oogx in tracer
+    // RDCX check happens before OOGX in tracer
     assertEquals(
         RETURN_DATA_COPY_FAULT,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
@@ -109,35 +77,18 @@ public class MultiExceptionTest {
 
   @Test
   void rdcAndMxpExceptionsReturnDataCopy() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
-    final ToyAccount returnDataProviderAccount =
+    final ToyAccount codeProviderAccount =
         getAccountWithCode(
             Bytes.fromHexString(
                 "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"));
 
-    program
-        // 1. Execute static call
-        .push(0) // byte size of return data
-        .push(0) // retOffset
-        .push(0) // byte size calldata
-        .push(0) // argsOffset
-        .push("c0de") // Address of 'return data provider' account
-        .op(OpCode.GAS) // gas
-        .op(OpCode.STATICCALL)
-        // 2. Clean the stack
-        .op(OpCode.POP)
-        .op(OpCode.RETURNDATASIZE)
-        // 3. Trigger exceptional return data copy
-        .push(1)
-        .op(OpCode.ADD) // size = RDS + 1, which will trigger the `returnDataCopyException`
-        .push(0) // offset
-        .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // destoffset, trigger mem expansion
-        .op(OpCode.RETURNDATACOPY);
+    // We prepare a program with RDCX and MXPX using the following offset
+    BytecodeCompiler program = getProgramRDC(true, Bytes.fromHexStringLenient("0xFFFFFFFF"));
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(List.of(returnDataProviderAccount));
+    bytecodeRunner.run(List.of(codeProviderAccount));
 
-    // Rdcx check happens before Oogx in tracer
+    // RDCX check happens before OOGX in tracer
     assertEquals(
         RETURN_DATA_COPY_FAULT,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
@@ -166,6 +117,7 @@ public class MultiExceptionTest {
 
     bytecodeRunner.run(gasCost);
 
+    // JUMPX check happens before OOGX in tracer
     assertEquals(
         JUMP_FAULT, bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
@@ -190,21 +142,20 @@ public class MultiExceptionTest {
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
 
-    long gasCost;
     // JUMPI needs JUMPDEST to jump to
     // Calculate the gas cost to trigger OOGX on JUMPI and not on the last but one opcode
-    gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH;
+    long gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH;
 
     bytecodeRunner.run(gasCost);
 
-    // Jumpx check happens before Oogx in tracer
+    // JUMPX check happens before OOGX in tracer
     assertEquals(
         JUMP_FAULT, bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 
   @Test
   void staticAndOogExceptions() {
-    List<BytecodeCompiler> pgLogList = new ArrayList<>();
+    List<BytecodeCompiler> pgList = new ArrayList<>();
     Bytes address1 =
         Bytes.fromHexString("0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
     Bytes address2 =
@@ -215,7 +166,7 @@ public class MultiExceptionTest {
         Bytes.fromHexString("0x4FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 
     Collections.addAll(
-        pgLogList,
+        pgList,
         BytecodeCompiler.newProgram()
             .push(32) // size
             .push(1) //  offset
@@ -252,34 +203,54 @@ public class MultiExceptionTest {
             .op(OpCode.SSTORE),
         BytecodeCompiler.newProgram().push(0).op(OpCode.SELFDESTRUCT));
 
-    for (BytecodeCompiler pgLog : pgLogList) {
+    for (BytecodeCompiler pg : pgList) {
 
-      Bytes pgLogCompile = pgLog.compile();
-      ToyAccount LogProviderAccount = getAccountWithCode(pgLogCompile);
+      Bytes pgCompile = pg.compile();
 
-      BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgLogCompile);
+      // We calculate gas cost to trigger OOGX
+      BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
       long gasCostTx = bytecodeRunner.runOnlyForGasCost();
       int gasCostMinusOne = (int) gasCostTx - GAS_CONST_G_TRANSACTION - 1;
 
+      // We prepare a program with a static call to code account
+      ToyAccount codeProviderAccount = getAccountWithCode(pgCompile);
       BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount(gasCostMinusOne);
 
-      // Run with linea block gas limit
-      Bytes pgStaticCallCompile = pgStaticCallToCode.compile();
-      BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallCompile);
-      bytecodeRunnerStaticCall.run(List.of(LogProviderAccount));
+      // Run with linea block gas limit so gas cost is passed to child without 63/64
+      BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
+      bytecodeRunnerStaticCall.run(List.of(codeProviderAccount));
 
-      // Static check happens before Oogx in tracer
+      // Static check happens before OOGX in tracer
       assertEquals(
           STATIC_FAULT,
           bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
     }
   }
 
-  @Test
-  public void staticAndMxpExceptions() {
+  @ParameterizedTest
+  @MethodSource("opCodesForStaticAndMxpExceptionList")
+  public void staticAndMxpExceptions(OpCode opCode) {
     // TODO : to check
     boolean triggerRoob = false;
-    List<OpCode> opCodesList =
+
+    BytecodeCompiler pg = BytecodeCompiler.newProgram();
+    new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, triggerRoob, opCode);
+
+    ToyAccount codeProviderAccount = getAccountWithCode(pg.compile());
+    BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount();
+
+    // Run with linea block gas limit
+    BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
+    bytecodeRunnerStaticCall.run(List.of(codeProviderAccount));
+
+    // Static check happens before mxp exception
+    assertEquals(
+        STATIC_FAULT,
+        bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+  }
+
+  static Stream<OpCode> opCodesForStaticAndMxpExceptionList() {
+    List<OpCode> opCodesListArgument =
         Arrays.asList(
             OpCode.LOG0,
             OpCode.LOG1,
@@ -288,26 +259,7 @@ public class MultiExceptionTest {
             OpCode.CREATE,
             OpCode.CREATE2,
             OpCode.CALL);
-
-    for (OpCode opCode : opCodesList) {
-      BytecodeCompiler pg = BytecodeCompiler.newProgram();
-      new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, triggerRoob, opCode);
-      Bytes pgCompile = pg.compile();
-
-      ToyAccount LogProviderAccount = getAccountWithCode(pgCompile);
-
-      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount();
-
-      // Run with linea block gas limit
-      Bytes pgStaticCallCompile = pgStaticCallToCode.compile();
-      BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallCompile);
-      bytecodeRunnerStaticCall.run(List.of(LogProviderAccount));
-
-      // Static check happens before mxp exception
-      assertEquals(
-          STATIC_FAULT,
-          bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
-    }
+    return opCodesListArgument.stream();
   }
 
   @Test
@@ -340,43 +292,36 @@ public class MultiExceptionTest {
    */
   void staticAndOogExceptionCreateAndCreate2(int cornerCase) {
     List<BytecodeCompiler> pgList = new ArrayList<>();
+    Bytes initCodePart1 =
+        Bytes.fromHexString("0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+    Bytes initCodePart2 =
+        Bytes.fromHexString("0xFF60005260206000F30000000000000000000000000000000000000000000000");
+    Bytes salt =
+        Bytes.fromHexString("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef");
+
+    BytecodeCompiler pushInitCodeToMemory =
+        BytecodeCompiler.newProgram()
+            .push(initCodePart1) // value
+            .push(0) // offset
+            .op(OpCode.MSTORE)
+            .push(initCodePart2) // value
+            .push(32) // offset
+            .op(OpCode.MSTORE);
 
     Collections.addAll(
         pgList,
-        BytecodeCompiler.newProgram()
-            // constructor
-            .push(
-                Bytes.fromHexString(
-                    "0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
-            .push(0) // offset
-            .op(OpCode.MSTORE)
-            .push(
-                Bytes.fromHexString(
-                    "0xFF60005260206000F30000000000000000000000000000000000000000000000")) // value
-            .push(32) // offset
-            .op(OpCode.MSTORE)
+        pushInitCodeToMemory
+            .copy()
             // Create the contract
             .push(41)
             .push(0)
             .push(0)
             .op(OpCode.CREATE), // No constructor so code executed and runtime code set to return
         // value
-        BytecodeCompiler.newProgram()
-            // constructor
-            .push(
-                Bytes.fromHexString(
-                    "0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
-            .push(0) // offset
-            .op(OpCode.MSTORE)
-            .push(
-                Bytes.fromHexString(
-                    "0xFF60005260206000F30000000000000000000000000000000000000000000000")) // value
-            .push(32) // offset
-            .op(OpCode.MSTORE)
+        pushInitCodeToMemory
+            .copy()
             // Create the contract
-            .push(
-                Bytes.fromHexString(
-                    "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")) // salt
+            .push(salt) // salt
             .push(41)
             .push(0)
             .push(0)
@@ -471,6 +416,10 @@ public class MultiExceptionTest {
     return arguments.stream();
   }
 
+  /* ***************** */
+  /*  Helpers section  */
+  /* ***************** */
+
   static ToyAccount getAccountWithCode(Bytes code) {
     return ToyAccount.builder()
         .balance(Wei.fromEth(1))
@@ -500,5 +449,25 @@ public class MultiExceptionTest {
         .push("c0de") // Address of account
         .op(OpCode.GAS) // gas
         .op(OpCode.STATICCALL);
+  }
+
+  static BytecodeCompiler getProgramRDC(boolean withRDCX, Bytes offsetRDC) {
+    // 1. Execute static call
+    BytecodeCompiler programStartWithStaticCall = getPgStaticCallToCodeAccount();
+    // 2. Clean the stack
+    programStartWithStaticCall.op(OpCode.POP).op(OpCode.RETURNDATASIZE);
+    // if withRDCX is true, we add the code to trigger the exception
+    // 3. Trigger exceptional return data copy
+    if (withRDCX) {
+      programStartWithStaticCall
+          .push(1)
+          .op(OpCode.ADD); // size = RDS + 1, which will trigger the `returnDataCopyException`
+    }
+    programStartWithStaticCall
+        .push(0) // offset
+        .push(offsetRDC) // destoffset, trigger mem expansion
+        .op(OpCode.RETURNDATACOPY);
+    // Bytes.fromHexStringLenient("0xFFFFFFFF")
+    return programStartWithStaticCall;
   }
 }

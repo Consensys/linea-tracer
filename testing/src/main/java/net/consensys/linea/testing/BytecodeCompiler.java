@@ -301,11 +301,27 @@ public class BytecodeCompiler {
   }
 
   /**
-   * Concatenates a BytecodeCompiler to the current one.
+   * Copies a BytecodeCompiler.
    *
-   * @param bytecode the BytecodeCompiler to add to the current one.
+   * @return a copy of the BytecodeCompiler
    */
-  public void concatenate(BytecodeCompiler bytecode) {
-    this.byteCode.addAll(bytecode.byteCode);
+  public BytecodeCompiler copy() {
+    BytecodeCompiler copy = new BytecodeCompiler();
+    copy.byteCode.addAll(this.byteCode);
+    return copy;
+  }
+
+  /**
+   * Concatenates a BytecodeCompiler list together.
+   *
+   * @param bytecodeList the list of BytecodeCompiler to concatenate.
+   * @return the concatenated BytecodeCompiler
+   */
+  public static BytecodeCompiler concatenate(List<BytecodeCompiler> bytecodeList) {
+    BytecodeCompiler concatenatedBytecode = new BytecodeCompiler();
+    for (BytecodeCompiler bytecode : bytecodeList) {
+      concatenatedBytecode.byteCode.addAll(bytecode.byteCode);
+    }
+    return concatenatedBytecode;
   }
 }

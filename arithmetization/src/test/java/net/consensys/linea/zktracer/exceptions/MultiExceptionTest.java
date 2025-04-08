@@ -19,6 +19,8 @@ import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import net.consensys.linea.UnitTestWatcher;
@@ -165,50 +167,90 @@ public class MultiExceptionTest {
   }
 
   @Test
-  void staticAndOogxExceptionLog0() {
-    BytecodeCompiler programLog0 = BytecodeCompiler.newProgram();
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+  void staticAndOogxExceptionLog() {
+    List<BytecodeCompiler> pgLogList = new ArrayList<>();
+    Bytes address1 =
+        Bytes.fromHexString("0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+    Bytes address2 =
+        Bytes.fromHexString("0x2FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+    Bytes address3 =
+        Bytes.fromHexString("0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+    Bytes address4 =
+        Bytes.fromHexString("0x4FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
 
-    programLog0
-        .push(0) // size
-        .push(0) //  offset
-        .op(OpCode.LOG0);
+    Collections.addAll(
+        pgLogList,
+        BytecodeCompiler.newProgram()
+            .push(32) // size
+            .push(1) //  offset
+            .op(OpCode.LOG0),
+        BytecodeCompiler.newProgram()
+            .push(address1) // Topic 1
+            .push(32) // size
+            .push(1) // offset to trigger mem expansion
+            .op(OpCode.LOG1),
+        BytecodeCompiler.newProgram()
+            .push(address2) // Topic 2
+            .push(address1) // Topic 1
+            .push(32) // size
+            .push(1) // offset to trigger mem expansion
+            .op(OpCode.LOG2),
+        BytecodeCompiler.newProgram()
+            .push(address3) // Topic 3
+            .push(address2) // Topic 2
+            .push(address1) // Topic 1
+            .push(32) // size
+            .push(1) // offset to trigger mem expansion
+            .op(OpCode.LOG3),
+        BytecodeCompiler.newProgram()
+            .push(address4) // Topic 4
+            .push(address3) // Topic 3
+            .push(address2) // Topic 2
+            .push(address1) // Topic 1
+            .push(32) // size
+            .push(1) // offset to trigger mem expansion
+            .op(OpCode.LOG4));
 
-    final ToyAccount Log0ProviderAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(1))
-            .nonce(10)
-            .address(Address.fromHexString("c0de"))
-            // Constructor that returns 32 FF
-            .code(programLog0.compile())
-            .build();
+    for (BytecodeCompiler pgLog : pgLogList) {
 
-    BytecodeRunner bytecodeRunnerLog = BytecodeRunner.of(programLog0.compile());
-    long gasCostTx = bytecodeRunnerLog.runOnlyForGasCost();
-    int gasCostLogPgMinusOne = (int) gasCostTx - GAS_CONST_G_TRANSACTION - 1;
+      Bytes pgLogCompile = pgLog.compile();
 
-    program
-        // 1. Execute static call
-        .push(0) // byte size of return data
-        .push(0) // retOffset
-        .push(0) // byte size calldata
-        .push(0) // argsOffset
-        .push("c0de") // Address of 'return data provider' account
-        .push(gasCostLogPgMinusOne) // gas
-        .op(OpCode.STATICCALL);
+      ToyAccount LogProviderAccount =
+          ToyAccount.builder()
+              .balance(Wei.fromEth(1))
+              .nonce(10)
+              .address(Address.fromHexString("c0de"))
+              // Constructor that returns 32 FF
+              .code(pgLogCompile)
+              .build();
 
-    /*    long gasCost =
-    3 * 4 + 3 + 2 + 2600 + 3 + 3 + 375 + 21000
-            + 6; // 1/64 of 386 gas cost left when we enter child frame*/
+      BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgLogCompile);
+      long gasCostTx = bytecodeRunner.runOnlyForGasCost();
+      int gasCostMinusOne = (int) gasCostTx - GAS_CONST_G_TRANSACTION - 1;
 
-    Bytes pgCompile = program.compile();
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
-    // Run with linea block gas limit
-    bytecodeRunner.run(List.of(Log0ProviderAccount));
+      BytecodeCompiler pgStaticCallToCode =
+          BytecodeCompiler.newProgram()
+              .push(0) // byte size of return data
+              .push(0) // retOffset
+              .push(0) // byte size calldata
+              .push(0) // argsOffset
+              .push("c0de") // Address of account
+              .push(gasCostMinusOne) // gas
+              .op(OpCode.STATICCALL);
 
-    // Static check happens before Oogx in Besu
-    assertEquals(
-        STATIC_FAULT,
-        bytecodeRunner.getHub().previousTraceSection(2).commonValues.tracedException());
+      /*    long gasCost =
+      3 * 4 + 3 + 2 + 2600 + 3 + 3 + 375 + 21000
+              + 6; // 1/64 of 386 gas cost left when we enter child frame*/
+
+      // Run with linea block gas limit
+      Bytes pgStaticCallCompile = pgStaticCallToCode.compile();
+      BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallCompile);
+      bytecodeRunnerStaticCall.run(List.of(LogProviderAccount));
+
+      // Static check happens before Oogx in Besu
+      assertEquals(
+          STATIC_FAULT,
+          bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+    }
   }
 }

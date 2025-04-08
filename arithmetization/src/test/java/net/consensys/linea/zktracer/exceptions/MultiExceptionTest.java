@@ -53,15 +53,9 @@ public class MultiExceptionTest {
     BytecodeCompiler postRdcxrogram = BytecodeCompiler.newProgram();
 
     final ToyAccount returnDataProviderAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(1))
-            .nonce(10)
-            .address(Address.fromHexString("c0de"))
-            // Constructor that returns 32 FF
-            .code(
-                Bytes.fromHexString(
-                    "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"))
-            .build();
+        getAccountWithCode(
+            Bytes.fromHexString(
+                "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"));
 
     programWithoutRdcx
         // 1. Execute static call
@@ -117,15 +111,9 @@ public class MultiExceptionTest {
   void rdcAndMxpExceptionsReturnDataCopy() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     final ToyAccount returnDataProviderAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(1))
-            .nonce(10)
-            .address(Address.fromHexString("c0de"))
-            // Constructor that returns 32 FF
-            .code(
-                Bytes.fromHexString(
-                    "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"))
-            .build();
+        getAccountWithCode(
+            Bytes.fromHexString(
+                "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"));
 
     program
         // 1. Execute static call
@@ -267,33 +255,13 @@ public class MultiExceptionTest {
     for (BytecodeCompiler pgLog : pgLogList) {
 
       Bytes pgLogCompile = pgLog.compile();
-
-      ToyAccount LogProviderAccount =
-          ToyAccount.builder()
-              .balance(Wei.fromEth(1))
-              .nonce(10)
-              .address(Address.fromHexString("c0de"))
-              // Constructor that returns 32 FF
-              .code(pgLogCompile)
-              .build();
+      ToyAccount LogProviderAccount = getAccountWithCode(pgLogCompile);
 
       BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgLogCompile);
       long gasCostTx = bytecodeRunner.runOnlyForGasCost();
       int gasCostMinusOne = (int) gasCostTx - GAS_CONST_G_TRANSACTION - 1;
 
-      BytecodeCompiler pgStaticCallToCode =
-          BytecodeCompiler.newProgram()
-              .push(0) // byte size of return data
-              .push(0) // retOffset
-              .push(0) // byte size calldata
-              .push(0) // argsOffset
-              .push("c0de") // Address of account
-              .push(gasCostMinusOne) // gas
-              .op(OpCode.STATICCALL);
-
-      /*    long gasCost =
-      3 * 4 + 3 + 2 + 2600 + 3 + 3 + 375 + 21000
-              + 6; // 1/64 of 386 gas cost left when we enter child frame*/
+      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount(gasCostMinusOne);
 
       // Run with linea block gas limit
       Bytes pgStaticCallCompile = pgStaticCallToCode.compile();
@@ -324,24 +292,11 @@ public class MultiExceptionTest {
     for (OpCode opCode : opCodesList) {
       BytecodeCompiler pg = BytecodeCompiler.newProgram();
       new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, triggerRoob, opCode);
+      Bytes pgCompile = pg.compile();
 
-      ToyAccount LogProviderAccount =
-          ToyAccount.builder()
-              .balance(Wei.fromEth(1))
-              .nonce(10)
-              .address(Address.fromHexString("c0de"))
-              .code(pg.compile())
-              .build();
+      ToyAccount LogProviderAccount = getAccountWithCode(pgCompile);
 
-      BytecodeCompiler pgStaticCallToCode =
-          BytecodeCompiler.newProgram()
-              .push(0) // byte size of return data
-              .push(0) // retOffset
-              .push(0) // byte size calldata
-              .push(0) // argsOffset
-              .push("c0de") // Address of account
-              .op(OpCode.GAS) // gas
-              .op(OpCode.STATICCALL);
+      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount();
 
       // Run with linea block gas limit
       Bytes pgStaticCallCompile = pgStaticCallToCode.compile();
@@ -364,23 +319,9 @@ public class MultiExceptionTest {
     int gasCostToTriggerOutOfSStore = 3 + 3 + GAS_CONST_G_CALL_STIPEND - 1;
     // 21000L is the intrinsic gas cost of a transaction and 3L is the gas cost of PUSH1
 
-    ToyAccount SStoreProviderAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(1))
-            .nonce(10)
-            .address(Address.fromHexString("c0de"))
-            .code(pgCompile)
-            .build();
+    ToyAccount SStoreProviderAccount = getAccountWithCode(pgCompile);
 
-    BytecodeCompiler pgStaticCallToCode =
-        BytecodeCompiler.newProgram()
-            .push(0) // byte size of return data
-            .push(0) // retOffset
-            .push(0) // byte size calldata
-            .push(0) // argsOffset
-            .push("c0de") // Address of account
-            .push(gasCostToTriggerOutOfSStore) // gas
-            .op(OpCode.STATICCALL);
+    BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount(gasCostToTriggerOutOfSStore);
 
     BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
     bytecodeRunnerStaticCall.run(List.of(SStoreProviderAccount));
@@ -449,23 +390,9 @@ public class MultiExceptionTest {
       long gasCost = bytecodeRunner.runOnlyForGasCost();
       int gasCostPlusCornerCase = (int) gasCost + cornerCase - GAS_CONST_G_TRANSACTION;
 
-      ToyAccount CreateProviderAccount =
-          ToyAccount.builder()
-              .balance(Wei.fromEth(1))
-              .nonce(10)
-              .address(Address.fromHexString("c0de"))
-              .code(pgCompile)
-              .build();
+      ToyAccount CreateProviderAccount = getAccountWithCode(pgCompile);
 
-      BytecodeCompiler pgStaticCallToCode =
-          BytecodeCompiler.newProgram()
-              .push(0) // byte size of return data
-              .push(0) // retOffset
-              .push(0) // byte size calldata
-              .push(0) // argsOffset
-              .push("c0de") // Address of account
-              .push(gasCostPlusCornerCase) // gas
-              .op(OpCode.STATICCALL);
+      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount(gasCostPlusCornerCase);
 
       BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
       bytecodeRunnerStaticCall.run(List.of(CreateProviderAccount));
@@ -509,13 +436,7 @@ public class MultiExceptionTest {
     long gasCost;
     BytecodeRunner bytecodeRunnerStaticCall;
 
-    ToyAccount CallProviderAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(1))
-            .nonce(10)
-            .address(Address.fromHexString("c0de"))
-            .code(pgCompile)
-            .build();
+    ToyAccount CallProviderAccount = getAccountWithCode(pgCompile);
 
     if (targetAddressExists) {
       final ToyAccount calleeAccount =
@@ -526,29 +447,13 @@ public class MultiExceptionTest {
               .build();
       gasCost = bytecodeRunner.runOnlyForGasCost(List.of(calleeAccount));
       int gasCostPlusCornerCase = (int) gasCost + cornerCase;
-      BytecodeCompiler pgStaticCallToCode =
-          BytecodeCompiler.newProgram()
-              .push(0) // byte size of return data
-              .push(0) // retOffset
-              .push(0) // byte size calldata
-              .push(0) // argsOffset
-              .push("c0de") // Address of account
-              .push(gasCostPlusCornerCase) // gas
-              .op(OpCode.STATICCALL);
+      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount(gasCostPlusCornerCase);
       bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
       bytecodeRunnerStaticCall.run(List.of(calleeAccount, CallProviderAccount));
     } else {
       gasCost = bytecodeRunner.runOnlyForGasCost();
       int gasCostPlusCornerCase = (int) gasCost + cornerCase - GAS_CONST_G_TRANSACTION;
-      BytecodeCompiler pgStaticCallToCode =
-          BytecodeCompiler.newProgram()
-              .push(0) // byte size of return data
-              .push(0) // retOffset
-              .push(0) // byte size calldata
-              .push(0) // argsOffset
-              .push("c0de") // Address of account
-              .push(gasCostPlusCornerCase) // gas
-              .op(OpCode.STATICCALL);
+      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount(gasCostPlusCornerCase);
       bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
       bytecodeRunnerStaticCall.run(gasCost + cornerCase, List.of(CallProviderAccount));
     }
@@ -564,5 +469,36 @@ public class MultiExceptionTest {
     arguments.add(Arguments.of(true, false));
     arguments.add(Arguments.of(false, false));
     return arguments.stream();
+  }
+
+  static ToyAccount getAccountWithCode(Bytes code) {
+    return ToyAccount.builder()
+        .balance(Wei.fromEth(1))
+        .nonce(10)
+        .address(Address.fromHexString("c0de"))
+        .code(code)
+        .build();
+  }
+
+  static BytecodeCompiler getPgStaticCallToCodeAccount(int gas) {
+    return BytecodeCompiler.newProgram()
+        .push(0) // byte size of return data
+        .push(0) // retOffset
+        .push(0) // byte size calldata
+        .push(0) // argsOffset
+        .push("c0de") // Address of account
+        .push(gas) // gas
+        .op(OpCode.STATICCALL);
+  }
+
+  static BytecodeCompiler getPgStaticCallToCodeAccount() {
+    return BytecodeCompiler.newProgram()
+        .push(0) // byte size of return data
+        .push(0) // retOffset
+        .push(0) // byte size calldata
+        .push(0) // argsOffset
+        .push("c0de") // Address of account
+        .op(OpCode.GAS) // gas
+        .op(OpCode.STATICCALL);
   }
 }

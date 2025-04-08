@@ -75,8 +75,8 @@ public class ZkTracer implements ConflationAwareOperationTracer {
    * @param chainId Identifies the chain being traced.
    */
   public ZkTracer(
-      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId, Fork fork) {
-    this(LINEA_CHAIN(bridgeConfiguration, chainId), fork);
+      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
+    this(LINEA_CHAIN(bridgeConfiguration, chainId));
   }
 
   /**
@@ -85,10 +85,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
    *
    * @param chain
    */
-  public ZkTracer(ChainConfig chain, Fork fork) {
+  public ZkTracer(ChainConfig chain) {
     this.chain = chain;
     this.hub =
-        switch (fork) {
+        switch (chain.fork) {
           case LONDON -> new LondonHub(chain);
           case SHANGHAI -> new ShanghaiHub(chain);
           case CANCUN -> null;
@@ -97,16 +97,6 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
-  }
-
-  public ZkTracer(ChainConfig chain) {
-    // TODO: remove this constructor, need to update the RPC calls that must gives the fork
-    throw new IllegalArgumentException();
-  }
-
-  public ZkTracer(LineaL1L2BridgeSharedConfiguration config, BigInteger chainId) {
-    // TODO: remove this constructor, need to update the RPC calls that must gives the fork
-    throw new IllegalArgumentException();
   }
 
   public void writeToFile(final Path filename, long startBlock, long endBlock) {

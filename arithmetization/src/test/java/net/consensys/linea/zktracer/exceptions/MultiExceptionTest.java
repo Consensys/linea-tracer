@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -27,6 +28,7 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.zktracer.module.mxp.MxpTestUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -101,7 +103,7 @@ public class MultiExceptionTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(gasCostWithRdcx, List.of(returnDataProviderAccount));
 
-    // Rdcx check happens before Oogx in Besu
+    // Rdcx check happens before Oogx in tracer
     assertEquals(
         RETURN_DATA_COPY_FAULT,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
@@ -161,7 +163,7 @@ public class MultiExceptionTest {
 
     bytecodeRunner.run(gasCost);
 
-    // Jumpx check happens before Oogx in Besu
+    // Jumpx check happens before Oogx in tracer
     assertEquals(
         JUMP_FAULT, bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
@@ -247,7 +249,55 @@ public class MultiExceptionTest {
       BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallCompile);
       bytecodeRunnerStaticCall.run(List.of(LogProviderAccount));
 
-      // Static check happens before Oogx in Besu
+      // Static check happens before Oogx in tracer
+      assertEquals(
+          STATIC_FAULT,
+          bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+    }
+  }
+
+  @Test
+  public void staticAndMxpExceptionLog0() {
+    // TODO : to check
+    boolean triggerRoob = false;
+    List<OpCode> opCodesList =
+        Arrays.asList(
+            OpCode.LOG0,
+            OpCode.LOG1,
+            OpCode.LOG2,
+            OpCode.LOG4,
+            OpCode.CREATE,
+            OpCode.CREATE2,
+            OpCode.CALL);
+
+    for (OpCode opCode : opCodesList) {
+      BytecodeCompiler pg = BytecodeCompiler.newProgram();
+      new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, triggerRoob, opCode);
+
+      ToyAccount LogProviderAccount =
+          ToyAccount.builder()
+              .balance(Wei.fromEth(1))
+              .nonce(10)
+              .address(Address.fromHexString("c0de"))
+              .code(pg.compile())
+              .build();
+
+      BytecodeCompiler pgStaticCallToCode =
+          BytecodeCompiler.newProgram()
+              .push(0) // byte size of return data
+              .push(0) // retOffset
+              .push(0) // byte size calldata
+              .push(0) // argsOffset
+              .push("c0de") // Address of account
+              .op(OpCode.GAS) // gas
+              .op(OpCode.STATICCALL);
+
+      // Run with linea block gas limit
+      Bytes pgStaticCallCompile = pgStaticCallToCode.compile();
+      BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallCompile);
+      bytecodeRunnerStaticCall.run(List.of(LogProviderAccount));
+
+      // Static check happens before mxp exception
       assertEquals(
           STATIC_FAULT,
           bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());

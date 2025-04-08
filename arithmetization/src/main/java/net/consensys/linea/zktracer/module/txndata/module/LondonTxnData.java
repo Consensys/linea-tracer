@@ -29,13 +29,5 @@ public class LondonTxnData extends TxnData {
   @Override
   public void traceEndTx(TransactionProcessingMetadata tx) {
     operations().add(new LondonTxndataOperation(wcp(), euc(), tx));
-
-    boolean stop = true;
-
-    int size = 0;
-
-    if (stop) {
-      size = operations().size();
-    }
   }
 }

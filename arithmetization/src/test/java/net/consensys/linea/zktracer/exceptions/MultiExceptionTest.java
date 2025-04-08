@@ -324,7 +324,6 @@ public class MultiExceptionTest {
             .balance(Wei.fromEth(1))
             .nonce(10)
             .address(Address.fromHexString("c0de"))
-            // Constructor that returns 32 FF
             .code(pgCompile)
             .build();
 
@@ -344,5 +343,92 @@ public class MultiExceptionTest {
     assertEquals(
         STATIC_FAULT,
         bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {-6419, 100})
+  /*
+  Deployment code: "0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF60005260206000F3"
+  1. OOGX for CREATE before deployment: remove 6400 (depositFee) + deployment code exec cost (18)
+  2. OOGX for CREATE after deployment: enough gas for child creation, but not enough to complete deployment code or deposit
+   */
+  void staticAndOogExceptionCreateAndCreate2(int cornerCase) {
+    List<BytecodeCompiler> pgList = new ArrayList<>();
+
+    Collections.addAll(
+        pgList,
+        BytecodeCompiler.newProgram()
+            // constructor
+            .push(
+                Bytes.fromHexString(
+                    "0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
+            .push(0) // offset
+            .op(OpCode.MSTORE)
+            .push(
+                Bytes.fromHexString(
+                    "0xFF60005260206000F30000000000000000000000000000000000000000000000")) // value
+            .push(32) // offset
+            .op(OpCode.MSTORE)
+            // Create the contract
+            .push(41)
+            .push(0)
+            .push(0)
+            .op(OpCode.CREATE), // No constructor so code executed and runtime code set to return
+        // value
+        BytecodeCompiler.newProgram()
+            // constructor
+            .push(
+                Bytes.fromHexString(
+                    "0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
+            .push(0) // offset
+            .op(OpCode.MSTORE)
+            .push(
+                Bytes.fromHexString(
+                    "0xFF60005260206000F30000000000000000000000000000000000000000000000")) // value
+            .push(32) // offset
+            .op(OpCode.MSTORE)
+            // Create the contract
+            .push(
+                Bytes.fromHexString(
+                    "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef")) // salt
+            .push(41)
+            .push(0)
+            .push(0)
+            .op(OpCode.CREATE2)); // No constructor so code executed and runtime code set to return
+    // value
+
+    for (BytecodeCompiler pg : pgList) {
+      Bytes pgCompile = pg.compile();
+      BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+
+      long gasCost = bytecodeRunner.runOnlyForGasCost();
+      int gasCostPlusCornerCase = (int) gasCost + cornerCase - GAS_CONST_G_TRANSACTION;
+
+      ToyAccount CreateProviderAccount =
+          ToyAccount.builder()
+              .balance(Wei.fromEth(1))
+              .nonce(10)
+              .address(Address.fromHexString("c0de"))
+              .code(pgCompile)
+              .build();
+
+      BytecodeCompiler pgStaticCallToCode =
+          BytecodeCompiler.newProgram()
+              .push(0) // byte size of return data
+              .push(0) // retOffset
+              .push(0) // byte size calldata
+              .push(0) // argsOffset
+              .push("c0de") // Address of account
+              .push(gasCostPlusCornerCase) // gas
+              .op(OpCode.STATICCALL);
+
+      BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
+      bytecodeRunnerStaticCall.run(List.of(CreateProviderAccount));
+
+      // Static check happens before Oog exception
+      assertEquals(
+          STATIC_FAULT,
+          bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+    }
   }
 }

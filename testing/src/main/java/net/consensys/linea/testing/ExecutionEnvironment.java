@@ -26,6 +26,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.config.GenesisConfig;
@@ -122,7 +123,7 @@ public class ExecutionEnvironment {
         .difficulty(Difficulty.of(LINEA_DIFFICULTY));
   }
 
-  public static ProtocolSpec getProtocolSpec(BigInteger chainId, String fork) {
+  public static ProtocolSpec getProtocolSpec(BigInteger chainId, Fork fork) {
     BadBlockManager badBlockManager = new BadBlockManager();
     final GenesisConfigOptions genesisConfigOptions = GENESIS_CONFIG.getConfigOptions();
 
@@ -151,8 +152,8 @@ public class ExecutionEnvironment {
 
     final ProtocolSpecBuilder builder =
         switch (fork) {
-          case "london" -> protocol.londonDefinition(GENESIS_CONFIG.getConfigOptions());
-          case "shanghai" -> protocol.shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
+          case LONDON -> protocol.londonDefinition(GENESIS_CONFIG.getConfigOptions());
+          case SHANGHAI -> protocol.shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
           default -> throw new IllegalArgumentException("Unexpected fork value: " + fork);
         };
 

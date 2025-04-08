@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ChainConfig;
@@ -106,7 +107,8 @@ import net.consensys.linea.zktracer.module.tables.bin.BinRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
-import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
+import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -135,7 +137,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 @Accessors(fluent = true)
-public class Hub implements Module {
+public abstract class Hub implements Module {
 
   public static final GasProjector GAS_PROJECTOR = new GasProjector();
 
@@ -198,7 +200,7 @@ public class Hub implements Module {
   private final Add add = new Add();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
-  private final Euc euc = new Euc(wcp);
+  @Getter private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   @Getter private final Gas gas = new Gas(wcp);
   private final Mul mul = new Mul(this);
@@ -213,7 +215,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  @Getter private final TxnData txnData = new TxnData(this, wcp, euc);
+  @Getter @Setter private TxnData txnData = new LondonTxnData(this, wcp, euc);
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);

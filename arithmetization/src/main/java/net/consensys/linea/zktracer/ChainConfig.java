@@ -141,10 +141,21 @@ public class ChainConfig {
    * @param chainId
    * @return
    */
-  public static ChainConfig LINEA_CHAIN(
+  public static ChainConfig LONDON_LINEA_CHAIN(
       LineaL1L2BridgeSharedConfiguration bridgeConfig, BigInteger chainId) {
     return new ChainConfig(
         LONDON,
+        chainId,
+        true,
+        BigInteger.valueOf(LINEA_GAS_LIMIT_MINIMUM),
+        BigInteger.valueOf(LINEA_GAS_LIMIT_MAXIMUM),
+        bridgeConfig);
+  }
+
+  public static ChainConfig FORK_LINEA_CHAIN(
+      Fork fork, LineaL1L2BridgeSharedConfiguration bridgeConfig, BigInteger chainId) {
+    return new ChainConfig(
+        fork,
         chainId,
         true,
         BigInteger.valueOf(LINEA_GAS_LIMIT_MINIMUM),

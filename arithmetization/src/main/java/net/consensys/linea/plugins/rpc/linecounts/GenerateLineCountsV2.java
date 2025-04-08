@@ -27,6 +27,7 @@ import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.Validator;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.ServiceManager;
@@ -48,6 +49,7 @@ public class GenerateLineCountsV2 {
   private final ServiceManager besuContext;
   private TraceService traceService;
   private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
+  private final Fork fork;
 
   public String getNamespace() {
     return "linea";
@@ -99,6 +101,7 @@ public class GenerateLineCountsV2 {
                     blockNumber -> {
                       final ZkTracer tracer =
                           new ZkTracer(
+                              fork,
                               l1L2BridgeSharedConfiguration,
                               BesuServiceProvider.getBesuService(
                                       besuContext, BlockchainService.class)

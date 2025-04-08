@@ -75,15 +75,15 @@ public class MultiExceptionTest {
 
     program.concatenate(programWithoutRdcx);
 
+    programRdcx
+        // 3. Trigger exceptional return data copy
+        .push(1)
+        .op(OpCode.ADD); // size = RDS + 1, which will trigger the `returnDataCopyException`
+
     postRdcxrogram
         .push(0) // offset
         .push(65) // destoffset, trigger mem expansion
         .op(OpCode.RETURNDATACOPY);
-
-    programRdcx
-        // 4. Doubly exceptional return data copy
-        .push(1)
-        .op(OpCode.ADD); // size = RDS + 1, which will trigger the `returnDataCopyException`
 
     programWithoutRdcx.concatenate(postRdcxrogram);
     BytecodeRunner bytecodeRunnerWithoutRdcx = BytecodeRunner.of(programWithoutRdcx.compile());
@@ -103,6 +103,62 @@ public class MultiExceptionTest {
     program.concatenate(postRdcxrogram);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(gasCostWithRdcx, List.of(returnDataProviderAccount));
+
+    // Rdcx check happens before Oogx in tracer
+    assertEquals(
+        RETURN_DATA_COPY_FAULT,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+  }
+
+  @Test
+  void rdcAndMxpExceptionsReturnDataCopy() {
+    BytecodeCompiler programWithoutRdcx = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler programRdcx = BytecodeCompiler.newProgram();
+    BytecodeCompiler postRdcxrogram = BytecodeCompiler.newProgram();
+
+    final ToyAccount returnDataProviderAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(10)
+            .address(Address.fromHexString("c0de"))
+            // Constructor that returns 32 FF
+            .code(
+                Bytes.fromHexString(
+                    "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"))
+            .build();
+
+    programWithoutRdcx
+        // 1. Execute static call
+        .push(0) // byte size of return data
+        .push(0) // retOffset
+        .push(0) // byte size calldata
+        .push(0) // argsOffset
+        .push("c0de") // Address of 'return data provider' account
+        .op(OpCode.GAS) // gas
+        .op(OpCode.STATICCALL)
+        // 2. Clean the stack
+        .op(OpCode.POP)
+        .op(OpCode.RETURNDATASIZE);
+
+    program.concatenate(programWithoutRdcx);
+
+    programRdcx
+        // 3. Trigger exceptional return data copy
+        .push(1)
+        .op(OpCode.ADD); // size = RDS + 1, which will trigger the `returnDataCopyException`
+
+    postRdcxrogram
+        .push(0) // offset
+        .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // destoffset, trigger mem expansion
+        .op(OpCode.RETURNDATACOPY);
+
+    programWithoutRdcx.concatenate(postRdcxrogram);
+
+    program.concatenate(programRdcx);
+    program.concatenate(postRdcxrogram);
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run(List.of(returnDataProviderAccount));
 
     // Rdcx check happens before Oogx in tracer
     assertEquals(

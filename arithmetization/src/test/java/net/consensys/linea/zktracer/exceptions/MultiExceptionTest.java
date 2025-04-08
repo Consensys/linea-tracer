@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.testing.BytecodeCompiler;
@@ -36,6 +37,8 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(UnitTestWatcher.class)
@@ -112,11 +115,7 @@ public class MultiExceptionTest {
 
   @Test
   void rdcAndMxpExceptionsReturnDataCopy() {
-    BytecodeCompiler programWithoutRdcx = BytecodeCompiler.newProgram();
     BytecodeCompiler program = BytecodeCompiler.newProgram();
-    BytecodeCompiler programRdcx = BytecodeCompiler.newProgram();
-    BytecodeCompiler postRdcxrogram = BytecodeCompiler.newProgram();
-
     final ToyAccount returnDataProviderAccount =
         ToyAccount.builder()
             .balance(Wei.fromEth(1))
@@ -128,7 +127,7 @@ public class MultiExceptionTest {
                     "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"))
             .build();
 
-    programWithoutRdcx
+    program
         // 1. Execute static call
         .push(0) // byte size of return data
         .push(0) // retOffset
@@ -139,24 +138,14 @@ public class MultiExceptionTest {
         .op(OpCode.STATICCALL)
         // 2. Clean the stack
         .op(OpCode.POP)
-        .op(OpCode.RETURNDATASIZE);
-
-    program.concatenate(programWithoutRdcx);
-
-    programRdcx
+        .op(OpCode.RETURNDATASIZE)
         // 3. Trigger exceptional return data copy
         .push(1)
-        .op(OpCode.ADD); // size = RDS + 1, which will trigger the `returnDataCopyException`
-
-    postRdcxrogram
+        .op(OpCode.ADD) // size = RDS + 1, which will trigger the `returnDataCopyException`
         .push(0) // offset
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // destoffset, trigger mem expansion
         .op(OpCode.RETURNDATACOPY);
 
-    programWithoutRdcx.concatenate(postRdcxrogram);
-
-    program.concatenate(programRdcx);
-    program.concatenate(postRdcxrogram);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(returnDataProviderAccount));
 
@@ -486,5 +475,94 @@ public class MultiExceptionTest {
           STATIC_FAULT,
           bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
     }
+  }
+
+  @ParameterizedTest
+  @MethodSource("outOfGasExceptionCallSource")
+  /*
+  When value is transferred
+  -> Add additional call stipend (2300) to avoid OOGX in order to complete the call execution, even if no code is executed
+   */
+  void outOfGasExceptionCallTest(boolean targetAddressExists, boolean isWarm) {
+    // value has to be > 0 for static exception to be triggered on CALL
+    int value = 1;
+    int cornerCase = 2299;
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    if (targetAddressExists && isWarm) {
+      // Note: this is a possible way to warm the address
+      program.push("ca11ee").op(OpCode.BALANCE);
+    }
+
+    program
+        .push(0) // return at capacity
+        .push(0) // return at offset
+        .push(0) // call data size
+        .push(0) // call data offset
+        .push(value) // value
+        .push("ca11ee") // address
+        .push(0) // gas for subcontext (floored at 2300)
+        .op(OpCode.CALL);
+
+    Bytes pgCompile = program.compile();
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
+    long gasCost;
+    BytecodeRunner bytecodeRunnerStaticCall;
+
+    ToyAccount CallProviderAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(1))
+            .nonce(10)
+            .address(Address.fromHexString("c0de"))
+            .code(pgCompile)
+            .build();
+
+    if (targetAddressExists) {
+      final ToyAccount calleeAccount =
+          ToyAccount.builder()
+              .balance(Wei.fromEth(1))
+              .nonce(10)
+              .address(Address.fromHexString("ca11ee"))
+              .build();
+      gasCost = bytecodeRunner.runOnlyForGasCost(List.of(calleeAccount));
+      int gasCostPlusCornerCase = (int) gasCost + cornerCase;
+      BytecodeCompiler pgStaticCallToCode =
+          BytecodeCompiler.newProgram()
+              .push(0) // byte size of return data
+              .push(0) // retOffset
+              .push(0) // byte size calldata
+              .push(0) // argsOffset
+              .push("c0de") // Address of account
+              .push(gasCostPlusCornerCase) // gas
+              .op(OpCode.STATICCALL);
+      bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
+      bytecodeRunnerStaticCall.run(List.of(calleeAccount, CallProviderAccount));
+    } else {
+      gasCost = bytecodeRunner.runOnlyForGasCost();
+      int gasCostPlusCornerCase = (int) gasCost + cornerCase - GAS_CONST_G_TRANSACTION;
+      BytecodeCompiler pgStaticCallToCode =
+          BytecodeCompiler.newProgram()
+              .push(0) // byte size of return data
+              .push(0) // retOffset
+              .push(0) // byte size calldata
+              .push(0) // argsOffset
+              .push("c0de") // Address of account
+              .push(gasCostPlusCornerCase) // gas
+              .op(OpCode.STATICCALL);
+      bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
+      bytecodeRunnerStaticCall.run(gasCost + cornerCase, List.of(CallProviderAccount));
+    }
+
+    assertEquals(
+        STATIC_FAULT,
+        bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+  }
+
+  static Stream<Arguments> outOfGasExceptionCallSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    arguments.add(Arguments.of(true, true));
+    arguments.add(Arguments.of(true, false));
+    arguments.add(Arguments.of(false, false));
+    return arguments.stream();
   }
 }

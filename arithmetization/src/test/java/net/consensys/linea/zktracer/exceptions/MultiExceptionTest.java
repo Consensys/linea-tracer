@@ -40,9 +40,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class MultiExceptionTest {
+  // For Shanghai, will need to add initcodesize tests for CREATE and CREATE2
 
   @Test
-  void rdcAndOogExceptionReturnDataCopy() {
+  void rdcAndOogExceptionsReturnDataCopy() {
     BytecodeCompiler programWithoutRdcx = BytecodeCompiler.newProgram();
     BytecodeCompiler program = BytecodeCompiler.newProgram();
     BytecodeCompiler programRdcx = BytecodeCompiler.newProgram();
@@ -115,7 +116,7 @@ public class MultiExceptionTest {
    */
   @ParameterizedTest
   @ValueSource(ints = {5, 6})
-  void jumpAndOogExceptionJump(int jumpCounter) {
+  void jumpAndOogExceptionsJump(int jumpCounter) {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push(jumpCounter) // pc: 0 - 5 i/o 4, Trigger Jump Exception
@@ -142,7 +143,7 @@ public class MultiExceptionTest {
    */
   @ParameterizedTest
   @ValueSource(ints = {6, 9})
-  void jumpAndOogExceptionJumpi(int jumpCounter) {
+  void jumpAndOogExceptionsJumpi(int jumpCounter) {
     final Bytes bytecode =
         BytecodeCompiler.newProgram()
             .push(1) // pc = 0, 1
@@ -169,7 +170,7 @@ public class MultiExceptionTest {
   }
 
   @Test
-  void staticAndOogExceptionLog() {
+  void staticAndOogExceptions() {
     List<BytecodeCompiler> pgLogList = new ArrayList<>();
     Bytes address1 =
         Bytes.fromHexString("0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
@@ -211,7 +212,12 @@ public class MultiExceptionTest {
             .push(address1) // Topic 1
             .push(32) // size
             .push(1) // offset to trigger mem expansion
-            .op(OpCode.LOG4));
+            .op(OpCode.LOG4),
+        BytecodeCompiler.newProgram()
+            .push(2) // value
+            .push(1) // key
+            .op(OpCode.SSTORE),
+        BytecodeCompiler.newProgram().push(0).op(OpCode.SELFDESTRUCT));
 
     for (BytecodeCompiler pgLog : pgLogList) {
 
@@ -257,7 +263,7 @@ public class MultiExceptionTest {
   }
 
   @Test
-  public void staticAndMxpExceptionLog0() {
+  public void staticAndMxpExceptions() {
     // TODO : to check
     boolean triggerRoob = false;
     List<OpCode> opCodesList =
@@ -304,41 +310,39 @@ public class MultiExceptionTest {
     }
   }
 
-  // TODO: could merge with log
   @Test
-  void staticAndOogExceptionSelfDestruct() {
+  public void staticAndoutOfSStoreExceptions() {
+    BytecodeCompiler pg = BytecodeCompiler.newProgram();
 
-    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram();
-    calleeProgram.push(0).op(OpCode.SELFDESTRUCT);
+    pg.push(0).push(0).op(OpCode.SSTORE);
+    Bytes pgCompile = pg.compile();
+    int gasCostToTriggerOutOfSStore = 3 + 3 + GAS_CONST_G_CALL_STIPEND - 1;
+    // 21000L is the intrinsic gas cost of a transaction and 3L is the gas cost of PUSH1
 
-    final ToyAccount calleeAccount =
+    ToyAccount SStoreProviderAccount =
         ToyAccount.builder()
             .balance(Wei.fromEth(1))
             .nonce(10)
-            .address(Address.fromHexString("ca11ee"))
-            .code(calleeProgram.compile())
+            .address(Address.fromHexString("c0de"))
+            // Constructor that returns 32 FF
+            .code(pgCompile)
             .build();
 
-    BytecodeRunner bytecodeRunnerCallee = BytecodeRunner.of(calleeProgram.compile());
-    long gasCostTx = bytecodeRunnerCallee.runOnlyForGasCost();
-    int gasCostMinusOne = (int) gasCostTx - GAS_CONST_G_TRANSACTION - 1;
+    BytecodeCompiler pgStaticCallToCode =
+        BytecodeCompiler.newProgram()
+            .push(0) // byte size of return data
+            .push(0) // retOffset
+            .push(0) // byte size calldata
+            .push(0) // argsOffset
+            .push("c0de") // Address of account
+            .push(gasCostToTriggerOutOfSStore) // gas
+            .op(OpCode.STATICCALL);
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
-    program
-        .push(0) // return at capacity
-        .push(0) // return at offset
-        .push(0) // call data size
-        .push(0) // call data offset
-        .push("ca11ee") // address
-        .push(gasCostMinusOne) // gas
-        .op(OpCode.STATICCALL);
-
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-
-    bytecodeRunner.run(List.of(calleeAccount));
-
+    BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
+    bytecodeRunnerStaticCall.run(List.of(SStoreProviderAccount));
+    // Static check happens before outOfStore exception
     assertEquals(
         STATIC_FAULT,
-        bytecodeRunner.getHub().previousTraceSection(2).commonValues.tracedException());
+        bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
   }
 }

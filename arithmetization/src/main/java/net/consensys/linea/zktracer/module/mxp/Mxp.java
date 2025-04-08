@@ -54,7 +54,10 @@ public class Mxp implements OperationListModule<MxpOperation> {
   public void commit(Trace trace) {
     int stamp = 0;
     for (MxpOperation op : operations.getAll()) {
-      op.trace(++stamp, trace.mxp());
+      op.traceDecoder(++stamp, trace.mxp());
+      op.traceMacro(stamp, trace.mxp());
+      op.traceScenario(stamp, trace.mxp());
+      op.traceComputation(stamp, trace.mxp());
     }
   }
 

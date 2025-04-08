@@ -167,20 +167,14 @@ public class MxpOperation extends ModuleOperation {
     return ctMax() + 1;
   }
 
-  final void trace(int stamp, Trace.Mxp trace) {
-    final EWord eOffset1 = EWord.of(this.mxpCall.getOffset1());
-    final EWord eOffset2 = EWord.of(this.mxpCall.getOffset2());
-    final EWord eSize1 = EWord.of(this.mxpCall.getSize1());
-    final EWord eSize2 = EWord.of(this.mxpCall.getSize2());
-
+  final void traceDecoder(int stamp, Trace.Mxp trace) {
     final int nRows = this.nRows();
 
     for (int i = 0; i < nRows; i++) {
       trace
           .mxpStamp(stamp)
           .cn(this.getContextNumber())
-          // TODO: fill and split
-          .decoder(false)
+          .decoder(true)
           .macro(false)
           .scenario(false)
           .computation(false)
@@ -198,6 +192,28 @@ public class MxpOperation extends ModuleOperation {
           .pDecoderIsBytePricing(false)
           .pDecoderGword(0)
           .pDecoderGbyte(0)
+          .fillAndValidateRow();
+    }
+  }
+
+  final void traceMacro(int stamp, Trace.Mxp trace) {
+    final EWord eOffset1 = EWord.of(this.mxpCall.getOffset1());
+    final EWord eOffset2 = EWord.of(this.mxpCall.getOffset2());
+    final EWord eSize1 = EWord.of(this.mxpCall.getSize1());
+    final EWord eSize2 = EWord.of(this.mxpCall.getSize2());
+
+    final int nRows = this.nRows();
+
+    for (int i = 0; i < nRows; i++) {
+      trace
+          .mxpStamp(stamp)
+          .cn(this.getContextNumber())
+          .decoder(false)
+          .macro(true)
+          .scenario(false)
+          .computation(false)
+          .ct(0)
+          .ctMax(0)
           .pMacroInst(0)
           .pMacroDeploying(false)
           .pMacroOffset1Hi(eOffset1.hi())
@@ -214,6 +230,23 @@ public class MxpOperation extends ModuleOperation {
           .pMacroMayTriggerMmu(false)
           .pMacroS1Nznomxpx(false)
           .pMacroS2Nznomxpx(false)
+          .fillAndValidateRow();
+    }
+  }
+
+  final void traceScenario(int stamp, Trace.Mxp trace) {
+    final int nRows = this.nRows();
+
+    for (int i = 0; i < nRows; i++) {
+      trace
+          .mxpStamp(stamp)
+          .cn(this.getContextNumber())
+          .decoder(false)
+          .macro(false)
+          .scenario(true)
+          .computation(false)
+          .ct(0)
+          .ctMax(0)
           .pScenarioMsize(false)
           .pScenarioTrivial(false)
           .pScenarioMxpx(false)
@@ -223,7 +256,33 @@ public class MxpOperation extends ModuleOperation {
           .pScenarioWordsNew(0)
           .pScenarioCmem(Bytes.EMPTY)
           .pScenarioCmemNew(Bytes.EMPTY)
-          .validateRow();
+          .fillAndValidateRow();
+    }
+  }
+
+  final void traceComputation(int stamp, Trace.Mxp trace) {
+    final int nRows = this.nRows();
+
+    for (int i = 0; i < nRows; i++) {
+      trace
+          .mxpStamp(stamp)
+          .cn(this.getContextNumber())
+          .decoder(false)
+          .macro(false)
+          .scenario(false)
+          .computation(false)
+          .ct(0)
+          .ctMax(0)
+          .pComputationWcpFlag(false)
+          .pComputationEucFlag(false)
+          .pComputationExoInst(0)
+          .pComputationArg1Hi(Bytes.EMPTY)
+          .pComputationArg1Lo(Bytes.EMPTY)
+          .pComputationArg2Hi(Bytes.EMPTY)
+          .pComputationArg2Lo(Bytes.EMPTY)
+          .pComputationResA(0)
+          .pComputationResB(0)
+          .fillAndValidateRow();
     }
   }
 }

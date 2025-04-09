@@ -311,15 +311,15 @@ public class OutOfGasMemExpExceptionTest {
   3. No OOGX for CREATE after deployment: add 1/64th of 6418 to gasCost to account for gasAvailableForChildCreate
    */
   void outOfGasExceptionCreate(int cornerCase) {
-    BytecodeCompiler program = getPgPushInitCodeToMem();
-    program
+    BytecodeCompiler programInitCodeToMem = getPgPushInitCodeToMem();
+    programInitCodeToMem
         // Create the contract
         .push(41)
         .push(0)
         .push(0)
         .op(OpCode.CREATE); // No constructor so code executed and runtime code set to return value
 
-    Bytes pgCompile = program.compile();
+    Bytes pgCompile = programInitCodeToMem.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
     long gasCost = bytecodeRunner.runOnlyForGasCost();

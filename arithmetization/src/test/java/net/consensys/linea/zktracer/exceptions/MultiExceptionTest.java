@@ -357,14 +357,16 @@ public class MultiExceptionTest {
   @Test
   void invalidCodePrefixAndOogExceptionForCreate() {
     // We run gas cost calculation on program without Invalid Code Prefix exception
+    String startByte = Integer.toHexString(0xee);
     BytecodeCompiler programWithoutICP =
-        getPgCreateWithInitCodeReturnByte(Integer.toHexString(0xee), 1);
+        getPgCreateInitCodeWithReturnStartByteAndSize(startByte, 1);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(programWithoutICP.compile());
     long gascost = bytecodeRunner.runOnlyForGasCost();
 
     // We prepare program with Invalid Code Prefix exception
+    String startByteWithICPX = Integer.toHexString(EIP_3541_MARKER);
     BytecodeCompiler programWithICP =
-        getPgCreateWithInitCodeReturnByte(Integer.toHexString(EIP_3541_MARKER), 1);
+        getPgCreateInitCodeWithReturnStartByteAndSize(startByteWithICPX, 1);
 
     // We run program with Invalid Code Prefix and OOG exception
     long gasCostMinusOne = gascost - 1;
@@ -380,8 +382,10 @@ public class MultiExceptionTest {
   @Test
   void initCodePrefixAndMaxCodeSizeExceptionForCreate() {
     // We prepare program with Invalid Code Prefix and Max Code Size exceptions
+    String startByteWithICPX = Integer.toHexString(EIP_3541_MARKER);
+    int returnSize = MAX_CODE_SIZE + 1;
     BytecodeCompiler programWithICPXAndMCSX =
-        getPgCreateWithInitCodeReturnByte(Integer.toHexString(EIP_3541_MARKER), MAX_CODE_SIZE + 1);
+        getPgCreateInitCodeWithReturnStartByteAndSize(startByteWithICPX, returnSize);
 
     BytecodeRunner bytecodeRunnerWithICPXAndMCSX =
         BytecodeRunner.of(programWithICPXAndMCSX.compile());
@@ -416,7 +420,12 @@ public class MultiExceptionTest {
         .op(OpCode.CREATE);
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(56543L);
+    // We run the program with a gas cost that triggers OOGX
+    // We calculate all opcodes gas before the RETURN opcode
+    // 32027L = 3L PUSH + 3L PUSH + 6L MSTORE + 3L PUSH + 3L PUSH + 3L PUSH + 32000L CREATE +
+    // (7/64)(negligible) + 3L PUSH + 3L PUSH
+    // 21000L for the intrinsic transaction cost
+    bytecodeRunner.run(32027L + 21000L);
 
     // Max Code Size Exception check before OOGX in tracer
     assertEquals(
@@ -427,13 +436,19 @@ public class MultiExceptionTest {
   @Test
   void initCodePrefixAndMaxCodeSizeAndOogExceptionForCreate() {
     // We prepare program with Invalid Code Prefix and Max Code Size exceptions
+    String startByteWithICPX = Integer.toHexString(EIP_3541_MARKER);
+    int returnSize = MAX_CODE_SIZE + 1;
     BytecodeCompiler programWithICPXAndMCSX =
-        getPgCreateWithInitCodeReturnByte(Integer.toHexString(EIP_3541_MARKER), MAX_CODE_SIZE + 1);
+        getPgCreateInitCodeWithReturnStartByteAndSize(startByteWithICPX, returnSize);
 
-    // We run the program with a gas cost that triggers OOGX
     BytecodeRunner bytecodeRunnerWithICPXAndMCSX =
         BytecodeRunner.of(programWithICPXAndMCSX.compile());
-    bytecodeRunnerWithICPXAndMCSX.run(56552L);
+    // We run the program with a gas cost that triggers OOGX
+    // We calculate all opcodes gas before the RETURN opcode
+    // 32036L = 3L PUSH + 3L PUSH + 6L MSTORE + 3L PUSH + 3L PUSH + 3L PUSH + 32000L CREATE +
+    // (16/64)(negligible) + 3L PUSH + 3L PUSH + 6L MSTORE8 + 3L PUSH + 3L PUSH
+    // 21000L for the intrinsic transaction cost
+    bytecodeRunnerWithICPXAndMCSX.run(32039L + 21000L);
 
     // Max Code Size Exception check is done prior to OOGX and Invalid Code Prefix exception in
     // tracer

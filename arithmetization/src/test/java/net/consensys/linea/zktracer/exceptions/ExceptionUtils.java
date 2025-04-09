@@ -188,7 +188,7 @@ public class ExceptionUtils {
     return program;
   }
 
-  public static BytecodeCompiler getPgCreateWithInitCodeReturnByte(
+  public static BytecodeCompiler getPgCreateInitCodeWithReturnStartByteAndSize(
       String hexString, int returnSize) {
     BytecodeCompiler initProgram = BytecodeCompiler.newProgram();
     initProgram

@@ -49,6 +49,10 @@ STATIC & OOSX : SSTORE
 STATIC & OOGX : LOG0, LOG1, LOG2, LOG3, LOG4, SSTORE, SELFDESTRUCT, CREATE, CREATE2, CALL
 STATIC & MXPX : LOG0, LOG1, LOG2, LOG3, LOG4, CREATE, CREATE2, CALL
 STATIC & ROOB : LOG0, LOG1, LOG2, LOG3, LOG4, CREATE, CREATE2, CALL
+InvalidCodePrefix & OOGX : RETURN
+InvalidCodePrefix & MaxCodeSize : RETURN
+MaxCodeSize & OOGX : RETURN
+InvalidCodePrefix & MaxCodeSize & OOGX : RETURN
 Note : As MXPX is a subcase of OOGX, we don't test MXPX & OOGX
 Note2 : For Shanghai, will need to add combinations with initcodesize exception for CREATE and CREATE2
  */
@@ -348,13 +352,13 @@ public class MultiExceptionTest {
   void invalidCodePrefixAndOogExceptionForCreate() {
     // We run gas cost calculation on program without Invalid Code Prefix exception
     BytecodeCompiler programWithoutICP =
-        getPgCreateWithInitCodeReturnByte(Integer.toHexString(0xee));
+        getPgCreateWithInitCodeReturnByte(Integer.toHexString(0xee), 1);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(programWithoutICP.compile());
     long gascost = bytecodeRunner.runOnlyForGasCost();
 
     // We prepare program with Invalid Code Prefix exception
     BytecodeCompiler programWithICP =
-        getPgCreateWithInitCodeReturnByte(Integer.toHexString(EIP_3541_MARKER));
+        getPgCreateWithInitCodeReturnByte(Integer.toHexString(EIP_3541_MARKER), 1);
 
     // We run program with Invalid Code Prefix and OOG exception
     long gasCostMinusOne = gascost - 1;
@@ -365,5 +369,72 @@ public class MultiExceptionTest {
     assertEquals(
         OUT_OF_GAS_EXCEPTION,
         bytecodeRunnerWithICP.getHub().previousTraceSection(2).commonValues.tracedException());
+  }
+
+  /* @Test*/
+  /*  void maxCodeSizeAndOogExceptionForCreate() {
+    BytecodeCompiler initProgram = BytecodeCompiler.newProgram();
+    initProgram.push(MAX_CODE_SIZE-1).push(0).op(OpCode.RETURN);
+    final String initProgramAsString = initProgram.compile().toString().substring(2);
+    final int initProgramByteSize = initProgram.compile().size();
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+            .push(initProgramAsString + "00".repeat(32 - initProgramByteSize))
+            .push(0)
+            .op(OpCode.MSTORE)
+            .push(initProgramByteSize)
+            .push(0)
+            .push(0)
+            .op(OpCode.CREATE);
+
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    long gasCost = bytecodeRunner.runOnlyForGasCost();
+
+
+    BytecodeCompiler initProgram2 = BytecodeCompiler.newProgram();
+    initProgram2.push(MAX_CODE_SIZE + 1).push(0).op(OpCode.RETURN);
+    final String initProgramAsString2 = initProgram2.compile().toString().substring(2);
+    final int initProgramByteSize2 = initProgram2.compile().size();
+
+    BytecodeCompiler program2 = BytecodeCompiler.newProgram();
+
+    program2
+            .push(initProgramAsString2 + "00".repeat(32 - initProgramByteSize2))
+            .push(0)
+            .op(OpCode.MSTORE)
+            .push(initProgramByteSize2)
+            .push(0)
+            .push(0)
+            .op(OpCode.CREATE);
+
+    BytecodeRunner bytecodeRunner2 = BytecodeRunner.of(program2.compile());
+    bytecodeRunner2.run(gasCost);
+
+    // Max Code Size Exception check before OOGX in tracer
+    assertEquals(
+            MAX_CODE_SIZE_EXCEPTION,
+            bytecodeRunner2.getHub().previousTraceSection(2).commonValues.tracedException());
+  }*/
+
+  @Test
+  void initCodePrefixAndMaxCodeSizeExceptionForCreate() {
+    // We prepare program with Invalid Code Prefix and Max Code Size exceptions
+    BytecodeCompiler programWithICPXAndMCSX =
+        getPgCreateWithInitCodeReturnByte(Integer.toHexString(EIP_3541_MARKER), MAX_CODE_SIZE + 1);
+
+    BytecodeRunner bytecodeRunnerWithICPXAndMCSX =
+        BytecodeRunner.of(programWithICPXAndMCSX.compile());
+    bytecodeRunnerWithICPXAndMCSX.run();
+
+    // Max Code Size Exception check is done prior to Invalid Code Prefix exception in tracer
+    assertEquals(
+        MAX_CODE_SIZE_EXCEPTION,
+        bytecodeRunnerWithICPXAndMCSX
+            .getHub()
+            .previousTraceSection(2)
+            .commonValues
+            .tracedException());
   }
 }

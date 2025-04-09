@@ -188,9 +188,16 @@ public class ExceptionUtils {
     return program;
   }
 
-  public static BytecodeCompiler getPgCreateWithInitCodeReturnByte(String hexString) {
+  public static BytecodeCompiler getPgCreateWithInitCodeReturnByte(
+      String hexString, int returnSize) {
     BytecodeCompiler initProgram = BytecodeCompiler.newProgram();
-    initProgram.push(hexString).push(0).op(OpCode.MSTORE8).push(1).push(0).op(OpCode.RETURN);
+    initProgram
+        .push(hexString)
+        .push(0)
+        .op(OpCode.MSTORE8)
+        .push(returnSize)
+        .push(0)
+        .op(OpCode.RETURN);
 
     final String initProgramAsString = initProgram.compile().toString().substring(2);
     final int initProgramByteSize = initProgram.compile().size();

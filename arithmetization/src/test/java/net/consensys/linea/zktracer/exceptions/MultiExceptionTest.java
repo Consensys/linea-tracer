@@ -48,6 +48,7 @@ JUMP & OOGX : JUMP, JUMPI
 STATIC & OOSX : SSTORE
 STATIC & OOGX : LOG0, LOG1, LOG2, LOG3, LOG4, SSTORE, SELFDESTRUCT, CREATE, CREATE2, CALL
 STATIC & MXPX : LOG0, LOG1, LOG2, LOG3, LOG4, CREATE, CREATE2, CALL
+STATIC & ROOB : LOG0, LOG1, LOG2, LOG3, LOG4, CREATE, CREATE2, CALL
 Note : As MXPX is a subcase of OOGX, we don't test MXPX & OOGX
 Note2 : For Shanghai, will need to add combinations with initcodesize exception for CREATE and CREATE2
  */
@@ -238,25 +239,27 @@ public class MultiExceptionTest {
   @ParameterizedTest
   @MethodSource("opCodesForStaticAndMxpExceptionList")
   public void staticAndMxpExceptions(OpCode opCode) {
-    // TODO : to check
-    boolean triggerRoob = false;
+    // We test with or without Roob
+    boolean[] triggerRoob = new boolean[] {false, true};
 
-    // We prepare a program with an MXPX for the opcode
-    BytecodeCompiler pg = BytecodeCompiler.newProgram();
-    new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, triggerRoob, opCode);
+    for (boolean roob : triggerRoob) {
+      // We prepare a program with an MXPX for the opcode
+      BytecodeCompiler pg = BytecodeCompiler.newProgram();
+      new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, roob, opCode);
 
-    // We prepare a program to static call the code account
-    ToyAccount codeProviderAccount = getAccountForCodeAddress(pg.compile());
-    BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount();
+      // We prepare a program to static call the code account
+      ToyAccount codeProviderAccount = getAccountForCodeAddress(pg.compile());
+      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount();
 
-    // We run the program to static call the account with MXPX code
-    BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
-    bytecodeRunnerStaticCall.run(List.of(codeProviderAccount));
+      // We run the program to static call the account with MXPX code
+      BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
+      bytecodeRunnerStaticCall.run(List.of(codeProviderAccount));
 
-    // Static check happens before MXPX
-    assertEquals(
-        STATIC_FAULT,
-        bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+      // Static check happens before MXPX
+      assertEquals(
+          STATIC_FAULT,
+          bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+    }
   }
 
   static Stream<OpCode> opCodesForStaticAndMxpExceptionList() {
@@ -339,5 +342,28 @@ public class MultiExceptionTest {
     arguments.add(Arguments.of(true, false));
     arguments.add(Arguments.of(false, false));
     return arguments.stream();
+  }
+
+  @Test
+  void invalidCodePrefixAndOogExceptionForCreate() {
+    // We run gas cost calculation on program without Invalid Code Prefix exception
+    BytecodeCompiler programWithoutICP =
+        getPgCreateWithInitCodeReturnByte(Integer.toHexString(0xee));
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(programWithoutICP.compile());
+    long gascost = bytecodeRunner.runOnlyForGasCost();
+
+    // We prepare program with Invalid Code Prefix exception
+    BytecodeCompiler programWithICP =
+        getPgCreateWithInitCodeReturnByte(Integer.toHexString(EIP_3541_MARKER));
+
+    // We run program with Invalid Code Prefix and OOG exception
+    long gasCostMinusOne = gascost - 1;
+    BytecodeRunner bytecodeRunnerWithICP = BytecodeRunner.of(programWithICP.compile());
+    bytecodeRunnerWithICP.run(gasCostMinusOne);
+
+    // OOGX check is done prior to Invalid Code Prefix exception in tracer
+    assertEquals(
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunnerWithICP.getHub().previousTraceSection(2).commonValues.tracedException());
   }
 }

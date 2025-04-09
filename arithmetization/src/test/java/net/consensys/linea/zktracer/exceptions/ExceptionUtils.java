@@ -187,4 +187,25 @@ public class ExceptionUtils {
 
     return program;
   }
+
+  public static BytecodeCompiler getPgCreateWithInitCodeReturnByte(String hexString) {
+    BytecodeCompiler initProgram = BytecodeCompiler.newProgram();
+    initProgram.push(hexString).push(0).op(OpCode.MSTORE8).push(1).push(0).op(OpCode.RETURN);
+
+    final String initProgramAsString = initProgram.compile().toString().substring(2);
+    final int initProgramByteSize = initProgram.compile().size();
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
+
+    program
+        .push(initProgramAsString + "00".repeat(32 - initProgramByteSize))
+        .push(0)
+        .op(OpCode.MSTORE)
+        .push(initProgramByteSize)
+        .push(0)
+        .push(0)
+        .op(OpCode.CREATE);
+
+    return program;
+  }
 }

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.exceptions;
 
+import static net.consensys.linea.zktracer.exceptions.ExceptionUtils.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -264,7 +265,6 @@ public class OutOfGasMemExpExceptionTest {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionReturnDataCopy(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     final ToyAccount returnDataProviderAccount =
         ToyAccount.builder()
@@ -277,23 +277,9 @@ public class OutOfGasMemExpExceptionTest {
                     "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"))
             .build();
 
-    program
-        // 1. Execute static call
-        .push(0) // byte size of return data
-        .push(0) // retOffset
-        .push(0) // byte size calldata
-        .push(0) // argsOffset
-        .push("c0de") // Address of 'return data provider' account
-        .op(OpCode.GAS) // gas
-        .op(OpCode.STATICCALL)
-        // 2. Clean the stack
-        .op(OpCode.POP)
-        // 3. Return data copy
-        .push(32) // size
-        .push(0) // offset
-        .push(65) // destoffset, trigger mem expansion
-        .op(OpCode.RETURNDATACOPY);
-
+    boolean RDCX = false;
+    boolean MXPX = false;
+    BytecodeCompiler program = getProgramRDC(RDCX, MXPX);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
@@ -421,9 +407,7 @@ public class OutOfGasMemExpExceptionTest {
         .push(Bytes.fromHexString("0x7F")) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
-        .push(
-            Bytes.fromHexString(
-                "0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 1
+        .push(address1) // Topic 1
         .push(32) // size
         .push(1) // offset to trigger mem expansion
         .op(OpCode.LOG1);
@@ -448,12 +432,8 @@ public class OutOfGasMemExpExceptionTest {
         .push(Bytes.fromHexString("0x7F")) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
-        .push(
-            Bytes.fromHexString(
-                "0x2FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 2
-        .push(
-            Bytes.fromHexString(
-                "0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 1
+        .push(address2) // Topic 2
+        .push(address1) // Topic 1
         .push(32) // size
         .push(1) // offset to trigger mem expansion
         .op(OpCode.LOG2);
@@ -478,15 +458,9 @@ public class OutOfGasMemExpExceptionTest {
         .push(Bytes.fromHexString("0x7F")) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
-        .push(
-            Bytes.fromHexString(
-                "0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 3
-        .push(
-            Bytes.fromHexString(
-                "0x2FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 2
-        .push(
-            Bytes.fromHexString(
-                "0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 1
+        .push(address3) // Topic 3
+        .push(address2) // Topic 2
+        .push(address1) // Topic 1
         .push(32) // size
         .push(1) // offset to trigger mem expansion
         .op(OpCode.LOG3);
@@ -511,18 +485,10 @@ public class OutOfGasMemExpExceptionTest {
         .push(Bytes.fromHexString("0x7F")) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
-        .push(
-            Bytes.fromHexString(
-                "0x4FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 4
-        .push(
-            Bytes.fromHexString(
-                "0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 3
-        .push(
-            Bytes.fromHexString(
-                "0x2FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 2
-        .push(
-            Bytes.fromHexString(
-                "0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // Topic 1
+        .push(address4) // Topic 4
+        .push(address3) // Topic 3
+        .push(address2) // Topic 2
+        .push(address1) // Topic 1
         .push(32) // size
         .push(1) // offset to trigger mem expansion
         .op(OpCode.LOG4);

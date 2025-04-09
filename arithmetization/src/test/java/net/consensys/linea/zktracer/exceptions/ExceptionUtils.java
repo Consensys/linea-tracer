@@ -38,6 +38,9 @@ public class ExceptionUtils {
       Bytes.fromHexString("0x4FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
   public static Bytes salt =
       Bytes.fromHexString("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef");
+  public static Bytes return32BytesFFBytecode =
+      Bytes.fromHexString(
+          "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3");
 
   static void assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
       int cornerCase, BytecodeRunner bytecodeRunner) {
@@ -83,7 +86,8 @@ public class ExceptionUtils {
         .op(OpCode.STATICCALL);
   }
 
-  public static BytecodeCompiler getProgramRDC(boolean withRDCX, boolean withMXPX) {
+  public static BytecodeCompiler getProgramRDCFromStaticCallToCodeAccount(
+      boolean withRDCX, boolean withMXPX) {
     // if withMXPX, we set an offset to trigger MXPX else regular MXP
     Bytes offsetRDC =
         withMXPX
@@ -121,5 +125,66 @@ public class ExceptionUtils {
         .push(initCodePart2) // value
         .push(32) // offset
         .op(OpCode.MSTORE);
+  }
+
+  public static BytecodeCompiler simpleProgramEmptyStorage(OpCode opCode) {
+    BytecodeCompiler program =
+        (opCode == OpCode.CREATE || opCode == OpCode.CREATE2)
+            ? getPgPushInitCodeToMem()
+            : BytecodeCompiler.newProgram();
+    switch (opCode) {
+      case LOG0 -> program
+          .push(32) // size
+          .push(1) //  offset
+          .op(OpCode.LOG0);
+      case LOG1 -> program
+          .push(address1) // Topic 1
+          .push(32) // size
+          .push(1) // offset to trigger mem expansion
+          .op(OpCode.LOG1);
+      case LOG2 -> program
+          .push(address2) // Topic 2
+          .push(address1) // Topic 1
+          .push(32) // size
+          .push(1) // offset to trigger mem expansion
+          .op(OpCode.LOG2);
+      case LOG3 -> program
+          .push(address3) // Topic 3
+          .push(address2) // Topic 2
+          .push(address1) // Topic 1
+          .push(32) // size
+          .push(1) // offset to trigger mem expansion
+          .op(OpCode.LOG3);
+
+      case LOG4 -> program
+          .push(address4) // Topic 4
+          .push(address3) // Topic 3
+          .push(address2) // Topic 2
+          .push(address1) // Topic 1
+          .push(32) // size
+          .push(1) // offset to trigger mem expansion
+          .op(OpCode.LOG4);
+      case SSTORE -> program
+          .push(2) // value
+          .push(1) // key
+          .op(OpCode.SSTORE);
+      case SELFDESTRUCT -> program.push(0).op(OpCode.SELFDESTRUCT);
+      case CREATE -> program
+          // Create the contract
+          .push(41)
+          .push(0)
+          .push(0)
+          .op(OpCode.CREATE);
+      case CREATE2 -> program
+          // Create the contract
+          .push(salt) // salt
+          .push(41)
+          .push(0)
+          .push(0)
+          .op(OpCode.CREATE2);
+      default -> {}
+    }
+
+    return program;
   }
 }

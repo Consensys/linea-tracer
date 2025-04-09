@@ -27,7 +27,6 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -210,19 +209,14 @@ public class OutOfGasMemExpExceptionTest {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     final int foreignCodeSize = 70;
-
     final ToyAccount codeOwnerAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(1))
-            .nonce(10)
-            .address(Address.fromHexString("c0deadd7e55"))
-            .code(Bytes.fromHexString("ff".repeat(foreignCodeSize)))
-            .build();
+        getAccountForCodeAddress(Bytes.fromHexString("ff".repeat(foreignCodeSize)));
+
     program
         .push(foreignCodeSize + 3) // size
         .push(11) // offset
         .push(33) // destoffset
-        .push("c0deadd7e55") // Address is cold
+        .push("c0de") // Address is cold
         .op(OpCode.EXTCODECOPY);
 
     Bytes pgCompile = program.compile();
@@ -266,20 +260,11 @@ public class OutOfGasMemExpExceptionTest {
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionReturnDataCopy(int cornerCase) {
 
-    final ToyAccount returnDataProviderAccount =
-        ToyAccount.builder()
-            .balance(Wei.fromEth(1))
-            .nonce(10)
-            .address(Address.fromHexString("c0de"))
-            // Constructor that returns 32 FF
-            .code(
-                Bytes.fromHexString(
-                    "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"))
-            .build();
+    final ToyAccount returnDataProviderAccount = getAccountForCodeAddress(return32BytesFFBytecode);
 
     boolean RDCX = false;
     boolean MXPX = false;
-    BytecodeCompiler program = getProgramRDC(RDCX, MXPX);
+    BytecodeCompiler program = getProgramRDCFromStaticCallToCodeAccount(RDCX, MXPX);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
@@ -326,20 +311,8 @@ public class OutOfGasMemExpExceptionTest {
   3. No OOGX for CREATE after deployment: add 1/64th of 6418 to gasCost to account for gasAvailableForChildCreate
    */
   void outOfGasExceptionCreate(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
-
+    BytecodeCompiler program = getPgPushInitCodeToMem();
     program
-        // constructor
-        .push(
-            Bytes.fromHexString(
-                "0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")) // value
-        .push(0) // offset
-        .op(OpCode.MSTORE)
-        .push(
-            Bytes.fromHexString(
-                "0xFF60005260206000F30000000000000000000000000000000000000000000000")) // value
-        .push(32) // offset
-        .op(OpCode.MSTORE)
         // Create the contract
         .push(41)
         .push(0)

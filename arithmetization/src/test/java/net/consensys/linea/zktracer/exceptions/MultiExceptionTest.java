@@ -40,7 +40,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 /*
-In this test, we trigger all subsets possible of exceptions (except stack exceptions) for each opcode
+In this test, we trigger all subsets possible of exceptions (except stack exceptions) at the same time for each opcode.
+List of the combinations tested below
 RDCX & OOGX : RETURNDATACOPY
 RDCX & MXPX : RETURNDATACOPY
 JUMP & OOGX : JUMP, JUMPI
@@ -48,35 +49,33 @@ STATIC & OOSX : SSTORE
 STATIC & OOGX : LOG0, LOG1, LOG2, LOG3, LOG4, SSTORE, SELFDESTRUCT, CREATE, CREATE2, CALL
 STATIC & MXPX : LOG0, LOG1, LOG2, LOG3, LOG4, CREATE, CREATE2, CALL
 Note : As MXPX is a subcase of OOGX, we don't test MXPX & OOGX
+Note2 : For Shanghai, will need to add combinations with initcodesize exception for CREATE and CREATE2
  */
 
 @ExtendWith(UnitTestWatcher.class)
 public class MultiExceptionTest {
-  // For Shanghai, will need to add initcodesize tests for CREATE and CREATE2
 
   @Test
   void rdcAndOogExceptionsReturnDataCopy() {
     boolean MXPX = true;
     boolean RDCX = true;
-    final ToyAccount codeProviderAccount =
-        getAccountForCodeAddress(
-            Bytes.fromHexString(
-                "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"));
+    final ToyAccount codeProviderAccount = getAccountForCodeAddress(return32BytesFFBytecode);
 
-    // We calculate gas cost without triggering RDCX (programAddOne), else no gas cost is calculated
-    BytecodeCompiler programWithoutRdcx = getProgramRDC(!RDCX, !MXPX);
+    // We calculate gas cost without triggering RDCX, else no gas cost is calculated
+    BytecodeCompiler programWithoutRdcx = getProgramRDCFromStaticCallToCodeAccount(!RDCX, !MXPX);
     BytecodeRunner bytecodeRunnerWithoutRdcx = BytecodeRunner.of(programWithoutRdcx.compile());
     long gasCostWithoutRdcx =
         bytecodeRunnerWithoutRdcx.runOnlyForGasCost(List.of(codeProviderAccount));
 
     // We compute the final gas cost with RDCX and OOGX trigger
+    // We trigger RDCX by adding 1 to RDS
     int gasCostAddOne = 3 + 3; // Push + ADD
-    long gasCostWithRdcx = gasCostWithoutRdcx + gasCostAddOne - 1; // trigger OOGX
+    long gasCostWithRdcxAndOogx = gasCostWithoutRdcx + gasCostAddOne - 1; // trigger OOGX
 
     // We run the program with RDCX trigger and gasCost for OOGX
-    BytecodeCompiler program = getProgramRDC(RDCX, !MXPX);
+    BytecodeCompiler program = getProgramRDCFromStaticCallToCodeAccount(RDCX, !MXPX);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(gasCostWithRdcx, List.of(codeProviderAccount));
+    bytecodeRunner.run(gasCostWithRdcxAndOogx, List.of(codeProviderAccount));
 
     // RDCX check happens before OOGX in tracer
     assertEquals(
@@ -88,25 +87,22 @@ public class MultiExceptionTest {
   void rdcAndMxpExceptionsReturnDataCopy() {
     boolean MXPX = true;
     boolean RDCX = true;
-    final ToyAccount codeProviderAccount =
-        getAccountForCodeAddress(
-            Bytes.fromHexString(
-                "7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff60005260206000f3"));
+    final ToyAccount codeProviderAccount = getAccountForCodeAddress(return32BytesFFBytecode);
 
-    // We prepare a program with RDCX and MXPX using the following offset
-    BytecodeCompiler program = getProgramRDC(RDCX, MXPX);
+    // We prepare a program with RDCX and MXPX
+    BytecodeCompiler program = getProgramRDCFromStaticCallToCodeAccount(RDCX, MXPX);
 
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeProviderAccount));
 
-    // RDCX check happens before OOGX in tracer
+    // RDCX check happens before MXPX in tracer
     assertEquals(
         RETURN_DATA_COPY_FAULT,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 
   /**
-   * Trigger a jump exception and an out of gas exception Jump exception can be triggered by a jump
+   * Trigger a jump exception and an out of gas exception. Jump exception can be triggered by a jump
    * to an invalid destination (here 5) or outside of codesize (here 6)
    */
   @ParameterizedTest
@@ -134,8 +130,8 @@ public class MultiExceptionTest {
   }
 
   /**
-   * Trigger a jumpi exception and an out of gas exception. Jumpi exception can be triggered by a
-   * jump to an invalid destination (here 6) or outside of codesize (here 9)
+   * Trigger a jump exception and an out of gas exception. Jump exception can be triggered by a
+   * jumpi to an invalid destination (here 6) or outside of codesize (here 9)
    */
   @ParameterizedTest
   @ValueSource(ints = {6, 9})
@@ -169,10 +165,12 @@ public class MultiExceptionTest {
     BytecodeCompiler pg = BytecodeCompiler.newProgram();
 
     pg.push(0).push(0).op(OpCode.SSTORE);
+
     int gasCostToTriggerOutOfSStore = 3 + 3 + GAS_CONST_G_CALL_STIPEND - 1;
     // 21000L is the intrinsic gas cost of a transaction and 3L is the gas cost of PUSH1
 
     ToyAccount codeProviderAccount = getAccountForCodeAddress(pg.compile());
+    // Static call with gasCostToTriggerOutOfSStore gas
     BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAddress(gasCostToTriggerOutOfSStore);
 
     BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
@@ -184,12 +182,24 @@ public class MultiExceptionTest {
         bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
   }
 
+  /*
+  For CREATE and CREATE2 deployment code: "0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF60005260206000F3"
+  1. OOGX for CREATE/CREATE2 before deployment: remove 6400 (depositFee) + deployment code exec cost (18)
+  2. OOGX for CREATE/CREATE2 after deployment: enough gas for child creation, but not enough to complete deployment code or deposit
+   */
   @ParameterizedTest
-  @MethodSource("programForStaticAndOogExceptionList")
-  void staticAndOogExceptions(BytecodeCompiler program, int[] cornerCaseList) {
+  @MethodSource("opCodesForStaticAndOogExceptionList")
+  void staticAndOogExceptions(OpCode opCode) {
+
+    BytecodeCompiler program = simpleProgramEmptyStorage(opCode);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
     long gasCostTx = bytecodeRunner.runOnlyForGasCost();
+
+    int[] cornerCaseList =
+        (opCode == OpCode.CREATE || opCode == OpCode.CREATE2)
+            ? new int[] {-6419, 100}
+            : new int[] {-1};
 
     for (int cornerCase : cornerCaseList) {
       // We calculate gas cost to trigger OOGX
@@ -210,85 +220,19 @@ public class MultiExceptionTest {
     }
   }
 
-  /*
-  For CREATE and CREATE2 deployment code: "0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF60005260206000F3"
-  1. OOGX for CREATE/CREATE2 before deployment: remove 6400 (depositFee) + deployment code exec cost (18)
-  2. OOGX for CREATE/CREATE2 after deployment: enough gas for child creation, but not enough to complete deployment code or deposit
-   */
-  static Stream<Arguments> programForStaticAndOogExceptionList() {
-    List<Arguments> arguments = new ArrayList<>();
-    int[] cornerCaseMinusOne = {-1};
-    int[] cornerCaseCreates = {-6419, 100};
-
-    Collections.addAll(
-        arguments,
-        Arguments.of(
-            BytecodeCompiler.newProgram()
-                .push(32) // size
-                .push(1) //  offset
-                .op(OpCode.LOG0),
-            cornerCaseMinusOne),
-        Arguments.of(
-            BytecodeCompiler.newProgram()
-                .push(address1) // Topic 1
-                .push(32) // size
-                .push(1) // offset to trigger mem expansion
-                .op(OpCode.LOG1),
-            cornerCaseMinusOne),
-        Arguments.of(
-            BytecodeCompiler.newProgram()
-                .push(address2) // Topic 2
-                .push(address1) // Topic 1
-                .push(32) // size
-                .push(1) // offset to trigger mem expansion
-                .op(OpCode.LOG2),
-            cornerCaseMinusOne),
-        Arguments.of(
-            BytecodeCompiler.newProgram()
-                .push(address3) // Topic 3
-                .push(address2) // Topic 2
-                .push(address1) // Topic 1
-                .push(32) // size
-                .push(1) // offset to trigger mem expansion
-                .op(OpCode.LOG3),
-            cornerCaseMinusOne),
-        Arguments.of(
-            BytecodeCompiler.newProgram()
-                .push(address4) // Topic 4
-                .push(address3) // Topic 3
-                .push(address2) // Topic 2
-                .push(address1) // Topic 1
-                .push(32) // size
-                .push(1) // offset to trigger mem expansion
-                .op(OpCode.LOG4),
-            cornerCaseMinusOne),
-        Arguments.of(
-            BytecodeCompiler.newProgram()
-                .push(2) // value
-                .push(1) // key
-                .op(OpCode.SSTORE),
-            cornerCaseMinusOne),
-        Arguments.of(
-            BytecodeCompiler.newProgram().push(0).op(OpCode.SELFDESTRUCT), cornerCaseMinusOne),
-        Arguments.of(
-            getPgPushInitCodeToMem()
-                // Create the contract
-                .push(41)
-                .push(0)
-                .push(0)
-                .op(OpCode.CREATE),
-            cornerCaseCreates), // No constructor so code executed and runtime code set to return
-        // value
-        Arguments.of(
-            getPgPushInitCodeToMem()
-                // Create the contract
-                .push(salt) // salt
-                .push(41)
-                .push(0)
-                .push(0)
-                .op(OpCode.CREATE2),
-            cornerCaseCreates));
-    return arguments.stream();
+  static Stream<OpCode> opCodesForStaticAndOogExceptionList() {
+    List<OpCode> opCodesListArgument =
+        Arrays.asList(
+            OpCode.LOG0,
+            OpCode.LOG1,
+            OpCode.LOG2,
+            OpCode.LOG3,
+            OpCode.LOG4,
+            OpCode.SSTORE,
+            OpCode.SELFDESTRUCT,
+            OpCode.CREATE,
+            OpCode.CREATE2);
+    return opCodesListArgument.stream();
   }
 
   @ParameterizedTest

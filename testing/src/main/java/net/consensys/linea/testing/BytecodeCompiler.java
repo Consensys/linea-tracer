@@ -299,29 +299,4 @@ public class BytecodeCompiler {
     return this.incompletePush(
         w, bigIntegerToBytes(new BigInteger(x.isEmpty() ? "0" : x, 16)).toArray());
   }
-
-  /**
-   * Copies a BytecodeCompiler.
-   *
-   * @return a copy of the BytecodeCompiler
-   */
-  public BytecodeCompiler copy() {
-    BytecodeCompiler copy = new BytecodeCompiler();
-    copy.byteCode.addAll(this.byteCode);
-    return copy;
-  }
-
-  /**
-   * Concatenates a BytecodeCompiler list together.
-   *
-   * @param bytecodeList the list of BytecodeCompiler to concatenate.
-   * @return the concatenated BytecodeCompiler
-   */
-  public static BytecodeCompiler concatenate(List<BytecodeCompiler> bytecodeList) {
-    BytecodeCompiler concatenatedBytecode = new BytecodeCompiler();
-    for (BytecodeCompiler bytecode : bytecodeList) {
-      concatenatedBytecode.byteCode.addAll(bytecode.byteCode);
-    }
-    return concatenatedBytecode;
-  }
 }

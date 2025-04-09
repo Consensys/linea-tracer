@@ -16,10 +16,12 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {
     super(chain);
+    this.txnData(new LondonTxnData(this, wcp(), euc()));
     this.modules(setModules());
   }
 }

@@ -20,5 +20,6 @@ import net.consensys.linea.zktracer.ChainConfig;
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {
     super(chain);
+    this.modules(setModules());
   }
 }

@@ -24,5 +24,6 @@ public class ShanghaiHub extends LondonHub {
     super(chain);
     txnData(new ShanghaiTxnData(this, wcp(), euc()));
     txStack(new ShanghaiTransactionStack());
+    this.modules(setModules());
   }
 }

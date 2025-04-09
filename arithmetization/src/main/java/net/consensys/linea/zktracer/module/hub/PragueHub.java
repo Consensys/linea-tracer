@@ -20,5 +20,6 @@ import net.consensys.linea.zktracer.ChainConfig;
 public class PragueHub extends CancunHub {
   public PragueHub(ChainConfig chain) {
     super(chain);
+    this.modules(setModules());
   }
 }

@@ -108,7 +108,6 @@ import net.consensys.linea.zktracer.module.tables.bin.BinRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
-import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -216,7 +215,7 @@ public abstract class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  @Getter @Setter private TxnData txnData = new LondonTxnData(this, wcp, euc);
+  @Getter @Setter private TxnData txnData = null;
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -305,8 +304,44 @@ public abstract class Hub implements Module {
   @Getter private final L2Block l2Block;
   @Getter private final L2L1Logs l2L1Logs;
 
+  @Getter @Setter private List<Module> modules;
+
   /** list of module than can be modified during execution */
-  private final List<Module> modules;
+  public List<Module> setModules() {
+    return Stream.concat(
+            Stream.of(
+                add,
+                bin,
+                blakeModexpData,
+                blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
+                ecData,
+                euc,
+                ext,
+                gas,
+                mmio,
+                mmu,
+                mod,
+                mul,
+                mxp,
+                oob,
+                exp,
+                rlpAddr,
+                rlpTxn,
+                rlpTxnRcpt,
+                logData, /* WARN: must be called AFTER rlpTxnRcpt */
+                logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
+                rom,
+                romLex,
+                shakiraData,
+                shf,
+                stp,
+                trm,
+                wcp, /* WARN: must be called BEFORE txnData */
+                txnData,
+                blockdata /* WARN: must be called AFTER txnData */),
+            getTracelessModules().stream())
+        .toList();
+  }
 
   /** reference table modules */
   private final List<Module> refTableModules;
@@ -376,46 +411,11 @@ public abstract class Hub implements Module {
             blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     rlpAddr = new RlpAddr(this, trm, keccak);
-    blockdata = new Blockdata(wcp, euc, txnData, chain);
+    blockdata = new Blockdata(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
     refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
-
-    modules =
-        Stream.concat(
-                Stream.of(
-                    add,
-                    bin,
-                    blakeModexpData,
-                    blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
-                    ecData,
-                    euc,
-                    ext,
-                    gas,
-                    mmio,
-                    mmu,
-                    mod,
-                    mul,
-                    mxp,
-                    oob,
-                    exp,
-                    rlpAddr,
-                    rlpTxn,
-                    rlpTxnRcpt,
-                    logData, /* WARN: must be called AFTER rlpTxnRcpt */
-                    logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
-                    rom,
-                    romLex,
-                    shakiraData,
-                    shf,
-                    stp,
-                    trm,
-                    wcp, /* WARN: must be called BEFORE txnData */
-                    txnData,
-                    blockdata /* WARN: must be called AFTER txnData */),
-                getTracelessModules().stream())
-            .toList();
   }
 
   @Override

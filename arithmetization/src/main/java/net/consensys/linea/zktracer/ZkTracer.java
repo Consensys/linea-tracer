@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.ChainConfig.LINEA_CHAIN;
+import static net.consensys.linea.zktracer.ChainConfig.FORK_LINEA_CHAIN;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -34,9 +34,7 @@ import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.exceptions.TracingExceptions;
 import net.consensys.linea.zktracer.module.DebugMode;
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.LondonHub;
-import net.consensys.linea.zktracer.module.hub.ShanghaiHub;
+import net.consensys.linea.zktracer.module.hub.*;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.FiniteList;
 import org.apache.tuweni.bytes.Bytes;
@@ -75,8 +73,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
    * @param chainId Identifies the chain being traced.
    */
   public ZkTracer(
-      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId, Fork fork) {
-    this(LINEA_CHAIN(bridgeConfiguration, chainId), fork);
+      final Fork fork,
+      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
+      BigInteger chainId) {
+    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId));
   }
 
   /**
@@ -85,28 +85,18 @@ public class ZkTracer implements ConflationAwareOperationTracer {
    *
    * @param chain
    */
-  public ZkTracer(ChainConfig chain, Fork fork) {
+  public ZkTracer(ChainConfig chain) {
     this.chain = chain;
     this.hub =
-        switch (fork) {
+        switch (chain.fork) {
           case LONDON -> new LondonHub(chain);
           case SHANGHAI -> new ShanghaiHub(chain);
-          case CANCUN -> null;
-          case PRAGUE -> null;
+          case CANCUN -> new CancunHub(chain);
+          case PRAGUE -> new PragueHub(chain);
         };
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
-  }
-
-  public ZkTracer(ChainConfig chain) {
-    // TODO: remove this constructor, need to update the RPC calls that must gives the fork
-    throw new IllegalArgumentException();
-  }
-
-  public ZkTracer(LineaL1L2BridgeSharedConfiguration config, BigInteger chainId) {
-    // TODO: remove this constructor, need to update the RPC calls that must gives the fork
-    throw new IllegalArgumentException();
   }
 
   public void writeToFile(final Path filename, long startBlock, long endBlock) {

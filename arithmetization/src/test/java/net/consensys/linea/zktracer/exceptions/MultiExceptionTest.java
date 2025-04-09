@@ -323,12 +323,18 @@ public class MultiExceptionTest {
               .address(Address.fromHexString("ca11ee"))
               .build();
       gasCost = bytecodeRunner.runOnlyForGasCost(List.of(calleeAccount));
-      int gasCostPlusCornerCase = (int) gasCost + cornerCase;
+      // We calculate gas cost to trigger OOGX
+      // We retrieve the gas cost of the transaction as it's the gas used for the static call, so
+      // intrinsic gas cost already accounted
+      int gasCostPlusCornerCase = (int) gasCost + cornerCase - GAS_CONST_G_TRANSACTION;
       BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAddress(gasCostPlusCornerCase);
       bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
       bytecodeRunnerStaticCall.run(List.of(calleeAccount, CallProviderAccount));
     } else {
       gasCost = bytecodeRunner.runOnlyForGasCost();
+      // We calculate gas cost to trigger OOGX
+      // We retrieve the gas cost of the transaction as it's the gas used for the static call, so
+      // intrinsic gas cost already accounted
       int gasCostPlusCornerCase = (int) gasCost + cornerCase - GAS_CONST_G_TRANSACTION;
       BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAddress(gasCostPlusCornerCase);
       bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());

@@ -20,6 +20,5 @@ import net.consensys.linea.zktracer.ChainConfig;
 public class CancunHub extends ShanghaiHub {
   public CancunHub(ChainConfig chain) {
     super(chain);
-    this.modules(setModules());
   }
 }

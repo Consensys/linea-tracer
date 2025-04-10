@@ -20,14 +20,25 @@ import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
+import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
+import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {
     super(chain);
-    this.txnData(new LondonTxnData(this, wcp(), euc()));
-    this.modules(setModules());
+  }
+
+  @Override
+  protected TransactionStack setTransactionStack() {
+    return new LondonTransactionStack();
+  }
+
+  @Override
+  protected TxnData setTxnData() {
+    return new LondonTxnData(this, wcp(), euc());
   }
 
   @Override

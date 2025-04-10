@@ -210,7 +210,8 @@ public class OutOfGasMemExpExceptionTest {
 
     final int foreignCodeSize = 70;
     final ToyAccount codeOwnerAccount =
-        getAccountForCodeAddress(Bytes.fromHexString("ff".repeat(foreignCodeSize)));
+        getAccountForAddressWithBytecode(
+            codeAddress, Bytes.fromHexString("ff".repeat(foreignCodeSize)));
 
     program
         .push(foreignCodeSize + 3) // size
@@ -260,7 +261,8 @@ public class OutOfGasMemExpExceptionTest {
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionReturnDataCopy(int cornerCase) {
 
-    final ToyAccount returnDataProviderAccount = getAccountForCodeAddress(return32BytesFFBytecode);
+    final ToyAccount returnDataProviderAccount =
+        getAccountForAddressWithBytecode(codeAddress, return32BytesFFBytecode);
 
     boolean RDCX = false;
     boolean MXPX = false;
@@ -380,7 +382,7 @@ public class OutOfGasMemExpExceptionTest {
         .push(Bytes.fromHexString("0x7F")) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
-        .push(address1) // Topic 1
+        .push(topic1) // Topic 1
         .push(32) // size
         .push(1) // offset to trigger mem expansion
         .op(OpCode.LOG1);
@@ -405,8 +407,8 @@ public class OutOfGasMemExpExceptionTest {
         .push(Bytes.fromHexString("0x7F")) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
-        .push(address2) // Topic 2
-        .push(address1) // Topic 1
+        .push(topic2) // Topic 2
+        .push(topic1) // Topic 1
         .push(32) // size
         .push(1) // offset to trigger mem expansion
         .op(OpCode.LOG2);
@@ -431,9 +433,9 @@ public class OutOfGasMemExpExceptionTest {
         .push(Bytes.fromHexString("0x7F")) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
-        .push(address3) // Topic 3
-        .push(address2) // Topic 2
-        .push(address1) // Topic 1
+        .push(topic3) // Topic 3
+        .push(topic2) // Topic 2
+        .push(topic1) // Topic 1
         .push(32) // size
         .push(1) // offset to trigger mem expansion
         .op(OpCode.LOG3);
@@ -458,10 +460,10 @@ public class OutOfGasMemExpExceptionTest {
         .push(Bytes.fromHexString("0x7F")) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
-        .push(address4) // Topic 4
-        .push(address3) // Topic 3
-        .push(address2) // Topic 2
-        .push(address1) // Topic 1
+        .push(topic4) // Topic 4
+        .push(topic3) // Topic 3
+        .push(topic2) // Topic 2
+        .push(topic1) // Topic 1
         .push(32) // size
         .push(1) // offset to trigger mem expansion
         .op(OpCode.LOG4);

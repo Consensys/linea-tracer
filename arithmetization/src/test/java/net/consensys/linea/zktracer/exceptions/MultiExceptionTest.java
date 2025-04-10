@@ -64,7 +64,8 @@ public class MultiExceptionTest {
   void rdcAndOogExceptionsReturnDataCopy() {
     boolean MXPX = true;
     boolean RDCX = true;
-    final ToyAccount codeProviderAccount = getAccountForCodeAddress(return32BytesFFBytecode);
+    final ToyAccount codeProviderAccount =
+        getAccountForAddressWithBytecode(codeAddress, return32BytesFFBytecode);
 
     // We calculate gas cost without triggering RDCX, else no gas cost is calculated
     BytecodeCompiler programWithoutRdcx = getProgramRDCFromStaticCallToCodeAccount(!RDCX, !MXPX);
@@ -92,7 +93,8 @@ public class MultiExceptionTest {
   void rdcAndMxpExceptionsReturnDataCopy() {
     boolean MXPX = true;
     boolean RDCX = true;
-    final ToyAccount codeProviderAccount = getAccountForCodeAddress(return32BytesFFBytecode);
+    final ToyAccount codeProviderAccount =
+        getAccountForAddressWithBytecode(codeAddress, return32BytesFFBytecode);
 
     // We prepare a program with RDCX and MXPX
     BytecodeCompiler program = getProgramRDCFromStaticCallToCodeAccount(RDCX, MXPX);
@@ -173,12 +175,12 @@ public class MultiExceptionTest {
 
     pg.push(0).push(0).op(OpCode.SSTORE);
 
-    int gasCostToTriggerOutOfSStore = 3 + 3 + GAS_CONST_G_CALL_STIPEND - 1;
-    // 21000L is the intrinsic gas cost of a transaction and 3L is the gas cost of PUSH1
-
-    ToyAccount codeProviderAccount = getAccountForCodeAddress(pg.compile());
+    ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pg.compile());
     // Static call with gasCostToTriggerOutOfSStore gas
-    BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAddress(gasCostToTriggerOutOfSStore);
+    // 3L PUSH + 3L PUSH + 2300 (limit for OutOfStore trigger) and we retrieve 1
+    int gasCostToTriggerOutOfSStore = 3 + 3 + GAS_CONST_G_CALL_STIPEND - 1;
+    BytecodeCompiler pgStaticCallToCode =
+        getProgramStaticCallToCodeAddress(gasCostToTriggerOutOfSStore);
 
     BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
     bytecodeRunnerStaticCall.run(List.of(codeProviderAccount));
@@ -210,8 +212,9 @@ public class MultiExceptionTest {
       int gasCostMinusCornerCase = (int) gasCostTx - GAS_CONST_G_TRANSACTION + cornerCase;
 
       // We prepare a program with a static call to code account
-      ToyAccount codeProviderAccount = getAccountForCodeAddress(pgCompile);
-      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAddress(gasCostMinusCornerCase);
+      ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pgCompile);
+      BytecodeCompiler pgStaticCallToCode =
+          getProgramStaticCallToCodeAddress(gasCostMinusCornerCase);
 
       // Run with linea block gas limit so gas cost is passed to child without 63/64
       BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
@@ -227,14 +230,15 @@ public class MultiExceptionTest {
   static Stream<OpCode> opCodesForStaticAndOogExceptionList() {
     List<OpCode> opCodesListArgument =
         Arrays.asList(
-            /*            OpCode.LOG0,
+            OpCode.LOG0,
             OpCode.LOG1,
             OpCode.LOG2,
             OpCode.LOG3,
             OpCode.LOG4,
             OpCode.SSTORE,
-            OpCode.SELFDESTRUCT,*/
-            OpCode.CREATE, OpCode.CREATE2);
+            OpCode.SELFDESTRUCT,
+            OpCode.CREATE,
+            OpCode.CREATE2);
     return opCodesListArgument.stream();
   }
 
@@ -250,8 +254,8 @@ public class MultiExceptionTest {
       new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, roob, opCode);
 
       // We prepare a program to static call the code account
-      ToyAccount codeProviderAccount = getAccountForCodeAddress(pg.compile());
-      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAccount();
+      ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pg.compile());
+      BytecodeCompiler pgStaticCallToCode = getProgramStaticCallToCodeAccount();
 
       // We run the program to static call the account with MXPX code
       BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
@@ -311,7 +315,7 @@ public class MultiExceptionTest {
     long gasCost;
     BytecodeRunner bytecodeRunnerStaticCall;
 
-    ToyAccount CallProviderAccount = getAccountForCodeAddress(pgCompile);
+    ToyAccount CallProviderAccount = getAccountForAddressWithBytecode(codeAddress, pgCompile);
 
     if (targetAddressExists) {
       final ToyAccount calleeAccount =
@@ -325,7 +329,8 @@ public class MultiExceptionTest {
       // We retrieve the gas cost of the transaction as it's the gas used for the static call, so
       // intrinsic gas cost already accounted
       int gasCostPlusCornerCase = (int) gasCost + cornerCase - GAS_CONST_G_TRANSACTION;
-      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAddress(gasCostPlusCornerCase);
+      BytecodeCompiler pgStaticCallToCode =
+          getProgramStaticCallToCodeAddress(gasCostPlusCornerCase);
       bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
       bytecodeRunnerStaticCall.run(List.of(calleeAccount, CallProviderAccount));
     } else {
@@ -334,7 +339,8 @@ public class MultiExceptionTest {
       // We retrieve the gas cost of the transaction as it's the gas used for the static call, so
       // intrinsic gas cost already accounted
       int gasCostPlusCornerCase = (int) gasCost + cornerCase - GAS_CONST_G_TRANSACTION;
-      BytecodeCompiler pgStaticCallToCode = getPgStaticCallToCodeAddress(gasCostPlusCornerCase);
+      BytecodeCompiler pgStaticCallToCode =
+          getProgramStaticCallToCodeAddress(gasCostPlusCornerCase);
       bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
       bytecodeRunnerStaticCall.run(gasCost + cornerCase, List.of(CallProviderAccount));
     }
@@ -355,14 +361,14 @@ public class MultiExceptionTest {
   @Test
   void invalidCodePrefixAndOogExceptionForCreate() {
     // We run gas cost calculation on program without Invalid Code Prefix exception
-    String startByte = Integer.toHexString(0xee);
+    int startByte = 0xee;
     BytecodeCompiler programWithoutICP =
         getPgCreateInitCodeWithReturnStartByteAndSize(startByte, 1);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(programWithoutICP.compile());
     long gascost = bytecodeRunner.runOnlyForGasCost();
 
     // We prepare program with Invalid Code Prefix exception
-    String startByteWithICPX = Integer.toHexString(EIP_3541_MARKER);
+    int startByteWithICPX = EIP_3541_MARKER;
     BytecodeCompiler programWithICP =
         getPgCreateInitCodeWithReturnStartByteAndSize(startByteWithICPX, 1);
 
@@ -380,7 +386,7 @@ public class MultiExceptionTest {
   @Test
   void initCodePrefixAndMaxCodeSizeExceptionForCreate() {
     // We prepare program with Invalid Code Prefix and Max Code Size exceptions
-    String startByteWithICPX = Integer.toHexString(EIP_3541_MARKER);
+    int startByteWithICPX = EIP_3541_MARKER;
     int returnSize = MAX_CODE_SIZE + 1;
     BytecodeCompiler programWithICPXAndMCSX =
         getPgCreateInitCodeWithReturnStartByteAndSize(startByteWithICPX, returnSize);
@@ -434,7 +440,7 @@ public class MultiExceptionTest {
   @Test
   void initCodePrefixAndMaxCodeSizeAndOogExceptionForCreate() {
     // We prepare program with Invalid Code Prefix and Max Code Size exceptions
-    String startByteWithICPX = Integer.toHexString(EIP_3541_MARKER);
+    int startByteWithICPX = EIP_3541_MARKER;
     int returnSize = MAX_CODE_SIZE + 1;
     BytecodeCompiler programWithICPXAndMCSX =
         getPgCreateInitCodeWithReturnStartByteAndSize(startByteWithICPX, returnSize);

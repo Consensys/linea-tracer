@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.exceptions;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -28,13 +29,14 @@ import org.hyperledger.besu.datatypes.Wei;
 
 public class ExceptionUtils {
 
-  public static Bytes address1 =
+  public static Address codeAddress = Address.fromHexString("c0de");
+  public static Bytes topic1 =
       Bytes.fromHexString("0x1FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-  public static Bytes address2 =
+  public static Bytes topic2 =
       Bytes.fromHexString("0x2FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-  public static Bytes address3 =
+  public static Bytes topic3 =
       Bytes.fromHexString("0x3FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
-  public static Bytes address4 =
+  public static Bytes topic4 =
       Bytes.fromHexString("0x4FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
   public static Bytes salt =
       Bytes.fromHexString("0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef");
@@ -55,16 +57,16 @@ public class ExceptionUtils {
     }
   }
 
-  public static ToyAccount getAccountForCodeAddress(Bytes bytecode) {
+  public static ToyAccount getAccountForAddressWithBytecode(Address addr, Bytes bytecode) {
     return ToyAccount.builder()
         .balance(Wei.fromEth(1))
         .nonce(10)
-        .address(Address.fromHexString("c0de"))
+        .address(addr)
         .code(bytecode)
         .build();
   }
 
-  public static BytecodeCompiler getPgStaticCallToCodeAddress(int gas) {
+  public static BytecodeCompiler getProgramStaticCallToCodeAddress(int gas) {
     return BytecodeCompiler.newProgram()
         .push(0) // byte size of return data
         .push(0) // retOffset
@@ -75,7 +77,7 @@ public class ExceptionUtils {
         .op(OpCode.STATICCALL);
   }
 
-  public static BytecodeCompiler getPgStaticCallToCodeAccount() {
+  public static BytecodeCompiler getProgramStaticCallToCodeAccount() {
     return BytecodeCompiler.newProgram()
         .push(0) // byte size of return data
         .push(0) // retOffset
@@ -94,7 +96,7 @@ public class ExceptionUtils {
             ? Bytes.fromHexStringLenient("0xFFFFFFFF")
             : Bytes.ofUnsignedLong(65).trimLeadingZeros();
     // 1. Execute static call
-    BytecodeCompiler programStartWithStaticCall = getPgStaticCallToCodeAccount();
+    BytecodeCompiler programStartWithStaticCall = getProgramStaticCallToCodeAccount();
     // 2. Clean the stack
     programStartWithStaticCall.op(OpCode.POP).op(OpCode.RETURNDATASIZE);
     // if withRDCX is true, we add the code to trigger the exception
@@ -108,7 +110,6 @@ public class ExceptionUtils {
         .push(0) // offset
         .push(offsetRDC) // destoffset, trigger mem expansion
         .op(OpCode.RETURNDATACOPY);
-    // Bytes.fromHexStringLenient("0xFFFFFFFF")
     return programStartWithStaticCall;
   }
 
@@ -138,29 +139,29 @@ public class ExceptionUtils {
           .push(1) //  offset
           .op(OpCode.LOG0);
       case LOG1 -> program
-          .push(address1) // Topic 1
+          .push(topic1) // Topic 1
           .push(32) // size
           .push(1) // offset to trigger mem expansion
           .op(OpCode.LOG1);
       case LOG2 -> program
-          .push(address2) // Topic 2
-          .push(address1) // Topic 1
+          .push(topic2) // Topic 2
+          .push(topic1) // Topic 1
           .push(32) // size
           .push(1) // offset to trigger mem expansion
           .op(OpCode.LOG2);
       case LOG3 -> program
-          .push(address3) // Topic 3
-          .push(address2) // Topic 2
-          .push(address1) // Topic 1
+          .push(topic3) // Topic 3
+          .push(topic2) // Topic 2
+          .push(topic1) // Topic 1
           .push(32) // size
           .push(1) // offset to trigger mem expansion
           .op(OpCode.LOG3);
 
       case LOG4 -> program
-          .push(address4) // Topic 4
-          .push(address3) // Topic 3
-          .push(address2) // Topic 2
-          .push(address1) // Topic 1
+          .push(topic4) // Topic 4
+          .push(topic3) // Topic 3
+          .push(topic2) // Topic 2
+          .push(topic1) // Topic 1
           .push(32) // size
           .push(1) // offset to trigger mem expansion
           .op(OpCode.LOG4);
@@ -188,11 +189,27 @@ public class ExceptionUtils {
     return program;
   }
 
+  /**
+   * The {@code initProgram} inserts a single byte {@code startByte} at offset 0 into RAM and
+   * returns {@code returnSize} bytes starting at offset 0. There are four cases of interest:
+   *
+   * <ul>
+   *   <li>{@code startByte} is <b>0xEF</b> and {@code returnSize} > 0
+   *   <li>{@code startByte} is <b>0xEF</b> and {@code returnSize} = 0
+   *   <li>{@code startByte} is anything but <b>0xEF</b> and {@code returnSize} > 0
+   *   <li>{@code startByte} is anything but <b>0xEF</b> and {@code returnSize} = 0
+   * </ul>
+   *
+   * Only the first one should raise the <b>invalidCodePrefixException</b>.
+   */
   public static BytecodeCompiler getPgCreateInitCodeWithReturnStartByteAndSize(
-      String hexString, int returnSize) {
+      int startByte, int returnSize) {
+    checkArgument(startByte >= 0);
+    checkArgument(startByte < 256);
+
     BytecodeCompiler initProgram = BytecodeCompiler.newProgram();
     initProgram
-        .push(hexString)
+        .push(Integer.toHexString(startByte))
         .push(0)
         .op(OpCode.MSTORE8)
         .push(returnSize)

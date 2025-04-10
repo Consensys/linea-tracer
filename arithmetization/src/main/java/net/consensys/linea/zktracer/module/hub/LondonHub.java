@@ -16,12 +16,23 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
+import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
+import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {
     super(chain);
-    this.txnData(new LondonTxnData(this, wcp(), euc()));
-    this.modules(setModules());
+  }
+
+  @Override
+  protected TransactionStack setTransactionStack() {
+    return new LondonTransactionStack();
+  }
+
+  @Override
+  protected TxnData setTxnData() {
+    return new LondonTxnData(this, wcp(), euc());
   }
 }

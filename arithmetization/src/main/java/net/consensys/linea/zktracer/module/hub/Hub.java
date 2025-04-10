@@ -36,7 +36,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ChainConfig;
@@ -68,7 +67,6 @@ import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.state.BlockStack;
-import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.State;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -157,7 +155,7 @@ public abstract class Hub implements Module {
   @Getter CallStack callStack = new CallStack();
 
   /** Stores the transaction Metadata of all the transaction of the conflated block */
-  @Setter @Getter TransactionStack txStack = new LondonTransactionStack();
+  @Getter TransactionStack txStack = setTransactionStack();
 
   /** Stores the block Metadata of all the blocks of the conflation */
   @Getter BlockStack blockStack = new BlockStack();
@@ -215,7 +213,7 @@ public abstract class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  @Getter @Setter private TxnData txnData = null;
+  @Getter private final TxnData txnData = setTxnData();
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -304,44 +302,8 @@ public abstract class Hub implements Module {
   @Getter private final L2Block l2Block;
   @Getter private final L2L1Logs l2L1Logs;
 
-  @Getter @Setter private List<Module> modules;
-
   /** list of module than can be modified during execution */
-  public List<Module> setModules() {
-    return Stream.concat(
-            Stream.of(
-                add,
-                bin,
-                blakeModexpData,
-                blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
-                ecData,
-                euc,
-                ext,
-                gas,
-                mmio,
-                mmu,
-                mod,
-                mul,
-                mxp,
-                oob,
-                exp,
-                rlpAddr,
-                rlpTxn,
-                rlpTxnRcpt,
-                logData, /* WARN: must be called AFTER rlpTxnRcpt */
-                logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
-                rom,
-                romLex,
-                shakiraData,
-                shf,
-                stp,
-                trm,
-                wcp, /* WARN: must be called BEFORE txnData */
-                txnData,
-                blockdata /* WARN: must be called AFTER txnData */),
-            getTracelessModules().stream())
-        .toList();
-  }
+  @Getter private final List<Module> modules;
 
   /** reference table modules */
   private final List<Module> refTableModules;
@@ -418,6 +380,41 @@ public abstract class Hub implements Module {
     mmio = new Mmio(mmu);
 
     refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
+
+    modules =
+        Stream.concat(
+                Stream.of(
+                    add,
+                    bin,
+                    blakeModexpData,
+                    blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
+                    ecData,
+                    euc,
+                    ext,
+                    gas,
+                    mmio,
+                    mmu,
+                    mod,
+                    mul,
+                    mxp,
+                    oob,
+                    exp,
+                    rlpAddr,
+                    rlpTxn,
+                    rlpTxnRcpt,
+                    logData, /* WARN: must be called AFTER rlpTxnRcpt */
+                    logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
+                    rom,
+                    romLex,
+                    shakiraData,
+                    shf,
+                    stp,
+                    trm,
+                    wcp, /* WARN: must be called BEFORE txnData */
+                    txnData,
+                    blockdata /* WARN: must be called AFTER txnData */),
+                getTracelessModules().stream())
+            .toList();
   }
 
   @Override
@@ -1067,5 +1064,13 @@ public abstract class Hub implements Module {
 
   public Address coinbaseAddressOfRelativeBlock(final int relativeBlockNumber) {
     return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
+  }
+
+  protected TransactionStack setTransactionStack() {
+    return null;
+  }
+
+  protected TxnData setTxnData() {
+    return null;
   }
 }

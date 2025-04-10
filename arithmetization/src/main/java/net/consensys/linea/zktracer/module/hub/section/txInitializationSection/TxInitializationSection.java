@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section;
+package net.consensys.linea.zktracer.module.hub.section.txInitializationSection;
 
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -38,14 +39,14 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.Account;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class TxInitializationSection extends TraceSection implements EndTransactionDefer {
+public abstract class TxInitializationSection extends TraceSection implements EndTransactionDefer {
 
   @Getter private final int hubStamp;
   final AccountFragment.AccountFragmentFactory accountFragmentFactory;
 
   ImcFragment miscFragment;
 
-  private final AccountFragment warmCoinbaseAccountFragment;
+  public final AccountFragment coinbaseWarmingAccountFragment;
 
   private final AccountFragment gasPaymentAccountFragment;
   @Getter private final AccountSnapshot senderGasPayment;
@@ -88,7 +89,7 @@ public class TxInitializationSection extends TraceSection implements EndTransact
 
     final AccountSnapshot coinbase =
         canonical(hub, world, hub.coinbaseAddress(), tx.isCoinbasePreWarmed());
-    warmCoinbaseAccountFragment =
+    coinbaseWarmingAccountFragment =
         accountFragmentFactory.makeWithTrm(
             coinbase,
             coinbase.deepCopy().turnOnWarmth(),
@@ -203,13 +204,12 @@ public class TxInitializationSection extends TraceSection implements EndTransact
 
     this.addFragment(miscFragment); // MISC i + 0
     this.addFragment(new TransactionFragment(hub.txStack().current())); // TXN i + 1
-    this.addFragment(warmCoinbaseAccountFragment); // ACC i + 2 (warm coinbase)
-    this.addFragment(gasPaymentAccountFragment); // ACC i + 3 (sender: gas payment)
-    this.addFragment(valueSendingAccountFragment); // ACC i + 4 (sender: value transfer)
-    this.addFragment(valueReceptionAccountFragment); // ACC i + 5 (recipient: value reception)
+    addCoinbaseWarmingFragment(); // Post Shanghai Only
+    this.addFragment(gasPaymentAccountFragment); // ACC i +  (sender: gas payment)
+    this.addFragment(valueSendingAccountFragment); // ACC i +  (sender: value transfer)
+    this.addFragment(valueReceptionAccountFragment); // ACC i +  (recipient: value reception)
 
     if (!isSuccessful) {
-
       senderUndoingValueTransfer = senderValueTransferNew.deepCopy().setDeploymentNumber(hub);
       senderUndoingValueTransferNew = senderValueTransfer.deepCopy().setDeploymentNumber(hub);
 
@@ -226,19 +226,21 @@ public class TxInitializationSection extends TraceSection implements EndTransact
 
       final int revertStamp = hub.currentFrame().revertStamp();
 
-      this.addFragment( // ACC i + 6 (sender)
+      this.addFragment( // ACC i +  (sender)
           accountFragmentFactory.make(
               senderUndoingValueTransfer,
               senderUndoingValueTransferNew,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 3)));
 
-      this.addFragment( // ACC i + 7 (recipient)
+      this.addFragment( // ACC i +  (recipient)
           accountFragmentFactory.make(
               recipientUndoingValueReception,
               recipientUndoingValueReceptionNew,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 4)));
     }
 
-    this.addFragment(initializationContextFragment); // CON i + 6/8
+    this.addFragment(initializationContextFragment); // CON i +
   }
+
+  protected void addCoinbaseWarmingFragment() {}
 }

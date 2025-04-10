@@ -108,6 +108,10 @@ public abstract class TransactionProcessingMetadata {
   @Setter
   boolean isCoinbasePreWarmed = false;
 
+  @Accessors(fluent = true)
+  @Setter
+  boolean isCoinbaseWarmAtTransactionEnd = false;
+
   @Setter List<Log> logs;
 
   @Setter int codeFragmentIndex = -1;

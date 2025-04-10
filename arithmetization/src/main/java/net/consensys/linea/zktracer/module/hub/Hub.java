@@ -496,7 +496,7 @@ public abstract class Hub implements Module {
         new TxPreWarmingMacroSection(world, this);
       }
       state.processingPhase(TX_INIT);
-      new TxInitializationSection(this, world);
+      setInitializationSection(world);
     }
 
     // Note: for deployment transactions the deployment number / status were updated during the
@@ -1059,4 +1059,6 @@ public abstract class Hub implements Module {
   public Address coinbaseAddressOfRelativeBlock(final int relativeBlockNumber) {
     return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
   }
+
+  public void setInitializationSection(WorldView world) {}
 }

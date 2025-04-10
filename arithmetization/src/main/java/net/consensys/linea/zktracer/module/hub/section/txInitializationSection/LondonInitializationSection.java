@@ -13,22 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.section.txInitializationSection;
 
-import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
-import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class LondonHub extends Hub {
-  public LondonHub(ChainConfig chain) {
-    super(chain);
-    this.txnData(new LondonTxnData(this, wcp(), euc()));
-    this.modules(setModules());
-  }
-
-  @Override
-  public void setInitializationSection(WorldView world) {
-    new LondonInitializationSection(this, world);
+public class LondonInitializationSection extends TxInitializationSection {
+  public LondonInitializationSection(Hub hub, WorldView world) {
+    super(hub, world);
   }
 }

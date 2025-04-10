@@ -47,7 +47,7 @@ public class ShanghaiInitializationSection extends LondonInitializationSection {
   }
 
   @Override
-  protected boolean sendergasPaymentWarmth(final TransactionProcessingMetadata tx) {
+  protected boolean senderGasPaymentWarmth(final TransactionProcessingMetadata tx) {
     return tx.isSenderPreWarmed() || tx.senderIsCoinbase();
   }
 }

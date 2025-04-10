@@ -1059,11 +1059,11 @@ public abstract class Hub implements Module {
   }
 
   protected TransactionStack setTransactionStack() {
-    return null;
+    throw new IllegalStateException("must be implemented");
   }
 
   protected TxnData setTxnData() {
-    return null;
+    throw new IllegalStateException("must be implemented");
   }
 
   protected void setInitializationSection(WorldView world) {}

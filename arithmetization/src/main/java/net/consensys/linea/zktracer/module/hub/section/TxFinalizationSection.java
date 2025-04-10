@@ -43,7 +43,7 @@ public class TxFinalizationSection extends TraceSection implements EndTransactio
   private AccountSnapshot coinbaseGasRefund;
   private AccountSnapshot coinbaseGasRefundNew;
 
-  public TxFinalizationSection(Hub hub, WorldView world, boolean exceptionOrRevert) {
+  public TxFinalizationSection(Hub hub) {
     super(hub, (short) 4);
     hub.defers().scheduleForEndTransaction(this);
     txMetadata = hub.txStack().current();
@@ -55,7 +55,7 @@ public class TxFinalizationSection extends TraceSection implements EndTransactio
 
     checkArgument(isSuccessful == txMetadata.statusCode());
 
-    DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
+    final DeploymentInfo deploymentInfo = hub.transients().conflation().deploymentInfo();
     checkArgument(
         !deploymentInfo.getDeploymentStatus(txMetadata.getCoinbaseAddress()),
         "The coinbase may not be under deployment");
@@ -110,7 +110,9 @@ public class TxFinalizationSection extends TraceSection implements EndTransactio
     final Address coinbaseAddress = txMetadata.getCoinbaseAddress();
 
     coinbaseGasRefundNew =
-        AccountSnapshot.canonical(hub, world, coinbaseAddress, true).setDeploymentInfo(hub);
+        AccountSnapshot.canonical(hub, world, coinbaseAddress)
+            .setWarmthTo(txMetadata.coinbaseWarmAtTransactionEnd())
+            .setDeploymentInfo(hub);
     coinbaseGasRefund =
         coinbaseGasRefundNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
 

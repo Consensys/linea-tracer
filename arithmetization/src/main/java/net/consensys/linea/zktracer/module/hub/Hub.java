@@ -653,7 +653,7 @@ public abstract class Hub implements Module {
       if (state.processingPhase() != TX_SKIP
           && frame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
         state.processingPhase(TX_FINL);
-        new TxFinalizationSection(this, frame.getWorldUpdater(), false);
+        new TxFinalizationSection(this);
       }
     }
 
@@ -722,7 +722,7 @@ public abstract class Hub implements Module {
     }
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
-      new TxFinalizationSection(this, frame.getWorldUpdater(), true);
+      new TxFinalizationSection(this);
     }
   }
 

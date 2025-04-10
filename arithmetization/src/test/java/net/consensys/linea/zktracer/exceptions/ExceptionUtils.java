@@ -93,7 +93,7 @@ public class ExceptionUtils {
     // if withMXPX, we set an offset to trigger MXPX else regular MXP
     Bytes offsetRDC =
         withMXPX
-            ? Bytes.fromHexStringLenient("0xFFFFFFFF")
+            ? Bytes.fromHexStringLenient("0x0100000000")
             : Bytes.ofUnsignedLong(65).trimLeadingZeros();
     // 1. Execute static call
     BytecodeCompiler programStartWithStaticCall = getProgramStaticCallToCodeAccount();

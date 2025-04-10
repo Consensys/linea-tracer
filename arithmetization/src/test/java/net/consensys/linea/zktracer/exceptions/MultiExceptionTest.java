@@ -427,7 +427,7 @@ public class MultiExceptionTest {
     // We run the program with a gas cost that triggers OOGX
     // We calculate all opcodes gas before the RETURN opcode
     // 32027L = 3L PUSH + 3L PUSH + 6L MSTORE + 3L PUSH + 3L PUSH + 3L PUSH + 32000L CREATE +
-    // (7/64)(negligible) + 3L PUSH + 3L PUSH
+    // ((32027-3-3-6-3-3-3-32000/64))(less than 0.5 so not adding gas) + 3L PUSH + 3L PUSH
     // 21000L for the intrinsic transaction cost
     bytecodeRunner.run(32027L + 21000L);
 
@@ -450,7 +450,8 @@ public class MultiExceptionTest {
     // We run the program with a gas cost that triggers OOGX
     // We calculate all opcodes gas before the RETURN opcode
     // 32036L = 3L PUSH + 3L PUSH + 6L MSTORE + 3L PUSH + 3L PUSH + 3L PUSH + 32000L CREATE +
-    // (16/64)(negligible) + 3L PUSH + 3L PUSH + 6L MSTORE8 + 3L PUSH + 3L PUSH
+    // ((32036-3-3-6-3-3-3-32000)/64)(less than 0.5 so not adding gas) + 3L PUSH + 3L PUSH + 6L
+    // MSTORE8 + 3L PUSH + 3L PUSH
     // 21000L for the intrinsic transaction cost
     bytecodeRunnerWithICPXAndMCSX.run(32039L + 21000L);
 

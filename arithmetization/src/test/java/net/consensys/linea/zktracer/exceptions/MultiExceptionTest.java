@@ -373,7 +373,7 @@ public class MultiExceptionTest {
         getPgCreateInitCodeWithReturnStartByteAndSize(startByteWithICPX, 1);
 
     // We run program with Invalid Code Prefix and OOG exception
-    long gasCostMinusOne = gascost - 1;
+    long gasCostMinusOne = gascost - 2;
     BytecodeRunner bytecodeRunnerWithICP = BytecodeRunner.of(programWithICP.compile());
     bytecodeRunnerWithICP.run(gasCostMinusOne);
 

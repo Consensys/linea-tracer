@@ -45,4 +45,9 @@ public class ShanghaiInitializationSection extends LondonInitializationSection {
         DomSubStampsSubFragment.standardDomSubStamps(
             getHubStamp(), incrementNumberOfAccountFragment()));
   }
+
+  @Override
+  protected boolean sendergasPaymentWarmth(final TransactionProcessingMetadata tx) {
+    return tx.isSenderPreWarmed() || tx.senderIsCoinbase();
+  }
 }

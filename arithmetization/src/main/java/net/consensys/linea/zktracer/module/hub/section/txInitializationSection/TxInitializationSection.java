@@ -93,11 +93,8 @@ public abstract class TxInitializationSection extends TraceSection implements En
     coinbaseWarmingAccountFragment = makeCoinbaseWarmingFragment(hub, world, tx);
 
     senderGasPayment =
-        canonical(
-            hub,
-            world,
-            senderAccount.getAddress(),
-            tx.isSenderPreWarmed() || tx.senderIsCoinbase());
+        canonical(hub, world, senderAccount.getAddress(), sendergasPaymentWarmth(tx));
+
     senderGasPaymentNew =
         senderGasPayment.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth().raiseNonceByOne();
 
@@ -250,6 +247,10 @@ public abstract class TxInitializationSection extends TraceSection implements En
   protected AccountFragment makeCoinbaseWarmingFragment(
       final Hub hub, final WorldView world, final TransactionProcessingMetadata tx) {
     return null;
+  }
+
+  protected boolean sendergasPaymentWarmth(final TransactionProcessingMetadata tx) {
+    return tx.isSenderPreWarmed();
   }
 
   protected void addCoinbaseWarmingFragment() {}

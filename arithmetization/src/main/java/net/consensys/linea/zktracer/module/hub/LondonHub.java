@@ -23,8 +23,8 @@ import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.L
 import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {

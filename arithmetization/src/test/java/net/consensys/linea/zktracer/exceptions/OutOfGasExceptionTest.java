@@ -238,7 +238,8 @@ public class OutOfGasExceptionTest {
     if (cornerCase == -1) {
       // JUMP needs JUMPDEST to jump to
       // Calculate the gas cost to trigger OOGX on JUMP and not on the last but one opcode
-      gasCost = GAS_CONST_G_TRANSACTION + GAS_CONST_G_VERY_LOW + GAS_CONST_G_MID;
+      // 21000L intrinsic gas cost + 3L PUSH + 8L JUMP, and we retrieve 1
+      gasCost = GAS_CONST_G_TRANSACTION + GAS_CONST_G_VERY_LOW + GAS_CONST_G_MID - 1L;
     } else {
       gasCost = bytecodeRunner.runOnlyForGasCost();
     }
@@ -268,7 +269,8 @@ public class OutOfGasExceptionTest {
     if (cornerCase == -1) {
       // JUMPI needs JUMPDEST to jump to
       // Calculate the gas cost to trigger OOGX on JUMPI and not on the last but one opcode
-      gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH;
+      // 21000L intrinsic gas cost + 3L PUSH + 10L JUMP, and we retrieve 1
+      gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH - 1L;
     } else {
       gasCost = bytecodeRunner.runOnlyForGasCost();
     }

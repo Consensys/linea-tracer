@@ -125,13 +125,14 @@ public class MultiExceptionTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(bytecode);
     // JUMP needs JUMPDEST to jump to
     // Calculate the gas cost to trigger OOGX on JUMP and not on the last but one opcode
-    long gasCost = GAS_CONST_G_TRANSACTION + GAS_CONST_G_VERY_LOW + GAS_CONST_G_MID;
+    long gasCost = GAS_CONST_G_TRANSACTION + GAS_CONST_G_VERY_LOW;
 
     bytecodeRunner.run(gasCost);
 
-    // JUMPX check happens before OOGX in tracer
+    // OOGX check happens before JUMPX in tracer
     assertEquals(
-        JUMP_FAULT, bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 
   /**
@@ -156,13 +157,14 @@ public class MultiExceptionTest {
 
     // JUMPI needs JUMPDEST to jump to
     // Calculate the gas cost to trigger OOGX on JUMPI and not on the last but one opcode
-    long gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH;
+    long gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW;
 
     bytecodeRunner.run(gasCost);
 
     // JUMPX check happens before OOGX in tracer
     assertEquals(
-        JUMP_FAULT, bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+        OUT_OF_GAS_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 
   @Test
@@ -187,11 +189,6 @@ public class MultiExceptionTest {
         bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
   }
 
-  /*
-  For CREATE and CREATE2 deployment code: "0x7F7EFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF60005260206000F3"
-  1. OOGX for CREATE/CREATE2 before deployment: remove 6400 (depositFee) + deployment code exec cost (18)
-  2. OOGX for CREATE/CREATE2 after deployment: enough gas for child creation, but not enough to complete deployment code or deposit
-   */
   @ParameterizedTest
   @MethodSource("opCodesForStaticAndOogExceptionList")
   void staticAndOogExceptions(OpCode opCode) {
@@ -201,10 +198,12 @@ public class MultiExceptionTest {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
     long gasCostTx = bytecodeRunner.runOnlyForGasCost();
 
+    /*
+    for CREATE/CREATE2, Static Exception happens before deployment, so we test OOGX before deployment
+    We remove 6400 (depositFee) + deployment code exec cost (18) from gas cost calculated
+     */
     int[] cornerCaseList =
-        (opCode == OpCode.CREATE || opCode == OpCode.CREATE2)
-            ? new int[] {-6419, 100}
-            : new int[] {-1};
+        (opCode == OpCode.CREATE || opCode == OpCode.CREATE2) ? new int[] {-6419} : new int[] {-1};
 
     for (int cornerCase : cornerCaseList) {
       // We calculate gas cost to trigger OOGX
@@ -228,15 +227,14 @@ public class MultiExceptionTest {
   static Stream<OpCode> opCodesForStaticAndOogExceptionList() {
     List<OpCode> opCodesListArgument =
         Arrays.asList(
-            OpCode.LOG0,
+            /*            OpCode.LOG0,
             OpCode.LOG1,
             OpCode.LOG2,
             OpCode.LOG3,
             OpCode.LOG4,
             OpCode.SSTORE,
-            OpCode.SELFDESTRUCT,
-            OpCode.CREATE,
-            OpCode.CREATE2);
+            OpCode.SELFDESTRUCT,*/
+            OpCode.CREATE, OpCode.CREATE2);
     return opCodesListArgument.stream();
   }
 

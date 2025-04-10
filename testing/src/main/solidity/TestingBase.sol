@@ -321,7 +321,7 @@ abstract contract TestingBase {
     }
 
     /**
-     * @notice Deploys a contract with create 2, sends a value and never reverts. Even only emitted if address is not 0.
+     * @notice Deploys a contract with create 2, sends a value and never reverts. Event only emitted if address is not 0.
      * @param _salt The salt for creating the contract.
      * @param _bytecode The bytecode to use in creation.
      * @param _value The value sent during the creation.

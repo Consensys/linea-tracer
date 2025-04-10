@@ -68,6 +68,9 @@ public abstract class TxInitializationSection extends TraceSection implements En
 
   @Getter private final ContextFragment initializationContextFragment;
 
+  /** This is used to generate the Dom / Sub offset */
+  private int numberOfAccountFragment = 0;
+
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 9);
     hub.defers().scheduleForEndTransaction(this);
@@ -87,14 +90,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
     final Wei transactionGasPrice = Wei.of(tx.getEffectiveGasPrice());
     final Wei gasCost = transactionGasPrice.multiply(tx.getBesuTransaction().getGasLimit());
 
-    final AccountSnapshot coinbase =
-        canonical(hub, world, hub.coinbaseAddress(), tx.isCoinbasePreWarmed());
-    coinbaseWarmingAccountFragment =
-        accountFragmentFactory.makeWithTrm(
-            coinbase,
-            coinbase.deepCopy().turnOnWarmth(),
-            coinbase.address(),
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 0));
+    coinbaseWarmingAccountFragment = makeCoinbaseWarmingFragment(hub, world, tx);
 
     senderGasPayment =
         canonical(
@@ -178,19 +174,22 @@ public abstract class TxInitializationSection extends TraceSection implements En
             senderGasPayment,
             senderGasPaymentNew,
             senderGasPayment.address(),
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 1));
+            DomSubStampsSubFragment.standardDomSubStamps(
+                hubStamp, incrementNumberOfAccountFragment()));
     valueSendingAccountFragment =
         accountFragmentFactory.make(
             senderValueTransfer,
             senderValueTransferNew,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 2));
+            DomSubStampsSubFragment.standardDomSubStamps(
+                hubStamp, incrementNumberOfAccountFragment()));
     valueReceptionAccountFragment =
         accountFragmentFactory
             .makeWithTrm(
                 recipientValueReception,
                 recipientValueReceptionNew,
                 recipientValueReception.address(),
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, 3))
+                DomSubStampsSubFragment.standardDomSubStamps(
+                    hubStamp, incrementNumberOfAccountFragment()))
             .requiresRomlex(true);
 
     initializationContextFragment = ContextFragment.initializeExecutionContext(hub);
@@ -202,12 +201,12 @@ public abstract class TxInitializationSection extends TraceSection implements En
   public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
-    this.addFragment(miscFragment); // MISC i + 0
-    this.addFragment(new TransactionFragment(hub.txStack().current())); // TXN i + 1
+    addFragment(miscFragment); // MISC i + 0
+    addFragment(new TransactionFragment(hub.txStack().current())); // TXN i + 1
     addCoinbaseWarmingFragment(); // Post Shanghai Only
-    this.addFragment(gasPaymentAccountFragment); // ACC i +  (sender: gas payment)
-    this.addFragment(valueSendingAccountFragment); // ACC i +  (sender: value transfer)
-    this.addFragment(valueReceptionAccountFragment); // ACC i +  (recipient: value reception)
+    addFragment(gasPaymentAccountFragment); // ACC i +  (sender: gas payment)
+    addFragment(valueSendingAccountFragment); // ACC i +  (sender: value transfer)
+    addFragment(valueReceptionAccountFragment); // ACC i +  (recipient: value reception)
 
     if (!isSuccessful) {
       senderUndoingValueTransfer = senderValueTransferNew.deepCopy().setDeploymentNumber(hub);
@@ -230,16 +229,27 @@ public abstract class TxInitializationSection extends TraceSection implements En
           accountFragmentFactory.make(
               senderUndoingValueTransfer,
               senderUndoingValueTransferNew,
-              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 3)));
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                  hubStamp, revertStamp, incrementNumberOfAccountFragment())));
 
       this.addFragment( // ACC i +  (recipient)
           accountFragmentFactory.make(
               recipientUndoingValueReception,
               recipientUndoingValueReceptionNew,
-              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(hubStamp, revertStamp, 4)));
+              DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
+                  hubStamp, revertStamp, incrementNumberOfAccountFragment())));
     }
 
     this.addFragment(initializationContextFragment); // CON i +
+  }
+
+  protected int incrementNumberOfAccountFragment() {
+    return numberOfAccountFragment++;
+  }
+
+  protected AccountFragment makeCoinbaseWarmingFragment(
+      final Hub hub, final WorldView world, final TransactionProcessingMetadata tx) {
+    return null;
   }
 
   protected void addCoinbaseWarmingFragment() {}

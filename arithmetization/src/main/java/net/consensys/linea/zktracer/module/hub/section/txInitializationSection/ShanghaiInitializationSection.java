@@ -15,7 +15,13 @@
 
 package net.consensys.linea.zktracer.module.hub.section.txInitializationSection;
 
+import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
+
+import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class ShanghaiInitializationSection extends LondonInitializationSection {
@@ -26,5 +32,17 @@ public class ShanghaiInitializationSection extends LondonInitializationSection {
   @Override
   protected void addCoinbaseWarmingFragment() {
     this.addFragment(coinbaseWarmingAccountFragment);
+  }
+
+  protected AccountFragment makeCoinbaseWarmingFragment(
+      final Hub hub, final WorldView world, final TransactionProcessingMetadata tx) {
+    final AccountSnapshot coinbase =
+        canonical(hub, world, hub.coinbaseAddress(), tx.isCoinbasePreWarmed());
+    return accountFragmentFactory.makeWithTrm(
+        coinbase,
+        coinbase.deepCopy().turnOnWarmth(),
+        coinbase.address(),
+        DomSubStampsSubFragment.standardDomSubStamps(
+            getHubStamp(), incrementNumberOfAccountFragment()));
   }
 }

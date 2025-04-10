@@ -19,20 +19,26 @@ import static com.google.common.base.Preconditions.checkState;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.section.TxInitializationSection;
-import net.consensys.linea.zktracer.module.hub.transients.Block;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public class TransactionStack {
+public abstract class TransactionStack {
+  @Accessors(fluent = true)
   private final StackedList<TransactionProcessingMetadata> transactions = new StackedList<>();
+
+  @Accessors(fluent = true)
   private int currentAbsNumber;
+
+  @Accessors(fluent = true)
   private int relativeTransactionNumber;
-  @Setter @Getter public TxInitializationSection initializationSection;
+
+  @Setter public TxInitializationSection initializationSection;
 
   public TransactionProcessingMetadata current() {
     return transactions.getLast();
@@ -63,15 +69,15 @@ public class TransactionStack {
     relativeTransactionNumber = 0;
   }
 
-  public void enterTransaction(final WorldView world, final Transaction tx, Block block) {
+  public void enterTransaction(final Hub hub, final WorldView world, final Transaction tx) {
     currentAbsNumber += 1;
     relativeTransactionNumber += 1;
 
-    final TransactionProcessingMetadata newTx =
-        new TransactionProcessingMetadata(
-            world, tx, block, relativeTransactionNumber, currentAbsNumber);
+    addTransactionToStack(hub, world, tx);
+  }
 
-    transactions.add(newTx);
+  public void addTransactionToStack(Hub hub, WorldView world, Transaction tx) {
+    throw new IllegalArgumentException("Must be implemented");
   }
 
   public void setCodeFragmentIndex(Hub hub) {

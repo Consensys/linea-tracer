@@ -66,6 +66,7 @@ import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
+import net.consensys.linea.zktracer.module.hub.state.BlockStack;
 import net.consensys.linea.zktracer.module.hub.state.State;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -105,7 +106,7 @@ import net.consensys.linea.zktracer.module.tables.bin.BinRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
-import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -134,7 +135,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 @Accessors(fluent = true)
-public class Hub implements Module {
+public abstract class Hub implements Module {
 
   public static final GasProjector GAS_PROJECTOR = new GasProjector();
 
@@ -154,7 +155,10 @@ public class Hub implements Module {
   @Getter CallStack callStack = new CallStack();
 
   /** Stores the transaction Metadata of all the transaction of the conflated block */
-  @Getter TransactionStack txStack = new TransactionStack();
+  @Getter TransactionStack txStack = setTransactionStack();
+
+  /** Stores the block Metadata of all the blocks of the conflation */
+  @Getter BlockStack blockStack = new BlockStack();
 
   /** Stores all the actions that must be deferred to a later time */
   @Getter private final DeferRegistry defers = new DeferRegistry();
@@ -194,7 +198,7 @@ public class Hub implements Module {
   private final Add add = new Add();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
-  private final Euc euc = new Euc(wcp);
+  @Getter private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   @Getter private final Gas gas = new Gas(wcp);
   private final Mul mul = new Mul(this);
@@ -209,7 +213,7 @@ public class Hub implements Module {
   private final RlpTxn rlpTxn = new RlpTxn(romLex);
   private final Mmio mmio;
 
-  @Getter private final TxnData txnData = new TxnData(this, wcp, euc);
+  @Getter private final TxnData txnData = setTxnData();
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -299,12 +303,11 @@ public class Hub implements Module {
   @Getter private final L2L1Logs l2L1Logs;
 
   /** list of module than can be modified during execution */
-  private final List<Module> modules;
+  @Getter private final List<Module> modules;
 
   /** reference table modules */
   private final List<Module> refTableModules;
 
-  public Address coinbaseAddress;
   public boolean coinbaseWarmthAtTransactionEnd = false;
 
   /**
@@ -372,7 +375,7 @@ public class Hub implements Module {
             blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     rlpAddr = new RlpAddr(this, trm, keccak);
-    blockdata = new Blockdata(wcp, euc, txnData, chain);
+    blockdata = new Blockdata(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -459,9 +462,8 @@ public class Hub implements Module {
   @Override
   public void traceStartBlock(
       final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
-    this.coinbaseAddress = miningBeneficiary;
     state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
-    this.transients().block().update(processableBlockHeader, miningBeneficiary);
+    blockStack.newBlock(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
     for (Module m : modules) {
       m.traceStartBlock(processableBlockHeader, miningBeneficiary);
@@ -473,11 +475,12 @@ public class Hub implements Module {
     for (Module m : modules) {
       m.traceEndBlock(blockHeader, blockBody);
     }
+    defers.resolvePostBlock(this);
   }
 
   public void traceStartTransaction(final WorldView world, final Transaction tx) {
     pch.reset();
-    txStack.enterTransaction(world, tx, transients.block());
+    txStack.enterTransaction(this, world, tx);
 
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
 
@@ -720,7 +723,7 @@ public class Hub implements Module {
       coinbaseWarmthAtTransactionEnd =
           isExceptional() || opCode() == REVERT
               ? txStack.current().coinbaseWarmthAfterTxInit(this)
-              : frame.isAddressWarm(coinbaseAddress);
+              : frame.isAddressWarm(coinbaseAddress());
     }
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
@@ -1053,5 +1056,21 @@ public class Hub implements Module {
 
   public final boolean returnFromDeployment(MessageFrame frame) {
     return opCode() == RETURN && frame.getType() == CONTRACT_CREATION;
+  }
+
+  public Address coinbaseAddress() {
+    return blockStack.currentBlock().coinbaseAddress();
+  }
+
+  public Address coinbaseAddressOfRelativeBlock(final int relativeBlockNumber) {
+    return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
+  }
+
+  protected TransactionStack setTransactionStack() {
+    return null;
+  }
+
+  protected TxnData setTxnData() {
+    return null;
   }
 }

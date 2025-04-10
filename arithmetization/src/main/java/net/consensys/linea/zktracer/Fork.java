@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,19 +15,9 @@
 
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_LONDON_TESTCONFIG;
-import static org.assertj.core.api.Assertions.assertThat;
-
-import net.consensys.linea.UnitTestWatcher;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-@ExtendWith(UnitTestWatcher.class)
-public class ZkTracerTest {
-
-  @Test
-  public void createNewTracer() {
-    final ZkTracer zkTracer = new ZkTracer(MAINNET_LONDON_TESTCONFIG);
-    assertThat(zkTracer.isExtendedTracing()).isTrue();
-  }
+public enum Fork {
+  LONDON,
+  SHANGHAI,
+  CANCUN,
+  PRAGUE;
 }

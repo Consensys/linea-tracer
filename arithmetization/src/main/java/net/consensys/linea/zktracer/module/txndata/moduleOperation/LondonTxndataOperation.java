@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,21 +13,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer;
+package net.consensys.linea.zktracer.module.txndata.moduleOperation;
 
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_LONDON_TESTCONFIG;
-import static org.assertj.core.api.Assertions.assertThat;
+import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
-import net.consensys.linea.UnitTestWatcher;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-@ExtendWith(UnitTestWatcher.class)
-public class ZkTracerTest {
-
-  @Test
-  public void createNewTracer() {
-    final ZkTracer zkTracer = new ZkTracer(MAINNET_LONDON_TESTCONFIG);
-    assertThat(zkTracer.isExtendedTracing()).isTrue();
+public class LondonTxndataOperation extends TxndataOperation {
+  public LondonTxndataOperation(Wcp wcp, Euc euc, TransactionProcessingMetadata tx) {
+    super(wcp, euc, tx);
   }
 }

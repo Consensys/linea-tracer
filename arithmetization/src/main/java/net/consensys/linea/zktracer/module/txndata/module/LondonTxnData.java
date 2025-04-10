@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,34 +13,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.transients;
+package net.consensys.linea.zktracer.module.txndata.module;
 
-import lombok.Getter;
-import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.LondonTxndataOperation;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
-/**
- * This class stores data and provide information accessible through the {@link Hub} of various
- * lifetimes.
- */
-@Getter
-@Accessors(fluent = true)
-public class Transients {
-  private final Hub hub;
-
-  /** stores conflation-lived information */
-  final Conflation conflation = new Conflation();
-
-  /** provides operation-related information */
-  final OperationAncillaries op;
-
-  public TransactionProcessingMetadata tx() {
-    return hub.txStack().current();
+public class LondonTxnData extends TxnData {
+  public LondonTxnData(Hub hub, Wcp wcp, Euc euc) {
+    super(hub, wcp, euc);
   }
 
-  public Transients(final Hub hub) {
-    this.hub = hub;
-    this.op = new OperationAncillaries(hub);
+  @Override
+  public void traceEndTx(TransactionProcessingMetadata tx) {
+    operations().add(new LondonTxndataOperation(wcp(), euc(), tx));
   }
 }

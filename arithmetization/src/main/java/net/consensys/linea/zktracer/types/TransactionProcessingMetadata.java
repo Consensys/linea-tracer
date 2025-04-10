@@ -110,7 +110,7 @@ public abstract class TransactionProcessingMetadata {
 
   @Accessors(fluent = true)
   @Setter
-  boolean isCoinbaseWarmAtTransactionEnd = false;
+  boolean coinbaseWarmAtTransactionEnd = false;
 
   @Setter List<Log> logs;
 

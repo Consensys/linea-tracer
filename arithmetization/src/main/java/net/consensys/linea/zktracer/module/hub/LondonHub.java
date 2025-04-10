@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
+import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
+
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
@@ -28,7 +31,16 @@ public class LondonHub extends Hub {
   }
 
   @Override
-  public void setInitializationSection(WorldView world) {
+  protected void setInitializationSection(WorldView world) {
     new LondonInitializationSection(this, world);
+  }
+
+  @Override
+  protected void setCoinbaseWarmthAtTxEnd() {
+    final boolean coinbaseWarmthAtTransactionEnd =
+        isExceptional() || opCode() == REVERT
+            ? txStack.current().isCoinbasePreWarmed()
+            : isAddressWarm(messageFrame(), coinbaseAddress());
+    this.txStack.current().coinbaseWarmAtTransactionEnd(coinbaseWarmthAtTransactionEnd);
   }
 }

@@ -718,6 +718,7 @@ public abstract class Hub implements Module {
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode().isHalt())) {
       state.processingPhase(TX_FINL);
+      setCoinbaseWarmthAtTxEnd();
     }
 
     if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
@@ -1060,5 +1061,7 @@ public abstract class Hub implements Module {
     return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
   }
 
-  public void setInitializationSection(WorldView world) {}
+  protected void setInitializationSection(WorldView world) {}
+
+  protected void setCoinbaseWarmthAtTxEnd() {}
 }

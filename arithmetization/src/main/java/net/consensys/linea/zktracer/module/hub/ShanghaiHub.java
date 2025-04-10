@@ -30,7 +30,14 @@ public class ShanghaiHub extends LondonHub {
   }
 
   @Override
-  public void setInitializationSection(WorldView world) {
+  protected void setInitializationSection(WorldView world) {
     new ShanghaiInitializationSection(this, world);
+  }
+
+  @Override
+  protected void setCoinbaseWarmthAtTxEnd() {
+    // since EIP-3651 (Shanghai), the coinbase address is warm at the beginning of the transaction,
+    // so obviously at the end.
+    this.txStack.current().coinbaseWarmAtTransactionEnd(true);
   }
 }

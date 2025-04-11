@@ -645,10 +645,12 @@ public abstract class Hub implements Module {
       txStack
           .current()
           .setPreFinalisationValues(
-              leftOverGas, gasRefund, txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
+              leftOverGas,
+              gasRefund,
+              txStack.getAccumulativeGasUsedInBlockBeforeTxStart(),
+              coinbaseWarmthAtTxEnd());
 
-      if (state.processingPhase() != TX_SKIP
-          && frame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
+      if (state.processingPhase() != TX_SKIP) {
         state.processingPhase(TX_FINL);
         new TxFinalizationSection(this);
       }
@@ -711,15 +713,6 @@ public abstract class Hub implements Module {
 
     if (isExceptional() || !opCode().isCallOrCreate()) {
       this.unlatchStack(frame, currentSection);
-    }
-
-    if (frame.getDepth() == 0 && (isExceptional() || opCode().isHalt())) {
-      state.processingPhase(TX_FINL);
-      setCoinbaseWarmthAtTxEnd();
-    }
-
-    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
-      new TxFinalizationSection(this);
     }
   }
 
@@ -1066,7 +1059,11 @@ public abstract class Hub implements Module {
     throw new IllegalStateException("must be implemented");
   }
 
-  protected void setInitializationSection(WorldView world) {}
+  protected void setInitializationSection(WorldView world) {
+    throw new IllegalStateException("must be implemented");
+  }
 
-  protected void setCoinbaseWarmthAtTxEnd() {}
+  protected boolean coinbaseWarmthAtTxEnd() {
+    throw new IllegalStateException("must be implemented");
+  }
 }

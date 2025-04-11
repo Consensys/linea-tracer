@@ -44,9 +44,9 @@ public class ShanghaiHub extends LondonHub {
   }
 
   @Override
-  protected void setCoinbaseWarmthAtTxEnd() {
+  protected boolean coinbaseWarmthAtTxEnd() {
     // since EIP-3651 (Shanghai), the coinbase address is warm at the beginning of the transaction,
     // so obviously at the end.
-    this.txStack.current().coinbaseWarmAtTransactionEnd(true);
+    return true;
   }
 }

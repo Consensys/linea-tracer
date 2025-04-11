@@ -164,7 +164,8 @@ public abstract class TransactionProcessingMetadata {
   public void setPreFinalisationValues(
       final long leftOverGas,
       final long refundCounterMax,
-      final long accumulatedGasUsedInBlockAtStartTx) {
+      final long accumulatedGasUsedInBlockAtStartTx,
+      final boolean coinbaseWarmAtTransactionEnd) {
 
     this.refundCounterMax = refundCounterMax;
     setLeftoverGas(leftOverGas);
@@ -173,6 +174,7 @@ public abstract class TransactionProcessingMetadata {
     gasRefunded = computeRefunded();
     totalGasUsed = computeTotalGasUsed();
     accumulatedGasUsedInBlock = accumulatedGasUsedInBlockAtStartTx + totalGasUsed;
+    this.coinbaseWarmAtTransactionEnd = coinbaseWarmAtTransactionEnd;
   }
 
   public void completeLineaTransaction(

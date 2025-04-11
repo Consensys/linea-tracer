@@ -47,11 +47,9 @@ public class LondonHub extends Hub {
   }
 
   @Override
-  protected void setCoinbaseWarmthAtTxEnd() {
-    final boolean coinbaseWarmthAtTransactionEnd =
-        isExceptional() || opCode() == REVERT
-            ? txStack.current().isCoinbasePreWarmed()
-            : isAddressWarm(messageFrame(), coinbaseAddress());
-    this.txStack.current().coinbaseWarmAtTransactionEnd(coinbaseWarmthAtTransactionEnd);
+  protected boolean coinbaseWarmthAtTxEnd() {
+    return isExceptional() || opCode() == REVERT
+        ? txStack.current().isCoinbasePreWarmed()
+        : isAddressWarm(messageFrame(), coinbaseAddress());
   }
 }

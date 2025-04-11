@@ -25,5 +25,7 @@ public class ShanghaiTxndataOperation extends LondonTxndataOperation {
   }
 
   @Override
-  void setPostShanghaiCallsToEucAndWcp() {}
+  void setPostShanghaiCallsToEucAndWcp() {
+    // TODO
+  }
 }

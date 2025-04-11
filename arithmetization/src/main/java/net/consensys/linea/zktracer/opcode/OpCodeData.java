@@ -79,7 +79,7 @@ public record OpCodeData(
   }
 
   public boolean isJumpDest() {
-    return value == 0x5b;
+    return value == EVM_INST_JUMPDEST;
   }
 
   public boolean isJump() {

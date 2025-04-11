@@ -34,6 +34,7 @@ public class ShanghaiInitializationSection extends LondonInitializationSection {
     this.addFragment(coinbaseWarmingAccountFragment);
   }
 
+  @Override
   protected AccountFragment makeCoinbaseWarmingFragment(
       final Hub hub, final WorldView world, final TransactionProcessingMetadata tx) {
     final AccountSnapshot coinbase =
@@ -49,5 +50,10 @@ public class ShanghaiInitializationSection extends LondonInitializationSection {
   @Override
   protected boolean senderGasPaymentWarmth(final TransactionProcessingMetadata tx) {
     return tx.isSenderPreWarmed() || tx.senderIsCoinbase();
+  }
+
+  @Override
+  protected boolean recipientValueReceptionWarmth(TransactionProcessingMetadata tx) {
+    return tx.isRecipientPreWarmed() || tx.recipientIsCoinbase();
   }
 }

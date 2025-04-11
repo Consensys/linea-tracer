@@ -117,16 +117,10 @@ public class TxFinalizationSection extends TraceSection implements EndTransactio
         coinbaseGasRefundNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
 
     senderGasRefundNew =
-        senderIsCoinbase(hub)
+        txMetadata.senderIsCoinbase()
             ? coinbaseGasRefund.deepCopy()
             : AccountSnapshot.canonical(hub, world, senderAddress).turnOnWarmth();
     senderGasRefund =
         senderGasRefundNew.deepCopy().decrementBalanceBy(txMetadata.getGasRefundInWei());
-  }
-
-  public static boolean senderIsCoinbase(Hub hub) {
-    final TransactionProcessingMetadata tx = hub.txStack().current();
-    final Address senderAddress = tx.getSender();
-    return tx.getCoinbaseAddress().equals(senderAddress);
   }
 }

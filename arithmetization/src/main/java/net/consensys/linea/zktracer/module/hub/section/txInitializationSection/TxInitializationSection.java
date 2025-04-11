@@ -109,16 +109,12 @@ public abstract class TxInitializationSection extends TraceSection implements En
       recipientValueReception =
           tx.senderIsRecipient()
               ? senderValueTransferNew
-              : canonical(
-                  hub,
-                  world,
-                  recipientAddress,
-                  tx.isRecipientPreWarmed() || tx.recipientIsCoinbase());
+              : canonical(hub, world, recipientAddress, recipientValueReceptionWarmth(tx));
     } else {
       recipientValueReception =
           AccountSnapshot.fromAddress(
               recipientAddress,
-              tx.isRecipientPreWarmed() || tx.recipientIsCoinbase(),
+              recipientValueReceptionWarmth(tx),
               deploymentInfo.deploymentNumber(recipientAddress),
               deploymentInfo.getDeploymentStatus(recipientAddress));
     }
@@ -251,6 +247,10 @@ public abstract class TxInitializationSection extends TraceSection implements En
 
   protected boolean senderGasPaymentWarmth(final TransactionProcessingMetadata tx) {
     return tx.isSenderPreWarmed();
+  }
+
+  protected boolean recipientValueReceptionWarmth(TransactionProcessingMetadata tx) {
+    return tx.isRecipientPreWarmed();
   }
 
   protected void addCoinbaseWarmingFragment() {}

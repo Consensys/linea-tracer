@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.hub;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 
@@ -34,5 +36,10 @@ public class LondonHub extends Hub {
   @Override
   protected TxnData setTxnData() {
     return new LondonTxnData(this, wcp(), euc());
+  }
+
+  @Override
+  protected InstructionDecoder setInstructionDecoder() {
+    return new LondonInstructionDecoder();
   }
 }

@@ -78,6 +78,10 @@ public record OpCodeData(
     return (EVM_INST_PUSH1 <= value) && (value <= EVM_INST_PUSH32);
   }
 
+  public boolean isPushZero() {
+    return EVM_INST_PUSH0 == value;
+  }
+
   public boolean isJumpDest() {
     return value == EVM_INST_JUMPDEST;
   }

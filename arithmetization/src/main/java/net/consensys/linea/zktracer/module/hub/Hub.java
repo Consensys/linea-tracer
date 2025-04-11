@@ -379,7 +379,7 @@ public abstract class Hub implements Module {
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
-    refTableModules = List.of(new BinRt(), new InstructionDecoder(), new ShfRt());
+    refTableModules = List.of(new BinRt(), setInstructionDecoder(), new ShfRt());
 
     modules =
         Stream.concat(
@@ -1072,5 +1072,9 @@ public abstract class Hub implements Module {
 
   protected TxnData setTxnData() {
     return null;
+  }
+
+  protected InstructionDecoder setInstructionDecoder() {
+    throw new IllegalStateException("must be implemented");
   }
 }

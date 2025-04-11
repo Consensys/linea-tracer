@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.hub;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.hub.state.ShanghaiTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.ShanghaiInstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.module.ShanghaiTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 
@@ -34,5 +36,10 @@ public class ShanghaiHub extends LondonHub {
   @Override
   protected TxnData setTxnData() {
     return new ShanghaiTxnData(this, wcp(), euc());
+  }
+
+  @Override
+  protected InstructionDecoder setInstructionDecoder() {
+    return new ShanghaiInstructionDecoder();
   }
 }

@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public final class InstructionDecoder implements Module {
+public abstract class InstructionDecoder implements Module {
   private static void traceFamily(OpCodeData op, Trace.Instdecoder trace) {
     trace
         .familyAdd(op.instructionFamily() == InstructionFamily.ADD)
@@ -120,15 +120,31 @@ public final class InstructionDecoder implements Module {
     for (int i = 0; i < 256; i++) {
       final OpCodeData op = OpCode.of(i).getData();
 
-      traceFamily(op, trace.instdecoder);
-      traceStackSettings(op, trace.instdecoder);
-      traceBillingSettings(op, trace.instdecoder);
-      trace
-          .instdecoder
-          .opcode(UnsignedByte.of(i))
-          .isPush(op.isPushNotZero())
-          .isJumpdest(op.isJumpDest())
-          .validateRow();
+      if (op.isPushZero()) {
+        tracePushZero(trace);
+        continue;
+      }
+      traceOpcode(op, trace);
     }
+  }
+
+  protected void traceOpcode(final OpCodeData op, final Trace trace) {
+    traceFamily(op, trace.instdecoder);
+    traceStackSettings(op, trace.instdecoder);
+    traceBillingSettings(op, trace.instdecoder);
+    trace
+        .instdecoder
+        .opcode(UnsignedByte.of(op.value()))
+        .isPush(op.isPushNotZero())
+        .isJumpdest(op.isJumpDest())
+        .validateRow();
+  }
+
+  protected void tracePushZero(Trace trace) {
+    throw new IllegalStateException("must be implemented");
+  }
+
+  protected void traceAsInvalid(final int opcode, final Trace trace) {
+    trace.instdecoder.familyInvalid(true).opcode(UnsignedByte.of(opcode)).fillAndValidateRow();
   }
 }

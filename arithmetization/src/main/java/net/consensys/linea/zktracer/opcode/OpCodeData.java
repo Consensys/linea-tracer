@@ -74,7 +74,7 @@ public record OpCodeData(
    *
    * @return <code>true</code> if this opcode is a <code>PUSHx</code>
    */
-  public boolean isPushX() {
+  public boolean isPushNotZero() {
     return (EVM_INST_PUSH1 <= value) && (value <= EVM_INST_PUSH32);
   }
 

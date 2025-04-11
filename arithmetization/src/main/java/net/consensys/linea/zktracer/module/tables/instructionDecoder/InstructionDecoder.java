@@ -126,7 +126,7 @@ public final class InstructionDecoder implements Module {
       trace
           .instdecoder
           .opcode(UnsignedByte.of(i))
-          .isPush(op.isPushX())
+          .isPush(op.isPushNotZero())
           .isJumpdest(op.isJumpDest())
           .validateRow();
     }

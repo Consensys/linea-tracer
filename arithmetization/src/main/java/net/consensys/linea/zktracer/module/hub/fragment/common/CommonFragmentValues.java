@@ -173,9 +173,9 @@ public class CommonFragmentValues {
       return 0;
     }
 
-    if (!opCode.isPush() && !opCode.isJump()) return pc + 1;
+    if (!opCode.isPushNotZero() && !opCode.isJump()) return pc + 1;
 
-    if (opCode.getData().isPushX()) {
+    if (opCode.isPushNotZero()) {
       return pc + 1 + (opCode.byteValue() - EVM_INST_PUSH0);
     }
 

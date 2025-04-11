@@ -225,8 +225,8 @@ public enum OpCode {
   }
 
   /** Returns true for PUSH-type instructions */
-  public boolean isPush() {
-    return getData().isPushX();
+  public boolean isPushNotZero() {
+    return getData().isPushNotZero();
   }
 
   /** Returns true for JUMP-type instructions */

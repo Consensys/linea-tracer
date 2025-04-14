@@ -93,8 +93,8 @@ public final class RomOperation extends ModuleOperation {
 
       // Deal when not in a PUSH instruction
       if (pushParameter == 0) {
-        final OpCode opcode = OpCode.of(dataPadded.get(i));
-        final UnsignedByte opCodeUB = opcode.unsignedByteValue();
+        final UnsignedByte opCodeUB = UnsignedByte.of(dataPadded.get(i));
+        final OpCode opcode = OpCode.of(opCodeUB.toInteger());
         final boolean isPush = opcode.isPushNotZero();
 
         // The OpCode is a PUSH instruction

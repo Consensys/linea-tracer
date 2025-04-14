@@ -70,16 +70,16 @@ public record OpCodeData(
   }
 
   /**
-   * A method singling out <code>PUSHx</code> with X != 0 instructions.
+   * A method singling out <code>PUSHx</code> instructions with X != 0.
    *
    * @return <code>true</code> if this opcode is a <code>PUSHx</code>
    */
-  public boolean isPushNotZero() {
+  public boolean isNonTrivialPush() {
     return (EVM_INST_PUSH1 <= value) && (value <= EVM_INST_PUSH32);
   }
 
   public boolean isPushZero() {
-    return EVM_INST_PUSH0 == value;
+    return value == EVM_INST_PUSH0;
   }
 
   public boolean isJumpDest() {

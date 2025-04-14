@@ -135,7 +135,7 @@ public abstract class InstructionDecoder implements Module {
     trace
         .instdecoder
         .opcode(UnsignedByte.of(op.value()))
-        .isPush(op.isPushNotZero())
+        .isPush(op.isNonTrivialPush())
         .isJumpdest(op.isJumpDest())
         .validateRow();
   }

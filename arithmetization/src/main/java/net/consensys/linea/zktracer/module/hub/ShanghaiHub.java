@@ -20,10 +20,17 @@ import net.consensys.linea.zktracer.module.hub.state.ShanghaiTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.txndata.module.ShanghaiTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import org.hyperledger.besu.evm.gascalculator.ShanghaiGasCalculator;
 
 public class ShanghaiHub extends LondonHub {
   public ShanghaiHub(ChainConfig chain) {
     super(chain);
+  }
+
+  @Override
+  protected GasCalculator setGasCalculator() {
+    return new ShanghaiGasCalculator();
   }
 
   @Override

@@ -60,6 +60,7 @@ import net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.ExtCodeCopySection;
 import net.consensys.linea.zktracer.module.hub.section.copy.ReturnDataCopySection;
+import net.consensys.linea.zktracer.module.hub.section.create.CreateSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.ReturnSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.RevertSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
@@ -992,7 +993,7 @@ public abstract class Hub implements Module {
 
       case JUMP -> new JumpSection(this);
 
-      case CREATE -> new CreateSection(this, frame);
+      case CREATE -> setCreateSection(this, frame);
 
       case CALL -> new CallSection(this, frame);
 
@@ -1072,5 +1073,9 @@ public abstract class Hub implements Module {
 
   protected TxnData setTxnData() {
     return null;
+  }
+
+  protected void setCreateSection(final Hub hub, final MessageFrame frame) {
+    throw new IllegalStateException("must be implemented");
   }
 }

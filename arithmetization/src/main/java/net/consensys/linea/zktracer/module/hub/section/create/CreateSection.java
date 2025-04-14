@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section;
+package net.consensys.linea.zktracer.module.hub.section.create;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario.*;
@@ -37,6 +37,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CreateOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraDataOperation;
@@ -54,7 +55,7 @@ import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class CreateSection extends TraceSection
+public abstract class CreateSection extends TraceSection
     implements PostOpcodeDefer,
         ContextEntryDefer,
         PostRollbackDefer,
@@ -441,7 +442,7 @@ public class CreateSection extends TraceSection
   }
 
   private void scheduleSection(Hub hub) {
-    CreateScenario scenario = scenarioFragment.getScenario();
+    final CreateScenario scenario = scenarioFragment.getScenario();
     final CallFrame currentFrame = hub.currentFrame();
     switch (scenario) {
       case CREATE_EXCEPTION -> {}

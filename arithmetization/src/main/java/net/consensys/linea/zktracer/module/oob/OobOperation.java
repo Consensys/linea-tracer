@@ -94,7 +94,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Mode
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpPricingOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpXbsOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.PrecompileCommonOobCall;
-import net.consensys.linea.zktracer.module.hub.section.CreateSection;
+import net.consensys.linea.zktracer.module.hub.section.create.CreateSection;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;

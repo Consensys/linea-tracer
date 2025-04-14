@@ -223,10 +223,6 @@ public class Exceptions {
     return codeSize > MAX_CODE_SIZE;
   }
 
-  public static boolean isOogxOrUnexceptional(short exceptions) {
-    return Exceptions.none(exceptions) || Exceptions.outOfGasException(exceptions);
-  }
-
   /**
    * Return the first exception that may have happened in the current frame. Although multiple
    * exceptions may be triggered, the one minimizing the quantity of trace lines is generated.

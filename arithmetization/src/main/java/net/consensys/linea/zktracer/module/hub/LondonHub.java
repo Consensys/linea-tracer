@@ -16,10 +16,12 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.module.hub.section.create.LondonCreateSection;
 import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {
@@ -34,5 +36,10 @@ public class LondonHub extends Hub {
   @Override
   protected TxnData setTxnData() {
     return new LondonTxnData(this, wcp(), euc());
+  }
+
+  @Override
+  protected void setCreateSection(final Hub hub, final MessageFrame frame) {
+    new LondonCreateSection(hub, frame);
   }
 }

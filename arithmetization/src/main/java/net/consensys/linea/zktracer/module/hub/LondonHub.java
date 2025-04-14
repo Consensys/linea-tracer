@@ -24,11 +24,18 @@ import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {
     super(chain);
+  }
+
+  @Override
+  protected GasCalculator setGasCalculator() {
+    return new LondonGasCalculator();
   }
 
   @Override

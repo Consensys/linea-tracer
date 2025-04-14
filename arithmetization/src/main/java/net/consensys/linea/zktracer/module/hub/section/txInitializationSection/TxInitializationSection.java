@@ -44,7 +44,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
   @Getter private final int hubStamp;
   final AccountFragment.AccountFragmentFactory accountFragmentFactory;
 
-  ImcFragment miscFragment;
+  private final ImcFragment miscFragment;
 
   public final AccountFragment coinbaseWarmingAccountFragment;
 
@@ -69,7 +69,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
   @Getter private final ContextFragment initializationContextFragment;
 
   /** This is used to generate the Dom / Sub offset */
-  private int numberOfAccountFragment = 0;
+  private int domSubOffset = 0;
 
   public TxInitializationSection(Hub hub, WorldView world) {
     super(hub, (short) 9);
@@ -93,7 +93,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
     coinbaseWarmingAccountFragment = makeCoinbaseWarmingFragment(hub, world, tx);
 
     senderGasPayment =
-        canonical(hub, world, senderAccount.getAddress(), senderGasPaymentWarmth(tx));
+        canonical(hub, world, senderAccount.getAddress(), senderWarmthAtGasPayment(tx));
 
     senderGasPaymentNew =
         senderGasPayment.deepCopy().decrementBalanceBy(gasCost).turnOnWarmth().raiseNonceByOne();
@@ -109,12 +109,12 @@ public abstract class TxInitializationSection extends TraceSection implements En
       recipientValueReception =
           tx.senderIsRecipient()
               ? senderValueTransferNew
-              : canonical(hub, world, recipientAddress, recipientValueReceptionWarmth(tx));
+              : canonical(hub, world, recipientAddress, recipientWarmthAtValueReception(tx));
     } else {
       recipientValueReception =
           AccountSnapshot.fromAddress(
               recipientAddress,
-              recipientValueReceptionWarmth(tx),
+              recipientWarmthAtValueReception(tx),
               deploymentInfo.deploymentNumber(recipientAddress),
               deploymentInfo.getDeploymentStatus(recipientAddress));
     }
@@ -167,22 +167,19 @@ public abstract class TxInitializationSection extends TraceSection implements En
             senderGasPayment,
             senderGasPaymentNew,
             senderGasPayment.address(),
-            DomSubStampsSubFragment.standardDomSubStamps(
-                hubStamp, incrementNumberOfAccountFragment()));
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()));
     valueSendingAccountFragment =
         accountFragmentFactory.make(
             senderValueTransfer,
             senderValueTransferNew,
-            DomSubStampsSubFragment.standardDomSubStamps(
-                hubStamp, incrementNumberOfAccountFragment()));
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()));
     valueReceptionAccountFragment =
         accountFragmentFactory
             .makeWithTrm(
                 recipientValueReception,
                 recipientValueReceptionNew,
                 recipientValueReception.address(),
-                DomSubStampsSubFragment.standardDomSubStamps(
-                    hubStamp, incrementNumberOfAccountFragment()))
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()))
             .requiresRomlex(true);
 
     initializationContextFragment = ContextFragment.initializeExecutionContext(hub);
@@ -223,21 +220,21 @@ public abstract class TxInitializationSection extends TraceSection implements En
               senderUndoingValueTransfer,
               senderUndoingValueTransferNew,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                  hubStamp, revertStamp, incrementNumberOfAccountFragment())));
+                  hubStamp, revertStamp, domSubOffset())));
 
       this.addFragment( // ACC i +  (recipient)
           accountFragmentFactory.make(
               recipientUndoingValueReception,
               recipientUndoingValueReceptionNew,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                  hubStamp, revertStamp, incrementNumberOfAccountFragment())));
+                  hubStamp, revertStamp, domSubOffset())));
     }
 
     this.addFragment(initializationContextFragment); // CON i +
   }
 
-  protected int incrementNumberOfAccountFragment() {
-    return numberOfAccountFragment++;
+  protected int domSubOffset() {
+    return domSubOffset++;
   }
 
   protected AccountFragment makeCoinbaseWarmingFragment(
@@ -245,11 +242,11 @@ public abstract class TxInitializationSection extends TraceSection implements En
     return null;
   }
 
-  protected boolean senderGasPaymentWarmth(final TransactionProcessingMetadata tx) {
+  protected boolean senderWarmthAtGasPayment(final TransactionProcessingMetadata tx) {
     return tx.isSenderPreWarmed();
   }
 
-  protected boolean recipientValueReceptionWarmth(TransactionProcessingMetadata tx) {
+  protected boolean recipientWarmthAtValueReception(TransactionProcessingMetadata tx) {
     return tx.isRecipientPreWarmed();
   }
 

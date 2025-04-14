@@ -43,17 +43,16 @@ public class ShanghaiInitializationSection extends LondonInitializationSection {
         coinbase,
         coinbase.deepCopy().turnOnWarmth(),
         coinbase.address(),
-        DomSubStampsSubFragment.standardDomSubStamps(
-            getHubStamp(), incrementNumberOfAccountFragment()));
+        DomSubStampsSubFragment.standardDomSubStamps(getHubStamp(), domSubOffset()));
   }
 
   @Override
-  protected boolean senderGasPaymentWarmth(final TransactionProcessingMetadata tx) {
+  protected boolean senderWarmthAtGasPayment(final TransactionProcessingMetadata tx) {
     return tx.isSenderPreWarmed() || tx.senderIsCoinbase();
   }
 
   @Override
-  protected boolean recipientValueReceptionWarmth(TransactionProcessingMetadata tx) {
+  protected boolean recipientWarmthAtValueReception(TransactionProcessingMetadata tx) {
     return tx.isRecipientPreWarmed() || tx.recipientIsCoinbase();
   }
 }

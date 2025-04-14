@@ -125,6 +125,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.operation.Operation;
@@ -137,7 +138,10 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Accessors(fluent = true)
 public abstract class Hub implements Module {
 
-  public static final GasProjector GAS_PROJECTOR = new GasProjector();
+  /** The {@link GasCalculator} used in this version of the arithmetization */
+  public final GasCalculator gasCalculator = setGasCalculator();
+
+  public final GasProjector gasProjector = new GasProjector(gasCalculator);
 
   /** accumulate the trace information for the Hub */
   @Getter public final State state = new State();
@@ -1066,11 +1070,15 @@ public abstract class Hub implements Module {
     return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
   }
 
+  protected GasCalculator setGasCalculator() {
+    throw new IllegalStateException("must be implemented");
+  }
+
   protected TransactionStack setTransactionStack() {
-    return null;
+    throw new IllegalStateException("must be implemented");
   }
 
   protected TxnData setTxnData() {
-    return null;
+    throw new IllegalStateException("must be implemented");
   }
 }

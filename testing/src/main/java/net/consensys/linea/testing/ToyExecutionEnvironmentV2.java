@@ -50,6 +50,7 @@ public class ToyExecutionEnvironmentV2 {
   @Builder.Default private final List<ToyAccount> accounts = Collections.emptyList();
   @Builder.Default private final Address coinbase = DEFAULT_COINBASE_ADDRESS;
   @Builder.Default public static final Wei DEFAULT_BASE_FEE = Wei.of(LINEA_BASE_FEE);
+  @Builder.Default private final Boolean runWithBesuNode = false;
 
   @Singular private final List<Transaction> transactions;
 
@@ -70,16 +71,25 @@ public class ToyExecutionEnvironmentV2 {
   private final ZkTracer tracer = new ZkTracer(CHAIN);
 
   public void run() {
-    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id);
-    GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
-        this.buildGeneralStateTestCaseSpec(protocolSpec);
+    if (!runWithBesuNode) {
+      ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(CHAIN.id);
+      GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
+          this.buildGeneralStateTestCaseSpec(protocolSpec);
 
-    ToyExecutionTools.executeTest(
-        generalStateTestCaseEipSpec,
-        protocolSpec,
-        tracer,
-        transactionProcessingResultValidator,
-        zkTracerValidator);
+      ToyExecutionTools.executeTest(
+          generalStateTestCaseEipSpec,
+          protocolSpec,
+          tracer,
+          transactionProcessingResultValidator,
+          zkTracerValidator);
+    } else {
+      GenesisConfigBuilder genesisConfigBuilder = new GenesisConfigBuilder();
+      genesisConfigBuilder.setChainId(CHAIN.id);
+      genesisConfigBuilder.setCoinbase(coinbase);
+      accounts.forEach(genesisConfigBuilder::addAccount);
+      String configAsString = genesisConfigBuilder.buildAsString();
+      BesuExecutionTools.executeTest(configAsString, transactions);
+    }
   }
 
   public long runForGasCost() {

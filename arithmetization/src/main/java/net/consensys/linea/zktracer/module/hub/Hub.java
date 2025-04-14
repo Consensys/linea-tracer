@@ -125,6 +125,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.operation.Operation;
@@ -137,7 +138,10 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 @Accessors(fluent = true)
 public abstract class Hub implements Module {
 
-  public static final GasProjector GAS_PROJECTOR = new GasProjector();
+  /** The {@link GasCalculator} used in this version of the arithmetization */
+  public final GasCalculator gasCalculator = setGasCalculator();
+
+  public final GasProjector gasProjector = new GasProjector(gasCalculator);
 
   /** accumulate the trace information for the Hub */
   @Getter public final State state = new State();
@@ -307,8 +311,6 @@ public abstract class Hub implements Module {
 
   /** reference table modules */
   private final List<Module> refTableModules;
-
-  public boolean coinbaseWarmthAtTransactionEnd = false;
 
   /**
    * @return a list of all modules for which to generate traces
@@ -495,7 +497,7 @@ public abstract class Hub implements Module {
         new TxPreWarmingMacroSection(world, this);
       }
       state.processingPhase(TX_INIT);
-      new TxInitializationSection(this, world);
+      setInitializationSection(world);
     }
 
     // Note: for deployment transactions the deployment number / status were updated during the
@@ -649,13 +651,12 @@ public abstract class Hub implements Module {
           .setPreFinalisationValues(
               leftOverGas,
               gasRefund,
-              coinbaseWarmthAtTransactionEnd,
-              txStack.getAccumulativeGasUsedInBlockBeforeTxStart());
+              txStack.getAccumulativeGasUsedInBlockBeforeTxStart(),
+              coinbaseWarmthAtTxEnd());
 
-      if (state.processingPhase() != TX_SKIP
-          && frame.getState() == MessageFrame.State.COMPLETED_SUCCESS) {
+      if (state.processingPhase() != TX_SKIP) {
         state.processingPhase(TX_FINL);
-        new TxFinalizationSection(this, frame.getWorldUpdater(), false);
+        new TxFinalizationSection(this);
       }
     }
 
@@ -716,18 +717,6 @@ public abstract class Hub implements Module {
 
     if (isExceptional() || !opCode().isCallOrCreate()) {
       this.unlatchStack(frame, currentSection);
-    }
-
-    if (frame.getDepth() == 0 && (isExceptional() || opCode().isHalt())) {
-      state.processingPhase(TX_FINL);
-      coinbaseWarmthAtTransactionEnd =
-          isExceptional() || opCode() == REVERT
-              ? txStack.current().coinbaseWarmthAfterTxInit(this)
-              : frame.isAddressWarm(coinbaseAddress());
-    }
-
-    if (frame.getDepth() == 0 && (isExceptional() || opCode() == REVERT)) {
-      new TxFinalizationSection(this, frame.getWorldUpdater(), true);
     }
   }
 
@@ -1066,15 +1055,27 @@ public abstract class Hub implements Module {
     return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
   }
 
+  protected GasCalculator setGasCalculator() {
+    throw new IllegalStateException("must be implemented");
+  }
+
   protected TransactionStack setTransactionStack() {
-    return null;
+    throw new IllegalStateException("must be implemented");
   }
 
   protected TxnData setTxnData() {
-    return null;
+    throw new IllegalStateException("must be implemented");
   }
 
   protected InstructionDecoder setInstructionDecoder() {
+    throw new IllegalStateException("must be implemented");
+  }
+
+  protected void setInitializationSection(WorldView world) {
+    throw new IllegalStateException("must be implemented");
+  }
+
+  protected boolean coinbaseWarmthAtTxEnd() {
     throw new IllegalStateException("must be implemented");
   }
 }

@@ -22,8 +22,6 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
 import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
-import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
-import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
@@ -60,10 +58,5 @@ public class LondonHub extends Hub {
     return isExceptional() || opCode() == REVERT
         ? txStack.current().isCoinbasePreWarmed()
         : isAddressWarm(messageFrame(), coinbaseAddress());
-  }
-
-  @Override
-  protected InstructionDecoder setInstructionDecoder() {
-    return new LondonInstructionDecoder();
   }
 }

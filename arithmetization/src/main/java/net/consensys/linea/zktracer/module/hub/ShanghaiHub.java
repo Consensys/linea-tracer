@@ -19,8 +19,6 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.ShanghaiInitializationSection;
 import net.consensys.linea.zktracer.module.hub.state.ShanghaiTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
-import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
-import net.consensys.linea.zktracer.module.tables.instructionDecoder.ShanghaiInstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.module.ShanghaiTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
@@ -57,10 +55,5 @@ public class ShanghaiHub extends LondonHub {
     // since EIP-3651 (Shanghai), the coinbase address is warm at the beginning of the transaction,
     // so obviously at the end.
     return true;
-  }
-
-  @Override
-  protected InstructionDecoder setInstructionDecoder() {
-    return new ShanghaiInstructionDecoder();
   }
 }

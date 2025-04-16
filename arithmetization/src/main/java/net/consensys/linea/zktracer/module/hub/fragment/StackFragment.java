@@ -17,9 +17,9 @@ package net.consensys.linea.zktracer.module.hub.fragment;
 
 import static com.google.common.base.Preconditions.*;
 import static com.google.common.primitives.Ints.min;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_PUSH0;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.opcode.InstructionFamily.*;
-import static net.consensys.linea.zktracer.opcode.OpCode.PUSH0;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
@@ -150,7 +150,7 @@ public final class StackFragment implements TraceFragment {
     }
 
     final Bytes byteCode = hub.messageFrame().getCode().getBytes();
-    final int nBytesToPush = (opCode.byteValue() & 0xff) - (PUSH0.byteValue() & 0xff);
+    final int nBytesToPush = (opCode.byteValue() & 0xff) - EVM_INST_PUSH0;
     final int nLeftoverBytes = byteCode.size() - (pc + 1);
     final Bytes partialPushValue = byteCode.slice(pc + 1, min(nLeftoverBytes, nBytesToPush));
     return (nLeftoverBytes >= nBytesToPush)

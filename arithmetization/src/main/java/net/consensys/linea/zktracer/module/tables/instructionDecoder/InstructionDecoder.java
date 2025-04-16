@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public abstract class InstructionDecoder implements Module {
+public class InstructionDecoder implements Module {
   private static void traceFamily(OpCodeData op, Trace.Instdecoder trace) {
     trace
         .familyAdd(op.instructionFamily() == InstructionFamily.ADD)
@@ -118,13 +118,7 @@ public abstract class InstructionDecoder implements Module {
   @Override
   public void commit(Trace trace) {
     for (int i = 0; i < 256; i++) {
-      final OpCodeData op = OpCode.of(i).getData();
-
-      if (op.isPushZero()) {
-        tracePushZero(trace);
-        continue;
-      }
-      traceOpcode(op, trace);
+      traceOpcode(OpCode.of(i).getData(), trace);
     }
   }
 
@@ -138,13 +132,5 @@ public abstract class InstructionDecoder implements Module {
         .isPush(op.isNonTrivialPush())
         .isJumpdest(op.isJumpDest())
         .validateRow();
-  }
-
-  protected void tracePushZero(Trace trace) {
-    throw new IllegalStateException("must be implemented");
-  }
-
-  protected void traceAsInvalid(final int opcode, final Trace trace) {
-    trace.instdecoder.familyInvalid(true).opcode(UnsignedByte.of(opcode)).fillAndValidateRow();
   }
 }

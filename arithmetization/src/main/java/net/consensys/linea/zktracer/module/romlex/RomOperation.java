@@ -57,8 +57,8 @@ public final class RomOperation extends ModuleOperation {
     Bytes pushValueLow = Bytes.minimalBytes(0);
 
     for (int i = 0; i < chunkRowSize; i++) {
-      boolean codeSizeReached = i >= codeSize;
-      int sliceNumber = i / LLARGE;
+      final boolean codeSizeReached = i >= codeSize;
+      final int sliceNumber = i / LLARGE;
 
       // Fill Generic columns
       trace

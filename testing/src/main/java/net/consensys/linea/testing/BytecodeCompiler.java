@@ -15,8 +15,7 @@
 
 package net.consensys.linea.testing;
 
-import static net.consensys.linea.zktracer.Trace.EVM_INST_PUSH1;
-import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.io.BufferedReader;
@@ -169,9 +168,9 @@ public class BytecodeCompiler {
     Preconditions.condition(xs.size() <= 32, "Provided byte array is empty or exceeds 32 bytes");
 
     if (xs.isEmpty()) {
-      return this.immediate(OpCode.PUSH1.byteValue()).immediate(Bytes.of(0));
+      return this.immediate(EVM_INST_PUSH1).immediate(Bytes.of(0));
     } else {
-      int pushNOpCode = OpCode.PUSH1.byteValue() + xs.size() - 1;
+      final int pushNOpCode = EVM_INST_PUSH0 + xs.size();
       return this.immediate(pushNOpCode).immediate(xs);
     }
   }

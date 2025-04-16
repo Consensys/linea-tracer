@@ -118,17 +118,18 @@ public class InstructionDecoder implements Module {
   @Override
   public void commit(Trace trace) {
     for (int i = 0; i < 256; i++) {
-      traceOpcode(OpCode.of(i).getData(), trace);
+      traceOpcode(i, trace);
     }
   }
 
-  protected void traceOpcode(final OpCodeData op, final Trace trace) {
+  protected void traceOpcode(final int i, final Trace trace) {
+    final OpCodeData op = OpCode.of(i).getData();
     traceFamily(op, trace.instdecoder);
     traceStackSettings(op, trace.instdecoder);
     traceBillingSettings(op, trace.instdecoder);
     trace
         .instdecoder
-        .opcode(UnsignedByte.of(op.value()))
+        .opcode(UnsignedByte.of(i))
         .isPush(op.isNonTrivialPush())
         .isJumpdest(op.isJumpDest())
         .validateRow();

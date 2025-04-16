@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
-public class InstructionDecoder implements Module {
+public final class InstructionDecoder implements Module {
   private static void traceFamily(OpCodeData op, Trace.Instdecoder trace) {
     trace
         .familyAdd(op.instructionFamily() == InstructionFamily.ADD)

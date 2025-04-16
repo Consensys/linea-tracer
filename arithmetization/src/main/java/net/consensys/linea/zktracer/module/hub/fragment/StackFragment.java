@@ -138,11 +138,11 @@ public final class StackFragment implements TraceFragment {
     }
 
     this.commonFragmentValues = commonFragmentValues;
-    this.pushValue = opCode.isPushNotZero() ? EWord.of(getPushValue(hub)) : EWord.ZERO;
+    this.pushValue = opCode.isNonTrivialPush() ? EWord.of(getPushValue(hub)) : EWord.ZERO;
   }
 
   private Bytes getPushValue(Hub hub) {
-    checkState(hub.opCode().isPushNotZero());
+    checkState(hub.opCode().isNonTrivialPush());
 
     final int pc = hub.messageFrame().getPC();
     if (pc + 1 >= hub.messageFrame().getCode().getSize()) {
@@ -217,7 +217,8 @@ public final class StackFragment implements TraceFragment {
     while (it.hasNext()) {
       var i = it.nextIndex();
       var op = it.next();
-      final EWord eValue = (i == 3 && opCode().isPushNotZero()) ? pushValue : EWord.of(op.value());
+      final EWord eValue =
+          (i == 3 && opCode().isNonTrivialPush()) ? pushValue : EWord.of(op.value());
 
       heightTracers.get(i).apply(op.height());
       valHiTracers.get(i).apply(eValue.hi());

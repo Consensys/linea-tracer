@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer.opcode;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,16 +57,10 @@ public class OpCodes {
   }
 
   private static void initOpcodes(final List<OpCodeData> opCodesLocal) {
-    if (opCodesLocal.size() == OPCODES_LIST_SIZE) {
+    if (!opCodeDataList.isEmpty()) {
       log.info("opCodeDataList has already been initialized.");
       return;
     }
-    if (opCodesLocal.size() > OPCODES_LIST_SIZE) {
-      throw new IllegalStateException(
-          "opCodeDataList can't be bigger than 256. Found %s.".formatted(opCodesLocal.size()));
-    }
-    checkState(
-        opCodeDataList.isEmpty(), "opCodeDataList should be empty if not already initialized.");
     for (int i = 0; i < OPCODES_LIST_SIZE; i++) {
       opCodeDataList.add(null);
     }

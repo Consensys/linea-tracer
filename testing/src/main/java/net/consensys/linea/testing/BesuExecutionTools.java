@@ -19,7 +19,10 @@ import static org.hyperledger.besu.tests.acceptance.dsl.WaitUtils.waitFor;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
@@ -36,8 +39,9 @@ import org.hyperledger.besu.tests.acceptance.dsl.transaction.eth.EthTransactions
 import org.hyperledger.besu.tests.acceptance.dsl.transaction.net.NetTransactions;
 
 public class BesuExecutionTools {
-  private static BesuNode create(String genesisConfig) {
+  private static BesuNode create(String genesisConfig, Path tracesPath) throws IOException {
     NodeConfigurationFactory node = new NodeConfigurationFactory();
+
     BesuNodeConfigurationBuilder besuNodeConfigurationBuilder =
         new BesuNodeConfigurationBuilder()
             .name("example-test-node")
@@ -54,7 +58,9 @@ public class BesuExecutionTools {
                     "CaptureEndpointServicePlugin"))
             .extraCLIOptions(
                 List.of(
-                    "--plugin-linea-conflated-trace-generation-traces-output-path=/Users/gaurav/Consensys/linea-tracer/traces",
+                    String.format(
+                        "--plugin-linea-conflated-trace-generation-traces-output-path=%s",
+                        tracesPath),
                     "--plugin-linea-rpc-concurrent-requests-limit=1",
                     String.format(
                         "--plugin-linea-l1l2-bridge-contract=%s",
@@ -73,42 +79,46 @@ public class BesuExecutionTools {
   }
 
   public static void executeTest(String genesisConfig, List<Transaction> transactions) {
-    System.setProperty(
-        "besu.plugins.dir", "/Users/gaurav/Consensys/linea-tracer/plugins/build/libs");
-
-    Cluster cluster =
+    try (Cluster cluster =
         new Cluster(
             new ClusterConfigurationBuilder().build(),
             new NetConditions(new NetTransactions()),
-            new ThreadBesuNodeRunner());
-    BesuNode besuNode = create(genesisConfig);
-    cluster.start(besuNode);
+            new ThreadBesuNodeRunner())) {
+      Path tracesPath =
+          Files.createTempDirectory(
+              Path.of(System.getProperty("besu.traces.dir")), UUID.randomUUID().toString());
 
-    EthTransactions ethTransactions = new EthTransactions();
-    List<String> txHashes =
-        transactions.stream()
-            .map(
-                tx ->
-                    besuNode.execute(
-                        ethTransactions.sendRawTransaction(tx.encoded().toHexString())))
-            .toList();
-    AtomicReference<BigInteger> maxBlockNumber = new AtomicReference<BigInteger>(BigInteger.ZERO);
-    waitFor(
-        10,
-        () -> {
-          txHashes.forEach(
-              (txHash) -> {
-                var maybeTxReceipt =
-                    besuNode.execute(ethTransactions.getTransactionReceipt(txHash));
-                assertThat(maybeTxReceipt).isPresent();
-                var txReceipt = maybeTxReceipt.get();
-                maxBlockNumber.set(maxBlockNumber.get().max(txReceipt.getBlockNumber()));
-                System.out.println(
-                    String.format(
-                        "Example test txHash=%s, blockNumber=%s",
-                        txReceipt.getTransactionHash(), txReceipt.getBlockNumber()));
-              });
-        });
-    System.out.println("maxBlockNumber=" + maxBlockNumber.get());
+      BesuNode besuNode = create(genesisConfig, tracesPath);
+      cluster.start(besuNode);
+
+      EthTransactions ethTransactions = new EthTransactions();
+      List<String> txHashes =
+          transactions.stream()
+              .map(
+                  tx ->
+                      besuNode.execute(
+                          ethTransactions.sendRawTransaction(tx.encoded().toHexString())))
+              .toList();
+      AtomicReference<BigInteger> maxBlockNumber = new AtomicReference<BigInteger>(BigInteger.ZERO);
+      waitFor(
+          10,
+          () -> {
+            txHashes.forEach(
+                (txHash) -> {
+                  var maybeTxReceipt =
+                      besuNode.execute(ethTransactions.getTransactionReceipt(txHash));
+                  assertThat(maybeTxReceipt).isPresent();
+                  var txReceipt = maybeTxReceipt.get();
+                  maxBlockNumber.set(maxBlockNumber.get().max(txReceipt.getBlockNumber()));
+                  System.out.println(
+                      String.format(
+                          "Example test txHash=%s, blockNumber=%s",
+                          txReceipt.getTransactionHash(), txReceipt.getBlockNumber()));
+                });
+          });
+      System.out.println("maxBlockNumber=" + maxBlockNumber.get());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

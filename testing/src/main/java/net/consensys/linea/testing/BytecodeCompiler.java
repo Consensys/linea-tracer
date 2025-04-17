@@ -15,7 +15,7 @@
 
 package net.consensys.linea.testing;
 
-import static net.consensys.linea.zktracer.Fork.LONDON;
+import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.UNIT_TEST_CHAIN;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.opcode.OpCodes.loadOpcodes;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -45,7 +45,7 @@ public class BytecodeCompiler {
    * @return an instance of {@link BytecodeCompiler}
    */
   public static BytecodeCompiler newProgram() {
-    loadOpcodes(LONDON);
+    loadOpcodes(UNIT_TEST_CHAIN.fork);
     return new BytecodeCompiler();
   }
 

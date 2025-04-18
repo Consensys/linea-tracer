@@ -16,9 +16,16 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
+import org.hyperledger.besu.evm.gascalculator.CancunGasCalculator;
+import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 
 public class CancunHub extends ShanghaiHub {
   public CancunHub(ChainConfig chain) {
     super(chain);
+  }
+
+  @Override
+  protected GasCalculator setGasCalculator() {
+    return new CancunGasCalculator();
   }
 }

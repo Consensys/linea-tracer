@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.ChainConfig.FORK_LINEA_CHAIN;
+import static net.consensys.linea.zktracer.opcode.OpCodes.loadOpcodes;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -42,8 +43,6 @@ import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
-import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -53,8 +52,6 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 public class ZkTracer implements ConflationAwareOperationTracer {
-  /** The {@link GasCalculator} used in this version of the arithmetization */
-  public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
   @Getter private final Hub hub;
   private final Optional<DebugMode> debugMode;
@@ -86,6 +83,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
    * @param chain
    */
   public ZkTracer(ChainConfig chain) {
+    loadOpcodes(chain.fork);
     this.chain = chain;
     this.hub =
         switch (chain.fork) {

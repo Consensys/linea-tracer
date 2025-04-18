@@ -18,8 +18,8 @@ package net.consensys.linea.zktracer.module.hub.section.create;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-public class ShanghaiCreateSection extends LondonCreateSection{
-    public ShanghaiCreateSection(Hub hub, MessageFrame frame) {
-        super(hub, frame);
-    }
+public class ShanghaiCreateSection extends LondonCreateSection {
+  public ShanghaiCreateSection(Hub hub, MessageFrame frame) {
+    super(hub, frame);
+  }
 }

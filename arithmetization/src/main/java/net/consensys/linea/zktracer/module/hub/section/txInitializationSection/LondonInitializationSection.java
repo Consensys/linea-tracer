@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,19 +13,13 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.opcode;
+package net.consensys.linea.zktracer.module.hub.section.txInitializationSection;
 
-public enum DataLocation {
-  NONE,
-  ROM,
-  TXN_CALL_DATA,
-  RAM,
-  STACK,
-  EC_DATA,
-  EC_INFO,
-  MOD_EXP_DATA,
-  HASH_DATA,
-  HASH_INFO,
-  BLAKE_DATA,
-  LOG_DATA,
+import net.consensys.linea.zktracer.module.hub.Hub;
+import org.hyperledger.besu.evm.worldstate.WorldView;
+
+public class LondonInitializationSection extends TxInitializationSection {
+  public LondonInitializationSection(Hub hub, WorldView world) {
+    super(hub, world);
+  }
 }

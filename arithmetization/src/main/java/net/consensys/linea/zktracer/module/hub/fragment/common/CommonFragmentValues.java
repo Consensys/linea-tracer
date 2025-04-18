@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.Trace.EVM_INST_PUSH0;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
@@ -172,10 +173,10 @@ public class CommonFragmentValues {
       return 0;
     }
 
-    if (!opCode.isPush() && !opCode.isJump()) return pc + 1;
+    if (!opCode.isNonTrivialPush() && !opCode.isJump()) return pc + 1;
 
-    if (opCode.getData().isPush()) {
-      return pc + 1 + (opCode.byteValue() - OpCode.PUSH1.byteValue() + 1);
+    if (opCode.isNonTrivialPush()) {
+      return pc + 1 + (opCode.byteValue() - EVM_INST_PUSH0);
     }
 
     if (opCode.isJump()) {
@@ -191,7 +192,8 @@ public class CommonFragmentValues {
       }
 
       if (opCode.equals(OpCode.JUMPI)) {
-        BigInteger condition = hub.currentFrame().frame().getStackItem(1).toUnsignedBigInteger();
+        final BigInteger condition =
+            hub.currentFrame().frame().getStackItem(1).toUnsignedBigInteger();
         if (!condition.equals(BigInteger.ZERO)) {
           return attemptedPcNew;
         } else {
@@ -222,11 +224,11 @@ public class CommonFragmentValues {
   }
 
   private long computeGasCost() {
-    return Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).upfrontGasCost();
+    return hub.gasProjector.of(hub.messageFrame(), hub.opCode()).upfrontGasCost();
   }
 
   private long computeGasCostExcludingDeploymentCost() {
-    return Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasCostExcludingDeploymentCost();
+    return hub.gasProjector.of(hub.messageFrame(), hub.opCode()).gasCostExcludingDeploymentCost();
   }
 
   /**
@@ -276,11 +278,11 @@ public class CommonFragmentValues {
   }
 
   public void payGasPaidOutOfPocket(Hub hub) {
-    this.gasNext -= Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).gasPaidOutOfPocket();
+    this.gasNext -= hub.gasProjector.of(hub.messageFrame(), hub.opCode()).gasPaidOutOfPocket();
   }
 
   public void collectChildStipend(Hub hub) {
-    this.gasNext += Hub.GAS_PROJECTOR.of(hub.messageFrame(), hub.opCode()).stipend();
+    this.gasNext += hub.gasProjector.of(hub.messageFrame(), hub.opCode()).stipend();
   }
 
   public long gasCostToTrace() {

@@ -26,6 +26,7 @@ import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.Validator;
 import net.consensys.linea.tracewriter.TraceWriter;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.ServiceManager;
@@ -48,14 +49,20 @@ public class GenerateConflatedTracesV2 {
   private final Path tracesOutputPath;
   private final ServiceManager besuContext;
   private TraceService traceService;
+  private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
+  private final Fork fork;
 
   public GenerateConflatedTracesV2(
       final ServiceManager besuContext,
       final RequestLimiter requestLimiter,
-      final TracesEndpointConfiguration endpointConfiguration) {
+      final TracesEndpointConfiguration endpointConfiguration,
+      final LineaL1L2BridgeSharedConfiguration lineaL1L2BridgeSharedConfiguration,
+      final Fork fork) {
     this.besuContext = besuContext;
     this.requestLimiter = requestLimiter;
     this.tracesOutputPath = Paths.get(endpointConfiguration.tracesOutputPath());
+    this.l1L2BridgeSharedConfiguration = lineaL1L2BridgeSharedConfiguration;
+    this.fork = fork;
   }
 
   public String getNamespace() {
@@ -95,9 +102,8 @@ public class GenerateConflatedTracesV2 {
     final long toBlock = params.endBlockNumber();
     final ZkTracer tracer =
         new ZkTracer(
-            // NOTE: following OK because bridge config only affects line counts for non-tracing
-            // modules.
-            LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT,
+            fork,
+            l1L2BridgeSharedConfiguration,
             BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
                 .getChainId()
                 .orElseThrow());

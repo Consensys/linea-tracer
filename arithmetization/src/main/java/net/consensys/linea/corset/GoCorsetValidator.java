@@ -15,7 +15,7 @@
 
 package net.consensys.linea.corset;
 
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_LONDON_TESTCONFIG;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -122,7 +122,7 @@ public class GoCorsetValidator extends AbstractExecutable {
     ArrayList<String> options = new ArrayList<>();
     // Determine options to use (either default or override)
     String flags =
-        System.getenv().getOrDefault("GOCORSET_FLAGS", "-w --report --report-context 2 --hir ");
+        System.getenv().getOrDefault("GOCORSET_FLAGS", "--report --report-context 2 --hir ");
     // Determine whether to generate a coverage report (or not).
     String coverage = System.getenv().get("GOCORSET_COVERAGE");
     // Specify corset binary
@@ -154,7 +154,7 @@ public class GoCorsetValidator extends AbstractExecutable {
    * @param options
    */
   private void setChainConstants(List<String> options) {
-    if (chain != MAINNET_TESTCONFIG) {
+    if (chain != MAINNET_LONDON_TESTCONFIG) {
       options.add("-Sblockdata.GAS_LIMIT_MINIMUM=" + chain.gasLimitMinimum.toString());
       options.add("-Sblockdata.GAS_LIMIT_MAXIMUM=" + chain.gasLimitMaximum.toString());
       if (chain.fixedGasLimitEnabled) {

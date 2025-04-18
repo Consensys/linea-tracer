@@ -41,12 +41,17 @@ apply plugin: 'com.adarshr.test-logger'
   * - 'root.log.level' and 'evm.log.level': allow to control the log level used during the tests.
   */
 tasks.withType(Test).configureEach {
-  minHeapSize = "4g"
-  maxHeapSize = "8g"
+  minHeapSize = "256m"
+  // Determine heap limit based on whether CI machine, or not.
+  if(System.getenv().containsKey("CI")) {
+      maxHeapSize = "32g"
+  } else {
+      maxHeapSize = "8g"
+  }
 
   jvmArgs = [
     '-XX:-UseGCOverheadLimit',
-    '-XX:+PrintGC',
+    '-Xlog:gc',
     // Mockito and jackson-databind do some strange reflection during tests.
     // This suppresses an illegal access warning.
     '--add-opens',
@@ -135,6 +140,7 @@ tasks.test.configure {
     excludeTags("nightly")
     excludeTags("replay")
     excludeTags("weekly")
+    excludeTags("prc-calltests")
   }
   finalizedBy(jacocoTestReport)
 }
@@ -170,9 +176,6 @@ tasks.register("jacocoFastReplayTestsReport", JacocoReport) {
 tasks.register("nightlyReplayTests", Test) {
   dependsOn(buildZkevmBin)
 
-  boolean isCiServer = System.getenv().containsKey("CI")
-  maxHeapSize = isCiServer ? "32g" : "8g"
-
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
@@ -190,9 +193,6 @@ tasks.register("nightlyReplayTests", Test) {
 
 tasks.register("nightlyTests", Test) {
   dependsOn(buildZkevmBin)
-
-  boolean isCiServer = System.getenv().containsKey("CI")
-  maxHeapSize = isCiServer ? "32g" : "8g"
 
   systemProperty("junit.jupiter.execution.parallel.enabled", true)
   systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
@@ -224,11 +224,9 @@ tasks.register("weeklyTests", Test) {
   systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
   systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
   systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
-          System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "1").toInteger())
+          System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "8").toInteger())
 
   useJUnitPlatform {
-    excludeTags("nightly")
-    excludeTags("replay")
     includeTags("weekly")
   }
   finalizedBy(jacocoWeeklyTestsReport)
@@ -241,6 +239,31 @@ tasks.register("jacocoWeeklyTestsReport", JacocoReport) {
 
   sourceSets project(":arithmetization").sourceSets.main
   executionData(weeklyTests)
+}
+
+tasks.register("prcCallTests", Test) {
+  dependsOn(buildZkevmBin)
+  //
+  systemProperty("junit.jupiter.execution.parallel.enabled", true)
+  systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
+  systemProperty("junit.jupiter.execution.parallel.config.strategy", "fixed")
+  systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
+          System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "8").toInteger())
+
+  useJUnitPlatform {
+    includeTags("prc-calltests")
+  }
+  finalizedBy(jacocoPrcCallTestsReport)
+}
+
+tasks.register("jacocoPrcCallTestsReport", JacocoReport) {
+  reports {
+    xml.required = true
+  }
+
+  sourceSets project(":arithmetization").sourceSets.main
+  executionData(prcCallTests)
 }
 
 // Gradle task to concatenate Unit, FastReplay, Nightly, Weekly and Reference Blockchain and State tests exec files

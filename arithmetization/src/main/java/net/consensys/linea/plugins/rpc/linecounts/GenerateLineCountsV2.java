@@ -21,11 +21,13 @@ import java.util.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.Validator;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.ServiceManager;
@@ -35,21 +37,18 @@ import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /** This class is used to generate trace counters. */
 @Slf4j
+@RequiredArgsConstructor
 public class GenerateLineCountsV2 {
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
   private static final int CACHE_SIZE = 10_000;
   private static final Cache<Long, Map<String, Integer>> CACHE =
       CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
 
+  private final Fork fork;
   private final RequestLimiter requestLimiter;
-
   private final ServiceManager besuContext;
   private TraceService traceService;
-
-  public GenerateLineCountsV2(final ServiceManager context, final RequestLimiter requestLimiter) {
-    this.besuContext = context;
-    this.requestLimiter = requestLimiter;
-  }
+  private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
 
   public String getNamespace() {
     return "linea";
@@ -101,8 +100,8 @@ public class GenerateLineCountsV2 {
                     blockNumber -> {
                       final ZkTracer tracer =
                           new ZkTracer(
-                              LineaL1L2BridgeSharedConfiguration
-                                  .TEST_DEFAULT, // FIXME: is this appropriate?
+                              fork,
+                              l1L2BridgeSharedConfiguration,
                               BesuServiceProvider.getBesuService(
                                       besuContext, BlockchainService.class)
                                   .getChainId()

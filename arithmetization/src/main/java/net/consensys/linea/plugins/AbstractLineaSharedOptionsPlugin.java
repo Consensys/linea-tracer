@@ -15,11 +15,14 @@
 
 package net.consensys.linea.plugins;
 
+import static net.consensys.linea.zktracer.Fork.LONDON;
+
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedCliOptions;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
+import net.consensys.linea.zktracer.Fork;
 
 /** In this class we put CLI options that are shared with other plugins not defined here */
 @Slf4j
@@ -35,8 +38,18 @@ public abstract class AbstractLineaSharedOptionsPlugin extends AbstractLineaOpti
   }
 
   public LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration() {
-    return (LineaL1L2BridgeSharedConfiguration)
-        getConfigurationByKey(LineaL1L2BridgeSharedCliOptions.CONFIG_KEY).optionsConfig();
+    final LineaL1L2BridgeSharedConfiguration l2L1 =
+        (LineaL1L2BridgeSharedConfiguration)
+            getConfigurationByKey(LineaL1L2BridgeSharedCliOptions.CONFIG_KEY).optionsConfig();
+
+    if (l2L1.equals(LineaL1L2BridgeSharedConfiguration.EMPTY)) {
+      throw new IllegalStateException("L1L2 bridge configuration not provided.");
+    }
+    return l2L1;
+  }
+
+  public Fork fork() {
+    return LONDON; // TODO: IMPORTANT
   }
 
   @Override

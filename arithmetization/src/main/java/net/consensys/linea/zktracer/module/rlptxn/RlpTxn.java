@@ -71,15 +71,8 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
-import org.apache.tuweni.units.bigints.UInt256;
-import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.datatypes.TransactionType;
-import org.hyperledger.besu.datatypes.Wei;
-import org.hyperledger.besu.ethereum.core.encoding.AccessListTransactionEncoder;
-import org.hyperledger.besu.ethereum.rlp.RLP;
-import org.hyperledger.besu.ethereum.rlp.RLPOutput;
 import org.hyperledger.besu.evm.account.AccountState;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -156,53 +149,12 @@ public class RlpTxn implements OperationListModule<RlpTxnOperation> {
       traceValue.rlpLtByteSize = innerRlpSize(besuRlpLt.size() - 1);
     }
 
-    Bytes besuRlpLx;
+    final Bytes besuRlpLx = operation.tx().encodedPreimage();
     switch (traceValue.txType) {
-      case 0 -> {
-        besuRlpLx =
-            frontierPreimage(
-                operation.tx().getNonce(),
-                (Wei) operation.tx().getGasPrice().orElseThrow(),
-                operation.tx().getGasLimit(),
-                operation.tx().getTo().map(x -> (Address) x),
-                (Wei) operation.tx().getValue(),
-                operation.tx().getPayload(),
-                operation.tx().getChainId());
-        traceValue.rlpLxByteSize = innerRlpSize(besuRlpLx.size());
-      }
-      case 1 -> {
-        List<AccessListEntry> accessList = null;
-        if (operation.tx().getAccessList().isPresent()) {
-          accessList = operation.tx().getAccessList().orElseThrow();
-        }
-        besuRlpLx =
-            accessListPreimage(
-                operation.tx().getNonce(),
-                (Wei) operation.tx().getGasPrice().orElseThrow(),
-                operation.tx().getGasLimit(),
-                operation.tx().getTo().map(x -> (Address) x),
-                (Wei) operation.tx().getValue(),
-                operation.tx().getPayload(),
-                accessList,
-                operation.tx().getChainId());
-        // the innerRlp method already concatenate with the first byte "transaction  type"
-        traceValue.rlpLxByteSize = innerRlpSize(besuRlpLx.size() - 1);
-      }
-      case 2 -> {
-        besuRlpLx =
-            eip1559Preimage(
-                operation.tx().getNonce(),
-                (Wei) operation.tx().getMaxPriorityFeePerGas().orElseThrow(),
-                (Wei) operation.tx().getMaxFeePerGas().orElseThrow(),
-                operation.tx().getGasLimit(),
-                operation.tx().getTo().map(x -> (Address) x),
-                (Wei) operation.tx().getValue(),
-                operation.tx().getPayload(),
-                operation.tx().getChainId(),
-                operation.tx().getAccessList());
-        // the innerRlp method already concatenate with the first byte "transaction  type"
-        traceValue.rlpLxByteSize = innerRlpSize(besuRlpLx.size() - 1);
-      }
+      case 0 -> traceValue.rlpLxByteSize = innerRlpSize(besuRlpLx.size());
+      case 1, 2 ->
+      // the innerRlp method already concatenate with the first byte "transaction  type"
+      traceValue.rlpLxByteSize = innerRlpSize(besuRlpLx.size() - 1);
       default -> throw new IllegalStateException(
           "Transaction Type not supported: " + traceValue.txType);
     }
@@ -926,104 +878,6 @@ public class RlpTxn implements OperationListModule<RlpTxnOperation> {
 
       traceRow(traceValue, trace);
     }
-  }
-
-  private static Bytes frontierPreimage(
-      final long nonce,
-      final Wei gasPrice,
-      final long gasLimit,
-      final Optional<Address> to,
-      final Wei value,
-      final Bytes payload,
-      final Optional<BigInteger> chainId) {
-    return RLP.encode(
-        rlpOutput -> {
-          rlpOutput.startList();
-          rlpOutput.writeLongScalar(nonce);
-          rlpOutput.writeUInt256Scalar(gasPrice);
-          rlpOutput.writeLongScalar(gasLimit);
-          rlpOutput.writeBytes(to.map(Bytes::copy).orElse(Bytes.EMPTY));
-          rlpOutput.writeUInt256Scalar(value);
-          rlpOutput.writeBytes(payload);
-          if (chainId.isPresent()) {
-            rlpOutput.writeBigIntegerScalar(chainId.orElseThrow());
-            rlpOutput.writeUInt256Scalar(UInt256.ZERO);
-            rlpOutput.writeUInt256Scalar(UInt256.ZERO);
-          }
-          rlpOutput.endList();
-        });
-  }
-
-  private static Bytes accessListPreimage(
-      final long nonce,
-      final Wei gasPrice,
-      final long gasLimit,
-      final Optional<Address> to,
-      final Wei value,
-      final Bytes payload,
-      final List<AccessListEntry> accessList,
-      final Optional<BigInteger> chainId) {
-    final Bytes encode =
-        RLP.encode(
-            rlpOutput -> {
-              rlpOutput.startList();
-              AccessListTransactionEncoder.encodeAccessListInner(
-                  chainId, nonce, gasPrice, gasLimit, to, value, payload, accessList, rlpOutput);
-              rlpOutput.endList();
-            });
-    return Bytes.concatenate(Bytes.of(TransactionType.ACCESS_LIST.getSerializedType()), encode);
-  }
-
-  private static Bytes eip1559Preimage(
-      final long nonce,
-      final Wei maxPriorityFeePerGas,
-      final Wei maxFeePerGas,
-      final long gasLimit,
-      final Optional<Address> to,
-      final Wei value,
-      final Bytes payload,
-      final Optional<BigInteger> chainId,
-      final Optional<List<AccessListEntry>> accessList) {
-    final Bytes encoded =
-        RLP.encode(
-            rlpOutput -> {
-              rlpOutput.startList();
-              eip1559PreimageFields(
-                  nonce,
-                  maxPriorityFeePerGas,
-                  maxFeePerGas,
-                  gasLimit,
-                  to,
-                  value,
-                  payload,
-                  chainId,
-                  accessList,
-                  rlpOutput);
-              rlpOutput.endList();
-            });
-    return Bytes.concatenate(Bytes.of(TransactionType.EIP1559.getSerializedType()), encoded);
-  }
-
-  private static void eip1559PreimageFields(
-      final long nonce,
-      final Wei maxPriorityFeePerGas,
-      final Wei maxFeePerGas,
-      final long gasLimit,
-      final Optional<Address> to,
-      final Wei value,
-      final Bytes payload,
-      final Optional<BigInteger> chainId,
-      final Optional<List<AccessListEntry>> accessList,
-      final RLPOutput rlpOutput) {
-    rlpOutput.writeBigIntegerScalar(chainId.orElseThrow());
-    rlpOutput.writeLongScalar(nonce);
-    rlpOutput.writeUInt256Scalar(maxPriorityFeePerGas);
-    rlpOutput.writeUInt256Scalar(maxFeePerGas);
-    rlpOutput.writeLongScalar(gasLimit);
-    rlpOutput.writeBytes(to.map(Bytes::copy).orElse(Bytes.EMPTY));
-    rlpOutput.writeUInt256Scalar(value);
-    rlpOutput.writeBytes(payload);
-    AccessListTransactionEncoder.writeAccessList(rlpOutput, accessList);
   }
 
   private void traceZeroInt(

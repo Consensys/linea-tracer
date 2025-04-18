@@ -89,7 +89,12 @@ public class TracesEndpointServicePlugin extends AbstractLineaPrivateOptionsPlug
             RequestLimiterDispatcher.SINGLE_INSTANCE_REQUEST_LIMITER_KEY);
 
     final GenerateConflatedTracesV2 method =
-        new GenerateConflatedTracesV2(besuContext, reqLimiter, endpointConfiguration);
+        new GenerateConflatedTracesV2(
+            besuContext,
+            reqLimiter,
+            endpointConfiguration,
+            l1L2BridgeSharedConfiguration(),
+            fork());
 
     createAndRegister(method, rpcEndpointService);
   }

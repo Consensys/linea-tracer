@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.types;
 
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.math.BigInteger;
 import java.util.HashMap;
@@ -30,12 +29,10 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
-import net.consensys.linea.zktracer.module.hub.transients.Block;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -44,11 +41,13 @@ import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public class TransactionProcessingMetadata {
+public abstract class TransactionProcessingMetadata {
 
   final int absoluteTransactionNumber;
   final int relativeTransactionNumber;
   final int relativeBlockNumber;
+
+  final Address coinbaseAddress;
 
   final Transaction besuTransaction;
   final long baseFee;
@@ -106,7 +105,11 @@ public class TransactionProcessingMetadata {
 
   @Accessors(fluent = true)
   @Setter
-  boolean isCoinbaseWarmAtTransactionEnd = false;
+  boolean isCoinbasePreWarmed = false;
+
+  @Accessors(fluent = true)
+  @Setter
+  boolean coinbaseWarmAtTransactionEnd = false;
 
   @Setter List<Log> logs;
 
@@ -121,14 +124,15 @@ public class TransactionProcessingMetadata {
   @Getter final Map<EphemeralAccount, Integer> effectiveSelfDestructMap = new HashMap<>();
 
   public TransactionProcessingMetadata(
+      final Hub hub,
       final WorldView world,
       final Transaction transaction,
-      final Block block,
       final int relativeTransactionNumber,
       final int absoluteTransactionNumber) {
     this.absoluteTransactionNumber = absoluteTransactionNumber;
-    relativeBlockNumber = block.blockNumber();
-    baseFee = block.baseFee().toLong();
+    relativeBlockNumber = hub.blockStack().currentRelativeBlockNumber();
+    coinbaseAddress = hub.coinbaseAddress();
+    baseFee = hub.blockStack().currentBlock().baseFee().toLong();
 
     besuTransaction = transaction;
     this.relativeTransactionNumber = relativeTransactionNumber;
@@ -141,14 +145,15 @@ public class TransactionProcessingMetadata {
 
     // Note: Besu's dataCost computation contains
     // - the 21_000 transaction cost (we deduce it)
-    // - the contract creation cost in case of deployment (we set deployment to false to not add it)
+    // - the contract creation cost in case of deployment
     // - the baseline gas (gas for access lists and 7702 authorizations) is set to zero, because we
     // only consider the cost of the transaction payload
     dataCost =
-        ZkTracer.gasCalculator.transactionIntrinsicGasCost(besuTransaction.getPayload(), false, 0)
-            - GAS_CONST_G_TRANSACTION;
+        hub.gasCalculator.transactionIntrinsicGasCost(besuTransaction, 0)
+            - GAS_CONST_G_TRANSACTION
+            - (isDeployment ? GAS_CONST_G_CREATE : 0);
     accessListCost =
-        besuTransaction.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);
+        besuTransaction.getAccessList().map(hub.gasCalculator::accessListGasCost).orElse(0L);
     initiallyAvailableGas = getInitiallyAvailableGas();
 
     effectiveRecipient = effectiveToAddress(besuTransaction);
@@ -159,10 +164,9 @@ public class TransactionProcessingMetadata {
   public void setPreFinalisationValues(
       final long leftOverGas,
       final long refundCounterMax,
-      final boolean coinbaseIsWarmAtFinalisation,
-      final long accumulatedGasUsedInBlockAtStartTx) {
+      final long accumulatedGasUsedInBlockAtStartTx,
+      final boolean coinbaseWarmAtTransactionEnd) {
 
-    isCoinbaseWarmAtTransactionEnd(coinbaseIsWarmAtFinalisation);
     this.refundCounterMax = refundCounterMax;
     setLeftoverGas(leftOverGas);
     gasUsed = computeGasUsed();
@@ -170,6 +174,7 @@ public class TransactionProcessingMetadata {
     gasRefunded = computeRefunded();
     totalGasUsed = computeTotalGasUsed();
     accumulatedGasUsedInBlock = accumulatedGasUsedInBlockAtStartTx + totalGasUsed;
+    this.coinbaseWarmAtTransactionEnd = coinbaseWarmAtTransactionEnd;
   }
 
   public void completeLineaTransaction(
@@ -329,22 +334,15 @@ public class TransactionProcessingMetadata {
     return besuTransaction.getData().orElse(Bytes.EMPTY);
   }
 
-  public boolean coinbaseWarmthAfterTxInit(Hub hub) {
-    final Address coinbaseAddress = hub.coinbaseAddress;
-    final boolean coinbaseIsInAccessList =
-        this.getBesuTransaction()
-            .getAccessList()
-            .map(
-                accessList ->
-                    accessList.stream().anyMatch(entry -> entry.address().equals(coinbaseAddress)))
-            .orElse(false);
-    final boolean coinbaseIsPrecompile = isPrecompile(coinbaseAddress);
-    final boolean coinbaseIsSender = this.getSender().equals(coinbaseAddress);
-    final boolean coinbaseIsRecipient = this.getEffectiveRecipient().equals(coinbaseAddress);
+  public boolean senderIsCoinbase() {
+    return getSender().equals(coinbaseAddress);
+  }
 
-    return coinbaseIsInAccessList
-        || coinbaseIsPrecompile
-        || coinbaseIsSender
-        || coinbaseIsRecipient;
+  public boolean recipientIsCoinbase() {
+    return effectiveRecipient.equals(coinbaseAddress);
+  }
+
+  public boolean senderIsRecipient() {
+    return getSender().equals(effectiveRecipient);
   }
 }

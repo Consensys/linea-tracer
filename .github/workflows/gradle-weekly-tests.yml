@@ -11,9 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  weekly-tests:
+  weekly-unit-tests:
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
-    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -22,16 +21,12 @@ jobs:
 
       - name: Setup Test Environment
         uses: ./.github/actions/setup-environment
-        with:
-          go-corset: true
 
       - name: Run Weekly tests
-        run: GOMEMLIMIT=96GiB ./gradlew weeklyTests
+        run: GOMAXPROCS=2 GOMEMLIMIT=10GiB ./gradlew weeklyTests
         env:
-          JAVA_OPTS: -Dorg.gradle.daemon=false
-          WEEKLY_TESTS_PARALLELISM: 4
-          CORSET_FLAGS: disable
-          GOCORSET_FLAGS: -vw -b1024 --ansi-escapes=false --report --air
+          WEEKLY_TESTS_PARALLELISM: 32
+          GOCORSET_FLAGS: -v -b1024 --ansi-escapes=false --report --hir
 
       - name: Upload test report
         if: always()
@@ -61,5 +56,54 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: webhook-trigger
           payload: |
-             name: "Weekly (Go-Corset)"
+             name: "Weekly Unit"
              status: "${{ job.status }}"
+
+  weekly-prc-calltests:
+    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Test Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Run Precompile Call tests
+        run: GOMAXPROCS=1 GOMEMLIMIT=10GiB ./gradlew prcCallTests
+        env:
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+          WEEKLY_TESTS_PARALLELISM: 24
+          GOCORSET_FLAGS: -v -b1024 --ansi-escapes=false --report --hir
+
+      - name: Upload prc calls test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prc-call-tests-report
+          path: arithmetization/build/reports/tests/**/*
+
+      - name: Upload jacoco weekly prc-call tests coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-prc-call-tests-coverage-report
+          path: arithmetization/build/reports/jacoco/jacocoPrcCallTestsReport/**/*
+
+      - name: Upload jacoco weekly prc-call tests exec file
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-prc-call-tests-exec-file
+          path: arithmetization/build/jacoco/prcCallTests.exec
+
+      - name: Failure Notification
+        if: ${{ failure() || cancelled() }}
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: webhook-trigger
+          payload: |
+            name: "Weekly Precompile call"
+            status: "${{ job.status }}"

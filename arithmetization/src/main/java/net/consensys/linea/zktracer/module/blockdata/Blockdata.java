@@ -21,12 +21,14 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.util.*;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.txndata.TxnData;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -35,16 +37,16 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 @RequiredArgsConstructor
 public class Blockdata implements Module {
+  private final Hub hub;
   private final Wcp wcp;
   private final Euc euc;
-  private final TxnData txnData;
   private final ChainConfig chain;
-
-  private final List<BlockdataOperation> operations = new ArrayList<>();
-  private long firstBlockNumber;
+  @Getter private final List<BlockdataOperation> operations = new ArrayList<>();
+  @Getter private long firstBlockNumber;
 
   private boolean conflationFinished = false;
 
+  @Getter
   private static final OpCode[] opCodes = {
     OpCode.COINBASE,
     OpCode.TIMESTAMP,
@@ -93,10 +95,10 @@ public class Blockdata implements Module {
     for (OpCode opCode : opCodes) {
       final BlockdataOperation operation =
           new BlockdataOperation(
-              txnData.hub(),
+              hub,
               blockHeader,
               previousBlockHeader,
-              txnData.currentBlock().getNbOfTxsInBlock(),
+              txnData().currentBlock().getNbOfTxsInBlock(),
               wcp,
               euc,
               chain,
@@ -133,5 +135,9 @@ public class Blockdata implements Module {
     for (BlockdataOperation blockData : operations) {
       blockData.trace(trace.blockdata);
     }
+  }
+
+  private TxnData txnData() {
+    return hub.txnData();
   }
 }

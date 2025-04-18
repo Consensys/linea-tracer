@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.ChainConfig.LINEA_CHAIN;
+import static net.consensys.linea.zktracer.ChainConfig.FORK_LINEA_CHAIN;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -34,15 +34,14 @@ import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.exceptions.TracingExceptions;
 import net.consensys.linea.zktracer.module.DebugMode;
-import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.*;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.FiniteList;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
-import org.hyperledger.besu.evm.gascalculator.GasCalculator;
-import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.operation.Operation;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -52,8 +51,6 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 public class ZkTracer implements ConflationAwareOperationTracer {
-  /** The {@link GasCalculator} used in this version of the arithmetization */
-  public static final GasCalculator gasCalculator = new LondonGasCalculator();
 
   @Getter private final Hub hub;
   private final Optional<DebugMode> debugMode;
@@ -72,8 +69,10 @@ public class ZkTracer implements ConflationAwareOperationTracer {
    * @param chainId Identifies the chain being traced.
    */
   public ZkTracer(
-      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration, BigInteger chainId) {
-    this(LINEA_CHAIN(bridgeConfiguration, chainId));
+      final Fork fork,
+      final LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
+      BigInteger chainId) {
+    this(FORK_LINEA_CHAIN(fork, bridgeConfiguration, chainId));
   }
 
   /**
@@ -84,7 +83,13 @@ public class ZkTracer implements ConflationAwareOperationTracer {
    */
   public ZkTracer(ChainConfig chain) {
     this.chain = chain;
-    this.hub = new Hub(chain);
+    this.hub =
+        switch (chain.fork) {
+          case LONDON -> new LondonHub(chain);
+          case SHANGHAI -> new ShanghaiHub(chain);
+          case CANCUN -> new CancunHub(chain);
+          case PRAGUE -> new PragueHub(chain);
+        };
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
@@ -321,5 +326,14 @@ public class ZkTracer implements ConflationAwareOperationTracer {
 
   public static byte[] getMetadataBytes(Map<String, Object> metadata) throws IOException {
     return objectWriter.writeValueAsBytes(metadata);
+  }
+
+  public Set<Address> getAddressesSeenByHubForRelativeBlock(final int relativeBlockNumber) {
+    return hub.blockStack().getBlockByRelativeBlockNumber(relativeBlockNumber).addressesSeenByHub();
+  }
+
+  public Map<Address, Set<Bytes32>> getStoragesSeenByHubForRelativeBlock(
+      final int relativeBlockNumber) {
+    return hub.blockStack().getBlockByRelativeBlockNumber(relativeBlockNumber).storagesSeenByHub();
   }
 }

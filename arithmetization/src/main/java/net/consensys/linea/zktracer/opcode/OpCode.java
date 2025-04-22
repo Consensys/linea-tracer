@@ -247,6 +247,10 @@ public enum OpCode {
     return getData().isLog();
   }
 
+  public boolean isCopy() {
+    return getData().isCopy();
+  }
+
   /** Returns whether the {@link OpCode} entails a contract creation. */
   public boolean isCreate() {
     return getData().isCreate();

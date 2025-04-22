@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
-import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
 import static net.consensys.linea.zktracer.Trace.Mxp.CT_MAX_MSIZE;
 import static net.consensys.linea.zktracer.Trace.Mxp.CT_MAX_MXPX;
@@ -39,8 +38,6 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 public class MxpOperation extends ModuleOperation {
-  public static final BigInteger TWO_POW_128 = BigInteger.ONE.shiftLeft(128);
-  public static final BigInteger TWO_POW_32 = BigInteger.ONE.shiftLeft(32);
 
   @Getter final MxpCall mxpCall;
   private final int contextNumber;
@@ -49,13 +46,10 @@ public class MxpOperation extends ModuleOperation {
   private BigInteger maxOffset2 = BigInteger.ZERO;
   private BigInteger maxOffset = BigInteger.ZERO;
 
-  @Getter private boolean roob;
-  @Getter private boolean noOperation;
+  private final long words;
   private long wordsNew;
   private final long cMem;
   private long cMemNew;
-  private long quadCost = 0;
-  private long linCost = 0;
 
   public MxpOperation(final MxpCall mxpCall) {
     final Hub hub = mxpCall.hub;
@@ -66,6 +60,7 @@ public class MxpOperation extends ModuleOperation {
     this.mxpCall.setDeploys(
         mxpCall.getOpCodeData().mnemonic() == OpCode.RETURN & hub.currentFrame().isDeployment());
     this.mxpCall.setMemorySizeInWords(frame.memoryWordSize());
+    this.words = frame.memoryWordSize();
     this.wordsNew = frame.memoryWordSize(); // will (may) be updated later
     this.cMem = memoryCost(frame.memoryWordSize());
     this.cMemNew = memoryCost(frame.memoryWordSize()); // will (may) be updated later
@@ -140,7 +135,7 @@ public class MxpOperation extends ModuleOperation {
     return clampedAdd(clampedMultiply(GAS_CONST_G_MEMORY, length), base);
   }
 
-  protected enum MxpExecutionPath {
+  protected enum MxpScenario {
     MSIZE,
     TRIVIAL,
     MXPX,
@@ -148,13 +143,29 @@ public class MxpOperation extends ModuleOperation {
     UPDT_B
   }
 
-  private MxpExecutionPath getMxpExecutionPath() {
-    // TODO
-    return MxpExecutionPath.MSIZE;
+  private MxpScenario getMxpScenario() {
+    OpCode opCode = this.mxpCall.getOpCodeData().mnemonic();
+    if (opCode == OpCode.MSIZE) {
+      return MxpScenario.MSIZE;
+    }
+    if (this.mxpCall.getSize1().isZero() && this.mxpCall.getSize2().isZero()) {
+      return MxpScenario.TRIVIAL;
+    }
+    if (this.mxpCall.isMxpx()) {
+      return MxpScenario.MXPX;
+    }
+    if (opCode.isLog()
+        || opCode == OpCode.SHA3
+        || opCode.isCopy()
+        || opCode.isCreate()
+        || opCode == OpCode.MCOPY) {
+      return MxpScenario.UPDT_W;
+    }
+    return MxpScenario.UPDT_B;
   }
 
   public int ctMax() {
-    return switch (this.getMxpExecutionPath()) {
+    return switch (this.getMxpScenario()) {
       case MSIZE -> CT_MAX_MSIZE;
       case TRIVIAL -> CT_MAX_TRIV;
       case MXPX -> CT_MAX_MXPX;
@@ -168,6 +179,8 @@ public class MxpOperation extends ModuleOperation {
   }
 
   final void traceDecoder(int stamp, Trace.Mxp trace) {
+    OpCode opCode = this.mxpCall.getOpCodeData().mnemonic();
+
     final int nRows = this.nRows();
 
     for (int i = 0; i < nRows; i++) {
@@ -181,15 +194,26 @@ public class MxpOperation extends ModuleOperation {
           .ct(0)
           .ctMax(0)
           .pDecoderInst(0)
-          .pDecoderIsMsize(false)
-          .pDecoderIsReturn(false)
-          .pDecoderIsMcopy(false)
-          .pDecoderIsFixedSize32(false)
-          .pDecoderIsFixedSize1(false)
-          .pDecoderIsSingleMaxOffset(false)
-          .pDecoderIsDoubleMaxOffset(false)
-          .pDecoderIsWordPricing(false)
-          .pDecoderIsBytePricing(false)
+          .pDecoderIsMsize(opCode == OpCode.MSIZE)
+          .pDecoderIsReturn(opCode == OpCode.RETURN)
+          .pDecoderIsMcopy(opCode == OpCode.MCOPY)
+          .pDecoderIsFixedSize32(opCode == OpCode.MLOAD || opCode == OpCode.MSTORE)
+          .pDecoderIsFixedSize1(opCode == OpCode.MSTORE8)
+          .pDecoderIsSingleMaxOffset(false) // TODO
+          .pDecoderIsDoubleMaxOffset(false) // TODO
+          .pDecoderIsWordPricing(
+              opCode.isLog()
+                  || opCode == OpCode.SHA3
+                  || opCode.isCopy()
+                  || opCode.isCreate()
+                  || opCode == OpCode.MCOPY)
+          .pDecoderIsBytePricing(
+              opCode == OpCode.MLOAD
+                  || opCode == OpCode.MSTORE
+                  || opCode == OpCode.MSTORE8
+                  || opCode == OpCode.REVERT
+                  || opCode == OpCode.RETURN
+                  || opCode.isCall())
           .pDecoderGword(0)
           .pDecoderGbyte(0)
           .fillAndValidateRow();
@@ -247,11 +271,11 @@ public class MxpOperation extends ModuleOperation {
           .computation(false)
           .ct(0)
           .ctMax(0)
-          .pScenarioMsize(false)
-          .pScenarioTrivial(false)
-          .pScenarioMxpx(false)
-          .pScenarioStateUpdateBytePricing(false)
-          .pScenarioStateUpdateBytePricing(false)
+          .pScenarioMsize(getMxpScenario() == MxpScenario.MSIZE)
+          .pScenarioTrivial(getMxpScenario() == MxpScenario.TRIVIAL)
+          .pScenarioMxpx(getMxpScenario() == MxpScenario.MXPX)
+          .pScenarioStateUpdateBytePricing(getMxpScenario() == MxpScenario.UPDT_B)
+          .pScenarioStateUpdateBytePricing(getMxpScenario() == MxpScenario.UPDT_W)
           .pScenarioWords(0)
           .pScenarioWordsNew(0)
           .pScenarioCmem(Bytes.EMPTY)

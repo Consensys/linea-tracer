@@ -26,6 +26,14 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
+import net.consensys.linea.plugins.rpc.tracegeneration.TraceRequestParams;
+import net.consensys.linea.zktracer.json.JsonConverter;
+import okhttp3.Call;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.tests.acceptance.dsl.condition.net.NetConditions;
 import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
@@ -39,6 +47,52 @@ import org.hyperledger.besu.tests.acceptance.dsl.transaction.eth.EthTransactions
 import org.hyperledger.besu.tests.acceptance.dsl.transaction.net.NetTransactions;
 
 public class BesuExecutionTools {
+
+  private static final MediaType MEDIA_TYPE_JSON =
+      MediaType.parse("application/json; charset=utf-8");
+  private static final JsonConverter CONVERTER = JsonConverter.builder().build();
+
+  private final OkHttpClient httpClient;
+  private final BesuNode besuNode;
+  private final Path tracesPath;
+  private final List<Transaction> transactions;
+
+  public BesuExecutionTools(String genesisConfig, List<Transaction> txList) {
+    httpClient = new OkHttpClient();
+    try {
+      tracesPath =
+          Files.createTempDirectory(
+              Path.of(System.getProperty("besu.traces.dir")), UUID.randomUUID().toString());
+      besuNode = create(genesisConfig, tracesPath);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    transactions = txList;
+  }
+
+  private Call callRpcRequest(final String request) {
+    return httpClient.newCall(
+        new Request.Builder()
+            .url(besuNode.jsonRpcBaseUrl().get())
+            .post(RequestBody.create(request, MEDIA_TYPE_JSON))
+            .build());
+  }
+
+  private static String createGeneratedConflatedFileV2Call(
+      final long startBlockNumber, final long endBlockNumber) {
+    TraceRequestParams traceRequestParams =
+        new TraceRequestParams(startBlockNumber, endBlockNumber, "test");
+    String params = CONVERTER.toJson(traceRequestParams);
+    return "{\n"
+        + "    \"jsonrpc\": \"2.0\",\n"
+        + "    \"method\": \"linea_generateConflatedTracesToFileV2\",\n"
+        + "    \"params\": ["
+        + params
+        + "],\n"
+        + "    \"id\": 1\n"
+        + "}";
+  }
+
   private static BesuNode create(String genesisConfig, Path tracesPath) throws IOException {
     NodeConfigurationFactory node = new NodeConfigurationFactory();
 
@@ -71,24 +125,16 @@ public class BesuExecutionTools {
                     "--plugin-linea-tracer-readiness-server-host=127.0.0.1",
                     "--plugin-linea-tracer-readiness-server-port=8548",
                     "--plugin-linea-tracer-readiness-max-blocks-behind=1"));
-    try {
-      return new BesuNodeFactory().create(besuNodeConfigurationBuilder.build());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return new BesuNodeFactory().create(besuNodeConfigurationBuilder.build());
   }
 
-  public static void executeTest(String genesisConfig, List<Transaction> transactions) {
+  public void executeTest() {
     try (Cluster cluster =
         new Cluster(
             new ClusterConfigurationBuilder().build(),
             new NetConditions(new NetTransactions()),
             new ThreadBesuNodeRunner())) {
-      Path tracesPath =
-          Files.createTempDirectory(
-              Path.of(System.getProperty("besu.traces.dir")), UUID.randomUUID().toString());
 
-      BesuNode besuNode = create(genesisConfig, tracesPath);
       cluster.start(besuNode);
 
       EthTransactions ethTransactions = new EthTransactions();
@@ -117,6 +163,9 @@ public class BesuExecutionTools {
                 });
           });
       System.out.println("maxBlockNumber=" + maxBlockNumber.get());
+      String request = createGeneratedConflatedFileV2Call(1, maxBlockNumber.get().longValue());
+      Response response = callRpcRequest(request).execute();
+      System.out.println(response);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

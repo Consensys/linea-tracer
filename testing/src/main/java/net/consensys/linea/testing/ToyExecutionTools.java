@@ -230,7 +230,7 @@ public class ToyExecutionTools {
     }
 
     long intrinsicTxCostWithNoAccessOrDelegationCost =
-        evm.getGasCalculator().transactionIntrinsicGasCost(txPayload, false, 0);
+        evm.getGasCalculator().transactionIntrinsicGasCost(tx, 0);
 
     return LINEA_BLOCK_GAS_LIMIT
         - initialMessageFrame.getRemainingGas()

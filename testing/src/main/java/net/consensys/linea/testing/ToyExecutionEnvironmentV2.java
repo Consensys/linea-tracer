@@ -88,7 +88,7 @@ public class ToyExecutionEnvironmentV2 {
       genesisConfigBuilder.setCoinbase(coinbase);
       accounts.forEach(genesisConfigBuilder::addAccount);
       String configAsString = genesisConfigBuilder.buildAsString();
-      BesuExecutionTools.executeTest(configAsString, transactions);
+      new BesuExecutionTools(configAsString, transactions).executeTest();
     }
   }
 

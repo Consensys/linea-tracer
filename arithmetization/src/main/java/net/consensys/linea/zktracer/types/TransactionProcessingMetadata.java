@@ -147,7 +147,7 @@ public class TransactionProcessingMetadata {
     // - the baseline gas (gas for access lists and 7702 authorizations) is set to zero, because we
     // only consider the cost of the transaction payload
     dataCost =
-        ZkTracer.gasCalculator.transactionIntrinsicGasCost(besuTransaction.getPayload(), false, 0)
+        ZkTracer.gasCalculator.transactionIntrinsicGasCost(besuTransaction, 0)
             - GAS_CONST_G_TRANSACTION;
     accessListCost =
         besuTransaction.getAccessList().map(ZkTracer.gasCalculator::accessListGasCost).orElse(0L);

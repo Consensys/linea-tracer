@@ -114,14 +114,18 @@ public class GenerateConflatedTracesV2 {
     log.info("[TRACING] trace for {}-{} computed in {}", fromBlock, toBlock, sw);
     sw.reset().start();
 
-    final Path path =
-        traceWriter.writeTraceToFile(
-            tracesOutputPath,
-            params.startBlockNumber(),
-            params.endBlockNumber(),
-            params.expectedTracesEngineVersion());
-    log.info("[TRACING] trace for {}-{} serialized to {} in {}", path, toBlock, fromBlock, sw);
-
-    return new TraceFile(params.expectedTracesEngineVersion(), path.toString());
+    try {
+      final Path path =
+          traceWriter.writeTraceToFile(
+              tracesOutputPath,
+              params.startBlockNumber(),
+              params.endBlockNumber(),
+              params.expectedTracesEngineVersion());
+      log.info("[TRACING] trace for {}-{} serialized to {} in {}", path, toBlock, fromBlock, sw);
+      return new TraceFile(params.expectedTracesEngineVersion(), path.toString());
+    } catch (Exception e) {
+      log.error("[TRACING] {}", e.getMessage(), e);
+      throw e;
+    }
   }
 }

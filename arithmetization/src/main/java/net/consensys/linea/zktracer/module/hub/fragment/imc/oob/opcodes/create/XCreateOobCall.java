@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,13 +13,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.create;
 
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_CALL_STIPEND;
-import static net.consensys.linea.zktracer.Trace.OOB_INST_SSTORE;
-import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_SSTORE;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
-import static net.consensys.linea.zktracer.types.Conversions.*;
+import static net.consensys.linea.zktracer.module.txndata.moduleOperation.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -28,54 +27,50 @@ import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
-import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import org.apache.tuweni.bytes.Bytes;
+import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
-public class SstoreOobCall extends OobCall {
+public class XCreateOobCall extends OobCall {
+  EWord codeSize;
 
-  private static final Bytes GAS_CONST_G_CALL_STIPEND_BYTES =
-      Bytes.minimalBytes(GAS_CONST_G_CALL_STIPEND);
-  Bytes gas;
-  boolean sstorex;
-
-  public SstoreOobCall() {
+  public XCreateOobCall() {
     super();
   }
 
   @Override
   public void setInputData(MessageFrame frame, Hub hub) {
-    setGas(Bytes.minimalBytes(frame.getRemainingGas()));
+    setCodeSize(EWord.of(frame.getStackItem(2)));
   }
 
   @Override
   public void callExoModules(Add add, Mod mod, Wcp wcp) {
-    // row i
-    final OobExoCall sufficientGasCall = callToLT(wcp, GAS_CONST_G_CALL_STIPEND_BYTES, gas);
-    exoCalls.add(sufficientGasCall);
-    final boolean sufficientGas = bytesToBoolean(sufficientGasCall.result());
-    setSstorex(!sufficientGas);
+    exoCalls.add(callToLT(wcp, MAX_INIT_CODE_SIZE_BYTES, codeSize));
   }
 
   @Override
   public int ctMax() {
-    return CT_MAX_SSTORE;
+    return 0; // TODO
   }
 
   @Override
   public Trace.Oob trace(Trace.Oob trace) {
-    return trace.isSstore(true).oobInst(OOB_INST_SSTORE).data5(gas).data7(booleanToBytes(sstorex));
+    return trace
+        .isXcreate(true)
+        .instruction(OOB_INST_XCREATE)
+        .pMiscOobData1(codeSize.hi())
+        .pMiscOobData2(codeSize.lo())
+        .outgoingResLo(booleanToBytes(true));
   }
 
   @Override
   public Trace.Hub trace(Trace.Hub trace) {
     return trace
         .pMiscOobFlag(true)
-        .pMiscOobInst(OOB_INST_SSTORE)
-        .pMiscOobData5(gas)
-        .pMiscOobData7(booleanToBytes(sstorex));
+        .pMiscOobInst(OOB_INST_XCREATE)
+        .pMiscOobData1(codeSize.hi())
+        .pMiscOobData2(codeSize.lo());
   }
 }

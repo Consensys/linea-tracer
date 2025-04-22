@@ -24,7 +24,6 @@ import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction;
 
 @Getter
 @Setter

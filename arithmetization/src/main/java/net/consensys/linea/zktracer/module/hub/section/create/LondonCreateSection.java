@@ -15,11 +15,26 @@
 
 package net.consensys.linea.zktracer.module.hub.section.create;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.create.CreateOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.create.LondonCreateOobCall;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class LondonCreateSection extends CreateSection {
   public LondonCreateSection(Hub hub, MessageFrame frame) {
     super(hub, frame);
+  }
+
+  protected boolean maxCodeSizeExceptionalCreate(final short exceptions) {
+    // Max Code Size exception appears in EIP-3860, in Shanghai
+    checkArgument(!Exceptions.maxCodeSizeException(exceptions));
+    return false;
+  }
+
+  protected CreateOobCall createOobCall() {
+    return new LondonCreateOobCall();
   }
 }

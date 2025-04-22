@@ -15,7 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_DEPLOYMENT;
+import static net.consensys.linea.zktracer.Trace.MAX_CODE_SIZE;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_DEPLOYMENT;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_DEPLOYMENT;
+import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.math.BigInteger;
@@ -23,17 +26,25 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
+import net.consensys.linea.zktracer.module.mod.Mod;
+import net.consensys.linea.zktracer.module.oob.OobExoCall;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
 public class DeploymentOobCall extends OobCall {
+  private static final Bytes MAX_CODE_SIZE_BYTES = Bytes.ofUnsignedLong(MAX_CODE_SIZE);
   EWord size;
   boolean maxCodeSizeException;
 
   public DeploymentOobCall() {
-    super(OOB_INST_DEPLOYMENT);
+    super();
   }
 
   public BigInteger sizeHi() {
@@ -45,32 +56,41 @@ public class DeploymentOobCall extends OobCall {
   }
 
   @Override
+  public void setInputData(MessageFrame frame, Hub hub) {
+    setSize(EWord.of(frame.getStackItem(1)));
+  }
+
+  @Override
+  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+    // row i
+    final OobExoCall exceedsMaxCodeSizeCall = callToLT(wcp, MAX_CODE_SIZE_BYTES, size);
+    exoCalls.add(exceedsMaxCodeSizeCall);
+    final boolean exceedsMaxCodeSize = bytesToBoolean(exceedsMaxCodeSizeCall.result());
+    setMaxCodeSizeException(exceedsMaxCodeSize);
+  }
+
+  @Override
+  public int ctMax() {
+    return CT_MAX_DEPLOYMENT;
+  }
+
+  @Override
   public Trace.Oob trace(Trace.Oob trace) {
     return trace
-        .data1(bigIntegerToBytes(sizeHi()))
-        .data2(bigIntegerToBytes(sizeLo()))
-        .data3(ZERO)
-        .data4(ZERO)
-        .data5(ZERO)
-        .data6(ZERO)
-        .data7(booleanToBytes(maxCodeSizeException))
-        .data8(ZERO)
-        .data9(ZERO);
+        .isDeployment(true)
+        .oobInst(OOB_INST_DEPLOYMENT)
+        .data1(size.hi())
+        .data2(size.lo())
+        .data7(booleanToBytes(maxCodeSizeException));
   }
 
   @Override
   public Trace.Hub trace(Trace.Hub trace) {
     return trace
         .pMiscOobFlag(true)
-        .pMiscOobInst(oobInstructionValue())
-        .pMiscOobData1(bigIntegerToBytes(sizeHi()))
-        .pMiscOobData2(bigIntegerToBytes(sizeLo()))
-        .pMiscOobData3(ZERO)
-        .pMiscOobData4(ZERO)
-        .pMiscOobData5(ZERO)
-        .pMiscOobData6(ZERO)
-        .pMiscOobData7(booleanToBytes(maxCodeSizeException))
-        .pMiscOobData8(ZERO)
-        .pMiscOobData9(ZERO);
+        .pMiscOobInst(OOB_INST_DEPLOYMENT)
+        .pMiscOobData1(size.hi())
+        .pMiscOobData2(size.lo())
+        .pMiscOobData7(booleanToBytes(maxCodeSizeException));
   }
 }

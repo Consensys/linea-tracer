@@ -99,7 +99,7 @@ public abstract class TxndataOperation extends ModuleOperation {
     callsToEucAndWcp.add(TxnDataComparisonRecord.callToLeq(wcp, upfrontWeiCost, initialBalance));
 
     // Row 2 & 3 (post Shanghai): limit and meter initcode
-    setPostShanghaiCallsToEucAndWcp();
+    setShanghaiCallsToEucAndWcp();
 
     // row 2: gasLimit covers the upfront gas cost
     final Bytes gasLimit = Bytes.minimalBytes(tx.getBesuTransaction().getGasLimit());
@@ -166,7 +166,7 @@ public abstract class TxndataOperation extends ModuleOperation {
     }
   }
 
-  void setPostShanghaiCallsToEucAndWcp() {}
+  void setShanghaiCallsToEucAndWcp() {}
 
   @Override
   protected int computeLineCount() {

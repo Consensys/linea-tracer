@@ -15,7 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_JUMPI;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_JUMPI;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_JUMPI;
+import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
+import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.math.BigInteger;
@@ -23,8 +26,14 @@ import java.math.BigInteger;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
+import net.consensys.linea.zktracer.module.mod.Mod;
+import net.consensys.linea.zktracer.module.oob.OobExoCall;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
@@ -37,7 +46,7 @@ public class JumpiOobCall extends OobCall {
   boolean jumpMustBeAttempted;
 
   public JumpiOobCall() {
-    super(OOB_INST_JUMPI);
+    super();
   }
 
   public BigInteger pcNewHi() {
@@ -57,24 +66,39 @@ public class JumpiOobCall extends OobCall {
   }
 
   @Override
-  public Trace.Oob trace(Trace.Oob trace) {
-    return trace
-        .data1(bigIntegerToBytes(pcNewHi()))
-        .data2(bigIntegerToBytes(pcNewLo()))
-        .data3(bigIntegerToBytes(jumpConditionHi()))
-        .data4(bigIntegerToBytes(jumpConditionLo()))
-        .data5(bigIntegerToBytes(codeSize))
-        .data6(booleanToBytes(jumpNotAttempted))
-        .data7(booleanToBytes(jumpGuanranteedException))
-        .data8(booleanToBytes(jumpMustBeAttempted))
-        .data9(ZERO);
+  public void setInputData(MessageFrame frame, Hub hub) {
+    setPcNew(EWord.of(frame.getStackItem(0)));
+    setJumpCondition(EWord.of(frame.getStackItem(1)));
+    setCodeSize(BigInteger.valueOf(frame.getCode().getSize()));
+  }
+
+  @Override
+  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+    // row i
+    final OobExoCall validPcNewCall = callToLT(wcp, pcNew, bigIntegerToBytes(codeSize));
+    final boolean validPcNew = bytesToBoolean(validPcNewCall.result());
+    exoCalls.add(validPcNewCall);
+
+    // row i + 1
+    final OobExoCall jumpCondIsZeroCall = callToIsZero(wcp, jumpCondition);
+    final boolean jumpCondIsZero = bytesToBoolean(jumpCondIsZeroCall.result());
+    exoCalls.add(jumpCondIsZeroCall);
+
+    setJumpNotAttempted(jumpCondIsZero);
+    setJumpGuanranteedException(!jumpCondIsZero && !validPcNew);
+    setJumpMustBeAttempted(!jumpCondIsZero && validPcNew);
+  }
+
+  @Override
+  public int ctMax() {
+    return CT_MAX_JUMPI;
   }
 
   @Override
   public Trace.Hub trace(Trace.Hub trace) {
     return trace
         .pMiscOobFlag(true)
-        .pMiscOobInst(oobInstructionValue())
+        .pMiscOobInst(OOB_INST_JUMPI)
         .pMiscOobData1(bigIntegerToBytes(pcNewHi()))
         .pMiscOobData2(bigIntegerToBytes(pcNewLo()))
         .pMiscOobData3(bigIntegerToBytes(jumpConditionHi()))
@@ -82,7 +106,21 @@ public class JumpiOobCall extends OobCall {
         .pMiscOobData5(bigIntegerToBytes(codeSize))
         .pMiscOobData6(booleanToBytes(jumpNotAttempted))
         .pMiscOobData7(booleanToBytes(jumpGuanranteedException))
-        .pMiscOobData8(booleanToBytes(jumpMustBeAttempted))
-        .pMiscOobData9(ZERO);
+        .pMiscOobData8(booleanToBytes(jumpMustBeAttempted));
+  }
+
+  @Override
+  public Trace.Oob trace(Trace.Oob trace) {
+    return trace
+        .isJumpi(true)
+        .oobInst(OOB_INST_JUMPI)
+        .data1(bigIntegerToBytes(pcNewHi()))
+        .data2(bigIntegerToBytes(pcNewLo()))
+        .data3(bigIntegerToBytes(jumpConditionHi()))
+        .data4(bigIntegerToBytes(jumpConditionLo()))
+        .data5(bigIntegerToBytes(codeSize))
+        .data6(booleanToBytes(jumpNotAttempted))
+        .data7(booleanToBytes(jumpGuanranteedException))
+        .data8(booleanToBytes(jumpMustBeAttempted));
   }
 }

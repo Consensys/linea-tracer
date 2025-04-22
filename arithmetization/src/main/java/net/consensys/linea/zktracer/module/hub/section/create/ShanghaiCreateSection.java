@@ -16,10 +16,29 @@
 package net.consensys.linea.zktracer.module.hub.section.create;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.create.CreateOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.create.ShanghaiCreateOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.create.XCreateOobCall;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class ShanghaiCreateSection extends LondonCreateSection {
   public ShanghaiCreateSection(Hub hub, MessageFrame frame) {
     super(hub, frame);
+  }
+
+  @Override
+  protected boolean maxCodeSizeExceptionalCreate(final short exceptions) {
+    final boolean haltCreateSection = Exceptions.maxCodeSizeException(exceptions);
+    if (haltCreateSection) {
+      final XCreateOobCall oobCall = new XCreateOobCall();
+      imcFragment.callOob(oobCall);
+    }
+    return haltCreateSection;
+  }
+
+  @Override
+  protected CreateOobCall createOobCall() {
+    return new ShanghaiCreateOobCall();
   }
 }

@@ -34,7 +34,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.StpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CreateOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.create.CreateOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.CreateScenarioFragment.CreateScenario;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
@@ -126,6 +126,12 @@ public abstract class CreateSection extends TraceSection
       return;
     }
 
+    // MAXCSX case: EIP-3860 in Shanghai
+    final boolean endOfCreateSection = maxCodeSizeExceptionalCreate(exceptions);
+    if (endOfCreateSection) {
+      return;
+    }
+
     // MXPX case
     final MxpCall mxpCall = new MxpCall(hub);
     imcFragment.callMxp(mxpCall);
@@ -146,7 +152,7 @@ public abstract class CreateSection extends TraceSection
     checkArgument(Exceptions.none(exceptions));
     hub.currentFrame().childSpanningSection(this);
 
-    final CreateOobCall oobCall = new CreateOobCall();
+    final CreateOobCall oobCall = createOobCall();
     imcFragment.callOob(oobCall);
 
     firstCreator = AccountSnapshot.canonical(hub, frame.getWorldUpdater(), creatorAddress);
@@ -197,8 +203,6 @@ public abstract class CreateSection extends TraceSection
     }
 
     // unexceptional, unaborted, non-failing, non-emptyInitCode CREATE(2)
-    /////////////////////////////////////////////////////////////////////
-
     // we charge for the gas paid out of pocket
     commonValues.payGasPaidOutOfPocket(hub);
 
@@ -498,4 +502,8 @@ public abstract class CreateSection extends TraceSection
   private boolean nontrivialCreate2(OpCode opCode, long size) {
     return (opCode == CREATE2 && size != 0);
   }
+
+  protected abstract boolean maxCodeSizeExceptionalCreate(final short exceptions);
+
+  protected abstract CreateOobCall createOobCall();
 }

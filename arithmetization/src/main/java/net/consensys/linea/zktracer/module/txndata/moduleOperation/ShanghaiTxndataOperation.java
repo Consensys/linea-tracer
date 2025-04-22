@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ShanghaiTxndataOperation extends LondonTxndataOperation {
-  private static final Bytes MAX_INIT_CODE_SIZE_BYTES = Bytes.ofUnsignedInt(MAX_INIT_CODE_SIZE);
+  public static final Bytes MAX_INIT_CODE_SIZE_BYTES = Bytes.ofUnsignedInt(MAX_INIT_CODE_SIZE);
   private static final Bytes WORD_SIZE_BYTES = Bytes.ofUnsignedInt(WORD_SIZE);
 
   public ShanghaiTxndataOperation(Wcp wcp, Euc euc, TransactionProcessingMetadata tx) {
@@ -32,7 +32,7 @@ public class ShanghaiTxndataOperation extends LondonTxndataOperation {
   }
 
   @Override
-  void setPostShanghaiCallsToEucAndWcp() {
+  void setShanghaiCallsToEucAndWcp() {
     if (tx.isDeployment()) {
       // row 2
       callsToEucAndWcp.add(

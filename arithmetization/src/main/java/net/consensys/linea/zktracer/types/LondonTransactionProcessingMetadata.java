@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,19 +13,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.opcode;
+package net.consensys.linea.zktracer.types;
 
-import java.util.Objects;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public record RamSettings(DataLocation source, DataLocation target) {
-  public static final RamSettings DEFAULT = new RamSettings(DataLocation.NONE, DataLocation.NONE);
+public class LondonTransactionProcessingMetadata extends TransactionProcessingMetadata {
 
-  public RamSettings(DataLocation source, DataLocation target) {
-    this.source = Objects.requireNonNullElse(source, DataLocation.NONE);
-    this.target = Objects.requireNonNullElse(target, DataLocation.NONE);
-  }
-
-  public boolean enabled() {
-    return this.source != DataLocation.NONE || this.target != DataLocation.NONE;
+  public LondonTransactionProcessingMetadata(
+      Hub hub,
+      WorldView world,
+      Transaction transaction,
+      int relativeTransactionNumber,
+      int absoluteTransactionNumber) {
+    super(hub, world, transaction, relativeTransactionNumber, absoluteTransactionNumber);
   }
 }

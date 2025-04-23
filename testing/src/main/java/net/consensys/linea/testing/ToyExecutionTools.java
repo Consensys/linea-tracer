@@ -54,7 +54,7 @@ public class ToyExecutionTools {
   private static final List<String> SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS =
       Arrays.asList("Frontier", "Homestead", "EIP150");
   private static final CorsetValidator CORSET_VALIDATOR =
-      new CorsetValidator(ChainConfig.MAINNET_TESTCONFIG);
+      new CorsetValidator(ChainConfig.MAINNET_LONDON_TESTCONFIG);
 
   private ToyExecutionTools() {
     // utility class
@@ -226,10 +226,10 @@ public class ToyExecutionTools {
     Deque<MessageFrame> messageFrameStack = initialMessageFrame.getMessageFrameStack();
     while (!messageFrameStack.isEmpty()) {
       processor.process(
-          messageFrameStack.peekFirst(), new ZkTracer(ChainConfig.MAINNET_TESTCONFIG));
+          messageFrameStack.peekFirst(), new ZkTracer(ChainConfig.MAINNET_LONDON_TESTCONFIG));
     }
 
-    long intrinsicTxCostWithNoAccessOrDelegationCost =
+    final long intrinsicTxCostWithNoAccessOrDelegationCost =
         evm.getGasCalculator().transactionIntrinsicGasCost(tx, 0);
 
     return LINEA_BLOCK_GAS_LIMIT

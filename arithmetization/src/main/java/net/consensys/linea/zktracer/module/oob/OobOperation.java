@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
-import static com.google.common.base.Preconditions.*;
 import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
@@ -23,10 +22,8 @@ import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Oob.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
-import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
-import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -39,7 +36,6 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.*;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Blake2fCallDataSizeOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Blake2fParamsOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpCallDataSizeOobCall;
@@ -47,10 +43,8 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Mode
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpLeadOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpPricingOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpXbsOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.PrecompileCommonOobCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -85,14 +79,14 @@ public class OobOperation extends ModuleOperation {
   }
 
   public void populateColumnsForPrecompile(MessageFrame frame) {
-    final OpCode opCode = getOpCode(frame);
-    final long argsOffset =
-        clampedToLong(
-            opCode.callHasValueArgument()
-                ? hub.messageFrame().getStackItem(3)
-                : hub.messageFrame().getStackItem(2));
-    final int cdsIndex = opCode.callHasValueArgument() ? 4 : 3;
-    final int returnAtCapacityIndex = opCode.callHasValueArgument() ? 6 : 5;
+    // final OpCode opCode = getOpCode(frame);
+    // final long argsOffset =
+    //     clampedToLong(
+    //         opCode.callHasValueArgument()
+    //             ? hub.messageFrame().getStackItem(3)
+    //             : hub.messageFrame().getStackItem(2));
+    // final int cdsIndex = opCode.callHasValueArgument() ? 4 : 3;
+    // final int returnAtCapacityIndex = opCode.callHasValueArgument() ? 6 : 5;
 
     BigInteger calleeGas = BigInteger.ZERO;
     if (oobCall instanceof PrecompileCommonOobCall) {
@@ -105,10 +99,10 @@ public class OobOperation extends ModuleOperation {
       calleeGas = ((Blake2fParamsOobCall) oobCall).getCalleeGas();
     }
 
-    final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
-
-    final BigInteger returnAtCapacity =
-        EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
+    // final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
+    //
+    // final BigInteger returnAtCapacity =
+    //     EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
 
     if (isCommonPrecompile()) {
       PrecompileCommonOobCall commonOobCall = (PrecompileCommonOobCall) oobCall;
@@ -119,8 +113,8 @@ public class OobOperation extends ModuleOperation {
       setPrcCommon(commonOobCall);
 
       switch (oobCall.oobInstruction) {
-        case OOB_INST_ECRECOVER, OOB_INST_ECADD, OOB_INST_ECMUL -> setEcrecoverEcaddEcmul(
-            commonOobCall);
+          // case OOB_INST_ECRECOVER, OOB_INST_ECADD, OOB_INST_ECMUL -> setEcrecoverEcaddEcmul(
+          //     commonOobCall);
         case OOB_INST_SHA2, OOB_INST_RIPEMD, OOB_INST_IDENTITY -> setShaTwoRipemdIdentity(
             commonOobCall);
         case OOB_INST_ECPAIRING -> setEcpairing(commonOobCall);
@@ -254,48 +248,48 @@ public class OobOperation extends ModuleOperation {
     }
   }
 
-  private void setPrcCommon(PrecompileCommonOobCall prcOobCall) {
-    // row i
-    final boolean cdsIsZero = callToISZERO(0, BigInteger.ZERO, prcOobCall.getCds());
+  // private void setPrcCommon(PrecompileCommonOobCall prcOobCall) {
+  //  // row i
+  //  final boolean cdsIsZero = callToISZERO(0, BigInteger.ZERO, prcOobCall.getCds());
+  //
+  //  // row i + 1
+  //  final boolean returnAtCapacityIsZero =
+  //      callToISZERO(1, BigInteger.ZERO, prcOobCall.getReturnAtCapacity());
+  //
+  //  // Set cdsIsZero
+  //  prcOobCall.setCdsIsZero(cdsIsZero);
+  //
+  //  // Set returnAtCapacityIsZero
+  //  prcOobCall.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
+  // }
 
-    // row i + 1
-    final boolean returnAtCapacityIsZero =
-        callToISZERO(1, BigInteger.ZERO, prcOobCall.getReturnAtCapacity());
+  // private void setEcrecoverEcaddEcmul(PrecompileCommonOobCall prcCommonOobCall) {
+  //  long precompileCostLong =
+  //      switch (oobCall.oobInstruction) {
+  //        //case OOB_INST_ECRECOVER -> 3000;
+  //        // case OOB_INST_ECADD -> 150;
+  //       // case OOB_INST_ECMUL -> 6000;
+  //        default -> throw new IllegalArgumentException(
+  //            "Precompile isn't any of ECRECOVER, ECADD, ECMUL");
+  //      };
+  //  precompileCost = BigInteger.valueOf(precompileCostLong);
+  //
+  //  //// row i + 2
+  // final boolean insufficientGas =
+  //    callToLT(
+  //        2, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
+  // insufficientGasForPrecompile = insufficientGas;
+  //
+  //// Set hubSuccess
+  // final boolean hubSuccess = !insufficientGas;
+  // prcCommonOobCall.setHubSuccess(hubSuccess);
+  //
 
-    // Set cdsIsZero
-    prcOobCall.setCdsIsZero(cdsIsZero);
-
-    // Set returnAtCapacityIsZero
-    prcOobCall.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
-  }
-
-  private void setEcrecoverEcaddEcmul(PrecompileCommonOobCall prcCommonOobCall) {
-    long precompileCostLong =
-        switch (oobCall.oobInstruction) {
-          case OOB_INST_ECRECOVER -> 3000;
-          case OOB_INST_ECADD -> 150;
-          case OOB_INST_ECMUL -> 6000;
-          default -> throw new IllegalArgumentException(
-              "Precompile isn't any of ECRECOVER, ECADD, ECMUL");
-        };
-    precompileCost = BigInteger.valueOf(precompileCostLong);
-
-    // row i + 2
-    final boolean insufficientGas =
-        callToLT(
-            2, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
-    insufficientGasForPrecompile = insufficientGas;
-
-    // Set hubSuccess
-    final boolean hubSuccess = !insufficientGas;
-    prcCommonOobCall.setHubSuccess(hubSuccess);
-
-    // Set returnGas
-    final BigInteger returnGas =
-        hubSuccess ? prcCommonOobCall.getCalleeGas().subtract(precompileCost) : BigInteger.ZERO;
-    prcCommonOobCall.setReturnGas(returnGas);
-  }
-
+  /// / Set returnGas
+  // final BigInteger returnGas =
+  //    hubSuccess ? prcCommonOobCall.getCalleeGas().subtract(precompileCost) : BigInteger.ZERO;
+  // prcCommonOobCall.setReturnGas(returnGas);
+  // }
   private void setShaTwoRipemdIdentity(PrecompileCommonOobCall prcCommonOobCall) {
     // row i + 2
     final BigInteger ceiling =

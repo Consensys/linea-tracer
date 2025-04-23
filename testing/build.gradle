@@ -33,7 +33,6 @@ dependencies {
   implementation "org.awaitility:awaitility"
   testImplementation group: "${besuArtifactGroup}.internal", name: "core", classifier: "test-support"
 
-
   implementation 'com.google.code.gson:gson'
   implementation 'com.google.guava:guava'
 

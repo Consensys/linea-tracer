@@ -70,26 +70,14 @@ public class ExecutionEnvironment {
           .blockHeaderFunctions(new CliqueBlockHeaderFunctions());
 
   public static void checkTracer(
-      ZkTracer zkTracer,
-      CorsetValidator corsetValidator,
-      Optional<Logger> logger,
-      long startBlock,
-      long endBlock) {
-    Path traceFilePath = null;
+      Path traceFilePath, CorsetValidator corsetValidator, Optional<Logger> logger) {
     boolean traceValidated = false;
     try {
-      String prefix = constructTestPrefix();
-      traceFilePath = Files.createTempFile(prefix, ".lt");
-      zkTracer.writeToFile(traceFilePath, startBlock, endBlock);
-      final Path finalTraceFilePath = traceFilePath;
-      logger.ifPresent(log -> log.debug("trace written to {}", finalTraceFilePath));
       CorsetValidator.Result corsetValidationResult = corsetValidator.validate(traceFilePath);
       traceValidated = corsetValidationResult.isValid();
       assertThat(traceValidated)
           .withFailMessage(CORSET_VALIDATION_RESULT + "%s", corsetValidationResult.corsetOutput())
           .isTrue();
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     } finally {
       if (traceFilePath != null && traceValidated) {
         if (System.getenv("PRESERVE_TRACE_FILES") == null) {
@@ -99,6 +87,24 @@ public class ExecutionEnvironment {
               log -> log.debug("trace file {} deleted {}", finalTraceFilePath, traceFileDeleted));
         }
       }
+    }
+  }
+
+  public static void checkTracer(
+      ZkTracer zkTracer,
+      CorsetValidator corsetValidator,
+      Optional<Logger> logger,
+      long startBlock,
+      long endBlock) {
+    try {
+      String prefix = constructTestPrefix();
+      Path traceFilePath = Files.createTempFile(prefix, ".lt");
+      zkTracer.writeToFile(traceFilePath, startBlock, endBlock);
+      final Path finalTraceFilePath = traceFilePath;
+      logger.ifPresent(log -> log.debug("trace written to {}", finalTraceFilePath));
+      checkTracer(traceFilePath, corsetValidator, logger);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

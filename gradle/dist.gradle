@@ -14,9 +14,6 @@
  */
 import de.undercouch.gradle.tasks.download.Download
 
-import java.nio.file.Files
-import java.nio.file.Paths
-
 def besuDistTar = new File(new File(buildDir, "downloads"), rootProject.besuFilename)
 task downloadBesu {
   outputs.file(besuDistTar)
@@ -28,14 +25,10 @@ task downloadBesu {
         onlyIfModified true
       }
     } catch (Exception e) {
-      def localBesuDir
-      if (project.hasProperty('useLocalBesuDir')) {
-        localBesuDir = file("${findProperty('useLocalBesuDir')}".replaceFirst('^~', System.getProperty('user.home')))
-      } else if (Files.isDirectory(Paths.get("${projectDir}/../../besu"))) {
-        localBesuDir = new File(projectDir, "../../besu")
-      } else {
-        localBesuDir = new File(projectDir, "../../../hyperledger/besu")
-      }
+      def localBesuDir =
+              project.hasProperty('useLocalBesuDir')
+                      ? file("${findProperty('useLocalBesuDir')}".replaceFirst('^~', System.getProperty('user.home')))
+                      : new File(projectDir, "../../besu")
 
       def localBesuFile = new File("${localBesuDir.canonicalPath}/build/distributions/${rootProject.besuFilename}")
 

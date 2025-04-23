@@ -18,15 +18,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.tests.acceptance.dsl.WaitUtils.waitFor;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicReference;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import io.netty.util.internal.ConcurrentSet;
+import lombok.extern.slf4j.Slf4j;
+import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.plugins.rpc.tracegeneration.TraceRequestParams;
+import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import okhttp3.Call;
 import okhttp3.MediaType;
@@ -46,6 +51,7 @@ import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.NodeConfigur
 import org.hyperledger.besu.tests.acceptance.dsl.transaction.eth.EthTransactions;
 import org.hyperledger.besu.tests.acceptance.dsl.transaction.net.NetTransactions;
 
+@Slf4j
 public class BesuExecutionTools {
 
   private static final MediaType MEDIA_TYPE_JSON =
@@ -56,6 +62,7 @@ public class BesuExecutionTools {
   private final BesuNode besuNode;
   private final Path tracesPath;
   private final List<Transaction> transactions;
+  private final CorsetValidator corsetValidator;
 
   public BesuExecutionTools(String genesisConfig, List<Transaction> txList) {
     httpClient = new OkHttpClient();
@@ -67,6 +74,7 @@ public class BesuExecutionTools {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    corsetValidator = new CorsetValidator(ChainConfig.MAINNET_TESTCONFIG);
     transactions = txList;
   }
 
@@ -145,7 +153,7 @@ public class BesuExecutionTools {
                       besuNode.execute(
                           ethTransactions.sendRawTransaction(tx.encoded().toHexString())))
               .toList();
-      AtomicReference<BigInteger> maxBlockNumber = new AtomicReference<BigInteger>(BigInteger.ZERO);
+      ConcurrentSet<Long> blockNumbers = new ConcurrentSet<>();
       waitFor(
           10,
           () -> {
@@ -155,17 +163,35 @@ public class BesuExecutionTools {
                       besuNode.execute(ethTransactions.getTransactionReceipt(txHash));
                   assertThat(maybeTxReceipt).isPresent();
                   var txReceipt = maybeTxReceipt.get();
-                  maxBlockNumber.set(maxBlockNumber.get().max(txReceipt.getBlockNumber()));
-                  System.out.println(
-                      String.format(
-                          "Example test txHash=%s, blockNumber=%s",
-                          txReceipt.getTransactionHash(), txReceipt.getBlockNumber()));
+                  blockNumbers.add(txReceipt.getBlockNumber().longValue());
+                  log.info(
+                      "Example test txHash={}, blockNumber={}",
+                      txReceipt.getTransactionHash(),
+                      txReceipt.getBlockNumber());
                 });
           });
-      System.out.println("maxBlockNumber=" + maxBlockNumber.get());
-      String request = createGeneratedConflatedFileV2Call(1, maxBlockNumber.get().longValue());
+      assertThat(blockNumbers).isNotEmpty();
+      String request =
+          createGeneratedConflatedFileV2Call(
+              Collections.min(blockNumbers), Collections.max(blockNumbers));
       Response response = callRpcRequest(request).execute();
-      System.out.println(response);
+      String responseBody = response.body().string();
+      assertThat(response.isSuccessful())
+          .withFailMessage(
+              String.format(
+                  "Unexpected response code: %s, body: %s", response.code(), responseBody))
+          .isTrue();
+      JsonNode jsonRpcResponse = CONVERTER.fromJson(responseBody, JsonNode.class);
+      Path traceFile =
+          Path.of(jsonRpcResponse.get("result").get("conflatedTracesFileName").asText());
+      waitFor(
+          10,
+          () -> {
+            assertThat(traceFile.toFile().exists())
+                .withFailMessage("Trace file %s does not exist", traceFile)
+                .isTrue();
+          });
+      ExecutionEnvironment.checkTracer(traceFile, corsetValidator, Optional.of(log));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

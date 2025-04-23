@@ -15,55 +15,87 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobInstruction.OOB_INST_BLAKE_CDS;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_BLAKE_CDS;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_BLAKE2F_CDS;
+import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToEQ;
+import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
+import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.Conversions.*;
-
-import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
+import net.consensys.linea.zktracer.module.mod.Mod;
+import net.consensys.linea.zktracer.module.oob.OobExoCall;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
 public class Blake2fCallDataSizeOobCall extends OobCall {
-  BigInteger cds;
-  BigInteger returnAtCapacity;
+  EWord cds;
+  EWord returnAtCapacity;
   boolean hubSuccess;
   boolean returnAtCapacityNonZero;
 
   public Blake2fCallDataSizeOobCall() {
-    super(OOB_INST_BLAKE_CDS);
+    super();
+  }
+
+  @Override
+  public void setInputData(MessageFrame frame, Hub hub) {
+    final OpCode opCode = getOpCode(frame);
+    final int cdsIndex = opCode.callHasValueArgument() ? 4 : 3;
+    final int returnAtCapacityIndex = opCode.callHasValueArgument() ? 6 : 5;
+    final EWord cds = EWord.of(frame.getStackItem(cdsIndex));
+    final EWord returnAtCapacity = EWord.of(frame.getStackItem(returnAtCapacityIndex));
+    setCds(cds);
+    setReturnAtCapacity(returnAtCapacity);
+  }
+
+  @Override
+  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+    // row i
+    final OobExoCall validCdsCall = callToEQ(wcp, cds, Bytes.of(213));
+    exoCalls.add(validCdsCall);
+    setHubSuccess(bytesToBoolean(validCdsCall.result()));
+
+    // row i + 1
+    final OobExoCall racIsZeroCall = callToIsZero(wcp, returnAtCapacity);
+    exoCalls.add(racIsZeroCall);
+    setReturnAtCapacityNonZero(!bytesToBoolean(racIsZeroCall.result()));
+  }
+
+  @Override
+  public int ctMax() {
+    return CT_MAX_BLAKE2F_CDS;
   }
 
   @Override
   public Trace.Oob trace(Trace.Oob trace) {
     return trace
-        .data1(ZERO)
-        .data2(bigIntegerToBytes(cds))
-        .data3(bigIntegerToBytes(returnAtCapacity))
+        .isBlake2FCds(true)
+        .oobInst(OOB_INST_BLAKE_CDS)
+        .data2(cds.trimLeadingZeros())
+        .data3(returnAtCapacity.trimLeadingZeros())
         .data4(booleanToBytes(hubSuccess)) // Set after the constructor
-        .data5(ZERO)
-        .data6(ZERO)
-        .data7(ZERO)
-        .data8(booleanToBytes(returnAtCapacityNonZero)) // Set after the constructor
-        .data9(ZERO);
+        .data8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 
   @Override
   public Trace.Hub trace(Trace.Hub trace) {
     return trace
         .pMiscOobFlag(true)
-        .pMiscOobInst(oobInstructionValue())
-        .pMiscOobData1(ZERO)
-        .pMiscOobData2(bigIntegerToBytes(cds))
-        .pMiscOobData3(bigIntegerToBytes(returnAtCapacity))
+        .pMiscOobInst(OOB_INST_BLAKE_CDS)
+        .pMiscOobData2(cds.trimLeadingZeros())
+        .pMiscOobData3(returnAtCapacity.trimLeadingZeros())
         .pMiscOobData4(booleanToBytes(hubSuccess)) // Set after the constructor
-        .pMiscOobData5(ZERO)
-        .pMiscOobData6(ZERO)
-        .pMiscOobData7(ZERO)
-        .pMiscOobData8(booleanToBytes(returnAtCapacityNonZero)) // Set after the constructor
-        .pMiscOobData9(ZERO);
+        .pMiscOobData8(booleanToBytes(returnAtCapacityNonZero)); // Set after the constructor
   }
 }

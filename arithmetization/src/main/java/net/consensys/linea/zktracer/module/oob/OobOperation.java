@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static com.google.common.math.BigIntegerMath.log2;
-import static java.lang.Byte.toUnsignedInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.Trace.*;
@@ -36,8 +35,6 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Blake2fCallDataSizeOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.Blake2fParamsOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpCallDataSizeOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpExtractOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpLeadOobCall;
@@ -88,15 +85,8 @@ public class OobOperation extends ModuleOperation {
     // final int cdsIndex = opCode.callHasValueArgument() ? 4 : 3;
     // final int returnAtCapacityIndex = opCode.callHasValueArgument() ? 6 : 5;
 
-    BigInteger calleeGas = BigInteger.ZERO;
-    if (oobCall instanceof PrecompileCommonOobCall) {
-      calleeGas = ((PrecompileCommonOobCall) oobCall).getCalleeGas();
-    }
     if (oobCall instanceof ModexpPricingOobCall) {
       calleeGas = ((ModexpPricingOobCall) oobCall).getCallGas();
-    }
-    if (oobCall instanceof Blake2fParamsOobCall) {
-      calleeGas = ((Blake2fParamsOobCall) oobCall).getCalleeGas();
     }
 
     // final BigInteger cds = EWord.of(frame.getStackItem(cdsIndex)).toUnsignedBigInteger();
@@ -180,31 +170,6 @@ public class OobOperation extends ModuleOperation {
           prcModexpExtractOobCall.setMbs(mbs);
           setModexpExtract(prcModexpExtractOobCall);
         }
-        default -> throw new IllegalArgumentException("not a valid precompile OOB instruction");
-      }
-    }
-
-    if (isBlakePrecompile()) {
-      switch (oobCall.oobInstruction) {
-        case OOB_INST_BLAKE_CDS -> {
-          final Blake2fCallDataSizeOobCall prcBlake2FCdsCall = (Blake2fCallDataSizeOobCall) oobCall;
-          prcBlake2FCdsCall.setCds(cds);
-          prcBlake2FCdsCall.setReturnAtCapacity(returnAtCapacity);
-          setBlake2FCds(prcBlake2FCdsCall);
-        }
-        case OOB_INST_BLAKE_PARAMS -> {
-          final Bytes callData = frame.shadowReadMemory(argsOffset, 213);
-          final BigInteger blakeR = callData.slice(0, 4).toUnsignedBigInteger();
-          final BigInteger blakeF = BigInteger.valueOf(toUnsignedInt(callData.get(212)));
-
-          final Blake2fParamsOobCall prcBlake2FParamsOobCall = (Blake2fParamsOobCall) oobCall;
-          prcBlake2FParamsOobCall.setCalleeGas(calleeGas);
-          prcBlake2FParamsOobCall.setBlakeR(blakeR);
-          prcBlake2FParamsOobCall.setBlakeF(blakeF);
-
-          setBlake2FParams(prcBlake2FParamsOobCall);
-        }
-        default -> throw new RuntimeException("no opcode or precompile flag was set to true");
       }
     }
   }
@@ -445,61 +410,6 @@ public class OobOperation extends ModuleOperation {
     // Set extractExponent
     final boolean extractExponent = extractModulus && !ebsIsZero;
     prcModexpExtractOobCall.setExtractExponent(extractExponent);
-  }
-
-  private void setBlake2FCds(Blake2fCallDataSizeOobCall prcBlake2FCdsCall) {
-    // row i
-    final boolean validCds =
-        callToEQ(
-            0,
-            BigInteger.ZERO,
-            prcBlake2FCdsCall.getCds(),
-            BigInteger.ZERO,
-            BigInteger.valueOf(213));
-
-    // row i + 1
-    final boolean returnAtCapacityIsZero =
-        callToISZERO(1, BigInteger.ZERO, prcBlake2FCdsCall.getReturnAtCapacity());
-
-    // Set hubSuccess
-    prcBlake2FCdsCall.setHubSuccess(validCds);
-
-    // Set returnAtCapacityNonZero
-    prcBlake2FCdsCall.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
-  }
-
-  private void setBlake2FParams(Blake2fParamsOobCall prcBlake2FParamsOobCall) {
-    // row i
-    final boolean sufficientGas =
-        !callToLT(
-            0,
-            BigInteger.ZERO,
-            prcBlake2FParamsOobCall.getCalleeGas(),
-            BigInteger.ZERO,
-            prcBlake2FParamsOobCall.getBlakeR()); // = ramSuccess
-    precompileCost = prcBlake2FParamsOobCall.getBlakeR();
-    insufficientGasForPrecompile = !sufficientGas;
-
-    // row i + 1
-    final boolean fIsABit =
-        callToEQ(
-            1,
-            BigInteger.ZERO,
-            prcBlake2FParamsOobCall.getBlakeF(),
-            BigInteger.ZERO,
-            prcBlake2FParamsOobCall.getBlakeF().multiply(prcBlake2FParamsOobCall.getBlakeF()));
-
-    // Set ramSuccess
-    final boolean ramSuccess = sufficientGas && fIsABit;
-    prcBlake2FParamsOobCall.setRamSuccess(ramSuccess);
-
-    // Set returnGas
-    final BigInteger returnGas =
-        ramSuccess
-            ? (prcBlake2FParamsOobCall.getCalleeGas().subtract(prcBlake2FParamsOobCall.getBlakeR()))
-            : BigInteger.ZERO;
-
-    prcBlake2FParamsOobCall.setReturnGas(returnGas);
   }
 
   @Override

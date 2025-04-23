@@ -39,7 +39,7 @@ public abstract class EcRecEcAddEcMulOobCall extends CommonPrecompileOobCall {
     super.callExoModules(add, mod, wcp);
     // row i + 2
     final OobExoCall insufficientGasCall =
-        callToLT(wcp, calleeGas, Bytes.ofUnsignedLong(precompileLongCost()));
+        callToLT(wcp, getCalleeGas(), Bytes.ofUnsignedLong(precompileLongCost()));
     exoCalls.add(insufficientGasCall);
     final boolean insufficientGas = bytesToBoolean(insufficientGasCall.result());
 

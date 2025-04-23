@@ -45,7 +45,8 @@ public abstract class ShaRipIdOobCall extends CommonPrecompileOobCall {
     final OobExoCall ceilingCall =
         callToDIV(
             mod,
-            bigIntegerToBytes(cds.toUnsignedBigInteger().add(BigInteger.valueOf(WORD_SIZE_MO))),
+            bigIntegerToBytes(
+                getCds().toUnsignedBigInteger().add(BigInteger.valueOf(WORD_SIZE_MO))),
             Bytes.minimalBytes(WORD_SIZE));
     exoCalls.add(ceilingCall);
     final BigInteger ceiling = ceilingCall.result().toUnsignedBigInteger();
@@ -55,7 +56,7 @@ public abstract class ShaRipIdOobCall extends CommonPrecompileOobCall {
 
     // row i + 3
     final OobExoCall insufficiantGasCall =
-        callToLT(wcp, calleeGas, bigIntegerToBytes(precompileCost));
+        callToLT(wcp, getCalleeGas(), bigIntegerToBytes(precompileCost));
     exoCalls.add(insufficiantGasCall);
     final boolean insufficientGas = bytesToBoolean(insufficiantGasCall.result());
 
@@ -65,7 +66,9 @@ public abstract class ShaRipIdOobCall extends CommonPrecompileOobCall {
 
     // Set returnGas
     final BigInteger returnGas =
-        hubSuccess ? calleeGas.toUnsignedBigInteger().subtract(precompileCost) : BigInteger.ZERO;
+        hubSuccess
+            ? getCalleeGas().toUnsignedBigInteger().subtract(precompileCost)
+            : BigInteger.ZERO;
     setReturnGas(returnGas);
   }
 }

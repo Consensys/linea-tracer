@@ -104,23 +104,6 @@ public class OobOperation extends ModuleOperation {
     // final BigInteger returnAtCapacity =
     //     EWord.of(frame.getStackItem(returnAtCapacityIndex)).toUnsignedBigInteger();
 
-    if (isCommonPrecompile()) {
-      PrecompileCommonOobCall commonOobCall = (PrecompileCommonOobCall) oobCall;
-
-      commonOobCall.setCalleeGas(calleeGas);
-      commonOobCall.setCds(cds);
-      commonOobCall.setReturnAtCapacity(returnAtCapacity);
-      setPrcCommon(commonOobCall);
-
-      switch (oobCall.oobInstruction) {
-          // case OOB_INST_ECRECOVER, OOB_INST_ECADD, OOB_INST_ECMUL -> setEcrecoverEcaddEcmul(
-          //     commonOobCall);
-        case OOB_INST_SHA2, OOB_INST_RIPEMD, OOB_INST_IDENTITY -> setShaTwoRipemdIdentity(
-            commonOobCall);
-          // case OOB_INST_ECPAIRING -> setEcpairing(commonOobCall);
-      }
-    }
-
     if (isModexpPrecompile()) {
       final Bytes unpaddedCallData = frame.shadowReadMemory(argsOffset, cds.longValue());
       // pad unpaddedCallData to 96
@@ -246,43 +229,6 @@ public class OobOperation extends ModuleOperation {
     } else {
       return 8 * (ebs - 32);
     }
-  }
-
-  private void setShaTwoRipemdIdentity(PrecompileCommonOobCall prcCommonOobCall) {
-    // row i + 2
-    final BigInteger ceiling =
-        callToDIV(
-            2,
-            BigInteger.ZERO,
-            prcCommonOobCall.getCds().add(BigInteger.valueOf(31)),
-            BigInteger.ZERO,
-            BigInteger.valueOf(32));
-
-    long factor =
-        switch (oobCall.oobInstruction) {
-          case OOB_INST_SHA2 -> 12L;
-          case OOB_INST_RIPEMD -> 120L;
-          case OOB_INST_IDENTITY -> 3L;
-          default -> throw new IllegalArgumentException(
-              "precompile ought to be one of SHA2-256, RIPEMD-160 or IDENTITY");
-        };
-
-    precompileCost = (BigInteger.valueOf(5).add(ceiling)).multiply(BigInteger.valueOf(factor));
-
-    // row i + 3
-    final boolean insufficientGas =
-        callToLT(
-            3, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
-    insufficientGasForPrecompile = insufficientGas;
-
-    // Set hubSuccess
-    final boolean hubSuccess = !insufficientGas;
-    prcCommonOobCall.setHubSuccess(hubSuccess);
-
-    // Set returnGas
-    final BigInteger returnGas =
-        hubSuccess ? prcCommonOobCall.getCalleeGas().subtract(precompileCost) : BigInteger.ZERO;
-    prcCommonOobCall.setReturnGas(returnGas);
   }
 
   private void setModexpCds(ModexpCallDataSizeOobCall prcModexpCdsCall) {

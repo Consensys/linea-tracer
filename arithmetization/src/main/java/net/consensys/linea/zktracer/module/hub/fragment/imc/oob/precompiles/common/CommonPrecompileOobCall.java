@@ -13,12 +13,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common;
 
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.Conversions.*;
-import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.math.BigInteger;
 
@@ -54,11 +53,6 @@ public abstract class CommonPrecompileOobCall extends OobCall {
   @Override
   public void setInputData(MessageFrame frame, Hub hub) {
     final OpCode opCode = getOpCode(frame);
-    final long argsOffset =
-        clampedToLong(
-            opCode.callHasValueArgument()
-                ? hub.messageFrame().getStackItem(3)
-                : hub.messageFrame().getStackItem(2));
     final int cdsIndex = opCode.callHasValueArgument() ? 4 : 3;
     final int returnAtCapacityIndex = opCode.callHasValueArgument() ? 6 : 5;
 

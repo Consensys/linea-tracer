@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common;
 
 import static net.consensys.linea.zktracer.Trace.OOB_INST_ECPAIRING;
 import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_ECPAIRING;

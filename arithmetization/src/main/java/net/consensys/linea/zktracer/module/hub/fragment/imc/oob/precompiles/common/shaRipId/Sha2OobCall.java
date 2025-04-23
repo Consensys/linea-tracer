@@ -13,38 +13,38 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.shaRipId;
 
-import static net.consensys.linea.zktracer.Trace.OOB_INST_ECRECOVER;
-import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_ECRECOVER;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_SHA2;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_SHA2;
 
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
 
-public class EcRecoverOobCall extends EcRecEcAddEcMulOobCall {
+public class Sha2OobCall extends ShaRipIdOobCall {
 
-  public EcRecoverOobCall(BigInteger calleeGas) {
+  public Sha2OobCall(BigInteger calleeGas) {
     super(calleeGas);
   }
 
   @Override
-  long precompileLongCost() {
-    return 3000L;
+  long factor() {
+    return 12L;
   }
 
   @Override
   protected void traceOobInstructionInOob(Trace.Oob trace) {
-    trace.isEcrecover(true).oobInst(OOB_INST_ECRECOVER);
+    trace.isSha2(true).oobInst(OOB_INST_SHA2);
   }
 
   @Override
   protected void traceOobInstructionInHub(Trace.Hub trace) {
-    trace.pMiscOobInst(OOB_INST_ECRECOVER);
+    trace.pMiscOobInst(OOB_INST_SHA2);
   }
 
   @Override
   public int ctMax() {
-    return CT_MAX_ECRECOVER;
+    return CT_MAX_SHA2;
   }
 }

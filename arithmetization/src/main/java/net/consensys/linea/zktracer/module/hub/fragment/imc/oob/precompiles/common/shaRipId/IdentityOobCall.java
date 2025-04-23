@@ -13,37 +13,37 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.shaRipId;
 
-import static net.consensys.linea.zktracer.Trace.OOB_INST_ECADD;
-import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_ECADD;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_IDENTITY;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_IDENTITY;
 
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
 
-public class EcAddOobCall extends EcRecEcAddEcMulOobCall {
-  public EcAddOobCall(BigInteger calleeGas) {
+public class IdentityOobCall extends ShaRipIdOobCall {
+  public IdentityOobCall(BigInteger calleeGas) {
     super(calleeGas);
   }
 
   @Override
-  long precompileLongCost() {
-    return 150L;
+  long factor() {
+    return 3L;
   }
 
   @Override
   protected void traceOobInstructionInOob(Trace.Oob trace) {
-    trace.isEcadd(true).oobInst(OOB_INST_ECADD);
+    trace.isIdentity(true).oobInst(OOB_INST_IDENTITY);
   }
 
   @Override
   protected void traceOobInstructionInHub(Trace.Hub trace) {
-    trace.pMiscOobInst(OOB_INST_ECADD);
+    trace.pMiscOobInst(OOB_INST_IDENTITY);
   }
 
   @Override
   public int ctMax() {
-    return CT_MAX_ECADD;
+    return CT_MAX_IDENTITY;
   }
 }

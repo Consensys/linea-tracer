@@ -13,34 +13,51 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.shaRipId;
 
+import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToDIV;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.CommonPrecompileOobCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
-public abstract class EcRecEcAddEcMulOobCall extends CommonPrecompileOobCall {
-  protected EcRecEcAddEcMulOobCall(BigInteger calleeGas) {
+public abstract class ShaRipIdOobCall extends CommonPrecompileOobCall {
+  protected ShaRipIdOobCall(BigInteger calleeGas) {
     super(calleeGas);
   }
 
-  abstract long precompileLongCost();
+  abstract long factor();
 
   @Override
   public void callExoModules(Add add, Mod mod, Wcp wcp) {
     super.callExoModules(add, mod, wcp);
+
     // row i + 2
-    final OobExoCall insufficientGasCall =
-        callToLT(wcp, calleeGas, Bytes.ofUnsignedLong(precompileLongCost()));
-    exoCalls.add(insufficientGasCall);
-    final boolean insufficientGas = bytesToBoolean(insufficientGasCall.result());
+    final OobExoCall ceilingCall =
+        callToDIV(
+            mod,
+            bigIntegerToBytes(cds.toUnsignedBigInteger().add(BigInteger.valueOf(WORD_SIZE_MO))),
+            Bytes.minimalBytes(WORD_SIZE));
+    exoCalls.add(ceilingCall);
+    final BigInteger ceiling = ceilingCall.result().toUnsignedBigInteger();
+
+    final BigInteger precompileCost =
+        (BigInteger.valueOf(5).add(ceiling)).multiply(BigInteger.valueOf(factor()));
+
+    // row i + 3
+    final OobExoCall insufficiantGasCall =
+        callToLT(wcp, calleeGas, bigIntegerToBytes(precompileCost));
+    exoCalls.add(insufficiantGasCall);
+    final boolean insufficientGas = bytesToBoolean(insufficiantGasCall.result());
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
@@ -48,11 +65,7 @@ public abstract class EcRecEcAddEcMulOobCall extends CommonPrecompileOobCall {
 
     // Set returnGas
     final BigInteger returnGas =
-        hubSuccess
-            ? getCalleeGas()
-                .toUnsignedBigInteger()
-                .subtract(BigInteger.valueOf(precompileLongCost()))
-            : BigInteger.ZERO;
+        hubSuccess ? calleeGas.toUnsignedBigInteger().subtract(precompileCost) : BigInteger.ZERO;
     setReturnGas(returnGas);
   }
 }

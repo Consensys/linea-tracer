@@ -13,37 +13,37 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.shaRipId;
 
-import static net.consensys.linea.zktracer.Trace.OOB_INST_ECMUL;
-import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_ECMUL;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_RIPEMD;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_RIPEMD;
 
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
 
-public class EcMulOobCall extends EcRecEcAddEcMulOobCall {
-  public EcMulOobCall(BigInteger calleeGas) {
+public class RipOobCall extends ShaRipIdOobCall {
+  public RipOobCall(BigInteger calleeGas) {
     super(calleeGas);
   }
 
   @Override
-  long precompileLongCost() {
-    return 6000L;
+  long factor() {
+    return 120L;
   }
 
   @Override
   protected void traceOobInstructionInOob(Trace.Oob trace) {
-    trace.isEcmul(true).oobInst(OOB_INST_ECMUL);
+    trace.isRipemd(true).oobInst(OOB_INST_RIPEMD);
   }
 
   @Override
   protected void traceOobInstructionInHub(Trace.Hub trace) {
-    trace.pMiscOobInst(OOB_INST_ECMUL);
+    trace.pMiscOobInst(OOB_INST_RIPEMD);
   }
 
   @Override
   public int ctMax() {
-    return CT_MAX_ECMUL;
+    return CT_MAX_RIPEMD;
   }
 }

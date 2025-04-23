@@ -79,7 +79,10 @@ public class MxpOperation extends ModuleOperation {
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     switch (opCode) {
       case MSIZE -> {}
-      case MLOAD, MSTORE -> {
+      case MLOAD -> {
+        mxpCall.setOffset1(EWord.of(frame.getStackItem(0)));
+      }
+      case MSTORE -> {
         mxpCall.setOffset1(EWord.of(frame.getStackItem(0)));
         mxpCall.setSize1(EWord.of(32));
       }
@@ -105,7 +108,6 @@ public class MxpOperation extends ModuleOperation {
       }
       case MCOPY -> {
         mxpCall.setOffset1(EWord.of(frame.getStackItem(0)));
-        mxpCall.setSize1(EWord.of(frame.getStackItem(2)));
         mxpCall.setOffset2(EWord.of(frame.getStackItem(1)));
         mxpCall.setSize2(EWord.of(frame.getStackItem(2)));
       }
@@ -154,11 +156,7 @@ public class MxpOperation extends ModuleOperation {
     if (this.mxpCall.isMxpx()) {
       return MxpScenario.MXPX;
     }
-    if (opCode.isLog()
-        || opCode == OpCode.SHA3
-        || opCode.isCopy()
-        || opCode.isCreate()
-        || opCode == OpCode.MCOPY) {
+    if (isWordPricingOpcode(opCode)) {
       return MxpScenario.UPDT_W;
     }
     return MxpScenario.UPDT_B;
@@ -176,6 +174,39 @@ public class MxpOperation extends ModuleOperation {
 
   public int nRows() {
     return ctMax() + 1;
+  }
+
+  private boolean isSingleOffsetOpcode(OpCode opCode) {
+    return opCode == OpCode.MLOAD
+        || opCode == OpCode.MSTORE
+        || opCode == OpCode.MSTORE8
+        || opCode == OpCode.REVERT
+        || opCode == OpCode.RETURN
+        || opCode.isLog()
+        || opCode == OpCode.SHA3
+        || opCode.isCopy()
+        || opCode.isCreate();
+  }
+
+  private boolean isDoubleOffsetOpcode(OpCode opCode) {
+    return opCode == OpCode.MCOPY || opCode.isCall();
+  }
+
+  private boolean isWordPricingOpcode(OpCode opCode) {
+    return opCode.isLog()
+        || opCode == OpCode.SHA3
+        || opCode.isCopy()
+        || opCode.isCreate()
+        || opCode == OpCode.MCOPY;
+  }
+
+  private boolean isBytePricingOpcode(OpCode opCode) {
+    return opCode == OpCode.MLOAD
+        || opCode == OpCode.MSTORE
+        || opCode == OpCode.MSTORE8
+        || opCode == OpCode.REVERT
+        || opCode == OpCode.RETURN
+        || opCode.isCall();
   }
 
   final void traceDecoder(int stamp, Trace.Mxp trace) {
@@ -199,21 +230,10 @@ public class MxpOperation extends ModuleOperation {
           .pDecoderIsMcopy(opCode == OpCode.MCOPY)
           .pDecoderIsFixedSize32(opCode == OpCode.MLOAD || opCode == OpCode.MSTORE)
           .pDecoderIsFixedSize1(opCode == OpCode.MSTORE8)
-          .pDecoderIsSingleMaxOffset(false) // TODO
-          .pDecoderIsDoubleMaxOffset(false) // TODO
-          .pDecoderIsWordPricing(
-              opCode.isLog()
-                  || opCode == OpCode.SHA3
-                  || opCode.isCopy()
-                  || opCode.isCreate()
-                  || opCode == OpCode.MCOPY)
-          .pDecoderIsBytePricing(
-              opCode == OpCode.MLOAD
-                  || opCode == OpCode.MSTORE
-                  || opCode == OpCode.MSTORE8
-                  || opCode == OpCode.REVERT
-                  || opCode == OpCode.RETURN
-                  || opCode.isCall())
+          .pDecoderIsSingleMaxOffset(isSingleOffsetOpcode(opCode))
+          .pDecoderIsDoubleMaxOffset(isDoubleOffsetOpcode(opCode))
+          .pDecoderIsWordPricing(isWordPricingOpcode(opCode))
+          .pDecoderIsBytePricing(isBytePricingOpcode(opCode))
           .pDecoderGword(0)
           .pDecoderGbyte(0)
           .fillAndValidateRow();

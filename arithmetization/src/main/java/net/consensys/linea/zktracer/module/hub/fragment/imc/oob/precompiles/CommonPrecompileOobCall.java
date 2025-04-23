@@ -95,9 +95,7 @@ public abstract class CommonPrecompileOobCall extends OobCall {
 
   @Override
   public Trace.Oob trace(Trace.Oob trace) {
-
     traceOobInstructionInOob(trace);
-
     return trace
         .data1(calleeGas)
         .data2(cds.trimLeadingZeros())
@@ -113,9 +111,7 @@ public abstract class CommonPrecompileOobCall extends OobCall {
 
   @Override
   public Trace.Hub trace(Trace.Hub trace) {
-
     traceOobInstructionInHub(trace);
-
     return trace
         .pMiscOobFlag(true)
         .pMiscOobData1(calleeGas)

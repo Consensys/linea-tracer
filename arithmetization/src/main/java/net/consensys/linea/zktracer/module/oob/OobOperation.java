@@ -117,7 +117,7 @@ public class OobOperation extends ModuleOperation {
           //     commonOobCall);
         case OOB_INST_SHA2, OOB_INST_RIPEMD, OOB_INST_IDENTITY -> setShaTwoRipemdIdentity(
             commonOobCall);
-        case OOB_INST_ECPAIRING -> setEcpairing(commonOobCall);
+          // case OOB_INST_ECPAIRING -> setEcpairing(commonOobCall);
       }
     }
 
@@ -248,48 +248,6 @@ public class OobOperation extends ModuleOperation {
     }
   }
 
-  // private void setPrcCommon(PrecompileCommonOobCall prcOobCall) {
-  //  // row i
-  //  final boolean cdsIsZero = callToISZERO(0, BigInteger.ZERO, prcOobCall.getCds());
-  //
-  //  // row i + 1
-  //  final boolean returnAtCapacityIsZero =
-  //      callToISZERO(1, BigInteger.ZERO, prcOobCall.getReturnAtCapacity());
-  //
-  //  // Set cdsIsZero
-  //  prcOobCall.setCdsIsZero(cdsIsZero);
-  //
-  //  // Set returnAtCapacityIsZero
-  //  prcOobCall.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
-  // }
-
-  // private void setEcrecoverEcaddEcmul(PrecompileCommonOobCall prcCommonOobCall) {
-  //  long precompileCostLong =
-  //      switch (oobCall.oobInstruction) {
-  //        //case OOB_INST_ECRECOVER -> 3000;
-  //        // case OOB_INST_ECADD -> 150;
-  //       // case OOB_INST_ECMUL -> 6000;
-  //        default -> throw new IllegalArgumentException(
-  //            "Precompile isn't any of ECRECOVER, ECADD, ECMUL");
-  //      };
-  //  precompileCost = BigInteger.valueOf(precompileCostLong);
-  //
-  //  //// row i + 2
-  // final boolean insufficientGas =
-  //    callToLT(
-  //        2, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
-  // insufficientGasForPrecompile = insufficientGas;
-  //
-  //// Set hubSuccess
-  // final boolean hubSuccess = !insufficientGas;
-  // prcCommonOobCall.setHubSuccess(hubSuccess);
-  //
-
-  /// / Set returnGas
-  // final BigInteger returnGas =
-  //    hubSuccess ? prcCommonOobCall.getCalleeGas().subtract(precompileCost) : BigInteger.ZERO;
-  // prcCommonOobCall.setReturnGas(returnGas);
-  // }
   private void setShaTwoRipemdIdentity(PrecompileCommonOobCall prcCommonOobCall) {
     // row i + 2
     final BigInteger ceiling =
@@ -319,50 +277,6 @@ public class OobOperation extends ModuleOperation {
 
     // Set hubSuccess
     final boolean hubSuccess = !insufficientGas;
-    prcCommonOobCall.setHubSuccess(hubSuccess);
-
-    // Set returnGas
-    final BigInteger returnGas =
-        hubSuccess ? prcCommonOobCall.getCalleeGas().subtract(precompileCost) : BigInteger.ZERO;
-    prcCommonOobCall.setReturnGas(returnGas);
-  }
-
-  private void setEcpairing(PrecompileCommonOobCall prcCommonOobCall) {
-    // row i + 2
-    final BigInteger remainder =
-        callToMOD(
-            2,
-            BigInteger.ZERO,
-            prcCommonOobCall.getCds(),
-            // 16 bytes
-            BigInteger.ZERO,
-            BigInteger.valueOf(192));
-
-    // row i + 3
-    final boolean isMultipleOf192 = callToISZERO(3, BigInteger.ZERO, remainder);
-
-    precompileCost = BigInteger.ZERO;
-    if (isMultipleOf192) {
-      precompileCost =
-          BigInteger.valueOf(45000)
-              .add(
-                  BigInteger.valueOf(34000)
-                      .multiply(prcCommonOobCall.getCds().divide(BigInteger.valueOf(192))));
-    }
-
-    // row i + 4
-    boolean insufficientGas = false;
-    if (isMultipleOf192) {
-      insufficientGas =
-          callToLT(
-              4, BigInteger.ZERO, prcCommonOobCall.getCalleeGas(), BigInteger.ZERO, precompileCost);
-      insufficientGasForPrecompile = insufficientGas;
-    } else {
-      noCall(4);
-    }
-
-    // Set hubSuccess
-    final boolean hubSuccess = isMultipleOf192 && !insufficientGas;
     prcCommonOobCall.setHubSuccess(hubSuccess);
 
     // Set returnGas

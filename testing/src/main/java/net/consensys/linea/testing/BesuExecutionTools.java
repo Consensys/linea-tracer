@@ -74,7 +74,7 @@ public class BesuExecutionTools {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    corsetValidator = new CorsetValidator(ChainConfig.MAINNET_TESTCONFIG);
+    corsetValidator = new CorsetValidator(ChainConfig.MAINNET_LONDON_TESTCONFIG);
     transactions = txList;
   }
 

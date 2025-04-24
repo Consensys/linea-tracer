@@ -19,6 +19,8 @@ import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import lombok.Builder;
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.mod.Mod;
@@ -27,14 +29,17 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 @Builder
-public record OobExoCall(
-    boolean addFlag,
-    boolean modFlag,
-    boolean wcpFlag,
-    int instruction,
-    Bytes32 arg1,
-    Bytes32 arg2,
-    Bytes result) {
+@Getter
+@Accessors(fluent = true)
+public class OobExoCall {
+
+  @Builder.Default private final boolean addFlag = false;
+  @Builder.Default private final boolean modFlag = false;
+  @Builder.Default private final boolean wcpFlag = false;
+  @Builder.Default private final int instruction = 0;
+  @Builder.Default private final Bytes32 arg1 = Bytes32.ZERO;
+  @Builder.Default private final Bytes32 arg2 = Bytes32.ZERO;
+  @Builder.Default private final Bytes result = ZERO;
 
   protected void trace(Trace.Oob trace) {
     trace

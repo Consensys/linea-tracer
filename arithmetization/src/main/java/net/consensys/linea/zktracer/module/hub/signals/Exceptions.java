@@ -23,6 +23,7 @@ import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.util.function.Consumer;
 
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -213,7 +214,7 @@ public class Exceptions {
     return firstByte == (byte) EIP_3541_MARKER;
   }
 
-  private static boolean isCodeSizeOverflow(MessageFrame frame) {
+  private static boolean isCodeSizeOverflow(MessageFrame frame, Fork fork) {
     if (frame.getType() != MessageFrame.Type.CONTRACT_CREATION
         || getOpCode(frame) != OpCode.RETURN) {
       return false;
@@ -245,7 +246,7 @@ public class Exceptions {
     if (isStaticFault(frame, opCodeData)) {
       return STATIC_FAULT;
     }
-    if (isCodeSizeOverflow(frame)) {
+    if (isCodeSizeOverflow(frame, hub.fork)) {
       return MAX_CODE_SIZE_EXCEPTION;
     }
 

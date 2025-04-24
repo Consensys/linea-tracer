@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes;
 
-import static net.consensys.linea.zktracer.Trace.MAX_CODE_SIZE;
 import static net.consensys.linea.zktracer.Trace.OOB_INST_CALL;
 import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
@@ -42,7 +41,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Getter
 @Setter
 public class CallOobCall extends OobCall {
-  public static final Bytes MAX_CALL_STACK_DEPTH_BYTES = Bytes.ofUnsignedInt(MAX_CODE_SIZE);
+  public static final Bytes MAX_CALL_STACK_DEPTH_BYTES = Bytes.ofUnsignedInt(1024);
 
   public EWord value;
   Bytes balance;

@@ -115,7 +115,7 @@ public class OobExoCall {
 
     return OobExoCall.builder()
         .wcpFlag(true)
-        .instruction(EVM_INST_LT)
+        .instruction(EVM_INST_ISZERO)
         .arg1(arg1B32)
         .result(booleanToBytes(wcp.callISZERO(arg1B32)))
         .build();

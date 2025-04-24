@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.create;
 
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CREATE_SHANGHAI;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.module.txndata.moduleOperation.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
@@ -33,7 +34,7 @@ public class ShanghaiCreateOobCall extends LondonCreateOobCall {
 
   @Override
   public int ctMax() {
-    return 0; // TODO
+    return CT_MAX_CREATE_SHANGHAI;
   }
 
   protected void codeSizeSnapshot(final MessageFrame frame) {
@@ -41,11 +42,11 @@ public class ShanghaiCreateOobCall extends LondonCreateOobCall {
   }
 
   protected void traceOobData10column(Trace.Oob trace, long codeSize) {
-    trace.data10(codeSize);
+    trace.data10(Bytes.ofUnsignedLong(codeSize));
   }
 
   protected void traceHubData10column(Trace.Hub trace, long codeSize) {
-    trace.pMiscOobData10(codeSize);
+    trace.pMiscOobData10(Bytes.ofUnsignedLong(codeSize));
   }
 
   protected OobExoCall exceedsMaxInitCodeSize(Wcp wcp) {

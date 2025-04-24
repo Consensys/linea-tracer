@@ -37,7 +37,6 @@ import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpExtractOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpLeadOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpPricingOobCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -109,13 +108,6 @@ public class OobOperation extends ModuleOperation {
       int exponentLog =
           computeExponentLog(paddedCallData, cds.intValue(), bbs.intValue(), ebs.intValue());
       switch (oobCall.oobInstruction) {
-        case OOB_INST_MODEXP_LEAD -> {
-          final ModexpLeadOobCall prcModexpLeadOobCall = (ModexpLeadOobCall) oobCall;
-          prcModexpLeadOobCall.setBbs(bbs);
-          prcModexpLeadOobCall.setCds(cds);
-          prcModexpLeadOobCall.setEbs(ebs);
-          setModexpLead(prcModexpLeadOobCall);
-        }
         case OOB_INST_MODEXP_PRICING -> {
           int maxMbsBbs = max(mbs.intValue(), bbs.intValue());
           final ModexpPricingOobCall prcModexpPricingOobCall = (ModexpPricingOobCall) oobCall;
@@ -157,71 +149,6 @@ public class OobOperation extends ModuleOperation {
     } else {
       return 8 * (ebs - 32);
     }
-  }
-
-  private void setModexpLead(ModexpLeadOobCall prcModexpLeadOobCall) {
-    // row i
-    final boolean ebsIsZero = callToISZERO(0, BigInteger.ZERO, prcModexpLeadOobCall.getEbs());
-
-    // row i + 1
-    final boolean ebsLessThan32 =
-        callToLT(
-            1,
-            BigInteger.ZERO,
-            prcModexpLeadOobCall.getEbs(),
-            BigInteger.ZERO,
-            BigInteger.valueOf(32));
-
-    // row i + 2
-    final boolean callDataContainsExponentBytes =
-        callToLT(
-            2,
-            BigInteger.ZERO,
-            BigInteger.valueOf(96).add(prcModexpLeadOobCall.getBbs()),
-            BigInteger.ZERO,
-            prcModexpLeadOobCall.getCds());
-
-    // row i + 3
-    boolean comp = false;
-    if (callDataContainsExponentBytes) {
-      comp =
-          callToLT(
-              3,
-              BigInteger.ZERO,
-              prcModexpLeadOobCall
-                  .getCds()
-                  .subtract(BigInteger.valueOf(96).add(prcModexpLeadOobCall.getBbs())),
-              BigInteger.ZERO,
-              BigInteger.valueOf(32));
-    } else {
-      noCall(3);
-      // Note: this noCall is not explicitly indicated in the specs since not necessary
-      // Here it is done only to initialize the corresponding array elements to fill the trace
-    }
-
-    // Set loadLead
-    final boolean loadLead = callDataContainsExponentBytes && !ebsIsZero;
-    prcModexpLeadOobCall.setLoadLead(loadLead);
-
-    // Set cdsCutoff
-    if (!callDataContainsExponentBytes) {
-      prcModexpLeadOobCall.setCdsCutoff(0);
-    } else {
-      prcModexpLeadOobCall.setCdsCutoff(
-          comp
-              ? (prcModexpLeadOobCall
-                  .getCds()
-                  .subtract(BigInteger.valueOf(96).add(prcModexpLeadOobCall.getBbs()))
-                  .intValue())
-              : 32);
-    }
-    // Set ebsCutoff
-    prcModexpLeadOobCall.setEbsCutoff(
-        ebsLessThan32 ? prcModexpLeadOobCall.getEbs().intValue() : 32);
-
-    // Set subEbs32
-    prcModexpLeadOobCall.setSubEbs32(
-        ebsLessThan32 ? 0 : prcModexpLeadOobCall.getEbs().intValue() - 32);
   }
 
   private void setModexpPricing(ModexpPricingOobCall prcModexpPricingOobCall) {

@@ -29,7 +29,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
-import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.plugins.rpc.tracegeneration.TraceRequestParams;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.json.JsonConverter;
@@ -39,6 +38,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.tests.acceptance.dsl.condition.net.NetConditions;
 import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
@@ -58,24 +58,35 @@ public class BesuExecutionTools {
       MediaType.parse("application/json; charset=utf-8");
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
 
+  private final ChainConfig chainConfig;
   private final OkHttpClient httpClient;
   private final BesuNode besuNode;
   private final Path tracesPath;
   private final List<Transaction> transactions;
   private final CorsetValidator corsetValidator;
 
-  public BesuExecutionTools(String genesisConfig, List<Transaction> txList) {
-    httpClient = new OkHttpClient();
+  public BesuExecutionTools(
+      ChainConfig chainConfig,
+      Address coinbase,
+      List<ToyAccount> accounts,
+      List<Transaction> transactions) {
+    this.httpClient = new OkHttpClient();
+    this.chainConfig = chainConfig;
+    GenesisConfigBuilder genesisConfigBuilder = new GenesisConfigBuilder();
+    genesisConfigBuilder.setChainId(chainConfig.id);
+    genesisConfigBuilder.setCoinbase(coinbase);
+    genesisConfigBuilder.setGasLimit(chainConfig.gasLimitMaximum.longValue());
+    accounts.forEach(genesisConfigBuilder::addAccount);
     try {
-      tracesPath =
+      this.tracesPath =
           Files.createTempDirectory(
               Path.of(System.getProperty("besu.traces.dir")), UUID.randomUUID().toString());
-      besuNode = create(genesisConfig, tracesPath);
+      this.besuNode = create(chainConfig, genesisConfigBuilder.buildAsString(), tracesPath);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    corsetValidator = new CorsetValidator(ChainConfig.MAINNET_LONDON_TESTCONFIG);
-    transactions = txList;
+    this.corsetValidator = new CorsetValidator(chainConfig);
+    this.transactions = transactions;
   }
 
   private Call callRpcRequest(final String request) {
@@ -101,7 +112,8 @@ public class BesuExecutionTools {
         + "}";
   }
 
-  private static BesuNode create(String genesisConfig, Path tracesPath) throws IOException {
+  private static BesuNode create(ChainConfig chainConfig, String genesisConfig, Path tracesPath)
+      throws IOException {
     NodeConfigurationFactory node = new NodeConfigurationFactory();
 
     BesuNodeConfigurationBuilder besuNodeConfigurationBuilder =
@@ -126,10 +138,10 @@ public class BesuExecutionTools {
                     "--plugin-linea-rpc-concurrent-requests-limit=1",
                     String.format(
                         "--plugin-linea-l1l2-bridge-contract=%s",
-                        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT.contract().toHexString()),
+                        chainConfig.bridgeConfiguration.contract().toHexString()),
                     String.format(
                         "--plugin-linea-l1l2-bridge-topic=%s",
-                        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT.topic().toHexString()),
+                        chainConfig.bridgeConfiguration.topic().toHexString()),
                     "--plugin-linea-tracer-readiness-server-host=127.0.0.1",
                     "--plugin-linea-tracer-readiness-server-port=8548",
                     "--plugin-linea-tracer-readiness-max-blocks-behind=1"));
@@ -191,7 +203,7 @@ public class BesuExecutionTools {
                 .withFailMessage("Trace file %s does not exist", traceFile)
                 .isTrue();
           });
-      ExecutionEnvironment.checkTracer(traceFile, corsetValidator, Optional.of(log));
+      ExecutionEnvironment.checkTracer(traceFile, corsetValidator, false, Optional.of(log));
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

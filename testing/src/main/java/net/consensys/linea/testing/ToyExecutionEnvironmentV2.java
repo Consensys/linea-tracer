@@ -83,12 +83,7 @@ public class ToyExecutionEnvironmentV2 {
           transactionProcessingResultValidator,
           zkTracerValidator);
     } else {
-      GenesisConfigBuilder genesisConfigBuilder = new GenesisConfigBuilder();
-      genesisConfigBuilder.setChainId(UNIT_TEST_CHAIN.id);
-      genesisConfigBuilder.setCoinbase(coinbase);
-      accounts.forEach(genesisConfigBuilder::addAccount);
-      String configAsString = genesisConfigBuilder.buildAsString();
-      new BesuExecutionTools(configAsString, transactions).executeTest();
+      new BesuExecutionTools(UNIT_TEST_CHAIN, coinbase, accounts, transactions).executeTest();
     }
   }
 

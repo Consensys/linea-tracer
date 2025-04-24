@@ -71,7 +71,10 @@ public class ExecutionEnvironment {
           .blockHeaderFunctions(new CliqueBlockHeaderFunctions());
 
   public static void checkTracer(
-      Path traceFilePath, CorsetValidator corsetValidator, Optional<Logger> logger) {
+      Path traceFilePath,
+      CorsetValidator corsetValidator,
+      Boolean deleteTraceFile,
+      Optional<Logger> logger) {
     boolean traceValidated = false;
     try {
       CorsetValidator.Result corsetValidationResult = corsetValidator.validate(traceFilePath);
@@ -81,7 +84,7 @@ public class ExecutionEnvironment {
           .isTrue();
     } finally {
       if (traceFilePath != null && traceValidated) {
-        if (System.getenv("PRESERVE_TRACE_FILES") == null) {
+        if (deleteTraceFile) {
           boolean traceFileDeleted = traceFilePath.toFile().delete();
           final Path finalTraceFilePath = traceFilePath;
           logger.ifPresent(
@@ -103,7 +106,11 @@ public class ExecutionEnvironment {
       zkTracer.writeToFile(traceFilePath, startBlock, endBlock);
       final Path finalTraceFilePath = traceFilePath;
       logger.ifPresent(log -> log.debug("trace written to {}", finalTraceFilePath));
-      checkTracer(traceFilePath, corsetValidator, logger);
+      checkTracer(
+          traceFilePath,
+          corsetValidator,
+          !System.getenv().containsKey("PRESERVE_TRACE_FILES"),
+          logger);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

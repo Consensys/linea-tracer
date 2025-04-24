@@ -39,9 +39,9 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpExtractOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpPricingOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpCallDataSizeOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpLeadOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpPricingOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsOobCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
@@ -127,7 +127,7 @@ public class ModexpSubsection extends PrecompileSubsection {
     final ImcFragment sixthImcFragment = ImcFragment.empty(hub);
     fragments().add(sixthImcFragment);
     final long calleeGas = callSection.stpCall.effectiveChildContextGasAllowance();
-    sixthOobCall = new ModexpPricingOobCall(calleeGas);
+    sixthOobCall = new ModexpPricingOobCall(modexpMetaData, calleeGas);
     sixthImcFragment.callOob(sixthOobCall);
 
     // We need to trigger the OOB before CALL's execution

@@ -16,10 +16,8 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static com.google.common.math.BigIntegerMath.log2;
-import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.Trace.*;
-import static net.consensys.linea.zktracer.Trace.Oob.G_QUADDIVISOR;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
@@ -37,7 +35,7 @@ import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpExtractOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.ModexpPricingOobCall;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -105,18 +103,7 @@ public class OobOperation extends ModuleOperation {
           || mbs.compareTo(BigInteger.valueOf(512)) > 0) {
         throw new IllegalArgumentException("byte sizes are too big");
       }
-      int exponentLog =
-          computeExponentLog(paddedCallData, cds.intValue(), bbs.intValue(), ebs.intValue());
       switch (oobCall.oobInstruction) {
-        case OOB_INST_MODEXP_PRICING -> {
-          int maxMbsBbs = max(mbs.intValue(), bbs.intValue());
-          final ModexpPricingOobCall prcModexpPricingOobCall = (ModexpPricingOobCall) oobCall;
-          // prcModexpPricingOobCall.setCallGas(calleeGas);
-          prcModexpPricingOobCall.setReturnAtCapacity(returnAtCapacity);
-          prcModexpPricingOobCall.setExponentLog(BigInteger.valueOf(exponentLog));
-          prcModexpPricingOobCall.setMaxMbsBbs(maxMbsBbs);
-          setModexpPricing(prcModexpPricingOobCall);
-        }
         case OOB_INST_MODEXP_EXTRACT -> {
           final ModexpExtractOobCall prcModexpExtractOobCall = (ModexpExtractOobCall) oobCall;
           prcModexpExtractOobCall.setCds(cds);
@@ -130,7 +117,10 @@ public class OobOperation extends ModuleOperation {
   }
 
   // Support method for MODEXP
-  public static int computeExponentLog(Bytes paddedCallData, int cds, int bbs, int ebs) {
+  public static int computeExponentLog(ModexpMetadata metadata, int cds) {
+    final Bytes paddedCallData = metadata.callData();
+    final int bbs = metadata.bbsInt();
+    final int ebs = metadata.ebsInt();
     Preconditions.checkArgument(paddedCallData.size() >= 96);
 
     // pad paddedCallData to 96 + bbs + ebs
@@ -149,66 +139,6 @@ public class OobOperation extends ModuleOperation {
     } else {
       return 8 * (ebs - 32);
     }
-  }
-
-  private void setModexpPricing(ModexpPricingOobCall prcModexpPricingOobCall) {
-    // row i
-    final boolean returnAtCapacityIsZero =
-        callToISZERO(0, BigInteger.ZERO, prcModexpPricingOobCall.getReturnAtCapacity());
-
-    // row i + 1
-    final boolean exponentLogIsZero =
-        callToISZERO(1, BigInteger.ZERO, prcModexpPricingOobCall.getExponentLog());
-
-    // row i + 2
-    final BigInteger ceilingOfMaxDividedBy8 =
-        callToDIV(
-            2,
-            BigInteger.ZERO,
-            BigInteger.valueOf((long) prcModexpPricingOobCall.getMaxMbsBbs() + 7),
-            BigInteger.ZERO,
-            BigInteger.valueOf(8));
-    final BigInteger fOfMax = ceilingOfMaxDividedBy8.multiply(ceilingOfMaxDividedBy8);
-
-    // row i + 3
-    BigInteger bigNumerator;
-    if (!exponentLogIsZero) {
-      bigNumerator = fOfMax.multiply(prcModexpPricingOobCall.getExponentLog());
-    } else {
-      bigNumerator = fOfMax;
-    }
-    final BigInteger bigQuotient =
-        callToDIV(
-            3, BigInteger.ZERO, bigNumerator, BigInteger.ZERO, BigInteger.valueOf(G_QUADDIVISOR));
-
-    // row i + 4
-    final boolean bigQuotientLT200 =
-        callToLT(4, BigInteger.ZERO, bigQuotient, BigInteger.ZERO, BigInteger.valueOf(200));
-
-    // row i + 5
-    precompileCost = bigQuotientLT200 ? BigInteger.valueOf(200) : bigQuotient;
-
-    final boolean ramSuccess =
-        !callToLT(
-            5,
-            BigInteger.ZERO,
-            prcModexpPricingOobCall.getCallGas(),
-            BigInteger.ZERO,
-            precompileCost);
-    insufficientGasForPrecompile = !ramSuccess;
-
-    // Set ramSuccess
-    prcModexpPricingOobCall.setRamSuccess(ramSuccess);
-
-    // Set returnGas
-    final BigInteger returnGas =
-        ramSuccess
-            ? prcModexpPricingOobCall.getCallGas().subtract(precompileCost)
-            : BigInteger.ZERO;
-    prcModexpPricingOobCall.setReturnGas(returnGas);
-
-    // Set returnAtCapacityNonZero
-    prcModexpPricingOobCall.setReturnAtCapacityNonZero(!returnAtCapacityIsZero);
   }
 
   private void setModexpExtract(ModexpExtractOobCall prcModexpExtractOobCall) {

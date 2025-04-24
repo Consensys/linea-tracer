@@ -26,6 +26,7 @@ import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OU
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.POP;
+import static net.consensys.linea.zktracer.precompiles.LowGasStipendPrecompileCallTests.computeExponentLog;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.generateModexpInput;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getBLAKE2FCost;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getECADDCost;
@@ -105,8 +106,7 @@ public class SixtyThreeSixtyFourthsTests {
   static final int ebs = 6;
   static final int mbs = 128;
   static final Bytes modexpInput = generateModexpInput(bbs, mbs, ebs);
-  static final int exponentLog =
-      OobOperation.computeExponentLog(modexpInput, 96 + bbs + ebs + mbs, bbs, ebs);
+  static final int exponentLog = computeExponentLog(modexpInput, 96 + bbs + ebs + mbs, bbs, ebs);
   static final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
   // codeOwnerAccount owns the bytecode that will be given as input to MODEXP through EXTCODECOPY
   static final ToyAccount codeOwnerAccount =

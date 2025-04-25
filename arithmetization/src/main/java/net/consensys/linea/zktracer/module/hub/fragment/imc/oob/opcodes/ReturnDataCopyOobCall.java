@@ -20,8 +20,6 @@ import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_RDC;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.*;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
-import java.math.BigInteger;
-
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -51,7 +49,7 @@ public class ReturnDataCopyOobCall extends OobCall {
   public void setInputData(MessageFrame frame, Hub hub) {
     setOffset(EWord.of(frame.getStackItem(1)));
     setSize(EWord.of(frame.getStackItem(2)));
-    setRds(bigIntegerToBytes(BigInteger.valueOf(frame.getReturnData().size())));
+    setRds(Bytes.ofUnsignedLong(frame.getReturnData().size()));
   }
 
   @Override
@@ -71,7 +69,6 @@ public class ReturnDataCopyOobCall extends OobCall {
     exoCalls.add(thirdCall);
     final boolean rdcSoob = bytesToBoolean(thirdCall.result());
 
-    // Set rdcx
     setRdcx(rdcRoob || rdcSoob);
   }
 

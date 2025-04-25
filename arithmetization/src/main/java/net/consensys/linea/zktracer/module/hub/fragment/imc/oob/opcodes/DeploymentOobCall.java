@@ -21,8 +21,6 @@ import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_DEPLOYMENT;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
-import java.math.BigInteger;
-
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -45,14 +43,6 @@ public class DeploymentOobCall extends OobCall {
 
   public DeploymentOobCall() {
     super();
-  }
-
-  public BigInteger sizeHi() {
-    return size.hiBigInt();
-  }
-
-  public BigInteger sizeLo() {
-    return size.loBigInt();
   }
 
   @Override

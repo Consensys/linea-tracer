@@ -21,8 +21,6 @@ import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
-import java.math.BigInteger;
-
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -33,6 +31,7 @@ import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
@@ -40,7 +39,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class JumpiOobCall extends OobCall {
   EWord pcNew;
   EWord jumpCondition;
-  BigInteger codeSize;
+  Bytes codeSize;
   boolean jumpNotAttempted;
   boolean jumpGuanranteedException;
   boolean jumpMustBeAttempted;
@@ -49,33 +48,17 @@ public class JumpiOobCall extends OobCall {
     super();
   }
 
-  public BigInteger pcNewHi() {
-    return pcNew.hiBigInt();
-  }
-
-  public BigInteger pcNewLo() {
-    return pcNew.loBigInt();
-  }
-
-  public BigInteger jumpConditionHi() {
-    return jumpCondition.hiBigInt();
-  }
-
-  public BigInteger jumpConditionLo() {
-    return jumpCondition.loBigInt();
-  }
-
   @Override
   public void setInputData(MessageFrame frame, Hub hub) {
     setPcNew(EWord.of(frame.getStackItem(0)));
     setJumpCondition(EWord.of(frame.getStackItem(1)));
-    setCodeSize(BigInteger.valueOf(frame.getCode().getSize()));
+    setCodeSize(Bytes.ofUnsignedLong(frame.getCode().getSize()));
   }
 
   @Override
   public void callExoModules(Add add, Mod mod, Wcp wcp) {
     // row i
-    final OobExoCall validPcNewCall = callToLT(wcp, pcNew, bigIntegerToBytes(codeSize));
+    final OobExoCall validPcNewCall = callToLT(wcp, pcNew, codeSize);
     final boolean validPcNew = bytesToBoolean(validPcNewCall.result());
     exoCalls.add(validPcNewCall);
 
@@ -99,11 +82,11 @@ public class JumpiOobCall extends OobCall {
     return trace
         .pMiscOobFlag(true)
         .pMiscOobInst(OOB_INST_JUMPI)
-        .pMiscOobData1(bigIntegerToBytes(pcNewHi()))
-        .pMiscOobData2(bigIntegerToBytes(pcNewLo()))
-        .pMiscOobData3(bigIntegerToBytes(jumpConditionHi()))
-        .pMiscOobData4(bigIntegerToBytes(jumpConditionLo()))
-        .pMiscOobData5(bigIntegerToBytes(codeSize))
+        .pMiscOobData1(pcNew.hi())
+        .pMiscOobData2(pcNew.lo())
+        .pMiscOobData3(jumpCondition.hi())
+        .pMiscOobData4(jumpCondition.lo())
+        .pMiscOobData5(codeSize)
         .pMiscOobData6(booleanToBytes(jumpNotAttempted))
         .pMiscOobData7(booleanToBytes(jumpGuanranteedException))
         .pMiscOobData8(booleanToBytes(jumpMustBeAttempted));
@@ -114,11 +97,11 @@ public class JumpiOobCall extends OobCall {
     return trace
         .isJumpi(true)
         .oobInst(OOB_INST_JUMPI)
-        .data1(bigIntegerToBytes(pcNewHi()))
-        .data2(bigIntegerToBytes(pcNewLo()))
-        .data3(bigIntegerToBytes(jumpConditionHi()))
-        .data4(bigIntegerToBytes(jumpConditionLo()))
-        .data5(bigIntegerToBytes(codeSize))
+        .data1(pcNew.hi())
+        .data2(pcNew.lo())
+        .data3(jumpCondition.hi())
+        .data4(jumpCondition.lo())
+        .data5(codeSize)
         .data6(booleanToBytes(jumpNotAttempted))
         .data7(booleanToBytes(jumpGuanranteedException))
         .data8(booleanToBytes(jumpMustBeAttempted));

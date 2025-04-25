@@ -20,8 +20,6 @@ import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_XCALL;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
-import java.math.BigInteger;
-
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -43,14 +41,6 @@ public class XCallOobCall extends OobCall {
 
   public XCallOobCall() {
     super();
-  }
-
-  public BigInteger valueHi() {
-    return value.hiBigInt();
-  }
-
-  public BigInteger valueLo() {
-    return value.loBigInt();
   }
 
   @Override

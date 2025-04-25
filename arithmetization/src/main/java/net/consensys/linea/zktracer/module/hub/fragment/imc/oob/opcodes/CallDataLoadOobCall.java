@@ -20,8 +20,6 @@ import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CDL;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
-import java.math.BigInteger;
-
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -49,7 +47,7 @@ public class CallDataLoadOobCall extends OobCall {
   @Override
   public void setInputData(MessageFrame frame, Hub hub) {
     setOffset(EWord.of(frame.getStackItem(0)));
-    setCds(bigIntegerToBytes(BigInteger.valueOf(frame.getInputData().size())));
+    setCds(Bytes.ofUnsignedLong(frame.getInputData().size()));
   }
 
   @Override
@@ -59,7 +57,6 @@ public class CallDataLoadOobCall extends OobCall {
     exoCalls.add(touchesRamCall);
     final boolean touchesRam = bytesToBoolean(touchesRamCall.result());
 
-    // Set cdlOutOfBounds
     setCdlOutOfBounds(!touchesRam);
   }
 

@@ -86,7 +86,7 @@ public class Blake2fParamsOobCall extends OobCall {
 
     // Set ramSuccess
     final boolean ramSuccess =
-        bytesToBoolean(sufficientGasCall.result()) && bytesToBoolean(fIsABitCall.result());
+        !bytesToBoolean(sufficientGasCall.result()) && bytesToBoolean(fIsABitCall.result());
     setRamSuccess(ramSuccess);
 
     // Set returnGas

@@ -43,7 +43,6 @@ import static org.hyperledger.besu.datatypes.Address.ID;
 import static org.hyperledger.besu.datatypes.Address.MODEXP;
 import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
 import static org.hyperledger.besu.datatypes.Address.SHA256;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ import java.util.stream.Stream;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.zktracer.module.oob.OobOperation;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -177,12 +175,6 @@ public class SixtyThreeSixtyFourthsTests {
     assertNotEquals(
         OUT_OF_GAS_EXCEPTION,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-
-    final boolean insufficientGasForPrecompileActual =
-        bytecodeRunner.getHub().oob().operations().stream()
-            .anyMatch(OobOperation::isInsufficientGasForPrecompile);
-
-    assertEquals(insufficientGasForPrecompileExpected, insufficientGasForPrecompileActual);
   }
 
   static Stream<Arguments> fixedCostEcAddTestSource() {
@@ -232,12 +224,6 @@ public class SixtyThreeSixtyFourthsTests {
     assertNotEquals(
         OUT_OF_GAS_EXCEPTION,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
-
-    final boolean insufficientGasForPrecompileActual =
-        bytecodeRunner.getHub().oob().operations().stream()
-            .anyMatch(OobOperation::isInsufficientGasForPrecompile);
-
-    assertEquals(insufficientGasForPrecompileExpected, insufficientGasForPrecompileActual);
   }
 
   static Stream<Arguments> costGEQStipendTest() {

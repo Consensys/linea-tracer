@@ -42,9 +42,6 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 public class OobOperation extends ModuleOperation {
   @EqualsAndHashCode.Include @Setter public OobCall oobCall;
 
-  private BigInteger precompileCost;
-  boolean insufficientGasForPrecompile;
-
   public int ctMax() {
     return oobCall.ctMax();
   }

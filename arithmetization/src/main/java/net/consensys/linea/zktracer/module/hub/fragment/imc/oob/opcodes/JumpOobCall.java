@@ -20,8 +20,6 @@ import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_JUMP;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
-import java.math.BigInteger;
-
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -32,13 +30,14 @@ import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
 public class JumpOobCall extends OobCall {
   EWord pcNew;
-  BigInteger codeSize;
+  Bytes codeSize;
   boolean jumpGuaranteedException;
   boolean jumpMustBeAttempted;
 
@@ -46,31 +45,19 @@ public class JumpOobCall extends OobCall {
     super();
   }
 
-  public BigInteger pcNewHi() {
-    return pcNew.hiBigInt();
-  }
-
-  public BigInteger pcNewLo() {
-    return pcNew.loBigInt();
-  }
-
   @Override
   public void setInputData(final MessageFrame frame, Hub hub) {
     setPcNew(EWord.of(frame.getStackItem(0)));
-    setCodeSize(BigInteger.valueOf(frame.getCode().getSize()));
+    setCodeSize(Bytes.ofUnsignedLong(frame.getCode().getSize()));
   }
 
   @Override
   public void callExoModules(final Add add, final Mod mod, final Wcp wcp) {
-    final OobExoCall validPcNewCall = callToLT(wcp, pcNew, bigIntegerToBytes(codeSize));
+    final OobExoCall validPcNewCall = callToLT(wcp, pcNew, codeSize);
     exoCalls.add(validPcNewCall);
-
     final boolean validPcNew = bytesToBoolean(validPcNewCall.result());
 
-    // Set jumpGuaranteedException
-    setJumpGuaranteedException(validPcNew);
-
-    // Set jumpMustBeAttempted
+    setJumpGuaranteedException(!validPcNew);
     setJumpMustBeAttempted(validPcNew);
   }
 
@@ -84,9 +71,9 @@ public class JumpOobCall extends OobCall {
     return trace
         .oobInst(OOB_INST_JUMP)
         .isJump(true)
-        .data1(bigIntegerToBytes(pcNewHi()))
-        .data2(bigIntegerToBytes(pcNewLo()))
-        .data5(bigIntegerToBytes(codeSize))
+        .data1(pcNew.hi())
+        .data2(pcNew.lo())
+        .data5(codeSize)
         .data7(booleanToBytes(jumpGuaranteedException))
         .data8(booleanToBytes(jumpMustBeAttempted));
   }
@@ -96,9 +83,9 @@ public class JumpOobCall extends OobCall {
     return trace
         .pMiscOobFlag(true)
         .pMiscOobInst(OOB_INST_JUMP)
-        .pMiscOobData1(bigIntegerToBytes(pcNewHi()))
-        .pMiscOobData2(bigIntegerToBytes(pcNewLo()))
-        .pMiscOobData5(bigIntegerToBytes(codeSize))
+        .pMiscOobData1(pcNew.hi())
+        .pMiscOobData2(pcNew.lo())
+        .pMiscOobData5(codeSize)
         .pMiscOobData7(booleanToBytes(jumpGuaranteedException))
         .pMiscOobData8(booleanToBytes(jumpMustBeAttempted));
   }

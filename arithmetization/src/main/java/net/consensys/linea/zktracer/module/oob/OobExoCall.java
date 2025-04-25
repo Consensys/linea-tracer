@@ -51,7 +51,7 @@ public class OobExoCall {
         .outgoingData2(arg1.slice(LLARGE, LLARGE))
         .outgoingData3(arg2.slice(0, LLARGE))
         .outgoingData4(arg2.slice(LLARGE, LLARGE))
-        .outgoingResLo(result);
+        .outgoingResLo(addFlag ? ZERO : result);
   }
 
   public static OobExoCall callToADD(final Add add, final Bytes arg1, final Bytes arg2) {

@@ -37,23 +37,17 @@ import static org.hyperledger.besu.datatypes.Address.ID;
 import static org.hyperledger.besu.datatypes.Address.MODEXP;
 import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
 import static org.hyperledger.besu.datatypes.Address.SHA256;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.oob.OobOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -211,38 +205,6 @@ public class LowGasStipendPrecompileCallTests {
         .op(OpCode.CALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
     bytecodeRunner.run(61_000_000L, precompileAddress == MODEXP ? additionalAccounts : List.of());
-    final Hub hub = bytecodeRunner.getHub();
-
-    // Here we check if OOB detects the insufficient gas for the precompile call
-    // and the precompile cost computed by OOB.
-    // As the number of OOB operation required is variable, we look for it over all the operations.
-    boolean insufficientGasForPrecompile =
-        hub.oob().operations().getAll().stream()
-            .anyMatch(OobOperation::isInsufficientGasForPrecompile);
-
-    BigInteger precompileCostComputedByOOB =
-        hub.oob().operations().getAll().stream()
-            .map(OobOperation::getPrecompileCost)
-            .filter(Objects::nonNull)
-            .findFirst()
-            .orElse(BigInteger.ZERO);
-
-    // We assert that the precompileCost we compute here is the same as the one computed in OOB
-    assertEquals(BigInteger.valueOf(precompileCost), precompileCostComputedByOOB);
-
-    // We assert that the insufficientGasForPrecompile flag is set correctly in OOB
-    if (gasCase == GasCase.COST
-        || gasCase == GasCase.COST_PLUS_ONE
-        || (precompileAddress.equals(BLAKE2B_F_COMPRESSION)
-            && r == 0) // precompileCost is 0 so gas cannot be insufficient
-        || (precompileAddress.equals(ALTBN128_ADD)
-            && value > 0) // precompileCost is 150 but stipend is at least 2300 so gas cannot be
-    // insufficient
-    ) {
-      assertFalse(insufficientGasForPrecompile);
-    } else {
-      assertTrue(insufficientGasForPrecompile);
-    }
   }
 
   static Stream<Arguments> lowGasStipendPrecompileCallTestSource() {

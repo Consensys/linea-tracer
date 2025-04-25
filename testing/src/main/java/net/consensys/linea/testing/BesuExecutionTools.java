@@ -123,7 +123,6 @@ public class BesuExecutionTools {
             .miningEnabled()
             .jsonRpcEnabled()
             .jsonRpcConfiguration(node.createJsonRpcWithRpcApiEnabledConfig("LINEA"))
-            .webSocketConfiguration(node.createWebSocketEnabledConfig())
             .requestedPlugins(
                 List.of(
                     "TracerReadinessPlugin",

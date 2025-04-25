@@ -55,7 +55,7 @@ public class ReturnDataCopyOobCall extends OobCall {
   @Override
   public void callExoModules(Add add, Mod mod, Wcp wcp) {
     // row i
-    final OobExoCall rdcOobCall = callToIsZero(wcp, offset);
+    final OobExoCall rdcOobCall = callToIsZero(wcp, Bytes.concatenate(offset.hi(), size.hi()));
     exoCalls.add(rdcOobCall);
     final boolean rdcRoob = !bytesToBoolean(rdcOobCall.result());
 

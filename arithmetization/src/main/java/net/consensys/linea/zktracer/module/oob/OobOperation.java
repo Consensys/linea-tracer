@@ -17,12 +17,13 @@ package net.consensys.linea.zktracer.module.oob;
 
 import static com.google.common.math.BigIntegerMath.log2;
 import static java.lang.Math.min;
+import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.math.BigInteger;
 import java.math.RoundingMode;
 
-import com.google.common.base.Preconditions;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,26 +68,28 @@ public class OobOperation extends ModuleOperation {
 
   // Support method for MODEXP
   public static int computeExponentLog(ModexpMetadata metadata, int cds) {
-    final Bytes paddedCallData = metadata.callData();
     final int bbs = metadata.bbsInt();
     final int ebs = metadata.ebsInt();
-    Preconditions.checkArgument(paddedCallData.size() >= 96);
 
-    // pad paddedCallData to 96 + bbs + ebs
+    // pad CallData to 96 + bbs + ebs
     final Bytes doublePaddedCallData =
-        cds < 96 + bbs + ebs ? rightPadTo(paddedCallData, 96 + bbs + ebs) : paddedCallData;
+        cds < BASE_MIN_OFFSET + bbs + ebs
+            ? rightPadTo(metadata.callData(), BASE_MIN_OFFSET + bbs + ebs)
+            : metadata.callData();
 
     final BigInteger leadingBytesOfExponent =
-        doublePaddedCallData.slice(96 + bbs, min(ebs, 32)).toUnsignedBigInteger();
+        doublePaddedCallData
+            .slice(BASE_MIN_OFFSET + bbs, min(ebs, EBS_MIN_OFFSET))
+            .toUnsignedBigInteger();
 
-    if (ebs <= 32 && leadingBytesOfExponent.signum() == 0) {
+    if (ebs <= EBS_MIN_OFFSET && leadingBytesOfExponent.signum() == 0) {
       return 0;
-    } else if (ebs <= 32 && leadingBytesOfExponent.signum() != 0) {
+    } else if (ebs <= EBS_MIN_OFFSET && leadingBytesOfExponent.signum() != 0) {
       return log2(leadingBytesOfExponent, RoundingMode.FLOOR);
-    } else if (ebs > 32 && leadingBytesOfExponent.signum() != 0) {
-      return 8 * (ebs - 32) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
+    } else if (ebs > EBS_MIN_OFFSET && leadingBytesOfExponent.signum() != 0) {
+      return 8 * (ebs - EBS_MIN_OFFSET) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
     } else {
-      return 8 * (ebs - 32);
+      return 8 * (ebs - EBS_MIN_OFFSET);
     }
   }
 

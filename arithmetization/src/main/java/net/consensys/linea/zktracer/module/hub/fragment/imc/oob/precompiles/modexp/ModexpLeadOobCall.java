@@ -17,6 +17,9 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.mod
 
 import static net.consensys.linea.zktracer.Trace.OOB_INST_MODEXP_LEAD;
 import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_MODEXP_LEAD;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
+import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.BASE_MIN_OFFSET;
+import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.*;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.Conversions.*;
@@ -70,12 +73,14 @@ public class ModexpLeadOobCall extends OobCall {
     final boolean ebsIsZero = bytesToBoolean(ebsIsZeroCall.result());
 
     // row i + 1
-    final OobExoCall ebsLessThan32Call = callToLT(wcp, metadata.ebs(), Bytes.ofUnsignedInt(32));
+    final OobExoCall ebsLessThan32Call =
+        callToLT(wcp, metadata.ebs(), Bytes.ofUnsignedInt(EBS_MIN_OFFSET));
     exoCalls.add(ebsLessThan32Call);
     final boolean ebsLessThan32 = bytesToBoolean(ebsLessThan32Call.result());
 
     // row i + 2
-    final OobExoCall callDataContainsExponentBytesCall = callToLT(wcp, metadata.bbs().add(96), cds);
+    final OobExoCall callDataContainsExponentBytesCall =
+        callToLT(wcp, metadata.bbs().add(BASE_MIN_OFFSET), cds);
     exoCalls.add(callDataContainsExponentBytesCall);
     final boolean callDataContainsExponentBytes =
         bytesToBoolean(callDataContainsExponentBytesCall.result());
@@ -83,7 +88,10 @@ public class ModexpLeadOobCall extends OobCall {
     // row i + 3
     final OobExoCall compCall =
         callDataContainsExponentBytes
-            ? callToLT(wcp, cds.subtract(96).add(metadata.bbs()), Bytes.ofUnsignedInt(32))
+            ? callToLT(
+                wcp,
+                cds.subtract(BASE_MIN_OFFSET).subtract(metadata.bbs()),
+                Bytes.ofUnsignedInt(WORD_SIZE))
             : noCall();
     exoCalls.add(compCall);
     final boolean comp = bytesToBoolean(compCall.result());

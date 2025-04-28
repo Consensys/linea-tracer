@@ -30,6 +30,7 @@ import org.hyperledger.besu.ethereum.BlockProcessingOutputs;
 import org.hyperledger.besu.ethereum.BlockProcessingResult;
 import org.hyperledger.besu.ethereum.ProtocolContext;
 import org.hyperledger.besu.ethereum.chain.Blockchain;
+import org.hyperledger.besu.ethereum.core.Block;
 import org.hyperledger.besu.ethereum.core.BlockBody;
 import org.hyperledger.besu.ethereum.core.BlockHeader;
 import org.hyperledger.besu.ethereum.core.MutableWorldState;
@@ -74,15 +75,14 @@ public class CorsetBlockProcessor extends MainnetBlockProcessor {
       final ProtocolContext protocolContext,
       final Blockchain blockchain,
       final MutableWorldState worldState,
-      final BlockHeader blockHeader,
-      final List<Transaction> transactions,
-      final List<BlockHeader> ommers,
-      final Optional<List<Withdrawal>> maybeWithdrawals,
-      final PrivateMetadataUpdater privateMetadataUpdater) {
+      final Block block,
+      final Optional<PrivateMetadataUpdater> privateMetadataUpdater,
+      final PreprocessingFunction preprocessingBlockFunction) {
     final List<TransactionReceipt> receipts = new ArrayList<>();
     long currentGasUsed = 0;
-    BlockBody blockBody = new BlockBody(transactions, new ArrayList<>());
-
+    BlockBody blockBody = block.getBody();
+    BlockHeader blockHeader = block.getHeader();
+    Optional<List<Withdrawal>> maybeWithdrawals = blockBody.getWithdrawals();
     final ProtocolSpec protocolSpec = protocolSchedule.getByBlockHeader(blockHeader);
 
     if (blockHeader.getParentBeaconBlockRoot().isPresent()) {
@@ -91,7 +91,7 @@ public class CorsetBlockProcessor extends MainnetBlockProcessor {
           updater, blockHeader.getTimestamp(), blockHeader.getParentBeaconBlockRoot().get());
     }
 
-    for (final Transaction transaction : transactions) {
+    for (final Transaction transaction : blockBody.getTransactions()) {
       if (!hasAvailableBlockBudget(blockHeader, transaction, currentGasUsed)) {
         return new BlockProcessingResult(Optional.empty(), "provided gas insufficient");
       }
@@ -164,7 +164,7 @@ public class CorsetBlockProcessor extends MainnetBlockProcessor {
       }
     }
 
-    if (!rewardCoinbase(worldState, blockHeader, ommers, skipZeroBlockRewards)) {
+    if (!rewardCoinbase(worldState, blockHeader, blockBody.getOmmers(), skipZeroBlockRewards)) {
       // no need to log, rewardCoinbase logs the error.
       if (worldState instanceof BonsaiWorldState) {
         ((BonsaiWorldStateUpdateAccumulator) worldState.updater()).reset();

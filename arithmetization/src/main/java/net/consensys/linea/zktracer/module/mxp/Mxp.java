@@ -24,13 +24,17 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
+import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 /** Implementation of a {@link Module} for memory expansion. */
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class Mxp implements OperationListModule<MxpOperation> {
+  private final Wcp wcp;
+  private final Euc euc;
 
   private final ModuleOperationStackedList<MxpOperation> operations =
       new ModuleOperationStackedList<>();
@@ -62,6 +66,6 @@ public class Mxp implements OperationListModule<MxpOperation> {
   }
 
   public void call(MxpCall mxpCall) {
-    operations.add(new MxpOperation(mxpCall));
+    operations.add(new MxpOperation(mxpCall, wcp, euc));
   }
 }

@@ -63,7 +63,7 @@ public class BlockchainReferenceTestTools {
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
 
-  private static final List<String> NETWORKS_TO_RUN = List.of("London");
+  private static final List<String> NETWORKS_TO_RUN = List.of("London", "Shanghai");
 
   public static final JsonTestParameters<?, ?> PARAMS =
       JsonTestParameters.create(BlockchainReferenceTestCaseSpec.class)
@@ -436,7 +436,7 @@ public class BlockchainReferenceTestTools {
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
 
-    final ZkTracer zkTracer = new ZkTracer(ChainConfig.ETHEREUM_LONDON);
+    final ZkTracer zkTracer = new ZkTracer(ChainConfig.ETHEREUM_LONDON); //TODO depends on the fork
     zkTracer.traceStartConflation(spec.getCandidateBlocks().length);
 
     for (var candidateBlock : spec.getCandidateBlocks()) {

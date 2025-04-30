@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mxp;
+package net.consensys.linea.zktracer.module.mxpv3;
 
 import java.util.List;
 
@@ -24,15 +24,19 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
+import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 /** Implementation of a {@link Module} for memory expansion. */
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public class Mxp implements OperationListModule<MxpOperation> {
+public class MxpV3 implements OperationListModule<MxpOperationV3> {
+  private final Wcp wcp;
+  private final Euc euc;
 
-  private final ModuleOperationStackedList<MxpOperation> operations =
+  private final ModuleOperationStackedList<MxpOperationV3> operations =
       new ModuleOperationStackedList<>();
 
   @Override
@@ -41,24 +45,27 @@ public class Mxp implements OperationListModule<MxpOperation> {
   }
 
   @Override
-  public List<Trace.ColumnHeader> columnHeaders(Trace trace) {
-    return trace.mxp().headers(this.lineCount());
+  public List<Trace.ColumnHeader> columnHeaders() {
+    return Trace.Mxp.headers(this.lineCount());
   }
 
   @Override
-  public int spillage(Trace trace) {
-    return trace.mxp().spillage();
+  public int spillage() {
+    return Trace.Mxp.SPILLAGE;
   }
 
   @Override
   public void commit(Trace trace) {
     int stamp = 0;
-    for (MxpOperation op : operations.getAll()) {
-      op.trace(++stamp, trace.mxp());
+    for (MxpOperationV3 op : operations.getAll()) {
+      op.traceDecoder(++stamp, trace.mxp);
+      op.traceMacro(stamp, trace.mxp);
+      op.traceScenario(stamp, trace.mxp);
+      op.traceComputation(stamp, trace.mxp);
     }
   }
 
   public void call(MxpCall mxpCall) {
-    operations.add(new MxpOperation(mxpCall));
+    operations.add(new MxpOperationV3(mxpCall, wcp, euc));
   }
 }

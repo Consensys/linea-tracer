@@ -84,17 +84,19 @@ public class MxpComputation {
     return mxpxExpression;
   }
 
-  public long[] computeForUpdt(MxpCall mxpCall, long words, long cMem) {
+  public long[] computeForStateUpdt(MxpCall mxpCall, long words, long cMem) {
     OpCode opCode = mxpCall.getOpCodeData().mnemonic();
+
     // we filter the wcp call by double_offset to prevent unnecessary comparisons
     if (isDoubleOffsetOpcode(opCode)) {
+      // Row i + 7
       wcpFlags[7] = true;
-      BigInteger max1 =
+      var max1 =
           mxpCall
               .getOffset1()
               .toUnsignedBigInteger()
               .add(mxpCall.getSize1().toUnsignedBigInteger());
-      BigInteger max2 =
+      var max2 =
           mxpCall
               .getOffset2()
               .toUnsignedBigInteger()
@@ -102,20 +104,23 @@ public class MxpComputation {
       wcpCalls.add(7, ltCall(wcp, bigIntegerToBytes(max1), bigIntegerToBytes(max2)));
     }
 
+    // Row i + 8
     eucFlags[8] = true;
     boolean useParams2 = wcpCalls.get(7).result();
     boolean useParams1 = !useParams2;
     var maxOffset1 =
         mxpCall
             .getOffset1()
+            .lo()
             .toUnsignedBigInteger()
-            .add(mxpCall.getSize1().toUnsignedBigInteger())
+            .add(mxpCall.getSize1().lo().toUnsignedBigInteger())
             .subtract(BigInteger.ONE);
     var maxOffset2 =
         mxpCall
-            .getOffset1()
+            .getOffset2()
+            .lo()
             .toUnsignedBigInteger()
-            .add(mxpCall.getSize1().toUnsignedBigInteger())
+            .add(mxpCall.getSize2().lo().toUnsignedBigInteger())
             .subtract(BigInteger.ONE);
     ;
     var maxOffset =
@@ -124,19 +129,20 @@ public class MxpComputation {
             .add(booleanToBigInteger(useParams2).multiply(maxOffset2));
     eucCalls.add(8, eucCall(euc, bigIntegerToBytes(maxOffset), Bytes.of(32)));
 
+    // row i + 9
     eucFlags[9] = true;
-    Bytes floor = eucCalls.get(8).result();
-    BigInteger EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
+    var floor = eucCalls.get(8).result();
+    var EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
     eucCalls.add(9, eucCall(euc, bigIntegerToBytes(EYPa.multiply(EYPa)), Bytes.of(512)));
 
-    Bytes cMemQuadPart = eucCalls.get(9).result();
-    Bytes cMemLinearPart = bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
-
+    // row i + 10
     wcpFlags[10] = true;
     wcpCalls.add(10, ltCall(wcp, longToBytes(words), bigIntegerToBytes(EYPa)));
 
+    // Compute state updates
+    var cMemQuadPart = eucCalls.get(9).result();
+    var cMemLinearPart = bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
     boolean updateInternalState = wcpCalls.get(10).result();
-    // Updating the state
     long wordsNewUpdate = updateInternalState ? EYPa.longValue() : words;
     long cMemNewUpdate =
         updateInternalState
@@ -149,9 +155,10 @@ public class MxpComputation {
   }
 
   public long computeForUpdtW(MxpCall mxpCall, Bytes gWord) {
+    // Row i + 11
     eucFlags[11] = true;
     eucCalls.add(11, eucCall(euc, mxpCall.getSize1().lo(), Bytes.of(32)));
-    Bytes numberOfWords = eucCalls.get(11).result();
+    var numberOfWords = eucCalls.get(11).result();
     long extraWordCost =
         numberOfWords.toUnsignedBigInteger().multiply(gWord.toUnsignedBigInteger()).longValue();
     return extraWordCost;
@@ -159,12 +166,12 @@ public class MxpComputation {
 
   public long computeForUpdtB(MxpCall mxpCall, Bytes gByte) {
     OpCode opCode = mxpCall.getOpCodeData().mnemonic();
-    Bytes gasPerByte =
+    var gasPerByte =
         (opCode == OpCode.RETURN)
             ? bigIntegerToBytes(
                 booleanToBigInteger(mxpCall.isDeploys()).multiply(gByte.toUnsignedBigInteger()))
             : gByte;
-    Bytes numberOfBytes = mxpCall.getSize1().lo();
+    var numberOfBytes = mxpCall.getSize1().lo();
     long extraByteCost =
         numberOfBytes
             .toUnsignedBigInteger()

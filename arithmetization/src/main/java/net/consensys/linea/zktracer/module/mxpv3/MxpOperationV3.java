@@ -120,7 +120,7 @@ public class MxpOperationV3 extends ModuleOperation {
           mxpCall.setGasMxp(0L);
         } else {
           // State update
-          var stateUpdate = mxpComputation.computeForUpdt(this.mxpCall, this.words, this.cMem);
+          var stateUpdate = mxpComputation.computeForStateUpdt(this.mxpCall, this.words, this.cMem);
           var wordsNewUpdate = stateUpdate[0];
           var cMemNewUpdate = stateUpdate[1];
           this.wordsNew = wordsNewUpdate;

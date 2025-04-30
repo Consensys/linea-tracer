@@ -154,6 +154,27 @@ public class GoCorsetValidator extends AbstractExecutable {
    * @param options
    */
   private void setChainConstants(List<String> options) {
+    int fork;
+    // determine appropriate number
+    switch (chain.fork) {
+      case LONDON:
+        fork = 14;
+        break;
+      case SHANGHAI:
+        // paris = 15
+        fork = 16;
+        break;
+      case CANCUN:
+        fork = 17;
+        break;
+      case PRAGUE:
+        fork = 18;
+        break;
+      default:
+        throw new IllegalArgumentException("unknown fork \"" + chain.fork + "\"");
+    }
+    //
+    options.add("-SEVM_FORK=" + fork);
     if (chain != MAINNET_LONDON_TESTCONFIG) {
       options.add("-Sblockdata.GAS_LIMIT_MINIMUM=" + chain.gasLimitMinimum.toString());
       options.add("-Sblockdata.GAS_LIMIT_MAXIMUM=" + chain.gasLimitMaximum.toString());

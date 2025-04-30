@@ -36,4 +36,16 @@ public enum Fork {
       case SHANGHAI, CANCUN, PRAGUE -> true;
     };
   }
+
+  /**
+   * Construct a fork instance from the name of a fork (e.g. "London", "Shanghai", etc). Observe
+   * that case does not matter here. Hence, "LONDON", "London", "london", "lonDon" are all suitable
+   * aliases for the LONDON instance.
+   *
+   * @param fork
+   * @return
+   */
+  public static Fork fromString(String fork) {
+    return Fork.valueOf(fork.toUpperCase());
+  }
 }

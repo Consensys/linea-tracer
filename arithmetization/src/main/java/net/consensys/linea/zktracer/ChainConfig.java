@@ -44,16 +44,6 @@ public class ChainConfig {
           BigInteger.valueOf(LINEA_GAS_LIMIT_MAXIMUM),
           LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT);
 
-  /** Represents Ethereum mainnet for the purposes of running reference tests. */
-  public static final ChainConfig ETHEREUM_LONDON =
-      new ChainConfig(
-          LONDON,
-          1,
-          false,
-          BigInteger.valueOf(ETHEREUM_GAS_LIMIT_MINIMUM),
-          ETHEREUM_GAS_LIMIT_MAXIMUM,
-          LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT);
-
   /**
    * Represents Linea mainnet prior to the block gas limit being enforced for the purposes of
    * running existing replay tests. As the name suggest, this is only intended for testing purposes.
@@ -161,5 +151,21 @@ public class ChainConfig {
         BigInteger.valueOf(LINEA_GAS_LIMIT_MINIMUM),
         BigInteger.valueOf(LINEA_GAS_LIMIT_MAXIMUM),
         bridgeConfig);
+  }
+
+  /**
+   * Construct a suitable configuration representing a specific fork of Ethereum mainnet.
+   *
+   * @param fork
+   * @return
+   */
+  public static ChainConfig ETHEREUM_CHAIN(String fork) {
+    return new ChainConfig(
+        Fork.fromString(fork),
+        1,
+        false,
+        BigInteger.valueOf(ETHEREUM_GAS_LIMIT_MINIMUM),
+        ETHEREUM_GAS_LIMIT_MAXIMUM,
+        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT);
   }
 }

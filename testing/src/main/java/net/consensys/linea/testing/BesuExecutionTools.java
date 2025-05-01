@@ -17,7 +17,9 @@ package net.consensys.linea.testing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.tests.acceptance.dsl.WaitUtils.waitFor;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -26,18 +28,23 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.plugins.rpc.tracegeneration.TraceFile;
 import net.consensys.linea.plugins.rpc.tracegeneration.TraceRequestParams;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.json.JsonConverter;
-import okhttp3.Call;
+import net.consensys.shomei.rpc.server.model.RollupGetZkEVMStateMerkleProofV0Response;
+import net.consensys.shomei.rpc.server.model.RollupGetZkEvmStateV0Parameter;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.assertj.core.util.Lists;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.tests.acceptance.dsl.condition.net.NetConditions;
@@ -45,9 +52,6 @@ import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
 import org.hyperledger.besu.tests.acceptance.dsl.node.ThreadBesuNodeRunner;
 import org.hyperledger.besu.tests.acceptance.dsl.node.cluster.Cluster;
 import org.hyperledger.besu.tests.acceptance.dsl.node.cluster.ClusterConfigurationBuilder;
-import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.BesuNodeConfigurationBuilder;
-import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.BesuNodeFactory;
-import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.NodeConfigurationFactory;
 import org.hyperledger.besu.tests.acceptance.dsl.transaction.eth.EthTransactions;
 import org.hyperledger.besu.tests.acceptance.dsl.transaction.net.NetTransactions;
 
@@ -57,11 +61,14 @@ public class BesuExecutionTools {
   private static final MediaType MEDIA_TYPE_JSON =
       MediaType.parse("application/json; charset=utf-8");
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
+  private static final ObjectMapper MAPPER = CONVERTER.getObjectMapper();
 
   private final ChainConfig chainConfig;
   private final OkHttpClient httpClient;
   private final BesuNode besuNode;
+  private final ShomeiNode shomeiNode;
   private final Path tracesPath;
+  private final Path shomeiDataPath;
   private final List<Transaction> transactions;
   private final CorsetValidator corsetValidator;
 
@@ -70,6 +77,9 @@ public class BesuExecutionTools {
       Address coinbase,
       List<ToyAccount> accounts,
       List<Transaction> transactions) {
+
+    int besuPort = findFreePort();
+    int shomeiPort = findFreePort();
     this.httpClient = new OkHttpClient();
     this.chainConfig = chainConfig;
     GenesisConfigBuilder genesisConfigBuilder = new GenesisConfigBuilder();
@@ -81,80 +91,58 @@ public class BesuExecutionTools {
       this.tracesPath =
           Files.createTempDirectory(
               Path.of(System.getProperty("besu.traces.dir")), UUID.randomUUID().toString());
-      this.besuNode = create(chainConfig, genesisConfigBuilder.buildAsString(), tracesPath);
+      this.shomeiDataPath = Files.createDirectory(tracesPath.resolve("shomei"));
+      this.besuNode =
+          BesuNodeBuilder.create(
+              chainConfig.bridgeConfiguration,
+              genesisConfigBuilder.buildAsString(),
+              besuPort,
+              tracesPath,
+              shomeiPort);
+
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+    this.shomeiNode =
+        new ShomeiNode.Builder()
+            .setBesuRpcPort(besuPort)
+            .setJsonRpcPort(shomeiPort)
+            .setDataStoragePath(this.shomeiDataPath)
+            .build();
     this.corsetValidator = new CorsetValidator(chainConfig);
     this.transactions = transactions;
   }
 
-  private Call callRpcRequest(final String request) {
-    return httpClient.newCall(
-        new Request.Builder()
-            .url(besuNode.jsonRpcBaseUrl().get())
-            .post(RequestBody.create(request, MEDIA_TYPE_JSON))
-            .build());
+  private TraceFile lineaGenerateConflatedTracesToFileV2(
+      final long startBlockNumber, final long endBlockNumber) throws IOException {
+    return jsonRpcRequest(
+        besuNode.jsonRpcBaseUrl().get(),
+        "linea_generateConflatedTracesToFileV2",
+        new TraceRequestParams(startBlockNumber, endBlockNumber, "test"),
+        TraceFile.class);
   }
 
-  private static String createGeneratedConflatedFileV2Call(
-      final long startBlockNumber, final long endBlockNumber) {
-    TraceRequestParams traceRequestParams =
-        new TraceRequestParams(startBlockNumber, endBlockNumber, "test");
-    String params = CONVERTER.toJson(traceRequestParams);
-    return "{\n"
-        + "    \"jsonrpc\": \"2.0\",\n"
-        + "    \"method\": \"linea_generateConflatedTracesToFileV2\",\n"
-        + "    \"params\": ["
-        + params
-        + "],\n"
-        + "    \"id\": 1\n"
-        + "}";
-  }
-
-  private static BesuNode create(ChainConfig chainConfig, String genesisConfig, Path tracesPath)
-      throws IOException {
-    NodeConfigurationFactory node = new NodeConfigurationFactory();
-
-    BesuNodeConfigurationBuilder besuNodeConfigurationBuilder =
-        new BesuNodeConfigurationBuilder()
-            .name("example-test-node")
-            .genesisConfigProvider(nodes -> genesisConfig.describeConstable())
-            .miningEnabled()
-            .jsonRpcEnabled()
-            .jsonRpcConfiguration(node.createJsonRpcWithRpcApiEnabledConfig("LINEA"))
-            .requestedPlugins(
-                List.of(
-                    "TracerReadinessPlugin",
-                    "TracesEndpointServicePlugin",
-                    "LineCountsEndpointServicePlugin",
-                    "CaptureEndpointServicePlugin"))
-            .extraCLIOptions(
-                List.of(
-                    String.format(
-                        "--plugin-linea-conflated-trace-generation-traces-output-path=%s",
-                        tracesPath),
-                    "--plugin-linea-rpc-concurrent-requests-limit=1",
-                    String.format(
-                        "--plugin-linea-l1l2-bridge-contract=%s",
-                        chainConfig.bridgeConfiguration.contract().toHexString()),
-                    String.format(
-                        "--plugin-linea-l1l2-bridge-topic=%s",
-                        chainConfig.bridgeConfiguration.topic().toHexString()),
-                    "--plugin-linea-tracer-readiness-server-host=127.0.0.1",
-                    "--plugin-linea-tracer-readiness-server-port=8548",
-                    "--plugin-linea-tracer-readiness-max-blocks-behind=1"));
-    return new BesuNodeFactory().create(besuNodeConfigurationBuilder.build());
+  private RollupGetZkEVMStateMerkleProofV0Response rollupGetZkEVMStateMerkleProofV0(
+      final long startBlockNumber, final long endBlockNumber) throws IOException {
+    return jsonRpcRequest(
+        shomeiNode.getJsonRpcUrl(),
+        "rollup_getZkEVMStateMerkleProofV0",
+        new RollupGetZkEvmStateV0Parameter(
+            String.valueOf(startBlockNumber), String.valueOf(endBlockNumber), "test"),
+        RollupGetZkEVMStateMerkleProofV0Response.class);
   }
 
   public void executeTest() {
-    try (Cluster cluster =
-        new Cluster(
-            new ClusterConfigurationBuilder().build(),
-            new NetConditions(new NetTransactions()),
-            new ThreadBesuNodeRunner())) {
+    Thread shomeiThread = new Thread(shomeiNode);
+    try (Cluster besuCluster =
+            new Cluster(
+                new ClusterConfigurationBuilder().build(),
+                new NetConditions(new NetTransactions()),
+                new ThreadBesuNodeRunner());
+        shomeiNode) {
 
-      cluster.start(besuNode);
+      shomeiThread.start();
+      besuCluster.start(besuNode);
 
       EthTransactions ethTransactions = new EthTransactions();
       List<String> txHashes =
@@ -176,35 +164,107 @@ public class BesuExecutionTools {
                   var txReceipt = maybeTxReceipt.get();
                   blockNumbers.add(txReceipt.getBlockNumber().longValue());
                   log.info(
-                      "Example test txHash={}, blockNumber={}",
+                      "Executed transaction txHash={}, blockNumber={}",
                       txReceipt.getTransactionHash(),
                       txReceipt.getBlockNumber());
                 });
           });
       assertThat(blockNumbers).isNotEmpty();
-      String request =
-          createGeneratedConflatedFileV2Call(
-              Collections.min(blockNumbers), Collections.max(blockNumbers));
-      Response response = callRpcRequest(request).execute();
-      String responseBody = response.body().string();
-      assertThat(response.isSuccessful())
-          .withFailMessage(
-              String.format(
-                  "Unexpected response code: %s, body: %s", response.code(), responseBody))
-          .isTrue();
-      JsonNode jsonRpcResponse = CONVERTER.fromJson(responseBody, JsonNode.class);
-      Path traceFile =
-          Path.of(jsonRpcResponse.get("result").get("conflatedTracesFileName").asText());
+      long startBlockNumber = Collections.min(blockNumbers);
+      long endBlockNumber = Collections.max(blockNumbers);
+      TraceFile traceFile = lineaGenerateConflatedTracesToFileV2(startBlockNumber, endBlockNumber);
+      Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
       waitFor(
           10,
           () -> {
-            assertThat(traceFile.toFile().exists())
-                .withFailMessage("Trace file %s does not exist", traceFile)
+            assertThat(traceFilePath.toFile().exists())
+                .withFailMessage("Trace file %s does not exist", traceFilePath)
                 .isTrue();
           });
-      ExecutionEnvironment.checkTracer(traceFile, corsetValidator, false, Optional.of(log));
+
+      ExecutionEnvironment.checkTracer(traceFilePath, corsetValidator, false, Optional.of(log));
+      RollupGetZkEVMStateMerkleProofV0Response rollupGetZkEVMStateMerkleProofV0Response =
+          rollupGetZkEVMStateMerkleProofV0(startBlockNumber, endBlockNumber);
+      log.info("zkEVMStateMerkleProofV0={}", rollupGetZkEVMStateMerkleProofV0Response);
+
+      JsonNode merkleProof = MAPPER.valueToTree(rollupGetZkEVMStateMerkleProofV0Response);
+      ExecutionProof.BatchExecutionProofRequestDto executionProofRequestDto =
+          new ExecutionProof.BatchExecutionProofRequestDto(
+              merkleProof.get("zkParentStateRootHash").asText(),
+              "keccakParentStateRootHash", // TODO: Get this from previous block
+              traceFile.conflatedTracesFileName(),
+              traceFile.tracesEngineVersion(),
+              merkleProof.get("zkStateManagerVersion").asText(),
+              (ArrayNode) merkleProof.get("zkStateMerkleProof"),
+              Lists.emptyList());
+
+      File executionProofRequestFile =
+          Files.createFile(
+                  traceFilePath.resolve(
+                      ExecutionProof.getExecutionProofRequestFilename(
+                          startBlockNumber,
+                          endBlockNumber,
+                          traceFile.tracesEngineVersion(),
+                          merkleProof.get("zkStateManagerVersion").asText())))
+              .toFile();
+      MAPPER.writeValue(executionProofRequestFile, executionProofRequestDto);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private <R, P> R jsonRpcRequest(
+      final String jsonRpcUrl, final String method, final P params, final Class<R> responseType)
+      throws IOException {
+    String request = createJsonRpcRequest(method, params, "1");
+    Response response =
+        httpClient
+            .newCall(
+                new Request.Builder()
+                    .url(jsonRpcUrl)
+                    .post(RequestBody.create(request, MEDIA_TYPE_JSON))
+                    .build())
+            .execute();
+    String responseBody = response.body().string();
+    assertThat(response.isSuccessful())
+        .withFailMessage(
+            String.format(
+                "Unexpected response code: %s, body: %s, request: %s",
+                response.code(), responseBody, request))
+        .isTrue();
+    JsonNode jsonRpcResponse = CONVERTER.fromJson(responseBody, JsonNode.class);
+    JsonNode result = jsonRpcResponse.get("result");
+    assertThat(result)
+        .withFailMessage(
+            String.format(
+                "Request failed. response code: %s, body: %s, request: %s",
+                response.code(), responseBody, request))
+        .isNotNull();
+    return MAPPER.treeToValue(result, responseType);
+  }
+
+  private static <P> String createJsonRpcRequest(
+      final String method, final P params, final String id) {
+    return String.format(
+        "{\n"
+            + "    \"jsonrpc\": \"2.0\",\n"
+            + "    \"method\": \"%s\",\n"
+            + "    \"params\": [%s],\n"
+            + "    \"id\": %s\n"
+            + "}",
+        method, CONVERTER.toJson(params), id);
+  }
+
+  private static int findFreePort() {
+    int port = 0;
+    try (ServerSocket socket = new ServerSocket(0)) {
+      socket.setReuseAddress(true);
+      port = socket.getLocalPort();
+    } catch (IOException ignored) {
+    }
+    if (port > 0) {
+      return port;
+    }
+    throw new RuntimeException("Could not find a free port");
   }
 }

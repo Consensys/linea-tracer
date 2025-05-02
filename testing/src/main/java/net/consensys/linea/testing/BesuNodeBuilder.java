@@ -21,6 +21,7 @@ import java.util.List;
 
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import org.hyperledger.besu.ethereum.api.jsonrpc.JsonRpcConfiguration;
+import org.hyperledger.besu.ethereum.worldstate.DataStorageConfiguration;
 import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
 import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.BesuNodeConfigurationBuilder;
 import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.BesuNodeFactory;
@@ -48,6 +49,7 @@ public class BesuNodeBuilder {
     BesuNodeConfigurationBuilder besuNodeConfigurationBuilder =
         new BesuNodeConfigurationBuilder()
             .name("example-test-node")
+            .dataStorageConfiguration(DataStorageConfiguration.DEFAULT_BONSAI_PARTIAL_DB_CONFIG)
             .genesisConfigProvider(nodes -> genesisConfig.describeConstable())
             .miningEnabled()
             .jsonRpcEnabled()
@@ -56,14 +58,14 @@ public class BesuNodeBuilder {
                 List.of(
                     "BesuShomeiRpcPlugin",
                     "ZkTrieLogPlugin",
-                    // "TracerReadinessPlugin",
+                    "TracerReadinessPlugin",
                     "TracesEndpointServicePlugin",
                     "LineCountsEndpointServicePlugin",
                     "CaptureEndpointServicePlugin"))
             .extraCLIOptions(
                 List.of(
                     "--plugin-shomei-http-host=127.0.0.1",
-                    String.format("--plugin-shomei-http-port=%s", jsonRpcPort),
+                    String.format("--plugin-shomei-http-port=%s", shomeiPort),
                     String.format(
                         "--plugin-linea-conflated-trace-generation-traces-output-path=%s",
                         tracesPath),
@@ -73,11 +75,10 @@ public class BesuNodeBuilder {
                         bridgeConfiguration.contract().toHexString()),
                     String.format(
                         "--plugin-linea-l1l2-bridge-topic=%s",
-                        bridgeConfiguration.topic().toHexString())
-                    // "--plugin-linea-tracer-readiness-server-host=127.0.0.1",
-                    // "--plugin-linea-tracer-readiness-server-port=8548",
-                    //  "--plugin-linea-tracer-readiness-max-blocks-behind=1"
-                    ));
+                        bridgeConfiguration.topic().toHexString()),
+                    "--plugin-linea-tracer-readiness-server-host=127.0.0.1",
+                    "--plugin-linea-tracer-readiness-server-port=8548",
+                    "--plugin-linea-tracer-readiness-max-blocks-behind=1"));
     return new BesuNodeFactory().create(besuNodeConfigurationBuilder.build());
   }
 }

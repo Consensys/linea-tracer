@@ -129,7 +129,7 @@ jacocoTestReport {
 }
 
 tasks.test.configure {
-  dependsOn(buildZkevmBin, "copyPlugins")
+  dependsOn(buildZkevmBin, "copyTracerPlugin", "downloadShoemiBesuPlugin")
 
   delete("${project.getLayout().getBuildDirectory().get()}/besu/traces")
   mkdir("${project.getLayout().getBuildDirectory().get()}/besu/traces")
@@ -165,8 +165,8 @@ tasks.test.configure {
   finalizedBy(jacocoTestReport)
 }
 
-tasks.register("copyPlugins", Copy) {
-  dependsOn(project(":plugins").tasks.findByPath("jar"), "downloadShoemiBesuPlugin")
+tasks.register("copyTracerPlugin", Copy) {
+  dependsOn(project(":plugins").tasks.findByPath("jar"))
   from project(":plugins").tasks.findByPath("jar").outputs.files.collect()
   into "${System.getProperty("besu.plugins.dir")}"
 }

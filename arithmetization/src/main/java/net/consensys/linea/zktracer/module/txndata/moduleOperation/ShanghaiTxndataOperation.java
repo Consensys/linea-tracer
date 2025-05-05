@@ -44,6 +44,10 @@ public class ShanghaiTxndataOperation extends LondonTxndataOperation {
       final Bytes divisor =
           Bytes.minimalBytes(tx.getBesuTransaction().getPayload().size() + WORD_SIZE_MO);
       callsToEucAndWcp.add(TxnDataComparisonRecord.callToEuc(euc, divisor, WORD_SIZE_BYTES));
+    } else {
+      // rows 2 & 3
+      callsToEucAndWcp.add(TxnDataComparisonRecord.empty());
+      callsToEucAndWcp.add(TxnDataComparisonRecord.empty());
     }
   }
 }

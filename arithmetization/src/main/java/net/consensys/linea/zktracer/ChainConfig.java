@@ -35,14 +35,17 @@ public class ChainConfig {
    * Represents Linea mainnet as it stands today which enforces the block gas limit (currently two
    * billion). As the name suggest, this is only intended for testing purposes.
    */
-  public static final ChainConfig MAINNET_LONDON_TESTCONFIG =
-      new ChainConfig(
-          LONDON,
-          LINEA_CHAIN_ID,
-          true,
-          BigInteger.valueOf(LINEA_GAS_LIMIT_MINIMUM),
-          BigInteger.valueOf(LINEA_GAS_LIMIT_MAXIMUM),
-          LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT);
+  public static final ChainConfig MAINNET_LONDON_TESTCONFIG = MAINNET_TESTCONFIG(LONDON);
+
+  public static final ChainConfig MAINNET_TESTCONFIG(final Fork fork) {
+    return new ChainConfig(
+        fork,
+        LINEA_CHAIN_ID,
+        true,
+        BigInteger.valueOf(LINEA_GAS_LIMIT_MINIMUM),
+        BigInteger.valueOf(LINEA_GAS_LIMIT_MAXIMUM),
+        LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT);
+  }
 
   /**
    * Represents Linea mainnet prior to the block gas limit being enforced for the purposes of

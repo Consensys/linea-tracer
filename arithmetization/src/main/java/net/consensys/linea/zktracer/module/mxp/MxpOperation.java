@@ -39,6 +39,7 @@ import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -372,11 +373,9 @@ public class MxpOperation extends ModuleOperation {
 
   public int ctMax() {
     return switch (this.getMxpExecutionPath()) {
-        // TODO: fix
-      default -> CT_MAX_TRIV;
-        /*      case TRIVIAL -> CT_MAX_TRIVIAL;
-        case NON_TRIVIAL_BUT_MXPX -> CT_MAX_NON_TRIVIAL_BUT_MXPX;
-        case NON_TRIVIAL -> CT_MAX_NON_TRIVIAL;*/
+      case TRIVIAL -> CT_MAX_TRIVIAL;
+      case NON_TRIVIAL_BUT_MXPX -> CT_MAX_NON_TRIVIAL_BUT_MXPX;
+      case NON_TRIVIAL -> CT_MAX_NON_TRIVIAL;
     };
   }
 
@@ -503,70 +502,70 @@ public class MxpOperation extends ModuleOperation {
     final int nRowsComplement = 32 - nRows;
 
     for (int i = 0; i < nRows; i++) {
-      /*      trace
-      .stamp(stamp)
-      .cn(Bytes.ofUnsignedLong(this.getContextNumber()))
-      .ct((short) i)
-      .roob(this.isRoob())
-      .noop(this.isNoOperation())
-      .mxpx(this.mxpCall.isMxpx())
-      .inst(UnsignedByte.of(this.mxpCall.getOpCodeData().value()))
-      .mxpType1(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_1)
-      .mxpType2(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_2)
-      .mxpType3(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_3)
-      .mxpType4(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_4)
-      .mxpType5(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_5)
-      .gword(
-          Bytes.ofUnsignedLong(
-              this.mxpCall.getOpCodeData().billing().billingRate() == BillingRate.BY_WORD
-                  ? this.mxpCall.getOpCodeData().billing().perUnit().cost()
-                  : 0))
-      .gbyte(
-          Bytes.ofUnsignedLong(
-              this.mxpCall.getOpCodeData().billing().billingRate() == BillingRate.BY_BYTE
-                  ? this.mxpCall.getOpCodeData().billing().perUnit().cost()
-                  : 0))
-      .deploys(mxpCall.isDeploys())
-      .offset1Hi(eOffset1.hi())
-      .offset1Lo(eOffset1.lo())
-      .offset2Hi(eOffset2.hi())
-      .offset2Lo(eOffset2.lo())
-      .size1Hi(eSize1.hi())
-      .size1Lo(eSize1.lo())
-      .size2Hi(eSize2.hi())
-      .size2Lo(eSize2.lo())
-      .maxOffset1(bigIntegerToBytes(this.getMaxOffset1()))
-      .maxOffset2(bigIntegerToBytes(this.getMaxOffset2()))
-      .maxOffset(bigIntegerToBytes(this.getMaxOffset()))
-      .comp(this.isComp())
-      .acc1(acc1Bytes32.slice(nRowsComplement, 1 + i))
-      .acc2(acc2Bytes32.slice(nRowsComplement, 1 + i))
-      .acc3(acc3Bytes32.slice(nRowsComplement, 1 + i))
-      .acc4(acc4Bytes32.slice(nRowsComplement, 1 + i))
-      .accA(accABytes32.slice(nRowsComplement, 1 + i))
-      .accW(accWBytes32.slice(nRowsComplement, 1 + i))
-      .accQ(accQBytes32.slice(nRowsComplement, 1 + i))
-      .byte1(UnsignedByte.of(acc1Bytes32.get(nRowsComplement + i)))
-      .byte2(UnsignedByte.of(acc2Bytes32.get(nRowsComplement + i)))
-      .byte3(UnsignedByte.of(acc3Bytes32.get(nRowsComplement + i)))
-      .byte4(UnsignedByte.of(acc4Bytes32.get(nRowsComplement + i)))
-      .byteA(UnsignedByte.of(accABytes32.get(nRowsComplement + i)))
-      .byteW(UnsignedByte.of(accWBytes32.get(nRowsComplement + i)))
-      .byteQ(UnsignedByte.of(accQBytes32.get(nRowsComplement + i)))
-      .byteQq(UnsignedByte.of(this.getByteQQ()[i].toInteger()))
-      .byteR(UnsignedByte.of(this.getByteR()[i].toInteger()))
-      .words(Bytes.ofUnsignedLong(this.mxpCall.getMemorySizeInWords()))
-      .wordsNew(Bytes.ofUnsignedLong(this.getWordsNew()))
-      .cMem(Bytes.ofUnsignedLong(this.getCMem())) // Returns current memory size in EVM words
-      .cMemNew(Bytes.ofUnsignedLong(this.getCMemNew()))
-      .quadCost(Bytes.ofUnsignedLong(this.getQuadCost()))
-      .linCost(Bytes.ofUnsignedLong(this.getLinCost()))
-      .gasMxp(Bytes.ofUnsignedLong(this.mxpCall.getGasMxp()))
-      .expands(this.isExpands())
-      .mtntop(this.mxpCall.mayTriggerNontrivialMmuOperation)
-      .size1NonzeroNoMxpx(this.mxpCall.getSize1NonZeroNoMxpx())
-      .size2NonzeroNoMxpx(this.mxpCall.getSize2NonZeroNoMxpx())
-      .validateRow();*/
+      trace
+          .stamp(stamp)
+          .prevCn(Bytes.ofUnsignedLong(this.getContextNumber()))
+          .prevCt((short) i)
+          .roob(this.isRoob())
+          .noop(this.isNoOperation())
+          .mxpx(this.mxpCall.isMxpx())
+          .inst(UnsignedByte.of(this.mxpCall.getOpCodeData().value()))
+          .mxpType1(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_1)
+          .mxpType2(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_2)
+          .mxpType3(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_3)
+          .mxpType4(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_4)
+          .mxpType5(this.mxpCall.getOpCodeData().billing().type() == MxpType.TYPE_5)
+          .gword(
+              Bytes.ofUnsignedLong(
+                  this.mxpCall.getOpCodeData().billing().billingRate() == BillingRate.BY_WORD
+                      ? this.mxpCall.getOpCodeData().billing().perUnit().cost()
+                      : 0))
+          .gbyte(
+              Bytes.ofUnsignedLong(
+                  this.mxpCall.getOpCodeData().billing().billingRate() == BillingRate.BY_BYTE
+                      ? this.mxpCall.getOpCodeData().billing().perUnit().cost()
+                      : 0))
+          .deploys(mxpCall.isDeploys())
+          .offset1Hi(eOffset1.hi())
+          .offset1Lo(eOffset1.lo())
+          .offset2Hi(eOffset2.hi())
+          .offset2Lo(eOffset2.lo())
+          .size1Hi(eSize1.hi())
+          .size1Lo(eSize1.lo())
+          .size2Hi(eSize2.hi())
+          .size2Lo(eSize2.lo())
+          .maxOffset1(bigIntegerToBytes(this.getMaxOffset1()))
+          .maxOffset2(bigIntegerToBytes(this.getMaxOffset2()))
+          .maxOffset(bigIntegerToBytes(this.getMaxOffset()))
+          .comp(this.isComp())
+          .acc1(acc1Bytes32.slice(nRowsComplement, 1 + i))
+          .acc2(acc2Bytes32.slice(nRowsComplement, 1 + i))
+          .acc3(acc3Bytes32.slice(nRowsComplement, 1 + i))
+          .acc4(acc4Bytes32.slice(nRowsComplement, 1 + i))
+          .accA(accABytes32.slice(nRowsComplement, 1 + i))
+          .accW(accWBytes32.slice(nRowsComplement, 1 + i))
+          .accQ(accQBytes32.slice(nRowsComplement, 1 + i))
+          .byte1(UnsignedByte.of(acc1Bytes32.get(nRowsComplement + i)))
+          .byte2(UnsignedByte.of(acc2Bytes32.get(nRowsComplement + i)))
+          .byte3(UnsignedByte.of(acc3Bytes32.get(nRowsComplement + i)))
+          .byte4(UnsignedByte.of(acc4Bytes32.get(nRowsComplement + i)))
+          .byteA(UnsignedByte.of(accABytes32.get(nRowsComplement + i)))
+          .byteW(UnsignedByte.of(accWBytes32.get(nRowsComplement + i)))
+          .byteQ(UnsignedByte.of(accQBytes32.get(nRowsComplement + i)))
+          .byteQq(UnsignedByte.of(this.getByteQQ()[i].toInteger()))
+          .byteR(UnsignedByte.of(this.getByteR()[i].toInteger()))
+          .words(Bytes.ofUnsignedLong(this.mxpCall.getMemorySizeInWords()))
+          .wordsNew(Bytes.ofUnsignedLong(this.getWordsNew()))
+          .cMem(Bytes.ofUnsignedLong(this.getCMem())) // Returns current memory size in EVM words
+          .cMemNew(Bytes.ofUnsignedLong(this.getCMemNew()))
+          .quadCost(Bytes.ofUnsignedLong(this.getQuadCost()))
+          .linCost(Bytes.ofUnsignedLong(this.getLinCost()))
+          .gasMxp(Bytes.ofUnsignedLong(this.mxpCall.getGasMxp()))
+          .expands(this.isExpands())
+          .mtntop(this.mxpCall.mayTriggerNontrivialMmuOperation)
+          .size1NonzeroNoMxpx(this.mxpCall.getSize1NonZeroNoMxpx())
+          .size2NonzeroNoMxpx(this.mxpCall.getSize2NonZeroNoMxpx())
+          .validateRow();
     }
   }
 }

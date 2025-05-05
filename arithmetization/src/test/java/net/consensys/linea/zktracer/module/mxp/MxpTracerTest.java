@@ -38,7 +38,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class MxpTracerTest extends TracerTestBase {
   // private static final Random RAND = new Random();
   private static final int TEST_REPETITIONS = 2;
-  private static final Module MODULE = new Mxp();
+  // TODO: check how to update
+  private static final Module MODULE = new LondonMxp();
   private static final DynamicTests DYN_TESTS = DynamicTests.forModule(MODULE);
 
   @TestFactory

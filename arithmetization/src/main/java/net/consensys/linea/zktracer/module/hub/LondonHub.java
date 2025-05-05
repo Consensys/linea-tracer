@@ -31,6 +31,8 @@ import net.consensys.linea.zktracer.module.tables.instructionDecoder.Instruction
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import net.consensys.linea.zktracer.module.mxp.LondonMxp;
+import net.consensys.linea.zktracer.module.mxp.Mxp;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -66,6 +68,11 @@ public class LondonHub extends Hub {
   @Override
   protected InstructionDecoder setInstructionDecoder() {
     return new LondonInstructionDecoder();
+  }
+
+  @Override
+  protected Mxp setMxp() {
+    return new LondonMxp();
   }
 
   @Override

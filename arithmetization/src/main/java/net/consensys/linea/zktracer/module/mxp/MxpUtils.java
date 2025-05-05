@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.mxpv3;
+package net.consensys.linea.zktracer.module.mxp;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
 import static org.hyperledger.besu.evm.internal.Words.clampedAdd;

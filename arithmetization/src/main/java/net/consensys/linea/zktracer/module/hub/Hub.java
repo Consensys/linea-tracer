@@ -228,7 +228,7 @@ public abstract class Hub implements Module {
   @Getter private final RlpAddr rlpAddr;
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
-  @Getter private final Mxp mxp = new Mxp();
+  @Getter private final Mxp mxp = setMxp();
   @Getter private final Oob oob = new Oob(this, add, mod, wcp);
   @Getter private final Mmu mmu;
   @Getter private final Stp stp = new Stp(wcp, mod);
@@ -1044,6 +1044,8 @@ public abstract class Hub implements Module {
   protected abstract TransactionStack setTransactionStack();
 
   protected abstract TxnData setTxnData();
+
+  protected abstract Mxp setMxp();
 
   protected abstract Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain);
 

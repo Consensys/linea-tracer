@@ -1,6 +1,6 @@
-package net.consensys.linea.zktracer.module.mxpv3;
+package net.consensys.linea.zktracer.module.mxp;
 
-import static net.consensys.linea.zktracer.module.mxpv3.MxpUtils.isWordPricingOpcode;
+import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isWordPricingOpcode;
 
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.opcode.OpCode;

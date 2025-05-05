@@ -314,7 +314,8 @@ public class ReturnSection extends TraceSection
         new Bytecode(
             hub.messageFrame()
                 .shadowReadMemory(
-                    Words.clampedToLong(mxpCall.offset1), Words.clampedToLong(mxpCall.size1))));
+                    Words.clampedToLong(mxpCall.getOffset1()),
+                    Words.clampedToLong(mxpCall.getSize1()))));
     firstCreateeNew.deploymentStatus(false);
     final AccountFragment deploymentAccountFragment =
         hub.factories()

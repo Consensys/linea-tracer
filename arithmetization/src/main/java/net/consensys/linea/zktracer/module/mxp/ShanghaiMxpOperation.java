@@ -13,16 +13,15 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mxpv3;
+package net.consensys.linea.zktracer.module.mxp;
 
 import static net.consensys.linea.zktracer.Trace.Mxp.*;
-import static net.consensys.linea.zktracer.module.mxpv3.MxpScenario.*;
-import static net.consensys.linea.zktracer.module.mxpv3.MxpUtils.*;
+import static net.consensys.linea.zktracer.module.mxp.MxpScenario.*;
+import static net.consensys.linea.zktracer.module.mxp.MxpUtils.*;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -32,7 +31,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @Getter
-public class MxpOperationV3 extends ModuleOperation {
+public class ShanghaiMxpOperation extends LondonMxpOperation {
 
   // Todo list
   // - check hub justification
@@ -44,7 +43,6 @@ public class MxpOperationV3 extends ModuleOperation {
   // - review utils methods if needed in types
   // - check tests commenting of roob
 
-  @Getter final MxpCall mxpCall;
   private final MxpComputation mxpComputation;
 
   private final Wcp wcp;
@@ -58,10 +56,10 @@ public class MxpOperationV3 extends ModuleOperation {
   private final Bytes gWord;
   private final Bytes gByte;
 
-  public MxpOperationV3(final MxpCall mxpCall, Wcp wcp, Euc euc) {
+  public ShanghaiMxpOperation(final MxpCall mxpCall, Wcp wcp, Euc euc) {
+    super(mxpCall);
     this.wcp = wcp;
     this.euc = euc;
-    this.mxpCall = mxpCall;
     this.mxpComputation = new MxpComputation(wcp, euc, nRows());
 
     this.contextNumber = this.mxpCall.hub.currentFrame().contextNumber();
@@ -136,6 +134,14 @@ public class MxpOperationV3 extends ModuleOperation {
         }
       }
     }
+  }
+
+  @Override
+  public final void trace(int stamp, Trace.Mxp trace) {
+    traceDecoder(++stamp, trace);
+    traceMacro(stamp, trace);
+    traceScenario(stamp, trace);
+    traceComputation(stamp, trace);
   }
 
   final void traceDecoder(int stamp, Trace.Mxp trace) {

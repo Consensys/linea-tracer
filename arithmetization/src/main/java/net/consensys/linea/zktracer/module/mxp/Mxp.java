@@ -59,6 +59,6 @@ public class Mxp implements OperationListModule<MxpOperation> {
   }
 
   public void call(MxpCall mxpCall) {
-    operations.add(new MxpOperation(mxpCall));
+    throw new IllegalStateException("Should be implemented");
   }
 }

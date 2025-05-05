@@ -39,7 +39,7 @@ public class MxpCall implements TraceSubFragment {
   /** mxpx is short of Memory eXPansion eXception */
   @Getter @Setter public boolean mxpx;
 
-  @Getter @Setter public long memorySizeInWords;
+  @Setter public long memorySizeInWords;
   @Getter @Setter public long gasMxp;
 
   public static MxpCall build(Hub hub) {

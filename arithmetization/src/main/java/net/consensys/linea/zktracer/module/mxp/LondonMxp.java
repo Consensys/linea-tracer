@@ -16,20 +16,19 @@
 package net.consensys.linea.zktracer.module.mxp;
 
 import lombok.Getter;
-import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.container.ModuleOperation;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
+/** Implementation of a {@link Module} for memory expansion. */
 @Getter
-public abstract class MxpOperation extends ModuleOperation {
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public class LondonMxp extends Mxp {
 
-  final MxpCall mxpCall;
-
-  public MxpOperation(MxpCall mxpCall) {
-    this.mxpCall = mxpCall;
-  }
-
-  public void trace(int stamp, Trace.Mxp mxp) {
-    throw new IllegalStateException("Should be implemented");
+  @Override
+  public void call(MxpCall mxpCall) {
+    operations().add(new LondonMxpOperation(mxpCall));
   }
 }

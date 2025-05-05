@@ -1,9 +1,9 @@
-package net.consensys.linea.zktracer.module.mxpv3;
+package net.consensys.linea.zktracer.module.mxp;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
 import static net.consensys.linea.zktracer.Trace.Mxp.MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.module.euc.EucCall.eucCall;
-import static net.consensys.linea.zktracer.module.mxpv3.MxpUtils.isDoubleOffsetOpcode;
+import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isDoubleOffsetOpcode;
 import static net.consensys.linea.zktracer.module.wcp.WcpCall.*;
 import static net.consensys.linea.zktracer.module.wcp.WcpCall.ltCall;
 import static net.consensys.linea.zktracer.types.Conversions.*;

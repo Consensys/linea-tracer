@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer;
 
 public enum Fork {
   LONDON,
+  // PARIS,
   SHANGHAI,
   CANCUN,
   PRAGUE;
@@ -24,6 +25,7 @@ public enum Fork {
   public static String toString(Fork fork) {
     return switch (fork) {
       case LONDON -> "london";
+        // case PARIS -> "paris";
       case SHANGHAI -> "shanghai";
       case CANCUN -> "cancun";
       case PRAGUE -> "prague";

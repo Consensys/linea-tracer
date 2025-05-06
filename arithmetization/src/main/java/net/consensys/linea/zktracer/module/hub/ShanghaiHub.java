@@ -20,8 +20,6 @@ import net.consensys.linea.zktracer.module.hub.section.create.ShanghaiCreateSect
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.ShanghaiInitializationSection;
 import net.consensys.linea.zktracer.module.hub.state.ShanghaiTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
-import net.consensys.linea.zktracer.module.mxp.Mxp;
-import net.consensys.linea.zktracer.module.mxp.ShanghaiMxp;
 import net.consensys.linea.zktracer.module.txndata.module.ShanghaiTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -47,11 +45,6 @@ public class ShanghaiHub extends ParisHub {
   @Override
   protected TxnData setTxnData() {
     return new ShanghaiTxnData(this, wcp(), euc());
-  }
-
-  @Override
-  protected Mxp setMxp() {
-    return new ShanghaiMxp(wcp(), euc());
   }
 
   @Override

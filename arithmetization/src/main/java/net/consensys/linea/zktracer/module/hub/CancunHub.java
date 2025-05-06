@@ -16,6 +16,8 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.module.mxp.CancunMxp;
+import net.consensys.linea.zktracer.module.mxp.Mxp;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
@@ -35,6 +37,11 @@ public class CancunHub extends ShanghaiHub {
   @Override
   protected GasCalculator setGasCalculator() {
     return new CancunGasCalculator();
+  }
+
+  @Override
+  protected Mxp setMxp() {
+    return new CancunMxp(wcp(), euc());
   }
 
   @Override

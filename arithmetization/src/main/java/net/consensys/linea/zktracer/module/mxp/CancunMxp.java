@@ -27,11 +27,11 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public class ShanghaiMxp extends LondonMxp {
+public class CancunMxp extends LondonMxp {
   private final Wcp wcp;
   private final Euc euc;
 
   public void call(MxpCall mxpCall) {
-    operations().add(new ShanghaiMxpOperation(mxpCall, wcp, euc));
+    operations().add(new CancunMxpOperation(mxpCall, wcp, euc));
   }
 }

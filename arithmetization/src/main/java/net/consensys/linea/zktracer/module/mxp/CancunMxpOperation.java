@@ -31,7 +31,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @Getter
-public class ShanghaiMxpOperation extends LondonMxpOperation {
+public class CancunMxpOperation extends LondonMxpOperation {
 
   // Todo list
   // - check hub justification
@@ -56,7 +56,7 @@ public class ShanghaiMxpOperation extends LondonMxpOperation {
   private final Bytes gWord;
   private final Bytes gByte;
 
-  public ShanghaiMxpOperation(final MxpCall mxpCall, Wcp wcp, Euc euc) {
+  public CancunMxpOperation(final MxpCall mxpCall, Wcp wcp, Euc euc) {
     super(mxpCall);
     this.wcp = wcp;
     this.euc = euc;

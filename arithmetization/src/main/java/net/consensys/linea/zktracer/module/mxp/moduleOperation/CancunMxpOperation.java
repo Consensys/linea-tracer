@@ -73,8 +73,10 @@ public class CancunMxpOperation extends LondonMxpOperation {
     this.gWord = this.mxpCall.getCostBy(BillingRate.BY_WORD);
     this.gByte = this.mxpCall.getCostBy(BillingRate.BY_BYTE);
 
+    // snapshot properties from the hub in mxp data
     this.mxpCall.fillMxpProperties();
     this.scenario = MxpScenario.getMxpScenario(this.mxpCall);
+    scenario.compute();
 
     computationsAndUpdates();
   }

@@ -73,6 +73,10 @@ public class MxpCall implements TraceSubFragment {
             : 0);
   }
 
+  /**
+   * This method is call by the Mxp module and snapshots the following properties of MxpCall from
+   * the hub - opCodeData - deploys - memorySizeInWords - offset1 - size1 - offset2 - size2
+   */
   public void fillMxpProperties() {
     final MessageFrame frame = this.hub.messageFrame();
     this.opCodeData = this.hub.opCodeData();

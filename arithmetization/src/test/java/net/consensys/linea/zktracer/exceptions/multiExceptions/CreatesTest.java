@@ -59,7 +59,8 @@ public class CreatesTest {
 
     /*
     for CREATE/CREATE2, Static Exception happens before deployment, so we test OOGX before deployment
-    We remove 6400 (depositFee) + deployment code exec cost (18) from gas cost calculated
+    gasCostTx is the gas cost calculated when the program, which we will later static call, goes to completion (simple create with init code in memory)
+    We remove 6400 (depositFee) + deployment code exec cost (18) from total gas cost calculated as well as (1) to trigger OOGX on the Creates
      */
     int cornerCase = -6419;
     // We calculate gas cost to trigger OOGX

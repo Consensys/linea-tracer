@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mxp;
+package net.consensys.linea.zktracer.module.mxp.module;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +21,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 /** Implementation of a {@link Module} for memory expansion. */

@@ -27,6 +27,7 @@ import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.DynamicTests;
 import net.consensys.linea.testing.OpcodeCall;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.module.mxp.module.LondonMxp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;

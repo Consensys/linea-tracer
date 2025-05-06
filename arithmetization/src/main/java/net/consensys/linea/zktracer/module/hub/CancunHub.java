@@ -16,8 +16,8 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.mxp.CancunMxp;
-import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.mxp.module.CancunMxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;

@@ -28,18 +28,26 @@ import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
 public class MxpCall implements TraceSubFragment {
 
   public final Hub hub;
 
+  // filled in by MXP module
+  @Getter @Setter public OpCodeData opCodeData;
+  @Getter @Setter public boolean deploys;
+  @Getter @Setter public long memorySizeInWords;
+  @Getter @Setter public EWord offset1 = EWord.ZERO;
+  @Getter @Setter public EWord size1 = EWord.ZERO;
+  @Getter @Setter public EWord offset2 = EWord.ZERO;
+  @Getter @Setter public EWord size2 = EWord.ZERO;
   @Getter @Setter public boolean mayTriggerNontrivialMmuOperation;
 
   /** mxpx is short of Memory eXPansion eXception */
   @Getter @Setter public boolean mxpx;
 
-  @Setter public long memorySizeInWords;
   @Getter @Setter public long gasMxp;
 
   public static MxpCall build(Hub hub) {
@@ -48,116 +56,6 @@ public class MxpCall implements TraceSubFragment {
 
   static boolean getMemoryExpansionException(Hub hub) {
     return Exceptions.memoryExpansionException(hub.pch().exceptions());
-  }
-
-  public OpCodeData getOpCodeData() {
-    return this.hub.opCodeData();
-  }
-
-  public boolean isDeploys() {
-    return getOpCodeData().mnemonic() == OpCode.RETURN & this.hub.currentFrame().isDeployment();
-  }
-
-  public long getMemorySizeInWords() {
-    return this.hub.messageFrame().memoryWordSize();
-  }
-
-  public EWord getOffset1() {
-    OpCode opCode = getOpCodeData().mnemonic();
-    switch (opCode) {
-      case MLOAD,
-          MSTORE,
-          MSTORE8,
-          REVERT,
-          RETURN,
-          LOG0,
-          LOG1,
-          LOG2,
-          LOG3,
-          LOG4,
-          SHA3,
-          CALLDATACOPY,
-          RETURNDATACOPY,
-          CODECOPY,
-          MCOPY -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(0));
-      }
-      case EXTCODECOPY, CREATE, CREATE2 -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(1));
-      }
-      case DELEGATECALL, STATICCALL -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(2));
-      }
-      case CALL, CALLCODE -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(3));
-      }
-      default -> {
-        return EWord.of(0);
-      }
-    }
-  }
-
-  public EWord getOffset2() {
-    OpCode opCode = getOpCodeData().mnemonic();
-    switch (opCode) {
-      case MCOPY -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(1));
-      }
-      case CALL, CALLCODE -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(5));
-      }
-      case DELEGATECALL, STATICCALL -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(4));
-      }
-      default -> {
-        return EWord.of(0);
-      }
-    }
-  }
-
-  public EWord getSize1() {
-    OpCode opCode = getOpCodeData().mnemonic();
-    switch (opCode) {
-      case MLOAD, MSTORE -> {
-        return EWord.of(32);
-      }
-      case MSTORE8 -> {
-        return EWord.of(1);
-      }
-      case REVERT, RETURN, LOG0, LOG1, LOG2, LOG3, LOG4, SHA3 -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(1));
-      }
-      case CALLDATACOPY, RETURNDATACOPY, CODECOPY, CREATE, CREATE2, MCOPY -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(2));
-      }
-      case EXTCODECOPY, DELEGATECALL, STATICCALL -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(3));
-      }
-      case CALL, CALLCODE -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(4));
-      }
-      default -> {
-        return EWord.of(0);
-      }
-    }
-  }
-
-  public EWord getSize2() {
-    OpCode opCode = getOpCodeData().mnemonic();
-    switch (opCode) {
-      case MCOPY -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(2));
-      }
-      case DELEGATECALL, STATICCALL -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(5));
-      }
-      case CALL, CALLCODE -> {
-        return EWord.of(this.hub.messageFrame().getStackItem(6));
-      }
-      default -> {
-        return EWord.of(0);
-      }
-    }
   }
 
   public boolean getSize1NonZeroNoMxpx() {
@@ -175,20 +73,77 @@ public class MxpCall implements TraceSubFragment {
             : 0);
   }
 
+  public void fillMxpProperties() {
+    final MessageFrame frame = this.hub.messageFrame();
+    this.opCodeData = this.hub.opCodeData();
+    this.deploys =
+        getOpCodeData().mnemonic() == OpCode.RETURN & this.hub.currentFrame().isDeployment();
+    this.memorySizeInWords = this.hub.messageFrame().memoryWordSize();
+    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    switch (opCode) {
+      case MSIZE -> {}
+      case MLOAD -> {
+        this.offset1 = EWord.of(frame.getStackItem(0));
+      }
+      case MSTORE -> {
+        this.offset1 = EWord.of(frame.getStackItem(0));
+        this.size1 = EWord.of(32);
+      }
+      case MSTORE8 -> {
+        this.offset1 = EWord.of(frame.getStackItem(0));
+        this.size1 = EWord.of(1);
+      }
+      case REVERT, RETURN, LOG0, LOG1, LOG2, LOG3, LOG4, SHA3 -> {
+        this.offset1 = EWord.of(frame.getStackItem(0));
+        this.size1 = EWord.of(frame.getStackItem(1));
+      }
+      case CALLDATACOPY, RETURNDATACOPY, CODECOPY -> {
+        this.offset1 = EWord.of(frame.getStackItem(0));
+        this.size1 = EWord.of(frame.getStackItem(2));
+      }
+      case EXTCODECOPY -> {
+        this.offset1 = EWord.of(frame.getStackItem(1));
+        this.size1 = EWord.of(frame.getStackItem(3));
+      }
+      case CREATE, CREATE2 -> {
+        this.offset1 = EWord.of(frame.getStackItem(1));
+        this.size1 = EWord.of(frame.getStackItem(2));
+      }
+      case MCOPY -> {
+        this.offset1 = EWord.of(frame.getStackItem(0));
+        this.offset2 = EWord.of(frame.getStackItem(1));
+        this.size2 = EWord.of(frame.getStackItem(2));
+      }
+      case CALL, CALLCODE -> {
+        this.offset1 = EWord.of(frame.getStackItem(3));
+        this.size1 = EWord.of(frame.getStackItem(4));
+        this.offset2 = EWord.of(frame.getStackItem(5));
+        this.size2 = EWord.of(frame.getStackItem(6));
+      }
+      case DELEGATECALL, STATICCALL -> {
+        this.offset1 = EWord.of(frame.getStackItem(2));
+        this.size1 = EWord.of(frame.getStackItem(3));
+        this.offset2 = EWord.of(frame.getStackItem(4));
+        this.size2 = EWord.of(frame.getStackItem(5));
+      }
+      default -> throw new IllegalStateException("Unexpected value: " + opCode);
+    }
+  }
+
   public Trace.Hub trace(Trace.Hub trace, State hubState) {
     hubState.incrementMxpStamp();
     return trace
         .pMiscMxpFlag(true)
-        .pMiscMxpInst(getOpCodeData().value())
-        .pMiscMxpDeploys(isDeploys())
-        .pMiscMxpOffset1Hi(getOffset1().hi())
-        .pMiscMxpOffset1Lo(getOffset1().lo())
-        .pMiscMxpSize1Hi(getSize1().hi())
-        .pMiscMxpSize1Lo(getSize1().lo())
-        .pMiscMxpOffset2Hi(getOffset2().hi())
-        .pMiscMxpOffset2Lo(getOffset2().lo())
-        .pMiscMxpSize2Hi(getSize2().hi())
-        .pMiscMxpSize2Lo(getSize2().lo())
+        .pMiscMxpInst(this.opCodeData.value())
+        .pMiscMxpDeploys(this.deploys)
+        .pMiscMxpOffset1Hi(this.offset1.hi())
+        .pMiscMxpOffset1Lo(this.offset1.lo())
+        .pMiscMxpSize1Hi(this.size1.hi())
+        .pMiscMxpSize1Lo(this.size1.lo())
+        .pMiscMxpOffset2Hi(this.offset2.hi())
+        .pMiscMxpOffset2Lo(this.offset2.lo())
+        .pMiscMxpSize2Hi(this.size2.hi())
+        .pMiscMxpSize2Lo(this.size2.lo())
         .pMiscMxpMtntop(this.mayTriggerNontrivialMmuOperation)
         .pMiscMxpSize1NonzeroNoMxpx(this.getSize1NonZeroNoMxpx())
         .pMiscMxpSize2NonzeroNoMxpx(this.getSize2NonZeroNoMxpx())

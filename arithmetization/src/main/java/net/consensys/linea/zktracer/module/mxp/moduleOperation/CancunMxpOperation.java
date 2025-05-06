@@ -13,10 +13,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mxp;
+package net.consensys.linea.zktracer.module.mxp.moduleOperation;
 
-import static net.consensys.linea.zktracer.Trace.Mxp.*;
-import static net.consensys.linea.zktracer.module.mxp.MxpScenario.*;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.*;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
@@ -24,6 +22,8 @@ import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.mxp.MxpComputation;
+import net.consensys.linea.zktracer.module.mxp.scenario.*;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
@@ -55,6 +55,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
   private long cMemNew;
   private final Bytes gWord;
   private final Bytes gByte;
+  private final MxpScenario scenario;
 
   public CancunMxpOperation(final MxpCall mxpCall, Wcp wcp, Euc euc) {
     super(mxpCall);
@@ -72,21 +73,14 @@ public class CancunMxpOperation extends LondonMxpOperation {
     this.gWord = this.mxpCall.getCostBy(BillingRate.BY_WORD);
     this.gByte = this.mxpCall.getCostBy(BillingRate.BY_BYTE);
 
+    this.mxpCall.fillMxpProperties();
+    this.scenario = MxpScenario.getMxpScenario(this.mxpCall);
+
     computationsAndUpdates();
   }
 
-  public int ctMax() {
-    return switch (getMxpScenario(this.mxpCall)) {
-      case MSIZE -> CT_MAX_MSIZE;
-      case TRIVIAL -> CT_MAX_TRIV;
-      case MXPX -> CT_MAX_MXPX;
-      case UPDT_W -> CT_MAX_UPDT_W;
-      case UPDT_B -> CT_MAX_UPDT_B;
-    };
-  }
-
   public int nRows() {
-    return ctMax() + 1;
+    return scenario.ctMax() + 1;
   }
 
   @Override
@@ -95,8 +89,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
   }
 
   private void computationsAndUpdates() {
-    var scenario = getMxpScenario(this.mxpCall);
-    if (scenario == MSIZE) {
+    if (scenario.isMSizeScenario()) {
       mxpComputation.computeForMSize();
       // And we set the following to understand MSize scenario vs keeping implicit default values
       mxpCall.setMxpx(false);
@@ -105,7 +98,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
       mxpCall.setGasMxp(0L);
     } else {
       mxpComputation.computeForNotMSize(this.mxpCall);
-      if (scenario == TRIVIAL) {
+      if (scenario.isTrivialScenario()) {
         // No state update
         mxpCall.setGasMxp(0L);
       } else {
@@ -113,7 +106,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
         mxpCall.setMxpx(mxpxExpression != 0);
         mxpCall.setMayTriggerNontrivialMmuOperation(
             !this.mxpCall.getSize1().isZero() && !this.mxpCall.isMxpx());
-        if (scenario == MXPX) {
+        if (scenario.isMxpxScenario()) {
           // No state update
           mxpCall.setGasMxp(0L);
         } else {
@@ -124,7 +117,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
           this.wordsNew = wordsNewUpdate;
           this.cMemNew = cMemNewUpdate;
 
-          if (scenario == UPDT_W) {
+          if (scenario.isStateUpdtWPricingScenario()) {
             long extraWordCost = mxpComputation.computeForUpdtW(this.mxpCall, this.gWord);
             mxpCall.setGasMxp(this.cMemNew - this.cMem + extraWordCost);
           } else {
@@ -213,11 +206,11 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .computation(false)
         .ct(0)
         .ctMax(0)
-        .pScenarioMsize(getMxpScenario(this.mxpCall) == MSIZE)
-        .pScenarioTrivial(getMxpScenario(this.mxpCall) == TRIVIAL)
-        .pScenarioMxpx(getMxpScenario(this.mxpCall) == MxpScenario.MXPX)
-        .pScenarioStateUpdateBytePricing(getMxpScenario(this.mxpCall) == MxpScenario.UPDT_B)
-        .pScenarioStateUpdateBytePricing(getMxpScenario(this.mxpCall) == MxpScenario.UPDT_W)
+        .pScenarioMsize(this.scenario.isMSizeScenario())
+        .pScenarioTrivial(this.scenario.isTrivialScenario())
+        .pScenarioMxpx(this.scenario.isMxpxScenario())
+        .pScenarioStateUpdateWordPricing(this.scenario.isStateUpdtWPricingScenario())
+        .pScenarioStateUpdateBytePricing(this.scenario.isStateUpdtBPricingScenario())
         .pScenarioWords(this.words)
         .pScenarioWordsNew(this.wordsNew)
         .pScenarioCmem(Bytes.ofUnsignedLong(this.cMem))
@@ -237,7 +230,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
           .scenario(false)
           .computation(true)
           .ct(i)
-          .ctMax(ctMax())
+          .ctMax(scenario.ctMax())
           .pComputationWcpFlag(this.mxpComputation.wcpFlags[i])
           .pComputationEucFlag(this.mxpComputation.eucFlags[i])
           .pComputationExoInst(

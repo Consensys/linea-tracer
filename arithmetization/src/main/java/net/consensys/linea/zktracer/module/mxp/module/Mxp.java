@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mxp;
+package net.consensys.linea.zktracer.module.mxp.module;
 
 import java.util.List;
 
@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleOperation.MxpOperation;
 
 /** Implementation of a {@link Module} for memory expansion. */
 @Getter

@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mxp;
+package net.consensys.linea.zktracer.module.mxp.moduleOperation;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;

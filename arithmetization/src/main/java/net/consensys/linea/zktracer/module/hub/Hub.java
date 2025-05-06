@@ -93,7 +93,7 @@ import net.consensys.linea.zktracer.module.mmio.Mmio;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
-import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.oob.Oob;
 import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;

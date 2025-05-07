@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_XCREATE;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.module.txndata.moduleOperation.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
-import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -62,8 +61,7 @@ public class XCreateOobCall extends OobCall {
         .isXcreate(true)
         .oobInst(OOB_INST_XCREATE)
         .data1(codeSize.hi())
-        .data2(codeSize.lo())
-        .outgoingResLo(booleanToBytes(true));
+        .data2(codeSize.lo());
   }
 
   @Override

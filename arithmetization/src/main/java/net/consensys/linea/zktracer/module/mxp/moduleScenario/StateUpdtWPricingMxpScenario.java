@@ -81,6 +81,7 @@ public class StateUpdtWPricingMxpScenario extends MxpxMxpScenario {
     var cMemQuadPart = exoCalls.get(8).resultB();
     var cMemLinearPart = bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
     var updateInternalState = bytesToBoolean(exoCalls.get(9).resultA());
+    this.isStateUpdate = updateInternalState;
     this.wordsNew = updateInternalState ? EYPa.longValue() : words;
     this.cMemNew =
         updateInternalState

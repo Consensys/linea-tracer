@@ -62,11 +62,11 @@ public class MxpCall implements TraceSubFragment {
   }
 
   public boolean getSize1NonZeroNoMxpx() {
-    return !this.mxpx && !getSize1().isZero();
+    return !this.mxpx && !this.size1.isZero();
   }
 
   public boolean getSize2NonZeroNoMxpx() {
-    return !this.mxpx && !getSize2().isZero();
+    return !this.mxpx && !this.size2.isZero();
   }
 
   public Bytes getCostBy(BillingRate billingRate) {

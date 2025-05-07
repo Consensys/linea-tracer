@@ -85,6 +85,8 @@ public class CancunMxpOperation extends LondonMxpOperation {
     // We update the mxpCall properties and state variables accordingly
     this.mxpCall.setGasMxp(0L);
     this.mxpCall.setMxpx(scenario.getMxpxExpression() != 0);
+    this.mxpCall.setMayTriggerNontrivialMmuOperation(
+        !this.mxpCall.getSize1().isZero() && !this.mxpCall.isMxpx());
     if (scenario.isStateUpdate()) {
       this.wordsNew = scenario.getWordsNew();
       this.cMemNew = scenario.getCMemNew();
@@ -163,11 +165,11 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .mxpStamp(stamp)
         .cn(this.getContextNumber())
         .scenario(true)
-        .pScenarioMsize(this.scenario.isMSizeScenario())
-        .pScenarioTrivial(this.scenario.isTrivialScenario())
-        .pScenarioMxpx(this.scenario.isMxpxScenario())
-        .pScenarioStateUpdateWordPricing(this.scenario.isStateUpdtWPricingScenario())
-        .pScenarioStateUpdateBytePricing(this.scenario.isStateUpdtBPricingScenario())
+        .pScenarioMsize(scenario.isMSizeScenario())
+        .pScenarioTrivial(scenario.isTrivialScenario())
+        .pScenarioMxpx(scenario.isMxpxScenario())
+        .pScenarioStateUpdateWordPricing(scenario.isStateUpdtWPricingScenario())
+        .pScenarioStateUpdateBytePricing(scenario.isStateUpdtBPricingScenario())
         .pScenarioWords(this.words)
         .pScenarioWordsNew(this.wordsNew)
         .pScenarioCmem(Bytes.ofUnsignedLong(this.cMem))
@@ -197,45 +199,4 @@ public class CancunMxpOperation extends LondonMxpOperation {
           .fillAndValidateRow();
     }
   }
-
-  /*  private void computationsAndUpdates() {
-    if (scenario.isMSizeScenario()) {
-      mxpComputation.computeForMSize();
-      // And we set the following to understand MSize scenario vs keeping implicit default values
-      mxpCall.setMxpx(false);
-      mxpCall.setMayTriggerNontrivialMmuOperation(false);
-      // No state update
-      mxpCall.setGasMxp(0L);
-    } else {
-      mxpComputation.computeForNotMSize(this.mxpCall);
-      if (scenario.isTrivialScenario()) {
-        // No state update
-        mxpCall.setGasMxp(0L);
-      } else {
-        int mxpxExpression = mxpComputation.computeForNotMSizeNorTrivial(this.mxpCall);
-        mxpCall.setMxpx(mxpxExpression != 0);
-        mxpCall.setMayTriggerNontrivialMmuOperation(
-                !this.mxpCall.getSize1().isZero() && !this.mxpCall.isMxpx());
-        if (scenario.isMxpxScenario()) {
-          // No state update
-          mxpCall.setGasMxp(0L);
-        } else {
-          // State update
-          var stateUpdate = mxpComputation.computeForStateUpdt(this.mxpCall, this.words, this.cMem);
-          var wordsNewUpdate = stateUpdate[0];
-          var cMemNewUpdate = stateUpdate[1];
-          this.wordsNew = wordsNewUpdate;
-          this.cMemNew = cMemNewUpdate;
-
-          if (scenario.isStateUpdtWPricingScenario()) {
-            long extraWordCost = mxpComputation.computeForUpdtW(this.mxpCall, this.gWord);
-            mxpCall.setGasMxp(this.cMemNew - this.cMem + extraWordCost);
-          } else {
-            long extraByteCost = mxpComputation.computeForUpdtB(this.mxpCall, this.gByte);
-            mxpCall.setGasMxp(this.cMemNew - this.cMem + extraByteCost);
-          }
-        }
-      }
-    }
-  }*/
 }

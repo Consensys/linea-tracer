@@ -43,7 +43,7 @@ public abstract class MxpScenario {
    * Computed by State update scenarii (StateUpdtWPricingMxpScenario and
    * StateUpdtBPricingMxpScenario)
    */
-  @Getter public final boolean isStateUpdate = false;
+  @Getter public boolean isStateUpdate = false;
 
   @Getter public long wordsNew = 0L;
   @Getter public long cMemNew = 0L;

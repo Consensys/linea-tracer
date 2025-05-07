@@ -32,13 +32,6 @@ public enum Fork {
     };
   }
 
-  public static boolean isPostShanghai(Fork fork) {
-    return switch (fork) {
-      case LONDON -> false;
-      case SHANGHAI, CANCUN, PRAGUE -> true;
-    };
-  }
-
   /**
    * Construct a fork instance from the name of a fork (e.g. "London", "Shanghai", etc). Observe
    * that case does not matter here. Hence, "LONDON", "London", "london", "lonDon" are all suitable
@@ -49,5 +42,12 @@ public enum Fork {
    */
   public static Fork fromString(String fork) {
     return Fork.valueOf(fork.toUpperCase());
+  }
+
+  public static boolean isPostShanghai(Fork fork) {
+    return switch (fork) {
+      case LONDON, PARIS -> false;
+      case SHANGHAI, CANCUN, PRAGUE -> true;
+    };
   }
 }

@@ -89,6 +89,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     this.hub =
         switch (chain.fork) {
           case LONDON -> new LondonHub(chain);
+          case PARIS -> new ParisHub(chain);
           case SHANGHAI -> new ShanghaiHub(chain);
           case CANCUN -> new CancunHub(chain);
           case PRAGUE -> new PragueHub(chain);

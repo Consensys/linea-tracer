@@ -35,19 +35,22 @@ public class MxpCall implements TraceSubFragment {
 
   public final Hub hub;
 
-  // filled in by MXP module
+  /** The following properties will be filled in by MXP module - don't necessitate computation */
   @Getter @Setter public OpCodeData opCodeData;
+
   @Getter @Setter public boolean deploys;
   @Getter @Setter public long memorySizeInWords;
   @Getter @Setter public EWord offset1 = EWord.ZERO;
   @Getter @Setter public EWord size1 = EWord.ZERO;
   @Getter @Setter public EWord offset2 = EWord.ZERO;
   @Getter @Setter public EWord size2 = EWord.ZERO;
+
+  /** - filled after computation by the module */
   @Getter @Setter public boolean mayTriggerNontrivialMmuOperation;
 
-  /** mxpx is short of Memory eXPansion eXception */
   @Getter @Setter public boolean mxpx;
 
+  /** mxpx is short of Memory eXPansion eXception */
   @Getter @Setter public long gasMxp;
 
   public static MxpCall build(Hub hub) {
@@ -74,15 +77,19 @@ public class MxpCall implements TraceSubFragment {
   }
 
   /**
-   * This method is call by the Mxp module and snapshots the following properties of MxpCall from
-   * the hub - opCodeData - deploys - memorySizeInWords - offset1 - size1 - offset2 - size2
+   * This method is called by the Mxp module to snapshot the data of the hub into the following
+   * mxpCall properties [opCodeData, deploys, memorySizeInWords, offset1, size1, offset2, size2]
    */
-  public void fillMxpProperties() {
+  public void fillNoComputationMxpProperties() {
     final MessageFrame frame = this.hub.messageFrame();
+    // set opCodeData
     this.opCodeData = this.hub.opCodeData();
+    // set deploys
     this.deploys =
         getOpCodeData().mnemonic() == OpCode.RETURN & this.hub.currentFrame().isDeployment();
+    // set memorySizeInWords
     this.memorySizeInWords = this.hub.messageFrame().memoryWordSize();
+    // set sizes and offsets
     final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
     switch (opCode) {
       case MSIZE -> {}

@@ -16,14 +16,12 @@
 package net.consensys.linea.zktracer.module.mxp.moduleOperation;
 
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.*;
-import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
-import net.consensys.linea.zktracer.module.mxp.MxpComputation;
-import net.consensys.linea.zktracer.module.mxp.scenario.*;
+import net.consensys.linea.zktracer.module.mxp.moduleScenario.*;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
@@ -34,19 +32,8 @@ import org.apache.tuweni.bytes.Bytes;
 public class CancunMxpOperation extends LondonMxpOperation {
 
   // Todo list
-  // - check hub justification
-  // - bring mxp back and rename this mxp to mxp3
-  // - take care of inst
-  // - how to deal with Mxp imports in tests ?
-  // - check if ok to removed filled fields from MxpCall
-  // - fix constraints in existing Mxp
-  // - review utils methods if needed in types
+  // - constraints naming in Mxp
   // - check tests commenting of roob
-
-  private final MxpComputation mxpComputation;
-
-  private final Wcp wcp;
-  private final Euc euc;
 
   private final int contextNumber;
   private final long words;
@@ -57,28 +44,53 @@ public class CancunMxpOperation extends LondonMxpOperation {
   private final Bytes gByte;
   private final MxpScenario scenario;
 
+  /**
+   * The operation can follow 5 scenarii depending on the opcode. Each scenario executes
+   * computations and inherits from the previous one as computations are cumulative
+   *
+   * <p>MSize scenario - no computation
+   *
+   * <p>Trivial scenario - computes size1IsZero and size2IsZero
+   *
+   * <p>Mxpx scenario - computes size1IsZero and size2IsZero and mxpxExpression
+   *
+   * <p>State update with word pricing scenario - computes size1IsZero and size2IsZero and
+   * mxpxExpression and extraGasCost for word pricing opcodes
+   *
+   * <p>State update with byte pricing scenario - computes size1IsZero and size2IsZero and
+   * mxpxExpression and extraGasCost for byte pricing opcodes
+   */
   public CancunMxpOperation(final MxpCall mxpCall, Wcp wcp, Euc euc) {
     super(mxpCall);
-    this.wcp = wcp;
-    this.euc = euc;
-    this.mxpComputation = new MxpComputation(wcp, euc, nRows());
 
+    // Setting of global variables
     this.contextNumber = this.mxpCall.hub.currentFrame().contextNumber();
-    // State variables
+    this.gWord = this.mxpCall.getCostBy(BillingRate.BY_WORD);
+    this.gByte = this.mxpCall.getCostBy(BillingRate.BY_BYTE);
+
+    // Initialization of state variables
     this.words = this.mxpCall.getMemorySizeInWords();
     this.wordsNew = this.mxpCall.getMemorySizeInWords(); // will (may) be updated later
     this.cMem = memoryCost(this.mxpCall.getMemorySizeInWords());
     this.cMemNew = memoryCost(this.mxpCall.getMemorySizeInWords()); // will (may) be updated later
 
-    this.gWord = this.mxpCall.getCostBy(BillingRate.BY_WORD);
-    this.gByte = this.mxpCall.getCostBy(BillingRate.BY_BYTE);
+    // Snapshot properties from the hub in mxpCall properties
+    this.mxpCall.fillNoComputationMxpProperties();
 
-    // snapshot properties from the hub in mxp data
-    this.mxpCall.fillMxpProperties();
+    // We do the computation depending on the scenario
     this.scenario = MxpScenario.getMxpScenario(this.mxpCall);
-    scenario.compute();
+    scenario.compute(mxpCall, wcp, euc);
 
-    computationsAndUpdates();
+    // After computation
+    // We update the mxpCall properties and state variables accordingly
+    this.mxpCall.setGasMxp(0L);
+    this.mxpCall.setMxpx(scenario.getMxpxExpression() != 0);
+    if (scenario.isStateUpdate()) {
+      this.wordsNew = scenario.getWordsNew();
+      this.cMemNew = scenario.getCMemNew();
+      // if state has changed, an extra gas cost is incurred
+      mxpCall.setGasMxp(this.cMemNew - this.cMem + scenario.getExtraGasCost());
+    }
   }
 
   public int nRows() {
@@ -88,47 +100,6 @@ public class CancunMxpOperation extends LondonMxpOperation {
   @Override
   protected int computeLineCount() {
     return this.nRows();
-  }
-
-  private void computationsAndUpdates() {
-    if (scenario.isMSizeScenario()) {
-      mxpComputation.computeForMSize();
-      // And we set the following to understand MSize scenario vs keeping implicit default values
-      mxpCall.setMxpx(false);
-      mxpCall.setMayTriggerNontrivialMmuOperation(false);
-      // No state update
-      mxpCall.setGasMxp(0L);
-    } else {
-      mxpComputation.computeForNotMSize(this.mxpCall);
-      if (scenario.isTrivialScenario()) {
-        // No state update
-        mxpCall.setGasMxp(0L);
-      } else {
-        int mxpxExpression = mxpComputation.computeForNotMSizeNorTrivial(this.mxpCall);
-        mxpCall.setMxpx(mxpxExpression != 0);
-        mxpCall.setMayTriggerNontrivialMmuOperation(
-            !this.mxpCall.getSize1().isZero() && !this.mxpCall.isMxpx());
-        if (scenario.isMxpxScenario()) {
-          // No state update
-          mxpCall.setGasMxp(0L);
-        } else {
-          // State update
-          var stateUpdate = mxpComputation.computeForStateUpdt(this.mxpCall, this.words, this.cMem);
-          var wordsNewUpdate = stateUpdate[0];
-          var cMemNewUpdate = stateUpdate[1];
-          this.wordsNew = wordsNewUpdate;
-          this.cMemNew = cMemNewUpdate;
-
-          if (scenario.isStateUpdtWPricingScenario()) {
-            long extraWordCost = mxpComputation.computeForUpdtW(this.mxpCall, this.gWord);
-            mxpCall.setGasMxp(this.cMemNew - this.cMem + extraWordCost);
-          } else {
-            long extraByteCost = mxpComputation.computeForUpdtB(this.mxpCall, this.gByte);
-            mxpCall.setGasMxp(this.cMemNew - this.cMem + extraByteCost);
-          }
-        }
-      }
-    }
   }
 
   @Override
@@ -142,16 +113,10 @@ public class CancunMxpOperation extends LondonMxpOperation {
   final void traceDecoder(int stamp, Trace.Mxp trace) {
     OpCode opCode = this.mxpCall.getOpCodeData().mnemonic();
 
-    // Remove the nRows, there is one row ?
     trace
         .mxpStamp(stamp)
         .cn(this.getContextNumber())
         .decoder(true)
-        .macro(false)
-        .scenario(false)
-        .computation(false)
-        .ct(0) // to change ?
-        .ctMax(0)
         .pDecoderInst(UnsignedByte.of(opCode.byteValue()))
         .pDecoderIsMsize(opCode == OpCode.MSIZE)
         .pDecoderIsReturn(opCode == OpCode.RETURN)
@@ -173,12 +138,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
     trace
         .mxpStamp(stamp)
         .cn(this.getContextNumber())
-        .decoder(false)
         .macro(true)
-        .scenario(false)
-        .computation(false)
-        .ct(0) // to change ?
-        .ctMax(0)
         .pMacroInst(UnsignedByte.of(opCode.byteValue()))
         .pMacroDeploying(this.mxpCall.isDeploys())
         .pMacroOffset1Hi(this.mxpCall.getOffset1().hi())
@@ -189,7 +149,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .pMacroOffset2Lo(this.mxpCall.getOffset2().lo())
         .pMacroSize2Hi(this.mxpCall.getSize2().hi())
         .pMacroSize2Lo(this.mxpCall.getSize2().lo())
-        .pMacroRes((opCode == OpCode.MSIZE) ? mxpCall.getMemorySizeInWords() : 0L) // to do
+        .pMacroRes((opCode == OpCode.MSIZE) ? this.mxpCall.getMemorySizeInWords() : 0L) // to do
         .pMacroMxpx(this.mxpCall.isMxpx())
         .pMacroGasMxp(Bytes.ofUnsignedLong(this.mxpCall.getGasMxp()))
         .pMacroMayTriggerMmu(this.mxpCall.isMayTriggerNontrivialMmuOperation())
@@ -202,12 +162,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
     trace
         .mxpStamp(stamp)
         .cn(this.getContextNumber())
-        .decoder(false)
-        .macro(false)
         .scenario(true)
-        .computation(false)
-        .ct(0)
-        .ctMax(0)
         .pScenarioMsize(this.scenario.isMSizeScenario())
         .pScenarioTrivial(this.scenario.isTrivialScenario())
         .pScenarioMxpx(this.scenario.isMxpxScenario())
@@ -227,37 +182,60 @@ public class CancunMxpOperation extends LondonMxpOperation {
       trace
           .mxpStamp(stamp)
           .cn(this.getContextNumber())
-          .decoder(false)
-          .macro(false)
-          .scenario(false)
           .computation(true)
           .ct(i)
           .ctMax(scenario.ctMax())
-          .pComputationWcpFlag(this.mxpComputation.wcpFlags[i])
-          .pComputationEucFlag(this.mxpComputation.eucFlags[i])
-          .pComputationExoInst(
-              this.mxpComputation.wcpFlags[i]
-                  ? this.mxpComputation.wcpCalls.get(i).instruction()
-                  : this.mxpComputation.eucCalls.get(i).instruction())
-          .pComputationArg1Hi(
-              this.mxpComputation.wcpFlags[i]
-                  ? this.mxpComputation.wcpCalls.get(i).arg1Hi()
-                  : this.mxpComputation.eucCalls.get(i).arg1Hi())
-          .pComputationArg1Lo(
-              this.mxpComputation.wcpFlags[i]
-                  ? this.mxpComputation.wcpCalls.get(i).arg1Lo()
-                  : this.mxpComputation.eucCalls.get(i).arg1Lo())
-          .pComputationArg2Hi(
-              this.mxpComputation.wcpFlags[i]
-                  ? this.mxpComputation.wcpCalls.get(i).arg2Hi()
-                  : this.mxpComputation.eucCalls.get(i).arg2Hi())
-          .pComputationArg2Lo(
-              this.mxpComputation.wcpFlags[i]
-                  ? this.mxpComputation.wcpCalls.get(i).arg2Lo()
-                  : this.mxpComputation.eucCalls.get(i).arg2Lo())
-          .pComputationResA(booleanToLong(this.mxpComputation.wcpCalls.get(i).result()))
-          .pComputationResB(this.mxpComputation.eucCalls.get(i).result().toLong())
+          .pComputationWcpFlag(scenario.exoCalls.get(i).wcpFlag())
+          .pComputationEucFlag(scenario.exoCalls.get(i).eucFlag())
+          .pComputationExoInst(scenario.exoCalls.get(i).instruction())
+          .pComputationArg1Hi(scenario.exoCalls.get(i).arg1Hi())
+          .pComputationArg1Lo(scenario.exoCalls.get(i).arg1Lo())
+          .pComputationArg2Hi(scenario.exoCalls.get(i).arg2Hi())
+          .pComputationArg2Lo(scenario.exoCalls.get(i).arg2Lo())
+          .pComputationResA(scenario.exoCalls.get(i).resultA().toLong())
+          .pComputationResB(scenario.exoCalls.get(i).resultB().toLong())
           .fillAndValidateRow();
     }
   }
+
+  /*  private void computationsAndUpdates() {
+    if (scenario.isMSizeScenario()) {
+      mxpComputation.computeForMSize();
+      // And we set the following to understand MSize scenario vs keeping implicit default values
+      mxpCall.setMxpx(false);
+      mxpCall.setMayTriggerNontrivialMmuOperation(false);
+      // No state update
+      mxpCall.setGasMxp(0L);
+    } else {
+      mxpComputation.computeForNotMSize(this.mxpCall);
+      if (scenario.isTrivialScenario()) {
+        // No state update
+        mxpCall.setGasMxp(0L);
+      } else {
+        int mxpxExpression = mxpComputation.computeForNotMSizeNorTrivial(this.mxpCall);
+        mxpCall.setMxpx(mxpxExpression != 0);
+        mxpCall.setMayTriggerNontrivialMmuOperation(
+                !this.mxpCall.getSize1().isZero() && !this.mxpCall.isMxpx());
+        if (scenario.isMxpxScenario()) {
+          // No state update
+          mxpCall.setGasMxp(0L);
+        } else {
+          // State update
+          var stateUpdate = mxpComputation.computeForStateUpdt(this.mxpCall, this.words, this.cMem);
+          var wordsNewUpdate = stateUpdate[0];
+          var cMemNewUpdate = stateUpdate[1];
+          this.wordsNew = wordsNewUpdate;
+          this.cMemNew = cMemNewUpdate;
+
+          if (scenario.isStateUpdtWPricingScenario()) {
+            long extraWordCost = mxpComputation.computeForUpdtW(this.mxpCall, this.gWord);
+            mxpCall.setGasMxp(this.cMemNew - this.cMem + extraWordCost);
+          } else {
+            long extraByteCost = mxpComputation.computeForUpdtB(this.mxpCall, this.gByte);
+            mxpCall.setGasMxp(this.cMemNew - this.cMem + extraByteCost);
+          }
+        }
+      }
+    }
+  }*/
 }

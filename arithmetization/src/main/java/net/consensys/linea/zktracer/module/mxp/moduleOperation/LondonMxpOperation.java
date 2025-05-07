@@ -16,14 +16,12 @@
 package net.consensys.linea.zktracer.module.mxp.moduleOperation;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
 import static net.consensys.linea.zktracer.Trace.Mxp.*;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE_MO;
 import static net.consensys.linea.zktracer.module.Util.max;
+import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static org.hyperledger.besu.evm.internal.Words.clampedAdd;
-import static org.hyperledger.besu.evm.internal.Words.clampedMultiply;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -242,17 +240,6 @@ public class LondonMxpOperation extends MxpOperation {
     if (!roob && !noOperation && !mxpCall.isMxpx()) {
       expands = accA.compareTo(BigInteger.valueOf(mxpCall.getMemorySizeInWords())) > 0;
     }
-  }
-
-  // This is a copy and past from FrontierGasCalculator.java
-  private static long memoryCost(final long length) {
-    final long lengthSquare = clampedMultiply(length, length);
-    final long base =
-        (lengthSquare == Long.MAX_VALUE)
-            ? clampedMultiply(length / 512, length)
-            : lengthSquare / 512;
-
-    return clampedAdd(clampedMultiply(GAS_CONST_G_MEMORY, length), base);
   }
 
   private long getLinCost(OpCodeData opCodeData, long sizeInBytes) {

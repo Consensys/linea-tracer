@@ -13,32 +13,47 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mxp.scenario;
+package net.consensys.linea.zktracer.module.mxp.moduleScenario;
 
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isWordPricingOpcode;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
+import lombok.Getter;
+import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public abstract class MxpScenario {
-
+  /** Store all wcp and euc computations with params and results */
   public final List<MxpExoCall> exoCalls;
+
+  /** Computed by TrivialMxpScenario */
+  @Getter public boolean size1IsZero = false;
+
+  @Getter public boolean size2IsZero = false;
+
+  /** Computed by MxpxMxpScenario */
+  @Getter public int mxpxExpression = 0;
+
+  /**
+   * Computed by State update scenarii (StateUpdtWPricingMxpScenario and
+   * StateUpdtBPricingMxpScenario)
+   */
+  @Getter public final boolean isStateUpdate = false;
+
+  @Getter public long wordsNew = 0L;
+  @Getter public long cMemNew = 0L;
+  @Getter public long extraGasCost = 0L;
 
   protected MxpScenario() {
     exoCalls = new ArrayList<>(ctMax());
   }
 
-  public abstract void setInputData(MessageFrame frame, Hub hub);
-
-  public abstract void callExoModules();
-
-  public abstract void compute();
+  public abstract void compute(MxpCall mxpCall, Wcp wcp, Euc euc);
 
   public abstract int ctMax();
 
@@ -62,6 +77,12 @@ public abstract class MxpScenario {
     return false;
   }
 
+  /**
+   * Get the MxpScenario for the given MxpCall.
+   *
+   * @param mxpCall from which we retrieve the scenario
+   * @return MxpScenario instance corresponding to the MxpCall
+   */
   public static MxpScenario getMxpScenario(MxpCall mxpCall) {
     OpCode opCode = mxpCall.getOpCodeData().mnemonic();
     if (opCode == OpCode.MSIZE) {

@@ -23,11 +23,12 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
-import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.DynamicTests;
 import net.consensys.linea.testing.OpcodeCall;
 import net.consensys.linea.zktracer.container.module.Module;
-import net.consensys.linea.zktracer.module.mxp.module.LondonMxp;
+import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.mxp.module.CancunMxp;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
@@ -36,11 +37,12 @@ import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
-public class MxpTracerTest extends TracerTestBase {
+public class CancunMxpTracerTest {
   // private static final Random RAND = new Random();
   private static final int TEST_REPETITIONS = 2;
-  // TODO: check how to update
-  private static final Module MODULE = new LondonMxp();
+  private static final Wcp Wcp = new Wcp();
+  private static final Euc Euc = new Euc(Wcp);
+  private static final Module MODULE = new CancunMxp(Wcp, Euc);
   private static final DynamicTests DYN_TESTS = DynamicTests.forModule(MODULE);
 
   @TestFactory
@@ -50,7 +52,7 @@ public class MxpTracerTest extends TracerTestBase {
         .testCase("simple mload arguments test", simpleMloadArgs())
         .testCase(
             "one of each type2 and type3 instruction MLOAD, MSTORE, MSTORE8", simpleType2And3Args())
-        .run(testInfo);
+        .run();
   }
 
   private List<OpcodeCall> provideNonRandomArguments() {

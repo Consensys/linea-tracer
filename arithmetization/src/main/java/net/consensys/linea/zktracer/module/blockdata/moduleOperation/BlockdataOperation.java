@@ -312,8 +312,6 @@ public abstract class BlockdataOperation extends ModuleOperation {
 
     res[w] = euc.callEUC(arg1, arg2).quotient();
 
-    exoInst[w] = UnsignedByte.of(EVM_INST_DIV);
-
     wcpFlag[w] = false;
     eucFlag[w] = true;
 

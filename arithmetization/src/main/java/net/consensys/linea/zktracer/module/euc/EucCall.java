@@ -1,6 +1,5 @@
 package net.consensys.linea.zktracer.module.euc;
 
-import static net.consensys.linea.zktracer.Trace.EVM_INST_DIV;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 
 import lombok.Getter;
@@ -20,8 +19,7 @@ public class EucCall {
   private final Bytes result;
 
   public EucCall(Euc euc, Bytes arg1, Bytes arg2) {
-    // TODO : check instruction
-    this.instruction = UnsignedByte.of(EVM_INST_DIV);
+    this.instruction = UnsignedByte.of(0);
     final Bytes32 arg1Bytes32 = Bytes32.leftPad(arg1);
     final Bytes32 arg2Bytes32 = Bytes32.leftPad(arg2);
     this.arg1Hi = arg1Bytes32.slice(0, LLARGE);

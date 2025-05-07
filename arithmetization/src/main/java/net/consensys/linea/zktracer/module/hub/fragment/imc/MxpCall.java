@@ -35,7 +35,8 @@ public class MxpCall implements TraceSubFragment {
 
   public final Hub hub;
 
-  /** The following properties will be filled in by MXP module - don't necessitate computation */
+  /** The following properties will be filled in by MXP module * */
+  /** - don't necessitate computation * */
   @Getter @Setter public OpCodeData opCodeData;
 
   @Getter @Setter public boolean deploys;

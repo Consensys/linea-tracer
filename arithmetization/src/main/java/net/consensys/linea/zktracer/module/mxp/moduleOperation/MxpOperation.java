@@ -29,7 +29,7 @@ public abstract class MxpOperation extends ModuleOperation {
     this.mxpCall = mxpCall;
   }
 
-  public void trace(int stamp, Trace.Mxp mxp) {
+  public void trace(int stamp, Trace tr) {
     throw new IllegalStateException("Should be implemented");
   }
 }

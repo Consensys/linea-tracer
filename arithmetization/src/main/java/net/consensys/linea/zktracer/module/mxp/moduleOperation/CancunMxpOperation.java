@@ -31,10 +31,6 @@ import org.apache.tuweni.bytes.Bytes;
 @Getter
 public class CancunMxpOperation extends LondonMxpOperation {
 
-  // Todo list
-  // - constraints naming in Mxp
-  // - check tests commenting of roob
-
   private final int contextNumber;
   private final long words;
   private long wordsNew;
@@ -105,14 +101,15 @@ public class CancunMxpOperation extends LondonMxpOperation {
   }
 
   @Override
-  public final void trace(int stamp, Trace.Mxp trace) {
+  public final void trace(int stamp, Trace tr) {
+    Trace.Mxpcan trace = tr.mxpcan;
     traceDecoder(++stamp, trace);
     traceMacro(stamp, trace);
     traceScenario(stamp, trace);
     traceComputation(stamp, trace);
   }
 
-  final void traceDecoder(int stamp, Trace.Mxp trace) {
+  final void traceDecoder(int stamp, Trace.Mxpcan trace) {
     OpCode opCode = this.mxpCall.getOpCodeData().mnemonic();
 
     trace
@@ -134,7 +131,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .fillAndValidateRow();
   }
 
-  final void traceMacro(int stamp, Trace.Mxp trace) {
+  final void traceMacro(int stamp, Trace.Mxpcan trace) {
     OpCode opCode = this.mxpCall.getOpCodeData().mnemonic();
 
     trace
@@ -160,7 +157,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .fillAndValidateRow();
   }
 
-  final void traceScenario(int stamp, Trace.Mxp trace) {
+  final void traceScenario(int stamp, Trace.Mxpcan trace) {
     trace
         .mxpStamp(stamp)
         .cn(this.getContextNumber())
@@ -177,7 +174,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .fillAndValidateRow();
   }
 
-  final void traceComputation(int stamp, Trace.Mxp trace) {
+  final void traceComputation(int stamp, Trace.Mxpcan trace) {
     final int nRows = this.nRows();
 
     for (int i = 0; i < nRows; i++) {

@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.mxp.moduleOperation;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.Trace.Mxp.*;
+import static net.consensys.linea.zktracer.Trace.Mxplon.*;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE_MO;
 import static net.consensys.linea.zktracer.module.Util.max;
@@ -467,7 +467,8 @@ public class LondonMxpOperation extends MxpOperation {
   }
 
   @Override
-  public void trace(int stamp, Trace.Mxp trace) {
+  public void trace(int stamp, Trace tr) {
+    Trace.Mxplon trace = tr.mxplon;
     this.compute();
 
     Bytes32 acc1Bytes32 = Bytes32.leftPad(bigIntegerToBytes(this.getAcc1()));
@@ -488,8 +489,8 @@ public class LondonMxpOperation extends MxpOperation {
     for (int i = 0; i < nRows; i++) {
       trace
           .stamp(stamp)
-          .prevCn(Bytes.ofUnsignedLong(this.getContextNumber()))
-          .prevCt((short) i)
+          .cn(Bytes.ofUnsignedLong(this.getContextNumber()))
+          .ct((short) i)
           .roob(this.isRoob())
           .noop(this.isNoOperation())
           .mxpx(this.mxpCall.isMxpx())

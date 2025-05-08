@@ -14,11 +14,13 @@
  */
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.testing.ShomeiNode.MerkelProofResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.tests.acceptance.dsl.WaitUtils.waitFor;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,8 +29,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.netty.util.internal.ConcurrentSet;
 import lombok.extern.slf4j.Slf4j;
@@ -37,14 +41,12 @@ import net.consensys.linea.plugins.rpc.tracegeneration.TraceFile;
 import net.consensys.linea.plugins.rpc.tracegeneration.TraceRequestParams;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.json.JsonConverter;
-import net.consensys.shomei.rpc.server.model.RollupGetZkEVMStateMerkleProofV0Response;
 import net.consensys.shomei.rpc.server.model.RollupGetZkEvmStateV0Parameter;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.assertj.core.util.Lists;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.tests.acceptance.dsl.condition.net.NetConditions;
@@ -54,6 +56,8 @@ import org.hyperledger.besu.tests.acceptance.dsl.node.cluster.Cluster;
 import org.hyperledger.besu.tests.acceptance.dsl.node.cluster.ClusterConfigurationBuilder;
 import org.hyperledger.besu.tests.acceptance.dsl.transaction.eth.EthTransactions;
 import org.hyperledger.besu.tests.acceptance.dsl.transaction.net.NetTransactions;
+import org.junit.jupiter.api.TestInfo;
+import org.web3j.protocol.core.DefaultBlockParameter;
 
 @Slf4j
 public class BesuExecutionTools {
@@ -61,23 +65,27 @@ public class BesuExecutionTools {
   private static final MediaType MEDIA_TYPE_JSON =
       MediaType.parse("application/json; charset=utf-8");
   private static final JsonConverter CONVERTER = JsonConverter.builder().build();
-  private static final ObjectMapper MAPPER = CONVERTER.getObjectMapper();
+  private static final ObjectMapper MAPPER =
+      CONVERTER.getObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
 
   private final ChainConfig chainConfig;
   private final OkHttpClient httpClient;
   private final BesuNode besuNode;
   private final ShomeiNode shomeiNode;
-  private final Path tracesPath;
+  private final Path testDataDir;
   private final Path shomeiDataPath;
   private final List<Transaction> transactions;
   private final CorsetValidator corsetValidator;
+  private final String testName;
 
   public BesuExecutionTools(
+      Optional<TestInfo> testInfo,
       ChainConfig chainConfig,
       Address coinbase,
       List<ToyAccount> accounts,
       List<Transaction> transactions) {
-
+    this.testName =
+        testInfo.isPresent() ? testInfo.get().getDisplayName() : UUID.randomUUID().toString();
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
     this.httpClient = new OkHttpClient();
@@ -88,16 +96,16 @@ public class BesuExecutionTools {
     genesisConfigBuilder.setGasLimit(chainConfig.gasLimitMaximum.longValue());
     accounts.forEach(genesisConfigBuilder::addAccount);
     try {
-      this.tracesPath =
-          Files.createTempDirectory(
-              Path.of(System.getProperty("besu.traces.dir")), UUID.randomUUID().toString());
-      this.shomeiDataPath = Files.createDirectory(tracesPath.resolve("shomei"));
+      this.testDataDir =
+          Files.createDirectory(
+              Path.of(System.getProperty("besu.traces.dir")).resolve(this.testName));
+      this.shomeiDataPath = Files.createDirectory(testDataDir.resolve("shomei"));
       this.besuNode =
           BesuNodeBuilder.create(
               chainConfig.bridgeConfiguration,
-              genesisConfigBuilder.buildAsString(),
+              genesisConfigBuilder,
               besuPort,
-              tracesPath,
+              testDataDir,
               shomeiPort);
 
     } catch (IOException e) {
@@ -111,25 +119,6 @@ public class BesuExecutionTools {
             .build();
     this.corsetValidator = new CorsetValidator(chainConfig);
     this.transactions = transactions;
-  }
-
-  private TraceFile lineaGenerateConflatedTracesToFileV2(
-      final long startBlockNumber, final long endBlockNumber) throws IOException {
-    return jsonRpcRequest(
-        besuNode.jsonRpcBaseUrl().get(),
-        "linea_generateConflatedTracesToFileV2",
-        new TraceRequestParams(startBlockNumber, endBlockNumber, "test"),
-        TraceFile.class);
-  }
-
-  private RollupGetZkEVMStateMerkleProofV0Response rollupGetZkEVMStateMerkleProofV0(
-      final long startBlockNumber, final long endBlockNumber) throws IOException {
-    return jsonRpcRequest(
-        shomeiNode.getJsonRpcUrl(),
-        "rollup_getZkEVMStateMerkleProofV0",
-        new RollupGetZkEvmStateV0Parameter(
-            String.valueOf(startBlockNumber), String.valueOf(endBlockNumber), "test"),
-        RollupGetZkEVMStateMerkleProofV0Response.class);
   }
 
   public void executeTest() {
@@ -172,6 +161,12 @@ public class BesuExecutionTools {
       assertThat(blockNumbers).isNotEmpty();
       long startBlockNumber = Collections.min(blockNumbers);
       long endBlockNumber = Collections.max(blockNumbers);
+      String previousBlockStateRoot =
+          besuNode
+              .execute(
+                  ethTransactions.block(
+                      DefaultBlockParameter.valueOf(BigInteger.valueOf(startBlockNumber - 1))))
+              .getStateRoot();
       TraceFile traceFile = lineaGenerateConflatedTracesToFileV2(startBlockNumber, endBlockNumber);
       Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
       waitFor(
@@ -183,34 +178,51 @@ public class BesuExecutionTools {
           });
 
       ExecutionEnvironment.checkTracer(traceFilePath, corsetValidator, false, Optional.of(log));
-      RollupGetZkEVMStateMerkleProofV0Response rollupGetZkEVMStateMerkleProofV0Response =
+      MerkelProofResponse merkelProofResponse =
           rollupGetZkEVMStateMerkleProofV0(startBlockNumber, endBlockNumber);
-      log.info("zkEVMStateMerkleProofV0={}", rollupGetZkEVMStateMerkleProofV0Response);
+      log.info("rollupGetZkEVMStateMerkleProofV0={}", merkelProofResponse);
 
-      JsonNode merkleProof = MAPPER.valueToTree(rollupGetZkEVMStateMerkleProofV0Response);
       ExecutionProof.BatchExecutionProofRequestDto executionProofRequestDto =
           new ExecutionProof.BatchExecutionProofRequestDto(
-              merkleProof.get("zkParentStateRootHash").asText(),
-              "keccakParentStateRootHash", // TODO: Get this from previous block
-              traceFile.conflatedTracesFileName(),
+              merkelProofResponse.zkParentStateRootHash(),
+              previousBlockStateRoot,
+              traceFilePath.getFileName().toString(),
               traceFile.tracesEngineVersion(),
-              merkleProof.get("zkStateManagerVersion").asText(),
-              (ArrayNode) merkleProof.get("zkStateMerkleProof"),
-              Lists.emptyList());
+              merkelProofResponse.zkStateManagerVersion(),
+              merkelProofResponse.zkStateMerkleProof(),
+              Collections.emptyList() /* blocksData */);
 
-      File executionProofRequestFile =
-          Files.createFile(
-                  traceFilePath.resolve(
-                      ExecutionProof.getExecutionProofRequestFilename(
-                          startBlockNumber,
-                          endBlockNumber,
-                          traceFile.tracesEngineVersion(),
-                          merkleProof.get("zkStateManagerVersion").asText())))
-              .toFile();
+      String executionProofFileName =
+          ExecutionProof.getExecutionProofRequestFilename(
+              startBlockNumber,
+              endBlockNumber,
+              traceFile.tracesEngineVersion(),
+              merkelProofResponse.zkStateManagerVersion());
+      File executionProofRequestFile = testDataDir.resolve(executionProofFileName).toFile();
+      assertThat(executionProofRequestFile.createNewFile()).isTrue();
       MAPPER.writeValue(executionProofRequestFile, executionProofRequestDto);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private TraceFile lineaGenerateConflatedTracesToFileV2(
+      final long startBlockNumber, final long endBlockNumber) throws IOException {
+    return jsonRpcRequest(
+        besuNode.jsonRpcBaseUrl().get(),
+        "linea_generateConflatedTracesToFileV2",
+        new TraceRequestParams(startBlockNumber, endBlockNumber, "test"),
+        TraceFile.class);
+  }
+
+  private MerkelProofResponse rollupGetZkEVMStateMerkleProofV0(
+      final long startBlockNumber, final long endBlockNumber) throws IOException {
+    return jsonRpcRequest(
+        shomeiNode.getJsonRpcUrl(),
+        "rollup_getZkEVMStateMerkleProofV0",
+        new RollupGetZkEvmStateV0Parameter(
+            String.valueOf(startBlockNumber), String.valueOf(endBlockNumber), "test"),
+        MerkelProofResponse.class);
   }
 
   private <R, P> R jsonRpcRequest(
@@ -240,7 +252,7 @@ public class BesuExecutionTools {
                 "Request failed. response code: %s, body: %s, request: %s",
                 response.code(), responseBody, request))
         .isNotNull();
-    return MAPPER.treeToValue(result, responseType);
+    return parseJsonRpcResult(result, responseType);
   }
 
   private static <P> String createJsonRpcRequest(
@@ -253,6 +265,21 @@ public class BesuExecutionTools {
             + "    \"id\": %s\n"
             + "}",
         method, CONVERTER.toJson(params), id);
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <R> R parseJsonRpcResult(final JsonNode result, final Class<R> responseType)
+      throws JsonProcessingException {
+    if (responseType.equals(MerkelProofResponse.class)) {
+      return (R)
+          new MerkelProofResponse(
+              result.get("zkParentStateRootHash").asText(),
+              result.get("zkEndStateRootHash").asText(),
+              (ArrayNode) result.get("zkStateMerkleProof"),
+              "test");
+    } else {
+      return MAPPER.treeToValue(result, responseType);
+    }
   }
 
   private static int findFreePort() {

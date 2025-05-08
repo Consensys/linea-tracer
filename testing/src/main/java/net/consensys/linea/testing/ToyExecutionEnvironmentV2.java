@@ -35,6 +35,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseEipSpec;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
+import org.junit.jupiter.api.TestInfo;
 
 @Builder
 @Slf4j
@@ -72,18 +73,22 @@ public class ToyExecutionEnvironmentV2 {
   private final ZkTracer tracer = new ZkTracer(UNIT_TEST_CHAIN);
 
   public void run() {
-    if (!runWithBesuNode) {
-      ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, LONDON);
-      GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
-          this.buildGeneralStateTestCaseSpec(protocolSpec);
-      ToyExecutionTools.executeTest(
-          generalStateTestCaseEipSpec,
-          protocolSpec,
-          tracer,
-          transactionProcessingResultValidator,
-          zkTracerValidator);
-    } else {
-      new BesuExecutionTools(UNIT_TEST_CHAIN, coinbase, accounts, transactions).executeTest();
+    run(Optional.empty());
+  }
+
+  public void run(Optional<TestInfo> testInfo) {
+    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, LONDON);
+    GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
+        this.buildGeneralStateTestCaseSpec(protocolSpec);
+    ToyExecutionTools.executeTest(
+        generalStateTestCaseEipSpec,
+        protocolSpec,
+        tracer,
+        transactionProcessingResultValidator,
+        zkTracerValidator);
+    if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
+      new BesuExecutionTools(testInfo, UNIT_TEST_CHAIN, coinbase, accounts, transactions)
+          .executeTest();
     }
   }
 

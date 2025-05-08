@@ -18,6 +18,7 @@ package net.consensys.linea.testing;
 import java.nio.file.Path;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.shomei.Runner;
 import net.consensys.shomei.cli.option.DataStorageOption;
 import net.consensys.shomei.cli.option.HashFunctionOption;
@@ -25,7 +26,14 @@ import net.consensys.shomei.cli.option.JsonRpcOption;
 import net.consensys.shomei.cli.option.MetricsOption;
 import net.consensys.shomei.cli.option.SyncOption;
 
+@Slf4j
 public class ShomeiNode extends Runner implements AutoCloseable, Runnable {
+
+  public record MerkelProofResponse(
+      String zkParentStateRootHash,
+      String zkEndStateRootHash,
+      ArrayNode zkStateMerkleProof,
+      String zkStateManagerVersion) {}
 
   private String jsonRpcUrl;
 
@@ -54,7 +62,7 @@ public class ShomeiNode extends Runner implements AutoCloseable, Runnable {
     try {
       super.stop();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      log.error("Error stopping Shomei node", e);
     }
   }
 
@@ -86,7 +94,7 @@ public class ShomeiNode extends Runner implements AutoCloseable, Runnable {
           syncOptionBuilder.build(),
           new MetricsOption.Builder().setEnableMetrics(false).build(),
           new HashFunctionOption.Builder()
-              .setHashFunction(HashFunctionOption.HashFunction.KECCAK256)
+              .setHashFunction(HashFunctionOption.HashFunction.MIMC_BLS12_377)
               .build());
     }
   }

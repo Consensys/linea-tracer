@@ -20,9 +20,12 @@ import java.nio.file.Path;
 import java.util.List;
 
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
+import org.hyperledger.besu.consensus.clique.CliqueExtraData;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.ethereum.api.jsonrpc.JsonRpcConfiguration;
 import org.hyperledger.besu.ethereum.worldstate.DataStorageConfiguration;
 import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
+import org.hyperledger.besu.tests.acceptance.dsl.node.RunnableNode;
 import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.BesuNodeConfigurationBuilder;
 import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.BesuNodeFactory;
 import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.NodeConfigurationFactory;
@@ -31,13 +34,13 @@ public class BesuNodeBuilder {
 
   public static BesuNode create(
       LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
-      String genesisConfig,
+      GenesisConfigBuilder genesisConfigBuilder,
       Integer jsonRpcPort,
       Path tracesPath,
       Integer shomeiPort)
       throws IOException {
     assert (bridgeConfiguration != null);
-    assert (genesisConfig != null);
+    assert (genesisConfigBuilder != null);
     assert (tracesPath != null);
     assert (jsonRpcPort != null);
     assert (shomeiPort != null);
@@ -50,7 +53,17 @@ public class BesuNodeBuilder {
         new BesuNodeConfigurationBuilder()
             .name("example-test-node")
             .dataStorageConfiguration(DataStorageConfiguration.DEFAULT_BONSAI_PARTIAL_DB_CONFIG)
-            .genesisConfigProvider(nodes -> genesisConfig.describeConstable())
+            .genesisConfigProvider(
+                (nodes) -> {
+                  final List<Address> addresses =
+                      nodes.stream().map(RunnableNode::getAddress).toList();
+                  final String extraDataString =
+                      CliqueExtraData.createGenesisExtraDataString(addresses);
+                  return genesisConfigBuilder
+                      .setExtraData(extraDataString)
+                      .buildAsString()
+                      .describeConstable();
+                })
             .miningEnabled()
             .jsonRpcEnabled()
             .jsonRpcConfiguration(jsonRpcConfiguration)
@@ -58,7 +71,7 @@ public class BesuNodeBuilder {
                 List.of(
                     "BesuShomeiRpcPlugin",
                     "ZkTrieLogPlugin",
-                    "TracerReadinessPlugin",
+                    //                    "TracerReadinessPlugin",
                     "TracesEndpointServicePlugin",
                     "LineCountsEndpointServicePlugin",
                     "CaptureEndpointServicePlugin"))
@@ -75,10 +88,11 @@ public class BesuNodeBuilder {
                         bridgeConfiguration.contract().toHexString()),
                     String.format(
                         "--plugin-linea-l1l2-bridge-topic=%s",
-                        bridgeConfiguration.topic().toHexString()),
-                    "--plugin-linea-tracer-readiness-server-host=127.0.0.1",
-                    "--plugin-linea-tracer-readiness-server-port=8548",
-                    "--plugin-linea-tracer-readiness-max-blocks-behind=1"));
+                        bridgeConfiguration.topic().toHexString())
+                    //                    "--plugin-linea-tracer-readiness-server-host=127.0.0.1",
+                    //                    "--plugin-linea-tracer-readiness-server-port=8548",
+                    //                    "--plugin-linea-tracer-readiness-max-blocks-behind=1"
+                    ));
     return new BesuNodeFactory().create(besuNodeConfigurationBuilder.build());
   }
 }

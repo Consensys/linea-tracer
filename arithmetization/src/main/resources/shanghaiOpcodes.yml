@@ -1220,7 +1220,7 @@ opcodes:
     billing:
       byMxp:
         type: TYPE_4
-        wordPrice: G_KECCAK_256_WORD
+        wordPrice: G_CONST_CREATES_INIT_CODE_WORDS
   - mnemonic: CALL
     value: 0xf1
     instructionFamily: CALL
@@ -1288,7 +1288,7 @@ opcodes:
     billing:
       byWord:
         type: TYPE_4
-        wordPrice: G_KECCAK_256_WORD
+        wordPrice: G_CONST_CREATES_INIT_CODE_WORDS
   - mnemonic: STATICCALL
     value: 0xfa
     instructionFamily: CALL

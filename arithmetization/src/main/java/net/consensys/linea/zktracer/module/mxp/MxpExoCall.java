@@ -95,9 +95,7 @@ public class MxpExoCall {
 
     return MxpExoCall.builder()
         .eucFlag(true)
-        .arg1Hi(arg1B32.slice(0, LLARGE))
         .arg1Lo(arg1B32.slice(LLARGE, LLARGE))
-        .arg2Hi(arg2B32.slice(0, LLARGE))
         .arg2Lo(arg2B32.slice(LLARGE, LLARGE))
         .resultB(euc.callEUC(arg1B32, arg2B32).quotient())
         .build();

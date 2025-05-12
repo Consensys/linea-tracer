@@ -56,21 +56,9 @@ public class CancunMxpOperation extends LondonMxpOperation {
     // Setting of global variables
     this.contextNumber = this.mxpCall.hub.currentFrame().contextNumber();
 
-    // We do the computation depending on the scenario
+    // We instantiate an extended MxpCall (CancunMxpCall) depending on the scenario
+    // This super MxpCall does the computation and stores the values
     this.superMxpCall = this.mxpCall.getMxpScenario(wcp, euc);
-
-    // After computation
-    // We update the mxpCall properties and state variables accordingly
-    /*    this.mxpCall.setGasMxp(0L);
-    this.mxpCall.setMxpx(scenario.getMxpxExpression() != 0);
-    this.mxpCall.setMayTriggerNontrivialMmuOperation(
-        !this.mxpCall.getSize1().isZero() && !this.mxpCall.isMxpx());
-    if (scenario.isStateUpdate()) {
-      this.wordsNew = scenario.getWordsNew();
-      this.cMemNew = scenario.getCMemNew();
-      // if state has changed, an extra gas cost is incurred
-      mxpCall.setGasMxp(this.cMemNew - this.cMem + scenario.getExtraGasCost());
-    }*/
   }
 
   private int nRowsComputation() {

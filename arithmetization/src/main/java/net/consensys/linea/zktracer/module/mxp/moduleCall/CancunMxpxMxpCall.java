@@ -13,11 +13,10 @@ import org.apache.tuweni.bytes.Bytes;
 public class CancunMxpxMxpCall extends CancunTrivialMxpCall {
 
   public CancunMxpxMxpCall(Hub hub, Wcp wcp, Euc euc) {
-    super(hub);
-    compute(wcp, euc);
-    this.gasMxp = 0L;
-    this.mxpx = this.mxpxExpression != 0;
-    this.mayTriggerNontrivialMmuOperation = !this.size1.isZero() && !this.mxpx;
+    super(hub, wcp);
+    computeMxpxExpression(wcp);
+    setMxpxFromMxpxExpression();
+    setMayTriggerNontrivialMmuOperationFromMxpx();
   }
 
   @Override
@@ -51,12 +50,6 @@ public class CancunMxpxMxpCall extends CancunTrivialMxpCall {
         booleanToInt(size2IsLarge) + booleanToInt(size2IsNonZero) * booleanToInt(offset2IsLarge);
 
     this.mxpxExpression = mxpxExpression1 + mxpxExpression2;
-  }
-
-  @Override
-  public void compute(Wcp wcp, Euc euc) {
-    computeSize1Size2IsZero(wcp);
-    computeMxpxExpression(wcp);
   }
 
   @Override

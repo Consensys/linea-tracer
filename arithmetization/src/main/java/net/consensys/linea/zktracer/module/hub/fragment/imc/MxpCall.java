@@ -139,25 +139,25 @@ public class MxpCall implements TraceSubFragment {
   }
 
   /**
-   * Get the MxpScenario for the given MxpCall.
+   * User from Cancun fork - Get the Mxp scenario for the given MxpCall.
    *
    * @param wcp module to compute the wcp in exoCalls
    * @param euc module to compute the euc in exoCalls
-   * @return MxpScenario instance corresponding to the MxpCall
+   * @return CancunMxpCall instance corresponding to the Mxp scenario
    */
   public CancunMxpCall getMxpScenario(Wcp wcp, Euc euc) {
     OpCode opCode = this.opCodeData.mnemonic();
     if (opCode == OpCode.MSIZE) {
-      return new CancunMSizeMxpCall(hub);
+      return new CancunMSizeMxpCall(this.hub);
     }
     if (this.size1.isZero() && this.size2.isZero()) {
-      return new CancunTrivialMxpCall(hub);
+      return new CancunTrivialMxpCall(this.hub, wcp);
     }
     if (this.mxpx) {
-      return new CancunMxpxMxpCall(hub, wcp, euc);
+      return new CancunMxpxMxpCall(this.hub, wcp, euc);
     }
     if (isWordPricingOpcode(opCode)) {
-      return new CancunStateUpdtWPricingMxpCall(hub, wcp, euc);
+      return new CancunStateUpdtWPricingMxpCall(this.hub, wcp, euc);
     }
     return new CancunStateUpdtBPricingMxpCall(hub, wcp, euc);
   }

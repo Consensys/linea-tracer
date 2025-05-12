@@ -19,12 +19,11 @@ public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
 
   public CancunStateUpdtWPricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
     super(hub, wcp, euc);
-    compute(wcp, euc);
-    this.mxpx = this.mxpxExpression != 0;
-    this.mayTriggerNontrivialMmuOperation = !this.size1.isZero() && !this.mxpx;
+    computeStateUpdt(wcp, euc);
+    computeExtraGasCost(euc);
     if (this.isStateUpdate) {
       // if state has changed, an extra gas cost is incurred
-      this.gasMxp = this.cMemNew - this.cMem + this.extraGasCost;
+      setGasMpxFromExtraGasCost();
     }
   }
 
@@ -89,7 +88,7 @@ public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
             : this.cMem;
   }
 
-  public void computeExtraGasCost(Euc euc) {
+  private void computeExtraGasCost(Euc euc) {
     // Row i + 11
     exoCalls.add(MxpExoCall.callToEUC(euc, this.size1.lo(), Bytes.of(32)));
     var numberOfWords = exoCalls.get(10).resultB(); // result of row i + 11
@@ -98,14 +97,6 @@ public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
             .toUnsignedBigInteger()
             .multiply(this.gWord.toUnsignedBigInteger())
             .longValue();
-  }
-
-  @Override
-  public void compute(Wcp wcp, Euc euc) {
-    computeSize1Size2IsZero(wcp);
-    computeMxpxExpression(wcp);
-    computeStateUpdt(wcp, euc);
-    computeExtraGasCost(euc);
   }
 
   @Override

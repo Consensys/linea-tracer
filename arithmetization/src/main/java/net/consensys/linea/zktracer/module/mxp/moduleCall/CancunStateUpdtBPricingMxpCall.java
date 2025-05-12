@@ -13,12 +13,10 @@ public class CancunStateUpdtBPricingMxpCall extends CancunStateUpdtWPricingMxpCa
 
   public CancunStateUpdtBPricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
     super(hub, wcp, euc);
-    compute(wcp, euc);
-    this.mxpx = this.mxpxExpression != 0;
-    this.mayTriggerNontrivialMmuOperation = !this.size1.isZero() && !this.mxpx;
+    computeExtraGasCost();
     if (this.isStateUpdate) {
       // if state has changed, an extra gas cost is incurred
-      this.gasMxp = this.cMemNew - this.cMem + this.extraGasCost;
+      setGasMpxFromExtraGasCost();
     }
   }
 
@@ -27,7 +25,7 @@ public class CancunStateUpdtBPricingMxpCall extends CancunStateUpdtWPricingMxpCa
     return true;
   }
 
-  public void computeExtraGasCost() {
+  private void computeExtraGasCost() {
     final var opCode = this.opCodeData.mnemonic();
     final var gasPerByte =
         (opCode == OpCode.RETURN)
@@ -40,14 +38,6 @@ public class CancunStateUpdtBPricingMxpCall extends CancunStateUpdtWPricingMxpCa
             .toUnsignedBigInteger()
             .multiply(gasPerByte.toUnsignedBigInteger())
             .longValue();
-  }
-
-  @Override
-  public void compute(Wcp wcp, Euc euc) {
-    computeSize1Size2IsZero(wcp);
-    computeMxpxExpression(wcp);
-    computeStateUpdt(wcp, euc);
-    computeExtraGasCost();
   }
 
   @Override

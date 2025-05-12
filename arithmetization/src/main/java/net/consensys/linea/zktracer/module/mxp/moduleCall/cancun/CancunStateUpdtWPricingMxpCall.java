@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.mxp.moduleScenario;
+package net.consensys.linea.zktracer.module.mxp.moduleCall.cancun;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
 import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_UPDT_W;
@@ -10,57 +10,58 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import org.apache.tuweni.bytes.Bytes;
 
-public class StateUpdtWPricingMxpScenario extends MxpxMxpScenario {
+public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
+
+  public CancunStateUpdtWPricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
+    super(hub, wcp, euc);
+    compute(wcp, euc);
+    this.mxpx = this.mxpxExpression != 0;
+    this.mayTriggerNontrivialMmuOperation = !this.size1.isZero() && !this.mxpx;
+    if (this.isStateUpdate) {
+      // if state has changed, an extra gas cost is incurred
+      this.gasMxp = this.cMemNew - this.cMem + this.extraGasCost;
+    }
+  }
 
   @Override
   public boolean isStateUpdtWPricingScenario() {
     return true;
   }
 
-  public void computeStateUpdt(MxpCall mxpCall, Wcp wcp, Euc euc) {
-    final OpCode opCode = mxpCall.getOpCodeData().mnemonic();
-    final var words = mxpCall.getMemorySizeInWords();
+  public void computeStateUpdt(Wcp wcp, Euc euc) {
+    final OpCode opCode = this.opCodeData.mnemonic();
+    final var words = this.memorySizeInWords;
     final var cMem = memoryCost(words);
 
     // we filter the row i + 7 wcp call by double_offset to prevent unnecessary comparisons
     if (isDoubleOffsetOpcode(opCode)) {
       // Row i + 7
-      final var max1 =
-          mxpCall
-              .getOffset1()
-              .toUnsignedBigInteger()
-              .add(mxpCall.getSize1().toUnsignedBigInteger());
-      final var max2 =
-          mxpCall
-              .getOffset2()
-              .toUnsignedBigInteger()
-              .add(mxpCall.getSize2().toUnsignedBigInteger());
+      final var max1 = this.offset1.toUnsignedBigInteger().add(this.size1.toUnsignedBigInteger());
+      final var max2 = this.offset2.toUnsignedBigInteger().add(this.size2.toUnsignedBigInteger());
       exoCalls.add(MxpExoCall.callToLT(wcp, bigIntegerToBytes(max1), bigIntegerToBytes(max2)));
     }
 
     // Row i + 8
-    final boolean useParams2 = bytesToBoolean(exoCalls.get(6).resultA()); // result of row i + 7
+    final boolean useParams2 = exoCalls.get(6).resultA(); // result of row i + 7
     final boolean useParams1 = !useParams2;
     final var maxOffset1 =
-        mxpCall
-            .getOffset1()
+        this.offset1
             .lo()
             .toUnsignedBigInteger()
-            .add(mxpCall.getSize1().lo().toUnsignedBigInteger())
+            .add(this.size1.lo().toUnsignedBigInteger())
             .subtract(BigInteger.ONE);
     final var maxOffset2 =
-        mxpCall
-            .getOffset2()
+        this.offset2
             .lo()
             .toUnsignedBigInteger()
-            .add(mxpCall.getSize2().lo().toUnsignedBigInteger())
+            .add(this.size2.lo().toUnsignedBigInteger())
             .subtract(BigInteger.ONE);
     ;
     final var maxOffset =
@@ -81,7 +82,7 @@ public class StateUpdtWPricingMxpScenario extends MxpxMxpScenario {
     final var cMemQuadPart = exoCalls.get(8).resultB();
     final var cMemLinearPart =
         bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
-    final var updateInternalState = bytesToBoolean(exoCalls.get(9).resultA());
+    final var updateInternalState = exoCalls.get(9).resultA();
     this.isStateUpdate = updateInternalState;
     this.wordsNew = updateInternalState ? EYPa.longValue() : words;
     this.cMemNew =
@@ -92,21 +93,21 @@ public class StateUpdtWPricingMxpScenario extends MxpxMxpScenario {
             : cMem;
   }
 
-  public void computeExtraGasCost(MxpCall mxpCall, Euc euc) {
-    var gWord = mxpCall.getCostBy(BillingRate.BY_WORD);
+  public void computeExtraGasCost(Euc euc) {
+    var gWord = getCostBy(BillingRate.BY_WORD);
     // Row i + 11
-    exoCalls.add(MxpExoCall.callToEUC(euc, mxpCall.getSize1().lo(), Bytes.of(32)));
+    exoCalls.add(MxpExoCall.callToEUC(euc, this.size1.lo(), Bytes.of(32)));
     var numberOfWords = exoCalls.get(10).resultB(); // result of row i + 11
     this.extraGasCost =
         numberOfWords.toUnsignedBigInteger().multiply(gWord.toUnsignedBigInteger()).longValue();
   }
 
   @Override
-  public void compute(MxpCall mxpCall, Wcp wcp, Euc euc) {
-    computeSize1Size2IsZero(mxpCall, wcp);
-    computeMxpxExpression(mxpCall, wcp);
-    computeStateUpdt(mxpCall, wcp, euc);
-    computeExtraGasCost(mxpCall, euc);
+  public void compute(Wcp wcp, Euc euc) {
+    computeSize1Size2IsZero(wcp);
+    computeMxpxExpression(wcp);
+    computeStateUpdt(wcp, euc);
+    computeExtraGasCost(euc);
   }
 
   @Override

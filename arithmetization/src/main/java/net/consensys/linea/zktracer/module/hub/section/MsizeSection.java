@@ -16,7 +16,7 @@ package net.consensys.linea.zktracer.module.hub.section;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.MxpCall;
 
 public class MsizeSection extends TraceSection {
   public MsizeSection(Hub hub) {

@@ -13,10 +13,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc;
+package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -30,21 +29,20 @@ import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
-@RequiredArgsConstructor
 public class MxpCall implements TraceSubFragment {
 
   public final Hub hub;
 
   /** The following properties will be filled in by MXP module * */
   /** - don't necessitate computation * */
-  @Getter @Setter public OpCodeData opCodeData;
+  @Getter public OpCodeData opCodeData;
 
-  @Getter @Setter public boolean deploys;
-  @Getter @Setter public long memorySizeInWords;
-  @Getter @Setter public EWord offset1 = EWord.ZERO;
-  @Getter @Setter public EWord size1 = EWord.ZERO;
-  @Getter @Setter public EWord offset2 = EWord.ZERO;
-  @Getter @Setter public EWord size2 = EWord.ZERO;
+  @Getter public boolean deploys;
+  @Getter public long memorySizeInWords;
+  @Getter public EWord offset1 = EWord.ZERO;
+  @Getter public EWord size1 = EWord.ZERO;
+  @Getter public EWord offset2 = EWord.ZERO;
+  @Getter public EWord size2 = EWord.ZERO;
 
   /** - filled after computation by the module */
   @Getter @Setter public boolean mayTriggerNontrivialMmuOperation;
@@ -54,40 +52,14 @@ public class MxpCall implements TraceSubFragment {
   /** mxpx is short of Memory eXPansion eXception */
   @Getter @Setter public long gasMxp;
 
-  public static MxpCall build(Hub hub) {
-    return new MxpCall(hub);
-  }
-
-  static boolean getMemoryExpansionException(Hub hub) {
-    return Exceptions.memoryExpansionException(hub.pch().exceptions());
-  }
-
-  public boolean getSize1NonZeroNoMxpx() {
-    return !this.mxpx && !this.size1.isZero();
-  }
-
-  public boolean getSize2NonZeroNoMxpx() {
-    return !this.mxpx && !this.size2.isZero();
-  }
-
-  public Bytes getCostBy(BillingRate billingRate) {
-    return Bytes.of(
-        getOpCodeData().billing().billingRate() == billingRate
-            ? getOpCodeData().billing().perUnit().cost()
-            : 0);
-  }
-
-  /**
-   * This method is called by the Mxp module to snapshot the data of the hub into the following
-   * mxpCall properties [opCodeData, deploys, memorySizeInWords, offset1, size1, offset2, size2]
-   */
-  public void fillNoComputationMxpProperties() {
+  public MxpCall(Hub hub) {
+    this.hub = hub;
     final MessageFrame frame = this.hub.messageFrame();
     // set opCodeData
     this.opCodeData = this.hub.opCodeData();
     // set deploys
     this.deploys =
-        getOpCodeData().mnemonic() == OpCode.RETURN & this.hub.currentFrame().isDeployment();
+        this.opCodeData.mnemonic() == OpCode.RETURN & this.hub.currentFrame().isDeployment();
     // set memorySizeInWords
     this.memorySizeInWords = this.hub.messageFrame().memoryWordSize();
     // set sizes and offsets
@@ -140,6 +112,25 @@ public class MxpCall implements TraceSubFragment {
       }
       default -> throw new IllegalStateException("Unexpected value: " + opCode);
     }
+  }
+
+  static boolean getMemoryExpansionException(Hub hub) {
+    return Exceptions.memoryExpansionException(hub.pch().exceptions());
+  }
+
+  public boolean getSize1NonZeroNoMxpx() {
+    return !this.mxpx && !this.size1.isZero();
+  }
+
+  public boolean getSize2NonZeroNoMxpx() {
+    return !this.mxpx && !this.size2.isZero();
+  }
+
+  public Bytes getCostBy(BillingRate billingRate) {
+    return Bytes.of(
+        getOpCodeData().billing().billingRate() == billingRate
+            ? getOpCodeData().billing().perUnit().cost()
+            : 0);
   }
 
   public Trace.Hub trace(Trace.Hub trace, State hubState) {

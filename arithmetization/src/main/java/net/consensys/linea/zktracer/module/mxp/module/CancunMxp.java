@@ -23,7 +23,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 

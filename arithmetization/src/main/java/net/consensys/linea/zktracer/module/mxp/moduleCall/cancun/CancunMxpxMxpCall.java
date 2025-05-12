@@ -1,46 +1,49 @@
-package net.consensys.linea.zktracer.module.mxp.moduleScenario;
+package net.consensys.linea.zktracer.module.mxp.moduleCall.cancun;
 
 import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_MXPX;
 import static net.consensys.linea.zktracer.Trace.Mxpcan.MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
-import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
-public class MxpxMxpScenario extends TrivialMxpScenario {
+public class CancunMxpxMxpCall extends CancunTrivialMxpCall {
+
+  public CancunMxpxMxpCall(Hub hub, Wcp wcp, Euc euc) {
+    super(hub);
+    compute(wcp, euc);
+    this.gasMxp = 0L;
+    this.mxpx = this.mxpxExpression != 0;
+    this.mayTriggerNontrivialMmuOperation = !this.size1.isZero() && !this.mxpx;
+  }
 
   @Override
   public boolean isMxpxScenario() {
     return true;
   }
 
-  public void computeMxpxExpression(MxpCall mxpCall, Wcp wcp) {
+  public void computeMxpxExpression(Wcp wcp) {
     // Row i + 3
-    exoCalls.add(
-        MxpExoCall.callToLEQ(wcp, mxpCall.getSize1(), Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
+    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.size1, Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
     // Row i + 4
-    exoCalls.add(
-        MxpExoCall.callToLEQ(wcp, mxpCall.getSize2(), Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
+    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.size2, Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
     // Row i + 5
-    exoCalls.add(
-        MxpExoCall.callToLEQ(wcp, mxpCall.getOffset1(), Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
+    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.offset1, Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
     // Row i + 6
-    exoCalls.add(
-        MxpExoCall.callToLEQ(wcp, mxpCall.getOffset2(), Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
+    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.offset2, Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
 
     final boolean size1IsNonZero = !this.size1IsZero;
     final boolean size2IsNonZero = !this.size2IsZero;
-    final boolean size1IsSmall = bytesToBoolean(exoCalls.get(2).resultA()); // result of row i + 3
+    final boolean size1IsSmall = exoCalls.get(2).resultA(); // result of row i + 3
     final boolean size1IsLarge = !size1IsSmall;
-    final boolean size2IsSmall = bytesToBoolean(exoCalls.get(3).resultA());
+    final boolean size2IsSmall = exoCalls.get(3).resultA();
     final boolean size2IsLarge = !size2IsSmall;
-    final boolean offset1IsSmall = bytesToBoolean(exoCalls.get(4).resultA());
+    final boolean offset1IsSmall = exoCalls.get(4).resultA();
     final boolean offset1IsLarge = !offset1IsSmall;
-    final boolean offset2IsSmall = bytesToBoolean(exoCalls.get(5).resultA());
+    final boolean offset2IsSmall = exoCalls.get(5).resultA();
     final boolean offset2IsLarge = !offset2IsSmall;
     final int mxpxExpression1 =
         booleanToInt(size1IsLarge) + booleanToInt(size1IsNonZero) * booleanToInt(offset1IsLarge);
@@ -51,9 +54,9 @@ public class MxpxMxpScenario extends TrivialMxpScenario {
   }
 
   @Override
-  public void compute(MxpCall mxpCall, Wcp wcp, Euc euc) {
-    computeSize1Size2IsZero(mxpCall, wcp);
-    computeMxpxExpression(mxpCall, wcp);
+  public void compute(Wcp wcp, Euc euc) {
+    computeSize1Size2IsZero(wcp);
+    computeMxpxExpression(wcp);
   }
 
   @Override

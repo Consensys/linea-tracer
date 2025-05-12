@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.moduleOperation.MxpOperation;
 
 /** Abstract class for implementation of a {@link Module} for memory expansion. */

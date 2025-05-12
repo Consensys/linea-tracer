@@ -29,7 +29,7 @@ import java.util.Arrays;
 import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.MxpCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
@@ -87,7 +87,6 @@ public class LondonMxpOperation extends MxpOperation {
     super(mxpCall);
     final Hub hub = mxpCall.hub;
     final MessageFrame frame = hub.messageFrame();
-    this.mxpCall.setMemorySizeInWords(frame.memoryWordSize());
     this.wordsNew = frame.memoryWordSize(); // will (may) be updated later
     this.cMem = memoryCost(frame.memoryWordSize());
     this.cMemNew = memoryCost(frame.memoryWordSize()); // will (may) be updated later

@@ -21,8 +21,9 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToLong;
 import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
-import net.consensys.linea.zktracer.module.mxp.moduleScenario.*;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.MxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.cancun.CancunMSizeMxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.cancun.CancunMxpCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
@@ -39,7 +40,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
   private long cMemNew;
   private final Bytes gWord;
   private final Bytes gByte;
-  private final MxpScenario scenario;
+  private final CancunMxpCall scenario;
 
   /**
    * The operation can follow 5 scenarii depending on the opcode. Each scenario executes
@@ -71,16 +72,15 @@ public class CancunMxpOperation extends LondonMxpOperation {
     this.cMem = memoryCost(this.mxpCall.getMemorySizeInWords());
     this.cMemNew = memoryCost(this.mxpCall.getMemorySizeInWords()); // will (may) be updated later
 
-    // Snapshot properties from the hub in mxpCall properties
-    this.mxpCall.fillNoComputationMxpProperties();
-
     // We do the computation depending on the scenario
-    this.scenario = MxpScenario.getMxpScenario(this.mxpCall);
-    scenario.compute(mxpCall, wcp, euc);
+    this.scenario = new CancunMSizeMxpCall(this.mxpCall.hub);
+
+    /*    this.scenario = this.mxpCall.getMxpScenario(this.mxpCall, wcp, euc);
+    scenario.compute(wcp, euc);*/
 
     // After computation
     // We update the mxpCall properties and state variables accordingly
-    this.mxpCall.setGasMxp(0L);
+    /*    this.mxpCall.setGasMxp(0L);
     this.mxpCall.setMxpx(scenario.getMxpxExpression() != 0);
     this.mxpCall.setMayTriggerNontrivialMmuOperation(
         !this.mxpCall.getSize1().isZero() && !this.mxpCall.isMxpx());
@@ -89,16 +89,16 @@ public class CancunMxpOperation extends LondonMxpOperation {
       this.cMemNew = scenario.getCMemNew();
       // if state has changed, an extra gas cost is incurred
       mxpCall.setGasMxp(this.cMemNew - this.cMem + scenario.getExtraGasCost());
-    }
+    }*/
   }
 
-  public int nRows() {
+  private int nRowsComputation() {
     return scenario.ctMax() + 1;
   }
 
   @Override
   protected int computeLineCount() {
-    return this.nRows();
+    return nRowsComputation() + 3; // 3 for decoder, macro and scenario
   }
 
   @Override
@@ -177,9 +177,8 @@ public class CancunMxpOperation extends LondonMxpOperation {
   }
 
   final void traceComputation(int stamp, Trace.Mxpcan trace) {
-    final int nRows = this.nRows();
 
-    for (int i = 0; i < nRows; i++) {
+    for (int i = 0; i < nRowsComputation(); i++) {
       trace
           .mxpStamp(stamp)
           .cn(this.getContextNumber())

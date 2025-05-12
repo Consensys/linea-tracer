@@ -21,11 +21,11 @@ import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.OUT_OF_
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.ReturnDataCopyOobCall;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.MxpCall;
 
 public class ReturnDataCopySection extends TraceSection {
 

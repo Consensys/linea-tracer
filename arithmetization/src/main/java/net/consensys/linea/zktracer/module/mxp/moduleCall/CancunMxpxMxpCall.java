@@ -12,6 +12,8 @@ import org.apache.tuweni.bytes.Bytes;
 
 public class CancunMxpxMxpCall extends CancunTrivialMxpCall {
 
+  static final Bytes mxpxThreshold = Bytes.ofUnsignedLong(MXPX_THRESHOLD);
+
   public CancunMxpxMxpCall(Hub hub, Wcp wcp, Euc euc) {
     super(hub, wcp);
     computeMxpxExpression(wcp);
@@ -26,13 +28,13 @@ public class CancunMxpxMxpCall extends CancunTrivialMxpCall {
 
   public void computeMxpxExpression(Wcp wcp) {
     // Row i + 3
-    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.size1, Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
+    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.size1, mxpxThreshold));
     // Row i + 4
-    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.size2, Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
+    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.size2, mxpxThreshold));
     // Row i + 5
-    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.offset1, Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
+    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.offset1, mxpxThreshold));
     // Row i + 6
-    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.offset2, Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
+    exoCalls.add(MxpExoCall.callToLEQ(wcp, this.offset2, mxpxThreshold));
 
     final boolean size1IsNonZero = !this.size1IsZero;
     final boolean size2IsNonZero = !this.size2IsZero;

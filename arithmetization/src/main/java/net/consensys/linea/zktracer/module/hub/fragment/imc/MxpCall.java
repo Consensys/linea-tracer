@@ -13,15 +13,20 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.mxp.moduleCall;
+package net.consensys.linea.zktracer.module.hub.fragment.imc;
+
+import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isWordPricingOpcode;
 
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.state.State;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.*;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
@@ -131,6 +136,30 @@ public class MxpCall implements TraceSubFragment {
         getOpCodeData().billing().billingRate() == billingRate
             ? getOpCodeData().billing().perUnit().cost()
             : 0);
+  }
+
+  /**
+   * Get the MxpScenario for the given MxpCall.
+   *
+   * @param wcp module to compute the wcp in exoCalls
+   * @param euc module to compute the euc in exoCalls
+   * @return MxpScenario instance corresponding to the MxpCall
+   */
+  public CancunMxpCall getMxpScenario(Wcp wcp, Euc euc) {
+    OpCode opCode = this.opCodeData.mnemonic();
+    if (opCode == OpCode.MSIZE) {
+      return new CancunMSizeMxpCall(hub);
+    }
+    if (this.size1.isZero() && this.size2.isZero()) {
+      return new CancunTrivialMxpCall(hub);
+    }
+    if (this.mxpx) {
+      return new CancunMxpxMxpCall(hub, wcp, euc);
+    }
+    if (isWordPricingOpcode(opCode)) {
+      return new CancunStateUpdtWPricingMxpCall(hub, wcp, euc);
+    }
+    return new CancunStateUpdtBPricingMxpCall(hub, wcp, euc);
   }
 
   public Trace.Hub trace(Trace.Hub trace, State hubState) {

@@ -1,9 +1,8 @@
-package net.consensys.linea.zktracer.module.mxp.moduleCall.cancun;
+package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
 import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_UPDT_W;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isDoubleOffsetOpcode;
-import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
@@ -14,7 +13,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import org.apache.tuweni.bytes.Bytes;
 
 public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
@@ -37,8 +35,6 @@ public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
 
   public void computeStateUpdt(Wcp wcp, Euc euc) {
     final OpCode opCode = this.opCodeData.mnemonic();
-    final var words = this.memorySizeInWords;
-    final var cMem = memoryCost(words);
 
     // we filter the row i + 7 wcp call by double_offset to prevent unnecessary comparisons
     if (isDoubleOffsetOpcode(opCode)) {
@@ -84,22 +80,24 @@ public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
         bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
     final var updateInternalState = exoCalls.get(9).resultA();
     this.isStateUpdate = updateInternalState;
-    this.wordsNew = updateInternalState ? EYPa.longValue() : words;
+    this.wordsNew = updateInternalState ? EYPa.longValue() : this.words;
     this.cMemNew =
         updateInternalState
             ? bigIntegerToBytes(
                     cMemQuadPart.toUnsignedBigInteger().add(cMemLinearPart.toUnsignedBigInteger()))
                 .toLong()
-            : cMem;
+            : this.cMem;
   }
 
   public void computeExtraGasCost(Euc euc) {
-    var gWord = getCostBy(BillingRate.BY_WORD);
     // Row i + 11
     exoCalls.add(MxpExoCall.callToEUC(euc, this.size1.lo(), Bytes.of(32)));
     var numberOfWords = exoCalls.get(10).resultB(); // result of row i + 11
     this.extraGasCost =
-        numberOfWords.toUnsignedBigInteger().multiply(gWord.toUnsignedBigInteger()).longValue();
+        numberOfWords
+            .toUnsignedBigInteger()
+            .multiply(this.gWord.toUnsignedBigInteger())
+            .longValue();
   }
 
   @Override

@@ -1,6 +1,5 @@
-package net.consensys.linea.zktracer.module.mxp.moduleCall.cancun;
+package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
-import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isWordPricingOpcode;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 
 import java.util.ArrayList;
@@ -8,20 +7,25 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
-import net.consensys.linea.zktracer.module.mxp.moduleCall.MxpCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.gas.BillingRate;
+import org.apache.tuweni.bytes.Bytes;
 
 public abstract class CancunMxpCall extends MxpCall {
 
   public final long words;
   public final long cMem;
+  public final Bytes gWord;
+  public final Bytes gByte;
 
   public CancunMxpCall(Hub hub) {
     super(hub);
     this.words = this.memorySizeInWords;
     this.cMem = memoryCost(this.memorySizeInWords);
+    this.gWord = getCostBy(BillingRate.BY_WORD);
+    this.gByte = getCostBy(BillingRate.BY_BYTE);
   }
 
   /** Store all wcp and euc computations with params and results */
@@ -67,29 +71,5 @@ public abstract class CancunMxpCall extends MxpCall {
 
   public boolean isStateUpdtBPricingScenario() {
     return false;
-  }
-
-  /**
-   * Get the MxpScenario for the given MxpCall.
-   *
-   * @param wcp module to compute the wcp in exoCalls
-   * @param euc module to compute the euc in exoCalls
-   * @return MxpScenario instance corresponding to the MxpCall
-   */
-  public CancunMxpCall getMxpScenario(Wcp wcp, Euc euc) {
-    OpCode opCode = this.opCodeData.mnemonic();
-    if (opCode == OpCode.MSIZE) {
-      return new CancunMSizeMxpCall(hub);
-    }
-    if (this.size1.isZero() && this.size2.isZero()) {
-      return new CancunTrivialMxpCall(hub);
-    }
-    if (this.mxpx) {
-      return new CancunMxpxMxpCall(hub, wcp, euc);
-    }
-    if (isWordPricingOpcode(opCode)) {
-      return new CancunStateUpdtWPricingMxpCall(hub, wcp, euc);
-    }
-    return new CancunStateUpdtBPricingMxpCall(hub, wcp, euc);
   }
 }

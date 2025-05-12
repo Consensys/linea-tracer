@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.mxp.moduleCall.cancun;
+package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
 import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_MSIZE;
 

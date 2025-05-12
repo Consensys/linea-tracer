@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.mxp.moduleCall.cancun;
+package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
 import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_UPDT_B;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -8,7 +8,6 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 
 public class CancunStateUpdtBPricingMxpCall extends CancunStateUpdtWPricingMxpCall {
 
@@ -29,13 +28,12 @@ public class CancunStateUpdtBPricingMxpCall extends CancunStateUpdtWPricingMxpCa
   }
 
   public void computeExtraGasCost() {
-    final var gByte = getCostBy(BillingRate.BY_BYTE);
     final var opCode = this.opCodeData.mnemonic();
     final var gasPerByte =
         (opCode == OpCode.RETURN)
             ? bigIntegerToBytes(
                 booleanToBigInteger(this.deploys).multiply(gByte.toUnsignedBigInteger()))
-            : gByte;
+            : this.gByte;
     final var numberOfBytes = this.size1.lo();
     this.extraGasCost =
         numberOfBytes

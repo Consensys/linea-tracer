@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.mxp.moduleOperation;
 import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.mxp.moduleCall.MxpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
 @Getter
 public abstract class MxpOperation extends ModuleOperation {

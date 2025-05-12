@@ -42,7 +42,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
 
   /**
    * The operation can follow 5 scenarii depending on the opcode. Each scenario executes
-   * computations and inherits from the previous one as computations are cumulative
+   * computations and inherits from the previous scenario as computations are cumulative
    *
    * <p>MSize scenario - no computation
    *
@@ -51,10 +51,10 @@ public class CancunMxpOperation extends LondonMxpOperation {
    * <p>Mxpx scenario - computes size1IsZero and size2IsZero and mxpxExpression
    *
    * <p>State update with word pricing scenario - computes size1IsZero and size2IsZero and
-   * mxpxExpression and extraGasCost for word pricing opcodes
+   * mxpxExpression and state update (wordsNew,cMemNew) and extraGasCost for word pricing opcodes
    *
    * <p>State update with byte pricing scenario - computes size1IsZero and size2IsZero and
-   * mxpxExpression and extraGasCost for byte pricing opcodes
+   * mxpxExpression and state update (wordsNew,cMemNew) and extraGasCost for byte pricing opcodes
    */
   public CancunMxpOperation(final MxpCall mxpCall, Wcp wcp, Euc euc) {
     super(mxpCall);

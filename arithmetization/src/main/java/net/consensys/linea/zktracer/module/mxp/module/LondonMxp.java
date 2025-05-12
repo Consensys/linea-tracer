@@ -18,11 +18,9 @@ package net.consensys.linea.zktracer.module.mxp.module;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.moduleOperation.LondonMxpOperation;
 
-/** Implementation of a {@link Module} for memory expansion. */
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor

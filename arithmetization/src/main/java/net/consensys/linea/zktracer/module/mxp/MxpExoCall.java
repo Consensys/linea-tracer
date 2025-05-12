@@ -79,7 +79,6 @@ public class MxpExoCall {
 
     final Bytes32 arg1B32 = Bytes32.leftPad(arg1);
 
-    // TODO: check if I need arg2 set
     return MxpExoCall.builder()
         .wcpFlag(true)
         .instruction(EVM_INST_ISZERO)

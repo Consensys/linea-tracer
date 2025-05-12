@@ -15,51 +15,22 @@
 
 package net.consensys.linea.zktracer.module.mxp.module;
 
-import java.util.List;
-
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.moduleOperation.MxpOperation;
 
-/** Implementation of a {@link Module} for memory expansion. */
-@Getter
+/** Abstract class for implementation of a {@link Module} for memory expansion. */
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public class Mxp implements OperationListModule<MxpOperation> {
-
-  private final ModuleOperationStackedList<MxpOperation> operations =
-      new ModuleOperationStackedList<>();
+public abstract class Mxp implements OperationListModule<MxpOperation> {
 
   @Override
   public String moduleKey() {
     return "MXP";
   }
 
-  @Override
-  public List<Trace.ColumnHeader> columnHeaders(Trace trace) {
-    return trace.mxp().headers(this.lineCount());
-  }
-
-  @Override
-  public int spillage(Trace trace) {
-    return trace.mxp().spillage();
-  }
-
-  @Override
-  public void commit(Trace trace) {
-    int stamp = 0;
-    for (MxpOperation op : operations.getAll()) {
-      op.trace(++stamp, trace.mxp());
-    }
-  }
-
-  public void call(MxpCall mxpCall) {
-    throw new IllegalStateException("Should be implemented");
-  }
+  protected abstract void call(MxpCall mxpCall);
 }

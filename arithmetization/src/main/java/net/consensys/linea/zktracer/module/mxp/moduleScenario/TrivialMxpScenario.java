@@ -1,6 +1,6 @@
 package net.consensys.linea.zktracer.module.mxp.moduleScenario;
 
-import static net.consensys.linea.zktracer.Trace.Mxp.CT_MAX_TRIV;
+import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_TRIV;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
 import net.consensys.linea.zktracer.module.euc.Euc;

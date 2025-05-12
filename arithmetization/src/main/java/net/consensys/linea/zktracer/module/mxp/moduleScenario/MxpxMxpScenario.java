@@ -1,7 +1,7 @@
 package net.consensys.linea.zktracer.module.mxp.moduleScenario;
 
-import static net.consensys.linea.zktracer.Trace.Mxp.CT_MAX_MXPX;
-import static net.consensys.linea.zktracer.Trace.Mxp.MXPX_THRESHOLD;
+import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_MXPX;
+import static net.consensys.linea.zktracer.Trace.Mxpcan.MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
@@ -32,19 +32,19 @@ public class MxpxMxpScenario extends TrivialMxpScenario {
     exoCalls.add(
         MxpExoCall.callToLEQ(wcp, mxpCall.getOffset2(), Bytes.ofUnsignedLong(MXPX_THRESHOLD)));
 
-    boolean size1IsNonZero = !this.size1IsZero;
-    boolean size2IsNonZero = !this.size2IsZero;
-    boolean size1IsSmall = bytesToBoolean(exoCalls.get(2).resultA()); // result of row i + 3
-    boolean size1IsLarge = !size1IsSmall;
-    boolean size2IsSmall = bytesToBoolean(exoCalls.get(3).resultA());
-    boolean size2IsLarge = !size2IsSmall;
-    boolean offset1IsSmall = bytesToBoolean(exoCalls.get(4).resultA());
-    boolean offset1IsLarge = !offset1IsSmall;
-    boolean offset2IsSmall = bytesToBoolean(exoCalls.get(5).resultA());
-    boolean offset2IsLarge = !offset2IsSmall;
-    int mxpxExpression1 =
+    final boolean size1IsNonZero = !this.size1IsZero;
+    final boolean size2IsNonZero = !this.size2IsZero;
+    final boolean size1IsSmall = bytesToBoolean(exoCalls.get(2).resultA()); // result of row i + 3
+    final boolean size1IsLarge = !size1IsSmall;
+    final boolean size2IsSmall = bytesToBoolean(exoCalls.get(3).resultA());
+    final boolean size2IsLarge = !size2IsSmall;
+    final boolean offset1IsSmall = bytesToBoolean(exoCalls.get(4).resultA());
+    final boolean offset1IsLarge = !offset1IsSmall;
+    final boolean offset2IsSmall = bytesToBoolean(exoCalls.get(5).resultA());
+    final boolean offset2IsLarge = !offset2IsSmall;
+    final int mxpxExpression1 =
         booleanToInt(size1IsLarge) + booleanToInt(size1IsNonZero) * booleanToInt(offset1IsLarge);
-    int mxpxExpression2 =
+    final int mxpxExpression2 =
         booleanToInt(size2IsLarge) + booleanToInt(size2IsNonZero) * booleanToInt(offset2IsLarge);
 
     this.mxpxExpression = mxpxExpression1 + mxpxExpression2;

@@ -1,6 +1,6 @@
 package net.consensys.linea.zktracer.module.mxp.moduleScenario;
 
-import static net.consensys.linea.zktracer.Trace.Mxp.CT_MAX_MSIZE;
+import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_MSIZE;
 
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;

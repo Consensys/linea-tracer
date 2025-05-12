@@ -1,7 +1,7 @@
 package net.consensys.linea.zktracer.module.mxp.moduleScenario;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
-import static net.consensys.linea.zktracer.Trace.Mxp.CT_MAX_UPDT_W;
+import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_UPDT_W;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isDoubleOffsetOpcode;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 import static net.consensys.linea.zktracer.types.Conversions.*;
@@ -25,19 +25,19 @@ public class StateUpdtWPricingMxpScenario extends MxpxMxpScenario {
   }
 
   public void computeStateUpdt(MxpCall mxpCall, Wcp wcp, Euc euc) {
-    OpCode opCode = mxpCall.getOpCodeData().mnemonic();
-    var words = mxpCall.getMemorySizeInWords();
-    var cMem = memoryCost(words);
+    final OpCode opCode = mxpCall.getOpCodeData().mnemonic();
+    final var words = mxpCall.getMemorySizeInWords();
+    final var cMem = memoryCost(words);
 
     // we filter the row i + 7 wcp call by double_offset to prevent unnecessary comparisons
     if (isDoubleOffsetOpcode(opCode)) {
       // Row i + 7
-      var max1 =
+      final var max1 =
           mxpCall
               .getOffset1()
               .toUnsignedBigInteger()
               .add(mxpCall.getSize1().toUnsignedBigInteger());
-      var max2 =
+      final var max2 =
           mxpCall
               .getOffset2()
               .toUnsignedBigInteger()
@@ -46,16 +46,16 @@ public class StateUpdtWPricingMxpScenario extends MxpxMxpScenario {
     }
 
     // Row i + 8
-    boolean useParams2 = bytesToBoolean(exoCalls.get(6).resultA()); // result of row i + 7
-    boolean useParams1 = !useParams2;
-    var maxOffset1 =
+    final boolean useParams2 = bytesToBoolean(exoCalls.get(6).resultA()); // result of row i + 7
+    final boolean useParams1 = !useParams2;
+    final var maxOffset1 =
         mxpCall
             .getOffset1()
             .lo()
             .toUnsignedBigInteger()
             .add(mxpCall.getSize1().lo().toUnsignedBigInteger())
             .subtract(BigInteger.ONE);
-    var maxOffset2 =
+    final var maxOffset2 =
         mxpCall
             .getOffset2()
             .lo()
@@ -63,24 +63,25 @@ public class StateUpdtWPricingMxpScenario extends MxpxMxpScenario {
             .add(mxpCall.getSize2().lo().toUnsignedBigInteger())
             .subtract(BigInteger.ONE);
     ;
-    var maxOffset =
+    final var maxOffset =
         booleanToBigInteger(useParams1)
             .multiply(maxOffset1)
             .add(booleanToBigInteger(useParams2).multiply(maxOffset2));
     exoCalls.add(MxpExoCall.callToEUC(euc, bigIntegerToBytes(maxOffset), Bytes.of(32)));
 
     // row i + 9
-    var floor = exoCalls.get(7).resultB();
-    var EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
+    final var floor = exoCalls.get(7).resultB();
+    final var EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
     exoCalls.add(MxpExoCall.callToEUC(euc, bigIntegerToBytes(EYPa.multiply(EYPa)), Bytes.of(512)));
 
     // row i + 10
     exoCalls.add(MxpExoCall.callToLT(wcp, longToBytes(words), bigIntegerToBytes(EYPa)));
 
     // Compute state update
-    var cMemQuadPart = exoCalls.get(8).resultB();
-    var cMemLinearPart = bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
-    var updateInternalState = bytesToBoolean(exoCalls.get(9).resultA());
+    final var cMemQuadPart = exoCalls.get(8).resultB();
+    final var cMemLinearPart =
+        bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
+    final var updateInternalState = bytesToBoolean(exoCalls.get(9).resultA());
     this.isStateUpdate = updateInternalState;
     this.wordsNew = updateInternalState ? EYPa.longValue() : words;
     this.cMemNew =

@@ -1,6 +1,6 @@
 package net.consensys.linea.zktracer.module.mxp.moduleScenario;
 
-import static net.consensys.linea.zktracer.Trace.Mxp.CT_MAX_UPDT_B;
+import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_UPDT_B;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 
@@ -18,14 +18,14 @@ public class StateUpdtBPricingMxpScenario extends StateUpdtWPricingMxpScenario {
   }
 
   public void computeExtraGasCost(MxpCall mxpCall) {
-    var gByte = mxpCall.getCostBy(BillingRate.BY_BYTE);
-    var opCode = mxpCall.getOpCodeData().mnemonic();
-    var gasPerByte =
+    final var gByte = mxpCall.getCostBy(BillingRate.BY_BYTE);
+    final var opCode = mxpCall.getOpCodeData().mnemonic();
+    final var gasPerByte =
         (opCode == OpCode.RETURN)
             ? bigIntegerToBytes(
                 booleanToBigInteger(mxpCall.isDeploys()).multiply(gByte.toUnsignedBigInteger()))
             : gByte;
-    var numberOfBytes = mxpCall.getSize1().lo();
+    final var numberOfBytes = mxpCall.getSize1().lo();
     this.extraGasCost =
         numberOfBytes
             .toUnsignedBigInteger()

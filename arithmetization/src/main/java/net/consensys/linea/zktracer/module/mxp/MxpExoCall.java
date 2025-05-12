@@ -39,7 +39,7 @@ public class MxpExoCall {
   @Builder.Default private final Bytes arg2Hi = Bytes.EMPTY;
   @Builder.Default private final Bytes arg2Lo = Bytes.EMPTY;
   // results for wcp computations in trace
-  @Builder.Default private final Bytes resultA = ZERO;
+  @Builder.Default private final boolean resultA = false;
   // results for euc computations in trace
   @Builder.Default private final Bytes resultB = ZERO;
 
@@ -55,7 +55,7 @@ public class MxpExoCall {
         .arg1Lo(arg1B32.slice(LLARGE, LLARGE))
         .arg2Hi(arg2B32.slice(0, LLARGE))
         .arg2Lo(arg2B32.slice(LLARGE, LLARGE))
-        .resultA(booleanToBytes(wcp.callLT(arg1B32, arg2B32)))
+        .resultA(wcp.callLT(arg1B32, arg2B32))
         .build();
   }
 
@@ -71,7 +71,7 @@ public class MxpExoCall {
         .arg1Lo(arg1B32.slice(LLARGE, LLARGE))
         .arg2Hi(arg2B32.slice(0, LLARGE))
         .arg2Lo(arg2B32.slice(LLARGE, LLARGE))
-        .resultA(booleanToBytes(wcp.callLT(arg1B32, arg2B32)))
+        .resultA(wcp.callLT(arg1B32, arg2B32))
         .build();
   }
 
@@ -84,7 +84,7 @@ public class MxpExoCall {
         .instruction(EVM_INST_ISZERO)
         .arg1Hi(arg1B32.slice(0, LLARGE))
         .arg1Lo(arg1B32.slice(LLARGE, LLARGE))
-        .resultA(booleanToBytes(wcp.callISZERO(arg1B32)))
+        .resultA(wcp.callISZERO(arg1B32))
         .build();
   }
 

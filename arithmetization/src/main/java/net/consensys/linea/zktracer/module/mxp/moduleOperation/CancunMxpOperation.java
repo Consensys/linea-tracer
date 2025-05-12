@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.mxp.moduleOperation;
 
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.*;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToLong;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
@@ -148,7 +149,8 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .pMacroOffset2Lo(this.mxpCall.getOffset2().lo())
         .pMacroSize2Hi(this.mxpCall.getSize2().hi())
         .pMacroSize2Lo(this.mxpCall.getSize2().lo())
-        .pMacroRes((opCode == OpCode.MSIZE) ? this.mxpCall.getMemorySizeInWords() : 0L) // to do
+        .pMacroRes(
+            this.scenario.isMSizeScenario() ? this.mxpCall.getMemorySizeInWords() : 0L) // to do
         .pMacroMxpx(this.mxpCall.isMxpx())
         .pMacroGasMxp(Bytes.ofUnsignedLong(this.mxpCall.getGasMxp()))
         .pMacroMayTriggerMmu(this.mxpCall.isMayTriggerNontrivialMmuOperation())
@@ -191,7 +193,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
           .pComputationArg1Lo(scenario.exoCalls.get(i).arg1Lo())
           .pComputationArg2Hi(scenario.exoCalls.get(i).arg2Hi())
           .pComputationArg2Lo(scenario.exoCalls.get(i).arg2Lo())
-          .pComputationResA(scenario.exoCalls.get(i).resultA().toLong())
+          .pComputationResA(booleanToLong(scenario.exoCalls.get(i).resultA()))
           .pComputationResB(scenario.exoCalls.get(i).resultB().toLong())
           .fillAndValidateRow();
     }

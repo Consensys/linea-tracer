@@ -153,13 +153,16 @@ public class MxpCall implements TraceSubFragment {
     if (this.size1.isZero() && this.size2.isZero()) {
       return new CancunTrivialMxpCall(this.hub, wcp);
     }
-    if (this.mxpx) {
-      return new CancunMxpxMxpCall(this.hub, wcp, euc);
+    // TODO: remove the computation duplicate
+    var cancunMxpxMxpCall = new CancunMxpxMxpCall(this.hub, wcp);
+    if (cancunMxpxMxpCall.mxpx) {
+      return cancunMxpxMxpCall;
+    } else {
+      if (isWordPricingOpcode(opCode)) {
+        return new CancunStateUpdtWPricingMxpCall(this.hub, wcp, euc);
+      }
+      return new CancunStateUpdtBPricingMxpCall(hub, wcp, euc);
     }
-    if (isWordPricingOpcode(opCode)) {
-      return new CancunStateUpdtWPricingMxpCall(this.hub, wcp, euc);
-    }
-    return new CancunStateUpdtBPricingMxpCall(hub, wcp, euc);
   }
 
   public Trace.Hub trace(Trace.Hub trace, State hubState) {

@@ -4,7 +4,6 @@ import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_MXPX;
 import static net.consensys.linea.zktracer.Trace.Mxpcan.MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 
-import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -14,7 +13,7 @@ public class CancunMxpxMxpCall extends CancunTrivialMxpCall {
 
   static final Bytes mxpxThreshold = Bytes.ofUnsignedLong(MXPX_THRESHOLD);
 
-  public CancunMxpxMxpCall(Hub hub, Wcp wcp, Euc euc) {
+  public CancunMxpxMxpCall(Hub hub, Wcp wcp) {
     super(hub, wcp);
     computeMxpxExpression(wcp);
     setMxpxFromMxpxExpression();

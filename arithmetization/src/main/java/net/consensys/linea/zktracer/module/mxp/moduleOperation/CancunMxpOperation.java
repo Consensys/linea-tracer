@@ -32,7 +32,7 @@ import org.apache.tuweni.bytes.Bytes;
 public class CancunMxpOperation extends LondonMxpOperation {
 
   private final int contextNumber;
-  private final CancunMxpCall superMxpCall;
+  private final CancunMxpCall cancunMxpCall;
 
   /**
    * The operation can follow 5 scenarii depending on the opcode. Each scenario executes
@@ -58,11 +58,11 @@ public class CancunMxpOperation extends LondonMxpOperation {
 
     // We instantiate an extended MxpCall (CancunMxpCall) depending on the scenario
     // This super MxpCall does the computation and stores the values
-    this.superMxpCall = this.mxpCall.getMxpScenario(wcp, euc);
+    this.cancunMxpCall = this.mxpCall.getMxpScenario(wcp, euc);
   }
 
   private int nRowsComputation() {
-    return superMxpCall.ctMax() + 1;
+    return cancunMxpCall.ctMax() + 1;
   }
 
   @Override
@@ -80,7 +80,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
   }
 
   final void traceDecoder(int stamp, Trace.Mxpcan trace) {
-    OpCode opCode = superMxpCall.getOpCodeData().mnemonic();
+    OpCode opCode = cancunMxpCall.getOpCodeData().mnemonic();
 
     trace
         .mxpStamp(stamp)
@@ -96,35 +96,35 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .pDecoderIsDoubleMaxOffset(isDoubleOffsetOpcode(opCode))
         .pDecoderIsWordPricing(isWordPricingOpcode(opCode))
         .pDecoderIsBytePricing(isBytePricingOpcode(opCode))
-        .pDecoderGword((UnsignedByte) superMxpCall.gWord)
-        .pDecoderGbyte((UnsignedByte) superMxpCall.gByte)
+        .pDecoderGword((UnsignedByte) cancunMxpCall.gWord)
+        .pDecoderGbyte((UnsignedByte) cancunMxpCall.gByte)
         .fillAndValidateRow();
   }
 
   final void traceMacro(int stamp, Trace.Mxpcan trace) {
-    OpCode opCode = superMxpCall.getOpCodeData().mnemonic();
+    OpCode opCode = cancunMxpCall.getOpCodeData().mnemonic();
 
     trace
         .mxpStamp(stamp)
         .cn(this.getContextNumber())
         .macro(true)
         .pMacroInst(UnsignedByte.of(opCode.byteValue()))
-        .pMacroDeploying(superMxpCall.isDeploys())
-        .pMacroOffset1Hi(superMxpCall.getOffset1().hi())
-        .pMacroOffset1Lo(superMxpCall.getOffset1().lo())
-        .pMacroSize1Hi(superMxpCall.getSize1().hi())
-        .pMacroSize1Lo(superMxpCall.getSize1().lo())
-        .pMacroOffset2Hi(superMxpCall.getOffset2().hi())
-        .pMacroOffset2Lo(superMxpCall.getOffset2().lo())
-        .pMacroSize2Hi(superMxpCall.getSize2().hi())
-        .pMacroSize2Lo(superMxpCall.getSize2().lo())
+        .pMacroDeploying(cancunMxpCall.isDeploys())
+        .pMacroOffset1Hi(cancunMxpCall.getOffset1().hi())
+        .pMacroOffset1Lo(cancunMxpCall.getOffset1().lo())
+        .pMacroSize1Hi(cancunMxpCall.getSize1().hi())
+        .pMacroSize1Lo(cancunMxpCall.getSize1().lo())
+        .pMacroOffset2Hi(cancunMxpCall.getOffset2().hi())
+        .pMacroOffset2Lo(cancunMxpCall.getOffset2().lo())
+        .pMacroSize2Hi(cancunMxpCall.getSize2().hi())
+        .pMacroSize2Lo(cancunMxpCall.getSize2().lo())
         .pMacroRes(
-            superMxpCall.isMSizeScenario() ? superMxpCall.getMemorySizeInWords() : 0L) // to do
-        .pMacroMxpx(superMxpCall.isMxpx())
-        .pMacroGasMxp(Bytes.ofUnsignedLong(superMxpCall.getGasMxp()))
-        .pMacroMayTriggerMmu(superMxpCall.isMayTriggerNontrivialMmuOperation())
-        .pMacroS1Nznomxpx(!superMxpCall.getSize1().isZero() && !superMxpCall.isMxpx())
-        .pMacroS2Nznomxpx(!superMxpCall.getSize2().isZero() && !superMxpCall.isMxpx())
+            cancunMxpCall.isMSizeScenario() ? cancunMxpCall.getMemorySizeInWords() : 0L) // to do
+        .pMacroMxpx(cancunMxpCall.isMxpx())
+        .pMacroGasMxp(Bytes.ofUnsignedLong(cancunMxpCall.getGasMxp()))
+        .pMacroMayTriggerMmu(cancunMxpCall.isMayTriggerNontrivialMmuOperation())
+        .pMacroS1Nznomxpx(!cancunMxpCall.getSize1().isZero() && !cancunMxpCall.isMxpx())
+        .pMacroS2Nznomxpx(!cancunMxpCall.getSize2().isZero() && !cancunMxpCall.isMxpx())
         .fillAndValidateRow();
   }
 
@@ -133,15 +133,15 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .mxpStamp(stamp)
         .cn(this.getContextNumber())
         .scenario(true)
-        .pScenarioMsize(superMxpCall.isMSizeScenario())
-        .pScenarioTrivial(superMxpCall.isTrivialScenario())
-        .pScenarioMxpx(superMxpCall.isMxpxScenario())
-        .pScenarioStateUpdateWordPricing(superMxpCall.isStateUpdtWPricingScenario())
-        .pScenarioStateUpdateBytePricing(superMxpCall.isStateUpdtBPricingScenario())
-        .pScenarioWords(superMxpCall.words)
-        .pScenarioWordsNew(superMxpCall.wordsNew)
-        .pScenarioCmem(Bytes.ofUnsignedLong(superMxpCall.cMem))
-        .pScenarioCmemNew(Bytes.ofUnsignedLong(superMxpCall.cMemNew))
+        .pScenarioMsize(cancunMxpCall.isMSizeScenario())
+        .pScenarioTrivial(cancunMxpCall.isTrivialScenario())
+        .pScenarioMxpx(cancunMxpCall.isMxpxScenario())
+        .pScenarioStateUpdateWordPricing(cancunMxpCall.isStateUpdtWPricingScenario())
+        .pScenarioStateUpdateBytePricing(cancunMxpCall.isStateUpdtBPricingScenario())
+        .pScenarioWords(cancunMxpCall.words)
+        .pScenarioWordsNew(cancunMxpCall.wordsNew)
+        .pScenarioCmem(Bytes.ofUnsignedLong(cancunMxpCall.cMem))
+        .pScenarioCmemNew(Bytes.ofUnsignedLong(cancunMxpCall.cMemNew))
         .fillAndValidateRow();
   }
 
@@ -153,16 +153,16 @@ public class CancunMxpOperation extends LondonMxpOperation {
           .cn(this.getContextNumber())
           .computation(true)
           .ct(i)
-          .ctMax(superMxpCall.ctMax())
-          .pComputationWcpFlag(superMxpCall.exoCalls.get(i).wcpFlag())
-          .pComputationEucFlag(superMxpCall.exoCalls.get(i).eucFlag())
-          .pComputationExoInst(superMxpCall.exoCalls.get(i).instruction())
-          .pComputationArg1Hi(superMxpCall.exoCalls.get(i).arg1Hi())
-          .pComputationArg1Lo(superMxpCall.exoCalls.get(i).arg1Lo())
-          .pComputationArg2Hi(superMxpCall.exoCalls.get(i).arg2Hi())
-          .pComputationArg2Lo(superMxpCall.exoCalls.get(i).arg2Lo())
-          .pComputationResA(booleanToLong(superMxpCall.exoCalls.get(i).resultA()))
-          .pComputationResB(superMxpCall.exoCalls.get(i).resultB().toLong())
+          .ctMax(cancunMxpCall.ctMax())
+          .pComputationWcpFlag(cancunMxpCall.exoCalls.get(i).wcpFlag())
+          .pComputationEucFlag(cancunMxpCall.exoCalls.get(i).eucFlag())
+          .pComputationExoInst(cancunMxpCall.exoCalls.get(i).instruction())
+          .pComputationArg1Hi(cancunMxpCall.exoCalls.get(i).arg1Hi())
+          .pComputationArg1Lo(cancunMxpCall.exoCalls.get(i).arg1Lo())
+          .pComputationArg2Hi(cancunMxpCall.exoCalls.get(i).arg2Hi())
+          .pComputationArg2Lo(cancunMxpCall.exoCalls.get(i).arg2Lo())
+          .pComputationResA(booleanToLong(cancunMxpCall.exoCalls.get(i).resultA()))
+          .pComputationResB(cancunMxpCall.exoCalls.get(i).resultB().toLong())
           .fillAndValidateRow();
     }
   }

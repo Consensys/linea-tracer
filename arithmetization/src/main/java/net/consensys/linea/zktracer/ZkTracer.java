@@ -61,7 +61,7 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   @Getter private final List<Exception> tracingExceptions = new FiniteList<>(50);
 
   // Fields for metadata
-  private final ChainConfig chain;
+  @Getter private final ChainConfig chain;
 
   /**
    * Construct a ZkTracer for a given bridge configuration and chainId. This is used, for example,

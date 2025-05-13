@@ -108,6 +108,16 @@ public class GeneralStateReferenceTestTools {
       PARAMS.ignoreAll();
     }
 
+    // ignore tests that are failing in Besu too
+    PARAMS.ignore("stCreate2/RevertInCreateInInitCreate2.json");
+    PARAMS.ignore("stRevertTest/RevertInCreateInInit.json");
+    PARAMS.ignore("stCreate2/create2collisionStorage.json");
+    PARAMS.ignore("stExtCodeHash/dynamicAccountOverwriteEmpty.json");
+
+    // ignore tests that are failing because there is an account with nonce 0 and
+    // non empty code which can't happen in Linea since we are post LONDON
+    PARAMS.ignore("stSStoreTest/InitCollision.json");
+
     // Consumes a huge amount of memory
     PARAMS.ignore("static_Call1MB1024Calldepth-\\w");
     PARAMS.ignore("ShanghaiLove_.*");

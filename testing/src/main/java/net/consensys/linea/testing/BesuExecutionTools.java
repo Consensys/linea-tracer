@@ -84,8 +84,13 @@ public class BesuExecutionTools {
       Address coinbase,
       List<ToyAccount> accounts,
       List<Transaction> transactions) {
+    String randomUUID = UUID.randomUUID().toString();
     this.testName =
-        testInfo.isPresent() ? testInfo.get().getDisplayName() : UUID.randomUUID().toString();
+            testInfo.map(info -> String.format("%s-%s-%s",
+                    info.getTestClass().get().getSimpleName(),
+                    info.getDisplayName(),
+                    randomUUID
+            )).orElse(randomUUID);
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
     this.httpClient = new OkHttpClient();

@@ -16,8 +16,8 @@
 package net.consensys.linea.zktracer;
 
 import java.util.List;
-import java.util.Optional;
 
+import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -30,11 +30,10 @@ import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
-public class ExampleBesuTest {
+public class ExampleBesuTest extends TracerTestBase {
   @Test
-  void test(TestInfo testInfo) {
+  void test() {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -62,6 +61,6 @@ public class ExampleBesuTest {
         .transaction(tx)
         .runWithBesuNode(true)
         .build()
-        .run(Optional.of(testInfo));
+        .run(testInfo);
   }
 }

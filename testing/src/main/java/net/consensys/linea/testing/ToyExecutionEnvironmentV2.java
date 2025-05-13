@@ -72,11 +72,7 @@ public class ToyExecutionEnvironmentV2 {
 
   private final ZkTracer tracer = new ZkTracer(UNIT_TEST_CHAIN);
 
-  public void run() {
-    run(Optional.empty());
-  }
-
-  public void run(Optional<TestInfo> testInfo) {
+  public void run(TestInfo testInfo) {
     ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, LONDON);
     GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
@@ -87,7 +83,8 @@ public class ToyExecutionEnvironmentV2 {
         transactionProcessingResultValidator,
         zkTracerValidator);
     if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
-      new BesuExecutionTools(testInfo, UNIT_TEST_CHAIN, coinbase, accounts, transactions)
+      new BesuExecutionTools(
+              Optional.of(testInfo), UNIT_TEST_CHAIN, coinbase, accounts, transactions)
           .executeTest();
     }
   }

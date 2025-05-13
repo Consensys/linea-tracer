@@ -165,6 +165,38 @@ tasks.test.configure {
   finalizedBy(jacocoTestReport)
 }
 
+tasks.register("besuNodeTests", Test) {
+  dependsOn(buildZkevmBin, "copyTracerPlugin", "downloadShoemiBesuPlugin")
+
+  delete("${project.getLayout().getBuildDirectory().get()}/besu/traces")
+  mkdir("${project.getLayout().getBuildDirectory().get()}/besu/traces")
+  mkdir("${project.getLayout().getBuildDirectory().get()}/besu/plugins")
+  System.setProperty("besu.plugins.dir",
+          System.getenv().getOrDefault("besu.plugins.dir",
+                  "${project.getLayout().getBuildDirectory().get().toString()}/besu/plugins/"
+          )
+  )
+  System.setProperty("besu.traces.dir",
+          System.getenv().getOrDefault("besu.traces.dir",
+                  "${project.getLayout().getBuildDirectory().get().toString()}/besu/traces/"
+          )
+  )
+
+
+  systemProperty("besu.traces.dir", System.getProperty("besu.traces.dir"))
+  systemProperty("besu.plugins.dir", System.getProperty("besu.plugins.dir"))
+  environment("RUN_WITH_BESU_NODE", true)
+
+  systemProperty("junit.jupiter.execution.parallel.enabled", false)
+  useJUnitPlatform {
+    excludeTags("nightly")
+    excludeTags("replay")
+    excludeTags("weekly")
+    excludeTags("prc-calltests")
+  }
+  finalizedBy(jacocoTestReport)
+}
+
 tasks.register("copyTracerPlugin", Copy) {
   dependsOn(project(":plugins").tasks.findByPath("jar"))
   from project(":plugins").tasks.findByPath("jar").outputs.files.collect()

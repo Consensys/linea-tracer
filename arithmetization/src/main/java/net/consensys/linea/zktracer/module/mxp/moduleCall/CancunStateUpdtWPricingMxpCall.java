@@ -18,7 +18,7 @@ import org.apache.tuweni.bytes.Bytes;
 public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
 
   public CancunStateUpdtWPricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
-    super(hub, wcp, euc);
+    super(hub, wcp);
     computeStateUpdt(wcp, euc);
     computeExtraGasCost(euc);
     if (this.isStateUpdate) {

@@ -15,11 +15,11 @@
 
 package net.consensys.linea.zktracer.module.txndata.moduleOperation;
 
+import static net.consensys.linea.zktracer.Trace.Txndata.*;
+
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-
-import static net.consensys.linea.zktracer.Trace.Txndata.*;
 
 public class LondonTxndataOperation extends TxndataOperation {
   public LondonTxndataOperation(Wcp wcp, Euc euc, TransactionProcessingMetadata tx) {
@@ -34,7 +34,7 @@ public class LondonTxndataOperation extends TxndataOperation {
       case ACCESS_LIST -> NB_ROWS_TYPE_1_LONDON;
       case EIP1559 -> NB_ROWS_TYPE_2_LONDON;
       default -> throw new RuntimeException(
-              "Transaction type not supported:" + tx.getBesuTransaction().getType());
+          "Transaction type not supported:" + tx.getBesuTransaction().getType());
     };
   }
 }

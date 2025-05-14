@@ -166,6 +166,9 @@ tasks.test.configure {
 }
 
 tasks.register("besuNodeTests", Test) {
+  forkEvery = 1
+  maxParallelForks = 1
+
   dependsOn(buildZkevmBin, "copyTracerPlugin", "downloadShoemiBesuPlugin")
 
   delete("${project.getLayout().getBuildDirectory().get()}/besu/traces")

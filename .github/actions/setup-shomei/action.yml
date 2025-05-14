@@ -1,0 +1,21 @@
+name: 'Setup Shomei'
+description: 'Clone shomei repo and publish to local maven'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout Shomei
+      uses: actions/checkout@v4
+      with:
+        path: shomei
+        repository: Consensys/shomei
+        ref: gauravahuja/make_it_work_with_tracer_test
+
+    - name: Publish Shomei to Local Maven
+      run: |
+        cd shomei
+        ./gradlew clean publishToMavenLocal
+      env:
+        JAVA_OPTS: -Xmx2g -Dorg.gradle.daemon=false
+        GRADLE_OPTS: -Xmx2g -Dorg.gradle.daemon=false
+      shell: bash

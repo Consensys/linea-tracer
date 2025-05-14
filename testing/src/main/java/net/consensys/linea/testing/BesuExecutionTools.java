@@ -86,11 +86,14 @@ public class BesuExecutionTools {
       List<Transaction> transactions) {
     String randomUUID = UUID.randomUUID().toString();
     this.testName =
-            testInfo.map(info -> String.format("%s-%s-%s",
-                    info.getTestClass().get().getSimpleName(),
-                    info.getDisplayName(),
-                    randomUUID
-            )).orElse(randomUUID);
+        testInfo
+            .map(
+                info ->
+                    String.format(
+                        "%s-%s",
+                        info.getTestClass().get().getSimpleName(),
+                        randomUUID))
+            .orElse(randomUUID);
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
     this.httpClient = new OkHttpClient();
@@ -128,12 +131,12 @@ public class BesuExecutionTools {
 
   public void executeTest() {
     Thread shomeiThread = new Thread(shomeiNode);
-    try (Cluster besuCluster =
+    Cluster besuCluster =
             new Cluster(
                 new ClusterConfigurationBuilder().build(),
                 new NetConditions(new NetTransactions()),
                 new ThreadBesuNodeRunner());
-        shomeiNode) {
+    try {
 
       shomeiThread.start();
       besuCluster.start(besuNode);
@@ -208,6 +211,19 @@ public class BesuExecutionTools {
       MAPPER.writeValue(executionProofRequestFile, executionProofRequestDto);
     } catch (IOException e) {
       throw new RuntimeException(e);
+    } finally {
+      try {
+        besuCluster.close();
+      } catch (Exception e) {
+        log.error("Error closing besu cluster: %s" .formatted(e.getMessage()), e);
+      }
+
+      try {
+        shomeiNode.close();
+      } catch (Exception e) {
+        log.error("Error closing shomei node: %s" .formatted(e.getMessage()), e);
+      }
+      besuNode.close();
     }
   }
 

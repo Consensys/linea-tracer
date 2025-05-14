@@ -36,3 +36,6 @@ runs:
       - name: Setup Go Corset
         if: ${{ inputs.go-corset == 'true' }}
         uses: ./.github/actions/setup-go-corset
+
+      - name: Publish shomei to local maven
+        uses: ./.github/actions/setup-shomei

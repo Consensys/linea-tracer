@@ -625,13 +625,12 @@ opcodes:
       flag2: true
   - mnemonic: MCOPY
     value: 0x5e
-    instructionFamily: COPY
+    instructionFamily: MCOPY
     stackSettings:
-      pattern: COPY
+      pattern: THREE_ZERO
       alpha: 0
       delta: 3
       staticGas: G_VERY_LOW
-      flag1: true
     billing:
       byWord:
         type: TYPE_4

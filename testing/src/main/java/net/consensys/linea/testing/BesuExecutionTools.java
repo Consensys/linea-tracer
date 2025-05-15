@@ -89,7 +89,11 @@ public class BesuExecutionTools {
         testInfo
             .map(
                 info ->
-                    String.format("%s-%s", info.getTestClass().get().getSimpleName(), randomUUID))
+                    String.format(
+                        "%s-%s-%s",
+                        info.getTestClass().get().getSimpleName(),
+                        info.getDisplayName(),
+                        randomUUID))
             .orElse(randomUUID);
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
@@ -107,6 +111,7 @@ public class BesuExecutionTools {
       this.shomeiDataPath = Files.createDirectory(testDataDir.resolve("shomei"));
       this.besuNode =
           BesuNodeBuilder.create(
+              testName,
               chainConfig.bridgeConfiguration,
               genesisConfigBuilder,
               besuPort,

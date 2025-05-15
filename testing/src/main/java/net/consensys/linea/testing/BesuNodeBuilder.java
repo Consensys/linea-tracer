@@ -33,6 +33,7 @@ import org.hyperledger.besu.tests.acceptance.dsl.node.configuration.NodeConfigur
 public class BesuNodeBuilder {
 
   public static BesuNode create(
+      String nodeName,
       LineaL1L2BridgeSharedConfiguration bridgeConfiguration,
       GenesisConfigBuilder genesisConfigBuilder,
       Integer jsonRpcPort,
@@ -51,7 +52,7 @@ public class BesuNodeBuilder {
     jsonRpcConfiguration.setPort(jsonRpcPort);
     BesuNodeConfigurationBuilder besuNodeConfigurationBuilder =
         new BesuNodeConfigurationBuilder()
-            .name("example-test-node")
+            .name(nodeName)
             .dataStorageConfiguration(DataStorageConfiguration.DEFAULT_BONSAI_PARTIAL_DB_CONFIG)
             .genesisConfigProvider(
                 (nodes) -> {
@@ -79,6 +80,7 @@ public class BesuNodeBuilder {
                 List.of(
                     "--plugin-shomei-http-host=127.0.0.1",
                     String.format("--plugin-shomei-http-port=%s", shomeiPort),
+                    "--plugin-shomei-enable-zktracer=true",
                     String.format(
                         "--plugin-linea-conflated-trace-generation-traces-output-path=%s",
                         tracesPath),

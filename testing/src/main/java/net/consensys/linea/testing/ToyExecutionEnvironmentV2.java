@@ -73,19 +73,20 @@ public class ToyExecutionEnvironmentV2 {
   private final ZkTracer tracer = new ZkTracer(UNIT_TEST_CHAIN);
 
   public void run(TestInfo testInfo) {
-    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, LONDON);
-    GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
-        this.buildGeneralStateTestCaseSpec(protocolSpec);
-    ToyExecutionTools.executeTest(
-        generalStateTestCaseEipSpec,
-        protocolSpec,
-        tracer,
-        transactionProcessingResultValidator,
-        zkTracerValidator);
     if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
       new BesuExecutionTools(
               Optional.of(testInfo), UNIT_TEST_CHAIN, coinbase, accounts, transactions)
           .executeTest();
+    } else {
+      ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, LONDON);
+      GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
+          this.buildGeneralStateTestCaseSpec(protocolSpec);
+      ToyExecutionTools.executeTest(
+          generalStateTestCaseEipSpec,
+          protocolSpec,
+          tracer,
+          transactionProcessingResultValidator,
+          zkTracerValidator);
     }
   }
 

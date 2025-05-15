@@ -89,10 +89,7 @@ public class BesuExecutionTools {
         testInfo
             .map(
                 info ->
-                    String.format(
-                        "%s-%s",
-                        info.getTestClass().get().getSimpleName(),
-                        randomUUID))
+                    String.format("%s-%s", info.getTestClass().get().getSimpleName(), randomUUID))
             .orElse(randomUUID);
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
@@ -132,10 +129,10 @@ public class BesuExecutionTools {
   public void executeTest() {
     Thread shomeiThread = new Thread(shomeiNode);
     Cluster besuCluster =
-            new Cluster(
-                new ClusterConfigurationBuilder().build(),
-                new NetConditions(new NetTransactions()),
-                new ThreadBesuNodeRunner());
+        new Cluster(
+            new ClusterConfigurationBuilder().build(),
+            new NetConditions(new NetTransactions()),
+            new ThreadBesuNodeRunner());
     try {
 
       shomeiThread.start();
@@ -215,13 +212,13 @@ public class BesuExecutionTools {
       try {
         besuCluster.close();
       } catch (Exception e) {
-        log.error("Error closing besu cluster: %s" .formatted(e.getMessage()), e);
+        log.error("Error closing besu cluster: %s".formatted(e.getMessage()), e);
       }
 
       try {
         shomeiNode.close();
       } catch (Exception e) {
-        log.error("Error closing shomei node: %s" .formatted(e.getMessage()), e);
+        log.error("Error closing shomei node: %s".formatted(e.getMessage()), e);
       }
       besuNode.close();
     }

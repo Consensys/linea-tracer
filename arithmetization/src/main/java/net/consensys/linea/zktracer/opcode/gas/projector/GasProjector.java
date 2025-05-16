@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.opcode.gas.projector;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.transients.OperationAncillaries;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
@@ -30,6 +32,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @RequiredArgsConstructor
 public class GasProjector {
 
+  final Hub hub;
   final GasCalculator gc;
 
   public GasProjection of(MessageFrame frame, OpCode opCode) {
@@ -157,10 +160,16 @@ public class GasProjector {
       case CREATE -> new Create(gc, frame);
       case CREATE2 -> new Create2(gc, frame);
       case CALL -> {
-        if (frame.stackSize() > 6) {
+        final short exceptions = hub.pch().exceptions();
+        if (Exceptions.stackUnderflow(exceptions)) {
+          yield Call.invalid();
+        } else {
           final long maxGasAllowance = clampedToLong(frame.getStackItem(0));
           final Address to = Words.toAddress(frame.getStackItem(1));
-          final Account recipient = frame.getWorldUpdater().get(to);
+          final Account recipient =
+              checkWhetherCallDoesNotRequireStateAccess(exceptions)
+                  ? null
+                  : frame.getWorldUpdater().get(to);
           final Wei value = Wei.wrap(frame.getStackItem(2));
           yield new Call(
               gc,
@@ -171,14 +180,18 @@ public class GasProjector {
               value,
               recipient,
               to);
-        } else {
-          yield Call.invalid();
         }
       }
       case CALLCODE -> {
-        if (frame.stackSize() > 6) {
+        final short exceptions = hub.pch().exceptions();
+        if (Exceptions.stackUnderflow(exceptions)) {
+          yield Call.invalid();
+        } else {
           final long stipend = clampedToLong(frame.getStackItem(0));
-          final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
+          final Account recipient =
+              checkWhetherCallDoesNotRequireStateAccess(exceptions)
+                  ? null
+                  : frame.getWorldUpdater().get(frame.getRecipientAddress());
           final Address to = Words.toAddress(frame.getStackItem(1));
           final Wei value = Wei.wrap(frame.getStackItem(2));
           yield new Call(
@@ -190,14 +203,18 @@ public class GasProjector {
               value,
               recipient,
               to);
-        } else {
-          yield Call.invalid();
         }
       }
       case DELEGATECALL -> {
-        if (frame.stackSize() > 5) {
+        final short exceptions = hub.pch().exceptions();
+        if (Exceptions.stackUnderflow(exceptions)) {
+          yield Call.invalid();
+        } else {
           final long stipend = clampedToLong(frame.getStackItem(0));
-          final Account recipient = frame.getWorldUpdater().get(frame.getRecipientAddress());
+          final Account recipient =
+              checkWhetherCallDoesNotRequireStateAccess(exceptions)
+                  ? null
+                  : frame.getWorldUpdater().get(frame.getRecipientAddress());
           final Address to = Words.toAddress(frame.getStackItem(1));
           yield new Call(
               gc,
@@ -208,15 +225,19 @@ public class GasProjector {
               Wei.ZERO,
               recipient,
               to);
-        } else {
-          yield Call.invalid();
         }
       }
       case STATICCALL -> {
-        if (frame.stackSize() > 5) {
+        final short exceptions = hub.pch().exceptions();
+        if (Exceptions.stackUnderflow(exceptions)) {
+          yield Call.invalid();
+        } else {
           final long stipend = clampedToLong(frame.getStackItem(0));
           final Address to = Words.toAddress(frame.getStackItem(1));
-          final Account recipient = frame.getWorldUpdater().get(to);
+          final Account recipient =
+              checkWhetherCallDoesNotRequireStateAccess(exceptions)
+                  ? null
+                  : frame.getWorldUpdater().get(to);
           yield new Call(
               gc,
               frame,
@@ -226,8 +247,6 @@ public class GasProjector {
               Wei.ZERO,
               recipient,
               to);
-        } else {
-          yield Call.invalid();
         }
       }
       case RETURN -> new Return(gc, frame);
@@ -236,5 +255,9 @@ public class GasProjector {
       case SELFDESTRUCT -> new SelfDestruct(gc, frame);
       default -> throw new IllegalStateException("Unexpected value: " + opCode);
     };
+  }
+
+  private boolean checkWhetherCallDoesNotRequireStateAccess(final short exceptions) {
+    return Exceptions.staticFault(exceptions) || Exceptions.memoryExpansionException(exceptions);
   }
 }

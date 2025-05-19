@@ -123,7 +123,8 @@ public class HubShomeiTests {
 
     final ZkTracer tracer = executionEnvironmentV2.getZkTracer();
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
-    final Map<Address, Set<Block.KeyStatusPair>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
+    final Map<Address, Set<Block.KeyStatusPair>> storageSeen =
+        tracer.getStoragesSeenByHubForRelativeBlock(1);
 
     assert (addressSeen.size() == 4);
     assert (addressSeen.contains(senderAddress));
@@ -179,7 +180,8 @@ public class HubShomeiTests {
 
     final ZkTracer tracer = executionEnvironmentV2.getZkTracer();
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
-    final Map<Address, Set<Block.KeyStatusPair>> storageSeen = tracer.getStoragesSeenByHubForRelativeBlock(1);
+    final Map<Address, Set<Block.KeyStatusPair>> storageSeen =
+        tracer.getStoragesSeenByHubForRelativeBlock(1);
 
     assert (addressSeen.size() == 3);
     assert (addressSeen.contains(senderAddress));

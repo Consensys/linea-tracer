@@ -87,21 +87,21 @@ public class TrmTracerTest {
   @Test
   void testNonCallTinyParamLessThan16() {
     for (int tiny = 0; tiny < 16; tiny++) {
-      nonCall(Bytes32.leftPad(Bytes.of(tiny)));
+      trimAndExtCodeHash(Bytes32.leftPad(Bytes.of(tiny)));
     }
   }
 
   @Test
   void testNonCallTinyParamAround256() {
     for (int tiny = 0; tiny < 32; tiny++) {
-      nonCall(Bytes32.leftPad(Bytes.ofUnsignedLong((long) tiny + 248)));
+      trimAndExtCodeHash(Bytes32.leftPad(Bytes.ofUnsignedLong((long) tiny + 248)));
     }
   }
 
   @Test
   void testNonCallAddressParameterTinyAfterTrimming() {
     for (int tiny = 0; tiny < 16; tiny++) {
-      nonCall(
+      trimAndExtCodeHash(
           RANDOM_STRING_FROM_THE_INTERNET
               .and(BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___MAX_VALUE)
               .or(Bytes32.leftPad(Bytes.of(tiny))));
@@ -110,7 +110,7 @@ public class TrmTracerTest {
 
   @Test
   void testNonCallRandomLarge() {
-    nonCall(RANDOM_STRING_FROM_THE_INTERNET);
+    trimAndExtCodeHash(RANDOM_STRING_FROM_THE_INTERNET);
   }
 
   @Test
@@ -127,7 +127,7 @@ public class TrmTracerTest {
     }
   }
 
-  void nonCall(Bytes bytes) {
+  void trimAndExtCodeHash(Bytes bytes) {
     BytecodeRunner.of(BytecodeCompiler.newProgram().push(bytes).op(OpCode.EXTCODEHASH).compile())
         .run();
   }

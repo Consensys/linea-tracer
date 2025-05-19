@@ -38,6 +38,7 @@ public class OpCodesTest {
 
   private Bytes getAllOpCodesProgram() {
     BytecodeCompiler program = BytecodeCompiler.newProgram();
+    int pushValue = 3;
     for (OpCodeData opCodeData : opCodeDataList) {
       if (opCodeData != null) {
         if (opCodeData.instructionFamily() != InstructionFamily.HALT
@@ -45,7 +46,8 @@ public class OpCodesTest {
           OpCode opCode = opCodeData.mnemonic();
           int nPushes = opCodeData.stackSettings().delta();
           for (int i = 0; i < nPushes; i++) {
-            program.push(0);
+            program.push(pushValue);
+            pushValue++;
           }
           program.op(opCode);
           if (opCodeData.stackSettings().alpha() != 0) {

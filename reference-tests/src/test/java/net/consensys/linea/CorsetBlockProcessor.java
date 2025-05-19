@@ -69,7 +69,6 @@ public class CorsetBlockProcessor extends MainnetBlockProcessor {
     this.zkTracer = zkTracer;
   }
 
-  @Override
   public BlockProcessingResult processBlock(
       final ProtocolContext protocolContext,
       final Blockchain blockchain,
@@ -126,7 +125,7 @@ public class CorsetBlockProcessor extends MainnetBlockProcessor {
               blockHashLookup,
               true,
               TransactionValidationParams.processingBlock(),
-              privateMetadataUpdater,
+              Optional.ofNullable(privateMetadataUpdater),
               blobGasPrice);
 
       if (result.isInvalid()) {

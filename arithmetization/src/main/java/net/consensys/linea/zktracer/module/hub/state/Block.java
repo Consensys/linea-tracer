@@ -35,15 +35,16 @@ public class Block {
   private final Address coinbaseAddress;
   private final Wei baseFee;
 
-  private final Set<Address> addressesSeenByTheHub = new HashSet<>();
-  private final Map<Address, Set<KeyStatusPair>> storageSlotsSeenByTheHub = new HashMap<>();
+  public final Set<Address> addressesSeenByTheHub = new HashSet<>();
+  public final Map<Address, Set<KeyStatusPair>> storageSlotsSeenByTheHub = new HashMap<>();
 
+  @Getter
   @RequiredArgsConstructor
   public class KeyStatusPair {
-    private final Bytes32 storageKey;
-    private final boolean addressIsUnderDeployment;
-    private final StorageFragmentPurpose purpose;
-    private final boolean willRevert;
+    public final Bytes32 storageKey;
+    public final boolean addressIsUnderDeployment;
+    public final StorageFragmentPurpose purpose;
+    public final boolean willRevert;
   }
 
   public void addAddressSeenByHub(final Address address) {

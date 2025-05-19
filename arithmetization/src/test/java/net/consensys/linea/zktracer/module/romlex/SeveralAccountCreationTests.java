@@ -120,7 +120,7 @@ public class SeveralAccountCreationTests {
     final ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.of(100000000)).address(senderAddress).build();
 
-    final ToyAccount recipientAccout =
+    final ToyAccount recipientAccount =
         ToyAccount.builder()
             .code(
                 Bytes.concatenate(
@@ -139,11 +139,11 @@ public class SeveralAccountCreationTests {
             .gasLimit(1000000L)
             .gasPrice(Wei.of(10L))
             .payload(INIT_CODE)
-            .to(recipientAccout)
+            .to(recipientAccount)
             .build();
 
     ToyExecutionEnvironmentV2.builder()
-        .accounts(List.of(senderAccount, recipientAccout, create2Account, create2AndRevertAccount))
+        .accounts(List.of(senderAccount, recipientAccount, create2Account, create2AndRevertAccount))
         .transaction(tx)
         .build()
         .run();

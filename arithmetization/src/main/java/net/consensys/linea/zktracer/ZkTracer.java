@@ -52,7 +52,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class ZkTracer implements ConflationAwareOperationTracer {
 
   /** Construct trace object. */
-  private final TraceLondon trace = new TraceLondon(); // FOR NOW
+  private final Trace trace;
 
   @Getter private final Hub hub;
   private final Optional<DebugMode> debugMode;
@@ -93,6 +93,11 @@ public class ZkTracer implements ConflationAwareOperationTracer {
           case CANCUN -> new CancunHub(chain);
           case PRAGUE -> new PragueHub(chain);
         };
+    this.trace =
+        switch (chain.fork) {
+          default -> new TraceLondon();
+            // case SHANGHAI -> new TraceShanghai();
+        };
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =
         debugLevel.none() ? Optional.empty() : Optional.of(new DebugMode(debugLevel, this.hub));
@@ -104,25 +109,25 @@ public class ZkTracer implements ConflationAwareOperationTracer {
     final List<Trace.ColumnHeader> headers =
         modulesToTrace.stream().flatMap(m -> m.columnHeaders(trace).stream()).toList();
     // Configure metadata
-    trace.addMetadata("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
+    /*    trace.addMetadata("releaseVersion", ZkTracer.class.getPackage().getSpecificationVersion());
     trace.addMetadata("chainId", this.chain.id.toString());
     trace.addMetadata("l2L1LogSmcAddress", this.chain.bridgeConfiguration.contract().toString());
-    trace.addMetadata("l2L1LogTopic", this.chain.bridgeConfiguration.topic().toString());
+    trace.addMetadata("l2L1LogTopic", this.chain.bridgeConfiguration.topic().toString());*/
     // include block range
     final Map<String, String> range = new HashMap<>();
     range.put("start", Long.toString(startBlock));
     range.put("end", Long.toString(endBlock));
-    trace.addMetadata("conflation", range);
+    /*    trace.addMetadata("conflation", range);*/
     // include line counts
     final Map<String, String> lineCounts = new HashMap<>();
     for (Module m : hub.getTracelessModules()) {
       lineCounts.put(m.moduleKey(), Integer.toString(m.lineCount()));
     }
-    trace.addMetadata("lineCounts", lineCounts);
+    /*    trace.addMetadata("lineCounts", lineCounts);*/
     //
     try (RandomAccessFile file = new RandomAccessFile(filename.toString(), "rw")) {
       // Open trace for writing
-      trace.open(file, headers);
+      /*      trace.open(file, headers);*/
       // Commit each module
       for (Module m : modulesToTrace) {
         m.commit(trace);

@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.state.Block;
 import net.consensys.linea.zktracer.module.hub.state.State;
+import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 
 @Getter
@@ -41,6 +42,8 @@ public final class StorageFragment implements TraceFragment, PostBlockDefer {
   private final DomSubStampsSubFragment domSubStampsSubFragment;
   private final int blockNumber;
   private final StorageFragmentPurpose purpose;
+  private final boolean addressIsUnderDeployment;
+  private final CallFrame callFrame;
 
   public StorageFragment(
       Hub hub,
@@ -51,7 +54,9 @@ public final class StorageFragment implements TraceFragment, PostBlockDefer {
       boolean incomingWarmth,
       boolean outgoingWarmth,
       DomSubStampsSubFragment domSubSubFragment,
-      StorageFragmentPurpose purpose) {
+      StorageFragmentPurpose purpose,
+      boolean addressIsUnderDeployment,
+      CallFrame callFrame) {
     hubState = hub.state;
     storageSlotIdentifier = storageId;
     this.valueOriginal = valueOriginal;
@@ -62,6 +67,8 @@ public final class StorageFragment implements TraceFragment, PostBlockDefer {
     domSubStampsSubFragment = domSubSubFragment;
     blockNumber = hub.blockStack().currentRelativeBlockNumber();
     this.purpose = purpose;
+    this.addressIsUnderDeployment = addressIsUnderDeployment;
+    this.callFrame = callFrame;
 
     // This allows us to keep track of account that are accessed by the HUB during the execution of
     // the block
@@ -106,6 +113,10 @@ public final class StorageFragment implements TraceFragment, PostBlockDefer {
   public void resolvePostBlock(Hub hub) {
     final Block currentBlock = hub.blockStack().currentBlock();
     currentBlock.addStorageSeenByHub(
-        storageSlotIdentifier.getAddress(), storageSlotIdentifier.getStorageKey());
+        storageSlotIdentifier.getAddress(),
+        storageSlotIdentifier.getStorageKey(),
+        isAddressIsUnderDeployment(),
+        callFrame.willRevert(),
+        purpose);
   }
 }

@@ -40,12 +40,14 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
   final WorldView world;
   final Address accountAddress;
   final int accountAddressDeploymentNumber;
+  final boolean accountAddressDeploymentStatus;
   final Bytes32 storageKey;
   final boolean incomingWarmth;
   final EWord valueOriginal;
   final EWord valueCurrent;
   final short exceptions;
   final int hubStamp;
+  final CallFrame callFrame;
 
   public SloadSection(Hub hub, WorldView worldView) {
     // exceptional case:   1 (stack row) + 5 (non stack rows)
@@ -59,6 +61,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     hubStamp = hub.stamp();
     accountAddress = hub.accountAddress();
     accountAddressDeploymentNumber = hub.deploymentNumberOfAccountAddress();
+    accountAddressDeploymentStatus = hub.deploymentStatusOf(accountAddress);
     storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
     incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(accountAddress, storageKey);
     valueOriginal =
@@ -67,6 +70,7 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
     valueCurrent =
         EWord.of(worldView.get(accountAddress).getStorageValue(UInt256.fromBytes(storageKey)));
     exceptions = hub.pch().exceptions();
+    callFrame = hub.currentFrame();
 
     hub.defers().scheduleForPostRollback(this, hub.currentFrame());
 
@@ -100,7 +104,9 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
         incomingWarmth,
         true,
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
-        SLOAD_DOING);
+        SLOAD_DOING,
+        accountAddressDeploymentStatus,
+        callFrame);
   }
 
   @Override
@@ -124,7 +130,9 @@ public class SloadSection extends TraceSection implements PostRollbackDefer {
             true,
             incomingWarmth,
             undoingDomSubStamps,
-            SLOAD_UNDOING);
+            SLOAD_UNDOING,
+            accountAddressDeploymentStatus,
+            this.callFrame);
 
     this.addFragment(undoingSloadStorageFragment);
   }

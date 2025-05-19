@@ -63,8 +63,9 @@ public class TxPreWarmingMacroSection {
                       hub.transients().conflation().deploymentInfo();
 
                   final int deploymentNumber = deploymentInfo.deploymentNumber(address);
+                  final boolean deploymentStatus = deploymentInfo.getDeploymentStatus(address);
                   checkArgument(
-                      !deploymentInfo.getDeploymentStatus(address),
+                      !deploymentStatus,
                       "Deployment status during TX_INIT phase of any accountAddress should always be false");
 
                   final boolean isAccountWarm = seenAddresses.contains(address);
@@ -116,15 +117,16 @@ public class TxPreWarmingMacroSection {
                     final StorageFragment storageFragment =
                         new StorageFragment(
                             hub,
-                            new State.StorageSlotIdentifier(
-                                address, deploymentInfo.deploymentNumber(address), key),
+                            new State.StorageSlotIdentifier(address, deploymentNumber, key),
                             value,
                             value,
                             value,
                             seenKeys.computeIfAbsent(address, x -> new HashSet<>()).contains(key),
                             true,
                             DomSubStampsSubFragment.standardDomSubStamps(hub.stamp() + 1, 0),
-                            PRE_WARMING);
+                            PRE_WARMING,
+                            deploymentStatus,
+                            hub.currentFrame());
 
                     new TxPrewarmingSection(hub, storageFragment);
                     hub.state.updateOrInsertStorageSlotOccurrence(

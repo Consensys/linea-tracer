@@ -22,6 +22,7 @@ import java.util.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -34,19 +35,32 @@ public class Block {
   private final Address coinbaseAddress;
   private final Wei baseFee;
 
-  private final Set<Address> addressesSeenByHub = new HashSet<>();
-  private final Map<Address, Set<Bytes32>> storagesSeenByHub = new HashMap<>();
+  private final Set<Address> addressesSeenByTheHub = new HashSet<>();
+  private final Map<Address, Set<KeyStatusPair>> storageSlotsSeenByTheHub = new HashMap<>();
 
-  public void addAddressSeenByHub(final Address address) {
-    addressesSeenByHub.add(address);
+  @RequiredArgsConstructor
+  public class KeyStatusPair {
+    private final Bytes32 storageKey;
+    private final boolean addressIsUnderDeployment;
+    private final StorageFragmentPurpose purpose;
+    private final boolean willRevert;
   }
 
-  public void addStorageSeenByHub(final Address address, final Bytes32 storage) {
+  public void addAddressSeenByHub(final Address address) {
+    addressesSeenByTheHub.add(address);
+  }
+
+  public void addStorageSeenByHub(
+      final Address address,
+      final Bytes32 storageKey,
+      final boolean addressIsUnderDeployment,
+      boolean willRevert,
+      final StorageFragmentPurpose purpose) {
     checkState(
-        addressesSeenByHub.contains(address),
+        addressesSeenByTheHub.contains(address),
         "attempt to access storage slot of account not yet touched by the HUB");
-    final Set<Bytes32> storageSet =
-        storagesSeenByHub.computeIfAbsent(address, k -> new HashSet<>());
-    storageSet.add(storage);
+    final Set<KeyStatusPair> storageSet =
+        storageSlotsSeenByTheHub.computeIfAbsent(address, k -> new HashSet<>());
+    storageSet.add(new KeyStatusPair(storageKey, addressIsUnderDeployment, purpose, willRevert));
   }
 }

@@ -43,12 +43,14 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
   final WorldView world;
   final Address accountAddress;
   final int accountAddressDeploymentNumber;
+  final boolean accountDeploymentStatus;
   final Bytes32 storageKey;
   final boolean incomingWarmth;
   final EWord valueOriginal;
   final EWord valueCurrent;
   final EWord valueNext;
   final int hubStamp;
+  final CallFrame callFrame;
 
   public SstoreSection(Hub hub, WorldView worldView) {
     super(
@@ -60,6 +62,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     hubStamp = hub.stamp();
     accountAddress = hub.accountAddress();
     accountAddressDeploymentNumber = hub.deploymentNumberOfAccountAddress();
+    accountDeploymentStatus = hub.deploymentStatusOf(accountAddress);
     storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
     incomingWarmth = hub.messageFrame().getWarmedUpStorage().contains(accountAddress, storageKey);
     valueOriginal =
@@ -68,6 +71,7 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
     valueCurrent =
         EWord.of(worldView.get(accountAddress).getStorageValue(UInt256.fromBytes(storageKey)));
     valueNext = EWord.of(hub.messageFrame().getStackItem(1));
+    callFrame = hub.currentFrame();
     final short exceptions = hub.pch().exceptions();
 
     final boolean staticContextException = Exceptions.staticFault(exceptions);
@@ -126,7 +130,9 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
         incomingWarmth,
         true,
         DomSubStampsSubFragment.standardDomSubStamps(this.hubStamp(), 0),
-        SSTORE_DOING);
+        SSTORE_DOING,
+        accountDeploymentStatus,
+        callFrame);
   }
 
   @Override
@@ -145,7 +151,9 @@ public class SstoreSection extends TraceSection implements PostRollbackDefer {
             true,
             incomingWarmth,
             undoingDomSubStamps,
-            SSTORE_UNDOING);
+            SSTORE_UNDOING,
+            accountDeploymentStatus,
+            this.callFrame);
 
     this.addFragment(undoingSstoreStorageFragment);
 

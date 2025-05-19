@@ -36,6 +36,7 @@ import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.exceptions.TracingExceptions;
 import net.consensys.linea.zktracer.module.DebugMode;
 import net.consensys.linea.zktracer.module.hub.*;
+import net.consensys.linea.zktracer.module.hub.state.Block;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.FiniteList;
 import org.apache.tuweni.bytes.Bytes;
@@ -331,11 +332,15 @@ public class ZkTracer implements ConflationAwareOperationTracer {
   }
 
   public Set<Address> getAddressesSeenByHubForRelativeBlock(final int relativeBlockNumber) {
-    return hub.blockStack().getBlockByRelativeBlockNumber(relativeBlockNumber).addressesSeenByHub();
+    return hub.blockStack()
+        .getBlockByRelativeBlockNumber(relativeBlockNumber)
+        .addressesSeenByTheHub();
   }
 
-  public Map<Address, Set<Bytes32>> getStoragesSeenByHubForRelativeBlock(
+  public Map<Address, Set<Block.KeyStatusPair>> getStoragesSeenByHubForRelativeBlock(
       final int relativeBlockNumber) {
-    return hub.blockStack().getBlockByRelativeBlockNumber(relativeBlockNumber).storagesSeenByHub();
+    return hub.blockStack()
+        .getBlockByRelativeBlockNumber(relativeBlockNumber)
+        .storageSlotsSeenByTheHub();
   }
 }

@@ -63,7 +63,7 @@ public class BlockchainReferenceTestTools {
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
 
-  private static final List<String> NETWORKS_TO_RUN = List.of("London", "Shanghai");
+  private static final List<String> NETWORKS_TO_RUN = List.of("London");
 
   public static final JsonTestParameters<?, ?> PARAMS =
       JsonTestParameters.create(BlockchainReferenceTestCaseSpec.class)

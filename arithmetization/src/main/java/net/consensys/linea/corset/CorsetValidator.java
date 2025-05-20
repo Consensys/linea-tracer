@@ -47,7 +47,9 @@ public class CorsetValidator {
   /** */
   private static final String ZK_EVM_RELATIVE_PATH = "/linea-constraints/";
 
-  private static final String ZK_EVM_BIN = "zkevm.bin";
+  // TODO: make it dynamic
+
+  private static final String ZK_EVM_BIN = "zkevm_london.bin";
 
   /** Specifies the default zkEVM.bin file to use (including its path). */
   private static String defaultZkEvm = null;

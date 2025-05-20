@@ -26,14 +26,14 @@ import static net.consensys.linea.zktracer.Trace.Txndata.COMMON_RLP_TXN_PHASE_NU
 import static net.consensys.linea.zktracer.Trace.Txndata.COMMON_RLP_TXN_PHASE_NUMBER_3;
 import static net.consensys.linea.zktracer.Trace.Txndata.COMMON_RLP_TXN_PHASE_NUMBER_4;
 import static net.consensys.linea.zktracer.Trace.Txndata.COMMON_RLP_TXN_PHASE_NUMBER_5;
-import static net.consensys.linea.zktracer.Trace.Txndata.NB_ROWS_TYPE_0;
-import static net.consensys.linea.zktracer.Trace.Txndata.NB_ROWS_TYPE_1;
-import static net.consensys.linea.zktracer.Trace.Txndata.NB_ROWS_TYPE_2;
 import static net.consensys.linea.zktracer.Trace.Txndata.TYPE_0_RLP_TXN_PHASE_NUMBER_6;
 import static net.consensys.linea.zktracer.Trace.Txndata.TYPE_1_RLP_TXN_PHASE_NUMBER_6;
 import static net.consensys.linea.zktracer.Trace.Txndata.TYPE_1_RLP_TXN_PHASE_NUMBER_7;
 import static net.consensys.linea.zktracer.Trace.Txndata.TYPE_2_RLP_TXN_PHASE_NUMBER_6;
 import static net.consensys.linea.zktracer.Trace.Txndata.TYPE_2_RLP_TXN_PHASE_NUMBER_7;
+import static net.consensys.linea.zktracer.TraceLondon.Txndata.NB_ROWS_TYPE_0;
+import static net.consensys.linea.zktracer.TraceLondon.Txndata.NB_ROWS_TYPE_1;
+import static net.consensys.linea.zktracer.TraceLondon.Txndata.NB_ROWS_TYPE_2;
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
@@ -65,6 +65,7 @@ public abstract class TxndataOperation extends ModuleOperation {
   @Getter public final TransactionProcessingMetadata tx;
 
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
+  // TODO: move it down to LondonTwnOperation
   private static final int N_ROWS_TX_MAX =
       Math.max(Math.max(NB_ROWS_TYPE_0, NB_ROWS_TYPE_1), NB_ROWS_TYPE_2);
   private static final int NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST = 7;

@@ -58,9 +58,10 @@ public class XCreateOobCall extends OobCall {
 
   @Override
   public Trace.Oob trace(Trace.Oob trace) {
+    // TODO: catch exception
+    // var traceOobShanghai = (TraceShanghai.Oob) trace;
     return trace
-        // TODO: fix once we have 1 Trace.Java per fork
-        // .isXcreate(true)
+       //  .isXcreate(true)
         .oobInst(OOB_INST_XCREATE)
         .data1(codeSize.hi())
         .data2(codeSize.lo());

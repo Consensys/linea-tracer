@@ -43,13 +43,14 @@ public class ShanghaiCreateOobCall extends LondonCreateOobCall {
   }
 
   protected void traceOobData10column(Trace.Oob trace, long codeSize) {
-    // TODO: fix once we have 1 Trace.Java per fork
-    // trace.data10(Bytes.ofUnsignedLong(codeSize));
+    // TODO: catch exception
+    // var traceOobShanghai = (TraceShanghai.Oob) trace;
+    // traceOobShanghai.data10(Bytes.ofUnsignedLong(codeSize));
   }
 
   protected void traceHubData10column(Trace.Hub trace, long codeSize) {
-    // TODO: fix once we have 1 Trace.Java per fork
-    // trace.pMiscOobData10(Bytes.ofUnsignedLong(codeSize));
+    //var traceHubShanghai = (TraceShanghai.Hub) trace;
+    //traceHubShanghai.pMiscOobData10(Bytes.ofUnsignedLong(codeSize));
   }
 
   protected OobExoCall exceedsMaxInitCodeSize(Wcp wcp) {

@@ -25,7 +25,6 @@ tasks.register('corsetExists') {
 }
 
 // Allowing overriding the default zkevm.bin files.
-def ZKEVM_BIN = System.getenv("ZKEVM_BIN") ?: "zkevm.bin"
 def ZKEVM_LONDON_BIN = System.getenv("ZKEVM_LONDON_BIN") ?: "zkevm_london.bin"
 def ZKEVM_SHANGHAI_BIN = System.getenv("ZKEVM_SHANGHAI_BIN") ?: "zkevm_shanghai.bin"
 // Specify where the trace files should be generated.
@@ -35,44 +34,15 @@ def SHANGHAI_TRACE_FILE = "arithmetization/src/main/java/net/consensys/linea/zkt
 // Specify package to use for trace file
 def TRACE_PKG = "net.consensys.linea.zktracer"
 
-tasks.register('buildZkevmBin') {
-  dependsOn buildZkevmLondonBin
-    dependsOn buildZkevmShanghaiBin
-}
-
-tasks.register('buildZkevmLondonBin', Exec) {
+tasks.register('buildZkevmBins', Exec) {
     workingDir "${project.rootDir}/linea-constraints/"
     // Specify input files so gradle knows when to rebuild.
     inputs.files(fileTree(workingDir).include('**/*.lisp'))
     // Specify output file so gradle knows when out-of-date.
     outputs.files(fileTree(workingDir).include(ZKEVM_LONDON_BIN))
-    // Sanity check executing this makes sense.
-    doFirst {
-        // Record zkevm.bin for CorsetValidator
-        environment.put("ZKEVM_LONDON_BIN", ZKEVM_LONDON_BIN)
-        // sanity check target chain
-        def chain = System.getProperty('blockchain')
-        // note: null indicates the default (which is Linea).
-        if(chain != null && chain != "Linea") {
-            println("*** incorrect target chain (expected 'Linea' was '" + chain + "')\n\n")
-            assert false
-        }
-    }
-    //
-    commandLine 'make', ZKEVM_LONDON_BIN
-}
-
-tasks.register('buildZkevmShanghaiBin', Exec) {
-    mustRunAfter('buildZkevmLondonBin')
-    workingDir "${project.rootDir}/linea-constraints/"
-    // Specify input files so gradle knows when to rebuild.
-    inputs.files(fileTree(workingDir).include('**/*.lisp'))
-    // Specify output file so gradle knows when out-of-date.
     outputs.files(fileTree(workingDir).include(ZKEVM_SHANGHAI_BIN))
     // Sanity check executing this makes sense.
     doFirst {
-        // Record zkevm.bin for CorsetValidator
-        environment.put("ZKEVM_SHANGHAI_BIN", ZKEVM_SHANGHAI_BIN)
         // sanity check target chain
         def chain = System.getProperty('blockchain')
         // note: null indicates the default (which is Linea).
@@ -81,14 +51,15 @@ tasks.register('buildZkevmShanghaiBin', Exec) {
             assert false
         }
     }
-    commandLine 'make', ZKEVM_SHANGHAI_BIN
+    // Make all forks
+    commandLine 'make'
 }
 
 // Task which generates the Trace.java interface using go-corset.
 tasks.register('buildTracer', Exec) {
     group "Trace.java generation"
-    dependsOn 'buildZkevmLondonBin'
-    dependsOn 'buildZkevmShanghaiBin'
+    dependsOn 'buildZkevmBins'
+    dependsOn 'buildZkevmBins'
     // Locate target file
     def traceJava = getRootProject().file(TRACE_FILE)
     // Configure full path to zkevm_london.bin
@@ -102,7 +73,7 @@ tasks.register('buildTracer', Exec) {
 // Task which generates the TraceLondon.java file using go-corset.
 tasks.register('buildLondonTracer', Exec) {
     group "TraceLondon.java generation"
-    dependsOn 'buildZkevmLondonBin'
+    dependsOn 'buildZkevmBins'
     // Locate target file
     def traceJava = getRootProject().file(LONDON_TRACE_FILE)
     // Configure full path to zkevm.bin
@@ -114,7 +85,7 @@ tasks.register('buildLondonTracer', Exec) {
 // Task which generates the TraceShanghai.java file using go-corset.
 tasks.register('buildShanghaiTracer', Exec) {
     group "TraceLondon.java generation"
-    dependsOn 'buildZkevmShanghaiBin'
+    dependsOn 'buildZkevmBins'
     // Locate target file
     def traceJava = getRootProject().file(SHANGHAI_TRACE_FILE)
     // Configure full path to zkevm.bin

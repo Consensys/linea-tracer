@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.module.txndata.moduleOperation.Shangh
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.TraceShanghai;
 import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
@@ -43,14 +44,23 @@ public class ShanghaiCreateOobCall extends LondonCreateOobCall {
   }
 
   protected void traceOobData10column(Trace.Oob trace, long codeSize) {
-    // TODO: catch exception
-    // var traceOobShanghai = (TraceShanghai.Oob) trace;
-    // traceOobShanghai.data10(Bytes.ofUnsignedLong(codeSize));
+    try {
+      // At this stage, we use Shanghai trace columns so we cast the trace to Shanghai trace
+      var traceOobShanghai = (TraceShanghai.Oob) trace;
+      traceOobShanghai.data10(Bytes.ofUnsignedLong(codeSize));
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Trace argument is not of type TraceShanghai.Oob", e);
+    }
   }
 
   protected void traceHubData10column(Trace.Hub trace, long codeSize) {
-    //var traceHubShanghai = (TraceShanghai.Hub) trace;
-    //traceHubShanghai.pMiscOobData10(Bytes.ofUnsignedLong(codeSize));
+    try {
+      // At this stage, we use Shanghai trace columns so we cast the trace to Shanghai trace
+      var traceHubShanghai = (TraceShanghai.Hub) trace;
+      traceHubShanghai.pMiscOobData10(Bytes.ofUnsignedLong(codeSize));
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Trace argument is not of type TraceShanghai.Hub", e);
+    }
   }
 
   protected OobExoCall exceedsMaxInitCodeSize(Wcp wcp) {

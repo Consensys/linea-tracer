@@ -79,7 +79,8 @@ public class ToyExecutionEnvironmentV2 {
               Optional.of(testInfo), UNIT_TEST_CHAIN, coinbase, accounts, transactions)
           .executeTest();
     } else {
-      ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, UNIT_TEST_CHAIN.fork);
+      ProtocolSpec protocolSpec =
+          ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, UNIT_TEST_CHAIN.fork);
       final GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
           this.buildGeneralStateTestCaseSpec(protocolSpec);
       ToyExecutionTools.executeTest(

@@ -65,20 +65,26 @@ public abstract class TxndataOperation extends ModuleOperation {
   @Getter public final TransactionProcessingMetadata tx;
 
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
-  // TODO: move it down to LondonTwnOperation
-  private static final int N_ROWS_TX_MAX =
-      Math.max(Math.max(NB_ROWS_TYPE_0, NB_ROWS_TYPE_1), NB_ROWS_TYPE_2);
   private static final int NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST = 7;
-  protected final List<TxnDataComparisonRecord> callsToEucAndWcp = new ArrayList<>(N_ROWS_TX_MAX);
-  private final ArrayList<RlptxnOutgoing> valuesToRlptxn = new ArrayList<>(N_ROWS_TX_MAX);
-  private final ArrayList<RlptxrcptOutgoing> valuesToRlpTxrcpt = new ArrayList<>(N_ROWS_TX_MAX);
+
+  private final int nbRowsTxMax;
+  protected final List<TxnDataComparisonRecord> callsToEucAndWcp;
+  private final ArrayList<RlptxnOutgoing> valuesToRlptxn;
+  private final ArrayList<RlptxrcptOutgoing> valuesToRlpTxrcpt;
   private static final Bytes BYTES_MAX_REFUND_QUOTIENT = Bytes.of(MAX_REFUND_QUOTIENT);
 
-  public TxndataOperation(Wcp wcp, Euc euc, TransactionProcessingMetadata tx) {
+  public TxndataOperation(Wcp wcp, Euc euc, TransactionProcessingMetadata tx, int nbRowsTxMax) {
 
     this.wcp = wcp;
     this.euc = euc;
     this.tx = tx;
+
+    // The number of rows max depends on the fork so the parameter is passed in constructor and set
+    // to be used in setRlptxrcptValues function
+    this.nbRowsTxMax = nbRowsTxMax;
+    this.callsToEucAndWcp = new ArrayList<>(nbRowsTxMax);
+    this.valuesToRlptxn = new ArrayList<>(nbRowsTxMax);
+    this.valuesToRlpTxrcpt = new ArrayList<>(nbRowsTxMax);
 
     this.setCallsToEucAndWcp();
   }
@@ -283,7 +289,7 @@ public abstract class TxndataOperation extends ModuleOperation {
         RlptxrcptOutgoing.set(
             (short) RLP_RCPT_SUBPHASE_ID_CUMUL_GAS, tx.getAccumulatedGasUsedInBlock()));
     // i+3 to i+MAX_NB_ROWS
-    for (int ct = 3; ct < N_ROWS_TX_MAX; ct++) {
+    for (int ct = 3; ct < this.nbRowsTxMax; ct++) {
       this.valuesToRlpTxrcpt.add(RlptxrcptOutgoing.emptyValue());
     }
   }

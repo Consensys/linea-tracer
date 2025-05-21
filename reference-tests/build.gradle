@@ -57,7 +57,6 @@ tasks.register("generateGeneralStateReferenceTests", RefTestGenerationTask) {
 }
 
 tasks.register('referenceBlockchainTests', Test) {
-  //dependsOn(":arithmetization:buildZkevmBin")
   finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
   dependsOn generateBlockchainReferenceTests
@@ -82,7 +81,6 @@ tasks.register("jacocoReferenceBlockchainTestsReport", JacocoReport) {
 }
 
 tasks.register('referenceGeneralStateTests', Test) {
-  //dependsOn(":arithmetization:buildZkevmBin")
   finalizedBy(jacocoReferenceGeneralStateTestsReport)
   description = 'Runs ETH reference general state tests.'
   dependsOn generateGeneralStateReferenceTests

@@ -25,11 +25,13 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 
 public class ShanghaiTxndataOperation extends LondonTxndataOperation {
+
   public static final Bytes MAX_INIT_CODE_SIZE_BYTES = Bytes.ofUnsignedInt(MAX_INIT_CODE_SIZE);
   private static final Bytes WORD_SIZE_BYTES = Bytes.ofUnsignedInt(WORD_SIZE);
 
-  public ShanghaiTxndataOperation(Wcp wcp, Euc euc, TransactionProcessingMetadata tx) {
-    super(wcp, euc, tx);
+  public ShanghaiTxndataOperation(
+      Wcp wcp, Euc euc, TransactionProcessingMetadata tx, int nbRowsTxMax) {
+    super(wcp, euc, tx, nbRowsTxMax);
   }
 
   @Override

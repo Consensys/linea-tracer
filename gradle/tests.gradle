@@ -170,7 +170,6 @@ tasks.register("copyPlugins", Copy) {
 }
 
 tasks.register("fastReplayTests", Test) {
-  //
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")

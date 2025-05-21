@@ -22,8 +22,10 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
 public class LondonTxndataOperation extends TxndataOperation {
-  public LondonTxndataOperation(Wcp wcp, Euc euc, TransactionProcessingMetadata tx) {
-    super(wcp, euc, tx);
+
+  public LondonTxndataOperation(
+      Wcp wcp, Euc euc, TransactionProcessingMetadata tx, int nRowsTxMax) {
+    super(wcp, euc, tx, nRowsTxMax);
   }
 
   @Override

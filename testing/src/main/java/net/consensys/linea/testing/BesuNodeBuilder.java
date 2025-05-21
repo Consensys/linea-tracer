@@ -81,6 +81,7 @@ public class BesuNodeBuilder {
                     "--plugin-shomei-http-host=127.0.0.1",
                     String.format("--plugin-shomei-http-port=%s", shomeiPort),
                     "--plugin-shomei-enable-zktracer=true",
+                    "--plugin-shomei-zktrace-comparison-mode=31",
                     String.format(
                         "--plugin-linea-conflated-trace-generation-traces-output-path=%s",
                         tracesPath),

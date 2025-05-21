@@ -52,8 +52,8 @@ tasks.withType(Test).configureEach {
   }
 
   jvmArgs = [
-    '-XX:-UseGCOverheadLimit',
-    '-Xlog:gc',
+//    '-XX:-UseGCOverheadLimit',
+//    '-Xlog:gc',
     // Mockito and jackson-databind do some strange reflection during tests.
     // This suppresses an illegal access warning.
     '--add-opens',
@@ -107,7 +107,7 @@ tasks.withType(Test).configureEach {
     showFailed true
 
     // enable to see standard out and error streams inline with the test results
-    showStandardStreams true
+    showStandardStreams false
 
     // set to false to hide passed standard out and error streams
     showPassedStandardStreams false
@@ -167,7 +167,7 @@ tasks.test.configure {
 
 tasks.register("besuNodeTests", Test) {
   forkEvery = 1
-  maxParallelForks = 1
+  maxParallelForks = 3
 
   dependsOn(buildZkevmBin, "copyTracerPlugin", "downloadShoemiBesuPlugin")
 

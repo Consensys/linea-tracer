@@ -100,10 +100,16 @@ public class ToyExecutionEnvironmentV2 {
   }
 
   public Hub getHub() {
+    if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
+      throw new IllegalStateException("Cannot get Hub when running with Besu node");
+    }
     return tracer.getHub();
   }
 
   public ZkTracer getZkTracer() {
+    if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
+      throw new IllegalStateException("Cannot get zkTracer when running with Besu node");
+    }
     return tracer;
   }
 

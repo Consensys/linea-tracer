@@ -32,8 +32,8 @@ dependencies {
   implementation "${besuArtifactGroup}.internal:dsl"
   implementation "${besuArtifactGroup}:gnark"
   implementation group: "${besuArtifactGroup}.internal", name: "core", classifier: "test-support", version: "${besuVersion}"
-  implementation "net.consensys.shomei:shomei:${shomeiVersion}"
-  implementation "net.consensys.shomei:server:${shomeiVersion}"
+  implementation "io.consensys.protocols.shomei:shomei:${shomeiVersion}"
+  implementation "io.consensys.protocols.shomei:shomei-server:${shomeiVersion}"
   implementation 'io.micrometer:micrometer-registry-prometheus:1.11.1'
   implementation 'org.awaitility:awaitility'
   implementation 'com.google.code.gson:gson'

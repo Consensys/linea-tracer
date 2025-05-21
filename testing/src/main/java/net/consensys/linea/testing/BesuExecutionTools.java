@@ -85,16 +85,21 @@ public class BesuExecutionTools {
       List<ToyAccount> accounts,
       List<Transaction> transactions) {
     String randomUUID = UUID.randomUUID().toString();
-    this.testName =
+    String tmpTestName =
         testInfo
             .map(
                 info ->
                     String.format(
-                        "%s-%s-%s",
+                        "%s-%s-%s-%s",
                         info.getTestClass().get().getSimpleName(),
+                        info.getTestMethod().get().getName(),
                         info.getDisplayName(),
                         randomUUID))
-            .orElse(randomUUID);
+            .orElse(randomUUID)
+            .replace(' ', '_')
+            .replace(',', '_');
+
+    this.testName = tmpTestName.substring(0, Math.min(tmpTestName.length(), 200));
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
     this.httpClient = new OkHttpClient();
@@ -139,7 +144,6 @@ public class BesuExecutionTools {
             new NetConditions(new NetTransactions()),
             new ThreadBesuNodeRunner());
     try {
-
       shomeiThread.start();
       besuCluster.start(besuNode);
 
@@ -225,7 +229,11 @@ public class BesuExecutionTools {
       } catch (Exception e) {
         log.error("Error closing shomei node: %s".formatted(e.getMessage()), e);
       }
-      besuNode.close();
+      try {
+        besuNode.close();
+      } catch (Exception e) {
+        log.error("Error closing besu node: %s".formatted(e.getMessage()), e);
+      }
     }
   }
 

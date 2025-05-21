@@ -59,7 +59,6 @@ tasks.register('buildZkevmBins', Exec) {
 tasks.register('buildTracer', Exec) {
     group "Trace.java generation"
     dependsOn 'buildZkevmBins'
-    dependsOn 'buildZkevmBins'
     // Locate target file
     def traceJava = getRootProject().file(TRACE_FILE)
     // Configure full path to zkevm_london.bin

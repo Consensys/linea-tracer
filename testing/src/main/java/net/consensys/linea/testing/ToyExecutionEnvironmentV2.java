@@ -15,6 +15,7 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Fork.LONDON;
 import static net.consensys.linea.zktracer.Trace.LINEA_BASE_FEE;
 
@@ -40,7 +41,7 @@ import org.junit.jupiter.api.TestInfo;
 @Builder
 @Slf4j
 public class ToyExecutionEnvironmentV2 {
-  public static final ChainConfig UNIT_TEST_CHAIN = ChainConfig.MAINNET_LONDON_TESTCONFIG;
+  public static final ChainConfig UNIT_TEST_CHAIN = MAINNET_TESTCONFIG(LONDON);
   public static final Address DEFAULT_COINBASE_ADDRESS =
       Address.fromHexString("0xc019ba5e00000000c019ba5e00000000c019ba5e");
   public static final long DEFAULT_BLOCK_NUMBER = 6678980;
@@ -78,8 +79,8 @@ public class ToyExecutionEnvironmentV2 {
               Optional.of(testInfo), UNIT_TEST_CHAIN, coinbase, accounts, transactions)
           .executeTest();
     } else {
-      ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, LONDON);
-      GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
+      ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, UNIT_TEST_CHAIN.fork);
+      final GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
           this.buildGeneralStateTestCaseSpec(protocolSpec);
       ToyExecutionTools.executeTest(
           generalStateTestCaseEipSpec,
@@ -91,8 +92,9 @@ public class ToyExecutionEnvironmentV2 {
   }
 
   public long runForGasCost() {
-    ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, LONDON);
-    GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
+    final ProtocolSpec protocolSpec =
+        ExecutionEnvironment.getProtocolSpec(UNIT_TEST_CHAIN.id, UNIT_TEST_CHAIN.fork);
+    final GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
         this.buildGeneralStateTestCaseSpec(protocolSpec);
 
     return ToyExecutionTools.executeTestOnlyForGasCost(
@@ -114,15 +116,15 @@ public class ToyExecutionEnvironmentV2 {
   }
 
   public GeneralStateTestCaseEipSpec buildGeneralStateTestCaseSpec(ProtocolSpec protocolSpec) {
-    Map<String, ReferenceTestWorldState.AccountMock> accountMockMap =
+    final Map<String, ReferenceTestWorldState.AccountMock> accountMockMap =
         accounts.stream()
             .collect(
                 Collectors.toMap(
                     toyAccount -> toyAccount.getAddress().toHexString(),
                     ToyAccount::toAccountMock));
-    ReferenceTestWorldState referenceTestWorldState =
+    final ReferenceTestWorldState referenceTestWorldState =
         ReferenceTestWorldState.create(accountMockMap, protocolSpec.getEvm().getEvmConfiguration());
-    BlockHeader blockHeader =
+    final BlockHeader blockHeader =
         ExecutionEnvironment.getLineaBlockHeaderBuilder(Optional.empty())
             .number(DEFAULT_BLOCK_NUMBER)
             .coinbase(coinbase)
@@ -131,7 +133,7 @@ public class ToyExecutionEnvironmentV2 {
             .baseFee(DEFAULT_BASE_FEE)
             .buildBlockHeader();
 
-    List<Supplier<Transaction>> txSuppliers = new ArrayList<>();
+    final List<Supplier<Transaction>> txSuppliers = new ArrayList<>();
     for (Transaction tx : transactions) {
       txSuppliers.add(() -> tx);
     }

@@ -115,8 +115,9 @@ public final class BytecodeRunner {
       TestInfo testInfo) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
 
-    KeyPair keyPair = new SECP256K1().generateKeyPair();
-    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+    final KeyPair keyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
     final ToyAccount senderAccount =
         ToyAccount.builder().balance(senderBalance).nonce(5).address(senderAddress).build();

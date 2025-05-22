@@ -129,7 +129,7 @@ jacocoTestReport {
 }
 
 tasks.test.configure {
-  dependsOn(buildZkevmBin, "copyTracerPlugin", "downloadShoemiBesuPlugin")
+  dependsOn("copyTracerPlugin", "downloadShoemiBesuPlugin")
 
   delete("${project.getLayout().getBuildDirectory().get()}/besu/traces")
   mkdir("${project.getLayout().getBuildDirectory().get()}/besu/traces")
@@ -169,7 +169,7 @@ tasks.register("besuNodeTests", Test) {
   forkEvery = 1
   maxParallelForks = 3
 
-  dependsOn(buildZkevmBin, "copyTracerPlugin", "downloadShoemiBesuPlugin")
+  dependsOn("copyTracerPlugin", "downloadShoemiBesuPlugin")
 
   delete("${project.getLayout().getBuildDirectory().get()}/besu/traces")
   mkdir("${project.getLayout().getBuildDirectory().get()}/besu/traces")
@@ -213,8 +213,6 @@ tasks.register("downloadShoemiBesuPlugin", Download) {
 }
 
 tasks.register("fastReplayTests", Test) {
-  dependsOn(buildZkevmBin)
-    //
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
@@ -241,8 +239,6 @@ tasks.register("jacocoFastReplayTestsReport", JacocoReport) {
 }
 
 tasks.register("nightlyReplayTests", Test) {
-  dependsOn(buildZkevmBin)
-
   if (System.getenv().containsKey("REPLAY_TESTS_PARALLELISM")) {
     systemProperty("junit.jupiter.execution.parallel.enabled", true)
     systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
@@ -259,8 +255,6 @@ tasks.register("nightlyReplayTests", Test) {
 }
 
 tasks.register("nightlyTests", Test) {
-  dependsOn(buildZkevmBin)
-
   systemProperty("junit.jupiter.execution.parallel.enabled", true)
   systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
   systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
@@ -284,8 +278,6 @@ tasks.register("jacocoNightlyTestsReport", JacocoReport) {
 }
 
 tasks.register("weeklyTests", Test) {
-  dependsOn(buildZkevmBin)
-
   systemProperty("junit.jupiter.execution.parallel.enabled", true)
   systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
   systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")
@@ -309,8 +301,6 @@ tasks.register("jacocoWeeklyTestsReport", JacocoReport) {
 }
 
 tasks.register("prcCallTests", Test) {
-  dependsOn(buildZkevmBin)
-  //
   systemProperty("junit.jupiter.execution.parallel.enabled", true)
   systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
   systemProperty("junit.jupiter.execution.parallel.mode.classes.default", "concurrent")

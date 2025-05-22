@@ -27,6 +27,8 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
 public class LondonTxnData extends TxnData {
 
+  private static final int NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST_LONDON = 7;
+
   public LondonTxnData(Hub hub, Wcp wcp, Euc euc) {
     super(hub, wcp, euc);
   }
@@ -36,6 +38,12 @@ public class LondonTxnData extends TxnData {
     operations()
         .add(
             new LondonTxndataOperation(
-                wcp(), euc(), tx, NB_ROWS_TYPE_0, NB_ROWS_TYPE_1, NB_ROWS_TYPE_2));
+                wcp(),
+                euc(),
+                tx,
+                NB_ROWS_TYPE_0,
+                NB_ROWS_TYPE_1,
+                NB_ROWS_TYPE_2,
+                NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST_LONDON));
   }
 }

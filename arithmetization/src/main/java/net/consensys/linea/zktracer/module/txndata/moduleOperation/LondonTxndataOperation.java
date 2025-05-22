@@ -29,8 +29,9 @@ public class LondonTxndataOperation extends TxndataOperation {
       TransactionProcessingMetadata tx,
       int nbRowsType0,
       int nbRowsType1,
-      int nbRowsType2) {
-    super(wcp, euc, tx, nbRowsType0, nbRowsType1, nbRowsType0);
+      int nbRowsType2,
+      int nbWcpEucRowsFrontierAccessList) {
+    super(wcp, euc, tx, nbRowsType0, nbRowsType1, nbRowsType2, nbWcpEucRowsFrontierAccessList);
   }
 
   @Override

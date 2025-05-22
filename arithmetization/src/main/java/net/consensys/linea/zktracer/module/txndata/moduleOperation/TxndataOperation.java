@@ -68,6 +68,7 @@ public abstract class TxndataOperation extends ModuleOperation {
   private final int nbRowsType1;
   private final int nbRowsType2;
   private final int nbRowsTxMax;
+  private final int nbWcpEucRowsFrontierAccessList;
   protected final List<TxnDataComparisonRecord> callsToEucAndWcp;
   private final ArrayList<RlptxnOutgoing> valuesToRlptxn;
   private final ArrayList<RlptxrcptOutgoing> valuesToRlpTxrcpt;
@@ -79,19 +80,23 @@ public abstract class TxndataOperation extends ModuleOperation {
       TransactionProcessingMetadata tx,
       int nbRowsType0,
       int nbRowsType1,
-      int nbRowsType2) {
+      int nbRowsType2,
+      int nbWcpEucRowsFrontierAccessList) {
 
     this.wcp = wcp;
     this.euc = euc;
     this.tx = tx;
 
-    // The number of rows type0, type1, typ2 and thereforeTxMax depends on the fork so the
+    // The number of rows type0, type1, type2 and thereforeTxMax depends on the fork so the
     // parameters are passed in constructor and set
     // to be used in setter functions
     this.nbRowsType0 = nbRowsType0;
     this.nbRowsType1 = nbRowsType1;
     this.nbRowsType2 = nbRowsType2;
     this.nbRowsTxMax = Math.max(Math.max(nbRowsType0, nbRowsType1), nbRowsType2);
+    // The number of wcp and euc for frontier and access list type depends on the fork
+    // (post shanghai) two rows are added for limit and meter initcode
+    this.nbWcpEucRowsFrontierAccessList = nbWcpEucRowsFrontierAccessList;
     this.callsToEucAndWcp = new ArrayList<>(nbRowsTxMax);
     this.valuesToRlptxn = new ArrayList<>(nbRowsTxMax);
     this.valuesToRlpTxrcpt = new ArrayList<>(nbRowsTxMax);
@@ -151,12 +156,12 @@ public abstract class TxndataOperation extends ModuleOperation {
 
     switch (type) {
       case FRONTIER -> {
-        for (int i = NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST; i < this.nbRowsType0; i++) {
+        for (int i = this.nbWcpEucRowsFrontierAccessList; i < this.nbRowsType0; i++) {
           callsToEucAndWcp.add(TxnDataComparisonRecord.empty());
         }
       }
       case ACCESS_LIST -> {
-        for (int i = NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST; i < this.nbRowsType1; i++) {
+        for (int i = this.nbWcpEucRowsFrontierAccessList; i < this.nbRowsType1; i++) {
           callsToEucAndWcp.add(TxnDataComparisonRecord.empty());
         }
       }

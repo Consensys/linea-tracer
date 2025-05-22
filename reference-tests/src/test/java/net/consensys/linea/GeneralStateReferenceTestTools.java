@@ -89,7 +89,7 @@ public class GeneralStateReferenceTestTools {
                     stateSpec.finalStateSpecs().entrySet()) {
                   final String eip = entry.getKey();
                   final boolean runTest =
-                      EIPS_TO_RUN.contains(eip) && eip.equalsIgnoreCase("London");
+                      EIPS_TO_RUN.contains(eip) && eip.equalsIgnoreCase("Shanghai");
                   final List<GeneralStateTestCaseEipSpec> eipSpecs = entry.getValue();
                   if (eipSpecs.size() == 1) {
                     collector.add(prefix + eip, fullPath, eipSpecs.get(0), runTest);

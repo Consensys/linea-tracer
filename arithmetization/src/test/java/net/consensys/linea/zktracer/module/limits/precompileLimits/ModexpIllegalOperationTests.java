@@ -16,9 +16,10 @@
 package net.consensys.linea.zktracer.module.limits.precompileLimits;
 
 import static java.lang.Integer.MAX_VALUE;
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_LONDON_TESTCONFIG;
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
@@ -27,7 +28,7 @@ import org.junit.jupiter.api.Test;
 public class ModexpIllegalOperationTests extends TracerTestBase {
   @Test
   void legalThenTwoIllegals() {
-    final ZkTracer state = new ZkTracer(MAINNET_LONDON_TESTCONFIG);
+    final ZkTracer state = new ZkTracer(MAINNET_TESTCONFIG(Fork.SHANGHAI));
     final ModexpEffectiveCall countingOnlyModule = state.getHub().modexpEffectiveCall();
 
     countingOnlyModule.updateTally(1);
@@ -44,7 +45,7 @@ public class ModexpIllegalOperationTests extends TracerTestBase {
 
   @Test
   void legalIllegalLegal() {
-    final ZkTracer state = new ZkTracer(MAINNET_LONDON_TESTCONFIG);
+    final ZkTracer state = new ZkTracer(MAINNET_TESTCONFIG(Fork.SHANGHAI));
     final ModexpEffectiveCall countingOnlyModule = state.getHub().modexpEffectiveCall();
 
     countingOnlyModule.updateTally(1);
@@ -61,7 +62,7 @@ public class ModexpIllegalOperationTests extends TracerTestBase {
 
   @Test
   void TwoIllegals() {
-    final ZkTracer state = new ZkTracer(MAINNET_LONDON_TESTCONFIG);
+    final ZkTracer state = new ZkTracer(MAINNET_TESTCONFIG(Fork.SHANGHAI));
     final ModexpEffectiveCall countingOnlyModule = state.getHub().modexpEffectiveCall();
 
     countingOnlyModule.updateTally(MAX_VALUE);

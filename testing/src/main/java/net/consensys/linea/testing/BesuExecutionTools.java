@@ -96,7 +96,7 @@ public class BesuExecutionTools {
                         info.getDisplayName(),
                         randomUUID))
             .orElse(randomUUID)
-            .replaceAll("[,.:<>|*?\r\n ]", "_");
+            .replaceAll("[,.:<>|*?\\r\\n\\[\\]() ]", "_");
     this.testName = tmpTestName.substring(0, Math.min(tmpTestName.length(), 200));
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
@@ -111,7 +111,7 @@ public class BesuExecutionTools {
       this.testDataDir =
           Files.createDirectory(
               Path.of(System.getProperty("besu.traces.dir")).resolve(this.testName));
-      this.shomeiDataPath = Files.createDirectory(testDataDir.resolve("shomei"));
+      this.shomeiDataPath = Files.createTempDirectory("shomei");
       this.besuNode =
           BesuNodeBuilder.create(
               testName,

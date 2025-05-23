@@ -96,9 +96,7 @@ public class BesuExecutionTools {
                         info.getDisplayName(),
                         randomUUID))
             .orElse(randomUUID)
-            .replace(' ', '_')
-            .replace(',', '_');
-
+            .replaceAll("[,.:<>|*?\r\n ]", "_");
     this.testName = tmpTestName.substring(0, Math.min(tmpTestName.length(), 200));
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();

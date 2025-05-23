@@ -162,7 +162,7 @@ public class BesuExecutionTools {
           () -> {
             txHashes.forEach(
                 (txHash) -> {
-                  if(txReceiptProcessed.containsKey(txHash)) {
+                  if (txReceiptProcessed.containsKey(txHash)) {
                     return;
                   }
                   var maybeTxReceipt =

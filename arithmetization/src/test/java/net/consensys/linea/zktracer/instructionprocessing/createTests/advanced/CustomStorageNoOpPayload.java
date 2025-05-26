@@ -21,16 +21,16 @@ import net.consensys.linea.testing.generated.Factory;
 import org.apache.tuweni.bytes.Bytes;
 import org.web3j.abi.FunctionEncoder;
 import org.web3j.abi.datatypes.Function;
+import org.web3j.abi.datatypes.generated.Uint256;
 
 public class CustomStorageNoOpPayload {
 
-  public static Bytes deploy(String salt) {
+  public static Bytes deploy(Uint256 salt) {
     Function function =
         new Function(
             Factory.FUNC_DEPLOY,
             Arrays.asList(
-                new org.web3j.abi.datatypes.generated.Bytes32(
-                    Bytes.fromHexStringLenient(salt).toArray())),
+                new org.web3j.abi.datatypes.generated.Uint256(salt.getValue())),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }

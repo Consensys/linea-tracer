@@ -2,9 +2,9 @@
 pragma solidity 0.8.26;
 
 import {TestingBase} from "./TestingBase.sol";
-import {HubShomeiIntegrationSelfDestructible} from "./HubShomeiIntegrationSelfDestructible.sol";
+import {SelfDestructible} from "./SelfDestructible.sol";
 
-contract HubShomeiIntegrationFactory is TestingBase {
+contract Factory is TestingBase {
     address public lastDeployed;
 
     event Deployed(address addr, uint256 salt);
@@ -12,7 +12,7 @@ contract HubShomeiIntegrationFactory is TestingBase {
     event EmptyDeployed(string s);
 
     function deploy(uint256 _salt) external returns (address) {
-        bytes memory bytecode = type(HubShomeiIntegrationSelfDestructible).creationCode;
+        bytes memory bytecode = type(SelfDestructible).creationCode;
 
         address addr;
         assembly {

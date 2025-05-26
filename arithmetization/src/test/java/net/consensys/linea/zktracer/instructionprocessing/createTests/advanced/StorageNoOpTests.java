@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -23,7 +24,6 @@ import net.consensys.linea.testing.SmartContractUtils;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.generated.Factory;
-import net.consensys.linea.testing.generated.HubShomeiIntegrationFactory;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.web3j.abi.datatypes.generated.Uint256;
 
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
@@ -59,36 +60,22 @@ public class StorageNoOpTests extends TracerTestBase {
 
   static final Long gasLimit = 8000000L;
   static final Wei defaultBalance = Wei.fromEth(13L);
-  ToyAccount factorySmc =
+  static ToyAccount factorySmc =
       ToyAccount.builder()
           .address(Address.fromHexString("0x0add70fc7ea7e2"))
           .balance(defaultBalance)
           .nonce(1777L)
-          .code(SmartContractUtils.getSolidityContractRuntimeByteCode(HubShomeiIntegrationFactory.class))
+          .code(SmartContractUtils.getSolidityContractRuntimeByteCode(Factory.class))
           .build();
 
   @Test
   public void simpleTest() {
 
-    // preparing payload for the first transaction
-    Bytes deployPayload = CustomStorageNoOpPayload.deploy("0x0000000000000000000000000000000000000000000000000000000000aaff11");
-    Bytes callMainMethod =
-        CustomStorageNoOpPayload.callMain(
-            true, // touchStorage
-            true, // modifyStorage
-            true, // selfdestruct
-            false // revert
-            );
-    List<Transaction> transactions =
-        InitCodeTests.getTransactions(
-            factorySmc, userAccount, List.of(deployPayload, callMainMethod), List.of(1L, 13L));
-
-    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder()
-            .accounts(List.of(userAccount, factorySmc))
-            .transactions(transactions)
-            .build();
-    toyExecutionEnvironmentV2.run(testInfo);
+    testBody(
+        TouchStorage.TOUCH_STORAGE,
+        ModifyStorage.MODIFY_STORAGE,
+        SelfDestruct.SELF_DESTRUCT,
+        Revert.DONT_REVERT);
   }
 
   @ParameterizedTest
@@ -100,25 +87,7 @@ public class StorageNoOpTests extends TracerTestBase {
             SelfDestruct selfdestruct,
             Revert revert) {
 
-    // preparing payload for the first transaction
-    Bytes deployPayload = CustomStorageNoOpPayload.deploy("0x0000000000000000000000000000000000000000000000000000000000aaff11");
-    Bytes callMainMethod =
-            CustomStorageNoOpPayload.callMain(
-                    touchStorage == TouchStorage.TOUCH_STORAGE,
-                    modifyStorage == ModifyStorage.MODIFY_STORAGE,
-                    selfdestruct == SelfDestruct.SELF_DESTRUCT,
-                    revert == Revert.REVERT
-            );
-    List<Transaction> transactions =
-            InitCodeTests.getTransactions(
-                    factorySmc, userAccount, List.of(deployPayload, callMainMethod), List.of(1L, 13L));
-
-    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
-            ToyExecutionEnvironmentV2.builder()
-                    .accounts(List.of(userAccount, factorySmc))
-                    .transactions(transactions)
-                    .build();
-    toyExecutionEnvironmentV2.run(testInfo);
+    testBody(touchStorage, modifyStorage, selfdestruct, revert);
   }
 
   public static Stream<Arguments> getParameters() {
@@ -138,6 +107,35 @@ public class StorageNoOpTests extends TracerTestBase {
       }
     }
     return arguments.stream();
+  }
+
+  private void testBody(
+  TouchStorage touchStorage,
+  ModifyStorage modifyStorage,
+  SelfDestruct selfdestruct,
+  Revert revert) {
+
+    // preparing payload for the first transaction
+    Uint256 salt = new Uint256(BigInteger.valueOf(0xaaff11L));
+    Bytes deployPayload = CustomStorageNoOpPayload.deploy(salt);
+    Bytes callMainMethod =
+            CustomStorageNoOpPayload.callMain(
+                    touchStorage == TouchStorage.TOUCH_STORAGE,
+                    modifyStorage == ModifyStorage.MODIFY_STORAGE,
+                    selfdestruct == SelfDestruct.SELF_DESTRUCT,
+                    revert == Revert.REVERT
+            );
+    List<Transaction> transactions =
+            InitCodeTests.getTransactions(
+                    factorySmc, userAccount, List.of(deployPayload, callMainMethod), List.of(0L, 0L));
+
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+            ToyExecutionEnvironmentV2.builder()
+                    .accounts(List.of(userAccount, factorySmc))
+                    .transactions(transactions)
+                    .build();
+    toyExecutionEnvironmentV2.run(testInfo);
+
   }
 
   private enum TouchStorage {

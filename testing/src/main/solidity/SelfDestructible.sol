@@ -3,7 +3,7 @@ pragma solidity 0.8.26;
 
 import {TestingBase} from "./TestingBase.sol";
 
-contract HubShomeiIntegrationSelfDestructible is TestingBase {
+contract SelfDestructible is TestingBase {
     uint256 public storage1;
     uint256 public storage2;
 

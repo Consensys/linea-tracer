@@ -125,6 +125,8 @@ public class StorageNoOpTests extends TracerTestBase {
                     selfdestruct == SelfDestruct.SELF_DESTRUCT,
                     revert == Revert.REVERT
             );
+    // for some reason the solidity code does not allow to pass a nonzero value to the
+    // transaction; we thus provide zero Wei to both transactions
     List<Transaction> transactions =
             InitCodeTests.getTransactions(
                     factorySmc, userAccount, List.of(deployPayload, callMainMethod), List.of(0L, 0L));

@@ -25,7 +25,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -225,8 +224,7 @@ public class ToyExecutionTools {
     Deque<MessageFrame> messageFrameStack = initialMessageFrame.getMessageFrameStack();
     while (!messageFrameStack.isEmpty()) {
       processor.process(
-          messageFrameStack.peekFirst(),
-          new ZkTracer(ChainConfig.MAINNET_TESTCONFIG(Fork.SHANGHAI)));
+          messageFrameStack.peekFirst(), new ZkTracer(ChainConfig.MAINNET_LONDON_TESTCONFIG));
     }
 
     final long intrinsicTxCostWithNoAccessOrDelegationCost =

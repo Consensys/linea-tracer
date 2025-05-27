@@ -16,7 +16,7 @@
 package net.consensys.linea.testing;
 
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
-import static net.consensys.linea.zktracer.Fork.SHANGHAI;
+import static net.consensys.linea.zktracer.Fork.LONDON;
 import static net.consensys.linea.zktracer.Trace.LINEA_BASE_FEE;
 
 import java.util.*;
@@ -41,8 +41,7 @@ import org.junit.jupiter.api.TestInfo;
 @Builder
 @Slf4j
 public class ToyExecutionEnvironmentV2 {
-  // TODO: to unit test with shanghai on that branch
-  public static final ChainConfig UNIT_TEST_CHAIN = MAINNET_TESTCONFIG(SHANGHAI);
+  public static final ChainConfig UNIT_TEST_CHAIN = MAINNET_TESTCONFIG(LONDON);
   public static final Address DEFAULT_COINBASE_ADDRESS =
       Address.fromHexString("0xc019ba5e00000000c019ba5e00000000c019ba5e");
   public static final long DEFAULT_BLOCK_NUMBER = 6678980;

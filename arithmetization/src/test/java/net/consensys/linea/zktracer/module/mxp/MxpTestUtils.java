@@ -102,6 +102,7 @@ public class MxpTestUtils {
   public void triggerNonTrivialButMxpxOrRoobForOpCode(
       BytecodeCompiler program, boolean triggerRoob, OpCode opCode) {
     MxpType mxpType = opCode.getData().billing().type();
+    EWord sizeForCreates = EWord.of(1);
 
     // Generate as many random values as needed at most
     EWord size1;
@@ -123,8 +124,12 @@ public class MxpTestUtils {
       offset1 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);
       offset2 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);
 
-      // size2 is irrelevant for this case
-      mxpx = isMxpx(mxpType, size1, offset1, size2, offset2);
+      // For creates, we trigger mxpx with the offset to avoid triggering a max code size exception
+      // that takes precedence on mxpx
+      mxpx =
+          opCode.isCreate()
+              ? isMxpx(mxpType, sizeForCreates, offset1, EWord.ZERO, EWord.ZERO)
+              : isMxpx(mxpType, size1, offset1, size2, offset2);
       roob = isRoob(mxpType, size1, offset1, size2, offset2);
     } while (!(triggerRoob && mxpx && roob) && !(!triggerRoob && mxpx && !roob));
 
@@ -163,10 +168,10 @@ public class MxpTestUtils {
       case CREATE, CREATE2 -> {
         if (opCode == OpCode.CREATE) {
           // CREATE
-          appendOpCodeCall(List.of(size1, offset1, value), opCode, program);
+          appendOpCodeCall(List.of(sizeForCreates, offset1, value), opCode, program);
         } else {
           // CREATE2
-          appendOpCodeCall(List.of(salt, size1, offset1, value), opCode, program);
+          appendOpCodeCall(List.of(salt, sizeForCreates, offset1, value), opCode, program);
         }
       }
       case STATICCALL, DELEGATECALL -> appendOpCodeCall(

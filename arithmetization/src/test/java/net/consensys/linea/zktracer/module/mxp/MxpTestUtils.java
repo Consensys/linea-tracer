@@ -125,10 +125,7 @@ public class MxpTestUtils {
       offset1 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);
       offset2 = getRandomBigIntegerByBytesSize(0, MAX_BYTE_SIZE);
 
-      mxpx =
-          opCode.isCreate()
-              ? isMxpx(mxpType, sizeForCreates, offset1, EWord.ZERO, EWord.ZERO)
-              : isMxpx(mxpType, size1, offset1, size2, offset2);
+      mxpx = isMxpx(mxpType, size1, offset1, size2, offset2);
       roob = isRoob(mxpType, size1, offset1, size2, offset2);
     } while (!(triggerRoob && mxpx && roob) && !(!triggerRoob && mxpx && !roob));
 
@@ -167,10 +164,10 @@ public class MxpTestUtils {
       case CREATE, CREATE2 -> {
         if (opCode == OpCode.CREATE) {
           // CREATE
-          appendOpCodeCall(List.of(sizeForCreates, offset1, value), opCode, program);
+          appendOpCodeCall(List.of(size1, offset1, value), opCode, program);
         } else {
           // CREATE2
-          appendOpCodeCall(List.of(salt, sizeForCreates, offset1, value), opCode, program);
+          appendOpCodeCall(List.of(salt, size1, offset1, value), opCode, program);
         }
       }
       case STATICCALL, DELEGATECALL -> appendOpCodeCall(

@@ -29,8 +29,7 @@ public class CustomStorageNoOpPayload {
     Function function =
         new Function(
             Factory.FUNC_DEPLOY,
-            Arrays.asList(
-                new org.web3j.abi.datatypes.generated.Uint256(salt.getValue())),
+            Arrays.asList(new org.web3j.abi.datatypes.generated.Uint256(salt.getValue())),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }

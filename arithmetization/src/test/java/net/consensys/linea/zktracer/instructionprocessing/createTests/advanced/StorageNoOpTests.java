@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,8 +35,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.web3j.abi.datatypes.generated.Uint256;
-
-import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
 /**
  * This class implements the tests specified in <a
@@ -81,11 +81,11 @@ public class StorageNoOpTests extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("getParameters")
   public void
-  deployContractInFirstTransactionAndCallMethodSecondTransactionPotentiallySelfDestructing(
+      deployContractInFirstTransactionAndCallMethodSecondTransactionPotentiallySelfDestructing(
           TouchStorage touchStorage,
-            ModifyStorage modifyStorage,
-            SelfDestruct selfdestruct,
-            Revert revert) {
+          ModifyStorage modifyStorage,
+          SelfDestruct selfdestruct,
+          Revert revert) {
 
     testBody(touchStorage, modifyStorage, selfdestruct, revert);
   }
@@ -97,11 +97,7 @@ public class StorageNoOpTests extends TracerTestBase {
       for (ModifyStorage modifyStorage : ModifyStorage.values()) {
         for (SelfDestruct selfdestruct : SelfDestruct.values()) {
           for (Revert revert : Revert.values()) {
-            arguments.add(Arguments.of(
-                    touchStorage,
-                    modifyStorage,
-                    selfdestruct,
-                    revert));
+            arguments.add(Arguments.of(touchStorage, modifyStorage, selfdestruct, revert));
           }
         }
       }
@@ -110,48 +106,49 @@ public class StorageNoOpTests extends TracerTestBase {
   }
 
   private void testBody(
-  TouchStorage touchStorage,
-  ModifyStorage modifyStorage,
-  SelfDestruct selfdestruct,
-  Revert revert) {
+      TouchStorage touchStorage,
+      ModifyStorage modifyStorage,
+      SelfDestruct selfdestruct,
+      Revert revert) {
 
     // preparing payload for the first transaction
     Uint256 salt = new Uint256(BigInteger.valueOf(0xaaff11L));
     Bytes deployPayload = CustomStorageNoOpPayload.deploy(salt);
     Bytes callMainMethod =
-            CustomStorageNoOpPayload.callMain(
-                    touchStorage == TouchStorage.TOUCH_STORAGE,
-                    modifyStorage == ModifyStorage.MODIFY_STORAGE,
-                    selfdestruct == SelfDestruct.SELF_DESTRUCT,
-                    revert == Revert.REVERT
-            );
+        CustomStorageNoOpPayload.callMain(
+            touchStorage == TouchStorage.TOUCH_STORAGE,
+            modifyStorage == ModifyStorage.MODIFY_STORAGE,
+            selfdestruct == SelfDestruct.SELF_DESTRUCT,
+            revert == Revert.REVERT);
     // for some reason the solidity code does not allow to pass a nonzero value to the
     // transaction; we thus provide zero Wei to both transactions
     List<Transaction> transactions =
-            InitCodeTests.getTransactions(
-                    factorySmc, userAccount, List.of(deployPayload, callMainMethod), List.of(0L, 0L));
+        InitCodeTests.getTransactions(
+            factorySmc, userAccount, List.of(deployPayload, callMainMethod), List.of(0L, 0L));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
-            ToyExecutionEnvironmentV2.builder()
-                    .accounts(List.of(userAccount, factorySmc))
-                    .transactions(transactions)
-                    .build();
+        ToyExecutionEnvironmentV2.builder()
+            .accounts(List.of(userAccount, factorySmc))
+            .transactions(transactions)
+            .build();
     toyExecutionEnvironmentV2.run(testInfo);
-
   }
 
   private enum TouchStorage {
     TOUCH_STORAGE,
     DONT_TOUCH_STORAGE
   }
+
   private enum ModifyStorage {
     MODIFY_STORAGE,
     DONT_MODIFY_STORAGE
   }
+
   private enum SelfDestruct {
     SELF_DESTRUCT,
     DONT_SELF_DESTRUCT
   }
+
   private enum Revert {
     REVERT,
     DONT_REVERT

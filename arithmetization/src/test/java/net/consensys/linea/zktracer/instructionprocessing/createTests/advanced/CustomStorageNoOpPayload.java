@@ -35,15 +35,15 @@ public class CustomStorageNoOpPayload {
   }
 
   public static Bytes callMain(
-      Boolean _touchStorage, Boolean _modifyStorage, Boolean _selfdestruct, Boolean _revert) {
+      Boolean touchStorage, Boolean modifyStorage, Boolean selfdestruct, Boolean revert) {
     Function function =
         new Function(
             Factory.FUNC_CALLMAIN,
             Arrays.asList(
-                new org.web3j.abi.datatypes.Bool(_touchStorage),
-                new org.web3j.abi.datatypes.Bool(_modifyStorage),
-                new org.web3j.abi.datatypes.Bool(_selfdestruct),
-                new org.web3j.abi.datatypes.Bool(_revert)),
+                new org.web3j.abi.datatypes.Bool(touchStorage),
+                new org.web3j.abi.datatypes.Bool(modifyStorage),
+                new org.web3j.abi.datatypes.Bool(selfdestruct),
+                new org.web3j.abi.datatypes.Bool(revert)),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }

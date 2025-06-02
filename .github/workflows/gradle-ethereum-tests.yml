@@ -33,9 +33,9 @@ jobs:
           JAVA_OPTS: -Dorg.gradle.daemon=false
 
       - name: Run General State Reference Tests
-        run: GOMAXPROCS=14 GOMEMLIMIT=20GiB ./gradlew referenceGeneralStateTests -x spotlessCheck --tests "${{ inputs.test_filter || 'GeneralStateReferenceTest_*' }}"
+        run: GOMAXPROCS=10 GOMEMLIMIT=20GiB ./gradlew referenceGeneralStateTests -x spotlessCheck --tests "${{ inputs.test_filter || 'GeneralStateReferenceTest_*' }}"
         env:
-          REFERENCE_TESTS_PARALLELISM: 2
+          REFERENCE_TESTS_PARALLELISM: 3
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -v -b1024 --ansi-escapes=false --report --air

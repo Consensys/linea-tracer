@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.*;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.ethereum.core.*;
@@ -45,8 +44,8 @@ public class MultiBlockExecutionEnvironment {
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
   private final ZkTracer tracer =
       new ZkTracer(
-          ChainConfig.FORK_LINEA_CHAIN(
-              Fork.SHANGHAI, LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, CHAIN_ID));
+          ChainConfig.LONDON_LINEA_CHAIN(
+              LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT, CHAIN_ID));
 
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was

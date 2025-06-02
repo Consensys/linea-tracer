@@ -15,7 +15,7 @@
 
 package net.consensys.linea.plugins;
 
-import static net.consensys.linea.zktracer.Fork.SHANGHAI;
+import static net.consensys.linea.zktracer.Fork.LONDON;
 
 import java.util.Map;
 
@@ -49,7 +49,7 @@ public abstract class AbstractLineaSharedOptionsPlugin extends AbstractLineaOpti
   }
 
   public Fork fork() {
-    return SHANGHAI; // TODO: IMPORTANT
+    return LONDON; // TODO: IMPORTANT
   }
 
   @Override

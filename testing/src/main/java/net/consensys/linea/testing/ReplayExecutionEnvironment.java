@@ -194,6 +194,7 @@ public class ReplayExecutionEnvironment {
     BlockHashLookup blockHashLookup = conflation.toBlockHashLookup();
     // Initialise world state from conflation
     MutableWorldState world = initWorld(conflation);
+    world.persist(null);
     // Construct the transaction processor
     final MainnetTransactionProcessor transactionProcessor =
         ExecutionEnvironment.getProtocolSpec(chain.id, LONDON).getTransactionProcessor();

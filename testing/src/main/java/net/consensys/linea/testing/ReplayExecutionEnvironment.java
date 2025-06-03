@@ -17,7 +17,6 @@ package net.consensys.linea.testing;
 
 import static net.consensys.linea.zktracer.ChainConfig.OLD_MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.ChainConfig.OLD_SEPOLIA_TESTCONFIG;
-import static net.consensys.linea.zktracer.Fork.LONDON;
 
 import java.io.File;
 import java.io.IOException;
@@ -91,6 +90,10 @@ public class ReplayExecutionEnvironment {
   private final TransactionProcessingResultValidator transactionProcessingResultValidator =
       TransactionProcessingResultValidator.EMPTY_VALIDATOR;
 
+  @Builder.Default private final String filename = null;
+
+  @Builder.Default private final boolean runWithBesuNode = false;
+
   private final ZkTracer zkTracer;
 
   public void checkTracer(String inputFilePath, long startBlock, long endBlock) {
@@ -117,6 +120,10 @@ public class ReplayExecutionEnvironment {
       conflation = gson.fromJson(replayFile, ConflationSnapshot.class);
     } catch (Exception e) {
       log.error(e.getMessage());
+      return;
+    }
+    if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {
+      executeOnBesu(chain, conflation, this.useCoinbaseAddressFromBlockHeader, this.filename);
       return;
     }
     this.executeFrom(chain, conflation);
@@ -184,6 +191,52 @@ public class ReplayExecutionEnvironment {
     }
   }
 
+  private static void executeOnBesu(
+      final ChainConfig chain,
+      final ConflationSnapshot conflation,
+      final Boolean useCoinbaseAddressFromBlockHeader,
+      final String filename) {
+    Map<String, ToyAccount> accounts = new HashMap<>();
+    for (AccountSnapshot account : conflation.accounts()) {
+      Address addr = Address.fromHexString(account.address());
+      ToyAccount toyAccount =
+          ToyAccount.builder()
+              .address(addr)
+              .nonce(account.nonce())
+              .balance(Wei.fromHexString(account.balance()))
+              .code(Bytes.fromHexString(account.code()))
+              .build();
+
+      accounts.put(addr.toHexString(), toyAccount);
+    }
+
+    for (StorageSnapshot storage : conflation.storage()) {
+      Address addr = Address.fromHexString(storage.address());
+      UInt256 key = UInt256.fromHexString(storage.key());
+      UInt256 value = UInt256.fromHexString(storage.value());
+      if (!value.isZero()) {
+        accounts.get(addr.toHexString()).setStorageValue(key, value);
+      }
+    }
+
+    BlockHeader firstHeader = conflation.blocks().getFirst().header().toBlockHeader();
+    Address coinbase =
+        useCoinbaseAddressFromBlockHeader
+            ? firstHeader.getCoinbase()
+            : CliqueHelpers.getProposerOfBlock(firstHeader);
+
+    List<Transaction> transactions = new ArrayList<>();
+    for (BlockSnapshot blockSnapshot : conflation.blocks()) {
+      for (TransactionSnapshot txs : blockSnapshot.txs()) {
+        final Transaction tx = txs.toTransaction();
+        transactions.add(tx);
+      }
+    }
+    new BesuExecutionTools(
+            filename, chain, coinbase, accounts.values().stream().toList(), transactions)
+        .executeTest();
+  }
+
   private static void executeFrom(
       final ChainConfig chain,
       final ConflationSnapshot conflation,
@@ -191,12 +244,13 @@ public class ReplayExecutionEnvironment {
       final boolean txResultChecking,
       final boolean useCoinbaseAddressFromBlockHeader,
       final TransactionProcessingResultValidator resultValidator) {
-    BlockHashLookup blockHashLookup = conflation.toBlockHashLookup();
+    final BlockHashLookup blockHashLookup = conflation.toBlockHashLookup();
     // Initialise world state from conflation
-    MutableWorldState world = initWorld(conflation);
+    final MutableWorldState world = initWorld(conflation);
+    world.persist(null);
     // Construct the transaction processor
     final MainnetTransactionProcessor transactionProcessor =
-        ExecutionEnvironment.getProtocolSpec(chain.id, LONDON).getTransactionProcessor();
+        ExecutionEnvironment.getProtocolSpec(chain.id, chain.fork).getTransactionProcessor();
     // Begin
     tracer.traceStartConflation(conflation.blocks().size());
     //

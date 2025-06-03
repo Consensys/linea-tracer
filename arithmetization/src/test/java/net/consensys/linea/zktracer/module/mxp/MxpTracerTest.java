@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.opcode.OpCode.MSTORE;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
@@ -29,6 +30,8 @@ import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.apache.tuweni.units.bigints.UInt256;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
@@ -38,7 +41,7 @@ public class MxpTracerTest extends TracerTestBase {
   private static final Module MODULE = new Mxp();
   private static final DynamicTests DYN_TESTS = DynamicTests.forModule(MODULE);
 
-  /*  @TestFactory
+  @TestFactory
   Stream<DynamicTest> runDynamicTests() {
     return DYN_TESTS
         .testCase("non random arguments test", provideNonRandomArguments())
@@ -46,7 +49,7 @@ public class MxpTracerTest extends TracerTestBase {
         .testCase(
             "one of each type2 and type3 instruction MLOAD, MSTORE, MSTORE8", simpleType2And3Args())
         .run(testInfo);
-  }*/
+  }
 
   private List<OpcodeCall> provideNonRandomArguments() {
     return DYN_TESTS.newModuleArgumentsProvider(

@@ -45,7 +45,6 @@ import org.junit.jupiter.api.TestInfo;
 @Builder
 @Slf4j
 public class ToyExecutionEnvironmentV2 {
-  // public final ChainConfig UNIT_TEST_CHAIN = MAINNET_TESTCONFIG(LONDON);
   @Builder.Default public final ChainConfig unitTestsChain = MAINNET_TESTCONFIG(LONDON);
   public final TestInfo testInfo;
   public static final Address DEFAULT_COINBASE_ADDRESS =

@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rlptxn;
 
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_LONDON_TESTCONFIG;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -99,7 +98,7 @@ public class RlptxnTests extends TracerTestBase {
             .balance(Wei.ONE)
             .build();
 
-    final Transaction transaction =
+    var txBuilder =
         ToyTransaction.builder()
             .sender(senderAccount)
             .gasLimit(1000000L)
@@ -108,9 +107,9 @@ public class RlptxnTests extends TracerTestBase {
             .value(Wei.of(value))
             .to(isDeployment ? null : recipientAccount)
             .payload(payload)
-            .accessList(type == FRONTIER ? null : accessList)
-            .chainId(chainLess ? null : MAINNET_LONDON_TESTCONFIG.id)
-            .build();
+            .accessList(type == FRONTIER ? null : accessList);
+
+    final Transaction transaction = chainLess ? txBuilder.chainId(null).build() : txBuilder.build();
 
     ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, recipientAccount))

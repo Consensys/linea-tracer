@@ -27,14 +27,14 @@ public class TracerTestBase {
   @BeforeEach
   public void init(TestInfo testInfo) {
       TracerTestBase.testInfo.chainConfig =
-            switch (System.getProperty("unit.tests.fork")) {
+            switch (System.getProperty("unit.replay.tests.fork")) {
               case "LONDON" -> ChainConfig.MAINNET_TESTCONFIG(Fork.LONDON);
               case "PARIS" -> ChainConfig.MAINNET_TESTCONFIG(Fork.PARIS);
               case "SHANGHAI" -> ChainConfig.MAINNET_TESTCONFIG(Fork.SHANGHAI);
               case "CANCUN" -> ChainConfig.MAINNET_TESTCONFIG(Fork.CANCUN);
               case "PRAGUE" -> ChainConfig.MAINNET_TESTCONFIG(Fork.PRAGUE);
               default -> throw new IllegalArgumentException(
-                  "Unknown fork: " + System.getProperty("unit.tests.fork"));
+                  "Unknown fork: " + System.getProperty("unit.replay.tests.fork"));
             };
     TracerTestBase.testInfo.testInfo = testInfo;
   }

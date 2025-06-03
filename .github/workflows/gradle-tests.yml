@@ -74,7 +74,7 @@ jobs:
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air
           UNIT_TESTS_PARALLELISM: 4
-          UNIT_TESTS_FORK: LONDON
+          UNIT_REPLAY_TESTS_FORK: LONDON
 
       - name: Upload test report
         if: ${{ always() }}
@@ -121,7 +121,7 @@ jobs:
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air
           UNIT_TESTS_PARALLELISM: 4
-          UNIT_TESTS_FORK: SHANGHAI
+          UNIT_REPLAY_TESTS_FORK: SHANGHAI
 
       - name: Upload test report
         if: ${{ always() }}
@@ -168,6 +168,7 @@ jobs:
           REPLAY_TESTS_PARALLELISM: 4
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air
+          UNIT_REPLAY_TESTS_FORK: LONDON
 
       - name: Upload test report
         if: ${{ always() }}

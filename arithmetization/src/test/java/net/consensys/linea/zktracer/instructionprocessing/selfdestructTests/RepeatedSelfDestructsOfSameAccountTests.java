@@ -44,7 +44,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 public class RepeatedSelfDestructsOfSameAccountTests extends TracerTestBase {
 
   private ToyAccount toAccount;
-  BytecodeCompiler toAccountCode = BytecodeCompiler.newProgram();
+  BytecodeCompiler toAccountCode = BytecodeCompiler.newProgram(testInfo);
   private ToyAccount selfDestructorAccount;
 
   private void buildToAccount() {

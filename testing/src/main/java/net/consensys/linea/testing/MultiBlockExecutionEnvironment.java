@@ -34,7 +34,6 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.ethereum.core.*;
-import org.junit.jupiter.api.TestInfo;
 
 @Builder
 @Slf4j
@@ -48,7 +47,6 @@ public class MultiBlockExecutionEnvironment {
   private final ZkTracer tracer;
 
   @Builder.Default public final ChainConfig testsChain = MAINNET_TESTCONFIG(LONDON);
-  public final TestInfo testInfo;
 
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was
@@ -62,8 +60,7 @@ public class MultiBlockExecutionEnvironment {
       TestInfoWithChainConfig testInfo) {
     return new MultiBlockExecutionEnvironmentBuilder()
         .tracer(new ZkTracer(testInfo.chainConfig))
-        .testsChain(testInfo.chainConfig)
-        .testInfo(testInfo.testInfo);
+        .testsChain(testInfo.chainConfig);
   }
 
   public static class MultiBlockExecutionEnvironmentBuilder {

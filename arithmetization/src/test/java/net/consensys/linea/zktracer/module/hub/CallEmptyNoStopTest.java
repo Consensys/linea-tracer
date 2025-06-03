@@ -53,7 +53,7 @@ public class CallEmptyNoStopTest extends TracerTestBase {
             .nonce(6)
             .address(Address.fromHexString("0x111111"))
             .code(
-                BytecodeCompiler.newProgram()
+                BytecodeCompiler.newProgram(testInfo)
                     .push(0) // retSize
                     .push(0) // retOffset
                     .push(0) // argsSize

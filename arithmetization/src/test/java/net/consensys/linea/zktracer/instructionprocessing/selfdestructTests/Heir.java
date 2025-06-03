@@ -39,7 +39,7 @@ public enum Heir {
 
   public static ToyAccount basicSelfDestructor(Heir heir, Optional<Address> selfDestructAddress) {
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
     switch (heir) {
       case HEIR_IS_ZERO:
         program.push(0);

@@ -42,7 +42,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionMStore(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(Bytes.fromHexString("0xFF")) // value
@@ -67,7 +67,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionMStore8(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(Bytes.fromHexString("0xFF")) // value
@@ -92,7 +92,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionMLoad(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(
@@ -119,7 +119,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionCallDataCopy(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     Bytes calldata =
         Bytes.fromHexString("0x7FFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
@@ -143,7 +143,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionCodeCopy(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(Bytes.fromHexString("0xFA")) // value
@@ -168,7 +168,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionWarmExtCodeCopy(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         // constructor
@@ -207,7 +207,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {0})
   void outOfGasExceptionColdExtCodeCopy(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     final int foreignCodeSize = 70;
     final ToyAccount codeOwnerAccount =
@@ -235,7 +235,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionReturn(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(
@@ -282,7 +282,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionRevert(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(
@@ -353,7 +353,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionLog0(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(Bytes.fromHexString("0x7F")) // value
@@ -377,7 +377,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {0})
   void outOfGasExceptionLog1(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(Bytes.fromHexString("0x7F")) // value
@@ -402,7 +402,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionLog2(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(Bytes.fromHexString("0x7F")) // value
@@ -428,7 +428,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionLog3(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(Bytes.fromHexString("0x7F")) // value
@@ -455,7 +455,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionLog4(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(Bytes.fromHexString("0x7F")) // value

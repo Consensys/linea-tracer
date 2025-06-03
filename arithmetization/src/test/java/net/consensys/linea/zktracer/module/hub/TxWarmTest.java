@@ -55,7 +55,7 @@ public class TxWarmTest extends TracerTestBase {
       ToyAccount.builder()
           .balance(Wei.fromEth(1))
           .address(Address.fromHexString("0xdead000000000000000000000000000beef"))
-          .code(BytecodeCompiler.newProgram().push(1).push(0).op(OpCode.ADD).compile())
+          .code(BytecodeCompiler.newProgram(testInfo).push(1).push(0).op(OpCode.ADD).compile())
           .build();
 
   @Test
@@ -194,7 +194,8 @@ public class TxWarmTest extends TracerTestBase {
 
   @Test
   void warmDeploymentAddress() {
-    final Bytes initCode = BytecodeCompiler.newProgram().push(1).push(0).op(OpCode.SLT).compile();
+    final Bytes initCode =
+        BytecodeCompiler.newProgram(testInfo).push(1).push(0).op(OpCode.SLT).compile();
 
     final Address depAddress =
         Address.extract(getCreateRawAddress(senderAddress, senderAccount.getNonce()));

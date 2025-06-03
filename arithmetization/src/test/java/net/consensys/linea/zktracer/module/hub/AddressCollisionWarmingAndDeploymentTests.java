@@ -66,7 +66,7 @@ public class AddressCollisionWarmingAndDeploymentTests extends TracerTestBase {
   private static final Bytes32 STD_KEY =
       Bytes32.wrap(leftPadTo(Bytes.fromHexString("0xdeadbeef"), Bytes32.SIZE));
   private static final Bytes SSTORE_INITCODE =
-      BytecodeCompiler.newProgram()
+      BytecodeCompiler.newProgram(testInfo)
           .push(Bytes.fromHexString("0x7a12e0")) // value
           .push(STD_KEY.trimLeadingZeros()) // key
           .op(OpCode.SSTORE)
@@ -75,7 +75,7 @@ public class AddressCollisionWarmingAndDeploymentTests extends TracerTestBase {
   private final Bytes32 INITCODE_HASH = keccak256(SSTORE_INITCODE);
 
   private static final Bytes CREATE2_AND_SSTORE =
-      BytecodeCompiler.newProgram()
+      BytecodeCompiler.newProgram(testInfo)
           .push(0) // offset
           .push(SSTORE_INITCODE) // value
           .op(OpCode.MSTORE)

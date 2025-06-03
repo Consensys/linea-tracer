@@ -51,7 +51,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   @MethodSource("outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource")
   void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTest(
       OpCode opCode, int nPushes, int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     for (int i = 0; i < nPushes; i++) {
       // In order to disambiguate between empty stack items and writing a result of 0 on the stack
@@ -128,7 +128,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
    */
   void outOfGasExceptionCallTest(
       int value, boolean targetAddressExists, boolean isWarm, int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     if (targetAddressExists && isWarm) {
       // Note: this is a possible way to warm the address
@@ -199,7 +199,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionSLoad(int cornerCase) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     program
         .push(2) // value
@@ -226,7 +226,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionJump(int cornerCase) {
     final Bytes bytecode =
-        BytecodeCompiler.newProgram()
+        BytecodeCompiler.newProgram(testInfo)
             .push(4)
             .op(OpCode.JUMP)
             .op(OpCode.INVALID)
@@ -254,7 +254,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionJumpi(int cornerCase) {
     final Bytes bytecode =
-        BytecodeCompiler.newProgram()
+        BytecodeCompiler.newProgram(testInfo)
             .push(1) // pc = 0, 1
             .push(7) // pc = 2, 3
             .op(OpCode.JUMPI) // pc = 4

@@ -54,7 +54,7 @@ public record EcRecoverTuple(String h, String v, String r, String s) {
 
     checkState(pointData.size() == 5 * WORD_SIZE);
 
-    BytecodeCompiler memoryContents = BytecodeCompiler.newProgram();
+    BytecodeCompiler memoryContents = BytecodeCompiler.newProgram(testInfo);
     memoryContents.immediate(pointData);
 
     return memoryContents;

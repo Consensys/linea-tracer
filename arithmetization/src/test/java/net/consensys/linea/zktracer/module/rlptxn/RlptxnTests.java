@@ -84,7 +84,7 @@ public class RlptxnTests extends TracerTestBase {
         ToyAccount.builder()
             .address(Address.wrap(Bytes.random(Address.SIZE, SEED)))
             .code(
-                BytecodeCompiler.newProgram()
+                BytecodeCompiler.newProgram(testInfo)
                     .op(CALLDATASIZE)
                     .push(0)
                     .push(0)

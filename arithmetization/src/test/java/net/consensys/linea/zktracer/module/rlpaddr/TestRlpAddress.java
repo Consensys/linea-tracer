@@ -55,7 +55,8 @@ public class TestRlpAddress extends TracerTestBase {
             .address(senderAddress)
             .build();
 
-    final Bytes initCode = BytecodeCompiler.newProgram().push(1).push(1).op(OpCode.SLT).compile();
+    final Bytes initCode =
+        BytecodeCompiler.newProgram(testInfo).push(1).push(1).op(OpCode.SLT).compile();
 
     final Transaction tx =
         ToyTransaction.builder()
@@ -95,7 +96,7 @@ public class TestRlpAddress extends TracerTestBase {
             .nonce(10)
             .address(contractAddress)
             .code(
-                BytecodeCompiler.newProgram()
+                BytecodeCompiler.newProgram(testInfo)
 
                     // copy the entirety of the call data to RAM
                     .op(OpCode.CALLDATASIZE)
@@ -111,7 +112,7 @@ public class TestRlpAddress extends TracerTestBase {
             .build();
 
     final Bytes initCodeReturnContractCode =
-        BytecodeCompiler.newProgram()
+        BytecodeCompiler.newProgram(testInfo)
             .push(contractAddress)
             .op(OpCode.EXTCODESIZE)
             .op(OpCode.DUP1)
@@ -162,7 +163,7 @@ public class TestRlpAddress extends TracerTestBase {
             .nonce(10)
             .address(contractAddress)
             .code(
-                BytecodeCompiler.newProgram()
+                BytecodeCompiler.newProgram(testInfo)
                     // copy the entirety of the call data to RAM
                     .op(OpCode.CALLDATASIZE)
                     .push(0)
@@ -176,7 +177,8 @@ public class TestRlpAddress extends TracerTestBase {
                     .compile())
             .build();
 
-    final BytecodeCompiler copyAndReturnSomeForeignContractsCode = BytecodeCompiler.newProgram();
+    final BytecodeCompiler copyAndReturnSomeForeignContractsCode =
+        BytecodeCompiler.newProgram(testInfo);
     fullCopyOfForeignByteCode(copyAndReturnSomeForeignContractsCode, contractAddress);
     appendReturn(copyAndReturnSomeForeignContractsCode, 0, 0);
 

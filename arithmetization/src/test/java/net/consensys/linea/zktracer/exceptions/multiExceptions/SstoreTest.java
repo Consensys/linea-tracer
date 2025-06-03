@@ -42,7 +42,7 @@ STATIC & OOGX : SSTORE
 public class SstoreTest extends TracerTestBase {
   @Test
   public void staticAndOutOfSStoreExceptions() {
-    BytecodeCompiler pg = BytecodeCompiler.newProgram();
+    BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
 
     pg.push(0).push(0).op(OpCode.SSTORE);
 

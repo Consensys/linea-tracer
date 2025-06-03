@@ -51,7 +51,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(TEST_DEFAULT.contract())
             .code(
-                BytecodeCompiler.newProgram()
+                BytecodeCompiler.newProgram(testInfo)
                     // LOG1 with right topic, and no data
                     .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
@@ -109,7 +109,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(Address.wrap(Bytes.repeat((byte) 1, Address.SIZE)))
             .code(
-                BytecodeCompiler.newProgram()
+                BytecodeCompiler.newProgram(testInfo)
                     // LOG1 with right topic, and no data
                     .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
@@ -123,7 +123,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(Address.wrap(Bytes.repeat((byte) 2, Address.SIZE)))
             .code(
-                BytecodeCompiler.newProgram()
+                BytecodeCompiler.newProgram(testInfo)
                     // LOG1 with right topic, and no data
                     .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
@@ -141,7 +141,7 @@ public class L2L1LogsTests extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(TEST_DEFAULT.contract())
             .code(
-                BytecodeCompiler.newProgram()
+                BytecodeCompiler.newProgram(testInfo)
                     // LOG2 with right topic, not at the right place
                     .push(TEST_DEFAULT.topic()) // topic 2
                     .push(Bytes.of(1)) // topic 1

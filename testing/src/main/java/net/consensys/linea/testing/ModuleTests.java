@@ -33,7 +33,8 @@ public class ModuleTests {
    */
   public static void runTestWithOpCodeArgs(
       final OpCode opCode, final List<Bytes32> arguments, TestInfoWithChainConfig testInfo) {
-    Bytes bytecode = BytecodeCompiler.newProgram().opAnd32ByteArgs(opCode, arguments).compile();
+    Bytes bytecode =
+        BytecodeCompiler.newProgram(testInfo).opAnd32ByteArgs(opCode, arguments).compile();
 
     BytecodeRunner.of(bytecode).run(testInfo);
   }

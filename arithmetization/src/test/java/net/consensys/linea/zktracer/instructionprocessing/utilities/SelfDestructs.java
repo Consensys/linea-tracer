@@ -88,7 +88,7 @@ public class SelfDestructs {
 
   public static BytecodeCompiler storageTouchingSelfDestructorRewardsZeroAddress() {
 
-    BytecodeCompiler selfDestructor = BytecodeCompiler.newProgram();
+    BytecodeCompiler selfDestructor = BytecodeCompiler.newProgram(testInfo);
     loadAndStoreValues(selfDestructor);
     // selfDestructWithZeroRecipient(selfDestructor);
 
@@ -97,7 +97,7 @@ public class SelfDestructs {
 
   public static BytecodeCompiler variableRecipientStorageTouchingSelfDestructor() {
 
-    BytecodeCompiler selfDestructor = BytecodeCompiler.newProgram();
+    BytecodeCompiler selfDestructor = BytecodeCompiler.newProgram(testInfo);
     loadAndStoreValues(selfDestructor);
     seldestructWithRecipientLoadedFromStorage(selfDestructor);
 

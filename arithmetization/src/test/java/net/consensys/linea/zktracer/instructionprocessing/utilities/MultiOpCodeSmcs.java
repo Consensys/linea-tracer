@@ -31,7 +31,7 @@ public class MultiOpCodeSmcs {
    */
   public static BytecodeCompiler allContextOpCodes() {
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram();
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
     program
         .op(ADDRESS)
         .op(CALLDATASIZE)

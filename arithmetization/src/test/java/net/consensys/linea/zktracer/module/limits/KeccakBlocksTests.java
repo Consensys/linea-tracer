@@ -53,7 +53,7 @@ public class KeccakBlocksTests extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(Address.wrap(Bytes.repeat((byte) 1, Address.SIZE)))
             .code(
-                BytecodeCompiler.newProgram()
+                BytecodeCompiler.newProgram(testInfo)
                     // CREATE
                     .push(0) // size
                     .push(0) // offset

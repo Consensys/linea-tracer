@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -44,9 +45,29 @@ public class BytecodeCompiler {
    *
    * @return an instance of {@link BytecodeCompiler}
    */
-  public static BytecodeCompiler newProgram() {
-    loadOpcodes(Fork.LONDON);
-    return new BytecodeCompiler();
+  public static BytecodeCompiler newProgram(TestInfoWithChainConfig testInfo) {
+    return switch (testInfo.chainConfig.fork) {
+      case Fork.LONDON -> {
+        loadOpcodes(Fork.LONDON);
+        yield new BytecodeCompiler();
+      }
+      case PARIS -> {
+        loadOpcodes(Fork.PARIS);
+        yield new BytecodeCompiler();
+      }
+      case SHANGHAI -> {
+        loadOpcodes(Fork.SHANGHAI);
+        yield new BytecodeCompiler();
+      }
+      case CANCUN -> {
+        loadOpcodes(Fork.CANCUN);
+        yield new BytecodeCompiler();
+      }
+      case PRAGUE -> {
+        loadOpcodes(Fork.PRAGUE);
+        yield new BytecodeCompiler();
+      }
+    };
   }
 
   private static Bytes toBytes(final int x) {

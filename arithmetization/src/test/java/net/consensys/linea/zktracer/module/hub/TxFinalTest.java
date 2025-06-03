@@ -48,11 +48,11 @@ public class TxFinalTest extends TracerTestBase {
       ToyAccount.builder()
           .balance(Wei.fromEth(1))
           .address(Address.fromHexString("0xdead000000000000000000000000000beef"))
-          .code(BytecodeCompiler.newProgram().push(12).push(35).op(OpCode.SGT).compile())
+          .code(BytecodeCompiler.newProgram(testInfo).push(12).push(35).op(OpCode.SGT).compile())
           .build();
 
   private static final Bytes initCode =
-      BytecodeCompiler.newProgram().push(12).push(13).push(24).op(OpCode.ADDMOD).compile();
+      BytecodeCompiler.newProgram(testInfo).push(12).push(13).push(24).op(OpCode.ADDMOD).compile();
 
   final Address depAddress =
       Address.extract(getCreateRawAddress(senderAddress, senderAccount.getNonce()));

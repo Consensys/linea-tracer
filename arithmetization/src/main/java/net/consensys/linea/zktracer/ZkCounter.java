@@ -35,23 +35,25 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.log.Log;
-import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class ZkCounter implements ConflationAwareOperationTracer {
-  final EventDetectorModule modexp = new EventDetectorModule("MODEXP_EFFECTIVE_CALL") {};
-  final EventDetectorModule rip = new EventDetectorModule("RIP_EFFECTIVE_CALL") {};
-  final EventDetectorModule blake = new EventDetectorModule("BLAKE_EFFECTIVE_CALL") {};
+  public static final String MODEXP = "MODEXP";
+  public static final String RIP = "RIP";
+  public static final String BLAKE = "BLAKE";
+
+  final EventDetectorModule modexp = new EventDetectorModule(MODEXP) {};
+  final EventDetectorModule rip = new EventDetectorModule(RIP) {};
+  final EventDetectorModule blake = new EventDetectorModule(BLAKE) {};
   final L1BlockSize l1BlockSize;
   final L2L1Logs l2l1Logs = new L2L1Logs();
   final List<Module> moduleToCount;
 
   public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {
     l1BlockSize =
-        new L1BlockSize(
-            l2l1Logs, bridgeConfiguration.contract(), (LogTopic) bridgeConfiguration.topic());
+        new L1BlockSize(l2l1Logs, bridgeConfiguration.contract(), bridgeConfiguration.topic());
     moduleToCount = List.of(modexp, rip, blake, l1BlockSize, l2l1Logs);
   }
 

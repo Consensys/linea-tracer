@@ -23,11 +23,11 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.log.Log;
-import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Accessors(fluent = true)
@@ -37,7 +37,7 @@ public class L1BlockSize implements Module {
 
   private final L2L1Logs l2l1Logs;
   private final Address l2l1Address;
-  private final LogTopic l2l1Topic;
+  private final Bytes l2l1Topic;
 
   private final short TIMESTAMP_BYTESIZE = 32 / 8;
   private final short NB_TX_IN_BLOCK_BYTESIZE = 16 / 8;

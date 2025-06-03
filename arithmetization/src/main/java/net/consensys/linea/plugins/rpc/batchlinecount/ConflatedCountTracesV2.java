@@ -27,7 +27,6 @@ import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.Validator;
 import net.consensys.linea.plugins.rpc.tracegeneration.TraceRequestParams;
-import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.ServiceManager;
@@ -48,7 +47,6 @@ public class ConflatedCountTracesV2 {
   private final ServiceManager besuContext;
   private final LineaL1L2BridgeSharedConfiguration l1L2BridgeSharedConfiguration;
   private TraceService traceService;
-  private Fork fork;
 
   public String getNamespace() {
     return "linea";
@@ -69,7 +67,7 @@ public class ConflatedCountTracesV2 {
   }
 
   private ConflatedLineCounts countConflation(PluginRpcRequest request) {
-    Stopwatch sw = Stopwatch.createStarted();
+    final Stopwatch sw = Stopwatch.createStarted();
 
     this.traceService =
         Optional.ofNullable(traceService).orElse(BesuServiceProvider.getTraceService(besuContext));
@@ -78,7 +76,7 @@ public class ConflatedCountTracesV2 {
 
     Validator.validatePluginRpcRequestParams(rawParams);
 
-    TraceRequestParams params =
+    final TraceRequestParams params =
         CONVERTER.fromJson(CONVERTER.toJson(rawParams[0]), TraceRequestParams.class);
 
     params.validate();

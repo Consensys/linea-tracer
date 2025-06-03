@@ -27,7 +27,6 @@ import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.Validator;
-import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.ServiceManager;
@@ -43,7 +42,6 @@ public class GenerateLineCountsV2 {
   private static final Cache<Long, Map<String, Integer>> CACHE =
       CacheBuilder.newBuilder().maximumSize(CACHE_SIZE).build();
 
-  private final Fork fork;
   private final RequestLimiter requestLimiter;
   private final ServiceManager besuContext;
   private TraceService traceService;

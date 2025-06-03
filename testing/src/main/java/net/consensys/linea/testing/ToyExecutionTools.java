@@ -24,6 +24,8 @@ import java.util.function.Consumer;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
+import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -61,7 +63,7 @@ public class ToyExecutionTools {
   public static void executeTest(
       final GeneralStateTestCaseEipSpec spec,
       final ProtocolSpec protocolSpec,
-      final ZkTracer tracer,
+      final ConflationAwareOperationTracer tracer,
       final TransactionProcessingResultValidator transactionProcessingResultValidator,
       final Consumer<ZkTracer> zkTracerValidator) {
     final BlockHeader blockHeader = spec.getBlockHeader();
@@ -127,7 +129,9 @@ public class ToyExecutionTools {
       }
 
       transactionProcessingResultValidator.accept(transaction, result);
-      zkTracerValidator.accept(tracer);
+      if (tracer instanceof ZkTracer) {
+        zkTracerValidator.accept((ZkTracer) tracer);
+      }
       worldStateUpdater.commit();
     }
 
@@ -170,14 +174,17 @@ public class ToyExecutionTools {
                   .isEqualTo(expected);
             });
 
-    ExecutionEnvironment.checkTracer(
-        tracer,
-        new CorsetValidator(tracer.getChain()),
-        Optional.of(log),
-        // block number for first block
-        blockHeader.getNumber(),
-        // block number for last block
-        blockHeader.getNumber());
+    if (tracer instanceof ZkTracer) {
+      final ChainConfig chainConfig = ((ZkTracer) tracer).getChain();
+      ExecutionEnvironment.checkTracer(
+          (ZkTracer) tracer,
+          new CorsetValidator(chainConfig),
+          Optional.of(log),
+          // block number for first block
+          blockHeader.getNumber(),
+          // block number for last block
+          blockHeader.getNumber());
+    }
   }
 
   @SneakyThrows

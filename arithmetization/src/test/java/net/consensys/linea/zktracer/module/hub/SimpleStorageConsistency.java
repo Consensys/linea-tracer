@@ -141,11 +141,11 @@ public class SimpleStorageConsistency extends TracerTestBase {
 
     final List<Transaction> txs = List.of(simpleWarm, stupidWarm, noWarm);
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(receiverAccount, senderAccount1, senderAccount2, senderAccount3))
         .transactions(txs)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 }

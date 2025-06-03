@@ -15,6 +15,8 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_LONDON_TESTCONFIG;
+
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -77,9 +79,7 @@ public class ToyTransaction {
               .gasLimit(Optional.ofNullable(gasLimit).orElse(DEFAULT_GAS_LIMIT))
               .value(Optional.ofNullable(value).orElse(DEFAULT_VALUE))
               .payload(Optional.ofNullable(payload).orElse(DEFAULT_INPUT_DATA))
-              .chainId(
-                  Optional.ofNullable(chainId)
-                      .orElse(ToyExecutionEnvironmentV2.UNIT_TEST_CHAIN.id));
+              .chainId(Optional.ofNullable(chainId).orElse(MAINNET_LONDON_TESTCONFIG.id));
 
       if (transactionType == TransactionType.EIP1559) {
         builder.maxPriorityFeePerGas(

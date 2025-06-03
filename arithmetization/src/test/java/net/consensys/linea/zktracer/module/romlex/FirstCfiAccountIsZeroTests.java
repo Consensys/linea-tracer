@@ -69,13 +69,13 @@ public class FirstCfiAccountIsZeroTests extends TracerTestBase {
             .build();
 
     final ToyExecutionEnvironmentV2 test =
-        ToyExecutionEnvironmentV2.builder()
+        ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(senderAccount, recipientAccount))
             .transaction(tx)
             .zkTracerValidator(zkTracer -> {})
             .build();
 
-    test.run(testInfo);
+    test.run();
 
     checkArgument(test.getHub().romLex().lineCount() == 1);
   }

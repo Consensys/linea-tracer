@@ -83,11 +83,11 @@ public class ReturnRevertArguments extends TracerTestBase {
             .payload(initCode.compile())
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(userAccount))
         .transaction(deploymentTransaction)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   /**
@@ -153,11 +153,11 @@ public class ReturnRevertArguments extends TracerTestBase {
             .value(Wei.of(1L))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(userAccount, callerAccount, calleeAccount))
         .transaction(transaction)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   /**
@@ -214,11 +214,11 @@ public class ReturnRevertArguments extends TracerTestBase {
             .payload(payload.compile()) // here: call data, later: init code
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(userAccount, creatorAccount))
         .transaction(transaction)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   /**

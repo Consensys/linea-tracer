@@ -284,14 +284,14 @@ public class MxpTest extends TracerTestBase {
             contractAccountMO2);
 
     ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder()
+        ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(accounts)
             .transaction(tx)
             .transactionProcessingResultValidator(
                 TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .build();
 
-    toyExecutionEnvironmentV2.run(testInfo);
+    toyExecutionEnvironmentV2.run();
   }
 
   // Support methods

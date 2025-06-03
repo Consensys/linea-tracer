@@ -50,12 +50,12 @@ public class CallDataTests extends TracerTestBase {
   void nonAlignedCallDataInCallTest() {
 
     Transaction transaction = transactionCallingCallDataCodeAccount();
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(accounts)
         .transaction(transaction)
         .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   // @Test

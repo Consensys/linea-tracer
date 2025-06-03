@@ -41,23 +41,23 @@ public class BalanceTests extends TracerTestBase {
   @Test
   void unrevertedValueTransfer() {
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(accounts)
         .transaction(stopTransaction)
         .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
   void revertedValueTransferTest() {
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(accounts)
         .transaction(revertTransaction)
         .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   KeyPair keyPair = new SECP256K1().generateKeyPair();

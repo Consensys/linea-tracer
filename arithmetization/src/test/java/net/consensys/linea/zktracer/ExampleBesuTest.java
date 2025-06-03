@@ -56,11 +56,11 @@ public class ExampleBesuTest extends TracerTestBase {
     Transaction tx =
         ToyTransaction.builder().sender(senderAccount).to(receiverAccount).keyPair(keyPair).build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, receiverAccount))
         .transaction(tx)
         .runWithBesuNode(true)
         .build()
-        .run(testInfo);
+        .run();
   }
 }

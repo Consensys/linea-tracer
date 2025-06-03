@@ -15,7 +15,6 @@
 
 package net.consensys.linea.testing;
 
-import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.UNIT_TEST_CHAIN;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.opcode.OpCodes.loadOpcodes;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -27,6 +26,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -45,7 +45,7 @@ public class BytecodeCompiler {
    * @return an instance of {@link BytecodeCompiler}
    */
   public static BytecodeCompiler newProgram() {
-    loadOpcodes(UNIT_TEST_CHAIN.fork);
+    loadOpcodes(Fork.LONDON);
     return new BytecodeCompiler();
   }
 

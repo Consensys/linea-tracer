@@ -182,13 +182,13 @@ public class AddressCollisionWarmingAndDeploymentTests extends TracerTestBase {
       accounts.add(recipientAccount);
     }
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(accounts)
         .transaction(tx)
         .coinbase(coinBaseAddress)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   private void appendAccessListEntry(

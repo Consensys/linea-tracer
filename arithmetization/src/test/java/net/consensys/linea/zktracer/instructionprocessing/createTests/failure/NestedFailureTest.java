@@ -117,10 +117,10 @@ public class NestedFailureTest extends TracerTestBase {
             .gasLimit(0xffffffL)
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(userAccount, entryPointAccount, accountContainingInitCode))
         .transaction(transaction)
         .build()
-        .run(testInfo);
+        .run();
   }
 }

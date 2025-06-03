@@ -80,9 +80,12 @@ public class InvalidCodePrefixAndMaxCodeSizeExceptionTest extends TracerTestBase
     checkArgument(tx.isContractCreation());
 
     ToyExecutionEnvironmentV2 toyExecutionEnvironment =
-        ToyExecutionEnvironmentV2.builder().accounts(List.of(userAccount)).transaction(tx).build();
+        ToyExecutionEnvironmentV2.builder(testInfo)
+            .accounts(List.of(userAccount))
+            .transaction(tx)
+            .build();
 
-    toyExecutionEnvironment.run(testInfo);
+    toyExecutionEnvironment.run();
 
     assertEquals(
         INVALID_CODE_PREFIX,
@@ -117,9 +120,12 @@ public class InvalidCodePrefixAndMaxCodeSizeExceptionTest extends TracerTestBase
     checkArgument(tx.isContractCreation());
 
     ToyExecutionEnvironmentV2 toyExecutionEnvironment =
-        ToyExecutionEnvironmentV2.builder().accounts(List.of(userAccount)).transaction(tx).build();
+        ToyExecutionEnvironmentV2.builder(testInfo)
+            .accounts(List.of(userAccount))
+            .transaction(tx)
+            .build();
 
-    toyExecutionEnvironment.run(testInfo);
+    toyExecutionEnvironment.run();
 
     assertEquals(
         TracedException.MAX_CODE_SIZE_EXCEPTION,

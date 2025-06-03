@@ -56,7 +56,7 @@ public class LogsTest extends TracerTestBase {
     BytecodeCompiler program = simpleProgramEmptyStorage(opCode);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
-    long gasCostTx = bytecodeRunner.runOnlyForGasCost();
+    long gasCostTx = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     int cornerCase = -1;
     // We calculate gas cost to trigger OOGX

@@ -141,13 +141,13 @@ public class SelfdestructCoinbaseTests extends TracerTestBase {
       deployedAccounts.add(selfDestructorCoinbaseAccount);
     }
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(deployedAccounts)
         .transactions(List.of(selfdestruction, checkingCoinbase))
         .zkTracerValidator(zkTracer -> {})
         .coinbase(depAddress)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   private static Stream<Arguments> selfDestructCoinbaseInputs() {

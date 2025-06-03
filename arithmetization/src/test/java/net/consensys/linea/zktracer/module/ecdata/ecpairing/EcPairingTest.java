@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
+import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -42,7 +43,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -197,7 +197,13 @@ public class EcPairingTest extends TracerTestBase {
   // testEcPairingSingleForScenarioUsingMethodSource
   // testEcPairingSingleForScenarioUsingCsv
   private static void testEcPairingSingleForScenario(
-      String Ax, String Ay, String BxIm, String BxRe, String ByIm, String ByRe, TestInfo testInfo) {
+      String Ax,
+      String Ay,
+      String BxIm,
+      String BxRe,
+      String ByIm,
+      String ByRe,
+      TestInfoWithChainConfig testInfo) {
     // small point: (Ax,Ay)
     // large point: (BxRe + i*BxIm, ByRe + i*ByIm)
     BytecodeCompiler program =

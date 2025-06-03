@@ -15,6 +15,7 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_LONDON_TESTCONFIG;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 
 import java.math.BigInteger;
@@ -85,7 +86,7 @@ public class MultiBlockExecutionEnvironment {
         .useCoinbaseAddressFromBlockHeader(true)
         .transactionProcessingResultValidator(this.transactionProcessingResultValidator)
         .build()
-        .replay(ToyExecutionEnvironmentV2.UNIT_TEST_CHAIN, this.buildConflationSnapshot());
+        .replay(MAINNET_LONDON_TESTCONFIG, this.buildConflationSnapshot());
   }
 
   public Hub getHub() {

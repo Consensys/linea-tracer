@@ -68,11 +68,11 @@ public class TestRlpAddress extends TracerTestBase {
             .payload(initCode)
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount))
         .transaction(tx)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -134,12 +134,12 @@ public class TestRlpAddress extends TracerTestBase {
             .payload(initCodeReturnContractCode)
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, contractAccount))
         .transaction(tx)
         .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -190,12 +190,12 @@ public class TestRlpAddress extends TracerTestBase {
             .payload(copyAndReturnSomeForeignContractsCode.compile())
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, callDataDeployerAccount))
         .transaction(tx)
         .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   public static void fullCopyOfForeignByteCode(BytecodeCompiler program, Address foreignAddress) {

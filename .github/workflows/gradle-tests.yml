@@ -51,9 +51,9 @@ jobs:
         run: ./gradlew --no-daemon --parallel clean spotlessCheck
 
   # ==================================================================
-  # Unit Tests
+  # Unit Tests for London
   # ==================================================================
-  unit-tests:
+  unit-tests-london:
     needs: [ build ]
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
     steps:
@@ -74,26 +74,74 @@ jobs:
           CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air
           UNIT_TESTS_PARALLELISM: 4
+          UNIT_TESTS_FORK: LONDON
 
       - name: Upload test report
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: unit-tests-report
+          name: unit-tests-report-london
           path: arithmetization/build/reports/tests/**/*
 
       - name: Upload jacoco unit tests coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-unit-tests-coverage-report
+          name: jacoco-unit-tests-coverage-report-london
           path: arithmetization/build/reports/jacoco/test/**/*
 
       - name: Upload jacoco unit tests exec file
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-unit-tests-exec-file
+          name: jacoco-unit-tests-exec-file-london
+          path: arithmetization/build/jacoco/test.exec
+
+  # ==================================================================
+  # Unit Tests for Shanghai
+  # ==================================================================
+  unit-tests-shanghai:
+    needs: [ build ]
+    runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: false
+
+      - name: Setup Test Environment
+        uses: ./.github/actions/setup-environment
+        with:
+          enable-ssh: ${{ inputs.tests-with-ssh }}
+
+      - name: Run unit tests
+        run: GOMEMLIMIT=26GiB ./gradlew :arithmetization:test
+        env:
+          JAVA_OPTS: -Dorg.gradle.daemon=false
+          CORSET_FLAGS: disable
+          GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air
+          UNIT_TESTS_PARALLELISM: 4
+          UNIT_TESTS_FORK: SHANGHAI
+
+      - name: Upload test report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-tests-report-shanghai
+          path: arithmetization/build/reports/tests/**/*
+
+      - name: Upload jacoco unit tests coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-unit-tests-coverage-report-shanghai
+          path: arithmetization/build/reports/jacoco/test/**/*
+
+      - name: Upload jacoco unit tests exec file
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-unit-tests-exec-file-shanghai
           path: arithmetization/build/jacoco/test.exec
 
   # ==================================================================

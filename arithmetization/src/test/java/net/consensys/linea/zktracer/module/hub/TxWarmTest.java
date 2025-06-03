@@ -108,12 +108,12 @@ public class TxWarmTest extends TracerTestBase {
             .value(Wei.of(1000))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, receiverAccount))
         .transaction(tx)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -132,12 +132,12 @@ public class TxWarmTest extends TracerTestBase {
             .value(Wei.of(1000))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, receiverAccount))
         .transaction(tx)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -158,12 +158,12 @@ public class TxWarmTest extends TracerTestBase {
             .value(Wei.of(1000))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, receiverAccount))
         .transaction(tx)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -184,12 +184,12 @@ public class TxWarmTest extends TracerTestBase {
             .value(Wei.of(1000))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, receiverAccount))
         .transaction(tx)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -215,11 +215,11 @@ public class TxWarmTest extends TracerTestBase {
             .value(Wei.of(1000))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount))
         .transaction(tx)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 }

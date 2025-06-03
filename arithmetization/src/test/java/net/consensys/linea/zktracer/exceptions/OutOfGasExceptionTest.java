@@ -71,7 +71,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -156,10 +156,10 @@ public class OutOfGasExceptionTest extends TracerTestBase {
               .nonce(10)
               .address(Address.fromHexString("ca11ee"))
               .build();
-      gasCost = bytecodeRunner.runOnlyForGasCost(List.of(calleeAccount));
+      gasCost = bytecodeRunner.runOnlyForGasCost(List.of(calleeAccount), testInfo);
       bytecodeRunner.run(gasCost + cornerCase, List.of(calleeAccount), testInfo);
     } else {
-      gasCost = bytecodeRunner.runOnlyForGasCost();
+      gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
       bytecodeRunner.run(gasCost + cornerCase, testInfo);
     }
 
@@ -214,7 +214,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -242,7 +242,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
       // 21000L intrinsic gas cost + 3L PUSH + 8L JUMP, and we retrieve 1
       gasCost = GAS_CONST_G_TRANSACTION + GAS_CONST_G_VERY_LOW + GAS_CONST_G_MID - 1L;
     } else {
-      gasCost = bytecodeRunner.runOnlyForGasCost();
+      gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
     }
     bytecodeRunner.run(gasCost, testInfo);
 
@@ -273,7 +273,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
       // 21000L intrinsic gas cost + 3L PUSH + 10L JUMP, and we retrieve 1
       gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH - 1L;
     } else {
-      gasCost = bytecodeRunner.runOnlyForGasCost();
+      gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
     }
 
     bytecodeRunner.run(gasCost, testInfo);

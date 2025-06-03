@@ -104,11 +104,11 @@ public class SeveralAccountCreationTests extends TracerTestBase {
             .nonce(senderAccount.getNonce() + 1)
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, create2Account, create2AndRevertAccount))
         .transactions(List.of(tx1, tx2))
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -142,10 +142,10 @@ public class SeveralAccountCreationTests extends TracerTestBase {
             .to(recipientAccout)
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, recipientAccout, create2Account, create2AndRevertAccount))
         .transaction(tx)
         .build()
-        .run(testInfo);
+        .run();
   }
 }

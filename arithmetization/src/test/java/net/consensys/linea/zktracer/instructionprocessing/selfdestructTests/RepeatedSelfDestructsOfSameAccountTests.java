@@ -71,11 +71,11 @@ public class RepeatedSelfDestructsOfSameAccountTests extends TracerTestBase {
   private void run(Heir heir) {
     selfDestructorAccount = basicSelfDestructor(heir, Optional.empty());
     buildToAccount();
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(userAccount, toAccount, selfDestructorAccount))
         .transaction(transaction())
         .build()
-        .run(testInfo);
+        .run();
   }
 
   /**
@@ -221,11 +221,11 @@ public class RepeatedSelfDestructsOfSameAccountTests extends TracerTestBase {
             .gasLimit(500_000L)
             .value(Wei.of(0xeeff))
             .build();
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(userAccount, toAccount, selfDestructorAccount))
         .transaction(transaction)
         .build()
-        .run(testInfo);
+        .run();
     run(heir);
   }
 }

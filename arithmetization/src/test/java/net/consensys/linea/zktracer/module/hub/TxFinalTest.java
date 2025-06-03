@@ -70,13 +70,13 @@ public class TxFinalTest extends TracerTestBase {
             .value(Wei.of(1000))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, receiverAccount))
         .transaction(tx)
         .coinbase(senderAddress)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -90,13 +90,13 @@ public class TxFinalTest extends TracerTestBase {
             .value(Wei.of(1000))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, receiverAccount))
         .transaction(tx)
         .coinbase(receiverAccount.getAddress())
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   // TODO: add smcCallTripleCollision() {}, not possible before EIP-7702
@@ -114,13 +114,13 @@ public class TxFinalTest extends TracerTestBase {
             .value(Wei.of(1000))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount))
         .transaction(tx)
         .coinbase(senderAddress)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -134,13 +134,13 @@ public class TxFinalTest extends TracerTestBase {
             .value(Wei.of(1000))
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount))
         .transaction(tx)
         .coinbase(depAddress)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
   // good luck for finding the right nonce ;) deploymentTripleCollision() {}
 }

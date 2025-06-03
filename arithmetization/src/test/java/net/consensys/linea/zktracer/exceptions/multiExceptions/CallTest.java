@@ -94,7 +94,7 @@ public class CallTest extends TracerTestBase {
               .nonce(10)
               .address(Address.fromHexString("ca11ee"))
               .build();
-      gasCost = bytecodeRunner.runOnlyForGasCost(List.of(calleeAccount));
+      gasCost = bytecodeRunner.runOnlyForGasCost(List.of(calleeAccount), testInfo);
       // We calculate gas cost to trigger OOGX
       // We retrieve the gas cost of the transaction as it's the gas used for the static call, so
       // intrinsic gas cost already accounted
@@ -104,7 +104,7 @@ public class CallTest extends TracerTestBase {
       bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
       bytecodeRunnerStaticCall.run(List.of(calleeAccount, CallProviderAccount), testInfo);
     } else {
-      gasCost = bytecodeRunner.runOnlyForGasCost();
+      gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
       // We calculate gas cost to trigger OOGX
       // We retrieve the gas cost of the transaction as it's the gas used for the static call, so
       // intrinsic gas cost already accounted

@@ -294,12 +294,12 @@ public class ModexpTests extends TracerTestBase {
 
     List<ToyAccount> accounts = List.of(userAccount, recipientAccount);
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(accounts)
         .transactions(transactions)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   void appendAllZeroCallDataModexpCalls(BytecodeCompiler program, int callDataSize) {

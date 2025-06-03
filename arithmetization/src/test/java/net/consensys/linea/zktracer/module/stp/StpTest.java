@@ -74,12 +74,12 @@ public class StpTest extends TracerTestBase {
           txCall(opcode, toExists, toWarm, balance, value, gasCall, gasLimit, accounts));
     }
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(accounts)
         .transactions(transactions)
         .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   @Test
@@ -97,12 +97,12 @@ public class StpTest extends TracerTestBase {
       }
     }
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(world)
         .transactions(txList)
         .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   OpCode randOpCodeCall() {

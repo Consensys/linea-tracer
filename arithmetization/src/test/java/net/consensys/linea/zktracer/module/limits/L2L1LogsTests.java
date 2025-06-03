@@ -81,13 +81,13 @@ public class L2L1LogsTests extends TracerTestBase {
             .build();
 
     final ToyExecutionEnvironmentV2 toyWorld =
-        ToyExecutionEnvironmentV2.builder()
+        ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(senderAccount, l2l1LogSMC))
             .transaction(tx)
             .zkTracerValidator(zkTracer -> {})
             .build();
 
-    toyWorld.run(testInfo);
+    toyWorld.run();
 
     final L2L1Logs l2l1Logs = toyWorld.getHub().l2L1Logs();
 
@@ -165,13 +165,13 @@ public class L2L1LogsTests extends TracerTestBase {
             .build();
 
     final ToyExecutionEnvironmentV2 toyWorld =
-        ToyExecutionEnvironmentV2.builder()
+        ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(senderAccount, l2l1LogSMC, LOG_ACCOUNT_AND_REVERT, LOG_ACCOUNT))
             .transaction(tx)
             .zkTracerValidator(zkTracer -> {})
             .build();
 
-    toyWorld.run(testInfo);
+    toyWorld.run();
 
     final L2L1Logs l2l1Logs = toyWorld.getHub().l2L1Logs();
 

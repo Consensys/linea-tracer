@@ -266,11 +266,11 @@ public class CreateInducedFailureTest extends TracerTestBase {
   @Test
   void complexFailureConditionTest() {
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(accounts)
         .transactions(transactions)
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 }

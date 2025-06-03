@@ -56,12 +56,12 @@ public class MessageCallTests extends TracerTestBase {
     accounts.add(allContextOpCodesSmc);
     accounts.add(recipientAccount);
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .transaction(buildTransaction(recipientAccount))
         .accounts(accounts)
         .transactionProcessingResultValidator(TransactionProcessingResultValidator.EMPTY_VALIDATOR)
         .build()
-        .run(testInfo);
+        .run();
   }
 
   /**

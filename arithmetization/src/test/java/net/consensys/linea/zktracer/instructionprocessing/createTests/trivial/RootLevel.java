@@ -23,13 +23,13 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
+import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.instructionprocessing.createTests.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -194,7 +194,7 @@ public class RootLevel extends TracerTestBase {
     program.push(storageKey).op(SLOAD);
   }
 
-  public static void run(BytecodeCompiler program, TestInfo testInfo) {
+  public static void run(BytecodeCompiler program, TestInfoWithChainConfig testInfo) {
     BytecodeRunner.of(program).run(testInfo);
   }
 }

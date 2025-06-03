@@ -78,13 +78,13 @@ public class KeccakBlocksTests extends TracerTestBase {
             .build();
 
     final ToyExecutionEnvironmentV2 toyWorld =
-        ToyExecutionEnvironmentV2.builder()
+        ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(senderAccount, recipient))
             .transaction(tx)
             .zkTracerValidator(zkTracer -> {})
             .build();
 
-    toyWorld.run(testInfo);
+    toyWorld.run();
 
     final Keccak keccak = toyWorld.getHub().keccak();
     final L1BlockSizeOld l1BlockSize = toyWorld.getHub().l1BlockSize();

@@ -114,12 +114,12 @@ public class HubShomeiTests extends TracerTestBase {
             .build();
 
     final ToyExecutionEnvironmentV2 executionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder()
+        ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(senderAccount, recipientAccount))
             .transactions(List.of(tx1, tx2))
             .build();
 
-    executionEnvironmentV2.run(testInfo);
+    executionEnvironmentV2.run();
 
     final ZkTracer tracer = executionEnvironmentV2.getZkTracer();
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);
@@ -171,11 +171,11 @@ public class HubShomeiTests extends TracerTestBase {
             .build();
 
     final ToyExecutionEnvironmentV2 executionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder()
+        ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(senderAccount, recipientAccount))
             .transaction(tx)
             .build();
-    executionEnvironmentV2.run(testInfo);
+    executionEnvironmentV2.run();
 
     final ZkTracer tracer = executionEnvironmentV2.getZkTracer();
     final Set<Address> addressSeen = tracer.getAddressesSeenByHubForRelativeBlock(1);

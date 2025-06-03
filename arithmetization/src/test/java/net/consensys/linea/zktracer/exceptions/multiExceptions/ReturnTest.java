@@ -47,7 +47,7 @@ public class ReturnTest extends TracerTestBase {
     BytecodeCompiler programWithoutICP =
         getPgCreateInitCodeWithReturnStartByteAndSize(startByte, 1);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(programWithoutICP.compile());
-    long gascost = bytecodeRunner.runOnlyForGasCost();
+    long gascost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     // We prepare program with Invalid Code Prefix exception
     int startByteWithICPX = EIP_3541_MARKER;

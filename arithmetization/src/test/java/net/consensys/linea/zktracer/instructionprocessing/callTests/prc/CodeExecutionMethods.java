@@ -22,13 +22,13 @@ import static org.hyperledger.besu.datatypes.TransactionType.FRONTIER;
 
 import java.util.List;
 
+import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.ToyTransaction;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.TestInfo;
 
 /**
  * The following class provides methods to run code in the following contexts:
@@ -94,18 +94,18 @@ public class CodeExecutionMethods {
    * @param testInfo
    */
   public static void runMessageCallTransactionWithProvidedCodeAsRootCode(
-      BytecodeCompiler rootCode, TestInfo testInfo) {
+      BytecodeCompiler rootCode, TestInfoWithChainConfig testInfo) {
 
     root.code(rootCode.compile());
 
     transaction.to(root.build());
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .transaction(transaction.build())
         .accounts(listOfAccounts())
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   /**
@@ -115,16 +115,16 @@ public class CodeExecutionMethods {
    * @param testInfo
    */
   public static void runDeploymentTransactionWithProvidedCodeAsInitCode(
-      BytecodeCompiler transactionInitCode, TestInfo testInfo) {
+      BytecodeCompiler transactionInitCode, TestInfoWithChainConfig testInfo) {
 
     transaction.payload(transactionInitCode.compile()); // init code
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .transaction(transaction.build())
         .accounts(listOfAccounts())
         .zkTracerValidator(zkTracer -> {})
         .build()
-        .run(testInfo);
+        .run();
   }
 
   /**
@@ -140,7 +140,9 @@ public class CodeExecutionMethods {
    * @param testInfo
    */
   public static void runForeignByteCodeAsInitCode(
-      BytecodeCompiler foreignCode, boolean embedRevertIntoInitCode, TestInfo testInfo) {
+      BytecodeCompiler foreignCode,
+      boolean embedRevertIntoInitCode,
+      TestInfoWithChainConfig testInfo) {
 
     foreignCodeOwner.code(foreignCode.compile());
 
@@ -151,11 +153,11 @@ public class CodeExecutionMethods {
 
     transaction.to(root.build());
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(listOfAccounts())
         .transaction(transaction.build())
         .build()
-        .run(testInfo);
+        .run();
   }
 
   /**
@@ -170,7 +172,7 @@ public class CodeExecutionMethods {
    * @param testInfo
    */
   public static void runMessageCallToAccountEndowedWithProvidedCode(
-      BytecodeCompiler providedCode, boolean revertRoot, TestInfo testInfo) {
+      BytecodeCompiler providedCode, boolean revertRoot, TestInfoWithChainConfig testInfo) {
 
     chadPrcEnjoyer.code(providedCode.compile());
 
@@ -181,11 +183,11 @@ public class CodeExecutionMethods {
 
     transaction.to(root.build());
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(listOfAccounts())
         .transaction(transaction.build())
         .build()
-        .run(testInfo);
+        .run();
   }
 
   /**
@@ -204,7 +206,7 @@ public class CodeExecutionMethods {
    * @param testInfo
    */
   public static void runCreateDeployingForeignCodeAndCallIntoIt(
-      BytecodeCompiler foreignCode, boolean rootReverts, TestInfo testInfo) {
+      BytecodeCompiler foreignCode, boolean rootReverts, TestInfoWithChainConfig testInfo) {
 
     // ROOT code
     int key = 65537; // 0x 01 00 01
@@ -227,11 +229,11 @@ public class CodeExecutionMethods {
 
     transaction.to(root.build());
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(listOfAccounts())
         .transaction(transaction.build())
         .build()
-        .run(testInfo);
+        .run();
   }
 
   private static List<ToyAccount> listOfAccounts() {

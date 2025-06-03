@@ -163,7 +163,7 @@ public class RevertingLogsTests extends TracerTestBase {
             .to(recipientAccount)
             .build();
 
-    ToyExecutionEnvironmentV2.builder()
+    ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(
             List.of(
                 senderAccount,
@@ -173,6 +173,6 @@ public class RevertingLogsTests extends TracerTestBase {
                 recipientAccount))
         .transaction(tx)
         .build()
-        .run(testInfo);
+        .run();
   }
 }

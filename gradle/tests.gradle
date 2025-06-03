@@ -148,6 +148,9 @@ tasks.test.configure {
   systemProperty("besu.traces.dir", System.getProperty("besu.traces.dir"))
   systemProperty("besu.plugins.dir", System.getProperty("besu.plugins.dir"))
 
+  def fork = System.getenv().getOrDefault("UNIT_TESTS_FORK", "LONDON").toString()
+  System.setProperty("unit.tests.fork", fork)
+  systemProperty("unit.tests.fork", fork)
 
   systemProperty("junit.jupiter.execution.parallel.enabled", true)
   systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")

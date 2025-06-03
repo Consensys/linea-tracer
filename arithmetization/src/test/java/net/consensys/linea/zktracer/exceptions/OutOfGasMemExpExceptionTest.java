@@ -52,7 +52,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -77,7 +77,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -108,7 +108,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -132,7 +132,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(calldata);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(calldata, testInfo);
 
     bytecodeRunner.run(Wei.fromEth(1), gasCost + cornerCase, List.of(), calldata, testInfo);
 
@@ -157,7 +157,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -196,7 +196,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -224,7 +224,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(codeOwnerAccount));
+    long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(codeOwnerAccount), testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, List.of(codeOwnerAccount), testInfo);
 
@@ -250,7 +250,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -271,7 +271,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(returnDataProviderAccount));
+    long gasCost = bytecodeRunner.runOnlyForGasCost(List.of(returnDataProviderAccount), testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, List.of(returnDataProviderAccount), testInfo);
 
@@ -297,7 +297,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -325,7 +325,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = programInitCodeToMem.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -366,7 +366,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -391,7 +391,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -417,7 +417,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -444,7 +444,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 
@@ -472,7 +472,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost = bytecodeRunner.runOnlyForGasCost();
+    long gasCost = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, testInfo);
 

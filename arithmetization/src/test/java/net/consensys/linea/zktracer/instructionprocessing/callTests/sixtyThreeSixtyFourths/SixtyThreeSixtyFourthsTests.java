@@ -140,12 +140,14 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
                               false,
                               BytecodeRunner.of(preCallProgram(address, false, false, 0))
                                   .runOnlyForGasCost(
-                                      address == MODEXP ? additionalAccounts : List.of()));
+                                      address == MODEXP ? additionalAccounts : List.of(),
+                                      testInfo));
                           put(
                               true,
                               BytecodeRunner.of(preCallProgram(address, false, true, 0))
                                   .runOnlyForGasCost(
-                                      address == MODEXP ? additionalAccounts : List.of()));
+                                      address == MODEXP ? additionalAccounts : List.of(),
+                                      testInfo));
                         }
                       }));
 

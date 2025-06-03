@@ -56,7 +56,7 @@ public class CreatesTest extends TracerTestBase {
     BytecodeCompiler program = simpleProgramEmptyStorage(opCode);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
-    long gasCostTx = bytecodeRunner.runOnlyForGasCost();
+    long gasCostTx = bytecodeRunner.runOnlyForGasCost(testInfo);
 
     /*
     for CREATE/CREATE2, Static Exception happens before deployment, so we test OOGX before deployment

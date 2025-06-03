@@ -92,21 +92,27 @@ public class ZkCounter implements ConflationAwareOperationTracer {
     }
 
     final Address precompile = frame.getContractAddress();
-    switch (precompile) {
-      case MODEXP -> {
-        final Range callDataRange = Range.callDataRange(frame);
-        final MemoryRange memoryRange = new MemoryRange(0, callDataRange, frame);
-        final ModexpMetadata modexpMetadata = new ModexpMetadata(memoryRange);
-        if (modexpMetadata.unprovableModexp()) {
-          modexp.detectEvent();
-        }
+
+    if (precompile.equals(MODEXP)) {
+      final Range callDataRange = Range.callDataRange(frame);
+      final MemoryRange memoryRange = new MemoryRange(0, callDataRange, frame);
+      final ModexpMetadata modexpMetadata = new ModexpMetadata(memoryRange);
+      if (modexpMetadata.unprovableModexp()) {
+        modexp.detectEvent();
       }
-      case RIPEMD160 -> rip.detectEvent();
-      case BLAKE2B_F_COMPRESSION -> blake.detectEvent();
-      default -> {
-        return; // no precompile call to count
-      }
+      return;
     }
+
+    if (precompile.equals(RIPEMD160)) {
+      rip.detectEvent();
+      return;
+    }
+
+    if (precompile.equals(BLAKE2B_F_COMPRESSION)) {
+      blake.detectEvent();
+      return;
+    }
+    // No other precompiles are tracked
   }
 
   /** When called, erase all tracing related to the bundle of all transactions since the last. */

@@ -1,0 +1,133 @@
+/*
+ * Copyright ConsenSys Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+package net.consensys.linea.zktracer;
+
+import static org.hyperledger.besu.datatypes.Address.*;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
+import net.consensys.linea.zktracer.container.module.EventDetectorModule;
+import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
+import net.consensys.linea.zktracer.module.limits.L1BlockSize;
+import net.consensys.linea.zktracer.module.limits.L2L1Logs;
+import net.consensys.linea.zktracer.types.MemoryRange;
+import net.consensys.linea.zktracer.types.Range;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.log.Log;
+import org.hyperledger.besu.evm.log.LogTopic;
+import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
+
+public class ZkCounter implements ConflationAwareOperationTracer {
+  final EventDetectorModule modexp = new EventDetectorModule("MODEXP_EFFECTIVE_CALL") {};
+  final EventDetectorModule rip = new EventDetectorModule("RIP_EFFECTIVE_CALL") {};
+  final EventDetectorModule blake = new EventDetectorModule("BLAKE_EFFECTIVE_CALL") {};
+  final L1BlockSize l1BlockSize;
+  final L2L1Logs l2l1Logs = new L2L1Logs();
+  final List<Module> moduleToCount;
+
+  public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {
+    l1BlockSize =
+        new L1BlockSize(
+            l2l1Logs, bridgeConfiguration.contract(), (LogTopic) bridgeConfiguration.topic());
+    moduleToCount = List.of(modexp, rip, blake, l1BlockSize, l2l1Logs);
+  }
+
+  @Override
+  public void traceStartConflation(long numBlocksInConflation) {}
+
+  @Override
+  public void traceEndConflation(WorldView state) {}
+
+  @Override
+  public void traceStartBlock(
+      final BlockHeader blockHeader, final BlockBody blockBody, final Address miningBeneficiary) {
+    l1BlockSize.traceStartBlock(blockHeader, miningBeneficiary);
+  }
+
+  @Override
+  public void traceEndTransaction(
+      WorldView worldView,
+      Transaction tx,
+      boolean status,
+      Bytes output,
+      List<Log> logs,
+      long gasUsed,
+      Set<Address> selfDestructs,
+      long timeNs) {
+    l1BlockSize.traceEndTx(tx, logs);
+  }
+
+  @Override
+  public void tracePrecompileCall(MessageFrame frame, long gasRequirement, Bytes output) {
+    if (output == null) {
+      return; // no output means exceptional precompile call
+    }
+
+    if (frame.getInputData().isEmpty()) {
+      return; // no input data implies no gnark circuit for RIP and BLAKE, and arg < 512 bytes for
+      // MODEXP, so nothing to detect
+    }
+
+    final Address precompile = frame.getContractAddress();
+    switch (precompile) {
+      case MODEXP -> {
+        final Range callDataRange = Range.callDataRange(frame);
+        final MemoryRange memoryRange = new MemoryRange(0, callDataRange, frame);
+        final ModexpMetadata modexpMetadata = new ModexpMetadata(memoryRange);
+        if (modexpMetadata.unprovableModexp()) {
+          modexp.detectEvent();
+        }
+      }
+      case RIPEMD160 -> rip.detectEvent();
+      case BLAKE2B_F_COMPRESSION -> blake.detectEvent();
+      default -> {
+        return; // no precompile call to count
+      }
+    }
+  }
+
+  /** When called, erase all tracing related to the bundle of all transactions since the last. */
+  public void popTransactionBundle() {
+    for (Module m : moduleToCount) {
+      m.popTransactionBundle();
+    }
+  }
+
+  public void commitTransactionBundle() {
+    for (Module m : moduleToCount) {
+      m.commitTransactionBundle();
+    }
+  }
+
+  public Map<String, Integer> getModulesLineCount() {
+    final HashMap<String, Integer> modulesLineCount = new HashMap<>();
+
+    for (Module m : moduleToCount) {
+      modulesLineCount.put(m.moduleKey(), m.lineCount());
+    }
+    return modulesLineCount;
+  }
+}

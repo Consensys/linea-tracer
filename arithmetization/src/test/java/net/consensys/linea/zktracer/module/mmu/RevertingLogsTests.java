@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.Utils.*;
 
 import java.util.List;
 
+import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -54,14 +55,14 @@ public class RevertingLogsTests extends TracerTestBase {
       Bytes.fromHexString("0x000007031c400000000007031c400000000007031c400000000007031c400000");
 
   private static final Bytes LOG0 =
-      newProgram()
+      newProgram(testInfo)
           .push(18) // size
           .push(0x1) // offset
           .op(OpCode.LOG0)
           .compile();
 
   private static final Bytes LOG1 =
-      newProgram()
+      newProgram(testInfo)
           .push(TOPIC_1)
           .push(18) // size
           .push(0x1) // offset
@@ -69,7 +70,7 @@ public class RevertingLogsTests extends TracerTestBase {
           .compile();
 
   private static final Bytes LOG2 =
-      newProgram()
+      newProgram(testInfo)
           .push(TOPIC_2) // topic 2
           .push(TOPIC_1) // topic 1
           .push(18) // size
@@ -78,7 +79,7 @@ public class RevertingLogsTests extends TracerTestBase {
           .compile();
 
   private static final Bytes LOG3 =
-      newProgram()
+      newProgram(testInfo)
           .push(TOPIC_3) // topic 3
           .push(TOPIC_2) // topic 2
           .push(TOPIC_1) // topic 1
@@ -88,7 +89,7 @@ public class RevertingLogsTests extends TracerTestBase {
           .compile();
 
   private static final Bytes LOG4 =
-      newProgram()
+      newProgram(testInfo)
           .push(TOPIC_4) // topic 4
           .push(TOPIC_3) // topic 3
           .push(TOPIC_2) // topic 2
@@ -98,23 +99,29 @@ public class RevertingLogsTests extends TracerTestBase {
           .op(OpCode.LOG4)
           .compile();
 
-  private static final Bytes SELFREVERT_LOG_BYTECODE =
-      newProgram().immediate(POPULATE_MEMORY).immediate(LOG3).immediate(REVERT).compile();
+  private static Bytes SELFREVERT_LOG_BYTECODE(TestInfoWithChainConfig testInfo) {
+    return newProgram(testInfo)
+        .immediate(POPULATE_MEMORY)
+        .immediate(LOG3)
+        .immediate(REVERT)
+        .compile();
+  }
 
-  private static final Bytes NON_REVERTING_LOG_BYTECODE =
-      newProgram().immediate(POPULATE_MEMORY).immediate(LOG4).compile();
+  private static Bytes NON_REVERTING_LOG_BYTECODE(TestInfoWithChainConfig testInfo) {
+    return newProgram(testInfo).immediate(POPULATE_MEMORY).immediate(LOG4).compile();
+  }
 
   private static final ToyAccount nonRevertingLogSMC =
       ToyAccount.builder()
           .address(Address.fromHexString("0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"))
-          .code(NON_REVERTING_LOG_BYTECODE)
+          .code(NON_REVERTING_LOG_BYTECODE(testInfo))
           .balance(Wei.of(98989898))
           .build();
 
   private static final ToyAccount selfRevertingLogSMC =
       ToyAccount.builder()
           .address(Address.fromHexString("0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"))
-          .code(SELFREVERT_LOG_BYTECODE)
+          .code(SELFREVERT_LOG_BYTECODE(testInfo))
           .balance(Wei.of(1235678))
           .build();
 

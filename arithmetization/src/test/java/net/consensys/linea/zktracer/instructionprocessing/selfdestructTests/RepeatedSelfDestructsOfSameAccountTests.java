@@ -69,7 +69,7 @@ public class RepeatedSelfDestructsOfSameAccountTests extends TracerTestBase {
   }
 
   private void run(Heir heir) {
-    selfDestructorAccount = basicSelfDestructor(heir, Optional.empty());
+    selfDestructorAccount = basicSelfDestructor(heir, Optional.empty(), testInfo);
     buildToAccount();
     ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(userAccount, toAccount, selfDestructorAccount))
@@ -210,7 +210,7 @@ public class RepeatedSelfDestructsOfSameAccountTests extends TracerTestBase {
   @ParameterizedTest
   @EnumSource(Heir.class)
   public void basicSelfDestruct(Heir heir) {
-    selfDestructorAccount = basicSelfDestructor(heir, Optional.empty());
+    selfDestructorAccount = basicSelfDestructor(heir, Optional.empty(), testInfo);
     buildToAccount();
     Transaction transaction =
         ToyTransaction.builder()

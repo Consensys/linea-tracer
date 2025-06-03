@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.C
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolderAddress2;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 
+import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.testing.BytecodeCompiler;
 import org.hyperledger.besu.datatypes.Address;
 
@@ -34,10 +35,11 @@ public interface PrecompileCallParameters {
    * {@link #customPrecompileCallsSeparatedByReturnDataWipingOperation} constructs the byte code for
    * the <b>happy path</b> testing of the relevant <b>PRECOMPILE</b>.
    */
-  default BytecodeCompiler customPrecompileCallsSeparatedByReturnDataWipingOperation() {
+  default BytecodeCompiler customPrecompileCallsSeparatedByReturnDataWipingOperation(
+      TestInfoWithChainConfig testInfo) {
 
     // populate foreign accounts' byte code with call data
-    this.memoryContents().setCodeOfHolderAccounts();
+    this.memoryContents().setCodeOfHolderAccounts(testInfo);
 
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 

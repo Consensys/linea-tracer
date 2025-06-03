@@ -88,7 +88,8 @@ public class SelfdestructCoinbaseTests extends TracerTestBase {
         basicSelfDestructor(
             HEIR_IS_EOA,
             Optional.of(
-                (coinBaseDeployed && rootIsDeployment) ? DEFAULT_COINBASE_ADDRESS : depAddress));
+                (coinBaseDeployed && rootIsDeployment) ? DEFAULT_COINBASE_ADDRESS : depAddress),
+            testInfo);
     if (revertingTransaction) {
       setRevert(selfDestructorCoinbaseAccount);
     }

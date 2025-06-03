@@ -14,13 +14,13 @@
  */
 package net.consensys.linea.replaytests;
 
+import static net.consensys.linea.replaytests.ReplayTestTools.replay;
+import static net.consensys.linea.zktracer.ChainConfig.OLD_MAINNET_TESTCONFIG;
+
 import net.consensys.linea.UnitTestWatcher;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-
-import static net.consensys.linea.replaytests.ReplayTestTools.replay;
-import static net.consensys.linea.zktracer.ChainConfig.OLD_MAINNET_TESTCONFIG;
 
 @Disabled
 @ExtendWith(UnitTestWatcher.class)
@@ -565,5 +565,4 @@ public class UpdatedShomeyTests {
   void split_range_19400178_19400184() {
     replay(OLD_MAINNET_TESTCONFIG, "19400178-19400184.mainnet.json.gz");
   }
-
 }

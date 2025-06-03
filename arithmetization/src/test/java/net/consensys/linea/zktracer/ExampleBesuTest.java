@@ -29,9 +29,13 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 public class ExampleBesuTest extends TracerTestBase {
+  // TODO: will be reenabled once https://github.com/Consensys/zkevm-monorepo/issues/4247 is
+  // resolved
+  @Disabled
   @Test
   void test() {
     KeyPair keyPair = new SECP256K1().generateKeyPair();

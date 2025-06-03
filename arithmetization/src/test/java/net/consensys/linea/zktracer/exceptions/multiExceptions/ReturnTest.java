@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.exceptions.multiExceptions;
 
+import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static net.consensys.linea.zktracer.Trace.EIP_3541_MARKER;
 import static net.consensys.linea.zktracer.Trace.MAX_CODE_SIZE;
 import static net.consensys.linea.zktracer.exceptions.ExceptionUtils.getPgCreateInitCodeWithReturnStartByteAndSize;
@@ -108,10 +109,13 @@ public class ReturnTest extends TracerTestBase {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     // We run the program with a gas cost that triggers OOGX
     // We calculate all opcodes gas before the RETURN opcode
-    // 32027L = 3L PUSH + 3L PUSH + 6L MSTORE + 3L PUSH + 3L PUSH + 3L PUSH + 32000L CREATE +
-    // ((32027-3-3-6-3-3-3-32000/64))(less than 0.5 so not adding gas) + 3L PUSH + 3L PUSH
+    // 32027L = 3L PUSH + 3L PUSH + 6L MSTORE + 3L PUSH + 3L PUSH + 3L PUSH + 32000L CREATE
+    // + (post-Shanghai) 2L INIT CODE COST
+    // + ((32027-3-3-6-3-3-3-32000/64))(less than 0.5 so not adding gas) + 3L PUSH + 3L PUSH
     // 21000L for the intrinsic transaction cost
-    bytecodeRunner.run(32027L + 21000L, testInfo);
+    var initCodeCost = isPostShanghai(testInfo.chainConfig.fork) ? 2L : 0L;
+    var gasCostBefReturn = 32027L + 21000L + initCodeCost;
+    bytecodeRunner.run(gasCostBefReturn, testInfo);
 
     // Max Code Size Exception check before OOGX in tracer
     assertEquals(
@@ -131,11 +135,14 @@ public class ReturnTest extends TracerTestBase {
         BytecodeRunner.of(programWithICPXAndMCSX.compile());
     // We run the program with a gas cost that triggers OOGX
     // We calculate all opcodes gas before the RETURN opcode
-    // 32036L = 3L PUSH + 3L PUSH + 6L MSTORE + 3L PUSH + 3L PUSH + 3L PUSH + 32000L CREATE +
-    // ((32036-3-3-6-3-3-3-32000)/64)(less than 0.5 so not adding gas) + 3L PUSH + 3L PUSH + 6L
+    // 32036L = 3L PUSH + 3L PUSH + 6L MSTORE + 3L PUSH + 3L PUSH + 3L PUSH + 32000L CREATE
+    // + (post-Shanghai) 2L INIT CODE COST
+    // + ((32036-3-3-6-3-3-3-32000)/64)(less than 0.5 so not adding gas) + 3L PUSH + 3L PUSH + 6L
     // MSTORE8 + 3L PUSH + 3L PUSH
     // 21000L for the intrinsic transaction cost
-    bytecodeRunnerWithICPXAndMCSX.run(32039L + 21000L, testInfo);
+    var initCodeCost = isPostShanghai(testInfo.chainConfig.fork) ? 2L : 0L;
+    var gasCostBefReturn = 32039L + 21000L + initCodeCost;
+    bytecodeRunnerWithICPXAndMCSX.run(gasCostBefReturn, testInfo);
 
     // Max Code Size Exception check is done prior to OOGX and Invalid Code Prefix exception in
     // tracer

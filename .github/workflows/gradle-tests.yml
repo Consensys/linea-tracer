@@ -56,7 +56,6 @@ jobs:
   unit-tests:
     strategy:
       matrix:
-        name: [london, shanghai]
         zkevm_fork: [LONDON, SHANGHAI]
     needs: [ build ]
     runs-on: gha-runner-scale-set-ubuntu-22.04-amd64-xxl
@@ -84,21 +83,21 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: unit-tests-report-${{ matrix.name }}
+          name: unit-tests-report-${{ matrix.zkevm_fork }}
           path: arithmetization/build/reports/tests/**/*
 
       - name: Upload jacoco unit tests coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-unit-tests-coverage-report-${{ matrix.name }}
+          name: jacoco-unit-tests-coverage-report-${{ matrix.zkevm_fork }}
           path: arithmetization/build/reports/jacoco/test/**/*
 
       - name: Upload jacoco unit tests exec file
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-unit-tests-exec-file-${{ matrix.name }}
+          name: jacoco-unit-tests-exec-file-${{ matrix.zkevm_fork }}
           path: arithmetization/build/jacoco/test.exec
 
   # ==================================================================

@@ -77,14 +77,15 @@ public class ToyExecutionEnvironmentV2 {
   @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
 
   private ZkTracer tracer;
-    @Setter @Getter public ZkCounter zkCounter;
-    public static ToyExecutionEnvironmentV2.ToyExecutionEnvironmentV2Builder builder(
-            TestInfoWithChainConfig testInfo) {
-        return new ToyExecutionEnvironmentV2Builder()
-                .unitTestsChain(testInfo.chainConfig)
-                .testInfo(testInfo.testInfo)
-                .tracer(new ZkTracer(testInfo.chainConfig));
-    }
+  @Setter @Getter public ZkCounter zkCounter;
+
+  public static ToyExecutionEnvironmentV2.ToyExecutionEnvironmentV2Builder builder(
+      TestInfoWithChainConfig testInfo) {
+    return new ToyExecutionEnvironmentV2Builder()
+        .unitTestsChain(testInfo.chainConfig)
+        .testInfo(testInfo.testInfo)
+        .tracer(new ZkTracer(testInfo.chainConfig));
+  }
 
   public void run() {
     if (runWithBesuNode || System.getenv().containsKey("RUN_WITH_BESU_NODE")) {

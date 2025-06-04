@@ -26,10 +26,12 @@ tasks.register('corsetExists') {
 
 // Allowing overriding the default zkevm.bin files.
 def ZKEVM_LONDON_BIN = System.getenv("ZKEVM_LONDON_BIN") ?: "zkevm_london.bin"
+def ZKEVM_PARIS_BIN = System.getenv("ZKEVM_PARIS_BIN") ?: "zkevm_paris.bin"
 def ZKEVM_SHANGHAI_BIN = System.getenv("ZKEVM_SHANGHAI_BIN") ?: "zkevm_shanghai.bin"
 // Specify where the trace files should be generated.
 def TRACE_FILE = "arithmetization/src/main/java/net/consensys/linea/zktracer/Trace.java"
 def LONDON_TRACE_FILE = "arithmetization/src/main/java/net/consensys/linea/zktracer/TraceLondon.java"
+def PARIS_TRACE_FILE = "arithmetization/src/main/java/net/consensys/linea/zktracer/TraceParis.java"
 def SHANGHAI_TRACE_FILE = "arithmetization/src/main/java/net/consensys/linea/zktracer/TraceShanghai.java"
 // Specify package to use for trace file
 def TRACE_PKG = "net.consensys.linea.zktracer"
@@ -40,6 +42,7 @@ tasks.register('buildZkevmBins', Exec) {
     inputs.files(fileTree(workingDir).include('**/*.lisp'))
     // Specify output file so gradle knows when out-of-date.
     outputs.files(fileTree(workingDir).include(ZKEVM_LONDON_BIN))
+    outputs.files(fileTree(workingDir).include(ZKEVM_PARIS_BIN))
     outputs.files(fileTree(workingDir).include(ZKEVM_SHANGHAI_BIN))
     // Sanity check executing this makes sense.
     doFirst {
@@ -63,10 +66,12 @@ tasks.register('buildTracer', Exec) {
     def traceJava = getRootProject().file(TRACE_FILE)
     // Configure full path to zkevm_london.bin
     def zkevmLondonBin = getRootProject().file('linea-constraints/' + ZKEVM_LONDON_BIN)
+    // Configure full path to zkevm_paris.bin
+    def zkevmParisBin = getRootProject().file('linea-constraints/' + ZKEVM_PARIS_BIN)
     // Configure full path to zkevm_shanghai.bin
     def zkevmShanghaiBin = getRootProject().file('linea-constraints/' + ZKEVM_SHANGHAI_BIN)
     // Generate trace interface
-    commandLine 'go-corset','generate','-p',TRACE_PKG,'-i',traceJava,zkevmLondonBin,zkevmShanghaiBin
+    commandLine 'go-corset','generate','-p',TRACE_PKG,'-i',traceJava,zkevmLondonBin,zkevmParisBin,zkevmShanghaiBin
 }
 
 // Task which generates the TraceLondon.java file using go-corset.
@@ -79,6 +84,18 @@ tasks.register('buildLondonTracer', Exec) {
     def zkevmLondonBin = getRootProject().file('linea-constraints/' + ZKEVM_LONDON_BIN)
     // Generate trace class(es)
     commandLine 'go-corset','generate','-p',TRACE_PKG,'-o',traceJava,'-e','Trace',zkevmLondonBin
+}
+
+// Task which generates the TraceParis.java file using go-corset.
+tasks.register('buildParisTracer', Exec) {
+    group "TraceParis.java generation"
+    dependsOn 'buildZkevmBins'
+    // Locate target file
+    def traceJava = getRootProject().file(PARIS_TRACE_FILE)
+    // Configure full path to zkevm.bin
+    def zkevmParisBin = getRootProject().file('linea-constraints/' + ZKEVM_PARIS_BIN)
+    // Generate trace class(es)
+    commandLine 'go-corset','generate','-p',TRACE_PKG,'-o',traceJava,'-e','Trace',zkevmParisBin
 }
 
 // Task which generates the TraceShanghai.java file using go-corset.
@@ -98,5 +115,6 @@ tasks.register('buildAllTracers') {
     group "Trace files generation (all forks)"
     dependsOn 'buildTracer'
     dependsOn 'buildLondonTracer'
+    dependsOn 'buildParisTracer'
     dependsOn 'buildShanghaiTracer'
 }

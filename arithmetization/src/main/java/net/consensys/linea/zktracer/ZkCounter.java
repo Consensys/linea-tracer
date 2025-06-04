@@ -29,7 +29,6 @@ import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.L1BlockSize;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
 import net.consensys.linea.zktracer.types.MemoryRange;
-import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -95,9 +94,9 @@ public class ZkCounter implements ConflationAwareOperationTracer {
 
     final Address precompile = frame.getContractAddress();
 
-    if (precompile.equals(MODEXP)) {
-      final Range callDataRange = Range.callDataRange(frame);
-      final MemoryRange memoryRange = new MemoryRange(0, callDataRange, frame);
+    if (precompile.equals(Address.MODEXP)) {
+      final Bytes callData = frame.getInputData();
+      final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
       final ModexpMetadata modexpMetadata = new ModexpMetadata(memoryRange);
       if (modexpMetadata.unprovableModexp()) {
         modexp.detectEvent();

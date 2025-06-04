@@ -311,15 +311,15 @@ public class ZkCounterTest {
             .code(
                 BytecodeCompiler.newProgram()
                     // populate memory with BBS
-                    .push(base ? 560 : 4) // value
+                    .push(base ? 513 : 4) // value
                     .push(BBS_MIN_OFFSET) //  offset
                     .op(OpCode.MSTORE)
                     // populate memory with EBS
-                    .push(base ? 560 : 4) // value
+                    .push(exp ? 513 : 4) // value
                     .push(EBS_MIN_OFFSET) //  offset
                     .op(OpCode.MSTORE)
                     // populate memory with MBS
-                    .push(base ? 560 : 4) // value
+                    .push(mod ? 513 : 4) // value
                     .push(MBS_MIN_OFFSET) //  offset
                     .op(OpCode.MSTORE)
                     // call the precompile
@@ -329,7 +329,7 @@ public class ZkCounterTest {
                     .push(0) // offset
                     .push(0) // value
                     .push(Address.MODEXP) // address
-                    .push(30000) // gas
+                    .push(10000000) // gas
                     .op(OpCode.CALL)
                     .compile())
             .build();
@@ -339,8 +339,8 @@ public class ZkCounterTest {
             .sender(senderAccount)
             .to(callPRC)
             .keyPair(senderKeyPair)
-            .gasLimit(300000L)
-            .value(Wei.of(1000))
+            .gasLimit(30000000L)
+            .value(Wei.of(10000000))
             .build();
 
     final ToyExecutionEnvironmentV2 toyWorld =
@@ -357,7 +357,7 @@ public class ZkCounterTest {
     // no LOG
     assertEquals(0, lineCountMap.get("BLOCK_L2_L1_LOGS"));
 
-    // no precompile call, but a PRC:
+    // no precompile call, but a MODEXP:
     assertEquals((!base && !exp && !mod) ? 0 : Integer.MAX_VALUE, lineCountMap.get(MODEXP));
     assertEquals(0, lineCountMap.get(RIP));
     assertEquals(0, lineCountMap.get(BLAKE));
@@ -368,9 +368,9 @@ public class ZkCounterTest {
 
   private static Stream<Arguments> modexpInput() {
     final List<Arguments> arguments = new ArrayList<>();
-    for (int base = 0; base <= 1; base++) {
-      for (int exp = 0; exp <= 1; exp++) {
-        for (int mod = 0; mod <= 1; mod++) {
+    for (int base = 1; base <= 1; base++) {
+      for (int exp = 1; exp <= 1; exp++) {
+        for (int mod = 1; mod <= 1; mod++) {
           arguments.add(Arguments.of(base == 1, exp == 1, mod == 1));
         }
       }

@@ -17,6 +17,7 @@ package net.consensys.linea.testing;
 
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -26,6 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ConflationAwareOperationTracer;
+import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -66,6 +68,11 @@ public class ToyExecutionTools {
       final ConflationAwareOperationTracer tracer,
       final TransactionProcessingResultValidator transactionProcessingResultValidator,
       final Consumer<ZkTracer> zkTracerValidator) {
+
+    assertTrue(
+        tracer instanceof ZkTracer || tracer instanceof ZkCounter,
+        "Tracer must be an instance of ZkTracer or ZkCounter for this test to run");
+
     final BlockHeader blockHeader = spec.getBlockHeader();
     final ReferenceTestWorldState initialWorldState = spec.getInitialWorldState();
     final List<Transaction> transactions = new ArrayList<>();

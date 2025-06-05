@@ -25,6 +25,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.reporting.TestInfoWithChainConfig;

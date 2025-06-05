@@ -113,27 +113,13 @@ public abstract class BlockdataOperation extends ModuleOperation {
 
     // Handle opcodes
     switch (opCode) {
-      case OpCode.COINBASE -> {
-        handleCoinbase();
-      }
-      case OpCode.TIMESTAMP -> {
-        handleTimestamp();
-      }
-      case OpCode.NUMBER -> {
-        handleNumber();
-      }
-      case OpCode.DIFFICULTY -> {
-        handleDifficultyOrPrevRandao();
-      }
-      case OpCode.GASLIMIT -> {
-        handleGasLimit();
-      }
-      case OpCode.CHAINID -> {
-        handleChainId();
-      }
-      case OpCode.BASEFEE -> {
-        handleBaseFee();
-      }
+      case COINBASE -> handleCoinbase();
+      case TIMESTAMP -> handleTimestamp();
+      case NUMBER -> handleNumber();
+      case DIFFICULTY, PREVRANDAO -> handleDifficultyOrPrevRandao(); // depending on the fork
+      case GASLIMIT -> handleGasLimit();
+      case CHAINID -> handleChainId();
+      case BASEFEE -> handleBaseFee();
     }
   }
 

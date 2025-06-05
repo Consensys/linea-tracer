@@ -15,7 +15,11 @@
 
 package net.consensys.linea.zktracer.module.blockdata.moduleOperation;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.PREVRANDAO;
+
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.TraceParis;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -38,10 +42,15 @@ public class ParisBlockDataOperation extends LondonBlockDataOperation {
   }
 
   @Override
-  protected void handleDifficultyOrPrevrandao() {
+  protected void handleDifficultyOrPrevRandao() {
     data = EWord.of(blockHeader().getPrevRandao().get());
 
     // row i
     wcpCallToGEQ(0, data(), EWord.ZERO);
+  }
+
+  @Override
+  protected void traceIsDifficultyOrIsPrevRandao(Trace.Blockdata trace, OpCode opCode) {
+    ((TraceParis.Blockdata) trace).isPrevrandao(opCode == PREVRANDAO);
   }
 }

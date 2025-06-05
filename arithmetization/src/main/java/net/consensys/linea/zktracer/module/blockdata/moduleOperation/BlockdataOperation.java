@@ -20,11 +20,11 @@ import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_BF;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_CB;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DEPTH;
-import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DF;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_GL;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_ID;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_NB;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_TS;
+import static net.consensys.linea.zktracer.TraceLondon.Blockdata.nROWS_DF;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
@@ -123,7 +123,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
         handleNumber();
       }
       case OpCode.DIFFICULTY -> {
-        handleDifficultyOrPrevrandao();
+        handleDifficultyOrPrevRandao();
       }
       case OpCode.GASLIMIT -> {
         handleGasLimit();
@@ -166,7 +166,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
     }
   }
 
-  protected abstract void handleDifficultyOrPrevrandao();
+  protected abstract void handleDifficultyOrPrevRandao();
 
   private void handleGasLimit() {
     data = EWord.of(blockHeader.getGasLimit());
@@ -204,6 +204,8 @@ public abstract class BlockdataOperation extends ModuleOperation {
     wcpCallToGEQ(0, data, EWord.ZERO);
   }
 
+  protected abstract void traceIsDifficultyOrIsPrevRandao(Trace.Blockdata trace, OpCode opCode);
+
   @Override
   protected int computeLineCount() {
     return ctMax;
@@ -217,11 +219,13 @@ public abstract class BlockdataOperation extends ModuleOperation {
           .ct(ct)
           .isCoinbase(opCode == OpCode.COINBASE)
           .isTimestamp(opCode == OpCode.TIMESTAMP)
-          .isNumber(opCode == OpCode.NUMBER)
-          .isDifficulty(opCode == OpCode.DIFFICULTY)
+          .isNumber(opCode == OpCode.NUMBER);
+      traceIsDifficultyOrIsPrevRandao(trace, opCode);
+      trace
           .isGaslimit(opCode == OpCode.GASLIMIT)
           .isChainid(opCode == OpCode.CHAINID)
           .isBasefee(opCode == OpCode.BASEFEE)
+          // not fork dependant as same value for DIFFICULTY (London) and PREVRANDAO (Paris)
           .inst(UnsignedByte.of(opCode.byteValue()))
           .coinbaseHi(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(0, 4).toLong())
           .coinbaseLo(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(4, LLARGE))
@@ -241,7 +245,6 @@ public abstract class BlockdataOperation extends ModuleOperation {
           .exoInst(exoInst[ct])
           .wcpFlag(wcpFlag[ct])
           .eucFlag(eucFlag[ct]);
-
       trace.validateRow();
     }
   }

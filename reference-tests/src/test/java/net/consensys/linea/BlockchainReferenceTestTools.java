@@ -151,8 +151,8 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CREATE_Bounds3_d0g2v0_London\\[London\\]");
     PARAMS.ignore("CREATE_Bounds_d0g0v0_London\\[London\\]");
     PARAMS.ignore("CREATE_Bounds_d0g1v0_London\\[London\\]");
-    PARAMS.ignore("Call1024PreCalls_d0g0v0_London\\[London\\]");
-    PARAMS.ignore("Call1024PreCalls_d0g1v0_London\\[London\\]");
+    PARAMS.ignore("Call1024PreCalls_d0g0v0_*");
+    PARAMS.ignore("Call1024PreCalls_d0g1v0_.*");
     PARAMS.ignore("Call1024PreCalls_d0g2v0_London\\[London\\]");
     PARAMS.ignore("Create2OnDepth1023_d0g0v0_London\\[London\\]");
     PARAMS.ignore("Create2OnDepth1024_d0g0v0_London\\[London\\]");

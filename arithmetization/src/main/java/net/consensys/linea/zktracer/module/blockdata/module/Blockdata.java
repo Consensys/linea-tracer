@@ -47,16 +47,7 @@ public abstract class Blockdata implements Module {
 
   private boolean conflationFinished = false;
 
-  @Getter
-  private static final OpCode[] opCodes = {
-    OpCode.COINBASE,
-    OpCode.TIMESTAMP,
-    OpCode.NUMBER,
-    OpCode.DIFFICULTY,
-    OpCode.GASLIMIT,
-    OpCode.CHAINID,
-    OpCode.BASEFEE
-  };
+  @Getter private final OpCode[] opCodes = setOpCodes();
 
   @Override
   public String moduleKey() {
@@ -71,7 +62,7 @@ public abstract class Blockdata implements Module {
             + 6 // for TIMESTAMP
             + 1
             + 6 // for NUMBER
-            + 1 // for DIFFICULTY
+            + 1 // for DIFFICULTY or PREVRANDAO
             + (bigIntegerToBytes(chain.gasLimitMaximum).size() * 4) // for GASLIMIT
             + LLARGE // for CHAINID
             + LLARGE // for BASEFEE
@@ -119,6 +110,8 @@ public abstract class Blockdata implements Module {
       ChainConfig chain,
       OpCode opCode,
       long firstBlockNumber);
+
+  protected abstract OpCode[] setOpCodes();
 
   @Override
   public void commitTransactionBundle() {}

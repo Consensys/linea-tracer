@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blockdata.module;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockdataOperation;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.ParisBlockDataOperation;
@@ -28,6 +30,11 @@ public class ParisBlockData extends LondonBlockData {
 
   public ParisBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
     super(hub, wcp, euc, chain);
+  }
+
+  @Override
+  protected OpCode[] setOpCodes() {
+    return new OpCode[] {COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE};
   }
 
   @Override

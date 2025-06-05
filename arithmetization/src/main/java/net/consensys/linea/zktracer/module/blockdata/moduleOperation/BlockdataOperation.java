@@ -225,7 +225,8 @@ public abstract class BlockdataOperation extends ModuleOperation {
           .isGaslimit(opCode == OpCode.GASLIMIT)
           .isChainid(opCode == OpCode.CHAINID)
           .isBasefee(opCode == OpCode.BASEFEE)
-          // not fork dependant as same value for DIFFICULTY (London) and PREVRANDAO (Paris)
+          // not fork dependant as DIFFICULTY (London) and PREVRANDAO (Paris) have the same byte
+          // value
           .inst(UnsignedByte.of(opCode.byteValue()))
           .coinbaseHi(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(0, 4).toLong())
           .coinbaseLo(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(4, LLARGE))

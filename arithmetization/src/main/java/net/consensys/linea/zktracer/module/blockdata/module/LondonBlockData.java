@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blockdata.module;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockdataOperation;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.LondonBlockDataOperation;
@@ -27,6 +29,11 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 public class LondonBlockData extends Blockdata {
   public LondonBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
     super(hub, wcp, euc, chain);
+  }
+
+  @Override
+  protected OpCode[] setOpCodes() {
+    return new OpCode[] {COINBASE, TIMESTAMP, NUMBER, DIFFICULTY, GASLIMIT, CHAINID, BASEFEE};
   }
 
   @Override

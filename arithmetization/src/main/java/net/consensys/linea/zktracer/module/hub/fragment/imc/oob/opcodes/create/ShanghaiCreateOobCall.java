@@ -43,25 +43,11 @@ public class ShanghaiCreateOobCall extends LondonCreateOobCall {
   }
 
   protected void traceOobData10column(Trace.Oob trace, long codeSize) {
-    try {
-      // At this stage, we cast the trace to TraceShanghai as it can only be used if it's a Shanghai
-      // trace
-      var traceOobShanghai = (TraceShanghai.Oob) trace;
-      traceOobShanghai.data10(Bytes.ofUnsignedLong(codeSize));
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Trace argument is not of type TraceShanghai.Oob", e);
-    }
+    ((TraceShanghai.Oob) trace).data10(Bytes.ofUnsignedLong(codeSize));
   }
 
   protected void traceHubData10column(Trace.Hub trace, long codeSize) {
-    try {
-      // At this stage, we cast the trace to TraceShanghai as it can only be used if it's a Shanghai
-      // trace
-      var traceHubShanghai = (TraceShanghai.Hub) trace;
-      traceHubShanghai.pMiscOobData10(Bytes.ofUnsignedLong(codeSize));
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Trace argument is not of type TraceShanghai.Hub", e);
-    }
+    ((TraceShanghai.Hub) trace).pMiscOobData10(Bytes.ofUnsignedLong(codeSize));
   }
 
   protected OobExoCall exceedsMaxInitCodeSize(Wcp wcp) {

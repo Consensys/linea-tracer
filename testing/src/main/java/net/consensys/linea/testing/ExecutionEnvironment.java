@@ -169,6 +169,7 @@ public class ExecutionEnvironment {
           case LONDON -> protocol.londonDefinition(GENESIS_CONFIG.getConfigOptions());
           case PARIS -> protocol.parisDefinition(GENESIS_CONFIG.getConfigOptions());
           case SHANGHAI -> protocol.shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
+          case CANCUN -> protocol.cancunDefinition(GENESIS_CONFIG.getConfigOptions());
           default -> throw new IllegalArgumentException("Unexpected fork value: " + fork);
         };
 

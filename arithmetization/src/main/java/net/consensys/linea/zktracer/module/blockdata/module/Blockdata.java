@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.blockdata.module;
 
-import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DEPTH;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
@@ -66,6 +65,8 @@ public abstract class Blockdata implements Module {
             + (bigIntegerToBytes(chain.gasLimitMaximum).size() * 4) // for GASLIMIT
             + LLARGE // for CHAINID
             + LLARGE // for BASEFEE
+        // TODO: we should add +1 here for BLOBBASEFEE (post Cancun), but we don't as limitless
+        // prover will be deployed before Cancun (and all this line counting will die)
         );
 
     euc.additionalRows.add(8);
@@ -122,8 +123,10 @@ public abstract class Blockdata implements Module {
   @Override
   public int lineCount() {
     final int numberOfBlock = (operations.size() / opCodes.length) + (conflationFinished ? 0 : 1);
-    return numberOfBlock * nROWS_DEPTH;
+    return numberOfBlock * numberOfLinesPerBlock();
   }
+
+  protected abstract int numberOfLinesPerBlock();
 
   @Override
   public int spillage(Trace trace) {

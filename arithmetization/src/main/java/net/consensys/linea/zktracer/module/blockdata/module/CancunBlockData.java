@@ -15,29 +15,35 @@
 
 package net.consensys.linea.zktracer.module.blockdata.module;
 
-import static net.consensys.linea.zktracer.TraceParis.Blockdata.*;
+import static net.consensys.linea.zktracer.TraceCancun.Blockdata.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
+import static net.consensys.linea.zktracer.opcode.OpCode.BASEFEE;
+import static net.consensys.linea.zktracer.opcode.OpCode.CHAINID;
+import static net.consensys.linea.zktracer.opcode.OpCode.GASLIMIT;
+import static net.consensys.linea.zktracer.opcode.OpCode.PREVRANDAO;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.moduleOperation.BlockdataOperation;
-import net.consensys.linea.zktracer.module.blockdata.moduleOperation.ParisBlockDataOperation;
+import net.consensys.linea.zktracer.module.blockdata.moduleOperation.CancunBlockDataOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
-public class ParisBlockData extends LondonBlockData {
+public class CancunBlockData extends ParisBlockData {
   private static final int NB_ROWS =
-      nROWS_CB + nROWS_TS + nROWS_NB + nROWS_PV + nROWS_GL + nROWS_ID + nROWS_BF;
+      nROWS_CB + nROWS_TS + nROWS_NB + nROWS_PV + nROWS_GL + nROWS_ID + nROWS_BF + nROWS_BLOBBF;
 
-  public ParisBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
+  public CancunBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
     super(hub, wcp, euc, chain);
   }
 
   @Override
   protected OpCode[] setOpCodes() {
-    return new OpCode[] {COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE};
+    return new OpCode[] {
+      COINBASE, TIMESTAMP, NUMBER, PREVRANDAO, GASLIMIT, CHAINID, BASEFEE, BLOBBASEFEE
+    };
   }
 
   @Override
@@ -56,7 +62,7 @@ public class ParisBlockData extends LondonBlockData {
       ChainConfig chain,
       OpCode opCode,
       long firstBlockNumber) {
-    return new ParisBlockDataOperation(
+    return new CancunBlockDataOperation(
         hub,
         blockHeader,
         previousBlockHeader,

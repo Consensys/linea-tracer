@@ -121,6 +121,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
       case GASLIMIT -> handleGasLimit();
       case CHAINID -> handleChainId();
       case BASEFEE -> handleBaseFee();
+      case BLOBBASEFEE -> handleBlobbasefee(); // Cancun and after
     }
   }
 

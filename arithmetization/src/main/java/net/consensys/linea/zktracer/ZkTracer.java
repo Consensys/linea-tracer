@@ -99,8 +99,9 @@ public class ZkTracer implements LineCountingTracer {
           case LONDON -> new TraceLondon();
           case PARIS -> new TraceParis();
           case SHANGHAI -> new TraceShanghai();
+          case CANCUN -> new TraceCancun();
           default -> throw new IllegalArgumentException(
-              "Fork config can only be up to SHANGHAI for now");
+              "Fork config can only be up to Cancun for now");
         };
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =

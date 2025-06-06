@@ -73,4 +73,9 @@ public class LondonBlockDataOperation extends BlockdataOperation {
   protected void traceIsBlobbasefee(Trace.Blockdata trace, OpCode opCode) {
     throw new IllegalStateException("OpCode not in London fork. Only in Cancun and after.");
   }
+
+  @Override
+  protected void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax) {
+    ((TraceLondon.Blockdata) trace).relTxNumMax(relTxMax);
+  }
 }

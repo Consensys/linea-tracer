@@ -225,8 +225,9 @@ public abstract class BlockdataOperation extends ModuleOperation {
           .blockGasLimit(Bytes.ofUnsignedLong(blockHeader.getGasLimit()))
           .basefee(bigIntegerToBytes(blockHeader.getBaseFee().get().getAsBigInteger()))
           .firstBlockNumber(firstBlockNumber)
-          .relBlock((short) relBlock)
-          .relTxNumMax((short) relTxMax)
+          .relBlock((short) relBlock);
+      traceRelTxNumMax(trace, (short) relTxMax);
+      trace
           .dataHi(data.hi())
           .dataLo(data.lo())
           .arg1Hi(arg1[ct].hi())
@@ -246,6 +247,8 @@ public abstract class BlockdataOperation extends ModuleOperation {
   protected abstract void traceIsPrevrandao(Trace.Blockdata trace, OpCode opCode);
 
   protected abstract void traceIsBlobbasefee(Trace.Blockdata trace, OpCode opCode);
+
+  protected abstract void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax);
 
   // Module call macros
   private boolean wcpCallTo(int w, EWord arg1, EWord arg2, int inst) {

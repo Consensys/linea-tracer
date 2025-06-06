@@ -60,4 +60,9 @@ public class CancunBlockDataOperation extends ParisBlockDataOperation {
   protected void traceIsBlobbasefee(Trace.Blockdata trace, OpCode opCode) {
     ((TraceCancun.Blockdata) trace).isBlobbasefee(opCode == BLOBBASEFEE);
   }
+
+  @Override
+  protected void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax) {
+    // not trace after Cancun
+  }
 }

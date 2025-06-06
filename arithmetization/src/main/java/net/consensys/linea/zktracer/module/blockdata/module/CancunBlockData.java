@@ -33,7 +33,7 @@ import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class CancunBlockData extends ParisBlockData {
   private static final int NB_ROWS =
-      nROWS_CB + nROWS_TS + nROWS_NB + nROWS_PV + nROWS_GL + nROWS_ID + nROWS_BF + nROWS_BLOBBF;
+      nROWS_CB + nROWS_TS + nROWS_NB + nROWS_PV + nROWS_GL + nROWS_ID + nROWS_BF + nROWS_BL;
 
   public CancunBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
     super(hub, wcp, euc, chain);

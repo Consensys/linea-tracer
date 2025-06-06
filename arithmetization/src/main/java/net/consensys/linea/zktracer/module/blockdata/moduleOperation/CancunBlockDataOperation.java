@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blockdata.moduleOperation;
 
+import static net.consensys.linea.zktracer.Trace.LINEA_BLOB_BASE_FEE;
 import static net.consensys.linea.zktracer.opcode.OpCode.BLOBBASEFEE;
 
 import net.consensys.linea.zktracer.ChainConfig;
@@ -43,7 +44,11 @@ public class CancunBlockDataOperation extends ParisBlockDataOperation {
 
   @Override
   protected void handleBlobbasefee() {
-    data = EWord.of(blockHeader().getTimestamp()); // TODO: where to get the BLOBBASEFEE from ?
+    data = EWord.of(LINEA_BLOB_BASE_FEE); // TODO: this will work in prod, surely not for blockchain
+    // reference tests.
+    // the BLOBBASEFEE is accessible from the besu frame, not the
+    // blockheader. I've raised the point to Besu team to have it in
+    // block header. Wait & see
 
     // row i
     wcpCallToGEQ(0, data(), EWord.ZERO);

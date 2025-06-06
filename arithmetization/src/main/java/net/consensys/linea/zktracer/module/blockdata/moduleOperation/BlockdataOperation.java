@@ -25,6 +25,7 @@ import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_ID;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_NB;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_TS;
 import static net.consensys.linea.zktracer.TraceLondon.Blockdata.nROWS_DF;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
 import java.math.BigInteger;
@@ -218,14 +219,11 @@ public abstract class BlockdataOperation extends ModuleOperation {
           .isBasefee(opCode == OpCode.BASEFEE);
       traceIsBlobbasefee(trace, opCode);
       trace
-          // not fork dependant as DIFFICULTY (London) and PREVRANDAO (Paris) have the same byte
-          // value
-          .inst(UnsignedByte.of(opCode.byteValue()))
+          .inst(opCode.unsignedByteValue()) // not fork dependant
           .coinbaseHi(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(0, 4).toLong())
           .coinbaseLo(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(4, LLARGE))
           .blockGasLimit(Bytes.ofUnsignedLong(blockHeader.getGasLimit()))
-          .basefee(
-              Bytes.ofUnsignedLong(blockHeader.getBaseFee().get().getAsBigInteger().longValue()))
+          .basefee(bigIntegerToBytes(blockHeader.getBaseFee().get().getAsBigInteger()))
           .firstBlockNumber(firstBlockNumber)
           .relBlock((short) relBlock)
           .relTxNumMax((short) relTxMax)

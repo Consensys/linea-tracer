@@ -116,7 +116,8 @@ public abstract class BlockdataOperation extends ModuleOperation {
       case COINBASE -> handleCoinbase();
       case TIMESTAMP -> handleTimestamp();
       case NUMBER -> handleNumber();
-      case DIFFICULTY, PREVRANDAO -> handleDifficultyOrPrevRandao(); // depending on the fork
+      case DIFFICULTY -> handleDifficulty(); // London only
+      case PREVRANDAO -> handlePrevrandao(); // Paris and after
       case GASLIMIT -> handleGasLimit();
       case CHAINID -> handleChainId();
       case BASEFEE -> handleBaseFee();
@@ -152,7 +153,11 @@ public abstract class BlockdataOperation extends ModuleOperation {
     }
   }
 
-  protected abstract void handleDifficultyOrPrevRandao();
+  protected abstract void handleDifficulty();
+
+  protected abstract void handlePrevrandao();
+
+  protected abstract void handleBlobbasefee();
 
   private void handleGasLimit() {
     data = EWord.of(blockHeader.getGasLimit());
@@ -190,8 +195,6 @@ public abstract class BlockdataOperation extends ModuleOperation {
     wcpCallToGEQ(0, data, EWord.ZERO);
   }
 
-  protected abstract void traceIsDifficultyOrIsPrevRandao(Trace.Blockdata trace, OpCode opCode);
-
   @Override
   protected int computeLineCount() {
     return ctMax;
@@ -206,11 +209,14 @@ public abstract class BlockdataOperation extends ModuleOperation {
           .isCoinbase(opCode == OpCode.COINBASE)
           .isTimestamp(opCode == OpCode.TIMESTAMP)
           .isNumber(opCode == OpCode.NUMBER);
-      traceIsDifficultyOrIsPrevRandao(trace, opCode);
+      traceIsDifficulty(trace, opCode);
+      traceIsPrevrandao(trace, opCode);
       trace
           .isGaslimit(opCode == OpCode.GASLIMIT)
           .isChainid(opCode == OpCode.CHAINID)
-          .isBasefee(opCode == OpCode.BASEFEE)
+          .isBasefee(opCode == OpCode.BASEFEE);
+      traceIsBlobbasefee(trace, opCode);
+      trace
           // not fork dependant as DIFFICULTY (London) and PREVRANDAO (Paris) have the same byte
           // value
           .inst(UnsignedByte.of(opCode.byteValue()))
@@ -235,6 +241,12 @@ public abstract class BlockdataOperation extends ModuleOperation {
       trace.validateRow();
     }
   }
+
+  protected abstract void traceIsDifficulty(Trace.Blockdata trace, OpCode opCode);
+
+  protected abstract void traceIsPrevrandao(Trace.Blockdata trace, OpCode opCode);
+
+  protected abstract void traceIsBlobbasefee(Trace.Blockdata trace, OpCode opCode);
 
   // Module call macros
   private boolean wcpCallTo(int w, EWord arg1, EWord arg2, int inst) {

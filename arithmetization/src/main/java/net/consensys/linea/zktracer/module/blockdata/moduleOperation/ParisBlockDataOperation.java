@@ -42,7 +42,12 @@ public class ParisBlockDataOperation extends LondonBlockDataOperation {
   }
 
   @Override
-  protected void handleDifficultyOrPrevRandao() {
+  protected void handleDifficulty() {
+    throw new IllegalStateException("OpCode in London fork only, not in Paris and after.");
+  }
+
+  @Override
+  protected void handlePrevrandao() {
     data = EWord.of(blockHeader().getPrevRandao().get());
 
     // row i
@@ -50,7 +55,12 @@ public class ParisBlockDataOperation extends LondonBlockDataOperation {
   }
 
   @Override
-  protected void traceIsDifficultyOrIsPrevRandao(Trace.Blockdata trace, OpCode opCode) {
+  protected void traceIsDifficulty(Trace.Blockdata trace, OpCode opCode) {
+    throw new IllegalStateException("OpCode in London fork only, not in Paris and after.");
+  }
+
+  @Override
+  protected void traceIsPrevrandao(Trace.Blockdata trace, OpCode opCode) {
     ((TraceParis.Blockdata) trace).isPrevrandao(opCode == PREVRANDAO);
   }
 }

@@ -32,7 +32,7 @@ public class StateManagerUtils {
   }
 
   public static int getBlockOperationsLength(Hub hub) {
-    return 7; // = Blockdata.getOpCodes().length;
+    return hub.blockdata().getOpCodes().length;
   }
 
   public static int getRelBlockNoFromBlock(Hub hub, int blockNb) {

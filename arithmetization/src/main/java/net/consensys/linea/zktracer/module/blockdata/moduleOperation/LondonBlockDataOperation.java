@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.DIFFICULTY;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.TraceLondon;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -61,21 +60,21 @@ public class LondonBlockDataOperation extends BlockdataOperation {
 
   @Override
   protected void traceIsDifficulty(Trace.Blockdata trace, OpCode opCode) {
-    ((TraceLondon.Blockdata) trace).isDifficulty(opCode == DIFFICULTY);
+    trace.isDifficulty(opCode == DIFFICULTY);
   }
 
   @Override
   protected void traceIsPrevrandao(Trace.Blockdata trace, OpCode opCode) {
-    throw new IllegalStateException("OpCode not in London fork. Only in Paris and after.");
+    // OpCode not in London fork. Only in Paris and after.
   }
 
   @Override
   protected void traceIsBlobbasefee(Trace.Blockdata trace, OpCode opCode) {
-    throw new IllegalStateException("OpCode not in London fork. Only in Cancun and after.");
+    // OpCode not in London fork. Only in Cancun and after.
   }
 
   @Override
   protected void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax) {
-    ((TraceLondon.Blockdata) trace).relTxNumMax(relTxMax);
+    trace.relTxNumMax(relTxMax);
   }
 }

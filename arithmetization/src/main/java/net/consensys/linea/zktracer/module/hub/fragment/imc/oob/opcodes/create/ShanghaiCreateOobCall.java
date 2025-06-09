@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.module.txndata.moduleOperation.Shangh
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.TraceShanghai;
 import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
@@ -43,11 +42,11 @@ public class ShanghaiCreateOobCall extends LondonCreateOobCall {
   }
 
   protected void traceOobData10column(Trace.Oob trace, long codeSize) {
-    ((TraceShanghai.Oob) trace).data10(Bytes.ofUnsignedLong(codeSize));
+    trace.data10(Bytes.ofUnsignedLong(codeSize));
   }
 
   protected void traceHubData10column(Trace.Hub trace, long codeSize) {
-    ((TraceShanghai.Hub) trace).pMiscOobData10(Bytes.ofUnsignedLong(codeSize));
+    trace.pMiscOobData10(Bytes.ofUnsignedLong(codeSize));
   }
 
   protected OobExoCall exceedsMaxInitCodeSize(Wcp wcp) {

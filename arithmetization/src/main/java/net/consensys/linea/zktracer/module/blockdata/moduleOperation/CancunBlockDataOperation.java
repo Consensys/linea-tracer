@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.BLOBBASEFEE;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.TraceCancun;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -58,11 +57,11 @@ public class CancunBlockDataOperation extends ParisBlockDataOperation {
 
   @Override
   protected void traceIsBlobbasefee(Trace.Blockdata trace, OpCode opCode) {
-    ((TraceCancun.Blockdata) trace).isBlobbasefee(opCode == BLOBBASEFEE);
+    trace.isBlobbasefee(opCode == BLOBBASEFEE);
   }
 
   @Override
   protected void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax) {
-    // not trace after Cancun
+    // Column not in Cancun fork. Only before Cancun.
   }
 }

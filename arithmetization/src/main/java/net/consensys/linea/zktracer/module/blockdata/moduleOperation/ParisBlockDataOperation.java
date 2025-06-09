@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.PREVRANDAO;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.TraceParis;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -56,11 +55,11 @@ public class ParisBlockDataOperation extends LondonBlockDataOperation {
 
   @Override
   protected void traceIsDifficulty(Trace.Blockdata trace, OpCode opCode) {
-    throw new IllegalStateException("OpCode in London fork only, not in Paris and after.");
+    // OpCode in London fork only, not in Paris and after.
   }
 
   @Override
   protected void traceIsPrevrandao(Trace.Blockdata trace, OpCode opCode) {
-    ((TraceParis.Blockdata) trace).isPrevrandao(opCode == PREVRANDAO);
+    trace.isPrevrandao(opCode == PREVRANDAO);
   }
 }

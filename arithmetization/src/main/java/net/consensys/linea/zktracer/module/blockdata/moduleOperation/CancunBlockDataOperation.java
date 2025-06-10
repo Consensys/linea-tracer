@@ -45,7 +45,7 @@ public class CancunBlockDataOperation extends ParisBlockDataOperation {
   }
 
   @Override
-  protected void handleBlobbasefee() {
+  protected void handleBlobBaseFee() {
     data = EWord.of(hub.currentFrame().frame().getBlobGasPrice()); // TODO: this is ugly.
     // the BLOBBASEFEE is accessible from the besu frame, not the
     // blockheader. I've raised the point to Besu team to have it in
@@ -56,7 +56,7 @@ public class CancunBlockDataOperation extends ParisBlockDataOperation {
   }
 
   @Override
-  protected void traceIsBlobbasefee(Trace.Blockdata trace, OpCode opCode) {
+  protected void traceIsBlobBaseFee(Trace.Blockdata trace, OpCode opCode) {
     trace.isBlobbasefee(opCode == BLOBBASEFEE);
   }
 

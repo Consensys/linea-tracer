@@ -120,11 +120,11 @@ public abstract class BlockdataOperation extends ModuleOperation {
       case TIMESTAMP -> handleTimestamp();
       case NUMBER -> handleNumber();
       case DIFFICULTY -> handleDifficulty(); // London only
-      case PREVRANDAO -> handlePrevrandao(); // Paris and after
+      case PREVRANDAO -> handlePrevRandao(); // Paris and after
       case GASLIMIT -> handleGasLimit();
       case CHAINID -> handleChainId();
       case BASEFEE -> handleBaseFee();
-      case BLOBBASEFEE -> handleBlobbasefee(); // Cancun and after
+      case BLOBBASEFEE -> handleBlobBaseFee(); // Cancun and after
     }
   }
 
@@ -159,9 +159,9 @@ public abstract class BlockdataOperation extends ModuleOperation {
 
   protected abstract void handleDifficulty();
 
-  protected abstract void handlePrevrandao();
+  protected abstract void handlePrevRandao();
 
-  protected abstract void handleBlobbasefee();
+  protected abstract void handleBlobBaseFee();
 
   private void handleGasLimit() {
     data = EWord.of(blockHeader.getGasLimit());
@@ -214,12 +214,12 @@ public abstract class BlockdataOperation extends ModuleOperation {
           .isTimestamp(opCode == TIMESTAMP)
           .isNumber(opCode == NUMBER);
       traceIsDifficulty(trace, opCode);
-      traceIsPrevrandao(trace, opCode);
+      traceIsPrevRandao(trace, opCode);
       trace
           .isGaslimit(opCode == GASLIMIT)
           .isChainid(opCode == CHAINID)
           .isBasefee(opCode == BASEFEE);
-      traceIsBlobbasefee(trace, opCode);
+      traceIsBlobBaseFee(trace, opCode);
       trace
           .inst(opCode.unsignedByteValue()) // not fork dependant
           .coinbaseHi(hub.coinbaseAddressOfRelativeBlock(relBlock).slice(0, 4).toLong())
@@ -246,9 +246,9 @@ public abstract class BlockdataOperation extends ModuleOperation {
 
   protected abstract void traceIsDifficulty(Trace.Blockdata trace, OpCode opCode);
 
-  protected abstract void traceIsPrevrandao(Trace.Blockdata trace, OpCode opCode);
+  protected abstract void traceIsPrevRandao(Trace.Blockdata trace, OpCode opCode);
 
-  protected abstract void traceIsBlobbasefee(Trace.Blockdata trace, OpCode opCode);
+  protected abstract void traceIsBlobBaseFee(Trace.Blockdata trace, OpCode opCode);
 
   protected abstract void traceRelTxNumMax(Trace.Blockdata trace, short relTxMax);
 

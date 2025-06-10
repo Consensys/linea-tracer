@@ -49,12 +49,12 @@ public class LondonBlockDataOperation extends BlockdataOperation {
   }
 
   @Override
-  protected void handlePrevrandao() {
+  protected void handlePrevRandao() {
     throw new IllegalStateException("OpCode not in London fork. Only in Paris and after.");
   }
 
   @Override
-  protected void handleBlobbasefee() {
+  protected void handleBlobBaseFee() {
     throw new IllegalStateException("OpCode not in London fork. Only in Cancun and after.");
   }
 
@@ -64,12 +64,12 @@ public class LondonBlockDataOperation extends BlockdataOperation {
   }
 
   @Override
-  protected void traceIsPrevrandao(Trace.Blockdata trace, OpCode opCode) {
+  protected void traceIsPrevRandao(Trace.Blockdata trace, OpCode opCode) {
     // OpCode not in London fork. Only in Paris and after.
   }
 
   @Override
-  protected void traceIsBlobbasefee(Trace.Blockdata trace, OpCode opCode) {
+  protected void traceIsBlobBaseFee(Trace.Blockdata trace, OpCode opCode) {
     // OpCode not in London fork. Only in Cancun and after.
   }
 

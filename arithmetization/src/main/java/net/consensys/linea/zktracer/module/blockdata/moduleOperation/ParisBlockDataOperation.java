@@ -46,7 +46,7 @@ public class ParisBlockDataOperation extends LondonBlockDataOperation {
   }
 
   @Override
-  protected void handlePrevrandao() {
+  protected void handlePrevRandao() {
     data = EWord.of(blockHeader().getPrevRandao().get());
 
     // row i
@@ -59,7 +59,7 @@ public class ParisBlockDataOperation extends LondonBlockDataOperation {
   }
 
   @Override
-  protected void traceIsPrevrandao(Trace.Blockdata trace, OpCode opCode) {
+  protected void traceIsPrevRandao(Trace.Blockdata trace, OpCode opCode) {
     trace.isPrevrandao(opCode == PREVRANDAO);
   }
 }

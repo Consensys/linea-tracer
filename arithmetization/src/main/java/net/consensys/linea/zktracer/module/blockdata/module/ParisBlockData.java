@@ -28,8 +28,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class ParisBlockData extends LondonBlockData {
-  private static final int NB_ROWS =
-      nROWS_CB + nROWS_TS + nROWS_NB + nROWS_PV + nROWS_GL + nROWS_ID + nROWS_BF;
 
   public ParisBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
     super(hub, wcp, euc, chain);
@@ -42,7 +40,7 @@ public class ParisBlockData extends LondonBlockData {
 
   @Override
   protected int numberOfLinesPerBlock() {
-    return NB_ROWS;
+    return nROWS_DEPTH;
   }
 
   @Override

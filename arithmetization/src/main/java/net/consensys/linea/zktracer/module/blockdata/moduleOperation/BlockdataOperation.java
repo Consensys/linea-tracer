@@ -23,7 +23,9 @@ import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_GL;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_ID;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_NB;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_TS;
+import static net.consensys.linea.zktracer.TraceCancun.Blockdata.nROWS_BL;
 import static net.consensys.linea.zktracer.TraceLondon.Blockdata.nROWS_DF;
+import static net.consensys.linea.zktracer.TraceParis.Blockdata.nROWS_PV;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -310,32 +312,19 @@ public abstract class BlockdataOperation extends ModuleOperation {
   }
 
   private int ctMax(OpCode opCode) {
-    switch (opCode) {
-      case OpCode.COINBASE -> {
-        return nROWS_CB;
-      }
-      case OpCode.TIMESTAMP -> {
-        return nROWS_TS;
-      }
-      case OpCode.NUMBER -> {
-        return nROWS_NB;
-      }
-      case OpCode.DIFFICULTY -> {
-        return nROWS_DF;
-      }
-      case OpCode.GASLIMIT -> {
-        return nROWS_GL;
-      }
-      case OpCode.CHAINID -> {
-        return nROWS_ID;
-      }
-      case OpCode.BASEFEE -> {
-        return nROWS_BF;
-      }
-      default -> {
-        // return nROWS_DEPTH;
-        throw new IllegalArgumentException();
-      }
-    }
+    return switch (opCode) {
+      case COINBASE -> nROWS_CB;
+      case TIMESTAMP -> nROWS_TS;
+      case NUMBER -> nROWS_NB;
+      case DIFFICULTY -> nROWS_DF; // London only
+      case PREVRANDAO -> nROWS_PV; // Paris and after
+      case GASLIMIT -> nROWS_GL;
+      case CHAINID -> nROWS_ID;
+      case BASEFEE -> nROWS_BF;
+      case BLOBBASEFEE -> nROWS_BL; // Cancun and after
+      default ->
+      // return nROWS_DEPTH;
+      throw new IllegalArgumentException();
+    };
   }
 }

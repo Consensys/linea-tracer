@@ -26,6 +26,7 @@ import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_TS;
 import static net.consensys.linea.zktracer.TraceCancun.Blockdata.nROWS_BL;
 import static net.consensys.linea.zktracer.TraceLondon.Blockdata.nROWS_DF;
 import static net.consensys.linea.zktracer.TraceParis.Blockdata.nROWS_PV;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBytes;
 
@@ -61,7 +62,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
   private static final EWord POWER_256_6 = EWord.of(BigInteger.ONE.shiftLeft(6 * 8));
 
   private final boolean firstBlockInConflation;
-  private final int ctMax;
+  private final int nbRows;
   private final OpCode opCode;
   private final long firstBlockNumber;
   private final int relTxMax;
@@ -92,7 +93,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
     this.gasLimitMinimum = EWord.of(chain.gasLimitMinimum);
     this.gasLimitMaximum = EWord.of(chain.gasLimitMaximum);
     this.chainId = EWord.of(chain.id);
-    this.ctMax = ctMax(opCode);
+    this.nbRows = nbRows(opCode);
     this.firstBlockNumber = firstBlockNumber;
     this.relTxMax = relTxMax;
     this.relBlock = (int) (blockHeader.getNumber() - firstBlockNumber + 1);
@@ -102,12 +103,12 @@ public abstract class BlockdataOperation extends ModuleOperation {
     this.opCode = opCode;
 
     // Init non-counter constant columns arrays of size ctMax
-    this.wcpFlag = new boolean[ctMax];
-    this.eucFlag = new boolean[ctMax];
-    this.exoInst = new UnsignedByte[ctMax];
-    this.arg1 = new EWord[ctMax];
-    this.arg2 = new EWord[ctMax];
-    this.res = new Bytes[ctMax];
+    this.wcpFlag = new boolean[nbRows];
+    this.eucFlag = new boolean[nbRows];
+    this.exoInst = new UnsignedByte[nbRows];
+    this.arg1 = new EWord[nbRows];
+    this.arg2 = new EWord[nbRows];
+    this.res = new Bytes[nbRows];
     Arrays.fill(exoInst, UnsignedByte.ZERO);
     Arrays.fill(arg1, EWord.ZERO);
     Arrays.fill(arg2, EWord.ZERO);
@@ -200,24 +201,24 @@ public abstract class BlockdataOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return ctMax;
+    return nbRows;
   }
 
   public void trace(Trace.Blockdata trace) {
-    for (short ct = 0; ct < ctMax; ct++) {
+    for (short ct = 0; ct < nbRows; ct++) {
       trace
           .iomf(true)
-          .ctMax(ctMax - 1)
+          .ctMax(nbRows - 1)
           .ct(ct)
-          .isCoinbase(opCode == OpCode.COINBASE)
-          .isTimestamp(opCode == OpCode.TIMESTAMP)
-          .isNumber(opCode == OpCode.NUMBER);
+          .isCoinbase(opCode == COINBASE)
+          .isTimestamp(opCode == TIMESTAMP)
+          .isNumber(opCode == NUMBER);
       traceIsDifficulty(trace, opCode);
       traceIsPrevrandao(trace, opCode);
       trace
-          .isGaslimit(opCode == OpCode.GASLIMIT)
-          .isChainid(opCode == OpCode.CHAINID)
-          .isBasefee(opCode == OpCode.BASEFEE);
+          .isGaslimit(opCode == GASLIMIT)
+          .isChainid(opCode == CHAINID)
+          .isBasefee(opCode == BASEFEE);
       traceIsBlobbasefee(trace, opCode);
       trace
           .inst(opCode.unsignedByteValue()) // not fork dependant
@@ -311,7 +312,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
     return res[w];
   }
 
-  private int ctMax(OpCode opCode) {
+  private int nbRows(OpCode opCode) {
     return switch (opCode) {
       case COINBASE -> nROWS_CB;
       case TIMESTAMP -> nROWS_TS;
@@ -322,9 +323,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
       case CHAINID -> nROWS_ID;
       case BASEFEE -> nROWS_BF;
       case BLOBBASEFEE -> nROWS_BL; // Cancun and after
-      default ->
-      // return nROWS_DEPTH;
-      throw new IllegalArgumentException();
+      default -> throw new IllegalArgumentException("Not a valid opcode for lockData: " + opCode);
     };
   }
 }

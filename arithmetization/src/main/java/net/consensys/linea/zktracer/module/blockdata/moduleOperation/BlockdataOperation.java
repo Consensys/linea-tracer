@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_BF;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_CB;
-import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_DEPTH;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_GL;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_ID;
 import static net.consensys.linea.zktracer.Trace.Blockdata.nROWS_NB;
@@ -334,7 +333,8 @@ public abstract class BlockdataOperation extends ModuleOperation {
         return nROWS_BF;
       }
       default -> {
-        return nROWS_DEPTH;
+        // return nROWS_DEPTH;
+        throw new IllegalArgumentException();
       }
     }
   }

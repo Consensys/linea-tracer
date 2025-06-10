@@ -83,15 +83,8 @@ public class ZkCounter implements LineCountingTracer {
 
   @Override
   public void tracePrecompileCall(MessageFrame frame, long gasRequirement, Bytes output) {
-    if (output == null) {
-      return; // no output means exceptional precompile call
-    }
-
-    if (frame.getInputData().isEmpty()) {
-      return; // no input data implies no gnark circuit for RIP and BLAKE, and arg < 512 bytes for
-      // MODEXP, so nothing to detect
-    }
-
+    // We COULD accept calls to precompile where the CALL(s) opcode is exceptional, but for
+    // simplicity, we don't
     final Address precompile = frame.getContractAddress();
 
     if (precompile.equals(Address.MODEXP)) {
@@ -105,6 +98,11 @@ public class ZkCounter implements LineCountingTracer {
     }
 
     if (precompile.equals(RIPEMD160)) {
+      // we could accept empty input data, as it implies no gnark circuit, so nothing to detect.
+      // For simplicity, we don't.
+      // if (frame.getInputData().isEmpty()) {
+      //   return;
+      // }
       rip.detectEvent();
       return;
     }

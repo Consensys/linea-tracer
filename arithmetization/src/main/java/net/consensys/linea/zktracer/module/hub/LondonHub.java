@@ -32,6 +32,7 @@ import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstr
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
@@ -92,7 +93,7 @@ public class LondonHub extends Hub {
   }
 
   @Override
-  protected void setTransientSection(final Hub hub, final MessageFrame frame) {
+  protected void setTransientSection(OpCode opcode, final Hub hub, final MessageFrame frame) {
     throw new IllegalStateException("Transient opcodes appear in Cancun");
   }
 }

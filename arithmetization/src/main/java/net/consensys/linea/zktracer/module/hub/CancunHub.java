@@ -19,9 +19,12 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection;
+import net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.CancunInstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.CancunGasCalculator;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
@@ -47,7 +50,12 @@ public class CancunHub extends ShanghaiHub {
   }
 
   @Override
-  protected void setTransientSection(final Hub hub, final MessageFrame frame) {
-    // TODO: do the stuff
+  protected void setTransientSection(OpCode opcode, final Hub hub, final MessageFrame frame) {
+    switch (opcode) {
+      case TLOAD -> new TLoadSection(hub);
+      case TSTORE -> new TStoreSection(hub);
+      default -> throw new IllegalStateException(
+          "invalid operation in family TRANSIENT: " + opcode);
+    }
   }
 }

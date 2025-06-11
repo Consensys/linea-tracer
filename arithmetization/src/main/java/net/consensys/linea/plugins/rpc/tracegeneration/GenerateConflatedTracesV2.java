@@ -83,7 +83,7 @@ public class GenerateConflatedTracesV2 {
     return requestLimiter.execute(request, this::generateTraceFile);
   }
 
-  private TraceFile generateTraceFile(PluginRpcRequest request) throws InterruptedException {
+  private TraceFile generateTraceFile(PluginRpcRequest request) {
     Stopwatch sw = Stopwatch.createStarted();
 
     this.traceService =
@@ -130,7 +130,11 @@ public class GenerateConflatedTracesV2 {
     final long sleepTime = 3600000;
     log.warn(
         "[TRACING] before returning conflation trace response, begin to sleep for {}", sleepTime);
-    Thread.sleep(sleepTime);
+    try {
+      Thread.sleep(sleepTime);
+    } catch (InterruptedException e) {
+      log.warn("[TRACING] sleep exception {}", e.getMessage());
+    }
 
     return new TraceFile(params.expectedTracesEngineVersion(), path.toString());
   }

@@ -66,14 +66,14 @@ public class TxnData implements OperationListModule<TxndataOperation> {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    currentBlock().setNbOfTxsInBlock(currentTx().tx.getRelativeTransactionNumber());
-    currentTx().setCallWcpLastTxOfBlock(currentBlock().getBlockGasLimit());
+    // currentBlock().setNbOfTxsInBlock(currentTx().tx.getRelativeTransactionNumber());
+    // currentTx().setCallWcpLastTxOfBlock(currentBlock().getBlockGasLimit());
   }
 
   @Override
   public int lineCount() {
     // The last tx of each block has one more rows
-    return operations.lineCount() + blocks.size();
+    return 0; // operations.lineCount() + blocks.size();
   }
 
   public BlockSnapshot currentBlock() {
@@ -91,12 +91,12 @@ public class TxnData implements OperationListModule<TxndataOperation> {
 
   @Override
   public void commit(List<MappedByteBuffer> buffers) {
-    final Trace trace = new Trace(buffers);
-
-    final int absTxNumMax = operations.size();
-
-    for (TxndataOperation tx : operations.getAll()) {
-      tx.traceTx(trace, blocks.get(tx.getTx().getRelativeBlockNumber() - 1), absTxNumMax);
-    }
+    // final Trace trace = new Trace(buffers);
+    //
+    // final int absTxNumMax = operations.size();
+    //
+    // for (TxndataOperation tx : operations.getAll()) {
+    //   tx.traceTx(trace, blocks.get(tx.getTx().getRelativeBlockNumber() - 1), absTxNumMax);
+    // }
   }
 }

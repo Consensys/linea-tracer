@@ -19,7 +19,10 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.CancunInstructionDecoder;
+import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.CancunGasCalculator;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 
@@ -36,5 +39,15 @@ public class CancunHub extends ShanghaiHub {
   @Override
   protected Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
     return new CancunBlockData(hub, wcp, euc, chain);
+  }
+
+  @Override
+  protected InstructionDecoder setInstructionDecoder() {
+    return new CancunInstructionDecoder();
+  }
+
+  @Override
+  protected void setTransientSection(final Hub hub, final MessageFrame frame) {
+    // TODO: do the stuff
   }
 }

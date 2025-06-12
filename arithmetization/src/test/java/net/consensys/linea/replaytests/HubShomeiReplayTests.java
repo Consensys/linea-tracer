@@ -31,7 +31,8 @@ public class HubShomeiReplayTests extends TracerTestBase {
   /**
    * Address: 0x8d95f56b0bac46e8ac1d3a3f12fb1e5bc39b4c0c Storage key hi:
    * 0x4955ac1f8710286d713fc7cfabe0953 Storage key hi: 0xf7799e9ee340180bcdfd35c3d33c99a3 is in
-   * Shomei, not in Hub. This is due to an SSTOREX (remaining gas < 2300))
+   * Shomei, not in Hub. This is due to an SSTOREX (remaining gas < 2300), that happens in block 11.
+   * In block 35 (tx number 53) we have a succesfull non reverted SSTORE at the same acc / key.
    */
   @Test
   void alert2025_06_12_first() {

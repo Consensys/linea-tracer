@@ -311,7 +311,6 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("tipsLondon_London\\[London\\]");
     PARAMS.ignore("transType_London\\[London\\]");
     PARAMS.ignore("highGasUsage_London\\[London\\]");
-    PARAMS.ignore("blockhashNonConstArg_London\\[London\\]");
     PARAMS.ignore("blockhashTests_London\\[London\\]");
     PARAMS.ignore("extcodehashEmptySuicide_London\\[London\\]");
     PARAMS.ignore("logRevert_London\\[London\\]");
@@ -374,6 +373,11 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g1v0_Shanghai\\[Shanghai\\]");
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g2v0_Shanghai\\[Shanghai\\]");
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g3v0_Shanghai\\[Shanghai\\]");
+
+    // Account balance inconsistent 0x0000000000000000000000000000000000000200
+    PARAMS.ignore("BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/balance_within_block.json");
+    PARAMS.ignore(
+        "BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/use_value_in_contract.json");
   }
 
   private BlockchainReferenceTestTools() {

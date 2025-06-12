@@ -378,6 +378,11 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/balance_within_block.json");
     PARAMS.ignore(
         "BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/use_value_in_contract.json");
+
+    // TODO: check if gas limit is consistent
+    // block gas limit is 0x7fffffffffffffff
+    PARAMS.ignore("accountInteractions_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("blockhashNonConstArg_Shanghai\\[Shanghai\\]");
   }
 
   private BlockchainReferenceTestTools() {

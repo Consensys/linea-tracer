@@ -96,10 +96,11 @@ public class ZkCounter implements LineCountingTracer {
     }
 
     if (precompileAddress.equals(RIPEMD160)) {
-      // We accept empty input data, as it implies no gnark circuit, so nothing to detect.
-      if (frame.getInputData().isEmpty()) {
-        return;
-      }
+      // We COULD accept empty input data, as it implies no gnark circuit, so nothing to detect. We
+      // don't do it for simplicity.
+      // if (frame.getInputData().isEmpty()) {
+      //   return;
+      // }
       rip.detectEvent();
       return;
     }

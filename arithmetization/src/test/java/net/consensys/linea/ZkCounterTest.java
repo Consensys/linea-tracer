@@ -271,9 +271,9 @@ public class ZkCounterTest extends TracerTestBase {
 
     // no precompile call, but a PRC:
     assertEquals(0, lineCountMap.get(MODEXP));
-    final int expectedRIP = (prc.equals(RIPEMD160) && !emptyCds) ? Integer.MAX_VALUE : 0;
+    final int expectedRIP = prc.equals(RIPEMD160) ? Integer.MAX_VALUE : 0;
     assertEquals(expectedRIP, lineCountMap.get(RIP));
-    final int expectedBlake = (prc.equals(BLAKE2B_F_COMPRESSION)) ? Integer.MAX_VALUE : 0;
+    final int expectedBlake = prc.equals(BLAKE2B_F_COMPRESSION) ? Integer.MAX_VALUE : 0;
     assertEquals(expectedBlake, lineCountMap.get(BLAKE));
 
     // L1 block size > 0

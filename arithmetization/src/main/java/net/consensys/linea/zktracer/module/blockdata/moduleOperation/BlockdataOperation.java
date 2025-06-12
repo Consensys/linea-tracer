@@ -178,7 +178,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
       final EWord prevGasLimit = EWord.of(prevBlockHeader.getGasLimit());
       // row i + 2
       final Bytes maxDeviation = eucCall(2, prevGasLimit, EWord.of(GAS_LIMIT_ADJUSTMENT_FACTOR));
-      final BigInteger upperBound =
+      /*      final BigInteger upperBound =
           prevGasLimit
               .toUnsignedBigInteger()
               .add(maxDeviation.toUnsignedBigInteger())
@@ -187,12 +187,12 @@ public abstract class BlockdataOperation extends ModuleOperation {
           prevGasLimit
               .toUnsignedBigInteger()
               .subtract(maxDeviation.toUnsignedBigInteger())
-              .max(BigInteger.ZERO);
+              .max(BigInteger.ZERO);*/
 
       // row i + 3
-      wcpCallToLT(3, data, EWord.of(upperBound));
+      wcpCallToLT(3, data, EWord.of(prevGasLimit.toLong() + maxDeviation.toLong()));
       // row i + 4
-      wcpCallToGT(4, data, EWord.of(lowerBound));
+      wcpCallToGT(4, data, EWord.of(prevGasLimit.toLong() - maxDeviation.toLong()));
     }
   }
 

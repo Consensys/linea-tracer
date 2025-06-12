@@ -977,7 +977,7 @@ public abstract class Hub implements Module {
           default -> throw new IllegalStateException("invalid operation in family STORAGE");
         }
       }
-      case TRANSIENT -> setTransientSection(this.opCode(), this, frame);
+      case TRANSIENT -> setTransientSection(this);
       case JUMP -> new JumpSection(this);
       case CREATE -> setCreateSection(this, frame);
       case CALL -> new CallSection(this, frame);
@@ -1055,5 +1055,5 @@ public abstract class Hub implements Module {
 
   protected abstract void setCreateSection(final Hub hub, final MessageFrame frame);
 
-  protected abstract void setTransientSection(OpCode opcode, Hub hub, MessageFrame frame);
+  protected abstract void setTransientSection(Hub hub);
 }

@@ -24,14 +24,14 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-@Tag("replay")
+@Tag("nightly")
 @ExtendWith(UnitTestWatcher.class)
 public class HubShomeiReplayTests extends TracerTestBase {
 
   /**
    * Address: 0x8d95f56b0bac46e8ac1d3a3f12fb1e5bc39b4c0c Storage key hi:
    * 0x4955ac1f8710286d713fc7cfabe0953 Storage key hi: 0xf7799e9ee340180bcdfd35c3d33c99a3 is in
-   * Shomei, not in Hub
+   * Shomei, not in Hub. This is due to an SSTOREX (remaining gas < 2300))
    */
   @Test
   void alert2025_06_12_first() {

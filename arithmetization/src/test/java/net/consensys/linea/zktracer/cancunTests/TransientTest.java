@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 public class TransientTest extends TracerTestBase {
 
   @Test
-  void testSmallZeroAdd() {
+  void trivialTStoreTLoad() {
     loadOpcodes(CANCUN);
     BytecodeRunner.of(
             BytecodeCompiler.newProgram(testInfo)

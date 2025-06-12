@@ -116,7 +116,7 @@ public class GenerateConflatedTracesV2 {
         tracer::traceEndConflation,
         tracer);
 
-    log.info("[TRACING] trace for {}-{} computed in {}", fromBlock, toBlock, sw);
+    log.info("[TRACING] trace for {}-{} computed done in {}", fromBlock, toBlock, sw);
     sw.reset().start();
 
     final Path path =
@@ -125,16 +125,16 @@ public class GenerateConflatedTracesV2 {
             params.startBlockNumber(),
             params.endBlockNumber(),
             params.expectedTracesEngineVersion());
-    log.info("[TRACING] trace for {}-{} serialized to {} in {}", path, toBlock, fromBlock, sw);
+    log.info("[TRACING] trace for {}-{} serialized to {} done in {}", path, toBlock, fromBlock, sw);
 
-    final long sleepTime = 3600000;
-    log.warn(
-        "[TRACING] before returning conflation trace response, begin to sleep for {}", sleepTime);
-    try {
-      Thread.sleep(sleepTime);
-    } catch (InterruptedException e) {
-      log.warn("[TRACING] sleep exception {}", e.getMessage());
-    }
+    // final long sleepTime = 3600000;
+    // log.warn(
+    //     "[TRACING] before returning conflation trace response, begin to sleep for {}", sleepTime);
+    // try {
+    //   Thread.sleep(sleepTime);
+    // } catch (InterruptedException e) {
+    //   log.warn("[TRACING] sleep exception {}", e.getMessage());
+    // }
 
     return new TraceFile(params.expectedTracesEngineVersion(), path.toString());
   }

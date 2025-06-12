@@ -182,7 +182,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
           prevGasLimit
               .toUnsignedBigInteger()
               .add(maxDeviation.toUnsignedBigInteger())
-              .max(BigInteger.valueOf(LINEA_BLOCK_GAS_LIMIT));
+              .max(ETHEREUM_GAS_LIMIT_MAXIMUM);
       final BigInteger lowerBound =
           prevGasLimit
               .toUnsignedBigInteger()

@@ -15,29 +15,24 @@
 
 package net.consensys.linea.zktracer.cancunTests;
 
-import static net.consensys.linea.zktracer.Fork.CANCUN;
-import static net.consensys.linea.zktracer.opcode.OpCode.TLOAD;
-import static net.consensys.linea.zktracer.opcode.OpCode.TSTORE;
-import static net.consensys.linea.zktracer.opcode.OpCodes.loadOpcodes;
-
 import net.consensys.linea.reporting.TracerTestBase;
-import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
 public class TransientTest extends TracerTestBase {
 
   @Test
   void trivialTStoreTLoad() {
-    loadOpcodes(CANCUN);
-    BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo)
-                .push(1) // value
-                .push(2) // storage key
-                .op(TSTORE)
-                .push(2) // storage key
-                .op(TLOAD)
-                .compile())
+    BytecodeRunner.of(Bytes.fromHexString("0x600160025D60025C"))
+        // This bytecode is:
+        // BytecodeCompiler.newProgram(testInfo)
+        //     .push(1) // value
+        //     .push(2) // storage key
+        //     .op(TSTORE)
+        //     .push(2) // storage key
+        //     .op(TLOAD)
+        //     .compile()
         .run(testInfo);
   }
 }

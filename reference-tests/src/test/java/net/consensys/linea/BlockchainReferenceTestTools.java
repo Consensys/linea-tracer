@@ -351,9 +351,9 @@ public class BlockchainReferenceTestTools {
     // - in state tests, they run on the 3 forks above only
     // - coinbase is in pre and not post and has no balance
     PARAMS.ignore("ecmul_1-3_0_28000_80_d0g0v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g0v1_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g0v2_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g0v3_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g1v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g2v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g3v0_Shanghai\\[Shanghai\\]");
     // - all the other ecmul tests for point 0,3 factor
     // 21888242871839275222246405745257275088548364400416034343698204186575808495616 have coinbase
     // pre and post with balance

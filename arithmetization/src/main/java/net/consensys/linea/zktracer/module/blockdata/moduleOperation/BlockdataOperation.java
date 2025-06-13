@@ -175,24 +175,17 @@ public abstract class BlockdataOperation extends ModuleOperation {
     wcpCallToLEQ(1, data, gasLimitMaximum);
 
     if (!firstBlockInConflation) {
-      final EWord prevGasLimit = EWord.of(prevBlockHeader.getGasLimit());
+      final BigInteger prevGasLimit = BigInteger.valueOf(prevBlockHeader.getGasLimit());
       // row i + 2
-      final Bytes maxDeviation = eucCall(2, prevGasLimit, EWord.of(GAS_LIMIT_ADJUSTMENT_FACTOR));
-      /*      final BigInteger upperBound =
-          prevGasLimit
-              .toUnsignedBigInteger()
-              .add(maxDeviation.toUnsignedBigInteger())
-              .max(ETHEREUM_GAS_LIMIT_MAXIMUM);
-      final BigInteger lowerBound =
-          prevGasLimit
-              .toUnsignedBigInteger()
-              .subtract(maxDeviation.toUnsignedBigInteger())
-              .max(BigInteger.ZERO);*/
+      final Bytes maxDeviation =
+          eucCall(2, EWord.of(prevGasLimit), EWord.of(GAS_LIMIT_ADJUSTMENT_FACTOR));
 
+      final BigInteger upperBound = prevGasLimit.add(maxDeviation.toBigInteger());
+      final BigInteger lowerBound = prevGasLimit.subtract(maxDeviation.toBigInteger());
       // row i + 3
-      wcpCallToLT(3, data, EWord.of(prevGasLimit.toLong() + maxDeviation.toLong()));
+      wcpCallToLT(3, data, EWord.of(upperBound));
       // row i + 4
-      wcpCallToGT(4, data, EWord.of(prevGasLimit.toLong() - maxDeviation.toLong()));
+      wcpCallToGT(4, data, EWord.of(lowerBound));
     }
   }
 

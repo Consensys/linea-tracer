@@ -128,8 +128,8 @@ jacocoTestReport {
   }
 }
 
-tasks.test.configure {
-  dependsOn("copyTracerPlugin", "downloadShoemiBesuPlugin")
+def setupTestForBesuAndShomei(Test test) {
+  test.dependsOn("copyTracerPlugin", "downloadShoemiBesuPlugin")
 
   delete("${project.getLayout().getBuildDirectory().get()}/besu/traces")
   mkdir("${project.getLayout().getBuildDirectory().get()}/besu/traces")
@@ -145,8 +145,13 @@ tasks.test.configure {
           )
   )
 
-  systemProperty("besu.traces.dir", System.getProperty("besu.traces.dir"))
-  systemProperty("besu.plugins.dir", System.getProperty("besu.plugins.dir"))
+  test.systemProperty("besu.traces.dir", System.getProperty("besu.traces.dir"))
+  test.systemProperty("besu.plugins.dir", System.getProperty("besu.plugins.dir"))
+}
+
+tasks.test.configure {
+
+  setupTestForBesuAndShomei (tasks.test)
 
   systemProperty("junit.jupiter.execution.parallel.enabled", true)
   systemProperty("junit.jupiter.execution.parallel.mode.default", "concurrent")
@@ -158,6 +163,7 @@ tasks.test.configure {
   useJUnitPlatform {
     excludeTags("nightly")
     excludeTags("replay")
+    excludeTags("replay_with_besu")
     excludeTags("weekly")
     excludeTags("prc-calltests")
   }
@@ -167,32 +173,15 @@ tasks.test.configure {
 tasks.register("besuNodeTests", Test) {
   forkEvery = 1
   maxParallelForks = 3
+  setupTestForBesuAndShomei(it)
 
-  dependsOn("copyTracerPlugin", "downloadShoemiBesuPlugin")
-
-  delete("${project.getLayout().getBuildDirectory().get()}/besu/traces")
-  mkdir("${project.getLayout().getBuildDirectory().get()}/besu/traces")
-  mkdir("${project.getLayout().getBuildDirectory().get()}/besu/plugins")
-  System.setProperty("besu.plugins.dir",
-          System.getenv().getOrDefault("besu.plugins.dir",
-                  "${project.getLayout().getBuildDirectory().get().toString()}/besu/plugins/"
-          )
-  )
-  System.setProperty("besu.traces.dir",
-          System.getenv().getOrDefault("besu.traces.dir",
-                  "${project.getLayout().getBuildDirectory().get().toString()}/besu/traces/"
-          )
-  )
-
-
-  systemProperty("besu.traces.dir", System.getProperty("besu.traces.dir"))
-  systemProperty("besu.plugins.dir", System.getProperty("besu.plugins.dir"))
   environment("RUN_WITH_BESU_NODE", true)
 
   systemProperty("junit.jupiter.execution.parallel.enabled", false)
   useJUnitPlatform {
     excludeTags("nightly")
     excludeTags("replay")
+    excludeTags("replay_with_besu")
     excludeTags("weekly")
     excludeTags("prc-calltests")
   }
@@ -229,36 +218,15 @@ tasks.register("fastReplayTests", Test) {
   finalizedBy(jacocoFastReplayTestsReport)
 }
 
-tasks.register("besuNodeFastReplayTests", Test) {
+tasks.register("besuNodeReplayTests", Test) {
   forkEvery = 1
   maxParallelForks = 3
-
-  dependsOn("copyTracerPlugin", "downloadShoemiBesuPlugin")
-
-  delete("${project.getLayout().getBuildDirectory().get()}/besu/traces")
-  mkdir("${project.getLayout().getBuildDirectory().get()}/besu/traces")
-  mkdir("${project.getLayout().getBuildDirectory().get()}/besu/plugins")
-  System.setProperty("besu.plugins.dir",
-          System.getenv().getOrDefault("besu.plugins.dir",
-                  "${project.getLayout().getBuildDirectory().get().toString()}/besu/plugins/"
-          )
-  )
-  System.setProperty("besu.traces.dir",
-          System.getenv().getOrDefault("besu.traces.dir",
-                  "${project.getLayout().getBuildDirectory().get().toString()}/besu/traces/"
-          )
-  )
-
-
-  systemProperty("besu.traces.dir", System.getProperty("besu.traces.dir"))
-  systemProperty("besu.plugins.dir", System.getProperty("besu.plugins.dir"))
+  setupTestForBesuAndShomei(it)
   environment("RUN_WITH_BESU_NODE", true)
 
   systemProperty("junit.jupiter.execution.parallel.enabled", false)
   useJUnitPlatform {
-    includeTags("replay")
-    excludeTags("nightly")
-    excludeTags("weekly")
+    includeTags("replay_with_besu")
   }
   finalizedBy(jacocoTestReport)
 }

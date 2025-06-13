@@ -18,6 +18,7 @@ package net.consensys.linea.replaytests;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -82,7 +83,7 @@ public class ReplayTestTools {
       throw new RuntimeException(e);
     }
     ReplayExecutionEnvironment.builder()
-        .filename(filename)
+        .filename(new File(filename).getName())
         .zkTracer(new ZkTracer(chain))
         .txResultChecking(resultChecking)
         .build()

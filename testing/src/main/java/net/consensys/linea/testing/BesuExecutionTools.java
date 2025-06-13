@@ -95,7 +95,13 @@ public class BesuExecutionTools {
     this.testName = tmpTestName.substring(0, Math.min(tmpTestName.length(), 200));
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
-    this.httpClient = new OkHttpClient();
+    this.httpClient =
+        new OkHttpClient.Builder()
+            .connectTimeout(10, java.util.concurrent.TimeUnit.MINUTES)
+            .writeTimeout(10, java.util.concurrent.TimeUnit.MINUTES)
+            .readTimeout(10, java.util.concurrent.TimeUnit.MINUTES)
+            .callTimeout(10, java.util.concurrent.TimeUnit.MINUTES)
+            .build();
     this.chainConfig = chainConfig;
     GenesisConfigBuilder genesisConfigBuilder = new GenesisConfigBuilder();
     genesisConfigBuilder.setChainId(chainConfig.id);

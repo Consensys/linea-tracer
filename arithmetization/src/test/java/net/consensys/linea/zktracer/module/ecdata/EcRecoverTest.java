@@ -31,7 +31,6 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -246,7 +245,7 @@ public class EcRecoverTest extends TracerTestBase {
     for (int i = 0; i < s.size(); i++) {
       arguments.add(
           Arguments.of(
-            s.get(i).lessThan(SECP256K1N) ? "[ICP = 1]" : "[ICP = 0]",
+              s.get(i).lessThan(SECP256K1N) ? "[ICP = 1]" : "[ICP = 0]",
               h,
               v,
               r,

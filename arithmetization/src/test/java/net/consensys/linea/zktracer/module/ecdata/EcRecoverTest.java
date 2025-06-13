@@ -31,6 +31,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,14 +51,15 @@ public class EcRecoverTest extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("ecRecoverSource")
+  @MethodSource("ecRecoverSourceForSLimits")
   void testEcRecover(
       String description,
       EWord h,
       EWord v,
       EWord r,
       EWord s,
-      boolean expectedInternalChecksPassed,
-      boolean expectedSuccessBit) {
+      Boolean expectedInternalChecksPassed,
+      Boolean expectedSuccessBit) {
     BytecodeCompiler program =
         BytecodeCompiler.newProgram(testInfo)
             // First place the parameters in memory
@@ -93,7 +95,9 @@ public class EcRecoverTest extends TracerTestBase {
     boolean successBit = ecDataOperation.successBit();
 
     assertEquals(expectedInternalChecksPassed, internalChecksPassed);
-    assertEquals(expectedSuccessBit, successBit);
+    if (expectedSuccessBit != null) {
+      assertEquals(expectedSuccessBit, successBit);
+    }
 
     // Check that the line count is made
     assertEquals(
@@ -215,6 +219,41 @@ public class EcRecoverTest extends TracerTestBase {
             "0x4da31701c798fe3078ee9de6e4d892242e235dc078df76b15a9ad82137c6250e",
             true,
             false));
+
+    return arguments.stream();
+  }
+
+  private static Stream<Arguments> ecRecoverSourceForSLimits() {
+    EWord h =
+        EWord.ofHexString("0x456e9aea5e197a1f1af7a3e85a3212fa4049a3ba34c2289b4c860fc0b0c64ef3");
+    EWord v = EWord.of(28);
+    EWord r =
+        EWord.ofHexString("0x9242685bf161793cc25603c231bc2f568eb630ea16aa137d2664ac8038825608");
+    List<EWord> s =
+        List.of(
+            ((SECP256K1N.subtract(1)).divide(2)).subtract(1), // universally accepted
+            ((SECP256K1N.subtract(1)).divide(2)), // universally accepted
+            ((SECP256K1N.subtract(1)).divide(2)).add(1), // universally accepted
+            ((SECP256K1N.subtract(1)).divide(2))
+                .add(2), // rejected for transactions, acceptable in ECRECOVER
+            SECP256K1N.subtract(2), // acceptable in ECRECOVER
+            SECP256K1N.subtract(1), // acceptable in ECRECOVER
+            SECP256K1N, // universally rejected
+            SECP256K1N.add(1)); // universally rejected
+
+    List<Arguments> arguments = new ArrayList<>();
+
+    for (int i = 0; i < s.size(); i++) {
+      arguments.add(
+          Arguments.of(
+            s.get(i).lessThan(SECP256K1N) ? "[ICP = 1]" : "[ICP = 0]",
+              h,
+              v,
+              r,
+              s.get(i),
+              s.get(i).lessThan(SECP256K1N),
+              null)); // The assertion over successBit is not relevant here
+    }
 
     return arguments.stream();
   }

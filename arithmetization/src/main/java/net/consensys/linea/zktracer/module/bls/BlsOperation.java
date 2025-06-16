@@ -20,6 +20,35 @@ import static net.consensys.linea.zktracer.Trace.Ecdata.P_BN_HI;
 import static net.consensys.linea.zktracer.Trace.Ecdata.P_BN_LO;
 import static net.consensys.linea.zktracer.Trace.Ecdata.SECP256K1N_HI;
 import static net.consensys.linea.zktracer.Trace.Ecdata.SECP256K1N_LO;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G1_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G2_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G1_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G1_MSM;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G2_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G2_MSM;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_PAIRING_CHECK;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G1_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G1_MSM;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G2_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G2_MSM;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_PAIRING_CHECK;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_G1_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_G1_MSM;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_G2_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_G2_MSM;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_PAIRING_CHECK;
+import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_POINT_EVALUATION;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
 
 import java.util.List;
@@ -53,6 +82,7 @@ public class BlsOperation extends ModuleOperation {
   private final int nRowsResult;
 
   @Getter private final List<Bytes> limb;
+  private final int totalSize;
 
   // WCP interaction
   private final List<Boolean> wcpFlag;
@@ -72,35 +102,9 @@ public class BlsOperation extends ModuleOperation {
     checkArgument(precompileFlag.isBlsPrecompile(), "invalid BLS type");
 
     this.precompileFlag = precompileFlag;
-    final int callDataSize = callData.size();
-
-    /*
-    checkArgument(
-        callDataSize > 0,
-        "EcDataOperation should only be called with nonempty call rightPaddedCallData");
-    final int paddedCallDataLength =
-        switch (precompileFlag) {
-          case PRC_ECRECOVER -> TOTAL_SIZE_ECRECOVER_DATA;
-          case PRC_ECADD -> TOTAL_SIZE_ECADD_DATA;
-          case PRC_ECMUL -> TOTAL_SIZE_ECMUL_DATA;
-          case PRC_ECPAIRING -> {
-            checkArgument(callDataSize % TOTAL_SIZE_ECPAIRING_DATA_MIN == 0);
-            yield callDataSize;
-          }
-          default -> throw new IllegalArgumentException(
-              "EcDataOperation expects to be called on an elliptic curve precompile, not on "
-                  + precompileFlag.name());
-        };
-
-    rightPaddedCallData = rightPaddedSlice(callData, 0, paddedCallDataLength);
-
-    if (precompileFlag == PRC_ECPAIRING) {
-      totalPairings = callDataSize / TOTAL_SIZE_ECPAIRING_DATA_MIN;
-    } else {
-      totalPairings = 0;
-    }
-     */
-    // TODO
+    totalSize = callData.size();
+    // TODO: do we need some padding? Is this just the size of the input? What's
+    //  the meaning of total size?
 
     nRowsData = getIndexMax(precompileFlag, true) + 1;
     nRowsResult = getIndexMax(precompileFlag, false) + 1;
@@ -161,52 +165,60 @@ public class BlsOperation extends ModuleOperation {
 
   private static short getPhase(
       PrecompileScenarioFragment.PrecompileFlag precompileFlag, boolean isData) {
-    /*
     if (isData) {
       return switch (precompileFlag) {
-        case PRC_ECRECOVER -> PHASE_ECRECOVER_DATA;
-        case PRC_ECADD -> PHASE_ECADD_DATA;
-        case PRC_ECMUL -> PHASE_ECMUL_DATA;
-        case PRC_ECPAIRING -> PHASE_ECPAIRING_DATA;
-        default -> throw new IllegalArgumentException("invalid EC type");
+        case PRC_POINT_EVALUATION -> PHASE_DATA_POINT_EVALUATION;
+        case PRC_BLS_G1_ADD -> PHASE_DATA_G1_ADD;
+        case PRC_BLS_G1_MSM -> PHASE_DATA_G1_MSM;
+        case PRC_BLS_G2_ADD -> PHASE_DATA_G2_ADD;
+        case PRC_BLS_G2_MSM -> PHASE_DATA_G2_MSM;
+        case PRC_BLS_PAIRING_CHECK -> PHASE_DATA_PAIRING_CHECK;
+        case PRC_BLS_MAP_FP_TO_G1 -> PHASE_DATA_MAP_FP_TO_G1;
+        case PRC_BLS_MAP_FP2_TO_G2 -> PHASE_DATA_MAP_FP2_TO_G2;
+        default -> throw new IllegalStateException("invalid BLS type");
       };
     } else {
       return switch (precompileFlag) {
-        case PRC_ECRECOVER -> PHASE_ECRECOVER_RESULT;
-        case PRC_ECADD -> PHASE_ECADD_RESULT;
-        case PRC_ECMUL -> PHASE_ECMUL_RESULT;
-        case PRC_ECPAIRING -> PHASE_ECPAIRING_RESULT;
-        default -> throw new IllegalArgumentException("invalid EC type");
+        case PRC_POINT_EVALUATION -> PHASE_RSLT_POINT_EVALUATION;
+        case PRC_BLS_G1_ADD -> PHASE_RSLT_G1_ADD;
+        case PRC_BLS_G1_MSM -> PHASE_RSLT_G1_MSM;
+        case PRC_BLS_G2_ADD -> PHASE_RSLT_G2_ADD;
+        case PRC_BLS_G2_MSM -> PHASE_RSLT_G2_MSM;
+        case PRC_BLS_PAIRING_CHECK -> PHASE_RSLT_PAIRING_CHECK;
+        case PRC_BLS_MAP_FP_TO_G1 -> PHASE_RSLT_MAP_FP_TO_G1;
+        case PRC_BLS_MAP_FP2_TO_G2 -> PHASE_RSLT_MAP_FP2_TO_G2;
+        default -> throw new IllegalStateException("invalid BLS type");
       };
     }
-     */
-    // TODO
-    return 0;
   }
 
   private int getIndexMax(
       PrecompileScenarioFragment.PrecompileFlag precompileFlag, boolean isData) {
-    /*
     if (isData) {
       return switch (precompileFlag) {
-        case PRC_ECRECOVER -> INDEX_MAX_ECRECOVER_DATA;
-        case PRC_ECADD -> INDEX_MAX_ECADD_DATA;
-        case PRC_ECMUL -> INDEX_MAX_ECMUL_DATA;
-        case PRC_ECPAIRING -> (INDEX_MAX_ECPAIRING_DATA_MIN + 1) * totalPairings - 1;
-        default -> throw new IllegalArgumentException("invalid EC type");
+        case PRC_POINT_EVALUATION -> INDEX_MAX_DATA_POINT_EVALUATION;
+        case PRC_BLS_G1_ADD -> INDEX_MAX_DATA_G1_ADD;
+        case PRC_BLS_G1_MSM -> totalSize / 16 - 1; // TODO: here we need the size of the input!
+        case PRC_BLS_G2_ADD -> INDEX_MAX_DATA_G2_ADD;
+        case PRC_BLS_G2_MSM -> totalSize / 16 - 1;
+        case PRC_BLS_PAIRING_CHECK -> totalSize / 16 - 1;
+        case PRC_BLS_MAP_FP_TO_G1 -> INDEX_MAX_DATA_MAP_FP_TO_G1;
+        case PRC_BLS_MAP_FP2_TO_G2 -> INDEX_MAX_DATA_MAP_FP2_TO_G2;
+        default -> throw new IllegalStateException("invalid BLS type");
       };
     } else {
       return switch (precompileFlag) {
-        case PRC_ECRECOVER -> INDEX_MAX_ECRECOVER_RESULT;
-        case PRC_ECADD -> INDEX_MAX_ECADD_RESULT;
-        case PRC_ECMUL -> INDEX_MAX_ECMUL_RESULT;
-        case PRC_ECPAIRING -> INDEX_MAX_ECPAIRING_RESULT;
-        default -> throw new IllegalArgumentException("invalid EC type");
+        case PRC_POINT_EVALUATION -> INDEX_MAX_RSLT_POINT_EVALUATION;
+        case PRC_BLS_G1_ADD -> INDEX_MAX_RSLT_G1_ADD;
+        case PRC_BLS_G1_MSM -> INDEX_MAX_RSLT_G1_MSM;
+        case PRC_BLS_G2_ADD -> INDEX_MAX_RSLT_G2_ADD;
+        case PRC_BLS_G2_MSM -> INDEX_MAX_RSLT_G2_MSM;
+        case PRC_BLS_PAIRING_CHECK -> INDEX_MAX_RSLT_PAIRING_CHECK;
+        case PRC_BLS_MAP_FP_TO_G1 -> INDEX_MAX_RSLT_MAP_FP_TO_G1;
+        case PRC_BLS_MAP_FP2_TO_G2 -> INDEX_MAX_RSLT_MAP_FP2_TO_G2;
+        default -> throw new IllegalStateException("invalid BLS type");
       };
     }
-     */
-    // TODO
-    return 0;
   }
 
   private boolean callWcp(int i, OpCode wcpInst, EWord arg1, EWord arg2) {

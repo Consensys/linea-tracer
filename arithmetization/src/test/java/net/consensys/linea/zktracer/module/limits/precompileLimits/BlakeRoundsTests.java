@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import net.consensys.linea.reporting.TracerTestBase;
-import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import org.apache.tuweni.bytes.Bytes;

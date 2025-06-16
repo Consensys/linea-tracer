@@ -235,7 +235,7 @@ public class BlockchainReferenceTestTools {
 
     // Inconclusive fork choice rule, since in merge CL should be choosing forks and setting the
     // chain head. Perfectly valid test pre-merge.
-    PARAMS.ignore("UncleFromSideChain_(Merge|Shanghai|Cancun|Prague|Osaka|Bogota)");
+    PARAMS.ignore("UncleFromSideChain_(Cancun|Prague|Osaka|Bogota)");
 
     // EOF tests are written against an older version of the spec.
     PARAMS.ignore("/stEOF/");

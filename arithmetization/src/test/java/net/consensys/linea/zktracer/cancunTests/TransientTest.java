@@ -15,24 +15,121 @@
 
 package net.consensys.linea.zktracer.cancunTests;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import net.consensys.linea.reporting.TracerTestBase;
-import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.*;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.crypto.KeyPair;
+import org.hyperledger.besu.crypto.SECP256K1;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 public class TransientTest extends TracerTestBase {
 
+  private static final Bytes TLOAD_TSTORE_TLOAD = Bytes.fromHexString("0x60025C600160025D60025C");
+  // This bytecode is:
+  // BytecodeCompiler.newProgram(testInfo)
+  // .push(2) // storage key
+  //     .op(TLOAD)
+  //     .push(1) // value
+  //     .push(2) // storage key
+  //     .op(TSTORE)
+  //     .push(2) // storage key
+  //     .op(TLOAD)
+  //     .compile()
+
+  private static final ToyAccount SMC_ACCOUNT_TLOAD_TSTORE_TLOAD =
+      ToyAccount.builder()
+          .address(Address.wrap(Bytes.fromHexString("0x73A71E0073A71E0073A71E0073A71E0073A71E00")))
+          .code(TLOAD_TSTORE_TLOAD)
+          .balance(Wei.fromEth(2))
+          .build();
+
+  private static final Bytes PREPARESTACK =
+      Bytes.concatenate(
+          Bytes.fromHexString("0x6000600060FF600073"),
+          SMC_ACCOUNT_TLOAD_TSTORE_TLOAD.getAddress(),
+          Bytes.fromHexString("613A98"));
+  // This bytecode is:
+  // BytecodeCompiler.newProgram(testInfo)
+  //     .push(0) // return size
+  //     .push(0) // return offset
+  //     .push(255) // arg size
+  //     .push(0) // arg offset
+  //     .push(SMC_ACCOUNT_TLOAD_TSTORE_TLOAD.getAddress()) // address
+  //     .push(15000) // gas
+  //     .compile();
+
+  private static final Bytes STATIC_CALLER =
+      Bytes.concatenate(PREPARESTACK, Bytes.fromHexString("0xFA"));
+
+  private static final Bytes DELEGATE_CALLER =
+      Bytes.concatenate(PREPARESTACK, Bytes.fromHexString("0xF4"));
+
+  private static final Bytes CALL_CALLER =
+      Bytes.concatenate(PREPARESTACK, Bytes.fromHexString("0xF1"));
+
+  private static final Bytes CALLCODE_CALLER =
+      Bytes.concatenate(PREPARESTACK, Bytes.fromHexString("0xF2"));
+
+  public static Stream<Arguments> fourCalls() {
+    final List<Arguments> arguments = new ArrayList<>();
+    arguments.add(Arguments.of(CALL_CALLER));
+    arguments.add(Arguments.of(CALLCODE_CALLER));
+    arguments.add(Arguments.of(STATIC_CALLER));
+    arguments.add(Arguments.of(DELEGATE_CALLER));
+    return arguments.stream();
+  }
+
   @Test
   void trivialTStoreTLoad() {
-    BytecodeRunner.of(Bytes.fromHexString("0x600160025D60025C"))
-        // This bytecode is:
-        // BytecodeCompiler.newProgram(testInfo)
-        //     .push(1) // value
-        //     .push(2) // storage key
-        //     .op(TSTORE)
-        //     .push(2) // storage key
-        //     .op(TLOAD)
-        //     .compile()
-        .run(testInfo);
+    BytecodeRunner.of(TLOAD_TSTORE_TLOAD).run(testInfo);
+  }
+
+  @ParameterizedTest
+  @MethodSource("fourCalls")
+  void differentCallsTStoreTLoad(Bytes callType) {
+    final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
+
+    final Address RECIPIENT_ADDRESS =
+        Address.fromHexString("0x1122334455667788990011223344556677889900");
+
+    final ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(5)).address(senderAddress).build();
+
+    final ToyAccount recipientAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(5))
+            .address(RECIPIENT_ADDRESS)
+            .code(callType)
+            .build();
+
+    final Transaction transaction =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .gasLimit(150000L)
+            .keyPair(senderKeyPair)
+            .to(recipientAccount)
+            .build();
+
+    ToyExecutionEnvironmentV2.builder(testInfo)
+        .accounts(List.of(senderAccount, recipientAccount, SMC_ACCOUNT_TLOAD_TSTORE_TLOAD))
+        .transaction(transaction)
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run();
   }
 }

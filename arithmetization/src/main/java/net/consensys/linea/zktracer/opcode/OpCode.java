@@ -320,7 +320,8 @@ public enum OpCode {
     return this != MSIZE && this.getData().billing().type() != MxpType.NONE;
   }
 
-  private static final List<OpCode> POST_LONDON_OPCODES = List.of(PREVRANDAO, PUSH0, BLOBBASEFEE);
+  private static final List<OpCode> POST_LONDON_OPCODES =
+      List.of(PREVRANDAO, PUSH0, BLOBBASEFEE, BLOBHASH, TLOAD, TSTORE);
 
   public boolean isNotInLondon() {
     return POST_LONDON_OPCODES.contains(this);

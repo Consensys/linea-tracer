@@ -22,7 +22,6 @@ import static net.consensys.linea.zktracer.types.Conversions.bytesToLong;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.TraceCancun;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
 
@@ -63,8 +62,7 @@ public final class TransientFragment implements TraceFragment {
   public Trace.Hub trace(Trace.Hub trace) {
     domSubStampsSubFragment.trace(trace);
 
-    final TraceCancun.Hub traceCancun = (TraceCancun.Hub) trace; // TODO: remove me
-    return traceCancun
+    return trace
         .peekAtTransient(true)
         .pTransientAddressHi(bytesToLong(address.slice(0, 4)))
         .pTransientAddressLo(address.slice(4, LLARGE))

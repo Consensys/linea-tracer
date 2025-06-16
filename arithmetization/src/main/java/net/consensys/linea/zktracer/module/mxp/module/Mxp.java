@@ -15,9 +15,12 @@
 
 package net.consensys.linea.zktracer.module.mxp.module;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
@@ -32,6 +35,24 @@ public abstract class Mxp implements OperationListModule<MxpOperation> {
 
   private final ModuleOperationStackedList<MxpOperation> operations =
       new ModuleOperationStackedList<>();
+
+  @Override
+  public List<Trace.ColumnHeader> columnHeaders(Trace trace) {
+    return Trace.mxp().headers(this.lineCount());
+  }
+
+  @Override
+  public int spillage(Trace trace) {
+    return Trace.mxp().spillage();
+  }
+
+  @Override
+  public void commit(Trace trace) {
+    int stamp = 0;
+    for (MxpOperation op : operations().getAll()) {
+      op.trace(++stamp, Trace.mxp());
+    }
+  }
 
   @Override
   public String moduleKey() {

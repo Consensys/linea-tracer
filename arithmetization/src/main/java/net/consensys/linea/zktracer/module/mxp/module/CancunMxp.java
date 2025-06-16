@@ -15,12 +15,9 @@
 
 package net.consensys.linea.zktracer.module.mxp.module;
 
-import java.util.List;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation;
@@ -33,16 +30,6 @@ public class CancunMxp extends LondonMxp {
 
   private final Wcp wcp;
   private final Euc euc;
-
-  @Override
-  public List<Trace.ColumnHeader> columnHeaders() {
-    return Trace.Mxpcan.headers(this.lineCount());
-  }
-
-  @Override
-  public int spillage() {
-    return Trace.Mxpcan.SPILLAGE;
-  }
 
   public void call(MxpCall mxpCall) {
     operations().add(new CancunMxpOperation(mxpCall, wcp, euc));

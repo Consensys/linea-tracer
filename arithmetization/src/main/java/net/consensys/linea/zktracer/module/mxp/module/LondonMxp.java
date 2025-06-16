@@ -15,38 +15,16 @@
 
 package net.consensys.linea.zktracer.module.mxp.module;
 
-import java.util.List;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.moduleOperation.LondonMxpOperation;
-import net.consensys.linea.zktracer.module.mxp.moduleOperation.MxpOperation;
 
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class LondonMxp extends Mxp {
-
-  @Override
-  public List<Trace.ColumnHeader> columnHeaders() {
-    return Trace.Mxplon.headers(this.lineCount());
-  }
-
-  @Override
-  public int spillage() {
-    return Trace.Mxplon.SPILLAGE;
-  }
-
-  @Override
-  public void commit(Trace trace) {
-    int stamp = 0;
-    for (MxpOperation op : operations().getAll()) {
-      op.trace(++stamp, trace);
-    }
-  }
 
   @Override
   public void call(MxpCall mxpCall) {

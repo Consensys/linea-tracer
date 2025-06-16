@@ -29,5 +29,5 @@ public abstract class MxpOperation extends ModuleOperation {
     this.mxpCall = mxpCall;
   }
 
-  public abstract void trace(int stamp, Trace trace);
+  public abstract void trace(int stamp, Trace.Mxp trace);
 }

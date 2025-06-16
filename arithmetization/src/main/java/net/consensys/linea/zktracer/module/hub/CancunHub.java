@@ -16,8 +16,6 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.mxp.module.CancunMxp;
-import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
@@ -25,6 +23,8 @@ import net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.CancunInstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
+import net.consensys.linea.zktracer.module.mxp.module.CancunMxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.evm.gascalculator.CancunGasCalculator;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;

@@ -17,6 +17,7 @@ package net.consensys.linea;
 
 import static net.consensys.linea.BlockchainReferenceTestJson.readBlockchainReferenceTestsOutput;
 import static net.consensys.linea.ReferenceTestOutcomeRecorderTool.JSON_INPUT_FILENAME;
+import static net.consensys.linea.reporting.TracerTestBase.getForkOrDefault;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.file.Paths;
@@ -60,10 +61,11 @@ import org.junit.jupiter.api.Assumptions;
 
 @Slf4j
 public class BlockchainReferenceTestTools {
+  private static final String forkName = getForkOrDefault("London");
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
 
-  private static final List<String> NETWORKS_TO_RUN = List.of("Shanghai");
+  private static final List<String> NETWORKS_TO_RUN = List.of(forkName);
 
   public static final JsonTestParameters<?, ?> PARAMS =
       JsonTestParameters.create(BlockchainReferenceTestCaseSpec.class)

@@ -26,7 +26,7 @@ jobs:
         run: GOMAXPROCS=2 GOMEMLIMIT=10GiB ./gradlew weeklyTests
         env:
           WEEKLY_TESTS_PARALLELISM: 32
-          GOCORSET_FLAGS: -v -b1024 --ansi-escapes=false --report --hir
+          GOCORSET_FLAGS: -v -b1024 --ansi-escapes=false --report --mir
           ZKEVM_FORK: LONDON
 
       - name: Upload test report
@@ -51,7 +51,7 @@ jobs:
           path: arithmetization/build/jacoco/weeklyTests.exec
 
       - name: Failure Notification
-        if: ${{ failure() || cancelled() }}
+        if: github.ref == 'refs/head/arith-dev' && (failure() || cancelled())
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -76,7 +76,7 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           WEEKLY_TESTS_PARALLELISM: 24
-          GOCORSET_FLAGS: -v -b1024 --ansi-escapes=false --report --hir
+          GOCORSET_FLAGS: -v -b1024 --ansi-escapes=false --report --mir
           ZKEVM_FORK: LONDON
 
       - name: Upload prc calls test report
@@ -101,7 +101,7 @@ jobs:
           path: arithmetization/build/jacoco/prcCallTests.exec
 
       - name: Failure Notification
-        if: ${{ failure() || cancelled() }}
+        if: github.ref == 'refs/head/arith-dev' && (failure() || cancelled())
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -1,6 +1,6 @@
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
-import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_TRIV;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_TRIV;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;

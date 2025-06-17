@@ -1,7 +1,7 @@
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
-import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_MXPX;
-import static net.consensys.linea.zktracer.Trace.Mxpcan.MXPX_THRESHOLD;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_MXPX;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 
 import net.consensys.linea.zktracer.module.hub.Hub;

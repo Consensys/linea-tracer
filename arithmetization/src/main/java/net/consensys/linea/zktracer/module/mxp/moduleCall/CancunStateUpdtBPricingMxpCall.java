@@ -1,6 +1,6 @@
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
-import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_UPDT_B;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_UPDT_B;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 

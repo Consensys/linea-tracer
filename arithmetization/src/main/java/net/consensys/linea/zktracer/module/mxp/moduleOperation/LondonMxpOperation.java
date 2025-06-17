@@ -18,7 +18,7 @@ package net.consensys.linea.zktracer.module.mxp.moduleOperation;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE_MO;
-import static net.consensys.linea.zktracer.TraceLondon.*;
+import static net.consensys.linea.zktracer.TraceLondon.Mxp.*;
 import static net.consensys.linea.zktracer.module.Util.max;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;

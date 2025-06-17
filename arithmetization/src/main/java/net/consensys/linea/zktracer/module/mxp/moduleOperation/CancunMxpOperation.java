@@ -71,15 +71,14 @@ public class CancunMxpOperation extends LondonMxpOperation {
   }
 
   @Override
-  public final void trace(int stamp, Trace tr) {
-    Trace.Mxpcan trace = tr.mxpcan;
+  public final void trace(int stamp, Trace.Mxp trace) {
     traceDecoder(++stamp, trace);
     traceMacro(stamp, trace);
     traceScenario(stamp, trace);
     traceComputation(stamp, trace);
   }
 
-  final void traceDecoder(int stamp, Trace.Mxpcan trace) {
+  final void traceDecoder(int stamp, Trace.Mxp trace) {
     OpCode opCode = cancunMxpCall.getOpCodeData().mnemonic();
 
     trace
@@ -101,7 +100,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .fillAndValidateRow();
   }
 
-  final void traceMacro(int stamp, Trace.Mxpcan trace) {
+  final void traceMacro(int stamp, Trace.Mxp trace) {
     OpCode opCode = cancunMxpCall.getOpCodeData().mnemonic();
 
     trace
@@ -128,7 +127,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .fillAndValidateRow();
   }
 
-  final void traceScenario(int stamp, Trace.Mxpcan trace) {
+  final void traceScenario(int stamp, Trace.Mxp trace) {
     trace
         .mxpStamp(stamp)
         .cn(this.getContextNumber())
@@ -145,7 +144,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .fillAndValidateRow();
   }
 
-  final void traceComputation(int stamp, Trace.Mxpcan trace) {
+  final void traceComputation(int stamp, Trace.Mxp trace) {
 
     for (int i = 0; i < nRowsComputation(); i++) {
       trace

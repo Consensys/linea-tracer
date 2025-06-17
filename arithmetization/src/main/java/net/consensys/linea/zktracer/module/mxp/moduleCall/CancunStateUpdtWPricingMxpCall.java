@@ -1,7 +1,7 @@
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
-import static net.consensys.linea.zktracer.Trace.Mxpcan.CT_MAX_UPDT_W;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_UPDT_W;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isDoubleOffsetOpcode;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;

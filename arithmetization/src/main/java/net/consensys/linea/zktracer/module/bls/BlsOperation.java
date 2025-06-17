@@ -82,7 +82,8 @@ public class BlsOperation extends ModuleOperation {
   private final int nRowsResult;
 
   @Getter private final List<Bytes> limb;
-  private final int totalSize;
+  private final int totalSizeData;
+  private final int totalSizeResult;
 
   // WCP interaction
   private final List<Boolean> wcpFlag;
@@ -102,9 +103,8 @@ public class BlsOperation extends ModuleOperation {
     checkArgument(precompileFlag.isBlsPrecompile(), "invalid BLS type");
 
     this.precompileFlag = precompileFlag;
-    totalSize = callData.size();
-    // TODO: do we need some padding? Is this just the size of the input? What's
-    //  the meaning of total size?
+    totalSizeData = callData.size(); // TODO: do we need some padding?
+    totalSizeResult = returnData.size();
 
     nRowsData = getIndexMax(precompileFlag, true) + 1;
     nRowsResult = getIndexMax(precompileFlag, false) + 1;
@@ -198,12 +198,10 @@ public class BlsOperation extends ModuleOperation {
       return switch (precompileFlag) {
         case PRC_POINT_EVALUATION -> INDEX_MAX_DATA_POINT_EVALUATION;
         case PRC_BLS_G1_ADD -> INDEX_MAX_DATA_G1_ADD;
-        case PRC_BLS_G1_MSM -> totalSize / 16 - 1; // TODO: here we need the size of the input!
         case PRC_BLS_G2_ADD -> INDEX_MAX_DATA_G2_ADD;
-        case PRC_BLS_G2_MSM -> totalSize / 16 - 1;
-        case PRC_BLS_PAIRING_CHECK -> totalSize / 16 - 1;
         case PRC_BLS_MAP_FP_TO_G1 -> INDEX_MAX_DATA_MAP_FP_TO_G1;
         case PRC_BLS_MAP_FP2_TO_G2 -> INDEX_MAX_DATA_MAP_FP2_TO_G2;
+        case PRC_BLS_G1_MSM, PRC_BLS_G2_MSM, PRC_BLS_PAIRING_CHECK -> totalSizeData / 16 - 1;
         default -> throw new IllegalStateException("invalid BLS type");
       };
     } else {

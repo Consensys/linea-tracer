@@ -16,12 +16,10 @@
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___DOM_SUB_STAMPS;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
-import java.util.Map;
 import java.util.Optional;
 
 import lombok.Getter;
@@ -37,16 +35,14 @@ import net.consensys.linea.zktracer.module.hub.defer.PostBlockDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostConflationDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
-import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Hash;
-import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
-public final class AccountFragment
+public abstract class AccountFragment
     implements TraceFragment, EndTransactionDefer, PostBlockDefer, PostConflationDefer {
 
   @Getter private final AccountSnapshot oldState;
@@ -56,8 +52,6 @@ public final class AccountFragment
   private final Optional<Bytes> addressToTrim;
   @Getter private final DomSubStampsSubFragment domSubStampsSubFragment;
   @Setter private RlpAddrSubFragment rlpAddrSubFragment;
-  private boolean markedForSelfDestruct;
-  private boolean markedForSelfDestructNew;
   final int hubStamp;
   @Getter final TransactionProcessingMetadata transactionProcessingMetadata;
 
@@ -73,8 +67,12 @@ public final class AccountFragment
         AccountSnapshot oldState,
         AccountSnapshot newState,
         DomSubStampsSubFragment domSubStampsSubFragment) {
-      return new AccountFragment(
-          hub, oldState, newState, Optional.empty(), domSubStampsSubFragment);
+      return switch (hub.fork) {
+        case LONDON, PARIS, SHANGHAI -> new LondonAccountFragment(
+            hub, oldState, newState, Optional.empty(), domSubStampsSubFragment);
+        case CANCUN, PRAGUE -> new CancunAccountFragment(
+            hub, oldState, newState, Optional.empty(), domSubStampsSubFragment);
+      };
     }
 
     public AccountFragment makeWithTrm(
@@ -83,8 +81,12 @@ public final class AccountFragment
         Bytes toTrim,
         DomSubStampsSubFragment domSubStampsSubFragment) {
       hub.trm().callTrimming(toTrim);
-      return new AccountFragment(
-          hub, oldState, newState, Optional.of(toTrim), domSubStampsSubFragment);
+      return switch (hub.fork) {
+        case LONDON, PARIS, SHANGHAI -> new LondonAccountFragment(
+            hub, oldState, newState, Optional.of(toTrim), domSubStampsSubFragment);
+        case CANCUN, PRAGUE -> new CancunAccountFragment(
+            hub, oldState, newState, Optional.of(toTrim), domSubStampsSubFragment);
+      };
     }
   }
 
@@ -132,7 +134,7 @@ public final class AccountFragment
     final boolean hasCode = !eCodeHash.equals(EWord.of(Hash.EMPTY));
     final boolean hasCodeNew = !eCodeHashNew.equals(EWord.of(Hash.EMPTY));
 
-    return trace
+    trace
         .peekAtAccount(true)
         .pAccountAddressHi(highPart(oldState.address()))
         .pAccountAddressLo(lowPart(oldState.address()))
@@ -154,8 +156,6 @@ public final class AccountFragment
         .pAccountExistsNew(newState.nonce() > 0 || hasCodeNew || !newState.balance().isZero())
         .pAccountWarmth(oldState.isWarm())
         .pAccountWarmthNew(newState.isWarm())
-        .pAccountMarkedForSelfdestruct(markedForSelfDestruct)
-        .pAccountMarkedForSelfdestructNew(markedForSelfDestructNew)
         .pAccountDeploymentNumber(oldState.deploymentNumber())
         .pAccountDeploymentStatus(oldState.deploymentStatus())
         .pAccountDeploymentNumberNew(newState.deploymentNumber())
@@ -163,25 +163,18 @@ public final class AccountFragment
         .pAccountTrmFlag(addressToTrim.isPresent())
         .pAccountTrmRawAddressHi(addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
         .pAccountIsPrecompile(isPrecompile(oldState.address()));
+    traceMarkedForSelfDestruct(trace);
+    traceMarkedForDeletion(trace);
+    traceHadCodeInitially(trace);
+
+    return trace;
   }
 
-  @Override
-  public void resolveAtEndTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
-        transactionProcessingMetadata.getEffectiveSelfDestructMap();
-    final EphemeralAccount ephemeralAccount =
-        new EphemeralAccount(oldState.address(), oldState.deploymentNumber());
-    if (effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
-      final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
-      markedForSelfDestruct =
-          domSubStampsSubFragment.domStamp() > MULTIPLIER___DOM_SUB_STAMPS * selfDestructTime;
-      markedForSelfDestructNew = hubStamp >= selfDestructTime;
-    } else {
-      markedForSelfDestruct = false;
-      markedForSelfDestructNew = false;
-    }
-  }
+  abstract void traceHadCodeInitially(Trace.Hub trace);
+
+  abstract void traceMarkedForDeletion(Trace.Hub trace);
+
+  abstract void traceMarkedForSelfDestruct(Trace.Hub trace);
 
   @Override
   public void resolvePostBlock(Hub hub) {

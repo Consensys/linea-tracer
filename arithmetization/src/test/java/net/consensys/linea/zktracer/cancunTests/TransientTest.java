@@ -15,14 +15,13 @@
 
 package net.consensys.linea.zktracer.cancunTests;
 
-import static net.consensys.linea.zktracer.opcode.OpCode.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.*;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
@@ -53,6 +52,15 @@ public class TransientTest extends TracerTestBase {
       ToyAccount.builder()
           .address(Address.wrap(Bytes.fromHexString("0x73A71E0073A71E0073A71E0073A71E0073A71E00")))
           .code(TLOAD_TSTORE_TLOAD)
+          .balance(Wei.fromEth(2))
+          .build();
+
+  private static final ToyAccount SMC_ACCOUNT_TLOAD_TSTORE_TLOAD_REVERT =
+      ToyAccount.builder()
+          .address(Address.wrap(Bytes.fromHexString("0x73A71E0073A71E0073A71E0073A71E0000000000")))
+          .code(
+              Bytes.concatenate(
+                  TLOAD_TSTORE_TLOAD, Bytes.fromHexString("0x60006000FD"))) // Push 0 Push 0 Revert
           .balance(Wei.fromEth(2))
           .build();
 
@@ -127,6 +135,111 @@ public class TransientTest extends TracerTestBase {
 
     ToyExecutionEnvironmentV2.builder(testInfo)
         .accounts(List.of(senderAccount, recipientAccount, SMC_ACCOUNT_TLOAD_TSTORE_TLOAD))
+        .transaction(transaction)
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run();
+  }
+
+  @Test
+  void multipleTransactionTStoreTLoad() {
+    final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
+
+    final Address RECIPIENT_ADDRESS =
+        Address.fromHexString("0x1122334455667788990011223344556677889900");
+
+    final short firstNonce = 1;
+
+    final ToyAccount senderAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(5))
+            .address(senderAddress)
+            .nonce(firstNonce)
+            .build();
+
+    final ToyAccount recipientAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(5))
+            .address(RECIPIENT_ADDRESS)
+            .code(TLOAD_TSTORE_TLOAD)
+            .build();
+
+    final Transaction transaction1 =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .gasLimit(150000L)
+            .keyPair(senderKeyPair)
+            .to(recipientAccount)
+            .nonce((long) firstNonce)
+            .build();
+
+    final Transaction transaction2 =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .gasLimit(150000L)
+            .keyPair(senderKeyPair)
+            .to(recipientAccount)
+            .nonce((long) firstNonce + 1)
+            .build();
+
+    ToyExecutionEnvironmentV2.builder(testInfo)
+        .accounts(List.of(senderAccount, recipientAccount))
+        .transactions(List.of(transaction1, transaction2))
+        .zkTracerValidator(zkTracer -> {})
+        .build()
+        .run();
+  }
+
+  @Test
+  void revertingTStoreTLoad() {
+    final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
+    final Address senderAddress =
+        Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
+
+    final Address RECIPIENT_ADDRESS =
+        Address.fromHexString("0x1122334455667788990011223344556677889900");
+
+    final Bytes recipeintCode =
+        BytecodeCompiler.newProgram(testInfo)
+            .push(0) // return size
+            .push(0) // return offset
+            .push(255) // arg size
+            .push(0) // arg offset
+            .push(SMC_ACCOUNT_TLOAD_TSTORE_TLOAD_REVERT.getAddress()) // address
+            .push(15000) // gas
+            .op(OpCode.CALL)
+            .push(0) // return size
+            .push(0) // return offset
+            .push(255) // arg size
+            .push(0) // arg offset
+            .push(SMC_ACCOUNT_TLOAD_TSTORE_TLOAD_REVERT.getAddress()) // address
+            .push(15000) // gas
+            .op(OpCode.CALL)
+            .compile();
+    ;
+
+    final ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(5)).address(senderAddress).build();
+
+    final ToyAccount recipientAccount =
+        ToyAccount.builder()
+            .balance(Wei.fromEth(5))
+            .address(RECIPIENT_ADDRESS)
+            .code(recipeintCode)
+            .build();
+
+    final Transaction transaction =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .gasLimit(150000L)
+            .keyPair(senderKeyPair)
+            .to(recipientAccount)
+            .build();
+
+    ToyExecutionEnvironmentV2.builder(testInfo)
+        .accounts(List.of(senderAccount, recipientAccount, SMC_ACCOUNT_TLOAD_TSTORE_TLOAD_REVERT))
         .transaction(transaction)
         .zkTracerValidator(zkTracer -> {})
         .build()

@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.runtime.callstack;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import com.google.common.base.Preconditions;
 import lombok.Getter;
@@ -32,7 +31,6 @@ import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackContext;
 import net.consensys.linea.zktracer.types.Bytecode;
-import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import net.consensys.linea.zktracer.types.Range;
 import org.apache.tuweni.bytes.Bytes;
@@ -64,12 +62,10 @@ public class CallFrame {
   // account whose storage and value are accessible
   @Getter private final Address accountAddress;
   @Getter private int accountDeploymentNumber;
-  private EWord eAddress = null; // memoization
 
   // byte code that is running in the present frame
   @Getter private Address byteCodeAddress = Address.ZERO;
   @Getter private int byteCodeDeploymentNumber;
-  private EWord eCodeAddress = null; // memoization
   @Getter private Bytecode code = Bytecode.EMPTY;
 
   // caller related information
@@ -212,43 +208,6 @@ public class CallFrame {
   }
 
   /**
-   * Return the address of this CallFrame as an {@link EWord}.
-   *
-   * @return the address
-   */
-  public EWord addressAsEWord() {
-    if (this.eAddress == null) {
-      this.eAddress = EWord.of(this.accountAddress);
-    }
-    return this.eAddress;
-  }
-
-  /**
-   * Return the address of the code executed within this callframe as an {@link EWord}.
-   *
-   * @return the address
-   */
-  public EWord codeAddressAsEWord() {
-    if (this.eCodeAddress == null) {
-      this.eCodeAddress = EWord.of(this.byteCodeAddress);
-    }
-    return this.eCodeAddress;
-  }
-
-  /**
-   * If any, returns the ID of the latest callee of this frame.
-   *
-   * @return the ID of the latest callee
-   */
-  public Optional<Integer> lastCallee() {
-    if (this.childFrameIds.isEmpty()) {
-      return Optional.empty();
-    }
-
-    return Optional.of(this.childFrameIds.get(this.childFrameIds.size() - 1));
-  }
-
-  /**
    * Returns a {@link ContractMetadata} instance representing the executed contract.
    *
    * @return the executed contract metadata
@@ -286,6 +245,7 @@ public class CallFrame {
     this.revertChildren(callStack, revertStamp);
   }
 
+  /** Return true if this call frame is reverted (self reverted or get reverted) */
   public boolean willRevert() {
     return selfReverts() || getsReverted();
   }

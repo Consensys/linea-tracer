@@ -15,23 +15,15 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
-import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___DOM_SUB_STAMPS;
-
-import java.util.Map;
 import java.util.Optional;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
-import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class LondonAccountFragment extends AccountFragment {
-  private boolean markedForSelfDestruct;
-  private boolean markedForSelfDestructNew;
 
   public LondonAccountFragment(
       Hub hub,
@@ -58,23 +50,5 @@ public class LondonAccountFragment extends AccountFragment {
   @Override
   void traceHadCodeInitially(Trace.Hub trace) {
     // This column appears in Cancun
-  }
-
-  @Override
-  public void resolveAtEndTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
-        transactionProcessingMetadata.getEffectiveSelfDestructMap();
-    final EphemeralAccount ephemeralAccount =
-        new EphemeralAccount(oldState().address(), oldState().deploymentNumber());
-    if (effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
-      final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
-      markedForSelfDestruct =
-          domSubStampsSubFragment().domStamp() > MULTIPLIER___DOM_SUB_STAMPS * selfDestructTime;
-      markedForSelfDestructNew = hubStamp >= selfDestructTime;
-    } else {
-      markedForSelfDestruct = false;
-      markedForSelfDestructNew = false;
-    }
   }
 }

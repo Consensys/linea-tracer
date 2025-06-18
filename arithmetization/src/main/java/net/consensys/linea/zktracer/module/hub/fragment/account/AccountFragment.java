@@ -16,10 +16,12 @@
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___DOM_SUB_STAMPS;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.Getter;
@@ -35,10 +37,11 @@ import net.consensys.linea.zktracer.module.hub.defer.PostBlockDefer;
 import net.consensys.linea.zktracer.module.hub.defer.PostConflationDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
+import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Accessors(fluent = true)
@@ -54,6 +57,8 @@ public abstract class AccountFragment
   @Setter private RlpAddrSubFragment rlpAddrSubFragment;
   final int hubStamp;
   @Getter final TransactionProcessingMetadata transactionProcessingMetadata;
+  protected boolean markedForSelfDestruct;
+  protected boolean markedForSelfDestructNew;
 
   /**
    * {@link AccountFragment} creation requires access to a {@link DeferRegistry} for post-conflation
@@ -119,10 +124,6 @@ public abstract class AccountFragment
 
   @Override
   public Trace.Hub trace(Trace.Hub trace) {
-    final EWord eCodeHash =
-        EWord.of(oldState.deploymentStatus() ? Hash.EMPTY : oldState.code().getCodeHash());
-    final EWord eCodeHashNew =
-        EWord.of(newState.deploymentStatus() ? Hash.EMPTY : newState.code().getCodeHash());
 
     // tracing
     domSubStampsSubFragment.trace(trace);
@@ -130,8 +131,8 @@ public abstract class AccountFragment
       rlpAddrSubFragment.trace(trace);
     }
 
-    final boolean hasCode = !eCodeHash.equals(EWord.of(Hash.EMPTY));
-    final boolean hasCodeNew = !eCodeHashNew.equals(EWord.of(Hash.EMPTY));
+    final boolean hasCode = oldState().tracedHasCode();
+    final boolean hasCodeNew = newState.tracedHasCode();
 
     trace
         .peekAtAccount(true)
@@ -143,10 +144,10 @@ public abstract class AccountFragment
         .pAccountBalanceNew(newState.balance())
         .pAccountCodeSize(oldState.code().getSize())
         .pAccountCodeSizeNew(newState.code().getSize())
-        .pAccountCodeHashHi(eCodeHash.hi())
-        .pAccountCodeHashHiNew(eCodeHashNew.hi())
-        .pAccountCodeHashLo(eCodeHash.lo())
-        .pAccountCodeHashLoNew(eCodeHashNew.lo())
+        .pAccountCodeHashHi(oldState.tracedCodeHash().hi())
+        .pAccountCodeHashLo(oldState.tracedCodeHash().lo())
+        .pAccountCodeHashHiNew(newState.tracedCodeHash().hi())
+        .pAccountCodeHashLoNew(newState.tracedCodeHash().lo())
         .pAccountHasCode(hasCode)
         .pAccountHasCodeNew(hasCodeNew)
         .pAccountCodeFragmentIndex(codeFragmentIndex)
@@ -174,6 +175,24 @@ public abstract class AccountFragment
   abstract void traceMarkedForDeletion(Trace.Hub trace);
 
   abstract void traceMarkedForSelfDestruct(Trace.Hub trace);
+
+  @Override
+  public void resolveAtEndTransaction(
+      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
+    final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
+        transactionProcessingMetadata.getEffectiveSelfDestructMap();
+    final EphemeralAccount ephemeralAccount =
+        new EphemeralAccount(oldState().address(), oldState().deploymentNumber());
+    if (effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
+      final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
+      markedForSelfDestruct =
+          domSubStampsSubFragment().domStamp() > MULTIPLIER___DOM_SUB_STAMPS * selfDestructTime;
+      markedForSelfDestructNew = hubStamp >= selfDestructTime;
+    } else {
+      markedForSelfDestruct = false;
+      markedForSelfDestructNew = false;
+    }
+  }
 
   @Override
   public void resolvePostBlock(Hub hub) {

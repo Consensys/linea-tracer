@@ -21,11 +21,11 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 
 public class CancunAccountFragment extends LondonAccountFragment {
-  private boolean markedForDeletion;
-  private boolean markedForDeletionNew;
+  private final TransactionProcessingMetadata tx;
 
   public CancunAccountFragment(
       Hub hub,
@@ -34,6 +34,14 @@ public class CancunAccountFragment extends LondonAccountFragment {
       Optional<Bytes> addressToTrim,
       DomSubStampsSubFragment domSubStampsSubFragment) {
     super(hub, oldState, newState, addressToTrim, domSubStampsSubFragment);
+
+    tx = hub.txStack().current();
+
+    tx.updateHadCodeInitially(
+        oldState.address(),
+        domSubStampsSubFragment.domStamp(),
+        domSubStampsSubFragment.subStamp(),
+        oldState().tracedHasCode());
   }
 
   @Override
@@ -44,10 +52,12 @@ public class CancunAccountFragment extends LondonAccountFragment {
   @Override
   void traceMarkedForDeletion(Trace.Hub trace) {
     trace
-        .pAccountMarkedForDeletion(markedForDeletion)
-        .pAccountMarkedForDeletionNew(markedForDeletionNew);
+        .pAccountMarkedForDeletion(markedForSelfDestruct)
+        .pAccountMarkedForDeletionNew(markedForSelfDestructNew);
   }
 
   @Override
-  void traceHadCodeInitially(Trace.Hub trace) {}
+  void traceHadCodeInitially(Trace.Hub trace) {
+    trace.pAccountHadCodeInitially(tx.hadCodeInitially().get(oldState().address()).hadCode());
+  }
 }

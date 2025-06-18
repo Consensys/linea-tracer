@@ -34,21 +34,22 @@ public final class TransientFragment implements TraceFragment {
   final Bytes32 valueCurr;
   final Bytes32 valueNext;
 
-  public static TransientFragment load(
-      final int hubStamp, final Address address, final Bytes32 key, final Bytes32 load) {
-    return new TransientFragment(standardDomSubStamps(hubStamp, 2), address, key, load, load);
+  public static TransientFragment tload(
+      final int hubStamp, final Address address, final Bytes32 key, final Bytes32 valueCurrent) {
+    return new TransientFragment(
+        standardDomSubStamps(hubStamp, 0), address, key, valueCurrent, valueCurrent);
   }
 
-  public static TransientFragment doing(
+  public static TransientFragment tstoreDoing(
       final int hubStamp,
       final Address address,
       final Bytes32 key,
       final Bytes32 current,
       final Bytes32 next) {
-    return new TransientFragment(standardDomSubStamps(hubStamp, 2), address, key, current, next);
+    return new TransientFragment(standardDomSubStamps(hubStamp, 0), address, key, current, next);
   }
 
-  public static TransientFragment undoing(
+  public static TransientFragment tstoreUndoing(
       final int hubStamp, final int revertStamp, final TransientFragment doingFragment) {
     return new TransientFragment(
         revertWithCurrentDomSubStamps(hubStamp, revertStamp, 0),

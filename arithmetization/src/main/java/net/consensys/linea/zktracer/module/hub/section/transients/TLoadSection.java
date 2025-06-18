@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.section.transients;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.load;
+import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.tload;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
@@ -53,8 +53,8 @@ public class TLoadSection extends TraceSection implements PostOpcodeDefer {
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
-    final Address address = ((ContextFragment) fragments().get(1)).getAccountAddress();
+    final Address address = frame.getRecipientAddress();
     final Bytes32 valueCurr = Bytes32.leftPad(frame.getStackItem(0));
-    this.addFragment(load(hubStamp(), address, storageKey, valueCurr));
+    this.addFragment(tload(hubStamp(), address, storageKey, valueCurr));
   }
 }

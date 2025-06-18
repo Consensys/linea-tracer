@@ -66,14 +66,14 @@ public class TransientTest extends TracerTestBase {
 
   private static final Bytes PREPARESTACK =
       Bytes.concatenate(
-          Bytes.fromHexString("0x6000600060FF600073"),
+          Bytes.fromHexString("0x600060006000600073"),
           SMC_ACCOUNT_TLOAD_TSTORE_TLOAD.getAddress(),
           Bytes.fromHexString("613A98"));
   // This bytecode is:
   // BytecodeCompiler.newProgram(testInfo)
   //     .push(0) // return size
   //     .push(0) // return offset
-  //     .push(255) // arg size
+  //     .push(0) // arg size
   //     .push(0) // arg offset
   //     .push(SMC_ACCOUNT_TLOAD_TSTORE_TLOAD.getAddress()) // address
   //     .push(15000) // gas
@@ -201,18 +201,18 @@ public class TransientTest extends TracerTestBase {
     final Address RECIPIENT_ADDRESS =
         Address.fromHexString("0x1122334455667788990011223344556677889900");
 
-    final Bytes recipeintCode =
+    final Bytes recipientCode =
         BytecodeCompiler.newProgram(testInfo)
             .push(0) // return size
             .push(0) // return offset
-            .push(255) // arg size
+            .push(0) // arg size
             .push(0) // arg offset
             .push(SMC_ACCOUNT_TLOAD_TSTORE_TLOAD_REVERT.getAddress()) // address
             .push(15000) // gas
             .op(OpCode.CALL)
             .push(0) // return size
             .push(0) // return offset
-            .push(255) // arg size
+            .push(0) // arg size
             .push(0) // arg offset
             .push(SMC_ACCOUNT_TLOAD_TSTORE_TLOAD_REVERT.getAddress()) // address
             .push(15000) // gas
@@ -227,7 +227,7 @@ public class TransientTest extends TracerTestBase {
         ToyAccount.builder()
             .balance(Wei.fromEth(5))
             .address(RECIPIENT_ADDRESS)
-            .code(recipeintCode)
+            .code(recipientCode)
             .build();
 
     final Transaction transaction =

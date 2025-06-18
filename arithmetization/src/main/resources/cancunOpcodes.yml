@@ -611,7 +611,7 @@ opcodes:
       pattern: LOAD_STORE
       alpha: 1
       delta: 1
-      staticGas: G_CONST_TLOAD
+      staticGas: G_WARM_ACCESS
       flag1: true
   - mnemonic: TSTORE
     value: 0x5d
@@ -620,7 +620,7 @@ opcodes:
       pattern: LOAD_STORE
       alpha: 0
       delta: 2
-      staticGas: G_CONST_TSTORE
+      staticGas: G_WARM_ACCESS
       forbiddenInStatic: true
       flag2: true
   - mnemonic: PUSH0

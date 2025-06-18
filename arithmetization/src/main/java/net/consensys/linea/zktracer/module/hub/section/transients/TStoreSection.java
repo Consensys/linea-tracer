@@ -16,8 +16,9 @@
 package net.consensys.linea.zktracer.module.hub.section.transients;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.doing;
-import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.undoing;
+import static net.consensys.linea.zktracer.TraceCancun.Hub.TRANSIENT___UNEXCEPTIONAL___TRANSIENT_DOING_ROFF;
+import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.tstoreDoing;
+import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.tstoreUndoing;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostRollbackDefer;
@@ -48,19 +49,24 @@ public class TStoreSection extends TraceSection implements PostRollbackDefer {
     }
 
     // We are now unexceptional
-    hub.defers().scheduleForPostRollback(this, hub.currentFrame());
+    final CallFrame currentFrame = hub.currentFrame();
+    hub.defers().scheduleForPostRollback(this, currentFrame);
 
-    final Address address = ((ContextFragment) fragments().get(1)).getAccountAddress();
-    final Bytes32 storageKey = Bytes32.leftPad(hub.messageFrame().getStackItem(0));
+    final Address address = currentFrame.frame().getRecipientAddress();
+    final Bytes32 storageKey = Bytes32.leftPad(currentFrame.frame().getStackItem(0));
     final Bytes32 valueCurr =
-        Bytes32.leftPad(hub.messageFrame().getTransientStorageValue(address, storageKey));
-    final Bytes32 valueNext = Bytes32.leftPad(hub.messageFrame().getStackItem(1));
+        Bytes32.leftPad(currentFrame.frame().getTransientStorageValue(address, storageKey));
+    final Bytes32 valueNext = Bytes32.leftPad(currentFrame.frame().getStackItem(1));
 
-    this.addFragment(doing(hubStamp(), address, storageKey, valueCurr, valueNext));
+    this.addFragment(tstoreDoing(hubStamp(), address, storageKey, valueCurr, valueNext));
   }
 
   @Override
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
-    this.addFragment(undoing(hubStamp(), revertStamp(), (TransientFragment) fragments().get(2)));
+    this.addFragment(
+        tstoreUndoing(
+            hubStamp(),
+            revertStamp(),
+            (TransientFragment) fragments().get(TRANSIENT___UNEXCEPTIONAL___TRANSIENT_DOING_ROFF)));
   }
 }

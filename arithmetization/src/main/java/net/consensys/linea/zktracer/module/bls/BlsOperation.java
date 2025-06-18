@@ -16,10 +16,12 @@
 package net.consensys.linea.zktracer.module.bls;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.Trace.Ecdata.P_BN_HI;
-import static net.consensys.linea.zktracer.Trace.Ecdata.P_BN_LO;
-import static net.consensys.linea.zktracer.Trace.Ecdata.SECP256K1N_HI;
-import static net.consensys.linea.zktracer.Trace.Ecdata.SECP256K1N_LO;
+import static net.consensys.linea.zktracer.Trace.Bls.BLS_PRIME_3;
+import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_HI;
+import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_LO;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_0;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_1;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_2;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G1_ADD;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G2_ADD;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_MAP_FP2_TO_G2;
@@ -51,6 +53,7 @@ import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_POINT_EVALUATION;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import lombok.Getter;
@@ -65,16 +68,17 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
 public class BlsOperation extends ModuleOperation {
-  private static final EWord P_BN = EWord.of(P_BN_HI, P_BN_LO);
-  public static final EWord SECP256K1N = EWord.of(SECP256K1N_HI, SECP256K1N_LO);
-  public static final int nBYTES_OF_DELTA_BYTES = 4;
+  final EWord BLS_PRIME_HI = EWord.of(BigInteger.valueOf(BLS_PRIME_3), BLS_PRIME_2);
+  final EWord BLS_PRIME_LO = EWord.of(BLS_PRIME_1, BLS_PRIME_0);
+  final EWord POINT_EVALUATION_PRIME =
+      EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
 
   private final Bytes returnData;
 
   private final Wcp wcp;
 
   @Getter private final long id;
-  // private final Bytes rightPaddedCallData;
+  private final Bytes callData;
 
   @Getter private final PrecompileScenarioFragment.PrecompileFlag precompileFlag;
   private final int nRows;
@@ -84,6 +88,8 @@ public class BlsOperation extends ModuleOperation {
   @Getter private final List<Bytes> limb;
   private final int totalSizeData;
   private final int totalSizeResult;
+  private final List<Boolean> mintBit;
+  private final List<Boolean> isInfinity;
 
   // WCP interaction
   private final List<Boolean> wcpFlag;
@@ -103,6 +109,7 @@ public class BlsOperation extends ModuleOperation {
     checkArgument(precompileFlag.isBlsPrecompile(), "invalid BLS type");
 
     this.precompileFlag = precompileFlag;
+    this.callData = callData;
     totalSizeData = callData.size(); // TODO: do we need some padding?
     totalSizeResult = returnData.size();
 
@@ -112,6 +119,8 @@ public class BlsOperation extends ModuleOperation {
     this.id = id;
 
     limb = repeat(Bytes.EMPTY, nRows);
+    mintBit = repeat(false, nRows);
+    isInfinity = repeat(false, nRows);
 
     wcpFlag = repeat(false, nRows);
     wcpArg1Hi = repeat(Bytes.EMPTY, nRows);
@@ -147,7 +156,37 @@ public class BlsOperation extends ModuleOperation {
     return blsOperation;
   }
 
-  private void handlePointEvaluation() {}
+  private void handlePointEvaluation() {
+    // Extract inputs
+    final EWord verHash = EWord.of(callData.slice(0, 32));
+    final EWord z = EWord.of(callData.slice(32, 32));
+    final EWord y = EWord.of(callData.slice(64, 32));
+    final Bytes com = callData.slice(96, 48);
+    final Bytes proof = callData.slice(144, 48);
+
+    // Set input limb
+    limb.set(0, verHash.hi());
+    limb.set(1, verHash.lo());
+    limb.set(2, z.hi());
+    limb.set(3, z.lo());
+    limb.set(4, y.hi());
+    limb.set(5, y.lo());
+    limb.set(6, com.slice(0, 16));
+    limb.set(7, com.slice(16, 16));
+    limb.set(8, com.slice(32, 16));
+    limb.set(9, proof.slice(0, 16));
+    limb.set(10, proof.slice(16, 16));
+    limb.set(11, proof.slice(32, 16));
+
+    final boolean zIsInRange = wcpCallToLT(0, z, POINT_EVALUATION_PRIME);
+
+    final boolean yIsInRange = wcpCallToLT(1, y, POINT_EVALUATION_PRIME);
+
+    final boolean internalChecksPassed = zIsInRange && yIsInRange;
+
+    // TODO: propagate condition
+    this.mintBit.set(0, !internalChecksPassed);
+  }
 
   private void handleBlsG1Add() {}
 
@@ -219,7 +258,8 @@ public class BlsOperation extends ModuleOperation {
     }
   }
 
-  private boolean callWcp(int i, OpCode wcpInst, EWord arg1, EWord arg2) {
+  // Utilities
+  private boolean wcpCallTo(int i, OpCode wcpInst, EWord arg1, EWord arg2) {
     final boolean wcpRes =
         switch (wcpInst) {
           case LT -> wcp.callLT(arg1, arg2);
@@ -237,8 +277,91 @@ public class BlsOperation extends ModuleOperation {
     return wcpRes;
   }
 
+  private boolean wcpCallToLT(int i, EWord arg1, EWord arg2) {
+    return wcpCallTo(i, OpCode.LT, arg1, arg2);
+  }
+
+  private boolean wcpCallToEQ(int i, EWord arg1, EWord arg2) {
+    return wcpCallTo(i, OpCode.EQ, arg1, arg2);
+  }
+
+  private boolean wcpGeneralizedCallToLT(
+      int i, EWord arg1Hi, EWord arg1Lo, EWord arg2Hi, EWord arg2Lo) {
+    wcpCallToLT(i + 1, arg1Hi, arg2Hi);
+    wcpCallToEQ(i + 2, arg1Hi, arg2Hi);
+    wcpCallToLT(i + 3, arg1Lo, arg2Lo);
+
+    final boolean wcpRes =
+        this.wcpRes.get(i + 1) || (this.wcpRes.get(i + 2) && this.wcpRes.get(i + 3));
+    this.wcpRes.set(i, wcpRes); // TODO: do we want to set other WCP columns here?
+
+    return wcpRes;
+  }
+
+  private void wellFormedFpCoordinateAndInfinityCheck(
+      int i, EWord pXHi, EWord pXLo, EWord pYHi, EWord pYLo) {
+    final boolean pXIsInRange = wcpGeneralizedCallToLT(i, pXHi, pXLo, BLS_PRIME_HI, BLS_PRIME_LO);
+
+    final boolean pYIsInRange =
+        wcpGeneralizedCallToLT(i + 4, pYHi, pYLo, BLS_PRIME_HI, BLS_PRIME_LO);
+
+    final boolean wellFormedCoordinate = pXIsInRange && pYIsInRange;
+
+    // TODO: propagate condition
+    this.mintBit.set(i, !wellFormedCoordinate);
+
+    isInfinity(
+        i,
+        pXHi.toBigInteger()
+            .add(pXLo.toBigInteger())
+            .add(pYHi.toBigInteger())
+            .add(pYLo.toBigInteger()));
+  }
+
+  private void wellFormedFp2CoordinateAndInfinityCheck(
+      int i,
+      EWord pXImHi,
+      EWord pXImLo,
+      EWord pXReHi,
+      EWord pXReLo,
+      EWord pYImHi,
+      EWord pYImLo,
+      EWord pYReHi,
+      EWord pYReLo) {
+    final boolean pXImIsInRange =
+        wcpGeneralizedCallToLT(i, pXImHi, pXImLo, BLS_PRIME_HI, BLS_PRIME_LO);
+    final boolean pXReIsInRange =
+        wcpGeneralizedCallToLT(i + 4, pXReHi, pXReLo, BLS_PRIME_HI, BLS_PRIME_LO);
+    final boolean pYImIsInRange =
+        wcpGeneralizedCallToLT(i + 8, pYImHi, pYImLo, BLS_PRIME_HI, BLS_PRIME_LO);
+    final boolean pYReIsInRange =
+        wcpGeneralizedCallToLT(i + 12, pYReHi, pYReLo, BLS_PRIME_HI, BLS_PRIME_LO);
+
+    final boolean wellFormedCoordinate =
+        pXImIsInRange && pXReIsInRange && pYImIsInRange && pYReIsInRange;
+
+    // TODO: propagate condition
+    this.mintBit.set(i, !wellFormedCoordinate);
+
+    isInfinity(
+        i,
+        pXImHi
+            .toBigInteger()
+            .add(pXImLo.toBigInteger())
+            .add(pXReHi.toBigInteger())
+            .add(pXReLo.toBigInteger())
+            .add(pYImHi.toBigInteger())
+            .add(pYImLo.toBigInteger())
+            .add(pYReHi.toBigInteger())
+            .add(pYReLo.toBigInteger()));
+  }
+
+  private void isInfinity(int i, BigInteger coordinateSum) {
+    // TODO: propagate condition
+    this.isInfinity.set(i, coordinateSum.signum() == 0);
+  }
+
   void trace(Trace.Bls trace, final int stamp, final long previousId) {
-    // TODO: look at ECDATA as a reference
     trace.fillAndValidateRow();
   }
 

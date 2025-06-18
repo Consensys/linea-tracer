@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.section.transients;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.TraceCancun.Hub.TRANSIENT___UNEXCEPTIONAL___TRANSIENT_DOING_ROFF;
 import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.tstoreDoing;
 import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.tstoreUndoing;
 
@@ -32,6 +31,8 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class TStoreSection extends TraceSection implements PostRollbackDefer {
+
+  TransientFragment tstoreDoing;
 
   public TStoreSection(Hub hub) {
     super(hub, (short) 4);
@@ -58,15 +59,12 @@ public class TStoreSection extends TraceSection implements PostRollbackDefer {
         Bytes32.leftPad(currentFrame.frame().getTransientStorageValue(address, storageKey));
     final Bytes32 valueNext = Bytes32.leftPad(currentFrame.frame().getStackItem(1));
 
-    this.addFragment(tstoreDoing(hubStamp(), address, storageKey, valueCurr, valueNext));
+    tstoreDoing = tstoreDoing(hubStamp(), address, storageKey, valueCurr, valueNext);
+    this.addFragment(tstoreDoing);
   }
 
   @Override
   public void resolveUponRollback(Hub hub, MessageFrame messageFrame, CallFrame callFrame) {
-    this.addFragment(
-        tstoreUndoing(
-            hubStamp(),
-            revertStamp(),
-            (TransientFragment) fragments().get(TRANSIENT___UNEXCEPTIONAL___TRANSIENT_DOING_ROFF)));
+    this.addFragment(tstoreUndoing(hubStamp(), revertStamp(), tstoreDoing));
   }
 }

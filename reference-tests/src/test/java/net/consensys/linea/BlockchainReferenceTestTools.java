@@ -347,7 +347,7 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("walletReorganizeOwners_London\\[London\\]");
 
     // Tests have a root hash mismatch
-    // They have been remove from legacy ethereum tests repo
+    // They have been removed from legacy ethereum tests repo
     // - all the other ecmul tests for point 1,3 factor 0 are run for Byzantium and
     // Contantinople+Fix
     // - in state tests, they run on the 3 forks above only
@@ -365,12 +365,14 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g2v0_Shanghai\\[Shanghai\\]");
     // - all the other ecadd tests for points (0,0) and (0,0) have coinbase pre and post with
     // balance
+    // - coinbase is in pre and not post and has no balance
     PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g0v0_Shanghai\\[Shanghai\\]");
     PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g1v0_Shanghai\\[Shanghai\\]");
     PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g2v0_Shanghai\\[Shanghai\\]");
     PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g3v0_Shanghai\\[Shanghai\\]");
     // - all the other ecadd tests for points (1,3) and (0,0) have coinbase pre and post with
     // balance
+    // - coinbase is in pre and not post and has no balance
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g0v0_Shanghai\\[Shanghai\\]");
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g1v0_Shanghai\\[Shanghai\\]");
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g2v0_Shanghai\\[Shanghai\\]");
@@ -380,6 +382,10 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/balance_within_block.json");
     PARAMS.ignore(
         "BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/use_value_in_contract.json");
+
+    // Pending deployment number fix
+    // Issue #https://github.com/Consensys/linea-specification/issues/191
+    PARAMS.ignore("create2collisionwithSelfdestructSameBlock.json");
   }
 
   private BlockchainReferenceTestTools() {

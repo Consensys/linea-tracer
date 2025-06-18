@@ -109,8 +109,7 @@ public abstract class AccountFragment
     // This allows us to properly fill EXISTS_INFTY, DEPLOYMENT_NUMBER_INFTY and CODE_FRAGMENT_INDEX
     hub.defers().scheduleForPostConflation(this);
 
-    // This allows us to properly fill MARKED_FOR_SELFDESTRUCT and MARKED_FOR_SELFDESTRUCT_NEW,
-    // among other things
+    // This allows us to properly fill MARKED_FOR_SELFDESTRUCT/DELETION(_NEW), among other things
     hub.defers().scheduleForEndTransaction(this);
 
     // This allows us to keep track of account that are accessed by the HUB during the execution of

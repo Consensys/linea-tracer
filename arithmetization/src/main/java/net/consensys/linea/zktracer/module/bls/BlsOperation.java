@@ -17,8 +17,11 @@ package net.consensys.linea.zktracer.module.bls;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.Bls.BLS_PRIME_3;
+import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_LARGE_POINT;
+import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SMALL_POINT;
 import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_HI;
 import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_LO;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_0;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_1;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_2;
@@ -52,6 +55,7 @@ import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_POINT_EVALUATION;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -72,6 +76,9 @@ public class BlsOperation extends ModuleOperation {
   final EWord BLS_PRIME_LO = EWord.of(BLS_PRIME_1, BLS_PRIME_0);
   final EWord POINT_EVALUATION_PRIME =
       EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
+
+  private final int SIZE_SMALL_POINT = LLARGE * (CT_MAX_SMALL_POINT + 1);
+  private final int SIZE_LARGE_POINT = LLARGE * (CT_MAX_LARGE_POINT + 1);
 
   private final Bytes returnData;
 
@@ -188,7 +195,34 @@ public class BlsOperation extends ModuleOperation {
     this.mintBit.set(0, !internalChecksPassed);
   }
 
-  private void handleBlsG1Add() {}
+  private void handleBlsG1Add() {
+    for (int k = 0; k < 2; k++) {
+      final int sizeOffset = k * SIZE_SMALL_POINT;
+      final int indexOffset = k * (CT_MAX_SMALL_POINT + 1);
+
+      // Extract inputs
+      final Bytes aX3 = callData.slice(sizeOffset, LLARGE);
+      final Bytes aX2 = callData.slice(LLARGE + sizeOffset, LLARGE);
+      final Bytes aX1 = callData.slice(2 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aX0 = callData.slice(3 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY3 = callData.slice(4 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY2 = callData.slice(5 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY1 = callData.slice(6 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY0 = callData.slice(7 * LLARGE + sizeOffset, LLARGE);
+
+      // Set input limb
+      limb.set(indexOffset, aX3);
+      limb.set(1 + indexOffset, aX2);
+      limb.set(2 + indexOffset, aX1);
+      limb.set(3 + indexOffset, aX0);
+      limb.set(4 + indexOffset, aY3);
+      limb.set(5 + indexOffset, aY2);
+      limb.set(6 + indexOffset, aY1);
+      limb.set(7 + indexOffset, aY0);
+
+      wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+    }
+  }
 
   private void handleBlsG1Msm() {}
 
@@ -286,10 +320,12 @@ public class BlsOperation extends ModuleOperation {
   }
 
   private boolean wcpGeneralizedCallToLT(
-      int i, EWord arg1Hi, EWord arg1Lo, EWord arg2Hi, EWord arg2Lo) {
-    wcpCallToLT(i + 1, arg1Hi, arg2Hi);
-    wcpCallToEQ(i + 2, arg1Hi, arg2Hi);
-    wcpCallToLT(i + 3, arg1Lo, arg2Lo);
+      int i, Bytes a, Bytes b, Bytes c, Bytes d, Bytes e, Bytes f, Bytes g, Bytes h) {
+    // First argument: a, b, c, d
+    // Second argument: e, f, g, h
+    wcpCallToLT(i + 1, EWord.of(a, b), EWord.of(e, f));
+    wcpCallToEQ(i + 2, EWord.of(a, b), EWord.of(e, f));
+    wcpCallToLT(i + 3, EWord.of(c, d), EWord.of(g, h));
 
     final boolean wcpRes =
         this.wcpRes.get(i + 1) || (this.wcpRes.get(i + 2) && this.wcpRes.get(i + 3));
@@ -298,12 +334,33 @@ public class BlsOperation extends ModuleOperation {
     return wcpRes;
   }
 
-  private void wellFormedFpCoordinateAndInfinityCheck(
-      int i, EWord pXHi, EWord pXLo, EWord pYHi, EWord pYLo) {
-    final boolean pXIsInRange = wcpGeneralizedCallToLT(i, pXHi, pXLo, BLS_PRIME_HI, BLS_PRIME_LO);
+  // This is defined here for convenience, but not presented in the specs
+  private boolean callToLTBlsPrime(int i, Bytes p3, Bytes p2, Bytes p1, Bytes p0) {
+    return wcpGeneralizedCallToLT(
+        i,
+        p3,
+        p2,
+        p1,
+        p0,
+        Bytes.ofUnsignedShort(BLS_PRIME_3),
+        bigIntegerToBytes(BLS_PRIME_2),
+        bigIntegerToBytes(BLS_PRIME_1),
+        bigIntegerToBytes(BLS_PRIME_0));
+  }
 
-    final boolean pYIsInRange =
-        wcpGeneralizedCallToLT(i + 4, pYHi, pYLo, BLS_PRIME_HI, BLS_PRIME_LO);
+  private void wellFormedFpCoordinateAndInfinityCheck(
+      int i,
+      Bytes pX3,
+      Bytes pX2,
+      Bytes pX1,
+      Bytes pX0,
+      Bytes pY3,
+      Bytes pY2,
+      Bytes pY1,
+      Bytes pY0) {
+    final boolean pXIsInRange = callToLTBlsPrime(i, pX3, pX2, pX1, pX0);
+
+    final boolean pYIsInRange = callToLTBlsPrime(i + 4, pY3, pY2, pY1, pY0);
 
     final boolean wellFormedCoordinate = pXIsInRange && pYIsInRange;
 
@@ -312,30 +369,42 @@ public class BlsOperation extends ModuleOperation {
 
     isInfinity(
         i,
-        pXHi.toBigInteger()
-            .add(pXLo.toBigInteger())
-            .add(pYHi.toBigInteger())
-            .add(pYLo.toBigInteger()));
+        pX3.toBigInteger()
+            .add(pX2.toBigInteger())
+            .add(pX1.toBigInteger())
+            .add(pX0.toBigInteger())
+            .add(pY3.toBigInteger())
+            .add(pY2.toBigInteger())
+            .add(pY1.toBigInteger())
+            .add(pY0.toBigInteger()));
   }
 
   private void wellFormedFp2CoordinateAndInfinityCheck(
       int i,
-      EWord pXImHi,
-      EWord pXImLo,
-      EWord pXReHi,
-      EWord pXReLo,
-      EWord pYImHi,
-      EWord pYImLo,
-      EWord pYReHi,
-      EWord pYReLo) {
-    final boolean pXImIsInRange =
-        wcpGeneralizedCallToLT(i, pXImHi, pXImLo, BLS_PRIME_HI, BLS_PRIME_LO);
-    final boolean pXReIsInRange =
-        wcpGeneralizedCallToLT(i + 4, pXReHi, pXReLo, BLS_PRIME_HI, BLS_PRIME_LO);
-    final boolean pYImIsInRange =
-        wcpGeneralizedCallToLT(i + 8, pYImHi, pYImLo, BLS_PRIME_HI, BLS_PRIME_LO);
-    final boolean pYReIsInRange =
-        wcpGeneralizedCallToLT(i + 12, pYReHi, pYReLo, BLS_PRIME_HI, BLS_PRIME_LO);
+      Bytes pXIm3,
+      Bytes pXIm2,
+      Bytes pXIm1,
+      Bytes pXIm0,
+      Bytes pXRe3,
+      Bytes pXRe2,
+      Bytes pXRe1,
+      Bytes pXRe0,
+      Bytes pYIm3,
+      Bytes pYIm2,
+      Bytes pYIm1,
+      Bytes pYIm0,
+      Bytes pYRe3,
+      Bytes pYRe2,
+      Bytes pYRe1,
+      Bytes pYRe0) {
+
+    final boolean pXImIsInRange = callToLTBlsPrime(i, pXIm3, pXIm2, pXIm1, pXIm0);
+
+    final boolean pXReIsInRange = callToLTBlsPrime(i + 4, pXRe3, pXRe2, pXRe1, pXRe0);
+
+    final boolean pYImIsInRange = callToLTBlsPrime(i + 8, pYIm3, pYIm2, pYIm1, pYIm0);
+
+    final boolean pYReIsInRange = callToLTBlsPrime(i + 12, pYRe3, pYRe2, pYRe1, pYRe0);
 
     final boolean wellFormedCoordinate =
         pXImIsInRange && pXReIsInRange && pYImIsInRange && pYReIsInRange;
@@ -345,15 +414,23 @@ public class BlsOperation extends ModuleOperation {
 
     isInfinity(
         i,
-        pXImHi
+        pXIm3
             .toBigInteger()
-            .add(pXImLo.toBigInteger())
-            .add(pXReHi.toBigInteger())
-            .add(pXReLo.toBigInteger())
-            .add(pYImHi.toBigInteger())
-            .add(pYImLo.toBigInteger())
-            .add(pYReHi.toBigInteger())
-            .add(pYReLo.toBigInteger()));
+            .add(pXIm2.toBigInteger())
+            .add(pXIm1.toBigInteger())
+            .add(pXIm0.toBigInteger())
+            .add(pXRe3.toBigInteger())
+            .add(pXRe2.toBigInteger())
+            .add(pXRe1.toBigInteger())
+            .add(pXRe0.toBigInteger())
+            .add(pYIm3.toBigInteger())
+            .add(pYIm2.toBigInteger())
+            .add(pYIm1.toBigInteger())
+            .add(pYIm0.toBigInteger())
+            .add(pYRe3.toBigInteger())
+            .add(pYRe2.toBigInteger())
+            .add(pYRe1.toBigInteger())
+            .add(pYRe0.toBigInteger()));
   }
 
   private void isInfinity(int i, BigInteger coordinateSum) {

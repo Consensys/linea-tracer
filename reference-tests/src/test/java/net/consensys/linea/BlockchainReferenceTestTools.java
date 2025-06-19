@@ -378,7 +378,9 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g2v0_Shanghai\\[Shanghai\\]");
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g3v0_Shanghai\\[Shanghai\\]");
 
-    // Account balance inconsistent 0x0000000000000000000000000000000000000200
+    // System transactions Withdrawals are not supported
+    // Breaks hub.account-consistency---linking---conflation-level---balance as the transition on
+    // account 0x0000000000000000000000000000000000000200
     PARAMS.ignore("BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/balance_within_block.json");
     PARAMS.ignore(
         "BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/use_value_in_contract.json");

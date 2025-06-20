@@ -58,6 +58,6 @@ public class CancunAccountFragment extends LondonAccountFragment {
 
   @Override
   void traceHadCodeInitially(Trace.Hub trace) {
-    trace.pAccountHadCodeInitially(tx.hadCodeInitially().get(oldState().address()).hadCode());
+    trace.pAccountHadCodeInitially(tx.hadCodeInitiallyMap().get(oldState().address()).hadCode());
   }
 }

@@ -132,7 +132,7 @@ public abstract class TransactionProcessingMetadata {
 
   @Accessors(fluent = true)
   @Getter
-  private final Map<Address, TimeAndExistence> hadCodeInitially = new HashMap<>();
+  private final Map<Address, TimeAndExistence> hadCodeInitiallyMap = new HashMap<>();
 
   public TransactionProcessingMetadata(
       final Hub hub,
@@ -374,13 +374,13 @@ public abstract class TransactionProcessingMetadata {
 
     final TimeAndExistence newOccurrence = new TimeAndExistence(domStamp, subStamp, hadCode);
 
-    if (hadCodeInitially.containsKey(address)) {
-      final TimeAndExistence oldOccurrence = hadCodeInitially.get(address);
+    if (hadCodeInitiallyMap.containsKey(address)) {
+      final TimeAndExistence oldOccurrence = hadCodeInitiallyMap.get(address);
       if (oldOccurrence.needsUpDate(newOccurrence)) {
-        hadCodeInitially.replace(address, oldOccurrence, newOccurrence);
+        hadCodeInitiallyMap.replace(address, oldOccurrence, newOccurrence);
       }
     } else {
-      hadCodeInitially.put(address, newOccurrence);
+      hadCodeInitiallyMap.put(address, newOccurrence);
     }
   }
 }

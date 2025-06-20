@@ -330,7 +330,7 @@ public abstract class TransactionProcessingMetadata {
       // the time in which the first unexceptional and un-reverted SELFDESTRUCT occurs
       // Then we add this value in a new map
       for (AttemptedSelfDestruct attemptedSelfDestruct : attemptedSelfDestructs) {
-        if (attemptedSelfDestruct.callFrame().revertStamp() == 0) {
+        if (attemptedSelfDestruct.callFrame().wontRevert()) {
           final int selfDestructTime = attemptedSelfDestruct.hubStamp();
           effectiveSelfDestructMap.put(ephemeralAccount, selfDestructTime);
           break;

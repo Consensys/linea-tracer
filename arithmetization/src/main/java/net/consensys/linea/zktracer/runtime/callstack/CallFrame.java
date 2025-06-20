@@ -250,6 +250,10 @@ public class CallFrame {
     return selfReverts() || getsReverted();
   }
 
+  public boolean wontRevert() {
+    return !willRevert();
+  }
+
   public void initializeFrame(final MessageFrame frame) {
     this.frame = frame;
   }

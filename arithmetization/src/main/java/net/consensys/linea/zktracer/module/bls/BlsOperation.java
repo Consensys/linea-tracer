@@ -18,10 +18,12 @@ package net.consensys.linea.zktracer.module.bls;
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.Bls.BLS_PRIME_3;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_LARGE_POINT;
+import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SCALAR;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SMALL_POINT;
 import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_HI;
 import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_LO;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_0;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_1;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_2;
@@ -58,6 +60,7 @@ import static net.consensys.linea.zktracer.types.Containers.repeat;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
 
 import lombok.Getter;
@@ -79,6 +82,7 @@ public class BlsOperation extends ModuleOperation {
 
   private final int SIZE_SMALL_POINT = LLARGE * (CT_MAX_SMALL_POINT + 1);
   private final int SIZE_LARGE_POINT = LLARGE * (CT_MAX_LARGE_POINT + 1);
+  private final int SIZE_SCALAR = LLARGE * (CT_MAX_SCALAR + 1);
 
   private final Bytes returnData;
 
@@ -165,11 +169,11 @@ public class BlsOperation extends ModuleOperation {
 
   private void handlePointEvaluation() {
     // Extract inputs
-    final EWord verHash = EWord.of(callData.slice(0, 32));
-    final EWord z = EWord.of(callData.slice(32, 32));
-    final EWord y = EWord.of(callData.slice(64, 32));
-    final Bytes com = callData.slice(96, 48);
-    final Bytes proof = callData.slice(144, 48);
+    final EWord verHash = EWord.of(callData.slice(0, WORD_SIZE));
+    final EWord z = EWord.of(callData.slice(WORD_SIZE, WORD_SIZE));
+    final EWord y = EWord.of(callData.slice(2 * WORD_SIZE, WORD_SIZE));
+    final Bytes com = callData.slice(3 * WORD_SIZE, 3 * LLARGE);
+    final Bytes proof = callData.slice(3 * WORD_SIZE + 3 * LLARGE, 3 * LLARGE);
 
     // Set input limb
     limb.set(0, verHash.hi());
@@ -178,12 +182,12 @@ public class BlsOperation extends ModuleOperation {
     limb.set(3, z.lo());
     limb.set(4, y.hi());
     limb.set(5, y.lo());
-    limb.set(6, com.slice(0, 16));
-    limb.set(7, com.slice(16, 16));
-    limb.set(8, com.slice(32, 16));
-    limb.set(9, proof.slice(0, 16));
-    limb.set(10, proof.slice(16, 16));
-    limb.set(11, proof.slice(32, 16));
+    limb.set(6, com.slice(0, LLARGE));
+    limb.set(7, com.slice(LLARGE, LLARGE));
+    limb.set(8, com.slice(2 * LLARGE, LLARGE));
+    limb.set(9, proof.slice(0, LLARGE));
+    limb.set(10, proof.slice(LLARGE, LLARGE));
+    limb.set(11, proof.slice(2 * LLARGE, LLARGE));
 
     final boolean zIsInRange = wcpCallToLT(0, z, POINT_EVALUATION_PRIME);
 
@@ -224,7 +228,38 @@ public class BlsOperation extends ModuleOperation {
     }
   }
 
-  private void handleBlsG1Msm() {}
+  private void handleBlsG1Msm() {
+    final int numberOfInputs = callData.size() / (SIZE_SMALL_POINT + SIZE_SCALAR);
+    for (int k = 0; k < numberOfInputs; k++) {
+      final int sizeOffset = k * (SIZE_SMALL_POINT + SIZE_SCALAR);
+      final int indexOffset = k * (CT_MAX_SMALL_POINT + 1 + CT_MAX_SCALAR + 1);
+
+      // Extract inputs
+      final Bytes aX3 = callData.slice(sizeOffset, LLARGE);
+      final Bytes aX2 = callData.slice(LLARGE + sizeOffset, LLARGE);
+      final Bytes aX1 = callData.slice(2 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aX0 = callData.slice(3 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY3 = callData.slice(4 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY2 = callData.slice(5 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY1 = callData.slice(6 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY0 = callData.slice(7 * LLARGE + sizeOffset, LLARGE);
+      final EWord n = EWord.of(callData.slice(8 * LLARGE + sizeOffset, WORD_SIZE));
+
+      // Set input limb
+      limb.set(indexOffset, aX3);
+      limb.set(1 + indexOffset, aX2);
+      limb.set(2 + indexOffset, aX1);
+      limb.set(3 + indexOffset, aX0);
+      limb.set(4 + indexOffset, aY3);
+      limb.set(5 + indexOffset, aY2);
+      limb.set(6 + indexOffset, aY1);
+      limb.set(7 + indexOffset, aY0);
+      limb.set(8 + indexOffset, n.hi());
+      limb.set(9 + indexOffset, n.lo());
+
+      wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+    }
+  }
 
   private void handleBlsG2Add() {}
 
@@ -364,19 +399,11 @@ public class BlsOperation extends ModuleOperation {
 
     final boolean wellFormedCoordinate = pXIsInRange && pYIsInRange;
 
-    // TODO: propagate condition
-    this.mintBit.set(i, !wellFormedCoordinate);
+    for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
+      this.mintBit.set(i + j, !wellFormedCoordinate);
+    }
 
-    isInfinity(
-        i,
-        pX3.toBigInteger()
-            .add(pX2.toBigInteger())
-            .add(pX1.toBigInteger())
-            .add(pX0.toBigInteger())
-            .add(pY3.toBigInteger())
-            .add(pY2.toBigInteger())
-            .add(pY1.toBigInteger())
-            .add(pY0.toBigInteger()));
+    isInfinity(i, pX3, pX2, pX1, pX0, pY3, pY2, pY1, pY0);
   }
 
   private void wellFormedFp2CoordinateAndInfinityCheck(
@@ -409,33 +436,27 @@ public class BlsOperation extends ModuleOperation {
     final boolean wellFormedCoordinate =
         pXImIsInRange && pXReIsInRange && pYImIsInRange && pYReIsInRange;
 
-    // TODO: propagate condition
-    this.mintBit.set(i, !wellFormedCoordinate);
+    for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
+      this.mintBit.set(i + j, !wellFormedCoordinate);
+    }
 
     isInfinity(
-        i,
-        pXIm3
-            .toBigInteger()
-            .add(pXIm2.toBigInteger())
-            .add(pXIm1.toBigInteger())
-            .add(pXIm0.toBigInteger())
-            .add(pXRe3.toBigInteger())
-            .add(pXRe2.toBigInteger())
-            .add(pXRe1.toBigInteger())
-            .add(pXRe0.toBigInteger())
-            .add(pYIm3.toBigInteger())
-            .add(pYIm2.toBigInteger())
-            .add(pYIm1.toBigInteger())
-            .add(pYIm0.toBigInteger())
-            .add(pYRe3.toBigInteger())
-            .add(pYRe2.toBigInteger())
-            .add(pYRe1.toBigInteger())
-            .add(pYRe0.toBigInteger()));
+        i, pXIm3, pXIm2, pXIm1, pXIm0, pXRe3, pXRe2, pXRe1, pXRe0, pYIm3, pYIm2, pYIm1, pYIm0,
+        pYRe3, pYRe2, pYRe1, pYRe0);
   }
 
-  private void isInfinity(int i, BigInteger coordinateSum) {
-    // TODO: propagate condition
-    this.isInfinity.set(i, coordinateSum.signum() == 0);
+  // Note: in the specs isInfinity receives directly the sum of the coordinate
+  private void isInfinity(int i, Bytes... coordinate) {
+    BigInteger coordinateSum =
+        Arrays.stream(coordinate).map(Bytes::toBigInteger).reduce(BigInteger.ZERO, BigInteger::add);
+
+    // Check if the sum of coordinates is zero, i.e., the point is at infinity
+    final boolean isInfinity = coordinateSum.signum() == 0;
+
+    // Set the isInfinity flag for all coordinates
+    for (int j = 0; j < coordinate.length; j++) {
+      this.isInfinity.set(i, isInfinity);
+    }
   }
 
   void trace(Trace.Bls trace, final int stamp, final long previousId) {

@@ -261,11 +261,216 @@ public class BlsOperation extends ModuleOperation {
     }
   }
 
-  private void handleBlsG2Add() {}
+  private void handleBlsG2Add() {
+    for (int k = 0; k < 2; k++) {
+      final int sizeOffset = k * SIZE_LARGE_POINT;
+      final int indexOffset = k * (CT_MAX_LARGE_POINT + 1);
 
-  private void handleBlsG2Msm() {}
+      // Extract inputs
+      final Bytes aXIm3 = callData.slice(sizeOffset, LLARGE);
+      final Bytes aXIm2 = callData.slice(LLARGE + sizeOffset, LLARGE);
+      final Bytes aXIm1 = callData.slice(2 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXIm0 = callData.slice(3 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXRe3 = callData.slice(4 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXRe2 = callData.slice(5 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXRe1 = callData.slice(6 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXRe0 = callData.slice(7 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYIm3 = callData.slice(8 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYIm2 = callData.slice(9 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYIm1 = callData.slice(10 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYIm0 = callData.slice(11 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYRe3 = callData.slice(12 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYRe2 = callData.slice(13 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYRe1 = callData.slice(14 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYRe0 = callData.slice(15 * LLARGE + sizeOffset, LLARGE);
 
-  private void handleBlsPairingCheck() {}
+      // Set input limb
+      limb.set(indexOffset, aXIm3);
+      limb.set(1 + indexOffset, aXIm2);
+      limb.set(2 + indexOffset, aXIm1);
+      limb.set(3 + indexOffset, aXIm0);
+      limb.set(4 + indexOffset, aXRe3);
+      limb.set(5 + indexOffset, aXRe2);
+      limb.set(6 + indexOffset, aXRe1);
+      limb.set(7 + indexOffset, aXRe0);
+      limb.set(8 + indexOffset, aYIm3);
+      limb.set(9 + indexOffset, aYIm2);
+      limb.set(10 + indexOffset, aYIm1);
+      limb.set(11 + indexOffset, aYIm0);
+      limb.set(12 + indexOffset, aYRe3);
+      limb.set(13 + indexOffset, aYRe2);
+      limb.set(14 + indexOffset, aYRe1);
+      limb.set(15 + indexOffset, aYRe0);
+
+      wellFormedFp2CoordinateAndInfinityCheck(
+          indexOffset,
+          aXIm3,
+          aXIm2,
+          aXIm1,
+          aXIm0,
+          aXRe3,
+          aXRe2,
+          aXRe1,
+          aXRe0,
+          aYIm3,
+          aYIm2,
+          aYIm1,
+          aYIm0,
+          aYRe3,
+          aYRe2,
+          aYRe1,
+          aYRe0);
+    }
+  }
+
+  private void handleBlsG2Msm() {
+    final int numberOfInputs = callData.size() / (SIZE_LARGE_POINT + SIZE_SCALAR);
+    for (int k = 0; k < numberOfInputs; k++) {
+      final int sizeOffset = k * (SIZE_LARGE_POINT + SIZE_SCALAR);
+      final int indexOffset = k * (CT_MAX_LARGE_POINT + 1 + CT_MAX_SCALAR + 1);
+
+      // Extract inputs
+      final Bytes aXIm3 = callData.slice(sizeOffset, LLARGE);
+      final Bytes aXIm2 = callData.slice(LLARGE + sizeOffset, LLARGE);
+      final Bytes aXIm1 = callData.slice(2 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXIm0 = callData.slice(3 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXRe3 = callData.slice(4 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXRe2 = callData.slice(5 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXRe1 = callData.slice(6 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aXRe0 = callData.slice(7 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYIm3 = callData.slice(8 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYIm2 = callData.slice(9 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYIm1 = callData.slice(10 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYIm0 = callData.slice(11 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYRe3 = callData.slice(12 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYRe2 = callData.slice(13 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYRe1 = callData.slice(14 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aYRe0 = callData.slice(15 * LLARGE + sizeOffset, LLARGE);
+      final EWord n = EWord.of(callData.slice(16 * LLARGE + sizeOffset, WORD_SIZE));
+
+      // Set input limb
+      limb.set(indexOffset, aXIm3);
+      limb.set(1 + indexOffset, aXIm2);
+      limb.set(2 + indexOffset, aXIm1);
+      limb.set(3 + indexOffset, aXIm0);
+      limb.set(4 + indexOffset, aXRe3);
+      limb.set(5 + indexOffset, aXRe2);
+      limb.set(6 + indexOffset, aXRe1);
+      limb.set(7 + indexOffset, aXRe0);
+      limb.set(8 + indexOffset, aYIm3);
+      limb.set(9 + indexOffset, aYIm2);
+      limb.set(10 + indexOffset, aYIm1);
+      limb.set(11 + indexOffset, aYIm0);
+      limb.set(12 + indexOffset, aYRe3);
+      limb.set(13 + indexOffset, aYRe2);
+      limb.set(14 + indexOffset, aYRe1);
+      limb.set(15 + indexOffset, aYRe0);
+      limb.set(16 + indexOffset, n.hi());
+      limb.set(17 + indexOffset, n.lo());
+
+      wellFormedFp2CoordinateAndInfinityCheck(
+          indexOffset,
+          aXIm3,
+          aXIm2,
+          aXIm1,
+          aXIm0,
+          aXRe3,
+          aXRe2,
+          aXRe1,
+          aXRe0,
+          aYIm3,
+          aYIm2,
+          aYIm1,
+          aYIm0,
+          aYRe3,
+          aYRe2,
+          aYRe1,
+          aYRe0);
+    }
+  }
+
+  private void handleBlsPairingCheck() {
+    final int numberOfInputs = callData.size() / (SIZE_SMALL_POINT + SIZE_LARGE_POINT);
+    for (int k = 0; k < numberOfInputs; k++) {
+      final int sizeOffset = k * (SIZE_SMALL_POINT + SIZE_LARGE_POINT);
+      final int indexOffset = k * (CT_MAX_SMALL_POINT + 1 + CT_MAX_LARGE_POINT + 1);
+
+      // Extract inputs
+      // Small point
+      final Bytes aX3 = callData.slice(sizeOffset, LLARGE);
+      final Bytes aX2 = callData.slice(LLARGE + sizeOffset, LLARGE);
+      final Bytes aX1 = callData.slice(2 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aX0 = callData.slice(3 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY3 = callData.slice(4 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY2 = callData.slice(5 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY1 = callData.slice(6 * LLARGE + sizeOffset, LLARGE);
+      final Bytes aY0 = callData.slice(7 * LLARGE + sizeOffset, LLARGE);
+      // Large point
+      final Bytes bXIm3 = callData.slice(8 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bXIm2 = callData.slice(9 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bXIm1 = callData.slice(10 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bXIm0 = callData.slice(11 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bXRe3 = callData.slice(12 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bXRe2 = callData.slice(13 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bXRe1 = callData.slice(14 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bXRe0 = callData.slice(15 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bYIm3 = callData.slice(16 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bYIm2 = callData.slice(17 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bYIm1 = callData.slice(18 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bYIm0 = callData.slice(19 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bYRe3 = callData.slice(20 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bYRe2 = callData.slice(21 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bYRe1 = callData.slice(22 * LLARGE + sizeOffset, LLARGE);
+      final Bytes bYRe0 = callData.slice(23 * LLARGE + sizeOffset, LLARGE);
+
+      // Set input limb
+      limb.set(indexOffset, aX3);
+      limb.set(1 + indexOffset, aX2);
+      limb.set(2 + indexOffset, aX1);
+      limb.set(3 + indexOffset, aX0);
+      limb.set(4 + indexOffset, aY3);
+      limb.set(5 + indexOffset, aY2);
+      limb.set(6 + indexOffset, aY1);
+      limb.set(7 + indexOffset, aY0);
+      limb.set(8 + indexOffset, bXIm3);
+      limb.set(9 + indexOffset, bXIm2);
+      limb.set(10 + indexOffset, bXIm1);
+      limb.set(11 + indexOffset, bXIm0);
+      limb.set(12 + indexOffset, bXRe3);
+      limb.set(13 + indexOffset, bXRe2);
+      limb.set(14 + indexOffset, bXRe1);
+      limb.set(15 + indexOffset, bXRe0);
+      limb.set(16 + indexOffset, bYIm3);
+      limb.set(17 + indexOffset, bYIm2);
+      limb.set(18 + indexOffset, bYIm1);
+      limb.set(19 + indexOffset, bYIm0);
+      limb.set(20 + indexOffset, bYRe3);
+      limb.set(21 + indexOffset, bYRe2);
+      limb.set(22 + indexOffset, bYRe1);
+      limb.set(23 + indexOffset, bYRe0);
+
+      wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+
+      wellFormedFp2CoordinateAndInfinityCheck(
+          indexOffset,
+          bXIm3,
+          bXIm2,
+          bXIm1,
+          bXIm0,
+          bXRe3,
+          bXRe2,
+          bXRe1,
+          bXRe0,
+          bYIm3,
+          bYIm2,
+          bYIm1,
+          bYIm0,
+          bYRe3,
+          bYRe2,
+          bYRe1,
+          bYRe0);
+    }
+  }
 
   private void handleBlsMapFpToG1() {}
 

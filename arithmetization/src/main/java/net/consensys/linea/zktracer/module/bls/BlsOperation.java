@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.bls;
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.Bls.BLS_PRIME_3;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_LARGE_POINT;
+import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_POINT_EVALUATION;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SCALAR;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SMALL_POINT;
 import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_HI;
@@ -167,6 +169,7 @@ public class BlsOperation extends ModuleOperation {
     return blsOperation;
   }
 
+  // TODO: fill limb with result rows
   private void handlePointEvaluation() {
     // Extract inputs
     final EWord verHash = EWord.of(callData.slice(0, WORD_SIZE));
@@ -195,8 +198,9 @@ public class BlsOperation extends ModuleOperation {
 
     final boolean internalChecksPassed = zIsInRange && yIsInRange;
 
-    // TODO: propagate condition
-    this.mintBit.set(0, !internalChecksPassed);
+    for (int j = 0; j <= CT_MAX_POINT_EVALUATION; j++) {
+      this.mintBit.set(j, !internalChecksPassed);
+    }
   }
 
   private void handleBlsG1Add() {
@@ -472,9 +476,59 @@ public class BlsOperation extends ModuleOperation {
     }
   }
 
-  private void handleBlsMapFpToG1() {}
+  private void handleBlsMapFpToG1() {
+    // Extract inputs
+    final Bytes e3 = callData.slice(0, LLARGE);
+    final Bytes e2 = callData.slice(LLARGE, LLARGE);
+    final Bytes e1 = callData.slice(2 * LLARGE, LLARGE);
+    final Bytes e0 = callData.slice(3 * LLARGE, LLARGE);
 
-  private void handleBlsMapFp2ToG2() {}
+    // Set input limb
+    limb.set(0, e3);
+    limb.set(1, e2);
+    limb.set(2, e1);
+    limb.set(3, e0);
+
+    final boolean eIsInRange = callToLTBlsPrime(0, e3, e2, e1, e0);
+
+    final boolean internalChecksPassed = eIsInRange;
+
+    for (int j = 0; j <= CT_MAX_MAP_FP2_TO_G2; j++) {
+      this.mintBit.set(j, !internalChecksPassed);
+    }
+  }
+
+  private void handleBlsMapFp2ToG2() {
+    // Extract inputs
+    final Bytes eIm3 = callData.slice(0, LLARGE);
+    final Bytes eIm2 = callData.slice(LLARGE, LLARGE);
+    final Bytes eIm1 = callData.slice(2 * LLARGE, LLARGE);
+    final Bytes eIm0 = callData.slice(3 * LLARGE, LLARGE);
+    final Bytes eRe3 = callData.slice(4 * LLARGE, LLARGE);
+    final Bytes eRe2 = callData.slice(5 * LLARGE, LLARGE);
+    final Bytes eRe1 = callData.slice(6 * LLARGE, LLARGE);
+    final Bytes eRe0 = callData.slice(7 * LLARGE, LLARGE);
+
+    // Set input limb
+    limb.set(0, eIm3);
+    limb.set(1, eIm2);
+    limb.set(2, eIm1);
+    limb.set(3, eIm0);
+    limb.set(4, eRe3);
+    limb.set(5, eRe2);
+    limb.set(6, eRe1);
+    limb.set(7, eRe0);
+
+    final boolean eImIsInRange = callToLTBlsPrime(0, eIm3, eIm2, eIm1, eIm0);
+
+    final boolean eReIsInRange = callToLTBlsPrime(4, eRe3, eRe2, eRe1, eRe0);
+
+    final boolean internalChecksPassed = eImIsInRange && eReIsInRange;
+
+    for (int j = 0; j <= CT_MAX_MAP_FP2_TO_G2; j++) {
+      this.mintBit.set(j, !internalChecksPassed);
+    }
+  }
 
   private static short getPhase(
       PrecompileScenarioFragment.PrecompileFlag precompileFlag, boolean isData) {

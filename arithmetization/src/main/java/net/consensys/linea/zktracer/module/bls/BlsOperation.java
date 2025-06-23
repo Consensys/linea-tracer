@@ -98,11 +98,13 @@ public class BlsOperation extends ModuleOperation {
   private final int nRowsData;
   private final int nRowsResult;
 
+  // TODO: use same order of specs
   @Getter private final List<Bytes> limb;
   private final int totalSizeData;
   private final int totalSizeResult;
   private final List<Boolean> mintBit;
   private final List<Boolean> isInfinity;
+  private boolean successBit;
 
   // WCP interaction
   private final List<Boolean> wcpFlag;
@@ -201,6 +203,23 @@ public class BlsOperation extends ModuleOperation {
     for (int j = 0; j <= CT_MAX_POINT_EVALUATION; j++) {
       this.mintBit.set(j, !internalChecksPassed);
     }
+
+    EWord fieldsElPerBlob = EWord.ZERO;
+    EWord blsMod = EWord.ZERO;
+
+    if (internalChecksPassed && returnData.toArray().length != 0) {
+      checkArgument(returnData.toArray().length == 64);
+      fieldsElPerBlob = EWord.of(returnData.slice(0, 32));
+      blsMod = EWord.of(returnData.slice(32, 32));
+    }
+
+    // Set result limb
+    limb.set(12, fieldsElPerBlob.hi());
+    limb.set(13, fieldsElPerBlob.lo());
+    limb.set(14, blsMod.hi());
+    limb.set(15, blsMod.lo());
+
+    // TODO: set successBit
   }
 
   private void handleBlsG1Add() {
@@ -230,6 +249,39 @@ public class BlsOperation extends ModuleOperation {
 
       wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
     }
+
+    Bytes cX3 = Bytes.EMPTY;
+    Bytes cX2 = Bytes.EMPTY;
+    Bytes cX1 = Bytes.EMPTY;
+    Bytes cX0 = Bytes.EMPTY;
+    Bytes cY3 = Bytes.EMPTY;
+    Bytes cY2 = Bytes.EMPTY;
+    Bytes cY1 = Bytes.EMPTY;
+    Bytes cY0 = Bytes.EMPTY;
+
+    if (returnData.toArray().length != 0) {
+      checkArgument(returnData.toArray().length == SIZE_SMALL_POINT);
+      cX3 = returnData.slice(0, LLARGE);
+      cX2 = returnData.slice(LLARGE, LLARGE);
+      cX1 = returnData.slice(2 * LLARGE, LLARGE);
+      cX0 = returnData.slice(3 * LLARGE, LLARGE);
+      cY3 = returnData.slice(4 * LLARGE, LLARGE);
+      cY2 = returnData.slice(5 * LLARGE, LLARGE);
+      cY1 = returnData.slice(6 * LLARGE, LLARGE);
+      cY0 = returnData.slice(7 * LLARGE, LLARGE);
+    }
+
+    // Set result limb
+    limb.set(16, cX3);
+    limb.set(17, cX2);
+    limb.set(18, cX1);
+    limb.set(19, cX0);
+    limb.set(20, cY3);
+    limb.set(21, cY2);
+    limb.set(22, cY1);
+    limb.set(23, cY0);
+
+    // TODO: set successBit
   }
 
   private void handleBlsG1Msm() {
@@ -263,6 +315,40 @@ public class BlsOperation extends ModuleOperation {
 
       wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
     }
+
+    Bytes cX3 = Bytes.EMPTY;
+    Bytes cX2 = Bytes.EMPTY;
+    Bytes cX1 = Bytes.EMPTY;
+    Bytes cX0 = Bytes.EMPTY;
+    Bytes cY3 = Bytes.EMPTY;
+    Bytes cY2 = Bytes.EMPTY;
+    Bytes cY1 = Bytes.EMPTY;
+    Bytes cY0 = Bytes.EMPTY;
+
+    if (returnData.toArray().length != 0) {
+      checkArgument(returnData.toArray().length == SIZE_SMALL_POINT);
+      cX3 = returnData.slice(0, LLARGE);
+      cX2 = returnData.slice(LLARGE, LLARGE);
+      cX1 = returnData.slice(2 * LLARGE, LLARGE);
+      cX0 = returnData.slice(3 * LLARGE, LLARGE);
+      cY3 = returnData.slice(4 * LLARGE, LLARGE);
+      cY2 = returnData.slice(5 * LLARGE, LLARGE);
+      cY1 = returnData.slice(6 * LLARGE, LLARGE);
+      cY0 = returnData.slice(7 * LLARGE, LLARGE);
+    }
+
+    final int indexOffsetResultMax =
+        (numberOfInputs - 1) * (CT_MAX_SMALL_POINT + 1 + CT_MAX_SCALAR + 1);
+
+    // Set result limb
+    limb.set(10 + indexOffsetResultMax, cX3);
+    limb.set(11 + indexOffsetResultMax, cX2);
+    limb.set(12 + indexOffsetResultMax, cX1);
+    limb.set(13 + indexOffsetResultMax, cX0);
+    limb.set(14 + indexOffsetResultMax, cY3);
+    limb.set(15 + indexOffsetResultMax, cY2);
+    limb.set(16 + indexOffsetResultMax, cY1);
+    limb.set(17 + indexOffsetResultMax, cY0);
   }
 
   private void handleBlsG2Add() {

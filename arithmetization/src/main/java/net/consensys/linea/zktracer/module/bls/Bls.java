@@ -83,5 +83,7 @@ public class Bls implements OperationListModule<BlsOperation> {
       final Bytes returnData) {
     blsOperation = BlsOperation.of(wcp, id, precompileFlag, callData, returnData);
     operations.add(blsOperation);
+
+    // TODO: compute precompile limits
   }
 }

@@ -58,8 +58,18 @@ import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_MAP_FP2_TO_G2;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_ADD;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_MSM;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G2_ADD;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G2_MSM;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_PAIRING_CHECK;
+import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_POINT_EVALUATION;
 import static net.consensys.linea.zktracer.types.Containers.repeat;
+import static net.consensys.linea.zktracer.types.Conversions.ZERO;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -73,6 +83,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScena
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
@@ -81,30 +92,29 @@ public class BlsOperation extends ModuleOperation {
   final EWord BLS_PRIME_LO = EWord.of(BLS_PRIME_1, BLS_PRIME_0);
   final EWord POINT_EVALUATION_PRIME =
       EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
-
+  public static final int nBYTES_OF_DELTA_BYTES = 4;
   private final int SIZE_SMALL_POINT = LLARGE * (CT_MAX_SMALL_POINT + 1);
   private final int SIZE_LARGE_POINT = LLARGE * (CT_MAX_LARGE_POINT + 1);
   private final int SIZE_SCALAR = LLARGE * (CT_MAX_SCALAR + 1);
 
-  private final Bytes returnData;
-
   private final Wcp wcp;
 
-  @Getter private final long id;
   private final Bytes callData;
+  private final Bytes returnData;
 
   @Getter private final PrecompileScenarioFragment.PrecompileFlag precompileFlag;
   private final int nRows;
   private final int nRowsData;
   private final int nRowsResult;
 
-  // TODO: use same order of specs
-  @Getter private final List<Bytes> limb;
+  @Getter private final long id;
   private final int totalSizeData;
   private final int totalSizeResult;
+  @Getter private final List<Bytes> limb;
+  private boolean successBit;
+
   private final List<Boolean> mintBit;
   private final List<Boolean> isInfinity;
-  private boolean successBit;
 
   // WCP interaction
   private final List<Boolean> wcpFlag;
@@ -171,7 +181,6 @@ public class BlsOperation extends ModuleOperation {
     return blsOperation;
   }
 
-  // TODO: fill limb with result rows
   private void handlePointEvaluation() {
     // Extract inputs
     final EWord verHash = EWord.of(callData.slice(0, WORD_SIZE));
@@ -219,7 +228,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(14, blsMod.hi());
     limb.set(15, blsMod.lo());
 
-    // TODO: set successBit
+    // TODO: set successBit and mextBit
   }
 
   private void handleBlsG1Add() {
@@ -250,14 +259,14 @@ public class BlsOperation extends ModuleOperation {
       wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
     }
 
-    Bytes cX3 = Bytes.EMPTY;
-    Bytes cX2 = Bytes.EMPTY;
-    Bytes cX1 = Bytes.EMPTY;
-    Bytes cX0 = Bytes.EMPTY;
-    Bytes cY3 = Bytes.EMPTY;
-    Bytes cY2 = Bytes.EMPTY;
-    Bytes cY1 = Bytes.EMPTY;
-    Bytes cY0 = Bytes.EMPTY;
+    Bytes cX3 = ZERO;
+    Bytes cX2 = ZERO;
+    Bytes cX1 = ZERO;
+    Bytes cX0 = ZERO;
+    Bytes cY3 = ZERO;
+    Bytes cY2 = ZERO;
+    Bytes cY1 = ZERO;
+    Bytes cY0 = ZERO;
 
     if (returnData.toArray().length != 0) {
       checkArgument(returnData.toArray().length == SIZE_SMALL_POINT);
@@ -281,7 +290,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(22, cY1);
     limb.set(23, cY0);
 
-    // TODO: set successBit
+    // TODO: set successBit and mextBit
   }
 
   private void handleBlsG1Msm() {
@@ -316,14 +325,14 @@ public class BlsOperation extends ModuleOperation {
       wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
     }
 
-    Bytes cX3 = Bytes.EMPTY;
-    Bytes cX2 = Bytes.EMPTY;
-    Bytes cX1 = Bytes.EMPTY;
-    Bytes cX0 = Bytes.EMPTY;
-    Bytes cY3 = Bytes.EMPTY;
-    Bytes cY2 = Bytes.EMPTY;
-    Bytes cY1 = Bytes.EMPTY;
-    Bytes cY0 = Bytes.EMPTY;
+    Bytes cX3 = ZERO;
+    Bytes cX2 = ZERO;
+    Bytes cX1 = ZERO;
+    Bytes cX0 = ZERO;
+    Bytes cY3 = ZERO;
+    Bytes cY2 = ZERO;
+    Bytes cY1 = ZERO;
+    Bytes cY0 = ZERO;
 
     if (returnData.toArray().length != 0) {
       checkArgument(returnData.toArray().length == SIZE_SMALL_POINT);
@@ -349,6 +358,8 @@ public class BlsOperation extends ModuleOperation {
     limb.set(15 + indexOffsetResultMax, cY2);
     limb.set(16 + indexOffsetResultMax, cY1);
     limb.set(17 + indexOffsetResultMax, cY0);
+
+    // TODO: set successBit and mextBit
   }
 
   private void handleBlsG2Add() {
@@ -412,22 +423,22 @@ public class BlsOperation extends ModuleOperation {
           aYRe0);
     }
 
-    Bytes cXIm3 = Bytes.EMPTY;
-    Bytes cXIm2 = Bytes.EMPTY;
-    Bytes cXIm1 = Bytes.EMPTY;
-    Bytes cXIm0 = Bytes.EMPTY;
-    Bytes cXRe3 = Bytes.EMPTY;
-    Bytes cXRe2 = Bytes.EMPTY;
-    Bytes cXRe1 = Bytes.EMPTY;
-    Bytes cXRe0 = Bytes.EMPTY;
-    Bytes cYIm3 = Bytes.EMPTY;
-    Bytes cYIm2 = Bytes.EMPTY;
-    Bytes cYIm1 = Bytes.EMPTY;
-    Bytes cYIm0 = Bytes.EMPTY;
-    Bytes cYRe3 = Bytes.EMPTY;
-    Bytes cYRe2 = Bytes.EMPTY;
-    Bytes cYRe1 = Bytes.EMPTY;
-    Bytes cYRe0 = Bytes.EMPTY;
+    Bytes cXIm3 = ZERO;
+    Bytes cXIm2 = ZERO;
+    Bytes cXIm1 = ZERO;
+    Bytes cXIm0 = ZERO;
+    Bytes cXRe3 = ZERO;
+    Bytes cXRe2 = ZERO;
+    Bytes cXRe1 = ZERO;
+    Bytes cXRe0 = ZERO;
+    Bytes cYIm3 = ZERO;
+    Bytes cYIm2 = ZERO;
+    Bytes cYIm1 = ZERO;
+    Bytes cYIm0 = ZERO;
+    Bytes cYRe3 = ZERO;
+    Bytes cYRe2 = ZERO;
+    Bytes cYRe1 = ZERO;
+    Bytes cYRe0 = ZERO;
 
     if (returnData.toArray().length != 0) {
       checkArgument(returnData.toArray().length == SIZE_LARGE_POINT);
@@ -467,7 +478,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(46, cYRe1);
     limb.set(47, cYRe0);
 
-    // TODO: set successBit
+    // TODO: set successBit and mextBit
   }
 
   private void handleBlsG2Msm() {
@@ -535,22 +546,22 @@ public class BlsOperation extends ModuleOperation {
           aYRe0);
     }
 
-    Bytes cXIm3 = Bytes.EMPTY;
-    Bytes cXIm2 = Bytes.EMPTY;
-    Bytes cXIm1 = Bytes.EMPTY;
-    Bytes cXIm0 = Bytes.EMPTY;
-    Bytes cXRe3 = Bytes.EMPTY;
-    Bytes cXRe2 = Bytes.EMPTY;
-    Bytes cXRe1 = Bytes.EMPTY;
-    Bytes cXRe0 = Bytes.EMPTY;
-    Bytes cYIm3 = Bytes.EMPTY;
-    Bytes cYIm2 = Bytes.EMPTY;
-    Bytes cYIm1 = Bytes.EMPTY;
-    Bytes cYIm0 = Bytes.EMPTY;
-    Bytes cYRe3 = Bytes.EMPTY;
-    Bytes cYRe2 = Bytes.EMPTY;
-    Bytes cYRe1 = Bytes.EMPTY;
-    Bytes cYRe0 = Bytes.EMPTY;
+    Bytes cXIm3 = ZERO;
+    Bytes cXIm2 = ZERO;
+    Bytes cXIm1 = ZERO;
+    Bytes cXIm0 = ZERO;
+    Bytes cXRe3 = ZERO;
+    Bytes cXRe2 = ZERO;
+    Bytes cXRe1 = ZERO;
+    Bytes cXRe0 = ZERO;
+    Bytes cYIm3 = ZERO;
+    Bytes cYIm2 = ZERO;
+    Bytes cYIm1 = ZERO;
+    Bytes cYIm0 = ZERO;
+    Bytes cYRe3 = ZERO;
+    Bytes cYRe2 = ZERO;
+    Bytes cYRe1 = ZERO;
+    Bytes cYRe0 = ZERO;
 
     if (returnData.toArray().length != 0) {
       checkArgument(returnData.toArray().length == SIZE_LARGE_POINT);
@@ -593,7 +604,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(32 + indexOffsetResultMax, cYRe1);
     limb.set(33 + indexOffsetResultMax, cYRe0);
 
-    // TODO: set successBit
+    // TODO: set successBit and mextBit
   }
 
   private void handleBlsPairingCheck() {
@@ -692,7 +703,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(24 + indexOffsetResultMax, pairingResult.hi());
     limb.set(25 + indexOffsetResultMax, pairingResult.lo());
 
-    // TODO: set successBit
+    // TODO: set successBit and mextBit
   }
 
   private void handleBlsMapFpToG1() {
@@ -716,14 +727,14 @@ public class BlsOperation extends ModuleOperation {
       this.mintBit.set(j, !internalChecksPassed);
     }
 
-    Bytes cX3 = Bytes.EMPTY;
-    Bytes cX2 = Bytes.EMPTY;
-    Bytes cX1 = Bytes.EMPTY;
-    Bytes cX0 = Bytes.EMPTY;
-    Bytes cY3 = Bytes.EMPTY;
-    Bytes cY2 = Bytes.EMPTY;
-    Bytes cY1 = Bytes.EMPTY;
-    Bytes cY0 = Bytes.EMPTY;
+    Bytes cX3 = ZERO;
+    Bytes cX2 = ZERO;
+    Bytes cX1 = ZERO;
+    Bytes cX0 = ZERO;
+    Bytes cY3 = ZERO;
+    Bytes cY2 = ZERO;
+    Bytes cY1 = ZERO;
+    Bytes cY0 = ZERO;
 
     if (returnData.toArray().length != 0) {
       checkArgument(returnData.toArray().length == SIZE_SMALL_POINT);
@@ -747,7 +758,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(10, cY1);
     limb.set(11, cY0);
 
-    // TODO: set successBit
+    // TODO: set successBit and mextBit
   }
 
   private void handleBlsMapFp2ToG2() {
@@ -781,22 +792,22 @@ public class BlsOperation extends ModuleOperation {
       this.mintBit.set(j, !internalChecksPassed);
     }
 
-    Bytes cXIm3 = Bytes.EMPTY;
-    Bytes cXIm2 = Bytes.EMPTY;
-    Bytes cXIm1 = Bytes.EMPTY;
-    Bytes cXIm0 = Bytes.EMPTY;
-    Bytes cXRe3 = Bytes.EMPTY;
-    Bytes cXRe2 = Bytes.EMPTY;
-    Bytes cXRe1 = Bytes.EMPTY;
-    Bytes cXRe0 = Bytes.EMPTY;
-    Bytes cYIm3 = Bytes.EMPTY;
-    Bytes cYIm2 = Bytes.EMPTY;
-    Bytes cYIm1 = Bytes.EMPTY;
-    Bytes cYIm0 = Bytes.EMPTY;
-    Bytes cYRe3 = Bytes.EMPTY;
-    Bytes cYRe2 = Bytes.EMPTY;
-    Bytes cYRe1 = Bytes.EMPTY;
-    Bytes cYRe0 = Bytes.EMPTY;
+    Bytes cXIm3 = ZERO;
+    Bytes cXIm2 = ZERO;
+    Bytes cXIm1 = ZERO;
+    Bytes cXIm0 = ZERO;
+    Bytes cXRe3 = ZERO;
+    Bytes cXRe2 = ZERO;
+    Bytes cXRe1 = ZERO;
+    Bytes cXRe0 = ZERO;
+    Bytes cYIm3 = ZERO;
+    Bytes cYIm2 = ZERO;
+    Bytes cYIm1 = ZERO;
+    Bytes cYIm0 = ZERO;
+    Bytes cYRe3 = ZERO;
+    Bytes cYRe2 = ZERO;
+    Bytes cYRe1 = ZERO;
+    Bytes cYRe0 = ZERO;
 
     if (returnData.toArray().length != 0) {
       checkArgument(returnData.toArray().length == SIZE_LARGE_POINT);
@@ -1026,7 +1037,75 @@ public class BlsOperation extends ModuleOperation {
   }
 
   void trace(Trace.Bls trace, final int stamp, final long previousId) {
-    trace.fillAndValidateRow();
+    final Bytes deltaByte =
+        leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
+    for (int i = 0; i < nRows; i++) {
+      boolean isData = i < nRowsData;
+      // TODO: fill missing fields
+      trace
+          .stamp(stamp)
+          .id(id)
+          .totalSize(isData ? totalSizeData : totalSizeResult)
+          .index(isData ? i : i - nRowsData)
+          .indexMax(getIndexMax(precompileFlag, isData))
+          .phase(getPhase(precompileFlag, isData))
+          .successBit(successBit)
+          .ct(0)
+          .ctMax(0)
+          .dataPointEvaluationFlag(precompileFlag == PRC_POINT_EVALUATION && isData)
+          .dataBlsG1AddFlag(precompileFlag == PRC_BLS_G1_ADD && isData)
+          .dataBlsG1MsmFlag(precompileFlag == PRC_BLS_G1_MSM && isData)
+          .dataBlsG2AddFlag(precompileFlag == PRC_BLS_G2_ADD && isData)
+          .dataBlsG2MsmFlag(precompileFlag == PRC_BLS_G2_MSM && isData)
+          .dataBlsPairingCheckFlag(precompileFlag == PRC_BLS_PAIRING_CHECK && isData)
+          .dataBlsMapFpToG1Flag(precompileFlag == PRC_BLS_MAP_FP_TO_G1 && isData)
+          .dataBlsMapFp2ToG2Flag(precompileFlag == PRC_BLS_MAP_FP2_TO_G2 && isData)
+          .rsltPointEvaluationFlag(precompileFlag == PRC_POINT_EVALUATION && !isData)
+          .rsltBlsG1AddFlag(precompileFlag == PRC_BLS_G1_ADD && !isData)
+          .rsltBlsG1MsmFlag(precompileFlag == PRC_BLS_G1_MSM && !isData)
+          .rsltBlsG2AddFlag(precompileFlag == PRC_BLS_G2_ADD && !isData)
+          .rsltBlsG2MsmFlag(precompileFlag == PRC_BLS_G2_MSM && !isData)
+          .rsltBlsPairingCheckFlag(precompileFlag == PRC_BLS_PAIRING_CHECK && !isData)
+          .rsltBlsMapFpToG1Flag(precompileFlag == PRC_BLS_MAP_FP_TO_G1 && !isData)
+          .rsltBlsMapFp2ToG2Flag(precompileFlag == PRC_BLS_MAP_FP2_TO_G2 && !isData)
+          .accInputs(0)
+          .byteDelta(
+              i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
+          .malformedDataInternalBit(false)
+          .malformedDataInternalAcc(false)
+          .malformedDataInternalAccTot(false)
+          .malformedDataExternalBit(false)
+          .malformedDataExternalAcc(false)
+          .malformedDataExternalAccTot(false)
+          .wellformedDataTrivial(false)
+          .wellformedDataNontrivial(false)
+          .isFirstInput(false)
+          .isSecondInput(false)
+          .isInfinity(false)
+          .nontrivialPairOfPointsBit(false)
+          .nontrivialPairOfPointsAcc(false)
+          .circuitSelectorPointEvaluation(false)
+          .circuitSelectorPointEvaluationFailure(false)
+          .circuitSelectorC1Membership(false)
+          .circuitSelectorG1Membership(false)
+          .circuitSelectorC2Membership(false)
+          .circuitSelectorG2Membership(false)
+          .circuitSelectorBlsPairingCheck(false)
+          .circuitSelectorBlsG1Add(false)
+          .circuitSelectorBlsG2Add(false)
+          .circuitSelectorBlsG1Msm(false)
+          .circuitSelectorBlsG2Msm(false)
+          .circuitSelectorBlsMapFpToG1(false)
+          .circuitSelectorBlsMapFp2ToG2(false)
+          .wcpFlag(wcpFlag.get(i))
+          .wcpArg1Hi(wcpArg1Hi.get(i))
+          .wcpArg1Lo(wcpArg1Lo.get(i))
+          .wcpArg2Hi(wcpArg2Hi.get(i))
+          .wcpArg2Lo(wcpArg2Lo.get(i))
+          .wcpRes(wcpRes.get(i))
+          .wcpInst(wcpInst.get(i).unsignedByteValue())
+          .validateRow();
+    }
   }
 
   @Override

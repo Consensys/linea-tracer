@@ -188,7 +188,7 @@ public class ReplayTests extends TracerTestBase {
 
   @Test
   void duplicateSubZero() {
-    replay(OLD_MAINNET_TESTCONFIG, "20197061-20197173.mainnet.json.gz");
+    replay(MAINNET_LONDON_TESTCONFIG, "20197061-20197173.mainnet.json.gz");
   }
 
   /**

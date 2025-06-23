@@ -15,10 +15,10 @@
 
 package net.consensys.linea.zktracer.exceptions.multiExceptions;
 
+import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_TRANSACTION;
 import static net.consensys.linea.zktracer.exceptions.ExceptionUtils.*;
-import static net.consensys.linea.zktracer.module.hub.signals.TracedException.MAX_CODE_SIZE_EXCEPTION;
-import static net.consensys.linea.zktracer.module.hub.signals.TracedException.STATIC_FAULT;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
@@ -30,6 +30,7 @@ import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
+import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.module.mxp.MxpTestUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -44,6 +45,7 @@ List of the combinations tested below
 STATIC & OOGX : CREATE, CREATE2
 STATIC & MXPX : CREATE, CREATE2
 STATIC & ROOB : CREATE, CREATE2
+(Post-Shanghai, we test subsets of possible exceptions with MAX_CODE_SIZE_EXCEPTION)
 STATIC & MAX_CODE_SIZE_EXCEPTION : CREATE, CREATE2
 OOGX & MAX_CODE_SIZE_EXCEPTION : CREATE, CREATE2
 MXPX & MAX_CODE_SIZE_EXCEPTION : CREATE, CREATE2
@@ -114,6 +116,7 @@ public class CreatesTest extends TracerTestBase {
     }
   }
 
+  /** Post-shanghai, the following tests might trigger a MAX_CODE_SIZE_EXCEPTION */
   @ParameterizedTest
   @MethodSource("createOpCodesList")
   public void staticAndMaxCodeSizeExceptionsCreates(OpCode opCode) {
@@ -164,9 +167,11 @@ public class CreatesTest extends TracerTestBase {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pg.compile());
     bytecodeRunner.run(gasCostForCreateProgramOOGX, testInfo);
 
-    // MAX_CODE_SIZE_EXCEPTION check happens before OOGX in tracer
+    // (Post-Shanghai) MAX_CODE_SIZE_EXCEPTION check happens before OOGX in tracer
+    TracedException exceptionTriggered =
+        isPostShanghai(testInfo.chainConfig.fork) ? MAX_CODE_SIZE_EXCEPTION : OUT_OF_GAS_EXCEPTION;
     assertEquals(
-        MAX_CODE_SIZE_EXCEPTION,
+        exceptionTriggered,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
   }
 
@@ -188,9 +193,13 @@ public class CreatesTest extends TracerTestBase {
       BytecodeRunner bytecodeRunner = BytecodeRunner.of(pg.compile());
       bytecodeRunner.run(testInfo);
 
-      // MAX_CODE_SIZE_EXCEPTION check is done prior to MXPX
+      // (Post-Shanghai) MAX_CODE_SIZE_EXCEPTION check is done prior to MXPX
+      TracedException exceptionTriggered =
+          isPostShanghai(testInfo.chainConfig.fork)
+              ? MAX_CODE_SIZE_EXCEPTION
+              : MEMORY_EXPANSION_EXCEPTION;
       assertEquals(
-          MAX_CODE_SIZE_EXCEPTION,
+          exceptionTriggered,
           bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
     }
   }

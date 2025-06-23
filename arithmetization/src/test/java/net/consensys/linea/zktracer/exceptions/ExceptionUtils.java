@@ -190,6 +190,32 @@ public class ExceptionUtils extends TracerTestBase {
     return program;
   }
 
+  public static BytecodeCompiler getPgCreateWithInitCodeSizeBy32(OpCode opCode, int sizeBy32) {
+    checkArgument(opCode == OpCode.CREATE || opCode == OpCode.CREATE2);
+
+    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    int decSizeBy32 = sizeBy32;
+
+    while (decSizeBy32 > 0) {
+      // program.push("ffffffffffffffffffffffffffffffffffffffffffffffffffffff6000526020")
+      program
+          .push("4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A4A")
+          .push(sizeBy32 - decSizeBy32)
+          .op(OpCode.MSTORE);
+      decSizeBy32 -= 1;
+    }
+
+    if (opCode == OpCode.CREATE2) {
+      program.push(salt); // salt
+    }
+
+    program.push(sizeBy32 * 32).push(0).push(0);
+
+    program.op(opCode);
+
+    return program;
+  }
+
   /**
    * The {@code initProgram} inserts a single byte {@code startByte} at offset 0 into RAM and
    * returns {@code returnSize} bytes starting at offset 0. There are four cases of interest:

@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.exceptions.multiExceptions;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_TRANSACTION;
 import static net.consensys.linea.zktracer.exceptions.ExceptionUtils.*;
+import static net.consensys.linea.zktracer.module.hub.signals.TracedException.MAX_CODE_SIZE_EXCEPTION;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.STATIC_FAULT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -42,8 +43,10 @@ List of the combinations tested below
 STATIC & OOGX : CREATE, CREATE2
 STATIC & MXPX : CREATE, CREATE2
 STATIC & ROOB : CREATE, CREATE2
+STATIC & MAX_CODE_SIZE_EXCEPTION : CREATE, CREATE2
+OOGX & MAX_CODE_SIZE_EXCEPTION : CREATE, CREATE2
+MXPX & MAX_CODE_SIZE_EXCEPTION : CREATE, CREATE2
 Note : As MXPX is a subcase of OOGX, we don't test MXPX & OOGX
-Note2 : For Shanghai, will need to add combinations with initcodesize exception for CREATE and CREATE2
  */
 
 @ExtendWith(UnitTestWatcher.class)
@@ -84,13 +87,16 @@ public class CreatesTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("createOpCodesList")
   public void staticAndMxpExceptionsCreates(OpCode opCode) {
+    boolean triggerMaxCodeSizeException = false;
     // We test with or without Roob
     boolean[] triggerRoob = new boolean[] {false, true};
 
     for (boolean roob : triggerRoob) {
       // We prepare a program with an MXPX for the opcode
       BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
-      new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, roob, opCode);
+      new MxpTestUtils()
+          .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
+              pg, roob, triggerMaxCodeSizeException, opCode);
 
       // We prepare a program to static call the code account
       ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pg.compile());
@@ -107,8 +113,73 @@ public class CreatesTest extends TracerTestBase {
     }
   }
 
+  @ParameterizedTest
+  @MethodSource("createOpCodesList")
+  public void staticAndMaxCodeSizeExceptionsCreates(OpCode opCode) {
+    BytecodeCompiler pg = getPgCreateWithInitCodeSizeBy32(opCode, 1537);
+
+    // We prepare a program to static call the code account
+    ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pg.compile());
+    BytecodeCompiler pgStaticCallToCode = getProgramStaticCallToCodeAccount();
+
+    // We run the program to static call the account with code that creates with an init code size
+    // exception
+    BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
+    bytecodeRunnerStaticCall.run(List.of(codeProviderAccount), testInfo);
+
+    // Static check happens before MAX_CODE_SIZE_EXCEPTION
+    assertEquals(
+        STATIC_FAULT,
+        bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+  }
+
+  @ParameterizedTest
+  @MethodSource("createOpCodesList")
+  public void OogAndMaxCodeSizeExceptionsCreates(OpCode opCode) {
+    BytecodeCompiler pgForGasCost = getPgCreateWithInitCodeSizeBy32(opCode, 1535);
+    BytecodeCompiler pg = getPgCreateWithInitCodeSizeBy32(opCode, 1537);
+
+    // We run the program to calculate the amount of gas cost
+    BytecodeRunner bytecodeRunnerForGasCost = BytecodeRunner.of(pgForGasCost.compile());
+    long gasCost = bytecodeRunnerForGasCost.runOnlyForGasCost(testInfo);
+
+    // We run the program with lower gas cost to trigger OOGX on creation
+    BytecodeRunner bytecodeRunner = BytecodeRunner.of(pg.compile());
+    bytecodeRunner.run(53000L, testInfo);
+
+    // MAX_CODE_SIZE_EXCEPTION check happens before OOGX in tracer
+    assertEquals(
+        MAX_CODE_SIZE_EXCEPTION,
+        bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+  }
+
+  @ParameterizedTest
+  @MethodSource("createOpCodesList")
+  public void MxpAndMaxCodeSizeExceptionExceptionsCreates(OpCode opCode) {
+    // We test with or without Roob
+    boolean maxCodeSizeException = true;
+    boolean[] triggerRoob = new boolean[] {false, true};
+
+    for (boolean roob : triggerRoob) {
+      // We prepare a program with an MXPX and MAX_CODE_SIZE_EXCEPTION for the opcode
+      BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
+      new MxpTestUtils()
+          .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
+              pg, roob, maxCodeSizeException, opCode);
+
+      // We run the program
+      BytecodeRunner bytecodeRunner = BytecodeRunner.of(pg.compile());
+      bytecodeRunner.run(testInfo);
+
+      // MAX_CODE_SIZE_EXCEPTION check is done prior to MXPX
+      assertEquals(
+          MAX_CODE_SIZE_EXCEPTION,
+          bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
+    }
+  }
+
   static Stream<OpCode> createOpCodesList() {
-    List<OpCode> opCodesListArgument = Arrays.asList(OpCode.CREATE, OpCode.CREATE2);
+    List<OpCode> opCodesListArgument = Arrays.asList(OpCode.CREATE);
     return opCodesListArgument.stream();
   }
 }

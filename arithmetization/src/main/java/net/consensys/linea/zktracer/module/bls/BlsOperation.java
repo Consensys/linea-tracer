@@ -411,6 +411,63 @@ public class BlsOperation extends ModuleOperation {
           aYRe1,
           aYRe0);
     }
+
+    Bytes cXIm3 = Bytes.EMPTY;
+    Bytes cXIm2 = Bytes.EMPTY;
+    Bytes cXIm1 = Bytes.EMPTY;
+    Bytes cXIm0 = Bytes.EMPTY;
+    Bytes cXRe3 = Bytes.EMPTY;
+    Bytes cXRe2 = Bytes.EMPTY;
+    Bytes cXRe1 = Bytes.EMPTY;
+    Bytes cXRe0 = Bytes.EMPTY;
+    Bytes cYIm3 = Bytes.EMPTY;
+    Bytes cYIm2 = Bytes.EMPTY;
+    Bytes cYIm1 = Bytes.EMPTY;
+    Bytes cYIm0 = Bytes.EMPTY;
+    Bytes cYRe3 = Bytes.EMPTY;
+    Bytes cYRe2 = Bytes.EMPTY;
+    Bytes cYRe1 = Bytes.EMPTY;
+    Bytes cYRe0 = Bytes.EMPTY;
+
+    if (returnData.toArray().length != 0) {
+      checkArgument(returnData.toArray().length == SIZE_LARGE_POINT);
+      cXIm3 = returnData.slice(0, LLARGE);
+      cXIm2 = returnData.slice(LLARGE, LLARGE);
+      cXIm1 = returnData.slice(2 * LLARGE, LLARGE);
+      cXIm0 = returnData.slice(3 * LLARGE, LLARGE);
+      cXRe3 = returnData.slice(4 * LLARGE, LLARGE);
+      cXRe2 = returnData.slice(5 * LLARGE, LLARGE);
+      cXRe1 = returnData.slice(6 * LLARGE, LLARGE);
+      cXRe0 = returnData.slice(7 * LLARGE, LLARGE);
+      cYIm3 = returnData.slice(8 * LLARGE, LLARGE);
+      cYIm2 = returnData.slice(9 * LLARGE, LLARGE);
+      cYIm1 = returnData.slice(10 * LLARGE, LLARGE);
+      cYIm0 = returnData.slice(11 * LLARGE, LLARGE);
+      cYRe3 = returnData.slice(12 * LLARGE, LLARGE);
+      cYRe2 = returnData.slice(13 * LLARGE, LLARGE);
+      cYRe1 = returnData.slice(14 * LLARGE, LLARGE);
+      cYRe0 = returnData.slice(15 * LLARGE, LLARGE);
+    }
+
+    // Set result limb
+    limb.set(32, cXIm3);
+    limb.set(33, cXIm2);
+    limb.set(34, cXIm1);
+    limb.set(35, cXIm0);
+    limb.set(36, cXRe3);
+    limb.set(37, cXRe2);
+    limb.set(38, cXRe1);
+    limb.set(39, cXRe0);
+    limb.set(40, cYIm3);
+    limb.set(41, cYIm2);
+    limb.set(42, cYIm1);
+    limb.set(43, cYIm0);
+    limb.set(44, cYRe3);
+    limb.set(45, cYRe2);
+    limb.set(46, cYRe1);
+    limb.set(47, cYRe0);
+
+    // TODO: set successBit
   }
 
   private void handleBlsG2Msm() {
@@ -477,6 +534,66 @@ public class BlsOperation extends ModuleOperation {
           aYRe1,
           aYRe0);
     }
+
+    Bytes cXIm3 = Bytes.EMPTY;
+    Bytes cXIm2 = Bytes.EMPTY;
+    Bytes cXIm1 = Bytes.EMPTY;
+    Bytes cXIm0 = Bytes.EMPTY;
+    Bytes cXRe3 = Bytes.EMPTY;
+    Bytes cXRe2 = Bytes.EMPTY;
+    Bytes cXRe1 = Bytes.EMPTY;
+    Bytes cXRe0 = Bytes.EMPTY;
+    Bytes cYIm3 = Bytes.EMPTY;
+    Bytes cYIm2 = Bytes.EMPTY;
+    Bytes cYIm1 = Bytes.EMPTY;
+    Bytes cYIm0 = Bytes.EMPTY;
+    Bytes cYRe3 = Bytes.EMPTY;
+    Bytes cYRe2 = Bytes.EMPTY;
+    Bytes cYRe1 = Bytes.EMPTY;
+    Bytes cYRe0 = Bytes.EMPTY;
+
+    if (returnData.toArray().length != 0) {
+      checkArgument(returnData.toArray().length == SIZE_LARGE_POINT);
+      cXIm3 = returnData.slice(0, LLARGE);
+      cXIm2 = returnData.slice(LLARGE, LLARGE);
+      cXIm1 = returnData.slice(2 * LLARGE, LLARGE);
+      cXIm0 = returnData.slice(3 * LLARGE, LLARGE);
+      cXRe3 = returnData.slice(4 * LLARGE, LLARGE);
+      cXRe2 = returnData.slice(5 * LLARGE, LLARGE);
+      cXRe1 = returnData.slice(6 * LLARGE, LLARGE);
+      cXRe0 = returnData.slice(7 * LLARGE, LLARGE);
+      cYIm3 = returnData.slice(8 * LLARGE, LLARGE);
+      cYIm2 = returnData.slice(9 * LLARGE, LLARGE);
+      cYIm1 = returnData.slice(10 * LLARGE, LLARGE);
+      cYIm0 = returnData.slice(11 * LLARGE, LLARGE);
+      cYRe3 = returnData.slice(12 * LLARGE, LLARGE);
+      cYRe2 = returnData.slice(13 * LLARGE, LLARGE);
+      cYRe1 = returnData.slice(14 * LLARGE, LLARGE);
+      cYRe0 = returnData.slice(15 * LLARGE, LLARGE);
+    }
+
+    final int indexOffsetResultMax =
+        (numberOfInputs - 1) * (CT_MAX_LARGE_POINT + 1 + CT_MAX_SCALAR + 1);
+
+    // Set result limb
+    limb.set(18 + indexOffsetResultMax, cXIm3);
+    limb.set(19 + indexOffsetResultMax, cXIm2);
+    limb.set(20 + indexOffsetResultMax, cXIm1);
+    limb.set(21 + indexOffsetResultMax, cXIm0);
+    limb.set(22 + indexOffsetResultMax, cXRe3);
+    limb.set(23 + indexOffsetResultMax, cXRe2);
+    limb.set(24 + indexOffsetResultMax, cXRe1);
+    limb.set(25 + indexOffsetResultMax, cXRe0);
+    limb.set(26 + indexOffsetResultMax, cYIm3);
+    limb.set(27 + indexOffsetResultMax, cYIm2);
+    limb.set(28 + indexOffsetResultMax, cYIm1);
+    limb.set(29 + indexOffsetResultMax, cYIm0);
+    limb.set(30 + indexOffsetResultMax, cYRe3);
+    limb.set(31 + indexOffsetResultMax, cYRe2);
+    limb.set(32 + indexOffsetResultMax, cYRe1);
+    limb.set(33 + indexOffsetResultMax, cYRe0);
+
+    // TODO: set successBit
   }
 
   private void handleBlsPairingCheck() {
@@ -560,6 +677,22 @@ public class BlsOperation extends ModuleOperation {
           bYRe1,
           bYRe0);
     }
+
+    EWord pairingResult = EWord.ZERO;
+
+    if (returnData.toArray().length != 0) {
+      checkArgument(returnData.toArray().length == WORD_SIZE);
+      pairingResult = EWord.of(returnData.slice(0, WORD_SIZE));
+    }
+
+    final int indexOffsetResultMax =
+        (numberOfInputs - 1) * (CT_MAX_SMALL_POINT + 1 + CT_MAX_LARGE_POINT + 1);
+
+    // Set result limb
+    limb.set(24 + indexOffsetResultMax, pairingResult.hi());
+    limb.set(25 + indexOffsetResultMax, pairingResult.lo());
+
+    // TODO: set successBit
   }
 
   private void handleBlsMapFpToG1() {
@@ -582,6 +715,39 @@ public class BlsOperation extends ModuleOperation {
     for (int j = 0; j <= CT_MAX_MAP_FP2_TO_G2; j++) {
       this.mintBit.set(j, !internalChecksPassed);
     }
+
+    Bytes cX3 = Bytes.EMPTY;
+    Bytes cX2 = Bytes.EMPTY;
+    Bytes cX1 = Bytes.EMPTY;
+    Bytes cX0 = Bytes.EMPTY;
+    Bytes cY3 = Bytes.EMPTY;
+    Bytes cY2 = Bytes.EMPTY;
+    Bytes cY1 = Bytes.EMPTY;
+    Bytes cY0 = Bytes.EMPTY;
+
+    if (returnData.toArray().length != 0) {
+      checkArgument(returnData.toArray().length == SIZE_SMALL_POINT);
+      cX3 = returnData.slice(0, LLARGE);
+      cX2 = returnData.slice(LLARGE, LLARGE);
+      cX1 = returnData.slice(2 * LLARGE, LLARGE);
+      cX0 = returnData.slice(3 * LLARGE, LLARGE);
+      cY3 = returnData.slice(4 * LLARGE, LLARGE);
+      cY2 = returnData.slice(5 * LLARGE, LLARGE);
+      cY1 = returnData.slice(6 * LLARGE, LLARGE);
+      cY0 = returnData.slice(7 * LLARGE, LLARGE);
+    }
+
+    // Set result limb
+    limb.set(4, cX3);
+    limb.set(5, cX2);
+    limb.set(6, cX1);
+    limb.set(7, cX0);
+    limb.set(8, cY3);
+    limb.set(9, cY2);
+    limb.set(10, cY1);
+    limb.set(11, cY0);
+
+    // TODO: set successBit
   }
 
   private void handleBlsMapFp2ToG2() {
@@ -614,6 +780,61 @@ public class BlsOperation extends ModuleOperation {
     for (int j = 0; j <= CT_MAX_MAP_FP2_TO_G2; j++) {
       this.mintBit.set(j, !internalChecksPassed);
     }
+
+    Bytes cXIm3 = Bytes.EMPTY;
+    Bytes cXIm2 = Bytes.EMPTY;
+    Bytes cXIm1 = Bytes.EMPTY;
+    Bytes cXIm0 = Bytes.EMPTY;
+    Bytes cXRe3 = Bytes.EMPTY;
+    Bytes cXRe2 = Bytes.EMPTY;
+    Bytes cXRe1 = Bytes.EMPTY;
+    Bytes cXRe0 = Bytes.EMPTY;
+    Bytes cYIm3 = Bytes.EMPTY;
+    Bytes cYIm2 = Bytes.EMPTY;
+    Bytes cYIm1 = Bytes.EMPTY;
+    Bytes cYIm0 = Bytes.EMPTY;
+    Bytes cYRe3 = Bytes.EMPTY;
+    Bytes cYRe2 = Bytes.EMPTY;
+    Bytes cYRe1 = Bytes.EMPTY;
+    Bytes cYRe0 = Bytes.EMPTY;
+
+    if (returnData.toArray().length != 0) {
+      checkArgument(returnData.toArray().length == SIZE_LARGE_POINT);
+      cXIm3 = returnData.slice(0, LLARGE);
+      cXIm2 = returnData.slice(LLARGE, LLARGE);
+      cXIm1 = returnData.slice(2 * LLARGE, LLARGE);
+      cXIm0 = returnData.slice(3 * LLARGE, LLARGE);
+      cXRe3 = returnData.slice(4 * LLARGE, LLARGE);
+      cXRe2 = returnData.slice(5 * LLARGE, LLARGE);
+      cXRe1 = returnData.slice(6 * LLARGE, LLARGE);
+      cXRe0 = returnData.slice(7 * LLARGE, LLARGE);
+      cYIm3 = returnData.slice(8 * LLARGE, LLARGE);
+      cYIm2 = returnData.slice(9 * LLARGE, LLARGE);
+      cYIm1 = returnData.slice(10 * LLARGE, LLARGE);
+      cYIm0 = returnData.slice(11 * LLARGE, LLARGE);
+      cYRe3 = returnData.slice(12 * LLARGE, LLARGE);
+      cYRe2 = returnData.slice(13 * LLARGE, LLARGE);
+      cYRe1 = returnData.slice(14 * LLARGE, LLARGE);
+      cYRe0 = returnData.slice(15 * LLARGE, LLARGE);
+    }
+
+    // Set result limb
+    limb.set(8, cXIm3);
+    limb.set(9, cXIm2);
+    limb.set(10, cXIm1);
+    limb.set(11, cXIm0);
+    limb.set(12, cXRe3);
+    limb.set(13, cXRe2);
+    limb.set(14, cXRe1);
+    limb.set(15, cXRe0);
+    limb.set(16, cYIm3);
+    limb.set(17, cYIm2);
+    limb.set(18, cYIm1);
+    limb.set(19, cYIm0);
+    limb.set(20, cYRe3);
+    limb.set(21, cYRe2);
+    limb.set(22, cYRe1);
+    limb.set(23, cYRe0);
   }
 
   private static short getPhase(

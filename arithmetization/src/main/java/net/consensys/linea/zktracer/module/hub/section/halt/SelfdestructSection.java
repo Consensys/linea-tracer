@@ -36,6 +36,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.SelfdestructSce
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
+import net.consensys.linea.zktracer.types.Bytecode;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -170,7 +171,15 @@ public class SelfdestructSection extends TraceSection
   @Override
   public void resolvePostExecution(
       Hub hub, MessageFrame frame, Operation.OperationResult operationResult) {
+
     selfdestructorNew = AccountSnapshot.canonical(hub, selfdestructor.address());
+    final boolean isDeployment = frame.getType() == MessageFrame.Type.CONTRACT_CREATION;
+    checkState(isDeployment == selfdestructor.deploymentStatus());
+    if (isDeployment) {
+      selfdestructorNew = selfdestructorNew.deploymentStatus(false);
+      selfdestructorNew.code(Bytecode.EMPTY);
+    }
+
     if (selfdestructTargetsItself()) {
       recipient = selfdestructorNew.deepCopy();
     }

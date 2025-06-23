@@ -33,6 +33,7 @@ import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.module.mxp.MxpTestUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -116,7 +117,8 @@ public class CreatesTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("createOpCodesList")
   public void staticAndMaxCodeSizeExceptionsCreates(OpCode opCode) {
-    BytecodeCompiler pg = getPgCreateWithInitCodeSizeBy32(opCode, 1537);
+    Bytes32 initCodeChunk = Bytes32.fromHexString("30".repeat(32));
+    BytecodeCompiler pg = getPgCreateWithInitCodeSize(opCode, initCodeChunk, 1537);
 
     // We prepare a program to static call the code account
     ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pg.compile());
@@ -136,16 +138,31 @@ public class CreatesTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("createOpCodesList")
   public void OogAndMaxCodeSizeExceptionsCreates(OpCode opCode) {
-    BytecodeCompiler pgForGasCost = getPgCreateWithInitCodeSizeBy32(opCode, 1535);
-    BytecodeCompiler pg = getPgCreateWithInitCodeSizeBy32(opCode, 1537);
+    // Dummy init code, repeats ADDRESS opcode
+    Bytes32 initCodeChunk = Bytes32.fromHexString("30".repeat(32));
 
+    // To calculate the gas cost, we prepare a program with an init code size of exactly (1536 * 32)
+    // = 49152 bytes to avoid Max code size exception
+    BytecodeCompiler initCodeForGasCost = getInitCodeWithSize(initCodeChunk, 1536);
     // We run the program to calculate the amount of gas cost
-    BytecodeRunner bytecodeRunnerForGasCost = BytecodeRunner.of(pgForGasCost.compile());
-    long gasCost = bytecodeRunnerForGasCost.runOnlyForGasCost(testInfo);
+    BytecodeRunner bytecodeRunnerInitCodeForGasCost =
+        BytecodeRunner.of(initCodeForGasCost.compile());
+    long gasCostForInitCodeWithoutMaxCodeSizeException =
+        bytecodeRunnerInitCodeForGasCost.runOnlyForGasCost(testInfo);
 
-    // We run the program with lower gas cost to trigger OOGX on creation
+    // We now prepare a create program with an init code of (1537 * 32) byte size that will trigger
+    // a Max code size exception
+    BytecodeCompiler pg = getPgCreateWithInitCodeSize(opCode, initCodeChunk, 1537);
+    // We calculate the gas cost to trigger OOGX based on
+    // gasCostForInitCodeWithoutMaxCodeSizeException
+    // gasCostForCreateProgramOOGX = gasCostForInitCodeWithoutMaxCodeSizeException + 6L + 12L (2
+    // PUSHES + MSTORE) to add the 1537th extra chunk in memory + 9L (3 PUSHES for creates
+    // arguments) + 3L to PUSH an extra CREATE2 argument (salt) + 1L to enter the CREATE
+    long extraPushCreate2 = (opCode == OpCode.CREATE2) ? 3L : 0L;
+    long gasCostForCreateProgramOOGX =
+        gasCostForInitCodeWithoutMaxCodeSizeException + 6L + 12L + 9L + extraPushCreate2 + 1L;
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pg.compile());
-    bytecodeRunner.run(53000L, testInfo);
+    bytecodeRunner.run(gasCostForCreateProgramOOGX, testInfo);
 
     // MAX_CODE_SIZE_EXCEPTION check happens before OOGX in tracer
     assertEquals(
@@ -179,7 +196,7 @@ public class CreatesTest extends TracerTestBase {
   }
 
   static Stream<OpCode> createOpCodesList() {
-    List<OpCode> opCodesListArgument = Arrays.asList(OpCode.CREATE);
+    List<OpCode> opCodesListArgument = Arrays.asList(OpCode.CREATE, OpCode.CREATE2);
     return opCodesListArgument.stream();
   }
 }

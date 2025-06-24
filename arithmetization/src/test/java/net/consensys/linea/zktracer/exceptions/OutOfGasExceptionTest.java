@@ -20,7 +20,6 @@ import static net.consensys.linea.zktracer.Fork.LONDON;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
 import static net.consensys.linea.zktracer.opcode.OpCodes.loadOpcodes;
-import static net.consensys.linea.zktracer.opcode.OpCodes.opCodeDataList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
@@ -36,6 +35,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -84,7 +84,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   static Stream<Arguments> outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource() {
     List<Arguments> arguments = new ArrayList<>();
     loadOpcodes(LONDON);
-    for (OpCodeData opCodeData : opCodeDataList) {
+    for (OpCodeData opCodeData : OpCodes.iterator()) {
       if (opCodeData != null) {
         OpCode opCode = opCodeData.mnemonic();
         int nPushes = opCodeData.stackSettings().delta(); // number of items popped from the stack

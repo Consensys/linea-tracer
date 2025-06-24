@@ -120,7 +120,7 @@ public class CreatesTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("createOpCodesList")
   public void staticAndMaxCodeSizeExceptionsCreates(OpCode opCode) {
-    Bytes32 initCodeChunk = Bytes32.fromHexString("30".repeat(32));
+    Bytes32 initCodeChunk = Bytes32.repeat((byte) 0x30);
     BytecodeCompiler pg = getPgCreateWithInitCodeSize(opCode, initCodeChunk, 1537);
 
     // We prepare a program to static call the code account
@@ -142,7 +142,7 @@ public class CreatesTest extends TracerTestBase {
   @MethodSource("createOpCodesList")
   public void OogAndMaxCodeSizeExceptionsCreates(OpCode opCode) {
     // Dummy init code, repeats ADDRESS opcode
-    Bytes32 initCodeChunk = Bytes32.fromHexString("30".repeat(32));
+    Bytes32 initCodeChunk = Bytes32.repeat((byte) 0x30);
 
     // To calculate the gas cost, we prepare a program with an init code size of exactly (1536 * 32)
     // = 49152 bytes to avoid Max code size exception

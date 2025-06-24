@@ -209,7 +209,10 @@ public class ExceptionUtils extends TracerTestBase {
     int decrNbChunks = nbChunks;
 
     while (decrNbChunks > 0) {
-      program.push(initCodeChunk).push((nbChunks - decrNbChunks) * 32).op(OpCode.MSTORE);
+      program
+          .push(initCodeChunk) // value
+          .push((nbChunks - decrNbChunks) * 32) // offset
+          .op(OpCode.MSTORE);
       decrNbChunks -= 1;
     }
     return program;
@@ -230,7 +233,10 @@ public class ExceptionUtils extends TracerTestBase {
       program.push(salt); // salt
     }
 
-    program.push(nbChunks * 32).push(0).push(0);
+    program
+        .push(nbChunks * 32) // size
+        .push(0) // offset
+        .push(0); // value
 
     program.op(opCode);
 

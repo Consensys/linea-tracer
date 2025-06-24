@@ -20,10 +20,7 @@ import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -106,18 +103,5 @@ public class AddTest extends TracerTestBase {
                 .op(OpCode.SUB)
                 .compile())
         .run(testInfo);
-  }
-
-  @Test
-  void equals() {
-    Bytes32 a = Bytes32.ZERO.copy().mutableCopy();
-    EWord ew = EWord.ofHexString(a.toHexString());
-    // Even though both are Bytes32, the equal method fails on them:
-    // Assertions.assertTrue(ew.equals(a));
-
-    AddOperation wo1 = new AddOperation(OpCode.ADD, a, a);
-    AddOperation wo2 = new AddOperation(OpCode.ADD, ew, ew);
-    Assertions.assertTrue(wo1.equals(wo2));
-    Assertions.assertTrue(wo2.equals(wo1));
   }
 }

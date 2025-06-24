@@ -26,7 +26,7 @@ jobs:
         uses: ./.github/actions/setup-environment
 
       - name: Run Nightly tests
-        run: GOMEMLIMIT=32GiB ./gradlew nightlyTests
+        run: GOMAXPROCS=10 GOMEMLIMIT=20GiB ./gradlew nightlyTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable

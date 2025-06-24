@@ -1,4 +1,4 @@
-name: "Reusable unit test workflow"
+name: "Reusable unit tests workflow"
 
 on:
   workflow_call:

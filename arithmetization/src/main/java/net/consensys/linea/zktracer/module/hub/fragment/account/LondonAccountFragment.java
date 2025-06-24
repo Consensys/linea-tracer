@@ -38,8 +38,8 @@ public class LondonAccountFragment extends AccountFragment {
   @Override
   void traceMarkedForSelfDestruct(Trace.Hub trace) {
     trace
-        .pAccountMarkedForSelfdestruct(markedForSelfDestruct)
-        .pAccountMarkedForSelfdestructNew(markedForSelfDestructNew);
+        .pAccountMarkedForSelfdestruct(markedForDeletion)
+        .pAccountMarkedForSelfdestructNew(markedForDeletionNew);
   }
 
   @Override

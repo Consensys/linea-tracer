@@ -57,8 +57,8 @@ public abstract class AccountFragment
   @Setter private RlpAddrSubFragment rlpAddrSubFragment;
   final int hubStamp;
   @Getter final TransactionProcessingMetadata transactionProcessingMetadata;
-  protected boolean markedForSelfDestruct;
-  protected boolean markedForSelfDestructNew;
+  protected boolean markedForDeletion;
+  protected boolean markedForDeletionNew;
 
   /**
    * {@link AccountFragment} creation requires access to a {@link DeferRegistry} for post-conflation
@@ -185,12 +185,12 @@ public abstract class AccountFragment
         new EphemeralAccount(oldState().address(), oldState().deploymentNumber());
     if (effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
       final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
-      markedForSelfDestruct =
+      markedForDeletion =
           domSubStampsSubFragment().domStamp() > MULTIPLIER___DOM_SUB_STAMPS * selfDestructTime;
-      markedForSelfDestructNew = hubStamp >= selfDestructTime;
+      markedForDeletionNew = hubStamp >= selfDestructTime;
     } else {
-      markedForSelfDestruct = false;
-      markedForSelfDestructNew = false;
+      markedForDeletion = false;
+      markedForDeletionNew = false;
     }
   }
 

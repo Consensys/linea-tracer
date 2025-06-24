@@ -49,11 +49,14 @@ public class Add implements OperationSetModule<AddOperation> {
   @Override
   public void tracePreOpcode(MessageFrame frame, OpCode opcode) {
     if ((opcode == ADD || opcode == SUB)) {
+      final int opSize = operations().size();
       operations.add(
           new AddOperation(
               opcode,
               Bytes32.leftPad(frame.getStackItem(0)),
               Bytes32.leftPad(frame.getStackItem(1))));
+      final boolean added = operations.size() == opSize + 1;
+      final int zero = 0;
     }
   }
 

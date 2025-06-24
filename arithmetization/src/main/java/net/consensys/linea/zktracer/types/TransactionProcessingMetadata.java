@@ -376,7 +376,7 @@ public abstract class TransactionProcessingMetadata {
 
     if (hadCodeInitiallyMap.containsKey(address)) {
       final TimeAndExistence oldOccurrence = hadCodeInitiallyMap.get(address);
-      if (oldOccurrence.needsUpDate(newOccurrence)) {
+      if (oldOccurrence.needsUpdate(newOccurrence)) {
         hadCodeInitiallyMap.replace(address, oldOccurrence, newOccurrence);
       }
     } else {

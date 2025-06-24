@@ -52,8 +52,8 @@ public class CancunAccountFragment extends LondonAccountFragment {
   @Override
   void traceMarkedForDeletion(Trace.Hub trace) {
     trace
-        .pAccountMarkedForDeletion(markedForSelfDestruct)
-        .pAccountMarkedForDeletionNew(markedForSelfDestructNew);
+        .pAccountMarkedForDeletion(markedForDeletion)
+        .pAccountMarkedForDeletionNew(markedForDeletionNew);
   }
 
   @Override

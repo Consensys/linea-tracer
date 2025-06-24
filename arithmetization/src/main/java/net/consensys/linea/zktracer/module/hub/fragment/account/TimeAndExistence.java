@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.account;
 
 public record TimeAndExistence(int domStamp, int subStamp, boolean hadCode) {
 
-  public boolean needsUpDate(TimeAndExistence other) {
+  public boolean needsUpdate(TimeAndExistence other) {
     if (other.hadCode() == this.hadCode) {
       return false;
     }

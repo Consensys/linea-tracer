@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.Bls.BLS_PRIME_3;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_LARGE_POINT;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_POINT_EVALUATION;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SCALAR;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SMALL_POINT;
@@ -216,7 +217,7 @@ public class BlsOperation extends ModuleOperation {
     EWord fieldsElPerBlob = EWord.ZERO;
     EWord blsMod = EWord.ZERO;
 
-    if (internalChecksPassed && returnData.toArray().length != 0) {
+    if (returnData.toArray().length != 0) {
       checkArgument(returnData.toArray().length == 64);
       fieldsElPerBlob = EWord.of(returnData.slice(0, 32));
       blsMod = EWord.of(returnData.slice(32, 32));
@@ -946,7 +947,7 @@ public class BlsOperation extends ModuleOperation {
     return wcpRes;
   }
 
-  // This is defined here for convenience, but not presented in the specs
+  // This is defined here for convenience, but not appearing in the specs
   private boolean callToLTBlsPrime(int i, Bytes p3, Bytes p2, Bytes p1, Bytes p0) {
     return wcpGeneralizedCallToLT(
         i,
@@ -1036,12 +1037,68 @@ public class BlsOperation extends ModuleOperation {
     }
   }
 
+  private int getCtMax(
+      PrecompileScenarioFragment.PrecompileFlag precompileFlag,
+      boolean isData,
+      boolean isFirstInput) {
+    if (isData) {
+      return switch (precompileFlag) {
+        case PRC_POINT_EVALUATION -> isFirstInput ? CT_MAX_POINT_EVALUATION : 0;
+        case PRC_BLS_G1_ADD -> CT_MAX_SMALL_POINT;
+        case PRC_BLS_G1_MSM -> isFirstInput ? CT_MAX_SMALL_POINT : CT_MAX_SCALAR;
+        case PRC_BLS_G2_ADD -> CT_MAX_LARGE_POINT;
+        case PRC_BLS_G2_MSM -> isFirstInput ? CT_MAX_LARGE_POINT : CT_MAX_SCALAR;
+        case PRC_BLS_PAIRING_CHECK -> isFirstInput ? CT_MAX_SMALL_POINT : CT_MAX_LARGE_POINT;
+        case PRC_BLS_MAP_FP_TO_G1 -> isFirstInput ? CT_MAX_MAP_FP_TO_G1 : 0;
+        case PRC_BLS_MAP_FP2_TO_G2 -> isFirstInput ? CT_MAX_MAP_FP2_TO_G2 : 0;
+        default -> throw new IllegalStateException("invalid BLS type");
+      };
+    } else {
+      return getIndexMax(precompileFlag, false);
+    }
+  }
+
   void trace(Trace.Bls trace, final int stamp, final long previousId) {
     final Bytes deltaByte =
         leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
+
+    int ct = 0;
+    boolean isFirstInput = true;
+
+    /*
+    Examples:
+
+    nRowsData = 6
+    ct = 0, ctMaxFirstInput = 3, ctMaxSecondInput = 1
+          | ct | ctMax | isFirstInput |
+          -----------------------------
+    i = 0 | 0  | 3     | true         |
+    i = 1 | 1  | 3     | true         |
+    i = 2 | 2  | 3     | true         |
+    i = 3 | 3  | 3     | true         |
+    i = 4 | 0  | 1     | false        |
+    i = 5 | 1  | 1     | false        |
+
+    nRowsData = 4
+    ct = 0, ctMaxFirstInput = 3, ctMaxSecondInput = 0
+          | ct | ctMax | isFirstInput |
+          -----------------------------
+    i = 0 | 0  | 3     | true         |
+    i = 1 | 1  | 3     | true         |
+    i = 2 | 2  | 3     | true         |
+    i = 3 | 3  | 3     | true         |
+     */
+
     for (int i = 0; i < nRows; i++) {
       boolean isData = i < nRowsData;
       // TODO: fill missing fields
+      final int ctMax = getCtMax(precompileFlag, isData, isFirstInput);
+      if (ctMax != 0) {
+        // Transition from first input to second input or vice versa only if there are multiple
+        // inputs
+        isFirstInput = !isFirstInput;
+      }
+
       trace
           .stamp(stamp)
           .id(id)
@@ -1049,9 +1106,10 @@ public class BlsOperation extends ModuleOperation {
           .index(isData ? i : i - nRowsData)
           .indexMax(getIndexMax(precompileFlag, isData))
           .phase(getPhase(precompileFlag, isData))
+          .limb(limb.get(i))
           .successBit(successBit)
-          .ct(0)
-          .ctMax(0)
+          .ct(ct)
+          .ctMax(ctMax)
           .dataPointEvaluationFlag(precompileFlag == PRC_POINT_EVALUATION && isData)
           .dataBlsG1AddFlag(precompileFlag == PRC_BLS_G1_ADD && isData)
           .dataBlsG1MsmFlag(precompileFlag == PRC_BLS_G1_MSM && isData)
@@ -1079,8 +1137,8 @@ public class BlsOperation extends ModuleOperation {
           .malformedDataExternalAccTot(false)
           .wellformedDataTrivial(false)
           .wellformedDataNontrivial(false)
-          .isFirstInput(false)
-          .isSecondInput(false)
+          .isFirstInput(isFirstInput && isData)
+          .isSecondInput(!isFirstInput && isData)
           .isInfinity(false)
           .nontrivialPairOfPointsBit(false)
           .nontrivialPairOfPointsAcc(false)
@@ -1105,6 +1163,13 @@ public class BlsOperation extends ModuleOperation {
           .wcpRes(wcpRes.get(i))
           .wcpInst(wcpInst.get(i).unsignedByteValue())
           .validateRow();
+
+      // Increment ct up to ctMax, then reset to 0
+      if (ct < ctMax) {
+        ct++;
+      } else {
+        ct = 0;
+      }
     }
   }
 

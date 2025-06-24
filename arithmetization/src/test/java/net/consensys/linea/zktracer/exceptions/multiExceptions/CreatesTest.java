@@ -89,7 +89,7 @@ public class CreatesTest extends TracerTestBase {
 
     for (boolean roob : triggerRoob) {
       // We prepare a program with an MXPX for the opcode
-      BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
+      BytecodeCompiler pg = BytecodeCompiler.newProgram();
       new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, roob, opCode);
 
       // We prepare a program to static call the code account

@@ -146,7 +146,7 @@ public class CodeExecutionMethods {
 
     foreignCodeOwner.code(foreignCode.compile());
 
-    BytecodeCompiler rootCode = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler rootCode = BytecodeCompiler.newProgram();
     copyForeignCodeAndRunItAsInitCode(rootCode, foreignCodeOwnerAddress);
     if (embedRevertIntoInitCode) revertWith(rootCode, 0, 0);
     root.code(rootCode.compile());
@@ -176,7 +176,7 @@ public class CodeExecutionMethods {
 
     chadPrcEnjoyer.code(providedCode.compile());
 
-    BytecodeCompiler rootCode = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler rootCode = BytecodeCompiler.newProgram();
     appendCallTo(rootCode, CALL, chadPrcEnjoyerAddress);
     if (revertRoot) revertWith(rootCode, 0, 0); // we let the ROOT revert
     root.code(rootCode.compile());
@@ -210,7 +210,7 @@ public class CodeExecutionMethods {
 
     // ROOT code
     int key = 65537; // 0x 01 00 01
-    BytecodeCompiler rootCode = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler rootCode = BytecodeCompiler.newProgram();
     copyForeignCodeAndRunItAsInitCode(rootCode, initCodeOwnerAddress);
     sstoreTopOfStackTo(rootCode, key); // store deployment address
     pushSeveral(rootCode, 0, 0, 0, 0, 0); // zero value
@@ -220,7 +220,7 @@ public class CodeExecutionMethods {
     root.code(rootCode.compile());
 
     // init code owner code
-    BytecodeCompiler initCode = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler initCode = BytecodeCompiler.newProgram();
     copyForeignCodeAndReturnIt(initCode, foreignCodeOwnerAddress);
     initCodeOwner.code(initCode.compile());
 

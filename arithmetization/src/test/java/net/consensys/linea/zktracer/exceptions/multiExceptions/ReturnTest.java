@@ -90,12 +90,12 @@ public class ReturnTest extends TracerTestBase {
 
   @Test
   void maxCodeSizeAndOogExceptionForCreate() {
-    BytecodeCompiler initProgram = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler initProgram = BytecodeCompiler.newProgram();
     initProgram.push(MAX_CODE_SIZE + 1).push(0).op(OpCode.RETURN);
     final String initProgramAsString = initProgram.compile().toString().substring(2);
     final int initProgramByteSize = initProgram.compile().size();
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program
         .push(initProgramAsString + "00".repeat(32 - initProgramByteSize))

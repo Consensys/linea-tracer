@@ -63,7 +63,7 @@ public class CallTest extends TracerTestBase {
     // execution, even if no code is executed
     // call stipend - 1
     int cornerCase = 2299;
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     if (targetAddressExists && isWarm) {
       // Note: this is a possible way to warm the address
@@ -135,7 +135,7 @@ public class CallTest extends TracerTestBase {
 
     for (boolean roob : triggerRoob) {
       // We prepare a program with an MXPX for the opcode
-      BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
+      BytecodeCompiler pg = BytecodeCompiler.newProgram();
       new MxpTestUtils().triggerNonTrivialButMxpxOrRoobForOpCode(pg, roob, OpCode.CALL);
 
       // We prepare a program to static call the code account

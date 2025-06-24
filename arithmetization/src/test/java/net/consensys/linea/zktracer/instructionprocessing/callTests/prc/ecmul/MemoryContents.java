@@ -84,7 +84,7 @@ public enum MemoryContents implements PrecompileCallMemoryContents {
 
     String memoryContentsString = pointData + MAX_WORD;
 
-    BytecodeCompiler memoryContents = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler memoryContents = BytecodeCompiler.newProgram();
     memoryContents.immediate(Bytes.fromHexString(memoryContentsString));
 
     return memoryContents;

@@ -31,7 +31,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
 
   @Override
   public BytecodeCompiler memoryContents(TestInfoWithChainConfig testInfo) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     populateMemory(program, variant ? 6 : 12, variant ? 0x11 : 0x0a);
     return program;
   }

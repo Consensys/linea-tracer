@@ -39,7 +39,7 @@ public class OpCodesTest extends TracerTestBase {
   }
 
   private Bytes getAllOpCodesProgram() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     loadOpcodes(testInfo.chainConfig.fork);
     for (OpCodeData opCodeData : opCodeDataList) {
       if (opCodeData != null) {

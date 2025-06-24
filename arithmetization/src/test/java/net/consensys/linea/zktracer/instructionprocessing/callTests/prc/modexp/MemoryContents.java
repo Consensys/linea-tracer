@@ -102,7 +102,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
             + expn().substring(0, 2 * this.ebsShort())
             + mdls().substring(0, 2 * this.mbsShort());
 
-    return BytecodeCompiler.newProgram(testInfo).immediate(Bytes.fromHexString(memoryContents));
+    return BytecodeCompiler.newProgram().immediate(Bytes.fromHexString(memoryContents));
   }
 
   private String base() {

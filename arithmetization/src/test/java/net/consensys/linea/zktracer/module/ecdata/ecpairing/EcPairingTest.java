@@ -120,7 +120,7 @@ public class EcPairingTest extends TracerTestBase {
   @Test
   void testEcPairingWithSingleTrivialPairing() {
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             .push(0x20) // retSize
             .push(0) // retOffset
             .push(192) // argSize
@@ -140,7 +140,7 @@ public class EcPairingTest extends TracerTestBase {
     // small point: (Ax,Ay)
     // large point: (BxRe + i*BxIm, ByRe + i*ByIm)
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             // random point in C1
             .push("26d7d8759964ac70b4d5cdf698ad5f70da246752481ea37da637551a60a2a57f") // Ax
             .push(0)
@@ -207,7 +207,7 @@ public class EcPairingTest extends TracerTestBase {
     // small point: (Ax,Ay)
     // large point: (BxRe + i*BxIm, ByRe + i*ByIm)
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             // point supposed to be in C1
             .push(Ax) // Ax
             .push(0)
@@ -282,7 +282,7 @@ public class EcPairingTest extends TracerTestBase {
 
     List<Arguments> pairings = pairingsAsStringToArgumentsList(pairingsAsString);
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < pairings.size(); i++) {
       Arguments pair = pairings.get(i);
 

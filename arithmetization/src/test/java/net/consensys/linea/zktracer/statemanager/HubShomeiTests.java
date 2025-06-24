@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -53,12 +52,12 @@ public class HubShomeiTests extends TracerTestBase {
   private static final Address DEFAULT =
       Address.fromHexString("0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef");
 
-  private final Bytes SSLOAD1(TestInfoWithChainConfig testInfo) {
-    return newProgram(testInfo).push(key1).op(OpCode.SLOAD).op(OpCode.POP).compile();
+  private Bytes SSLOAD1() {
+    return newProgram().push(key1).op(OpCode.SLOAD).op(OpCode.POP).compile();
   }
 
-  private Bytes SSTORE1(TestInfoWithChainConfig testInfo) {
-    return newProgram(testInfo).push(value).push(key1).op(OpCode.SSTORE).compile();
+  private Bytes SSTORE1() {
+    return newProgram().push(value).push(key1).op(OpCode.SSTORE).compile();
   }
 
   /**
@@ -78,8 +77,8 @@ public class HubShomeiTests extends TracerTestBase {
 
     final Bytes code =
         switch (opcode) {
-          case SSTORE -> Bytes.concatenate(SSTORE1(testInfo));
-          case SLOAD -> Bytes.concatenate(SSLOAD1(testInfo));
+          case SSTORE -> Bytes.concatenate(SSTORE1());
+          case SLOAD -> Bytes.concatenate(SSLOAD1());
           default -> throw new IllegalStateException("Unexpected value: " + opcode);
         };
 
@@ -113,7 +112,7 @@ public class HubShomeiTests extends TracerTestBase {
             .gasLimit(1000000L)
             .gasPrice(Wei.of(10L))
             .accessList(List.of(accessListEntry))
-            .payload(newProgram(testInfo).push(1).push(1).op(OpCode.ADD).compile())
+            .payload(newProgram().push(1).push(1).op(OpCode.ADD).compile())
             .build();
 
     final ToyExecutionEnvironmentV2 executionEnvironmentV2 =
@@ -151,8 +150,8 @@ public class HubShomeiTests extends TracerTestBase {
 
     final Bytes code =
         switch (opcode) {
-          case SSTORE -> Bytes.concatenate(SSTORE1(testInfo));
-          case SLOAD -> Bytes.concatenate(SSLOAD1(testInfo));
+          case SSTORE -> Bytes.concatenate(SSTORE1());
+          case SLOAD -> Bytes.concatenate(SSLOAD1());
           default -> throw new IllegalStateException("Unexpected value: " + opcode);
         };
 

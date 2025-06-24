@@ -37,7 +37,7 @@ public class RomTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("incompletePushRomTestSource")
   void incompletePushRomTest(int j, int k) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     program.incompletePush(k, "ff".repeat(j));
     BytecodeRunner.of(program.compile()).run(testInfo);
   }
@@ -62,7 +62,7 @@ public class RomTest extends TracerTestBase {
     }
     Collections.shuffle(permutationOfKAndJPairs);
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (Pair<Integer, Integer> kAndJPair : permutationOfKAndJPairs) {
       int k = kAndJPair.getFirst();
       int j = kAndJPair.getSecond();

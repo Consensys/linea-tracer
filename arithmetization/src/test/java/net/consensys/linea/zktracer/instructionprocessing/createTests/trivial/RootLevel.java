@@ -45,7 +45,7 @@ public class RootLevel extends TracerTestBase {
   @Test
   void basicCreate2Test() {
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
         .push(0xadd7) // salt
         .push(1) // size
@@ -64,7 +64,7 @@ public class RootLevel extends TracerTestBase {
       OffsetParameter offsetParameter,
       boolean revert) {
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     genericCreate(
         program, createType, valueParameter, offsetParameter, SizeParameter.s_ZERO, salt01);
 
@@ -80,7 +80,7 @@ public class RootLevel extends TracerTestBase {
   void rootLevelCreate2AndExtCodeHash(WhenToTestParameter when) {
 
     int storageKey = 0;
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     precomputeDeploymentAddressOfEmptyInitCodeCreate2(program, salt01);
     storeAt(program, storageKey);
 

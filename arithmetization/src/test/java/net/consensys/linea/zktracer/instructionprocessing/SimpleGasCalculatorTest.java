@@ -27,7 +27,7 @@ public class SimpleGasCalculatorTest extends TracerTestBase {
   @Test
   void simpleGasCalculatorTest() {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo)
+            BytecodeCompiler.newProgram()
                 .push("deadbeef") // value
                 .push(0x80) // key
                 .op(OpCode.MSTORE)

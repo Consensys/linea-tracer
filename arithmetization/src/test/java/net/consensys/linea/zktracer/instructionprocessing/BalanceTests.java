@@ -73,8 +73,7 @@ public class BalanceTests extends TracerTestBase {
           .address(Address.fromHexString("0xadd7e55"))
           .build();
 
-  Bytes revertByteCode =
-      BytecodeCompiler.newProgram(testInfo).push(0).push(0).op(OpCode.REVERT).compile();
+  Bytes revertByteCode = BytecodeCompiler.newProgram().push(0).push(0).op(OpCode.REVERT).compile();
 
   ToyAccount revertAccount =
       ToyAccount.builder()

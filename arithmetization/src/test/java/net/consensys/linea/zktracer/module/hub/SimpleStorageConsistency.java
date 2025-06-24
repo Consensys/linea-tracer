@@ -89,7 +89,7 @@ public class SimpleStorageConsistency extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(receiverAddress)
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     // SLOAD initial value
                     .push(key)
                     .op(OpCode.SLOAD)

@@ -65,7 +65,7 @@ public class ZkCounterTest extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(TEST_DEFAULT.contract())
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     // LOG1 with right topic, and no data
                     .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
@@ -135,7 +135,7 @@ public class ZkCounterTest extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(Address.wrap(Bytes.repeat((byte) 1, Address.SIZE)))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     // LOG1 with right topic, and no data
                     .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
@@ -149,7 +149,7 @@ public class ZkCounterTest extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(Address.wrap(Bytes.repeat((byte) 2, Address.SIZE)))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     // LOG1 with right topic, and no data
                     .push(TEST_DEFAULT.topic()) // topic
                     .push(0) //  size
@@ -167,7 +167,7 @@ public class ZkCounterTest extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(TEST_DEFAULT.contract())
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     // LOG2 with right topic, not at the right place
                     .push(TEST_DEFAULT.topic()) // topic 2
                     .push(Bytes.of(1)) // topic 1
@@ -229,7 +229,7 @@ public class ZkCounterTest extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(Address.wrap(Bytes.repeat((byte) 1, Address.SIZE)))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     // populate memory with some data
                     .push(56) // value
                     .push(3) //  offset
@@ -308,7 +308,7 @@ public class ZkCounterTest extends TracerTestBase {
             .balance(Wei.fromEth(1))
             .address(Address.wrap(Bytes.repeat((byte) 1, Address.SIZE)))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     // populate memory with BBS
                     .push(base ? 513 : 4) // value
                     .push(BBS_MIN_OFFSET) //  offset

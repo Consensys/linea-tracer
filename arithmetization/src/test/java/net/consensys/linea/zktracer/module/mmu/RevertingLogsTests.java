@@ -57,14 +57,14 @@ public class RevertingLogsTests extends TracerTestBase {
         Bytes.fromHexString("0x000007031c400000000007031c400000000007031c400000000007031c400000");
 
     final Bytes LOG0 =
-        newProgram(testInfo)
+        newProgram()
             .push(18) // size
             .push(0x1) // offset
             .op(OpCode.LOG0)
             .compile();
 
     final Bytes LOG1 =
-        newProgram(testInfo)
+        newProgram()
             .push(TOPIC_1)
             .push(18) // size
             .push(0x1) // offset
@@ -72,7 +72,7 @@ public class RevertingLogsTests extends TracerTestBase {
             .compile();
 
     final Bytes LOG2 =
-        newProgram(testInfo)
+        newProgram()
             .push(TOPIC_2) // topic 2
             .push(TOPIC_1) // topic 1
             .push(18) // size
@@ -81,7 +81,7 @@ public class RevertingLogsTests extends TracerTestBase {
             .compile();
 
     final Bytes LOG3 =
-        newProgram(testInfo)
+        newProgram()
             .push(TOPIC_3) // topic 3
             .push(TOPIC_2) // topic 2
             .push(TOPIC_1) // topic 1
@@ -91,7 +91,7 @@ public class RevertingLogsTests extends TracerTestBase {
             .compile();
 
     final Bytes LOG4 =
-        newProgram(testInfo)
+        newProgram()
             .push(TOPIC_4) // topic 4
             .push(TOPIC_3) // topic 3
             .push(TOPIC_2) // topic 2
@@ -102,10 +102,10 @@ public class RevertingLogsTests extends TracerTestBase {
             .compile();
 
     final Bytes SELFREVERT_LOG_BYTECODE =
-        newProgram(testInfo).immediate(POPULATE_MEMORY).immediate(LOG3).immediate(REVERT).compile();
+        newProgram().immediate(POPULATE_MEMORY).immediate(LOG3).immediate(REVERT).compile();
 
     final Bytes NON_REVERTING_LOG_BYTECODE =
-        newProgram(testInfo).immediate(POPULATE_MEMORY).immediate(LOG4).compile();
+        newProgram().immediate(POPULATE_MEMORY).immediate(LOG4).compile();
 
     final ToyAccount nonRevertingLogSMC =
         ToyAccount.builder()

@@ -673,7 +673,7 @@ public class OobRdcTest extends TracerTestBase {
 
   // Support methods
   BytecodeCompiler initReturnDataCopyProgram(BigInteger offset, BigInteger size) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // Creates a constructor that creates a contract which returns 32 FF
     program
@@ -720,7 +720,7 @@ public class OobRdcTest extends TracerTestBase {
 
   BytecodeCompiler initReturnDataCopyProgramUsingIdentityPrecompile(
       BigInteger offset, BigInteger size) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // First place the parameters in memory
     program

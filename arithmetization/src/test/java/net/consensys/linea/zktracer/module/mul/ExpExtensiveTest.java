@@ -1784,11 +1784,11 @@ public class ExpExtensiveTest extends TracerTestBase {
   // Support methods
   private BytecodeRunner expProgramOf(String base, String exponent) {
     return BytecodeRunner.of(
-        BytecodeCompiler.newProgram(testInfo).push(exponent).push(base).op(OpCode.EXP).compile());
+        BytecodeCompiler.newProgram().push(exponent).push(base).op(OpCode.EXP).compile());
   }
 
   private BytecodeRunner expProgramOf(String base) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (String exponent : EXPONENTS) {
       program.push(exponent).push(base).op(OpCode.EXP);
     }

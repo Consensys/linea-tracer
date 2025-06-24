@@ -179,7 +179,7 @@ public class StpTest extends TracerTestBase {
 
   private Bytes codeCall(OpCode opcode, Address calleeAddress, BigInteger value, long gasCall) {
     return switch (opcode) {
-      case CALL, CALLCODE -> BytecodeCompiler.newProgram(testInfo)
+      case CALL, CALLCODE -> BytecodeCompiler.newProgram()
           .push(Bytes.minimalBytes(6)) // retLength
           .push(Bytes.minimalBytes(5)) // terOffset
           .push(Bytes.minimalBytes(4)) // argsLength
@@ -189,7 +189,7 @@ public class StpTest extends TracerTestBase {
           .push(longToBytes(gasCall)) // gas
           .op(opcode)
           .compile();
-      case DELEGATECALL, STATICCALL -> BytecodeCompiler.newProgram(testInfo)
+      case DELEGATECALL, STATICCALL -> BytecodeCompiler.newProgram()
           .push(Bytes.minimalBytes(5)) // retLength
           .push(Bytes.minimalBytes(4)) // terOffset
           .push(Bytes.minimalBytes(3)) // argsLength
@@ -225,7 +225,7 @@ public class StpTest extends TracerTestBase {
             .balance(Wei.ONE)
             .address(to)
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     .push(Bytes.fromHexString("0xff")) // length
                     .push(Bytes.fromHexString("0x80")) // offset
                     .push(Bytes.minimalBytes(value)) // value
@@ -267,7 +267,7 @@ public class StpTest extends TracerTestBase {
             .balance(Wei.ONE)
             .address(to)
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     .push(Bytes.random(32)) // salt
                     .push(Bytes.fromHexString("0xff")) // length
                     .push(Bytes.fromHexString("0x80")) // offset

@@ -78,7 +78,7 @@ public class CreateInducedFailureTest extends TracerTestBase {
   final Address targetAddress = Address.fromHexString("797add7e55");
 
   final BytecodeCompiler simpleSelfDestruct =
-      BytecodeCompiler.newProgram(testInfo).op(ORIGIN).op(SELFDESTRUCT);
+      BytecodeCompiler.newProgram().op(ORIGIN).op(SELFDESTRUCT);
 
   /**
    * Account that can only do one thing: do a <b>SELFDESTRUCT</b> sending the funds to the
@@ -93,7 +93,7 @@ public class CreateInducedFailureTest extends TracerTestBase {
           .build();
 
   final BytecodeCompiler simpleCreate =
-      BytecodeCompiler.newProgram(testInfo)
+      BytecodeCompiler.newProgram()
           .push(0) // empty init code
           .push(0)
           .push(1) // value
@@ -113,7 +113,7 @@ public class CreateInducedFailureTest extends TracerTestBase {
 
   /** Does a <b>DELEGATECALL</b> to an address extracted from the call data. */
   final BytecodeCompiler delegateCaller =
-      BytecodeCompiler.newProgram(testInfo)
+      BytecodeCompiler.newProgram()
           .push(0) // rac
           .push(0) // rao
           .push(0) // cds
@@ -125,7 +125,7 @@ public class CreateInducedFailureTest extends TracerTestBase {
 
   /** Initialization code that deploys {@link #delegateCaller}. */
   final BytecodeCompiler initCode =
-      BytecodeCompiler.newProgram(testInfo)
+      BytecodeCompiler.newProgram()
           .push(delegateCaller.compile())
           .push(8 * (32 - delegateCaller.compile().size()))
           .op(SHL)
@@ -158,7 +158,7 @@ public class CreateInducedFailureTest extends TracerTestBase {
    * is of no use.
    */
   final BytecodeCompiler entryPointByteCode =
-      BytecodeCompiler.newProgram(testInfo)
+      BytecodeCompiler.newProgram()
           .op(CALLDATASIZE) // + 1
           .op(ISZERO) // [CALLDATASIZE == 0] // + 1
           .push(emptyCallDataExecutionPathProgramCounter) // + 2

@@ -38,7 +38,7 @@ public class TransientTest extends TracerTestBase {
 
   private static final Bytes TLOAD_TSTORE_TLOAD = Bytes.fromHexString("0x60025C600160025D60025C");
   // This bytecode is:
-  // BytecodeCompiler.newProgram(testInfo)
+  // BytecodeCompiler.newProgram()
   // .push(2) // storage key
   //     .op(TLOAD)
   //     .push(1) // value
@@ -70,7 +70,7 @@ public class TransientTest extends TracerTestBase {
           SMC_ACCOUNT_TLOAD_TSTORE_TLOAD.getAddress(),
           Bytes.fromHexString("613A98"));
   // This bytecode is:
-  // BytecodeCompiler.newProgram(testInfo)
+  // BytecodeCompiler.newProgram()
   //     .push(0) // return size
   //     .push(0) // return offset
   //     .push(0) // arg size
@@ -202,7 +202,7 @@ public class TransientTest extends TracerTestBase {
         Address.fromHexString("0x1122334455667788990011223344556677889900");
 
     final Bytes recipientCode =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             .push(0) // return size
             .push(0) // return offset
             .push(0) // arg size

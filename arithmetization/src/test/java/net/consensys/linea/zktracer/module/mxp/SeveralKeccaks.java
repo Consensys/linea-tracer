@@ -27,8 +27,7 @@ public class SeveralKeccaks extends TracerTestBase {
 
   @Test
   public void testMul() {
-    BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo).push(32).push(7).op(OpCode.MUL).compile())
+    BytecodeRunner.of(BytecodeCompiler.newProgram().push(32).push(7).op(OpCode.MUL).compile())
         .run(testInfo);
   }
 
@@ -36,7 +35,7 @@ public class SeveralKeccaks extends TracerTestBase {
   @Test
   void testIsTheBeefDeadYet() {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo)
+            BytecodeCompiler.newProgram()
                 .push("deadbeef") // 4 bytes
                 .push(28 * 8)
                 .op(OpCode.SHL) //  stack = [ 0x DE AD BE EF __ ... __]
@@ -77,7 +76,7 @@ public class SeveralKeccaks extends TracerTestBase {
   @Test
   void testSeveralKeccaks() {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo)
+            BytecodeCompiler.newProgram()
                 .push(0)
                 .push(0)
                 .op(OpCode.SHA3) // empty hash, no memory expansion

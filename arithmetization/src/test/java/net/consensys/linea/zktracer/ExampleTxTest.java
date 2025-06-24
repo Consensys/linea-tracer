@@ -50,7 +50,7 @@ class ExampleTxTest extends TracerTestBase {
             .nonce(6)
             .address(Address.fromHexString("0x111111"))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     .push(32, 0xbeef)
                     .push(32, 0xdead)
                     .op(OpCode.ADD)

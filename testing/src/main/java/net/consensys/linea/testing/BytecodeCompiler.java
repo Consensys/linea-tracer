@@ -40,34 +40,34 @@ public class BytecodeCompiler {
 
   private BytecodeCompiler() {}
 
+  public static void initOpcodes(TestInfoWithChainConfig testInfo) {
+    switch (testInfo.chainConfig.fork) {
+      case Fork.LONDON -> {
+        loadOpcodes(Fork.LONDON);
+      }
+      case PARIS -> {
+        loadOpcodes(Fork.PARIS);
+      }
+      case SHANGHAI -> {
+        loadOpcodes(Fork.SHANGHAI);
+      }
+      case CANCUN -> {
+        loadOpcodes(Fork.CANCUN);
+      }
+      case PRAGUE -> {
+        loadOpcodes(Fork.PRAGUE);
+      }
+    }
+    ;
+  }
+
   /**
    * Create a new program instance that will contain a new bytecode sequence.
    *
    * @return an instance of {@link BytecodeCompiler}
    */
-  public static BytecodeCompiler newProgram(TestInfoWithChainConfig testInfo) {
-    return switch (testInfo.chainConfig.fork) {
-      case Fork.LONDON -> {
-        loadOpcodes(Fork.LONDON);
-        yield new BytecodeCompiler();
-      }
-      case PARIS -> {
-        loadOpcodes(Fork.PARIS);
-        yield new BytecodeCompiler();
-      }
-      case SHANGHAI -> {
-        loadOpcodes(Fork.SHANGHAI);
-        yield new BytecodeCompiler();
-      }
-      case CANCUN -> {
-        loadOpcodes(Fork.CANCUN);
-        yield new BytecodeCompiler();
-      }
-      case PRAGUE -> {
-        loadOpcodes(Fork.PRAGUE);
-        yield new BytecodeCompiler();
-      }
-    };
+  public static BytecodeCompiler newProgram() {
+    return new BytecodeCompiler();
   }
 
   private static Bytes toBytes(final int x) {

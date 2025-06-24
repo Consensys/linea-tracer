@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.reporting;
 
+import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import org.hyperledger.besu.datatypes.Address;
@@ -39,6 +40,8 @@ public class TracerTestBase {
                   "Unknown fork: " + System.getProperty("unit.replay.tests.fork"));
             };
     TracerTestBase.testInfo.testInfo = testInfo;
+    // Load opcodes for the specified fork
+    BytecodeCompiler.initOpcodes(TracerTestBase.testInfo);
   }
 
   public static String getForkOrDefault(String defaultFork) {

@@ -168,7 +168,7 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
     // Whenever transferValue = true, gas is enough
     // so we only test the case in which transferValue = false
 
-    final BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    final BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     program.immediate(preCallProgram(ALTBN128_ADD, false, false, 0)).op(CALL);
 
@@ -218,7 +218,7 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
       boolean transfersValue,
       boolean targetAddressExists,
       int cds) {
-    final BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    final BytecodeCompiler program = BytecodeCompiler.newProgram();
     program.immediate(preCallProgram(address, transfersValue, targetAddressExists, cds)).op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
@@ -273,7 +273,7 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
   // Support methods
   static Bytes preCallProgram(
       Address address, boolean transfersValue, boolean targetAddressExists, int cds) {
-    return BytecodeCompiler.newProgram(testInfo)
+    return BytecodeCompiler.newProgram()
         .immediate(expandMemoryTo2048Words())
         .immediate(targetAddressExists ? successfullySummonIntoExistence(address) : Bytes.EMPTY)
         .immediate(
@@ -289,11 +289,7 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
 
   static Bytes expandMemoryTo(int words) {
     checkArgument(words >= 1);
-    return BytecodeCompiler.newProgram(testInfo)
-        .push((words - 1) * WORD_SIZE)
-        .op(MLOAD)
-        .op(POP)
-        .compile();
+    return BytecodeCompiler.newProgram().push((words - 1) * WORD_SIZE).op(MLOAD).op(POP).compile();
   }
 
   static Bytes successfullySummonIntoExistence(Address address) {
@@ -307,14 +303,14 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
   }
 
   static Bytes call(Bytes gas, Address address, int cds, boolean transfersValue) {
-    return BytecodeCompiler.newProgram(testInfo)
+    return BytecodeCompiler.newProgram()
         .immediate(pushCallArguments(gas, address, cds, transfersValue))
         .op(CALL)
         .compile();
   }
 
   static Bytes pushCallArguments(Bytes gas, Address address, int cds, boolean transfersValue) {
-    return BytecodeCompiler.newProgram(testInfo)
+    return BytecodeCompiler.newProgram()
         .push(0) // returnAtCapacity
         .push(0) // returnAtOffset
         .push(cds) // callDataSize

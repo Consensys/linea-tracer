@@ -33,7 +33,7 @@ public class MultiOpCodeSmcs {
    */
   public static BytecodeCompiler allContextOpCodes(TestInfoWithChainConfig testInfo) {
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     program
         .op(ADDRESS)
         .op(CALLDATASIZE)

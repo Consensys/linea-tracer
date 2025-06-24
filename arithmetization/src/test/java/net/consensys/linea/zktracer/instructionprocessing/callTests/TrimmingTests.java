@@ -32,7 +32,7 @@ public class TrimmingTests extends TracerTestBase {
   void targetTrimming() {
 
     BytecodeCompiler bytecode =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             .push(1)
             .push(2)
             .push(3)

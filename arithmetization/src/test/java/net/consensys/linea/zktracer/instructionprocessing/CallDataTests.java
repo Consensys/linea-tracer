@@ -66,7 +66,7 @@ public class CallDataTests extends TracerTestBase {
       Bytes.fromHexString("abcdef01234567890000deadbeef0000aa0f517e002024aa9876543210fedcba");
 
   Bytes callDataByteCode =
-      BytecodeCompiler.newProgram(testInfo)
+      BytecodeCompiler.newProgram()
           .push(13) // size
           .push(29) // sourceOffset
           .push(17) // targetOffset
@@ -83,7 +83,7 @@ public class CallDataTests extends TracerTestBase {
           .compile();
 
   final Bytes callerCode =
-      BytecodeCompiler.newProgram(testInfo)
+      BytecodeCompiler.newProgram()
           .push(callData32)
           .push(2)
           .op(OpCode.MSTORE)

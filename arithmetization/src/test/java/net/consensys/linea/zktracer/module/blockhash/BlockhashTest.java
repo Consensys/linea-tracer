@@ -38,7 +38,7 @@ public class BlockhashTest extends TracerTestBase {
   @Test
   void severalBlockhash() {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo)
+            BytecodeCompiler.newProgram()
 
                 // arg is NUMBER - 1
                 .push(1)
@@ -131,7 +131,7 @@ public class BlockhashTest extends TracerTestBase {
   @Test
   void singleBlockhash() {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(testInfo)
+            BytecodeCompiler.newProgram()
 
                 // arg of BlockHash is Blocknumber +1
                 .op(OpCode.NUMBER)
@@ -146,12 +146,11 @@ public class BlockhashTest extends TracerTestBase {
   @Test
   void blockhashArgumentUpperRangeCheckMultiBlockTest() {
     // Block 1
-    Bytes program1 =
-        BytecodeCompiler.newProgram(testInfo).op(OpCode.NUMBER).op(OpCode.BLOCKHASH).compile();
+    Bytes program1 = BytecodeCompiler.newProgram().op(OpCode.NUMBER).op(OpCode.BLOCKHASH).compile();
 
     // Block 2
     Bytes program2 =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             .push(1)
             .op(OpCode.NUMBER)
             .op(OpCode.SUB)
@@ -163,10 +162,10 @@ public class BlockhashTest extends TracerTestBase {
 
   @Test
   void blockhashArgumentLowerRangeCheckMultiBlockTest() {
-    Bytes fillerProgram = BytecodeCompiler.newProgram(testInfo).op(OpCode.COINBASE).compile();
+    Bytes fillerProgram = BytecodeCompiler.newProgram().op(OpCode.COINBASE).compile();
 
     Bytes program0 =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             .push(1)
             .op(OpCode.NUMBER)
             .op(OpCode.SUB)
@@ -176,7 +175,7 @@ public class BlockhashTest extends TracerTestBase {
     // Block no longer available
     // Block 1
     Bytes program1 =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             .push(256)
             .op(OpCode.NUMBER)
             .op(OpCode.SUB)
@@ -185,7 +184,7 @@ public class BlockhashTest extends TracerTestBase {
 
     // Block 2
     Bytes program2 =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             .push(257)
             .op(OpCode.NUMBER)
             .op(OpCode.SUB)
@@ -193,7 +192,7 @@ public class BlockhashTest extends TracerTestBase {
             .compile();
 
     Bytes program3 =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram()
             .push(16)
             .op(OpCode.NUMBER)
             .op(OpCode.SUB)

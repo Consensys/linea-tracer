@@ -41,7 +41,7 @@ public interface PrecompileCallParameters {
     // populate foreign accounts' byte code with call data
     this.memoryContents().setCodeOfHolderAccounts(testInfo);
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
 
     // populate memory with the data for first PRECOMPILE call
     copyForeignCodeToRam(program, memoryContentsHolderAddress1);

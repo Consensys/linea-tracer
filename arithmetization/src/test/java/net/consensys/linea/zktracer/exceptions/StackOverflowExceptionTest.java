@@ -39,7 +39,7 @@ public class StackOverflowExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("stackOverflowExceptionSource")
   void stackOverflowExceptionTest(OpCode opCode, int alpha, int delta) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     for (int i = 0; i < 1024; i++) {
       program.push(0);
     }

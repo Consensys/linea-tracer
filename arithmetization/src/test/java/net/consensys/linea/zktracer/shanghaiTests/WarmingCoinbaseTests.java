@@ -83,7 +83,7 @@ public class WarmingCoinbaseTests extends TracerTestBase {
         ToyAccount.builder()
             .balance(Wei.fromEth(0x1))
             .address(DEFAULT_COINBASE_ADDRESS)
-            .code(BytecodeCompiler.newProgram(testInfo).push(1).push(2).op(OpCode.SSTORE).compile())
+            .code(BytecodeCompiler.newProgram().push(1).push(2).op(OpCode.SSTORE).compile())
             .build();
 
     final ToyAccount recipientAccount =
@@ -91,7 +91,7 @@ public class WarmingCoinbaseTests extends TracerTestBase {
             .balance(Wei.fromEth(0x1))
             .address(Address.fromHexString("0x1122334455667788990011223344556677889900"))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     .push(0) // ret size
                     .push(0) // ret offset
                     .push(0) // arg size
@@ -123,7 +123,7 @@ public class WarmingCoinbaseTests extends TracerTestBase {
   // This useless init code creates an account with bytecode "BALANCE"
   private final Bytes INIT_CODE = Bytes.fromHexString("0x603160005360016000F3");
 
-  // = BytecodeCompiler.newProgram(testInfo)
+  // = BytecodeCompiler.newProgram()
   //      .push(OpCode.BALANCE.byteValue())
   //      .push(0) // offset
   //      .op(OpCode.MSTORE8)
@@ -174,7 +174,7 @@ public class WarmingCoinbaseTests extends TracerTestBase {
             .balance(Wei.fromEth(0x12))
             .address(Address.fromHexString("0x1122334455667788990011223344556677889900"))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     .push(INIT_CODE) // value
                     .push(0) // offset
                     .op(OpCode.MSTORE)
@@ -221,7 +221,7 @@ public class WarmingCoinbaseTests extends TracerTestBase {
             .balance(Wei.fromEth(0x12))
             .address(Address.fromHexString("0x1122334455667788990011223344556677889900"))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram()
                     .push(INIT_CODE) // value
                     .push(0) // offset
                     .op(OpCode.MSTORE)

@@ -66,7 +66,7 @@ public class Tests extends TracerTestBase {
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void nontrivialCallDataIdentityTest(OpCode callOpCode) {
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram();
     fullCodeCopyOf(program, byteSource);
     appendCall(
         program,

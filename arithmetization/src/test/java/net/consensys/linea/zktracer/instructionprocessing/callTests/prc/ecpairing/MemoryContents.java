@@ -88,7 +88,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
         memoryContentsBytes.size()
             == TOTAL_NUMBER_OF_PAIRS_OF_POINTS * SIZE_OF_PAIR_OF_POINTS + WORD_SIZE);
 
-    BytecodeCompiler memoryContents = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler memoryContents = BytecodeCompiler.newProgram();
     return memoryContents.immediate(memoryContentsBytes);
   }
 

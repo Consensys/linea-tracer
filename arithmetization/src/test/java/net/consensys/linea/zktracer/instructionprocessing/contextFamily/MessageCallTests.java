@@ -72,7 +72,7 @@ public class MessageCallTests extends TracerTestBase {
    */
   private ToyAccount buildRecipient(OpCode callOpCode) {
 
-    BytecodeCompiler recipientCode = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler recipientCode = BytecodeCompiler.newProgram();
     recipientCode.op(CALLDATASIZE);
     recipientCode.op(RETURNDATASIZE);
     recipientCode.op(CALLER);

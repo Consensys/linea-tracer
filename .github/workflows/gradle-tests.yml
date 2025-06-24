@@ -54,11 +54,13 @@ jobs:
   # Unit Tests
   # ==================================================================
   unit-tests-london:
+    needs: [ build ]
     uses: ./.github/workflows/unit-tests.yml
     with:
       zkevm_fork: "LONDON"
 
   unit-tests-shanghai:
+    needs: [ build ]
     uses: ./.github/workflows/unit-tests.yml
     with:
       zkevm_fork: "SHANGHAI"

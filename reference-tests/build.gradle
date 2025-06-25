@@ -42,13 +42,12 @@ tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
   failedTestsFilePath = System.getenv('FAILED_TEST_JSON_DIRECTORY') ?: "../tmp/local/"
   failedModule = System.getenv('FAILED_MODULE') ?: ""
   failedConstraint = System.getenv('FAILED_CONSTRAINT') ?: ""
-
-  print("Executing generating...\n" + System.getenv("ZKEVM_FORK"))
 }
 
 tasks.register('referenceBlockchainTests', Test) {
   finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
+  print("Executing generatinng...\n" + System.getenv("ZKEVM_FORK").toString())
   dependsOn generateBlockchainReferenceTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 

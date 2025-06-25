@@ -16,27 +16,25 @@
 package net.consensys.linea.zktracer.module.bls;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.Trace.Bls.BLS_PRIME_3;
-import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_LARGE_POINT;
-import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_MAP_FP2_TO_G2;
-import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_MAP_FP_TO_G1;
-import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_POINT_EVALUATION;
-import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SCALAR;
-import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SMALL_POINT;
-import static net.consensys.linea.zktracer.Trace.Bls.INDEX_MAX_DATA_G1_MSM_MIN;
-import static net.consensys.linea.zktracer.Trace.Bls.INDEX_MAX_DATA_G2_MSM_MIN;
-import static net.consensys.linea.zktracer.Trace.Bls.INDEX_MAX_DATA_PAIRING_CHECK_MIN;
-import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_HI;
-import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_LO;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_0;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_1;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_2;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_3;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_LARGE_POINT;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_SCALAR;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_SMALL_POINT;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G1_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G1_MSM_MIN;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G2_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G2_MSM_MIN;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_MAP_FP2_TO_G2;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_PAIRING_CHECK_MIN;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_POINT_EVALUATION;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G1_ADD;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G1_MSM;
@@ -46,6 +44,8 @@ import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_HI;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_LO;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G1_ADD;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G1_MSM;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G2_ADD;
@@ -92,8 +92,6 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
 public class BlsOperation extends ModuleOperation {
-  final EWord BLS_PRIME_HI = EWord.of(BigInteger.valueOf(BLS_PRIME_3), BLS_PRIME_2);
-  final EWord BLS_PRIME_LO = EWord.of(BLS_PRIME_1, BLS_PRIME_0);
   final EWord POINT_EVALUATION_PRIME =
       EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
   public static final int nBYTES_OF_DELTA_BYTES = 4;
@@ -115,11 +113,11 @@ public class BlsOperation extends ModuleOperation {
   private final int totalSizeData;
   private final int totalSizeResult;
   @Getter private final List<Bytes> limb;
-  private boolean successBit;
 
   private final List<Boolean> mintBit;
   private final List<Boolean> mextBit;
   private final List<Boolean> isInfinity;
+  private final List<Boolean> nontrivialPairOfPointsBit;
 
   // WCP interaction
   private final List<Boolean> wcpFlag;
@@ -152,6 +150,7 @@ public class BlsOperation extends ModuleOperation {
     mintBit = repeat(false, nRows);
     mextBit = repeat(false, nRows);
     isInfinity = repeat(false, nRows);
+    nontrivialPairOfPointsBit = repeat(false, nRows);
 
     wcpFlag = repeat(false, nRows);
     wcpArg1Hi = repeat(Bytes.EMPTY, nRows);
@@ -234,7 +233,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(14, blsMod.hi());
     limb.set(15, blsMod.lo());
 
-    // TODO: set successBit and mextBit
+    // TODO: set mextBit
   }
 
   private void handleBlsG1Add() {
@@ -296,7 +295,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(22, cY1);
     limb.set(23, cY0);
 
-    // TODO: set successBit and mextBit
+    // TODO: set mextBit
   }
 
   private void handleBlsG1Msm() {
@@ -365,7 +364,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(16 + indexOffsetResultMax, cY1);
     limb.set(17 + indexOffsetResultMax, cY0);
 
-    // TODO: set successBit and mextBit
+    // TODO: set mextBit
   }
 
   private void handleBlsG2Add() {
@@ -484,7 +483,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(46, cYRe1);
     limb.set(47, cYRe0);
 
-    // TODO: set successBit and mextBit
+    // TODO: set mextBit
   }
 
   private void handleBlsG2Msm() {
@@ -610,7 +609,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(32 + indexOffsetResultMax, cYRe1);
     limb.set(33 + indexOffsetResultMax, cYRe0);
 
-    // TODO: set successBit and mextBit
+    // TODO: set mextBit
   }
 
   private void handleBlsPairingCheck() {
@@ -676,7 +675,7 @@ public class BlsOperation extends ModuleOperation {
       wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
 
       wellFormedFp2CoordinateAndInfinityCheck(
-          indexOffset,
+          8 + indexOffset,
           bXIm3,
           bXIm2,
           bXIm1,
@@ -693,6 +692,13 @@ public class BlsOperation extends ModuleOperation {
           bYRe2,
           bYRe1,
           bYRe0);
+
+      final boolean smallPointIsAtInfinity = isInfinity.get(indexOffset);
+      final boolean largePointIsAtInfinity = isInfinity.get(8 + indexOffset);
+      final boolean pairOfPointsNonTrivialBit = !smallPointIsAtInfinity && !largePointIsAtInfinity;
+      for (int j = indexOffset; j < 24 + indexOffset; j++) {
+        this.nontrivialPairOfPointsBit.set(j, pairOfPointsNonTrivialBit);
+      }
     }
 
     EWord pairingResult = EWord.ZERO;
@@ -709,7 +715,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(24 + indexOffsetResultMax, pairingResult.hi());
     limb.set(25 + indexOffsetResultMax, pairingResult.lo());
 
-    // TODO: set successBit and mextBit
+    // TODO: set mextBit
   }
 
   private void handleBlsMapFpToG1() {
@@ -764,7 +770,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(10, cY1);
     limb.set(11, cY0);
 
-    // TODO: set successBit and mextBit
+    // TODO: set mextBit
   }
 
   private void handleBlsMapFp2ToG2() {
@@ -1069,14 +1075,20 @@ public class BlsOperation extends ModuleOperation {
 
     final boolean mint = mintBit.stream().reduce(false, Boolean::logicalOr);
     final boolean mext = mextBit.stream().reduce(false, Boolean::logicalOr);
-    final boolean wtrv = false; // TODO: manage trivial case
-    final boolean wnon = !mint && !mext; // TODO: manage non-trivial case
+    final boolean nonTrivialPairOfPointsTot =
+        nontrivialPairOfPointsBit.stream().reduce(false, Boolean::logicalOr);
+    final boolean wtrv =
+        !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || !nonTrivialPairOfPointsTot);
+    final boolean wnon =
+        !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || nonTrivialPairOfPointsTot);
+    final boolean successBit = wtrv || wnon;
 
     int ct = 0;
     boolean isFirstInput = true;
     int accInputs = 0;
     boolean mintBitAcc = false;
     boolean mextBitAcc = false;
+    boolean nontrivialPairOfPointsAcc = false;
 
     for (int i = 0; i < nRows; i++) {
       boolean isData = i < nRowsData;
@@ -1101,6 +1113,7 @@ public class BlsOperation extends ModuleOperation {
 
       mintBitAcc = mintBitAcc || mintBit.get(i);
       mextBitAcc = mextBitAcc || mextBit.get(i);
+      nontrivialPairOfPointsAcc = nontrivialPairOfPointsAcc || nontrivialPairOfPointsBit.get(i);
 
       trace
           .stamp(stamp)
@@ -1143,8 +1156,8 @@ public class BlsOperation extends ModuleOperation {
           .isFirstInput(isFirstInput && isData)
           .isSecondInput(!isFirstInput && isData)
           .isInfinity(isInfinity.get(i))
-          .nontrivialPairOfPointsBit(false)
-          .nontrivialPairOfPointsAcc(false)
+          .nontrivialPairOfPointsBit(nontrivialPairOfPointsBit.get(i))
+          .nontrivialPairOfPointsAcc(nontrivialPairOfPointsAcc)
           .circuitSelectorPointEvaluation(false)
           .circuitSelectorPointEvaluationFailure(false)
           .circuitSelectorC1Membership(false)

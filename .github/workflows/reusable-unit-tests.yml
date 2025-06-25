@@ -7,9 +7,8 @@ on:
         required: true
         type: string
       tests-with-ssh:
-        required: false
+        required: true
         type: boolean
-        default: false
 
 jobs:
   # ==================================================================

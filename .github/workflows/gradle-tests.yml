@@ -58,14 +58,14 @@ jobs:
     uses: ./.github/workflows/reusable-unit-tests.yml
     with:
       zkevm_fork: LONDON
-      tests-with-ssh: ${{ inputs.tests-with-ssh }}
+      tests-with-ssh: ${{ inputs.tests-with-ssh || ''}}
 
   unit-tests-shanghai:
     needs: [ build ]
     uses: ./.github/workflows/reusable-unit-tests.yml
     with:
       zkevm_fork: SHANGHAI
-      tests-with-ssh: ${{ inputs.tests-with-ssh }}
+      tests-with-ssh: ${{ inputs.tests-with-ssh || ''}}
 
   # ==================================================================
   # Fast Replay Tests

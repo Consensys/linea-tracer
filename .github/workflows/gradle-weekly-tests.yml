@@ -12,12 +12,12 @@ concurrency:
 
 jobs:
   weekly-unit-tests-london:
-    uses: ./.github/workflows/reusable-weekly-prc-tests.yml
+    uses: ./.github/workflows/reusable-weekly-tests.yml
     with:
       zkevm_fork: "LONDON"
 
   weekly-unit-tests-shanghai:
-    uses: ./.github/workflows/reusable-weekly-prc-tests.yml
+    uses: ./.github/workflows/reusable-weekly-tests.yml
     with:
       zkevm_fork: "SHANGHAI"
 

@@ -32,8 +32,16 @@ jobs:
     uses: ./.github/workflows/reusable-blockchain-tests.yml
     with:
       zkevm_fork: "LONDON"
+      test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
+      failed_module: ${{ inputs.failed_module || '' }}
+      failed_constraint: ${{ inputs.failed_constraint || '' }}
+      commit: ${{ inputs.commit || '' }}
 
   blockchain-reference-tests-shanghai:
     uses: ./.github/workflows/reusable-blockchain-tests.yml
     with:
       zkevm_fork: "SHANGHAI"
+      test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
+      failed_module: ${{ inputs.failed_module || '' }}
+      failed_constraint: ${{ inputs.failed_constraint || '' }}
+      commit: ${{ inputs.commit || '' }}

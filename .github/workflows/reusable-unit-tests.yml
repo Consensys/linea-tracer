@@ -6,6 +6,10 @@ on:
       zkevm_fork:
         required: true
         type: string
+      tests-with-ssh:
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   # ==================================================================

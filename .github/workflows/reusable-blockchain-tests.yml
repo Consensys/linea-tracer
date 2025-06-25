@@ -6,6 +6,19 @@ on:
       zkevm_fork:
         required: true
         type: string
+      test_filter:
+        required: false
+        type: string
+        default: "BlockchainReferenceTest_*"
+      failed_module:
+        required: false
+        type: string
+      failed_constraint:
+        required: false
+        type: string
+      commit:
+        required: false
+        type: string
 
 jobs:
   # ==================================================================

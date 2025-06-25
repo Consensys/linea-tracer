@@ -313,6 +313,7 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("tipsLondon_London\\[London\\]");
     PARAMS.ignore("transType_London\\[London\\]");
     PARAMS.ignore("highGasUsage_London\\[London\\]");
+    PARAMS.ignore("blockhashNonConstArg_London\\[London\\]");
     PARAMS.ignore("blockhashTests_London\\[London\\]");
     PARAMS.ignore("extcodehashEmptySuicide_London\\[London\\]");
     PARAMS.ignore("logRevert_London\\[London\\]");

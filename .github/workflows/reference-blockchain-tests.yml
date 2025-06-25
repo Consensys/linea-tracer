@@ -31,7 +31,7 @@ jobs:
   blockchain-reference-tests-london:
     uses: ./.github/workflows/reusable-blockchain-tests.yml
     with:
-      zkevm_fork: "LONDON"
+      zkevm_fork: London
       test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
       failed_module: ${{ inputs.failed_module || '' }}
       failed_constraint: ${{ inputs.failed_constraint || '' }}
@@ -40,7 +40,7 @@ jobs:
   blockchain-reference-tests-shanghai:
     uses: ./.github/workflows/reusable-blockchain-tests.yml
     with:
-      zkevm_fork: "SHANGHAI"
+      zkevm_fork: Shanghai
       test_filter: ${{ inputs.test_filter || 'BlockchainReferenceTest_*' }}
       failed_module: ${{ inputs.failed_module || '' }}
       failed_constraint: ${{ inputs.failed_constraint || '' }}

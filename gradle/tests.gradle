@@ -156,7 +156,6 @@ tasks.test.configure {
       System.getenv().getOrDefault("UNIT_TESTS_PARALLELISM", "4").toInteger())
   //
 
-  print("Executing generatinng...\n" + System.getenv("ZKEVM_FORK").toString())
   useJUnitPlatform {
     excludeTags("nightly")
     excludeTags("replay")
@@ -322,7 +321,6 @@ tasks.register("weeklyTests", Test) {
   systemProperty("junit.jupiter.execution.parallel.config.fixed.parallelism",
           System.getenv().getOrDefault("WEEKLY_TESTS_PARALLELISM", "8").toInteger())
 
-  print("Executing generatinng...\n" + System.getenv("ZKEVM_FORK").toString())
   useJUnitPlatform {
     includeTags("weekly")
   }

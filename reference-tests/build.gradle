@@ -47,7 +47,6 @@ tasks.register("generateBlockchainReferenceTests", RefTestGenerationTask) {
 tasks.register('referenceBlockchainTests', Test) {
   finalizedBy(jacocoReferenceBlockchainTestsReport)
   description = 'Runs ETH reference blockchain tests.'
-  print("Executing generatinng...\n" + System.getenv("ZKEVM_FORK").toString())
   dependsOn generateBlockchainReferenceTests
   environment.put("REFERENCE_TEST_OUTCOME_OUTPUT_FILE", "BlockchainReferenceTestOutcome.json")
 

@@ -23,6 +23,9 @@ import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_POINT_EVALUATION;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SCALAR;
 import static net.consensys.linea.zktracer.Trace.Bls.CT_MAX_SMALL_POINT;
+import static net.consensys.linea.zktracer.Trace.Bls.INDEX_MAX_DATA_G1_MSM_MIN;
+import static net.consensys.linea.zktracer.Trace.Bls.INDEX_MAX_DATA_G2_MSM_MIN;
+import static net.consensys.linea.zktracer.Trace.Bls.INDEX_MAX_DATA_PAIRING_CHECK_MIN;
 import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_HI;
 import static net.consensys.linea.zktracer.Trace.Bls.POINT_EVALUATION_PRIME_LO;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
@@ -115,6 +118,7 @@ public class BlsOperation extends ModuleOperation {
   private boolean successBit;
 
   private final List<Boolean> mintBit;
+  private final List<Boolean> mextBit;
   private final List<Boolean> isInfinity;
 
   // WCP interaction
@@ -146,6 +150,7 @@ public class BlsOperation extends ModuleOperation {
 
     limb = repeat(Bytes.EMPTY, nRows);
     mintBit = repeat(false, nRows);
+    mextBit = repeat(false, nRows);
     isInfinity = repeat(false, nRows);
 
     wcpFlag = repeat(false, nRows);
@@ -1062,49 +1067,47 @@ public class BlsOperation extends ModuleOperation {
     final Bytes deltaByte =
         leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
 
+    final boolean mint = mintBit.stream().reduce(false, Boolean::logicalOr);
+    final boolean mext = mextBit.stream().reduce(false, Boolean::logicalOr);
+    final boolean wtrv = false; // TODO: manage trivial case
+    final boolean wnon = !mint && !mext; // TODO: manage non-trivial case
+
     int ct = 0;
     boolean isFirstInput = true;
-
-    /*
-    Examples:
-
-    nRowsData = 6
-    ct = 0, ctMaxFirstInput = 3, ctMaxSecondInput = 1
-          | ct | ctMax | isFirstInput |
-          -----------------------------
-    i = 0 | 0  | 3     | true         |
-    i = 1 | 1  | 3     | true         |
-    i = 2 | 2  | 3     | true         |
-    i = 3 | 3  | 3     | true         |
-    i = 4 | 0  | 1     | false        |
-    i = 5 | 1  | 1     | false        |
-
-    nRowsData = 4
-    ct = 0, ctMaxFirstInput = 3, ctMaxSecondInput = 0
-          | ct | ctMax | isFirstInput |
-          -----------------------------
-    i = 0 | 0  | 3     | true         |
-    i = 1 | 1  | 3     | true         |
-    i = 2 | 2  | 3     | true         |
-    i = 3 | 3  | 3     | true         |
-     */
+    int accInputs = 0;
+    boolean mintBitAcc = false;
+    boolean mextBitAcc = false;
 
     for (int i = 0; i < nRows; i++) {
       boolean isData = i < nRowsData;
       // TODO: fill missing fields
       final int ctMax = getCtMax(precompileFlag, isData, isFirstInput);
+      final int indexMax = getIndexMax(precompileFlag, isData);
+
       if (ctMax != 0) {
         // Transition from first input to second input or vice versa only if there are multiple
         // inputs
         isFirstInput = !isFirstInput;
       }
 
+      if (isData) {
+        switch (precompileFlag) {
+          case PRC_BLS_G1_MSM -> accInputs = i / (INDEX_MAX_DATA_G1_MSM_MIN + 1) + 1;
+          case PRC_BLS_G2_MSM -> accInputs = i / (INDEX_MAX_DATA_G2_MSM_MIN + 1) + 1;
+          case PRC_BLS_PAIRING_CHECK -> accInputs = i / (INDEX_MAX_DATA_PAIRING_CHECK_MIN + 1) + 1;
+          default -> accInputs = 0;
+        }
+      }
+
+      mintBitAcc = mintBitAcc || mintBit.get(i);
+      mextBitAcc = mextBitAcc || mextBit.get(i);
+
       trace
           .stamp(stamp)
           .id(id)
           .totalSize(isData ? totalSizeData : totalSizeResult)
           .index(isData ? i : i - nRowsData)
-          .indexMax(getIndexMax(precompileFlag, isData))
+          .indexMax(indexMax)
           .phase(getPhase(precompileFlag, isData))
           .limb(limb.get(i))
           .successBit(successBit)
@@ -1126,20 +1129,20 @@ public class BlsOperation extends ModuleOperation {
           .rsltBlsPairingCheckFlag(precompileFlag == PRC_BLS_PAIRING_CHECK && !isData)
           .rsltBlsMapFpToG1Flag(precompileFlag == PRC_BLS_MAP_FP_TO_G1 && !isData)
           .rsltBlsMapFp2ToG2Flag(precompileFlag == PRC_BLS_MAP_FP2_TO_G2 && !isData)
-          .accInputs(0)
+          .accInputs(accInputs)
           .byteDelta(
               i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
-          .malformedDataInternalBit(false)
-          .malformedDataInternalAcc(false)
-          .malformedDataInternalAccTot(false)
-          .malformedDataExternalBit(false)
-          .malformedDataExternalAcc(false)
-          .malformedDataExternalAccTot(false)
-          .wellformedDataTrivial(false)
-          .wellformedDataNontrivial(false)
+          .malformedDataInternalBit(mintBit.get(i))
+          .malformedDataInternalAcc(mintBitAcc)
+          .malformedDataInternalAccTot(mint && isData)
+          .malformedDataExternalBit(mextBit.get(i))
+          .malformedDataExternalAcc(mextBitAcc)
+          .malformedDataExternalAccTot(mext && isData)
+          .wellformedDataTrivial(wtrv)
+          .wellformedDataNontrivial(wnon)
           .isFirstInput(isFirstInput && isData)
           .isSecondInput(!isFirstInput && isData)
-          .isInfinity(false)
+          .isInfinity(isInfinity.get(i))
           .nontrivialPairOfPointsBit(false)
           .nontrivialPairOfPointsAcc(false)
           .circuitSelectorPointEvaluation(false)

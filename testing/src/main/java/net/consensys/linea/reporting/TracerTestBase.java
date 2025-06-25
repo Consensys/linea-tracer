@@ -17,6 +17,7 @@ package net.consensys.linea.reporting;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import org.hyperledger.besu.datatypes.Address;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
@@ -43,6 +44,7 @@ public class TracerTestBase {
 
   public static String getForkOrDefault(String defaultFork) {
     String fork = System.getenv("ZKEVM_FORK");
+    Assumptions.assumeTrue(true, "the fork is" + fork);
     if(fork != null) {
       return fork;
     }

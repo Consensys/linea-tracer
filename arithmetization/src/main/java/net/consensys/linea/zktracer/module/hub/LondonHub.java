@@ -98,6 +98,6 @@ public class LondonHub extends Hub {
 
   @Override
   protected void setMcopySection(Hub hub) {
-    throw new IllegalStateException("MCOPY opcodes appear in Cancun");
+    throw new IllegalStateException("MCOPY opcode appears in Cancun");
   }
 }

@@ -32,7 +32,6 @@ public class CancunMxpxMxpCall extends CancunTrivialMxpCall {
     super(hub, wcp);
     computeMxpxExpression(wcp);
     setMxpxFromMxpxExpression();
-    setMayTriggerNontrivialMmuOperationFromMxpx();
   }
 
   @Override

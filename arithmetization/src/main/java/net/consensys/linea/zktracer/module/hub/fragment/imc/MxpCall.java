@@ -49,9 +49,6 @@ public class MxpCall implements TraceSubFragment {
   @Getter public EWord offset2 = EWord.ZERO;
   @Getter public EWord size2 = EWord.ZERO;
 
-  /** - filled after computation by the module */
-  @Getter @Setter public boolean mayTriggerNontrivialMmuOperation;
-
   @Getter @Setter public boolean mxpx;
 
   /** mxpx is short of Memory eXPansion eXception */
@@ -154,7 +151,7 @@ public class MxpCall implements TraceSubFragment {
       return new CancunTrivialMxpCall(this.hub, wcp);
     }
     // TODO: remove the computation duplicate
-    var cancunMxpxMxpCall = new CancunMxpxMxpCall(this.hub, wcp);
+    CancunMxpxMxpCall cancunMxpxMxpCall = new CancunMxpxMxpCall(this.hub, wcp);
     if (cancunMxpxMxpCall.mxpx) {
       return cancunMxpxMxpCall;
     } else {
@@ -179,7 +176,6 @@ public class MxpCall implements TraceSubFragment {
         .pMiscMxpOffset2Lo(this.offset2.lo())
         .pMiscMxpSize2Hi(this.size2.hi())
         .pMiscMxpSize2Lo(this.size2.lo())
-        .pMiscMxpMtntop(this.mayTriggerNontrivialMmuOperation)
         .pMiscMxpSize1NonzeroNoMxpx(this.getSize1NonZeroNoMxpx())
         .pMiscMxpSize2NonzeroNoMxpx(this.getSize2NonZeroNoMxpx())
         .pMiscMxpMxpx(this.mxpx)

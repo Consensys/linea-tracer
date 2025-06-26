@@ -42,7 +42,6 @@ public abstract class CancunMxpCall extends MxpCall {
     // Initialization of the computed values of MxpCall
     this.gasMxp = 0L;
     setMxpxFromMxpxExpression();
-    setMayTriggerNontrivialMmuOperationFromMxpx();
   }
 
   /** Store all wcp and euc computations with params and results */
@@ -90,10 +89,6 @@ public abstract class CancunMxpCall extends MxpCall {
 
   public void setMxpxFromMxpxExpression() {
     this.mxpx = this.mxpxExpression != 0;
-  }
-
-  public void setMayTriggerNontrivialMmuOperationFromMxpx() {
-    this.mayTriggerNontrivialMmuOperation = !this.size1.isZero() && !this.mxpx;
   }
 
   public void setGasMpxFromExtraGasCost() {

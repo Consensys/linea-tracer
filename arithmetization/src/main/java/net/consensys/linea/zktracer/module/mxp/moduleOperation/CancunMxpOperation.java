@@ -121,7 +121,6 @@ public class CancunMxpOperation extends LondonMxpOperation {
             cancunMxpCall.isMSizeScenario() ? cancunMxpCall.getMemorySizeInWords() : 0L) // to do
         .pMacroMxpx(cancunMxpCall.isMxpx())
         .pMacroGasMxp(Bytes.ofUnsignedLong(cancunMxpCall.getGasMxp()))
-        .pMacroMayTriggerMmu(cancunMxpCall.isMayTriggerNontrivialMmuOperation())
         .pMacroS1Nznomxpx(!cancunMxpCall.getSize1().isZero() && !cancunMxpCall.isMxpx())
         .pMacroS2Nznomxpx(!cancunMxpCall.getSize2().isZero() && !cancunMxpCall.isMxpx())
         .fillAndValidateRow();

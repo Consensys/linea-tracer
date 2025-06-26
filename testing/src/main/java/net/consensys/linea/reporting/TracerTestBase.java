@@ -15,10 +15,11 @@
 package net.consensys.linea.reporting;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.Fork;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
+
+import static net.consensys.linea.zktracer.Fork.*;
 
 public class TracerTestBase {
   public static TestInfoWithChainConfig testInfo = new TestInfoWithChainConfig();
@@ -27,19 +28,19 @@ public class TracerTestBase {
   @BeforeEach
   public void init(TestInfo testInfo) {
       TracerTestBase.testInfo.chainConfig =
-            switch (getForkOrDefault("LONDON")) {
-              case "LONDON" -> ChainConfig.MAINNET_TESTCONFIG(Fork.LONDON);
-              case "PARIS" -> ChainConfig.MAINNET_TESTCONFIG(Fork.PARIS);
-              case "SHANGHAI" -> ChainConfig.MAINNET_TESTCONFIG(Fork.SHANGHAI);
-              case "CANCUN" -> ChainConfig.MAINNET_TESTCONFIG(Fork.CANCUN);
-              case "PRAGUE" -> ChainConfig.MAINNET_TESTCONFIG(Fork.PRAGUE);
+              switch (getForkOrDefault("LONDON")) {
+              case "LONDON" -> ChainConfig.MAINNET_TESTCONFIG(LONDON);
+              case "PARIS" -> ChainConfig.MAINNET_TESTCONFIG(PARIS);
+              case "SHANGHAI" -> ChainConfig.MAINNET_TESTCONFIG(SHANGHAI);
+              case "CANCUN" -> ChainConfig.MAINNET_TESTCONFIG(CANCUN);
+              case "PRAGUE" -> ChainConfig.MAINNET_TESTCONFIG(PRAGUE);
               default -> throw new IllegalArgumentException(
                   "Unknown fork: " + System.getProperty("unit.replay.tests.fork"));
             };
     TracerTestBase.testInfo.testInfo = testInfo;
   }
 
-  private static String getForkOrDefault(String defaultFork) {
+  public static String getForkOrDefault(String defaultFork) {
     String fork = System.getenv("ZKEVM_FORK");
     if(fork != null) {
       return fork;

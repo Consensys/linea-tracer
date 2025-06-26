@@ -467,12 +467,12 @@ opcodes:
       flag2: true
   - mnemonic: BLOBHASH
     value: 0x49
-    instructionFamily: BATCH
+    instructionFamily: TRANSACTION
     stackSettings:
       pattern: ONE_ONE
       alpha: 1
       delta: 1
-      staticGas: G_VERY_LOW
+      staticGas: G_CONST_HASH_OPCODE
       flag3: true
   - mnemonic: BLOBBASEFEE
     value: 0x4a
@@ -604,6 +604,25 @@ opcodes:
       delta: 0
       staticGas: G_JUMP_DEST
       flag4: true
+  - mnemonic: TLOAD
+    value: 0x5c
+    instructionFamily: TRANSIENT
+    stackSettings:
+      pattern: LOAD_STORE
+      alpha: 1
+      delta: 1
+      staticGas: G_WARM_ACCESS
+      flag1: true
+  - mnemonic: TSTORE
+    value: 0x5d
+    instructionFamily: TRANSIENT
+    stackSettings:
+      pattern: LOAD_STORE
+      alpha: 0
+      delta: 2
+      staticGas: G_WARM_ACCESS
+      forbiddenInStatic: true
+      flag2: true
   - mnemonic: PUSH0
     value: 0x5f
     instructionFamily: PUSH_POP

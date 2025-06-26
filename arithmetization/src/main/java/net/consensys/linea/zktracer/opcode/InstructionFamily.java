@@ -32,6 +32,7 @@ public enum InstructionFamily {
   BATCH,
   STACK_RAM,
   STORAGE,
+  TRANSIENT,
   JUMP,
   MACHINE_STATE,
   PUSH_POP,
@@ -41,14 +42,5 @@ public enum InstructionFamily {
   CREATE,
   CALL,
   HALT,
-  INVALID;
-
-  public boolean isAnyOf(InstructionFamily... families) {
-    for (InstructionFamily family : families) {
-      if (this == family) {
-        return true;
-      }
-    }
-    return false;
-  }
+  INVALID
 }

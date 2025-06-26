@@ -962,6 +962,7 @@ public abstract class Hub implements Module {
               "Invalid instruction: " + this.opCode().toString() + " not in the COPY family");
         }
       }
+      case MCOPY -> setMcopySection(this);
       case TRANSACTION -> new TransactionSection(this);
       case STACK_RAM -> {
         switch (this.currentFrame().opCode()) {
@@ -1056,4 +1057,6 @@ public abstract class Hub implements Module {
   protected abstract void setCreateSection(final Hub hub, final MessageFrame frame);
 
   protected abstract void setTransientSection(Hub hub);
+
+  protected abstract void setMcopySection(Hub hub);
 }

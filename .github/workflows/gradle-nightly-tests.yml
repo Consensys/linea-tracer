@@ -22,7 +22,7 @@ jobs:
         uses: ./.github/actions/setup-environment
 
       - name: Run Nightly tests
-        run: GOMEMLIMIT=32GiB ./gradlew nightlyTests
+        run: GOMAXPROCS=10 GOMEMLIMIT=20GiB ./gradlew nightlyTests
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           CORSET_FLAGS: disable
@@ -34,25 +34,25 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: nightly-tests-report
+          name: nightly-tests-report-LONDON
           path: arithmetization/build/reports/tests/**/*
 
       - name: Upload jacoco nightly tests coverage report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-nightly-tests-coverage-report
+          name: jacoco-nightly-tests-coverage-report-LONDON
           path: arithmetization/build/reports/jacoco/jacocoNightlyTestsReport/**/*
 
       - name: Upload jacoco nightly tests exec file
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: jacoco-nightly-tests-exec-file
+          name: jacoco-nightly-tests-exec-file-LONDON
           path: arithmetization/build/jacoco/nightlyTests.exec
 
       - name: Failure Notification
-        if: ${{ failure() || cancelled() }}
+        if: github.ref == 'refs/heads/arith-dev' && (failure() || cancelled())
         uses: slackapi/slack-github-action@v2.0.0
         with:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}

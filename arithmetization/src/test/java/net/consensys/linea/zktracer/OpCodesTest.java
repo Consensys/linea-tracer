@@ -15,9 +15,7 @@
 
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.Fork.LONDON;
 import static net.consensys.linea.zktracer.opcode.OpCodes.loadOpcodes;
-import static net.consensys.linea.zktracer.opcode.OpCodes.opCodeDataList;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
@@ -26,6 +24,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,8 +40,8 @@ public class OpCodesTest extends TracerTestBase {
 
   private Bytes getAllOpCodesProgram() {
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
-    loadOpcodes(LONDON);
-    for (OpCodeData opCodeData : opCodeDataList) {
+    loadOpcodes(testInfo.chainConfig.fork);
+    for (OpCodeData opCodeData : OpCodes.iterator()) {
       if (opCodeData != null) {
         if (opCodeData.instructionFamily() != InstructionFamily.HALT
             && opCodeData.instructionFamily() != InstructionFamily.JUMP) {

@@ -25,11 +25,14 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.plugin.data.BlockHeader;
-import org.hyperledger.besu.services.BlockchainServiceImpl;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 
 public class CancunBlockDataOperation extends ParisBlockDataOperation {
 
+  private final BlockchainService blockchainService;
+
   public CancunBlockDataOperation(
+      BlockchainService blockchainService,
       Hub hub,
       BlockHeader blockHeader,
       BlockHeader prevBlockHeader,
@@ -40,11 +43,12 @@ public class CancunBlockDataOperation extends ParisBlockDataOperation {
       OpCode opCode,
       long firstBlockNumber) {
     super(hub, blockHeader, prevBlockHeader, relTxMax, wcp, euc, chain, opCode, firstBlockNumber);
+    this.blockchainService = blockchainService;
   }
 
   @Override
   protected void handleBlobBaseFee() {
-    data = EWord.of(BlockchainServiceImpl.getBlobGasPrice(blockHeader()));
+    data = EWord.of(blockchainService.getBlobGasPrice(blockHeader()));
 
     // row i
     wcpCallToGEQ(0, data(), EWord.ZERO);

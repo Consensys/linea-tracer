@@ -156,9 +156,9 @@ public class MxpCall implements TraceSubFragment {
       return cancunMxpxMxpCall;
     } else {
       if (isWordPricingOpcode(opCode)) {
-        return new CancunStateUpdtWPricingMxpCall(this.hub, wcp, euc);
+        return new CancunStateUpdateWordPricingMxpCall(this.hub, wcp, euc);
       }
-      return new CancunStateUpdtBPricingMxpCall(hub, wcp, euc);
+      return new CancunStateUpdateBytePricingMxpCall(hub, wcp, euc);
     }
   }
 

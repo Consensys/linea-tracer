@@ -30,9 +30,9 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 
-public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
+public class CancunStateUpdateWordPricingMxpCall extends CancunMxpxMxpCall {
 
-  public CancunStateUpdtWPricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
+  public CancunStateUpdateWordPricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
     super(hub, wcp);
     computeStateUpdt(wcp, euc);
     computeExtraGasCost(euc);
@@ -43,7 +43,7 @@ public class CancunStateUpdtWPricingMxpCall extends CancunMxpxMxpCall {
   }
 
   @Override
-  public boolean isStateUpdtWPricingScenario() {
+  public boolean isStateUpdateWordPricingScenario() {
     return true;
   }
 

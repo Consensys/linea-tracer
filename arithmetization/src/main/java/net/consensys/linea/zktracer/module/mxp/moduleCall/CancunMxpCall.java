@@ -79,11 +79,11 @@ public abstract class CancunMxpCall extends MxpCall {
     return false;
   }
 
-  public boolean isStateUpdtWPricingScenario() {
+  public boolean isStateUpdateWordPricingScenario() {
     return false;
   }
 
-  public boolean isStateUpdtBPricingScenario() {
+  public boolean isStateUpdateBytePricingScenario() {
     return false;
   }
 

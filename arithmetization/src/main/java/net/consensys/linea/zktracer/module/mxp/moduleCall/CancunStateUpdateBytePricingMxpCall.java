@@ -24,9 +24,9 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
-public class CancunStateUpdtBPricingMxpCall extends CancunStateUpdtWPricingMxpCall {
+public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateWordPricingMxpCall {
 
-  public CancunStateUpdtBPricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
+  public CancunStateUpdateBytePricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
     super(hub, wcp, euc);
     computeExtraGasCost();
     if (this.isStateUpdate) {
@@ -36,7 +36,7 @@ public class CancunStateUpdtBPricingMxpCall extends CancunStateUpdtWPricingMxpCa
   }
 
   @Override
-  public boolean isStateUpdtBPricingScenario() {
+  public boolean isStateUpdateBytePricingScenario() {
     return true;
   }
 

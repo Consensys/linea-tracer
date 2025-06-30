@@ -966,11 +966,11 @@ public class LondonRlpTxn extends RlpTxn {
         .lt(traceValue.lt)
         .lx(traceValue.lx)
         .toHashByProver(traceValue.limbConstructed && traceValue.lx)
-        // .nBytes((short) traceValue.nBytes)
-        // .nAddr(traceValue.nbAddr)
-        // .nKeys(traceValue.nbSto)
-        // .nKeysPerAddr(traceValue.nbStoPerAddr)
-        // .nStep((short) traceValue.nStep)
+        .nBytes((short) traceValue.nBytes)
+        .nAddr(traceValue.nbAddr)
+        .nKeys(traceValue.nbSto)
+        .nKeysPerAddr(traceValue.nbStoPerAddr)
+        .nStep((short) traceValue.nStep)
         .phase((short) traceValue.phase)
         .isPhaseRlpPrefix(traceValue.phase == RLP_TXN_PHASE_RLP_PREFIX)
         .isPhaseChainId(traceValue.phase == RLP_TXN_PHASE_CHAIN_ID)
@@ -1025,7 +1025,7 @@ public class LondonRlpTxn extends RlpTxn {
     if (traceValue.phaseEnd) {
       traceValue.resetDataHiLo();
     }
-    builder.fillAndValidateRow(); // TODO: validateRow();
+    builder.validateRow();
 
     // reconstruct RLPs
     if (traceValue.limbConstructed && traceValue.lt) {

@@ -27,6 +27,8 @@ import net.consensys.linea.zktracer.module.hub.section.create.LondonCreateSectio
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
 import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
+import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
+import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
@@ -66,8 +68,20 @@ public class LondonHub extends Hub {
   }
 
   @Override
+  protected RlpUtils setRlpUtils(Wcp wcp) {
+    // RlpUtils is not used in London, it is only used in Cancun
+    return null;
+  }
+
+  @Override
   protected InstructionDecoder setInstructionDecoder() {
     return new LondonInstructionDecoder();
+  }
+
+  @Override
+  protected PowerRt setPower() {
+    // PowerRt is not used in London, it is only used in Cancun
+    return null;
   }
 
   @Override

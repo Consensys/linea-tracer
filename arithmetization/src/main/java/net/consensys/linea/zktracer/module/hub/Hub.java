@@ -29,10 +29,7 @@ import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static org.hyperledger.besu.evm.frame.MessageFrame.Type.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import lombok.Getter;
@@ -95,6 +92,7 @@ import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.mxp.Mxp;
 import net.consensys.linea.zktracer.module.oob.Oob;
+import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxnRcpt;
@@ -104,6 +102,7 @@ import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
+import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
@@ -214,6 +213,7 @@ public abstract class Hub implements Module {
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
   @Getter private final Trm trm = new Trm(wcp);
+  private final RlpUtils rlpUtils = setRlpUtils(wcp);
 
   // other
   @Getter private final Blockdata blockdata;
@@ -323,37 +323,39 @@ public abstract class Hub implements Module {
   public List<Module> getModulesToTrace() {
     return Stream.concat(
             Stream.of(
-                this,
-                add,
-                bin,
-                blakeModexpData,
-                blockdata,
-                blockhash,
-                ecData,
-                exp,
-                ext,
-                euc,
-                gas,
-                logData,
-                logInfo,
-                mmu, // WARN: must be traced before the MMIO
-                mmio,
-                mod,
-                mul,
-                mxp,
-                oob,
-                rlpAddr,
-                rlpTxn,
-                rlpTxnRcpt,
-                rom,
-                romLex,
-                shakiraData,
-                shf,
-                stp,
-                trm,
-                txnData,
-                wcp),
-            refTableModules.stream())
+                    this,
+                    add,
+                    bin,
+                    blakeModexpData,
+                    blockdata,
+                    blockhash,
+                    ecData,
+                    exp,
+                    ext,
+                    euc,
+                    gas,
+                    logData,
+                    logInfo,
+                    mmu, // WARN: must be traced before the MMIO
+                    mmio,
+                    mod,
+                    mul,
+                    mxp,
+                    oob,
+                    rlpAddr,
+                    rlpTxn,
+                    rlpTxnRcpt,
+                    rlpUtils,
+                    rom,
+                    romLex,
+                    shakiraData,
+                    shf,
+                    stp,
+                    trm,
+                    txnData,
+                    wcp)
+                .filter(Objects::nonNull),
+            refTableModules.stream().filter(Objects::nonNull))
         .toList();
   }
 
@@ -387,40 +389,42 @@ public abstract class Hub implements Module {
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
-    refTableModules = List.of(new BinRt(), setInstructionDecoder(), new ShfRt());
+    refTableModules = List.of(new BinRt(), setInstructionDecoder(), new ShfRt(), setPower());
 
     modules =
         Stream.concat(
                 Stream.of(
-                    add,
-                    bin,
-                    blakeModexpData,
-                    blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
-                    ecData,
-                    euc,
-                    ext,
-                    gas,
-                    mmio,
-                    mmu,
-                    mod,
-                    mul,
-                    mxp,
-                    oob,
-                    exp,
-                    rlpAddr,
-                    rlpTxn,
-                    rlpTxnRcpt,
-                    logData, /* WARN: must be called AFTER rlpTxnRcpt */
-                    logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
-                    rom,
-                    romLex,
-                    shakiraData,
-                    shf,
-                    stp,
-                    trm,
-                    wcp, /* WARN: must be called BEFORE txnData */
-                    txnData,
-                    blockdata /* WARN: must be called AFTER txnData */),
+                        add,
+                        bin,
+                        blakeModexpData,
+                        blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
+                        ecData,
+                        euc,
+                        ext,
+                        gas,
+                        mmio,
+                        mmu,
+                        mod,
+                        mul,
+                        mxp,
+                        oob,
+                        exp,
+                        rlpAddr,
+                        rlpTxn,
+                        rlpTxnRcpt,
+                        rlpUtils,
+                        logData, /* WARN: must be called AFTER rlpTxnRcpt */
+                        logInfo, /* WARN: must be called AFTER rlpTxnRcpt */
+                        rom,
+                        romLex,
+                        shakiraData,
+                        shf,
+                        stp,
+                        trm,
+                        wcp, /* WARN: must be called BEFORE txnData */
+                        txnData,
+                        blockdata /* WARN: must be called AFTER txnData */)
+                    .filter(Objects::nonNull),
                 getTracelessModules().stream())
             .toList();
   }
@@ -1049,7 +1053,11 @@ public abstract class Hub implements Module {
   protected abstract Blockdata setBlockData(
       Hub hub, Wcp wcp, Euc euc, ChainConfig chain, BlockchainService blockchainService);
 
+  protected abstract RlpUtils setRlpUtils(Wcp wcp);
+
   protected abstract InstructionDecoder setInstructionDecoder();
+
+  protected abstract PowerRt setPower();
 
   protected abstract void setInitializationSection(WorldView world);
 

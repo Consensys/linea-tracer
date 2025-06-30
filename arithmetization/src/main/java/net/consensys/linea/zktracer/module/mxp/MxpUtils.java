@@ -39,19 +39,17 @@ public class MxpUtils {
   }
 
   public static boolean isWordPricingOpcode(OpCode opCode) {
-    return opCode.isLog()
-        || opCode == OpCode.SHA3
-        || opCode.isCopy()
-        || opCode.isCreate()
-        || opCode == OpCode.MCOPY;
+    return opCode == OpCode.SHA3 || opCode.isCopy() || opCode.isCreate() || opCode == OpCode.MCOPY;
   }
 
   public static boolean isBytePricingOpcode(OpCode opCode) {
-    return opCode == OpCode.MLOAD
+    return opCode == OpCode.MSIZE
+        || opCode == OpCode.MLOAD
         || opCode == OpCode.MSTORE
         || opCode == OpCode.MSTORE8
         || opCode == OpCode.REVERT
         || opCode == OpCode.RETURN
+        || opCode.isLog()
         || opCode.isCall();
   }
 

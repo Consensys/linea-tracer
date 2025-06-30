@@ -117,8 +117,7 @@ public class CancunMxpOperation extends LondonMxpOperation {
         .pMacroOffset2Lo(cancunMxpCall.getOffset2().lo())
         .pMacroSize2Hi(cancunMxpCall.getSize2().hi())
         .pMacroSize2Lo(cancunMxpCall.getSize2().lo())
-        .pMacroRes(
-            cancunMxpCall.isMSizeScenario() ? cancunMxpCall.getMemorySizeInWords() : 0L) // to do
+        .pMacroRes(cancunMxpCall.isMSizeScenario() ? cancunMxpCall.getMemorySizeInWords() : 0L)
         .pMacroMxpx(cancunMxpCall.isMxpx())
         .pMacroGasMxp(Bytes.ofUnsignedLong(cancunMxpCall.getGasMxp()))
         .pMacroS1Nznomxpx(!cancunMxpCall.getSize1().isZero() && !cancunMxpCall.isMxpx())

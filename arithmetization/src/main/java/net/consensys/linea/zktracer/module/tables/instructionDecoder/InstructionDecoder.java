@@ -40,8 +40,6 @@ public abstract class InstructionDecoder implements Module {
         .familyContext(op.instructionFamily() == InstructionFamily.CONTEXT)
         .familyAccount(op.instructionFamily() == InstructionFamily.ACCOUNT)
         .familyCopy(op.instructionFamily() == InstructionFamily.COPY)
-        // TODO: add familyMCopy in constraints
-        // .familyMCopy(op.instructionFamily() == InstructionFamily.MCOPY)
         .familyTransaction(op.instructionFamily() == InstructionFamily.TRANSACTION)
         .familyBatch(op.instructionFamily() == InstructionFamily.BATCH)
         .familyStackRam(op.instructionFamily() == InstructionFamily.STACK_RAM)
@@ -74,7 +72,6 @@ public abstract class InstructionDecoder implements Module {
         .flag4(op.stackSettings().flag4());
   }
 
-  // TODO: traceMxpSettings
   private static void traceBillingSettings(OpCodeData op, Trace.Instdecoder trace) {
     trace
         .billingPerWord(

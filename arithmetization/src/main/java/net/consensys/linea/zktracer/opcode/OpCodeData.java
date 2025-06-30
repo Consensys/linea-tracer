@@ -125,7 +125,6 @@ public record OpCodeData(
   }
 
   public boolean isMxp() {
-    // TODO: isMxp in yml with MxpFlag
     return this.billing().type() != MxpType.NONE;
   }
 

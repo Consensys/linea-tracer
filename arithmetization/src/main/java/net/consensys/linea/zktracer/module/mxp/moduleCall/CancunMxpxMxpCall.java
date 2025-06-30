@@ -40,24 +40,33 @@ public class CancunMxpxMxpCall extends CancunTrivialMxpCall {
   }
 
   public void computeMxpxExpression(Wcp wcp) {
+    // We compute and assign the computation's result for each row
+
     // Row i + 3
+    // Compute size1IsSmall
     exoCalls.add(MxpExoCall.callToLEQ(wcp, this.size1, mxpxThreshold));
+    final boolean size1IsSmall = exoCalls.get(2).resultA();
+
     // Row i + 4
+    // Compute size2IsSmall
     exoCalls.add(MxpExoCall.callToLEQ(wcp, this.size2, mxpxThreshold));
+    final boolean size2IsSmall = exoCalls.get(3).resultA();
+
     // Row i + 5
+    // Compute offset1IsSmall
     exoCalls.add(MxpExoCall.callToLEQ(wcp, this.offset1, mxpxThreshold));
+    final boolean offset1IsSmall = exoCalls.get(4).resultA();
+
     // Row i + 6
+    // Compute offset2IsSmall
     exoCalls.add(MxpExoCall.callToLEQ(wcp, this.offset2, mxpxThreshold));
+    final boolean offset2IsSmall = exoCalls.get(5).resultA();
 
     final boolean size1IsNonZero = !this.size1IsZero;
     final boolean size2IsNonZero = !this.size2IsZero;
-    final boolean size1IsSmall = exoCalls.get(2).resultA(); // result of row i + 3
     final boolean size1IsLarge = !size1IsSmall;
-    final boolean size2IsSmall = exoCalls.get(3).resultA();
     final boolean size2IsLarge = !size2IsSmall;
-    final boolean offset1IsSmall = exoCalls.get(4).resultA();
     final boolean offset1IsLarge = !offset1IsSmall;
-    final boolean offset2IsSmall = exoCalls.get(5).resultA();
     final boolean offset2IsLarge = !offset2IsSmall;
     final int mxpxExpression1 =
         booleanToInt(size1IsLarge) + booleanToInt(size1IsNonZero) * booleanToInt(offset1IsLarge);

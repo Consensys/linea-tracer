@@ -50,17 +50,23 @@ public class CancunStateUpdateWordPricingMxpCall extends CancunMxpxMxpCall {
   public void computeStateUpdt(Wcp wcp, Euc euc) {
     final OpCode opCode = this.opCodeData.mnemonic();
 
+    // We compute and assign the computation's result for each row
+
+    // Row i + 7
+    // Compute useParams1 and useParams2
+    boolean useParams2 = false; // default value if opcode is single offset
+    boolean useParams1 = true;
     // we filter the row i + 7 wcp call by double_offset to prevent unnecessary comparisons
     if (isDoubleOffsetOpcode(opCode)) {
-      // Row i + 7
       final var max1 = this.offset1.toUnsignedBigInteger().add(this.size1.toUnsignedBigInteger());
       final var max2 = this.offset2.toUnsignedBigInteger().add(this.size2.toUnsignedBigInteger());
       exoCalls.add(MxpExoCall.callToLT(wcp, bigIntegerToBytes(max1), bigIntegerToBytes(max2)));
+      useParams2 = exoCalls.get(6).resultA(); // result of row i + 7
+      useParams1 = !useParams2;
     }
 
     // Row i + 8
-    final boolean useParams2 = exoCalls.get(6).resultA(); // result of row i + 7
-    final boolean useParams1 = !useParams2;
+    // Compute floor and EYPa
     final var maxOffset1 =
         this.offset1
             .lo()
@@ -79,20 +85,22 @@ public class CancunStateUpdateWordPricingMxpCall extends CancunMxpxMxpCall {
             .multiply(maxOffset1)
             .add(booleanToBigInteger(useParams2).multiply(maxOffset2));
     exoCalls.add(MxpExoCall.callToEUC(euc, bigIntegerToBytes(maxOffset), Bytes.of(32)));
-
-    // row i + 9
     final var floor = exoCalls.get(7).resultB();
     final var EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
+
+    // row i + 9
+    // Compute cMemQuadPart
     exoCalls.add(MxpExoCall.callToEUC(euc, bigIntegerToBytes(EYPa.multiply(EYPa)), Bytes.of(512)));
+    final var cMemQuadPart = exoCalls.get(8).resultB();
 
     // row i + 10
+    // Compute updateInternalState
     exoCalls.add(MxpExoCall.callToLT(wcp, longToBytes(words), bigIntegerToBytes(EYPa)));
+    final var updateInternalState = exoCalls.get(9).resultA();
 
-    // Compute state update
-    final var cMemQuadPart = exoCalls.get(8).resultB();
+    // Determine state update
     final var cMemLinearPart =
         bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
-    final var updateInternalState = exoCalls.get(9).resultA();
     this.isStateUpdate = updateInternalState;
     this.wordsNew = updateInternalState ? EYPa.longValue() : this.words;
     this.cMemNew =

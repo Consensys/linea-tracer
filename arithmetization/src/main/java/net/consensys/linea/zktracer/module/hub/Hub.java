@@ -213,13 +213,13 @@ public abstract class Hub implements Module {
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
   @Getter private final Trm trm = new Trm(wcp);
-  private final RlpUtils rlpUtils = setRlpUtils(wcp);
+  @Getter private final RlpUtils rlpUtils = setRlpUtils(wcp);
 
   // other
   @Getter private final Blockdata blockdata;
   @Getter private final RomLex romLex = new RomLex(this);
   private final Rom rom = new Rom(romLex);
-  private final RlpTxn rlpTxn = new RlpTxn(romLex);
+  private final RlpTxn rlpTxn = setRlpTxn(this);
   private final Mmio mmio;
 
   @Getter private final TxnData txnData = setTxnData();
@@ -355,7 +355,7 @@ public abstract class Hub implements Module {
                     txnData,
                     wcp)
                 .filter(Objects::nonNull),
-            refTableModules.stream().filter(Objects::nonNull))
+            refTableModules.stream())
         .toList();
   }
 
@@ -389,7 +389,10 @@ public abstract class Hub implements Module {
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
-    refTableModules = List.of(new BinRt(), setInstructionDecoder(), new ShfRt(), setPower());
+    refTableModules =
+        Stream.of(new BinRt(), setInstructionDecoder(), new ShfRt(), setPower())
+            .filter(Objects::nonNull)
+            .toList();
 
     modules =
         Stream.concat(
@@ -1052,6 +1055,8 @@ public abstract class Hub implements Module {
 
   protected abstract Blockdata setBlockData(
       Hub hub, Wcp wcp, Euc euc, ChainConfig chain, BlockchainService blockchainService);
+
+  protected abstract RlpTxn setRlpTxn(Hub hub);
 
   protected abstract RlpUtils setRlpUtils(Wcp wcp);
 

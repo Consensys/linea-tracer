@@ -21,6 +21,7 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
+import org.apache.tuweni.bytes.Bytes;
 
 public class PowerRt implements Module {
   @Override
@@ -41,11 +42,22 @@ public class PowerRt implements Module {
 
   @Override
   public int spillage(Trace trace) {
-    return 0;
+    return trace.power().spillage();
   }
 
   @Override
   public List<Trace.ColumnHeader> columnHeaders(Trace trace) {
-    return List.of();
+    return trace.power().headers(lineCount());
+  }
+
+  public void commit(Trace trace) {
+    for (int exponent = 0; exponent < LLARGE; exponent++) {
+      trace
+          .power()
+          .iomf(true)
+          .exponent(exponent)
+          .power(Bytes.minimalBytes(1).shiftLeft(8 * exponent))
+          .validateRow();
+    }
   }
 }

@@ -17,14 +17,22 @@ package net.consensys.linea.zktracer.module.rlpUtils;
 
 import java.util.List;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.container.module.OperationSetModule;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @RequiredArgsConstructor
-public class RlpUtils implements Module {
+@Accessors(fluent = true)
+public class RlpUtils implements OperationSetModule<RlpUtilsOperation> {
   private final Wcp wcp;
+
+  @Getter
+  private final ModuleOperationStackedSet<RlpUtilsOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {
@@ -39,21 +47,23 @@ public class RlpUtils implements Module {
 
   @Override
   public int lineCount() {
-    return 0;
+    return operations().lineCount();
   }
 
   @Override
   public int spillage(Trace trace) {
-    return 0;
+    return trace.rlputils().spillage();
   }
 
   @Override
   public List<Trace.ColumnHeader> columnHeaders(Trace trace) {
-    return List.of();
+    return trace.rlputils().headers(lineCount());
   }
 
   @Override
   public void commit(Trace trace) {
-    Module.super.commit(trace);
+    for (RlpUtilsOperation operation : operations.getAll()) {
+      operation.trace(trace.rlputils());
+    }
   }
 }

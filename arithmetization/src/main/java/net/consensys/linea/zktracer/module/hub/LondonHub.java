@@ -28,6 +28,8 @@ import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.L
 import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
+import net.consensys.linea.zktracer.module.rlptxn.LondonRlpTxn;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstructionDecoder;
@@ -65,6 +67,11 @@ public class LondonHub extends Hub {
   protected Blockdata setBlockData(
       Hub hub, Wcp wcp, Euc euc, ChainConfig chain, BlockchainService blockchainService) {
     return new LondonBlockData(hub, wcp, euc, chain);
+  }
+
+  @Override
+  protected RlpTxn setRlpTxn(Hub hub) {
+    return new LondonRlpTxn(hub.romLex());
   }
 
   @Override

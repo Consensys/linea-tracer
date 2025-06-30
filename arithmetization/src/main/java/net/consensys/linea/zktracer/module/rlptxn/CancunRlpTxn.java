@@ -15,6 +15,18 @@
 
 package net.consensys.linea.zktracer.module.rlptxn;
 
-import net.consensys.linea.zktracer.container.ModuleOperation;
+import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
+import net.consensys.linea.zktracer.module.romlex.RomLex;
+import net.consensys.linea.zktracer.module.trm.Trm;
 
-public abstract class RlpTxnOperation extends ModuleOperation {}
+@RequiredArgsConstructor
+public class CancunRlpTxn extends RlpTxn {
+  private final RomLex romLex;
+  private final Trm trm;
+  private final RlpUtils rlpUtils;
+
+  @Override
+  protected void traceOperation(RlpTxnOperation op, int i, Trace.Rlptxn rlptxn) {}
+}

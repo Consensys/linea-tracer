@@ -13,8 +13,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlptxn;
+package net.consensys.linea.zktracer.module.rlpUtils;
 
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 
-public abstract class RlpTxnOperation extends ModuleOperation {}
+public class RlpUtilsOperation extends ModuleOperation {
+  @Override
+  protected int computeLineCount() {
+    return 0;
+  }
+
+  void trace(Trace.Rlputils trace) {}
+}

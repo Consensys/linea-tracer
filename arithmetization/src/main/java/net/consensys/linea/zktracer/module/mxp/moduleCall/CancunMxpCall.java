@@ -17,9 +17,6 @@ package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
@@ -45,19 +42,19 @@ public abstract class CancunMxpCall extends MxpCall {
   }
 
   /** Store all wcp and euc computations with params and results */
-  public final List<MxpExoCall> exoCalls = new ArrayList<>(ctMax());
+  public final MxpExoCall[] exoCalls = new MxpExoCall[ctMax()];
 
   /** Computed by CancunTrivialMxpCall */
   public boolean size1IsZero = false;
 
   public boolean size2IsZero = false;
 
-  /** Computed by CancunMxpxMxpCall */
+  /** Computed by CancunNotMSizeNorTrivialMxpCall for CancunMxpxMxpCall */
   public int mxpxExpression = 0;
 
   /**
-   * Computed by State update scenarii (CancunStateUpdtWPricingMxpCall and
-   * CancunStateUpdtBPricingMxpCall)
+   * Computed in CancunStateUpdateMxpCall for State update scenarii CancunStateUpdtWPricingMxpCall
+   * and CancunStateUpdtBPricingMxpCall
    */
   public boolean isStateUpdate = false;
 

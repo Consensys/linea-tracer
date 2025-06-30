@@ -24,13 +24,13 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 
-public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateWordPricingMxpCall {
+public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCall {
 
   public CancunStateUpdateBytePricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
     super(hub, wcp, euc);
-    computeExtraGasCost();
     if (this.isStateUpdate) {
       // if state has changed, an extra gas cost is incurred
+      computeExtraGasCost();
       setGasMpxFromExtraGasCost();
     }
   }

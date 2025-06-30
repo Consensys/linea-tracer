@@ -150,10 +150,10 @@ public class MxpCall implements TraceSubFragment {
     if (this.size1.isZero() && this.size2.isZero()) {
       return new CancunTrivialMxpCall(this.hub, wcp);
     }
-    // TODO: remove the computation duplicate
-    CancunMxpxMxpCall cancunMxpxMxpCall = new CancunMxpxMxpCall(this.hub, wcp);
-    if (cancunMxpxMxpCall.mxpx) {
-      return cancunMxpxMxpCall;
+    CancunNotMSizeNorTrivialMxpCall cancunNotMSizeNorTrivialMxpCall =
+        new CancunNotMSizeNorTrivialMxpCall(this.hub, wcp);
+    if (cancunNotMSizeNorTrivialMxpCall.mxpx) {
+      return new CancunMxpxMxpCall(this.hub, wcp, true);
     } else {
       if (isWordPricingOpcode(opCode)) {
         return new CancunStateUpdateWordPricingMxpCall(this.hub, wcp, euc);

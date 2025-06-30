@@ -38,13 +38,13 @@ public class CancunTrivialMxpCall extends CancunMSizeMxpCall {
 
     // Row i + 1
     // Compute size1IsZero
-    exoCalls.add(MxpExoCall.callToIsZero(wcp, this.offset1));
-    this.size1IsZero = exoCalls.get(0).resultA();
+    exoCalls[0] = MxpExoCall.callToIsZero(wcp, this.offset1);
+    this.size1IsZero = exoCalls[0].resultA();
 
     // Row i + 2
     // Compute size2IsZero
-    exoCalls.add(MxpExoCall.callToIsZero(wcp, this.offset2));
-    this.size2IsZero = exoCalls.get(1).resultA();
+    exoCalls[1] = MxpExoCall.callToIsZero(wcp, this.offset2);
+    this.size2IsZero = exoCalls[1].resultA();
   }
 
   @Override

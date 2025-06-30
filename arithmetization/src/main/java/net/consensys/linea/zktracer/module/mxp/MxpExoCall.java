@@ -23,8 +23,8 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
-import org.apache.tuweni.bytes.Bytes32;
 
 @Builder
 @Getter
@@ -45,39 +45,39 @@ public class MxpExoCall {
 
   public static MxpExoCall callToLT(final Wcp wcp, Bytes arg1, Bytes arg2) {
 
-    final Bytes32 arg1B32 = Bytes32.leftPad(arg1);
-    final Bytes32 arg2B32 = Bytes32.leftPad(arg2);
+    final EWord arg1B32 = EWord.of(arg1);
+    final EWord arg2B32 = EWord.of(arg2);
 
     return MxpExoCall.builder()
         .wcpFlag(true)
         .instruction(EVM_INST_LT)
-        .arg1Hi(arg1B32.slice(0, LLARGE))
-        .arg1Lo(arg1B32.slice(LLARGE, LLARGE))
-        .arg2Hi(arg2B32.slice(0, LLARGE))
-        .arg2Lo(arg2B32.slice(LLARGE, LLARGE))
+        .arg1Hi(arg1B32.lo())
+        .arg1Lo(arg1B32.hi())
+        .arg2Hi(arg2B32.lo())
+        .arg2Lo(arg2B32.hi())
         .resultA(wcp.callLT(arg1B32, arg2B32))
         .build();
   }
 
   public static MxpExoCall callToLEQ(final Wcp wcp, Bytes arg1, Bytes arg2) {
 
-    final Bytes32 arg1B32 = Bytes32.leftPad(arg1);
-    final Bytes32 arg2B32 = Bytes32.leftPad(arg2);
+    final EWord arg1B32 = EWord.of(arg1);
+    final EWord arg2B32 = EWord.of(arg2);
 
     return MxpExoCall.builder()
         .wcpFlag(true)
         .instruction(WCP_INST_LEQ)
-        .arg1Hi(arg1B32.slice(0, LLARGE))
-        .arg1Lo(arg1B32.slice(LLARGE, LLARGE))
-        .arg2Hi(arg2B32.slice(0, LLARGE))
-        .arg2Lo(arg2B32.slice(LLARGE, LLARGE))
+        .arg1Hi(arg1B32.lo())
+        .arg1Lo(arg1B32.hi())
+        .arg2Hi(arg2B32.lo())
+        .arg2Lo(arg2B32.hi())
         .resultA(wcp.callLT(arg1B32, arg2B32))
         .build();
   }
 
   public static MxpExoCall callToIsZero(final Wcp wcp, Bytes arg1) {
 
-    final Bytes32 arg1B32 = Bytes32.leftPad(arg1);
+    final EWord arg1B32 = EWord.of(arg1);
 
     return MxpExoCall.builder()
         .wcpFlag(true)
@@ -90,13 +90,13 @@ public class MxpExoCall {
 
   public static MxpExoCall callToEUC(final Euc euc, Bytes arg1, Bytes arg2) {
 
-    final Bytes32 arg1B32 = Bytes32.leftPad(arg1);
-    final Bytes32 arg2B32 = Bytes32.leftPad(arg2);
+    final EWord arg1B32 = EWord.of(arg1);
+    final EWord arg2B32 = EWord.of(arg2);
 
     return MxpExoCall.builder()
         .eucFlag(true)
-        .arg1Lo(arg1B32.slice(LLARGE, LLARGE))
-        .arg2Lo(arg2B32.slice(LLARGE, LLARGE))
+        .arg1Lo(arg1B32.hi())
+        .arg2Lo(arg2B32.hi())
         .resultB(euc.callEUC(arg1B32, arg2B32).quotient())
         .build();
   }

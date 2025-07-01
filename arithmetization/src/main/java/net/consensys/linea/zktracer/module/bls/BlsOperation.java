@@ -214,8 +214,11 @@ public class BlsOperation extends ModuleOperation {
 
     final boolean internalChecksPassed = zIsInRange && yIsInRange;
 
+    final boolean mextBit = internalChecksPassed && isPointEvaluationInputMext();
+
     for (int j = 0; j <= CT_MAX_POINT_EVALUATION; j++) {
       this.mintBit.set(j, !internalChecksPassed);
+      this.mextBit.set(j, mextBit);
     }
 
     EWord fieldsElPerBlob = EWord.ZERO;
@@ -232,8 +235,6 @@ public class BlsOperation extends ModuleOperation {
     limb.set(13, fieldsElPerBlob.lo());
     limb.set(14, blsMod.hi());
     limb.set(15, blsMod.lo());
-
-    // TODO: set mextBit
   }
 
   private void handleBlsG1Add() {
@@ -294,8 +295,6 @@ public class BlsOperation extends ModuleOperation {
     limb.set(21, cY2);
     limb.set(22, cY1);
     limb.set(23, cY0);
-
-    // TODO: set mextBit
   }
 
   private void handleBlsG1Msm() {
@@ -363,8 +362,6 @@ public class BlsOperation extends ModuleOperation {
     limb.set(15 + indexOffsetResultMax, cY2);
     limb.set(16 + indexOffsetResultMax, cY1);
     limb.set(17 + indexOffsetResultMax, cY0);
-
-    // TODO: set mextBit
   }
 
   private void handleBlsG2Add() {
@@ -482,8 +479,6 @@ public class BlsOperation extends ModuleOperation {
     limb.set(45, cYRe2);
     limb.set(46, cYRe1);
     limb.set(47, cYRe0);
-
-    // TODO: set mextBit
   }
 
   private void handleBlsG2Msm() {
@@ -608,8 +603,6 @@ public class BlsOperation extends ModuleOperation {
     limb.set(31 + indexOffsetResultMax, cYRe2);
     limb.set(32 + indexOffsetResultMax, cYRe1);
     limb.set(33 + indexOffsetResultMax, cYRe0);
-
-    // TODO: set mextBit
   }
 
   private void handleBlsPairingCheck() {
@@ -714,8 +707,6 @@ public class BlsOperation extends ModuleOperation {
     // Set result limb
     limb.set(24 + indexOffsetResultMax, pairingResult.hi());
     limb.set(25 + indexOffsetResultMax, pairingResult.lo());
-
-    // TODO: set mextBit
   }
 
   private void handleBlsMapFpToG1() {
@@ -769,8 +760,6 @@ public class BlsOperation extends ModuleOperation {
     limb.set(9, cY2);
     limb.set(10, cY1);
     limb.set(11, cY0);
-
-    // TODO: set mextBit
   }
 
   private void handleBlsMapFp2ToG2() {
@@ -858,6 +847,18 @@ public class BlsOperation extends ModuleOperation {
     limb.set(21, cYRe2);
     limb.set(22, cYRe1);
     limb.set(23, cYRe0);
+  }
+
+  private boolean isPointEvaluationInputMext() {
+    return false;
+  }
+
+  private boolean isSmallPointMext() {
+    return false;
+  }
+
+  private boolean isLargePointMext() {
+    return false;
   }
 
   private static short getPhase(
@@ -988,8 +989,12 @@ public class BlsOperation extends ModuleOperation {
 
     final boolean wellFormedCoordinate = pXIsInRange && pYIsInRange;
 
+    // This is computed here for convenience, but not appearing in the specs
+    final boolean mextBit = wellFormedCoordinate && isSmallPointMext();
+
     for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
       this.mintBit.set(i + j, !wellFormedCoordinate);
+      this.mextBit.set(i + j, mextBit);
     }
 
     isInfinity(i, pX3, pX2, pX1, pX0, pY3, pY2, pY1, pY0);
@@ -1025,8 +1030,12 @@ public class BlsOperation extends ModuleOperation {
     final boolean wellFormedCoordinate =
         pXImIsInRange && pXReIsInRange && pYImIsInRange && pYReIsInRange;
 
+    // This is computed here for convenience, but not appearing in the specs
+    final boolean mextBit = wellFormedCoordinate && isLargePointMext();
+
     for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
       this.mintBit.set(i + j, !wellFormedCoordinate);
+      this.mextBit.set(i + j, mextBit);
     }
 
     isInfinity(

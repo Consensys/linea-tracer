@@ -19,11 +19,14 @@ import static net.consensys.linea.zktracer.module.mxp.MxpUtils.*;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.state.State;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.CancunMxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.LondonMxpCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
@@ -33,9 +36,9 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 /**
  * This is the parent class for all MXP Calls. The fork dependent classes extending this are located
- * in Mxp module
+ * in Mxp module (LondonMxpCall, CancunMxpCall, ...).
  */
-public class MxpCall implements TraceSubFragment {
+public abstract class MxpCall implements TraceSubFragment {
 
   public final Hub hub;
 
@@ -76,6 +79,20 @@ public class MxpCall implements TraceSubFragment {
     this.offset2 = sizesAndOffsets[3] != null ? sizesAndOffsets[3] : EWord.ZERO;
   }
 
+  public static MxpCall getMxpCallByFork(Fork fork, Hub hub) {
+    switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> {
+        return new LondonMxpCall(hub);
+      }
+      case CANCUN, PRAGUE -> {
+        return new CancunMxpCall(hub);
+      }
+      default -> {
+        throw new IllegalArgumentException("Unsupported fork: " + fork);
+      }
+    }
+  }
+
   static boolean getMemoryExpansionException(Hub hub) {
     return Exceptions.memoryExpansionException(hub.pch().exceptions());
   }
@@ -99,9 +116,8 @@ public class MxpCall implements TraceSubFragment {
             : 0);
   }
 
-  protected void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {
-    trace.pMiscMxpMtntop(this.mayTriggerNontrivialMmuOperation);
-  }
+  // Method only filled for LondonMxpCall
+  protected void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {}
   ;
 
   public Trace.Hub trace(Trace.Hub trace, State hubState) {

@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.mxp.moduleCall;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isWordPricingOpcode;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 
-import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
@@ -27,7 +26,7 @@ import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import org.apache.tuweni.bytes.Bytes;
 
 /** The parent class of this MXP Call is located in the Hub. */
-public abstract class CancunMxpCall extends MxpCall {
+public class CancunMxpCall extends MxpCall {
 
   public final long words;
   public final long cMem;
@@ -66,7 +65,10 @@ public abstract class CancunMxpCall extends MxpCall {
   public long cMemNew = 0L;
   public long extraGasCost = 0L;
 
-  public abstract int ctMax();
+  public int ctMax() {
+    return 0;
+  }
+  ;
 
   public boolean isMSizeScenario() {
     return false;
@@ -95,11 +97,6 @@ public abstract class CancunMxpCall extends MxpCall {
   public void setGasMpxFromExtraGasCost() {
     this.gasMxp = this.cMemNew - this.cMem + this.extraGasCost;
   }
-
-  protected void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {
-    // From Cancun, we don't trace it anymore
-  }
-  ;
 
   /**
    * User from Cancun fork - Get the Mxp scenario for the given MxpCall.

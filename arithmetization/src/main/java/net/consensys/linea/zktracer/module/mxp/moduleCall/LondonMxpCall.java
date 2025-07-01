@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
 import lombok.Getter;
 import lombok.Setter;
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
@@ -26,5 +27,9 @@ public class LondonMxpCall extends MxpCall {
 
   public LondonMxpCall(Hub hub) {
     super(hub);
+  }
+
+  protected void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {
+    trace.pMiscMxpMtntop(this.mayTriggerNontrivialMmuOperation);
   }
 }

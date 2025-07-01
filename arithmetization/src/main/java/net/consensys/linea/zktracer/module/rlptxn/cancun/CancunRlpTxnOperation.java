@@ -13,18 +13,26 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlptxn;
+package net.consensys.linea.zktracer.module.rlptxn.cancun;
 
-import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
-import net.consensys.linea.zktracer.module.romlex.RomLex;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxnOperation;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
-@RequiredArgsConstructor
-public class CancunRlpTxn extends RlpTxn {
-  private final RomLex romLex;
+public class CancunRlpTxnOperation extends RlpTxnOperation {
   private final RlpUtils rlpUtils;
+  private final TransactionProcessingMetadata tx;
+
+  public CancunRlpTxnOperation(RlpUtils rlpUtils, TransactionProcessingMetadata tx) {
+    this.rlpUtils = rlpUtils;
+    this.tx = tx;
+  }
+
+  protected void trace(Trace.Rlptxn trace, int userTxNum) {}
 
   @Override
-  protected void traceOperation(RlpTxnOperation op, int i, Trace.Rlptxn rlptxn) {}
+  protected int computeLineCount() {
+    return 0;
+  }
 }

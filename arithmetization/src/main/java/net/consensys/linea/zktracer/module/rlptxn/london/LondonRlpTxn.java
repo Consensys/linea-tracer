@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlptxn;
+package net.consensys.linea.zktracer.module.rlptxn.london;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_TX_DATA_NONZERO;
@@ -61,6 +61,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxnOperation;
 import net.consensys.linea.zktracer.module.rlputilsOld.ByteCountAndPowerOutput;
 import net.consensys.linea.zktracer.module.romlex.ContractMetadata;
 import net.consensys.linea.zktracer.module.romlex.RomLex;

@@ -28,8 +28,8 @@ import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.L
 import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
-import net.consensys.linea.zktracer.module.rlptxn.LondonRlpTxn;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
+import net.consensys.linea.zktracer.module.rlptxn.london.LondonRlpTxn;
 import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstructionDecoder;

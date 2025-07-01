@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.rlptxn;
+package net.consensys.linea.zktracer.module.rlptxn.london;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
@@ -22,6 +22,7 @@ import java.math.BigInteger;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxnOperation;
 import org.hyperledger.besu.datatypes.Transaction;
 
 @Accessors(fluent = true)

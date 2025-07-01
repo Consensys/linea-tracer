@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_TRIV;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
@@ -39,12 +40,12 @@ public class CancunTrivialMxpCall extends CancunMSizeMxpCall {
     // Row i + 1
     // Compute size1IsZero
     exoCalls[0] = MxpExoCall.callToIsZero(wcp, this.offset1);
-    this.size1IsZero = exoCalls[0].resultA();
+    this.size1IsZero = bytesToBoolean(exoCalls[0].resultA());
 
     // Row i + 2
     // Compute size2IsZero
     exoCalls[1] = MxpExoCall.callToIsZero(wcp, this.offset2);
-    this.size2IsZero = exoCalls[1].resultA();
+    this.size2IsZero = bytesToBoolean(exoCalls[1].resultA());
   }
 
   @Override

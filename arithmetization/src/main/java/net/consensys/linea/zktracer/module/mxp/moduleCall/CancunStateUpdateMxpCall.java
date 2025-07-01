@@ -52,7 +52,7 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
       final BigInteger max2 =
           this.offset2.toUnsignedBigInteger().add(this.size2.toUnsignedBigInteger());
       exoCalls[6] = MxpExoCall.callToLT(wcp, bigIntegerToBytes(max1), bigIntegerToBytes(max2));
-      useParams2 = exoCalls[6].resultA(); // result of row i + 7
+      useParams2 = bytesToBoolean(exoCalls[6].resultA()); // result of row i + 7
       useParams1 = !useParams2;
     }
 
@@ -76,18 +76,18 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
             .multiply(maxOffset1)
             .add(booleanToBigInteger(useParams2).multiply(maxOffset2));
     exoCalls[7] = MxpExoCall.callToEUC(euc, bigIntegerToBytes(maxOffset), Bytes.of(32));
-    final Bytes floor = exoCalls[7].resultB();
+    final Bytes floor = exoCalls[7].resultA();
     final BigInteger EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
 
     // row i + 9
     // Compute cMemQuadPart
     exoCalls[8] = MxpExoCall.callToEUC(euc, bigIntegerToBytes(EYPa.multiply(EYPa)), Bytes.of(512));
-    final Bytes cMemQuadPart = exoCalls[8].resultB();
+    final Bytes cMemQuadPart = exoCalls[8].resultA();
 
     // row i + 10
     // Compute updateInternalState
     exoCalls[9] = MxpExoCall.callToLT(wcp, longToBytes(words), bigIntegerToBytes(EYPa));
-    final boolean updateInternalState = exoCalls[9].resultA();
+    final boolean updateInternalState = bytesToBoolean(exoCalls[9].resultA());
 
     // Determine state update
     final Bytes cMemLinearPart =

@@ -20,16 +20,14 @@ import static net.consensys.linea.zktracer.types.Conversions.booleanToLong;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
-import net.consensys.linea.zktracer.module.mxp.moduleCall.CancunMxpCall;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 
 @Getter
-public class CancunMxpOperation extends LondonMxpOperation {
+public class CancunMxpOperation extends MxpOperation {
 
   private final int contextNumber;
   private final CancunMxpCall cancunMxpCall;
@@ -50,15 +48,14 @@ public class CancunMxpOperation extends LondonMxpOperation {
    * <p>State update with byte pricing scenario - computes size1IsZero and size2IsZero and
    * mxpxExpression and state update (wordsNew,cMemNew) and extraGasCost for byte pricing opcodes
    */
-  public CancunMxpOperation(final MxpCall mxpCall, Wcp wcp, Euc euc) {
+  public CancunMxpOperation(final MxpCall mxpCall) {
     super(mxpCall);
-
     // Setting of global variables
-    this.contextNumber = this.mxpCall.hub.currentFrame().contextNumber();
+    this.contextNumber = mxpCall.hub.currentFrame().contextNumber();
 
-    // We instantiate an extended MxpCall (CancunMxpCall) depending on the scenario
+    // We extend MxpCall to a CancunMxpCall that depends on the scenario
     // This super MxpCall does the computation and stores the values
-    this.cancunMxpCall = this.mxpCall.getMxpScenario(wcp, euc);
+    this.cancunMxpCall = CancunMxpCall.getCancunMxpCall(mxpCall);
   }
 
   private int nRowsComputation() {

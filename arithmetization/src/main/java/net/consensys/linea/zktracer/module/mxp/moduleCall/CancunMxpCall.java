@@ -15,11 +15,14 @@
 
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
+import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isWordPricingOpcode;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
+import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -91,5 +94,36 @@ public abstract class CancunMxpCall extends MxpCall {
 
   public void setGasMpxFromExtraGasCost() {
     this.gasMxp = this.cMemNew - this.cMem + this.extraGasCost;
+  }
+
+  protected void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {
+    // From Cancun, we don't trace it anymore
+  }
+  ;
+
+  /**
+   * User from Cancun fork - Get the Mxp scenario for the given MxpCall.
+   *
+   * @param mxpCall given mxpCall instance to convert to CancunMxpCall
+   * @return CancunMxpCall instance corresponding to the Mxp scenario
+   */
+  public static CancunMxpCall getCancunMxpCall(MxpCall mxpCall) {
+    OpCode opCode = OpCode.of(mxpCall.hub.messageFrame().getCurrentOperation().getOpcode());
+    if (opCode == OpCode.MSIZE) {
+      return (CancunMSizeMxpCall) mxpCall;
+    }
+    if (mxpCall.size1.isZero() && mxpCall.size2.isZero()) {
+      return (CancunTrivialMxpCall) mxpCall;
+    }
+    CancunNotMSizeNorTrivialMxpCall cancunNotMSizeNorTrivialMxpCall =
+        new CancunNotMSizeNorTrivialMxpCall(mxpCall.hub, mxpCall.hub.wcp());
+    if (cancunNotMSizeNorTrivialMxpCall.mxpx) {
+      return (CancunMxpxMxpCall) mxpCall;
+    } else {
+      if (isWordPricingOpcode(opCode)) {
+        return (CancunStateUpdateWordPricingMxpCall) mxpCall;
+      }
+      return (CancunStateUpdateBytePricingMxpCall) mxpCall;
+    }
   }
 }

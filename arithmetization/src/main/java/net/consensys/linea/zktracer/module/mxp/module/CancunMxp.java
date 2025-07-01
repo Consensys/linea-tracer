@@ -18,21 +18,16 @@ package net.consensys.linea.zktracer.module.mxp.module;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class CancunMxp extends LondonMxp {
 
-  private final Wcp wcp;
-  private final Euc euc;
-
   @Override
   public void call(MxpCall mxpCall) {
-    operations().add(new CancunMxpOperation(mxpCall, wcp, euc));
+    operations().add(new CancunMxpOperation(mxpCall));
   }
 }

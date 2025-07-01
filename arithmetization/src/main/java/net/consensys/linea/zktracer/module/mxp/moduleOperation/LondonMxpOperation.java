@@ -30,6 +30,7 @@ import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.LondonMxpCall;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
@@ -48,7 +49,7 @@ public class LondonMxpOperation extends MxpOperation {
   public static final BigInteger TWO_POW_32 = BigInteger.ONE.shiftLeft(32);
 
   private final int contextNumber;
-  private final MxpCall londonMxpCall;
+  private final LondonMxpCall londonMxpCall;
 
   private BigInteger maxOffset1 = BigInteger.ZERO;
   private BigInteger maxOffset2 = BigInteger.ZERO;
@@ -86,8 +87,9 @@ public class LondonMxpOperation extends MxpOperation {
 
   public LondonMxpOperation(final MxpCall mxpCall) {
     super(mxpCall);
-    // London MxpCall coincides with the MxpCall implementation
-    this.londonMxpCall = this.mxpCall;
+    // We cast the mxpCall to a LondonMxpCall, as the same behavior as in other forks
+    // MxpCall and LondonMxpCall are strictly the same
+    this.londonMxpCall = (LondonMxpCall) mxpCall;
     final Hub hub = this.londonMxpCall.hub;
     final MessageFrame frame = hub.messageFrame();
     this.wordsNew = frame.memoryWordSize(); // will (may) be updated later

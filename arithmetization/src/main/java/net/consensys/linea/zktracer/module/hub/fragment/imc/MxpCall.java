@@ -50,6 +50,9 @@ public class MxpCall implements TraceSubFragment {
   @Getter public EWord offset2;
   @Getter public EWord size2;
 
+  /** - filled after computation by the module */
+  @Getter @Setter public boolean mayTriggerNontrivialMmuOperation;
+
   @Getter @Setter public boolean mxpx;
 
   /** mxpx is short of Memory eXPansion eXception */
@@ -77,6 +80,10 @@ public class MxpCall implements TraceSubFragment {
     return Exceptions.memoryExpansionException(hub.pch().exceptions());
   }
 
+  public void setMayTriggerNontrivialMmuOperationFromMxpx() {
+    this.mayTriggerNontrivialMmuOperation = !this.size1.isZero() && !this.mxpx;
+  }
+
   public boolean getSize1NonZeroNoMxpx() {
     return !this.mxpx && !this.size1.isZero();
   }
@@ -92,8 +99,14 @@ public class MxpCall implements TraceSubFragment {
             : 0);
   }
 
+  protected void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {
+    trace.pMiscMxpMtntop(this.mayTriggerNontrivialMmuOperation);
+  }
+  ;
+
   public Trace.Hub trace(Trace.Hub trace, State hubState) {
     hubState.incrementMxpStamp();
+    traceMayTriggerNonTrivialMmuOperationFromMxpx(trace);
     return trace
         .pMiscMxpFlag(true)
         .pMiscMxpInst(this.opCodeData.value())

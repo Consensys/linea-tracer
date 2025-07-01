@@ -19,10 +19,6 @@ import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
 import static org.hyperledger.besu.evm.internal.Words.clampedAdd;
 import static org.hyperledger.besu.evm.internal.Words.clampedMultiply;
 
-import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.mxp.moduleCall.*;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -111,34 +107,6 @@ public class MxpUtils {
       default -> throw new IllegalStateException("Unexpected value: " + opCode);
     }
     return result;
-  }
-
-  /**
-   * User from Cancun fork - Get the Mxp scenario for the given MxpCall.
-   *
-   * @param wcp module to compute the wcp in exoCalls
-   * @param euc module to compute the euc in exoCalls
-   * @return CancunMxpCall instance corresponding to the Mxp scenario
-   */
-  public static CancunMxpCall getCancunMxpCall(
-      Hub hub, Wcp wcp, Euc euc, EWord size1, EWord size2) {
-    OpCode opCode = OpCode.of(hub.messageFrame().getCurrentOperation().getOpcode());
-    if (opCode == OpCode.MSIZE) {
-      return new CancunMSizeMxpCall(hub);
-    }
-    if (size1.isZero() && size2.isZero()) {
-      return new CancunTrivialMxpCall(hub, wcp);
-    }
-    CancunNotMSizeNorTrivialMxpCall cancunNotMSizeNorTrivialMxpCall =
-        new CancunNotMSizeNorTrivialMxpCall(hub, wcp);
-    if (cancunNotMSizeNorTrivialMxpCall.mxpx) {
-      return new CancunMxpxMxpCall(hub, wcp, true);
-    } else {
-      if (isWordPricingOpcode(opCode)) {
-        return new CancunStateUpdateWordPricingMxpCall(hub, wcp, euc);
-      }
-      return new CancunStateUpdateBytePricingMxpCall(hub, wcp, euc);
-    }
   }
 
   // This is a copy and past from FrontierGasCalculator.java

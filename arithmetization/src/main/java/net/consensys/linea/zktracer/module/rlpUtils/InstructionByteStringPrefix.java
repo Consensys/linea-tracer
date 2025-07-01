@@ -42,8 +42,6 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
   private short rlpPrefixByteSize;
 
   // computed values
-  private boolean byteStringLengthIsOne;
-  private boolean byteStringLengthGtOne;
   private boolean byteStringLengthGeq56 = false;
   private int bslByteSize = 1; // default value, will be updated if needed
 
@@ -62,8 +60,8 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
 
     final WcpExoCall secondCall = WcpExoCall.callToEq(wcp, byteStringLength, ONE);
     wcpCalls.add(secondCall);
-    byteStringLengthIsOne = byteStringIsNonEmpty && secondCall.result;
-    byteStringLengthGtOne = byteStringIsNonEmpty && !secondCall.result;
+    final boolean byteStringLengthIsOne = byteStringIsNonEmpty && secondCall.result;
+    final boolean byteStringLengthGtOne = byteStringIsNonEmpty && !secondCall.result;
 
     if (!byteStringIsNonEmpty) {
       // no constraints, we just add a stupid wcp call to not break the lookup

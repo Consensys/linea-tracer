@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.exceptions;
 
-import static net.consensys.linea.zktracer.Fork.isPostShanghai;
+import static net.consensys.linea.zktracer.Fork.isPreCancun;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.MEMORY_EXPANSION_EXCEPTION;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType2;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType3;
@@ -59,7 +59,7 @@ public class MemoryExpansionExceptionTest extends TracerTestBase {
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
 
     assertTrue(bytecodeRunner.getHub().mxp().operations().getLast().getMxpCall().isMxpx());
-    if (isPostShanghai(testInfo.chainConfig.fork)) {
+    if (isPreCancun(testInfo.chainConfig.fork)) {
       LondonMxpOperation londonMxpOperation =
           (LondonMxpOperation) bytecodeRunner.getHub().mxp().operations().getLast();
       assertEquals(triggerRoob, londonMxpOperation.isRoob());
@@ -82,7 +82,7 @@ public class MemoryExpansionExceptionTest extends TracerTestBase {
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
 
     assertTrue(bytecodeRunner.getHub().mxp().operations().getLast().getMxpCall().isMxpx());
-    if (isPostShanghai(testInfo.chainConfig.fork)) {
+    if (isPreCancun(testInfo.chainConfig.fork)) {
       LondonMxpOperation londonMxpOperation =
           (LondonMxpOperation) bytecodeRunner.getHub().mxp().operations().getLast();
       assertEquals(triggerRoob, londonMxpOperation.isRoob());

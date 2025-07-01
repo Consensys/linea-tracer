@@ -48,7 +48,7 @@ public enum Fork {
     return fork.compareTo(SHANGHAI) >= 0;
   }
 
-  public static boolean isPostCancun(Fork fork) {
-    return fork.compareTo(CANCUN) >= 0;
+  public static boolean isPreCancun(Fork fork) {
+    return fork.compareTo(CANCUN) < 0;
   }
 }

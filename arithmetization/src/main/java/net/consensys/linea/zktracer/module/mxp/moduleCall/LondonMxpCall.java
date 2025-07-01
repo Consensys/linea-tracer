@@ -15,15 +15,12 @@
 
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
-import lombok.Getter;
-import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
 /** The parent class of this MXP Call is located in the Hub. */
 public class LondonMxpCall extends MxpCall {
-  @Getter @Setter public boolean mayTriggerNontrivialMmuOperation = false;
 
   public LondonMxpCall(Hub hub) {
     super(hub);

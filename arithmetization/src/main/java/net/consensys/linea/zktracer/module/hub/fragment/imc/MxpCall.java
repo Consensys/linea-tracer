@@ -97,10 +97,6 @@ public abstract class MxpCall implements TraceSubFragment {
     return Exceptions.memoryExpansionException(hub.pch().exceptions());
   }
 
-  public void setMayTriggerNontrivialMmuOperationFromMxpx() {
-    this.mayTriggerNontrivialMmuOperation = !this.size1.isZero() && !this.mxpx;
-  }
-
   public boolean getSize1NonZeroNoMxpx() {
     return !this.mxpx && !this.size1.isZero();
   }

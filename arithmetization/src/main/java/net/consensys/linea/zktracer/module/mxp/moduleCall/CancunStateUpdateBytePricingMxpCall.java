@@ -19,16 +19,14 @@ import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_UPDT_B;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
 
-import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 
 public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCall {
 
-  public CancunStateUpdateBytePricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
-    super(hub, wcp, euc);
+  public CancunStateUpdateBytePricingMxpCall(Hub hub) {
+    super(hub);
     if (this.isStateUpdate) {
       // if state has changed, an extra gas cost is incurred
       computeExtraGasCost();

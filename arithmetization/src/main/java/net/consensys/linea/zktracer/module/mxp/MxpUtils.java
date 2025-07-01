@@ -57,7 +57,7 @@ public class MxpUtils {
 
   public static EWord[] getSizesAndOffsets(MessageFrame frame) {
     OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    EWord[] result = new EWord[3];
+    EWord[] result = new EWord[4];
     switch (opCode) {
       case MSIZE -> {}
       case MLOAD -> {

@@ -20,16 +20,15 @@ import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_UPDT_W;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
 public class CancunStateUpdateWordPricingMxpCall extends CancunStateUpdateMxpCall {
 
-  public CancunStateUpdateWordPricingMxpCall(Hub hub, Wcp wcp, Euc euc) {
-    super(hub, wcp, euc);
+  public CancunStateUpdateWordPricingMxpCall(Hub hub) {
+    super(hub);
     if (this.isStateUpdate) {
       // if state has changed, an extra gas cost is incurred
-      computeExtraGasCost(euc);
+      computeExtraGasCost(hub.euc());
       setGasMpxFromExtraGasCost();
     }
   }

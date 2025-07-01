@@ -41,7 +41,7 @@ public class CancunHub extends ShanghaiHub {
 
   @Override
   protected Mxp setMxp() {
-    return new CancunMxp(wcp(), euc());
+    return new CancunMxp();
   }
 
   @Override

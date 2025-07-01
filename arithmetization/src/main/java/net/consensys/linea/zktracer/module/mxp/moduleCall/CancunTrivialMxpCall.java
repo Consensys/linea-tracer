@@ -23,9 +23,9 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 public class CancunTrivialMxpCall extends CancunMSizeMxpCall {
 
-  public CancunTrivialMxpCall(Hub hub, Wcp wcp) {
+  public CancunTrivialMxpCall(Hub hub) {
     super(hub);
-    computeSize1Size2IsZero(wcp);
+    computeSize1Size2IsZero(hub.wcp());
   }
 
   @Override

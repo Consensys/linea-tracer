@@ -122,6 +122,7 @@ public abstract class MxpCall implements TraceSubFragment {
 
   public Trace.Hub trace(Trace.Hub trace, State hubState) {
     hubState.incrementMxpStamp();
+    // Legacy for LondonMxpCall
     traceMayTriggerNonTrivialMmuOperationFromMxpx(trace);
     return trace
         .pMiscMxpFlag(true)

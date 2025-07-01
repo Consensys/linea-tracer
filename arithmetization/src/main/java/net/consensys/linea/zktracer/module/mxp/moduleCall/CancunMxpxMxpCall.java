@@ -18,12 +18,11 @@ package net.consensys.linea.zktracer.module.mxp.moduleCall;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_MXPX;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 public class CancunMxpxMxpCall extends CancunNotMSizeNorTrivialMxpCall {
 
-  public CancunMxpxMxpCall(Hub hub, Wcp wcp, boolean mxpx) {
-    super(hub, wcp);
+  public CancunMxpxMxpCall(Hub hub, boolean mxpx) {
+    super(hub);
     this.mxpx = mxpx;
     // Nothing to compute for MXPX scenario
   }

@@ -113,7 +113,7 @@ public class CancunMxpCall extends MxpCall {
       return (CancunTrivialMxpCall) mxpCall;
     }
     CancunNotMSizeNorTrivialMxpCall cancunNotMSizeNorTrivialMxpCall =
-        new CancunNotMSizeNorTrivialMxpCall(mxpCall.hub, mxpCall.hub.wcp());
+        new CancunNotMSizeNorTrivialMxpCall(mxpCall.hub);
     if (cancunNotMSizeNorTrivialMxpCall.mxpx) {
       return (CancunMxpxMxpCall) mxpCall;
     } else {

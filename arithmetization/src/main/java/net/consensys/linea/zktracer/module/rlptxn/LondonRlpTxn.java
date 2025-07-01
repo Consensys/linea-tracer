@@ -39,6 +39,8 @@ import static net.consensys.linea.zktracer.Trace.RLP_TXN_PHASE_TO;
 import static net.consensys.linea.zktracer.Trace.RLP_TXN_PHASE_VALUE;
 import static net.consensys.linea.zktracer.Trace.RLP_TXN_PHASE_Y;
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
+import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_INT;
+import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_LIST;
 import static net.consensys.linea.zktracer.module.rlputilsOld.Pattern.byteCounting;
 import static net.consensys.linea.zktracer.module.rlputilsOld.Pattern.innerRlpSize;
 import static net.consensys.linea.zktracer.module.rlputilsOld.Pattern.outerRlpSize;
@@ -76,8 +78,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Accessors(fluent = true)
 public class LondonRlpTxn extends RlpTxn {
   private final RomLex romLex;
-  public static final Bytes BYTES_PREFIX_SHORT_INT = Bytes.of(RLP_PREFIX_INT_SHORT);
-  public static final Bytes BYTES_PREFIX_SHORT_LIST = Bytes.of(RLP_PREFIX_LIST_SHORT);
 
   // Used to check the reconstruction of RLPs
   Bytes reconstructedRlpLt;

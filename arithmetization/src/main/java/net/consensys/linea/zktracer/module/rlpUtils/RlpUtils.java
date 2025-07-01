@@ -15,6 +15,9 @@
 
 package net.consensys.linea.zktracer.module.rlpUtils;
 
+import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.Trace.RLP_PREFIX_LIST_LONG;
+
 import java.util.List;
 
 import lombok.Getter;
@@ -24,14 +27,23 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import org.apache.tuweni.bytes.Bytes;
+import org.apache.tuweni.bytes.Bytes32;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class RlpUtils implements OperationSetModule<RlpUtilsOperation> {
+public class RlpUtils implements OperationSetModule<RlpUtilsCall> {
+  public static final Bytes BYTES_PREFIX_SHORT_INT = Bytes.of(RLP_PREFIX_INT_SHORT);
+  public static final Bytes BYTES_PREFIX_LONG_INT = Bytes.of(RLP_PREFIX_INT_LONG);
+  public static final Bytes BYTES_PREFIX_SHORT_LIST = Bytes.of(RLP_PREFIX_LIST_SHORT);
+  public static final Bytes BYTES_PREFIX_LONG_LIST =
+      Bytes.ofUnsignedLong(RLP_PREFIX_LIST_LONG).trimLeadingZeros();
+  public static final Bytes32 BYTES32_PREFIX_SHORT_INT = Bytes32.leftPad(BYTES_PREFIX_SHORT_INT);
+
   private final Wcp wcp;
 
   @Getter
-  private final ModuleOperationStackedSet<RlpUtilsOperation> operations =
+  private final ModuleOperationStackedSet<RlpUtilsCall> operations =
       new ModuleOperationStackedSet<>();
 
   @Override
@@ -39,15 +51,13 @@ public class RlpUtils implements OperationSetModule<RlpUtilsOperation> {
     return "RLP_UTILS";
   }
 
-  @Override
-  public void popTransactionBundle() {}
-
-  @Override
-  public void commitTransactionBundle() {}
-
-  @Override
-  public int lineCount() {
-    return operations().lineCount();
+  public RlpUtilsCall call(RlpUtilsCall call) {
+    final boolean isNew = operations.add(call);
+    if (isNew) {
+      call.compute(wcp);
+      return call;
+    }
+    return call; // TODO: should return the existing call
   }
 
   @Override
@@ -62,7 +72,7 @@ public class RlpUtils implements OperationSetModule<RlpUtilsOperation> {
 
   @Override
   public void commit(Trace trace) {
-    for (RlpUtilsOperation operation : operations.getAll()) {
+    for (RlpUtilsCall operation : operations.getAll()) {
       operation.trace(trace.rlputils());
     }
   }

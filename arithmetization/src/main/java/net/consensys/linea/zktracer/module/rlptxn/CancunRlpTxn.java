@@ -19,12 +19,10 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.romlex.RomLex;
-import net.consensys.linea.zktracer.module.trm.Trm;
 
 @RequiredArgsConstructor
 public class CancunRlpTxn extends RlpTxn {
   private final RomLex romLex;
-  private final Trm trm;
   private final RlpUtils rlpUtils;
 
   @Override

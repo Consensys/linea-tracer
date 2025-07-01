@@ -32,8 +32,10 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
     boolean useParams1 = true;
     // we filter the row i + 7 wcp call by double_offset to prevent unnecessary comparisons
     if (isDoubleOffsetOpcode(opCode)) {
-      final var max1 = this.offset1.toUnsignedBigInteger().add(this.size1.toUnsignedBigInteger());
-      final var max2 = this.offset2.toUnsignedBigInteger().add(this.size2.toUnsignedBigInteger());
+      final BigInteger max1 =
+          this.offset1.toUnsignedBigInteger().add(this.size1.toUnsignedBigInteger());
+      final BigInteger max2 =
+          this.offset2.toUnsignedBigInteger().add(this.size2.toUnsignedBigInteger());
       exoCalls[6] = MxpExoCall.callToLT(wcp, bigIntegerToBytes(max1), bigIntegerToBytes(max2));
       useParams2 = exoCalls[6].resultA(); // result of row i + 7
       useParams1 = !useParams2;
@@ -41,39 +43,39 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
 
     // Row i + 8
     // Compute floor and EYPa
-    final var maxOffset1 =
+    final BigInteger maxOffset1 =
         this.offset1
             .lo()
             .toUnsignedBigInteger()
             .add(this.size1.lo().toUnsignedBigInteger())
             .subtract(BigInteger.ONE);
-    final var maxOffset2 =
+    final BigInteger maxOffset2 =
         this.offset2
             .lo()
             .toUnsignedBigInteger()
             .add(this.size2.lo().toUnsignedBigInteger())
             .subtract(BigInteger.ONE);
     ;
-    final var maxOffset =
+    final BigInteger maxOffset =
         booleanToBigInteger(useParams1)
             .multiply(maxOffset1)
             .add(booleanToBigInteger(useParams2).multiply(maxOffset2));
     exoCalls[7] = MxpExoCall.callToEUC(euc, bigIntegerToBytes(maxOffset), Bytes.of(32));
-    final var floor = exoCalls[7].resultB();
-    final var EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
+    final Bytes floor = exoCalls[7].resultB();
+    final BigInteger EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
 
     // row i + 9
     // Compute cMemQuadPart
     exoCalls[8] = MxpExoCall.callToEUC(euc, bigIntegerToBytes(EYPa.multiply(EYPa)), Bytes.of(512));
-    final var cMemQuadPart = exoCalls[8].resultB();
+    final Bytes cMemQuadPart = exoCalls[8].resultB();
 
     // row i + 10
     // Compute updateInternalState
     exoCalls[9] = MxpExoCall.callToLT(wcp, longToBytes(words), bigIntegerToBytes(EYPa));
-    final var updateInternalState = exoCalls[9].resultA();
+    final boolean updateInternalState = exoCalls[9].resultA();
 
     // Determine state update
-    final var cMemLinearPart =
+    final Bytes cMemLinearPart =
         bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
     this.isStateUpdate = updateInternalState;
     this.wordsNew = updateInternalState ? EYPa.longValue() : this.words;

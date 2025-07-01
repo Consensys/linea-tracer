@@ -42,7 +42,7 @@ public class CancunStateUpdateWordPricingMxpCall extends CancunStateUpdateMxpCal
   private void computeExtraGasCost(Euc euc) {
     // Row i + 11
     exoCalls[10] = MxpExoCall.callToEUC(euc, this.size1.lo(), Bytes.of(32));
-    var numberOfWords = exoCalls[10].resultB(); // result of row i + 11
+    Bytes numberOfWords = exoCalls[10].resultB(); // result of row i + 11
     this.extraGasCost =
         numberOfWords
             .toUnsignedBigInteger()

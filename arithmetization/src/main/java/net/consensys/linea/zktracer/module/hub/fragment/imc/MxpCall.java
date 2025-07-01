@@ -15,18 +15,15 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc;
 
-import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isWordPricingOpcode;
+import static net.consensys.linea.zktracer.module.mxp.MxpUtils.*;
 
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.state.State;
-import net.consensys.linea.zktracer.module.mxp.moduleCall.*;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
@@ -34,6 +31,10 @@ import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
+/**
+ * This is the parent class for all MXP Calls. The fork dependent classes extending this are located
+ * in Mxp module
+ */
 public class MxpCall implements TraceSubFragment {
 
   public final Hub hub;
@@ -44,10 +45,10 @@ public class MxpCall implements TraceSubFragment {
 
   @Getter public boolean deploys;
   @Getter public long memorySizeInWords;
-  @Getter public EWord offset1 = EWord.ZERO;
-  @Getter public EWord size1 = EWord.ZERO;
-  @Getter public EWord offset2 = EWord.ZERO;
-  @Getter public EWord size2 = EWord.ZERO;
+  @Getter public EWord offset1;
+  @Getter public EWord size1;
+  @Getter public EWord offset2;
+  @Getter public EWord size2;
 
   @Getter @Setter public boolean mxpx;
 
@@ -65,55 +66,11 @@ public class MxpCall implements TraceSubFragment {
     // set memorySizeInWords
     this.memorySizeInWords = this.hub.messageFrame().memoryWordSize();
     // set sizes and offsets
-    final OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    switch (opCode) {
-      case MSIZE -> {}
-      case MLOAD -> {
-        this.offset1 = EWord.of(frame.getStackItem(0));
-      }
-      case MSTORE -> {
-        this.offset1 = EWord.of(frame.getStackItem(0));
-        this.size1 = EWord.of(32);
-      }
-      case MSTORE8 -> {
-        this.offset1 = EWord.of(frame.getStackItem(0));
-        this.size1 = EWord.of(1);
-      }
-      case REVERT, RETURN, LOG0, LOG1, LOG2, LOG3, LOG4, SHA3 -> {
-        this.offset1 = EWord.of(frame.getStackItem(0));
-        this.size1 = EWord.of(frame.getStackItem(1));
-      }
-      case CALLDATACOPY, RETURNDATACOPY, CODECOPY -> {
-        this.offset1 = EWord.of(frame.getStackItem(0));
-        this.size1 = EWord.of(frame.getStackItem(2));
-      }
-      case EXTCODECOPY -> {
-        this.offset1 = EWord.of(frame.getStackItem(1));
-        this.size1 = EWord.of(frame.getStackItem(3));
-      }
-      case CREATE, CREATE2 -> {
-        this.offset1 = EWord.of(frame.getStackItem(1));
-        this.size1 = EWord.of(frame.getStackItem(2));
-      }
-      case MCOPY -> {
-        this.offset1 = EWord.of(frame.getStackItem(0));
-        this.offset2 = EWord.of(frame.getStackItem(1));
-        this.size2 = EWord.of(frame.getStackItem(2));
-      }
-      case CALL, CALLCODE -> {
-        this.offset1 = EWord.of(frame.getStackItem(3));
-        this.size1 = EWord.of(frame.getStackItem(4));
-        this.offset2 = EWord.of(frame.getStackItem(5));
-        this.size2 = EWord.of(frame.getStackItem(6));
-      }
-      case DELEGATECALL, STATICCALL -> {
-        this.offset1 = EWord.of(frame.getStackItem(2));
-        this.size1 = EWord.of(frame.getStackItem(3));
-        this.offset2 = EWord.of(frame.getStackItem(4));
-        this.size2 = EWord.of(frame.getStackItem(5));
-      }
-      default -> throw new IllegalStateException("Unexpected value: " + opCode);
-    }
+    EWord[] sizesAndOffsets = getSizesAndOffsets(frame);
+    this.size1 = sizesAndOffsets[0] != null ? sizesAndOffsets[0] : EWord.ZERO;
+    this.offset1 = sizesAndOffsets[1] != null ? sizesAndOffsets[1] : EWord.ZERO;
+    this.size2 = sizesAndOffsets[2] != null ? sizesAndOffsets[2] : EWord.ZERO;
+    this.offset2 = sizesAndOffsets[3] != null ? sizesAndOffsets[3] : EWord.ZERO;
   }
 
   static boolean getMemoryExpansionException(Hub hub) {
@@ -133,33 +90,6 @@ public class MxpCall implements TraceSubFragment {
         getOpCodeData().billing().billingRate() == billingRate
             ? getOpCodeData().billing().perUnit().cost()
             : 0);
-  }
-
-  /**
-   * User from Cancun fork - Get the Mxp scenario for the given MxpCall.
-   *
-   * @param wcp module to compute the wcp in exoCalls
-   * @param euc module to compute the euc in exoCalls
-   * @return CancunMxpCall instance corresponding to the Mxp scenario
-   */
-  public CancunMxpCall getMxpScenario(Wcp wcp, Euc euc) {
-    OpCode opCode = this.opCodeData.mnemonic();
-    if (opCode == OpCode.MSIZE) {
-      return new CancunMSizeMxpCall(this.hub);
-    }
-    if (this.size1.isZero() && this.size2.isZero()) {
-      return new CancunTrivialMxpCall(this.hub, wcp);
-    }
-    CancunNotMSizeNorTrivialMxpCall cancunNotMSizeNorTrivialMxpCall =
-        new CancunNotMSizeNorTrivialMxpCall(this.hub, wcp);
-    if (cancunNotMSizeNorTrivialMxpCall.mxpx) {
-      return new CancunMxpxMxpCall(this.hub, wcp, true);
-    } else {
-      if (isWordPricingOpcode(opCode)) {
-        return new CancunStateUpdateWordPricingMxpCall(this.hub, wcp, euc);
-      }
-      return new CancunStateUpdateBytePricingMxpCall(hub, wcp, euc);
-    }
   }
 
   public Trace.Hub trace(Trace.Hub trace, State hubState) {

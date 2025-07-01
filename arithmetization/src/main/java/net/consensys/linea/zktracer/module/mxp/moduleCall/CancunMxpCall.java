@@ -23,6 +23,7 @@ import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import org.apache.tuweni.bytes.Bytes;
 
+/** The parent class of this MXP Call is located in the Hub. */
 public abstract class CancunMxpCall extends MxpCall {
 
   public final long words;

@@ -23,6 +23,7 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import org.apache.tuweni.bytes.Bytes;
 
 public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCall {
 
@@ -41,13 +42,13 @@ public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCal
   }
 
   private void computeExtraGasCost() {
-    final var opCode = this.opCodeData.mnemonic();
-    final var gasPerByte =
+    final OpCode opCode = this.opCodeData.mnemonic();
+    final Bytes gasPerByte =
         (opCode == OpCode.RETURN)
             ? bigIntegerToBytes(
                 booleanToBigInteger(this.deploys).multiply(gByte.toUnsignedBigInteger()))
             : this.gByte;
-    final var numberOfBytes = this.size1.lo();
+    final Bytes numberOfBytes = this.size1.lo();
     this.extraGasCost =
         numberOfBytes
             .toUnsignedBigInteger()

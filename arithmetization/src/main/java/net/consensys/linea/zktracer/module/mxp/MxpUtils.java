@@ -19,7 +19,13 @@ import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
 import static org.hyperledger.besu.evm.internal.Words.clampedAdd;
 import static org.hyperledger.besu.evm.internal.Words.clampedMultiply;
 
+import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.*;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.EWord;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class MxpUtils {
   public static boolean isSingleOffsetOpcode(OpCode opCode) {
@@ -51,6 +57,88 @@ public class MxpUtils {
         || opCode == OpCode.RETURN
         || opCode.isLog()
         || opCode.isCall();
+  }
+
+  public static EWord[] getSizesAndOffsets(MessageFrame frame) {
+    OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
+    EWord[] result = new EWord[3];
+    switch (opCode) {
+      case MSIZE -> {}
+      case MLOAD -> {
+        result[1] = EWord.of(frame.getStackItem(0));
+      }
+      case MSTORE -> {
+        result[1] = EWord.of(frame.getStackItem(0));
+        result[0] = EWord.of(32);
+      }
+      case MSTORE8 -> {
+        result[1] = EWord.of(frame.getStackItem(0));
+        result[0] = EWord.of(1);
+      }
+      case REVERT, RETURN, LOG0, LOG1, LOG2, LOG3, LOG4, SHA3 -> {
+        result[1] = EWord.of(frame.getStackItem(0));
+        result[0] = EWord.of(frame.getStackItem(1));
+      }
+      case CALLDATACOPY, RETURNDATACOPY, CODECOPY -> {
+        result[1] = EWord.of(frame.getStackItem(0));
+        result[0] = EWord.of(frame.getStackItem(2));
+      }
+      case EXTCODECOPY -> {
+        result[1] = EWord.of(frame.getStackItem(1));
+        result[0] = EWord.of(frame.getStackItem(3));
+      }
+      case CREATE, CREATE2 -> {
+        result[1] = EWord.of(frame.getStackItem(1));
+        result[0] = EWord.of(frame.getStackItem(2));
+      }
+      case MCOPY -> {
+        result[1] = EWord.of(frame.getStackItem(0));
+        result[3] = EWord.of(frame.getStackItem(1));
+        result[2] = EWord.of(frame.getStackItem(2));
+      }
+      case CALL, CALLCODE -> {
+        result[1] = EWord.of(frame.getStackItem(3));
+        result[0] = EWord.of(frame.getStackItem(4));
+        result[3] = EWord.of(frame.getStackItem(5));
+        result[2] = EWord.of(frame.getStackItem(6));
+      }
+      case DELEGATECALL, STATICCALL -> {
+        result[1] = EWord.of(frame.getStackItem(2));
+        result[0] = EWord.of(frame.getStackItem(3));
+        result[3] = EWord.of(frame.getStackItem(4));
+        result[2] = EWord.of(frame.getStackItem(5));
+      }
+      default -> throw new IllegalStateException("Unexpected value: " + opCode);
+    }
+    return result;
+  }
+
+  /**
+   * User from Cancun fork - Get the Mxp scenario for the given MxpCall.
+   *
+   * @param wcp module to compute the wcp in exoCalls
+   * @param euc module to compute the euc in exoCalls
+   * @return CancunMxpCall instance corresponding to the Mxp scenario
+   */
+  public static CancunMxpCall getCancunMxpCall(
+      Hub hub, Wcp wcp, Euc euc, EWord size1, EWord size2) {
+    OpCode opCode = OpCode.of(hub.messageFrame().getCurrentOperation().getOpcode());
+    if (opCode == OpCode.MSIZE) {
+      return new CancunMSizeMxpCall(hub);
+    }
+    if (size1.isZero() && size2.isZero()) {
+      return new CancunTrivialMxpCall(hub, wcp);
+    }
+    CancunNotMSizeNorTrivialMxpCall cancunNotMSizeNorTrivialMxpCall =
+        new CancunNotMSizeNorTrivialMxpCall(hub, wcp);
+    if (cancunNotMSizeNorTrivialMxpCall.mxpx) {
+      return new CancunMxpxMxpCall(hub, wcp, true);
+    } else {
+      if (isWordPricingOpcode(opCode)) {
+        return new CancunStateUpdateWordPricingMxpCall(hub, wcp, euc);
+      }
+      return new CancunStateUpdateBytePricingMxpCall(hub, wcp, euc);
+    }
   }
 
   // This is a copy and past from FrontierGasCalculator.java

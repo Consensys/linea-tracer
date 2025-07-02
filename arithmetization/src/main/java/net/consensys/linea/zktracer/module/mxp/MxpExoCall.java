@@ -22,6 +22,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.euc.EucOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
@@ -72,7 +73,7 @@ public class MxpExoCall {
         .arg1Lo(arg1B32.hi())
         .arg2Hi(arg2B32.lo())
         .arg2Lo(arg2B32.hi())
-        .resultA(booleanToBytes(wcp.callLT(arg1B32, arg2B32)))
+        .resultA(booleanToBytes(wcp.callLEQ(arg1B32, arg2B32)))
         .build();
   }
 
@@ -94,12 +95,14 @@ public class MxpExoCall {
     final EWord arg1B32 = EWord.of(arg1);
     final EWord arg2B32 = EWord.of(arg2);
 
+    EucOperation eucOperation = euc.callEUC(arg1B32, arg2B32);
+
     return MxpExoCall.builder()
         .eucFlag(true)
         .arg1Lo(arg1B32.hi())
         .arg2Lo(arg2B32.hi())
-        .resultA(euc.callEUC(arg1B32, arg2B32).quotient())
-        .resultB(euc.callEUC(arg1B32, arg2B32).ceiling())
+        .resultA(eucOperation.quotient())
+        .resultB(eucOperation.ceiling())
         .build();
   }
 }

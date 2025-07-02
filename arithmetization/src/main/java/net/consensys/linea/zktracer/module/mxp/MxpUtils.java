@@ -69,10 +69,7 @@ public class MxpUtils {
     EWord offset2 = EWord.ZERO;
     switch (opCode) {
       case MSIZE -> {}
-      case MLOAD -> {
-        offset1 = EWord.of(frame.getStackItem(0));
-      }
-      case MSTORE -> {
+      case MLOAD, MSTORE -> {
         offset1 = EWord.of(frame.getStackItem(0));
         size1 = EWord.of(32);
       }

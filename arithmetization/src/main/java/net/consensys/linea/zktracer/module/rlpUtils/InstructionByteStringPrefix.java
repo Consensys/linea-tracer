@@ -20,12 +20,16 @@ import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_BYTE_STRIN
 import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_INTEGER;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.*;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
+@Accessors(fluent = true)
 public class InstructionByteStringPrefix extends RlpUtilsCall {
 
   private static final Bytes32 ONE = Bytes32.leftPad(Bytes.of(1));
@@ -36,16 +40,16 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
   private final boolean isList;
 
   // outputs
-  private boolean rlpPrefixRequired;
+  @Getter private boolean rlpPrefixRequired;
   private boolean byteStringIsNonEmpty;
-  private Bytes16 rlpPrefix;
-  private short rlpPrefixByteSize;
+  @Getter private Bytes16 rlpPrefix;
+  @Getter private short rlpPrefixByteSize;
 
   // computed values
   private boolean byteStringLengthGeq56 = false;
   private int bslByteSize = 1; // default value, will be updated if needed
 
-  protected InstructionByteStringPrefix(int byteStringLength, byte firstByte, boolean isList) {
+  public InstructionByteStringPrefix(int byteStringLength, byte firstByte, boolean isList) {
     super(CT_MAX_INST_BYTE_STRING_PREFIX);
     this.byteStringLength = Bytes32.leftPad(Bytes.ofUnsignedInt(byteStringLength));
     this.firstByte = firstByte;
@@ -120,8 +124,10 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
   }
 
   @Override
-  public void traceRlpTxn(Trace.Rlptxn trace) {
+  public void traceRlpTxn(
+      Rlptxn trace, TracedValues tracedValues, boolean updateLt, boolean updateLx, int ct) {
     trace
+        .cmp(true)
         .pCmpRlpUtilsFlag(true)
         .pCmpInst(RLP_UTILS_INST_BYTE_STRING_PREFIX)
         .pCmpExoData1(byteStringLength)
@@ -130,7 +136,21 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
         .pCmpExoData4(rlpPrefixRequired)
         .pCmpExoData5(byteStringIsNonEmpty)
         .pCmpExoData6(rlpPrefix)
-        .pCmpExoData8(rlpPrefixByteSize);
+        .pCmpExoData8(rlpPrefixByteSize)
+        .limbConstructed(rlpPrefixRequired)
+        .limb(rlpPrefix)
+        .nBytes(rlpPrefixByteSize)
+        .done(true);
+
+    if (rlpPrefixRequired && updateLt) {
+      tracedValues.rlpLtByteSize(tracedValues.rlpLtByteSize() - rlpPrefixByteSize);
+      tracedValues.indexLt(tracedValues.indexLt() + 1);
+    }
+
+    if (rlpPrefixRequired && updateLx) {
+      tracedValues.rlpLxByteSize(tracedValues.rlpLxByteSize() - rlpPrefixByteSize);
+      tracedValues.indexLx(tracedValues.indexLx() + 1);
+    }
   }
 
   @Override

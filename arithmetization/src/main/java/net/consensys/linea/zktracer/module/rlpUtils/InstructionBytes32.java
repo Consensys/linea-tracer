@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_BYTES32;
 import static net.consensys.linea.zktracer.module.rlpUtils.WcpExoCall.callToGeq;
 
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
@@ -39,7 +40,8 @@ public class InstructionBytes32 extends RlpUtilsCall {
   }
 
   @Override
-  public void traceRlpTxn(Trace.Rlptxn trace) {
+  public void traceRlpTxn(
+      Trace.Rlptxn trace, TracedValues tracedValues, boolean updateLt, boolean updateLx, int ct) {
     trace
         .pCmpRlpUtilsFlag(true)
         .pCmpInst(RLP_UTILS_INST_BYTES32)

@@ -16,15 +16,13 @@
 package net.consensys.linea.zktracer.types;
 
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -35,6 +33,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -129,6 +128,50 @@ public abstract class TransactionProcessingMetadata {
   @Getter
   private final TransactionFragment transactionFragment;
 
+  @Accessors(fluent = true)
+  @Getter
+  private final int type;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final Bytes chainId;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final Bytes gasPrice;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final Bytes maxPriorityFeePerGas;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final Bytes maxFeePerGas;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final boolean yParity;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final boolean replayProtection;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final int numberOfZeroBytesInPayload;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final int numberOfNonZeroBytesInPayload;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final int numberOfWarmedAddresses;
+
+  @Accessors(fluent = true)
+  @Getter
+  private final int numberOfWarmedStorageKeys;
+
   public TransactionProcessingMetadata(
       final Hub hub,
       final WorldView world,
@@ -169,6 +212,34 @@ public abstract class TransactionProcessingMetadata {
     effectiveGasPrice = computeEffectiveGasPrice();
 
     transactionFragment = new TransactionFragment(this);
+
+    type = getTxTypeAsInt(besuTransaction.getType());
+    chainId =
+        besuTransaction.getChainId().isPresent()
+            ? bigIntegerToBytes(besuTransaction.getChainId().get())
+            : Bytes.EMPTY;
+    gasPrice =
+        besuTransaction.getGasPrice().isPresent()
+            ? bigIntegerToBytes(besuTransaction.getGasPrice().get().getAsBigInteger())
+            : Bytes.EMPTY;
+    maxPriorityFeePerGas =
+        besuTransaction.getMaxPriorityFeePerGas().isPresent()
+            ? bigIntegerToBytes(besuTransaction.getMaxPriorityFeePerGas().get().getAsBigInteger())
+            : Bytes.EMPTY;
+    maxFeePerGas =
+        besuTransaction.getMaxFeePerGas().isPresent()
+            ? bigIntegerToBytes(besuTransaction.getMaxFeePerGas().get().getAsBigInteger())
+            : Bytes.EMPTY;
+    yParity = bigIntegerToBoolean(besuTransaction.getYParity());
+    replayProtection = besuTransaction.getChainId().isPresent();
+    numberOfZeroBytesInPayload = Math.toIntExact(besuTransaction.getPayloadZeroBytes());
+    numberOfNonZeroBytesInPayload =
+        besuTransaction.getPayload().size() - numberOfZeroBytesInPayload;
+    final List<AccessListEntry> accessList =
+        besuTransaction.getAccessList().orElse(new ArrayList<>());
+    numberOfWarmedAddresses = accessList.size();
+    numberOfWarmedStorageKeys =
+        accessList.stream().mapToInt(entry -> entry.storageKeys().size()).sum();
   }
 
   public void setPreFinalisationValues(
@@ -298,20 +369,6 @@ public abstract class TransactionProcessingMetadata {
 
   public Wei getGasRefundInWei() {
     return Wei.of(BigInteger.valueOf(gasRefunded).multiply(BigInteger.valueOf(effectiveGasPrice)));
-  }
-
-  public int numberWarmedAddress() {
-    return besuTransaction.getAccessList().isPresent()
-        ? besuTransaction.getAccessList().get().size()
-        : 0;
-  }
-
-  public int numberWarmedKey() {
-    return besuTransaction.getAccessList().isPresent()
-        ? besuTransaction.getAccessList().get().stream()
-            .mapToInt(accessListEntry -> accessListEntry.storageKeys().size())
-            .sum()
-        : 0;
   }
 
   private void determineSelfDestructTimeStamp() {

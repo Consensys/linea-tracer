@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_INTEGER;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES32_PREFIX_SHORT_INT;
 
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
@@ -31,7 +32,7 @@ public class InstructionInteger extends RlpUtilsCall {
   private boolean integerHiIsNonZero;
   private boolean rlpPrefixRequired;
 
-  protected InstructionInteger(Bytes32 integer) {
+  public InstructionInteger(Bytes32 integer) {
     super(CT_MAX_INST_INTEGER);
     this.integer = integer;
   }
@@ -58,18 +59,61 @@ public class InstructionInteger extends RlpUtilsCall {
   }
 
   @Override
-  public void traceRlpTxn(Trace.Rlptxn trace) {
-    trace
-        .pCmpRlpUtilsFlag(true)
-        .pCmpInst(RLP_UTILS_INST_INTEGER)
-        .pCmpExoData1(data1())
-        .pCmpExoData2(data2())
-        .pCmpExoData3(!integerIsZero)
-        .pCmpExoData4(!integerHiIsNonZero)
-        .pCmpExoData5(rlpPrefixRequired)
-        .pCmpExoData6(rlpPrefix())
-        .pCmpExoData7(leadingLimbShifted())
-        .pCmpExoData8(leadingLimbBytesize());
+  public void traceRlpTxn(
+      Rlptxn trace, TracedValues tracedValues, boolean updateLt, boolean updateLx, int ct) {
+    trace.cmp(true).ct(ct).ctMax(2).done(ct == 2);
+
+    if (ct == 0) {
+      trace
+          .pCmpRlpUtilsFlag(true)
+          .pCmpInst(RLP_UTILS_INST_INTEGER)
+          .pCmpExoData1(data1())
+          .pCmpExoData2(data2())
+          .pCmpExoData3(!integerIsZero)
+          .pCmpExoData4(!integerHiIsNonZero)
+          .pCmpExoData5(rlpPrefixRequired)
+          .pCmpExoData6(rlpPrefix())
+          .pCmpExoData7(leadingLimbShifted())
+          .pCmpExoData8(leadingLimbBytesize());
+    }
+
+    if (ct == 0) {
+      if (rlpPrefixRequired) {
+        trace.limbConstructed(true).limb(rlpPrefix()).nBytes(1);
+        if (updateLt) {
+          tracedValues.decrementLtSizeBy(1);
+        }
+        if (updateLx) {
+          tracedValues.decrementLxSizeBy(1);
+        }
+      }
+    }
+
+    if (ct == 1) {
+      if (integerHiIsNonZero) {
+        trace.limbConstructed(true).limb(leadingLimbShifted()).nBytes(leadingLimbBytesize());
+        if (updateLt) {
+          tracedValues.decrementLtSizeBy(leadingLimbBytesize());
+        }
+        if (updateLx) {
+          tracedValues.decrementLxSizeBy(leadingLimbBytesize());
+        }
+      }
+    }
+
+    if (ct == 2) {
+      trace.done(true);
+      if (!integerIsZero) {
+        final int limbLoSize = integerHiIsNonZero ? LLARGE : leadingLimbBytesize();
+        trace.limbConstructed(true).limb(data2()).nBytes(limbLoSize);
+        if (updateLt) {
+          tracedValues.decrementLtSizeBy(limbLoSize);
+        }
+        if (updateLx) {
+          tracedValues.decrementLxSizeBy(limbLoSize);
+        }
+      }
+    }
   }
 
   @Override

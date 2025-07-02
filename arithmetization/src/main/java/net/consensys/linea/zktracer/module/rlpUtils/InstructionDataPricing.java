@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
@@ -66,7 +67,8 @@ public class InstructionDataPricing extends RlpUtilsCall {
   }
 
   @Override
-  public void traceRlpTxn(Trace.Rlptxn trace) {
+  public void traceRlpTxn(
+      Trace.Rlptxn trace, TracedValues tracedValues, boolean updateLt, boolean updateLx, int ct) {
     trace
         .pCmpRlpUtilsFlag(true)
         .pCmpInst(RLP_UTILS_INST_DATA_PRICING)

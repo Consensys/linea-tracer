@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperatio
 @Getter
 @Accessors(fluent = true)
 @RequiredArgsConstructor
-public class CancunMxp extends LondonMxp {
+public class CancunMxp extends Mxp {
 
   @Override
   public void call(MxpCall mxpCall) {

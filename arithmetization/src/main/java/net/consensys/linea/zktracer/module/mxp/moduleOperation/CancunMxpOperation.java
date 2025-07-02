@@ -47,6 +47,8 @@ public class CancunMxpOperation extends MxpOperation {
    *
    * <p>State update with byte pricing scenario - computes size1IsZero and size2IsZero and
    * mxpxExpression and state update (wordsNew,cMemNew) and extraGasCost for byte pricing opcodes
+   *
+   * <p><img src="./scenariiDiagram.png" />
    */
   public CancunMxpOperation(final MxpCall mxpCall) {
     super(mxpCall);

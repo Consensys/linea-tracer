@@ -55,9 +55,7 @@ public class CancunMxpOperation extends MxpOperation {
     // Setting of global variables
     this.contextNumber = mxpCall.hub.currentFrame().contextNumber();
 
-    // We extend MxpCall to a CancunMxpCall that depends on the scenario
-    // This super MxpCall does the computation and stores the values
-    this.cancunMxpCall = CancunMxpCall.getCancunMxpCall(mxpCall);
+    this.cancunMxpCall = (CancunMxpCall) mxpCall;
   }
 
   private int nRowsComputation() {

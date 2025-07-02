@@ -87,7 +87,7 @@ public class LondonMxpOperation extends MxpOperation {
 
   public LondonMxpOperation(final MxpCall mxpCall) {
     super(mxpCall);
-    // We cast the mxpCall to a LondonMxpCall, as the same behavior as in other forks
+    // We cast the mxpCall to a LondonMxpCall, to keep the same behavior as in the following forks
     // MxpCall and LondonMxpCall are strictly the same
     this.londonMxpCall = (LondonMxpCall) mxpCall;
     final Hub hub = this.londonMxpCall.hub;

@@ -15,13 +15,11 @@
 
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
-import static net.consensys.linea.zktracer.module.mxp.MxpUtils.isWordPricingOpcode;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
-import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -96,31 +94,5 @@ public class CancunMxpCall extends MxpCall {
 
   public void setGasMpxFromExtraGasCost() {
     this.gasMxp = this.cMemNew - this.cMem + this.extraGasCost;
-  }
-
-  /**
-   * User from Cancun fork - Get the Mxp scenario for the given MxpCall.
-   *
-   * @param mxpCall given mxpCall instance to convert to CancunMxpCall
-   * @return CancunMxpCall instance corresponding to the Mxp scenario
-   */
-  public static CancunMxpCall getCancunMxpCall(MxpCall mxpCall) {
-    OpCode opCode = OpCode.of(mxpCall.hub.messageFrame().getCurrentOperation().getOpcode());
-    if (opCode == OpCode.MSIZE) {
-      return (CancunMSizeMxpCall) mxpCall;
-    }
-    if (mxpCall.size1.isZero() && mxpCall.size2.isZero()) {
-      return (CancunTrivialMxpCall) mxpCall;
-    }
-    CancunNotMSizeNorTrivialMxpCall cancunNotMSizeNorTrivialMxpCall =
-        new CancunNotMSizeNorTrivialMxpCall(mxpCall.hub);
-    if (cancunNotMSizeNorTrivialMxpCall.mxpx) {
-      return (CancunMxpxMxpCall) mxpCall;
-    } else {
-      if (isWordPricingOpcode(opCode)) {
-        return (CancunStateUpdateWordPricingMxpCall) mxpCall;
-      }
-      return (CancunStateUpdateBytePricingMxpCall) mxpCall;
-    }
   }
 }

@@ -25,8 +25,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.state.State;
-import net.consensys.linea.zktracer.module.mxp.moduleCall.CancunMxpCall;
-import net.consensys.linea.zktracer.module.mxp.moduleCall.LondonMxpCall;
+import net.consensys.linea.zktracer.module.mxp.moduleCall.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
@@ -85,11 +84,41 @@ public abstract class MxpCall implements TraceSubFragment {
         return new LondonMxpCall(hub);
       }
       case CANCUN, PRAGUE -> {
-        return new CancunMxpCall(hub);
+        return getCancunMxpCall(hub);
       }
       default -> {
         throw new IllegalArgumentException("Unsupported fork: " + fork);
       }
+    }
+  }
+
+  /**
+   * User from Cancun fork - Get the correct Mxp scenarii: CancunMSizeMxpCall, CancunTrivialMxpCall,
+   * CancunMxpxMxpCall, CancunStateUpdateWordPricingMxpCall or CancunStateUpdateBytePricingMxpCall.
+   *
+   * @param hub instance of Hub used to create the CancunMxpCall
+   * @return CancunMxpCall instance corresponding to the Mxp scenario
+   */
+  public static CancunMxpCall getCancunMxpCall(Hub hub) {
+    OpCode opCode = OpCode.of(hub.messageFrame().getCurrentOperation().getOpcode());
+    if (opCode == OpCode.MSIZE) {
+      return new CancunMSizeMxpCall(hub);
+    }
+    EWord[] sizesAndOffsets = getSizesAndOffsets(hub.messageFrame());
+    EWord size1 = sizesAndOffsets[0] != null ? sizesAndOffsets[0] : EWord.ZERO;
+    EWord size2 = sizesAndOffsets[2] != null ? sizesAndOffsets[2] : EWord.ZERO;
+    if (size1.isZero() && size2.isZero()) {
+      return new CancunTrivialMxpCall(hub);
+    }
+    CancunNotMSizeNorTrivialMxpCall cancunNotMSizeNorTrivialMxpCall =
+        new CancunNotMSizeNorTrivialMxpCall(hub);
+    if (cancunNotMSizeNorTrivialMxpCall.mxpx) {
+      return new CancunMxpxMxpCall(hub, cancunNotMSizeNorTrivialMxpCall.mxpx);
+    } else {
+      if (isWordPricingOpcode(opCode)) {
+        return new CancunStateUpdateWordPricingMxpCall(hub);
+      }
+      return new CancunStateUpdateBytePricingMxpCall(hub);
     }
   }
 

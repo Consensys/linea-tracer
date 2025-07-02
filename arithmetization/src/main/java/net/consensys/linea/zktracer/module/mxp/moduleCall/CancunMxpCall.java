@@ -23,7 +23,36 @@ import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
 import org.apache.tuweni.bytes.Bytes;
 
-/** The parent class of this MXP Call is located in the Hub. */
+/**
+ *
+ *
+ * <h3>The parent class of this MXP Call is located in the Hub.</h3>
+ *
+ * The CancunMxpCall can follow 5 scenarii depending on the opcode, sizes and mxpx exception (see
+ * diagram below taken from the specification). To implement this decision tree, each scenario (and
+ * 3 intermediate states) is a class that executes computations and inherits from the previous
+ * scenario as computations are cumulative. Intermediate states are parent to several scenarii to
+ * factorize computations.
+ *
+ * <p>MSize scenario - no computation
+ *
+ * <p>Trivial scenario - computes size1IsZero and size2IsZero
+ *
+ * <p>Not MSize not Trivial (intermediate state) - computes mxpxExpression in addition to the above
+ *
+ * <p>Mxpx scenario - no additional computation
+ *
+ * <p>State update (intermediate state) - computes state update (wordsNew,cMemNew) in addition to
+ * all the above
+ *
+ * <p>State update with word pricing scenario - computes extraGasCost for word pricing opcodes in
+ * addition to State update computations
+ *
+ * <p>State update with byte pricing scenario - computes extraGasCost for byte pricing opcodes in
+ * addition to State update computations
+ *
+ * <p><img src="./scenariiDiagram.png" />
+ */
 public class CancunMxpCall extends MxpCall {
 
   public final long words;

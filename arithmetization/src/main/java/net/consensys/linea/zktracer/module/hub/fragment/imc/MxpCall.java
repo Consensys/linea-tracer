@@ -72,10 +72,10 @@ public abstract class MxpCall implements TraceSubFragment {
     this.memorySizeInWords = this.hub.messageFrame().memoryWordSize();
     // set sizes and offsets
     EWord[] sizesAndOffsets = getSizesAndOffsets(frame);
-    this.size1 = sizesAndOffsets[0] != null ? sizesAndOffsets[0] : EWord.ZERO;
-    this.offset1 = sizesAndOffsets[1] != null ? sizesAndOffsets[1] : EWord.ZERO;
-    this.size2 = sizesAndOffsets[2] != null ? sizesAndOffsets[2] : EWord.ZERO;
-    this.offset2 = sizesAndOffsets[3] != null ? sizesAndOffsets[3] : EWord.ZERO;
+    this.size1 = sizesAndOffsets[0];
+    this.offset1 = sizesAndOffsets[1];
+    this.size2 = sizesAndOffsets[2];
+    this.offset2 = sizesAndOffsets[3];
   }
 
   public static MxpCall getMxpCallByFork(Fork fork, Hub hub) {
@@ -105,8 +105,8 @@ public abstract class MxpCall implements TraceSubFragment {
       return new CancunMSizeMxpCall(hub);
     }
     EWord[] sizesAndOffsets = getSizesAndOffsets(hub.messageFrame());
-    EWord size1 = sizesAndOffsets[0] != null ? sizesAndOffsets[0] : EWord.ZERO;
-    EWord size2 = sizesAndOffsets[2] != null ? sizesAndOffsets[2] : EWord.ZERO;
+    EWord size1 = sizesAndOffsets[0];
+    EWord size2 = sizesAndOffsets[2];
     if (size1.isZero() && size2.isZero()) {
       return new CancunTrivialMxpCall(hub);
     }

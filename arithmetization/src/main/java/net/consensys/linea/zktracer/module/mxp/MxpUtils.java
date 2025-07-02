@@ -55,58 +55,69 @@ public class MxpUtils {
         || opCode.isCall();
   }
 
+  /**
+   * Method to retrieve sizes and offsets from the stack based on the current opcode.
+   *
+   * @param frame where stack items are retrieved
+   * @return EWord[] array with [size1, offset1, size2, offset2]
+   */
   public static EWord[] getSizesAndOffsets(MessageFrame frame) {
     OpCode opCode = OpCode.of(frame.getCurrentOperation().getOpcode());
-    EWord[] result = new EWord[4];
+    EWord size1 = EWord.ZERO;
+    EWord offset1 = EWord.ZERO;
+    EWord size2 = EWord.ZERO;
+    EWord offset2 = EWord.ZERO;
     switch (opCode) {
       case MSIZE -> {}
       case MLOAD -> {
-        result[1] = EWord.of(frame.getStackItem(0));
+        offset1 = EWord.of(frame.getStackItem(0));
       }
       case MSTORE -> {
-        result[1] = EWord.of(frame.getStackItem(0));
-        result[0] = EWord.of(32);
+        offset1 = EWord.of(frame.getStackItem(0));
+        size1 = EWord.of(32);
       }
       case MSTORE8 -> {
-        result[1] = EWord.of(frame.getStackItem(0));
-        result[0] = EWord.of(1);
+        offset1 = EWord.of(frame.getStackItem(0));
+        size1 = EWord.of(1);
       }
       case REVERT, RETURN, LOG0, LOG1, LOG2, LOG3, LOG4, SHA3 -> {
-        result[1] = EWord.of(frame.getStackItem(0));
-        result[0] = EWord.of(frame.getStackItem(1));
+        offset1 = EWord.of(frame.getStackItem(0));
+        size1 = EWord.of(frame.getStackItem(1));
       }
       case CALLDATACOPY, RETURNDATACOPY, CODECOPY -> {
-        result[1] = EWord.of(frame.getStackItem(0));
-        result[0] = EWord.of(frame.getStackItem(2));
+        offset1 = EWord.of(frame.getStackItem(0));
+        size1 = EWord.of(frame.getStackItem(2));
       }
       case EXTCODECOPY -> {
-        result[1] = EWord.of(frame.getStackItem(1));
-        result[0] = EWord.of(frame.getStackItem(3));
+        offset1 = EWord.of(frame.getStackItem(1));
+        size1 = EWord.of(frame.getStackItem(3));
       }
       case CREATE, CREATE2 -> {
-        result[1] = EWord.of(frame.getStackItem(1));
-        result[0] = EWord.of(frame.getStackItem(2));
+        offset1 = EWord.of(frame.getStackItem(1));
+        size1 = EWord.of(frame.getStackItem(2));
       }
       case MCOPY -> {
-        result[1] = EWord.of(frame.getStackItem(0));
-        result[3] = EWord.of(frame.getStackItem(1));
-        result[2] = EWord.of(frame.getStackItem(2));
+        offset1 = EWord.of(frame.getStackItem(0));
+        size1 = EWord.of(frame.getStackItem(2));
+        offset2 = EWord.of(frame.getStackItem(1));
+        size2 = EWord.of(frame.getStackItem(2));
       }
       case CALL, CALLCODE -> {
-        result[1] = EWord.of(frame.getStackItem(3));
-        result[0] = EWord.of(frame.getStackItem(4));
-        result[3] = EWord.of(frame.getStackItem(5));
-        result[2] = EWord.of(frame.getStackItem(6));
+        offset1 = EWord.of(frame.getStackItem(3));
+        size1 = EWord.of(frame.getStackItem(4));
+        offset2 = EWord.of(frame.getStackItem(5));
+        size2 = EWord.of(frame.getStackItem(6));
       }
       case DELEGATECALL, STATICCALL -> {
-        result[1] = EWord.of(frame.getStackItem(2));
-        result[0] = EWord.of(frame.getStackItem(3));
-        result[3] = EWord.of(frame.getStackItem(4));
-        result[2] = EWord.of(frame.getStackItem(5));
+        offset1 = EWord.of(frame.getStackItem(2));
+        size1 = EWord.of(frame.getStackItem(3));
+        offset2 = EWord.of(frame.getStackItem(4));
+        size2 = EWord.of(frame.getStackItem(5));
       }
       default -> throw new IllegalStateException("Unexpected value: " + opCode);
     }
-    return result;
+
+    return new EWord[] {size1, offset1, size2, offset2};
   }
 
   // This is a copy and past from FrontierGasCalculator.java

@@ -32,24 +32,6 @@ public class CancunMxpOperation extends MxpOperation {
   private final int contextNumber;
   private final CancunMxpCall cancunMxpCall;
 
-  /**
-   * The operation can follow 5 scenarii depending on the opcode. Each scenario executes
-   * computations and inherits from the previous scenario as computations are cumulative
-   *
-   * <p>MSize scenario - no computation
-   *
-   * <p>Trivial scenario - computes size1IsZero and size2IsZero
-   *
-   * <p>Mxpx scenario - computes size1IsZero and size2IsZero and mxpxExpression
-   *
-   * <p>State update with word pricing scenario - computes size1IsZero and size2IsZero and
-   * mxpxExpression and state update (wordsNew,cMemNew) and extraGasCost for word pricing opcodes
-   *
-   * <p>State update with byte pricing scenario - computes size1IsZero and size2IsZero and
-   * mxpxExpression and state update (wordsNew,cMemNew) and extraGasCost for byte pricing opcodes
-   *
-   * <p><img src="./scenariiDiagram.png" />
-   */
   public CancunMxpOperation(final MxpCall mxpCall) {
     super(mxpCall);
     // Setting of global variables

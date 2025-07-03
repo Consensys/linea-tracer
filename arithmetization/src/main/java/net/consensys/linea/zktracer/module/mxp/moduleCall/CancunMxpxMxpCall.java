@@ -12,18 +12,28 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.hub.section;
+
+package net.consensys.linea.zktracer.module.mxp.moduleCall;
+
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_MXPX;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
-public class MsizeSection extends TraceSection {
-  public MsizeSection(Hub hub) {
-    super(hub, (short) 3);
+public class CancunMxpxMxpCall extends CancunNotMSizeNorTrivialMxpCall {
 
-    final MxpCall mxpCall = MxpCall.getMxpCallByFork(hub.fork, hub);
-    final ImcFragment imcFragment = ImcFragment.empty(hub).callMxp(mxpCall);
-    this.addStackAndFragments(hub, imcFragment);
+  public CancunMxpxMxpCall(Hub hub, boolean mxpx) {
+    super(hub);
+    this.mxpx = mxpx;
+    // Nothing to compute for MXPX scenario
+  }
+
+  @Override
+  public boolean isMxpxScenario() {
+    return true;
+  }
+
+  @Override
+  public int ctMax() {
+    return CT_MAX_MXPX;
   }
 }

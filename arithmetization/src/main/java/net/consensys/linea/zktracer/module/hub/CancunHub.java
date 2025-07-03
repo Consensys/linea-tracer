@@ -22,6 +22,8 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.McopySection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection;
+import net.consensys.linea.zktracer.module.mxp.module.CancunMxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.CancunInstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -36,6 +38,11 @@ public class CancunHub extends ShanghaiHub {
   @Override
   protected GasCalculator setGasCalculator() {
     return new CancunGasCalculator();
+  }
+
+  @Override
+  protected Mxp setMxp() {
+    return new CancunMxp();
   }
 
   @Override

@@ -12,18 +12,21 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.hub.section;
 
+package net.consensys.linea.zktracer.module.mxp.moduleCall;
+
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
-public class MsizeSection extends TraceSection {
-  public MsizeSection(Hub hub) {
-    super(hub, (short) 3);
+/** The parent class of this MXP Call is located in the Hub. */
+public class LondonMxpCall extends MxpCall {
 
-    final MxpCall mxpCall = MxpCall.getMxpCallByFork(hub.fork, hub);
-    final ImcFragment imcFragment = ImcFragment.empty(hub).callMxp(mxpCall);
-    this.addStackAndFragments(hub, imcFragment);
+  public LondonMxpCall(Hub hub) {
+    super(hub);
+  }
+
+  protected void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {
+    trace.pMiscMxpMtntop(this.mayTriggerNontrivialMmuOperation);
   }
 }

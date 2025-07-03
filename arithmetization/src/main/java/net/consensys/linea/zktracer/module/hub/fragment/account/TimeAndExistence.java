@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,18 +12,20 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.hub.section;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
+package net.consensys.linea.zktracer.module.hub.fragment.account;
 
-public class MsizeSection extends TraceSection {
-  public MsizeSection(Hub hub) {
-    super(hub, (short) 3);
+public record TimeAndExistence(int domStamp, int subStamp, boolean hadCode) {
 
-    final MxpCall mxpCall = MxpCall.getMxpCallByFork(hub.fork, hub);
-    final ImcFragment imcFragment = ImcFragment.empty(hub).callMxp(mxpCall);
-    this.addStackAndFragments(hub, imcFragment);
+  public boolean needsUpdate(TimeAndExistence other) {
+    if (other.hadCode() == this.hadCode) {
+      return false;
+    }
+
+    if (other.domStamp < this.domStamp) {
+      return true;
+    }
+
+    return other.subStamp > this.subStamp;
   }
 }

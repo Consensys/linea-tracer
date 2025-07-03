@@ -12,18 +12,22 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.hub.section;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
+package net.consensys.linea.zktracer.module.mxp.moduleOperation;
+
+import lombok.Getter;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 
-public class MsizeSection extends TraceSection {
-  public MsizeSection(Hub hub) {
-    super(hub, (short) 3);
+@Getter
+public abstract class MxpOperation extends ModuleOperation {
 
-    final MxpCall mxpCall = MxpCall.getMxpCallByFork(hub.fork, hub);
-    final ImcFragment imcFragment = ImcFragment.empty(hub).callMxp(mxpCall);
-    this.addStackAndFragments(hub, imcFragment);
+  final MxpCall mxpCall;
+
+  public MxpOperation(MxpCall mxpCall) {
+    this.mxpCall = mxpCall;
   }
+
+  public abstract void trace(int stamp, Trace.Mxp trace);
 }

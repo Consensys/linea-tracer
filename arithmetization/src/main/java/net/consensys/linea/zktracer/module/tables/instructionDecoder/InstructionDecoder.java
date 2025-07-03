@@ -39,6 +39,7 @@ public abstract class InstructionDecoder implements Module {
         .familyContext(op.instructionFamily() == InstructionFamily.CONTEXT)
         .familyAccount(op.instructionFamily() == InstructionFamily.ACCOUNT)
         .familyCopy(op.instructionFamily() == InstructionFamily.COPY)
+        .familyMCopy(op.instructionFamily() == InstructionFamily.MCOPY)
         .familyTransaction(op.instructionFamily() == InstructionFamily.TRANSACTION)
         .familyBatch(op.instructionFamily() == InstructionFamily.BATCH)
         .familyStackRam(op.instructionFamily() == InstructionFamily.STACK_RAM)

@@ -90,7 +90,7 @@ import net.consensys.linea.zktracer.module.mmio.Mmio;
 import net.consensys.linea.zktracer.module.mmu.Mmu;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
-import net.consensys.linea.zktracer.module.mxp.Mxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.oob.Oob;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlpaddr.RlpAddr;
@@ -134,7 +134,6 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
-import org.hyperledger.besu.plugin.services.BlockchainService;
 
 @Slf4j
 @Accessors(fluent = true)
@@ -229,7 +228,7 @@ public abstract class Hub implements Module {
   @Getter private final RlpAddr rlpAddr;
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
-  @Getter private final Mxp mxp = new Mxp();
+  @Getter private final Mxp mxp = setMxp();
   @Getter private final Oob oob = new Oob(this, add, mod, wcp);
   @Getter private final Mmu mmu;
   @Getter private final Stp stp = new Stp(wcp, mod);
@@ -369,10 +368,10 @@ public abstract class Hub implements Module {
     return Stream.concat(getModulesToTrace().stream(), getTracelessModules().stream()).toList();
   }
 
-  public Hub(final ChainConfig chain, BlockchainService blockchainService) {
+  public Hub(final ChainConfig chain) {
     fork = chain.fork;
     checkState(chain.id.signum() >= 0);
-    final Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
+    Address l2l1ContractAddress = chain.bridgeConfiguration.contract();
     final Bytes l2l1Topic = chain.bridgeConfiguration.topic();
     //
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
@@ -385,7 +384,7 @@ public abstract class Hub implements Module {
             blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     rlpAddr = new RlpAddr(this, trm, keccak);
-    blockdata = setBlockData(this, wcp, euc, chain, blockchainService);
+    blockdata = setBlockData(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
@@ -1053,8 +1052,9 @@ public abstract class Hub implements Module {
 
   protected abstract TxnData setTxnData();
 
-  protected abstract Blockdata setBlockData(
-      Hub hub, Wcp wcp, Euc euc, ChainConfig chain, BlockchainService blockchainService);
+  protected abstract Mxp setMxp();
+
+  protected abstract Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain);
 
   protected abstract RlpTxn setRlpTxn(Hub hub);
 

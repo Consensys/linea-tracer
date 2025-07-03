@@ -224,7 +224,6 @@ opcodes:
       staticGas: G_KECCAK_256
     billing:
       byWord:
-        type: TYPE_4
         wordPrice: G_KECCAK_256_WORD
   - mnemonic: ADDRESS
     value: 0x30
@@ -300,7 +299,6 @@ opcodes:
       flag1: true
     billing:
       byWord:
-        type: TYPE_4
         wordPrice: G_COPY
   - mnemonic: CODESIZE
     value: 0x38
@@ -322,7 +320,6 @@ opcodes:
       flag3: true
     billing:
       byWord:
-        type: TYPE_4
         wordPrice: G_COPY
   - mnemonic: GASPRICE
     value: 0x3a
@@ -353,7 +350,6 @@ opcodes:
       flag4: true
     billing:
       byWord:
-        type: TYPE_4
         wordPrice: G_COPY
   - mnemonic: RETURNDATASIZE
     value: 0x3d
@@ -374,7 +370,6 @@ opcodes:
       flag2: true
     billing:
       byWord:
-        type: TYPE_4
         wordPrice: G_COPY
   - mnemonic: EXTCODEHASH
     value: 0x3f
@@ -503,7 +498,6 @@ opcodes:
       flag2: true
     billing:
       byMxp:
-        type: TYPE_2
   - mnemonic: MSTORE
     value: 0x52
     instructionFamily: STACK_RAM
@@ -515,7 +509,6 @@ opcodes:
       flag3: true
     billing:
       byMxp:
-        type: TYPE_2
   - mnemonic: MSTORE8
     value: 0x53
     instructionFamily: STACK_RAM
@@ -527,7 +520,6 @@ opcodes:
       flag4: true
     billing:
       byMxp:
-        type: TYPE_3
   - mnemonic: SLOAD
     value: 0x54
     instructionFamily: STORAGE
@@ -585,7 +577,6 @@ opcodes:
       flag2: true
     billing:
       byMxp:
-        type: TYPE_1
   - mnemonic: GAS
     value: 0x5a
     instructionFamily: MACHINE_STATE
@@ -633,7 +624,6 @@ opcodes:
       staticGas: G_VERY_LOW
     billing:
       byWord:
-        type: TYPE_4
         wordPrice: G_COPY
   - mnemonic: PUSH0
     value: 0x5f
@@ -1200,7 +1190,6 @@ opcodes:
       forbiddenInStatic: true
     billing:
       byByte:
-        type: TYPE_4
         bytePrice: G_LOG_DATA
   - mnemonic: LOG1
     value: 0xa1
@@ -1215,7 +1204,6 @@ opcodes:
       flag1: true
     billing:
       byByte:
-        type: TYPE_4
         bytePrice: G_LOG_DATA
   - mnemonic: LOG2
     value: 0xa2
@@ -1230,7 +1218,6 @@ opcodes:
       flag2: true
     billing:
       byByte:
-        type: TYPE_4
         bytePrice: G_LOG_DATA
   - mnemonic: LOG3
     value: 0xa3
@@ -1245,7 +1232,6 @@ opcodes:
       flag3: true
     billing:
       byByte:
-        type: TYPE_4
         bytePrice: G_LOG_DATA
   - mnemonic: LOG4
     value: 0xa4
@@ -1260,7 +1246,6 @@ opcodes:
       flag4: true
     billing:
       byByte:
-        type: TYPE_4
         bytePrice: G_LOG_DATA
   - mnemonic: CREATE
     value: 0xf0
@@ -1275,7 +1260,6 @@ opcodes:
       flag1: true
     billing:
       byWord:
-        type: TYPE_4
         wordPrice: G_CONST_INIT_CODE_WORD
   - mnemonic: CALL
     value: 0xf1
@@ -1290,7 +1274,6 @@ opcodes:
       flag1: true
     billing:
       byMxp:
-        type: TYPE_5
   - mnemonic: CALLCODE
     value: 0xf2
     instructionFamily: CALL
@@ -1303,7 +1286,6 @@ opcodes:
       flag2: true
     billing:
       byMxp:
-        type: TYPE_5
   - mnemonic: RETURN
     value: 0xf3
     instructionFamily: HALT
@@ -1315,7 +1297,6 @@ opcodes:
       flag1: true
     billing:
       byByte:
-        type: TYPE_4
         bytePrice: G_CODE_DEPOSIT
   - mnemonic: DELEGATECALL
     value: 0xf4
@@ -1329,7 +1310,6 @@ opcodes:
       flag3: true
     billing:
       byMxp:
-        type: TYPE_5
   - mnemonic: CREATE2
     value: 0xf5
     instructionFamily: CREATE
@@ -1343,7 +1323,6 @@ opcodes:
       flag2: true
     billing:
       byWord:
-        type: TYPE_4
         wordPrice: G_CONST_INIT_CODE_WORD_CREATE2
   - mnemonic: STATICCALL
     value: 0xfa
@@ -1357,7 +1336,6 @@ opcodes:
       flag4: true
     billing:
       byMxp:
-        type: TYPE_5
   - mnemonic: REVERT
     value: 0xfd
     instructionFamily: HALT
@@ -1369,7 +1347,6 @@ opcodes:
       flag2: true
     billing:
       byMxp:
-        type: TYPE_4
   - mnemonic: INVALID
     value: 0xfe
     instructionFamily: INVALID

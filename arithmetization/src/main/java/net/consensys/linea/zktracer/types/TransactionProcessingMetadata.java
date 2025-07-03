@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBoolean;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static org.hyperledger.besu.datatypes.TransactionType.FRONTIER;
 
 import java.math.BigInteger;
 import java.util.*;
@@ -34,10 +35,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.TimeAndExistence
 import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.AccessListEntry;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
@@ -235,8 +233,8 @@ public abstract class TransactionProcessingMetadata {
         besuTransaction.getMaxFeePerGas().isPresent()
             ? bigIntegerToBytes(besuTransaction.getMaxFeePerGas().get().getAsBigInteger())
             : Bytes.EMPTY;
-    yParity = bigIntegerToBoolean(besuTransaction.getYParity());
     replayProtection = besuTransaction.getChainId().isPresent();
+    yParity = retrieveYParity();
     numberOfZeroBytesInPayload = Math.toIntExact(besuTransaction.getPayloadZeroBytes());
     numberOfNonZeroBytesInPayload =
         besuTransaction.getPayload().size() - numberOfZeroBytesInPayload;
@@ -245,6 +243,26 @@ public abstract class TransactionProcessingMetadata {
     numberOfWarmedAddresses = accessList.size();
     numberOfWarmedStorageKeys =
         accessList.stream().mapToInt(entry -> entry.storageKeys().size()).sum();
+  }
+
+  private boolean retrieveYParity() {
+    // For non-legacy transactions, the Y parity is directly accessible
+    if (besuTransaction.getType() != FRONTIER) {
+      return bigIntegerToBoolean(besuTransaction.getYParity());
+    }
+
+    // For legacy transactions, we need to compute the Y parity based on the V value
+    if (replayProtection) {
+      // case chain protected, the V = 35 + 2 * chain id * Y
+      return besuTransaction
+          .getV()
+          .equals(
+              BigInteger.valueOf(PROTECTED_BASE_V_PO)
+                  .add(besuTransaction.getChainId().get().multiply(BigInteger.valueOf(2))));
+    }
+
+    // case chain less, the V = 27 + Y
+    return besuTransaction.getV().equals(BigInteger.valueOf(UNPROTECTED_V_PO));
   }
 
   public void setPreFinalisationValues(

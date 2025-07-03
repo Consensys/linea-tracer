@@ -27,11 +27,9 @@ import org.apache.tuweni.bytes.Bytes;
 @RequiredArgsConstructor
 public abstract class PhaseSection {
 
-  final TransactionProcessingMetadata tx;
-
   public void trace(Trace.Rlptxn trace, TracedValues tracedValues) {
-    traceTransactionRow(trace, tx, tracedValues);
-    traceComputationsRows(trace, tx, tracedValues);
+    traceTransactionRow(trace, tracedValues.tx(), tracedValues);
+    traceComputationsRows(trace, tracedValues.tx(), tracedValues);
   }
 
   private void traceTransactionRow(
@@ -73,14 +71,14 @@ public abstract class PhaseSection {
         .userTxnNumber(tracedValues.tx().getAbsoluteTransactionNumber())
         .indexLt(tracedValues.indexLt())
         .indexLx(tracedValues.indexLx())
-        .codeFragmentIndex(tx.getCodeFragmentIndex())
+        .codeFragmentIndex(tracedValues.tx().getCodeFragmentIndex())
         .type0(tracedValues.type0())
         .type1(tracedValues.type1())
         .type2(tracedValues.type2())
         .type3(tracedValues.type3())
         .type4(tracedValues.type4())
-        .replayProtection(tx.replayProtection())
-        .yParity(tx.yParity());
+        .replayProtection(tracedValues.tx().replayProtection())
+        .yParity(tracedValues.tx().yParity());
   }
 
   public void tracePostValues(Trace.Rlptxn trace, TracedValues tracedValues) {

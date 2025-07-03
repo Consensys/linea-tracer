@@ -83,7 +83,7 @@ public class CancunRlpTxnOperation extends RlpTxnOperation {
 
     // Phase Beta
     if (tx.getBesuTransaction().getType() == FRONTIER) {
-      // phaseSectionList.add(new BetaPhaseSection(rlpUtils, BETA, tx));
+      phaseSectionList.add(new BetaPhaseSection(rlpUtils, tx));
     }
 
     // Phase Y
@@ -98,7 +98,7 @@ public class CancunRlpTxnOperation extends RlpTxnOperation {
     phaseSectionList.add(new IntegerPhaseSection(rlpUtils, S, tx));
   }
 
-  protected void trace(Trace.Rlptxn trace, int userTxNum) {
+  protected void trace(Trace.Rlptxn trace) {
     for (PhaseSection section : phaseSectionList) {
       section.trace(trace, tracedValues);
     }

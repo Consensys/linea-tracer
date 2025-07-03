@@ -26,8 +26,11 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 
 public class ToPhaseSection extends PhaseSection {
+  private final boolean isDeployment;
+
   public ToPhaseSection(TransactionProcessingMetadata tx) {
-    super(tx);
+    super();
+    isDeployment = tx.isDeployment();
   }
 
   @Override
@@ -90,6 +93,6 @@ public class ToPhaseSection extends PhaseSection {
 
   @Override
   public int lineCount() {
-    return 1 + (tx.isDeployment() ? 1 : 2);
+    return 1 + (isDeployment ? 1 : 2);
   }
 }

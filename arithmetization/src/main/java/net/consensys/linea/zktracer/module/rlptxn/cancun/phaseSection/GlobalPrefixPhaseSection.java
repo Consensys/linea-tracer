@@ -34,7 +34,7 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
   private final InstructionByteStringPrefix lxByteSizeCall;
 
   public GlobalPrefixPhaseSection(RlpUtils rlpUtils, TracedValues tracedValues) {
-    super(tracedValues.tx());
+    super();
 
     final Bytes besuRlpLt =
         encodeOpaqueBytes((Transaction) tracedValues.tx().getBesuTransaction(), BLOCK_BODY);
@@ -100,7 +100,7 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
 
   @Override
   protected void traceIsPhaseX(Trace.Rlptxn trace) {
-    trace.isPhaseRlpPrefix(true);
+    trace.isRlpPrefix(true);
   }
 
   @Override

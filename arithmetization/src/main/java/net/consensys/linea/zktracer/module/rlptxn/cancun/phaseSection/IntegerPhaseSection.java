@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.rlptxn.cancun.phaseSection;
 
-import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_INTEGER;
 import static net.consensys.linea.zktracer.module.rlptxn.cancun.phaseSection.IntegerEntry.*;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
@@ -35,7 +34,7 @@ public class IntegerPhaseSection extends PhaseSection {
 
   public IntegerPhaseSection(
       RlpUtils rlpUtils, IntegerEntry entry, TransactionProcessingMetadata tx) {
-    super(tx);
+    super();
     lx = entry.lx();
     this.entry = entry;
     final Bytes32 integer =
@@ -59,7 +58,7 @@ public class IntegerPhaseSection extends PhaseSection {
   @Override
   protected void traceComputationsRows(
       Trace.Rlptxn trace, TransactionProcessingMetadata tx, TracedValues tracedValues) {
-    for (int ct = 0; ct <= CT_MAX_INST_INTEGER; ct++) {
+    for (int ct = 0; ct <= 2; ct++) {
       tracePreValues(trace, tracedValues);
       intCall.traceRlpTxn(trace, tracedValues, true, true, true, ct);
       trace.phaseEnd(ct == 2);
@@ -70,7 +69,7 @@ public class IntegerPhaseSection extends PhaseSection {
   @Override
   protected void traceIsPhaseX(Trace.Rlptxn trace) {
     trace
-        .isPhaseChainId(entry == CHAIN_ID)
+        .isChainId(entry == CHAIN_ID)
         .isNonce(entry == NONCE)
         .isGasPrice(entry == GAS_PRICE)
         .isMaxPriorityFeePerGas(entry == MAX_PRIORITY_FEE_PER_GAS)

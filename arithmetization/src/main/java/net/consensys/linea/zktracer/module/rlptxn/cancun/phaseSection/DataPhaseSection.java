@@ -35,7 +35,7 @@ public class DataPhaseSection extends PhaseSection {
   private final List<InstructionDataPricing> limbs;
 
   public DataPhaseSection(RlpUtils rlpUtils, TransactionProcessingMetadata tx) {
-    super(tx);
+    super();
     final Bytes data = tx.getBesuTransaction().getPayload();
 
     final InstructionByteStringPrefix prefixCall =

@@ -271,6 +271,7 @@ public abstract class StackFragment implements TraceFragment {
         .pStackTxnFlag(currentInstFamily == TRANSACTION)
         .pStackWcpFlag(currentInstFamily == WCP);
     traceMcopyFamily(trace, currentInstFamily);
+    traceTransientFamily(trace, currentInstFamily);
     trace
         .pStackDecFlag1(stack.getCurrentOpcodeData().stackSettings().flag1())
         .pStackDecFlag2(stack.getCurrentOpcodeData().stackSettings().flag2())
@@ -306,6 +307,9 @@ public abstract class StackFragment implements TraceFragment {
   }
 
   protected abstract void traceMcopyFamily(Trace.Hub trace, InstructionFamily currentInstFamily);
+
+  protected abstract void traceTransientFamily(
+      Trace.Hub trace, InstructionFamily currentInstFamily);
 
   private void tracedExceptionSanityChecks(TracedException tracedException) {
     switch (tracedException) {

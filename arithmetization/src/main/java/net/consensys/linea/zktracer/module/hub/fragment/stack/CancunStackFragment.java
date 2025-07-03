@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.fragment.stack;
 
 import static net.consensys.linea.zktracer.opcode.InstructionFamily.MCOPY;
+import static net.consensys.linea.zktracer.opcode.InstructionFamily.TRANSIENT;
 
 import java.util.List;
 
@@ -44,5 +45,10 @@ public class CancunStackFragment extends LondonStackFragment {
   @Override
   protected void traceMcopyFamily(Trace.Hub trace, InstructionFamily currentInstFamily) {
     trace.pStackMcopyFlag(currentInstFamily == MCOPY);
+  }
+
+  @Override
+  protected void traceTransientFamily(Trace.Hub trace, InstructionFamily currentInstFamily) {
+    trace.pStackTransFlag(currentInstFamily == TRANSIENT);
   }
 }

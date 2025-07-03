@@ -44,4 +44,9 @@ public class LondonStackFragment extends StackFragment {
   protected void traceMcopyFamily(Trace.Hub trace, InstructionFamily currentInstFamily) {
     // The MCOPY family appears in Cancun, no associated column to trace in London
   }
+
+  @Override
+  protected void traceTransientFamily(Trace.Hub trace, InstructionFamily currentInstFamily) {
+    // The Trans family appears in Cancun, no associated column to trace in London
+  }
 }

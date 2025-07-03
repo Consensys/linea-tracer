@@ -29,7 +29,7 @@ public class McopySection extends TraceSection {
   public McopySection(Hub hub) {
     super(hub, (short) 3);
 
-    final MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     final ImcFragment firstImcFragment = ImcFragment.empty(hub).callMxp(mxpCall);
     this.addStackAndFragments(hub, firstImcFragment);
 

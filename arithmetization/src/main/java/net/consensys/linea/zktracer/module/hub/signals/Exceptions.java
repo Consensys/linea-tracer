@@ -267,10 +267,10 @@ public class Exceptions {
 
     final GasProjector gp = hub.gasProjector;
     switch (opCode) {
-        // TODO: add MCOPY
       case CALLDATACOPY,
           CODECOPY,
           EXTCODECOPY,
+          MCOPY,
           LOG0,
           LOG1,
           LOG2,

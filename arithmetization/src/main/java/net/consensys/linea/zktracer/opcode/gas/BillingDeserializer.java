@@ -53,7 +53,7 @@ public class BillingDeserializer extends StdDeserializer<Billing> {
                       new IllegalArgumentException(
                           "'wordPrice' is a mandatory property when declaring 'byWord' billing"));
 
-      MxpType type = extractMxpType(wordNode, "byWord");
+      MxpType type = extractMxpType(wordNode);
       GasConstants wordPrice = GasConstants.valueOf(wordPriceNode.textValue());
 
       return Billing.byWord(type, wordPrice);
@@ -62,7 +62,7 @@ public class BillingDeserializer extends StdDeserializer<Billing> {
     if (byMxp.isPresent()) {
       JsonNode mxpNode = byMxp.get();
 
-      MxpType type = extractMxpType(mxpNode, "byMxp");
+      MxpType type = extractMxpType(mxpNode);
 
       return Billing.byMxp(type);
     }
@@ -77,7 +77,7 @@ public class BillingDeserializer extends StdDeserializer<Billing> {
                       new IllegalArgumentException(
                           "'bytePrice' is a mandatory property when declaring 'byByte' billing"));
 
-      MxpType type = extractMxpType(byteNode, "byByte");
+      MxpType type = extractMxpType(byteNode);
       GasConstants bytePrice = GasConstants.valueOf(bytePriceNode.textValue());
 
       return Billing.byByte(type, bytePrice);
@@ -86,15 +86,10 @@ public class BillingDeserializer extends StdDeserializer<Billing> {
     return new Billing();
   }
 
-  private MxpType extractMxpType(JsonNode node, String billingRate) {
-    JsonNode typeNode =
-        Optional.of(node.get("type"))
-            .orElseThrow(
-                () ->
-                    new IllegalArgumentException(
-                        "'mnemonic' is a mandatory property when declaring '%s' billing"
-                            .formatted(billingRate)));
+  private MxpType extractMxpType(JsonNode node) {
+    // TODO: refacto and make serializer for dependent
+    JsonNode typeNode = node.get("type");
 
-    return MxpType.valueOf(typeNode.textValue());
+    return typeNode == null ? MxpType.NONE : MxpType.valueOf(typeNode.textValue());
   }
 }

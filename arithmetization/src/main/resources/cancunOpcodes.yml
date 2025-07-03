@@ -320,7 +320,7 @@ opcodes:
       delta: 3
       staticGas: G_VERY_LOW
       flag3: true
-    mxpFlagFlag: true
+    mxpFlag: true
     billing:
       byWord:
         wordPrice: G_COPY

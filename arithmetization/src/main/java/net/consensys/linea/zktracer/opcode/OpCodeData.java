@@ -42,6 +42,7 @@ public record OpCodeData(
     int value,
     InstructionFamily instructionFamily,
     StackSettings stackSettings,
+    boolean mxpFlag,
     Billing billing) {
 
   public Billing billing() {
@@ -66,6 +67,7 @@ public record OpCodeData(
             false,
             false,
             false),
+        false,
         new Billing(GasConstants.G_ZERO, BillingRate.NONE, MxpType.NONE));
   }
 
@@ -124,11 +126,56 @@ public record OpCodeData(
     return instructionFamily == INVALID;
   }
 
-  public boolean isMxp() {
-    return this.billing().type() != MxpType.NONE;
-  }
-
   public int numberOfStackRows() {
     return stackSettings.twoLineInstruction() ? 2 : 1;
+  }
+
+  public boolean isMSize() {
+    return mnemonic == OpCode.MSIZE;
+  }
+
+  public boolean isFixedSize32() {
+    return mnemonic == OpCode.MLOAD || mnemonic == OpCode.MSTORE;
+  }
+
+  public boolean isFixedSize1() {
+    return mnemonic == OpCode.MSTORE8;
+  }
+
+  public boolean isReturn() {
+    return mnemonic == OpCode.RETURN;
+  }
+
+  public boolean isMCopy() {
+    return instructionFamily == MCOPY;
+  }
+
+  public boolean isSingleOffset() {
+    return mnemonic == OpCode.MLOAD
+        || mnemonic == OpCode.MSTORE
+        || mnemonic == OpCode.MSTORE8
+        || mnemonic == OpCode.REVERT
+        || this.isReturn()
+        || this.isLog()
+        || mnemonic == OpCode.SHA3
+        || this.isCopy()
+        || this.isCreate();
+  }
+
+  public boolean isDoubleOffset() {
+    return this.isMCopy() || this.isCall();
+  }
+
+  public boolean isWordPricing() {
+    return billing().billingRate() == BillingRate.BY_WORD;
+  }
+
+  public boolean isBytePricing() {
+    return billing().billingRate() == BillingRate.BY_BYTE;
+  }
+
+  // Used on from Cancun and on, before ixMxp is determined by checking if there is a type
+  public boolean isMxp() {
+    return mxpFlag;
   }
 }

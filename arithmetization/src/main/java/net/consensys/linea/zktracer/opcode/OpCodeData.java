@@ -155,15 +155,15 @@ public record OpCodeData(
         || mnemonic == OpCode.MSTORE
         || mnemonic == OpCode.MSTORE8
         || mnemonic == OpCode.REVERT
-        || this.isReturn()
-        || this.isLog()
+        || isReturn()
+        || isLog()
         || mnemonic == OpCode.SHA3
-        || this.isCopy()
-        || this.isCreate();
+        || isCopy()
+        || isCreate();
   }
 
   public boolean isDoubleOffset() {
-    return this.isMCopy() || this.isCall();
+    return isMCopy() || isCall();
   }
 
   public boolean isWordPricing() {

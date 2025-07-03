@@ -60,8 +60,13 @@ public class InstructionInteger extends RlpUtilsCall {
 
   @Override
   public void traceRlpTxn(
-      Rlptxn trace, TracedValues tracedValues, boolean updateLt, boolean updateLx, int ct) {
-    trace.cmp(true).ct(ct).ctMax(2).done(ct == 2);
+      Rlptxn trace,
+      TracedValues tracedValues,
+      boolean lt,
+      boolean lx,
+      boolean updateTracedValue,
+      int ct) {
+    trace.cmp(true).ct(ct).ctMax(2).lt(lt).lx(lx);
 
     if (ct == 0) {
       trace
@@ -80,10 +85,10 @@ public class InstructionInteger extends RlpUtilsCall {
     if (ct == 0) {
       if (rlpPrefixRequired) {
         trace.limbConstructed(true).limb(rlpPrefix()).nBytes(1);
-        if (updateLt) {
+        if (lt && updateTracedValue) {
           tracedValues.decrementLtSizeBy(1);
         }
-        if (updateLx) {
+        if (lx && updateTracedValue) {
           tracedValues.decrementLxSizeBy(1);
         }
       }
@@ -92,10 +97,10 @@ public class InstructionInteger extends RlpUtilsCall {
     if (ct == 1) {
       if (integerHiIsNonZero) {
         trace.limbConstructed(true).limb(leadingLimbShifted()).nBytes(leadingLimbBytesize());
-        if (updateLt) {
+        if (lt && updateTracedValue) {
           tracedValues.decrementLtSizeBy(leadingLimbBytesize());
         }
-        if (updateLx) {
+        if (lx && updateTracedValue) {
           tracedValues.decrementLxSizeBy(leadingLimbBytesize());
         }
       }
@@ -106,10 +111,10 @@ public class InstructionInteger extends RlpUtilsCall {
       if (!integerIsZero) {
         final int limbLoSize = integerHiIsNonZero ? LLARGE : leadingLimbBytesize();
         trace.limbConstructed(true).limb(data2()).nBytes(limbLoSize);
-        if (updateLt) {
+        if (lt & updateTracedValue) {
           tracedValues.decrementLtSizeBy(limbLoSize);
         }
-        if (updateLx) {
+        if (lx && updateTracedValue) {
           tracedValues.decrementLxSizeBy(limbLoSize);
         }
       }

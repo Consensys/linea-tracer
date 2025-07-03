@@ -36,7 +36,7 @@ public class InstructionDataPricing extends RlpUtilsCall {
   private final List<Short> zeros;
   private final List<Short> nonZeros;
 
-  protected InstructionDataPricing(Bytes16 limb, short nBytes) {
+  public InstructionDataPricing(Bytes16 limb, short nBytes) {
     super(nBytes - 1);
     this.limb = limb;
     this.nBytes = nBytes;
@@ -68,15 +68,24 @@ public class InstructionDataPricing extends RlpUtilsCall {
 
   @Override
   public void traceRlpTxn(
-      Trace.Rlptxn trace, TracedValues tracedValues, boolean updateLt, boolean updateLx, int ct) {
+      Trace.Rlptxn trace,
+      TracedValues tracedValues,
+      boolean lt,
+      boolean lx,
+      boolean updateTracedValue,
+      int ct) {
     trace
+        .cmp(true)
         .pCmpRlpUtilsFlag(true)
         .pCmpInst(RLP_UTILS_INST_DATA_PRICING)
-        .pCmpExoData1(data1())
-        .pCmpExoData2(data2())
+        .pCmpExoData1(limb)
+        .pCmpExoData2(Bytes.ofUnsignedShort(nBytes))
         .pCmpExoData6(data6())
         .pCmpExoData7(data7())
-        .pCmpExoData8(data8());
+        .pCmpExoData8(data8())
+        .limbConstructed(true)
+        .limb(limb)
+        .nBytes(nBytes);
   }
 
   @Override
@@ -86,8 +95,8 @@ public class InstructionDataPricing extends RlpUtilsCall {
         .macro(true)
         .pMacroInst(RLP_UTILS_INST_DATA_PRICING)
         .isDataPricing(true)
-        .pMacroData1(data1())
-        .pMacroData2(data2())
+        .pMacroData1(limb)
+        .pMacroData2(Bytes.ofUnsignedShort(nBytes))
         .pMacroData6(data6())
         .pMacroData7(data7())
         .pMacroData8(data8())
@@ -119,23 +128,23 @@ public class InstructionDataPricing extends RlpUtilsCall {
     return 1 + nBytes;
   }
 
-  private Bytes data1() {
-    return limb;
-  }
-
-  private Bytes data2() {
-    return Bytes.ofUnsignedShort(nBytes);
-  }
-
   private Bytes data6() {
-    return Bytes.ofUnsignedShort(zeros.getFirst());
+    return Bytes.ofUnsignedShort(zerosCount());
   }
 
   private Bytes data7() {
-    return Bytes.ofUnsignedShort(nonZeros.getFirst());
+    return Bytes.ofUnsignedShort(nonZerosCount());
   }
 
   private byte data8() {
     return limb.get(0);
+  }
+
+  public short zerosCount() {
+    return zeros.getFirst();
+  }
+
+  public short nonZerosCount() {
+    return nonZeros.getFirst();
   }
 }

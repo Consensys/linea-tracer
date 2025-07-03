@@ -36,7 +36,12 @@ public abstract class RlpUtilsCall extends ModuleOperation {
   protected abstract void compute(Wcp wcp);
 
   public abstract void traceRlpTxn(
-      Trace.Rlptxn trace, TracedValues tracedValues, boolean updateLt, boolean updateLx, int ct);
+      Trace.Rlptxn trace,
+      TracedValues tracedValues,
+      boolean lt,
+      boolean lx,
+      boolean updateTracedValue,
+      int ct);
 
   protected void trace(Trace.Rlputils trace) {
     traceMacro(trace);

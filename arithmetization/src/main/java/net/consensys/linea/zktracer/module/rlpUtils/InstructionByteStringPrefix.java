@@ -125,9 +125,16 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
 
   @Override
   public void traceRlpTxn(
-      Rlptxn trace, TracedValues tracedValues, boolean updateLt, boolean updateLx, int ct) {
+      Rlptxn trace,
+      TracedValues tracedValues,
+      boolean lt,
+      boolean lx,
+      boolean updateTracedValue,
+      int ct) {
     trace
         .cmp(true)
+        .lt(lt)
+        .lx(lx)
         .pCmpRlpUtilsFlag(true)
         .pCmpInst(RLP_UTILS_INST_BYTE_STRING_PREFIX)
         .pCmpExoData1(byteStringLength)
@@ -142,12 +149,16 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
         .nBytes(rlpPrefixByteSize)
         .done(true);
 
-    if (rlpPrefixRequired && updateLt) {
+    if (!updateTracedValue) {
+      return;
+    }
+
+    if (rlpPrefixRequired && lt) {
       tracedValues.rlpLtByteSize(tracedValues.rlpLtByteSize() - rlpPrefixByteSize);
       tracedValues.indexLt(tracedValues.indexLt() + 1);
     }
 
-    if (rlpPrefixRequired && updateLx) {
+    if (rlpPrefixRequired && lx) {
       tracedValues.rlpLxByteSize(tracedValues.rlpLxByteSize() - rlpPrefixByteSize);
       tracedValues.indexLx(tracedValues.indexLx() + 1);
     }

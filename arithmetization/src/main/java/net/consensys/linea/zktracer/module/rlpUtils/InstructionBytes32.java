@@ -41,7 +41,12 @@ public class InstructionBytes32 extends RlpUtilsCall {
 
   @Override
   public void traceRlpTxn(
-      Trace.Rlptxn trace, TracedValues tracedValues, boolean updateLt, boolean updateLx, int ct) {
+      Trace.Rlptxn trace,
+      TracedValues tracedValues,
+      boolean lt,
+      boolean lx,
+      boolean updateTracedValue,
+      int ct) {
     trace
         .pCmpRlpUtilsFlag(true)
         .pCmpInst(RLP_UTILS_INST_BYTES32)

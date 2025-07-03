@@ -82,8 +82,7 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
 
     // Second Computation Row: RLP Prefix for Lt
     tracePreValues(trace, tracedValues);
-    trace.lt(true);
-    ltByteSizeCall.traceRlpTxn(trace, tracedValues, false, false, 0);
+    ltByteSizeCall.traceRlpTxn(trace, tracedValues, true, false, false, 0);
     if (ltByteSizeCall.rlpPrefixRequired()) {
       tracedValues.indexLt(tracedValues.indexLt() + 1);
     }
@@ -91,8 +90,7 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
 
     // Third Computation Row: RLP Prefix for Lx
     tracePreValues(trace, tracedValues);
-    trace.lx(true);
-    lxByteSizeCall.traceRlpTxn(trace, tracedValues, false, false, 0);
+    lxByteSizeCall.traceRlpTxn(trace, tracedValues, false, true, false, 0);
     if (lxByteSizeCall.rlpPrefixRequired()) {
       tracedValues.indexLx(tracedValues.indexLt() + 1);
     }

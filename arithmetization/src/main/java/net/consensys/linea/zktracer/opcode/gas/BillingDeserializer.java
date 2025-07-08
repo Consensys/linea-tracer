@@ -26,8 +26,11 @@ import lombok.SneakyThrows;
 /** Custom Jackson deserializer for handling {@link Billing} properties. */
 public class BillingDeserializer extends StdDeserializer<Billing> {
 
-  public BillingDeserializer() {
+  private boolean withType = false;
+
+  public BillingDeserializer(boolean withType) {
     this(Billing.class);
+    this.withType = withType;
   }
 
   protected BillingDeserializer(Class<?> vc) {
@@ -53,16 +56,16 @@ public class BillingDeserializer extends StdDeserializer<Billing> {
                       new IllegalArgumentException(
                           "'wordPrice' is a mandatory property when declaring 'byWord' billing"));
 
-      MxpType type = extractMxpType(wordNode);
+      MxpType type = withType ? extractMxpType(wordNode, "byWord") : MxpType.NONE;
       GasConstants wordPrice = GasConstants.valueOf(wordPriceNode.textValue());
 
       return Billing.byWord(type, wordPrice);
     }
 
-    if (byMxp.isPresent()) {
+    if (withType && byMxp.isPresent()) {
       JsonNode mxpNode = byMxp.get();
 
-      MxpType type = extractMxpType(mxpNode);
+      MxpType type = extractMxpType(mxpNode, "byMxp");
 
       return Billing.byMxp(type);
     }
@@ -77,7 +80,7 @@ public class BillingDeserializer extends StdDeserializer<Billing> {
                       new IllegalArgumentException(
                           "'bytePrice' is a mandatory property when declaring 'byByte' billing"));
 
-      MxpType type = extractMxpType(byteNode);
+      MxpType type = withType ? extractMxpType(byteNode, "byByte") : MxpType.NONE;
       GasConstants bytePrice = GasConstants.valueOf(bytePriceNode.textValue());
 
       return Billing.byByte(type, bytePrice);
@@ -86,10 +89,15 @@ public class BillingDeserializer extends StdDeserializer<Billing> {
     return new Billing();
   }
 
-  private MxpType extractMxpType(JsonNode node) {
-    // TODO: refacto and make serializer for dependent
-    JsonNode typeNode = node.get("type");
+  private MxpType extractMxpType(JsonNode node, String billingRate) {
+    JsonNode typeNode =
+        Optional.of(node.get("type"))
+            .orElseThrow(
+                () ->
+                    new IllegalArgumentException(
+                        "'mnemonic' is a mandatory property when declaring '%s' billing"
+                            .formatted(billingRate)));
 
-    return typeNode == null ? MxpType.NONE : MxpType.valueOf(typeNode.textValue());
+    return MxpType.valueOf(typeNode.textValue());
   }
 }

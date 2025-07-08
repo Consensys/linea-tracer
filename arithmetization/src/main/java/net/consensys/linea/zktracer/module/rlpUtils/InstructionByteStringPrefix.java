@@ -35,7 +35,7 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
   private static final Bytes32 ONE = Bytes32.leftPad(Bytes.of(1));
 
   // inputs
-  private final Bytes32 byteStringLength;
+  @Getter private final Bytes32 byteStringLength;
   private final byte firstByte;
   private final boolean isList;
 
@@ -146,8 +146,7 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
         .pCmpExoData8(rlpPrefixByteSize)
         .limbConstructed(rlpPrefixRequired)
         .limb(rlpPrefix)
-        .nBytes(rlpPrefixByteSize)
-        .done(true);
+        .nBytes(rlpPrefixByteSize);
 
     if (!updateTracedValue) {
       return;

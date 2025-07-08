@@ -33,7 +33,6 @@ public class BetaPhaseSection extends PhaseSection {
   private InstructionInteger rlpBeta;
 
   public BetaPhaseSection(RlpUtils rlpUtils, TransactionProcessingMetadata tx) {
-    super();
     this.tx = tx;
 
     final InstructionInteger call =
@@ -73,7 +72,6 @@ public class BetaPhaseSection extends PhaseSection {
           .limbConstructed(true)
           .limb(Bytes16.rightPad(Bytes.concatenate(BYTES_PREFIX_SHORT_INT, BYTES_PREFIX_SHORT_INT)))
           .nBytes(2)
-          .done(true)
           .phaseEnd(true);
       tracedValues.decrementLxSizeBy(2);
       tracePostValues(trace, tracedValues);

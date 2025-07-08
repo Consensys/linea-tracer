@@ -35,7 +35,6 @@ public class DataPhaseSection extends PhaseSection {
   private final List<InstructionDataPricing> limbs;
 
   public DataPhaseSection(RlpUtils rlpUtils, TransactionProcessingMetadata tx) {
-    super();
     final Bytes data = tx.getBesuTransaction().getPayload();
 
     final InstructionByteStringPrefix prefixCall =
@@ -83,7 +82,6 @@ public class DataPhaseSection extends PhaseSection {
       trace
           .pCmpTmp1(Bytes.ofUnsignedShort(zeros))
           .pCmpTmp2(Bytes.ofUnsignedShort(nonZeros))
-          .done(ct == limbs.size() - 1)
           .phaseEnd(ct == limbs.size() - 1);
       tracePostValues(trace, tracedValues);
     }

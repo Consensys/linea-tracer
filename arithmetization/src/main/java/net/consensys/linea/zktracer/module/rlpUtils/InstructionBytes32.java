@@ -18,11 +18,13 @@ package net.consensys.linea.zktracer.module.rlpUtils;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.Trace.RLP_UTILS_INST_BYTES32;
 import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_BYTES32;
+import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_INT;
 import static net.consensys.linea.zktracer.module.rlpUtils.WcpExoCall.callToGeq;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -47,11 +49,30 @@ public class InstructionBytes32 extends RlpUtilsCall {
       boolean lx,
       boolean updateTracedValue,
       int ct) {
+    tracedValues.decrementLtAndLxSizeBy(ct == 0 ? 1 : LLARGE);
     trace
-        .pCmpRlpUtilsFlag(true)
-        .pCmpInst(RLP_UTILS_INST_BYTES32)
+        .limbConstructed(true)
+        .lt(true)
+        .lx(true)
+        .ct(ct)
+        .ctMax(2)
         .pCmpExoData1(data1())
         .pCmpExoData2(data2());
+    switch (ct) {
+      case 0:
+        trace
+            .pCmpRlpUtilsFlag(true)
+            .pCmpInst(RLP_UTILS_INST_BYTES32)
+            .limb(Bytes16.rightPad(BYTES_PREFIX_SHORT_INT))
+            .nBytes(1);
+      case 1:
+        trace.limb(data1()).nBytes(LLARGE);
+
+      case 2:
+        trace.limb(data2()).nBytes(LLARGE);
+      default:
+        throw new IllegalArgumentException("Invalid counter: " + ct);
+    }
   }
 
   @Override

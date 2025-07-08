@@ -29,7 +29,6 @@ public class ToPhaseSection extends PhaseSection {
   private final boolean isDeployment;
 
   public ToPhaseSection(TransactionProcessingMetadata tx) {
-    super();
     isDeployment = tx.isDeployment();
   }
 
@@ -45,7 +44,6 @@ public class ToPhaseSection extends PhaseSection {
           .lx(true)
           .limb(Bytes16.rightPad(BYTES_PREFIX_SHORT_INT))
           .nBytes(1)
-          .done(true)
           .phaseEnd(true);
       tracedValues.decrementLtAndLxSizeBy(1);
       tracePostValues(trace, tracedValues);
@@ -74,7 +72,6 @@ public class ToPhaseSection extends PhaseSection {
           .cmp(true)
           .ct(1)
           .ctMax(1)
-          .done(true)
           .limbConstructed(true)
           .lt(true)
           .lx(true)

@@ -34,7 +34,6 @@ public class IntegerPhaseSection extends PhaseSection {
 
   public IntegerPhaseSection(
       RlpUtils rlpUtils, IntegerEntry entry, TransactionProcessingMetadata tx) {
-    super();
     lx = entry.lx();
     this.entry = entry;
     final Bytes32 integer =

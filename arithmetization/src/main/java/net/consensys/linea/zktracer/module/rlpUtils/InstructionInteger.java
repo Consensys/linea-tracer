@@ -37,11 +37,6 @@ public class InstructionInteger extends RlpUtilsCall {
     this.integer = integer;
   }
 
-  protected InstructionInteger(int integer) {
-    super(CT_MAX_INST_INTEGER);
-    this.integer = Bytes32.leftPad(Bytes.of(integer));
-  }
-
   @Override
   protected void compute(Wcp wcp) {
     final WcpExoCall firstCall = WcpExoCall.callToIsZero(wcp, integer);
@@ -107,7 +102,6 @@ public class InstructionInteger extends RlpUtilsCall {
     }
 
     if (ct == 2) {
-      trace.done(true);
       if (!integerIsZero) {
         final int limbLoSize = integerHiIsNonZero ? LLARGE : leadingLimbBytesize();
         trace.limbConstructed(true).limb(data2()).nBytes(limbLoSize);

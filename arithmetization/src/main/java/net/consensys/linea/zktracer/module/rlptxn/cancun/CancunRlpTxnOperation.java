@@ -78,7 +78,7 @@ public class CancunRlpTxnOperation extends RlpTxnOperation {
 
     // Phase Access List
     if (tx.getBesuTransaction().getType() != FRONTIER) {
-      // phaseSectionList.add(new AccessListPhaseSection(rlpUtils, tx));
+      phaseSectionList.add(new AccessListPhaseSection(rlpUtils, tx));
     }
 
     // Phase Beta

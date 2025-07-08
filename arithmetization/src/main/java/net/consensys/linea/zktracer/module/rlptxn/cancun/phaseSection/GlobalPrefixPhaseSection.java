@@ -34,8 +34,6 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
   private final InstructionByteStringPrefix lxByteSizeCall;
 
   public GlobalPrefixPhaseSection(RlpUtils rlpUtils, TracedValues tracedValues) {
-    super();
-
     final Bytes besuRlpLt =
         encodeOpaqueBytes((Transaction) tracedValues.tx().getBesuTransaction(), BLOCK_BODY);
     final Bytes besuRlpLx = tracedValues.tx().getBesuTransaction().encodedPreimage();
@@ -72,8 +70,7 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
         .lx(true)
         .limbConstructed(!tracedValues.type0())
         .limb(tracedValues.type0() ? Bytes.EMPTY : Bytes16.rightPad(Bytes.minimalBytes(tx.type())))
-        .nBytes(tracedValues.type0() ? 0 : 1)
-        .done(true);
+        .nBytes(tracedValues.type0() ? 0 : 1);
     if (!tracedValues.type0()) {
       tracedValues.indexLt(1);
       tracedValues.indexLx(1);

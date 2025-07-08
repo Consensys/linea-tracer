@@ -42,7 +42,6 @@ public record OpCodeData(
     int value,
     InstructionFamily instructionFamily,
     StackSettings stackSettings,
-    boolean mxpFlag,
     Billing billing) {
 
   public Billing billing() {
@@ -67,7 +66,6 @@ public record OpCodeData(
             false,
             false,
             false),
-        false,
         new Billing(GasConstants.G_ZERO, BillingRate.NONE, MxpType.NONE));
   }
 
@@ -176,6 +174,6 @@ public record OpCodeData(
 
   // Used on from Cancun and on, before ixMxp is determined by checking if there is a type
   public boolean isMxp() {
-    return mxpFlag;
+    return isMSize() || isSingleOffset() || isDoubleOffset();
   }
 }

@@ -222,7 +222,6 @@ opcodes:
       alpha: 1
       delta: 2
       staticGas: G_KECCAK_256
-    mxpFlag: true
     billing:
       byWord:
         wordPrice: G_KECCAK_256_WORD
@@ -298,7 +297,6 @@ opcodes:
       delta: 3
       staticGas: G_VERY_LOW
       flag1: true
-    mxpFlag: true
     billing:
       byWord:
         wordPrice: G_COPY
@@ -320,7 +318,6 @@ opcodes:
       delta: 3
       staticGas: G_VERY_LOW
       flag3: true
-    mxpFlag: true
     billing:
       byWord:
         wordPrice: G_COPY
@@ -351,7 +348,6 @@ opcodes:
       delta: 4
       staticGas: G_ZERO
       flag4: true
-    mxpFlag: true
     billing:
       byWord:
         wordPrice: G_COPY
@@ -372,7 +368,6 @@ opcodes:
       delta: 3
       staticGas: G_VERY_LOW
       flag2: true
-    mxpFlag: true
     billing:
       byWord:
         wordPrice: G_COPY
@@ -501,7 +496,6 @@ opcodes:
       delta: 1
       staticGas: G_VERY_LOW
       flag2: true
-    mxpFlag: true
   - mnemonic: MSTORE
     value: 0x52
     instructionFamily: STACK_RAM
@@ -511,7 +505,6 @@ opcodes:
       delta: 2
       staticGas: G_VERY_LOW
       flag3: true
-    mxpFlag: true
   - mnemonic: MSTORE8
     value: 0x53
     instructionFamily: STACK_RAM
@@ -521,7 +514,6 @@ opcodes:
       delta: 2
       staticGas: G_VERY_LOW
       flag4: true
-    mxpFlag: true
   - mnemonic: SLOAD
     value: 0x54
     instructionFamily: STORAGE
@@ -577,7 +569,6 @@ opcodes:
       delta: 0
       staticGas: G_BASE
       flag2: true
-    mxpFlag: true
   - mnemonic: GAS
     value: 0x5a
     instructionFamily: MACHINE_STATE
@@ -623,7 +614,6 @@ opcodes:
       alpha: 0
       delta: 3
       staticGas: G_VERY_LOW
-    mxpFlag: true
     billing:
       byWord:
         wordPrice: G_COPY
@@ -1190,7 +1180,6 @@ opcodes:
       staticGas: G_LOG_0
       twoLineInstruction: true
       forbiddenInStatic: true
-    mxpFlag: true
     billing:
       byByte:
         bytePrice: G_LOG_DATA
@@ -1205,7 +1194,6 @@ opcodes:
       twoLineInstruction: true
       forbiddenInStatic: true
       flag1: true
-    mxpFlag: true
     billing:
       byByte:
         bytePrice: G_LOG_DATA
@@ -1220,7 +1208,6 @@ opcodes:
       twoLineInstruction: true
       forbiddenInStatic: true
       flag2: true
-    mxpFlag: true
     billing:
       byByte:
         bytePrice: G_LOG_DATA
@@ -1235,7 +1222,6 @@ opcodes:
       twoLineInstruction: true
       forbiddenInStatic: true
       flag3: true
-    mxpFlag: true
     billing:
       byByte:
         bytePrice: G_LOG_DATA
@@ -1250,7 +1236,6 @@ opcodes:
       twoLineInstruction: true
       forbiddenInStatic: true
       flag4: true
-    mxpFlag: true
     billing:
       byByte:
         bytePrice: G_LOG_DATA
@@ -1265,7 +1250,6 @@ opcodes:
       twoLineInstruction: true
       forbiddenInStatic: true
       flag1: true
-    mxpFlag: true
     billing:
       byWord:
         wordPrice: G_CONST_INIT_CODE_WORD
@@ -1280,7 +1264,6 @@ opcodes:
       twoLineInstruction: true
       forbiddenInStatic: true
       flag1: true
-    mxpFlag: true
   - mnemonic: CALLCODE
     value: 0xf2
     instructionFamily: CALL
@@ -1291,7 +1274,6 @@ opcodes:
       staticGas: S_CALL
       twoLineInstruction: true
       flag2: true
-    mxpFlag: true
   - mnemonic: RETURN
     value: 0xf3
     instructionFamily: HALT
@@ -1301,7 +1283,6 @@ opcodes:
       delta: 2
       staticGas: G_ZERO
       flag1: true
-    mxpFlag: true
     billing:
       byByte:
         bytePrice: G_CODE_DEPOSIT
@@ -1315,7 +1296,6 @@ opcodes:
       staticGas: S_CALL
       twoLineInstruction: true
       flag3: true
-    mxpFlag: true
   - mnemonic: CREATE2
     value: 0xf5
     instructionFamily: CREATE
@@ -1327,7 +1307,6 @@ opcodes:
       twoLineInstruction: true
       forbiddenInStatic: true
       flag2: true
-    mxpFlag: true
     billing:
       byWord:
         wordPrice: G_CONST_INIT_CODE_WORD_CREATE2
@@ -1341,7 +1320,6 @@ opcodes:
       staticGas: S_CALL
       twoLineInstruction: true
       flag4: true
-    mxpFlag: true
   - mnemonic: REVERT
     value: 0xfd
     instructionFamily: HALT
@@ -1351,7 +1329,6 @@ opcodes:
       delta: 2
       staticGas: G_ZERO
       flag2: true
-    mxpFlag: true
   - mnemonic: INVALID
     value: 0xfe
     instructionFamily: INVALID

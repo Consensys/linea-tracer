@@ -72,7 +72,7 @@ public class CancunMxpCall extends MxpCall {
   }
 
   /** Store all wcp and euc computations with params and results */
-  public final MxpExoCall[] exoCalls = new MxpExoCall[ctMax()];
+  public final MxpExoCall[] exoCalls = new MxpExoCall[ctMax() + 1];
 
   /** Computed by CancunTrivialMxpCall */
   public boolean size1IsZero = false;

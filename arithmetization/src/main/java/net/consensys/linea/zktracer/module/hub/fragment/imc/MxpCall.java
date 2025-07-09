@@ -131,11 +131,10 @@ public abstract class MxpCall implements TraceSubFragment {
     return !this.mxpx && !this.size2.isZero();
   }
 
-  public Bytes getCostBy(BillingRate billingRate) {
-    return Bytes.of(
-        getOpCodeData().billing().billingRate() == billingRate
-            ? getOpCodeData().billing().perUnit().cost()
-            : 0);
+  public int getCostBy(BillingRate billingRate) {
+    return getOpCodeData().billing().billingRate() == billingRate
+        ? getOpCodeData().billing().perUnit().cost()
+        : 0;
   }
 
   // Method only filled for LondonMxpCall

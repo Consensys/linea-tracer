@@ -21,7 +21,6 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
-import org.apache.tuweni.bytes.Bytes;
 
 /**
  *
@@ -57,8 +56,8 @@ public class CancunMxpCall extends MxpCall {
 
   public final long words;
   public final long cMem;
-  public final Bytes gWord;
-  public final Bytes gByte;
+  public final int gWord;
+  public final int gByte;
 
   public CancunMxpCall(Hub hub) {
     super(hub);

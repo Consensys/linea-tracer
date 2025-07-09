@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_MXPX;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToInt;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
@@ -69,5 +70,12 @@ public class CancunNotMSizeNorTrivialMxpCall extends CancunTrivialMxpCall {
         booleanToInt(size2IsLarge) + booleanToInt(size2IsNonZero) * booleanToInt(offset2IsLarge);
 
     this.mxpxExpression = mxpxExpression1 + mxpxExpression2;
+  }
+
+  // We set ctMax to the minimum number of rows required for the following scenarii (Mxpx, State
+  // update byte and word pricing)
+  @Override
+  public int ctMax() {
+    return CT_MAX_MXPX;
   }
 }

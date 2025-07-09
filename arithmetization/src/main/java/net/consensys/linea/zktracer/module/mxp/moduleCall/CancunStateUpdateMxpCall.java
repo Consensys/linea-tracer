@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_MEMORY;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_UPDT_B;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
@@ -42,6 +43,7 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
     // Compute useParams1 and useParams2
     boolean useParams2 = false; // default value if opcode is single offset
     boolean useParams1 = true;
+    exoCalls[6] = MxpExoCall.builder().build(); // Row i + 7, initialized to default values
     // we filter the row i + 7 wcp call by double_offset to prevent unnecessary comparisons
     if (this.opCodeData.isDoubleOffset()) {
       final BigInteger max1 =
@@ -72,13 +74,14 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
         booleanToBigInteger(useParams1)
             .multiply(maxOffset1)
             .add(booleanToBigInteger(useParams2).multiply(maxOffset2));
-    exoCalls[7] = MxpExoCall.callToEUC(euc, bigIntegerToBytes(maxOffset), Bytes.of(32));
+    exoCalls[7] = MxpExoCall.callToEUC(euc, bigIntegerToBytes(maxOffset), unsignedIntToBytes(32));
     final Bytes floor = exoCalls[7].resultA();
     final BigInteger EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
 
     // row i + 9
     // Compute cMemQuadPart
-    exoCalls[8] = MxpExoCall.callToEUC(euc, bigIntegerToBytes(EYPa.multiply(EYPa)), Bytes.of(512));
+    exoCalls[8] =
+        MxpExoCall.callToEUC(euc, bigIntegerToBytes(EYPa.multiply(EYPa)), unsignedIntToBytes(512));
     final Bytes cMemQuadPart = exoCalls[8].resultA();
 
     // row i + 10
@@ -97,5 +100,12 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
                     cMemQuadPart.toUnsignedBigInteger().add(cMemLinearPart.toUnsignedBigInteger()))
                 .toLong()
             : this.cMem;
+  }
+
+  // We set ctMax to the minimum number of rows required for the following scenarii (State update
+  // byte and State update word pricing)
+  @Override
+  public int ctMax() {
+    return CT_MAX_UPDT_B;
   }
 }

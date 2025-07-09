@@ -75,8 +75,8 @@ public class CancunMxpOperation extends MxpOperation {
         .pDecoderIsDoubleMaxOffset(opCodeData.isDoubleOffset())
         .pDecoderIsWordPricing(opCodeData.isWordPricing())
         .pDecoderIsBytePricing(opCodeData.isBytePricing())
-        .pDecoderGword((UnsignedByte) cancunMxpCall.gWord)
-        .pDecoderGbyte((UnsignedByte) cancunMxpCall.gByte)
+        .pDecoderGword(cancunMxpCall.gWord)
+        .pDecoderGbyte(cancunMxpCall.gByte)
         .fillAndValidateRow();
   }
 

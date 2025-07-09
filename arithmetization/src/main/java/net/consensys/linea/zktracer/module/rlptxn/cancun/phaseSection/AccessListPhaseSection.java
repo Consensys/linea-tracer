@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.module.rlptxn.cancun.phaseSection;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_INT;
 import static net.consensys.linea.zktracer.module.rlputilsOld.Pattern.outerRlpSize;
+import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
+import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,11 +77,7 @@ public class AccessListPhaseSection extends PhaseSection {
     tracePreValues(trace, tracedValues);
     accessListRlpPrefix.traceRlpTxn(trace, tracedValues, true, true, true, 0);
     phaseSize -= accessListRlpPrefix.rlpPrefixByteSize();
-    trace
-        .pCmpIsPrefix(true)
-        .pCmpTmp1(Bytes.ofUnsignedInt(phaseSize))
-        .pCmpTmp2(Bytes.ofUnsignedInt(totalAddress))
-        .pCmpTmp3(Bytes.ofUnsignedInt(totalKeys));
+    trace.pCmpIsPrefix(true).pCmpTmp1(phaseSize).pCmpTmp2(totalAddress).pCmpTmp3(totalKeys);
     trace.phaseEnd(entries.isEmpty());
     tracePostValues(trace, tracedValues);
 
@@ -145,13 +143,13 @@ public class AccessListPhaseSection extends PhaseSection {
       trace
           .pCmpIsPrefix(true)
           .pCmpIsAddress(true)
-          .pCmpTmp1(Bytes.ofUnsignedInt(phaseSize))
-          .pCmpTmp2(Bytes.ofUnsignedInt(totalAddress))
-          .pCmpTmp3(Bytes.ofUnsignedInt(totalKeys))
-          .pCmpTmp4(Bytes.ofUnsignedInt(tupleSize))
-          .pCmpTmp5(address.slice(0, 4))
-          .pCmpTmp6(address.slice(4, LLARGE))
-          .pCmpTmp7(Bytes.ofUnsignedShort(totalStorageForThisAddress));
+          .pCmpTmp1(phaseSize)
+          .pCmpTmp2(totalAddress)
+          .pCmpTmp3(totalKeys)
+          .pCmpTmp4(tupleSize)
+          .pCmpTmp5(highPart(address))
+          .pCmpTmp6(lowPart(address))
+          .pCmpTmp7(totalStorageForThisAddress);
       tracePostValues(trace, tracedValues);
 
       // trace RLP(address)
@@ -169,13 +167,13 @@ public class AccessListPhaseSection extends PhaseSection {
       tracedValues.decrementLtAndLxSizeBy(5);
       trace
           .pCmpIsAddress(true)
-          .pCmpTmp1(Bytes.ofUnsignedInt(phaseSize))
-          .pCmpTmp2(Bytes.ofUnsignedInt(totalAddress))
-          .pCmpTmp3(Bytes.ofUnsignedInt(totalKeys))
-          .pCmpTmp4(Bytes.ofUnsignedInt(tupleSize))
-          .pCmpTmp5(address.slice(0, 4))
-          .pCmpTmp6(address.slice(4, LLARGE))
-          .pCmpTmp7(Bytes.ofUnsignedShort(totalStorageForThisAddress));
+          .pCmpTmp1(phaseSize)
+          .pCmpTmp2(totalAddress)
+          .pCmpTmp3(totalKeys)
+          .pCmpTmp4(tupleSize)
+          .pCmpTmp5(highPart(address))
+          .pCmpTmp6(lowPart(address))
+          .pCmpTmp7(totalStorageForThisAddress);
       tracePostValues(trace, tracedValues);
 
       // second limb
@@ -194,13 +192,13 @@ public class AccessListPhaseSection extends PhaseSection {
       tracedValues.decrementLtAndLxSizeBy(LLARGE);
       trace
           .pCmpIsAddress(true)
-          .pCmpTmp1(Bytes.ofUnsignedInt(phaseSize))
-          .pCmpTmp2(Bytes.ofUnsignedInt(totalAddress))
-          .pCmpTmp3(Bytes.ofUnsignedInt(totalKeys))
-          .pCmpTmp4(Bytes.ofUnsignedInt(tupleSize))
-          .pCmpTmp5(address.slice(0, 4))
-          .pCmpTmp6(address.slice(4, LLARGE))
-          .pCmpTmp7(Bytes.ofUnsignedShort(totalStorageForThisAddress));
+          .pCmpTmp1(phaseSize)
+          .pCmpTmp2(totalAddress)
+          .pCmpTmp3(totalKeys)
+          .pCmpTmp4(tupleSize)
+          .pCmpTmp5(highPart(address))
+          .pCmpTmp6(lowPart(address))
+          .pCmpTmp7(totalStorageForThisAddress);
       tracePostValues(trace, tracedValues);
 
       // trace RLP prefix (keys)
@@ -211,13 +209,13 @@ public class AccessListPhaseSection extends PhaseSection {
       trace
           .pCmpIsPrefix(true)
           .pCmpIsStorage(true)
-          .pCmpTmp1(Bytes.ofUnsignedInt(phaseSize))
-          .pCmpTmp2(Bytes.ofUnsignedInt(totalAddress))
-          .pCmpTmp3(Bytes.ofUnsignedInt(totalKeys))
-          .pCmpTmp4(Bytes.ofUnsignedInt(tupleSize))
-          .pCmpTmp5(address.slice(0, 4))
-          .pCmpTmp6(address.slice(4, LLARGE))
-          .pCmpTmp7(Bytes.ofUnsignedShort(totalStorageForThisAddress));
+          .pCmpTmp1(phaseSize)
+          .pCmpTmp2(totalAddress)
+          .pCmpTmp3(totalKeys)
+          .pCmpTmp4(tupleSize)
+          .pCmpTmp5(highPart(address))
+          .pCmpTmp6(lowPart(address))
+          .pCmpTmp7(totalStorageForThisAddress);
       trace.phaseEnd(phaseSize == 0);
       tracePostValues(trace, tracedValues);
 
@@ -230,13 +228,13 @@ public class AccessListPhaseSection extends PhaseSection {
         tupleSize -= 1;
         trace
             .pCmpIsStorage(true)
-            .pCmpTmp1(Bytes.ofUnsignedInt(phaseSize))
-            .pCmpTmp2(Bytes.ofUnsignedInt(totalAddress))
-            .pCmpTmp3(Bytes.ofUnsignedInt(totalKeys))
-            .pCmpTmp4(Bytes.ofUnsignedInt(tupleSize))
-            .pCmpTmp5(address.slice(0, 4))
-            .pCmpTmp6(address.slice(4, LLARGE))
-            .pCmpTmp7(Bytes.ofUnsignedShort(totalStorageForThisAddress));
+            .pCmpTmp1(phaseSize)
+            .pCmpTmp2(totalAddress)
+            .pCmpTmp3(totalKeys)
+            .pCmpTmp4(tupleSize)
+            .pCmpTmp5(highPart(address))
+            .pCmpTmp6(lowPart(address))
+            .pCmpTmp7(totalStorageForThisAddress);
         tracePostValues(trace, tracedValues);
 
         // key hi
@@ -246,13 +244,13 @@ public class AccessListPhaseSection extends PhaseSection {
         tupleSize -= LLARGE;
         trace
             .pCmpIsStorage(true)
-            .pCmpTmp1(Bytes.ofUnsignedInt(phaseSize))
-            .pCmpTmp2(Bytes.ofUnsignedInt(totalAddress))
-            .pCmpTmp3(Bytes.ofUnsignedInt(totalKeys))
-            .pCmpTmp4(Bytes.ofUnsignedInt(tupleSize))
-            .pCmpTmp5(address.slice(0, 4))
-            .pCmpTmp6(address.slice(4, LLARGE))
-            .pCmpTmp7(Bytes.ofUnsignedShort(totalStorageForThisAddress));
+            .pCmpTmp1(phaseSize)
+            .pCmpTmp2(totalAddress)
+            .pCmpTmp3(totalKeys)
+            .pCmpTmp4(tupleSize)
+            .pCmpTmp5(highPart(address))
+            .pCmpTmp6(lowPart(address))
+            .pCmpTmp7(totalStorageForThisAddress);
         tracePostValues(trace, tracedValues);
 
         // key lo
@@ -264,13 +262,13 @@ public class AccessListPhaseSection extends PhaseSection {
         totalStorageForThisAddress -= 1;
         trace
             .pCmpIsStorage(true)
-            .pCmpTmp1(Bytes.ofUnsignedInt(phaseSize))
-            .pCmpTmp2(Bytes.ofUnsignedInt(totalAddress))
-            .pCmpTmp3(Bytes.ofUnsignedInt(totalKeys))
-            .pCmpTmp4(Bytes.ofUnsignedInt(tupleSize))
-            .pCmpTmp5(address.slice(0, 4))
-            .pCmpTmp6(address.slice(4, LLARGE))
-            .pCmpTmp7(Bytes.ofUnsignedShort(totalStorageForThisAddress))
+            .pCmpTmp1(phaseSize)
+            .pCmpTmp2(totalAddress)
+            .pCmpTmp3(totalKeys)
+            .pCmpTmp4(tupleSize)
+            .pCmpTmp5(highPart(address))
+            .pCmpTmp6(lowPart(address))
+            .pCmpTmp7(totalStorageForThisAddress)
             .phaseEnd(phaseSize == 0);
         tracePostValues(trace, tracedValues);
       }

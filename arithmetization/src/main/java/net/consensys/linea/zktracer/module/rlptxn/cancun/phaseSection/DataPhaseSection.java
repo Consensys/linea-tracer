@@ -66,8 +66,8 @@ public class DataPhaseSection extends PhaseSection {
     prefix.traceRlpTxn(trace, tracedValues, true, true, true, 0);
     trace
         .isPrefix(true)
-        .pCmpTmp1(Bytes.ofUnsignedShort(tx.numberOfZeroBytesInPayload()))
-        .pCmpTmp2(Bytes.ofUnsignedShort(tx.numberOfNonZeroBytesInPayload()))
+        .pCmpTmp1(tx.numberOfZeroBytesInPayload())
+        .pCmpTmp2(tx.numberOfNonZeroBytesInPayload())
         .phaseEnd(limbs.isEmpty());
     tracePostValues(trace, tracedValues);
 
@@ -79,10 +79,7 @@ public class DataPhaseSection extends PhaseSection {
       limbs.get(ct).traceRlpTxn(trace, tracedValues, true, true, true, ct);
       zeros -= limbs.get(ct).zerosCount();
       nonZeros -= limbs.get(ct).nonZerosCount();
-      trace
-          .pCmpTmp1(Bytes.ofUnsignedShort(zeros))
-          .pCmpTmp2(Bytes.ofUnsignedShort(nonZeros))
-          .phaseEnd(ct == limbs.size() - 1);
+      trace.pCmpTmp1(zeros).pCmpTmp2(nonZeros).phaseEnd(ct == limbs.size() - 1);
       tracePostValues(trace, tracedValues);
     }
   }

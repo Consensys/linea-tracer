@@ -52,7 +52,7 @@ public abstract class PhaseSection {
                 ? Bytes.EMPTY
                 : tx.getBesuTransaction().getTo().get().slice(4, LLARGE))
         .pTxnValue(bigIntegerToBytes(tx.getBesuTransaction().getValue().getAsBigInteger()))
-        .requiresEvmExecution(tx.requiresEvmExecution())
+        .pTxnRequiresEvmExecution(tx.requiresEvmExecution())
         .pTxnNumberOfZeroBytes(tx.numberOfZeroBytesInPayload())
         .pTxnNumberOfNonzeroBytes(tx.numberOfNonZeroBytesInPayload())
         .pTxnNumberOfPrewarmedAddresses(tx.numberOfWarmedAddresses())

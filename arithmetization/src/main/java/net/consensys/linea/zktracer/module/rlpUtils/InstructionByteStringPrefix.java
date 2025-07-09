@@ -145,8 +145,8 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
         .pCmpExoData6(rlpPrefix)
         .pCmpExoData8(rlpPrefixByteSize)
         .limbConstructed(rlpPrefixRequired)
-        .limb(rlpPrefix)
-        .nBytes(rlpPrefixByteSize);
+        .pCmpLimb(rlpPrefix)
+        .pCmpNbytes(rlpPrefixByteSize);
 
     if (!updateTracedValue) {
       return;

@@ -70,8 +70,8 @@ public class BetaPhaseSection extends PhaseSection {
       trace
           .lx(true)
           .limbConstructed(true)
-          .limb(Bytes16.rightPad(Bytes.concatenate(BYTES_PREFIX_SHORT_INT, BYTES_PREFIX_SHORT_INT)))
-          .nBytes(2)
+          .pCmpLimb(Bytes16.rightPad(Bytes.concatenate(BYTES_PREFIX_SHORT_INT, BYTES_PREFIX_SHORT_INT)))
+          .pCmpNbytes(2)
           .phaseEnd(true);
       tracedValues.decrementLxSizeBy(2);
       tracePostValues(trace, tracedValues);

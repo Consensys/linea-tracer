@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.rlptxn.cancun.phaseSection;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_INT;
+import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
@@ -57,12 +58,12 @@ public class ToPhaseSection extends PhaseSection {
           .ctMax(1)
           .pCmpTrmFlag(true)
           .pCmpExoData1(to.slice(0, 4))
-          .pCmpExoData2(to.slice(4, LLARGE))
+          .pCmpExoData2(lowPart(to))
           .limbConstructed(true)
           .lt(true)
           .lx(true)
-          .limb(Bytes16.rightPad(Bytes.concatenate(BYTES_PREFIX_SHORT_INT, to.slice(0, 4))))
-          .nBytes(5);
+          .pCmpLimb(Bytes16.rightPad(Bytes.concatenate(BYTES_PREFIX_SHORT_INT, to.slice(0, 4))))
+          .pCmpNbytes(5);
       tracedValues.decrementLtAndLxSizeBy(5);
       tracePostValues(trace, tracedValues);
 
@@ -75,8 +76,8 @@ public class ToPhaseSection extends PhaseSection {
           .limbConstructed(true)
           .lt(true)
           .lx(true)
-          .limb(to.slice(4, LLARGE))
-          .nBytes(LLARGE)
+          .pCmpLimb(to.slice(4, LLARGE))
+          .pCmpNbytes(LLARGE)
           .phaseEnd(true);
       tracedValues.decrementLtAndLxSizeBy(LLARGE);
       tracePostValues(trace, tracedValues);

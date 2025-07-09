@@ -65,7 +65,7 @@ public class DataPhaseSection extends PhaseSection {
     tracePreValues(trace, tracedValues);
     prefix.traceRlpTxn(trace, tracedValues, true, true, true, 0);
     trace
-        .isPrefix(true)
+        .pCmpIsPrefix(true)
         .pCmpTmp1(tx.numberOfZeroBytesInPayload())
         .pCmpTmp2(tx.numberOfNonZeroBytesInPayload())
         .phaseEnd(limbs.isEmpty());

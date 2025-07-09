@@ -69,8 +69,8 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
         .lt(true)
         .lx(true)
         .limbConstructed(!tracedValues.type0())
-        .limb(tracedValues.type0() ? Bytes.EMPTY : Bytes16.rightPad(Bytes.minimalBytes(tx.type())))
-        .nBytes(tracedValues.type0() ? 0 : 1);
+        .pCmpLimb(tracedValues.type0() ? Bytes.EMPTY : Bytes16.rightPad(Bytes.minimalBytes(tx.type())))
+        .pCmpNbytes(tracedValues.type0() ? 0 : 1);
     if (!tracedValues.type0()) {
       tracedValues.indexLt(1);
       tracedValues.indexLx(1);

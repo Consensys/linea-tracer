@@ -22,7 +22,7 @@ import java.util.List;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -37,7 +37,7 @@ public abstract class RlpUtilsCall extends ModuleOperation {
 
   public abstract void traceRlpTxn(
       Trace.Rlptxn trace,
-      TracedValues tracedValues,
+      GenericTracedValue tracedValues,
       boolean lt,
       boolean lx,
       boolean updateTracedValue,

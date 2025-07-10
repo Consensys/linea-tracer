@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlpUtils.InstructionByteStringPrefix;
 import net.consensys.linea.zktracer.module.rlpUtils.InstructionDataPricing;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
-import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -60,7 +60,7 @@ public class DataPhaseSection extends PhaseSection {
 
   @Override
   protected void traceComputationsRows(
-      Trace.Rlptxn trace, TransactionProcessingMetadata tx, TracedValues tracedValues) {
+      Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
     // Trace the prefix
     tracePreValues(trace, tracedValues);
     prefix.traceRlpTxn(trace, tracedValues, true, true, true, 0);

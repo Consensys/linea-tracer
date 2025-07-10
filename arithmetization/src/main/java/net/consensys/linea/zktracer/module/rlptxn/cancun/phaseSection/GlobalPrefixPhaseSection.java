@@ -23,7 +23,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlpUtils.InstructionByteStringPrefix;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtilsCall;
-import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -33,7 +33,7 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
   private final InstructionByteStringPrefix ltByteSizeCall;
   private final InstructionByteStringPrefix lxByteSizeCall;
 
-  public GlobalPrefixPhaseSection(RlpUtils rlpUtils, TracedValues tracedValues) {
+  public GlobalPrefixPhaseSection(RlpUtils rlpUtils, GenericTracedValue tracedValues) {
     final Bytes besuRlpLt =
         encodeOpaqueBytes((Transaction) tracedValues.tx().getBesuTransaction(), BLOCK_BODY);
     final Bytes besuRlpLx = tracedValues.tx().getBesuTransaction().encodedPreimage();
@@ -62,7 +62,7 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
 
   @Override
   protected void traceComputationsRows(
-      Trace.Rlptxn trace, TransactionProcessingMetadata tx, TracedValues tracedValues) {
+      Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
     // First Computation Row: byte type prefix
     tracePreValues(trace, tracedValues);
     trace

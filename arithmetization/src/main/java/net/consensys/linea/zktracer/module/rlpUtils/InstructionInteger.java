@@ -22,7 +22,7 @@ import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES32_PREF
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
@@ -59,7 +59,7 @@ public class InstructionInteger extends RlpUtilsCall {
   @Override
   public void traceRlpTxn(
       Rlptxn trace,
-      TracedValues tracedValues,
+      GenericTracedValue tracedValues,
       boolean lt,
       boolean lx,
       boolean updateTracedValue,

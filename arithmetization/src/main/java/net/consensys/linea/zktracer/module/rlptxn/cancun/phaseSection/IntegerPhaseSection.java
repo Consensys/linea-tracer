@@ -22,7 +22,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlpUtils.InstructionInteger;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtilsCall;
-import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -56,7 +56,7 @@ public class IntegerPhaseSection extends PhaseSection {
 
   @Override
   protected void traceComputationsRows(
-      Trace.Rlptxn trace, TransactionProcessingMetadata tx, TracedValues tracedValues) {
+      Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
     for (int ct = 0; ct <= 2; ct++) {
       tracePreValues(trace, tracedValues);
       intCall.traceRlpTxn(trace, tracedValues, true, true, true, ct);

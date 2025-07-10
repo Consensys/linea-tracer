@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlpUtils.InstructionByteStringPrefix;
 import net.consensys.linea.zktracer.module.rlpUtils.InstructionBytes32;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
-import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -69,7 +69,7 @@ public class AccessListPhaseSection extends PhaseSection {
 
   @Override
   protected void traceComputationsRows(
-      Trace.Rlptxn trace, TransactionProcessingMetadata tx, TracedValues tracedValues) {
+      Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
     totalAddress = tx.numberOfWarmedAddresses();
     totalKeys = tx.numberOfWarmedStorageKeys();
 
@@ -132,7 +132,7 @@ public class AccessListPhaseSection extends PhaseSection {
           + 3 * keys.size(); // 3 per keys
     }
 
-    public void trace(Trace.Rlptxn trace, TracedValues tracedValues) {
+    public void trace(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
       int tupleSize = entryRlpPrefix.rlpPrefixByteSize();
       int totalStorageForThisAddress = keys.size();
 

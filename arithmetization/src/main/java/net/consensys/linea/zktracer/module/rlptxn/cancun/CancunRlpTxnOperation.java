@@ -31,10 +31,10 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 public class CancunRlpTxnOperation extends RlpTxnOperation {
 
   private final List<PhaseSection> phaseSectionList = new ArrayList<>();
-  private final TracedValues tracedValues;
+  private final GenericTracedValue tracedValues;
 
   public CancunRlpTxnOperation(RlpUtils rlpUtils, TransactionProcessingMetadata tx) {
-    tracedValues = new TracedValues(tx);
+    tracedValues = new GenericTracedValue(tx);
 
     // Phase RLP Prefix
     phaseSectionList.add(new GlobalPrefixPhaseSection(rlpUtils, tracedValues));

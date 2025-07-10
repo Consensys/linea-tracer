@@ -20,7 +20,7 @@ import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -35,7 +35,7 @@ public class ToPhaseSection extends PhaseSection {
 
   @Override
   protected void traceComputationsRows(
-      Trace.Rlptxn trace, TransactionProcessingMetadata tx, TracedValues tracedValues) {
+      Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
     if (tx.isDeployment()) {
       tracePreValues(trace, tracedValues);
       trace

@@ -20,20 +20,20 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 public abstract class PhaseSection {
 
-  public void trace(Trace.Rlptxn trace, TracedValues tracedValues) {
+  public void trace(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
     traceTransactionRow(trace, tracedValues.tx(), tracedValues);
     traceComputationsRows(trace, tracedValues.tx(), tracedValues);
   }
 
   private void traceTransactionRow(
-      Trace.Rlptxn trace, TransactionProcessingMetadata tx, TracedValues tracedValues) {
+      Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
     tracePreValues(trace, tracedValues);
     trace
         .txn(true)
@@ -61,11 +61,11 @@ public abstract class PhaseSection {
   }
 
   protected abstract void traceComputationsRows(
-      Trace.Rlptxn trace, TransactionProcessingMetadata tx, TracedValues tracedValues);
+      Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues);
 
   protected abstract void traceIsPhaseX(Trace.Rlptxn trace);
 
-  public void tracePreValues(Trace.Rlptxn trace, TracedValues tracedValues) {
+  public void tracePreValues(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
     traceIsPhaseX(trace);
     trace
         .userTxnNumber(tracedValues.tx().getAbsoluteTransactionNumber())
@@ -81,7 +81,7 @@ public abstract class PhaseSection {
         .yParity(tracedValues.tx().yParity());
   }
 
-  public void tracePostValues(Trace.Rlptxn trace, TracedValues tracedValues) {
+  public void tracePostValues(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
     trace
         .rlpLtBytesize(tracedValues.rlpLtByteSize())
         .rlpLxBytesize(tracedValues.rlpLxByteSize())

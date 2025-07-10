@@ -36,8 +36,8 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
 
   // inputs
   @Getter private final Bytes32 byteStringLength;
-  private final byte firstByte;
-  private final boolean isList;
+  @Getter private final byte firstByte;
+  @Getter private final boolean isList;
 
   // outputs
   @Getter private boolean rlpPrefixRequired;
@@ -194,6 +194,31 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
           .pComptShfPower(power(LLARGE - (bslByteSize + 1)));
     }
     trace.fillAndValidateRow();
+  }
+
+  @Override
+  protected short instruction() {
+    return RLP_UTILS_INST_BYTE_STRING_PREFIX;
+  }
+
+  @Override
+  protected short compareTo(RlpUtilsCall other) {
+    // first sort by byte string length
+    final int byteStringLengthComparison =
+        byteStringLength.compareTo(((InstructionByteStringPrefix) other).byteStringLength);
+
+    if (byteStringLengthComparison != 0) {
+      return (short) byteStringLengthComparison;
+    }
+
+    // then sort by first byte
+    final int firstByteComparison =
+        Byte.compare(firstByte, ((InstructionByteStringPrefix) other).firstByte);
+    if (firstByteComparison != 0) {
+      return (short) firstByteComparison;
+    }
+
+    return (short) (isList ? 1 : -1);
   }
 
   @Override

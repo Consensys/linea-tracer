@@ -59,19 +59,14 @@ public class InstructionBytes32 extends RlpUtilsCall {
         .pCmpExoData1(data1())
         .pCmpExoData2(data2());
     switch (ct) {
-      case 0:
-        trace
-            .pCmpRlpUtilsFlag(true)
-            .pCmpInst(RLP_UTILS_INST_BYTES32)
-            .limb(Bytes16.rightPad(BYTES_PREFIX_SHORT_INT))
-            .nBytes(1);
-      case 1:
-        trace.limb(data1()).nBytes(LLARGE);
-
-      case 2:
-        trace.limb(data2()).nBytes(LLARGE);
-      default:
-        throw new IllegalArgumentException("Invalid counter: " + ct);
+      case 0 -> trace
+          .pCmpRlpUtilsFlag(true)
+          .pCmpInst(RLP_UTILS_INST_BYTES32)
+          .pCmpLimb(Bytes16.rightPad(BYTES_PREFIX_SHORT_INT))
+          .pCmpNbytes(1);
+      case 1 -> trace.pCmpLimb(data1()).pCmpNbytes(LLARGE);
+      case 2 -> trace.pCmpLimb(data2()).pCmpNbytes(LLARGE);
+      default -> throw new IllegalArgumentException("Invalid counter: " + ct);
     }
   }
 
@@ -92,6 +87,19 @@ public class InstructionBytes32 extends RlpUtilsCall {
     trace.iomf(true).compt(true).isByte32(true);
     wcpCalls.getFirst().traceWcpCall(trace);
     trace.fillAndValidateRow();
+  }
+
+  @Override
+  protected short instruction() {
+    return RLP_UTILS_INST_BYTES32;
+  }
+
+  @Override
+  protected short compareTo(RlpUtilsCall other) {
+    return (short)
+        input1
+            .toUnsignedBigInteger()
+            .compareTo(((InstructionBytes32) other).input1.toUnsignedBigInteger());
   }
 
   @Override

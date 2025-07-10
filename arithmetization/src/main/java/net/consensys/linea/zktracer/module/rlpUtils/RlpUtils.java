@@ -72,7 +72,7 @@ public class RlpUtils implements OperationSetModule<RlpUtilsCall> {
 
   @Override
   public void commit(Trace trace) {
-    for (RlpUtilsCall operation : operations.getAll()) {
+    for (RlpUtilsCall operation : sortOperations(new RlpUtilsOperationComparator())) {
       operation.trace(trace.rlputils());
     }
   }

@@ -19,6 +19,8 @@ import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_INTEGER;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES32_PREFIX_SHORT_INT;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -26,8 +28,9 @@ import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
+@Accessors(fluent = true)
 public class InstructionInteger extends RlpUtilsCall {
-  private final Bytes32 integer;
+  @Getter private final Bytes32 integer;
   private boolean integerIsZero;
   private boolean integerHiIsNonZero;
   private boolean rlpPrefixRequired;
@@ -147,6 +150,19 @@ public class InstructionInteger extends RlpUtilsCall {
         .pComptShfArg(lastRow ? 0 : LLARGE - leadingLimbBytesize())
         .pComptShfPower(lastRow ? power(leadingLimbBytesize()) : Bytes.EMPTY)
         .fillAndValidateRow();
+  }
+
+  @Override
+  protected short instruction() {
+    return RLP_UTILS_INST_INTEGER;
+  }
+
+  @Override
+  protected short compareTo(RlpUtilsCall other) {
+    return (short)
+        integer
+            .toUnsignedBigInteger()
+            .compareTo(((InstructionInteger) other).integer.toUnsignedBigInteger());
   }
 
   @Override

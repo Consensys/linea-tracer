@@ -57,4 +57,8 @@ public abstract class RlpUtilsCall extends ModuleOperation {
   protected Bytes power(int exponentComplementary) {
     return Bytes.minimalBytes(1).shiftLeft(8 * (LLARGE - exponentComplementary));
   }
+
+  protected abstract short instruction();
+
+  protected abstract short compareTo(RlpUtilsCall other);
 }

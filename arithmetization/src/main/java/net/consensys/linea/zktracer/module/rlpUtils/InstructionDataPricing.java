@@ -22,6 +22,8 @@ import static net.consensys.linea.zktracer.module.rlpUtils.WcpExoCall.callToLeq;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.TracedValues;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -29,10 +31,11 @@ import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
+@Accessors(fluent = true)
 public class InstructionDataPricing extends RlpUtilsCall {
   private static final Bytes32 TWO_FIFTY_FIVE = Bytes32.leftPad(Bytes.fromHexString("0xff"));
-  private final Bytes16 limb;
-  private final short nBytes;
+  @Getter private final Bytes16 limb;
+  @Getter private final short nBytes;
   private final List<Short> zeros;
   private final List<Short> nonZeros;
 
@@ -121,6 +124,17 @@ public class InstructionDataPricing extends RlpUtilsCall {
         .zeroCounter(zeros.get(ct + 1))
         .nonzCounter(nonZeros.get(ct + 1))
         .fillAndValidateRow();
+  }
+
+  @Override
+  protected short instruction() {
+    return RLP_UTILS_INST_DATA_PRICING;
+  }
+
+  @Override
+  protected short compareTo(RlpUtilsCall other) {
+    final InstructionDataPricing o = (InstructionDataPricing) other;
+    return (short) limb.slice(0, nBytes).compareTo((o.limb.slice(0, o.nBytes)));
   }
 
   @Override

@@ -41,19 +41,18 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
 
     // Row i + 7
     // Compute useParams1 and useParams2
-    boolean useParams2 = false; // default value if opcode is single offset
-    boolean useParams1 = true;
-    exoCalls[6] = MxpExoCall.builder().build(); // Row i + 7, initialized to default values
-    // we filter the row i + 7 wcp call by double_offset to prevent unnecessary comparisons
-    if (this.opCodeData.isDoubleOffset()) {
-      final BigInteger max1 =
-          this.offset1.toUnsignedBigInteger().add(this.size1.toUnsignedBigInteger());
-      final BigInteger max2 =
-          this.offset2.toUnsignedBigInteger().add(this.size2.toUnsignedBigInteger());
-      exoCalls[6] = MxpExoCall.callToLT(wcp, bigIntegerToBytes(max1), bigIntegerToBytes(max2));
-      useParams2 = bytesToBoolean(exoCalls[6].resultA()); // result of row i + 7
-      useParams1 = !useParams2;
-    }
+    final BigInteger max1 =
+        this.offset1.toUnsignedBigInteger().add(this.size1.toUnsignedBigInteger());
+    final BigInteger max2 =
+        this.offset2.toUnsignedBigInteger().add(this.size2.toUnsignedBigInteger());
+    final BigInteger doubleOffset = booleanToBigInteger(this.opCodeData.isDoubleOffset());
+    exoCalls[6] =
+        MxpExoCall.callToLT(
+            wcp,
+            bigIntegerToBytes(max1.multiply(doubleOffset)),
+            bigIntegerToBytes(max2.multiply(doubleOffset)));
+    boolean useParams2 = bytesToBoolean(exoCalls[6].resultA()); // result of row i + 7
+    boolean useParams1 = !useParams2;
 
     // Row i + 8
     // Compute floor and EYPa

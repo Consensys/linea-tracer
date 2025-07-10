@@ -30,11 +30,11 @@ public class CancunStateUpdateWordPricingMxpCall extends CancunStateUpdateMxpCal
   public CancunStateUpdateWordPricingMxpCall(Hub hub) {
     super(hub);
     exoCalls[10] = MxpExoCall.builder().build(); // Row i + 11, initialized to default values
-    if (this.isStateUpdate) {
-      // if state has changed, an extra gas cost is incurred
-      computeExtraGasCost(hub.euc());
-      setGasMpxFromExtraGasCost();
-    }
+    // if (this.isStateUpdate) {
+    // if state has changed, an extra gas cost is incurred
+    computeExtraGasCost(hub.euc());
+    setGasMpxFromExtraGasCost();
+    // }
   }
 
   @Override

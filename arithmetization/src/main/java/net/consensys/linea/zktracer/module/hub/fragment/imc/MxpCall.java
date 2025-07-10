@@ -160,7 +160,9 @@ public abstract class MxpCall implements TraceSubFragment {
         .pMiscMxpSize1NonzeroNoMxpx(this.getSize1NonZeroNoMxpx())
         .pMiscMxpSize2NonzeroNoMxpx(this.getSize2NonZeroNoMxpx())
         .pMiscMxpMxpx(this.mxpx)
-        .pMiscMxpWords(Bytes.ofUnsignedLong(this.memorySizeInWords))
+        // TODO: check with Lorenzo to match mxp
+        .pMiscMxpWords(
+            this.opCodeData.isMSize() ? Bytes.ofUnsignedLong(this.memorySizeInWords) : Bytes.EMPTY)
         .pMiscMxpGasMxp(Bytes.ofUnsignedLong(this.gasMxp));
   }
 }

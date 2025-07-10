@@ -15,12 +15,11 @@
 
 package net.consensys.linea.zktracer.module.blockdata.moduleOperation;
 
-import static net.consensys.linea.zktracer.opcode.OpCode.DIFFICULTY;
-
-import java.util.Map;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.*;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -52,6 +51,20 @@ public class LondonBlockDataOperation extends BlockDataOperation {
         opCode,
         firstBlockNumber,
         blobBaseFees);
+      BlockDataInstruction[] blockDataInstructionList =
+              new BlockDataInstruction[] {
+                      new CoinbaseInstruction(),
+                      new TimestampInstruction(),
+                      new NumberInstruction(),
+                      new DifficultyInstruction(),
+                      new GasLimitInstruction(),
+                      new ChainIdInstruction(),
+                      new BaseFeeInstruction()
+              };
+
+      for (BlockDataInstruction blockDataInst : blockDataInstructionList) {
+          blockDataInst.handle();
+      }
   }
 
   @Override

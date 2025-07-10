@@ -118,19 +118,6 @@ public abstract class BlockDataOperation extends ModuleOperation {
     Arrays.fill(arg1, EWord.ZERO);
     Arrays.fill(arg2, EWord.ZERO);
     Arrays.fill(res, EWord.ZERO);
-
-    // Handle opcodes
-    switch (opCode) {
-      case COINBASE -> handleCoinbase();
-      case TIMESTAMP -> handleTimestamp();
-      case NUMBER -> handleNumber();
-      case DIFFICULTY -> handleDifficulty(); // London only
-      case PREVRANDAO -> handlePrevRandao(); // Paris and after
-      case GASLIMIT -> handleGasLimit();
-      case CHAINID -> handleChainId();
-      case BASEFEE -> handleBaseFee();
-      case BLOBBASEFEE -> handleBlobBaseFee(); // Cancun and after
-    }
   }
 
   private void handleCoinbase() {

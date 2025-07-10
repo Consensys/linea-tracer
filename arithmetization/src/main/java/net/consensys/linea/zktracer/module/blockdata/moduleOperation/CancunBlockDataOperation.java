@@ -21,6 +21,7 @@ import java.util.Map;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.blockdata.moduleInstruction.*;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -56,6 +57,21 @@ public class CancunBlockDataOperation extends ShanghaiBlockDataOperation {
         firstBlockNumber,
         blobBaseFees);
     this.blockHeader = blockHeader;
+    BlockDataInstruction[] blockDataInstructionList =
+        new BlockDataInstruction[] {
+          new CoinbaseInstruction(),
+          new TimestampInstruction(),
+          new NumberInstruction(),
+          new PrevRandaoInstruction(),
+          new GasLimitInstruction(),
+          new ChainIdInstruction(),
+          new BaseFeeInstruction(),
+          new BlobBaseFeeInstruction()
+        };
+
+    for (BlockDataInstruction blockDataInst : blockDataInstructionList) {
+      blockDataInst.handle();
+    }
   }
 
   @Override

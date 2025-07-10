@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.MxpCall;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
+import org.apache.tuweni.bytes.Bytes;
 
 /**
  *

@@ -29,13 +29,11 @@ import net.consensys.linea.zktracer.module.rlptxn.cancun.phaseSection.*;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
 public class CancunRlpTxnOperation extends RlpTxnOperation {
-  private final TransactionProcessingMetadata tx;
 
   private final List<PhaseSection> phaseSectionList = new ArrayList<>();
   private final TracedValues tracedValues;
 
   public CancunRlpTxnOperation(RlpUtils rlpUtils, TransactionProcessingMetadata tx) {
-    this.tx = tx;
     tracedValues = new TracedValues(tx);
 
     // Phase RLP Prefix

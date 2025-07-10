@@ -15,5 +15,4 @@
 
 package net.consensys.linea.zktracer.module.txndata.module;
 
-public class CancunTxnData {
-}
+public class CancunTxnData {}

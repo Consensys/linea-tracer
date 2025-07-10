@@ -91,7 +91,10 @@ public class InstructionInteger extends RlpUtilsCall {
 
     if (ct == 1) {
       if (integerHiIsNonZero) {
-        trace.limbConstructed(true).pCmpLimb(leadingLimbShifted()).pCmpNbytes(leadingLimbBytesize());
+        trace
+            .limbConstructed(true)
+            .pCmpLimb(leadingLimbShifted())
+            .pCmpNbytes(leadingLimbBytesize());
         if (lt && updateTracedValue) {
           tracedValues.decrementLtSizeBy(leadingLimbBytesize());
         }
@@ -120,7 +123,6 @@ public class InstructionInteger extends RlpUtilsCall {
     trace
         .iomf(true)
         .macro(true)
-        .pComptInst(RLP_UTILS_INST_INTEGER)
         .isInteger(true)
         .pMacroData1(data1())
         .pMacroData2(data2())

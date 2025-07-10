@@ -92,7 +92,7 @@ public class WcpExoCall {
         .pComptInst(instruction)
         .pComptArg1Hi(arg1.slice(0, LLARGE))
         .pComptArg1Lo(arg1.slice(LLARGE, LLARGE))
-        .pComptArg2Lo(arg2.slice(LLARGE, LLARGE))
+        .pComptArg2Lo(arg2 == null ? Bytes.EMPTY : arg2.slice(LLARGE, LLARGE))
         .pComptRes(result)
         .pComptWcpCtMax(wcpCtMax());
   }

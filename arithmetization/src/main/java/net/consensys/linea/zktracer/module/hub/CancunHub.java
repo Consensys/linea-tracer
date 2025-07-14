@@ -19,8 +19,15 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.hub.section.McopySection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection;
+import net.consensys.linea.zktracer.module.mxp.module.CancunMxp;
+import net.consensys.linea.zktracer.module.mxp.module.Mxp;
+import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.CancunRlpTxn;
+import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.CancunInstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -38,13 +45,33 @@ public class CancunHub extends ShanghaiHub {
   }
 
   @Override
+  protected Mxp setMxp() {
+    return new CancunMxp();
+  }
+
+  @Override
   protected Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
     return new CancunBlockData(hub, wcp, euc, chain);
   }
 
   @Override
+  protected RlpTxn setRlpTxn(Hub hub) {
+    return new CancunRlpTxn(hub.rlpUtils());
+  }
+
+  @Override
+  protected RlpUtils setRlpUtils(Wcp wcp) {
+    return new RlpUtils(wcp);
+  }
+
+  @Override
   protected InstructionDecoder setInstructionDecoder() {
     return new CancunInstructionDecoder();
+  }
+
+  @Override
+  protected PowerRt setPower() {
+    return new PowerRt();
   }
 
   @Override
@@ -55,5 +82,10 @@ public class CancunHub extends ShanghaiHub {
       default -> throw new IllegalStateException(
           "invalid operation in family TRANSIENT: " + hub.opCode());
     }
+  }
+
+  @Override
+  protected void setMcopySection(Hub hub) {
+    new McopySection(hub);
   }
 }

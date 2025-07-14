@@ -19,6 +19,7 @@ public enum Pattern {
   ZERO_ZERO,
   ONE_ZERO,
   TWO_ZERO,
+  THREE_ZERO,
   ZERO_ONE,
   ONE_ONE,
   TWO_ONE,

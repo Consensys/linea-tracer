@@ -46,12 +46,20 @@ public class Conversions {
     return bytes;
   }
 
+  public static Bytes32 bigIntegerToBytes32(final BigInteger input) {
+    return Bytes32.leftPad(bigIntegerToBytes(input));
+  }
+
   public static BigInteger booleanToBigInteger(final boolean input) {
     return input ? BigInteger.ONE : BigInteger.ZERO;
   }
 
   public static int booleanToInt(final boolean input) {
     return input ? 1 : 0;
+  }
+
+  public static long booleanToLong(final boolean input) {
+    return input ? 1L : 0L;
   }
 
   public static boolean bigIntegerToBoolean(BigInteger n) {

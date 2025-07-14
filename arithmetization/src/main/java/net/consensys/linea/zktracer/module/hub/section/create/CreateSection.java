@@ -133,7 +133,7 @@ public abstract class CreateSection extends TraceSection
     }
 
     // MXPX case
-    final MxpCall mxpCall = new MxpCall(hub);
+    final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     imcFragment.callMxp(mxpCall);
     checkArgument(mxpCall.mxpx == Exceptions.memoryExpansionException(exceptions));
     if (mxpCall.mxpx) {

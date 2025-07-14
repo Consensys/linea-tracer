@@ -92,12 +92,12 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
 public class BlsOperation extends ModuleOperation {
-  final EWord POINT_EVALUATION_PRIME =
+  static final EWord POINT_EVALUATION_PRIME =
       EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
   public static final int nBYTES_OF_DELTA_BYTES = 4;
-  private final int SIZE_SMALL_POINT = LLARGE * (CT_MAX_SMALL_POINT + 1);
-  private final int SIZE_LARGE_POINT = LLARGE * (CT_MAX_LARGE_POINT + 1);
-  private final int SIZE_SCALAR = LLARGE * (CT_MAX_SCALAR + 1);
+  private static final int SIZE_SMALL_POINT = LLARGE * (CT_MAX_SMALL_POINT + 1);
+  private static final int SIZE_LARGE_POINT = LLARGE * (CT_MAX_LARGE_POINT + 1);
+  private static final int SIZE_SCALAR = LLARGE * (CT_MAX_SCALAR + 1);
 
   private final Wcp wcp;
 
@@ -726,7 +726,7 @@ public class BlsOperation extends ModuleOperation {
 
     final boolean internalChecksPassed = eIsInRange;
 
-    for (int j = 0; j <= CT_MAX_MAP_FP2_TO_G2; j++) {
+    for (int j = 0; j <= CT_MAX_MAP_FP_TO_G1; j++) {
       this.mintBit.set(j, !internalChecksPassed);
     }
 
@@ -1053,7 +1053,7 @@ public class BlsOperation extends ModuleOperation {
 
     // Set the isInfinity flag for all coordinates
     for (int j = 0; j < coordinate.length; j++) {
-      this.isInfinity.set(i, isInfinity);
+      this.isInfinity.set(i + j, isInfinity);
     }
   }
 

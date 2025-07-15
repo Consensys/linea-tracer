@@ -76,9 +76,7 @@ public abstract class TransactionStack {
     addTransactionToStack(hub, world, tx);
   }
 
-  public void addTransactionToStack(Hub hub, WorldView world, Transaction tx) {
-    throw new IllegalArgumentException("Must be implemented");
-  }
+  public abstract void addTransactionToStack(Hub hub, WorldView world, Transaction tx);
 
   public void setCodeFragmentIndex(Hub hub) {
     for (TransactionProcessingMetadata tx : transactions.getAll()) {

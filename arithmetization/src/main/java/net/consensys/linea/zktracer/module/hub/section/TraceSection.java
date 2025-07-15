@@ -28,10 +28,13 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.common.CancunCommonFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.common.LondonCommonFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.stack.StackFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragment;
@@ -225,12 +228,20 @@ public class TraceSection {
 
       specificFragment.trace(hubTrace);
       final CommonFragment commonFragment =
-          new CommonFragment(
-              commonValues,
-              stackLineCounter,
-              nonStackLineCounter,
-              hub().state.mmuStamp(),
-              hub().state.mxpStamp());
+              switch (commonValues.hub.fork){
+                case LONDON, PARIS, SHANGHAI -> new LondonCommonFragment(
+                        commonValues,
+                        stackLineCounter,
+                        nonStackLineCounter,
+                        hub().state.mmuStamp(),
+                        hub().state.mxpStamp());
+                case CANCUN, PRAGUE ->  new CancunCommonFragment(
+                        commonValues,
+                        stackLineCounter,
+                        nonStackLineCounter,
+                        hub().state.mmuStamp(),
+                        hub().state.mxpStamp());
+              };
       commonFragment.trace(hubTrace);
       hubTrace.fillAndValidateRow();
     }

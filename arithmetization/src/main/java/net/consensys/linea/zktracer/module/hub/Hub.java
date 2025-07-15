@@ -23,6 +23,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
@@ -472,6 +473,7 @@ public abstract class Hub implements Module {
     state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
     blockStack.newBlock(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
+    traceSystemInitialTransaction(processableBlockHeader);
     for (Module m : modules) {
       m.traceStartBlock(processableBlockHeader, miningBeneficiary);
     }
@@ -479,6 +481,7 @@ public abstract class Hub implements Module {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    traceSystemFinalTransaction();
     for (Module m : modules) {
       m.traceEndBlock(blockHeader, blockBody);
     }
@@ -492,6 +495,7 @@ public abstract class Hub implements Module {
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
 
     state.enterTransaction();
+    state.transactionProcessingType(USER);
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.processingPhase(TX_SKIP);
@@ -1061,4 +1065,8 @@ public abstract class Hub implements Module {
   protected abstract void setTransientSection(Hub hub);
 
   protected abstract void setMcopySection(Hub hub);
+
+  protected abstract void traceSystemInitialTransaction(ProcessableBlockHeader blockHeader);
+
+  protected abstract void traceSystemFinalTransaction();
 }

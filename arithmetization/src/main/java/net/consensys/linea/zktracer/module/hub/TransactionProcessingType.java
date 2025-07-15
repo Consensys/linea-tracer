@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,10 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-public enum HubProcessingPhase {
-  TX_EXEC,
-  TX_FINL,
-  TX_INIT,
-  TX_SKIP,
-  TX_WARM
+public enum TransactionProcessingType {
+  SYSI, // System transaction before block execution
+  USER, // User transaction
+  SYSF // System transaction at the end of block execution
 }

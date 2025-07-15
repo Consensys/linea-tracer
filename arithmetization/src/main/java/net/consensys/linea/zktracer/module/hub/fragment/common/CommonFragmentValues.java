@@ -32,6 +32,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.gas.GasParameters;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.TracedException;
 import net.consensys.linea.zktracer.module.hub.state.State;
@@ -47,7 +48,10 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 public class CommonFragmentValues {
   public final Hub hub;
   public final TransactionProcessingMetadata txMetadata;
+  @Getter final short sysiTransactionNumber;
+  @Getter final short sysfTransactionNumber;
   public final HubProcessingPhase hubProcessingPhase;
+  public final TransactionProcessingType transactionProcessingType;
   public final int hubStamp;
   public final CallStack callStack;
   public final State.HubTransactionState.Stamps stamps;
@@ -81,13 +85,15 @@ public class CommonFragmentValues {
 
     this.hub = hub;
     this.txMetadata = hub.txStack().current();
+    sysiTransactionNumber = hub.state().sysiTransactionNumber();
+    sysfTransactionNumber = hub.state().sysfTransactionNumber();
     this.hubProcessingPhase = hub.state().processingPhase();
+    transactionProcessingType = hub.state.transactionProcessingType();
     this.hubStamp = hub.stamp();
     this.callStack = hub.callStack();
     this.stamps = hub.state().stamps();
     this.callFrame = hub.currentFrame();
     this.exceptions = exceptions;
-    // this.contextNumberNew = hub.contextNumberNew(callFrame);
     this.pc = isExec ? hub.currentFrame().pc() : 0;
     this.pcNew = computePcNew(hub, pc, stackException, isExec);
     this.height = callFrame.stack().getHeight();

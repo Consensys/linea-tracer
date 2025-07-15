@@ -191,7 +191,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
     addFragment(miscFragment); // MISC i + 0
-    addFragment(hub.txStack().current().transactionFragment()); // TXN i + 1
+    addFragment(hub.txStack().current().userTransactionFragment()); // TXN i + 1
     addCoinbaseWarmingFragment(); // Post Shanghai Only
     addFragment(gasPaymentAccountFragment); // ACC i +  (sender: gas payment)
     addFragment(valueSendingAccountFragment); // ACC i +  (sender: value transfer)

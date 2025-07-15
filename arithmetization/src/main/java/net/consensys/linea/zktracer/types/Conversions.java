@@ -46,6 +46,10 @@ public class Conversions {
     return bytes;
   }
 
+  public static Bytes16 bigIntegerToBytes16(final BigInteger input) {
+    return Bytes16.leftPad(bigIntegerToBytes(input));
+  }
+
   public static BigInteger booleanToBigInteger(final boolean input) {
     return input ? BigInteger.ONE : BigInteger.ZERO;
   }

@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,18 +13,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section;
+package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 
-public class TransactionSection extends TraceSection {
+@RequiredArgsConstructor
+@Getter
+@Accessors(fluent = true)
+public abstract class SystemTransactionFragment implements TraceFragment {
+  final SystemTransactionFragmentType type;
 
-  public TransactionSection(Hub hub) {
-    // 2 = 1 + 1     (stack, transaction)
-    // 3 = 1 + 1 + 1 (stack, transaction, context)
-    super(hub, Exceptions.none(hub.pch().exceptions()) ? (short) 2 : (short) 3);
-
-    this.addStackAndFragments(hub, hub.txStack().current().userTransactionFragment());
+  @Override
+  public Trace.Hub trace(Trace.Hub trace) {
+    return trace.peekAtTransaction(true);
   }
 }

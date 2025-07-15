@@ -39,6 +39,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.LondonGasCalculator;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {
@@ -106,5 +107,15 @@ public class LondonHub extends Hub {
   @Override
   protected void setMcopySection(Hub hub) {
     throw new IllegalStateException("MCOPY opcode appears in Cancun");
+  }
+
+  @Override
+  protected void traceSystemInitialTransaction(ProcessableBlockHeader blockHeader) {
+    // Nothing to do, appears in Cancun
+  }
+
+  @Override
+  protected void traceSystemFinalTransaction() {
+    // Nothing to do, appears in Cancun
   }
 }

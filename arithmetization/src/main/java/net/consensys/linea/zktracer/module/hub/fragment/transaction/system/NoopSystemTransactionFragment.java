@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,12 +13,21 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub;
+package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
-public enum HubProcessingPhase {
-  TX_EXEC,
-  TX_FINL,
-  TX_INIT,
-  TX_SKIP,
-  TX_WARM
+import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragmentType.NOOP;
+
+import net.consensys.linea.zktracer.Trace;
+
+public class NoopSystemTransactionFragment extends SystemTransactionFragment {
+
+  public NoopSystemTransactionFragment() {
+    super(NOOP);
+  }
+
+  @Override
+  public Trace.Hub trace(Trace.Hub trace) {
+    super.trace(trace);
+    return trace.pTransactionNoop(true);
+  }
 }

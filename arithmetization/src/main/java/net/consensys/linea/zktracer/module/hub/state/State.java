@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.container.stacked.StackedList;
 import net.consensys.linea.zktracer.module.hub.HubProcessingPhase;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.module.hub.state.State.HubTransactionState.Stamps;
 import org.apache.tuweni.bytes.Bytes32;
@@ -38,14 +39,6 @@ public class State {
   @Getter
   @Accessors(fluent = true)
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
-
-  public HubTransactionState current() {
-    return state.getLast();
-  }
-
-  public Stamps stamps() {
-    return current().stamps;
-  }
 
   /** Increments at commit time */
   @Getter
@@ -70,6 +63,19 @@ public class State {
   @Accessors(fluent = true)
   HubProcessingPhase processingPhase;
 
+  @Getter
+  @Setter
+  @Accessors(fluent = true)
+  TransactionProcessingType transactionProcessingType;
+
+  @Getter
+  @Accessors(fluent = true)
+  short sysiTransactionNumber;
+
+  @Getter
+  @Accessors(fluent = true)
+  short sysfTransactionNumber;
+
   @RequiredArgsConstructor
   @EqualsAndHashCode
   @Getter
@@ -77,6 +83,22 @@ public class State {
     final Address address;
     final int deploymentNumber;
     final Bytes32 storageKey;
+  }
+
+  public HubTransactionState current() {
+    return state.getLast();
+  }
+
+  public Stamps stamps() {
+    return current().stamps;
+  }
+
+  public void incrementSysiTransactionNumber() {
+    sysiTransactionNumber++;
+  }
+
+  public void incrementSysfTransactionNumber() {
+    sysfTransactionNumber++;
   }
 
   public void updateOrInsertStorageSlotOccurrence(

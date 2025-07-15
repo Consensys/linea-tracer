@@ -289,7 +289,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
   public static MmuCall txInit(final Hub hub) {
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
-        .sourceId(hub.txStack().current().getAbsoluteTransactionNumber())
+        .sourceId(hub.txStack().current().getUserTransactionNumber())
         .exoBytes(Optional.of(hub.txStack().current().getBesuTransaction().getPayload()))
         .targetId(hub.stamp())
         .targetRamBytes(Optional.of(Bytes.EMPTY))

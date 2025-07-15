@@ -177,6 +177,6 @@ public class TxSkipSection extends TraceSection implements EndTransactionDefer {
     this.addFragment(senderAccountFragment);
     this.addFragment(recipientAccountFragment);
     this.addFragment(coinbaseAccountFragment);
-    this.addFragment(txMetadata.transactionFragment());
+    this.addFragment(txMetadata.userTransactionFragment());
   }
 }

@@ -80,7 +80,7 @@ public class TxFinalizationSection extends TraceSection implements EndTransactio
 
     this.addFragment(senderAccountFragment);
     this.addFragment(coinbaseAccountFragment);
-    this.addFragment(txMetadata.transactionFragment()); // TXN i+2
+    this.addFragment(txMetadata.userTransactionFragment()); // TXN i+2
   }
 
   /**

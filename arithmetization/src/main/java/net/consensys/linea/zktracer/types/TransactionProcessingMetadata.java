@@ -31,8 +31,8 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.TransactionFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.TimeAndExistence;
+import net.consensys.linea.zktracer.module.hub.fragment.transaction.UserTransactionFragment;
 import net.consensys.linea.zktracer.module.hub.section.halt.AttemptedSelfDestruct;
 import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import org.apache.tuweni.bytes.Bytes;
@@ -45,7 +45,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Getter
 public abstract class TransactionProcessingMetadata {
 
-  final int absoluteTransactionNumber;
+  final int userTransactionNumber;
   final int relativeTransactionNumber;
   final int relativeBlockNumber;
 
@@ -128,7 +128,7 @@ public abstract class TransactionProcessingMetadata {
 
   @Accessors(fluent = true)
   @Getter
-  private final TransactionFragment transactionFragment;
+  private final UserTransactionFragment userTransactionFragment;
 
   @Accessors(fluent = true)
   @Getter
@@ -139,8 +139,8 @@ public abstract class TransactionProcessingMetadata {
       final WorldView world,
       final Transaction transaction,
       final int relativeTransactionNumber,
-      final int absoluteTransactionNumber) {
-    this.absoluteTransactionNumber = absoluteTransactionNumber;
+      final int userTransactionNumber) {
+    this.userTransactionNumber = userTransactionNumber;
     relativeBlockNumber = hub.blockStack().currentRelativeBlockNumber();
     coinbaseAddress = hub.coinbaseAddress();
     baseFee = hub.blockStack().currentBlock().baseFee().toLong();
@@ -173,7 +173,7 @@ public abstract class TransactionProcessingMetadata {
 
     effectiveGasPrice = computeEffectiveGasPrice();
 
-    transactionFragment = new TransactionFragment(this);
+    userTransactionFragment = new UserTransactionFragment(this);
   }
 
   public void setPreFinalisationValues(

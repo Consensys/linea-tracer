@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.storage;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.maybeNewStorageSlot;
+import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragmentPurpose.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 import net.consensys.linea.zktracer.module.hub.state.Block;
 import net.consensys.linea.zktracer.module.hub.state.State;
 import net.consensys.linea.zktracer.types.EWord;
+import org.hyperledger.besu.datatypes.Address;
 
 @Getter
 public final class StorageFragment implements TraceFragment, PostBlockDefer {
@@ -68,6 +69,21 @@ public final class StorageFragment implements TraceFragment, PostBlockDefer {
     if (maybeNewStorageSlot(purpose)) {
       hub.defers().scheduleForPostBlock(this);
     }
+  }
+
+  public static StorageFragment systemTransactionStoring(
+      Hub hub, Address address, EWord key, EWord currentValue, EWord newValue, int domOffset) {
+
+    return new StorageFragment(
+        hub,
+        new State.StorageSlotIdentifier(address, hub.deploymentNumberOf(address), key),
+        currentValue,
+        currentValue,
+        newValue,
+        false,
+        false,
+        DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), domOffset),
+        SYSTEM_TRANSACTION);
   }
 
   public Trace.Hub trace(Trace.Hub trace) {

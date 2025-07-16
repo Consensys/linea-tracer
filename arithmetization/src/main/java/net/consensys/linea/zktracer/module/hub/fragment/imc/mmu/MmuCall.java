@@ -782,16 +782,16 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   }
 
   public static MmuCall mcopyCopy(Hub hub, CallFrame callFrame) {
+    final EWord sourceOffset = EWord.of(callFrame.frame().getStackItem(1));
     final long size = clampedToLong(callFrame.frame().getStackItem(2));
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(callFrame.contextNumber())
         .sourceRamBytes(
             Optional.of(
-                hub.currentFrame()
-                    .frame()
-                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
+                extractContiguousLimbsFromMemory(
+                    callFrame.frame(), Range.fromOffsetAndSize(sourceOffset.toLong(), size))))
         .targetId(newIdentifierFromStamp(hub.stamp()))
-        .sourceOffset(EWord.of(callFrame.frame().getStackItem(2)))
+        .sourceOffset(sourceOffset)
         .size(size)
         .referenceSize(size);
   }

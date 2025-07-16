@@ -27,8 +27,7 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.EBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.MBS_MIN_OFFSET;
 import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.extractContiguousLimbsFromMemory;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.longToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
@@ -787,7 +786,12 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(callFrame.contextNumber())
         .targetId(newIdentifierFromStamp(hub.stamp()))
-        .sourceOffset(EWord.of(callFrame.frame().getStackItem(1)))
+        // Part that I added @François
+        .sourceRamBytes(
+            Optional.of(
+                hub.currentFrame()
+                    .frame()
+                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .size(size)
         .referenceSize(size);
   }
@@ -798,6 +802,12 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .sourceId(newIdentifierFromStamp(hub.stamp()))
         .targetId(callFrame.contextNumber())
         .size(size)
+        // Part that I added @François
+        .targetRamBytes(
+            Optional.of(
+                hub.currentFrame()
+                    .frame()
+                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .referenceOffset(clampedToLong(callFrame.frame().getStackItem(0)))
         .referenceSize(size);
   }

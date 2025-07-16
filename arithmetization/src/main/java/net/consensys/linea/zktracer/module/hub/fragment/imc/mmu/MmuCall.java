@@ -785,29 +785,28 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     final long size = clampedToLong(callFrame.frame().getStackItem(2));
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(callFrame.contextNumber())
-        .targetId(newIdentifierFromStamp(hub.stamp()))
-        // Part that I added @François
         .sourceRamBytes(
             Optional.of(
                 hub.currentFrame()
                     .frame()
                     .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
+        .targetId(newIdentifierFromStamp(hub.stamp()))
+        .sourceOffset(EWord.of(callFrame.frame().getStackItem(2)))
         .size(size)
         .referenceSize(size);
   }
 
   public static MmuCall mcopyPaste(Hub hub, CallFrame callFrame) {
     final long size = clampedToLong(callFrame.frame().getStackItem(2));
+    final long sourceOffset = clampedToLong(callFrame.frame().getStackItem(1));
+    final Bytes currentMemory =
+        hub.currentFrame().frame().shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize());
     return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
         .sourceId(newIdentifierFromStamp(hub.stamp()))
+        .sourceRamBytes(Optional.of(currentMemory.slice((int) sourceOffset, (int) size)))
         .targetId(callFrame.contextNumber())
+        .targetRamBytes(Optional.of(currentMemory))
         .size(size)
-        // Part that I added @François
-        .targetRamBytes(
-            Optional.of(
-                hub.currentFrame()
-                    .frame()
-                    .shadowReadMemory(0, hub.currentFrame().frame().memoryByteSize())))
         .referenceOffset(clampedToLong(callFrame.frame().getStackItem(0)))
         .referenceSize(size);
   }

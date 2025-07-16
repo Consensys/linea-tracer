@@ -17,6 +17,7 @@ package net.consensys.linea.replaytests;
 
 import static net.consensys.linea.replaytests.ReplayTestTools.replay;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_LONDON_TESTCONFIG;
+import static net.consensys.linea.zktracer.ChainConfig.OLD_SEPOLIA_TESTCONFIG;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
@@ -43,4 +44,7 @@ public class HubShomeiReplayTests extends TracerTestBase {
   void alert2025_06_12_second() {
     replay(MAINNET_LONDON_TESTCONFIG, "19914560-19914640.mainnet.json.gz");
   }
+
+  @Test
+  void alert2025_07_16() { replay(OLD_SEPOLIA_TESTCONFIG, "15673250-15673406.sepolia.json.gz"); }
 }

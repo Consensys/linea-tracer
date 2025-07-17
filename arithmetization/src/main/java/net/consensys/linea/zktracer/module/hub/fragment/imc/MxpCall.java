@@ -141,10 +141,16 @@ public abstract class MxpCall implements TraceSubFragment {
   protected void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {}
   ;
 
+  // Method only filled for LondonMxpCall
+  protected void traceMxpWords(Trace.Hub trace) {}
+  ;
+
   public Trace.Hub trace(Trace.Hub trace, State hubState) {
     hubState.incrementMxpStamp();
     // Legacy for LondonMxpCall
     traceMayTriggerNonTrivialMmuOperationFromMxpx(trace);
+    // Conditional from Cancun
+    traceMxpWords(trace);
     return trace
         .pMiscMxpFlag(true)
         .pMiscMxpInst(this.opCodeData.value())
@@ -160,9 +166,6 @@ public abstract class MxpCall implements TraceSubFragment {
         .pMiscMxpSize1NonzeroNoMxpx(this.getSize1NonZeroNoMxpx())
         .pMiscMxpSize2NonzeroNoMxpx(this.getSize2NonZeroNoMxpx())
         .pMiscMxpMxpx(this.mxpx)
-        // TODO: check with Lorenzo to match mxp
-        .pMiscMxpWords(
-            this.opCodeData.isMSize() ? Bytes.ofUnsignedLong(this.memorySizeInWords) : Bytes.EMPTY)
         .pMiscMxpGasMxp(Bytes.ofUnsignedLong(this.gasMxp));
   }
 }

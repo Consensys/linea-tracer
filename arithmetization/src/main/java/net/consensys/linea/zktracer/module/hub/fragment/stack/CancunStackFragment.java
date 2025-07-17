@@ -55,7 +55,6 @@ public class CancunStackFragment extends LondonStackFragment {
 
   @Override
   protected void traceMxpFlag(Trace.Hub trace, OpCodeData opCodeData) {
-    // In London, we do not have a Mxp flag available, so we trace with the billing type
     trace.pStackMxpFlag(opCodeData.isMxp());
   }
 }

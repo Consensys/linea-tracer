@@ -158,7 +158,6 @@ public class ExceptionUtils extends TracerTestBase {
           .push(32) // size
           .push(1) // offset to trigger mem expansion
           .op(OpCode.LOG3);
-
       case LOG4 -> program
           .push(topic4) // Topic 4
           .push(topic3) // Topic 3

@@ -37,11 +37,11 @@ List of the combinations tested below
 STATIC & OOGX : TSTORE, TLOAD
  */
 @ExtendWith(UnitTestWatcher.class)
-public class TransientTest extends TracerTestBase {
+public class TstoreTest extends TracerTestBase {
   @Test
   void staticAndOutOfGasExceptionsTStore() {
 
-    BytecodeCompiler program = simpleProgramEmptyStorage(OpCode.TSTORE);
+    BytecodeCompiler program = simpleProgram(OpCode.TSTORE);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
     long gasCostTx = bytecodeRunner.runOnlyForGasCost(testInfo);

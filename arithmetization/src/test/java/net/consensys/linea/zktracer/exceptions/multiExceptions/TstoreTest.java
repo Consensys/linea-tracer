@@ -28,6 +28,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -38,7 +39,9 @@ STATIC & OOGX : TSTORE, TLOAD
  */
 @ExtendWith(UnitTestWatcher.class)
 public class TstoreTest extends TracerTestBase {
+
   @Test
+  @Tag("cancun")
   void staticAndOutOfGasExceptionsTStore() {
 
     BytecodeCompiler program = simpleProgram(OpCode.TSTORE);

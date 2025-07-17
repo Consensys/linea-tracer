@@ -1,7 +1,7 @@
 # Linea Arithmetization (zkEVM)
 
 A Linea tracing implementation for [Hyperledger Besu](https://github.com/hyperledger/besu) based on
-an [existing implementation in Go](https://github.com/Consensys/zk-evm/).
+an [existing implementation in Go](https://github.com/Consensys/linea-tracer).
 
 ## Development Setup
 

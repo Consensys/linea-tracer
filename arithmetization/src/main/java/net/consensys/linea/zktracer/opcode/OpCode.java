@@ -16,9 +16,10 @@
 package net.consensys.linea.zktracer.opcode;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.*;
 
-import net.consensys.linea.zktracer.opcode.gas.MxpType;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 
 /** Represents the entire set of opcodes that are required by the arithmetization process. */
@@ -319,7 +320,10 @@ public enum OpCode {
     return this.getData().stackSettings().forbiddenInStatic();
   }
 
-  public boolean mayTriggerMemoryExpansionException() {
-    return this != MSIZE && this.getData().billing().type() != MxpType.NONE;
+  public boolean mayTriggerMemoryExpansionException(Fork fork) {
+    if (isPostCancun(fork)) {
+      return this != MSIZE && this.getData().isMxp();
+    }
+    return this != MSIZE && this.getData().isMxpLondon();
   }
 }

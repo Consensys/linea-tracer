@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.fragment.stack;
 
 import java.util.List;
-import java.util.Optional;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -24,7 +23,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentVal
 import net.consensys.linea.zktracer.module.hub.signals.AbortingConditions;
 import net.consensys.linea.zktracer.opcode.InstructionFamily;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.gas.MxpType;
 import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
 import net.consensys.linea.zktracer.runtime.stack.Stack;
 import net.consensys.linea.zktracer.runtime.stack.StackItem;
@@ -56,7 +54,6 @@ public class LondonStackFragment extends StackFragment {
   @Override
   protected void traceMxpFlag(Trace.Hub trace, OpCodeData opCodeData) {
     // In London, we do not have a Mxp flag available, so we trace with the billing type
-    trace.pStackMxpFlag(
-        Optional.ofNullable(opCodeData.billing()).map(b -> b.type() != MxpType.NONE).orElse(false));
+    trace.pStackMxpFlag(opCodeData.isMxpLondon());
   }
 }

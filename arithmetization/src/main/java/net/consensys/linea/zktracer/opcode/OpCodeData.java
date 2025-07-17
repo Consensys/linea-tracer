@@ -179,7 +179,12 @@ public record OpCodeData(
         || isCall();
   }
 
-  // Used on from Cancun and on, before ixMxp is determined by checking if there is a type
+  // Used before Cancun, determined by checking if there is a type
+  public boolean isMxpLondon() {
+    return billing().type() != MxpType.NONE;
+  }
+
+  // Used from Cancun and on, before ixMxp is determined by checking if there is a type
   public boolean isMxp() {
     return isMSize() || isSingleOffset() || isDoubleOffset();
   }

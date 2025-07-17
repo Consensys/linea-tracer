@@ -29,6 +29,7 @@ import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -480,6 +481,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
         cornerCase, bytecodeRunner);
   }
 
+  @Tag("cancun")
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionMCopy(int cornerCase) {

@@ -167,10 +167,10 @@ public class ExceptionUtils extends TracerTestBase {
           .push(32) // size
           .push(1) // offset to trigger mem expansion
           .op(OpCode.LOG4);
-      case SSTORE -> program
+      case SSTORE, TSTORE -> program
           .push(2) // value
           .push(1) // key
-          .op(OpCode.SSTORE);
+          .op(opCode);
       case SELFDESTRUCT -> program.push(0).op(OpCode.SELFDESTRUCT);
       case CREATE -> program
           // Create the contract

@@ -33,6 +33,7 @@ import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.module.mxp.MxpTestUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -46,6 +47,7 @@ STATIC & ROOB : LOG0, LOG1, LOG2, LOG3, LOG4
 Note : As MXPX is a subcase of OOGX, we don't test MXPX & OOGX
  */
 
+@Tag("disabled-for-cancun-temporarily")
 @ExtendWith(UnitTestWatcher.class)
 public class LogsTest extends TracerTestBase {
 

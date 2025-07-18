@@ -92,6 +92,14 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
 public class BlsOperation extends ModuleOperation {
+  static final BigInteger BLS_PRIME =
+      Bytes.concatenate(
+              Bytes.ofUnsignedShort(BLS_PRIME_3),
+              bigIntegerToBytes(BLS_PRIME_2),
+              bigIntegerToBytes(BLS_PRIME_1),
+              bigIntegerToBytes(BLS_PRIME_0))
+          .toUnsignedBigInteger();
+  static final BigInteger B = BigInteger.valueOf(4);
   static final EWord POINT_EVALUATION_PRIME =
       EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
   public static final int nBYTES_OF_DELTA_BYTES = 4;
@@ -237,6 +245,7 @@ public class BlsOperation extends ModuleOperation {
     limb.set(15, blsMod.lo());
   }
 
+  // TODO: check if mextBit needs to be set to true only for the first malformed point, if any
   private void handleBlsG1Add() {
     for (int k = 0; k < 2; k++) {
       final int sizeOffset = k * SIZE_SMALL_POINT;
@@ -262,7 +271,14 @@ public class BlsOperation extends ModuleOperation {
       limb.set(6 + indexOffset, aY1);
       limb.set(7 + indexOffset, aY0);
 
-      wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean wellFormedCoordinate =
+          wellFormedFpCoordinate(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean isSmallPointOnCurve =
+          isSmallPointOnCurve(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean mextBit = wellFormedCoordinate && !isSmallPointOnCurve;
+      for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
+        this.mextBit.set(indexOffset + j, mextBit);
+      }
     }
 
     Bytes cX3 = ZERO;
@@ -326,7 +342,17 @@ public class BlsOperation extends ModuleOperation {
       limb.set(8 + indexOffset, n.hi());
       limb.set(9 + indexOffset, n.lo());
 
-      wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean wellFormedCoordinate =
+          wellFormedFpCoordinate(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean isSmallPointOnCurve =
+          isSmallPointOnCurve(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean isSmallPointInSubgroup =
+          isSmallPointInSubGroup(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean mextBit =
+          wellFormedCoordinate && !(isSmallPointOnCurve && isSmallPointInSubgroup);
+      for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
+        this.mextBit.set(indexOffset + j, mextBit);
+      }
     }
 
     Bytes cX3 = ZERO;
@@ -405,24 +431,48 @@ public class BlsOperation extends ModuleOperation {
       limb.set(14 + indexOffset, aYRe1);
       limb.set(15 + indexOffset, aYRe0);
 
-      wellFormedFp2CoordinateAndInfinityCheck(
-          indexOffset,
-          aXIm3,
-          aXIm2,
-          aXIm1,
-          aXIm0,
-          aXRe3,
-          aXRe2,
-          aXRe1,
-          aXRe0,
-          aYIm3,
-          aYIm2,
-          aYIm1,
-          aYIm0,
-          aYRe3,
-          aYRe2,
-          aYRe1,
-          aYRe0);
+      final boolean wellFormedCoordinate =
+          wellFormedFp2Coordinate(
+              indexOffset,
+              aXIm3,
+              aXIm2,
+              aXIm1,
+              aXIm0,
+              aXRe3,
+              aXRe2,
+              aXRe1,
+              aXRe0,
+              aYIm3,
+              aYIm2,
+              aYIm1,
+              aYIm0,
+              aYRe3,
+              aYRe2,
+              aYRe1,
+              aYRe0);
+      final boolean isLargePointOnCurve =
+          isLargePointOnCurve(
+              indexOffset,
+              aXIm3,
+              aXIm2,
+              aXIm1,
+              aXIm0,
+              aXRe3,
+              aXRe2,
+              aXRe1,
+              aXRe0,
+              aYIm3,
+              aYIm2,
+              aYIm1,
+              aYIm0,
+              aYRe3,
+              aYRe2,
+              aYRe1,
+              aYRe0);
+      final boolean mextBit = wellFormedCoordinate && !isLargePointOnCurve;
+      for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
+        this.mextBit.set(indexOffset + j, mextBit);
+      }
     }
 
     Bytes cXIm3 = ZERO;
@@ -526,24 +576,68 @@ public class BlsOperation extends ModuleOperation {
       limb.set(16 + indexOffset, n.hi());
       limb.set(17 + indexOffset, n.lo());
 
-      wellFormedFp2CoordinateAndInfinityCheck(
-          indexOffset,
-          aXIm3,
-          aXIm2,
-          aXIm1,
-          aXIm0,
-          aXRe3,
-          aXRe2,
-          aXRe1,
-          aXRe0,
-          aYIm3,
-          aYIm2,
-          aYIm1,
-          aYIm0,
-          aYRe3,
-          aYRe2,
-          aYRe1,
-          aYRe0);
+      final boolean wellFormedCoordinate =
+          wellFormedFp2Coordinate(
+              indexOffset,
+              aXIm3,
+              aXIm2,
+              aXIm1,
+              aXIm0,
+              aXRe3,
+              aXRe2,
+              aXRe1,
+              aXRe0,
+              aYIm3,
+              aYIm2,
+              aYIm1,
+              aYIm0,
+              aYRe3,
+              aYRe2,
+              aYRe1,
+              aYRe0);
+      final boolean isLargePointOnCurve =
+          isLargePointOnCurve(
+              indexOffset,
+              aXIm3,
+              aXIm2,
+              aXIm1,
+              aXIm0,
+              aXRe3,
+              aXRe2,
+              aXRe1,
+              aXRe0,
+              aYIm3,
+              aYIm2,
+              aYIm1,
+              aYIm0,
+              aYRe3,
+              aYRe2,
+              aYRe1,
+              aYRe0);
+      final boolean isLargePointInSubgroup =
+          isLargePointInSubGroup(
+              indexOffset,
+              aXIm3,
+              aXIm2,
+              aXIm1,
+              aXIm0,
+              aXRe3,
+              aXRe2,
+              aXRe1,
+              aXRe0,
+              aYIm3,
+              aYIm2,
+              aYIm1,
+              aYIm0,
+              aYRe3,
+              aYRe2,
+              aYRe1,
+              aYRe0);
+      final boolean mextBit =
+          wellFormedCoordinate && !(isLargePointOnCurve && isLargePointInSubgroup);
+      for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
+        this.mextBit.set(indexOffset + j, mextBit);
+      }
     }
 
     Bytes cXIm3 = ZERO;
@@ -665,26 +759,80 @@ public class BlsOperation extends ModuleOperation {
       limb.set(22 + indexOffset, bYRe1);
       limb.set(23 + indexOffset, bYRe0);
 
-      wellFormedFpCoordinateAndInfinityCheck(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean wellFormedFpCoordinate =
+          wellFormedFpCoordinate(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean isSmallPointOnCurve =
+          isSmallPointOnCurve(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean isSmallPointInSubgroup =
+          isSmallPointInSubGroup(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+      final boolean mextBitSmall =
+          wellFormedFpCoordinate && !(isSmallPointOnCurve && isSmallPointInSubgroup);
+      for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
+        this.mextBit.set(indexOffset + j, mextBitSmall);
+      }
 
-      wellFormedFp2CoordinateAndInfinityCheck(
-          8 + indexOffset,
-          bXIm3,
-          bXIm2,
-          bXIm1,
-          bXIm0,
-          bXRe3,
-          bXRe2,
-          bXRe1,
-          bXRe0,
-          bYIm3,
-          bYIm2,
-          bYIm1,
-          bYIm0,
-          bYRe3,
-          bYRe2,
-          bYRe1,
-          bYRe0);
+      final boolean wellFormedFp2Coordinate =
+          wellFormedFp2Coordinate(
+              8 + indexOffset,
+              bXIm3,
+              bXIm2,
+              bXIm1,
+              bXIm0,
+              bXRe3,
+              bXRe2,
+              bXRe1,
+              bXRe0,
+              bYIm3,
+              bYIm2,
+              bYIm1,
+              bYIm0,
+              bYRe3,
+              bYRe2,
+              bYRe1,
+              bYRe0);
+      final boolean isLargePointOnCurve =
+          isLargePointOnCurve(
+              8 + indexOffset,
+              bXIm3,
+              bXIm2,
+              bXIm1,
+              bXIm0,
+              bXRe3,
+              bXRe2,
+              bXRe1,
+              bXRe0,
+              bYIm3,
+              bYIm2,
+              bYIm1,
+              bYIm0,
+              bYRe3,
+              bYRe2,
+              bYRe1,
+              bYRe0);
+      final boolean isLargePointInSubgroup =
+          isLargePointInSubGroup(
+              8 + indexOffset,
+              bXIm3,
+              bXIm2,
+              bXIm1,
+              bXIm0,
+              bXRe3,
+              bXRe2,
+              bXRe1,
+              bXRe0,
+              bYIm3,
+              bYIm2,
+              bYIm1,
+              bYIm0,
+              bYRe3,
+              bYRe2,
+              bYRe1,
+              bYRe0);
+      final boolean mextBitLarge =
+          wellFormedFp2Coordinate && !(isLargePointOnCurve && isLargePointInSubgroup);
+      for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
+        this.mextBit.set(8 + indexOffset + j, mextBitLarge);
+      }
 
       final boolean smallPointIsAtInfinity = isInfinity.get(indexOffset);
       final boolean largePointIsAtInfinity = isInfinity.get(8 + indexOffset);
@@ -853,11 +1001,90 @@ public class BlsOperation extends ModuleOperation {
     return false;
   }
 
-  private boolean isSmallPointMext() {
+  private boolean isSmallPointOnCurve(
+      int i,
+      Bytes pX3,
+      Bytes pX2,
+      Bytes pX1,
+      Bytes pX0,
+      Bytes pY3,
+      Bytes pY2,
+      Bytes pY1,
+      Bytes pY0) {
+    final boolean isInfinity = isInfinity(i, pX3, pX2, pX1, pX0, pY3, pY2, pY1, pY0);
+    if (isInfinity) {
+      return true;
+    }
+    BigInteger pX = Bytes.concatenate(pX3, pX2, pX1, pX0).toUnsignedBigInteger();
+    BigInteger pY = Bytes.concatenate(pY3, pY2, pY1, pY0).toUnsignedBigInteger();
+    BigInteger left = pY.pow(2).mod(BLS_PRIME);
+    BigInteger right = (pX.pow(3)).add(B).mod(BLS_PRIME);
+    return left.compareTo(right) == 0;
+  }
+
+  private boolean isSmallPointInSubGroup(
+      int i,
+      Bytes pX3,
+      Bytes pX2,
+      Bytes pX1,
+      Bytes pX0,
+      Bytes pY3,
+      Bytes pY2,
+      Bytes pY1,
+      Bytes pY0) {
     return false;
   }
 
-  private boolean isLargePointMext() {
+  private boolean isLargePointOnCurve(
+      int i,
+      Bytes pXIm3,
+      Bytes pXIm2,
+      Bytes pXIm1,
+      Bytes pXIm0,
+      Bytes pXRe3,
+      Bytes pXRe2,
+      Bytes pXRe1,
+      Bytes pXRe0,
+      Bytes pYIm3,
+      Bytes pYIm2,
+      Bytes pYIm1,
+      Bytes pYIm0,
+      Bytes pYRe3,
+      Bytes pYRe2,
+      Bytes pYRe1,
+      Bytes pYRe0) {
+    final boolean isInfinity =
+        isInfinity(
+            i, pXIm3, pXIm2, pXIm1, pXIm0, pXRe3, pXRe2, pXRe1, pXRe0, pYIm3, pYIm2, pYIm1, pYIm0,
+            pYRe3, pYRe2, pYRe1, pYRe0);
+    if (isInfinity) {
+      return true;
+    }
+    BigInteger pXIm = Bytes.concatenate(pXIm3, pXIm2, pXIm1, pXIm0).toUnsignedBigInteger();
+    BigInteger pXRe = Bytes.concatenate(pXRe3, pXRe2, pXRe1, pXRe0).toUnsignedBigInteger();
+    BigInteger pYIm = Bytes.concatenate(pYIm3, pYIm2, pYIm1, pYIm0).toUnsignedBigInteger();
+    BigInteger pYRe = Bytes.concatenate(pYRe3, pYRe2, pYRe1, pYRe0).toUnsignedBigInteger();
+    return false;
+  }
+
+  private boolean isLargePointInSubGroup(
+      int i,
+      Bytes pXIm3,
+      Bytes pXIm2,
+      Bytes pXIm1,
+      Bytes pXIm0,
+      Bytes pXRe3,
+      Bytes pXRe2,
+      Bytes pXRe1,
+      Bytes pXRe0,
+      Bytes pYIm3,
+      Bytes pYIm2,
+      Bytes pYIm1,
+      Bytes pYIm0,
+      Bytes pYRe3,
+      Bytes pYRe2,
+      Bytes pYRe1,
+      Bytes pYRe0) {
     return false;
   }
 
@@ -973,7 +1200,7 @@ public class BlsOperation extends ModuleOperation {
         bigIntegerToBytes(BLS_PRIME_0));
   }
 
-  private void wellFormedFpCoordinateAndInfinityCheck(
+  private boolean wellFormedFpCoordinate(
       int i,
       Bytes pX3,
       Bytes pX2,
@@ -989,18 +1216,14 @@ public class BlsOperation extends ModuleOperation {
 
     final boolean wellFormedCoordinate = pXIsInRange && pYIsInRange;
 
-    // This is computed here for convenience, but not appearing in the specs
-    final boolean mextBit = wellFormedCoordinate && isSmallPointMext();
-
     for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
       this.mintBit.set(i + j, !wellFormedCoordinate);
-      this.mextBit.set(i + j, mextBit);
     }
 
-    isInfinity(i, pX3, pX2, pX1, pX0, pY3, pY2, pY1, pY0);
+    return wellFormedCoordinate;
   }
 
-  private void wellFormedFp2CoordinateAndInfinityCheck(
+  private boolean wellFormedFp2Coordinate(
       int i,
       Bytes pXIm3,
       Bytes pXIm2,
@@ -1030,21 +1253,15 @@ public class BlsOperation extends ModuleOperation {
     final boolean wellFormedCoordinate =
         pXImIsInRange && pXReIsInRange && pYImIsInRange && pYReIsInRange;
 
-    // This is computed here for convenience, but not appearing in the specs
-    final boolean mextBit = wellFormedCoordinate && isLargePointMext();
-
     for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
       this.mintBit.set(i + j, !wellFormedCoordinate);
-      this.mextBit.set(i + j, mextBit);
     }
 
-    isInfinity(
-        i, pXIm3, pXIm2, pXIm1, pXIm0, pXRe3, pXRe2, pXRe1, pXRe0, pYIm3, pYIm2, pYIm1, pYIm0,
-        pYRe3, pYRe2, pYRe1, pYRe0);
+    return wellFormedCoordinate;
   }
 
   // Note: in the specs isInfinity receives directly the sum of the coordinate
-  private void isInfinity(int i, Bytes... coordinate) {
+  private boolean isInfinity(int i, Bytes... coordinate) {
     BigInteger coordinateSum =
         Arrays.stream(coordinate).map(Bytes::toBigInteger).reduce(BigInteger.ZERO, BigInteger::add);
 
@@ -1055,6 +1272,8 @@ public class BlsOperation extends ModuleOperation {
     for (int j = 0; j < coordinate.length; j++) {
       this.isInfinity.set(i + j, isInfinity);
     }
+
+    return isInfinity;
   }
 
   private int getCtMax(

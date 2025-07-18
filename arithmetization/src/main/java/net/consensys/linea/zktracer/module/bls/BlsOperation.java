@@ -99,7 +99,7 @@ public class BlsOperation extends ModuleOperation {
               bigIntegerToBytes(BLS_PRIME_1),
               bigIntegerToBytes(BLS_PRIME_0))
           .toUnsignedBigInteger();
-  static final BigInteger B = BigInteger.valueOf(4);
+  static final Fp B = new Fp(BigInteger.valueOf(4));
   static final EWord POINT_EVALUATION_PRIME =
       EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
   public static final int nBYTES_OF_DELTA_BYTES = 4;
@@ -1015,11 +1015,12 @@ public class BlsOperation extends ModuleOperation {
     if (isInfinity) {
       return true;
     }
-    BigInteger pX = Bytes.concatenate(pX3, pX2, pX1, pX0).toUnsignedBigInteger();
-    BigInteger pY = Bytes.concatenate(pY3, pY2, pY1, pY0).toUnsignedBigInteger();
-    BigInteger left = pY.pow(2).mod(BLS_PRIME);
-    BigInteger right = (pX.pow(3)).add(B).mod(BLS_PRIME);
-    return left.compareTo(right) == 0;
+    Fp pX = new Fp(Bytes.concatenate(pX3, pX2, pX1, pX0).toUnsignedBigInteger());
+    Fp pY = new Fp(Bytes.concatenate(pY3, pY2, pY1, pY0).toUnsignedBigInteger());
+    // Curve Fp equation: Y^2 = X^3+B (mod p)
+    Fp left = pY.pow2();
+    Fp right = pX.pow3().add(B);
+    return left.equals(right);
   }
 
   private boolean isSmallPointInSubGroup(
@@ -1060,11 +1061,17 @@ public class BlsOperation extends ModuleOperation {
     if (isInfinity) {
       return true;
     }
-    BigInteger pXIm = Bytes.concatenate(pXIm3, pXIm2, pXIm1, pXIm0).toUnsignedBigInteger();
-    BigInteger pXRe = Bytes.concatenate(pXRe3, pXRe2, pXRe1, pXRe0).toUnsignedBigInteger();
-    BigInteger pYIm = Bytes.concatenate(pYIm3, pYIm2, pYIm1, pYIm0).toUnsignedBigInteger();
-    BigInteger pYRe = Bytes.concatenate(pYRe3, pYRe2, pYRe1, pYRe0).toUnsignedBigInteger();
-    return false;
+    Fp pXIm = new Fp(Bytes.concatenate(pXIm3, pXIm2, pXIm1, pXIm0).toUnsignedBigInteger());
+    Fp pXRe = new Fp(Bytes.concatenate(pXRe3, pXRe2, pXRe1, pXRe0).toUnsignedBigInteger());
+    Fp pYIm = new Fp(Bytes.concatenate(pYIm3, pYIm2, pYIm1, pYIm0).toUnsignedBigInteger());
+    Fp pYRe = new Fp(Bytes.concatenate(pYRe3, pYRe2, pYRe1, pYRe0).toUnsignedBigInteger());
+    Fp2 pX = new Fp2(pXRe, pXIm);
+    Fp2 pY = new Fp2(pYRe, pYIm);
+    // Curve Fp2 equation: Y^2 = X^3 + B*(v+1) where v is the square root of nr2
+    Fp2 twistCurveCoeff = new Fp2(B, B); // B*(1+v)
+    Fp2 left = pY.pow2();
+    Fp2 right = pX.pow3().add(twistCurveCoeff);
+    return left.equals(right);
   }
 
   private boolean isLargePointInSubGroup(

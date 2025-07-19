@@ -20,11 +20,15 @@ import java.math.BigInteger;
 class Fp {
   BigInteger value;
 
-  Fp(BigInteger val) {
-    value = val.mod(BlsOperation.BLS_PRIME);
+  Fp(BigInteger value) {
+    this.value = value.mod(BlsOperation.BLS_PRIME);
   }
 
-  // Operations below instantiate a new Fp element, that is modulo BLS_PRIME
+  // Fp constructor from a String representation of a BigInteger base 10
+  Fp(String val) {
+    this(new BigInteger(val));
+  }
+
   Fp add(Fp other) {
     return new Fp(value.add(other.value));
   }
@@ -37,13 +41,17 @@ class Fp {
     return new Fp(value.multiply(other.value));
   }
 
+  Fp multiplicativeInverse() {
+    // Fermat's little theorem: a^(p-1) ≡ 1 (mod p) implies a^(p-2) ≡ a^(-1) (mod p)
+    return new Fp(
+        value.modPow(BlsOperation.BLS_PRIME.subtract(BigInteger.TWO), BlsOperation.BLS_PRIME));
+  }
+
   Fp pow2() {
-    // Smaller than BLS_PRIME
     return this.mul(this);
   }
 
   Fp pow3() {
-    // Smaller than BLS_PRIME
     return this.mul(this).mul(this);
   }
 

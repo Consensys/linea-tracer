@@ -24,7 +24,6 @@ class Fp2 {
     this.b = b;
   }
 
-  // Operations below instantiate a new Fp2 element, containing two Fp elements
   Fp2 add(Fp2 other) {
     return new Fp2(a.add(other.a), b.add(other.b));
   }
@@ -42,13 +41,19 @@ class Fp2 {
     return new Fp2(ac.sub(bd), ad.add(bc));
   }
 
+  Fp2 conjugate() {
+    // Conjugate of (a + b*v) is (a - b*v)
+    return new Fp2(a, b.mul(new Fp("-1")));
+  }
+
+  Fp2 multiplicativeInverse() {
+    // 1 / P = 1 / (a + b*v) = (a - b*v) / (a^2 - b^2)
+    Fp inverseOfDenominator = (a.pow2().sub(b.pow2())).multiplicativeInverse(); // (a^2 - b^2)^(-1)
+    return new Fp2(a.mul(inverseOfDenominator), (this.conjugate()).b.mul(inverseOfDenominator));
+  }
+
   Fp2 pow2() {
-    // (a + bv)^2 = (a^2 - b^2) + 2ab*v
-    Fp aPow2 = a.mul(a);
-    Fp bPow2 = b.mul(b);
-    Fp ab = a.mul(b);
-    Fp ab2 = ab.add(ab); // 2ab
-    return new Fp2(aPow2.sub(bPow2), ab2);
+    return this.mul(this);
   }
 
   Fp2 pow3() {

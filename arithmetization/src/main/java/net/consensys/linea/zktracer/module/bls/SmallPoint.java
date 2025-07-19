@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.bls;
 import java.math.BigInteger;
 
 public class SmallPoint {
-  // Reference: https://eips.ethereum.org/assets/eip-2537/fast_subgroup_checks
   static final BigInteger SEED = new BigInteger("-15132376222941642752");
   static final Fp BETA =
       new Fp(
@@ -44,6 +43,7 @@ public class SmallPoint {
   }
 
   boolean isInSubGroup() {
+    // Reference: https://eips.ethereum.org/assets/eip-2537/fast_subgroup_checks
     // Verify phi(P) + SEED^2*P = 0
     return (this.phi().add(this.mul(SEED).mul(SEED))).equals(POINT_AT_INFINITY);
   }

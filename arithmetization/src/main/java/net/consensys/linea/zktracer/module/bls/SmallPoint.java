@@ -60,6 +60,9 @@ public class SmallPoint {
     if (other.equals(POINT_AT_INFINITY)) {
       return this;
     }
+    if (this.x.equals(other.x) && !this.y.equals(other.y)) {
+      return POINT_AT_INFINITY;
+    }
     Fp slope;
     if (this.x.equals(other.x) && this.y.equals(other.y)) {
       // Point doubling

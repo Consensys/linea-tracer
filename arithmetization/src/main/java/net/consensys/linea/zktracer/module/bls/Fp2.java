@@ -47,8 +47,8 @@ class Fp2 {
   }
 
   Fp2 multiplicativeInverse() {
-    // 1 / P = 1 / (a + b*v) = (a - b*v) / (a^2 - b^2)
-    Fp inverseOfDenominator = (a.pow2().sub(b.pow2())).multiplicativeInverse(); // (a^2 - b^2)^(-1)
+    // 1 / P = 1 / (a + b*v) = (a - b*v) / (a^2 + b^2)
+    Fp inverseOfDenominator = (a.pow2().add(b.pow2())).multiplicativeInverse(); // (a^2 + b^2)^(-1)
     return new Fp2(a.mul(inverseOfDenominator), (this.conjugate()).b.mul(inverseOfDenominator));
   }
 

@@ -38,8 +38,8 @@ public class SmallPoint {
 
   boolean isOnCurve() {
     // Curve Fp equation: Y^2 = X^3+B (mod p)
-    Fp left = x.pow2();
-    Fp right = y.pow3().add(B);
+    Fp left = y.pow2();
+    Fp right = x.pow3().add(B);
     return left.equals(right);
   }
 
@@ -54,10 +54,10 @@ public class SmallPoint {
 
   // TODO: double check
   SmallPoint add(SmallPoint other) {
-    if (this == POINT_AT_INFINITY) {
+    if (this.equals(POINT_AT_INFINITY)) {
       return other;
     }
-    if (other == POINT_AT_INFINITY) {
+    if (other.equals(POINT_AT_INFINITY)) {
       return this;
     }
     Fp slope;
@@ -73,7 +73,7 @@ public class SmallPoint {
       slope = numerator.mul(denominator.multiplicativeInverse());
     }
     Fp xRes = slope.pow2().sub(this.x).sub(other.x);
-    Fp yRes = slope.mul(xRes.sub(this.x)).sub(this.y);
+    Fp yRes = slope.mul(this.x.sub(xRes)).sub(this.y);
     return new SmallPoint(xRes, yRes);
   }
 

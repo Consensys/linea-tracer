@@ -65,10 +65,10 @@ public class LargePoint {
 
   // TODO: double check
   LargePoint add(LargePoint other) {
-    if (this == POINT_AT_INFINITY) {
+    if (this.equals(POINT_AT_INFINITY)) {
       return other;
     }
-    if (other == POINT_AT_INFINITY) {
+    if (other.equals(POINT_AT_INFINITY)) {
       return this;
     }
     Fp2 slope;
@@ -84,7 +84,7 @@ public class LargePoint {
       slope = numerator.mul(denominator.multiplicativeInverse());
     }
     Fp2 xRes = slope.pow2().sub(this.x).sub(other.x);
-    Fp2 yRes = slope.mul(xRes.sub(this.x)).sub(this.y);
+    Fp2 yRes = slope.mul(this.x.sub(xRes)).sub(this.y);
     return new LargePoint(xRes, yRes);
   }
 

@@ -15,18 +15,14 @@ package net.consensys.linea.zktracer.module.bls;
  * SPDX-License-Identifier: Apache-2.0
  */
 
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.B;
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.BETA;
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.SEED;
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.SMALL_POINT_AT_INFINITY;
+
 import java.math.BigInteger;
 
 public class SmallPoint {
-  static final BigInteger SEED = new BigInteger("-15132376222941642752");
-  static final Fp BETA =
-      new Fp(
-          "793479390729215512621379701633421447060886740281060493010456487427281649075476305620758731620350");
-
-  static final Fp B = new Fp(BigInteger.valueOf(4));
-
-  static final SmallPoint POINT_AT_INFINITY = new SmallPoint(new Fp("0"), new Fp("0"));
-
   Fp x;
   Fp y;
 
@@ -45,7 +41,7 @@ public class SmallPoint {
   boolean isInSubGroup() {
     // Reference: https://eips.ethereum.org/assets/eip-2537/fast_subgroup_checks
     // Verify phi(P) + SEED^2*P = 0
-    return (this.phi().add(this.mul(SEED).mul(SEED))).equals(POINT_AT_INFINITY);
+    return (this.phi().add(this.mul(SEED).mul(SEED))).equals(SMALL_POINT_AT_INFINITY);
   }
 
   SmallPoint phi() {
@@ -54,14 +50,14 @@ public class SmallPoint {
 
   // TODO: double check
   SmallPoint add(SmallPoint other) {
-    if (this.equals(POINT_AT_INFINITY)) {
+    if (this.equals(SMALL_POINT_AT_INFINITY)) {
       return other;
     }
-    if (other.equals(POINT_AT_INFINITY)) {
+    if (other.equals(SMALL_POINT_AT_INFINITY)) {
       return this;
     }
     if (this.x.equals(other.x) && !this.y.equals(other.y)) {
-      return POINT_AT_INFINITY;
+      return SMALL_POINT_AT_INFINITY;
     }
     Fp slope;
     if (this.x.equals(other.x) && this.y.equals(other.y)) {
@@ -82,12 +78,12 @@ public class SmallPoint {
 
   SmallPoint mul(BigInteger scalar) {
     if (scalar.equals(BigInteger.ZERO)) {
-      return POINT_AT_INFINITY;
+      return SMALL_POINT_AT_INFINITY;
     }
     if (scalar.equals(BigInteger.ONE)) {
       return this;
     }
-    SmallPoint result = POINT_AT_INFINITY;
+    SmallPoint result = SMALL_POINT_AT_INFINITY;
     SmallPoint addend = this;
     // Double-and-add algorithm
     while (scalar.signum() > 0) {

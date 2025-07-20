@@ -15,13 +15,15 @@
 
 package net.consensys.linea.zktracer.module.bls;
 
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.BLS_PRIME;
+
 import java.math.BigInteger;
 
 class Fp {
   BigInteger value;
 
   Fp(BigInteger value) {
-    this.value = value.mod(BlsOperation.BLS_PRIME);
+    this.value = value.mod(BLS_PRIME);
   }
 
   // Fp constructor from a String representation of a BigInteger base 10
@@ -44,7 +46,7 @@ class Fp {
   Fp multiplicativeInverse() {
     // Fermat's little theorem: a^(p-1) ≡ 1 (mod p) implies a^(p-2) ≡ a^(-1) (mod p)
     return new Fp(
-        value.modPow(BlsOperation.BLS_PRIME.subtract(BigInteger.TWO), BlsOperation.BLS_PRIME));
+        value.modPow(BLS_PRIME.subtract(BigInteger.TWO), BLS_PRIME));
   }
 
   Fp pow2() {

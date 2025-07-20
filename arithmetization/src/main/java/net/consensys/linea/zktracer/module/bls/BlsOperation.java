@@ -44,8 +44,6 @@ import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_POINT_EVALUATION;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_HI;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_LO;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G1_ADD;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G1_MSM;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G2_ADD;
@@ -62,6 +60,7 @@ import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_MAP_FP2_TO_G2;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.POINT_EVALUATION_PRIME;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_ADD;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_MSM;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G2_ADD;
@@ -92,15 +91,6 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Accessors(fluent = true)
 public class BlsOperation extends ModuleOperation {
-  static final BigInteger BLS_PRIME =
-      Bytes.concatenate(
-              Bytes.ofUnsignedShort(BLS_PRIME_3),
-              bigIntegerToBytes(BLS_PRIME_2),
-              bigIntegerToBytes(BLS_PRIME_1),
-              bigIntegerToBytes(BLS_PRIME_0))
-          .toUnsignedBigInteger();
-  static final EWord POINT_EVALUATION_PRIME =
-      EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
   public static final int nBYTES_OF_DELTA_BYTES = 4;
   private static final int SIZE_SMALL_POINT = LLARGE * (CT_MAX_SMALL_POINT + 1);
   private static final int SIZE_LARGE_POINT = LLARGE * (CT_MAX_LARGE_POINT + 1);

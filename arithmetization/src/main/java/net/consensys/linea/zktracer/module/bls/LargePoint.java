@@ -15,28 +15,15 @@ package net.consensys.linea.zktracer.module.bls;
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import static net.consensys.linea.zktracer.module.bls.SmallPoint.B;
-import static net.consensys.linea.zktracer.module.bls.SmallPoint.SEED;
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.B;
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.LARGE_POINT_AT_INFINITY;
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.R;
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.S;
+import static net.consensys.linea.zktracer.module.bls.BlsUtils.SEED;
 
 import java.math.BigInteger;
 
 public class LargePoint {
-  static final Fp2 R =
-      new Fp2(
-          new Fp("0"),
-          new Fp(
-              "4002409555221667392624310435006688643935503118305586438271171395842971157480381377015405980053539358417135540939437"));
-
-  static final Fp2 S =
-      new Fp2(
-          new Fp(
-              "2973677408986561043442465346520108879172042883009249989176415018091420807192182638567116318576472649347015917690530"),
-          new Fp(
-              "1028732146235106349975324479215795277384839936929757896155643118032610843298655225875571310552543014690878354869257"));
-
-  static final LargePoint POINT_AT_INFINITY =
-      new LargePoint(new Fp2(new Fp("0"), new Fp("0")), new Fp2(new Fp("0"), new Fp("0")));
-
   Fp2 x;
   Fp2 y;
 
@@ -56,7 +43,7 @@ public class LargePoint {
   boolean isInSubGroup() {
     // Reference: https://eips.ethereum.org/assets/eip-2537/fast_subgroup_checks
     // Verify psi(P) + SEED*P = 0
-    return this.psi().add(this.mul(SEED)).equals(POINT_AT_INFINITY);
+    return this.psi().add(this.mul(SEED)).equals(LARGE_POINT_AT_INFINITY);
   }
 
   LargePoint psi() {
@@ -65,14 +52,14 @@ public class LargePoint {
 
   // TODO: double check
   LargePoint add(LargePoint other) {
-    if (this.equals(POINT_AT_INFINITY)) {
+    if (this.equals(LARGE_POINT_AT_INFINITY)) {
       return other;
     }
-    if (other.equals(POINT_AT_INFINITY)) {
+    if (other.equals(LARGE_POINT_AT_INFINITY)) {
       return this;
     }
     if (this.x.equals(other.x) && !this.y.equals(other.y)) {
-      return POINT_AT_INFINITY;
+      return LARGE_POINT_AT_INFINITY;
     }
     Fp2 slope;
     if (this.x.equals(other.x) && this.y.equals(other.y)) {
@@ -93,12 +80,12 @@ public class LargePoint {
 
   LargePoint mul(BigInteger scalar) {
     if (scalar.equals(BigInteger.ZERO)) {
-      return POINT_AT_INFINITY;
+      return LARGE_POINT_AT_INFINITY;
     }
     if (scalar.equals(BigInteger.ONE)) {
       return this;
     }
-    LargePoint result = POINT_AT_INFINITY;
+    LargePoint result = LARGE_POINT_AT_INFINITY;
     LargePoint addend = this;
     // Double-and-add algorithm
     while (scalar.signum() > 0) {

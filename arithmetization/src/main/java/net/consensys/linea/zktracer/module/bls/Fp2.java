@@ -46,6 +46,11 @@ class Fp2 {
     return new Fp2(a, b.mul(new Fp("-1")));
   }
 
+  Fp2 additiveInverse() {
+    // Additive inverse of (a + b*v) is (-a - b*v)
+    return new Fp2(a.additiveInverse(), b.additiveInverse());
+  }
+
   Fp2 multiplicativeInverse() {
     // 1 / P = 1 / (a + b*v) = (a - b*v) / (a^2 + b^2)
     Fp inverseOfDenominator = (a.pow2().add(b.pow2())).multiplicativeInverse(); // (a^2 + b^2)^(-1)

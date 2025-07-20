@@ -43,10 +43,14 @@ class Fp {
     return new Fp(value.multiply(other.value));
   }
 
+  Fp additiveInverse() {
+    // Additive inverse of value is BLS_PRIME - value
+    return new Fp(BLS_PRIME.subtract(value));
+  }
+
   Fp multiplicativeInverse() {
     // Fermat's little theorem: a^(p-1) ≡ 1 (mod p) implies a^(p-2) ≡ a^(-1) (mod p)
-    return new Fp(
-        value.modPow(BLS_PRIME.subtract(BigInteger.TWO), BLS_PRIME));
+    return new Fp(value.modPow(BLS_PRIME.subtract(BigInteger.TWO), BLS_PRIME));
   }
 
   Fp pow2() {

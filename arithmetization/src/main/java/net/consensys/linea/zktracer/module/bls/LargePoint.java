@@ -58,7 +58,7 @@ public class LargePoint {
     if (other.equals(LARGE_POINT_AT_INFINITY)) {
       return this;
     }
-    if (this.x.equals(other.x) && !this.y.equals(other.y)) {
+    if (this.x.equals(other.x) && this.y.equals(other.y.additiveInverse())) {
       return LARGE_POINT_AT_INFINITY;
     }
     Fp2 slope;
@@ -66,8 +66,12 @@ public class LargePoint {
       // Point doubling
       Fp2 numerator = (new Fp2(new Fp("3"), new Fp("0"))).mul(this.x.pow2());
       Fp2 denominator = (new Fp2(new Fp("2"), new Fp("0"))).mul(this.y);
+      if (denominator.equals(new Fp2(new Fp("0"), new Fp("0")))) {
+        return LARGE_POINT_AT_INFINITY;
+      }
       slope = numerator.mul(denominator.multiplicativeInverse());
     } else {
+      // !this.x.equals(other.x)
       // Point multiplication
       Fp2 numerator = other.y.sub(this.y);
       Fp2 denominator = other.x.sub(this.x);

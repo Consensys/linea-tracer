@@ -56,7 +56,7 @@ public class SmallPoint {
     if (other.equals(SMALL_POINT_AT_INFINITY)) {
       return this;
     }
-    if (this.x.equals(other.x) && !this.y.equals(other.y)) {
+    if (this.x.equals(other.x) && this.y.equals(other.y.additiveInverse())) {
       return SMALL_POINT_AT_INFINITY;
     }
     Fp slope;
@@ -64,8 +64,12 @@ public class SmallPoint {
       // Point doubling
       Fp numerator = (new Fp("3")).mul(this.x.pow2());
       Fp denominator = (new Fp("2")).mul(this.y);
+      if (denominator.equals(new Fp("0"))) {
+        return SMALL_POINT_AT_INFINITY;
+      }
       slope = numerator.mul(denominator.multiplicativeInverse());
     } else {
+      // !this.x.equals(other.x)
       // Point multiplication
       Fp numerator = other.y.sub(this.y);
       Fp denominator = other.x.sub(this.x);

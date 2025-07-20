@@ -57,8 +57,8 @@ tasks.register('buildZkevmBins', Exec) {
             assert false
         }
     }
-    // Make all forks
-    commandLine 'make'
+    // Make london fork only
+    commandLine 'make', 'zkevm_london.bin'
 }
 
 // Task which generates the Trace.java interface using go-corset.
@@ -76,10 +76,6 @@ tasks.register('buildAllTracers', Exec) {
     def zkevmParisBin = getRootProject().file('linea-constraints/' + ZKEVM_PARIS_BIN)
     def zkevmShanghaiBin = getRootProject().file('linea-constraints/' + ZKEVM_SHANGHAI_BIN)
     def zkevmCancunBin = getRootProject().file('linea-constraints/' + ZKEVM_CANCUN_BIN)
-    // Generate trace interface and implementing classes
-    commandLine 'go-corset','generate','-p',TRACE_PKG,'-i',traceJava,
-    '-o',traceLondonJava,zkevmLondonBin,
-    '-o',traceParisJava,zkevmParisBin,
-    '-o',traceShanghaiJava,zkevmShanghaiBin,
-    '-o',traceCancunJava,zkevmCancunBin
+    // Generate trace TraceLondon.java
+    commandLine 'go-corset','generate','-p',TRACE_PKG, '-o',traceLondonJava,zkevmLondonBin
 }

@@ -19,7 +19,7 @@ import static net.consensys.linea.zktracer.module.bls.BlsUtils.BLS_PRIME;
 
 import java.math.BigInteger;
 
-class Fp {
+class Fp extends Field<Fp> {
   BigInteger value;
 
   Fp(BigInteger value) {
@@ -31,32 +31,39 @@ class Fp {
     this(new BigInteger(val));
   }
 
+  @Override
   Fp add(Fp other) {
     return new Fp(value.add(other.value));
   }
 
+  @Override
   Fp sub(Fp other) {
     return new Fp(value.subtract(other.value));
   }
 
+  @Override
   Fp mul(Fp other) {
     return new Fp(value.multiply(other.value));
   }
 
+  @Override
   Fp additiveInverse() {
     // Additive inverse of value is BLS_PRIME - value
     return new Fp(BLS_PRIME.subtract(value));
   }
 
+  @Override
   Fp multiplicativeInverse() {
     // Fermat's little theorem: a^(p-1) ≡ 1 (mod p) implies a^(p-2) ≡ a^(-1) (mod p)
     return new Fp(value.modPow(BLS_PRIME.subtract(BigInteger.TWO), BLS_PRIME));
   }
 
+  @Override
   Fp pow2() {
     return this.mul(this);
   }
 
+  @Override
   Fp pow3() {
     return this.mul(this).mul(this);
   }

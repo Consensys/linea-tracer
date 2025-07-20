@@ -16,22 +16,28 @@ package net.consensys.linea.zktracer.module.bls;
  */
 
 import static net.consensys.linea.zktracer.module.bls.BlsUtils.B;
-import static net.consensys.linea.zktracer.module.bls.BlsUtils.LARGE_POINT_AT_INFINITY;
 import static net.consensys.linea.zktracer.module.bls.BlsUtils.R;
 import static net.consensys.linea.zktracer.module.bls.BlsUtils.S;
 import static net.consensys.linea.zktracer.module.bls.BlsUtils.SEED;
 
-import java.math.BigInteger;
-
-public class LargePoint {
-  Fp2 x;
-  Fp2 y;
+public class LargePoint extends Point<Fp2, LargePoint> {
+  static final LargePoint POINT_AT_INFINITY =
+      new LargePoint(new Fp2(new Fp("0"), new Fp("0")), new Fp2(new Fp("0"), new Fp("0")));
+  static final Fp2 ZERO = new Fp2(new Fp("0"), new Fp("0"));
+  static final Fp2 TWO = new Fp2(new Fp("2"), new Fp("0"));
+  static final Fp2 THREE = new Fp2(new Fp("3"), new Fp("0"));
 
   LargePoint(Fp2 x, Fp2 y) {
     this.x = x;
     this.y = y;
   }
 
+  @Override
+  LargePoint createPoint(Fp2 x, Fp2 y) {
+    return new LargePoint(x, y);
+  }
+
+  @Override
   boolean isOnCurve() {
     // Curve Fp2 equation: Y^2 = X^3 + B*(v+1) where v is the square root of nr2
     Fp2 twistCurveCoeff = new Fp2(B, B); // B*(1+v)
@@ -40,65 +46,14 @@ public class LargePoint {
     return left.equals(right);
   }
 
+  @Override
   boolean isInSubGroup() {
     // Reference: https://eips.ethereum.org/assets/eip-2537/fast_subgroup_checks
     // Verify psi(P) + SEED*P = 0
-    return this.psi().add(this.mul(SEED)).equals(LARGE_POINT_AT_INFINITY);
+    return this.psi().add(this.mul(SEED)).equals(POINT_AT_INFINITY);
   }
 
   LargePoint psi() {
     return new LargePoint((x.conjugate()).mul(R), (y.conjugate()).mul(S));
-  }
-
-  // TODO: double check
-  LargePoint add(LargePoint other) {
-    if (this.equals(LARGE_POINT_AT_INFINITY)) {
-      return other;
-    }
-    if (other.equals(LARGE_POINT_AT_INFINITY)) {
-      return this;
-    }
-    if (this.x.equals(other.x) && this.y.equals(other.y.additiveInverse())) {
-      return LARGE_POINT_AT_INFINITY;
-    }
-    Fp2 slope;
-    if (this.x.equals(other.x) && this.y.equals(other.y)) {
-      // Point doubling
-      Fp2 numerator = (new Fp2(new Fp("3"), new Fp("0"))).mul(this.x.pow2());
-      Fp2 denominator = (new Fp2(new Fp("2"), new Fp("0"))).mul(this.y);
-      if (denominator.equals(new Fp2(new Fp("0"), new Fp("0")))) {
-        return LARGE_POINT_AT_INFINITY;
-      }
-      slope = numerator.mul(denominator.multiplicativeInverse());
-    } else {
-      // !this.x.equals(other.x)
-      // Point multiplication
-      Fp2 numerator = other.y.sub(this.y);
-      Fp2 denominator = other.x.sub(this.x);
-      slope = numerator.mul(denominator.multiplicativeInverse());
-    }
-    Fp2 xRes = slope.pow2().sub(this.x).sub(other.x);
-    Fp2 yRes = slope.mul(this.x.sub(xRes)).sub(this.y);
-    return new LargePoint(xRes, yRes);
-  }
-
-  LargePoint mul(BigInteger scalar) {
-    if (scalar.equals(BigInteger.ZERO)) {
-      return LARGE_POINT_AT_INFINITY;
-    }
-    if (scalar.equals(BigInteger.ONE)) {
-      return this;
-    }
-    LargePoint result = LARGE_POINT_AT_INFINITY;
-    LargePoint addend = this;
-    // Double-and-add algorithm
-    while (scalar.signum() > 0) {
-      if (scalar.testBit(0)) {
-        result = result.add(addend);
-      }
-      addend = addend.add(addend);
-      scalar = scalar.shiftRight(1);
-    }
-    return result;
   }
 }

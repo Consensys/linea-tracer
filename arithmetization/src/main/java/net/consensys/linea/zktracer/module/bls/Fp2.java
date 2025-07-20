@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.bls;
 
-class Fp2 {
+class Fp2 extends Field<Fp2> {
   Fp a; // real part
   Fp b; // imaginary part: coefficient of v
 
@@ -24,14 +24,17 @@ class Fp2 {
     this.b = b;
   }
 
+  @Override
   Fp2 add(Fp2 other) {
     return new Fp2(a.add(other.a), b.add(other.b));
   }
 
+  @Override
   Fp2 sub(Fp2 other) {
     return new Fp2(a.sub(other.a), b.sub(other.b));
   }
 
+  @Override
   Fp2 mul(Fp2 other) {
     // (a + b*v)(c + d*v) = (ac - bd) + (ad + bc)*v, since v^2 = -1
     Fp ac = a.mul(other.a);
@@ -41,28 +44,32 @@ class Fp2 {
     return new Fp2(ac.sub(bd), ad.add(bc));
   }
 
-  Fp2 conjugate() {
-    // Conjugate of (a + b*v) is (a - b*v)
-    return new Fp2(a, b.mul(new Fp("-1")));
-  }
-
+  @Override
   Fp2 additiveInverse() {
     // Additive inverse of (a + b*v) is (-a - b*v)
     return new Fp2(a.additiveInverse(), b.additiveInverse());
   }
 
+  @Override
   Fp2 multiplicativeInverse() {
     // 1 / P = 1 / (a + b*v) = (a - b*v) / (a^2 + b^2)
     Fp inverseOfDenominator = (a.pow2().add(b.pow2())).multiplicativeInverse(); // (a^2 + b^2)^(-1)
     return new Fp2(a.mul(inverseOfDenominator), (this.conjugate()).b.mul(inverseOfDenominator));
   }
 
+  @Override
   Fp2 pow2() {
     return this.mul(this);
   }
 
+  @Override
   Fp2 pow3() {
     return this.mul(this).mul(this);
+  }
+
+  Fp2 conjugate() {
+    // Conjugate of (a + b*v) is (a - b*v)
+    return new Fp2(a, b.mul(new Fp("-1")));
   }
 
   boolean equals(Fp2 other) {

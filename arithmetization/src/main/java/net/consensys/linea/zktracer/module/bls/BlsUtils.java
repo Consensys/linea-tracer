@@ -34,10 +34,6 @@ public class BlsUtils {
           new Fp(
               "1028732146235106349975324479215795277384839936929757896155643118032610843298655225875571310552543014690878354869257"));
 
-  static final SmallPoint SMALL_POINT_AT_INFINITY = new SmallPoint(new Fp("0"), new Fp("0"));
-  static final LargePoint LARGE_POINT_AT_INFINITY =
-      new LargePoint(new Fp2(new Fp("0"), new Fp("0")), new Fp2(new Fp("0"), new Fp("0")));
-
   static final BigInteger BLS_PRIME =
       Bytes.concatenate(
               Bytes.ofUnsignedShort(BLS_PRIME_3),

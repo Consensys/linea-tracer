@@ -21,15 +21,15 @@ import static net.consensys.linea.zktracer.module.bls.BlsUtils.S;
 import static net.consensys.linea.zktracer.module.bls.BlsUtils.SEED;
 
 public class LargePoint extends Point<Fp2, LargePoint> {
-  static final LargePoint POINT_AT_INFINITY =
-      new LargePoint(new Fp2(new Fp("0"), new Fp("0")), new Fp2(new Fp("0"), new Fp("0")));
-  static final Fp2 ZERO = new Fp2(new Fp("0"), new Fp("0"));
-  static final Fp2 TWO = new Fp2(new Fp("2"), new Fp("0"));
-  static final Fp2 THREE = new Fp2(new Fp("3"), new Fp("0"));
 
   LargePoint(Fp2 x, Fp2 y) {
     this.x = x;
     this.y = y;
+    POINT_AT_INFINITY =
+        new LargePoint(new Fp2(new Fp("0"), new Fp("0")), new Fp2(new Fp("0"), new Fp("0")));
+    ZERO = new Fp2(new Fp("0"), new Fp("0"));
+    TWO = new Fp2(new Fp("2"), new Fp("0"));
+    THREE = new Fp2(new Fp("3"), new Fp("0"));
   }
 
   @Override

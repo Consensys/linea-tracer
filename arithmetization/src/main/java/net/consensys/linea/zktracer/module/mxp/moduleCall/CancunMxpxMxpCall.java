@@ -22,6 +22,7 @@ public class CancunMxpxMxpCall extends CancunNotMSizeNorTrivialMxpCall {
   public CancunMxpxMxpCall(Hub hub, boolean mxpx) {
     super(hub);
     this.mxpx = mxpx;
+    setWordsAndCMemNewToPrevValues();
     // Nothing to compute for MXPX scenario
   }
 

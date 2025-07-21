@@ -28,11 +28,9 @@ public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCal
 
   public CancunStateUpdateBytePricingMxpCall(Hub hub) {
     super(hub);
-    if (this.isStateUpdate) {
-      // if state has changed, an extra gas cost is incurred
-      computeExtraGasCost();
-      setGasMpxFromExtraGasCost();
-    }
+    // if state has changed, an extra gas cost is incurred
+    computeExtraGasCost();
+    setGasMpxFromExtraGasCost();
   }
 
   @Override

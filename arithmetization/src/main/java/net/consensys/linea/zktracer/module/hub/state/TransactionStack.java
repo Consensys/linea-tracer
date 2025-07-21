@@ -28,7 +28,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
-public abstract class TransactionStack {
+public class TransactionStack {
   @Accessors(fluent = true)
   private final StackedList<TransactionProcessingMetadata> transactions = new StackedList<>();
 
@@ -73,10 +73,11 @@ public abstract class TransactionStack {
     currentAbsNumber += 1;
     relativeTransactionNumber += 1;
 
-    addTransactionToStack(hub, world, tx);
+    transactions()
+        .add(
+            new TransactionProcessingMetadata(
+                hub, world, tx, relativeTransactionNumber, currentAbsNumber));
   }
-
-  public abstract void addTransactionToStack(Hub hub, WorldView world, Transaction tx);
 
   public void setCodeFragmentIndex(Hub hub) {
     for (TransactionProcessingMetadata tx : transactions.getAll()) {

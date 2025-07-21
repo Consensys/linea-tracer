@@ -164,7 +164,7 @@ public abstract class Hub implements Module {
   @Getter CallStack callStack = new CallStack();
 
   /** Stores the transaction Metadata of all the transaction of the conflated block */
-  @Getter TransactionStack txStack = setTransactionStack();
+  @Getter TransactionStack txStack = new TransactionStack();
 
   /** Stores the block Metadata of all the blocks of the conflation */
   @Getter BlockStack blockStack = new BlockStack();
@@ -1051,8 +1051,6 @@ public abstract class Hub implements Module {
   }
 
   protected abstract GasCalculator setGasCalculator();
-
-  protected abstract TransactionStack setTransactionStack();
 
   protected abstract TxnData setTxnData();
 

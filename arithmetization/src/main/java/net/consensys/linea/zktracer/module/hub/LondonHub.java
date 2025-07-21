@@ -27,8 +27,6 @@ import net.consensys.linea.zktracer.module.hub.section.create.LondonCreateSectio
 import net.consensys.linea.zktracer.module.hub.section.finalization.LondonFinalizationSection;
 import net.consensys.linea.zktracer.module.hub.section.skip.LondonTxSkipSection;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
-import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
-import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.mxp.module.LondonMxp;
 import net.consensys.linea.zktracer.module.mxp.module.Mxp;
@@ -56,11 +54,6 @@ public class LondonHub extends Hub {
   @Override
   protected GasCalculator setGasCalculator() {
     return new LondonGasCalculator();
-  }
-
-  @Override
-  protected TransactionStack setTransactionStack() {
-    return new LondonTransactionStack();
   }
 
   @Override

@@ -12,4 +12,4 @@ runs:
 
     - name: Install Go Corset
       shell: bash
-      run: go install github.com/consensys/go-corset/cmd/go-corset@e4c4143bae15e93352f0b8553e7b16d2619455cd
+      run: go install github.com/consensys/go-corset/cmd/go-corset@f04c6af16da88c5b067a0bbdac15d19403e54d87

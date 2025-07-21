@@ -53,8 +53,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 
-// This test is making unit test hang when running for Cancun - to debug
-// @Tag("disabled-for-cancun-temporarily")
 // https://github.com/Consensys/linea-besu-plugin/issues/197
 @Execution(ExecutionMode.SAME_THREAD)
 @ExtendWith(UnitTestWatcher.class)

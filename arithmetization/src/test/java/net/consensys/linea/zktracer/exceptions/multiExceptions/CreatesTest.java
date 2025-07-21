@@ -35,7 +35,6 @@ import net.consensys.linea.zktracer.module.mxp.MxpTestUtils;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -53,7 +52,6 @@ MXPX & MAX_CODE_SIZE_EXCEPTION : CREATE, CREATE2
 Note : As MXPX is a subcase of OOGX, we don't test MXPX & OOGX
  */
 
-@Tag("disabled-for-cancun-temporarily")
 @ExtendWith(UnitTestWatcher.class)
 public class CreatesTest extends TracerTestBase {
 

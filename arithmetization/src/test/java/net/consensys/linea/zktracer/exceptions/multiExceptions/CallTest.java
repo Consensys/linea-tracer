@@ -35,7 +35,6 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,7 +50,6 @@ STATIC & ROOB : CALL
 Note : As MXPX is a subcase of OOGX, we don't test MXPX & OOGX
  */
 
-@Tag("disabled-for-cancun-temporarily")
 @ExtendWith(UnitTestWatcher.class)
 public class CallTest extends TracerTestBase {
 

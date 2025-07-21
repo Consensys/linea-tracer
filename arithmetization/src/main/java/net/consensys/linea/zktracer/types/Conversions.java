@@ -46,6 +46,10 @@ public class Conversions {
     return bytes;
   }
 
+  public static Bytes32 bigIntegerToBytes32(final BigInteger input) {
+    return Bytes32.leftPad(bigIntegerToBytes(input));
+  }
+
   public static Bytes16 bigIntegerToBytes16(final BigInteger input) {
     return Bytes16.leftPad(bigIntegerToBytes(input));
   }

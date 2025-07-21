@@ -19,19 +19,14 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class LondonInitializationSection extends TxInitializationSection {
-  public LondonInitializationSection(Hub hub, WorldView world) {
+public class CancunInitializationSection extends ShanghaiInitializationSection {
+  public CancunInitializationSection(Hub hub, WorldView world) {
     super(hub, world);
   }
 
   @Override
   protected void addTxnAndMiscFragments(ImcFragment miscFragment) {
-    addFragment(miscFragment);
     addFragment(hub().txStack().current().userTransactionFragment());
-  }
-
-  @Override
-  protected void addCoinbaseWarmingFragment() {
-    // nothing to do in London
+    addFragment(miscFragment);
   }
 }

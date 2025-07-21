@@ -255,7 +255,7 @@ public class TraceSection {
     return commonValues.callFrame().revertStamp();
   }
 
-  private Hub hub() {
+  protected Hub hub() {
     return commonValues.hub;
   }
 }

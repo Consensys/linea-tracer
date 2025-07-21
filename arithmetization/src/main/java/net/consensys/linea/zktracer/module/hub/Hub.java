@@ -671,7 +671,7 @@ public abstract class Hub implements Module {
 
       if (state.processingPhase() != TX_SKIP) {
         state.processingPhase(TX_FINL);
-        new TxFinalizationSection(this);
+        setFinalizationSection(this);
       }
     }
 
@@ -1075,6 +1075,8 @@ public abstract class Hub implements Module {
       Transients transients);
 
   protected abstract void setInitializationSection(WorldView world);
+
+  protected abstract void setFinalizationSection(Hub hub);
 
   protected abstract boolean coinbaseWarmthAtTxEnd();
 

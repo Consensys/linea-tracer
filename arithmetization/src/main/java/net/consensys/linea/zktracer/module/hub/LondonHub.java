@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.LondonBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.create.LondonCreateSection;
+import net.consensys.linea.zktracer.module.hub.section.finalization.LondonFinalizationSection;
 import net.consensys.linea.zktracer.module.hub.section.skip.LondonTxSkipSection;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
 import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
@@ -111,6 +112,11 @@ public class LondonHub extends Hub {
   @Override
   protected void setInitializationSection(WorldView world) {
     new LondonInitializationSection(this, world);
+  }
+
+  @Override
+  protected void setFinalizationSection(Hub hub) {
+    new LondonFinalizationSection(hub);
   }
 
   @Override

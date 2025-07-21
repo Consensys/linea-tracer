@@ -13,25 +13,24 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section.txInitializationSection;
+package net.consensys.linea.zktracer.module.hub.section.finalization;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
-import org.hyperledger.besu.evm.worldstate.WorldView;
+import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
-public class LondonInitializationSection extends TxInitializationSection {
-  public LondonInitializationSection(Hub hub, WorldView world) {
-    super(hub, world);
+public class LondonFinalizationSection extends TxFinalizationSection {
+  public LondonFinalizationSection(Hub hub) {
+    super(hub);
   }
 
   @Override
-  protected void addTxnAndMiscFragments(ImcFragment miscFragment) {
-    addFragment(miscFragment);
-    addFragment(hub().txStack().current().userTransactionFragment());
-  }
-
-  @Override
-  protected void addCoinbaseWarmingFragment() {
-    // nothing to do in London
+  protected void addFragments(
+      TransactionProcessingMetadata txMetadata,
+      AccountFragment senderAccountFragment,
+      AccountFragment coinbaseAccountFragment) {
+    addFragment(senderAccountFragment);
+    addFragment(coinbaseAccountFragment);
+    addFragment(txMetadata.userTransactionFragment());
   }
 }

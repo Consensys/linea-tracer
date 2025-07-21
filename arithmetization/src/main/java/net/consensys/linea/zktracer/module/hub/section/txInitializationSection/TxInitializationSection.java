@@ -190,8 +190,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
   public void resolveAtEndTransaction(
       Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
 
-    addFragment(miscFragment); // MISC i + 0
-    addFragment(hub.txStack().current().userTransactionFragment()); // TXN i + 1
+    addTxnAndMiscFragments(miscFragment); // Only the order of the txn and misc fragments differs
     addCoinbaseWarmingFragment(); // Post Shanghai Only
     addFragment(gasPaymentAccountFragment); // ACC i +  (sender: gas payment)
     addFragment(valueSendingAccountFragment); // ACC i +  (sender: value transfer)
@@ -249,5 +248,7 @@ public abstract class TxInitializationSection extends TraceSection implements En
     return tx.isRecipientPreWarmed();
   }
 
-  protected void addCoinbaseWarmingFragment() {}
+  protected abstract void addTxnAndMiscFragments(ImcFragment miscFragment);
+
+  protected abstract void addCoinbaseWarmingFragment();
 }

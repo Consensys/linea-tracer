@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section;
+package net.consensys.linea.zktracer.module.hub.section.finalization;
 
 import static com.google.common.base.Preconditions.*;
 
@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
+import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.transients.DeploymentInfo;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -33,7 +34,7 @@ import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.tracing.OperationTracer;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
-public class TxFinalizationSection extends TraceSection implements EndTransactionDefer {
+public abstract class TxFinalizationSection extends TraceSection implements EndTransactionDefer {
   private final TransactionProcessingMetadata txMetadata;
 
   private AccountSnapshot senderGasRefund;
@@ -78,10 +79,13 @@ public class TxFinalizationSection extends TraceSection implements EndTransactio
                 coinbaseGasRefund.address(),
                 DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
 
-    this.addFragment(senderAccountFragment);
-    this.addFragment(coinbaseAccountFragment);
-    this.addFragment(txMetadata.userTransactionFragment()); // TXN i+2
+    addFragments(txMetadata, senderAccountFragment, coinbaseAccountFragment);
   }
+
+  protected abstract void addFragments(
+      TransactionProcessingMetadata txMetadata,
+      AccountFragment senderAccountFragment,
+      AccountFragment coinbaseAccountFragment);
 
   /**
    * Extracting the snapshots for the sender and the coinbase does not work as one may expect. One

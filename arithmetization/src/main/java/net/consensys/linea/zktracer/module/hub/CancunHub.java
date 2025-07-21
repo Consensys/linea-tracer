@@ -24,10 +24,12 @@ import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.McopySection;
+import net.consensys.linea.zktracer.module.hub.section.skip.CancunTxSkipSection;
 import net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRoot;
 import net.consensys.linea.zktracer.module.hub.section.systemTransaction.Noop;
 import net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection;
+import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.mxp.module.CancunMxp;
 import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
@@ -39,8 +41,10 @@ import net.consensys.linea.zktracer.module.tables.instructionDecoder.Instruction
 import net.consensys.linea.zktracer.module.txndata.module.CancunTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.gascalculator.CancunGasCalculator;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class CancunHub extends ShanghaiHub {
@@ -86,6 +90,15 @@ public class CancunHub extends ShanghaiHub {
   @Override
   protected PowerRt setPower() {
     return new PowerRt();
+  }
+
+  @Override
+  protected void setSkipSection(
+      Hub hub,
+      WorldView world,
+      TransactionProcessingMetadata transactionProcessingMetadata,
+      Transients transients) {
+    new CancunTxSkipSection(hub, world, transactionProcessingMetadata, transients);
   }
 
   @Override

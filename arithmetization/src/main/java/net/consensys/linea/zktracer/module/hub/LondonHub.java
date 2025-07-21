@@ -24,9 +24,11 @@ import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.LondonBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.create.LondonCreateSection;
+import net.consensys.linea.zktracer.module.hub.section.skip.LondonTxSkipSection;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
 import net.consensys.linea.zktracer.module.hub.state.LondonTransactionStack;
 import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
+import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.mxp.module.LondonMxp;
 import net.consensys.linea.zktracer.module.mxp.module.Mxp;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
@@ -95,6 +97,15 @@ public class LondonHub extends Hub {
   protected PowerRt setPower() {
     // PowerRt is not used in London, it is only used in Cancun
     return null;
+  }
+
+  @Override
+  protected void setSkipSection(
+      Hub hub,
+      WorldView world,
+      TransactionProcessingMetadata transactionProcessingMetadata,
+      Transients transients) {
+    new LondonTxSkipSection(hub, world, transactionProcessingMetadata, transients);
   }
 
   @Override

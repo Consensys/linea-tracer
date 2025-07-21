@@ -64,6 +64,7 @@ import net.consensys.linea.zktracer.module.hub.section.halt.ReturnSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.RevertSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
+import net.consensys.linea.zktracer.module.hub.section.skip.TxSkipSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.state.BlockStack;
@@ -496,17 +497,15 @@ public abstract class Hub implements Module {
   }
 
   public void traceStartTransaction(final WorldView world, final Transaction tx) {
+    state.transactionProcessingType(USER);
     pch.reset();
     txStack.enterTransaction(this, world, tx);
-
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
-
     state.enterTransaction();
-    state.transactionProcessingType(USER);
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.processingPhase(TX_SKIP);
-      new TxSkipSection(this, world, transactionProcessingMetadata, transients);
+      setSkipSection(this, world, transactionProcessingMetadata, transients);
     } else {
       if (transactionProcessingMetadata.requiresPrewarming()) {
         state.processingPhase(TX_WARM);
@@ -1068,6 +1067,12 @@ public abstract class Hub implements Module {
   protected abstract InstructionDecoder setInstructionDecoder();
 
   protected abstract PowerRt setPower();
+
+  protected abstract void setSkipSection(
+      Hub hub,
+      WorldView world,
+      TransactionProcessingMetadata transactionProcessingMetadata,
+      Transients transients);
 
   protected abstract void setInitializationSection(WorldView world);
 

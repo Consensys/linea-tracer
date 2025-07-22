@@ -164,9 +164,6 @@ tasks.test.configure {
     if (System.getenv("ZKEVM_FORK") == "CANCUN") {
       excludeTags("disabled-for-cancun-temporarily")
     }
-    if (System.getenv("ZKEVM_FORK") == "CANCUN") {
-      excludeTags("disabled-for-cancun-temporarily")
-    }
   }
   finalizedBy(jacocoTestReport)
 }

@@ -38,7 +38,6 @@ import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -288,16 +287,20 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   }
 
   /** We provide a non-zero key and value to store in transient storage to avoid trivialities */
-  @Tag("cancun")
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionTStore(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
-    program
-        .push(2) // value
-        .push(1) // key
-        .op(OpCode.TSTORE);
+    try {
+      program
+          .push(2) // value
+          .push(1) // key
+          .op(OpCode.TSTORE);
+    } catch (IllegalArgumentException e) {
+      // TLOAD/TSTORE are not supported prior to Cancun fork
+      return;
+    }
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
@@ -310,18 +313,22 @@ public class OutOfGasExceptionTest extends TracerTestBase {
         cornerCase, bytecodeRunner);
   }
 
-  @Tag("cancun")
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionTLoad(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
-    program
-        .push(2) // value
-        .push(1) // key
-        .op(OpCode.TSTORE)
-        .push(1) // key
-        .op(OpCode.TLOAD);
+    try {
+      program
+          .push(2) // value
+          .push(1) // key
+          .op(OpCode.TSTORE)
+          .push(1) // key
+          .op(OpCode.TLOAD);
+    } catch (IllegalArgumentException e) {
+      // TLOAD/TSTORE are not supported prior to Cancun fork
+      return;
+    }
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);

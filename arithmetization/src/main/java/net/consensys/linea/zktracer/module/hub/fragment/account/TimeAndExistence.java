@@ -26,6 +26,6 @@ public record TimeAndExistence(int domStamp, int subStamp, boolean hadCode) {
       return true;
     }
 
-    return other.subStamp > this.subStamp;
+    return other.subStamp < this.subStamp;
   }
 }

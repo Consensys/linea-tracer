@@ -143,10 +143,6 @@ public abstract class MxpCall implements TraceSubFragment {
   // Method only filled for LondonMxpCall
   public abstract void traceMxpWords(Trace.Hub trace);
 
-  // Method only filled for LondonMxpCall
-  protected void traceMxpWords(Trace.Hub trace) {}
-  ;
-
   public Trace.Hub trace(Trace.Hub trace, State hubState) {
     hubState.incrementMxpStamp();
     // Legacy for LondonMxpCall

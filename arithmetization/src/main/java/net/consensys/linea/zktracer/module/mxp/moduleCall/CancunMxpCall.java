@@ -182,7 +182,11 @@ public class CancunMxpCall extends MxpCall {
     this.mxpxExpression = mxpxExpression1 + mxpxExpression2;
   }
 
-  protected void traceMxpWords(Trace.Hub trace) {
+  public void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {
+    // From Cancun and on, we don't trace mayTriggerNonTrivialMmuOperationFromMxpx anymore
+  }
+
+  public void traceMxpWords(Trace.Hub trace) {
     // TODO: check with Lorenzo to match mxp
     trace.pMiscMxpWords(
         this.opCodeData.isMSize() ? Bytes.ofUnsignedLong(this.memorySizeInWords) : Bytes.EMPTY);

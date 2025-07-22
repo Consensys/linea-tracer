@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.opcode;
 
 import static com.google.common.base.Preconditions.*;
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.*;
 
 import net.consensys.linea.zktracer.Fork;
@@ -321,9 +320,9 @@ public enum OpCode {
   }
 
   public boolean mayTriggerMemoryExpansionException(Fork fork) {
-    if (isPostCancun(fork)) {
-      return this != MSIZE && this.getData().isMxp();
-    }
-    return this != MSIZE && this.getData().isMxpLondon();
+    return switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> this != MSIZE && this.getData().isMxpLondon();
+      case CANCUN, PRAGUE -> this != MSIZE && this.getData().isMxp();
+    };
   }
 }

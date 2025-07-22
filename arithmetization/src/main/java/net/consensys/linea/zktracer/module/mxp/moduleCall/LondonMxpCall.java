@@ -27,11 +27,11 @@ public class LondonMxpCall extends MxpCall {
     super(hub);
   }
 
-  protected void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {
+  public void traceMayTriggerNonTrivialMmuOperationFromMxpx(Trace.Hub trace) {
     trace.pMiscMxpMtntop(this.mayTriggerNontrivialMmuOperation);
   }
 
-  protected void traceMxpWords(Trace.Hub trace) {
+  public void traceMxpWords(Trace.Hub trace) {
     trace.pMiscMxpWords(Bytes.ofUnsignedLong(this.memorySizeInWords));
   }
 }

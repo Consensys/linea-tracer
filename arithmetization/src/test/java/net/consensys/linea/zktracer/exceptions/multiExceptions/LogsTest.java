@@ -55,7 +55,7 @@ public class LogsTest extends TracerTestBase {
   @MethodSource("logsOpCodesList")
   void staticAndOogExceptionsLogs(OpCode opCode) {
 
-    BytecodeCompiler program = simpleProgramEmptyStorage(opCode);
+    BytecodeCompiler program = simpleProgram(opCode);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
     long gasCostTx = bytecodeRunner.runOnlyForGasCost(testInfo);

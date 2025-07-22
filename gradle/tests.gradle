@@ -161,9 +161,6 @@ tasks.test.configure {
     excludeTags("replay")
     excludeTags("weekly")
     excludeTags("prc-calltests")
-    if (System.getenv("ZKEVM_FORK") != "CANCUN") {
-      excludeTags("cancun")
-    }
     if (System.getenv("ZKEVM_FORK") == "CANCUN") {
       excludeTags("disabled-for-cancun-temporarily")
     }

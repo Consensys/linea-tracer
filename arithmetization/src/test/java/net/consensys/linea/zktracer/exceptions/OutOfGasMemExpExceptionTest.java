@@ -29,7 +29,6 @@ import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Wei;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -481,20 +480,24 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
         cornerCase, bytecodeRunner);
   }
 
-  @Tag("cancun")
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionMCopy(int cornerCase) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
-    program
-        .push(Bytes.fromHexString("0x7F")) // value
-        .push(32) // offset
-        .op(OpCode.MSTORE)
-        .push(32) // size
-        .push(32) // offset to trigger mem expansion
-        .push(0) // dest offset
-        .op(OpCode.MCOPY);
+    try {
+      program
+          .push(Bytes.fromHexString("0x7F")) // value
+          .push(32) // offset
+          .op(OpCode.MSTORE)
+          .push(32) // size
+          .push(32) // offset to trigger mem expansion
+          .push(0) // dest offset
+          .op(OpCode.MCOPY);
+    } catch (IllegalArgumentException e) {
+      // MCOPY is not supported prior to Cancun fork
+      return;
+    }
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);

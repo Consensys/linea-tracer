@@ -58,7 +58,7 @@ public class CallArguments extends TracerTestBase {
   @ParameterizedTest
   @EnumSource(
       value = OpCode.class,
-      names = {"CALL"})
+      names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void emptyCallDataCall(OpCode callOpCode) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
     extremalCallContract(program, callOpCode, true, false);

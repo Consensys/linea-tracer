@@ -61,8 +61,8 @@ import net.consensys.linea.zktracer.module.hub.section.copy.ReturnDataCopySectio
 import net.consensys.linea.zktracer.module.hub.section.create.CreateSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.ReturnSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.RevertSection;
-import net.consensys.linea.zktracer.module.hub.section.halt.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
+import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.state.BlockStack;
@@ -1074,4 +1074,6 @@ public abstract class Hub implements Module {
   protected abstract void setTransientSection(Hub hub);
 
   protected abstract void setMcopySection(Hub hub);
+
+  protected abstract void setSelfdestructSection(Hub hub, final MessageFrame frame);
 }

@@ -71,13 +71,15 @@ public abstract class Point<F extends Field<F>, P extends Point<F, P>> {
     }
     P result = POINT_AT_INFINITY;
     P addend = createPoint(this.x, this.y);
+    int bitLength = scalar.bitLength();
     // Double-and-add algorithm
-    while (scalar.signum() > 0) {
-      if (scalar.testBit(0)) {
+    for (int i = bitLength - 1; i >= 0; i--) {
+      // Double the result
+      result = result.add(result);
+      if (scalar.testBit(i)) {
+        // Add addend to the result if the i-th bit is 1
         result = result.add(addend);
       }
-      addend = addend.add(addend);
-      scalar = scalar.shiftRight(1);
     }
     return result;
   }

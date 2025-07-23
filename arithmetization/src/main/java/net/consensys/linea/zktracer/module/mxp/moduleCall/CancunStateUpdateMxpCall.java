@@ -26,6 +26,7 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
 public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialMxpCall {
@@ -56,49 +57,31 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
 
     // Row i + 8
     // Compute floor and EYPa
-    final BigInteger maxOffset1 =
-        this.offset1
-            .lo()
-            .toUnsignedBigInteger()
-            .add(this.size1.lo().toUnsignedBigInteger())
-            .subtract(BigInteger.ONE);
-    final BigInteger maxOffset2 =
-        this.offset2
-            .lo()
-            .toUnsignedBigInteger()
-            .add(this.size2.lo().toUnsignedBigInteger())
-            .subtract(BigInteger.ONE);
-    ;
-    final BigInteger maxOffset =
-        booleanToBigInteger(useParams1)
-            .multiply(maxOffset1)
-            .add(booleanToBigInteger(useParams2).multiply(maxOffset2));
-    exoCalls[7] = MxpExoCall.callToEUC(euc, bigIntegerToBytes(maxOffset), unsignedIntToBytes(32));
+    final EWord maxOffset1 =
+        EWord.of(this.offset1.lo()).add(EWord.of(this.size1.lo()).add(EWord.of(1)));
+    final EWord maxOffset2 =
+        EWord.of(this.offset2.lo()).add(EWord.of(this.size2.lo()).add(EWord.of(1)));
+    final EWord maxOffset = useParams1 ? maxOffset1 : maxOffset2;
+    exoCalls[7] = MxpExoCall.callToEUC(euc, maxOffset, unsignedIntToBytes(32));
     final Bytes floor = exoCalls[7].resultA();
-    final BigInteger EYPa = floor.toUnsignedBigInteger().add(BigInteger.ONE);
+    final EWord EYPa = EWord.of(floor).add(EWord.of(1));
 
     // row i + 9
     // Compute cMemQuadPart
-    exoCalls[8] =
-        MxpExoCall.callToEUC(euc, bigIntegerToBytes(EYPa.multiply(EYPa)), unsignedIntToBytes(512));
+    exoCalls[8] = MxpExoCall.callToEUC(euc, EYPa.multiply(EYPa), unsignedIntToBytes(512));
     final Bytes cMemQuadPart = exoCalls[8].resultA();
 
     // row i + 10
     // Compute updateInternalState
-    exoCalls[9] = MxpExoCall.callToLT(wcp, longToBytes(words), bigIntegerToBytes(EYPa));
+    exoCalls[9] = MxpExoCall.callToLT(wcp, EWord.of(words), EYPa);
     final boolean updateInternalState = bytesToBoolean(exoCalls[9].resultA());
 
     // Determine state update
-    final Bytes cMemLinearPart =
-        bigIntegerToBytes(EYPa.multiply(BigInteger.valueOf(GAS_CONST_G_MEMORY)));
+    final EWord cMemLinearPart = EYPa.multiply(EWord.of(GAS_CONST_G_MEMORY));
     this.isStateUpdate = updateInternalState;
-    this.wordsNew = updateInternalState ? EYPa.longValue() : this.words;
+    this.wordsNew = updateInternalState ? EYPa : this.words;
     this.cMemNew =
-        updateInternalState
-            ? bigIntegerToBytes(
-                    cMemQuadPart.toUnsignedBigInteger().add(cMemLinearPart.toUnsignedBigInteger()))
-                .toLong()
-            : this.cMem;
+        updateInternalState ? EWord.of(cMemQuadPart).add(EWord.of(cMemLinearPart)) : this.cMem;
   }
 
   // We set ctMax to the minimum number of rows required for the following scenarii (State update

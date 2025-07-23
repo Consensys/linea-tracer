@@ -105,7 +105,7 @@ public class MxpExoCall {
         .arg2Hi(arg2B32.hi())
         .arg2Lo(arg2B32.lo())
         .resultA(eucOperation.quotient())
-        .resultB(eucOperation.ceiling())
+        .resultB(eucOperation.remainder())
         .build();
   }
 }

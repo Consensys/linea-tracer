@@ -50,7 +50,7 @@ public class EucOperation extends ModuleOperation {
 
   public Bytes ceiling() {
     return !remainder.isZero() && !dividend.isZero()
-        ? Bytes.minimalBytes(quotient.toLong() + 1)
+        ? Bytes.ofUnsignedLong(quotient.toLong() + 1)
         : quotient;
   }
 

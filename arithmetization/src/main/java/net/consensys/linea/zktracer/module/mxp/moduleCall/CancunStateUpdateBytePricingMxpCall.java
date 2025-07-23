@@ -15,9 +15,13 @@
 
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
+
+import java.math.BigInteger;
+
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
 public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCall {
@@ -40,9 +44,14 @@ public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCal
     final OpCode opCode = this.opCodeData.mnemonic();
     final Bytes gasPerByte =
         (opCode == OpCode.RETURN)
-            ? this.deploys ? Bytes.of(gByte) : Bytes.EMPTY
+            ? bigIntegerToBytes(
+                booleanToBigInteger(this.deploys).multiply(BigInteger.valueOf(gByte)))
             : Bytes.of(this.gByte);
     final Bytes numberOfBytes = this.size1.lo();
-    this.extraGasCost = EWord.of(numberOfBytes).multiply(EWord.of(gasPerByte));
+    this.extraGasCost =
+        numberOfBytes
+            .toUnsignedBigInteger()
+            .multiply(gasPerByte.toUnsignedBigInteger())
+            .longValue();
   }
 }

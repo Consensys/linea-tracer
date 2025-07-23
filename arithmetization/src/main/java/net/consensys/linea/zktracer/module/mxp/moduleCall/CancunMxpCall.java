@@ -26,7 +26,6 @@ import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.gas.BillingRate;
-import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
 /**
@@ -61,15 +60,15 @@ import org.apache.tuweni.bytes.Bytes;
  */
 public class CancunMxpCall extends MxpCall {
 
-  public final Bytes words;
-  public final Bytes cMem;
+  public final long words;
+  public final long cMem;
   public final int gWord;
   public final int gByte;
 
   public CancunMxpCall(Hub hub) {
     super(hub);
-    this.words = Bytes.ofUnsignedLong(this.memorySizeInWords);
-    this.cMem = Bytes.ofUnsignedLong(memoryCost(this.memorySizeInWords));
+    this.words = this.memorySizeInWords;
+    this.cMem = memoryCost(this.memorySizeInWords);
     this.gWord = getCostBy(BillingRate.BY_WORD);
     this.gByte = getCostBy(BillingRate.BY_BYTE);
     // Initialization of the computed values of MxpCall
@@ -97,9 +96,9 @@ public class CancunMxpCall extends MxpCall {
    */
   public boolean isStateUpdate = false;
 
-  public Bytes wordsNew = Bytes.EMPTY;
-  public Bytes cMemNew = Bytes.EMPTY;
-  public Bytes extraGasCost = Bytes.EMPTY;
+  public long wordsNew = 0L;
+  public long cMemNew = 0L;
+  public long extraGasCost = 0L;
 
   public int ctMax() {
     return 0;
@@ -143,11 +142,7 @@ public class CancunMxpCall extends MxpCall {
   }
 
   public void setGasMpxFromExtraGasCost() {
-    this.gasMxp =
-        EWord.of(this.cMemNew)
-            .subtract(EWord.of(this.cMem))
-            .add(EWord.of(this.extraGasCost))
-            .toLong();
+    this.gasMxp = this.cMemNew - this.cMem + this.extraGasCost;
   }
 
   public void setWordsAndCMemNewToPrevValues() {

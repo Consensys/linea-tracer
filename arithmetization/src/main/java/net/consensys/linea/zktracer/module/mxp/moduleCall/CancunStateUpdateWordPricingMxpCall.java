@@ -18,10 +18,11 @@ package net.consensys.linea.zktracer.module.mxp.moduleCall;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_UPDT_W;
 import static net.consensys.linea.zktracer.types.Conversions.unsignedIntToBytes;
 
+import java.math.BigInteger;
+
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.mxp.MxpExoCall;
-import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
 public class CancunStateUpdateWordPricingMxpCall extends CancunStateUpdateMxpCall {
@@ -45,7 +46,8 @@ public class CancunStateUpdateWordPricingMxpCall extends CancunStateUpdateMxpCal
     // Row i + 11
     exoCalls[10] = MxpExoCall.callToEUC(euc, this.size1.lo(), unsignedIntToBytes(32));
     Bytes numberOfWords = exoCalls[10].resultB(); // result of row i + 11
-    this.extraGasCost = EWord.of(numberOfWords).multiply(EWord.of(this.gWord));
+    this.extraGasCost =
+        numberOfWords.toUnsignedBigInteger().multiply(BigInteger.valueOf(this.gWord)).longValue();
   }
 
   @Override

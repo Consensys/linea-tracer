@@ -43,14 +43,6 @@ public class LondonSelfdestructSection extends SelfdestructSection {
       return;
     }
 
-    // Default values that can be overridden by handleAccountWiping
-    selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
-    this.addFragment(finalUnexceptionalContextFragment);
-
-    handleAccountWiping(hub);
-  }
-
-  public void handleAccountWiping(Hub hub) {
     // beyond this point the selfdestruct was not reverted
     final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
         transactionProcessingMetadata.getEffectiveSelfDestructMap();
@@ -58,6 +50,7 @@ public class LondonSelfdestructSection extends SelfdestructSection {
         new EphemeralAccount(selfdestructor.address(), selfdestructorNew.deploymentNumber());
 
     checkArgument(effectiveSelfDestructMap.containsKey(ephemeralAccount));
+
     // This grabs the accounts right after the coinbase and sender got their gas money back
     // in particular this will get the coinbase address post gas reward.
     final AccountSnapshot accountWiping =
@@ -90,6 +83,10 @@ public class LondonSelfdestructSection extends SelfdestructSection {
       this.addFragment(finalUnexceptionalContextFragment);
 
       hub.defers().scheduleForAfterTransactionFinalization(this);
+
+    } else {
+      selfdestructScenarioFragment.setScenario(SELFDESTRUCT_WONT_REVERT_ALREADY_MARKED);
+      this.addFragment(finalUnexceptionalContextFragment);
     }
   }
 }

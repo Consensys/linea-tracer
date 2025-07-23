@@ -62,7 +62,6 @@ import net.consensys.linea.zktracer.module.hub.section.create.CreateSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.ReturnSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.RevertSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.StopSection;
-import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.SelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.signals.PlatformController;
 import net.consensys.linea.zktracer.module.hub.state.BlockStack;
@@ -943,7 +942,7 @@ public abstract class Hub implements Module {
           case RETURN -> new ReturnSection(this, frame);
           case REVERT -> new RevertSection(this, frame);
           case STOP -> new StopSection(this);
-          case SELFDESTRUCT -> new SelfdestructSection(this, frame);
+          case SELFDESTRUCT -> setSelfdestructSection(this, frame);
         }
         final boolean returnFromDeployment =
             (this.opCode() == RETURN && this.currentFrame().isDeployment());

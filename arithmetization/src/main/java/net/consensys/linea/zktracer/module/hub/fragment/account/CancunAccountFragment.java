@@ -15,20 +15,14 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
-import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___DOM_SUB_STAMPS;
-
-import java.util.Map;
 import java.util.Optional;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
-import net.consensys.linea.zktracer.module.hub.section.halt.EphemeralAccount;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Transaction;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class CancunAccountFragment extends LondonAccountFragment {
   private final TransactionProcessingMetadata tx;
@@ -50,24 +44,8 @@ public class CancunAccountFragment extends LondonAccountFragment {
         oldState().tracedHasCode());
   }
 
-  @Override
-  public void resolveAtEndTransaction(
-      Hub hub, WorldView state, Transaction tx, boolean isSuccessful) {
-    final boolean hadCodeInitially =
-        transactionProcessingMetadata.hadCodeInitiallyMap().get(oldState().address()).hadCode();
-    final Map<EphemeralAccount, Integer> effectiveSelfDestructMap =
-        transactionProcessingMetadata.getEffectiveSelfDestructMap();
-    final EphemeralAccount ephemeralAccount =
-        new EphemeralAccount(oldState().address(), oldState().deploymentNumber());
-    if (!hadCodeInitially && effectiveSelfDestructMap.containsKey(ephemeralAccount)) {
-      final int selfDestructTime = effectiveSelfDestructMap.get(ephemeralAccount);
-      markedForDeletion =
-          domSubStampsSubFragment().domStamp() > MULTIPLIER___DOM_SUB_STAMPS * selfDestructTime;
-      markedForDeletionNew = hubStamp >= selfDestructTime;
-    } else {
-      markedForDeletion = false;
-      markedForDeletionNew = false;
-    }
+  public boolean shouldBeMarkedForDeletion() {
+    return !transactionProcessingMetadata.hadCodeInitiallyMap().get(oldState().address()).hadCode();
   }
 
   @Override

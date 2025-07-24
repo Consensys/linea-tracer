@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.fragment.account;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.util.Optional;
@@ -26,7 +25,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -158,12 +156,11 @@ public abstract class AccountFragment
         .pAccountDeploymentNumberNew(newState.deploymentNumber())
         .pAccountDeploymentStatusNew(newState.deploymentStatus())
         .pAccountTrmFlag(addressToTrim.isPresent())
-        .pAccountTrmRawAddressHi(addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
-        // TODO
-        .pAccountIsPrecompile(isPrecompile(Fork.CANCUN, oldState.address()));
+        .pAccountTrmRawAddressHi(addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY));
     traceMarkedForSelfDestruct(trace);
     traceMarkedForDeletion(trace);
     traceHadCodeInitially(trace);
+    traceIsPrecompile(trace);
 
     return trace;
   }
@@ -173,6 +170,8 @@ public abstract class AccountFragment
   abstract void traceMarkedForDeletion(Trace.Hub trace);
 
   abstract void traceMarkedForSelfDestruct(Trace.Hub trace);
+
+  abstract void traceIsPrecompile(Trace.Hub trace);
 
   @Override
   public void resolvePostBlock(Hub hub) {

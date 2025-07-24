@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.trm;
 
+import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Trm.TRM_CT_MAX;
 import static net.consensys.linea.zktracer.Trace.Trm.TRM_NB_ROWS;
@@ -30,7 +31,10 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.TraceCancun;
+import net.consensys.linea.zktracer.TraceLondon;
 import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.module.wcp.WcpCall;
 import net.consensys.linea.zktracer.types.EWord;
@@ -40,6 +44,7 @@ import org.hyperledger.besu.datatypes.Address;
 @Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class TrmOperation extends ModuleOperation {
+  private final Fork fork;
   @EqualsAndHashCode.Include @Getter private final EWord rawAddress;
   private final List<WcpCall> wcpCalls = new ArrayList<>(TRM_NB_ROWS);
   private static final Bytes TWOFIFTYSIX_TO_THE_TWENTY_BYTES =
@@ -47,20 +52,30 @@ public class TrmOperation extends ModuleOperation {
   private static final Bytes TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES =
       bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWELVE_MO);
 
-  public TrmOperation(EWord rawAddress, Wcp wcp) {
+  public TrmOperation(Hub hub, EWord rawAddress, Wcp wcp) {
+    this.fork = hub.fork;
     this.rawAddress = rawAddress;
     final Bytes trmAddress = rawAddress.toAddress();
+    int maxPrcAddressPerFork = 0;
+
+    switch (this.fork) {
+      case LONDON, PARIS, SHANGHAI -> {
+        maxPrcAddressPerFork = TraceLondon.MAX_PRC_ADDRESS;
+      }
+      case CANCUN, PRAGUE -> {
+        maxPrcAddressPerFork = TraceCancun.MAX_PRC_ADDRESS;
+      }
+    }
 
     wcpCalls.add(0, ltCall(wcp, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_BYTES));
     wcpCalls.add(1, leqCall(wcp, rawAddress.slice(0, 12), TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES));
     wcpCalls.add(2, isZeroCall(wcp, trmAddress));
-    wcpCalls.add(3, leqCall(wcp, trmAddress, Bytes.ofUnsignedShort(MAX_PRC_ADDRESS)));
+    wcpCalls.add(3, leqCall(wcp, trmAddress, Bytes.ofUnsignedShort(maxPrcAddressPerFork)));
   }
 
   void trace(Trace.Trm trace) {
     final Address trmAddress = rawAddress.toAddress();
-    // TODO
-    final boolean isPrec = isPrecompile(Fork.CANCUN, trmAddress);
+    final boolean isPrec = isPrecompile(this.fork, trmAddress);
     final long trmAddrHi = trmAddress.slice(0, 4).toLong();
 
     for (int ct = 0; ct <= TRM_CT_MAX; ct++) {

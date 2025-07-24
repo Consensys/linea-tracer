@@ -143,7 +143,7 @@ public abstract class Hub implements Module {
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public final GasCalculator gasCalculator = setGasCalculator();
 
-  public final GasProjector gasProjector = new GasProjector(gasCalculator);
+  public final GasProjector gasProjector = new GasProjector(this, gasCalculator);
 
   /** accumulate the trace information for the Hub */
   @Getter public final State state = new State();
@@ -210,7 +210,7 @@ public abstract class Hub implements Module {
   private final Mul mul = new Mul(this);
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
-  @Getter private final Trm trm = new Trm(wcp);
+  @Getter private final Trm trm = new Trm(this, wcp);
   @Getter private final RlpUtils rlpUtils = setRlpUtils(wcp);
 
   // other

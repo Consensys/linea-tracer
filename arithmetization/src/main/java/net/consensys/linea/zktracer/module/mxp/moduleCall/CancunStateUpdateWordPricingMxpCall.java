@@ -32,9 +32,7 @@ public class CancunStateUpdateWordPricingMxpCall extends CancunStateUpdateMxpCal
     exoCalls[10] = MxpExoCall.builder().build(); // Row i + 11, initialized to default values
     computeExtraGasCost(hub.euc());
     // if state has changed, an extra gas cost is incurred
-    // if (isStateUpdate) {
     setGasMpxFromExtraGasCost();
-    // }
   }
 
   @Override

@@ -115,8 +115,8 @@ public class CancunMxpOperation extends MxpOperation {
         .pScenarioMxpx(cancunMxpCall.isMxpxScenario())
         .pScenarioStateUpdateWordPricing(cancunMxpCall.isStateUpdateWordPricingScenario())
         .pScenarioStateUpdateBytePricing(cancunMxpCall.isStateUpdateBytePricingScenario())
-        .pScenarioWords(Bytes.ofUnsignedLong(cancunMxpCall.words))
-        .pScenarioWordsNew(Bytes.ofUnsignedLong(cancunMxpCall.wordsNew))
+        .pScenarioWords(cancunMxpCall.words)
+        .pScenarioWordsNew(cancunMxpCall.wordsNew)
         .pScenarioCmem(Bytes.ofUnsignedLong(cancunMxpCall.cMem))
         .pScenarioCmemNew(Bytes.ofUnsignedLong(cancunMxpCall.cMemNew))
         .fillAndValidateRow();

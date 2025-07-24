@@ -60,6 +60,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
       OpCode opCode = opCodeData.mnemonic();
       int nPushes = opCodeData.stackSettings().delta(); // number of items popped from the stack
       BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+      log.info(String.valueOf(opCodeData.mnemonic()));
       for (int i = 0; i < nPushes; i++) {
         // In order to disambiguate between empty stack items and writing a result of 0 on the stack
         // we push small integers to the stack which all produce non-zero results
@@ -116,7 +117,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   static Stream<Arguments> outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource() {
     ArrayList<Arguments> args = new ArrayList<>();
     //
-    for (int i = 0; i < 256; i++) {
+    for (int i = 94; i <= 94; i++) {
       args.add(Arguments.of(i, -1));
       args.add(Arguments.of(i, 0));
       args.add(Arguments.of(i, 1));

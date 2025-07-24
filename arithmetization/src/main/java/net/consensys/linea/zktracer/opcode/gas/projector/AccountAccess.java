@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.opcode.gas.projector;
 
 import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 
+import net.consensys.linea.zktracer.Fork;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
@@ -45,7 +46,8 @@ public final class AccountAccess extends GasProjection {
       return 0;
     }
 
-    if (isAddressWarm(frame, target)) {
+    // TODO
+    if (isAddressWarm(Fork.CANCUN, frame, target)) {
       return gc.getWarmStorageReadCost();
     } else {
       return gc.getColdAccountAccessCost();

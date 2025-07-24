@@ -75,7 +75,8 @@ public class TrmOperation extends ModuleOperation {
 
   void trace(Trace.Trm trace) {
     final Address trmAddress = rawAddress.toAddress();
-    final boolean isPrec = isPrecompile(trmAddress);
+    // TODO
+    final boolean isPrec = isPrecompile(Fork.CANCUN, trmAddress);
     final long trmAddrHi = trmAddress.slice(0, 4).toLong();
 
     for (int ct = 0; ct <= TRM_CT_MAX; ct++) {

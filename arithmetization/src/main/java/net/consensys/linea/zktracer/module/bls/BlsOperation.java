@@ -132,12 +132,17 @@ public class BlsOperation extends ModuleOperation {
       int id,
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       Bytes callData,
-      Bytes returnData) {
+      Bytes returnData,
+      boolean successBit) {
     checkArgument(precompileFlag.isBlsPrecompile(), "invalid BLS type");
+
+    // TODO: whenever we do not need an additional list, such as in the case of limb, do not use it
+    // (e.g., mintBit, mextBit)
+    // TODO: LibGnarkEIP2537.eip2537blsG1Add();
 
     this.precompileFlag = precompileFlag;
     this.callData = callData;
-    totalSizeData = callData.size(); // TODO: do we need some padding?
+    totalSizeData = callData.size();
     totalSizeResult = returnData.size();
 
     nRowsData = getIndexMax(precompileFlag, true) + 1;
@@ -165,20 +170,26 @@ public class BlsOperation extends ModuleOperation {
     this.returnData = returnData;
 
     // Set successBit
-    this.successBit =
-        returnData.toArray().length
-            == (switch (precompileFlag) {
-                  case PRC_POINT_EVALUATION -> INDEX_MAX_RSLT_POINT_EVALUATION + 1;
-                  case PRC_BLS_G1_ADD -> INDEX_MAX_RSLT_G1_ADD + 1;
-                  case PRC_BLS_G1_MSM -> INDEX_MAX_RSLT_G1_MSM + 1;
-                  case PRC_BLS_G2_ADD -> INDEX_MAX_RSLT_G2_ADD + 1;
-                  case PRC_BLS_G2_MSM -> INDEX_MAX_RSLT_G2_MSM + 1;
-                  case PRC_BLS_PAIRING_CHECK -> INDEX_MAX_RSLT_PAIRING_CHECK + 1;
-                  case PRC_BLS_MAP_FP_TO_G1 -> INDEX_MAX_RSLT_MAP_FP_TO_G1 + 1;
-                  case PRC_BLS_MAP_FP2_TO_G2 -> INDEX_MAX_RSLT_MAP_FP2_TO_G2 + 1;
-                  default -> throw new IllegalStateException("Unexpected value: " + precompileFlag);
-                }
-                * 16);
+    this.successBit = successBit;
+    final int returnDataSize = returnData.toArray().length;
+    Preconditions.checkArgument(
+        returnDataSize == (successBit ? expectedReturnDataSize(precompileFlag) : 0));
+  }
+
+  private int expectedReturnDataSize(
+      final PrecompileScenarioFragment.PrecompileFlag precompileFlag) {
+    return switch (precompileFlag) {
+          case PRC_POINT_EVALUATION -> INDEX_MAX_RSLT_POINT_EVALUATION + 1;
+          case PRC_BLS_G1_ADD -> INDEX_MAX_RSLT_G1_ADD + 1;
+          case PRC_BLS_G1_MSM -> INDEX_MAX_RSLT_G1_MSM + 1;
+          case PRC_BLS_G2_ADD -> INDEX_MAX_RSLT_G2_ADD + 1;
+          case PRC_BLS_G2_MSM -> INDEX_MAX_RSLT_G2_MSM + 1;
+          case PRC_BLS_PAIRING_CHECK -> INDEX_MAX_RSLT_PAIRING_CHECK + 1;
+          case PRC_BLS_MAP_FP_TO_G1 -> INDEX_MAX_RSLT_MAP_FP_TO_G1 + 1;
+          case PRC_BLS_MAP_FP2_TO_G2 -> INDEX_MAX_RSLT_MAP_FP2_TO_G2 + 1;
+          default -> throw new IllegalStateException("Unexpected value: " + precompileFlag);
+        }
+        * 16;
   }
 
   public static BlsOperation of(
@@ -186,8 +197,10 @@ public class BlsOperation extends ModuleOperation {
       int id,
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       Bytes callData,
-      Bytes returnData) {
-    BlsOperation blsOperation = new BlsOperation(wcp, id, precompileFlag, callData, returnData);
+      Bytes returnData,
+      boolean successBit) {
+    BlsOperation blsOperation =
+        new BlsOperation(wcp, id, precompileFlag, callData, returnData, successBit);
     switch (precompileFlag) {
       case PRC_POINT_EVALUATION -> blsOperation.handlePointEvaluation();
       case PRC_BLS_G1_ADD -> blsOperation.handleBlsG1Add();
@@ -209,6 +222,9 @@ public class BlsOperation extends ModuleOperation {
     final Bytes com = callData.slice(3 * WORD_SIZE, 3 * LLARGE);
     final Bytes proof = callData.slice(3 * WORD_SIZE + 3 * LLARGE, 3 * LLARGE);
 
+    // TODO: we actually do not need a limb list, but we can fill the trace by directly taking (16
+    // bytes)
+    //  slices of callData and returnData (in case of exception, returnData should contain zeros)
     // Set input limb
     limb.set(0, verHash.hi());
     limb.set(1, verHash.lo());
@@ -240,7 +256,6 @@ public class BlsOperation extends ModuleOperation {
     EWord blsMod = EWord.ZERO;
 
     if (returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == 64);
       fieldsElPerBlob = EWord.of(returnData.slice(0, 32));
       blsMod = EWord.of(returnData.slice(32, 32));
     }

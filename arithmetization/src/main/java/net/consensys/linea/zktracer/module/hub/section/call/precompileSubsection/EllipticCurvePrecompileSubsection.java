@@ -112,6 +112,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
             MmuCall.callDataExtractionForEcmul(hub, this, successBitMmuCall);
         case PRC_ECPAIRING -> firstMmuCall =
             MmuCall.callDataExtractionForEcpairing(hub, this, successBitMmuCall);
+          // TODO: create a similar class for BLS precompiles or use the same class
         default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
       }
       firstImcFragment.callMmu(firstMmuCall);

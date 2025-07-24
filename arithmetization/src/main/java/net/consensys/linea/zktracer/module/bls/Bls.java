@@ -80,8 +80,9 @@ public class Bls implements OperationListModule<BlsOperation> {
       final int id,
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       final Bytes callData,
-      final Bytes returnData) {
-    blsOperation = BlsOperation.of(wcp, id, precompileFlag, callData, returnData);
+      final Bytes returnData,
+      final boolean successBit) {
+    blsOperation = BlsOperation.of(wcp, id, precompileFlag, callData, returnData, successBit);
     operations.add(blsOperation);
 
     // TODO: compute precompile limits

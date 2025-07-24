@@ -477,13 +477,15 @@ public abstract class Hub implements Module {
 
   @Override
   public void traceStartBlock(
-      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
+      WorldView world,
+      final ProcessableBlockHeader processableBlockHeader,
+      final Address miningBeneficiary) {
     state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
     blockStack.newBlock(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
-    traceSystemInitialTransaction(processableBlockHeader);
+    traceSystemInitialTransaction(world, processableBlockHeader);
     for (Module m : modules) {
-      m.traceStartBlock(processableBlockHeader, miningBeneficiary);
+      m.traceStartBlock(world, processableBlockHeader, miningBeneficiary);
     }
   }
 
@@ -1084,7 +1086,8 @@ public abstract class Hub implements Module {
 
   protected abstract void setMcopySection(Hub hub);
 
-  protected abstract void traceSystemInitialTransaction(ProcessableBlockHeader blockHeader);
+  protected abstract void traceSystemInitialTransaction(
+      WorldView world, ProcessableBlockHeader blockHeader);
 
   protected abstract void traceSystemFinalTransaction();
 }

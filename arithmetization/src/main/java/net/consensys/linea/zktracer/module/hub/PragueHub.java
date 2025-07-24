@@ -19,6 +19,7 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.PragueGasCalculator;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class PragueHub extends CancunHub {
@@ -32,9 +33,10 @@ public class PragueHub extends CancunHub {
   }
 
   @Override
-  protected void traceSystemInitialTransaction(ProcessableBlockHeader blockHeader) {
-    super.traceSystemInitialTransaction(blockHeader);
+  protected void traceSystemInitialTransaction(
+      WorldView world, ProcessableBlockHeader blockHeader) {
+    super.traceSystemInitialTransaction(world, blockHeader);
     state.incrementSysiTransactionNumber();
-    new EIP2935HistoricalHash(this, blockHeader);
+    new EIP2935HistoricalHash(this, world, blockHeader);
   }
 }

@@ -37,7 +37,9 @@ public interface Module {
   }
 
   default void traceStartBlock(
-      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {}
+      WorldView world,
+      final ProcessableBlockHeader processableBlockHeader,
+      final Address miningBeneficiary) {}
 
   default void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {}
 

@@ -129,11 +129,12 @@ public class CancunHub extends ShanghaiHub {
   }
 
   @Override
-  protected void traceSystemInitialTransaction(ProcessableBlockHeader blockHeader) {
+  protected void traceSystemInitialTransaction(
+      WorldView world, ProcessableBlockHeader blockHeader) {
     state.transactionProcessingType(SYSI);
     state.incrementSysiTransactionNumber();
     state.processingPhase(TX_SKIP);
-    new EIP4788BeaconBlockRoot(this, blockHeader);
+    new EIP4788BeaconBlockRoot(this, world, blockHeader);
   }
 
   @Override

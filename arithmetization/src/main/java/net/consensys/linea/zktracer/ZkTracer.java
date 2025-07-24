@@ -175,7 +175,7 @@ public class ZkTracer implements LineCountingTracer {
       final ProcessableBlockHeader processableBlockHeader,
       final Address miningBeneficiary) {
     try {
-      this.hub.traceStartBlock(processableBlockHeader, miningBeneficiary);
+      this.hub.traceStartBlock(world, processableBlockHeader, miningBeneficiary);
       this.debugMode.ifPresent(DebugMode::traceEndConflation);
     } catch (final Exception e) {
       this.tracingExceptions.add(e);
@@ -189,7 +189,7 @@ public class ZkTracer implements LineCountingTracer {
       final BlockBody blockBody,
       final Address miningBeneficiary) {
     try {
-      this.hub.traceStartBlock(blockHeader, miningBeneficiary);
+      this.hub.traceStartBlock(world, blockHeader, miningBeneficiary);
       this.debugMode.ifPresent(x -> x.traceStartBlock(blockHeader, blockBody, miningBeneficiary));
     } catch (final Exception e) {
       this.tracingExceptions.add(e);

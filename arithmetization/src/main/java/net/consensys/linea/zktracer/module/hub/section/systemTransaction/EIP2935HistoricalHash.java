@@ -32,7 +32,9 @@ import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
+import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class EIP2935HistoricalHash extends TraceSection {
@@ -46,7 +48,7 @@ public class EIP2935HistoricalHash extends TraceSection {
   final short previousBlockNumberModulo;
   final Bytes32 blockhash;
 
-  public EIP2935HistoricalHash(final Hub hub, ProcessableBlockHeader blockHeader) {
+  public EIP2935HistoricalHash(final Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, (short) 4);
     final boolean genesisBlock = blockHeader.getNumber() == 0;
     previousBlockNumberModulo =
@@ -70,12 +72,13 @@ public class EIP2935HistoricalHash extends TraceSection {
                 DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1));
     fragments().add(accountFragment);
 
+    final EWord key = EWord.of(previousBlockNumberModulo);
     final StorageFragment storingBlockhash =
         systemTransactionStoring(
             hub,
             HISTORY_STORAGE_ADDRESS,
-            EWord.of(previousBlockNumberModulo),
-            EWord.ZERO, // TODO: get it from the world state
+            key,
+            EWord.of(world.get(HISTORY_STORAGE_ADDRESS).getStorageValue(UInt256.fromBytes(key))),
             EWord.of(blockhash),
             2);
     fragments().add(storingBlockhash);

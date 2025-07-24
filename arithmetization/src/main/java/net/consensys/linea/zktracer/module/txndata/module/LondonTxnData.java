@@ -32,6 +32,7 @@ import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxndataOperat
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
@@ -48,7 +49,7 @@ public class LondonTxnData extends TxnData {
 
   @Override
   public final void traceStartBlock(
-      final ProcessableBlockHeader blockHeader, final Address miningBeneficiary) {
+      WorldView world, final ProcessableBlockHeader blockHeader, final Address miningBeneficiary) {
     blocks.add(new BlockSnapshot(blockHeader));
   }
 

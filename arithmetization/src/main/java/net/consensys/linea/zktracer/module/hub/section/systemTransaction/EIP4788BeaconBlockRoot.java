@@ -33,7 +33,9 @@ import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
+import org.apache.tuweni.units.bigints.UInt256;
 import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class EIP4788BeaconBlockRoot extends TraceSection {
@@ -47,7 +49,7 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
   final long timestamp;
   final Bytes32 beaconRoot;
 
-  public EIP4788BeaconBlockRoot(Hub hub, ProcessableBlockHeader blockHeader) {
+  public EIP4788BeaconBlockRoot(Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, (short) 5);
     timestamp = blockHeader.getTimestamp();
     beaconRoot =
@@ -71,22 +73,27 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
                 DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1));
     fragments().add(accountFragment);
 
+    final EWord keyTimestamp = EWord.of(timestamp % HISTORY_BUFFER_LENGTH);
     final StorageFragment storingTimestamp =
         systemTransactionStoring(
             hub,
             BEACONROOT_ADDRESS,
-            EWord.of(timestamp % HISTORY_BUFFER_LENGTH),
-            EWord.ZERO, // TODO: get it from the world state
+            keyTimestamp,
+            EWord.of(
+                world.get(BEACONROOT_ADDRESS).getStorageValue(UInt256.fromBytes(keyTimestamp))),
             EWord.of(timestamp),
             2);
     fragments().add(storingTimestamp);
 
+    final EWord keyBeaconRoot =
+        EWord.of((timestamp % HISTORY_BUFFER_LENGTH) + HISTORY_BUFFER_LENGTH);
     final StorageFragment storingBeaconroot =
         systemTransactionStoring(
             hub,
             BEACONROOT_ADDRESS,
-            EWord.of((timestamp % HISTORY_BUFFER_LENGTH) + HISTORY_BUFFER_LENGTH),
-            EWord.ZERO, // TODO: get it from the world state
+            keyBeaconRoot,
+            EWord.of(
+                world.get(BEACONROOT_ADDRESS).getStorageValue(UInt256.fromBytes(keyBeaconRoot))),
             EWord.of(beaconRoot),
             3);
     fragments().add(storingBeaconroot);

@@ -78,6 +78,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
@@ -110,6 +111,7 @@ public class BlsOperation extends ModuleOperation {
   private final int totalSizeData;
   private final int totalSizeResult;
   @Getter private final List<Bytes> limb;
+  private final boolean successBit;
 
   private final List<Boolean> mintBit;
   private final List<Boolean> mextBit;
@@ -161,6 +163,22 @@ public class BlsOperation extends ModuleOperation {
 
     // Set returnData
     this.returnData = returnData;
+
+    // Set successBit
+    this.successBit =
+        returnData.toArray().length
+            == (switch (precompileFlag) {
+                  case PRC_POINT_EVALUATION -> INDEX_MAX_RSLT_POINT_EVALUATION + 1;
+                  case PRC_BLS_G1_ADD -> INDEX_MAX_RSLT_G1_ADD + 1;
+                  case PRC_BLS_G1_MSM -> INDEX_MAX_RSLT_G1_MSM + 1;
+                  case PRC_BLS_G2_ADD -> INDEX_MAX_RSLT_G2_ADD + 1;
+                  case PRC_BLS_G2_MSM -> INDEX_MAX_RSLT_G2_MSM + 1;
+                  case PRC_BLS_PAIRING_CHECK -> INDEX_MAX_RSLT_PAIRING_CHECK + 1;
+                  case PRC_BLS_MAP_FP_TO_G1 -> INDEX_MAX_RSLT_MAP_FP_TO_G1 + 1;
+                  case PRC_BLS_MAP_FP2_TO_G2 -> INDEX_MAX_RSLT_MAP_FP2_TO_G2 + 1;
+                  default -> throw new IllegalStateException("Unexpected value: " + precompileFlag);
+                }
+                * 16);
   }
 
   public static BlsOperation of(
@@ -211,7 +229,7 @@ public class BlsOperation extends ModuleOperation {
 
     final boolean internalChecksPassed = zIsInRange && yIsInRange;
 
-    final boolean mextBit = internalChecksPassed && isPointEvaluationInputMext();
+    final boolean mextBit = internalChecksPassed && !successBit; // isPointEvaluationInputMext();
 
     for (int j = 0; j <= CT_MAX_POINT_EVALUATION; j++) {
       this.mintBit.set(j, !internalChecksPassed);
@@ -265,6 +283,8 @@ public class BlsOperation extends ModuleOperation {
       final boolean isSmallPointOnCurve =
           isSmallPointOnCurve(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean mextBit = wellFormedCoordinate && !isSmallPointOnCurve;
+      Preconditions.checkArgument(mextBit == wellFormedCoordinate && !successBit);
+
       for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBit);
       }
@@ -336,6 +356,8 @@ public class BlsOperation extends ModuleOperation {
       final boolean isSmallPointInSubgroup =
           isSmallPointInSubGroup(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean mextBit = wellFormedCoordinate && !isSmallPointInSubgroup;
+      Preconditions.checkArgument(mextBit == wellFormedCoordinate && !successBit);
+
       for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBit);
       }
@@ -456,6 +478,8 @@ public class BlsOperation extends ModuleOperation {
               aYRe1,
               aYRe0);
       final boolean mextBit = wellFormedCoordinate && !isLargePointOnCurve;
+      Preconditions.checkArgument(mextBit == wellFormedCoordinate && !successBit);
+
       for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBit);
       }
@@ -601,6 +625,8 @@ public class BlsOperation extends ModuleOperation {
               aYRe1,
               aYRe0);
       final boolean mextBit = wellFormedCoordinate && !isLargePointInSubgroup;
+      Preconditions.checkArgument(mextBit == wellFormedCoordinate && !successBit);
+
       for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBit);
       }
@@ -730,6 +756,8 @@ public class BlsOperation extends ModuleOperation {
       final boolean isSmallPointInSubgroup =
           isSmallPointInSubGroup(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean mextBitSmall = wellFormedFpCoordinate && !isSmallPointInSubgroup;
+      Preconditions.checkArgument(mextBitSmall == wellFormedFpCoordinate && !successBit);
+
       for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBitSmall);
       }
@@ -773,6 +801,8 @@ public class BlsOperation extends ModuleOperation {
               bYRe1,
               bYRe0);
       final boolean mextBitLarge = wellFormedFp2Coordinate && !isLargePointInSubgroup;
+      Preconditions.checkArgument(mextBitLarge == wellFormedFp2Coordinate && !successBit);
+
       for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
         this.mextBit.set(8 + indexOffset + j, mextBitLarge);
       }
@@ -940,9 +970,11 @@ public class BlsOperation extends ModuleOperation {
     limb.set(23, cYRe0);
   }
 
+  /*
   private boolean isPointEvaluationInputMext() {
     return false;
   }
+  */
 
   private boolean isSmallPointOnCurve(
       int i,
@@ -1277,7 +1309,8 @@ public class BlsOperation extends ModuleOperation {
         !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || !nonTrivialPairOfPointsTot);
     final boolean wnon =
         !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || nonTrivialPairOfPointsTot);
-    final boolean successBit = wtrv || wnon;
+    // TODO: we deduce this from the size of the return data
+    // final boolean successBit = wtrv || wnon;
 
     int ct = 0;
     boolean isFirstInput = true;

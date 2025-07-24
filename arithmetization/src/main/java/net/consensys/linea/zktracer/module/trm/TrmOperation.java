@@ -28,6 +28,7 @@ import java.util.List;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -58,7 +59,8 @@ public class TrmOperation extends ModuleOperation {
 
   void trace(Trace.Trm trace) {
     final Address trmAddress = rawAddress.toAddress();
-    final boolean isPrec = isPrecompile(trmAddress);
+    // TODO
+    final boolean isPrec = isPrecompile(Fork.CANCUN, trmAddress);
     final long trmAddrHi = trmAddress.slice(0, 4).toLong();
 
     for (int ct = 0; ct <= TRM_CT_MAX; ct++) {

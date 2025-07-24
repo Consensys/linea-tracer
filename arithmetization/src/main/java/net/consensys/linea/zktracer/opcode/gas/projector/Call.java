@@ -19,6 +19,7 @@ import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 
 import lombok.RequiredArgsConstructor;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.types.Range;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
@@ -74,7 +75,7 @@ public class Call extends GasProjection {
       return 0;
     }
 
-    if (isAddressWarm(frame, to)) {
+    if (isAddressWarm(Fork.CANCUN, frame, to)) {
       return GAS_CONST_G_WARM_ACCESS;
     } else {
       return GAS_CONST_G_COLD_ACCOUNT_ACCESS;

@@ -26,6 +26,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -158,7 +159,8 @@ public abstract class AccountFragment
         .pAccountDeploymentStatusNew(newState.deploymentStatus())
         .pAccountTrmFlag(addressToTrim.isPresent())
         .pAccountTrmRawAddressHi(addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
-        .pAccountIsPrecompile(isPrecompile(oldState.address()));
+        // TODO
+        .pAccountIsPrecompile(isPrecompile(Fork.CANCUN, oldState.address()));
     traceMarkedForSelfDestruct(trace);
     traceMarkedForDeletion(trace);
     traceHadCodeInitially(trace);

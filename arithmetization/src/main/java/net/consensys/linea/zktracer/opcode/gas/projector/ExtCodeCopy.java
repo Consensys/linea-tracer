@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.opcode.gas.projector;
 import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -54,7 +55,7 @@ public final class ExtCodeCopy extends GasProjection {
 
   @Override
   public long accountAccess() {
-    if (isAddressWarm(frame, target)) {
+    if (isAddressWarm(Fork.CANCUN, frame, target)) {
       return gc.getWarmStorageReadCost();
     } else {
       return gc.getColdAccountAccessCost();

@@ -67,12 +67,12 @@ public class TxSkipSection extends TraceSection implements EndTransactionDefer {
     senderAddress = txMetadata.getBesuTransaction().getSender();
     recipientAddress = txMetadata.getEffectiveRecipient();
 
-    sender = canonical(hub, world, senderAddress, isPrecompile(senderAddress));
-    recipient = canonical(hub, world, recipientAddress, isPrecompile(recipientAddress));
+    sender = canonical(hub, world, senderAddress, isPrecompile(hub.fork, senderAddress));
+    recipient = canonical(hub, world, recipientAddress, isPrecompile(hub.fork, recipientAddress));
 
     // arithmetization restriction
     checkArgument(
-        !isPrecompile(recipientAddress),
+        !isPrecompile(hub.fork, recipientAddress),
         "Arithmetization restriction: recipient address is a precompile.");
 
     // sanity check + EIP-3607
@@ -97,7 +97,8 @@ public class TxSkipSection extends TraceSection implements EndTransactionDefer {
   public void coinbaseSnapshots(Hub hub, MessageFrame frame) {
     coinbaseAddress = frame.getMiningBeneficiary();
     coinbase =
-        canonical(hub, frame.getWorldUpdater(), coinbaseAddress, isPrecompile(coinbaseAddress));
+        canonical(
+            hub, frame.getWorldUpdater(), coinbaseAddress, isPrecompile(hub.fork, coinbaseAddress));
     checkArgument(!hub.deploymentStatusOf(coinbaseAddress));
   }
 
@@ -109,9 +110,11 @@ public class TxSkipSection extends TraceSection implements EndTransactionDefer {
     checkArgument(txMetadata.statusCode(), "meta data suggests an unsuccessful TX_SKIP");
 
     // may have to be modified in case of address collision
-    senderNew = canonical(hub, world, sender.address(), isPrecompile(sender.address()));
-    recipientNew = canonical(hub, world, recipient.address(), isPrecompile(recipient.address()));
-    coinbaseNew = canonical(hub, world, coinbase.address(), isPrecompile(coinbase.address()));
+    senderNew = canonical(hub, world, sender.address(), isPrecompile(hub.fork, sender.address()));
+    recipientNew =
+        canonical(hub, world, recipient.address(), isPrecompile(hub.fork, recipient.address()));
+    coinbaseNew =
+        canonical(hub, world, coinbase.address(), isPrecompile(hub.fork, coinbase.address()));
 
     final Wei value = (Wei) txMetadata.getBesuTransaction().getValue();
 

@@ -30,9 +30,9 @@ public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCal
     super(hub);
     computeExtraGasCost();
     // if state has changed, an extra gas cost is incurred
-    if (isStateUpdate) {
-      setGasMpxFromExtraGasCost();
-    }
+    // if (isStateUpdate) {
+    setGasMpxFromExtraGasCost();
+    // }
   }
 
   @Override

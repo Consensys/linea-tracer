@@ -110,7 +110,6 @@ public class BlsOperation extends ModuleOperation {
   @Getter private final long id;
   private final int totalSizeData;
   private final int totalSizeResult;
-  @Getter private final List<Bytes> limb;
   private final boolean successBit;
 
   private final List<Boolean> mintBit;
@@ -136,8 +135,8 @@ public class BlsOperation extends ModuleOperation {
       boolean successBit) {
     checkArgument(precompileFlag.isBlsPrecompile(), "invalid BLS type");
 
-    // TODO: whenever we do not need an additional list, such as in the case of limb, do not use it
-    // (e.g., mintBit, mextBit)
+    // TODO: whenever we do not need an additional list do not use it
+    //  (e.g., mintBit, mextBit)
     // TODO: LibGnarkEIP2537.eip2537blsG1Add();
 
     this.precompileFlag = precompileFlag;
@@ -150,7 +149,6 @@ public class BlsOperation extends ModuleOperation {
     nRows = nRowsData + nRowsResult;
     this.id = id;
 
-    limb = repeat(Bytes.EMPTY, nRows);
     mintBit = repeat(false, nRows);
     mextBit = repeat(false, nRows);
     isInfinity = repeat(false, nRows);
@@ -216,28 +214,8 @@ public class BlsOperation extends ModuleOperation {
 
   private void handlePointEvaluation() {
     // Extract inputs
-    final EWord verHash = EWord.of(callData.slice(0, WORD_SIZE));
     final EWord z = EWord.of(callData.slice(WORD_SIZE, WORD_SIZE));
     final EWord y = EWord.of(callData.slice(2 * WORD_SIZE, WORD_SIZE));
-    final Bytes com = callData.slice(3 * WORD_SIZE, 3 * LLARGE);
-    final Bytes proof = callData.slice(3 * WORD_SIZE + 3 * LLARGE, 3 * LLARGE);
-
-    // TODO: we actually do not need a limb list, but we can fill the trace by directly taking (16
-    // bytes)
-    //  slices of callData and returnData (in case of exception, returnData should contain zeros)
-    // Set input limb
-    limb.set(0, verHash.hi());
-    limb.set(1, verHash.lo());
-    limb.set(2, z.hi());
-    limb.set(3, z.lo());
-    limb.set(4, y.hi());
-    limb.set(5, y.lo());
-    limb.set(6, com.slice(0, LLARGE));
-    limb.set(7, com.slice(LLARGE, LLARGE));
-    limb.set(8, com.slice(2 * LLARGE, LLARGE));
-    limb.set(9, proof.slice(0, LLARGE));
-    limb.set(10, proof.slice(LLARGE, LLARGE));
-    limb.set(11, proof.slice(2 * LLARGE, LLARGE));
 
     final boolean zIsInRange = wcpCallToLT(0, z, POINT_EVALUATION_PRIME);
 
@@ -245,26 +223,12 @@ public class BlsOperation extends ModuleOperation {
 
     final boolean internalChecksPassed = zIsInRange && yIsInRange;
 
-    final boolean mextBit = internalChecksPassed && !successBit; // isPointEvaluationInputMext();
+    final boolean mextBit = internalChecksPassed && !successBit;
 
     for (int j = 0; j <= CT_MAX_POINT_EVALUATION; j++) {
       this.mintBit.set(j, !internalChecksPassed);
       this.mextBit.set(j, mextBit);
     }
-
-    EWord fieldsElPerBlob = EWord.ZERO;
-    EWord blsMod = EWord.ZERO;
-
-    if (returnData.toArray().length != 0) {
-      fieldsElPerBlob = EWord.of(returnData.slice(0, 32));
-      blsMod = EWord.of(returnData.slice(32, 32));
-    }
-
-    // Set result limb
-    limb.set(12, fieldsElPerBlob.hi());
-    limb.set(13, fieldsElPerBlob.lo());
-    limb.set(14, blsMod.hi());
-    limb.set(15, blsMod.lo());
   }
 
   // TODO: check if mextBit needs to be set to true only for the first malformed point, if any
@@ -283,16 +247,6 @@ public class BlsOperation extends ModuleOperation {
       final Bytes aY1 = callData.slice(6 * LLARGE + sizeOffset, LLARGE);
       final Bytes aY0 = callData.slice(7 * LLARGE + sizeOffset, LLARGE);
 
-      // Set input limb
-      limb.set(indexOffset, aX3);
-      limb.set(1 + indexOffset, aX2);
-      limb.set(2 + indexOffset, aX1);
-      limb.set(3 + indexOffset, aX0);
-      limb.set(4 + indexOffset, aY3);
-      limb.set(5 + indexOffset, aY2);
-      limb.set(6 + indexOffset, aY1);
-      limb.set(7 + indexOffset, aY0);
-
       final boolean wellFormedCoordinate =
           wellFormedFpCoordinate(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean isSmallPointOnCurve =
@@ -304,37 +258,6 @@ public class BlsOperation extends ModuleOperation {
         this.mextBit.set(indexOffset + j, mextBit);
       }
     }
-
-    Bytes cX3 = ZERO;
-    Bytes cX2 = ZERO;
-    Bytes cX1 = ZERO;
-    Bytes cX0 = ZERO;
-    Bytes cY3 = ZERO;
-    Bytes cY2 = ZERO;
-    Bytes cY1 = ZERO;
-    Bytes cY0 = ZERO;
-
-    if (returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == SIZE_SMALL_POINT);
-      cX3 = returnData.slice(0, LLARGE);
-      cX2 = returnData.slice(LLARGE, LLARGE);
-      cX1 = returnData.slice(2 * LLARGE, LLARGE);
-      cX0 = returnData.slice(3 * LLARGE, LLARGE);
-      cY3 = returnData.slice(4 * LLARGE, LLARGE);
-      cY2 = returnData.slice(5 * LLARGE, LLARGE);
-      cY1 = returnData.slice(6 * LLARGE, LLARGE);
-      cY0 = returnData.slice(7 * LLARGE, LLARGE);
-    }
-
-    // Set result limb
-    limb.set(16, cX3);
-    limb.set(17, cX2);
-    limb.set(18, cX1);
-    limb.set(19, cX0);
-    limb.set(20, cY3);
-    limb.set(21, cY2);
-    limb.set(22, cY1);
-    limb.set(23, cY0);
   }
 
   private void handleBlsG1Msm() {
@@ -352,19 +275,6 @@ public class BlsOperation extends ModuleOperation {
       final Bytes aY2 = callData.slice(5 * LLARGE + sizeOffset, LLARGE);
       final Bytes aY1 = callData.slice(6 * LLARGE + sizeOffset, LLARGE);
       final Bytes aY0 = callData.slice(7 * LLARGE + sizeOffset, LLARGE);
-      final EWord n = EWord.of(callData.slice(8 * LLARGE + sizeOffset, WORD_SIZE));
-
-      // Set input limb
-      limb.set(indexOffset, aX3);
-      limb.set(1 + indexOffset, aX2);
-      limb.set(2 + indexOffset, aX1);
-      limb.set(3 + indexOffset, aX0);
-      limb.set(4 + indexOffset, aY3);
-      limb.set(5 + indexOffset, aY2);
-      limb.set(6 + indexOffset, aY1);
-      limb.set(7 + indexOffset, aY0);
-      limb.set(8 + indexOffset, n.hi());
-      limb.set(9 + indexOffset, n.lo());
 
       final boolean wellFormedCoordinate =
           wellFormedFpCoordinate(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
@@ -377,40 +287,6 @@ public class BlsOperation extends ModuleOperation {
         this.mextBit.set(indexOffset + j, mextBit);
       }
     }
-
-    Bytes cX3 = ZERO;
-    Bytes cX2 = ZERO;
-    Bytes cX1 = ZERO;
-    Bytes cX0 = ZERO;
-    Bytes cY3 = ZERO;
-    Bytes cY2 = ZERO;
-    Bytes cY1 = ZERO;
-    Bytes cY0 = ZERO;
-
-    if (returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == SIZE_SMALL_POINT);
-      cX3 = returnData.slice(0, LLARGE);
-      cX2 = returnData.slice(LLARGE, LLARGE);
-      cX1 = returnData.slice(2 * LLARGE, LLARGE);
-      cX0 = returnData.slice(3 * LLARGE, LLARGE);
-      cY3 = returnData.slice(4 * LLARGE, LLARGE);
-      cY2 = returnData.slice(5 * LLARGE, LLARGE);
-      cY1 = returnData.slice(6 * LLARGE, LLARGE);
-      cY0 = returnData.slice(7 * LLARGE, LLARGE);
-    }
-
-    final int indexOffsetResultMax =
-        (numberOfInputs - 1) * (CT_MAX_SMALL_POINT + 1 + CT_MAX_SCALAR + 1);
-
-    // Set result limb
-    limb.set(10 + indexOffsetResultMax, cX3);
-    limb.set(11 + indexOffsetResultMax, cX2);
-    limb.set(12 + indexOffsetResultMax, cX1);
-    limb.set(13 + indexOffsetResultMax, cX0);
-    limb.set(14 + indexOffsetResultMax, cY3);
-    limb.set(15 + indexOffsetResultMax, cY2);
-    limb.set(16 + indexOffsetResultMax, cY1);
-    limb.set(17 + indexOffsetResultMax, cY0);
   }
 
   private void handleBlsG2Add() {
@@ -435,24 +311,6 @@ public class BlsOperation extends ModuleOperation {
       final Bytes aYRe2 = callData.slice(13 * LLARGE + sizeOffset, LLARGE);
       final Bytes aYRe1 = callData.slice(14 * LLARGE + sizeOffset, LLARGE);
       final Bytes aYRe0 = callData.slice(15 * LLARGE + sizeOffset, LLARGE);
-
-      // Set input limb
-      limb.set(indexOffset, aXIm3);
-      limb.set(1 + indexOffset, aXIm2);
-      limb.set(2 + indexOffset, aXIm1);
-      limb.set(3 + indexOffset, aXIm0);
-      limb.set(4 + indexOffset, aXRe3);
-      limb.set(5 + indexOffset, aXRe2);
-      limb.set(6 + indexOffset, aXRe1);
-      limb.set(7 + indexOffset, aXRe0);
-      limb.set(8 + indexOffset, aYIm3);
-      limb.set(9 + indexOffset, aYIm2);
-      limb.set(10 + indexOffset, aYIm1);
-      limb.set(11 + indexOffset, aYIm0);
-      limb.set(12 + indexOffset, aYRe3);
-      limb.set(13 + indexOffset, aYRe2);
-      limb.set(14 + indexOffset, aYRe1);
-      limb.set(15 + indexOffset, aYRe0);
 
       final boolean wellFormedCoordinate =
           wellFormedFp2Coordinate(
@@ -499,61 +357,6 @@ public class BlsOperation extends ModuleOperation {
         this.mextBit.set(indexOffset + j, mextBit);
       }
     }
-
-    Bytes cXIm3 = ZERO;
-    Bytes cXIm2 = ZERO;
-    Bytes cXIm1 = ZERO;
-    Bytes cXIm0 = ZERO;
-    Bytes cXRe3 = ZERO;
-    Bytes cXRe2 = ZERO;
-    Bytes cXRe1 = ZERO;
-    Bytes cXRe0 = ZERO;
-    Bytes cYIm3 = ZERO;
-    Bytes cYIm2 = ZERO;
-    Bytes cYIm1 = ZERO;
-    Bytes cYIm0 = ZERO;
-    Bytes cYRe3 = ZERO;
-    Bytes cYRe2 = ZERO;
-    Bytes cYRe1 = ZERO;
-    Bytes cYRe0 = ZERO;
-
-    if (returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == SIZE_LARGE_POINT);
-      cXIm3 = returnData.slice(0, LLARGE);
-      cXIm2 = returnData.slice(LLARGE, LLARGE);
-      cXIm1 = returnData.slice(2 * LLARGE, LLARGE);
-      cXIm0 = returnData.slice(3 * LLARGE, LLARGE);
-      cXRe3 = returnData.slice(4 * LLARGE, LLARGE);
-      cXRe2 = returnData.slice(5 * LLARGE, LLARGE);
-      cXRe1 = returnData.slice(6 * LLARGE, LLARGE);
-      cXRe0 = returnData.slice(7 * LLARGE, LLARGE);
-      cYIm3 = returnData.slice(8 * LLARGE, LLARGE);
-      cYIm2 = returnData.slice(9 * LLARGE, LLARGE);
-      cYIm1 = returnData.slice(10 * LLARGE, LLARGE);
-      cYIm0 = returnData.slice(11 * LLARGE, LLARGE);
-      cYRe3 = returnData.slice(12 * LLARGE, LLARGE);
-      cYRe2 = returnData.slice(13 * LLARGE, LLARGE);
-      cYRe1 = returnData.slice(14 * LLARGE, LLARGE);
-      cYRe0 = returnData.slice(15 * LLARGE, LLARGE);
-    }
-
-    // Set result limb
-    limb.set(32, cXIm3);
-    limb.set(33, cXIm2);
-    limb.set(34, cXIm1);
-    limb.set(35, cXIm0);
-    limb.set(36, cXRe3);
-    limb.set(37, cXRe2);
-    limb.set(38, cXRe1);
-    limb.set(39, cXRe0);
-    limb.set(40, cYIm3);
-    limb.set(41, cYIm2);
-    limb.set(42, cYIm1);
-    limb.set(43, cYIm0);
-    limb.set(44, cYRe3);
-    limb.set(45, cYRe2);
-    limb.set(46, cYRe1);
-    limb.set(47, cYRe0);
   }
 
   private void handleBlsG2Msm() {
@@ -579,27 +382,6 @@ public class BlsOperation extends ModuleOperation {
       final Bytes aYRe2 = callData.slice(13 * LLARGE + sizeOffset, LLARGE);
       final Bytes aYRe1 = callData.slice(14 * LLARGE + sizeOffset, LLARGE);
       final Bytes aYRe0 = callData.slice(15 * LLARGE + sizeOffset, LLARGE);
-      final EWord n = EWord.of(callData.slice(16 * LLARGE + sizeOffset, WORD_SIZE));
-
-      // Set input limb
-      limb.set(indexOffset, aXIm3);
-      limb.set(1 + indexOffset, aXIm2);
-      limb.set(2 + indexOffset, aXIm1);
-      limb.set(3 + indexOffset, aXIm0);
-      limb.set(4 + indexOffset, aXRe3);
-      limb.set(5 + indexOffset, aXRe2);
-      limb.set(6 + indexOffset, aXRe1);
-      limb.set(7 + indexOffset, aXRe0);
-      limb.set(8 + indexOffset, aYIm3);
-      limb.set(9 + indexOffset, aYIm2);
-      limb.set(10 + indexOffset, aYIm1);
-      limb.set(11 + indexOffset, aYIm0);
-      limb.set(12 + indexOffset, aYRe3);
-      limb.set(13 + indexOffset, aYRe2);
-      limb.set(14 + indexOffset, aYRe1);
-      limb.set(15 + indexOffset, aYRe0);
-      limb.set(16 + indexOffset, n.hi());
-      limb.set(17 + indexOffset, n.lo());
 
       final boolean wellFormedCoordinate =
           wellFormedFp2Coordinate(
@@ -646,64 +428,6 @@ public class BlsOperation extends ModuleOperation {
         this.mextBit.set(indexOffset + j, mextBit);
       }
     }
-
-    Bytes cXIm3 = ZERO;
-    Bytes cXIm2 = ZERO;
-    Bytes cXIm1 = ZERO;
-    Bytes cXIm0 = ZERO;
-    Bytes cXRe3 = ZERO;
-    Bytes cXRe2 = ZERO;
-    Bytes cXRe1 = ZERO;
-    Bytes cXRe0 = ZERO;
-    Bytes cYIm3 = ZERO;
-    Bytes cYIm2 = ZERO;
-    Bytes cYIm1 = ZERO;
-    Bytes cYIm0 = ZERO;
-    Bytes cYRe3 = ZERO;
-    Bytes cYRe2 = ZERO;
-    Bytes cYRe1 = ZERO;
-    Bytes cYRe0 = ZERO;
-
-    if (returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == SIZE_LARGE_POINT);
-      cXIm3 = returnData.slice(0, LLARGE);
-      cXIm2 = returnData.slice(LLARGE, LLARGE);
-      cXIm1 = returnData.slice(2 * LLARGE, LLARGE);
-      cXIm0 = returnData.slice(3 * LLARGE, LLARGE);
-      cXRe3 = returnData.slice(4 * LLARGE, LLARGE);
-      cXRe2 = returnData.slice(5 * LLARGE, LLARGE);
-      cXRe1 = returnData.slice(6 * LLARGE, LLARGE);
-      cXRe0 = returnData.slice(7 * LLARGE, LLARGE);
-      cYIm3 = returnData.slice(8 * LLARGE, LLARGE);
-      cYIm2 = returnData.slice(9 * LLARGE, LLARGE);
-      cYIm1 = returnData.slice(10 * LLARGE, LLARGE);
-      cYIm0 = returnData.slice(11 * LLARGE, LLARGE);
-      cYRe3 = returnData.slice(12 * LLARGE, LLARGE);
-      cYRe2 = returnData.slice(13 * LLARGE, LLARGE);
-      cYRe1 = returnData.slice(14 * LLARGE, LLARGE);
-      cYRe0 = returnData.slice(15 * LLARGE, LLARGE);
-    }
-
-    final int indexOffsetResultMax =
-        (numberOfInputs - 1) * (CT_MAX_LARGE_POINT + 1 + CT_MAX_SCALAR + 1);
-
-    // Set result limb
-    limb.set(18 + indexOffsetResultMax, cXIm3);
-    limb.set(19 + indexOffsetResultMax, cXIm2);
-    limb.set(20 + indexOffsetResultMax, cXIm1);
-    limb.set(21 + indexOffsetResultMax, cXIm0);
-    limb.set(22 + indexOffsetResultMax, cXRe3);
-    limb.set(23 + indexOffsetResultMax, cXRe2);
-    limb.set(24 + indexOffsetResultMax, cXRe1);
-    limb.set(25 + indexOffsetResultMax, cXRe0);
-    limb.set(26 + indexOffsetResultMax, cYIm3);
-    limb.set(27 + indexOffsetResultMax, cYIm2);
-    limb.set(28 + indexOffsetResultMax, cYIm1);
-    limb.set(29 + indexOffsetResultMax, cYIm0);
-    limb.set(30 + indexOffsetResultMax, cYRe3);
-    limb.set(31 + indexOffsetResultMax, cYRe2);
-    limb.set(32 + indexOffsetResultMax, cYRe1);
-    limb.set(33 + indexOffsetResultMax, cYRe0);
   }
 
   private void handleBlsPairingCheck() {
@@ -739,32 +463,6 @@ public class BlsOperation extends ModuleOperation {
       final Bytes bYRe2 = callData.slice(21 * LLARGE + sizeOffset, LLARGE);
       final Bytes bYRe1 = callData.slice(22 * LLARGE + sizeOffset, LLARGE);
       final Bytes bYRe0 = callData.slice(23 * LLARGE + sizeOffset, LLARGE);
-
-      // Set input limb
-      limb.set(indexOffset, aX3);
-      limb.set(1 + indexOffset, aX2);
-      limb.set(2 + indexOffset, aX1);
-      limb.set(3 + indexOffset, aX0);
-      limb.set(4 + indexOffset, aY3);
-      limb.set(5 + indexOffset, aY2);
-      limb.set(6 + indexOffset, aY1);
-      limb.set(7 + indexOffset, aY0);
-      limb.set(8 + indexOffset, bXIm3);
-      limb.set(9 + indexOffset, bXIm2);
-      limb.set(10 + indexOffset, bXIm1);
-      limb.set(11 + indexOffset, bXIm0);
-      limb.set(12 + indexOffset, bXRe3);
-      limb.set(13 + indexOffset, bXRe2);
-      limb.set(14 + indexOffset, bXRe1);
-      limb.set(15 + indexOffset, bXRe0);
-      limb.set(16 + indexOffset, bYIm3);
-      limb.set(17 + indexOffset, bYIm2);
-      limb.set(18 + indexOffset, bYIm1);
-      limb.set(19 + indexOffset, bYIm0);
-      limb.set(20 + indexOffset, bYRe3);
-      limb.set(21 + indexOffset, bYRe2);
-      limb.set(22 + indexOffset, bYRe1);
-      limb.set(23 + indexOffset, bYRe0);
 
       final boolean wellFormedFpCoordinate =
           wellFormedFpCoordinate(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
@@ -829,20 +527,6 @@ public class BlsOperation extends ModuleOperation {
         this.nontrivialPairOfPointsBit.set(j, pairOfPointsNonTrivialBit);
       }
     }
-
-    EWord pairingResult = EWord.ZERO;
-
-    if (returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == WORD_SIZE);
-      pairingResult = EWord.of(returnData.slice(0, WORD_SIZE));
-    }
-
-    final int indexOffsetResultMax =
-        (numberOfInputs - 1) * (CT_MAX_SMALL_POINT + 1 + CT_MAX_LARGE_POINT + 1);
-
-    // Set result limb
-    limb.set(24 + indexOffsetResultMax, pairingResult.hi());
-    limb.set(25 + indexOffsetResultMax, pairingResult.lo());
   }
 
   private void handleBlsMapFpToG1() {
@@ -852,12 +536,6 @@ public class BlsOperation extends ModuleOperation {
     final Bytes e1 = callData.slice(2 * LLARGE, LLARGE);
     final Bytes e0 = callData.slice(3 * LLARGE, LLARGE);
 
-    // Set input limb
-    limb.set(0, e3);
-    limb.set(1, e2);
-    limb.set(2, e1);
-    limb.set(3, e0);
-
     final boolean eIsInRange = callToLTBlsPrime(0, e3, e2, e1, e0);
 
     final boolean internalChecksPassed = eIsInRange;
@@ -865,37 +543,6 @@ public class BlsOperation extends ModuleOperation {
     for (int j = 0; j <= CT_MAX_MAP_FP_TO_G1; j++) {
       this.mintBit.set(j, !internalChecksPassed);
     }
-
-    Bytes cX3 = ZERO;
-    Bytes cX2 = ZERO;
-    Bytes cX1 = ZERO;
-    Bytes cX0 = ZERO;
-    Bytes cY3 = ZERO;
-    Bytes cY2 = ZERO;
-    Bytes cY1 = ZERO;
-    Bytes cY0 = ZERO;
-
-    if (returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == SIZE_SMALL_POINT);
-      cX3 = returnData.slice(0, LLARGE);
-      cX2 = returnData.slice(LLARGE, LLARGE);
-      cX1 = returnData.slice(2 * LLARGE, LLARGE);
-      cX0 = returnData.slice(3 * LLARGE, LLARGE);
-      cY3 = returnData.slice(4 * LLARGE, LLARGE);
-      cY2 = returnData.slice(5 * LLARGE, LLARGE);
-      cY1 = returnData.slice(6 * LLARGE, LLARGE);
-      cY0 = returnData.slice(7 * LLARGE, LLARGE);
-    }
-
-    // Set result limb
-    limb.set(4, cX3);
-    limb.set(5, cX2);
-    limb.set(6, cX1);
-    limb.set(7, cX0);
-    limb.set(8, cY3);
-    limb.set(9, cY2);
-    limb.set(10, cY1);
-    limb.set(11, cY0);
   }
 
   private void handleBlsMapFp2ToG2() {
@@ -909,16 +556,6 @@ public class BlsOperation extends ModuleOperation {
     final Bytes eRe1 = callData.slice(6 * LLARGE, LLARGE);
     final Bytes eRe0 = callData.slice(7 * LLARGE, LLARGE);
 
-    // Set input limb
-    limb.set(0, eIm3);
-    limb.set(1, eIm2);
-    limb.set(2, eIm1);
-    limb.set(3, eIm0);
-    limb.set(4, eRe3);
-    limb.set(5, eRe2);
-    limb.set(6, eRe1);
-    limb.set(7, eRe0);
-
     final boolean eImIsInRange = callToLTBlsPrime(0, eIm3, eIm2, eIm1, eIm0);
 
     final boolean eReIsInRange = callToLTBlsPrime(4, eRe3, eRe2, eRe1, eRe0);
@@ -928,68 +565,7 @@ public class BlsOperation extends ModuleOperation {
     for (int j = 0; j <= CT_MAX_MAP_FP2_TO_G2; j++) {
       this.mintBit.set(j, !internalChecksPassed);
     }
-
-    Bytes cXIm3 = ZERO;
-    Bytes cXIm2 = ZERO;
-    Bytes cXIm1 = ZERO;
-    Bytes cXIm0 = ZERO;
-    Bytes cXRe3 = ZERO;
-    Bytes cXRe2 = ZERO;
-    Bytes cXRe1 = ZERO;
-    Bytes cXRe0 = ZERO;
-    Bytes cYIm3 = ZERO;
-    Bytes cYIm2 = ZERO;
-    Bytes cYIm1 = ZERO;
-    Bytes cYIm0 = ZERO;
-    Bytes cYRe3 = ZERO;
-    Bytes cYRe2 = ZERO;
-    Bytes cYRe1 = ZERO;
-    Bytes cYRe0 = ZERO;
-
-    if (returnData.toArray().length != 0) {
-      checkArgument(returnData.toArray().length == SIZE_LARGE_POINT);
-      cXIm3 = returnData.slice(0, LLARGE);
-      cXIm2 = returnData.slice(LLARGE, LLARGE);
-      cXIm1 = returnData.slice(2 * LLARGE, LLARGE);
-      cXIm0 = returnData.slice(3 * LLARGE, LLARGE);
-      cXRe3 = returnData.slice(4 * LLARGE, LLARGE);
-      cXRe2 = returnData.slice(5 * LLARGE, LLARGE);
-      cXRe1 = returnData.slice(6 * LLARGE, LLARGE);
-      cXRe0 = returnData.slice(7 * LLARGE, LLARGE);
-      cYIm3 = returnData.slice(8 * LLARGE, LLARGE);
-      cYIm2 = returnData.slice(9 * LLARGE, LLARGE);
-      cYIm1 = returnData.slice(10 * LLARGE, LLARGE);
-      cYIm0 = returnData.slice(11 * LLARGE, LLARGE);
-      cYRe3 = returnData.slice(12 * LLARGE, LLARGE);
-      cYRe2 = returnData.slice(13 * LLARGE, LLARGE);
-      cYRe1 = returnData.slice(14 * LLARGE, LLARGE);
-      cYRe0 = returnData.slice(15 * LLARGE, LLARGE);
-    }
-
-    // Set result limb
-    limb.set(8, cXIm3);
-    limb.set(9, cXIm2);
-    limb.set(10, cXIm1);
-    limb.set(11, cXIm0);
-    limb.set(12, cXRe3);
-    limb.set(13, cXRe2);
-    limb.set(14, cXRe1);
-    limb.set(15, cXRe0);
-    limb.set(16, cYIm3);
-    limb.set(17, cYIm2);
-    limb.set(18, cYIm1);
-    limb.set(19, cYIm0);
-    limb.set(20, cYRe3);
-    limb.set(21, cYRe2);
-    limb.set(22, cYRe1);
-    limb.set(23, cYRe0);
   }
-
-  /*
-  private boolean isPointEvaluationInputMext() {
-    return false;
-  }
-  */
 
   private boolean isSmallPointOnCurve(
       int i,
@@ -1313,6 +889,9 @@ public class BlsOperation extends ModuleOperation {
   }
 
   void trace(Trace.Bls trace, final int stamp, final long previousId) {
+    final Bytes limb = Bytes.concatenate(callData, returnData);
+    final boolean returnDataIsNonEmpty = returnData.toArray().length > 0;
+
     final Bytes deltaByte =
         leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
 
@@ -1366,7 +945,7 @@ public class BlsOperation extends ModuleOperation {
           .index(isData ? i : i - nRowsData)
           .indexMax(indexMax)
           .phase(getPhase(precompileFlag, isData))
-          .limb(limb.get(i))
+          .limb(isData || returnDataIsNonEmpty ? limb.slice(i, LLARGE) : ZERO)
           .successBit(successBit)
           .ct(ct)
           .ctMax(ctMax)

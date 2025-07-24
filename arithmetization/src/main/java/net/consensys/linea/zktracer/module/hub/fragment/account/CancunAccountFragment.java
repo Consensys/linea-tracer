@@ -17,8 +17,11 @@ package net.consensys.linea.zktracer.module.hub.fragment.account;
 
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.isUserTransaction;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+
 import java.util.Optional;
 
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -72,5 +75,10 @@ public class CancunAccountFragment extends LondonAccountFragment {
         isUserTransaction(txType)
             ? tx.hadCodeInitiallyMap().get(oldState().address()).hadCode()
             : true);
+  }
+
+  @Override
+  void traceIsPrecompile(Trace.Hub trace) {
+    trace.pAccountIsPrecompile(isPrecompile(Fork.CANCUN, oldState().address()));
   }
 }

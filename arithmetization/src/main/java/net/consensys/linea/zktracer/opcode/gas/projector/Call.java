@@ -30,6 +30,7 @@ import org.hyperledger.besu.evm.internal.Words;
 
 @RequiredArgsConstructor
 public class Call extends GasProjection {
+  final Fork fork;
   final GasCalculator gc;
   private final MessageFrame frame;
   private final long stipend;
@@ -40,7 +41,7 @@ public class Call extends GasProjection {
   private final Address to;
 
   public static Call invalid() {
-    return new Call(null, null, 0, Range.empty(), Range.empty(), Wei.ZERO, null, null);
+    return new Call(null, null, null, 0, Range.empty(), Range.empty(), Wei.ZERO, null, null);
   }
 
   boolean isInvalid() {
@@ -75,7 +76,7 @@ public class Call extends GasProjection {
       return 0;
     }
 
-    if (isAddressWarm(Fork.CANCUN, frame, to)) {
+    if (isAddressWarm(fork, frame, to)) {
       return GAS_CONST_G_WARM_ACCESS;
     } else {
       return GAS_CONST_G_COLD_ACCOUNT_ACCESS;

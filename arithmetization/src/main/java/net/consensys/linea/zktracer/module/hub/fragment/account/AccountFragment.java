@@ -187,6 +187,7 @@ public abstract class AccountFragment
     traceMarkedForSelfDestruct(trace);
     traceMarkedForDeletion(trace);
     traceHadCodeInitially(trace);
+    traceIsPrecompile(trace);
 
     return trace;
   }
@@ -198,6 +199,8 @@ public abstract class AccountFragment
   abstract void traceMarkedForSelfDestruct(Trace.Hub trace);
 
   abstract boolean shouldBeMarkedForDeletion();
+
+  abstract void traceIsPrecompile(Trace.Hub trace);
 
   @Override
   public void resolveAtEndTransaction(

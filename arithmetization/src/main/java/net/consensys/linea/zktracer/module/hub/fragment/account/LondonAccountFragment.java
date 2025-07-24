@@ -15,8 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
+import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+
 import java.util.Optional;
 
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -58,5 +61,10 @@ public class LondonAccountFragment extends AccountFragment {
   @Override
   void traceHadCodeInitially(Trace.Hub trace) {
     // This column appears in Cancun
+  }
+
+  @Override
+  void traceIsPrecompile(Trace.Hub trace) {
+    trace.pAccountIsPrecompile(isPrecompile(Fork.LONDON, oldState().address()));
   }
 }

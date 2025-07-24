@@ -149,7 +149,7 @@ public abstract class Hub implements Module {
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public final GasCalculator gasCalculator = setGasCalculator();
 
-  public final GasProjector gasProjector = new GasProjector(gasCalculator);
+  public final GasProjector gasProjector = new GasProjector(this, gasCalculator);
 
   /** accumulate the trace information for the Hub */
   @Getter public final State state = new State();

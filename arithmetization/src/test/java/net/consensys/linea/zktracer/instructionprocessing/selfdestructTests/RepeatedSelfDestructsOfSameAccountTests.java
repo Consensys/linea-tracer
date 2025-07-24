@@ -341,6 +341,5 @@ public class RepeatedSelfDestructsOfSameAccountTests extends TracerTestBase {
         .transaction(transaction)
         .build()
         .run();
-    // run(testInfo, heir);
   }
 }

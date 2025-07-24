@@ -20,14 +20,14 @@ import static net.consensys.linea.zktracer.module.bls.BlsUtils.BETA;
 import static net.consensys.linea.zktracer.module.bls.BlsUtils.SEED;
 
 public class SmallPoint extends Point<Fp, SmallPoint> {
+  static final SmallPoint POINT_AT_INFINITY = new SmallPoint(new Fp("0"), new Fp("0"));
+  static final Fp ZERO = new Fp("0");
+  static final Fp TWO = new Fp("2");
+  static final Fp THREE = new Fp("3");
 
   SmallPoint(Fp x, Fp y) {
     this.x = x;
     this.y = y;
-    POINT_AT_INFINITY = new SmallPoint(new Fp("0"), new Fp("0"));
-    ZERO = new Fp("0");
-    TWO = new Fp("2");
-    THREE = new Fp("3");
   }
 
   @Override

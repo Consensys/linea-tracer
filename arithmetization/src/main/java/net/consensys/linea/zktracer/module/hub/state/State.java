@@ -162,12 +162,17 @@ public class State {
     return hubTrace;
   }
 
-  public void enterTransaction() {
+  public void enterSectionsStack() {
     if (state.isEmpty()) {
       state.add(new HubTransactionState());
     } else {
       state.add(current().spinOff());
     }
+  }
+
+  public void enterTransaction() {
+    enterSectionsStack();
+    incrementUserTransactionNumber();
   }
 
   public void popTransactionBundle() {

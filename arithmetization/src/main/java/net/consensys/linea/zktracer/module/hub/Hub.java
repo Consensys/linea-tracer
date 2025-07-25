@@ -459,7 +459,7 @@ public abstract class Hub implements Module {
   /** Tracing Operation, triggered by Besu hook */
   @Override
   public void traceStartConflation(long blockCount) {
-    state.enterTransaction();
+    state.enterSectionsStack();
     for (Module m : modules) {
       m.traceStartConflation(blockCount);
     }
@@ -484,7 +484,11 @@ public abstract class Hub implements Module {
     state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
     blockStack.newBlock(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
+    state.enterSectionsStack();
     traceSystemInitialTransaction(world, processableBlockHeader);
+    // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
+    // disappear with limitless refacto
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
     for (Module m : modules) {
       m.traceStartBlock(world, processableBlockHeader, miningBeneficiary);
     }
@@ -492,7 +496,11 @@ public abstract class Hub implements Module {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+    state.enterSectionsStack();
     traceSystemFinalTransaction();
+    // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
+    // disappear with limitless refacto
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
     for (Module m : modules) {
       m.traceEndBlock(blockHeader, blockBody);
     }
@@ -505,7 +513,6 @@ public abstract class Hub implements Module {
     txStack.enterTransaction(this, world, tx);
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
     state.enterTransaction();
-    state.incrementUserTransactionNumber();
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.processingPhase(TX_SKIP);

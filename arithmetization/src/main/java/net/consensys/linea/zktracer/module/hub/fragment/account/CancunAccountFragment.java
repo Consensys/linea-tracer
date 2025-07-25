@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
-import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.isUserTransaction;
 
 import java.util.Optional;
 
@@ -29,6 +29,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 public class CancunAccountFragment extends LondonAccountFragment {
   private final TransactionProcessingMetadata tx;
+  private final TransactionProcessingType txType;
 
   public CancunAccountFragment(
       Hub hub,
@@ -38,9 +39,9 @@ public class CancunAccountFragment extends LondonAccountFragment {
       DomSubStampsSubFragment domSubStampsSubFragment,
       TransactionProcessingType txProcessingType) {
     super(hub, oldState, newState, addressToTrim, domSubStampsSubFragment, txProcessingType);
-
-    tx = txProcessingType == USER ? hub.txStack().current() : null;
-    if (txProcessingType == USER) {
+    txType = txProcessingType;
+    tx = isUserTransaction(txType) ? hub.txStack().current() : null;
+    if (isUserTransaction(txType)) {
       tx.updateHadCodeInitially(
           oldState.address(),
           domSubStampsSubFragment.domStamp(),
@@ -63,6 +64,9 @@ public class CancunAccountFragment extends LondonAccountFragment {
 
   @Override
   void traceHadCodeInitially(Trace.Hub trace) {
-    trace.pAccountHadCodeInitially(tx.hadCodeInitiallyMap().get(oldState().address()).hadCode());
+    trace.pAccountHadCodeInitially(
+        isUserTransaction(txType)
+            ? tx.hadCodeInitiallyMap().get(oldState().address()).hadCode()
+            : true);
   }
 }

@@ -32,11 +32,10 @@ public class CancunCommonFragment extends LondonCommonFragment {
   @Override
   protected void traceTransactionsAndBlockNumbers(Trace.Hub trace) {
     trace
-        // .totlTxnNumber() TODO: use defcomputed in .lisp
         .sysiTxnNumber(commonFragmentValues.sysiTransactionNumber)
-        .userTxnNumber(tx().getUserTransactionNumber())
+        .userTxnNumber(commonFragmentValues.userTransactionNumber)
         .sysfTxnNumber(commonFragmentValues.sysfTransactionNumber)
-        .blkNumber(tx().getRelativeBlockNumber());
+        .blkNumber(commonFragmentValues.relBlockNumber);
   }
 
   @Override

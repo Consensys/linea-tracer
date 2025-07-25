@@ -49,7 +49,9 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 public class CommonFragmentValues {
   public final Hub hub;
   public final TransactionProcessingMetadata txMetadata;
+  @Getter final short relBlockNumber;
   @Getter final short sysiTransactionNumber;
+  @Getter final short userTransactionNumber;
   @Getter final short sysfTransactionNumber;
   public final HubProcessingPhase hubProcessingPhase;
   public final TransactionProcessingType transactionProcessingType;
@@ -85,7 +87,9 @@ public class CommonFragmentValues {
     final boolean isExec = hub.state.processingPhase() == TX_EXEC;
 
     this.hub = hub;
+    relBlockNumber = (short) hub.blockStack().currentRelativeBlockNumber();
     sysiTransactionNumber = hub.state().sysiTransactionNumber();
+    userTransactionNumber = hub.state.getUserTransactionNumber();
     sysfTransactionNumber = hub.state().sysfTransactionNumber();
     this.hubProcessingPhase = hub.state().processingPhase();
     transactionProcessingType = hub.state.transactionProcessingType();

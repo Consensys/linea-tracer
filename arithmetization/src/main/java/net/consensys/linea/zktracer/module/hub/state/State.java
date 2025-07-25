@@ -72,6 +72,13 @@ public class State {
   @Accessors(fluent = true)
   short sysiTransactionNumber;
 
+  @Accessors(fluent = true)
+  CountOnlyOperation userTransactionNumber = new CountOnlyOperation();
+
+  public short getUserTransactionNumber() {
+    return (short) userTransactionNumber.lineCount();
+  }
+
   @Getter
   @Accessors(fluent = true)
   short sysfTransactionNumber;
@@ -95,6 +102,10 @@ public class State {
 
   public void incrementSysiTransactionNumber() {
     sysiTransactionNumber++;
+  }
+
+  public void incrementUserTransactionNumber() {
+    userTransactionNumber.add(1);
   }
 
   public void incrementSysfTransactionNumber() {
@@ -161,16 +172,19 @@ public class State {
     } else {
       state.add(current().spinOff());
     }
+    incrementUserTransactionNumber();
   }
 
   public void popTransactionBundle() {
     state.popTransactionBundle();
     lineCounter.popTransactionBundle();
+    userTransactionNumber.popTransactionBundle();
   }
 
   public void commitTransactionBundle() {
     state.commitTransactionBundle();
     lineCounter.commitTransactionBundle();
+    userTransactionNumber.commitTransactionBundle();
   }
 
   /** Describes the Hub state during a given transaction. */

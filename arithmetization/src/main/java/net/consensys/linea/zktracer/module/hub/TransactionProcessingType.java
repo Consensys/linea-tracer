@@ -18,5 +18,9 @@ package net.consensys.linea.zktracer.module.hub;
 public enum TransactionProcessingType {
   SYSI, // System transaction before block execution
   USER, // User transaction
-  SYSF // System transaction at the end of block execution
+  SYSF; // System transaction at the end of block execution
+
+  public static boolean isUserTransaction(TransactionProcessingType type) {
+    return type == USER;
+  }
 }

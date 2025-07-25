@@ -57,15 +57,11 @@ public class XCreateOobCall extends OobCall {
 
   @Override
   public Trace.Oob trace(Trace.Oob trace) {
-    try {
-      return trace
-          .isXcreate(true)
-          .oobInst(OOB_INST_XCREATE)
-          .data1(codeSize.hi())
-          .data2(codeSize.lo());
-    } catch (Exception e) {
-      throw new IllegalArgumentException("Trace argument is not of type TraceShanghai.Oob", e);
-    }
+    return trace
+        .isXcreate(true)
+        .oobInst(OOB_INST_XCREATE)
+        .data1(codeSize.hi())
+        .data2(codeSize.lo());
   }
 
   @Override

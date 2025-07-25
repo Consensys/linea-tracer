@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.module.hub.section.systemTransaction;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment.systemTransactionStoring;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes16;
-import static org.hyperledger.besu.ethereum.mainnet.ParentBeaconBlockRootHelper.HISTORY_BUFFER_LENGTH;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -52,7 +51,7 @@ public class EIP2935HistoricalHash extends TraceSection {
     super(hub, (short) 4);
     final boolean genesisBlock = blockHeader.getNumber() == 0;
     previousBlockNumberModulo =
-        genesisBlock ? 0 : (short) ((blockHeader.getNumber() - 1) % HISTORY_BUFFER_LENGTH);
+        genesisBlock ? 0 : (short) ((blockHeader.getNumber() - 1) % HISTORY_SERVE_WINDOW);
     blockhash = genesisBlock ? Bytes32.ZERO : blockHeader.getParentHash();
 
     final EIP2935TransactionFragment transactionFragment =

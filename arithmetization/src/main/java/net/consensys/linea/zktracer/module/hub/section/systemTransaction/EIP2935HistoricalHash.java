@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.hub.section.systemTransaction;
 
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.SYSI;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment.systemTransactionStoring;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes16;
 
@@ -68,7 +69,8 @@ public class EIP2935HistoricalHash extends TraceSection {
                 blockhashHistoryAccount,
                 blockhashHistoryAccount,
                 HISTORY_STORAGE_ADDRESS,
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1),
+                SYSI);
     fragments().add(accountFragment);
 
     final EWord key = EWord.of(previousBlockNumberModulo);

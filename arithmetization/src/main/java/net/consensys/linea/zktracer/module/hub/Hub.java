@@ -459,6 +459,7 @@ public abstract class Hub implements Module {
   /** Tracing Operation, triggered by Besu hook */
   @Override
   public void traceStartConflation(long blockCount) {
+    state.enterTransaction();
     for (Module m : modules) {
       m.traceStartConflation(blockCount);
     }

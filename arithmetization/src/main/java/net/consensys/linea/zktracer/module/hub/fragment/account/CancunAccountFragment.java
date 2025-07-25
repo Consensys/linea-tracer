@@ -15,11 +15,14 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
+
 import java.util.Optional;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -32,16 +35,18 @@ public class CancunAccountFragment extends LondonAccountFragment {
       AccountSnapshot oldState,
       AccountSnapshot newState,
       Optional<Bytes> addressToTrim,
-      DomSubStampsSubFragment domSubStampsSubFragment) {
-    super(hub, oldState, newState, addressToTrim, domSubStampsSubFragment);
+      DomSubStampsSubFragment domSubStampsSubFragment,
+      TransactionProcessingType txProcessingType) {
+    super(hub, oldState, newState, addressToTrim, domSubStampsSubFragment, txProcessingType);
 
-    tx = hub.txStack().current();
-
-    tx.updateHadCodeInitially(
-        oldState.address(),
-        domSubStampsSubFragment.domStamp(),
-        domSubStampsSubFragment.subStamp(),
-        oldState().tracedHasCode());
+    tx = txProcessingType == USER ? hub.txStack().current() : null;
+    if (txProcessingType == USER) {
+      tx.updateHadCodeInitially(
+          oldState.address(),
+          domSubStampsSubFragment.domStamp(),
+          domSubStampsSubFragment.subStamp(),
+          oldState().tracedHasCode());
+    }
   }
 
   @Override

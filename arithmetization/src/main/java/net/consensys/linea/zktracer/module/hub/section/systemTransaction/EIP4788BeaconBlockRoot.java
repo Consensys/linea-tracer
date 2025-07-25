@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.section.systemTransaction;
 
 import static net.consensys.linea.zktracer.Trace.BEACON_ROOTS_ADDRESS_HI;
 import static net.consensys.linea.zktracer.Trace.BEACON_ROOTS_ADDRESS_LO;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.SYSI;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment.systemTransactionStoring;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes16;
 import static org.hyperledger.besu.ethereum.mainnet.ParentBeaconBlockRootHelper.HISTORY_BUFFER_LENGTH;
@@ -62,7 +63,8 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
     fragments().add(transactionFragment);
     hub.txnData().callTxnDataForSystemTransaction(transactionFragment);
 
-    final AccountSnapshot beaconrootAccount = AccountSnapshot.canonical(hub, BEACONROOT_ADDRESS);
+    final AccountSnapshot beaconrootAccount =
+        AccountSnapshot.canonical(hub, world, BEACONROOT_ADDRESS, false);
     final AccountFragment accountFragment =
         hub.factories()
             .accountFragment()
@@ -70,7 +72,8 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
                 beaconrootAccount,
                 beaconrootAccount,
                 BEACONROOT_ADDRESS,
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1),
+                SYSI);
     fragments().add(accountFragment);
 
     final EWord keyTimestamp = EWord.of(timestamp % HISTORY_BUFFER_LENGTH);

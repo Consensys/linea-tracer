@@ -22,6 +22,7 @@ import java.util.Set;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -68,7 +69,8 @@ public abstract class TxFinalizationSection extends TraceSection implements EndT
             .make(
                 senderGasRefund,
                 senderGasRefundNew,
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0)); //
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0),
+                TransactionProcessingType.USER); //
 
     final AccountFragment coinbaseAccountFragment =
         hub.factories()
@@ -77,7 +79,8 @@ public abstract class TxFinalizationSection extends TraceSection implements EndT
                 coinbaseGasRefund,
                 coinbaseGasRefundNew,
                 coinbaseGasRefund.address(),
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1),
+                TransactionProcessingType.USER);
 
     addFragments(txMetadata, senderAccountFragment, coinbaseAccountFragment);
   }

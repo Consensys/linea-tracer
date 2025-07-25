@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.common;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.*;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -56,7 +57,6 @@ public abstract class CommonFragment implements TraceFragment {
 
   public Trace.Hub trace(Trace.Hub trace) {
     final CallFrame frame = commonFragmentValues.callFrame;
-    final TransactionProcessingMetadata tx = commonFragmentValues.txMetadata;
     final boolean isExec = commonFragmentValues.hubProcessingPhase == TX_EXEC;
     traceTransactionsAndBlockNumbers(trace);
     traceTransactionProcessingType(trace);
@@ -67,7 +67,10 @@ public abstract class CommonFragment implements TraceFragment {
         .txExec(commonFragmentValues.hubProcessingPhase == TX_EXEC)
         .txFinl(commonFragmentValues.hubProcessingPhase == TX_FINL)
         .hubStamp(commonFragmentValues.hubStamp)
-        .hubStampTransactionEnd(tx.getHubStampTransactionEnd())
+        .hubStampTransactionEnd(
+            commonFragmentValues.transactionProcessingType == USER
+                ? tx().getHubStampTransactionEnd()
+                : 0)
         .contextMayChange(commonFragmentValues.contextMayChange)
         .exceptionAhoy(Exceptions.any(commonFragmentValues.exceptions) && isExec)
         .logInfoStamp(commonFragmentValues.logStamp)

@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.common;
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.EVM_INST_PUSH0;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.Exceptions.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.MAX_CODE_SIZE_EXCEPTION;
@@ -84,11 +85,11 @@ public class CommonFragmentValues {
     final boolean isExec = hub.state.processingPhase() == TX_EXEC;
 
     this.hub = hub;
-    this.txMetadata = hub.txStack().current();
     sysiTransactionNumber = hub.state().sysiTransactionNumber();
     sysfTransactionNumber = hub.state().sysfTransactionNumber();
     this.hubProcessingPhase = hub.state().processingPhase();
     transactionProcessingType = hub.state.transactionProcessingType();
+    txMetadata = transactionProcessingType == USER ? hub.txStack().current() : null;
     this.hubStamp = hub.stamp();
     this.callStack = hub.callStack();
     this.stamps = hub.state().stamps();

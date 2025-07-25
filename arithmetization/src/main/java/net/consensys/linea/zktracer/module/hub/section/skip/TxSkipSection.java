@@ -23,6 +23,7 @@ import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
@@ -153,7 +154,8 @@ public abstract class TxSkipSection extends TraceSection implements EndTransacti
                 sender,
                 senderNew,
                 sender.address(),
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0));
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 0),
+                TransactionProcessingType.USER);
 
     // "recipient" account fragment
     final AccountFragment recipientAccountFragment =
@@ -163,7 +165,8 @@ public abstract class TxSkipSection extends TraceSection implements EndTransacti
                 recipient,
                 recipientNew,
                 recipient.address(),
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1));
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 1),
+                TransactionProcessingType.USER);
 
     // "coinbase" account fragment
     final AccountFragment coinbaseAccountFragment =
@@ -173,7 +176,8 @@ public abstract class TxSkipSection extends TraceSection implements EndTransacti
                 coinbase,
                 coinbaseNew,
                 coinbase.address(),
-                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2));
+                DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), 2),
+                TransactionProcessingType.USER);
 
     addFragments(
         txMetadata, senderAccountFragment, recipientAccountFragment, coinbaseAccountFragment);

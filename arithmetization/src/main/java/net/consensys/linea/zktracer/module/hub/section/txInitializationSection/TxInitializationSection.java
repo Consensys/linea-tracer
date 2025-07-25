@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.ContextFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.DomSubStampsSubFragment;
@@ -166,19 +167,22 @@ public abstract class TxInitializationSection extends TraceSection implements En
             senderGasPayment,
             senderGasPaymentNew,
             senderGasPayment.address(),
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()));
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()),
+            TransactionProcessingType.USER);
     valueSendingAccountFragment =
         accountFragmentFactory.make(
             senderValueTransfer,
             senderValueTransferNew,
-            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()));
+            DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()),
+            TransactionProcessingType.USER);
     valueReceptionAccountFragment =
         accountFragmentFactory
             .makeWithTrm(
                 recipientValueReception,
                 recipientValueReceptionNew,
                 recipientValueReception.address(),
-                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()))
+                DomSubStampsSubFragment.standardDomSubStamps(hubStamp, domSubOffset()),
+                TransactionProcessingType.USER)
             .requiresRomlex(true);
 
     initializationContextFragment = ContextFragment.initializeExecutionContext(hub);
@@ -218,14 +222,16 @@ public abstract class TxInitializationSection extends TraceSection implements En
               senderUndoingValueTransfer,
               senderUndoingValueTransferNew,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                  hubStamp, revertStamp, domSubOffset())));
+                  hubStamp, revertStamp, domSubOffset()),
+              TransactionProcessingType.USER));
 
       this.addFragment( // ACC i +  (recipient)
           accountFragmentFactory.make(
               recipientUndoingValueReception,
               recipientUndoingValueReceptionNew,
               DomSubStampsSubFragment.revertWithCurrentDomSubStamps(
-                  hubStamp, revertStamp, domSubOffset())));
+                  hubStamp, revertStamp, domSubOffset()),
+              TransactionProcessingType.USER));
     }
 
     this.addFragment(initializationContextFragment); // CON i +

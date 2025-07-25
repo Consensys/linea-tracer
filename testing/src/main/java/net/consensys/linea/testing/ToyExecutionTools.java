@@ -15,7 +15,11 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.HISTORY_STORAGE_ADDRESS;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRoot.BEACONROOT_ADDRESS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.*;
@@ -86,8 +90,17 @@ public class ToyExecutionTools {
 
     final BlockBody blockBody = new BlockBody(transactions, new ArrayList<>());
     final MutableWorldState worldState = initialWorldState;
-    //     final MutableWorldState worldState = initialWorldState.copy();
     final WorldUpdater worldStateUpdater = worldState.updater();
+
+    // Add system accounts if the fork requires it.
+    final Fork fork = Fork.valueOf(protocolSpec.getHardforkId().name());
+    if (isPostCancun(fork)) {
+      worldStateUpdater.createAccount(BEACONROOT_ADDRESS);
+    }
+    if (isPostPrague(fork)) {
+      worldStateUpdater.createAccount(HISTORY_STORAGE_ADDRESS);
+    }
+
     final MainnetTransactionProcessor processor = protocolSpec.getTransactionProcessor();
     final ReferenceTestBlockchain blockchain = new ReferenceTestBlockchain(blockHeader.getNumber());
     final Wei blobGasPrice =

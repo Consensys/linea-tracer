@@ -135,6 +135,9 @@ public class CancunHub extends ShanghaiHub {
     state.incrementSysiTransactionNumber();
     state.processingPhase(TX_SKIP);
     new EIP4788BeaconBlockRoot(this, world, blockHeader);
+    // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
+    // disappear with limitless refacto
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
   }
 
   @Override
@@ -145,5 +148,8 @@ public class CancunHub extends ShanghaiHub {
     state.incrementSysfTransactionNumber();
     state.processingPhase(TX_SKIP);
     new Noop(this);
+    // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
+    // disappear with limitless refacto
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
   }
 }

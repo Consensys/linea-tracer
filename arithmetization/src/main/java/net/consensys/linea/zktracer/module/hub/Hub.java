@@ -505,6 +505,7 @@ public abstract class Hub implements Module {
     txStack.enterTransaction(this, world, tx);
     final TransactionProcessingMetadata transactionProcessingMetadata = txStack.current();
     state.enterTransaction();
+    state.incrementUserTransactionNumber();
 
     if (!transactionProcessingMetadata.requiresEvmExecution()) {
       state.processingPhase(TX_SKIP);

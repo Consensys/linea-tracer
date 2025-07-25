@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.txndata.module;
 
+import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragment;
@@ -36,6 +37,11 @@ public class CancunTxnData extends TxnData {
   }
 
   public void callTxnDataForSystemTransaction(final SystemTransactionFragment transactionFragment) {
+    // TODO: implement me
+  }
+
+  @Override
+  public void commit(Trace trace) {
     // TODO: implement me
   }
 }

@@ -28,7 +28,7 @@ import org.hyperledger.besu.datatypes.Address;
 public class StateManagerUtils {
 
   public static int getTxCount(Hub hub) {
-    return hub.state().txCount();
+    return hub.state().getUserTransactionNumber();
   }
 
   public static int getBlockOperationsLength(Hub hub) {

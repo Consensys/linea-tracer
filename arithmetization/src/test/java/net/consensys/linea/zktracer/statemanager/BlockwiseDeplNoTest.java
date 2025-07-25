@@ -162,7 +162,7 @@ public class BlockwiseDeplNoTest extends TracerTestBase {
     Map<Address, Map<Integer, Integer>> maxDeplNoBlock = new HashMap<>();
 
     // We count the number of transactions in the hub, here we have 11
-    int txCount = multiBlockEnv.getHub().state().txCount();
+    int txCount = multiBlockEnv.getHub().state().getUserTransactionNumber();
     for (int txNb = 0; txNb < txCount; txNb++) {
       // Relative block number is constant per transaction
       // Tx number starts from 1

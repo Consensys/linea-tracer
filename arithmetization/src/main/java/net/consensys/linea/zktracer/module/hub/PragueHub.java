@@ -38,5 +38,8 @@ public class PragueHub extends CancunHub {
     super.traceSystemInitialTransaction(world, blockHeader);
     state.incrementSysiTransactionNumber();
     new EIP2935HistoricalHash(this, world, blockHeader);
+    // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
+    // disappear with limitless refacto
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
   }
 }

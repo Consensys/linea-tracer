@@ -87,6 +87,6 @@ public interface Module {
   List<Trace.ColumnHeader> columnHeaders(Trace trace);
 
   default void commit(Trace trace) {
-    throw new UnsupportedOperationException();
+    throw new UnsupportedOperationException("Can't trace module +" + moduleKey());
   }
 }

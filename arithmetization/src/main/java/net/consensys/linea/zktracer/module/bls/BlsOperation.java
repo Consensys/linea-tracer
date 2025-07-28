@@ -231,8 +231,9 @@ public class BlsOperation extends ModuleOperation {
     }
   }
 
-  // TODO: check if mextBit needs to be set to true only for the first malformed point, if any
   private void handleBlsG1Add() {
+    boolean mextBitIsSet = false;
+
     for (int k = 0; k < 2; k++) {
       final int sizeOffset = k * SIZE_SMALL_POINT;
       final int indexOffset = k * (CT_MAX_SMALL_POINT + 1);
@@ -254,13 +255,18 @@ public class BlsOperation extends ModuleOperation {
       final boolean mextBit = wellFormedCoordinate && !isSmallPointOnCurve;
       Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
-      for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
-        this.mextBit.set(indexOffset + j, mextBit);
+      if (mextBit && !mextBitIsSet) {
+        for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
+          this.mextBit.set(indexOffset + j, true);
+        }
+        mextBitIsSet = true;
       }
     }
   }
 
   private void handleBlsG1Msm() {
+    boolean mextBitIsSet = false;
+
     final int numberOfInputs = callData.size() / (SIZE_SMALL_POINT + SIZE_SCALAR);
     for (int k = 0; k < numberOfInputs; k++) {
       final int sizeOffset = k * (SIZE_SMALL_POINT + SIZE_SCALAR);
@@ -283,13 +289,18 @@ public class BlsOperation extends ModuleOperation {
       final boolean mextBit = wellFormedCoordinate && !isSmallPointInSubgroup;
       Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
-      for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
-        this.mextBit.set(indexOffset + j, mextBit);
+      if (mextBit && !mextBitIsSet) {
+        for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
+          this.mextBit.set(indexOffset + j, true);
+        }
+        mextBitIsSet = true;
       }
     }
   }
 
   private void handleBlsG2Add() {
+    boolean mextBitIsSet = false;
+
     for (int k = 0; k < 2; k++) {
       final int sizeOffset = k * SIZE_LARGE_POINT;
       final int indexOffset = k * (CT_MAX_LARGE_POINT + 1);
@@ -353,13 +364,18 @@ public class BlsOperation extends ModuleOperation {
       final boolean mextBit = wellFormedCoordinate && !isLargePointOnCurve;
       Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
-      for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
-        this.mextBit.set(indexOffset + j, mextBit);
+      if (mextBit && !mextBitIsSet) {
+        for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
+          this.mextBit.set(indexOffset + j, true);
+        }
+        mextBitIsSet = true;
       }
     }
   }
 
   private void handleBlsG2Msm() {
+    boolean mextBitIsSet = false;
+
     final int numberOfInputs = callData.size() / (SIZE_LARGE_POINT + SIZE_SCALAR);
     for (int k = 0; k < numberOfInputs; k++) {
       final int sizeOffset = k * (SIZE_LARGE_POINT + SIZE_SCALAR);
@@ -424,13 +440,18 @@ public class BlsOperation extends ModuleOperation {
       final boolean mextBit = wellFormedCoordinate && !isLargePointInSubgroup;
       Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
-      for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
-        this.mextBit.set(indexOffset + j, mextBit);
+      if (mextBit && !mextBitIsSet) {
+        for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
+          this.mextBit.set(indexOffset + j, true);
+        }
+        mextBitIsSet = true;
       }
     }
   }
 
   private void handleBlsPairingCheck() {
+    boolean mextBitIsSet = false;
+
     final int numberOfInputs = callData.size() / (SIZE_SMALL_POINT + SIZE_LARGE_POINT);
     for (int k = 0; k < numberOfInputs; k++) {
       final int sizeOffset = k * (SIZE_SMALL_POINT + SIZE_LARGE_POINT);
@@ -471,8 +492,11 @@ public class BlsOperation extends ModuleOperation {
       final boolean mextBitSmall = wellFormedFpCoordinate && !isSmallPointInSubgroup;
       Preconditions.checkArgument(mextBitSmall == (wellFormedFpCoordinate && !successBit));
 
-      for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
-        this.mextBit.set(indexOffset + j, mextBitSmall);
+      if (mextBitSmall && !mextBitIsSet) {
+        for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
+          this.mextBit.set(indexOffset + j, true);
+        }
+        mextBitIsSet = true;
       }
 
       final boolean wellFormedFp2Coordinate =
@@ -516,8 +540,11 @@ public class BlsOperation extends ModuleOperation {
       final boolean mextBitLarge = wellFormedFp2Coordinate && !isLargePointInSubgroup;
       Preconditions.checkArgument(mextBitLarge == (wellFormedFp2Coordinate && !successBit));
 
-      for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
-        this.mextBit.set(8 + indexOffset + j, mextBitLarge);
+      if (mextBitLarge && !mextBitIsSet) {
+        for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
+          this.mextBit.set(8 + indexOffset + j, true);
+        }
+        mextBitIsSet = true;
       }
 
       final boolean smallPointIsAtInfinity = isInfinity.get(indexOffset);
@@ -530,6 +557,8 @@ public class BlsOperation extends ModuleOperation {
   }
 
   private void handleBlsMapFpToG1() {
+    boolean mextBitIsSet = false;
+
     // Extract inputs
     final Bytes e3 = callData.slice(0, LLARGE);
     final Bytes e2 = callData.slice(LLARGE, LLARGE);
@@ -903,8 +932,7 @@ public class BlsOperation extends ModuleOperation {
         !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || !nonTrivialPairOfPointsTot);
     final boolean wnon =
         !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || nonTrivialPairOfPointsTot);
-    // TODO: we deduce this from the size of the return data
-    // final boolean successBit = wtrv || wnon;
+    final boolean wellformedData = wtrv || wnon;
 
     int ct = 0;
     boolean isFirstInput = true;
@@ -915,7 +943,6 @@ public class BlsOperation extends ModuleOperation {
 
     for (int i = 0; i < nRows; i++) {
       boolean isData = i < nRowsData;
-      // TODO: fill missing fields
       final int ctMax = getCtMax(precompileFlag, isData, isFirstInput);
       final int indexMax = getIndexMax(precompileFlag, isData);
 
@@ -937,6 +964,35 @@ public class BlsOperation extends ModuleOperation {
       mintBitAcc = mintBitAcc || mintBit.get(i);
       mextBitAcc = mextBitAcc || mextBit.get(i);
       nontrivialPairOfPointsAcc = nontrivialPairOfPointsAcc || nontrivialPairOfPointsBit.get(i);
+
+      final boolean csG1MTForG1Msm =
+          precompileFlag == PRC_BLS_G1_MSM && isData && isFirstInput && mextBit.get(i);
+      final boolean csG2MTForG2Msm =
+          precompileFlag == PRC_BLS_G2_MSM && isData && isFirstInput && mextBit.get(i);
+
+      final boolean csG1MTForPairingMalformed =
+          precompileFlag == PRC_BLS_PAIRING_CHECK && isData && isFirstInput && mextBit.get(i);
+      final boolean csG2MTForPairingMalformed =
+          precompileFlag == PRC_BLS_PAIRING_CHECK && isData && !isFirstInput && mextBit.get(i);
+
+      final boolean csG1MTForPairingWellformed =
+          precompileFlag == PRC_BLS_PAIRING_CHECK
+              && isData
+              && isFirstInput
+              && !nontrivialPairOfPointsBit.get(i)
+              && !isInfinity.get(i)
+              && wellformedData;
+      final boolean csG2MTForPairingWellformed =
+          precompileFlag == PRC_BLS_PAIRING_CHECK
+              && isData
+              && !isFirstInput
+              && !nontrivialPairOfPointsBit.get(i)
+              && !isInfinity.get(i)
+              && wellformedData;
+
+      final boolean isNonTrivialPairingDataOrResult =
+          (precompileFlag == PRC_BLS_PAIRING_CHECK && isData && nontrivialPairOfPointsBit.get(i))
+              || (precompileFlag == PRC_BLS_PAIRING_CHECK && !isData);
 
       trace
           .stamp(stamp)
@@ -981,19 +1037,21 @@ public class BlsOperation extends ModuleOperation {
           .isInfinity(isInfinity.get(i))
           .nontrivialPairOfPointsBit(nontrivialPairOfPointsBit.get(i))
           .nontrivialPairOfPointsAcc(nontrivialPairOfPointsAcc)
-          .circuitSelectorPointEvaluation(false)
-          .circuitSelectorPointEvaluationFailure(false)
-          .circuitSelectorC1Membership(false)
-          .circuitSelectorG1Membership(false)
-          .circuitSelectorC2Membership(false)
-          .circuitSelectorG2Membership(false)
-          .circuitSelectorBlsPairingCheck(false)
-          .circuitSelectorBlsG1Add(false)
-          .circuitSelectorBlsG2Add(false)
-          .circuitSelectorBlsG1Msm(false)
-          .circuitSelectorBlsG2Msm(false)
-          .circuitSelectorBlsMapFpToG1(false)
-          .circuitSelectorBlsMapFp2ToG2(false)
+          .circuitSelectorPointEvaluation(wnon && precompileFlag == PRC_POINT_EVALUATION)
+          .circuitSelectorPointEvaluationFailure(mext && precompileFlag == PRC_POINT_EVALUATION)
+          .circuitSelectorC1Membership(mextBit.get(i) && precompileFlag == PRC_BLS_G1_ADD && isData)
+          .circuitSelectorG1Membership(
+              csG1MTForG1Msm || csG1MTForPairingMalformed || csG1MTForPairingWellformed)
+          .circuitSelectorC2Membership(mextBit.get(i) && precompileFlag == PRC_BLS_G2_ADD && isData)
+          .circuitSelectorG2Membership(
+              csG2MTForG2Msm || csG2MTForPairingMalformed || csG2MTForPairingWellformed)
+          .circuitSelectorBlsPairingCheck(wnon && isNonTrivialPairingDataOrResult)
+          .circuitSelectorBlsG1Add(wnon && precompileFlag == PRC_BLS_G1_ADD)
+          .circuitSelectorBlsG2Add(wnon && precompileFlag == PRC_BLS_G2_ADD)
+          .circuitSelectorBlsG1Msm(wnon && precompileFlag == PRC_BLS_G1_MSM)
+          .circuitSelectorBlsG2Msm(wnon && precompileFlag == PRC_BLS_G2_MSM)
+          .circuitSelectorBlsMapFpToG1(wnon && precompileFlag == PRC_BLS_MAP_FP_TO_G1)
+          .circuitSelectorBlsMapFp2ToG2(wnon && precompileFlag == PRC_BLS_MAP_FP2_TO_G2)
           .wcpFlag(wcpFlag.get(i))
           .wcpArg1Hi(wcpArg1Hi.get(i))
           .wcpArg1Lo(wcpArg1Lo.get(i))

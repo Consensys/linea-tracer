@@ -252,7 +252,7 @@ public class BlsOperation extends ModuleOperation {
       final boolean isSmallPointOnCurve =
           isSmallPointOnCurve(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean mextBit = wellFormedCoordinate && !isSmallPointOnCurve;
-      Preconditions.checkArgument(mextBit == wellFormedCoordinate && !successBit);
+      Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
       for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBit);
@@ -281,7 +281,7 @@ public class BlsOperation extends ModuleOperation {
       final boolean isSmallPointInSubgroup =
           isSmallPointInSubGroup(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean mextBit = wellFormedCoordinate && !isSmallPointInSubgroup;
-      Preconditions.checkArgument(mextBit == wellFormedCoordinate && !successBit);
+      Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
       for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBit);
@@ -351,7 +351,7 @@ public class BlsOperation extends ModuleOperation {
               aYRe1,
               aYRe0);
       final boolean mextBit = wellFormedCoordinate && !isLargePointOnCurve;
-      Preconditions.checkArgument(mextBit == wellFormedCoordinate && !successBit);
+      Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
       for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBit);
@@ -422,7 +422,7 @@ public class BlsOperation extends ModuleOperation {
               aYRe1,
               aYRe0);
       final boolean mextBit = wellFormedCoordinate && !isLargePointInSubgroup;
-      Preconditions.checkArgument(mextBit == wellFormedCoordinate && !successBit);
+      Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
       for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBit);
@@ -469,7 +469,7 @@ public class BlsOperation extends ModuleOperation {
       final boolean isSmallPointInSubgroup =
           isSmallPointInSubGroup(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean mextBitSmall = wellFormedFpCoordinate && !isSmallPointInSubgroup;
-      Preconditions.checkArgument(mextBitSmall == wellFormedFpCoordinate && !successBit);
+      Preconditions.checkArgument(mextBitSmall == (wellFormedFpCoordinate && !successBit));
 
       for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
         this.mextBit.set(indexOffset + j, mextBitSmall);
@@ -514,7 +514,7 @@ public class BlsOperation extends ModuleOperation {
               bYRe1,
               bYRe0);
       final boolean mextBitLarge = wellFormedFp2Coordinate && !isLargePointInSubgroup;
-      Preconditions.checkArgument(mextBitLarge == wellFormedFp2Coordinate && !successBit);
+      Preconditions.checkArgument(mextBitLarge == (wellFormedFp2Coordinate && !successBit));
 
       for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
         this.mextBit.set(8 + indexOffset + j, mextBitLarge);

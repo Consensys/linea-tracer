@@ -83,7 +83,7 @@ public final class StorageFragment implements TraceFragment, PostBlockDefer {
         false,
         false,
         DomSubStampsSubFragment.standardDomSubStamps(hub.stamp(), domOffset),
-        SYSTEM_TRANSACTION);
+        SSTORE_SYSTEM_TRANSACTION);
   }
 
   public Trace.Hub trace(Trace.Hub trace) {
@@ -115,7 +115,8 @@ public final class StorageFragment implements TraceFragment, PostBlockDefer {
                 || purpose == StorageFragmentPurpose.SLOAD_UNDOING)
         .pStorageSstoreOperation(
             purpose == StorageFragmentPurpose.SSTORE_DOING
-                || purpose == StorageFragmentPurpose.SSTORE_UNDOING);
+                || purpose == StorageFragmentPurpose.SSTORE_UNDOING
+                || purpose == SSTORE_SYSTEM_TRANSACTION);
   }
 
   @Override

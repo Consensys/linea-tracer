@@ -25,7 +25,7 @@ public enum StorageFragmentPurpose {
 
   PRE_WARMING,
 
-  SYSTEM_TRANSACTION;
+  SSTORE_SYSTEM_TRANSACTION;
 
   private static final List<StorageFragmentPurpose> undoingOperation =
       List.of(SLOAD_UNDOING, SSTORE_UNDOING);

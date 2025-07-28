@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub.fragment.common;
 
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.*;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
-import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -68,9 +67,9 @@ public abstract class CommonFragment implements TraceFragment {
         .txFinl(commonFragmentValues.hubProcessingPhase == TX_FINL)
         .hubStamp(commonFragmentValues.hubStamp)
         .hubStampTransactionEnd(
-            commonFragmentValues.transactionProcessingType == USER
-                ? tx().getHubStampTransactionEnd()
-                : 0)
+            commonFragmentValues.hubProcessingPhase == TX_SKIP
+                ? 0
+                : tx().getHubStampTransactionEnd())
         .contextMayChange(commonFragmentValues.contextMayChange)
         .exceptionAhoy(Exceptions.any(commonFragmentValues.exceptions) && isExec)
         .logInfoStamp(commonFragmentValues.logStamp)

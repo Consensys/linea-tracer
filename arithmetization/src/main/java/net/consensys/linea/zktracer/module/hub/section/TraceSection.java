@@ -223,7 +223,7 @@ public class TraceSection {
       if (specificFragment instanceof StackFragment) {
         stackLineCounter++;
       } else {
-        nonStackLineCounter++;
+        if (commonValues.hubProcessingPhase == TX_EXEC) {nonStackLineCounter++;}
       }
 
       specificFragment.trace(hubTrace);

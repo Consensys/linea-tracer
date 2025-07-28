@@ -15,9 +15,10 @@
 
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
-import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_UPDT_B;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Conversions.booleanToBigInteger;
+
+import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
@@ -27,11 +28,9 @@ public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCal
 
   public CancunStateUpdateBytePricingMxpCall(Hub hub) {
     super(hub);
-    if (this.isStateUpdate) {
-      // if state has changed, an extra gas cost is incurred
-      computeExtraGasCost();
-      setGasMpxFromExtraGasCost();
-    }
+    computeExtraGasCost();
+    // if state has changed, an extra gas cost is incurred
+    setGasMpxFromExtraGasCost();
   }
 
   @Override
@@ -44,18 +43,13 @@ public class CancunStateUpdateBytePricingMxpCall extends CancunStateUpdateMxpCal
     final Bytes gasPerByte =
         (opCode == OpCode.RETURN)
             ? bigIntegerToBytes(
-                booleanToBigInteger(this.deploys).multiply(gByte.toUnsignedBigInteger()))
-            : this.gByte;
+                booleanToBigInteger(this.deploys).multiply(BigInteger.valueOf(gByte)))
+            : Bytes.of(this.gByte);
     final Bytes numberOfBytes = this.size1.lo();
     this.extraGasCost =
         numberOfBytes
             .toUnsignedBigInteger()
             .multiply(gasPerByte.toUnsignedBigInteger())
             .longValue();
-  }
-
-  @Override
-  public int ctMax() {
-    return CT_MAX_UPDT_B;
   }
 }

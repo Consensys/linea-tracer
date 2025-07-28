@@ -145,11 +145,6 @@ public final class EWord extends BaseUInt256Value<EWord> implements Quantity {
   }
 
   @Override
-  public Number getValue() {
-    return getAsBigInteger();
-  }
-
-  @Override
   public BigInteger getAsBigInteger() {
     return toBigInteger();
   }

@@ -139,7 +139,7 @@ public class CallTest extends TracerTestBase {
       BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
       new MxpTestUtils()
           .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
-              pg, roob, triggerMaxCodeSizeException, OpCode.CALL);
+              fork, pg, roob, triggerMaxCodeSizeException, OpCode.CALL);
 
       // We prepare a program to static call the code account
       ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pg.compile());

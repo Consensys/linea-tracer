@@ -14,7 +14,6 @@
  */
 package net.consensys.linea.zktracer.exceptions.multiExceptions;
 
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_CALL_STIPEND;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_TRANSACTION;
 import static net.consensys.linea.zktracer.exceptions.ExceptionUtils.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.STATIC_FAULT;
@@ -33,39 +32,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /*
-In this test, we trigger all subsets possible of exceptions (except stack exceptions) at the same time for SSTORE opcode.
+In this test, we trigger all subsets possible of exceptions (except stack exceptions) at the same time for transients opcodes.
 List of the combinations tested below
-STATIC & OOSX : SSTORE
-STATIC & OOGX : SSTORE
+STATIC & OOGX : TSTORE, TLOAD
  */
 @ExtendWith(UnitTestWatcher.class)
-public class SstoreTest extends TracerTestBase {
-  @Test
-  public void staticAndOutOfSStoreExceptions() {
-    BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
-
-    pg.push(0).push(0).op(OpCode.SSTORE);
-
-    ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pg.compile());
-    // Static call with gasCostToTriggerOutOfSStore gas
-    // 3L PUSH + 3L PUSH + 2300 (limit for OutOfStore trigger) and we retrieve 1
-    int gasCostToTriggerOutOfSStore = 3 + 3 + GAS_CONST_G_CALL_STIPEND - 1;
-    BytecodeCompiler pgStaticCallToCode =
-        getProgramStaticCallToCodeAddress(gasCostToTriggerOutOfSStore);
-
-    BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
-    bytecodeRunnerStaticCall.run(List.of(codeProviderAccount), testInfo);
-
-    // Static check happens before outOfStore exception
-    assertEquals(
-        STATIC_FAULT,
-        bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
-  }
+public class TstoreTest extends TracerTestBase {
 
   @Test
-  void staticAndOogExceptionsSStore() {
-
-    BytecodeCompiler program = simpleProgram(OpCode.SSTORE);
+  void staticAndOutOfGasExceptionsTStore() {
+    BytecodeCompiler program;
+    try {
+      program = simpleProgram(OpCode.TSTORE);
+    } catch (IllegalArgumentException e) {
+      // TLOAD/TSTORE are not supported prior to Cancun fork
+      return;
+    }
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
     long gasCostTx = bytecodeRunner.runOnlyForGasCost(testInfo);

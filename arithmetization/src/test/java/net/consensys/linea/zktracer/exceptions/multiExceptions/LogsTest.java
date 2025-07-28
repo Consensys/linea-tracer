@@ -53,7 +53,7 @@ public class LogsTest extends TracerTestBase {
   @MethodSource("logsOpCodesList")
   void staticAndOogExceptionsLogs(OpCode opCode) {
 
-    BytecodeCompiler program = simpleProgramEmptyStorage(opCode);
+    BytecodeCompiler program = simpleProgram(opCode);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
     long gasCostTx = bytecodeRunner.runOnlyForGasCost(testInfo);
@@ -88,7 +88,7 @@ public class LogsTest extends TracerTestBase {
       BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
       new MxpTestUtils()
           .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
-              pg, roob, triggerMaxCodeSizeException, opCode);
+              fork, pg, roob, triggerMaxCodeSizeException, opCode);
 
       // We prepare a program to static call the code account
       ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pg.compile());

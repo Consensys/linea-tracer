@@ -59,7 +59,7 @@ public class CreatesTest extends TracerTestBase {
   @MethodSource("createOpCodesList")
   void staticAndOogExceptionsCreates(OpCode opCode) {
 
-    BytecodeCompiler program = simpleProgramEmptyStorage(opCode);
+    BytecodeCompiler program = simpleProgram(opCode);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
     long gasCostTx = bytecodeRunner.runOnlyForGasCost(testInfo);
@@ -99,7 +99,7 @@ public class CreatesTest extends TracerTestBase {
       BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
       new MxpTestUtils()
           .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
-              pg, roob, triggerMaxCodeSizeException, opCode);
+              fork, pg, roob, triggerMaxCodeSizeException, opCode);
 
       // We prepare a program to static call the code account
       ToyAccount codeProviderAccount = getAccountForAddressWithBytecode(codeAddress, pg.compile());
@@ -169,7 +169,7 @@ public class CreatesTest extends TracerTestBase {
 
     // (Post-Shanghai) MAX_CODE_SIZE_EXCEPTION check happens before OOGX in tracer
     TracedException exceptionTriggered =
-        isPostShanghai(testInfo.chainConfig.fork) ? MAX_CODE_SIZE_EXCEPTION : OUT_OF_GAS_EXCEPTION;
+        isPostShanghai(fork) ? MAX_CODE_SIZE_EXCEPTION : OUT_OF_GAS_EXCEPTION;
     assertEquals(
         exceptionTriggered,
         bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());
@@ -187,7 +187,7 @@ public class CreatesTest extends TracerTestBase {
       BytecodeCompiler pg = BytecodeCompiler.newProgram(testInfo);
       new MxpTestUtils()
           .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
-              pg, roob, maxCodeSizeException, opCode);
+              fork, pg, roob, maxCodeSizeException, opCode);
 
       // We run the program
       BytecodeRunner bytecodeRunner = BytecodeRunner.of(pg.compile());
@@ -195,9 +195,7 @@ public class CreatesTest extends TracerTestBase {
 
       // (Post-Shanghai) MAX_CODE_SIZE_EXCEPTION check is done prior to MXPX
       TracedException exceptionTriggered =
-          isPostShanghai(testInfo.chainConfig.fork)
-              ? MAX_CODE_SIZE_EXCEPTION
-              : MEMORY_EXPANSION_EXCEPTION;
+          isPostShanghai(fork) ? MAX_CODE_SIZE_EXCEPTION : MEMORY_EXPANSION_EXCEPTION;
       assertEquals(
           exceptionTriggered,
           bytecodeRunner.getHub().previousTraceSection().commonValues.tracedException());

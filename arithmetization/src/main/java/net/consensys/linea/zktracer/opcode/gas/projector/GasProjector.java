@@ -115,7 +115,8 @@ public class GasProjector {
           SWAP13,
           SWAP14,
           SWAP15,
-          SWAP16 -> new VeryLow(gc);
+          SWAP16,
+          BLOBHASH -> new VeryLow(gc);
       case MUL, DIV, SDIV, MOD, SMOD, SIGNEXTEND, SELFBALANCE -> new Low(gc);
       case ADDMOD, MULMOD, JUMP -> new Mid(gc);
       case EXP -> new Exp(gc, frame);
@@ -143,7 +144,7 @@ public class GasProjector {
           BASEFEE,
           BLOBBASEFEE -> new Base(gc);
       case BALANCE, EXTCODESIZE, EXTCODEHASH -> new AccountAccess(gc, frame);
-      case CALLDATACOPY, CODECOPY, RETURNDATACOPY -> new DataCopy(gc, frame);
+      case MCOPY, CALLDATACOPY, CODECOPY, RETURNDATACOPY -> new DataCopy(gc, frame);
       case EXTCODECOPY -> new ExtCodeCopy(gc, frame);
       case BLOCKHASH -> new BlockHash(gc);
       case MLOAD, MSTORE -> new MLoadStore(gc, frame);

@@ -51,7 +51,7 @@ public class MemoryExpansionExceptionTest extends TracerTestBase {
     boolean triggerMaxCodeSizeException = false;
     new MxpTestUtils()
         .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
-            program, triggerRoob, triggerMaxCodeSizeException, opCode);
+            fork, program, triggerRoob, triggerMaxCodeSizeException, opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(testInfo);
     assertEquals(
@@ -61,7 +61,7 @@ public class MemoryExpansionExceptionTest extends TracerTestBase {
     assertTrue(bytecodeRunner.getHub().mxp().operations().getLast().getMxpCall().isMxpx());
 
     // Check to do prior to Cancun fork
-    if (!isPostCancun(testInfo.chainConfig.fork)) {
+    if (!isPostCancun(fork)) {
       LondonMxpOperation londonMxpOperation =
           (LondonMxpOperation) bytecodeRunner.getHub().mxp().operations().getLast();
       assertEquals(triggerRoob, londonMxpOperation.isRoob());
@@ -76,7 +76,7 @@ public class MemoryExpansionExceptionTest extends TracerTestBase {
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
     new MxpTestUtils()
         .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
-            program, triggerRoob, triggerMaxCodeSizeException, opCode);
+            fork, program, triggerRoob, triggerMaxCodeSizeException, opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(testInfo);
     assertEquals(
@@ -86,7 +86,7 @@ public class MemoryExpansionExceptionTest extends TracerTestBase {
     assertTrue(bytecodeRunner.getHub().mxp().operations().getLast().getMxpCall().isMxpx());
 
     // Check to do prior to Cancun fork
-    if (!isPostCancun(testInfo.chainConfig.fork)) {
+    if (!isPostCancun(fork)) {
       LondonMxpOperation londonMxpOperation =
           (LondonMxpOperation) bytecodeRunner.getHub().mxp().operations().getLast();
       assertEquals(triggerRoob, londonMxpOperation.isRoob());

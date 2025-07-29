@@ -121,9 +121,11 @@ public class TraceSection {
   /** This method is called at commit time, to build required information post-hoc. */
   public void seal() {
     final HubProcessingPhase currentPhase = commonValues.hubProcessingPhase;
-
+    final int nsr = commonValues.hubProcessingPhase == TX_EXEC ?
+            (int) fragments.stream().filter(l -> !(l instanceof StackFragment)).count()
+            : 0;
     commonValues.numberOfNonStackRows(
-        (int) fragments.stream().filter(l -> !(l instanceof StackFragment)).count());
+       nsr);
     commonValues.TLI(
         (int) fragments.stream().filter(l -> (l instanceof StackFragment)).count() == 2);
     commonValues.codeFragmentIndex(

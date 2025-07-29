@@ -89,8 +89,7 @@ public class ToyExecutionTools {
     }
 
     final BlockBody blockBody = new BlockBody(transactions, new ArrayList<>());
-    final MutableWorldState worldState = initialWorldState;
-    final WorldUpdater worldStateUpdater = worldState.updater();
+    final WorldUpdater worldStateUpdater = initialWorldState.updater();
 
     // Add system accounts if the fork requires it.
     final Fork fork = Fork.valueOf(protocolSpec.getHardforkId().name());
@@ -116,7 +115,7 @@ public class ToyExecutionTools {
             .blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
 
     tracer.traceStartConflation(1);
-    tracer.traceStartBlock(worldState, blockHeader, blockBody, blockHeader.getCoinbase());
+    tracer.traceStartBlock(worldStateUpdater, blockHeader, blockBody, blockHeader.getCoinbase());
     TransactionProcessingResult result = null;
     for (Transaction transaction : blockBody.getTransactions()) {
       // Several of the GeneralStateTests check if the transaction could potentially
@@ -164,17 +163,17 @@ public class ToyExecutionTools {
     if (coinbase != null && coinbase.isEmpty() && shouldClearEmptyAccounts(spec.getFork())) {
       worldStateUpdater.deleteAccount(coinbase.getAddress());
     }
-    worldState.persist(blockHeader);
+    initialWorldState.persist(blockHeader);
 
     // Check the world state root hash.
     final Hash expectedRootHash = spec.getExpectedRootHash();
     Optional.ofNullable(expectedRootHash)
         .ifPresent(
             expected -> {
-              assertThat(worldState.rootHash())
+              assertThat(initialWorldState.rootHash())
                   .withFailMessage(
                       "Unexpected world state root hash; expected state: %s, computed state: %s",
-                      spec.getExpectedRootHash(), worldState.rootHash())
+                      spec.getExpectedRootHash(), initialWorldState.rootHash())
                   .isEqualTo(expected);
             });
 

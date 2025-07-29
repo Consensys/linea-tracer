@@ -30,7 +30,7 @@ public class TracerTestBase {
   @BeforeEach
   public void init(TestInfo testInfo) {
       TracerTestBase.testInfo.chainConfig =
-              switch (getForkOrDefault("CANCUN")) {
+              switch (getForkOrDefault("LONDON")) {
               case "LONDON" -> ChainConfig.MAINNET_TESTCONFIG(LONDON);
               case "PARIS" -> ChainConfig.MAINNET_TESTCONFIG(PARIS);
               case "SHANGHAI" -> ChainConfig.MAINNET_TESTCONFIG(SHANGHAI);

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.state;
 
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.isUserTransaction;
 
 import java.util.*;
@@ -166,6 +167,23 @@ public class State {
     }
     // If no user transaction was found, return an error
     throw new IllegalStateException("No user transaction found in the state.");
+  }
+
+  public HubTransactionState getUserTransaction(int userTransactionNumber) {
+    final List<HubTransactionState> allTransactions = state.getAll();
+    int userTxNumberCounter = 0;
+    for (int i = 0; i <= allTransactions.size(); i++) {
+      final HubTransactionState tx = allTransactions.get(i);
+      if (!tx.traceSections.isEmpty()
+          && tx.traceSections.trace().getLast().commonValues.transactionProcessingType == USER) {
+        userTxNumberCounter++;
+      }
+      if (userTxNumberCounter == userTransactionNumber) {
+        return tx;
+      }
+    }
+    throw new IllegalArgumentException(
+        "User transaction number " + userTransactionNumber + " not found.");
   }
 
   /**

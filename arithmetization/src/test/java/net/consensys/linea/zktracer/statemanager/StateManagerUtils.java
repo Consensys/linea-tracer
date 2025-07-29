@@ -80,17 +80,18 @@ public class StateManagerUtils {
 
   public static List<Map<Map<Address, Bytes32>, FragmentFirstAndLast<StorageFragment>>>
       computeStorageFirstAndLastMapList(Hub hub) {
-    List<Map<Map<Address, Bytes32>, FragmentFirstAndLast<StorageFragment>>>
-        storageFirstAndLastMapList = new ArrayList<>();
+    final int txCount = getTxCount(hub);
 
-    int txCount = getTxCount(hub);
+    final List<Map<Map<Address, Bytes32>, FragmentFirstAndLast<StorageFragment>>>
+        storageFirstAndLastMapList = new ArrayList<>(txCount);
+
     // We iterate over the transactions
-    for (int txNb = 0; txNb < txCount; txNb++) {
+    for (int txNb = 1; txNb <= txCount; txNb++) {
       // We create an storageFirstAndLastMap for each transaction
       storageFirstAndLastMapList.add(new HashMap<>());
       // We retrieve the trace section list
-      List<TraceSection> traceSectionList =
-          hub.state().getState().operationsInTransactionBundle().get(txNb).traceSections().trace();
+      final List<TraceSection> traceSectionList =
+          hub.state().getUserTransaction(txNb).traceSections().trace();
       // For each trace section
       for (TraceSection traceSection : traceSectionList) {
         // We iterate over the fragments
@@ -99,11 +100,12 @@ public class StateManagerUtils {
           // If an exception occurs, it means the Fragment is not a StorageFragment so we
           // disregard it and continue
           try {
-            StorageFragment storageFragment = (StorageFragment) traceFragment;
+            final StorageFragment storageFragment = (StorageFragment) traceFragment;
             // We update the storageFirstAndLastMapList
+            final int index = txNb - 1; // txNb is 1-based, index is 0-based
             storageFirstAndLastMapList.set(
-                txNb,
-                updateStorageFirstAndLast(storageFragment, storageFirstAndLastMapList.get(txNb)));
+                index,
+                updateStorageFirstAndLast(storageFragment, storageFirstAndLastMapList.get(index)));
           } catch (Exception e) {
             // ignore
           }

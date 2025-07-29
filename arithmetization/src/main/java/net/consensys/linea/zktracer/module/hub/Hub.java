@@ -865,12 +865,12 @@ public abstract class Hub implements Module {
     return state.currentTransactionHubSections().currentSection();
   }
 
-  public TraceSection previousTraceSection() {
-    return state.currentTransactionHubSections().previousSection();
+  public TraceSection lastUserTransactionSection() {
+    return lastUserTransactionSection(1);
   }
 
-  public TraceSection previousTraceSection(int n) {
-    return state.currentTransactionHubSections().previousSection(n);
+  public TraceSection lastUserTransactionSection(int n) {
+    return state.lastUserTransactionHubSections().previousSection(n);
   }
 
   public void addTraceSection(TraceSection section) {

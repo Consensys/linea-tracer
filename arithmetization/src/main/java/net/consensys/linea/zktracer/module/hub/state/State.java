@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.hub.state;
 
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.isUserTransaction;
+
 import java.util.*;
 
 import lombok.EqualsAndHashCode;
@@ -147,6 +149,23 @@ public class State {
    */
   public TraceSections currentTransactionHubSections() {
     return current().traceSections;
+  }
+
+  public TraceSections lastUserTransactionHubSections() {
+    final int stateSize = state.size();
+    // Search for a user transaction trace section starting from the most recent. If this function
+    // is called after traceEndBlock, the last sections will be sysf transactions, or null if before
+    // cancun
+    for (int s = stateSize - 1; s >= 0; s--) {
+      final HubTransactionState tx = state.get(s);
+      if (!tx.traceSections().isEmpty()
+          && isUserTransaction(
+              tx.traceSections.currentSection().commonValues.transactionProcessingType)) {
+        return tx.traceSections();
+      }
+    }
+    // If no user transaction was found, return an error
+    throw new IllegalStateException("No user transaction found in the state.");
   }
 
   /**

@@ -119,7 +119,11 @@ public class CallTest extends TracerTestBase {
 
     assertEquals(
         STATIC_FAULT,
-        bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+        bytecodeRunnerStaticCall
+            .getHub()
+            .lastUserTransactionSection(2)
+            .commonValues
+            .tracedException());
   }
 
   static Stream<Arguments> addExistsAndIsWarmCallSource() {
@@ -154,7 +158,11 @@ public class CallTest extends TracerTestBase {
       // Static check happens before MXPX
       assertEquals(
           STATIC_FAULT,
-          bytecodeRunnerStaticCall.getHub().previousTraceSection(2).commonValues.tracedException());
+          bytecodeRunnerStaticCall
+              .getHub()
+              .lastUserTransactionSection(2)
+              .commonValues
+              .tracedException());
     }
   }
 }

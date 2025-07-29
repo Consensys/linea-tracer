@@ -56,7 +56,7 @@ public class StateManagerUtils {
       accountFirstAndLastMapList.add(new HashMap<>());
       // We retrieve the trace section list
       final List<TraceSection> traceSectionList =
-          hub.state().getUserTransaction(txNb).traceSections().trace();
+          hub.state().getUserTransaction(txNb + 1).traceSections().trace();
       // For each trace section
       for (TraceSection traceSection : traceSectionList) {
         // We iterate over the fragments

@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.module.blockdata.module.LondonBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.create.LondonCreateSection;
 import net.consensys.linea.zktracer.module.hub.section.finalization.LondonFinalizationSection;
+import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.LondonSelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.skip.LondonTxSkipSection;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.LondonInitializationSection;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
@@ -149,5 +150,10 @@ public class LondonHub extends Hub {
   @Override
   protected void traceSystemFinalTransaction() {
     // Nothing to do, appears in Cancun
+  }
+
+  @Override
+  protected void setSelfdestructSection(final Hub hub, final MessageFrame frame) {
+    new LondonSelfdestructSection(hub, frame);
   }
 }

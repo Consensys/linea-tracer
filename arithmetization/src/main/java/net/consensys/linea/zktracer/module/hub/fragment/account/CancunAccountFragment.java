@@ -50,6 +50,10 @@ public class CancunAccountFragment extends LondonAccountFragment {
     }
   }
 
+  public boolean shouldBeMarkedForDeletion() {
+    return !transactionProcessingMetadata.hadCodeInitiallyMap().get(oldState().address()).hadCode();
+  }
+
   @Override
   void traceMarkedForSelfDestruct(Trace.Hub trace) {
     // Those columns disappear in Cancun

@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.McopySection;
 import net.consensys.linea.zktracer.module.hub.section.finalization.CancunFinalizationSection;
+import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.CancunSelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.skip.CancunTxSkipSection;
 import net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRoot;
 import net.consensys.linea.zktracer.module.hub.section.systemTransaction.Noop;
@@ -44,6 +45,7 @@ import net.consensys.linea.zktracer.module.txndata.module.CancunTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.CancunGasCalculator;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -145,5 +147,10 @@ public class CancunHub extends ShanghaiHub {
     state.incrementSysfTransactionNumber();
     state.processingPhase(TX_SKIP);
     new Noop(this);
+  }
+
+  @Override
+  protected void setSelfdestructSection(final Hub hub, final MessageFrame frame) {
+    new CancunSelfdestructSection(hub, frame);
   }
 }

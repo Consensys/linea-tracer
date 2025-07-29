@@ -116,7 +116,7 @@ public class ToyExecutionTools {
             .blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
 
     tracer.traceStartConflation(1);
-    tracer.traceStartBlock(worldStateUpdater, blockHeader, blockBody, blockHeader.getCoinbase());
+    tracer.traceStartBlock(worldState, blockHeader, blockBody, blockHeader.getCoinbase());
     TransactionProcessingResult result = null;
     for (Transaction transaction : blockBody.getTransactions()) {
       // Several of the GeneralStateTests check if the transaction could potentially

@@ -44,6 +44,7 @@ import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockhash.Blockhash;
+import net.consensys.linea.zktracer.module.bls.Bls;
 import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
@@ -204,6 +205,7 @@ public abstract class Hub implements Module {
   private final Add add = new Add();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
+  private final Bls bls = new Bls(wcp);
   @Getter private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   @Getter private final Gas gas = new Gas(wcp);
@@ -327,6 +329,7 @@ public abstract class Hub implements Module {
                     blakeModexpData,
                     blockdata,
                     blockhash,
+                    bls,
                     ecData,
                     exp,
                     ext,
@@ -399,6 +402,7 @@ public abstract class Hub implements Module {
                         bin,
                         blakeModexpData,
                         blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
+                        bls,
                         ecData,
                         euc,
                         ext,

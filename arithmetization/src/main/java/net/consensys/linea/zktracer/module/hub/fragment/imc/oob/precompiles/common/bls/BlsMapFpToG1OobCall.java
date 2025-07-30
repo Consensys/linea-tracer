@@ -15,42 +15,42 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls;
 
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_MAP_FP2_TO_G2;
-import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_MAP_FP2_TO_G2;
-import static net.consensys.linea.zktracer.Trace.PRC_BLS_MAP_FP2_TO_G2_SIZE;
-import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_BLS_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.Trace.PRC_BLS_MAP_FP_TO_G1_SIZE;
+import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_BLS_MAP_FP_TO_G1;
 
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
 
-public class BlsPointEvaluationOobCall extends BlsFixedSizeFixedGasCostOobCall {
-  public BlsPointEvaluationOobCall(BigInteger calleeGas) {
+public class BlsMapFpToG1OobCall extends BlsFixedSizeFixedGasCostOobCall {
+  public BlsMapFpToG1OobCall(BigInteger calleeGas) {
     super(calleeGas);
   }
 
   @Override
   long precompileExpectedCds() {
-    return PRC_BLS_MAP_FP2_TO_G2_SIZE;
+    return PRC_BLS_MAP_FP_TO_G1_SIZE;
   }
 
   @Override
   long precompileLongCost() {
-    return GAS_CONST_BLS_MAP_FP2_TO_G2;
+    return GAS_CONST_BLS_MAP_FP_TO_G1;
   }
 
   @Override
   protected void traceOobInstructionInOob(Trace.Oob trace) {
-    trace.isBlsMapFp2ToG2(true).oobInst(OOB_INST_BLS_MAP_FP2_TO_G2);
+    trace.isBlsMapFpToG1(true).oobInst(OOB_INST_BLS_MAP_FP_TO_G1);
   }
 
   @Override
   protected void traceOobInstructionInHub(Trace.Hub trace) {
-    trace.pMiscOobInst(OOB_INST_BLS_MAP_FP2_TO_G2);
+    trace.pMiscOobInst(OOB_INST_BLS_MAP_FP_TO_G1);
   }
 
   @Override
   public int ctMax() {
-    return CT_MAX_BLS_MAP_FP2_TO_G2;
+    return CT_MAX_BLS_MAP_FP_TO_G1;
   }
 }

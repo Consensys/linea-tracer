@@ -172,7 +172,7 @@ public class State {
   public HubTransactionState getUserTransaction(int userTransactionNumber) {
     final List<HubTransactionState> allTransactions = state.getAll();
     int userTxNumberCounter = 0;
-    for (int i = 0; i <= allTransactions.size(); i++) {
+    for (int i = 0; i < allTransactions.size(); i++) {
       final HubTransactionState tx = allTransactions.get(i);
       if (!tx.traceSections.isEmpty()
           && tx.traceSections.trace().getLast().commonValues.transactionProcessingType == USER) {

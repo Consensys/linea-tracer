@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.add;
 
+import static net.consensys.linea.zktracer.opcode.OpCode.ADD;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -44,15 +46,19 @@ public class ShanghaiAdd extends Add {
     }
 
     public void trace(int stamp, Trace.Add trace) {
+      UInt256 res;
       // Compute result of this operation.
-      UInt256 res = UInt256.fromBytes(arg1).add(UInt256.fromBytes(arg2));
+      if (opCode == ADD) {
+        res = UInt256.fromBytes(arg1).add(UInt256.fromBytes(arg2));
+      } else {
+        res = UInt256.fromBytes(arg1).subtract(UInt256.fromBytes(arg2));
+      }
       // Trace it
       trace
           .arg1(arg1)
           .arg2(arg2)
           .inst(UnsignedByte.of(opCode.byteValue() & 0xff))
           .res(res)
-          .stamp(stamp)
           .validateRow();
     }
 

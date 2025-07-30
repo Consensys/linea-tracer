@@ -15,6 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls;
 
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.Trace.PRC_POINT_EVALUATION_SIZE;
+import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_POINT_EVALUATION;
+
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
@@ -26,29 +31,26 @@ public class BlsPointEvaluationOobCall extends BlsFixedSizeFixedGasCostOobCall {
 
   @Override
   long precompileExpectedCds() {
-    // return PRC_POINT_EVALUATION_SIZE;
-    return 192L;
+    return PRC_POINT_EVALUATION_SIZE;
   }
 
   @Override
   long precompileLongCost() {
-    // return GAS_CONST_POINT_EVALUATION;
-    return 50000L;
+    return GAS_CONST_POINT_EVALUATION;
   }
 
   @Override
   protected void traceOobInstructionInOob(Trace.Oob trace) {
-    // trace.isBlsPointEvaluation(true).oobInst(OOB_INST_POINT_EVALUATION);
+    trace.isPointEvaluation(true).oobInst(OOB_INST_POINT_EVALUATION);
   }
 
   @Override
   protected void traceOobInstructionInHub(Trace.Hub trace) {
-    // trace.pMiscOobInst(OOB_INST_POINT_EVALUATION);
+    trace.pMiscOobInst(OOB_INST_POINT_EVALUATION);
   }
 
   @Override
   public int ctMax() {
-    // return CT_MAX_POINT_EVALUATION;
-    return 3;
+    return CT_MAX_POINT_EVALUATION;
   }
 }

@@ -17,8 +17,8 @@ package net.consensys.linea.zktracer.module.rlpUtils;
 
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_BYTE_STRING_PREFIX;
-import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_INTEGER;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.*;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToLong;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -106,19 +106,19 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
       if (!byteStringLengthGeq56) {
         rlpPrefix =
             Bytes16.rightPad(
-                Bytes.ofUnsignedInt(
-                    byteStringLength.trimLeadingZeros().size()
+                Bytes.minimalBytes(
+                    bytesToLong(byteStringLength)
                         + (isList ? RLP_PREFIX_LIST_SHORT : RLP_PREFIX_INT_SHORT)));
         rlpPrefixByteSize = 1;
       } else {
-        bslByteSize = Bytes.minimalBytes(byteStringLength.trimLeadingZeros().size()).size();
+        bslByteSize = byteStringLength.trimLeadingZeros().size();
         rlpPrefix =
             Bytes16.rightPad(
                 Bytes.concatenate(
                     Bytes.minimalBytes(
                         bslByteSize + (isList ? RLP_PREFIX_LIST_LONG : RLP_PREFIX_INT_LONG)),
                     byteStringLength.trimLeadingZeros()));
-        rlpPrefixByteSize = (short) (1 + byteStringLength.trimLeadingZeros().size());
+        rlpPrefixByteSize = (short) (1 + bslByteSize);
       }
     }
   }
@@ -166,15 +166,14 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
   @Override
   protected void traceMacro(Trace.Rlputils trace) {
     trace
-        .iomf(true)
         .macro(true)
         .pMacroInst(RLP_UTILS_INST_BYTE_STRING_PREFIX)
         .isByteStringPrefix(true)
         .pMacroData1(byteStringLength)
         .pMacroData2(Bytes.of(firstByte))
         .pMacroData3(isList)
-        .pMacroData4(rlpPrefixRequired)
-        .pMacroData5(byteStringIsNonEmpty)
+        .pMacroData4(byteStringIsNonEmpty)
+        .pMacroData5(rlpPrefixRequired)
         .pMacroData6(rlpPrefix)
         .pMacroData8(rlpPrefixByteSize)
         .fillAndValidateRow();
@@ -182,16 +181,16 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
 
   @Override
   protected void traceCompt(Trace.Rlputils trace, short ct) {
-    final boolean lastRow = ct == CT_MAX_INST_INTEGER;
-    trace.iomf(true).compt(true).isByteStringPrefix(true);
+    final boolean lastRow = ct == CT_MAX_INST_BYTE_STRING_PREFIX;
+    trace.compt(true).isByteStringPrefix(true).ct(ct).ctMax(CT_MAX_INST_BYTE_STRING_PREFIX);
     // related to WCP call
     wcpCalls.get(ct).traceWcpCall(trace);
     // call to POWER ref table for the last row
     if (byteStringLengthGeq56 && lastRow) {
       trace
           .pComptShfFlag(true)
-          .pComptShfArg(bslByteSize + 1)
-          .pComptShfPower(power(LLARGE - (bslByteSize + 1)));
+          .pComptShfArg(LLARGE - (bslByteSize + 1))
+          .pComptShfPower(power(bslByteSize + 1));
     }
     trace.fillAndValidateRow();
   }

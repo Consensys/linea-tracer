@@ -94,7 +94,6 @@ public class InstructionDataPricing extends RlpUtilsCall {
   @Override
   protected void traceMacro(Trace.Rlputils trace) {
     trace
-        .iomf(true)
         .macro(true)
         .pMacroInst(RLP_UTILS_INST_DATA_PRICING)
         .isDataPricing(true)
@@ -109,7 +108,7 @@ public class InstructionDataPricing extends RlpUtilsCall {
   @Override
   protected void traceCompt(Trace.Rlputils trace, short ct) {
     final boolean lastRow = ct == nBytes - 1;
-    trace.iomf(true).compt(true).isDataPricing(true).ct(ct).ctMax(nBytes);
+    trace.compt(true).isDataPricing(true).ct(ct).ctMax(nBytes);
     // related to WCP call
     wcpCalls.get(ct).traceWcpCall(trace);
     // byte decomposition of the limb

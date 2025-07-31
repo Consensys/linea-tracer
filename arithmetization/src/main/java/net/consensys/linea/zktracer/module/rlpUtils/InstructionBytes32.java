@@ -73,7 +73,6 @@ public class InstructionBytes32 extends RlpUtilsCall {
   @Override
   protected void traceMacro(Trace.Rlputils trace) {
     trace
-        .iomf(true)
         .macro(true)
         .pMacroInst(RLP_UTILS_INST_BYTES32)
         .isByte32(true)
@@ -84,7 +83,7 @@ public class InstructionBytes32 extends RlpUtilsCall {
 
   @Override
   protected void traceCompt(Trace.Rlputils trace, short ct) {
-    trace.iomf(true).compt(true).isByte32(true);
+    trace.compt(true).isByte32(true);
     wcpCalls.getFirst().traceWcpCall(trace);
     trace.fillAndValidateRow();
   }

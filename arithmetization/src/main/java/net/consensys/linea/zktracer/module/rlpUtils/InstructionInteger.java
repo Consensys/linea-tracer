@@ -77,7 +77,7 @@ public class InstructionInteger extends RlpUtilsCall {
           .pCmpExoData5(rlpPrefixRequired)
           .pCmpExoData6(rlpPrefix())
           .pCmpExoData7(leadingLimbShifted())
-          .pCmpExoData8(leadingLimbBytesize());
+          .pCmpExoData8(leadingLimbByteSize());
     }
 
     if (ct == 0) {
@@ -97,19 +97,19 @@ public class InstructionInteger extends RlpUtilsCall {
         trace
             .limbConstructed(true)
             .pCmpLimb(leadingLimbShifted())
-            .pCmpNbytes(leadingLimbBytesize());
+            .pCmpNbytes(leadingLimbByteSize());
         if (lt && updateTracedValue) {
-          tracedValues.decrementLtSizeBy(leadingLimbBytesize());
+          tracedValues.decrementLtSizeBy(leadingLimbByteSize());
         }
         if (lx && updateTracedValue) {
-          tracedValues.decrementLxSizeBy(leadingLimbBytesize());
+          tracedValues.decrementLxSizeBy(leadingLimbByteSize());
         }
       }
     }
 
     if (ct == 2) {
       if (!integerIsZero) {
-        final int limbLoSize = integerHiIsNonZero ? LLARGE : leadingLimbBytesize();
+        final int limbLoSize = integerHiIsNonZero ? LLARGE : leadingLimbByteSize();
         trace.limbConstructed(true).pCmpLimb(data2()).pCmpNbytes(limbLoSize);
         if (lt & updateTracedValue) {
           tracedValues.decrementLtSizeBy(limbLoSize);
@@ -124,8 +124,8 @@ public class InstructionInteger extends RlpUtilsCall {
   @Override
   protected void traceMacro(Trace.Rlputils trace) {
     trace
-        .iomf(true)
         .macro(true)
+        .pMacroInst(RLP_UTILS_INST_INTEGER)
         .isInteger(true)
         .pMacroData1(data1())
         .pMacroData2(data2())
@@ -134,21 +134,21 @@ public class InstructionInteger extends RlpUtilsCall {
         .pMacroData5(rlpPrefixRequired)
         .pMacroData6(rlpPrefix())
         .pMacroData7(leadingLimbShifted())
-        .pMacroData8(leadingLimbBytesize())
+        .pMacroData8(leadingLimbByteSize())
         .fillAndValidateRow();
   }
 
   @Override
   protected void traceCompt(Trace.Rlputils trace, short ct) {
-    final boolean lastRow = ct == CT_MAX_INST_INTEGER;
-    trace.iomf(true).macro(true).isInteger(true).ct(ct).ctMax(CT_MAX_INST_INTEGER);
+    final boolean callPower = (ct == CT_MAX_INST_INTEGER) && !integerIsZero;
+    trace.compt(true).isInteger(true).ct(ct).ctMax(CT_MAX_INST_INTEGER);
     // related to WCP call
     wcpCalls.get(ct).traceWcpCall(trace);
     // call to POWER ref table for the last row
     trace
-        .pComptShfFlag(lastRow)
-        .pComptShfArg(lastRow ? 0 : LLARGE - leadingLimbBytesize())
-        .pComptShfPower(lastRow ? power(leadingLimbBytesize()) : Bytes.EMPTY)
+        .pComptShfFlag(callPower)
+        .pComptShfArg(callPower ? LLARGE - leadingLimbByteSize() : 0)
+        .pComptShfPower(callPower ? power(leadingLimbByteSize()) : Bytes.EMPTY)
         .fillAndValidateRow();
   }
 
@@ -182,7 +182,7 @@ public class InstructionInteger extends RlpUtilsCall {
     return integerHiIsNonZero ? data1() : data2();
   }
 
-  private int leadingLimbBytesize() {
+  private int leadingLimbByteSize() {
     return leadingLimbShifted().trimLeadingZeros().size();
   }
 

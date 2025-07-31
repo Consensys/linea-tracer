@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost;
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_MAP_FP2_TO_G2;
 import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_MAP_FP2_TO_G2;

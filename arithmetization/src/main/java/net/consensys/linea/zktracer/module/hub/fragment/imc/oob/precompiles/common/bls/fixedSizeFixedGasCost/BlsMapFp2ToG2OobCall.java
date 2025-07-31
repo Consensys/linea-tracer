@@ -13,44 +13,44 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls;
+package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost;
 
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_G1ADD;
-import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G1ADD;
-import static net.consensys.linea.zktracer.Trace.PRC_BLS_G1ADD_SIZE;
-import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_BLS_G1ADD;
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.Trace.PRC_POINT_EVALUATION_SIZE;
+import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_POINT_EVALUATION;
 
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
 
-public class BlsG1AddOobCall extends BlsFixedSizeFixedGasCostOobCall {
-  public BlsG1AddOobCall(BigInteger calleeGas) {
+public class BlsMapFp2ToG2OobCall extends BlsFixedSizeFixedGasCostOobCall {
+  public BlsMapFp2ToG2OobCall(BigInteger calleeGas) {
     super(calleeGas);
   }
 
   @Override
   long precompileExpectedCds() {
-    return PRC_BLS_G1ADD_SIZE;
+    return PRC_POINT_EVALUATION_SIZE;
   }
 
   @Override
   long precompileLongCost() {
-    return GAS_CONST_BLS_G1ADD;
+    return GAS_CONST_POINT_EVALUATION;
   }
 
   @Override
   protected void traceOobInstructionInOob(Trace.Oob trace) {
-    trace.isBlsG1Add(true).oobInst(OOB_INST_BLS_G1ADD);
+    trace.isPointEvaluation(true).oobInst(OOB_INST_POINT_EVALUATION);
   }
 
   @Override
   protected void traceOobInstructionInHub(Trace.Hub trace) {
-    trace.pMiscOobInst(OOB_INST_BLS_G1ADD);
+    trace.pMiscOobInst(OOB_INST_POINT_EVALUATION);
   }
 
   @Override
   public int ctMax() {
-    return CT_MAX_BLS_G1ADD;
+    return CT_MAX_POINT_EVALUATION;
   }
 }

@@ -27,7 +27,13 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.CommonPrecompileOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.EcPairingOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.BlsPointEvaluationOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsG1AddOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsG2AddOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsMapFp2ToG2OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsMapFpToG1OobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsPointEvaluationOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.msm.BlsG1MsmOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.msm.BlsG2MsmOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.ecAddMulRecover.EcAddOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.ecAddMulRecover.EcMulOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.ecAddMulRecover.EcRecoverOobCall;
@@ -51,13 +57,13 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           case PRC_ECMUL -> new EcMulOobCall(calleeGas);
           case PRC_ECPAIRING -> new EcPairingOobCall(calleeGas);
           case PRC_POINT_EVALUATION -> new BlsPointEvaluationOobCall(calleeGas);
-          case PRC_BLS_G1_ADD -> throw new NotImplementedException();
-          case PRC_BLS_G1_MSM -> throw new NotImplementedException();
-          case PRC_BLS_G2_ADD -> throw new NotImplementedException();
-          case PRC_BLS_G2_MSM -> throw new NotImplementedException();
+          case PRC_BLS_G1_ADD -> new BlsG1AddOobCall(calleeGas);
+          case PRC_BLS_G1_MSM -> new BlsG1MsmOobCall(calleeGas);
+          case PRC_BLS_G2_ADD -> new BlsG2AddOobCall(calleeGas);
+          case PRC_BLS_G2_MSM -> new BlsG2MsmOobCall(calleeGas);
           case PRC_BLS_PAIRING_CHECK -> throw new NotImplementedException();
-          case PRC_BLS_MAP_FP_TO_G1 -> throw new NotImplementedException();
-          case PRC_BLS_MAP_FP2_TO_G2 -> throw new NotImplementedException();
+          case PRC_BLS_MAP_FP_TO_G1 -> new BlsMapFpToG1OobCall(calleeGas);
+          case PRC_BLS_MAP_FP2_TO_G2 -> new BlsMapFp2ToG2OobCall(calleeGas);
           default -> throw new IllegalArgumentException(
               String.format(
                   "Precompile address %s not supported by constructor", this.flag().toString()));

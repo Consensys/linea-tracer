@@ -27,6 +27,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.CommonPrecompileOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.EcPairingOobCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.BlsPairingCheckOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsG1AddOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsG2AddOobCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost.BlsMapFp2ToG2OobCall;
@@ -61,7 +62,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           case PRC_BLS_G1_MSM -> new BlsG1MsmOobCall(calleeGas);
           case PRC_BLS_G2_ADD -> new BlsG2AddOobCall(calleeGas);
           case PRC_BLS_G2_MSM -> new BlsG2MsmOobCall(calleeGas);
-          case PRC_BLS_PAIRING_CHECK -> throw new NotImplementedException();
+          case PRC_BLS_PAIRING_CHECK -> new BlsPairingCheckOobCall(calleeGas);
           case PRC_BLS_MAP_FP_TO_G1 -> new BlsMapFpToG1OobCall(calleeGas);
           case PRC_BLS_MAP_FP2_TO_G2 -> new BlsMapFp2ToG2OobCall(calleeGas);
           default -> throw new IllegalArgumentException(

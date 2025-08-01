@@ -46,14 +46,14 @@ public class InstructionInteger extends RlpUtilsCall {
     wcpCalls.add(firstCall);
     integerIsZero = firstCall.result;
 
-    final WcpExoCall secondCall = WcpExoCall.callToGt(wcp, Bytes32.leftPad(data1()), Bytes32.ZERO);
+    final WcpExoCall secondCall = WcpExoCall.callToGt(wcp, Bytes32.leftPad(intHi()), Bytes32.ZERO);
     wcpCalls.add(secondCall);
     integerHiIsNonZero = secondCall.result;
 
     final WcpExoCall thirdCall =
-        WcpExoCall.callToLt(wcp, Bytes32.leftPad(data2()), BYTES32_PREFIX_SHORT_INT);
+        WcpExoCall.callToLt(wcp, Bytes32.leftPad(intLo()), BYTES32_PREFIX_SHORT_INT);
     wcpCalls.add(thirdCall);
-    rlpPrefixRequired = !integerIsZero && !integerHiIsNonZero && thirdCall.result;
+    rlpPrefixRequired = integerIsZero || integerHiIsNonZero || !thirdCall.result;
   }
 
   @Override
@@ -70,8 +70,8 @@ public class InstructionInteger extends RlpUtilsCall {
       trace
           .pCmpRlpUtilsFlag(true)
           .pCmpInst(RLP_UTILS_INST_INTEGER)
-          .pCmpExoData1(data1())
-          .pCmpExoData2(data2())
+          .pCmpExoData1(intHi())
+          .pCmpExoData2(intLo())
           .pCmpExoData3(!integerIsZero)
           .pCmpExoData4(!integerHiIsNonZero)
           .pCmpExoData5(rlpPrefixRequired)
@@ -110,7 +110,7 @@ public class InstructionInteger extends RlpUtilsCall {
     if (ct == 2) {
       if (!integerIsZero) {
         final int limbLoSize = integerHiIsNonZero ? LLARGE : leadingLimbByteSize();
-        trace.limbConstructed(true).pCmpLimb(data2()).pCmpNbytes(limbLoSize);
+        trace.limbConstructed(true).pCmpLimb(intLo()).pCmpNbytes(limbLoSize);
         if (lt & updateTracedValue) {
           tracedValues.decrementLtSizeBy(limbLoSize);
         }
@@ -127,10 +127,10 @@ public class InstructionInteger extends RlpUtilsCall {
         .macro(true)
         .pMacroInst(RLP_UTILS_INST_INTEGER)
         .isInteger(true)
-        .pMacroData1(data1())
-        .pMacroData2(data2())
+        .pMacroData1(intHi())
+        .pMacroData2(intLo())
         .pMacroData3(!integerIsZero)
-        .pMacroData4(!integerHiIsNonZero)
+        .pMacroData4(integerHiIsNonZero)
         .pMacroData5(rlpPrefixRequired)
         .pMacroData6(rlpPrefix())
         .pMacroData7(leadingLimbShifted())
@@ -170,25 +170,29 @@ public class InstructionInteger extends RlpUtilsCall {
     return 1 + CT_MAX_INST_INTEGER + 1;
   }
 
-  private Bytes data1() {
+  private Bytes intHi() {
     return integer.slice(0, LLARGE);
   }
 
-  private Bytes data2() {
+  private Bytes intLo() {
     return integer.slice(LLARGE, LLARGE);
   }
 
   private Bytes leadingLimbShifted() {
-    return integerHiIsNonZero ? data1() : data2();
+    return Bytes16.rightPad(leadingBytesNotShifted());
   }
 
   private int leadingLimbByteSize() {
-    return leadingLimbShifted().trimLeadingZeros().size();
+    return leadingBytesNotShifted().size();
+  }
+
+  private Bytes leadingBytesNotShifted() {
+    return (integerHiIsNonZero ? intHi() : intLo()).trimLeadingZeros();
   }
 
   private Bytes rlpPrefix() {
     return rlpPrefixRequired
-        ? Bytes16.leftPad(Bytes.of(RLP_PREFIX_INT_SHORT + integer.trimLeadingZeros().size()))
+        ? Bytes16.rightPad(Bytes.of(RLP_PREFIX_INT_SHORT + integer.trimLeadingZeros().size()))
         : Bytes.EMPTY;
   }
 }

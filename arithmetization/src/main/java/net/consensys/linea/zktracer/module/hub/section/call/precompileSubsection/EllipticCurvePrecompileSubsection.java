@@ -40,7 +40,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.comm
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.ecAddMulRecover.EcRecoverOobCall;
 import net.consensys.linea.zktracer.module.hub.section.call.CallSection;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.tuweni.bytes.Bytes;
 
 public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {

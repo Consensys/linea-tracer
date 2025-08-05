@@ -207,7 +207,7 @@ public abstract class Hub implements Module {
   private final Add add = new Add();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
-  private final Bls bls = new Bls(wcp);
+  public final Bls bls = new Bls(wcp);
   @Getter private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   @Getter private final Gas gas = new Gas(wcp);

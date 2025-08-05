@@ -38,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.bls.BlsOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
@@ -140,7 +141,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   }
 
   final MmuCall setBls() {
-    return this.exoIsBls(true).updateExoSum(0); // TODO: add EXO_SUM_WEIGHT_BLS);
+    return this.exoIsBls(true).updateExoSum(0); // TODO: add EXO_SUM_WEIGHT_BLSDATA); this has been added by Olivier in the constants
   }
 
   public MmuCall(final Hub hub, final int instruction) {
@@ -548,137 +549,55 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .phase(PHASE_ECPAIRING_DATA);
   }
 
-  public static MmuCall callDataExtractionForBlsPointEvaluation(
+  public static MmuCall callDataExtractionForBlsPrecompiles(
       Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
     final int precompileContextNumber = subsection.exoModuleOperationId();
-    return new MmuCall(
-            hub, MMU_INST_RAM_TO_EXO_WITH_PADDING) // TODO: MMU_INST_RAM_TO_EXO_WITHOUT_PADDING?
+    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING) // Note: there will be no padding
         .sourceId(hub.currentFrame().contextNumber())
         .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
         .targetId(precompileContextNumber)
         .exoBytes(Optional.of(subsection.extractCallData()))
         .sourceOffset(EWord.of(subsection.callDataOffset()))
         .size(subsection.callDataSize())
-        .referenceSize(
-            subsection
-                .callDataSize()) // TODO: for some precompiles the size is fixed, we can use the
+        .referenceSize(subsection.callDataSize())
         // constant
         .successBit(successBit)
         .setBls()
-        .phase(PHASE_DATA_POINT_EVALUATION);
-    // TODO: TODOs above are also related to the other bls precompiles
+        .phase(subsection.flag().dataPhase());
   }
 
-  public static MmuCall callDataExtractionForBlsG1Add(
-      Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
+  public static MmuCall fullReturnDataTransferForBlsPrecompiles(
+      final Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
+
     final int precompileContextNumber = subsection.exoModuleOperationId();
-    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
+
+    final long expectedReturnDataSize = BlsOperation.expectedReturnDataSize(subsection.flag());
+    checkState(subsection.returnDataRange.getRange().size() == expectedReturnDataSize);
+
+    return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
+        .sourceId(precompileContextNumber)
+        .exoBytes(Optional.of(subsection.returnDataRange.extract()))
         .targetId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.extractCallData()))
-        .sourceOffset(EWord.of(subsection.callDataOffset()))
-        .size(subsection.callDataSize())
-        .referenceSize(subsection.callDataSize())
+        .targetRamBytes(Optional.of(Bytes.EMPTY))
+        .size(expectedReturnDataSize)
+        .phase(subsection.flag().resultPhase())
         .successBit(successBit)
-        .setBls()
-        .phase(PHASE_DATA_G1_ADD);
+        .setBls();
   }
 
-  public static MmuCall callDataExtractionForBlsG1Msm(
-      Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
+  public static MmuCall partialCopyOfReturnDataForBlsPrecompiles(
+      final Hub hub, PrecompileSubsection subsection) {
     final int precompileContextNumber = subsection.exoModuleOperationId();
-    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
-        .targetId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.extractCallData()))
-        .sourceOffset(EWord.of(subsection.callDataOffset()))
-        .size(subsection.callDataSize())
-        .referenceSize(subsection.callDataSize())
-        .successBit(successBit)
-        .setBls()
-        .phase(PHASE_DATA_G1_MSM);
-  }
+    final int returnDataSize = (int) subsection.returnDataRange.getRange().size();
 
-  public static MmuCall callDataExtractionForBlsG2Add(
-      Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
-    final int precompileContextNumber = subsection.exoModuleOperationId();
-    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
-        .targetId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.extractCallData()))
-        .sourceOffset(EWord.of(subsection.callDataOffset()))
-        .size(subsection.callDataSize())
-        .referenceSize(subsection.callDataSize())
-        .successBit(successBit)
-        .setBls()
-        .phase(PHASE_DATA_G2_ADD);
-  }
-
-  public static MmuCall callDataExtractionForBlsG2Msm(
-      Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
-    final int precompileContextNumber = subsection.exoModuleOperationId();
-    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
-        .targetId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.extractCallData()))
-        .sourceOffset(EWord.of(subsection.callDataOffset()))
-        .size(subsection.callDataSize())
-        .referenceSize(subsection.callDataSize())
-        .successBit(successBit)
-        .setBls()
-        .phase(PHASE_DATA_G2_MSM);
-  }
-
-  public static MmuCall callDataExtractionForBlsPairingCheck(
-      Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
-    final int precompileContextNumber = subsection.exoModuleOperationId();
-    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
-        .targetId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.extractCallData()))
-        .sourceOffset(EWord.of(subsection.callDataOffset()))
-        .size(subsection.callDataSize())
-        .referenceSize(subsection.callDataSize())
-        .successBit(successBit)
-        .setBls()
-        .phase(PHASE_DATA_PAIRING_CHECK);
-  }
-
-  public static MmuCall callDataExtractionForBlsMapFpToG1(
-      Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
-    final int precompileContextNumber = subsection.exoModuleOperationId();
-    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
-        .targetId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.extractCallData()))
-        .sourceOffset(EWord.of(subsection.callDataOffset()))
-        .size(subsection.callDataSize())
-        .referenceSize(subsection.callDataSize())
-        .successBit(successBit)
-        .setBls()
-        .phase(PHASE_DATA_MAP_FP_TO_G1);
-  }
-
-  public static MmuCall callDataExtractionForBlsMapFp2ToG2(
-      Hub hub, EllipticCurvePrecompileSubsection subsection, boolean successBit) {
-    final int precompileContextNumber = subsection.exoModuleOperationId();
-    return new MmuCall(hub, MMU_INST_RAM_TO_EXO_WITH_PADDING)
-        .sourceId(hub.currentFrame().contextNumber())
-        .sourceRamBytes(Optional.of(subsection.rawCallerMemory()))
-        .targetId(precompileContextNumber)
-        .exoBytes(Optional.of(subsection.extractCallData()))
-        .sourceOffset(EWord.of(subsection.callDataOffset()))
-        .size(subsection.callDataSize())
-        .referenceSize(subsection.callDataSize())
-        .successBit(successBit)
-        .setBls()
-        .phase(PHASE_DATA_MAP_FP2_TO_G2);
+    return new MmuCall(hub, MMU_INST_RAM_TO_RAM_SANS_PADDING)
+        .sourceId(precompileContextNumber)
+        .sourceRamBytes(Optional.of(subsection.returnDataRange.extract()))
+        .targetId(hub.currentFrame().contextNumber())
+        .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
+        .size(returnDataSize)
+        .referenceOffset(subsection.returnAtOffset())
+        .referenceSize(subsection.returnAtCapacity());
   }
 
   /**
@@ -712,7 +631,9 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .sourceId(precompileContextNumber)
         .sourceRamBytes(
             Optional.of(
-                leftPadTo(subsection.returnDataRange.extract(), TOTAL_SIZE_ECPAIRING_RESULT)))
+                leftPadTo(
+                    subsection.returnDataRange.extract(),
+                    TOTAL_SIZE_ECPAIRING_RESULT))) // TODO: is the padding necessary?
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
         .size(TOTAL_SIZE_ECPAIRING_RESULT)

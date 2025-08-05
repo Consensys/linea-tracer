@@ -174,7 +174,7 @@ public class BlsOperation extends ModuleOperation {
         returnDataSize == (successBit ? expectedReturnDataSize(precompileFlag) : 0));
   }
 
-  private int expectedReturnDataSize(
+  public static int expectedReturnDataSize(
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag) {
     return switch (precompileFlag) {
           case PRC_POINT_EVALUATION -> INDEX_MAX_RSLT_POINT_EVALUATION + 1;

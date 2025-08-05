@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.module.hub.fragment.scenario.Precompi
 
 import java.math.BigInteger;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.ImcFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
@@ -96,6 +97,16 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           returnDataRange.extract().size() == (callSuccess ? WORD_SIZE : 0));
       case PRC_ECADD, PRC_ECMUL -> checkArgument(
           returnDataRange.extract().size() == (callSuccess ? 2 * WORD_SIZE : 0));
+      case PRC_POINT_EVALUATION,
+          PRC_BLS_G1_ADD,
+          PRC_BLS_G1_MSM,
+          PRC_BLS_G2_ADD,
+          PRC_BLS_G2_MSM,
+          PRC_BLS_PAIRING_CHECK,
+          PRC_BLS_MAP_FP_TO_G1,
+          PRC_BLS_MAP_FP2_TO_G2 -> {
+        // Note that BLS sanity checks are computed in BlsOperation
+      }
       default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
     }
 
@@ -107,7 +118,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
     //    hubSuccess ≡ true
 
     // ECRECOVER can only be FAILURE_KNOWN_TO_HUB or some form of SUCCESS_XXXX_REVERT
-    if (flag().isAnyOf(PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING)) {
+    if (flag().isAnyOf(PRC_ECADD, PRC_ECMUL, PRC_ECPAIRING) || flag().isBlsPrecompile()) {
       if (oobCall.isHubSuccess() && !callSuccess) {
         precompileScenarioFragment.scenario(PRC_FAILURE_KNOWN_TO_RAM);
       }
@@ -115,6 +126,12 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
 
     final MmuCall firstMmuCall;
     final boolean nonemptyCallData = !getCallDataRange().isEmpty();
+
+    // BLS precompiles do not accept empty call data
+    // This checks should be redundant with OOB checks
+    if (flag().isBlsPrecompile()) {
+      Preconditions.checkArgument(nonemptyCallData);
+    }
 
     final boolean successBitMmuCall = flag() == PRC_ECRECOVER ? !returnData.isEmpty() : callSuccess;
 
@@ -128,22 +145,15 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
             MmuCall.callDataExtractionForEcmul(hub, this, successBitMmuCall);
         case PRC_ECPAIRING -> firstMmuCall =
             MmuCall.callDataExtractionForEcpairing(hub, this, successBitMmuCall);
-        case PRC_POINT_EVALUATION -> firstMmuCall =
-            MmuCall.callDataExtractionForBlsPointEvaluation(hub, this, successBitMmuCall);
-        case PRC_BLS_G1_ADD -> firstMmuCall =
-            MmuCall.callDataExtractionForBlsG1Add(hub, this, successBitMmuCall);
-        case PRC_BLS_G1_MSM -> firstMmuCall =
-            MmuCall.callDataExtractionForBlsG1Msm(hub, this, successBitMmuCall);
-        case PRC_BLS_G2_ADD -> firstMmuCall =
-            MmuCall.callDataExtractionForBlsG2Add(hub, this, successBitMmuCall);
-        case PRC_BLS_G2_MSM -> firstMmuCall =
-            MmuCall.callDataExtractionForBlsG2Msm(hub, this, successBitMmuCall);
-        case PRC_BLS_PAIRING_CHECK -> firstMmuCall =
-            MmuCall.callDataExtractionForBlsPairingCheck(hub, this, successBitMmuCall);
-        case PRC_BLS_MAP_FP_TO_G1 -> firstMmuCall =
-            MmuCall.callDataExtractionForBlsMapFpToG1(hub, this, successBitMmuCall);
-        case PRC_BLS_MAP_FP2_TO_G2 -> firstMmuCall =
-            MmuCall.callDataExtractionForBlsMapFp2ToG2(hub, this, successBitMmuCall);
+        case PRC_POINT_EVALUATION,
+            PRC_BLS_G1_ADD,
+            PRC_BLS_G1_MSM,
+            PRC_BLS_G2_ADD,
+            PRC_BLS_G2_MSM,
+            PRC_BLS_PAIRING_CHECK,
+            PRC_BLS_MAP_FP_TO_G1,
+            PRC_BLS_MAP_FP2_TO_G2 -> firstMmuCall =
+            MmuCall.callDataExtractionForBlsPrecompiles(hub, this, successBitMmuCall);
         default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
       }
       firstImcFragment.callMmu(firstMmuCall);
@@ -197,6 +207,21 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
           secondMmuCall = MmuCall.fullReturnDataTransferForEcpairing(hub, this, successBitMmuCall);
           if (callerMayReceiveReturnData) {
             thirdMmuCall = MmuCall.partialCopyOfReturnDataForEcpairing(hub, this);
+          }
+        }
+        case PRC_POINT_EVALUATION,
+            PRC_BLS_G1_ADD,
+            PRC_BLS_G1_MSM,
+            PRC_BLS_G2_ADD,
+            PRC_BLS_G2_MSM,
+            PRC_BLS_PAIRING_CHECK,
+            PRC_BLS_MAP_FP_TO_G1,
+            PRC_BLS_MAP_FP2_TO_G2 -> {
+          // Note that for BLS precompiles nonemptyCallData is always true at this point
+          secondMmuCall =
+              MmuCall.fullReturnDataTransferForBlsPrecompiles(hub, this, successBitMmuCall);
+          if (callerMayReceiveReturnData) {
+            thirdMmuCall = MmuCall.partialCopyOfReturnDataForBlsPrecompiles(hub, this);
           }
         }
         default -> throw new IllegalArgumentException("Not an elliptic curve precompile");

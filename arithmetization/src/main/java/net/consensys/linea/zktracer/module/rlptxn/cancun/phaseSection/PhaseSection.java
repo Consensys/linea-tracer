@@ -68,7 +68,6 @@ public abstract class PhaseSection {
   public void tracePreValues(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
     traceIsPhaseX(trace);
     trace
-        .userTxnNumber(tracedValues.tx().getUserTransactionNumber())
         .indexLt(tracedValues.indexLt())
         .indexLx(tracedValues.indexLx())
         .codeFragmentIndex(tracedValues.tx().getCodeFragmentIndex())

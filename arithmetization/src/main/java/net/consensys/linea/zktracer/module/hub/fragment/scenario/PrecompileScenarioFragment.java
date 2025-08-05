@@ -101,14 +101,14 @@ public class PrecompileScenarioFragment implements TraceFragment {
             Map.entry(PRC_ECMUL, Trace.PHASE_ECMUL_DATA),
             Map.entry(PRC_ECPAIRING, Trace.PHASE_ECPAIRING_DATA),
             // BLAKE2f not supported
-            Map.entry(PRC_POINT_EVALUATION, Trace.PHASE_DATA_POINT_EVALUATION),
-            Map.entry(PRC_BLS_G1_ADD, Trace.PHASE_DATA_G1_ADD),
-            Map.entry(PRC_BLS_G1_MSM, Trace.PHASE_DATA_G1_MSM),
-            Map.entry(PRC_BLS_G2_ADD, Trace.PHASE_DATA_G2_ADD),
-            Map.entry(PRC_BLS_G2_MSM, Trace.PHASE_DATA_G2_MSM),
-            Map.entry(PRC_BLS_PAIRING_CHECK, Trace.PHASE_DATA_PAIRING_CHECK),
-            Map.entry(PRC_BLS_MAP_FP_TO_G1, Trace.PHASE_DATA_MAP_FP_TO_G1),
-            Map.entry(PRC_BLS_MAP_FP2_TO_G2, Trace.PHASE_DATA_MAP_FP2_TO_G2));
+            Map.entry(PRC_POINT_EVALUATION, Trace.PHASE_POINT_EVALUATION_DATA),
+            Map.entry(PRC_BLS_G1_ADD, Trace.PHASE_BLS_G1_ADD_DATA),
+            Map.entry(PRC_BLS_G1_MSM, Trace.PHASE_BLS_G1_MSM_DATA),
+            Map.entry(PRC_BLS_G2_ADD, Trace.PHASE_BLS_G2_ADD_DATA),
+            Map.entry(PRC_BLS_G2_MSM, Trace.PHASE_BLS_G2_MSM_DATA),
+            Map.entry(PRC_BLS_PAIRING_CHECK, Trace.PHASE_BLS_PAIRING_CHECK_DATA),
+            Map.entry(PRC_BLS_MAP_FP_TO_G1, Trace.PHASE_BLS_MAP_FP_TO_G1_DATA),
+            Map.entry(PRC_BLS_MAP_FP2_TO_G2, Trace.PHASE_BLS_MAP_FP2_TO_G2_DATA));
 
     private static final Map<PrecompileFlag, Integer> RESULT_PHASE_MAP =
         Map.ofEntries(
@@ -121,14 +121,14 @@ public class PrecompileScenarioFragment implements TraceFragment {
             Map.entry(PRC_ECMUL, Trace.PHASE_ECMUL_RESULT),
             Map.entry(PRC_ECPAIRING, Trace.PHASE_ECPAIRING_RESULT),
             // BLAKE2f not supported
-            Map.entry(PRC_POINT_EVALUATION, Trace.PHASE_RSLT_POINT_EVALUATION),
-            Map.entry(PRC_BLS_G1_ADD, Trace.PHASE_RSLT_G1_ADD),
-            Map.entry(PRC_BLS_G1_MSM, Trace.PHASE_RSLT_G1_MSM),
-            Map.entry(PRC_BLS_G2_ADD, Trace.PHASE_RSLT_G2_ADD),
-            Map.entry(PRC_BLS_G2_MSM, Trace.PHASE_RSLT_G2_MSM),
-            Map.entry(PRC_BLS_PAIRING_CHECK, Trace.PHASE_RSLT_PAIRING_CHECK),
-            Map.entry(PRC_BLS_MAP_FP_TO_G1, Trace.PHASE_RSLT_MAP_FP_TO_G1),
-            Map.entry(PRC_BLS_MAP_FP2_TO_G2, Trace.PHASE_RSLT_MAP_FP2_TO_G2));
+            Map.entry(PRC_POINT_EVALUATION, Trace.PHASE_POINT_EVALUATION_RESULT),
+            Map.entry(PRC_BLS_G1_ADD, Trace.PHASE_BLS_G1_ADD_RESULT),
+            Map.entry(PRC_BLS_G1_MSM, Trace.PHASE_BLS_G1_MSM_RESULT),
+            Map.entry(PRC_BLS_G2_ADD, Trace.PHASE_BLS_G2_ADD_RESULT),
+            Map.entry(PRC_BLS_G2_MSM, Trace.PHASE_BLS_G2_MSM_RESULT),
+            Map.entry(PRC_BLS_PAIRING_CHECK, Trace.PHASE_BLS_PAIRING_CHECK_RESULT),
+            Map.entry(PRC_BLS_MAP_FP_TO_G1, Trace.PHASE_BLS_MAP_FP_TO_G1_RESULT),
+            Map.entry(PRC_BLS_MAP_FP2_TO_G2, Trace.PHASE_BLS_MAP_FP2_TO_G2_RESULT));
 
     public static PrecompileFlag addressToPrecompileFlag(Address precompileAddress) {
       if (!ADDRESS_TO_FLAG_MAP.containsKey(precompileAddress)) {

@@ -44,22 +44,6 @@ import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_POINT_EVALUATION;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G1_ADD;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G1_MSM;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G2_ADD;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_G2_MSM;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_MAP_FP2_TO_G2;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_MAP_FP_TO_G1;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_PAIRING_CHECK;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_DATA_POINT_EVALUATION;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_G1_ADD;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_G1_MSM;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_G2_ADD;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_G2_MSM;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_MAP_FP2_TO_G2;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_MAP_FP_TO_G1;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_PAIRING_CHECK;
-import static net.consensys.linea.zktracer.TraceCancun.PHASE_RSLT_POINT_EVALUATION;
 import static net.consensys.linea.zktracer.module.bls.BlsUtils.POINT_EVALUATION_PRIME;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_ADD;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_MSM;
@@ -708,35 +692,6 @@ public class BlsOperation extends ModuleOperation {
     return p.isInSubGroup();
   }
 
-  private static short getPhase(
-      PrecompileScenarioFragment.PrecompileFlag precompileFlag, boolean isData) {
-    if (isData) {
-      return switch (precompileFlag) {
-        case PRC_POINT_EVALUATION -> PHASE_DATA_POINT_EVALUATION;
-        case PRC_BLS_G1_ADD -> PHASE_DATA_G1_ADD;
-        case PRC_BLS_G1_MSM -> PHASE_DATA_G1_MSM;
-        case PRC_BLS_G2_ADD -> PHASE_DATA_G2_ADD;
-        case PRC_BLS_G2_MSM -> PHASE_DATA_G2_MSM;
-        case PRC_BLS_PAIRING_CHECK -> PHASE_DATA_PAIRING_CHECK;
-        case PRC_BLS_MAP_FP_TO_G1 -> PHASE_DATA_MAP_FP_TO_G1;
-        case PRC_BLS_MAP_FP2_TO_G2 -> PHASE_DATA_MAP_FP2_TO_G2;
-        default -> throw new IllegalStateException("invalid BLS type");
-      };
-    } else {
-      return switch (precompileFlag) {
-        case PRC_POINT_EVALUATION -> PHASE_RSLT_POINT_EVALUATION;
-        case PRC_BLS_G1_ADD -> PHASE_RSLT_G1_ADD;
-        case PRC_BLS_G1_MSM -> PHASE_RSLT_G1_MSM;
-        case PRC_BLS_G2_ADD -> PHASE_RSLT_G2_ADD;
-        case PRC_BLS_G2_MSM -> PHASE_RSLT_G2_MSM;
-        case PRC_BLS_PAIRING_CHECK -> PHASE_RSLT_PAIRING_CHECK;
-        case PRC_BLS_MAP_FP_TO_G1 -> PHASE_RSLT_MAP_FP_TO_G1;
-        case PRC_BLS_MAP_FP2_TO_G2 -> PHASE_RSLT_MAP_FP2_TO_G2;
-        default -> throw new IllegalStateException("invalid BLS type");
-      };
-    }
-  }
-
   private int getIndexMax(
       PrecompileScenarioFragment.PrecompileFlag precompileFlag, boolean isData) {
     if (isData) {
@@ -1000,7 +955,7 @@ public class BlsOperation extends ModuleOperation {
           .totalSize(isData ? totalSizeData : totalSizeResult)
           .index(isData ? i : i - nRowsData)
           .indexMax(indexMax)
-          .phase(getPhase(precompileFlag, isData))
+          .phase(isData ? precompileFlag.dataPhase() : precompileFlag.resultPhase())
           .limb(isData || returnDataIsNonEmpty ? limb.slice(i, LLARGE) : ZERO)
           .successBit(successBit)
           .ct(ct)

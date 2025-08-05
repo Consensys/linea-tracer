@@ -128,7 +128,22 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
             MmuCall.callDataExtractionForEcmul(hub, this, successBitMmuCall);
         case PRC_ECPAIRING -> firstMmuCall =
             MmuCall.callDataExtractionForEcpairing(hub, this, successBitMmuCall);
-          // TODO: create a similar class for BLS precompiles or use the same class
+        case PRC_POINT_EVALUATION -> firstMmuCall =
+            MmuCall.callDataExtractionForBlsPointEvaluation(hub, this, successBitMmuCall);
+        case PRC_BLS_G1_ADD -> firstMmuCall =
+            MmuCall.callDataExtractionForBlsG1Add(hub, this, successBitMmuCall);
+        case PRC_BLS_G1_MSM -> firstMmuCall =
+            MmuCall.callDataExtractionForBlsG1Msm(hub, this, successBitMmuCall);
+        case PRC_BLS_G2_ADD -> firstMmuCall =
+            MmuCall.callDataExtractionForBlsG2Add(hub, this, successBitMmuCall);
+        case PRC_BLS_G2_MSM -> firstMmuCall =
+            MmuCall.callDataExtractionForBlsG2Msm(hub, this, successBitMmuCall);
+        case PRC_BLS_PAIRING_CHECK -> firstMmuCall =
+            MmuCall.callDataExtractionForBlsPairingCheck(hub, this, successBitMmuCall);
+        case PRC_BLS_MAP_FP_TO_G1 -> firstMmuCall =
+            MmuCall.callDataExtractionForBlsMapFpToG1(hub, this, successBitMmuCall);
+        case PRC_BLS_MAP_FP2_TO_G2 -> firstMmuCall =
+            MmuCall.callDataExtractionForBlsMapFp2ToG2(hub, this, successBitMmuCall);
         default -> throw new IllegalArgumentException("Not an elliptic curve precompile");
       }
       firstImcFragment.callMmu(firstMmuCall);

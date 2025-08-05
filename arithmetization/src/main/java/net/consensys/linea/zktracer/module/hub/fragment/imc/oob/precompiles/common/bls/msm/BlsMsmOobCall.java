@@ -16,18 +16,19 @@
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.msm;
 
 import static net.consensys.linea.zktracer.Trace.PRC_BLS_MULTIPLICATION_MULTIPLIER;
+import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToBlsRefTable;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToGT;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToMOD;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.noCall;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToInt;
 
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.CommonPrecompileOobCall;
-import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -40,13 +41,13 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
 
   long precompileCost;
 
-  abstract long minMsmSize();
+  abstract int minMsmSize();
 
-  abstract PrecompileScenarioFragment.PrecompileFlag getPrecompileFlag();
+  abstract int getOobInst();
 
-  abstract long maxDiscount();
+  abstract int maxDiscount();
 
-  abstract long msmMultiplicationCost();
+  abstract int msmMultiplicationCost();
 
   @Override
   public void callExoModules(Add add, Mod mod, Wcp wcp) {
@@ -64,10 +65,10 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
     final boolean cdsIsMultipleOfMinMsmSize =
         bytesToBoolean(cdsIsMultipleOfMinMsmSizeCall.result());
 
-    final long numInputs = getCds().toLong() / minMsmSize();
+    final int numInputs = getCds().toInt() / minMsmSize();
 
-    Boolean numInputsLeq128 = null;
     // i + 4
+    boolean numInputsLeq128 = false;
     if (!cdsIsMultipleOfMinMsmSize) {
       exoCalls.add(noCall());
     } else {
@@ -78,18 +79,14 @@ public abstract class BlsMsmOobCall extends CommonPrecompileOobCall {
     }
 
     // i + 5
-    Long discount = null;
+    int discount = 0;
     if (!cdsIsMultipleOfMinMsmSize) {
       exoCalls.add(noCall());
     } else {
-
       if (numInputsLeq128) {
-        // TODO
-        /*
-        final OobExoCall discountCall = callToBlsRefTable(refTable, getPrecompileFlag(), numInputs);
+        final OobExoCall discountCall = callToBlsRefTable(getOobInst(), numInputs);
         exoCalls.add(discountCall);
-        discount = bytesToLong(discountCall.result());
-         */
+        discount = bytesToInt(discountCall.result());
       } else {
         exoCalls.add(noCall());
         discount = maxDiscount();

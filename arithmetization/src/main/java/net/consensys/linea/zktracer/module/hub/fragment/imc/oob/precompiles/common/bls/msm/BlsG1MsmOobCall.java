@@ -9,7 +9,6 @@ import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_BLS_G1MSM;
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 
 public class BlsG1MsmOobCall extends BlsMsmOobCall {
   public BlsG1MsmOobCall(BigInteger calleeGas) {
@@ -32,22 +31,22 @@ public class BlsG1MsmOobCall extends BlsMsmOobCall {
   }
 
   @Override
-  long minMsmSize() {
+  int minMsmSize() {
     return PRC_BLS_G1MSM_SIZE_MIN;
   }
 
   @Override
-  PrecompileScenarioFragment.PrecompileFlag getPrecompileFlag() {
-    return PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_MSM;
+  int getOobInst() {
+    return OOB_INST_BLS_G1MSM;
   }
 
   @Override
-  long maxDiscount() {
+  int maxDiscount() {
     return PRC_BLS_G1MSM_MAX_DISCOUNT;
   }
 
   @Override
-  long msmMultiplicationCost() {
+  int msmMultiplicationCost() {
     return PRC_BLS_MULTIPLICATION_MULTIPLIER;
   }
 }

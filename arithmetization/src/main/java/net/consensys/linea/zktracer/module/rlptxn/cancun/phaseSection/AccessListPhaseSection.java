@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.rlptxn.cancun.phaseSection;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.TraceCancun.Rlptxn.RLP_TXN_CT_MAX_ADDRESS;
-import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_INT;
+import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES16_PREFIX_ADDRESS;
 import static net.consensys.linea.zktracer.module.rlputilsOld.Pattern.outerRlpSize;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
@@ -30,7 +30,6 @@ import net.consensys.linea.zktracer.module.rlpUtils.InstructionByteStringPrefix;
 import net.consensys.linea.zktracer.module.rlpUtils.InstructionBytes32;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
-import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.AccessListEntry;
@@ -166,7 +165,7 @@ public class AccessListPhaseSection extends PhaseSection {
           .limbConstructed(true)
           .lt(true)
           .lx(true)
-          .pCmpLimb(Bytes16.rightPad(BYTES_PREFIX_SHORT_INT))
+          .pCmpLimb(BYTES16_PREFIX_ADDRESS)
           .pCmpLimbSize(1);
       phaseSize -= 1;
       tupleSize -= 1;

@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.rlpUtils;
 
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_INTEGER;
+import static net.consensys.linea.zktracer.TraceCancun.Rlptxn.RLP_TXN_CT_MAX_INTEGER;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES32_PREFIX_SHORT_INT;
 
 import lombok.Getter;
@@ -64,60 +65,62 @@ public class InstructionInteger extends RlpUtilsCall {
       boolean lx,
       boolean updateTracedValue,
       int ct) {
-    trace.cmp(true).ct(ct).ctMax(2).lt(lt).lx(lx);
+    trace.cmp(true).ct(ct).ctMax(RLP_TXN_CT_MAX_INTEGER).lt(lt).lx(lx);
 
-    if (ct == 0) {
-      trace
-          .pCmpRlputilsFlag(true)
-          .pCmpRlputilsInst(RLP_UTILS_INST_INTEGER)
-          .pCmpExoData1(intHi())
-          .pCmpExoData2(intLo())
-          .pCmpExoData3(!integerIsZero)
-          .pCmpExoData4(!integerHiIsNonZero)
-          .pCmpExoData5(rlpPrefixRequired)
-          .pCmpExoData6(rlpPrefix())
-          .pCmpExoData7(leadingLimbShifted())
-          .pCmpExoData8(leadingLimbByteSize());
-    }
-
-    if (ct == 0) {
-      if (rlpPrefixRequired) {
-        trace.limbConstructed(true).pCmpLimb(rlpPrefix()).pCmpLimbSize(1);
-        if (lt && updateTracedValue) {
-          tracedValues.decrementLtSizeBy(1);
-        }
-        if (lx && updateTracedValue) {
-          tracedValues.decrementLxSizeBy(1);
-        }
-      }
-    }
-
-    if (ct == 1) {
-      if (integerHiIsNonZero) {
+    switch (ct) {
+      case 0 -> {
+        // rlpUtils call:
         trace
-            .limbConstructed(true)
-            .pCmpLimb(leadingLimbShifted())
-            .pCmpLimbSize(leadingLimbByteSize());
-        if (lt && updateTracedValue) {
-          tracedValues.decrementLtSizeBy(leadingLimbByteSize());
-        }
-        if (lx && updateTracedValue) {
-          tracedValues.decrementLxSizeBy(leadingLimbByteSize());
-        }
-      }
-    }
+            .pCmpRlputilsFlag(true)
+            .pCmpRlputilsInst(RLP_UTILS_INST_INTEGER)
+            .pCmpExoData1(intHi())
+            .pCmpExoData2(intLo())
+            .pCmpExoData3(!integerIsZero)
+            .pCmpExoData4(!integerHiIsNonZero)
+            .pCmpExoData5(rlpPrefixRequired)
+            .pCmpExoData6(rlpPrefix())
+            .pCmpExoData7(leadingLimbShifted())
+            .pCmpExoData8(leadingLimbByteSize());
 
-    if (ct == 2) {
-      if (!integerIsZero) {
-        final int limbLoSize = integerHiIsNonZero ? LLARGE : leadingLimbByteSize();
-        trace.limbConstructed(true).pCmpLimb(intLo()).pCmpLimbSize(limbLoSize);
-        if (lt & updateTracedValue) {
-          tracedValues.decrementLtSizeBy(limbLoSize);
-        }
-        if (lx && updateTracedValue) {
-          tracedValues.decrementLxSizeBy(limbLoSize);
+        if (rlpPrefixRequired) {
+          trace.limbConstructed(true).pCmpLimb(rlpPrefix()).pCmpLimbSize(1);
+          if (lt && updateTracedValue) {
+            tracedValues.decrementLtSizeBy(1);
+          }
+          if (lx && updateTracedValue) {
+            tracedValues.decrementLxSizeBy(1);
+          }
         }
       }
+
+      case 1 -> {
+        if (integerHiIsNonZero) {
+          trace
+              .limbConstructed(true)
+              .pCmpLimb(leadingLimbShifted())
+              .pCmpLimbSize(leadingLimbByteSize());
+          if (lt && updateTracedValue) {
+            tracedValues.decrementLtSizeBy(leadingLimbByteSize());
+          }
+          if (lx && updateTracedValue) {
+            tracedValues.decrementLxSizeBy(leadingLimbByteSize());
+          }
+        }
+      }
+
+      case 2 -> {
+        if (!integerIsZero) {
+          final int limbLoSize = integerHiIsNonZero ? LLARGE : leadingLimbByteSize();
+          trace.limbConstructed(true).pCmpLimb(intLo()).pCmpLimbSize(limbLoSize);
+          if (lt & updateTracedValue) {
+            tracedValues.decrementLtSizeBy(limbLoSize);
+          }
+          if (lx && updateTracedValue) {
+            tracedValues.decrementLxSizeBy(limbLoSize);
+          }
+        }
+      }
+      default -> throw new IllegalArgumentException("Invalid counter: " + ct);
     }
   }
 

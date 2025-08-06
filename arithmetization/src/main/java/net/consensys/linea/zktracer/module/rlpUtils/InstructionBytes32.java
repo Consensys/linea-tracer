@@ -18,13 +18,13 @@ package net.consensys.linea.zktracer.module.rlpUtils;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.Trace.RLP_UTILS_INST_BYTES32;
 import static net.consensys.linea.zktracer.Trace.Rlputils.CT_MAX_INST_BYTES32;
-import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_INT;
+import static net.consensys.linea.zktracer.TraceCancun.Rlptxn.RLP_TXN_CT_MAX_BYTES32;
+import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES16_PREFIX_BYTES32;
 import static net.consensys.linea.zktracer.module.rlpUtils.WcpExoCall.callToGeq;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -51,19 +51,14 @@ public class InstructionBytes32 extends RlpUtilsCall {
       int ct) {
     trace.isAccessListStorageKey(true);
     tracedValues.decrementLtAndLxSizeBy(ct == 0 ? 1 : LLARGE);
-    trace
-        .limbConstructed(true)
-        .lt(true)
-        .lx(true)
-        .ct(ct)
-        .ctMax(2)
-        .pCmpExoData1(data1())
-        .pCmpExoData2(data2());
+    trace.limbConstructed(true).lt(true).lx(true).ct(ct).ctMax(RLP_TXN_CT_MAX_BYTES32);
     switch (ct) {
       case 0 -> trace
           .pCmpRlputilsFlag(true)
           .pCmpRlputilsInst(RLP_UTILS_INST_BYTES32)
-          .pCmpLimb(Bytes16.rightPad(BYTES_PREFIX_SHORT_INT))
+          .pCmpExoData1(data1())
+          .pCmpExoData2(data2())
+          .pCmpLimb(BYTES16_PREFIX_BYTES32)
           .pCmpLimbSize(1);
       case 1 -> trace.pCmpLimb(data1()).pCmpLimbSize(LLARGE);
       case 2 -> trace.pCmpLimb(data2()).pCmpLimbSize(LLARGE);

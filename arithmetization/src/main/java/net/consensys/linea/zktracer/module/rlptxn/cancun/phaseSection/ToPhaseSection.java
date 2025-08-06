@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.rlptxn.cancun.phaseSection;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.TraceCancun.Rlptxn.RLP_TXN_CT_MAX_ADDRESS;
+import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES16_PREFIX_ADDRESS;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_INT;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
@@ -61,7 +62,7 @@ public class ToPhaseSection extends PhaseSection {
           .limbConstructed(true)
           .lt(true)
           .lx(true)
-          .pCmpLimb(Bytes16.rightPad(BYTES_PREFIX_SHORT_INT))
+          .pCmpLimb(BYTES16_PREFIX_ADDRESS)
           .pCmpLimbSize(1);
       tracedValues.decrementLtAndLxSizeBy(1);
       tracePostValues(trace, tracedValues);

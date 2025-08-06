@@ -135,8 +135,8 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
         .cmp(true)
         .lt(lt)
         .lx(lx)
-        .pCmpRlpUtilsFlag(true)
-        .pCmpInst(RLP_UTILS_INST_BYTE_STRING_PREFIX)
+        .pCmpRlputilsFlag(true)
+        .pCmpRlputilsInst(RLP_UTILS_INST_BYTE_STRING_PREFIX)
         .pCmpExoData1(byteStringLength)
         .pCmpExoData2(Bytes.of(firstByte))
         .pCmpExoData3(isList)
@@ -146,7 +146,7 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
         .pCmpExoData8(rlpPrefixByteSize)
         .limbConstructed(rlpPrefixRequired)
         .pCmpLimb(rlpPrefix)
-        .pCmpNbytes(rlpPrefixByteSize);
+        .pCmpLimbSize(rlpPrefixByteSize);
 
     if (!updateTracedValue) {
       return;
@@ -154,12 +154,10 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
 
     if (rlpPrefixRequired && lt) {
       tracedValues.rlpLtByteSize(tracedValues.rlpLtByteSize() - rlpPrefixByteSize);
-      tracedValues.indexLt(tracedValues.indexLt() + 1);
     }
 
     if (rlpPrefixRequired && lx) {
       tracedValues.rlpLxByteSize(tracedValues.rlpLxByteSize() - rlpPrefixByteSize);
-      tracedValues.indexLx(tracedValues.indexLx() + 1);
     }
   }
 

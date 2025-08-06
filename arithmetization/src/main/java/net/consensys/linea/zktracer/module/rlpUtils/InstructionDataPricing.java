@@ -79,8 +79,8 @@ public class InstructionDataPricing extends RlpUtilsCall {
       int ct) {
     trace
         .cmp(true)
-        .pCmpRlpUtilsFlag(true)
-        .pCmpInst(RLP_UTILS_INST_DATA_PRICING)
+        .pCmpRlputilsFlag(true)
+        .pCmpRlputilsInst(RLP_UTILS_INST_DATA_PRICING)
         .pCmpExoData1(limb)
         .pCmpExoData2(Bytes.ofUnsignedShort(nBytes))
         .pCmpExoData6(data6())

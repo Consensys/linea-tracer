@@ -68,8 +68,8 @@ public class InstructionInteger extends RlpUtilsCall {
 
     if (ct == 0) {
       trace
-          .pCmpRlpUtilsFlag(true)
-          .pCmpInst(RLP_UTILS_INST_INTEGER)
+          .pCmpRlputilsFlag(true)
+          .pCmpRlputilsInst(RLP_UTILS_INST_INTEGER)
           .pCmpExoData1(intHi())
           .pCmpExoData2(intLo())
           .pCmpExoData3(!integerIsZero)
@@ -82,7 +82,7 @@ public class InstructionInteger extends RlpUtilsCall {
 
     if (ct == 0) {
       if (rlpPrefixRequired) {
-        trace.limbConstructed(true).pCmpLimb(rlpPrefix()).pCmpNbytes(1);
+        trace.limbConstructed(true).pCmpLimb(rlpPrefix()).pCmpLimbSize(1);
         if (lt && updateTracedValue) {
           tracedValues.decrementLtSizeBy(1);
         }
@@ -97,7 +97,7 @@ public class InstructionInteger extends RlpUtilsCall {
         trace
             .limbConstructed(true)
             .pCmpLimb(leadingLimbShifted())
-            .pCmpNbytes(leadingLimbByteSize());
+            .pCmpLimbSize(leadingLimbByteSize());
         if (lt && updateTracedValue) {
           tracedValues.decrementLtSizeBy(leadingLimbByteSize());
         }
@@ -110,7 +110,7 @@ public class InstructionInteger extends RlpUtilsCall {
     if (ct == 2) {
       if (!integerIsZero) {
         final int limbLoSize = integerHiIsNonZero ? LLARGE : leadingLimbByteSize();
-        trace.limbConstructed(true).pCmpLimb(intLo()).pCmpNbytes(limbLoSize);
+        trace.limbConstructed(true).pCmpLimb(intLo()).pCmpLimbSize(limbLoSize);
         if (lt & updateTracedValue) {
           tracedValues.decrementLtSizeBy(limbLoSize);
         }

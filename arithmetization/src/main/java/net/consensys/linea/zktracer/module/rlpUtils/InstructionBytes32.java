@@ -49,6 +49,7 @@ public class InstructionBytes32 extends RlpUtilsCall {
       boolean lx,
       boolean updateTracedValue,
       int ct) {
+    trace.isAccessListStorageKey(true);
     tracedValues.decrementLtAndLxSizeBy(ct == 0 ? 1 : LLARGE);
     trace
         .limbConstructed(true)
@@ -60,12 +61,12 @@ public class InstructionBytes32 extends RlpUtilsCall {
         .pCmpExoData2(data2());
     switch (ct) {
       case 0 -> trace
-          .pCmpRlpUtilsFlag(true)
-          .pCmpInst(RLP_UTILS_INST_BYTES32)
+          .pCmpRlputilsFlag(true)
+          .pCmpRlputilsInst(RLP_UTILS_INST_BYTES32)
           .pCmpLimb(Bytes16.rightPad(BYTES_PREFIX_SHORT_INT))
-          .pCmpNbytes(1);
-      case 1 -> trace.pCmpLimb(data1()).pCmpNbytes(LLARGE);
-      case 2 -> trace.pCmpLimb(data2()).pCmpNbytes(LLARGE);
+          .pCmpLimbSize(1);
+      case 1 -> trace.pCmpLimb(data1()).pCmpLimbSize(LLARGE);
+      case 2 -> trace.pCmpLimb(data2()).pCmpLimbSize(LLARGE);
       default -> throw new IllegalArgumentException("Invalid counter: " + ct);
     }
   }

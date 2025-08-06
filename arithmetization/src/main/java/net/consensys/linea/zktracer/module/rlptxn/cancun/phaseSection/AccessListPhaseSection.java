@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.rlptxn.cancun.phaseSection;
 
 import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.TraceCancun.Rlptxn.RLP_TXN_CT_MAX_ADDRESS;
 import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES_PREFIX_SHORT_INT;
 import static net.consensys.linea.zktracer.module.rlputilsOld.Pattern.outerRlpSize;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
@@ -31,7 +32,6 @@ import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
@@ -74,11 +74,10 @@ public class AccessListPhaseSection extends PhaseSection {
     totalKeys = tx.numberOfWarmedStorageKeys();
 
     // Phase RlpPrefix
-    tracePreValues(trace, tracedValues);
+    traceTransactionConstantValues(trace, tracedValues);
     accessListRlpPrefix.traceRlpTxn(trace, tracedValues, true, true, true, 0);
-    phaseSize -= accessListRlpPrefix.rlpPrefixByteSize();
-    trace.pCmpIsPrefix(true).pCmpTmp1(phaseSize).pCmpTmp2(totalAddress).pCmpTmp3(totalKeys);
-    trace.phaseEnd(entries.isEmpty());
+    trace.pCmpAux1(phaseSize).pCmpAuxCcc1(totalAddress).pCmpAuxCcc2(totalKeys);
+    tracedValues.decrementLtAndLxSizeBy(accessListRlpPrefix.rlpPrefixByteSize());
     tracePostValues(trace, tracedValues);
 
     // trace each entry
@@ -132,144 +131,118 @@ public class AccessListPhaseSection extends PhaseSection {
           + 3 * keys.size(); // 3 per keys
     }
 
+    private void traceAccessListCountdownValues(
+        Trace.Rlptxn trace, int tupleSize, int totalStorageForThisAddress) {
+      trace
+          .pCmpAuxCcc1(totalAddress)
+          .pCmpAuxCcc2(totalKeys)
+          .pCmpAux1(phaseSize)
+          .pCmpAux2(tupleSize)
+          .pCmpAuxCcc3(totalStorageForThisAddress)
+          .pCmpAuxCcc4(highPart(address))
+          .pCmpAuxCcc5(lowPart(address));
+    }
+
     public void trace(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
       int tupleSize = entryRlpPrefix.rlpPrefixByteSize();
       int totalStorageForThisAddress = keys.size();
 
+      totalAddress -= 1;
+
       // trace entry RlpPrefix
-      tracePreValues(trace, tracedValues);
+      traceTransactionConstantValues(trace, tracedValues);
       entryRlpPrefix.traceRlpTxn(trace, tracedValues, true, true, true, 0);
-      phaseSize -= tupleSize;
-      trace
-          .pCmpIsPrefix(true)
-          .pCmpIsAddress(true)
-          .pCmpTmp1(phaseSize)
-          .pCmpTmp2(totalAddress)
-          .pCmpTmp3(totalKeys)
-          .pCmpTmp4(tupleSize)
-          .pCmpTmp5(highPart(address))
-          .pCmpTmp6(lowPart(address))
-          .pCmpTmp7(totalStorageForThisAddress);
+      phaseSize -= entryRlpPrefix.rlpPrefixByteSize();
+      trace.isPrefixOfAccessListItem(true);
+      traceAccessListCountdownValues(trace, tupleSize, totalStorageForThisAddress);
       tracePostValues(trace, tracedValues);
 
       // trace RLP(address)
-      // first Limb
-      tracePreValues(trace, tracedValues);
+      // RLP(address): first row: rlp prefix
+      traceTransactionConstantValues(trace, tracedValues);
       trace
-          .ctMax(1)
+          .isAccessListAddress(true)
+          .ctMax(RLP_TXN_CT_MAX_ADDRESS)
           .limbConstructed(true)
           .lt(true)
           .lx(true)
-          .limb(Bytes16.rightPad(Bytes.concatenate(BYTES_PREFIX_SHORT_INT, address.slice(0, 4))))
-          .nBytes(5);
-      phaseSize -= 5;
-      tupleSize -= 5;
-      tracedValues.decrementLtAndLxSizeBy(5);
-      trace
-          .pCmpIsAddress(true)
-          .pCmpTmp1(phaseSize)
-          .pCmpTmp2(totalAddress)
-          .pCmpTmp3(totalKeys)
-          .pCmpTmp4(tupleSize)
-          .pCmpTmp5(highPart(address))
-          .pCmpTmp6(lowPart(address))
-          .pCmpTmp7(totalStorageForThisAddress);
+          .pCmpLimb(Bytes16.rightPad(BYTES_PREFIX_SHORT_INT))
+          .pCmpLimbSize(1);
+      phaseSize -= 1;
+      tupleSize -= 1;
+      tracedValues.decrementLtAndLxSizeBy(1);
+      traceAccessListCountdownValues(trace, tupleSize, totalStorageForThisAddress);
       tracePostValues(trace, tracedValues);
 
-      // second limb
-      tracePreValues(trace, tracedValues);
+      // RLP(address): second row: address hi
+      traceTransactionConstantValues(trace, tracedValues);
       trace
+          .isAccessListAddress(true)
           .ct(1)
-          .ctMax(1)
+          .ctMax(RLP_TXN_CT_MAX_ADDRESS)
           .limbConstructed(true)
           .lt(true)
           .lx(true)
-          .limb(address.slice(4, LLARGE))
-          .nBytes(LLARGE);
-      totalAddress -= 1;
+          .pCmpLimb(address.slice(0, 4))
+          .pCmpLimbSize(4);
+      phaseSize -= 4;
+      tupleSize -= 4;
+      tracedValues.decrementLtAndLxSizeBy(4);
+      traceAccessListCountdownValues(trace, tupleSize, totalStorageForThisAddress);
+      tracePostValues(trace, tracedValues);
+
+      // RLP(address):third row: address lo
+      traceTransactionConstantValues(trace, tracedValues);
+      trace
+          .isAccessListAddress(true)
+          .ct(2)
+          .ctMax(RLP_TXN_CT_MAX_ADDRESS)
+          .limbConstructed(true)
+          .lt(true)
+          .lx(true)
+          .pCmpLimb(lowPart(address))
+          .pCmpLimbSize(LLARGE);
       phaseSize -= LLARGE;
       tupleSize -= LLARGE;
       tracedValues.decrementLtAndLxSizeBy(LLARGE);
-      trace
-          .pCmpIsAddress(true)
-          .pCmpTmp1(phaseSize)
-          .pCmpTmp2(totalAddress)
-          .pCmpTmp3(totalKeys)
-          .pCmpTmp4(tupleSize)
-          .pCmpTmp5(highPart(address))
-          .pCmpTmp6(lowPart(address))
-          .pCmpTmp7(totalStorageForThisAddress);
+      traceAccessListCountdownValues(trace, tupleSize, totalStorageForThisAddress);
       tracePostValues(trace, tracedValues);
 
-      // trace RLP prefix (keys)
-      tracePreValues(trace, tracedValues);
+      // RLP prefix (keys)
+      traceTransactionConstantValues(trace, tracedValues);
       keysRlpPrefix.traceRlpTxn(trace, tracedValues, true, true, true, 0);
       phaseSize -= keysRlpPrefix.rlpPrefixByteSize();
       tupleSize -= keysRlpPrefix.rlpPrefixByteSize();
-      trace
-          .pCmpIsPrefix(true)
-          .pCmpIsStorage(true)
-          .pCmpTmp1(phaseSize)
-          .pCmpTmp2(totalAddress)
-          .pCmpTmp3(totalKeys)
-          .pCmpTmp4(tupleSize)
-          .pCmpTmp5(highPart(address))
-          .pCmpTmp6(lowPart(address))
-          .pCmpTmp7(totalStorageForThisAddress);
-      trace.phaseEnd(phaseSize == 0);
+      trace.isPrefixOfStorageKeyList(true);
+      traceAccessListCountdownValues(trace, tupleSize, totalStorageForThisAddress);
       tracePostValues(trace, tracedValues);
 
-      // optionally trace RLP(keys)
+      // optionally trace RLP(key)
       for (InstructionBytes32 key : keys) {
-        // rlp Prefix
-        tracePreValues(trace, tracedValues);
+        totalStorageForThisAddress -= 1;
+
+        // RLP(key): first row: rlp prefix
+        traceTransactionConstantValues(trace, tracedValues);
         key.traceRlpTxn(trace, tracedValues, true, true, true, 0);
         phaseSize -= 1;
         tupleSize -= 1;
-        trace
-            .pCmpIsStorage(true)
-            .pCmpTmp1(phaseSize)
-            .pCmpTmp2(totalAddress)
-            .pCmpTmp3(totalKeys)
-            .pCmpTmp4(tupleSize)
-            .pCmpTmp5(highPart(address))
-            .pCmpTmp6(lowPart(address))
-            .pCmpTmp7(totalStorageForThisAddress);
+        traceAccessListCountdownValues(trace, tupleSize, totalStorageForThisAddress);
         tracePostValues(trace, tracedValues);
 
-        // key hi
-        tracePreValues(trace, tracedValues);
+        // RLP(key): second row: key hi
+        traceTransactionConstantValues(trace, tracedValues);
         key.traceRlpTxn(trace, tracedValues, true, true, true, 1);
         phaseSize -= LLARGE;
         tupleSize -= LLARGE;
-        trace
-            .pCmpIsStorage(true)
-            .pCmpTmp1(phaseSize)
-            .pCmpTmp2(totalAddress)
-            .pCmpTmp3(totalKeys)
-            .pCmpTmp4(tupleSize)
-            .pCmpTmp5(highPart(address))
-            .pCmpTmp6(lowPart(address))
-            .pCmpTmp7(totalStorageForThisAddress);
+        traceAccessListCountdownValues(trace, tupleSize, totalStorageForThisAddress);
         tracePostValues(trace, tracedValues);
 
-        // key lo
-        tracePreValues(trace, tracedValues);
+        // RLP(key): second row: key lo
+        traceTransactionConstantValues(trace, tracedValues);
         key.traceRlpTxn(trace, tracedValues, true, true, true, 2);
         phaseSize -= LLARGE;
         tupleSize -= LLARGE;
-        totalKeys -= 1;
-        totalStorageForThisAddress -= 1;
-        trace
-            .pCmpIsStorage(true)
-            .pCmpTmp1(phaseSize)
-            .pCmpTmp2(totalAddress)
-            .pCmpTmp3(totalKeys)
-            .pCmpTmp4(tupleSize)
-            .pCmpTmp5(highPart(address))
-            .pCmpTmp6(lowPart(address))
-            .pCmpTmp7(totalStorageForThisAddress)
-            .phaseEnd(phaseSize == 0);
+        traceAccessListCountdownValues(trace, tupleSize, totalStorageForThisAddress);
         tracePostValues(trace, tracedValues);
       }
     }

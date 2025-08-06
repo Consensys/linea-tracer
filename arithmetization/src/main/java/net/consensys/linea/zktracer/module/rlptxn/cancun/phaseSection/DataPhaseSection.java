@@ -62,24 +62,20 @@ public class DataPhaseSection extends PhaseSection {
   protected void traceComputationsRows(
       Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
     // Trace the prefix
-    tracePreValues(trace, tracedValues);
+    traceTransactionConstantValues(trace, tracedValues);
     prefix.traceRlpTxn(trace, tracedValues, true, true, true, 0);
-    trace
-        .pCmpIsPrefix(true)
-        .pCmpTmp1(tx.numberOfZeroBytesInPayload())
-        .pCmpTmp2(tx.numberOfNonZeroBytesInPayload())
-        .phaseEnd(limbs.isEmpty());
+    trace.pCmpAux1(tx.numberOfZeroBytesInPayload()).pCmpAux2(tx.numberOfNonZeroBytesInPayload());
     tracePostValues(trace, tracedValues);
 
     // trace the limb
     int zeros = tx.numberOfZeroBytesInPayload();
     int nonZeros = tx.numberOfNonZeroBytesInPayload();
     for (int ct = 0; ct < limbs.size(); ct++) {
-      tracePreValues(trace, tracedValues);
+      traceTransactionConstantValues(trace, tracedValues);
       limbs.get(ct).traceRlpTxn(trace, tracedValues, true, true, true, ct);
       zeros -= limbs.get(ct).zerosCount();
       nonZeros -= limbs.get(ct).nonZerosCount();
-      trace.pCmpTmp1(zeros).pCmpTmp2(nonZeros).phaseEnd(ct == limbs.size() - 1);
+      trace.pCmpAux1(zeros).pCmpAux2(nonZeros).phaseEnd(ct == limbs.size() - 1);
       tracePostValues(trace, tracedValues);
     }
   }

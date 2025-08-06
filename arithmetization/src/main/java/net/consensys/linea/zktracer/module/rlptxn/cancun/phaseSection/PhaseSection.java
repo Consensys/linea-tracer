@@ -34,7 +34,7 @@ public abstract class PhaseSection {
 
   private void traceTransactionRow(
       Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
-    tracePreValues(trace, tracedValues);
+    traceTransactionConstantValues(trace, tracedValues);
     trace
         .txn(true)
         .pTxnTxType(tx.type())
@@ -52,7 +52,6 @@ public abstract class PhaseSection {
                 ? Bytes.EMPTY
                 : tx.getBesuTransaction().getTo().get().slice(4, LLARGE))
         .pTxnValue(bigIntegerToBytes(tx.getBesuTransaction().getValue().getAsBigInteger()))
-        .pTxnRequiresEvmExecution(tx.requiresEvmExecution())
         .pTxnNumberOfZeroBytes(tx.numberOfZeroBytesInPayload())
         .pTxnNumberOfNonzeroBytes(tx.numberOfNonZeroBytesInPayload())
         .pTxnNumberOfPrewarmedAddresses(tx.numberOfWarmedAddresses())
@@ -65,11 +64,9 @@ public abstract class PhaseSection {
 
   protected abstract void traceIsPhaseX(Trace.Rlptxn trace);
 
-  public void tracePreValues(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
+  public void traceTransactionConstantValues(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
     traceIsPhaseX(trace);
     trace
-        .indexLt(tracedValues.indexLt())
-        .indexLx(tracedValues.indexLx())
         .codeFragmentIndex(tracedValues.tx().getCodeFragmentIndex())
         .type0(tracedValues.type0())
         .type1(tracedValues.type1())
@@ -77,13 +74,14 @@ public abstract class PhaseSection {
         .type3(tracedValues.type3())
         .type4(tracedValues.type4())
         .replayProtection(tracedValues.tx().replayProtection())
-        .yParity(tracedValues.tx().yParity());
+        .yParity(tracedValues.tx().yParity())
+        .requiresEvmExecution(tracedValues.tx().requiresEvmExecution());
   }
 
   public void tracePostValues(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
     trace
-        .rlpLtBytesize(tracedValues.rlpLtByteSize())
-        .rlpLxBytesize(tracedValues.rlpLxByteSize())
+        .ltByteSizeCountdown(tracedValues.rlpLtByteSize())
+        .lxByteSizeCountdown(tracedValues.rlpLxByteSize())
         .fillAndValidateRow();
   }
 

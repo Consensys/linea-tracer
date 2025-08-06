@@ -80,6 +80,11 @@ public class IntegerPhaseSection extends PhaseSection {
   }
 
   @Override
+  protected void traceLtLx(Trace.Rlptxn trace) {
+    trace.lt(true).lx(lx);
+  }
+
+  @Override
   public int lineCount() {
     return 4; // 1 for the txn, 3 for the computation of the rlp
   }

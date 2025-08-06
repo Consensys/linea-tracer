@@ -66,6 +66,7 @@ public class GlobalPrefixPhaseSection extends PhaseSection {
     // First Computation Row: byte type prefix
     traceTransactionConstantValues(trace, tracedValues);
     trace
+        .cmp(true)
         .lt(true)
         .lx(true)
         .limbConstructed(!tracedValues.type0())

@@ -67,6 +67,7 @@ public class BetaPhaseSection extends PhaseSection {
       // trace rlp().rlp()
       traceTransactionConstantValues(trace, tracedValues);
       trace
+          .cmp(true)
           .lx(true)
           .limbConstructed(true)
           .pCmpLimb(
@@ -75,6 +76,11 @@ public class BetaPhaseSection extends PhaseSection {
       tracedValues.decrementLxSizeBy(2);
       tracePostValues(trace, tracedValues);
     }
+  }
+
+  @Override
+  protected void traceLtLx(Trace.Rlptxn trace) {
+    // nothing to trace
   }
 
   @Override

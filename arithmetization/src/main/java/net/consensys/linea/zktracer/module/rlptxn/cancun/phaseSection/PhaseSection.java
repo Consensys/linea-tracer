@@ -35,6 +35,7 @@ public abstract class PhaseSection {
   private void traceTransactionRow(
       Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
     traceTransactionConstantValues(trace, tracedValues);
+    traceLtLx(trace);
     trace
         .txn(true)
         .pTxnTxType(tx.type())
@@ -63,6 +64,10 @@ public abstract class PhaseSection {
       Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues);
 
   protected abstract void traceIsPhaseX(Trace.Rlptxn trace);
+
+  protected void traceLtLx(Trace.Rlptxn trace) {
+    trace.lt(true).lx(true);
+  }
 
   public void traceTransactionConstantValues(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
     traceIsPhaseX(trace);

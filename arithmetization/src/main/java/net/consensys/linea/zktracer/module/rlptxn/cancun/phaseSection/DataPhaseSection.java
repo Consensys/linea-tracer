@@ -39,7 +39,7 @@ public class DataPhaseSection extends PhaseSection {
 
     final InstructionByteStringPrefix prefixCall =
         new InstructionByteStringPrefix(
-            data.size(), data.isEmpty() ? (byte) 0x00 : data.get(0), true);
+            data.size(), data.isEmpty() ? (byte) 0x00 : data.get(0), false);
     prefix = (InstructionByteStringPrefix) rlpUtils.call(prefixCall);
 
     final int dataSize = data.size();

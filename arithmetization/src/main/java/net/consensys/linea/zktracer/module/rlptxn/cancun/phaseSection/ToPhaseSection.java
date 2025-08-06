@@ -103,6 +103,6 @@ public class ToPhaseSection extends PhaseSection {
 
   @Override
   public int lineCount() {
-    return 1 + (isDeployment ? 1 : 2);
+    return 1 + (isDeployment ? 1 : (RLP_TXN_CT_MAX_ADDRESS + 1));
   }
 }

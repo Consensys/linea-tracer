@@ -59,7 +59,7 @@ public class IntegerPhaseSection extends PhaseSection {
       Trace.Rlptxn trace, TransactionProcessingMetadata tx, GenericTracedValue tracedValues) {
     for (int ct = 0; ct <= 2; ct++) {
       traceTransactionConstantValues(trace, tracedValues);
-      intCall.traceRlpTxn(trace, tracedValues, true, true, true, ct);
+      intCall.traceRlpTxn(trace, tracedValues, true, lx, true, ct);
       tracePostValues(trace, tracedValues);
     }
   }

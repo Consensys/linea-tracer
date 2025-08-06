@@ -125,7 +125,7 @@ public class AccessListPhaseSection extends PhaseSection {
 
     private int lineCount() {
       return 1 // 1 for entry RlpPrefix
-          + 2 // 2 for the Address
+          + (RLP_TXN_CT_MAX_ADDRESS + 1) // 3 for the Address
           + 1 // 1 for the RlpPrefix of the
           // list of keys
           + 3 * keys.size(); // 3 per keys

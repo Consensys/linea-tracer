@@ -15,8 +15,8 @@
 
 package net.consensys.linea.zktracer.module.tables.bls;
 
-import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G1MSM;
-import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G2MSM;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G1_MSM;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G2_MSM;
 
 import java.util.List;
 import java.util.Map;
@@ -318,9 +318,9 @@ public class BlsRt implements Module {
     if (numInputs < 1 || numInputs > 128) {
       throw new IllegalArgumentException("Number of inputs must be between 1 and 128");
     }
-    if (instruction == OOB_INST_BLS_G1MSM) {
+    if (instruction == OOB_INST_BLS_G1_MSM) {
       return G1_MSM_DISCOUNTS.get(numInputs);
-    } else if (instruction == OOB_INST_BLS_G2MSM) {
+    } else if (instruction == OOB_INST_BLS_G2_MSM) {
       return G2_MSM_DISCOUNTS.get(numInputs);
     } else {
       throw new IllegalArgumentException("Invalid instruction: " + instruction);
@@ -333,7 +333,7 @@ public class BlsRt implements Module {
       int discount = entry.getValue();
       trace
           .blsreftable()
-          .prcName(OOB_INST_BLS_G1MSM)
+          .prcName(OOB_INST_BLS_G1_MSM)
           .numInputs(numInputs)
           .discount(discount)
           .validateRow();
@@ -343,7 +343,7 @@ public class BlsRt implements Module {
       int discount = entry.getValue();
       trace
           .blsreftable()
-          .prcName(OOB_INST_BLS_G2MSM)
+          .prcName(OOB_INST_BLS_G2_MSM)
           .numInputs(numInputs)
           .discount(discount)
           .validateRow();

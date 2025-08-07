@@ -15,10 +15,10 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.fixedSizeFixedGasCost;
 
-import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_G1ADD;
-import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G1ADD;
-import static net.consensys.linea.zktracer.Trace.PRC_BLS_G1ADD_SIZE;
-import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_BLS_G1ADD;
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_G1_ADD;
+import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G1_ADD;
+import static net.consensys.linea.zktracer.Trace.PRC_BLS_G1_ADD_SIZE;
+import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_BLS_G1_ADD;
 
 import java.math.BigInteger;
 
@@ -31,26 +31,26 @@ public class BlsG1AddOobCall extends BlsFixedSizeFixedGasCostOobCall {
 
   @Override
   long precompileExpectedCds() {
-    return PRC_BLS_G1ADD_SIZE;
+    return PRC_BLS_G1_ADD_SIZE;
   }
 
   @Override
   long precompileLongCost() {
-    return GAS_CONST_BLS_G1ADD;
+    return GAS_CONST_BLS_G1_ADD;
   }
 
   @Override
   protected void traceOobInstructionInOob(Trace.Oob trace) {
-    trace.isBlsG1Add(true).oobInst(OOB_INST_BLS_G1ADD);
+    trace.isBlsG1Add(true).oobInst(OOB_INST_BLS_G1_ADD);
   }
 
   @Override
   protected void traceOobInstructionInHub(Trace.Hub trace) {
-    trace.pMiscOobInst(OOB_INST_BLS_G1ADD);
+    trace.pMiscOobInst(OOB_INST_BLS_G1_ADD);
   }
 
   @Override
   public int ctMax() {
-    return CT_MAX_BLS_G1ADD;
+    return CT_MAX_BLS_G1_ADD;
   }
 }

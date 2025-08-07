@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.com
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_PAIRING_CHECK;
-import static net.consensys.linea.zktracer.Trace.PRC_BLS_PAIRING_CHECK_SIZE_MIN;
+import static net.consensys.linea.zktracer.Trace.PRC_BLS_PAIRING_CHECK_PAIR_SIZE;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_BLS_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
@@ -47,7 +47,7 @@ public class BlsPairingCheckOobCall extends CommonPrecompileOobCall {
 
     // row i + 2
     final OobExoCall remainderCall =
-        callToMOD(mod, getCds(), Bytes.ofUnsignedLong(PRC_BLS_PAIRING_CHECK_SIZE_MIN));
+        callToMOD(mod, getCds(), Bytes.ofUnsignedLong(PRC_BLS_PAIRING_CHECK_PAIR_SIZE));
     exoCalls.add(remainderCall);
     final Bytes remainder = remainderCall.result();
 
@@ -66,7 +66,7 @@ public class BlsPairingCheckOobCall extends CommonPrecompileOobCall {
                             .multiply(
                                 getCds()
                                     .toUnsignedBigInteger()
-                                    .divide(BigInteger.valueOf(PRC_BLS_PAIRING_CHECK_SIZE_MIN)))))
+                                    .divide(BigInteger.valueOf(PRC_BLS_PAIRING_CHECK_PAIR_SIZE)))))
             : Bytes.of(0);
 
     // row i + 4

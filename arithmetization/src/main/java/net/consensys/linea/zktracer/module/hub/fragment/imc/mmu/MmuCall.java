@@ -141,10 +141,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   }
 
   final MmuCall setBls() {
-    return this.exoIsBls(true)
-        .updateExoSum(
-            0); // TODO: add EXO_SUM_WEIGHT_BLSDATA); this has been added by Olivier in the
-    // constants
+    return this.exoIsBls(true).updateExoSum(EXO_SUM_WEIGHT_BLSDATA);
   }
 
   public MmuCall(final Hub hub, final int instruction) {

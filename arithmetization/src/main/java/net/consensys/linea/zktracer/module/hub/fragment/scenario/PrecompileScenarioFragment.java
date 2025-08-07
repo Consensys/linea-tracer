@@ -209,6 +209,14 @@ public class PrecompileScenarioFragment implements TraceFragment {
         .pScenarioPrcEcmul(flag == PRC_ECMUL)
         .pScenarioPrcEcpairing(flag == PRC_ECPAIRING)
         .pScenarioPrcBlake2f(flag == PRC_BLAKE2F)
+        .pScenarioPrcPointEvaluation(flag == PRC_POINT_EVALUATION)
+        .pScenarioPrcBlsG1Add(flag == PRC_BLS_G1_ADD)
+        .pScenarioPrcBlsG1Msm(flag == PRC_BLS_G1_MSM)
+        .pScenarioPrcBlsG2Add(flag == PRC_BLS_G2_ADD)
+        .pScenarioPrcBlsG2Msm(flag == PRC_BLS_G2_MSM)
+        .pScenarioPrcBlsPairingCheck(flag == PRC_BLS_PAIRING_CHECK)
+        .pScenarioPrcBlsMapFpToG1(flag == PRC_BLS_MAP_FP_TO_G1)
+        .pScenarioPrcBlsMapFp2ToG2(flag == PRC_BLS_MAP_FP2_TO_G2)
         .pScenarioPrcSuccessCallerWillRevert(scenario == PRC_SUCCESS_WILL_REVERT)
         .pScenarioPrcSuccessCallerWontRevert(scenario == PRC_SUCCESS_WONT_REVERT)
         .pScenarioPrcFailureKnownToHub(scenario == PRC_FAILURE_KNOWN_TO_HUB)
@@ -220,8 +228,6 @@ public class PrecompileScenarioFragment implements TraceFragment {
         .pScenarioPrcCds(precompileSubSection.callDataSize())
         .pScenarioPrcRao(precompileSubSection.returnAtOffset())
         .pScenarioPrcRac(precompileSubSection.returnAtCapacity());
-    // TODO: add BLS
-
     return trace;
   }
 }

@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.module.rlpUtils.RlpUtils.BYTES16_PREF
 import static net.consensys.linea.zktracer.module.rlputilsOld.Pattern.outerRlpSize;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToShort;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -143,8 +144,8 @@ public class AccessListPhaseSection extends PhaseSection {
     }
 
     public void trace(Trace.Rlptxn trace, GenericTracedValue tracedValues) {
-      int tupleSize = entryRlpPrefix.rlpPrefixByteSize();
-      int totalStorageForThisAddress = keys.size();
+      short tupleSize = bytesToShort(entryRlpPrefix.byteStringLength());
+      short totalStorageForThisAddress = (short) keys.size();
 
       totalAddress -= 1;
 
@@ -160,8 +161,12 @@ public class AccessListPhaseSection extends PhaseSection {
       // RLP(address): first row: rlp prefix
       traceTransactionConstantValues(trace, tracedValues);
       trace
+          .cmp(true)
           .isAccessListAddress(true)
           .ctMax(RLP_TXN_CT_MAX_ADDRESS)
+          .pCmpTrmFlag(true)
+          .pCmpExoData1(address.slice(0, 4))
+          .pCmpExoData2(lowPart(address))
           .limbConstructed(true)
           .lt(true)
           .lx(true)
@@ -176,6 +181,7 @@ public class AccessListPhaseSection extends PhaseSection {
       // RLP(address): second row: address hi
       traceTransactionConstantValues(trace, tracedValues);
       trace
+          .cmp(true)
           .isAccessListAddress(true)
           .ct(1)
           .ctMax(RLP_TXN_CT_MAX_ADDRESS)
@@ -193,6 +199,7 @@ public class AccessListPhaseSection extends PhaseSection {
       // RLP(address):third row: address lo
       traceTransactionConstantValues(trace, tracedValues);
       trace
+          .cmp(true)
           .isAccessListAddress(true)
           .ct(2)
           .ctMax(RLP_TXN_CT_MAX_ADDRESS)

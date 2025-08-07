@@ -112,6 +112,10 @@ public class Conversions {
     return input.trimLeadingZeros().toLong();
   }
 
+  public static short bytesToShort(final Bytes input) {
+    return (short) input.trimLeadingZeros().toInt();
+  }
+
   public static BigInteger hiPart(final BigInteger input) {
     if (input.bitLength() <= LIMB_BIT_SIZE) {
       return BigInteger.ZERO;

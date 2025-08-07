@@ -49,7 +49,7 @@ public class InstructionBytes32 extends RlpUtilsCall {
       boolean lx,
       boolean updateTracedValue,
       int ct) {
-    trace.isAccessListStorageKey(true);
+    trace.cmp(true).isAccessListStorageKey(true);
     tracedValues.decrementLtAndLxSizeBy(ct == 0 ? 1 : LLARGE);
     trace.limbConstructed(true).lt(true).lx(true).ct(ct).ctMax(RLP_TXN_CT_MAX_BYTES32);
     switch (ct) {

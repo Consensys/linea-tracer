@@ -31,6 +31,7 @@ import net.consensys.linea.zktracer.module.rlpUtils.InstructionByteStringPrefix;
 import net.consensys.linea.zktracer.module.rlpUtils.InstructionBytes32;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
+import net.consensys.linea.zktracer.module.rlputilsOld.Pattern;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.AccessListEntry;
@@ -43,27 +44,25 @@ public class AccessListPhaseSection extends PhaseSection {
   private final InstructionByteStringPrefix accessListRlpPrefix;
   private final List<EntrySubSection> entries;
 
+  private static final short RLP_ADDRESS_BYTE_SIZE = 1 + Address.SIZE;
+
   public AccessListPhaseSection(RlpUtils rlpUtils, TransactionProcessingMetadata tx) {
     final List<AccessListEntry> accessList = tx.getBesuTransaction().getAccessList().get();
-    final List<Short> rlpKeysSizeList = new ArrayList<>(accessList.size());
-    for (AccessListEntry entry : accessList) {
-      rlpKeysSizeList.add((short) outerRlpSize(33 * entry.storageKeys().size()));
-    }
-    final List<Short> entrySizeList = new ArrayList<>(accessList.size());
-    for (Short rlpKeySize : rlpKeysSizeList) {
-      entrySizeList.add((short) outerRlpSize(21 + rlpKeySize));
-    }
-    phaseSize = entrySizeList.stream().mapToInt(entry -> entry).sum();
 
+    final List<Short> accessListTupleSizes = new ArrayList<>(accessList.size());
+    for (AccessListEntry entry : accessList) {
+      accessListTupleSizes.add(
+          (short) (RLP_ADDRESS_BYTE_SIZE + outerRlpSize(33 * entry.storageKeys().size())));
+    }
+
+    phaseSize = accessListTupleSizes.stream().mapToInt(Pattern::outerRlpSize).sum();
     final InstructionByteStringPrefix accessListRlpPrefixCall =
         new InstructionByteStringPrefix(phaseSize, (byte) 0x00, true);
     accessListRlpPrefix = (InstructionByteStringPrefix) rlpUtils.call(accessListRlpPrefixCall);
 
     entries = new ArrayList<>(accessList.size());
     for (int i = 0; i < accessList.size(); i++) {
-      entries.add(
-          new EntrySubSection(
-              rlpUtils, accessList.get(i), entrySizeList.get(i), rlpKeysSizeList.get(i)));
+      entries.add(new EntrySubSection(rlpUtils, accessList.get(i), accessListTupleSizes.get(i)));
     }
   }
 
@@ -77,7 +76,6 @@ public class AccessListPhaseSection extends PhaseSection {
     traceTransactionConstantValues(trace, tracedValues);
     accessListRlpPrefix.traceRlpTxn(trace, tracedValues, true, true, true, 0);
     trace.pCmpAux1(phaseSize).pCmpAuxCcc1(totalAddress).pCmpAuxCcc2(totalKeys);
-    tracedValues.decrementLtAndLxSizeBy(accessListRlpPrefix.rlpPrefixByteSize());
     tracePostValues(trace, tracedValues);
 
     // trace each entry
@@ -104,16 +102,15 @@ public class AccessListPhaseSection extends PhaseSection {
     private final InstructionByteStringPrefix keysRlpPrefix;
     private final List<InstructionBytes32> keys;
 
-    private EntrySubSection(
-        RlpUtils rlpUtils, AccessListEntry entry, short entryRlpSize, short rlpKeysSize) {
+    private EntrySubSection(RlpUtils rlpUtils, AccessListEntry entry, short tupleByteSize) {
       final InstructionByteStringPrefix entryRlpPrefixCall =
-          new InstructionByteStringPrefix(entryRlpSize, (byte) 0x00, true);
+          new InstructionByteStringPrefix(tupleByteSize, (byte) 0x00, true);
       entryRlpPrefix = (InstructionByteStringPrefix) rlpUtils.call(entryRlpPrefixCall);
 
       address = entry.address();
 
       final InstructionByteStringPrefix keysRlpPrefixCall =
-          new InstructionByteStringPrefix(rlpKeysSize, (byte) 0x00, true);
+          new InstructionByteStringPrefix(33 * entry.storageKeys().size(), (byte) 0x00, true);
       keysRlpPrefix = (InstructionByteStringPrefix) rlpUtils.call(keysRlpPrefixCall);
 
       keys = new ArrayList<>(entry.storageKeys().size());
@@ -126,8 +123,7 @@ public class AccessListPhaseSection extends PhaseSection {
     private int lineCount() {
       return 1 // 1 for entry RlpPrefix
           + (RLP_TXN_CT_MAX_ADDRESS + 1) // 3 for the Address
-          + 1 // 1 for the RlpPrefix of the
-          // list of keys
+          + 1 // 1 for the RlpPrefix of the list of keys
           + 3 * keys.size(); // 3 per keys
     }
 
@@ -225,6 +221,7 @@ public class AccessListPhaseSection extends PhaseSection {
 
       // optionally trace RLP(key)
       for (InstructionBytes32 key : keys) {
+        totalKeys -= 1;
         totalStorageForThisAddress -= 1;
 
         // RLP(key): first row: rlp prefix

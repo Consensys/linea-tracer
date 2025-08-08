@@ -44,7 +44,8 @@ import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_PAIRING_CHECK;
 import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_POINT_EVALUATION;
-import static net.consensys.linea.zktracer.module.bls.BlsUtils.POINT_EVALUATION_PRIME;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_HI;
+import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_LO;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_ADD;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_MSM;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G2_ADD;
@@ -70,12 +71,25 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.nativelib.gnark.LibGnarkEIP2537;
 
 @Accessors(fluent = true)
 public class BlsOperation extends ModuleOperation {
+  static final BigInteger BLS_PRIME =
+      Bytes.concatenate(
+              Bytes.ofUnsignedShort(BLS_PRIME_3),
+              bigIntegerToBytes(BLS_PRIME_2),
+              bigIntegerToBytes(BLS_PRIME_1),
+              bigIntegerToBytes(BLS_PRIME_0))
+          .toUnsignedBigInteger();
+
+  static final EWord POINT_EVALUATION_PRIME =
+      EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
+
   public static final int nBYTES_OF_DELTA_BYTES = 4;
   private static final int SIZE_SMALL_POINT = LLARGE * (CT_MAX_SMALL_POINT + 1);
   private static final int SIZE_LARGE_POINT = LLARGE * (CT_MAX_LARGE_POINT + 1);
@@ -121,8 +135,6 @@ public class BlsOperation extends ModuleOperation {
 
     // TODO: whenever we do not need an additional list do not use it
     //  (e.g., mintBit, mextBit)
-
-    // LibGnarkEIP2537....
 
     this.precompileFlag = precompileFlag;
     this.callData = callData;
@@ -595,10 +607,24 @@ public class BlsOperation extends ModuleOperation {
     if (isInfinity) {
       return true;
     }
-    Fp pX = new Fp(Bytes.concatenate(pX3, pX2, pX1, pX0).toUnsignedBigInteger());
-    Fp pY = new Fp(Bytes.concatenate(pY3, pY2, pY1, pY0).toUnsignedBigInteger());
-    SmallPoint p = new SmallPoint(pX, pY);
-    return p.isOnCurve();
+    // Fp pX = new Fp(Bytes.concatenate(pX3, pX2, pX1, pX0).toUnsignedBigInteger());
+    // Fp pY = new Fp(Bytes.concatenate(pY3, pY2, pY1, pY0).toUnsignedBigInteger());
+    // SmallPoint p = new SmallPoint(pX, pY);
+    // return p.isOnCurve();
+
+    byte[] input =
+        Bytes.concatenate(
+                Bytes16.leftPad(pX3),
+                Bytes16.leftPad(pX2),
+                Bytes16.leftPad(pX1),
+                Bytes16.leftPad(pX0),
+                Bytes16.leftPad(pY3),
+                Bytes16.leftPad(pY2),
+                Bytes16.leftPad(pY1),
+                Bytes16.leftPad(pY0))
+            .toArray();
+    byte[] error = new byte[256];
+    return LibGnarkEIP2537.eip2537G1IsOnCurve(input, error, input.length, error.length);
   }
 
   // Note: this checks also if the point is on curve
@@ -616,10 +642,24 @@ public class BlsOperation extends ModuleOperation {
     if (!isOnCurve) {
       return false;
     }
-    Fp pX = new Fp(Bytes.concatenate(pX3, pX2, pX1, pX0).toUnsignedBigInteger());
-    Fp pY = new Fp(Bytes.concatenate(pY3, pY2, pY1, pY0).toUnsignedBigInteger());
-    SmallPoint p = new SmallPoint(pX, pY);
-    return p.isInSubGroup();
+    // Fp pX = new Fp(Bytes.concatenate(pX3, pX2, pX1, pX0).toUnsignedBigInteger());
+    // Fp pY = new Fp(Bytes.concatenate(pY3, pY2, pY1, pY0).toUnsignedBigInteger());
+    // SmallPoint p = new SmallPoint(pX, pY);
+    // return p.isInSubGroup();
+
+    byte[] input =
+        Bytes.concatenate(
+                Bytes16.leftPad(pX3),
+                Bytes16.leftPad(pX2),
+                Bytes16.leftPad(pX1),
+                Bytes16.leftPad(pX0),
+                Bytes16.leftPad(pY3),
+                Bytes16.leftPad(pY2),
+                Bytes16.leftPad(pY1),
+                Bytes16.leftPad(pY0))
+            .toArray();
+    byte[] error = new byte[256];
+    return LibGnarkEIP2537.eip2537G1IsInSubGroup(input, error, input.length, error.length);
   }
 
   private boolean isLargePointOnCurve(
@@ -647,14 +687,36 @@ public class BlsOperation extends ModuleOperation {
     if (isInfinity) {
       return true;
     }
-    Fp pXIm = new Fp(Bytes.concatenate(pXIm3, pXIm2, pXIm1, pXIm0).toUnsignedBigInteger());
-    Fp pXRe = new Fp(Bytes.concatenate(pXRe3, pXRe2, pXRe1, pXRe0).toUnsignedBigInteger());
-    Fp pYIm = new Fp(Bytes.concatenate(pYIm3, pYIm2, pYIm1, pYIm0).toUnsignedBigInteger());
-    Fp pYRe = new Fp(Bytes.concatenate(pYRe3, pYRe2, pYRe1, pYRe0).toUnsignedBigInteger());
-    Fp2 pX = new Fp2(pXRe, pXIm);
-    Fp2 pY = new Fp2(pYRe, pYIm);
-    LargePoint p = new LargePoint(pX, pY);
-    return p.isOnCurve();
+    // Fp pXIm = new Fp(Bytes.concatenate(pXIm3, pXIm2, pXIm1, pXIm0).toUnsignedBigInteger());
+    // Fp pXRe = new Fp(Bytes.concatenate(pXRe3, pXRe2, pXRe1, pXRe0).toUnsignedBigInteger());
+    // Fp pYIm = new Fp(Bytes.concatenate(pYIm3, pYIm2, pYIm1, pYIm0).toUnsignedBigInteger());
+    // Fp pYRe = new Fp(Bytes.concatenate(pYRe3, pYRe2, pYRe1, pYRe0).toUnsignedBigInteger());
+    // Fp2 pX = new Fp2(pXRe, pXIm);
+    // Fp2 pY = new Fp2(pYRe, pYIm);
+    // LargePoint p = new LargePoint(pX, pY);
+    // return p.isOnCurve();
+
+    byte[] input =
+        Bytes.concatenate(
+                Bytes16.leftPad(pXIm3),
+                Bytes16.leftPad(pXIm2),
+                Bytes16.leftPad(pXIm1),
+                Bytes16.leftPad(pXIm0),
+                Bytes16.leftPad(pXRe3),
+                Bytes16.leftPad(pXRe2),
+                Bytes16.leftPad(pXRe1),
+                Bytes16.leftPad(pXRe0),
+                Bytes16.leftPad(pYIm3),
+                Bytes16.leftPad(pYIm2),
+                Bytes16.leftPad(pYIm1),
+                Bytes16.leftPad(pYIm0),
+                Bytes16.leftPad(pYRe3),
+                Bytes16.leftPad(pYRe2),
+                Bytes16.leftPad(pYRe1),
+                Bytes16.leftPad(pYRe0))
+            .toArray();
+    byte[] error = new byte[256];
+    return LibGnarkEIP2537.eip2537G2IsOnCurve(input, error, input.length, error.length);
   }
 
   // Note: this checks also if the point is on curve
@@ -683,14 +745,36 @@ public class BlsOperation extends ModuleOperation {
     if (!isOnCurve) {
       return false;
     }
-    Fp pXIm = new Fp(Bytes.concatenate(pXIm3, pXIm2, pXIm1, pXIm0).toUnsignedBigInteger());
-    Fp pXRe = new Fp(Bytes.concatenate(pXRe3, pXRe2, pXRe1, pXRe0).toUnsignedBigInteger());
-    Fp pYIm = new Fp(Bytes.concatenate(pYIm3, pYIm2, pYIm1, pYIm0).toUnsignedBigInteger());
-    Fp pYRe = new Fp(Bytes.concatenate(pYRe3, pYRe2, pYRe1, pYRe0).toUnsignedBigInteger());
-    Fp2 pX = new Fp2(pXRe, pXIm);
-    Fp2 pY = new Fp2(pYRe, pYIm);
-    LargePoint p = new LargePoint(pX, pY);
-    return p.isInSubGroup();
+    // Fp pXIm = new Fp(Bytes.concatenate(pXIm3, pXIm2, pXIm1, pXIm0).toUnsignedBigInteger());
+    // Fp pXRe = new Fp(Bytes.concatenate(pXRe3, pXRe2, pXRe1, pXRe0).toUnsignedBigInteger());
+    // Fp pYIm = new Fp(Bytes.concatenate(pYIm3, pYIm2, pYIm1, pYIm0).toUnsignedBigInteger());
+    // Fp pYRe = new Fp(Bytes.concatenate(pYRe3, pYRe2, pYRe1, pYRe0).toUnsignedBigInteger());
+    // Fp2 pX = new Fp2(pXRe, pXIm);
+    // Fp2 pY = new Fp2(pYRe, pYIm);
+    // LargePoint p = new LargePoint(pX, pY);
+    // return p.isInSubGroup();
+
+    byte[] input =
+        Bytes.concatenate(
+                Bytes16.leftPad(pXIm3),
+                Bytes16.leftPad(pXIm2),
+                Bytes16.leftPad(pXIm1),
+                Bytes16.leftPad(pXIm0),
+                Bytes16.leftPad(pXRe3),
+                Bytes16.leftPad(pXRe2),
+                Bytes16.leftPad(pXRe1),
+                Bytes16.leftPad(pXRe0),
+                Bytes16.leftPad(pYIm3),
+                Bytes16.leftPad(pYIm2),
+                Bytes16.leftPad(pYIm1),
+                Bytes16.leftPad(pYIm0),
+                Bytes16.leftPad(pYRe3),
+                Bytes16.leftPad(pYRe2),
+                Bytes16.leftPad(pYRe1),
+                Bytes16.leftPad(pYRe0))
+            .toArray();
+    byte[] error = new byte[256];
+    return LibGnarkEIP2537.eip2537G2IsInSubGroup(input, error, input.length, error.length);
   }
 
   private int getIndexMax(

@@ -13,20 +13,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.bls;
-
-import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_0;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_1;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_2;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_3;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_HI;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_LO;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+package net.consensys.linea.zktracer.module.bls.deprecatedoperations;
 
 import java.math.BigInteger;
-
-import net.consensys.linea.zktracer.types.EWord;
-import org.apache.tuweni.bytes.Bytes;
 
 public class BlsUtils {
   // Reference: https://eips.ethereum.org/EIPS/eip-2537
@@ -48,15 +37,4 @@ public class BlsUtils {
               "2973677408986561043442465346520108879172042883009249989176415018091420807192182638567116318576472649347015917690530"),
           new Fp(
               "1028732146235106349975324479215795277384839936929757896155643118032610843298655225875571310552543014690878354869257"));
-
-  static final BigInteger BLS_PRIME =
-      Bytes.concatenate(
-              Bytes.ofUnsignedShort(BLS_PRIME_3),
-              bigIntegerToBytes(BLS_PRIME_2),
-              bigIntegerToBytes(BLS_PRIME_1),
-              bigIntegerToBytes(BLS_PRIME_0))
-          .toUnsignedBigInteger();
-
-  static final EWord POINT_EVALUATION_PRIME =
-      EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
 }

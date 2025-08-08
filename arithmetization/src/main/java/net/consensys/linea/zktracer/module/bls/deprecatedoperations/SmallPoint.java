@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.bls;
+package net.consensys.linea.zktracer.module.bls.deprecatedoperations;
 
 /*
  * Copyright Consensys Software Inc.
@@ -15,9 +15,9 @@ package net.consensys.linea.zktracer.module.bls;
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import static net.consensys.linea.zktracer.module.bls.BlsUtils.B;
-import static net.consensys.linea.zktracer.module.bls.BlsUtils.BETA;
-import static net.consensys.linea.zktracer.module.bls.BlsUtils.SEED;
+import static net.consensys.linea.zktracer.module.bls.deprecatedoperations.BlsUtils.B;
+import static net.consensys.linea.zktracer.module.bls.deprecatedoperations.BlsUtils.BETA;
+import static net.consensys.linea.zktracer.module.bls.deprecatedoperations.BlsUtils.SEED;
 
 public class SmallPoint extends Point<Fp, SmallPoint> {
   static final SmallPoint POINT_AT_INFINITY = new SmallPoint(new Fp("0"), new Fp("0"));

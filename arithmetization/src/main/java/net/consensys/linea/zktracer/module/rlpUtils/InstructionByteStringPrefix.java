@@ -153,11 +153,11 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
     }
 
     if (rlpPrefixRequired && lt) {
-      tracedValues.rlpLtByteSize(tracedValues.rlpLtByteSize() - rlpPrefixByteSize);
+      tracedValues.decrementLtSizeBy(rlpPrefixByteSize);
     }
 
     if (rlpPrefixRequired && lx) {
-      tracedValues.rlpLxByteSize(tracedValues.rlpLxByteSize() - rlpPrefixByteSize);
+      tracedValues.decrementLxSizeBy(rlpPrefixByteSize);
     }
   }
 

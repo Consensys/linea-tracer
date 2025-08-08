@@ -29,7 +29,7 @@ import static net.consensys.linea.zktracer.Trace.GAS_CONST_RIPEMD_WORD;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_SHA2;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_SHA2_WORD;
 import static net.consensys.linea.zktracer.Trace.Oob.G_QUADDIVISOR;
-import static net.consensys.linea.zktracer.Trace.PRC_ECPAIRING_SIZE;
+import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_UNIT_SIZE___ECPAIRING;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE_MO;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.populateMemory;
@@ -126,7 +126,7 @@ public class PrecompileUtils extends TracerTestBase {
   }
 
   public static int getECPAIRINGCost(int cds) {
-    return GAS_CONST_ECPAIRING + GAS_CONST_ECPAIRING_PAIR * (cds / PRC_ECPAIRING_SIZE);
+    return GAS_CONST_ECPAIRING + GAS_CONST_ECPAIRING_PAIR * (cds / PRECOMPILE_CALL_DATA_UNIT_SIZE___ECPAIRING);
   }
 
   public static int getBLAKE2FCost(int r) {

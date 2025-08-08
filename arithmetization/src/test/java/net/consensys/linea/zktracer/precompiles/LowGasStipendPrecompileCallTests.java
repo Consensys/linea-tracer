@@ -133,7 +133,7 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
       callDataSize = PRECOMPILE_CALL_DATA_SIZE___BLAKE2F;
       prepareBlake2F(program, rLeadingByte, callDataOffset + 2);
     } else if (precompileAddress == ALTBN128_PAIRING) {
-      callDataSize = PRC_ECPAIRING_SIZE;
+      callDataSize = PRECOMPILE_CALL_DATA_UNIT_SIZE___ECPAIRING;
     } else if ((precompileAddress == SHA256
         || precompileAddress == RIPEMD160
         || precompileAddress == ID)) {

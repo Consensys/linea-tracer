@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.com
 
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_BLS_MAP_FP_TO_G1;
 import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_MAP_FP_TO_G1;
-import static net.consensys.linea.zktracer.Trace.PRC_BLS_MAP_FP_TO_G1_SIZE;
+import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___FP_TO_G1;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_BLS_MAP_FP_TO_G1;
 
 import java.math.BigInteger;
@@ -31,7 +31,7 @@ public class BlsMapFpToG1OobCall extends BlsFixedSizeFixedGasCostOobCall {
 
   @Override
   long precompileExpectedCds() {
-    return PRC_BLS_MAP_FP_TO_G1_SIZE;
+    return PRECOMPILE_CALL_DATA_SIZE___FP_TO_G1;
   }
 
   @Override

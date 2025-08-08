@@ -32,6 +32,7 @@ import net.consensys.linea.zktracer.module.rlpUtils.InstructionBytes32;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.module.rlputilsOld.Pattern;
+import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.AccessListEntry;
@@ -184,7 +185,7 @@ public class AccessListPhaseSection extends PhaseSection {
           .limbConstructed(true)
           .lt(true)
           .lx(true)
-          .pCmpLimb(address.slice(0, 4))
+          .pCmpLimb(Bytes16.rightPad(address.slice(0, 4)))
           .pCmpLimbSize(4);
       phaseSize -= 4;
       tupleSize -= 4;

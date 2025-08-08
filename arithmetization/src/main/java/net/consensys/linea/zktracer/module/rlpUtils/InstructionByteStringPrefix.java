@@ -90,14 +90,14 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
         rlpPrefixRequired = true;
         rlpPrefix =
             Bytes16.rightPad(
-                Bytes.ofUnsignedInt(1 + (isList ? RLP_PREFIX_LIST_SHORT : RLP_PREFIX_INT_SHORT)));
+                Bytes.minimalBytes(1 + (isList ? RLP_PREFIX_LIST_SHORT : RLP_PREFIX_INT_SHORT)));
         rlpPrefixByteSize = 1;
       }
     }
 
     if (byteStringLengthGtOne) {
       final WcpExoCall thirdCall =
-          WcpExoCall.callToLt(wcp, byteStringLength, Bytes32.leftPad(Bytes.ofUnsignedInt(56)));
+          WcpExoCall.callToLt(wcp, byteStringLength, Bytes32.leftPad(Bytes.minimalBytes(56)));
       wcpCalls.add(thirdCall);
       byteStringLengthGeq56 = !thirdCall.result;
 

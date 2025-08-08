@@ -44,7 +44,8 @@ public class DataPhaseSection extends PhaseSection {
 
     final int dataSize = data.size();
     final int numberOfLimbs = (dataSize + LLARGEMO) / LLARGE; // Each limb is 16 bytes
-    final int nBytesLastLimb = dataSize % LLARGE;
+    final int remaining = dataSize % LLARGE;
+    final int nBytesLastLimb = remaining == 0 ? LLARGE : remaining;
 
     limbs = new ArrayList<>(numberOfLimbs);
 

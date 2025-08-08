@@ -39,7 +39,6 @@ public abstract class PhaseSection {
     trace
         .txn(true)
         .pTxnTxType(tx.type())
-        .pTxnIsDeployment(tx.isDeployment())
         .pTxnChainId(tx.chainId())
         .pTxnNonce(Bytes.ofUnsignedLong(tx.getBesuTransaction().getNonce()))
         .pTxnGasPrice(tx.gasPrice())
@@ -80,7 +79,8 @@ public abstract class PhaseSection {
         .type4(tracedValues.type4())
         .replayProtection(tracedValues.tx().replayProtection())
         .yParity(tracedValues.tx().yParity())
-        .requiresEvmExecution(tracedValues.tx().requiresEvmExecution());
+        .requiresEvmExecution(tracedValues.tx().requiresEvmExecution())
+        .isDeployment(tracedValues.tx().isDeployment());
   }
 
   public void tracePostValues(Trace.Rlptxn trace, GenericTracedValue tracedValues) {

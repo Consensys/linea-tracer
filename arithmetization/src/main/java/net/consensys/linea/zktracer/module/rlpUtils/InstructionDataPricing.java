@@ -128,7 +128,7 @@ public class InstructionDataPricing extends RlpUtilsCall {
     // byte decomposition of the limb
     trace
         .pComptLimb(limb)
-        .pComptAcc(limb.slice(0, ct))
+        .pComptAcc(limb.slice(0, ct + 1))
         // call to POWER ref table for the last row
         .pComptShfFlag(lastRow)
         .pComptShfArg(lastRow ? LLARGE - nBytes : 0)

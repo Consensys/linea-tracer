@@ -126,7 +126,8 @@ public class PrecompileUtils extends TracerTestBase {
   }
 
   public static int getECPAIRINGCost(int cds) {
-    return GAS_CONST_ECPAIRING + GAS_CONST_ECPAIRING_PAIR * (cds / PRECOMPILE_CALL_DATA_UNIT_SIZE___ECPAIRING);
+    return GAS_CONST_ECPAIRING
+        + GAS_CONST_ECPAIRING_PAIR * (cds / PRECOMPILE_CALL_DATA_UNIT_SIZE___ECPAIRING);
   }
 
   public static int getBLAKE2FCost(int r) {

@@ -47,7 +47,10 @@ public class BlsPairingCheckOobCall extends CommonPrecompileOobCall {
 
     // row i + 2
     final OobExoCall remainderCall =
-        callToMOD(mod, getCds(), Bytes.ofUnsignedLong(PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK));
+        callToMOD(
+            mod,
+            getCds(),
+            Bytes.ofUnsignedLong(PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK));
     exoCalls.add(remainderCall);
     final Bytes remainder = remainderCall.result();
 
@@ -66,7 +69,9 @@ public class BlsPairingCheckOobCall extends CommonPrecompileOobCall {
                             .multiply(
                                 getCds()
                                     .toUnsignedBigInteger()
-                                    .divide(BigInteger.valueOf(PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK)))))
+                                    .divide(
+                                        BigInteger.valueOf(
+                                            PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK)))))
             : Bytes.of(0);
 
     // row i + 4

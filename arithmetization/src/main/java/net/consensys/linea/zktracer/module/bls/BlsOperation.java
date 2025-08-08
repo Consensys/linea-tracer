@@ -121,7 +121,8 @@ public class BlsOperation extends ModuleOperation {
 
     // TODO: whenever we do not need an additional list do not use it
     //  (e.g., mintBit, mextBit)
-    // TODO: LibGnarkEIP2537.eip2537blsG1Add();
+
+    // LibGnarkEIP2537....
 
     this.precompileFlag = precompileFlag;
     this.callData = callData;

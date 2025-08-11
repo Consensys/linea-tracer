@@ -15,6 +15,7 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_TIME_STAMP;
 import static net.consensys.linea.zktracer.Trace.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -64,7 +65,7 @@ public class ExecutionEnvironment {
   static final BlockHeaderBuilder DEFAULT_BLOCK_HEADER_BUILDER =
       BlockHeaderBuilder.createDefault()
           .number(ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER)
-          .timestamp(123456789)
+          .timestamp(DEFAULT_TIME_STAMP)
           .parentHash(Hash.EMPTY_TRIE_HASH)
           .baseFee(ToyExecutionEnvironmentV2.DEFAULT_BASE_FEE)
           .nonce(0)

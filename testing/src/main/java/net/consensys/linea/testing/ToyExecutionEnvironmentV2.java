@@ -51,7 +51,7 @@ public class ToyExecutionEnvironmentV2 {
       Address.fromHexString("0xc019ba5e00000000c019ba5e00000000c019ba5e");
   public static final long DEFAULT_BLOCK_NUMBER = 6678980;
 
-  private static final long DEFAULT_TIME_STAMP = 1347310;
+  public static final long DEFAULT_TIME_STAMP = 1347310;
   private static final Hash DEFAULT_HASH =
       Hash.fromHexStringLenient("0xdeadbeef123123666dead666dead666");
 

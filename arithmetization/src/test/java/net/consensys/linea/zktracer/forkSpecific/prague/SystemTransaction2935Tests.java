@@ -32,7 +32,7 @@ public class SystemTransaction2935Tests extends TracerTestBase {
   void systemTransactionConsistencyTest() {
     BytecodeRunner.of(
             BytecodeCompiler.newProgram(testInfo)
-                // prepare memory with TIMESTAMP left padded
+                // prepare memory with previous block number left padded
                 .push(Bytes32.leftPad(Bytes.minimalBytes(DEFAULT_BLOCK_NUMBER - 1))) // value
                 .push(0) // offset
                 .op(OpCode.MSTORE)

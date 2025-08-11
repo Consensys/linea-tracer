@@ -207,7 +207,7 @@ public abstract class Hub implements Module {
   private final Add add = setAdd();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
-  public final Bls bls = new Bls(wcp);
+  public final Bls bls = setBls(wcp);
   @Getter private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   @Getter private final Gas gas = new Gas(wcp);
@@ -1064,6 +1064,8 @@ public abstract class Hub implements Module {
   }
 
   protected abstract Add setAdd();
+
+  protected abstract Bls setBls(Wcp wcp);
 
   protected abstract GasCalculator setGasCalculator();
 

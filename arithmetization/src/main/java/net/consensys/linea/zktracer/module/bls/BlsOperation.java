@@ -205,6 +205,8 @@ public class BlsOperation extends ModuleOperation {
       case PRC_BLS_PAIRING_CHECK -> blsOperation.handleBlsPairingCheck();
       case PRC_BLS_MAP_FP_TO_G1 -> blsOperation.handleBlsMapFpToG1();
       case PRC_BLS_MAP_FP2_TO_G2 -> blsOperation.handleBlsMapFp2ToG2();
+      default -> throw new IllegalArgumentException(
+          "BlsOperation expects to be called on a bls precompile, not on " + precompileFlag.name());
     }
     return blsOperation;
   }

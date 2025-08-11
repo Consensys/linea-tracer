@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
+import net.consensys.linea.zktracer.module.bls.Bls;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.McopySection;
 import net.consensys.linea.zktracer.module.hub.section.finalization.CancunFinalizationSection;
@@ -54,6 +55,11 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class CancunHub extends ShanghaiHub {
   public CancunHub(ChainConfig chain) {
     super(chain);
+  }
+
+  @Override
+  protected Bls setBls(Wcp wcp) {
+    return new Bls(wcp);
   }
 
   @Override

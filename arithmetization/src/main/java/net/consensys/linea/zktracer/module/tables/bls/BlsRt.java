@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G2_MSM;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.base.Preconditions;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 
@@ -315,16 +316,13 @@ public class BlsRt implements Module {
           Map.entry(128, 524));
 
   public static int getMsmDiscount(final int instruction, final int numInputs) {
-    if (numInputs < 1 || numInputs > 128) {
-      throw new IllegalArgumentException("Number of inputs must be between 1 and 128");
-    }
-    if (instruction == OOB_INST_BLS_G1_MSM) {
-      return G1_MSM_DISCOUNTS.get(numInputs);
-    } else if (instruction == OOB_INST_BLS_G2_MSM) {
-      return G2_MSM_DISCOUNTS.get(numInputs);
-    } else {
-      throw new IllegalArgumentException("Invalid instruction: " + instruction);
-    }
+    Preconditions.checkArgument(
+        numInputs >= 1 && numInputs <= 128, "Number of inputs must be between 1 and 128");
+    return switch (instruction) {
+      case OOB_INST_BLS_G1_MSM -> G1_MSM_DISCOUNTS.get(numInputs);
+      case OOB_INST_BLS_G2_MSM -> G2_MSM_DISCOUNTS.get(numInputs);
+      default -> throw new IllegalArgumentException("Invalid instruction: " + instruction);
+    };
   }
 
   public void commit(Trace trace) {

@@ -79,7 +79,7 @@ import org.hyperledger.besu.nativelib.gnark.LibGnarkEIP2537;
 
 @Accessors(fluent = true)
 public class BlsOperation extends ModuleOperation {
-  static final BigInteger BLS_PRIME =
+  public static final BigInteger BLS_PRIME =
       Bytes.concatenate(
               Bytes.ofUnsignedShort(BLS_PRIME_3),
               bigIntegerToBytes(BLS_PRIME_2),

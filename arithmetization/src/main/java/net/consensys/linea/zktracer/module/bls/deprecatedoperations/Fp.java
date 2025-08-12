@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.bls.deprecatedoperations;
 
-import static net.consensys.linea.zktracer.module.bls.deprecatedoperations.BlsUtils.BLS_PRIME;
+import static net.consensys.linea.zktracer.module.bls.BlsOperation.BLS_PRIME;
 
 import java.math.BigInteger;
 

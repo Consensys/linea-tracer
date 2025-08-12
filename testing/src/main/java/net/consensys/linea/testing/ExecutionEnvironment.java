@@ -52,6 +52,8 @@ import org.hyperledger.besu.ethereum.mainnet.MainnetProtocolSpecFactory;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSchedule;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpecBuilder;
+import org.hyperledger.besu.ethereum.mainnet.blockhash.CancunPreExecutionProcessor;
+import org.hyperledger.besu.ethereum.mainnet.blockhash.PraguePreExecutionProcessor;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
 import org.slf4j.Logger;
@@ -138,10 +140,10 @@ public class ExecutionEnvironment {
   }
 
   public static ProtocolSpec getProtocolSpec(BigInteger chainId, Fork fork) {
-    BadBlockManager badBlockManager = new BadBlockManager();
+    final BadBlockManager badBlockManager = new BadBlockManager();
     final GenesisConfigOptions genesisConfigOptions = GENESIS_CONFIG.getConfigOptions();
 
-    ProtocolSchedule schedule =
+    final ProtocolSchedule schedule =
         CliqueProtocolSchedule.create(
             genesisConfigOptions,
             CliqueForksSchedulesFactory.create(genesisConfigOptions),
@@ -168,7 +170,15 @@ public class ExecutionEnvironment {
           case LONDON -> protocol.londonDefinition(GENESIS_CONFIG.getConfigOptions());
           case PARIS -> protocol.parisDefinition(GENESIS_CONFIG.getConfigOptions());
           case SHANGHAI -> protocol.shanghaiDefinition(GENESIS_CONFIG.getConfigOptions());
-          case CANCUN -> protocol.cancunDefinition(GENESIS_CONFIG.getConfigOptions());
+          case CANCUN -> protocol
+              .cancunDefinition(GENESIS_CONFIG.getConfigOptions())
+              .preExecutionProcessor(new CancunPreExecutionProcessor());
+          case PRAGUE -> protocol
+              .pragueDefinition(GENESIS_CONFIG.getConfigOptions())
+              .preExecutionProcessor(new PraguePreExecutionProcessor());
+          case OSAKA -> protocol
+              .osakaDefinition(GENESIS_CONFIG.getConfigOptions())
+              .preExecutionProcessor(new PraguePreExecutionProcessor());
           default -> throw new IllegalArgumentException("Unexpected fork value: " + fork);
         };
 

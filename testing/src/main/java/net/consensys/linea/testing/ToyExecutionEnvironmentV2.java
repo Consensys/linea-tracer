@@ -93,7 +93,7 @@ public class ToyExecutionEnvironmentV2 {
               Optional.of(testInfo), unitTestsChain, coinbase, accounts, transactions)
           .executeTest();
     } else {
-      ProtocolSpec protocolSpec =
+      final ProtocolSpec protocolSpec =
           ExecutionEnvironment.getProtocolSpec(unitTestsChain.id, unitTestsChain.fork);
       final GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
           this.buildGeneralStateTestCaseSpec(protocolSpec);

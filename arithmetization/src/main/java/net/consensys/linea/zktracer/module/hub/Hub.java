@@ -106,6 +106,7 @@ import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
@@ -393,7 +394,7 @@ public abstract class Hub implements Module {
     mmio = new Mmio(mmu);
 
     refTableModules =
-        Stream.of(new BinRt(), setInstructionDecoder(), new ShfRt(), setPower())
+        Stream.of(new BinRt(), new BlsRt(), setInstructionDecoder(), new ShfRt(), setPower())
             .filter(Objects::nonNull)
             .toList();
 

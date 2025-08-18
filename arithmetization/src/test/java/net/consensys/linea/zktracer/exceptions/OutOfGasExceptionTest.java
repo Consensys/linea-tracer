@@ -116,8 +116,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
 
   static Stream<Arguments> outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource() {
     ArrayList<Arguments> args = new ArrayList<>();
-    //
-    for (int i = 94; i <= 94; i++) {
+    for (int i = 0; i < 256; i++) {
       args.add(Arguments.of(i, -1));
       args.add(Arguments.of(i, 0));
       args.add(Arguments.of(i, 1));

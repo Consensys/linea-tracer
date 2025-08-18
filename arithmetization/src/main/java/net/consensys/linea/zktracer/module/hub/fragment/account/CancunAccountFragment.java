@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.fragment.account;
 
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.isUserTransaction;
-
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 
 import java.util.Optional;

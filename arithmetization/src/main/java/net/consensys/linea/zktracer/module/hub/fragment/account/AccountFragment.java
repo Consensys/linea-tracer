@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___DOM_SUB_STAMPS;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.types.AddressUtils.highPart;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import java.util.Map;
@@ -29,7 +28,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -181,9 +179,7 @@ public abstract class AccountFragment
         .pAccountDeploymentNumberNew(newState.deploymentNumber())
         .pAccountDeploymentStatusNew(newState.deploymentStatus())
         .pAccountTrmFlag(addressToTrim.isPresent())
-        .pAccountTrmRawAddressHi(addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY))
-        // TODO
-        .pAccountIsPrecompile(isPrecompile(Fork.CANCUN, oldState.address()));
+        .pAccountTrmRawAddressHi(addressToTrim.map(a -> EWord.of(a).hi()).orElse(Bytes.EMPTY));
     traceMarkedForSelfDestruct(trace);
     traceMarkedForDeletion(trace);
     traceHadCodeInitially(trace);

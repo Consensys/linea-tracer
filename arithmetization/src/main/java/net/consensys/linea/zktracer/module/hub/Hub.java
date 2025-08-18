@@ -394,7 +394,7 @@ public abstract class Hub implements Module {
     mmio = new Mmio(mmu);
 
     refTableModules =
-        Stream.of(new BinRt(), new BlsRt(), setInstructionDecoder(), new ShfRt(), setPower())
+        Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), new ShfRt(), setPower())
             .filter(Objects::nonNull)
             .toList();
 
@@ -427,6 +427,7 @@ public abstract class Hub implements Module {
                         romLex,
                         shakiraData,
                         shf,
+                        stp,
                         stp,
                         trm,
                         wcp, /* WARN: must be called BEFORE txnData */
@@ -1067,6 +1068,8 @@ public abstract class Hub implements Module {
   protected abstract Add setAdd();
 
   protected abstract Bls setBls(Wcp wcp);
+
+  protected abstract BlsRt setBlsRt();
 
   protected abstract GasCalculator setGasCalculator();
 

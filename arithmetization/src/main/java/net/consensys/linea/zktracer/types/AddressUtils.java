@@ -50,10 +50,11 @@ public class AddressUtils {
           Address.ALTBN128_PAIRING,
           Address.BLAKE2B_F_COMPRESSION);
   public static final List<Address> precompileAddressCancun =
+      Stream.concat(precompileAddressLondon.stream(), Stream.of(Address.KZG_POINT_EVAL)).toList();
+  public static final List<Address> precompileAddressPrague =
       Stream.concat(
-              precompileAddressLondon.stream(),
+              precompileAddressCancun.stream(),
               Stream.of(
-                  Address.KZG_POINT_EVAL,
                   Address.BLS12_G1ADD,
                   Address.BLS12_G1MULTIEXP,
                   Address.BLS12_G2ADD,
@@ -66,7 +67,8 @@ public class AddressUtils {
   public static boolean isPrecompile(Fork fork, Address to) {
     return switch (fork) {
       case LONDON, PARIS, SHANGHAI -> precompileAddressLondon.contains(to);
-      case CANCUN, PRAGUE -> precompileAddressCancun.contains(to);
+      case CANCUN -> precompileAddressCancun.contains(to);
+      case PRAGUE -> precompileAddressPrague.contains(to);
     };
   }
 

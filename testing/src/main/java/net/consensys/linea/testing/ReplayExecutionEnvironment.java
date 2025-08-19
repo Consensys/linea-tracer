@@ -184,7 +184,7 @@ public class ReplayExecutionEnvironment {
         conflation,
         tracer,
         this.txResultChecking,
-        this.useCoinbaseAddressFromBlockHeader,
+        true,
         this.transactionProcessingResultValidator);
     //
     if (debugBlockCapturer) {

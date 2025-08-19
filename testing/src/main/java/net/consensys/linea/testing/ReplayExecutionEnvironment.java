@@ -84,7 +84,7 @@ public class ReplayExecutionEnvironment {
    * from block header. This is needed for manual tests like the Multi Block tests which do not have
    * encoded coinbase address in the block header.
    */
-  @Builder.Default private final boolean useCoinbaseAddressFromBlockHeader = false;
+  @Builder.Default private final boolean useCoinbaseAddressFromBlockHeader = true;
 
   /** A transaction validator of each transaction; by default, it does not do anything. */
   @Builder.Default

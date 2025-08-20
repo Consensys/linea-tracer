@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.types.Conversions.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -43,9 +44,13 @@ public abstract class CancunStateUpdateMxpCall extends CancunNotMSizeNorTrivialM
     // Row i + 7
     // Compute useParams1 and useParams2
     final BigInteger max1 =
-        this.offset1.toUnsignedBigInteger().add(this.size1.toUnsignedBigInteger());
+        Objects.equals(this.size1.toUnsignedBigInteger(), BigInteger.ZERO)
+            ? BigInteger.ZERO
+            : this.offset1.toUnsignedBigInteger().add(this.size1.toUnsignedBigInteger());
     final BigInteger max2 =
-        this.offset2.toUnsignedBigInteger().add(this.size2.toUnsignedBigInteger());
+        Objects.equals(this.size2.toUnsignedBigInteger(), BigInteger.ZERO)
+            ? BigInteger.ZERO
+            : this.offset2.toUnsignedBigInteger().add(this.size2.toUnsignedBigInteger());
     final BigInteger doubleOffset = booleanToBigInteger(this.opCodeData.isDoubleOffset());
     exoCalls[6] =
         MxpExoCall.callToLT(

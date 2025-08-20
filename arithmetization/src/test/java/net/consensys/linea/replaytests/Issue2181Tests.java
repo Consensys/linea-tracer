@@ -31,4 +31,9 @@ public class Issue2181Tests {
   void issue2181_storageConsistency() {
     replay(MAINNET_LONDON_TESTCONFIG, "21766382-21766422.mainnet.json.gz");
   }
+
+  @Test
+  void issue2181_tx() {
+    replay(MAINNET_LONDON_TESTCONFIG, "21766383.mainnet.json.gz");
+  }
 }

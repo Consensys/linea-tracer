@@ -63,15 +63,26 @@ public class PrecompileScenarioFragment implements TraceFragment {
 
     private static final Map<Address, PrecompileFlag> ADDRESS_TO_FLAG_MAP =
         Map.of(
-            Address.ECREC, PRC_ECRECOVER,
-            Address.SHA256, PRC_SHA2_256,
-            Address.RIPEMD160, PRC_RIPEMD_160,
-            Address.ID, PRC_IDENTITY,
-            Address.MODEXP, PRC_MODEXP,
-            Address.ALTBN128_ADD, PRC_ECADD,
-            Address.ALTBN128_MUL, PRC_ECMUL,
-            Address.ALTBN128_PAIRING, PRC_ECPAIRING,
-            Address.BLAKE2B_F_COMPRESSION, PRC_BLAKE2F);
+            Address.ECREC,
+            PRC_ECRECOVER,
+            Address.SHA256,
+            PRC_SHA2_256,
+            Address.RIPEMD160,
+            PRC_RIPEMD_160,
+            Address.ID,
+            PRC_IDENTITY,
+            Address.MODEXP,
+            PRC_MODEXP,
+            Address.ALTBN128_ADD,
+            PRC_ECADD,
+            Address.ALTBN128_MUL,
+            PRC_ECMUL,
+            Address.ALTBN128_PAIRING,
+            PRC_ECPAIRING,
+            Address.BLAKE2B_F_COMPRESSION,
+            PRC_BLAKE2F,
+            Address.KZG_POINT_EVAL,
+            PRC_BLAKE2F);
 
     private static final Map<PrecompileFlag, Integer> DATA_PHASE_MAP =
         Map.of(

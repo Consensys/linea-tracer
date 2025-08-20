@@ -216,9 +216,6 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
     if (firstByteComparison != 0) {
       return (short) firstByteComparison;
     }
-    if (isList == ((InstructionByteStringPrefix) other).isList) {
-      return 0; // both are lists or non-lists, so they are equal
-    }
 
     return (short) (isList ? 1 : -1);
   }

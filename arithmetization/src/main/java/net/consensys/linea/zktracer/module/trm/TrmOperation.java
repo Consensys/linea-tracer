@@ -15,6 +15,11 @@
 
 package net.consensys.linea.zktracer.module.trm;
 
+import static net.consensys.linea.zktracer.Fork.CANCUN;
+import static net.consensys.linea.zktracer.Fork.LONDON;
+import static net.consensys.linea.zktracer.Fork.PARIS;
+import static net.consensys.linea.zktracer.Fork.PRAGUE;
+import static net.consensys.linea.zktracer.Fork.SHANGHAI;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.Trm.TRM_CT_MAX;
 import static net.consensys.linea.zktracer.Trace.Trm.TRM_NB_ROWS;

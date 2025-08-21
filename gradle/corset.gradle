@@ -83,9 +83,9 @@ tasks.register('buildAllTracers', Exec) {
     def zkevmPragueBin = getRootProject().file('linea-constraints/' + ZKEVM_PRAGUE_BIN)
     // Generate trace interface and implementing classes
     commandLine 'go-corset','generate','-p',TRACE_PKG,'-i',traceJava,
-    '-o',traceLondonJava,zkevmLondonBin,
-    '-o',traceParisJava,zkevmParisBin,
-    '-o',traceShanghaiJava,zkevmShanghaiBin,
-    '-o',traceCancunJava,zkevmCancunBin,
-    '-o',tracePragueJava,zkevmPragueBin
+            '-o',traceLondonJava,zkevmLondonBin,
+            '-o',traceParisJava,zkevmParisBin,
+            '-o',traceShanghaiJava,zkevmShanghaiBin,
+            '-o',traceCancunJava,zkevmCancunBin,
+            '-o',tracePragueJava,zkevmPragueBin
 }

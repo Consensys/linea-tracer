@@ -138,7 +138,7 @@ public class CancunMxpOperation extends MxpOperation {
           .pComputationArg1Lo(cancunMxpCall.exoCalls[i].arg1Lo())
           .pComputationArg2Hi(cancunMxpCall.exoCalls[i].arg2Hi())
           .pComputationArg2Lo(cancunMxpCall.exoCalls[i].arg2Lo())
-          .pComputationResA(bytesToLong(cancunMxpCall.exoCalls[i].resultA()))
+          .pComputationResA(cancunMxpCall.exoCalls[i].resultA())
           .pComputationResB(bytesToLong(cancunMxpCall.exoCalls[i].resultB()))
           .fillAndValidateRow();
     }

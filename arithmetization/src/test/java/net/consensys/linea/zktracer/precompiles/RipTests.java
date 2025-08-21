@@ -41,6 +41,7 @@ public class RipTests extends TracerTestBase {
   void basicRipTest(int size) {
 
     // TODO: reenable for Cancun once fix is merged
+    // https://github.com/Consensys/linea-constraints/pull/730
     if (fork == Fork.CANCUN && size == HUGE_SIZE) {
       return;
     }

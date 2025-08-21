@@ -25,6 +25,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.TraceCancun;
+import net.consensys.linea.zktracer.TracePrague;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
@@ -52,13 +54,16 @@ public class OobExoCall {
         .addFlag(addFlag)
         .modFlag(modFlag)
         .wcpFlag(wcpFlag)
-        .blsRefTableFlag(blsRtFlag)
         .outgoingInst(instruction)
         .outgoingData1(arg1.slice(0, LLARGE))
         .outgoingData2(arg1.slice(LLARGE, LLARGE))
         .outgoingData3(arg2.slice(0, LLARGE))
         .outgoingData4(arg2.slice(LLARGE, LLARGE))
         .outgoingResLo(addFlag ? ZERO : result);
+    // TODO: what is a more natural way to handle this?
+    if (trace instanceof TraceCancun || trace instanceof TracePrague) {
+      trace.blsRefTableFlag(blsRtFlag);
+    }
   }
 
   public static OobExoCall callToADD(final Add add, final Bytes arg1, final Bytes arg2) {

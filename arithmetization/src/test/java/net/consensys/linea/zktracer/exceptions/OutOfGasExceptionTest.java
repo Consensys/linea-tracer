@@ -57,7 +57,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
     // TODO: enable SELFDESTRUCT for Cancun again after fixing the issue
     // https://github.com/Consensys/linea-tracer/issues/2159
     // PR https://github.com/Consensys/linea-tracer/pull/2184
-    if (fork == Fork.CANCUN && opcode == OpCode.SELFDESTRUCT.byteValue()) {
+    if (fork == Fork.CANCUN && opcode == 255) {
       return;
     }
     //

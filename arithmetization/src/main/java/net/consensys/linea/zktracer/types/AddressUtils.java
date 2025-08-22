@@ -45,7 +45,15 @@ public class AddressUtils {
           Address.ALTBN128_ADD,
           Address.ALTBN128_MUL,
           Address.ALTBN128_PAIRING,
-          Address.BLAKE2B_F_COMPRESSION);
+          Address.BLAKE2B_F_COMPRESSION,
+          Address.KZG_POINT_EVAL,
+          Address.BLS12_G1ADD,
+          Address.BLS12_G1MULTIEXP,
+          Address.BLS12_G2ADD,
+          Address.BLS12_G2MULTIEXP,
+          Address.BLS12_PAIRING,
+          Address.BLS12_MAP_FP_TO_G1,
+          Address.BLS12_MAP_FP2_TO_G2);
 
   public static boolean isPrecompile(Address to) {
     return precompileAddress.contains(to);

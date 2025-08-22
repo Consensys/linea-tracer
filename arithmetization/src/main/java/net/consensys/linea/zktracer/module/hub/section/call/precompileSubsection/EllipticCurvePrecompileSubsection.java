@@ -82,6 +82,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
   public void resolveAtContextReEntry(Hub hub, CallFrame callFrame) {
     super.resolveAtContextReEntry(hub, callFrame);
 
+    // TODO: this return 0x for BLS_G1_ADD that is supposed (?) to be successful
     final Bytes returnData = extractReturnData();
 
     // sanity checks

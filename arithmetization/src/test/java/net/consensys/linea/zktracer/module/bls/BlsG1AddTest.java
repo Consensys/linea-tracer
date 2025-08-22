@@ -24,8 +24,11 @@ import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
+import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -62,17 +65,29 @@ public class BlsG1AddTest extends TracerTestBase {
   void testBlsG1Add(String a, String b) {
     Preconditions.checkArgument(a.length() == 256, "G1 point 'a' must be 256 hex chars");
     Preconditions.checkArgument(b.length() == 256, "G1 point 'b' must be 256 hex chars");
-    // TODO: we may want to test also invalid length inputs
+
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+
+    // TODO: extract method for that
+    final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
+    final ToyAccount codeOwnerAccount =
+        ToyAccount.builder()
+            .balance(Wei.of(0))
+            .nonce(1)
+            .address(codeOwnerAddress)
+            .code(Bytes.concatenate(Bytes.fromHexString(a), Bytes.fromHexString(b)))
+            .build();
+
     // First place the parameters in memory
-    for (int i = 0; i < 8; i++) {
-      String aSlice = a.substring(i * 32, (i + 1) * 32);
-      program.push(aSlice).push(i * 32).op(OpCode.MSTORE);
-    }
-    for (int i = 0; i < 8; i++) {
-      String bSlice = b.substring(i * 32, (i + 1) * 32);
-      program.push(bSlice).push(0x80 + i * 32).op(OpCode.MSTORE);
-    }
+    // Copy to targetOffset the code of codeOwnerAccount
+    program
+        .push(codeOwnerAddress)
+        .op(OpCode.EXTCODESIZE) // size
+        .push(0) // offset
+        .push(0) // targetOffset
+        .push(codeOwnerAddress) // address
+        .op(OpCode.EXTCODECOPY);
+
     // Do the call
     program
         .push(0x80) // retSize
@@ -83,7 +98,7 @@ public class BlsG1AddTest extends TracerTestBase {
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(List.of(codeOwnerAccount), testInfo);
   }
 
   private static Stream<Arguments> blsG1AddSource() {

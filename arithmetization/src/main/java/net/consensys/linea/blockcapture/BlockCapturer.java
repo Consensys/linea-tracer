@@ -56,8 +56,9 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
   private WorldUpdater worldUpdater;
 
   /**
-   * Construct a BlockCapturer instance for a specific fork.  This is necessary to ensure opcodes are loaded before
-   * hand.
+   * Construct a BlockCapturer instance for a specific fork. This is necessary to ensure opcodes are
+   * loaded before hand.
+   *
    * @param fork
    */
   public BlockCapturer(Fork fork) {

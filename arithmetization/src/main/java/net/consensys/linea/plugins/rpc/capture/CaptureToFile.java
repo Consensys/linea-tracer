@@ -24,9 +24,9 @@ import org.hyperledger.besu.plugin.services.TraceService;
 import org.hyperledger.besu.plugin.services.rpc.PluginRpcRequest;
 
 /**
- * Sets up an RPC endpoint for capturing a replay file.  This includes all information needed to replay a
- * given conflation of blocks.  For example, it includes the values of all storage locations read whilst executing
- * the conflation, the balances of all accounts accessed, etc.
+ * Sets up an RPC endpoint for capturing a replay file. This includes all information needed to
+ * replay a given conflation of blocks. For example, it includes the values of all storage locations
+ * read whilst executing the conflation, the balances of all accounts accessed, etc.
  */
 @Slf4j
 public class CaptureToFile {

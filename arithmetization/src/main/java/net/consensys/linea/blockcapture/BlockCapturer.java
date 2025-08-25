@@ -70,10 +70,7 @@ public class BlockCapturer implements ConflationAwareOperationTracer {
 
   @Override
   public void traceStartBlock(
-      final WorldView world,
-      BlockHeader blockHeader,
-      BlockBody blockBody,
-      final Address miningBeneficiary) {
+      BlockHeader blockHeader, BlockBody blockBody, final Address miningBeneficiary) {
     this.reaper.enterBlock(blockHeader, blockBody, miningBeneficiary);
   }
 

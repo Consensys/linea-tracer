@@ -86,7 +86,7 @@ public interface ConflationAwareOperationTracer extends BlockAwareOperationTrace
         final BlockBody blockBody,
         final Address miningBeneficiary) {
       this.tracers.forEach(
-          tracer -> tracer.traceStartBlock(worldView, blockHeader, blockBody, miningBeneficiary));
+          tracer -> tracer.traceStartBlock(blockHeader, blockBody, miningBeneficiary));
     }
 
     public void traceStartBlock(
@@ -94,7 +94,7 @@ public interface ConflationAwareOperationTracer extends BlockAwareOperationTrace
         final ProcessableBlockHeader processableBlockHeader,
         final Address miningBeneficiary) {
       this.tracers.forEach(
-          tracer -> tracer.traceStartBlock(worldView, processableBlockHeader, miningBeneficiary));
+          tracer -> tracer.traceStartBlock(processableBlockHeader, miningBeneficiary));
     }
 
     public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {

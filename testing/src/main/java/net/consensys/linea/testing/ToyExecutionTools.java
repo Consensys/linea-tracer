@@ -115,7 +115,7 @@ public class ToyExecutionTools {
             .blobGasPricePerGas(blockHeader.getExcessBlobGas().orElse(BlobGas.ZERO));
 
     tracer.traceStartConflation(1);
-    tracer.traceStartBlock(worldStateUpdater, blockHeader, blockBody, blockHeader.getCoinbase());
+    tracer.traceStartBlock(blockHeader, blockBody, blockHeader.getCoinbase());
     TransactionProcessingResult result = null;
     for (Transaction transaction : blockBody.getTransactions()) {
       // Several of the GeneralStateTests check if the transaction could potentially
@@ -242,7 +242,7 @@ public class ToyExecutionTools {
             // For gas cost purposes, we don't care about the Type of the message frame
             .type(MessageFrame.Type.MESSAGE_CALL)
             .initialGas(LINEA_BLOCK_GAS_LIMIT)
-            .code(evm.wrapCode(receiverAccount.getCode()))
+            .code(evm.getCodeUncached(receiverAccount.getCode()))
             .build();
 
     Deque<MessageFrame> messageFrameStack = initialMessageFrame.getMessageFrameStack();

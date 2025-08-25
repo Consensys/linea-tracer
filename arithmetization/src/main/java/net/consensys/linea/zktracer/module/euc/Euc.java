@@ -30,7 +30,6 @@ import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
@@ -64,9 +63,7 @@ public class Euc implements OperationSetModule<EucOperation> {
 
   @Override
   public void traceStartBlock(
-      WorldView world,
-      final ProcessableBlockHeader processableBlockHeader,
-      final Address miningBeneficiary) {
+      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
     additionalRows.commitTransactionBundle();
   }
 

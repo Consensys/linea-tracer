@@ -476,19 +476,17 @@ public abstract class Hub implements Module {
 
   @Override
   public void traceStartBlock(
-      WorldView world,
-      final ProcessableBlockHeader processableBlockHeader,
-      final Address miningBeneficiary) {
+      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
     state.firstAndLastStorageSlotOccurrences.add(new HashMap<>());
     blockStack.newBlock(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
     state.enterSectionsStack();
-    traceSystemInitialTransaction(world, processableBlockHeader);
+    traceSystemInitialTransaction(processableBlockHeader);
     // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
     // disappear with limitless refacto
     state.lineCounter().add(state.currentTransactionHubSections().lineCount());
     for (Module m : modules) {
-      m.traceStartBlock(world, processableBlockHeader, miningBeneficiary);
+      m.traceStartBlock(processableBlockHeader, miningBeneficiary);
     }
   }
 
@@ -1093,8 +1091,7 @@ public abstract class Hub implements Module {
 
   protected abstract void setMcopySection(Hub hub);
 
-  protected abstract void traceSystemInitialTransaction(
-      WorldView world, ProcessableBlockHeader blockHeader);
+  protected abstract void traceSystemInitialTransaction(ProcessableBlockHeader blockHeader);
 
   protected abstract void traceSystemFinalTransaction();
 

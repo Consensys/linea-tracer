@@ -28,7 +28,6 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.log.Log;
-import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Accessors(fluent = true)
@@ -120,9 +119,7 @@ public class L1BlockSize implements Module {
 
   @Override
   public void traceStartBlock(
-      WorldView world,
-      final ProcessableBlockHeader processableBlockHeader,
-      final Address miningBeneficiary) {
+      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
     nbBlock++;
   }
 

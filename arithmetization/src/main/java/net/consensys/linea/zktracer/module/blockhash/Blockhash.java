@@ -69,9 +69,7 @@ public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOp
 
   @Override
   public void traceStartBlock(
-      WorldView world,
-      final ProcessableBlockHeader processableBlockHeader,
-      final Address miningBeneficiary) {
+      final ProcessableBlockHeader processableBlockHeader, final Address miningBeneficiary) {
     relBlock += 1;
     absBlock = processableBlockHeader.getNumber();
   }

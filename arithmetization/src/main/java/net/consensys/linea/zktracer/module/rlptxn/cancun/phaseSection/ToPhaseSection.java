@@ -23,6 +23,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.lowPart;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
+import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
@@ -30,8 +31,11 @@ import org.hyperledger.besu.datatypes.Address;
 public class ToPhaseSection extends PhaseSection {
   private final boolean isDeployment;
 
-  public ToPhaseSection(TransactionProcessingMetadata tx) {
+  public ToPhaseSection(Trm trm, TransactionProcessingMetadata tx) {
     isDeployment = tx.isDeployment();
+    if (tx.getBesuTransaction().getTo().isPresent()) {
+      trm.callTrimming(tx.getBesuTransaction().getTo().get());
+    }
   }
 
   @Override

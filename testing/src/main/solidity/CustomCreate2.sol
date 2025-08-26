@@ -105,4 +105,25 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
+    function advancedCreateScenariiOneTx(bytes memory code, bytes32 saltEx) public {
+        storeInitCodeC(code);
+        storeSalt(saltEx);
+        create2WithInitCodeC();
+        callContractC(
+        abi.encodeWithSignature("storeInMap(uint256,address)", 1, "0x0000000000000000000000000000000000001234"),
+        false
+        );
+        callContractC(
+            abi.encodeWithSignature("selfDestructOnDemand()"),
+            false
+        );
+        create2WithCallBackAfterCreate2();
+        create2CallCAndRevert();
+        callMyself(
+            abi.encodeWithSignature("create2WithInitCodeC()"),
+            true
+        );
+        create2FourTimes();
+    }
+
 }

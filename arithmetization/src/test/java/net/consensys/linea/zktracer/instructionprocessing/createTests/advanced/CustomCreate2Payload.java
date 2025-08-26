@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import static net.consensys.linea.testing.generated.CustomCreate2.FUNC_ADVANCEDCREATESCENARIIONETX;
+
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -92,6 +94,18 @@ public class CustomCreate2Payload {
             Arrays.asList(
                 new org.web3j.abi.datatypes.DynamicBytes(executePayload.toArray()),
                 new org.web3j.abi.datatypes.Bool(staticCall)),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes advancedCreateScenariiOneTx(String initCodeC, String salt) {
+    Function function =
+        new Function(
+            FUNC_ADVANCEDCREATESCENARIIONETX,
+            Arrays.asList(
+                new org.web3j.abi.datatypes.DynamicBytes(Bytes.fromHexString(initCodeC).toArray()),
+                new org.web3j.abi.datatypes.generated.Bytes32(
+                    Bytes.fromHexStringLenient(salt).toArray())),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }

@@ -285,4 +285,20 @@ public class InitCodeTests extends TracerTestBase {
     }
     return ToyMultiTransaction.builder().build(builders, userAccount);
   }
+
+  @Test
+  void deployContractCWithCreate2OneTx() {
+    // Payloads preparation
+    Bytes advancedCreateScenariiOneTx =
+        CustomCreate2Payload.advancedCreateScenariiOneTx(initCodeC, salt);
+    List<Transaction> transactions =
+        getTransactions(
+            customCreate2Account, userAccount, List.of(advancedCreateScenariiOneTx), List.of(0L));
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder(testInfo)
+            .accounts(List.of(userAccount, customCreate2Account))
+            .transactions(transactions)
+            .build();
+    toyExecutionEnvironmentV2.run();
+  }
 }

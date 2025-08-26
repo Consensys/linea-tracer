@@ -15,16 +15,14 @@
 
 package net.consensys.linea.zktracer.precompiles;
 
-import static com.google.common.math.BigIntegerMath.log2;
-import static java.lang.Math.min;
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.oob.OobOperation.computeExponentLog;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.generateModexpInput;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getExpectedReturnAtCapacity;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getPrecompileCost;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareBlake2F;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareModexp;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.prepareSha256Ripemd160Id;
-import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_ADD;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_MUL;
 import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
@@ -35,13 +33,10 @@ import static org.hyperledger.besu.datatypes.Address.MODEXP;
 import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
 import static org.hyperledger.besu.datatypes.Address.SHA256;
 
-import java.math.BigInteger;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -243,28 +238,5 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
       case COST -> precompileCost;
       case COST_PLUS_ONE -> precompileCost + 1;
     };
-  }
-
-  // TODO: this is ugly, shouldn't copy paste the functiun in OobOperation
-  // Support method for MODEXP
-  public static int computeExponentLog(Bytes paddedCallData, int cds, int bbs, int ebs) {
-    Preconditions.checkArgument(paddedCallData.size() >= 96);
-
-    // pad paddedCallData to 96 + bbs + ebs
-    final Bytes doublePaddedCallData =
-        cds < 96 + bbs + ebs ? rightPadTo(paddedCallData, 96 + bbs + ebs) : paddedCallData;
-
-    final BigInteger leadingBytesOfExponent =
-        doublePaddedCallData.slice(96 + bbs, min(ebs, 32)).toUnsignedBigInteger();
-
-    if (ebs <= 32 && leadingBytesOfExponent.signum() == 0) {
-      return 0;
-    } else if (ebs <= 32 && leadingBytesOfExponent.signum() != 0) {
-      return log2(leadingBytesOfExponent, RoundingMode.FLOOR);
-    } else if (ebs > 32 && leadingBytesOfExponent.signum() != 0) {
-      return 8 * (ebs - 32) + log2(leadingBytesOfExponent, RoundingMode.FLOOR);
-    } else {
-      return 8 * (ebs - 32);
-    }
   }
 }

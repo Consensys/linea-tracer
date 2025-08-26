@@ -18,10 +18,10 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.sixtyThreeS
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
+import static net.consensys.linea.zktracer.module.oob.OobOperation.computeExponentLog;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 import static net.consensys.linea.zktracer.opcode.OpCode.MLOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.POP;
-import static net.consensys.linea.zktracer.precompiles.LowGasStipendPrecompileCallTests.computeExponentLog;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.generateModexpInput;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getBLAKE2FCost;
 import static net.consensys.linea.zktracer.precompiles.PrecompileUtils.getECADDCost;

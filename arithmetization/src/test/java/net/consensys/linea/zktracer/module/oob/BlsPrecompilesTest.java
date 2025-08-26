@@ -1,7 +1,6 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static java.util.Map.entry;
-import static net.consensys.linea.reporting.TracerTestBase.testInfo;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___FP2_TO_G2;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___FP_TO_G1;
 import static net.consensys.linea.zktracer.Trace.PRECOMPILE_CALL_DATA_SIZE___G1_ADD;
@@ -34,8 +33,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class BlsPrecompilesTest extends TracerTestBase {
 
   @ParameterizedTest
-  @MethodSource("blsPrecompilesTestSource")
-  void blsPrecompilesTest(Address address, Integer size) {
+  @MethodSource("blsPrecompilesSizeTestSource")
+  void blsPrecompilesSizeTest(Address address, Integer size) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
@@ -70,7 +69,7 @@ public class BlsPrecompilesTest extends TracerTestBase {
     bytecodeRunner.run(List.of(codeOwnerAccount), testInfo);
   }
 
-  private static Stream<Arguments> blsPrecompilesTestSource() {
+  private static Stream<Arguments> blsPrecompilesSizeTestSource() {
     final Map<Address, Integer> FIXED_SIZE_PRECOMPILE_ADDRESS_TO_SIZE =
         Map.ofEntries(
             entry(Address.KZG_POINT_EVAL, PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION),

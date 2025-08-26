@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer.module.tables.bls;
 
 import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G1_MSM;
 import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G2_MSM;
+import static net.consensys.linea.zktracer.Trace.PRC_BLS_G1_MSM_MAX_DISCOUNT;
+import static net.consensys.linea.zktracer.Trace.PRC_BLS_G2_MSM_MAX_DISCOUNT;
 
 import java.util.List;
 import java.util.Map;
@@ -316,11 +318,14 @@ public class BlsRt implements Module {
           Map.entry(128, 524));
 
   public static int getMsmDiscount(final int instruction, final int numInputs) {
-    Preconditions.checkArgument(
-        numInputs >= 1 && numInputs <= 128, "Number of inputs must be between 1 and 128");
+    Preconditions.checkArgument(numInputs >= 1, "Number of inputs must be greater than 1");
     return switch (instruction) {
-      case OOB_INST_BLS_G1_MSM -> G1_MSM_DISCOUNTS.get(numInputs);
-      case OOB_INST_BLS_G2_MSM -> G2_MSM_DISCOUNTS.get(numInputs);
+      case OOB_INST_BLS_G1_MSM -> numInputs <= 128
+          ? G1_MSM_DISCOUNTS.get(numInputs)
+          : PRC_BLS_G1_MSM_MAX_DISCOUNT;
+      case OOB_INST_BLS_G2_MSM -> numInputs <= 128
+          ? G2_MSM_DISCOUNTS.get(numInputs)
+          : PRC_BLS_G2_MSM_MAX_DISCOUNT;
       default -> throw new IllegalArgumentException("Invalid instruction: " + instruction);
     };
   }

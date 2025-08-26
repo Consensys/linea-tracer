@@ -111,6 +111,7 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
 
     // In order to actually trigger the insufficient we need to:
     // - Set a specific callDataSize for BLAKE2F and EC_PAIRING
+    // TODO: and BLS precompiles (for all values of discount table for MSM)
     // - Set the r value of BLAKE2F to have precompileCost > callStipend
     // - Populate the memory with a large enough number of words for SHA256, RIPEMD160, and ID
     //   to have precompileCost > callStipend.
@@ -214,6 +215,7 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
         arguments.add(Arguments.of(Address.ALTBN128_PAIRING, valueCase, gasCase, false));
         arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, valueCase, gasCase, false));
         arguments.add(Arguments.of(BLAKE2B_F_COMPRESSION, valueCase, gasCase, true));
+        // TODO: add BLS precompiles
       }
       // The NON_ZERO for MODEXP case will be treated in a separate test
       arguments.add(Arguments.of(MODEXP, ValueCase.ZERO, gasCase, false));

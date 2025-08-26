@@ -73,7 +73,9 @@ public enum GasConstants {
   // EIP-3860: CREAE(2) are added GAS_CONST_INIT_CODE_WORD = 2 per word for the init code
   G_CONST_INIT_CODE_WORD(GAS_CONST_INIT_CODE_WORD),
   G_CONST_INIT_CODE_WORD_CREATE2(GAS_CONST_G_KECCAK_256_WORD + GAS_CONST_INIT_CODE_WORD),
-  G_CONST_HASH_OPCODE(GAS_CONST_HASH_OPCODE_GAS);
+  G_CONST_HASH_OPCODE(GAS_CONST_HASH_OPCODE_GAS),
+  // EIP-3074
+  G_CONST_AUTH(3100);
 
   /** The gas price of the instruction family. */
   private final int cost;

@@ -62,7 +62,6 @@ public abstract class TxndataOperation extends ModuleOperation {
   @Getter public final TransactionProcessingMetadata tx;
 
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
-  private static final int NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST = 7;
 
   private final int nbRowsType0;
   private final int nbRowsType1;

@@ -30,7 +30,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(UnitTestWatcher.class)
-public class BlsPrecompilesTest extends TracerTestBase {
+public class BlsPrecompilesSizeTest extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("blsPrecompilesSizeTestSource")
@@ -87,12 +87,14 @@ public class BlsPrecompilesTest extends TracerTestBase {
     List<Arguments> arguments = new ArrayList<>();
     arguments.add(Arguments.of());
 
+    // TODO: create enum to represent the different cases (ZERO, ONE, ...)
+
     for (Address address : FIXED_SIZE_PRECOMPILE_ADDRESS_TO_SIZE.keySet()) {
       arguments.add(Arguments.of(address, 0));
       arguments.add(Arguments.of(address, 1));
       int size = FIXED_SIZE_PRECOMPILE_ADDRESS_TO_SIZE.get(address);
-      for (int e = -1; e <= 1; e++) {
-        arguments.add(Arguments.of(address, size + e));
+      for (int cornerCase = -1; cornerCase <= 1; cornerCase++) {
+        arguments.add(Arguments.of(address, size + cornerCase));
       }
     }
 
@@ -100,9 +102,9 @@ public class BlsPrecompilesTest extends TracerTestBase {
       arguments.add(Arguments.of(address, 0));
       arguments.add(Arguments.of(address, 1));
       int unit = VARIABLE_SIZE_PRECOMPILE_ADDRESS_TO_UNIT.get(address);
-      for (int k = 1; k <= 128; k++) {
-        for (int e = -1; e <= 1; e++) {
-          arguments.add(Arguments.of(address, k * unit + e));
+      for (int numberOfUnits = 1; numberOfUnits <= 128; numberOfUnits++) {
+        for (int cornerCase = -1; cornerCase <= 1; cornerCase++) {
+          arguments.add(Arguments.of(address, numberOfUnits * unit + cornerCase));
         }
       }
     }

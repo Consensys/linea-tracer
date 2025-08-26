@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,15 +37,11 @@ import org.hyperledger.besu.crypto.Hash;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.web3j.abi.EventEncoder;
 
-// TODO: enable again once this issue is done :
-// https://github.com/Consensys/linea-tracer/issues/2190
-@Tag("disabled-for-cancun-temporarily")
 @ExtendWith(UnitTestWatcher.class)
 public class InitCodeTests extends TracerTestBase {
 
@@ -128,10 +125,17 @@ public class InitCodeTests extends TracerTestBase {
     Map<String, List<Bytes>> logsDataMap = new HashMap<>();
 
     // List all logs expected from each topic
-    logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 1));
+    // In the last transaction, we attempt to redeploy contractC at the same address (see detailed
+    // description below). However, as the previous self-destruct was not done in the same tx as the
+    // 1st deployment, the re-deployment now fails.
+    int lastTxIsContractCreatedEvent = isPostCancun(fork) ? 0 : 1;
+    logsTopicMap.put(
+        contractCreatedEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, lastTxIsContractCreatedEvent));
     logsTopicMap.put(staticCallMyselfFailEvent, List.of(0, 0, 0, 0, 0, 0, 0, 1, 0));
     logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 0));
     // List data expected for each topic
+    Bytes lastTxContractCreatedEvent =
+        isPostCancun(fork) ? Bytes.EMPTY : expectedContractCAddressLogData;
     logsDataMap.put(
         contractCreatedEvent,
         List.of(
@@ -143,11 +147,12 @@ public class InitCodeTests extends TracerTestBase {
             Bytes.EMPTY,
             Bytes.EMPTY,
             Bytes.EMPTY,
-            expectedContractCAddressLogData));
+            lastTxContractCreatedEvent));
     // List status expected per transaction
     // 0 is FAILED
     // 1 is SUCCESSFUL
-    List<Integer> txStatuses = List.of(1, 1, 1, 1, 1, 0, 0, 1, 1);
+    int lastTxStatus = isPostCancun(fork) ? 0 : 1;
+    List<Integer> txStatuses = List.of(1, 1, 1, 1, 1, 0, 0, 1, lastTxStatus);
 
     // Instantiate validator
     TransactionProcessingResultValidator create2Validator =
@@ -222,6 +227,8 @@ public class InitCodeTests extends TracerTestBase {
     toyExecutionEnvironmentV2.run();
 
     // Final check on the deployment number of ContractC
+
+    // PRE-CANCUN FORK
     // At start, deploymentNumber = 0
     // transaction 3 - create2WithInitCodeC : deploymentNumber ++
     // - Deploys contract C with non empty code
@@ -240,6 +247,12 @@ public class InitCodeTests extends TracerTestBase {
     // transaction 9 - create2FourTimes : deploymentNumber ++
     // - Only one create2 is successful so increments the deployment number by 1
     // - deploymentNumber = 5
+
+    // POST-CANCUN FORK
+    // At start, deploymentNumber = 0
+    // transaction 3 - create2WithInitCodeC : deploymentNumber ++
+    // - Deploys contract C with non empty code
+    // - deploymentNumber = 1
     int deploymentNumber =
         toyExecutionEnvironmentV2
             .getHub()
@@ -247,7 +260,7 @@ public class InitCodeTests extends TracerTestBase {
             .conflation()
             .deploymentInfo()
             .deploymentNumber(Address.fromHexString(expectedContractCAddress.toString()));
-    int expectedDeploymentNumber = 5;
+    int expectedDeploymentNumber = isPostCancun(fork) ? 1 : 5;
     assertEquals(expectedDeploymentNumber, deploymentNumber);
   }
 

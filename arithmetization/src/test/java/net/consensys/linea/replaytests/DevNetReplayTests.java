@@ -28,6 +28,6 @@ public class DevNetReplayTests {
 
   @Test
   void rejectedDevNetDeployment() {
-    replay(DEVNET_SHANGHAI_TESTCONFIG, "replay_devnet.json.gz");
+    replay(DEVNET_SHANGHAI_TESTCONFIG, "output.json.gz");
   }
 }

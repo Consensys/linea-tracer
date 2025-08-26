@@ -667,13 +667,13 @@ public abstract class Hub implements Module {
 
     // We take a snapshot before exiting the transaction
     if (frame.getDepth() == 0) {
-      final long leftOverGas = frame.getRemainingGas();
+      final long leftoverGasPriorToRefunds = frame.getRemainingGas();
       final long gasRefund = frame.getGasRefund();
 
       txStack
           .current()
           .setPreFinalisationValues(
-              leftOverGas,
+              leftoverGasPriorToRefunds,
               gasRefund,
               txStack.getAccumulativeGasUsedInBlockBeforeTxStart(),
               coinbaseWarmthAtTxEnd());

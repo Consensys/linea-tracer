@@ -36,4 +36,21 @@ public class Issue2181Tests {
   void issue2181_tx() {
     replay(MAINNET_LONDON_TESTCONFIG, "21766383.mainnet.json.gz");
   }
+
+  /** Initial range of blocks 21766382-21766422 */
+  @Test
+  void issue2181_storageConsistency_rc6() {
+    replay(MAINNET_LONDON_TESTCONFIG, "result-rc6-82-22.json.gz");
+  }
+
+  @Test
+  void issue2181_storageConsistency_rc7() {
+    replay(MAINNET_LONDON_TESTCONFIG, "result-rc7-82-22.json.gz");
+  }
+
+  /** Faulty block 21766383 */
+  @Test
+  void issue2181_storageConsistency_rc6_single_block() {
+    replay(MAINNET_LONDON_TESTCONFIG, "replay_21766383.json.gz");
+  }
 }

@@ -266,13 +266,13 @@ public class TransactionProcessingMetadata {
   }
 
   public void setPreFinalisationValues(
-      final long leftOverGas,
+      final long leftoverGasPriorToRefunds,
       final long refundCounterMax,
       final long accumulatedGasUsedInBlockAtStartTx,
       final boolean coinbaseWarmAtTransactionEnd) {
 
     this.refundCounterMax = refundCounterMax;
-    setLeftoverGas(leftOverGas);
+    setLeftoverGas(leftoverGasPriorToRefunds);
     gasUsed = computeGasUsed();
     refundEffective = computeRefundEffective();
     gasRefunded = computeRefunded();

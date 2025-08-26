@@ -41,7 +41,7 @@ public class BlsPointEvaluationOobCall extends BlsFixedSizeFixedGasCostOobCall {
 
   @Override
   protected void traceOobInstructionInOob(Trace.Oob trace) {
-    trace.isBlsMapFp2ToG2(true).oobInst(OOB_INST_POINT_EVALUATION);
+    trace.isPointEvaluation(true).oobInst(OOB_INST_POINT_EVALUATION);
   }
 
   @Override

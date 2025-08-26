@@ -428,7 +428,6 @@ public abstract class Hub implements Module {
                         shakiraData,
                         shf,
                         stp,
-                        stp,
                         trm,
                         wcp, /* WARN: must be called BEFORE txnData */
                         txnData,

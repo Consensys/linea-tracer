@@ -17,6 +17,8 @@ package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Trace.*;
 
+import org.hyperledger.besu.datatypes.HardforkId.MainnetHardforkId;
+import org.hyperledger.besu.plugin.ServiceManager;
 /**
  * release numbers of forks are defined from the <b>Ethereum Protocol Releases</b> table in <a
  * href="https://github.com/ethereum/execution-specs">execution specs</a> repo. We start counting at
@@ -79,5 +81,40 @@ public enum Fork {
 
   public static boolean isPostPrague(Fork fork) {
     return forkIsAtLeast(fork, PRAGUE);
+  }
+
+  /**
+   * Map MainnetHardforkId, datatype from Besu, to Fork enum instance
+   *
+   * @param hardForkId the hardfork id retrieved from Besu API
+   * @return Fork
+   */
+  private static Fork fromMainnetHardforkId(MainnetHardforkId hardForkId) {
+    return switch (hardForkId) {
+      case MainnetHardforkId.LONDON -> LONDON;
+      case MainnetHardforkId.PARIS -> PARIS;
+      case MainnetHardforkId.SHANGHAI -> SHANGHAI;
+      case MainnetHardforkId.CANCUN -> CANCUN;
+      case MainnetHardforkId.PRAGUE -> PRAGUE;
+      case MainnetHardforkId.OSAKA -> OSAKA;
+      default -> throw new IllegalArgumentException("Unknown hardfork id: " + hardForkId);
+    };
+  }
+
+  /**
+   * Start a Besu Blockchain service and retrieve the hardfork id at a given block number
+   *
+   * @param context the context on which to start the service
+   * @param blockNumber the block number at which to retrieve the hardfork id
+   * @return Fork corresponding Fork instance
+   */
+  // Waiting for https://github.com/hyperledger/besu/pull/9115 to uncomment
+  public static Fork getForkFromBesuBlockchainService(ServiceManager context, long blockNumber) {
+    //  MainnetHardforkId hardforkId =  BesuServiceProvider.getBesuService(context,
+    // BlockchainService.class)
+    // .getHardforkId(blockNumber)
+    // .orElseThrow();
+    // return fromMainnetHardforkId(hardforkId);
+    return LONDON;
   }
 }

@@ -31,8 +31,10 @@ import net.consensys.linea.plugins.LineaOptionsPluginConfiguration;
 import net.consensys.linea.plugins.exception.TraceOutputException;
 import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.RequestLimiterDispatcher;
+import net.consensys.linea.zktracer.Fork;
 import org.hyperledger.besu.plugin.BesuPlugin;
 import org.hyperledger.besu.plugin.ServiceManager;
+import org.hyperledger.besu.plugin.services.BlockchainService;
 import org.hyperledger.besu.plugin.services.RpcEndpointService;
 
 /**
@@ -95,8 +97,8 @@ public class TracesEndpointServicePlugin extends AbstractLineaPrivateOptionsPlug
             besuContext,
             reqLimiter,
             endpointConfiguration,
-            l1L2BridgeSharedConfiguration(),
-            fork());
+            l1L2BridgeSharedConfiguration()
+            );
 
     createAndRegister(method, rpcEndpointService);
   }

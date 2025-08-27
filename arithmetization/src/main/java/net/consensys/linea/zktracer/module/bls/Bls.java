@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.bls;
 
 import java.util.List;
-import java.util.Set;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -25,24 +24,17 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
+import net.consensys.linea.zktracer.module.limits.precompiles.PointEvaluationEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.PointEvaluationFailureCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
 public class Bls implements OperationListModule<BlsOperation> {
-  public static final Set<Address> BLS_PRECOMPILES =
-      Set.of(
-          Address.KZG_POINT_EVAL,
-          Address.BLS12_G1ADD,
-          Address.BLS12_G1MULTIEXP,
-          Address.BLS12_G2ADD,
-          Address.BLS12_G2MULTIEXP,
-          Address.BLS12_PAIRING,
-          Address.BLS12_MAP_FP_TO_G1,
-          Address.BLS12_MAP_FP2_TO_G2);
+  private final PointEvaluationEffectiveCall pointEvaluationEffectiveCalls;
+  private final PointEvaluationFailureCall pointEvaluationFailureCalls;
 
   private final ModuleOperationStackedList<BlsOperation> operations =
       new ModuleOperationStackedList<>();
@@ -93,10 +85,10 @@ public class Bls implements OperationListModule<BlsOperation> {
     switch (blsOperation.precompileFlag()) {
       case PRC_POINT_EVALUATION -> {
         if (blsOperation.wnon()) {
-          // blsPointEvaluationEffectiveCalls.updateTally(1);
+          pointEvaluationEffectiveCalls.updateTally(1);
         }
         if (blsOperation.mext()) {
-          // blsPointEvaluationFailureCalls.updateTally(1);
+          pointEvaluationFailureCalls.updateTally(1);
         }
       }
       case PRC_BLS_G1_ADD -> {
@@ -133,7 +125,7 @@ public class Bls implements OperationListModule<BlsOperation> {
       }
       case PRC_BLS_PAIRING_CHECK -> {
         if (blsOperation.wtrv() || blsOperation.wnon()) {
-           /*
+          /*
           G1  | G2  | Circuit
           P   | inf | G1 membership
           inf | Q   | G2 membership

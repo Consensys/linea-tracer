@@ -49,7 +49,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class StpCall implements TraceSubFragment {
   @EqualsAndHashCode.Include final long memoryExpansionGas;
-  @EqualsAndHashCode.Include OpCodeData opCode;
+  @EqualsAndHashCode.Include OpCode opCode;
   @EqualsAndHashCode.Include long gasActual;
   @EqualsAndHashCode.Include EWord gas; // for CALL's only
   @EqualsAndHashCode.Include EWord value;
@@ -59,15 +59,17 @@ public class StpCall implements TraceSubFragment {
   @EqualsAndHashCode.Include boolean outOfGasException;
   @EqualsAndHashCode.Include long gasPaidOutOfPocket;
   @EqualsAndHashCode.Include long stipend;
+  private final OpCodeData opCodeData;
 
   public StpCall(Hub hub, MessageFrame frame, long memoryExpansionGas) {
-    this.opCode = hub.opCodeData();
-    checkArgument(this.opCode.isCall() || this.opCode.isCreate());
+    this.opCode = hub.opCode();
+    this.opCodeData = hub.opCodeData();
+    checkArgument(this.opCodeData.isCall() || this.opCodeData.isCreate());
 
     this.memoryExpansionGas = memoryExpansionGas;
     this.gasActual = frame.getRemainingGas();
 
-    if (this.opCode.isCall()) {
+    if (this.opCodeData.isCall()) {
       this.stpCallForCalls(hub);
     } else {
       this.stpCallForCreates(frame);
@@ -80,7 +82,7 @@ public class StpCall implements TraceSubFragment {
     final Address to = Words.toAddress(frame.getStackItem(1));
     final Account toAccount = frame.getWorldUpdater().get(to);
     this.gas = EWord.of(frame.getStackItem(0));
-    this.value = opCode.callHasValueArgument() ? EWord.of(frame.getStackItem(2)) : ZERO;
+    this.value = opCodeData.callHasValueArgument() ? EWord.of(frame.getStackItem(2)) : ZERO;
     this.exists =
         switch (hub.opCode()) {
           case CALL -> toAccount != null && !toAccount.isEmpty();
@@ -96,11 +98,11 @@ public class StpCall implements TraceSubFragment {
   }
 
   private boolean nonzeroValueTransfer() {
-    return opCode.callHasValueArgument() && !value.isZero();
+    return opCodeData.callHasValueArgument() && !value.isZero();
   }
 
   private boolean callWouldLeadToAccountCreation() {
-    return (opCode.mnemonic() == OpCode.CALL) && nonzeroValueTransfer() && !exists;
+    return (opCode == OpCode.CALL) && nonzeroValueTransfer() && !exists;
   }
 
   private long gasPaidOutOfPocketForCalls() {
@@ -155,7 +157,7 @@ public class StpCall implements TraceSubFragment {
   public Trace.Hub trace(Trace.Hub trace) {
     return trace
         .pMiscStpFlag(true)
-        .pMiscStpInstruction(opCode.mnemonic().unsignedByteValue())
+        .pMiscStpInstruction(opCode.unsignedByteValue())
         .pMiscStpGasHi(gas.hi())
         .pMiscStpGasLo(gas.lo())
         .pMiscStpValueHi(value.hi())
@@ -170,7 +172,7 @@ public class StpCall implements TraceSubFragment {
   }
 
   public int compareTo(StpCall stpCall) {
-    final int opCodeComp = opCode.mnemonic().compareTo(stpCall.opCode.mnemonic());
+    final int opCodeComp = opCode.compareTo(stpCall.opCode);
     if (opCodeComp != 0) {
       return opCodeComp;
     }

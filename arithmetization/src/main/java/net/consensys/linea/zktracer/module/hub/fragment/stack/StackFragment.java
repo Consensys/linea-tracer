@@ -122,7 +122,7 @@ public abstract class StackFragment implements TraceFragment {
       boolean prospectivePcNewIsInBounds =
           codeSize.compareTo(prospectivePcNew) > 0 && noOutOfGasException;
 
-      if (opCode.equals(OpCode.JUMPI)) {
+      if (opCode.mnemonic().equals(OpCode.JUMPI)) {
         boolean nonzeroJumpCondition =
             !hub.currentFrame()
                 .frame()

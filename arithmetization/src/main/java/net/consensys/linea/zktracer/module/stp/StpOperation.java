@@ -40,27 +40,27 @@ public final class StpOperation extends ModuleOperation {
   }
 
   private boolean isCall() {
-    return stpCall.opCode().mnemonic() == OpCode.CALL;
+    return stpCall.opCode() == OpCode.CALL;
   }
 
   private boolean isCallCode() {
-    return stpCall.opCode().mnemonic() == OpCode.CALLCODE;
+    return stpCall.opCode() == OpCode.CALLCODE;
   }
 
   private boolean isDelegateCall() {
-    return stpCall.opCode().mnemonic() == OpCode.DELEGATECALL;
+    return stpCall.opCode() == OpCode.DELEGATECALL;
   }
 
   private boolean isStaticCall() {
-    return stpCall.opCode().mnemonic() == OpCode.STATICCALL;
+    return stpCall.opCode() == OpCode.STATICCALL;
   }
 
   private boolean isCreate() {
-    return stpCall.opCode().mnemonic() == OpCode.CREATE;
+    return stpCall.opCode() == OpCode.CREATE;
   }
 
   private boolean isCreate2() {
-    return stpCall.opCode().mnemonic() == OpCode.CREATE2;
+    return stpCall.opCode() == OpCode.CREATE2;
   }
 
   long getGDiff() {
@@ -77,7 +77,7 @@ public final class StpOperation extends ModuleOperation {
   }
 
   void trace(Trace.Stp trace, int stamp) {
-    if (stpCall.opCode().isCreate()) {
+    if (stpCall.opCodeData().isCreate()) {
       this.traceCreate(trace, stamp);
     } else {
       this.traceCall(trace, stamp);
@@ -181,7 +181,7 @@ public final class StpOperation extends ModuleOperation {
             .arg2Lo(Bytes.EMPTY)
             .exogenousModuleInstruction(UnsignedByte.of(OpCode.ISZERO.byteValue()))
             .resLo(Bytes.of(stpCall.value().isZero() ? 1 : 0))
-            .wcpFlag(stpCall.opCode().callHasValueArgument())
+            .wcpFlag(stpCall.opCodeData().callHasValueArgument())
             .modFlag(false)
             .fillAndValidateRow();
         case 2 -> trace
@@ -227,9 +227,9 @@ public final class StpOperation extends ModuleOperation {
 
   private int maxCt() {
     if (stpCall.outOfGasException()) {
-      return stpCall.opCode().isCreate() ? 1 : 2;
+      return stpCall.opCodeData().isCreate() ? 1 : 2;
     } else {
-      return stpCall.opCode().isCreate() ? 2 : 4;
+      return stpCall.opCodeData().isCreate() ? 2 : 4;
     }
   }
 

@@ -1310,20 +1310,6 @@ opcodes:
     billing:
       byWord:
         wordPrice: G_CONST_INIT_CODE_WORD_CREATE2
-  - mnemonic: AUTH # https://eips.ethereum.org/EIPS/eip-3074
-    value: 0xf6
-    instructionFamily: ...
-    stackSettings:
-      alpha: 1
-      delta: 3
-      staticGas: G_CONST_AUTH
-  - mnemonic: AUTHCALL # https://eips.ethereum.org/EIPS/eip-3074
-    value: 0xf7
-    instructionFamily: CALL
-    stackSettings:
-      alpha: 1
-      delta: 7
-      staticGas: G_WARM_ACCESS
   - mnemonic: STATICCALL
     value: 0xfa
     instructionFamily: CALL

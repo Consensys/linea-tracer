@@ -30,7 +30,6 @@ import org.apache.tuweni.bytes.Bytes;
 
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public abstract class RlpUtilsCall extends ModuleOperation {
-  protected boolean computationIsDone = false;
   protected final List<WcpExoCall> wcpCalls;
 
   protected RlpUtilsCall(int ctMax) {

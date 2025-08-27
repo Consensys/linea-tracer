@@ -13,17 +13,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.cancunTests;
+package net.consensys.linea.zktracer.forkSpecific.shanghai;
 
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
 
-public class BlobBaseFeeTests extends TracerTestBase {
-  // just run the EVM with the BLOBBASEFEE opcode
+public class Push0Tests extends TracerTestBase {
+  // only performs a trivial PUSH0 operation
   @Test
-  void trivialBlobbasefee() {
-    BytecodeRunner.of(Bytes.fromHexString("0x4a")).run(testInfo);
+  void trivialPush0() {
+    BytecodeRunner.of(Bytes.fromHexString("0x5F")).run(testInfo);
   }
 }

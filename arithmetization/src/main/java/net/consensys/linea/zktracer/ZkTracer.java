@@ -15,7 +15,6 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.ChainConfig.FORK_LINEA_CHAIN;
-import static net.consensys.linea.zktracer.opcode.OpCodes.loadOpcodes;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -84,7 +83,6 @@ public class ZkTracer implements LineCountingTracer {
    * @param chain
    */
   public ZkTracer(ChainConfig chain) {
-    loadOpcodes(chain.fork);
     this.chain = chain;
     this.hub =
         switch (chain.fork) {
@@ -93,6 +91,7 @@ public class ZkTracer implements LineCountingTracer {
           case SHANGHAI -> new ShanghaiHub(chain);
           case CANCUN -> new CancunHub(chain);
           case PRAGUE -> new PragueHub(chain);
+          default -> throw new IllegalArgumentException("Unknown fork: " + chain.fork);
         };
     this.trace =
         switch (chain.fork) {

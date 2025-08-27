@@ -1,5 +1,5 @@
 /*
- * Copyright Consensys Software Inc.
+ * Copyright ConsenSys Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -13,14 +13,17 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.hub.section;
+package net.consensys.linea.zktracer.forkSpecific.paris;
 
-import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.reporting.TracerTestBase;
+import net.consensys.linea.testing.BytecodeRunner;
+import org.apache.tuweni.bytes.Bytes;
+import org.junit.jupiter.api.Test;
 
-public class StackOnlySection extends TraceSection {
-  public StackOnlySection(Hub hub) {
-    super(hub, (short) (hub.opCodeData().numberOfStackRows()));
-
-    this.addStack(hub);
+public class PrevRandaoTests extends TracerTestBase {
+  // just run the EVM with the PREVRANDAO opcode
+  @Test
+  void trivialPrevRandao() {
+    BytecodeRunner.of(Bytes.fromHexString("0x44")).run(testInfo);
   }
 }

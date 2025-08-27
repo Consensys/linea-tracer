@@ -13,17 +13,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.shanghaiTests;
+package net.consensys.linea.zktracer.container.stacked;
 
-import net.consensys.linea.reporting.TracerTestBase;
-import net.consensys.linea.testing.BytecodeRunner;
-import org.apache.tuweni.bytes.Bytes;
-import org.junit.jupiter.api.Test;
+import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.container.ModuleOperation;
 
-public class Push0Tests extends TracerTestBase {
-  // only performs a trivial PUSH0 operation
-  @Test
-  void trivialPush0() {
-    BytecodeRunner.of(Bytes.fromHexString("0x5F")).run(testInfo);
+@Accessors(fluent = true)
+public record ModuleOperationAdder(ModuleOperation op, boolean isNew) {
+  static ModuleOperationAdder newOperation(ModuleOperation op) {
+    return new ModuleOperationAdder(op, true);
+  }
+
+  static ModuleOperationAdder existingOperation(ModuleOperation op) {
+    return new ModuleOperationAdder(op, false);
   }
 }

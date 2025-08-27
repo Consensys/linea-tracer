@@ -83,6 +83,20 @@ public class InitCodeTests extends TracerTestBase {
 
   static final Long gasLimit = 5000000L;
 
+  // Compute expected address for ContractC with Create2
+  // address = keccak256(0xff + sender_address + salt + keccak256(initialisation_code))[12:]
+  String senderAddNoOx = customCreate2Account.getAddress().toHexString().substring(2);
+  String saltNoOx = salt.substring(2);
+  String hashInitCodeCNo0x =
+      Hash.keccak256(Bytes.fromHexString(initCodeC)).toHexString().substring(2);
+  Bytes expectedContractCAddress =
+      Hash.keccak256(Bytes.fromHexString("0xff" + senderAddNoOx + saltNoOx + hashInitCodeCNo0x))
+          .slice(12);
+  // padding left to fit the 32 bytes log data format
+  Bytes expectedContractCAddressLogData =
+      Bytes.fromHexString(
+          "0x000000000000000000000000" + expectedContractCAddress.toString().substring(2));
+
   @Test
   void deployContractCWithCreate2(TestInfo testInfo) {
 
@@ -100,20 +114,6 @@ public class InitCodeTests extends TracerTestBase {
     Bytes create2WithStaticCall =
         CustomCreate2Payload.callMyself(CustomCreate2Payload.create2WithInitCodeC(), true);
     Bytes create2FourTimes = CustomCreate2Payload.create2FourTimes();
-
-    // Compute expected address for ContractC with Create2
-    // address = keccak256(0xff + sender_address + salt + keccak256(initialisation_code))[12:]
-    String senderAddNoOx = customCreate2Account.getAddress().toHexString().substring(2);
-    String saltNoOx = salt.substring(2);
-    String hashInitCodeCNo0x =
-        Hash.keccak256(Bytes.fromHexString(initCodeC)).toHexString().substring(2);
-    Bytes expectedContractCAddress =
-        Hash.keccak256(Bytes.fromHexString("0xff" + senderAddNoOx + saltNoOx + hashInitCodeCNo0x))
-            .slice(12);
-    // padding left to fit the 32 bytes log data format
-    Bytes expectedContractCAddressLogData =
-        Bytes.fromHexString(
-            "0x000000000000000000000000" + expectedContractCAddress.toString().substring(2));
 
     // Logs for transaction validator
     String contractCreatedEvent = EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
@@ -288,9 +288,38 @@ public class InitCodeTests extends TracerTestBase {
 
   @Test
   void deployContractCWithCreate2OneTx() {
-    // Payloads preparation
+    // Payload preparation
     Bytes advancedCreateScenariiOneTx =
         CustomCreate2Payload.advancedCreateScenariiOneTx(initCodeC, salt);
+
+    // Logs for transaction validator
+    String contractCreatedEvent = EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
+    String staticCallMyselfFailEvent =
+        EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
+    String calledCreate2WithInitCodeCEvent =
+        EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
+    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
+    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
+
+    // List all logs expected from each topic
+    int lastTxIsContractCreatedEvent = isPostCancun(fork) ? 0 : 1;
+    logsTopicMap.put(contractCreatedEvent, List.of(1 + lastTxIsContractCreatedEvent));
+    logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
+    logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(1));
+    // List data expected for each topic
+    Bytes lastTxContractCreatedEvent =
+        isPostCancun(fork) ? Bytes.EMPTY : expectedContractCAddressLogData;
+    logsDataMap.put(contractCreatedEvent, List.of(expectedContractCAddressLogData));
+    // List status expected per transaction
+    // 0 is FAILED
+    // 1 is SUCCESSFUL
+    int lastTxStatus = isPostCancun(fork) ? 0 : 1;
+    List<Integer> txStatuses = List.of(6 + lastTxStatus);
+
+    // Instantiate validator
+    TransactionProcessingResultValidator create2OneTxValidator =
+        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
+
     List<Transaction> transactions =
         getTransactions(
             customCreate2Account, userAccount, List.of(advancedCreateScenariiOneTx), List.of(0L));
@@ -298,6 +327,7 @@ public class InitCodeTests extends TracerTestBase {
         ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(userAccount, customCreate2Account))
             .transactions(transactions)
+            .transactionProcessingResultValidator(create2OneTxValidator)
             .build();
     toyExecutionEnvironmentV2.run();
   }

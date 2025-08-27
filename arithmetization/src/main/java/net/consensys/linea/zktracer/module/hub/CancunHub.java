@@ -60,7 +60,22 @@ public class CancunHub extends ShanghaiHub {
 
   @Override
   protected Bls setBls(Wcp wcp) {
-    return new Bls(wcp);
+    return new Bls(
+        wcp,
+        pointEvaluationEffectiveCall,
+        pointEvaluationFailureCall,
+        blsG1AddEffectiveCall,
+        blsG1MsmEffectiveCall,
+        blsG2AddEffectiveCall,
+        blsG2MsmEffectiveCall,
+        blsPairingCheckMillerLoops,
+        blsPairingCheckFinalExponentiations,
+        blsG1MapFpToG1EffectiveCall,
+        blsG1MapFp2ToG2EffectiveCall,
+        blsC1MembershipCalls,
+        blsC2MembershipCalls,
+        blsG1MembershipCalls,
+        blsG2MembershipCalls);
   }
 
   @Override

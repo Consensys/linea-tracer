@@ -121,6 +121,7 @@ public class BlsOperation extends ModuleOperation {
   @Getter private boolean wtrv;
   @Getter private boolean wnon;
   @Getter private boolean firstPointNotInSubgroupIsSmall;
+  @Getter private int nontrivialPopCounter;
 
   // WCP interaction
   private final List<Boolean> wcpFlag;

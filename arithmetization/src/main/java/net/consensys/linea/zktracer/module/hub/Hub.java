@@ -77,6 +77,18 @@ import net.consensys.linea.zktracer.module.limits.L1BlockSizeOld;
 import net.consensys.linea.zktracer.module.limits.L2L1Logs;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsC1MembershipCalls;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsC2MembershipCalls;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1AddEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1MapFp2ToG2EffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1MapFpToG1EffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1MembershipCalls;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1MsmEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsG2AddEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsG2MembershipCalls;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsG2MsmEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsPairingCheckFinalExponentiations;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlsPairingCheckMillerLoops;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
@@ -84,6 +96,8 @@ import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2Members
 import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
 import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.PointEvaluationEffectiveCall;
+import net.consensys.linea.zktracer.module.limits.precompiles.PointEvaluationFailureCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logdata.LogData;
@@ -268,6 +282,37 @@ public abstract class Hub implements Module {
 
   @Getter private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
   @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
+
+  @Getter
+  final PointEvaluationEffectiveCall pointEvaluationEffectiveCall =
+      new PointEvaluationEffectiveCall();
+
+  @Getter
+  final PointEvaluationFailureCall pointEvaluationFailureCall = new PointEvaluationFailureCall();
+
+  @Getter final BlsG1AddEffectiveCall blsG1AddEffectiveCall = new BlsG1AddEffectiveCall();
+  @Getter final BlsG1MsmEffectiveCall blsG1MsmEffectiveCall = new BlsG1MsmEffectiveCall();
+  @Getter final BlsG2AddEffectiveCall blsG2AddEffectiveCall = new BlsG2AddEffectiveCall();
+  @Getter final BlsG2MsmEffectiveCall blsG2MsmEffectiveCall = new BlsG2MsmEffectiveCall();
+
+  @Getter
+  final BlsPairingCheckMillerLoops blsPairingCheckMillerLoops = new BlsPairingCheckMillerLoops();
+
+  @Getter
+  final BlsPairingCheckFinalExponentiations blsPairingCheckFinalExponentiations =
+      new BlsPairingCheckFinalExponentiations();
+
+  @Getter
+  final BlsG1MapFpToG1EffectiveCall blsG1MapFpToG1EffectiveCall = new BlsG1MapFpToG1EffectiveCall();
+
+  @Getter
+  final BlsG1MapFp2ToG2EffectiveCall blsG1MapFp2ToG2EffectiveCall =
+      new BlsG1MapFp2ToG2EffectiveCall();
+
+  @Getter final BlsC1MembershipCalls blsC1MembershipCalls = new BlsC1MembershipCalls();
+  @Getter final BlsC2MembershipCalls blsC2MembershipCalls = new BlsC2MembershipCalls();
+  @Getter final BlsG1MembershipCalls blsG1MembershipCalls = new BlsG1MembershipCalls();
+  @Getter final BlsG2MembershipCalls blsG2MembershipCalls = new BlsG2MembershipCalls();
 
   /** Those modules are used only by the sequencer, they don't have associated trace */
   public List<Module> getTracelessModules() {

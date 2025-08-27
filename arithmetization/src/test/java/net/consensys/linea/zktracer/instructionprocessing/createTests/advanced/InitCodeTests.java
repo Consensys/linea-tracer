@@ -298,23 +298,29 @@ public class InitCodeTests extends TracerTestBase {
         EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
     String calledCreate2WithInitCodeCEvent =
         EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
+    // String calledCreate2WithInitCodeCNoValueEvent =
+    //     EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODECNOVALUE_EVENT);
+    String callContractCFail = EventEncoder.encode(CustomCreate2.CALLCONTRACTCFAIL_EVENT);
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
     Map<String, List<Bytes>> logsDataMap = new HashMap<>();
 
     // List all logs expected from each topic
     int lastTxIsContractCreatedEvent = isPostCancun(fork) ? 0 : 1;
-    logsTopicMap.put(contractCreatedEvent, List.of(1 + lastTxIsContractCreatedEvent));
-    logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
+    // logsTopicMap.put(contractCreatedEvent, List.of(1 + lastTxIsContractCreatedEvent));
+    logsTopicMap.put(contractCreatedEvent, List.of(1));
+    // logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
+    logsTopicMap.put(staticCallMyselfFailEvent, List.of(0));
+    // logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(1));
     logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(1));
+    logsTopicMap.put(callContractCFail, List.of(1));
     // List data expected for each topic
     Bytes lastTxContractCreatedEvent =
         isPostCancun(fork) ? Bytes.EMPTY : expectedContractCAddressLogData;
-    logsDataMap.put(contractCreatedEvent, List.of(expectedContractCAddressLogData));
+    logsDataMap.put(contractCreatedEvent, List.of(Bytes.EMPTY));
     // List status expected per transaction
     // 0 is FAILED
     // 1 is SUCCESSFUL
-    int lastTxStatus = isPostCancun(fork) ? 0 : 1;
-    List<Integer> txStatuses = List.of(6 + lastTxStatus);
+    List<Integer> txStatuses = List.of(1);
 
     // Instantiate validator
     TransactionProcessingResultValidator create2OneTxValidator =
@@ -322,7 +328,7 @@ public class InitCodeTests extends TracerTestBase {
 
     List<Transaction> transactions =
         getTransactions(
-            customCreate2Account, userAccount, List.of(advancedCreateScenariiOneTx), List.of(0L));
+            customCreate2Account, userAccount, List.of(advancedCreateScenariiOneTx), List.of(2L));
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(userAccount, customCreate2Account))

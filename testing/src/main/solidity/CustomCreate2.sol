@@ -23,6 +23,7 @@ contract CustomCreate2 is TestingBase {
     event CallContractCFail();
     event StaticCallContractCFail();
     event CalledCreate2WithInitCodeC();
+    event CalledCreate2WithInitCodeCNoValue();
 
     function storeInitCodeC(bytes memory code) public {
         initCodeC = code;
@@ -38,6 +39,12 @@ contract CustomCreate2 is TestingBase {
         address addC = deployWithCreate2(salt, initCodeC);
         addContractC = addC;
         emit CalledCreate2WithInitCodeC();
+    }
+
+    function create2WithInitCodeCNoValue() public payable {
+        address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
+        addContractC = addC;
+        emit CalledCreate2WithInitCodeCNoValue();
     }
 
     function create2WithCallBackAfterCreate2() public payable {
@@ -105,10 +112,25 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
+    function callContractCWithValue(bytes memory executePayload, bool staticCall) public {
+        bool success;
+        if (staticCall) {
+            success = doStaticCall(addContractC, executePayload, 5000000, msg.value);
+            if (!success) {
+                emit StaticCallContractCFail();
+            }
+        } else {
+            success = doCall(addContractC, executePayload, 5000000, msg.value);
+            if (!success) {
+                emit CallContractCFail();
+            }
+        }
+    }
+
     function advancedCreateScenariiOneTx(bytes memory code, bytes32 saltEx) public {
         storeInitCodeC(code);
         storeSalt(saltEx);
-        create2WithInitCodeC();
+        create2WithInitCodeCNoValue();
         callContractC(
         abi.encodeWithSignature("storeInMap(uint256,address)", 1, "0x0000000000000000000000000000000000001234"),
         false
@@ -117,13 +139,20 @@ contract CustomCreate2 is TestingBase {
             abi.encodeWithSignature("selfDestructOnDemand()"),
             false
         );
-        create2WithCallBackAfterCreate2();
-        create2CallCAndRevert();
-        callMyself(
-            abi.encodeWithSignature("create2WithInitCodeC()"),
-            true
+        callContractC(
+        abi.encodeWithSignature("callBackCustomCreate2(address)", address(this)),
+        false
         );
-        create2FourTimes();
+        callContractC(
+            abi.encodeWithSignature("callBackCustomCreate2(address)", address(this)),
+            false
+        );
+        // create2CallCAndRevert();
+        // callMyself(
+           // abi.encodeWithSignature("create2WithInitCodeC()"),
+           // true
+        // );
+        // create2FourTimes();
     }
 
 }

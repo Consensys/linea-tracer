@@ -264,28 +264,6 @@ public class InitCodeTests extends TracerTestBase {
     assertEquals(expectedDeploymentNumber, deploymentNumber);
   }
 
-  /// /////////////////////////////////////////////////////////////////////////////////////////////
-  /// Common helpers
-  /// Create transactions with payloads/values for the same user and the same to account
-  public static List<Transaction> getTransactions(
-      ToyAccount to, ToyAccount userAccount, List<Bytes> payloads, List<Long> values) {
-
-    checkArgument(payloads.size() == values.size());
-    final List<ToyTransactionBuilder> builders = new ArrayList<>();
-
-    for (int i = 0; i < payloads.size(); i++) {
-      ToyTransactionBuilder builder =
-          ToyTransaction.builder()
-              .to(to)
-              .payload(payloads.get(i))
-              .keyPair(keyPair)
-              .gasLimit(gasLimit)
-              .value(Wei.of(values.get(i)));
-      builders.add(builder);
-    }
-    return ToyMultiTransaction.builder().build(builders, userAccount);
-  }
-
   @Test
   void deployContractCWithCreate2OneTx() {
     // Payload preparation
@@ -298,9 +276,10 @@ public class InitCodeTests extends TracerTestBase {
         EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
     String calledCreate2WithInitCodeCEvent =
         EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
-    // String calledCreate2WithInitCodeCNoValueEvent =
-    //     EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODECNOVALUE_EVENT);
+    String calledCreate2WithInitCodeCNoValueEvent =
+        EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODECNOVALUE_EVENT);
     String callContractCFail = EventEncoder.encode(CustomCreate2.CALLCONTRACTCFAIL_EVENT);
+    String callMyselfFail = EventEncoder.encode(CustomCreate2.CALLMYSELFFAIL_EVENT);
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
     Map<String, List<Bytes>> logsDataMap = new HashMap<>();
 
@@ -311,8 +290,9 @@ public class InitCodeTests extends TracerTestBase {
     // logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
     logsTopicMap.put(staticCallMyselfFailEvent, List.of(0));
     // logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(1));
-    logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(1));
-    logsTopicMap.put(callContractCFail, List.of(1));
+    logsTopicMap.put(calledCreate2WithInitCodeCNoValueEvent, List.of(1));
+    logsTopicMap.put(callContractCFail, List.of(0));
+    logsTopicMap.put(callMyselfFail, List.of(2));
     // List data expected for each topic
     Bytes lastTxContractCreatedEvent =
         isPostCancun(fork) ? Bytes.EMPTY : expectedContractCAddressLogData;
@@ -336,5 +316,27 @@ public class InitCodeTests extends TracerTestBase {
             .transactionProcessingResultValidator(create2OneTxValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+  }
+
+  /// /////////////////////////////////////////////////////////////////////////////////////////////
+  /// Common helpers
+  /// Create transactions with payloads/values for the same user and the same to account
+  public static List<Transaction> getTransactions(
+      ToyAccount to, ToyAccount userAccount, List<Bytes> payloads, List<Long> values) {
+
+    checkArgument(payloads.size() == values.size());
+    final List<ToyTransactionBuilder> builders = new ArrayList<>();
+
+    for (int i = 0; i < payloads.size(); i++) {
+      ToyTransactionBuilder builder =
+          ToyTransaction.builder()
+              .to(to)
+              .payload(payloads.get(i))
+              .keyPair(keyPair)
+              .gasLimit(gasLimit)
+              .value(Wei.of(values.get(i)));
+      builders.add(builder);
+    }
+    return ToyMultiTransaction.builder().build(builders, userAccount);
   }
 }

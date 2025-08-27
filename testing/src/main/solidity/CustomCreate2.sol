@@ -52,6 +52,11 @@ contract CustomCreate2 is TestingBase {
         IContractC(addC).callBackCustomCreate2(address(this));
     }
 
+    function create2WithCallBackAfterCreate2NoValue() public payable {
+        address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
+        IContractC(addC).callBackCustomCreate2(address(this));
+    }
+
     function create2CallCAndRevert() public payable {
         address addC = deployWithCreate2(salt, initCodeC);
         addContractC = addC;
@@ -112,22 +117,7 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
-    function callContractCWithValue(bytes memory executePayload, bool staticCall) public {
-        bool success;
-        if (staticCall) {
-            success = doStaticCall(addContractC, executePayload, 5000000, msg.value);
-            if (!success) {
-                emit StaticCallContractCFail();
-            }
-        } else {
-            success = doCall(addContractC, executePayload, 5000000, msg.value);
-            if (!success) {
-                emit CallContractCFail();
-            }
-        }
-    }
-
-    function advancedCreateScenariiOneTx(bytes memory code, bytes32 saltEx) public {
+    function advancedCreateScenariiOneTx(bytes memory code, bytes32 saltEx) public payable{
         storeInitCodeC(code);
         storeSalt(saltEx);
         create2WithInitCodeCNoValue();
@@ -139,20 +129,22 @@ contract CustomCreate2 is TestingBase {
             abi.encodeWithSignature("selfDestructOnDemand()"),
             false
         );
-        callContractC(
-        abi.encodeWithSignature("callBackCustomCreate2(address)", address(this)),
-        false
-        );
-        callContractC(
-            abi.encodeWithSignature("callBackCustomCreate2(address)", address(this)),
+        callMyself(
+            abi.encodeWithSignature("create2WithCallBackAfterCreate2NoValue()"),
             false
         );
-        // create2CallCAndRevert();
-        // callMyself(
-           // abi.encodeWithSignature("create2WithInitCodeC()"),
-           // true
-        // );
-        // create2FourTimes();
+        callMyself(
+            abi.encodeWithSignature("create2CallCAndRevert()"),
+            false
+        );
+/*        callMyself(
+           abi.encodeWithSignature("create2WithInitCodeCNoValue()"),
+           true
+        );*/
+/*        callMyself(
+            abi.encodeWithSignature("create2FourTimes()"),
+            false
+        );*/
     }
 
 }

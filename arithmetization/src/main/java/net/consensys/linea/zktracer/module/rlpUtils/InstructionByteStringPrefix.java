@@ -44,7 +44,7 @@ public class InstructionByteStringPrefix extends RlpUtilsCall {
   // outputs
   @Getter private boolean rlpPrefixRequired;
   private boolean byteStringIsNonEmpty;
-  @Getter private Bytes16 rlpPrefix = Bytes16.ZERO; // default value if no RLP prefix
+  @Getter private Bytes16 rlpPrefix;
   @Getter private short rlpPrefixByteSize;
 
   // computed values

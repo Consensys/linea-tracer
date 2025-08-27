@@ -207,11 +207,11 @@ public class CommonFragmentValues {
       final int attemptedPcNew =
           codeSize.compareTo(prospectivePcNew) > 0 ? prospectivePcNew.intValueExact() : 0;
 
-      if (opCode.equals(OpCode.JUMP)) {
+      if (opCode.mnemonic().equals(OpCode.JUMP)) {
         return attemptedPcNew;
       }
 
-      if (opCode.equals(OpCode.JUMPI)) {
+      if (opCode.mnemonic().equals(OpCode.JUMPI)) {
         final BigInteger condition =
             hub.currentFrame().frame().getStackItem(1).toUnsignedBigInteger();
         if (!condition.equals(BigInteger.ZERO)) {

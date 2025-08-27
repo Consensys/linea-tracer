@@ -124,7 +124,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
           new RomOperation(
               ContractMetadata.canonical(hub, deploymentAddress),
               tx.getInit().get(),
-              hub.getOpcodes());
+              hub.opCodes());
 
       operations.add(operation);
     }
@@ -140,7 +140,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
                 final Address calledAddress = tx.getTo().get();
                 final RomOperation operation =
                     new RomOperation(
-                        ContractMetadata.canonical(hub, calledAddress), code, hub.getOpcodes());
+                        ContractMetadata.canonical(hub, calledAddress), code, hub.opCodes());
 
                 operations.add(operation);
               }
@@ -189,7 +189,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
         final ContractMetadata contractMetadata =
             ContractMetadata.make(
                 deploymentAddress, hub.deploymentNumberOf(deploymentAddress), false);
-        final RomOperation chunk = new RomOperation(contractMetadata, byteCode, hub.getOpcodes());
+        final RomOperation chunk = new RomOperation(contractMetadata, byteCode, hub.opCodes());
         operations.add(chunk);
       }
 
@@ -205,7 +205,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
                         new RomOperation(
                             ContractMetadata.canonical(hub, calleeAddress),
                             byteCode,
-                            hub.getOpcodes());
+                            hub.opCodes());
                     operations.add(operation);
                   }
                 });
@@ -234,7 +234,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
                         new RomOperation(
                             ContractMetadata.canonical(hub, foreignCodeAddress),
                             byteCode,
-                            hub.getOpcodes());
+                            hub.opCodes());
 
                     operations.add(operation);
                   }
@@ -254,7 +254,7 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
 
     final ContractMetadata contractMetadata = ContractMetadata.canonical(hub, address);
 
-    final RomOperation operation = new RomOperation(contractMetadata, byteCode, hub.getOpcodes());
+    final RomOperation operation = new RomOperation(contractMetadata, byteCode, hub.opCodes());
     operations.add(operation);
     createDefers.trigger(contractMetadata);
   }

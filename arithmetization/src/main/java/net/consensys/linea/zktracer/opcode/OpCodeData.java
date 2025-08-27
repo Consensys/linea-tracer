@@ -254,14 +254,16 @@ public record OpCodeData(
 
   @Override
   public boolean equals(Object o) {
-    // Instances of this class are not intended to be compared.  Hence, an exception is explicitly raised to quickly
+    // Instances of this class are not intended to be compared.  Hence, an exception is explicitly
+    // raised to quickly
     // identify situations where this method is accidentally being used.
     throw new UnsupportedOperationException();
   }
 
   @Override
   public int hashCode() {
-    // Instances of this class are not intended to be used in hashmaps, etc.  Hence, an exception is explicitly raised
+    // Instances of this class are not intended to be used in hashmaps, etc.  Hence, an exception is
+    // explicitly raised
     // to quickly identify situations where this method is accidentally being used.
     throw new UnsupportedOperationException();
   }

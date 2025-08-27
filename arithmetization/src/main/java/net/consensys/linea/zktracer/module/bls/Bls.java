@@ -132,15 +132,8 @@ public class Bls implements OperationListModule<BlsOperation> {
         }
       }
       case PRC_BLS_PAIRING_CHECK -> {
-        if (blsOperation.wtrv()) {
-          // blsPairingCheckMillerLoops.updateTally(0);
-          // blsPairingCheckFinalExponentiations.updateTally(0);
-        }
-        if (blsOperation.wnon()) {
-          // blsPairingCheckMillerLoops.updateTally(blsOperation.nontrivialPopCounter());
-          // blsPairingCheckFinalExponentiations.updateTally(1);
-
-          /*
+        if (blsOperation.wtrv() || blsOperation.wnon()) {
+           /*
           G1  | G2  | Circuit
           P   | inf | G1 membership
           inf | Q   | G2 membership
@@ -149,6 +142,14 @@ public class Bls implements OperationListModule<BlsOperation> {
 
           // blsG1MembershipCalls.updateTally(blsOperation.trivialPopDueToG2PointCounter());
           // blsG2MembershipCalls.updateTally(blsOperation.trivialPopDueToG1PointCounter());
+        }
+        if (blsOperation.wtrv()) {
+          // blsPairingCheckMillerLoops.updateTally(0);
+          // blsPairingCheckFinalExponentiations.updateTally(0);
+        }
+        if (blsOperation.wnon()) {
+          // blsPairingCheckMillerLoops.updateTally(blsOperation.nontrivialPopCounter());
+          // blsPairingCheckFinalExponentiations.updateTally(1);
         }
         if (blsOperation.mext()) {
           if (blsOperation.firstPointNotInSubgroupIsSmall()) {

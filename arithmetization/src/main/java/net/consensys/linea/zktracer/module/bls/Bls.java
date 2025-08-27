@@ -86,5 +86,90 @@ public class Bls implements OperationListModule<BlsOperation> {
     operations.add(blsOperation);
 
     // TODO: compute precompile limits
+    if (blsOperation.mint()) {
+      // every limit is 0
+    }
+
+    switch (blsOperation.precompileFlag()) {
+      case PRC_POINT_EVALUATION -> {
+        if (blsOperation.wnon()) {
+          // blsPointEvaluationEffectiveCalls.updateTally(1);
+        }
+        if (blsOperation.mext()) {
+          // blsPointEvaluationFailureCalls.updateTally(1);
+        }
+      }
+      case PRC_BLS_G1_ADD -> {
+        if (blsOperation.wnon()) {
+          // blsG1AddEffectiveCalls.updateTally(1);
+        }
+        if (blsOperation.mext()) {
+          // blsC1MembershipCalls.updateTally(1);
+        }
+      }
+      case PRC_BLS_G1_MSM -> {
+        if (blsOperation.wnon()) {
+          // blsBlsG1MsmEffectiveCalls.updateTally(1);
+        }
+        if (blsOperation.mext()) {
+          // blsG1MembershipCalls.updateTally(1);
+        }
+      }
+      case PRC_BLS_G2_ADD -> {
+        if (blsOperation.wnon()) {
+          // blsG2AddEffectiveCalls.updateTally(1);
+        }
+        if (blsOperation.mext()) {
+          // blsC2MembershipCalls.updateTally(1);
+        }
+      }
+      case PRC_BLS_G2_MSM -> {
+        if (blsOperation.wnon()) {
+          // blsBlsG2MsmEffectiveCalls.updateTally(1);
+        }
+        if (blsOperation.mext()) {
+          // blsG2MembershipCalls.updateTally(1);
+        }
+      }
+      case PRC_BLS_PAIRING_CHECK -> {
+        if (blsOperation.wtrv()) {
+          // blsPairingCheckMillerLoops.updateTally(0);
+          // blsPairingCheckFinalExponentiations.updateTally(0);
+        }
+        if (blsOperation.wnon()) {
+          // blsPairingCheckMillerLoops.updateTally(blsOperation.nontrivialPopCounter());
+          // blsPairingCheckFinalExponentiations.updateTally(1);
+
+          /*
+          G1  | G2  | Circuit
+          P   | inf | G1 membership
+          inf | Q   | G2 membership
+          inf | inf | none
+          */
+
+          // blsG1MembershipCalls.updateTally(blsOperation.trivialPopDueToG2PointCounter());
+          // blsG2MembershipCalls.updateTally(blsOperation.trivialPopDueToG1PointCounter());
+        }
+        if (blsOperation.mext()) {
+          if (blsOperation.firstPointNotInSubgroupIsSmall()) {
+            // blsG1MembershipCalls.updateTally(1);
+            // blsG2MembershipCalls.updateTally(0);
+          } else {
+            // blsG1MembershipCalls.updateTally(0);
+            // blsG2MembershipCalls.updateTally(1);
+          }
+        }
+      }
+      case PRC_BLS_MAP_FP_TO_G1 -> {
+        if (blsOperation.wnon()) {
+          // blsBlsG1MapFpToG1EffectiveCalls.updateTally(1);
+        }
+      }
+      case PRC_BLS_MAP_FP2_TO_G2 -> {
+        if (blsOperation.wnon()) {
+          // blsBlsG1MapFp2ToG2EffectiveCalls.updateTally(1);
+        }
+      }
+    }
   }
 }

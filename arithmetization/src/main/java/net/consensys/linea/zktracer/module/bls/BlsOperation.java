@@ -115,6 +115,13 @@ public class BlsOperation extends ModuleOperation {
   private final List<Boolean> isInfinity;
   private final List<Boolean> nontrivialPairOfPointsBit;
 
+  // TODO: compute those for limits
+  @Getter private boolean mint;
+  @Getter private boolean mext;
+  @Getter private boolean wtrv;
+  @Getter private boolean wnon;
+  @Getter private boolean firstPointNotInSubgroupIsSmall;
+
   // WCP interaction
   private final List<Boolean> wcpFlag;
   private final List<Bytes> wcpArg1Hi;

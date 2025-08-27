@@ -40,27 +40,27 @@ public final class StpOperation extends ModuleOperation {
   }
 
   private boolean isCall() {
-    return stpCall.opCode() == OpCode.CALL;
+    return stpCall.opCode().mnemonic() == OpCode.CALL;
   }
 
   private boolean isCallCode() {
-    return stpCall.opCode() == OpCode.CALLCODE;
+    return stpCall.opCode().mnemonic() == OpCode.CALLCODE;
   }
 
   private boolean isDelegateCall() {
-    return stpCall.opCode() == OpCode.DELEGATECALL;
+    return stpCall.opCode().mnemonic() == OpCode.DELEGATECALL;
   }
 
   private boolean isStaticCall() {
-    return stpCall.opCode() == OpCode.STATICCALL;
+    return stpCall.opCode().mnemonic() == OpCode.STATICCALL;
   }
 
   private boolean isCreate() {
-    return stpCall.opCode() == OpCode.CREATE;
+    return stpCall.opCode().mnemonic() == OpCode.CREATE;
   }
 
   private boolean isCreate2() {
-    return stpCall.opCode() == OpCode.CREATE2;
+    return stpCall.opCode().mnemonic() == OpCode.CREATE2;
   }
 
   long getGDiff() {

@@ -35,6 +35,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
 import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -48,7 +49,7 @@ import org.hyperledger.besu.evm.internal.Words;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class StpCall implements TraceSubFragment {
   @EqualsAndHashCode.Include final long memoryExpansionGas;
-  @EqualsAndHashCode.Include OpCode opCode;
+  @EqualsAndHashCode.Include OpCodeData opCode;
   @EqualsAndHashCode.Include long gasActual;
   @EqualsAndHashCode.Include EWord gas; // for CALL's only
   @EqualsAndHashCode.Include EWord value;
@@ -60,7 +61,7 @@ public class StpCall implements TraceSubFragment {
   @EqualsAndHashCode.Include long stipend;
 
   public StpCall(Hub hub, MessageFrame frame, long memoryExpansionGas) {
-    this.opCode = hub.opCode();
+    this.opCode = hub.opCodeData();
     checkArgument(this.opCode.isCall() || this.opCode.isCreate());
 
     this.memoryExpansionGas = memoryExpansionGas;
@@ -99,7 +100,7 @@ public class StpCall implements TraceSubFragment {
   }
 
   private boolean callWouldLeadToAccountCreation() {
-    return (opCode == OpCode.CALL) && nonzeroValueTransfer() && !exists;
+    return (opCode.mnemonic() == OpCode.CALL) && nonzeroValueTransfer() && !exists;
   }
 
   private long gasPaidOutOfPocketForCalls() {
@@ -154,7 +155,7 @@ public class StpCall implements TraceSubFragment {
   public Trace.Hub trace(Trace.Hub trace) {
     return trace
         .pMiscStpFlag(true)
-        .pMiscStpInstruction(opCode.unsignedByteValue())
+        .pMiscStpInstruction(opCode.mnemonic().unsignedByteValue())
         .pMiscStpGasHi(gas.hi())
         .pMiscStpGasLo(gas.lo())
         .pMiscStpValueHi(value.hi())
@@ -169,7 +170,7 @@ public class StpCall implements TraceSubFragment {
   }
 
   public int compareTo(StpCall stpCall) {
-    final int opCodeComp = opCode.compareTo(stpCall.opCode);
+    final int opCodeComp = opCode.mnemonic().compareTo(stpCall.opCode.mnemonic());
     if (opCodeComp != 0) {
       return opCodeComp;
     }

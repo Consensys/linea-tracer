@@ -16,6 +16,7 @@ package net.consensys.linea.reporting;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import org.hyperledger.besu.datatypes.Address;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
@@ -25,7 +26,7 @@ import static net.consensys.linea.zktracer.Fork.*;
 public class TracerTestBase {
   public static TestInfoWithChainConfig testInfo = new TestInfoWithChainConfig();
   public static Fork fork;
-  public Address add;
+  public static OpCodes opcodes;
 
   @BeforeEach
   public void init(TestInfo testInfo) {
@@ -41,6 +42,7 @@ public class TracerTestBase {
             };
     TracerTestBase.testInfo.testInfo = testInfo;
     TracerTestBase.fork = TracerTestBase.testInfo.chainConfig.fork;
+    TracerTestBase.opcodes = OpCodes.load(fork);
   }
 
   public static String getForkOrDefault(String defaultFork) {

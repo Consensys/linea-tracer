@@ -30,7 +30,6 @@ import net.consensys.linea.zktracer.module.hub.fragment.account.AccountFragment;
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import org.hyperledger.besu.datatypes.AccessListEntry;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.datatypes.Wei;
@@ -149,19 +148,6 @@ public abstract class TxSkipSection extends TraceSection implements EndTransacti
     if (txMetadata.coinbaseAddressCollision()) {
       coinbase = coinbaseNew.deepCopy().decrementBalanceBy(txMetadata.getCoinbaseReward());
     }
-
-    txMetadata
-        .getBesuTransaction()
-        .getAccessList()
-        .ifPresent(
-            accessList -> {
-              if (!accessList.isEmpty()) {
-                for (AccessListEntry entry : accessList) {
-                  final Address address = entry.address();
-                  hub.trm().callTrimming(address);
-                }
-              }
-            });
 
     // "sender" account fragment
     final AccountFragment senderAccountFragment =

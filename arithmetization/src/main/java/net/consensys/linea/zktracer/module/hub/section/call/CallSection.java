@@ -91,26 +91,15 @@ public class CallSection extends TraceSection
   private static final Map<Address, BiFunction<Hub, CallSection, PrecompileSubsection>>
       ADDRESS_TO_PRECOMPILE =
           Map.of(
-              ECREC,
-              EllipticCurvePrecompileSubsection::new,
-              SHA256,
-              ShaTwoOrRipemdSubSection::new,
-              RIPEMD160,
-              ShaTwoOrRipemdSubSection::new,
-              ID,
-              IdentitySubsection::new,
-              MODEXP,
-              ModexpSubsection::new,
-              ALTBN128_ADD,
-              EllipticCurvePrecompileSubsection::new,
-              ALTBN128_MUL,
-              EllipticCurvePrecompileSubsection::new,
-              ALTBN128_PAIRING,
-              EllipticCurvePrecompileSubsection::new,
-              BLAKE2B_F_COMPRESSION,
-              BlakeSubsection::new,
-              KZG_POINT_EVAL,
-              BlakeSubsection::new);
+              ECREC, EllipticCurvePrecompileSubsection::new,
+              SHA256, ShaTwoOrRipemdSubSection::new,
+              RIPEMD160, ShaTwoOrRipemdSubSection::new,
+              ID, IdentitySubsection::new,
+              MODEXP, ModexpSubsection::new,
+              ALTBN128_ADD, EllipticCurvePrecompileSubsection::new,
+              ALTBN128_MUL, EllipticCurvePrecompileSubsection::new,
+              ALTBN128_PAIRING, EllipticCurvePrecompileSubsection::new,
+              BLAKE2B_F_COMPRESSION, BlakeSubsection::new);
 
   public Optional<Address> precompileAddress;
 

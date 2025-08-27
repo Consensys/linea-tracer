@@ -56,7 +56,9 @@ public class TxPreWarmingMacroSection {
                 List<Address> precompileAddress =
                     switch (hub.fork) {
                       case LONDON, PARIS, SHANGHAI -> precompileAddressLondon;
-                      case CANCUN, PRAGUE -> precompileAddressCancun;
+                      case CANCUN -> precompileAddressCancun;
+                      case PRAGUE -> precompileAddressPrague;
+                      default -> throw new IllegalArgumentException("Unknown fork: " + hub.fork);
                     };
                 final Set<Address> seenAddresses = new HashSet<>(precompileAddress);
                 final HashMap<Address, Set<Bytes32>> seenKeys = new HashMap<>();

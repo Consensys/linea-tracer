@@ -69,6 +69,7 @@ public class AddressUtils {
       case LONDON, PARIS, SHANGHAI -> precompileAddressLondon.contains(to);
       case CANCUN -> precompileAddressCancun.contains(to);
       case PRAGUE -> precompileAddressPrague.contains(to);
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
     };
   }
 

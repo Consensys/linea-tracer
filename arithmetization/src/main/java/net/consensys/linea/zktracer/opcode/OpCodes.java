@@ -96,6 +96,16 @@ public class OpCodes {
   }
 
   /**
+   * isValid checks whether or not a given opcode index corresponds with a real opcode.
+   *
+   * @param opcode
+   * @return
+   */
+  public boolean isValid(final OpCode opcode) {
+    return isValid(opcode.getOpcode());
+  }
+
+  /**
    * Get opcode metadata per opcode long value.
    *
    * @param value opcode value.

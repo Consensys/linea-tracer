@@ -193,25 +193,6 @@ public enum OpCode {
     return OpCode.valueOf(mnemonic.toUpperCase());
   }
 
-  //
-  //  /**
-  //   * Retrieves {@link OpCode} metadata of type {@link OpCodeData}.
-  //   *
-  //   * @return the current {@link OpCode}'s {@link OpCodeData}
-  //   */
-  //  public OpCodeData getData() {
-  //    return OpCodes.of(this);
-  //  }
-  //
-  //  /**
-  //   * Retrieves the {@link OpCode} corresponding to a given value.
-  //   *
-  //   * @return the {@link OpCode}
-  //   */
-  //  public static OpCode of(final int value) {
-  //    return OpCodes.of(value).mnemonic();
-  //  }
-  //
   /**
    * Returns the {@link OpCode}'s opcode value as a byte.
    *

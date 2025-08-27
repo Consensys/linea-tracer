@@ -109,8 +109,10 @@ public class BytecodeCompiler {
    * @return current instance
    */
   public BytecodeCompiler op(final OpCode opCode) {
+    if (!opCodes.isValid(opCode)) {
+      throw new IllegalArgumentException("invalid opcode for fork: " + opCode);
+    }
     byteCode.add(Bytes.of(opCode.byteValue()));
-
     return this;
   }
 

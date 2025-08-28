@@ -55,7 +55,7 @@ public class Oob implements OperationSetModule<OobOperation> {
     final ModuleOperationAdder addedOperation = operations.addAndGet(oobOperation);
     final OobOperation op = (OobOperation) addedOperation.op();
     if (addedOperation.isNew()) {
-      op.oobCall.callExoModules(add, mod, wcp);
+      op.oobCall.callExoModulesAndSetOutputs(add, mod, wcp);
     }
     return op.oobCall;
   }

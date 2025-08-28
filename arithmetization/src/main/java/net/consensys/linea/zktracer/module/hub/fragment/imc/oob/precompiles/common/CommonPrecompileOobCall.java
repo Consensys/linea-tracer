@@ -62,7 +62,7 @@ public abstract class CommonPrecompileOobCall extends OobCall {
   }
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     // row i
     final OobExoCall cdsIsZeroCall = callToIsZero(wcp, cds);
     exoCalls.add(cdsIsZeroCall);

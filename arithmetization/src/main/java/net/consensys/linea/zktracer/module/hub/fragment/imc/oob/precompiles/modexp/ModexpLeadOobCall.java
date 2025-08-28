@@ -64,7 +64,7 @@ public class ModexpLeadOobCall extends OobCall {
   }
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     // row i
     final OobExoCall ebsIsZeroCall = callToIsZero(wcp, metadata.ebs());
     exoCalls.add(ebsIsZeroCall);

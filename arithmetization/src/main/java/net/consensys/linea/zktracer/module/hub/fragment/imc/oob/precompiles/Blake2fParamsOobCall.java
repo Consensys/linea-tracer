@@ -72,7 +72,7 @@ public class Blake2fParamsOobCall extends OobCall {
   }
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     // row i
     final OobExoCall sufficientGasCall =
         callToLT(wcp, bigIntegerToBytes(calleeGas), bigIntegerToBytes(blakeR));

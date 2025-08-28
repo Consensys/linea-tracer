@@ -38,8 +38,8 @@ public abstract class ShaRipIdOobCall extends CommonPrecompileOobCall {
   abstract long factor();
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
-    super.callExoModules(add, mod, wcp);
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
+    super.callExoModulesAndSetOutputs(add, mod, wcp);
 
     // row i + 2
     final OobExoCall ceilingCall =

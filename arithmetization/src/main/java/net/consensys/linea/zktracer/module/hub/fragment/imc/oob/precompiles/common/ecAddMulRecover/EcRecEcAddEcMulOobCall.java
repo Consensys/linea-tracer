@@ -35,8 +35,8 @@ public abstract class EcRecEcAddEcMulOobCall extends CommonPrecompileOobCall {
   abstract long precompileLongCost();
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
-    super.callExoModules(add, mod, wcp);
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
+    super.callExoModulesAndSetOutputs(add, mod, wcp);
     // row i + 2
     final OobExoCall insufficientGasCall =
         callToLT(wcp, getCalleeGas(), Bytes.ofUnsignedLong(precompileLongCost()));

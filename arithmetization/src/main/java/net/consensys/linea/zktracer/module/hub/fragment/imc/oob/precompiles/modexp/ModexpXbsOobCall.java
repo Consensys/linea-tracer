@@ -55,7 +55,7 @@ public class ModexpXbsOobCall extends OobCall {
   public void setInputData(MessageFrame frame, Hub hub) {}
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     // row i
     exoCalls.add(callToLT(wcp, xbs(), Bytes.ofUnsignedInt(513)));
 

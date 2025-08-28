@@ -58,7 +58,7 @@ public class Blake2fCallDataSizeOobCall extends OobCall {
   }
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     // row i
     final OobExoCall validCdsCall = callToEQ(wcp, cds, Bytes.of(213));
     exoCalls.add(validCdsCall);

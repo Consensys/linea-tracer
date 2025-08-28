@@ -54,7 +54,7 @@ public class ModexpCallDataSizeOobCall extends OobCall {
   }
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     // row i
     exoCalls.add(callToLT(wcp, Bytes.of(BBS_MIN_OFFSET), cds));
 

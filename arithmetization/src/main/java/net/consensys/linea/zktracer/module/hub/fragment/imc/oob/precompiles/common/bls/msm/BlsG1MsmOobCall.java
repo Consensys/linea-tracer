@@ -27,7 +27,7 @@ import net.consensys.linea.zktracer.Trace;
 
 public class BlsG1MsmOobCall extends BlsMsmOobCall {
   public BlsG1MsmOobCall(BigInteger calleeGas) {
-    super(calleeGas);
+    super(calleeGas, OOB_INST_BLS_G1_MSM);
   }
 
   @Override
@@ -48,11 +48,6 @@ public class BlsG1MsmOobCall extends BlsMsmOobCall {
   @Override
   int minMsmSize() {
     return PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G1_MSM;
-  }
-
-  @Override
-  int getOobInst() {
-    return OOB_INST_BLS_G1_MSM;
   }
 
   @Override

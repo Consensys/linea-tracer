@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.Trace;
 
 public class BlsPointEvaluationOobCall extends BlsFixedSizeFixedGasCostOobCall {
   public BlsPointEvaluationOobCall(BigInteger calleeGas) {
-    super(calleeGas);
+    super(calleeGas, OOB_INST_POINT_EVALUATION);
   }
 
   @Override

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.common.bls.msm;
 
+import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G1_MSM;
 import static net.consensys.linea.zktracer.Trace.OOB_INST_BLS_G2_MSM;
 import static net.consensys.linea.zktracer.Trace.PRC_BLS_G2_MSM_MAX_DISCOUNT;
 import static net.consensys.linea.zktracer.Trace.PRC_BLS_MULTIPLICATION_MULTIPLIER;
@@ -27,7 +28,7 @@ import net.consensys.linea.zktracer.Trace;
 
 public class BlsG2MsmOobCall extends BlsMsmOobCall {
   public BlsG2MsmOobCall(BigInteger calleeGas) {
-    super(calleeGas);
+    super(calleeGas, OOB_INST_BLS_G1_MSM);
   }
 
   @Override
@@ -48,11 +49,6 @@ public class BlsG2MsmOobCall extends BlsMsmOobCall {
   @Override
   int minMsmSize() {
     return PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_G2_MSM;
-  }
-
-  @Override
-  int getOobInst() {
-    return OOB_INST_BLS_G2_MSM;
   }
 
   @Override

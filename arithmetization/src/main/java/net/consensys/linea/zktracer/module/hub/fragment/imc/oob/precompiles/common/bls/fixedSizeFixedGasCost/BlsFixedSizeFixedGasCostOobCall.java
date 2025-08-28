@@ -29,8 +29,8 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
 public abstract class BlsFixedSizeFixedGasCostOobCall extends CommonPrecompileOobCall {
-  protected BlsFixedSizeFixedGasCostOobCall(BigInteger calleeGas) {
-    super(calleeGas);
+  protected BlsFixedSizeFixedGasCostOobCall(BigInteger calleeGas, int oobInst) {
+    super(calleeGas, oobInst);
   }
 
   abstract long precompileExpectedCds();
@@ -38,8 +38,8 @@ public abstract class BlsFixedSizeFixedGasCostOobCall extends CommonPrecompileOo
   abstract long precompileLongCost();
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
-    super.callExoModules(add, mod, wcp);
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
+    super.callExoModulesAndSetOutputs(add, mod, wcp);
 
     // row i + 2
     final OobExoCall validCdsCall =

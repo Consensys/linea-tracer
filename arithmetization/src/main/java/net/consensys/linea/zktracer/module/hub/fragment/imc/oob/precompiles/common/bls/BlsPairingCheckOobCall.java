@@ -38,12 +38,12 @@ import org.apache.tuweni.bytes.Bytes;
 
 public class BlsPairingCheckOobCall extends CommonPrecompileOobCall {
   public BlsPairingCheckOobCall(BigInteger calleeGas) {
-    super(calleeGas);
+    super(calleeGas, OOB_INST_BLS_PAIRING_CHECK);
   }
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
-    super.callExoModules(add, mod, wcp);
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
+    super.callExoModulesAndSetOutputs(add, mod, wcp);
 
     // row i + 2
     final OobExoCall remainderCall =

@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.Trace;
 
 public class BlsMapFp2ToG2OobCall extends BlsFixedSizeFixedGasCostOobCall {
   public BlsMapFp2ToG2OobCall(BigInteger calleeGas) {
-    super(calleeGas);
+    super(calleeGas, OOB_INST_BLS_MAP_FP2_TO_G2);
   }
 
   @Override

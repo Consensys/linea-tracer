@@ -85,9 +85,6 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
             entry(Address.BLS12_PAIRING, PRECOMPILE_CALL_DATA_UNIT_SIZE___BLS_PAIRING_CHECK));
 
     List<Arguments> arguments = new ArrayList<>();
-    arguments.add(Arguments.of());
-
-    // TODO: create enum to represent the different cases (ZERO, ONE, ...)
 
     for (Address address : FIXED_SIZE_PRECOMPILE_ADDRESS_TO_SIZE.keySet()) {
       arguments.add(Arguments.of(address, 0));

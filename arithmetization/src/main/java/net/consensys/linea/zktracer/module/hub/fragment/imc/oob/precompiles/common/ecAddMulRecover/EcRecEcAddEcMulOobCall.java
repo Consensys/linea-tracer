@@ -28,8 +28,8 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
 public abstract class EcRecEcAddEcMulOobCall extends CommonPrecompileOobCall {
-  protected EcRecEcAddEcMulOobCall(BigInteger calleeGas) {
-    super(calleeGas);
+  protected EcRecEcAddEcMulOobCall(BigInteger calleeGas, int oobCall) {
+    super(calleeGas, oobCall);
   }
 
   abstract long precompileLongCost();

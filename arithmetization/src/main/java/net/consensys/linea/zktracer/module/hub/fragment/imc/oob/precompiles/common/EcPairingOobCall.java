@@ -32,7 +32,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 public class EcPairingOobCall extends CommonPrecompileOobCall {
   public EcPairingOobCall(BigInteger calleeGas) {
-    super(calleeGas);
+    super(calleeGas, OOB_INST_ECPAIRING);
   }
 
   @Override

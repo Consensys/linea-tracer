@@ -27,14 +27,12 @@ import net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.datatypes.Address;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 public class ConflationStorageTest extends TracerTestBase {
   TestContext tc;
 
-  @Tag("disabled-for-cancun-temporarily")
   @Test
   void testConflationMapStorage(TestInfo testInfo) {
     // initialize the test context

@@ -50,8 +50,7 @@ public class Oob implements OperationSetModule<OobOperation> {
   }
 
   public OobCall call(OobCall oobCall) {
-    final OobOperation oobOperation =
-        new OobOperation(oobCall, hub, hub.messageFrame(), add, mod, wcp);
+    final OobOperation oobOperation = new OobOperation(oobCall, hub, hub.messageFrame());
     final ModuleOperationAdder addedOperation = operations.addAndGet(oobOperation);
     final OobOperation op = (OobOperation) addedOperation.op();
     if (addedOperation.isNew()) {

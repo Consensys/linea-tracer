@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.bls.BlsOperation;
+import net.consensys.linea.zktracer.module.blsdata.BlsDataOperation;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.EndTransactionDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
@@ -96,7 +96,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
   protected boolean exoIsRipSha = false;
   protected boolean exoIsBlakeModexp = false;
   protected boolean exoIsEcData = false;
-  protected boolean exoIsBls = false;
+  protected boolean exoIsBlsData = false;
   private int exoSum = 0;
 
   public void dontTraceMe() {
@@ -140,8 +140,8 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
     return this.exoIsEcData(true).updateExoSum(EXO_SUM_WEIGHT_ECDATA);
   }
 
-  final MmuCall setBls() {
-    return this.exoIsBls(true).updateExoSum(EXO_SUM_WEIGHT_BLSDATA);
+  final MmuCall setBlsData() {
+    return this.exoIsBlsData(true).updateExoSum(EXO_SUM_WEIGHT_BLSDATA);
   }
 
   public MmuCall(final Hub hub, final int instruction) {
@@ -562,7 +562,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .referenceSize(subsection.callDataSize())
         // constant
         .successBit(successBit)
-        .setBls()
+        .setBlsData()
         .phase(subsection.flag().dataPhase());
   }
 
@@ -571,7 +571,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
 
     final int precompileContextNumber = subsection.exoModuleOperationId();
 
-    final long expectedReturnDataSize = BlsOperation.expectedReturnDataSize(subsection.flag());
+    final long expectedReturnDataSize = BlsDataOperation.expectedReturnDataSize(subsection.flag());
     checkState(subsection.returnDataRange.getRange().size() == expectedReturnDataSize);
 
     return new MmuCall(hub, MMU_INST_EXO_TO_RAM_TRANSPLANTS)
@@ -582,7 +582,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .size(expectedReturnDataSize)
         .phase(subsection.flag().resultPhase())
         .successBit(successBit)
-        .setBls();
+        .setBlsData();
   }
 
   public static MmuCall partialCopyOfReturnDataForBlsPrecompiles(

@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.bls.deprecatedoperations;
+package net.consensys.linea.zktracer.module.blsdata.deprecatedoperations;
 
 /*
  * Copyright Consensys Software Inc.

@@ -1,4 +1,4 @@
-package net.consensys.linea.zktracer.module.bls.deprecatedoperations;
+package net.consensys.linea.zktracer.module.blsdata.deprecatedoperations;
 
 /*
  * Copyright Consensys Software Inc.
@@ -15,10 +15,10 @@ package net.consensys.linea.zktracer.module.bls.deprecatedoperations;
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import static net.consensys.linea.zktracer.module.bls.deprecatedoperations.BlsUtils.B;
-import static net.consensys.linea.zktracer.module.bls.deprecatedoperations.BlsUtils.R;
-import static net.consensys.linea.zktracer.module.bls.deprecatedoperations.BlsUtils.S;
-import static net.consensys.linea.zktracer.module.bls.deprecatedoperations.BlsUtils.SEED;
+import static net.consensys.linea.zktracer.module.blsdata.deprecatedoperations.BlsUtils.B;
+import static net.consensys.linea.zktracer.module.blsdata.deprecatedoperations.BlsUtils.R;
+import static net.consensys.linea.zktracer.module.blsdata.deprecatedoperations.BlsUtils.S;
+import static net.consensys.linea.zktracer.module.blsdata.deprecatedoperations.BlsUtils.SEED;
 
 public class LargePoint extends Point<Fp2, LargePoint> {
   static final LargePoint POINT_AT_INFINITY =

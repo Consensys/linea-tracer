@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.bls;
+package net.consensys.linea.zktracer.module.blsdata;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
@@ -78,7 +78,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.nativelib.gnark.LibGnarkEIP2537;
 
 @Accessors(fluent = true)
-public class BlsOperation extends ModuleOperation {
+public class BlsDataOperation extends ModuleOperation {
   public static final BigInteger BLS_PRIME =
       Bytes.concatenate(
               Bytes.ofUnsignedShort(BLS_PRIME_3),
@@ -133,7 +133,7 @@ public class BlsOperation extends ModuleOperation {
   private final List<Boolean> wcpRes;
   private final List<OpCode> wcpInst;
 
-  private BlsOperation(
+  private BlsDataOperation(
       Wcp wcp,
       int id,
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
@@ -193,29 +193,29 @@ public class BlsOperation extends ModuleOperation {
         * 16;
   }
 
-  public static BlsOperation of(
+  public static BlsDataOperation of(
       Wcp wcp,
       int id,
       final PrecompileScenarioFragment.PrecompileFlag precompileFlag,
       Bytes callData,
       Bytes returnData,
       boolean successBit) {
-    BlsOperation blsOperation =
-        new BlsOperation(wcp, id, precompileFlag, callData, returnData, successBit);
+    BlsDataOperation blsDataOperation =
+        new BlsDataOperation(wcp, id, precompileFlag, callData, returnData, successBit);
     switch (precompileFlag) {
-      case PRC_POINT_EVALUATION -> blsOperation.handlePointEvaluation();
-      case PRC_BLS_G1_ADD -> blsOperation.handleBlsG1Add();
-      case PRC_BLS_G1_MSM -> blsOperation.handleBlsG1Msm();
-      case PRC_BLS_G2_ADD -> blsOperation.handleBlsG2Add();
-      case PRC_BLS_G2_MSM -> blsOperation.handleBlsG2Msm();
-      case PRC_BLS_PAIRING_CHECK -> blsOperation.handleBlsPairingCheck();
-      case PRC_BLS_MAP_FP_TO_G1 -> blsOperation.handleBlsMapFpToG1();
-      case PRC_BLS_MAP_FP2_TO_G2 -> blsOperation.handleBlsMapFp2ToG2();
+      case PRC_POINT_EVALUATION -> blsDataOperation.handlePointEvaluation();
+      case PRC_BLS_G1_ADD -> blsDataOperation.handleBlsG1Add();
+      case PRC_BLS_G1_MSM -> blsDataOperation.handleBlsG1Msm();
+      case PRC_BLS_G2_ADD -> blsDataOperation.handleBlsG2Add();
+      case PRC_BLS_G2_MSM -> blsDataOperation.handleBlsG2Msm();
+      case PRC_BLS_PAIRING_CHECK -> blsDataOperation.handleBlsPairingCheck();
+      case PRC_BLS_MAP_FP_TO_G1 -> blsDataOperation.handleBlsMapFpToG1();
+      case PRC_BLS_MAP_FP2_TO_G2 -> blsDataOperation.handleBlsMapFp2ToG2();
       default -> throw new IllegalArgumentException(
           "BlsOperation expects to be called on a bls precompile, not on " + precompileFlag.name());
     }
-    blsOperation.handleGlobalColumns();
-    return blsOperation;
+    blsDataOperation.handleGlobalColumns();
+    return blsDataOperation;
   }
 
   private void handleGlobalColumns() {

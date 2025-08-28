@@ -22,7 +22,7 @@ import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
-import net.consensys.linea.zktracer.module.bls.Bls;
+import net.consensys.linea.zktracer.module.blsdata.BlsData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.McopySection;
 import net.consensys.linea.zktracer.module.hub.section.finalization.CancunFinalizationSection;
@@ -59,8 +59,8 @@ public class CancunHub extends ShanghaiHub {
   }
 
   @Override
-  protected Bls setBls(Wcp wcp) {
-    return new Bls(
+  protected BlsData setBlsData(Wcp wcp) {
+    return new BlsData(
         wcp,
         pointEvaluationEffectiveCall,
         pointEvaluationFailureCall,

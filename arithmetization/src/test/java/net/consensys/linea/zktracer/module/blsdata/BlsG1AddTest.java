@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.bls;
+package net.consensys.linea.zktracer.module.blsdata;
 
 import java.util.ArrayList;
 import java.util.List;

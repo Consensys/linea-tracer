@@ -13,7 +13,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.bls;
+package net.consensys.linea.zktracer.module.blsdata;
 
 import java.util.List;
 
@@ -44,7 +44,7 @@ import org.apache.tuweni.bytes.Bytes;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class Bls implements OperationListModule<BlsOperation> {
+public class BlsData implements OperationListModule<BlsDataOperation> {
   private final Wcp wcp;
   private final PointEvaluationEffectiveCall pointEvaluationEffectiveCall;
   private final PointEvaluationFailureCall pointEvaluationFailureCall;
@@ -61,13 +61,13 @@ public class Bls implements OperationListModule<BlsOperation> {
   private final BlsG1MembershipCalls blsG1MembershipCalls;
   private final BlsG2MembershipCalls blsG2MembershipCalls;
 
-  private final ModuleOperationStackedList<BlsOperation> operations =
+  private final ModuleOperationStackedList<BlsDataOperation> operations =
       new ModuleOperationStackedList<>();
-  @Getter private BlsOperation blsOperation;
+  @Getter private BlsDataOperation blsDataOperation;
 
   @Override
   public String moduleKey() {
-    return "BLS";
+    return "BLS_DATA";
   }
 
   @Override
@@ -84,7 +84,7 @@ public class Bls implements OperationListModule<BlsOperation> {
   public void commit(Trace trace) {
     int stamp = 0;
     long previousId = 0;
-    for (BlsOperation op : operations.getAll()) {
+    for (BlsDataOperation op : operations.getAll()) {
       op.trace(trace.bls(), ++stamp, previousId);
       previousId = op.id();
     }
@@ -96,49 +96,50 @@ public class Bls implements OperationListModule<BlsOperation> {
       final Bytes callData,
       final Bytes returnData,
       final boolean successBit) {
-    blsOperation = BlsOperation.of(wcp, id, precompileFlag, callData, returnData, successBit);
-    operations.add(blsOperation);
+    blsDataOperation =
+        BlsDataOperation.of(wcp, id, precompileFlag, callData, returnData, successBit);
+    operations.add(blsDataOperation);
 
-    if (!blsOperation.mint()) {
+    if (!blsDataOperation.mint()) {
       // If data are detected to be malformed internally, all limits are implicitly 0
-      switch (blsOperation.precompileFlag()) {
+      switch (blsDataOperation.precompileFlag()) {
         case PRC_POINT_EVALUATION -> {
-          if (blsOperation.wnon()) {
+          if (blsDataOperation.wnon()) {
             pointEvaluationEffectiveCall.updateTally(1);
-          } else if (blsOperation.mext()) {
+          } else if (blsDataOperation.mext()) {
             pointEvaluationFailureCall.updateTally(1);
           }
         }
         case PRC_BLS_G1_ADD -> {
-          if (blsOperation.wnon()) {
+          if (blsDataOperation.wnon()) {
             blsG1AddEffectiveCall.updateTally(1);
-          } else if (blsOperation.mext()) {
+          } else if (blsDataOperation.mext()) {
             blsC1MembershipCalls.updateTally(1);
           }
         }
         case PRC_BLS_G1_MSM -> {
-          if (blsOperation.wnon()) {
+          if (blsDataOperation.wnon()) {
             blsG1MsmEffectiveCall.updateTally(1);
-          } else if (blsOperation.mext()) {
+          } else if (blsDataOperation.mext()) {
             blsG1MembershipCalls.updateTally(1);
           }
         }
         case PRC_BLS_G2_ADD -> {
-          if (blsOperation.wnon()) {
+          if (blsDataOperation.wnon()) {
             blsG2AddEffectiveCall.updateTally(1);
-          } else if (blsOperation.mext()) {
+          } else if (blsDataOperation.mext()) {
             blsC2MembershipCalls.updateTally(1);
           }
         }
         case PRC_BLS_G2_MSM -> {
-          if (blsOperation.wnon()) {
+          if (blsDataOperation.wnon()) {
             blsG2MsmEffectiveCall.updateTally(1);
-          } else if (blsOperation.mext()) {
+          } else if (blsDataOperation.mext()) {
             blsG2MembershipCalls.updateTally(1);
           }
         }
         case PRC_BLS_PAIRING_CHECK -> {
-          if (blsOperation.wtrv() || blsOperation.wnon()) {
+          if (blsDataOperation.wtrv() || blsDataOperation.wnon()) {
             /*
             G1  | G2  | Circuit
             P   | inf | G1 membership
@@ -146,14 +147,14 @@ public class Bls implements OperationListModule<BlsOperation> {
             inf | inf | none
             */
 
-            blsG1MembershipCalls.updateTally(blsOperation.trivialPopDueToG2PointCounter());
-            blsG2MembershipCalls.updateTally(blsOperation.trivialPopDueToG1PointCounter());
-            if (blsOperation.wnon()) {
-              blsPairingCheckMillerLoops.updateTally(blsOperation.nontrivialPopCounter());
+            blsG1MembershipCalls.updateTally(blsDataOperation.trivialPopDueToG2PointCounter());
+            blsG2MembershipCalls.updateTally(blsDataOperation.trivialPopDueToG1PointCounter());
+            if (blsDataOperation.wnon()) {
+              blsPairingCheckMillerLoops.updateTally(blsDataOperation.nontrivialPopCounter());
               blsPairingCheckFinalExponentiations.updateTally(1);
             }
-          } else if (blsOperation.mext()) {
-            if (blsOperation.firstPointNotInSubgroupIsSmall()) {
+          } else if (blsDataOperation.mext()) {
+            if (blsDataOperation.firstPointNotInSubgroupIsSmall()) {
               blsG1MembershipCalls.updateTally(1);
               blsG2MembershipCalls.updateTally(0);
             } else {
@@ -163,12 +164,12 @@ public class Bls implements OperationListModule<BlsOperation> {
           }
         }
         case PRC_BLS_MAP_FP_TO_G1 -> {
-          if (blsOperation.wnon()) {
+          if (blsDataOperation.wnon()) {
             blsG1MapFpToG1EffectiveCall.updateTally(1);
           }
         }
         case PRC_BLS_MAP_FP2_TO_G2 -> {
-          if (blsOperation.wnon()) {
+          if (blsDataOperation.wnon()) {
             blsG1MapFp2ToG2EffectiveCall.updateTally(1);
           }
         }

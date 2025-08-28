@@ -45,7 +45,7 @@ import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockhash.Blockhash;
-import net.consensys.linea.zktracer.module.bls.Bls;
+import net.consensys.linea.zktracer.module.blsdata.BlsData;
 import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
@@ -226,7 +226,7 @@ public abstract class Hub implements Module {
   private final Add add = setAdd();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
-  public final Bls bls = setBls(wcp);
+  public final BlsData blsData = setBlsData(wcp);
   @Getter private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   @Getter private final Gas gas = new Gas(wcp);
@@ -381,7 +381,7 @@ public abstract class Hub implements Module {
                     blakeModexpData,
                     blockdata,
                     blockhash,
-                    bls,
+                    blsData,
                     ecData,
                     exp,
                     ext,
@@ -456,7 +456,7 @@ public abstract class Hub implements Module {
                         bin,
                         blakeModexpData,
                         blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
-                        bls,
+                        blsData,
                         ecData,
                         euc,
                         ext,
@@ -1132,7 +1132,7 @@ public abstract class Hub implements Module {
 
   protected abstract Add setAdd();
 
-  protected abstract Bls setBls(Wcp wcp);
+  protected abstract BlsData setBlsData(Wcp wcp);
 
   protected abstract BlsRt setBlsRt();
 

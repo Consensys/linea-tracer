@@ -13,9 +13,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-package net.consensys.linea.zktracer.module.bls.deprecatedoperations;
+package net.consensys.linea.zktracer.module.blsdata.deprecatedoperations;
 
-import static net.consensys.linea.zktracer.module.bls.BlsOperation.BLS_PRIME;
+import static net.consensys.linea.zktracer.module.blsdata.BlsDataOperation.BLS_PRIME;
 
 import java.math.BigInteger;
 

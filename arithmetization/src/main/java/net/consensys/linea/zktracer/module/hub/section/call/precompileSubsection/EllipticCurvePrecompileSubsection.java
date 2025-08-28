@@ -163,7 +163,7 @@ public class EllipticCurvePrecompileSubsection extends PrecompileSubsection {
       if (flag().isEcdataPrecompile()) {
         hub.ecData.callEcData(exoModuleOperationId(), flag(), extractCallData(), returnData);
       } else if (flag().isBlsPrecompile()) {
-        hub.bls.callBls(
+        hub.blsData.callBls(
             exoModuleOperationId(), flag(), extractCallData(), returnData, successBitMmuCall);
       }
     }

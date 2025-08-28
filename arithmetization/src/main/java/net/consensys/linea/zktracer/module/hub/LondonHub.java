@@ -24,7 +24,7 @@ import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.add.LondonAdd;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.LondonBlockData;
-import net.consensys.linea.zktracer.module.bls.Bls;
+import net.consensys.linea.zktracer.module.blsdata.BlsData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.create.LondonCreateSection;
 import net.consensys.linea.zktracer.module.hub.section.finalization.LondonFinalizationSection;
@@ -62,7 +62,7 @@ public class LondonHub extends Hub {
   }
 
   @Override
-  protected Bls setBls(Wcp wcp) {
+  protected BlsData setBlsData(Wcp wcp) {
     // Bls is not used in London
     return null;
   }

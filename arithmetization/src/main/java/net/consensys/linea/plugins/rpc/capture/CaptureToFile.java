@@ -63,7 +63,7 @@ public class CaptureToFile {
     final long toBlock = params.toBlock();
 
     // Retrieve fork from Besu plugin API with block number
-    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock);
+    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
 
     final BlockCapturer tracer = new BlockCapturer(fork);
 

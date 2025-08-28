@@ -91,7 +91,7 @@ public class ConflatedCountTracesV2 {
 
     final long fromBlock = params.startBlockNumber();
     final long toBlock = params.endBlockNumber();
-    final LineCountingTracer counter = createLineCountingTracer(fromBlock);
+    final LineCountingTracer counter = createLineCountingTracer(fromBlock, toBlock);
 
     traceService.trace(
         fromBlock,
@@ -112,9 +112,9 @@ public class ConflatedCountTracesV2 {
         params.expectedTracesEngineVersion(), fromBlock, toBlock, new TreeMap<>(counts));
   }
 
-  private LineCountingTracer createLineCountingTracer(long blockNumber) {
+  private LineCountingTracer createLineCountingTracer(long fromBlock, long toBlock) {
     // Retrieve fork from Besu plugin API with block number
-    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock);
+    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
 
     return tracerSharedConfiguration.isLimitless()
         ? new ZkCounter(l1L2BridgeSharedConfiguration)

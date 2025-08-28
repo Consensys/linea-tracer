@@ -102,19 +102,42 @@ public enum Fork {
   }
 
   /**
-   * Start a Besu Blockchain service and retrieve the hardfork id at a given block number
+   * Start a Besu Blockchain service and retrieve the hardfork id for a given block range
+   *
+   * @param context the context on which to start the service
+   * @param fromBlock the block number at which to retrieve the hardfork id
+   * @param toBlock the block number at which to retrieve the hardfork id
+   * @return Fork corresponding Fork instance if the hardfork id is the same between fromBlock and
+   *     toBlock, else throw
+   */
+  // Waiting for https://github.com/hyperledger/besu/pull/9115 to uncomment
+  public static Fork getForkFromBesuBlockchainService(
+      ServiceManager context, long fromBlock, long toBlock) {
+    //  MainnetHardforkId hardforkIdFromBlock =  BesuServiceProvider.getBesuService(context,
+    // BlockchainService.class)
+    // .getHardforkId(fromBlock)
+    // .orElseThrow();
+    // if (fromBlock != toBlock) {
+    //  MainnetHardforkId hardforkIdToBlock =  BesuServiceProvider.getBesuService(context,
+    // BlockchainService.class)
+    // .getHardforkId(toBlock)
+    // .orElseThrow();
+    //  if(hardforkIdFromBlock != hardforkIdToBlock) {
+    //    throw new IllegalArgumentException("Fork change between blocks " + fromBlock + " and " +
+    // toBlock) ;
+    //  }    }
+    // return fromMainnetHardforkId(hardforkIdFromBlock);
+    return LONDON;
+  }
+
+  /**
+   * Start a Besu Blockchain service and retrieve the hardfork id for a given block number
    *
    * @param context the context on which to start the service
    * @param blockNumber the block number at which to retrieve the hardfork id
    * @return Fork corresponding Fork instance
    */
-  // Waiting for https://github.com/hyperledger/besu/pull/9115 to uncomment
   public static Fork getForkFromBesuBlockchainService(ServiceManager context, long blockNumber) {
-    //  MainnetHardforkId hardforkId =  BesuServiceProvider.getBesuService(context,
-    // BlockchainService.class)
-    // .getHardforkId(blockNumber)
-    // .orElseThrow();
-    // return fromMainnetHardforkId(hardforkId);
-    return LONDON;
+    return getForkFromBesuBlockchainService(context, blockNumber, blockNumber);
   }
 }

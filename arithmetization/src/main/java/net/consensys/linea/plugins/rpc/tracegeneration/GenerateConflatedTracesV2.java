@@ -113,7 +113,7 @@ public class GenerateConflatedTracesV2 {
           log.info("[TRACING] cached trace for {}-{} detected as {}", fromBlock, toBlock, path);
       } else {
     // Retrieve fork from Besu plugin API with block number
-    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock);
+    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
 
     final ZkTracer tracer =
         new ZkTracer(

@@ -123,7 +123,7 @@ public class GenerateLineCountsV2 {
 
   private LineCountingTracer createLineCountingTracer(long blockNumber) {
     // Retrieve fork from Besu plugin API with block number
-    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock);
+    final Fork fork = getForkFromBesuBlockchainService(besuContext, blockNumber);
 
     return tracerSharedConfiguration.isLimitless()
         ? new ZkCounter(l1L2BridgeSharedConfiguration)

@@ -27,6 +27,7 @@ import java.math.RoundingMode;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -38,6 +39,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
+@Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class OobOperation extends ModuleOperation {
   @EqualsAndHashCode.Include @Setter public OobCall oobCall;
@@ -60,7 +62,7 @@ public class OobOperation extends ModuleOperation {
     this.oobCall = oobCall;
 
     oobCall.setInputData(frame, hub);
-    oobCall.callExoModules(add, mod, wcp);
+    // oobCall.callExoModules(add, mod, wcp);
   }
 
   // Support method for MODEXP

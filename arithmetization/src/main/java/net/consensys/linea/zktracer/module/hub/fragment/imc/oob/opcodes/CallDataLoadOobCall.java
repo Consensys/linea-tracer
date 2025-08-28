@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CDL;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -35,9 +36,10 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class CallDataLoadOobCall extends OobCall {
-  EWord offset;
-  Bytes cds;
+  @EqualsAndHashCode.Include EWord offset;
+  @EqualsAndHashCode.Include Bytes cds;
   boolean cdlOutOfBounds;
 
   public CallDataLoadOobCall() {

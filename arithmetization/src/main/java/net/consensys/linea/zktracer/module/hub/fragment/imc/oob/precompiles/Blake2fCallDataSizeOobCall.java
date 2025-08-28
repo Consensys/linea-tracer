@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToEQ;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToIsZero;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -37,9 +38,13 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class Blake2fCallDataSizeOobCall extends OobCall {
-  EWord cds;
-  EWord returnAtCapacity;
+  // Inputs
+  @EqualsAndHashCode.Include EWord cds;
+  @EqualsAndHashCode.Include EWord returnAtCapacity;
+
+  // Outputs
   boolean hubSuccess;
   boolean returnAtCapacityNonZero;
 

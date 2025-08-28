@@ -115,13 +115,14 @@ public class BlsOperation extends ModuleOperation {
   private final List<Boolean> isInfinity;
   private final List<Boolean> nontrivialPairOfPointsBit;
 
-  // TODO: compute those for limits
   @Getter private boolean mint;
   @Getter private boolean mext;
   @Getter private boolean wtrv;
   @Getter private boolean wnon;
   @Getter private boolean firstPointNotInSubgroupIsSmall;
   @Getter private int nontrivialPopCounter;
+  @Getter private int trivialPopDueToG2PointCounter; // Counting trivial pairs of the form (P,inf)
+  @Getter private int trivialPopDueToG1PointCounter; // Counting trivial pairs of the form (inf,Q)
 
   // WCP interaction
   private final List<Boolean> wcpFlag;
@@ -140,9 +141,6 @@ public class BlsOperation extends ModuleOperation {
       Bytes returnData,
       boolean successBit) {
     checkArgument(precompileFlag.isBlsPrecompile(), "invalid BLS type");
-
-    // TODO: whenever we do not need an additional list do not use it
-    //  (e.g., mintBit, mextBit)
 
     this.precompileFlag = precompileFlag;
     this.callData = callData;
@@ -216,7 +214,18 @@ public class BlsOperation extends ModuleOperation {
       default -> throw new IllegalArgumentException(
           "BlsOperation expects to be called on a bls precompile, not on " + precompileFlag.name());
     }
+    blsOperation.handleGlobalColumns();
     return blsOperation;
+  }
+
+  private void handleGlobalColumns() {
+    mint = mintBit.stream().reduce(false, Boolean::logicalOr);
+    mext = mextBit.stream().reduce(false, Boolean::logicalOr);
+    final boolean nonTrivialPairOfPointsTot =
+        nontrivialPairOfPointsBit.stream().reduce(false, Boolean::logicalOr);
+    wtrv =
+        !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || !nonTrivialPairOfPointsTot);
+    wnon = !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || nonTrivialPairOfPointsTot);
   }
 
   private void handlePointEvaluation() {
@@ -504,6 +513,7 @@ public class BlsOperation extends ModuleOperation {
           this.mextBit.set(indexOffset + j, true);
         }
         mextBitIsSet = true;
+        firstPointNotInSubgroupIsSmall = true;
       }
 
       final boolean wellFormedFp2Coordinate =
@@ -557,6 +567,15 @@ public class BlsOperation extends ModuleOperation {
       final boolean smallPointIsAtInfinity = isInfinity.get(indexOffset);
       final boolean largePointIsAtInfinity = isInfinity.get(8 + indexOffset);
       final boolean pairOfPointsNonTrivialBit = !smallPointIsAtInfinity && !largePointIsAtInfinity;
+      if (pairOfPointsNonTrivialBit) {
+        nontrivialPopCounter++;
+      }
+      if (!smallPointIsAtInfinity && largePointIsAtInfinity) {
+        trivialPopDueToG2PointCounter++;
+      }
+      if (smallPointIsAtInfinity && !largePointIsAtInfinity) {
+        trivialPopDueToG1PointCounter++;
+      }
       for (int j = indexOffset; j < 24 + indexOffset; j++) {
         this.nontrivialPairOfPointsBit.set(j, pairOfPointsNonTrivialBit);
       }
@@ -974,14 +993,6 @@ public class BlsOperation extends ModuleOperation {
     final Bytes deltaByte =
         leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
 
-    final boolean mint = mintBit.stream().reduce(false, Boolean::logicalOr);
-    final boolean mext = mextBit.stream().reduce(false, Boolean::logicalOr);
-    final boolean nonTrivialPairOfPointsTot =
-        nontrivialPairOfPointsBit.stream().reduce(false, Boolean::logicalOr);
-    final boolean wtrv =
-        !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || !nonTrivialPairOfPointsTot);
-    final boolean wnon =
-        !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || nonTrivialPairOfPointsTot);
     final boolean wellformedData = wtrv || wnon;
 
     int ct = 0;
@@ -1014,35 +1025,6 @@ public class BlsOperation extends ModuleOperation {
       mintBitAcc = mintBitAcc || mintBit.get(i);
       mextBitAcc = mextBitAcc || mextBit.get(i);
       nontrivialPairOfPointsAcc = nontrivialPairOfPointsAcc || nontrivialPairOfPointsBit.get(i);
-
-      final boolean csG1MTForG1Msm =
-          precompileFlag == PRC_BLS_G1_MSM && isData && isFirstInput && mextBit.get(i);
-      final boolean csG2MTForG2Msm =
-          precompileFlag == PRC_BLS_G2_MSM && isData && isFirstInput && mextBit.get(i);
-
-      final boolean csG1MTForPairingMalformed =
-          precompileFlag == PRC_BLS_PAIRING_CHECK && isData && isFirstInput && mextBit.get(i);
-      final boolean csG2MTForPairingMalformed =
-          precompileFlag == PRC_BLS_PAIRING_CHECK && isData && !isFirstInput && mextBit.get(i);
-
-      final boolean csG1MTForPairingWellformed =
-          precompileFlag == PRC_BLS_PAIRING_CHECK
-              && isData
-              && isFirstInput
-              && !nontrivialPairOfPointsBit.get(i)
-              && !isInfinity.get(i)
-              && wellformedData;
-      final boolean csG2MTForPairingWellformed =
-          precompileFlag == PRC_BLS_PAIRING_CHECK
-              && isData
-              && !isFirstInput
-              && !nontrivialPairOfPointsBit.get(i)
-              && !isInfinity.get(i)
-              && wellformedData;
-
-      final boolean isNonTrivialPairingDataOrResult =
-          (precompileFlag == PRC_BLS_PAIRING_CHECK && isData && nontrivialPairOfPointsBit.get(i))
-              || (precompileFlag == PRC_BLS_PAIRING_CHECK && !isData);
 
       trace
           .stamp(stamp)

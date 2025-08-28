@@ -99,7 +99,6 @@ public class Bls implements OperationListModule<BlsOperation> {
     blsOperation = BlsOperation.of(wcp, id, precompileFlag, callData, returnData, successBit);
     operations.add(blsOperation);
 
-    // TODO: compute precompile limits
     if (blsOperation.mint()) {
       // every limit is 0
     }
@@ -131,7 +130,7 @@ public class Bls implements OperationListModule<BlsOperation> {
       }
       case PRC_BLS_G2_ADD -> {
         if (blsOperation.wnon()) {
-          // blsG2AddEffectiveCalls.updateTally(1);
+          blsG2AddEffectiveCall.updateTally(1);
         }
         if (blsOperation.mext()) {
           blsC2MembershipCalls.updateTally(1);
@@ -154,8 +153,8 @@ public class Bls implements OperationListModule<BlsOperation> {
           inf | inf | none
           */
 
-          // blsG1MembershipCalls.updateTally(blsOperation.trivialPopDueToG2PointCounter());
-          // blsG2MembershipCalls.updateTally(blsOperation.trivialPopDueToG1PointCounter());
+          blsG1MembershipCalls.updateTally(blsOperation.trivialPopDueToG2PointCounter());
+          blsG2MembershipCalls.updateTally(blsOperation.trivialPopDueToG1PointCounter());
         }
         if (blsOperation.wtrv()) {
           blsPairingCheckMillerLoops.updateTally(0);

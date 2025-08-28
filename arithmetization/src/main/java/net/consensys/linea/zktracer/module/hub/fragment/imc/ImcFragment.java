@@ -90,7 +90,7 @@ public class ImcFragment implements TraceFragment, ContextReEntryDefer, ContextE
   }
 
   public ImcFragment callMmu(MmuCall f) {
-    checkState(!oobIsSet, "MMU already called");
+    checkState(!mmuIsSet, "MMU already called");
     mmuIsSet = true;
     // Note: the triggering of the MMU is made by the creation of the MmuCall
     moduleCalls.add(f);
@@ -98,7 +98,7 @@ public class ImcFragment implements TraceFragment, ContextReEntryDefer, ContextE
   }
 
   public ImcFragment callExp(ExpCall f) {
-    checkState(!oobIsSet, "EXP already called");
+    checkState(!expIsSet, "EXP already called");
     expIsSet = true;
     hub.exp().call(f);
     moduleCalls.add(f);
@@ -106,7 +106,7 @@ public class ImcFragment implements TraceFragment, ContextReEntryDefer, ContextE
   }
 
   public ImcFragment callMxp(MxpCall f) {
-    checkState(!oobIsSet, "MXP already called");
+    checkState(!mxpIsSet, "MXP already called");
     mxpIsSet = true;
     hub.mxp().call(f);
     moduleCalls.add(f);
@@ -114,7 +114,7 @@ public class ImcFragment implements TraceFragment, ContextReEntryDefer, ContextE
   }
 
   public void callStp(StpCall f) {
-    checkState(!oobIsSet, "STP already called");
+    checkState(!stpIsSet, "STP already called");
     stpIsSet = true;
     hub.stp().call(f);
     moduleCalls.add(f);

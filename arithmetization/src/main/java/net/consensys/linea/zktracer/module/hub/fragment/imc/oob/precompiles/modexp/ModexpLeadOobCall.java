@@ -25,6 +25,7 @@ import static net.consensys.linea.zktracer.types.Conversions.*;
 
 import java.math.BigInteger;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -42,11 +43,13 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ModexpLeadOobCall extends OobCall {
+  // Inputs
+  @EqualsAndHashCode.Include final ModexpMetadata metadata;
+  @EqualsAndHashCode.Include EWord cds;
 
-  final ModexpMetadata metadata;
-  EWord cds;
-
+  // Outputs
   boolean loadLead;
   int cdsCutoff;
   int ebsCutoff;

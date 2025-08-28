@@ -137,14 +137,14 @@ contract CustomCreate2 is TestingBase {
             abi.encodeWithSignature("create2CallCAndRevert()"),
             false
         );
-/*        callMyself(
+        callMyself(
            abi.encodeWithSignature("create2WithInitCodeCNoValue()"),
            true
-        );*/
-/*        callMyself(
+        );
+        callMyself(
             abi.encodeWithSignature("create2FourTimes()"),
             false
-        );*/
+        );
     }
 
 }

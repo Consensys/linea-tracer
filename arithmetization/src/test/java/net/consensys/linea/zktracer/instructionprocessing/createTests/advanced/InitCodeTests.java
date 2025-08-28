@@ -81,7 +81,7 @@ public class InitCodeTests extends TracerTestBase {
           .code(SmartContractUtils.getSolidityContractRuntimeByteCode(CustomCreate2.class))
           .build();
 
-  static final Long gasLimit = 5000000L;
+  static final Long gasLimit = 50000000L;
 
   // Compute expected address for ContractC with Create2
   // address = keccak256(0xff + sender_address + salt + keccak256(initialisation_code))[12:]
@@ -288,11 +288,11 @@ public class InitCodeTests extends TracerTestBase {
     // logsTopicMap.put(contractCreatedEvent, List.of(1 + lastTxIsContractCreatedEvent));
     logsTopicMap.put(contractCreatedEvent, List.of(1));
     // logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
-    logsTopicMap.put(staticCallMyselfFailEvent, List.of(0));
+    logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
     // logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(1));
     logsTopicMap.put(calledCreate2WithInitCodeCNoValueEvent, List.of(1));
     logsTopicMap.put(callContractCFail, List.of(0));
-    logsTopicMap.put(callMyselfFail, List.of(2));
+    logsTopicMap.put(callMyselfFail, List.of(3));
     // List data expected for each topic
     Bytes lastTxContractCreatedEvent =
         isPostCancun(fork) ? Bytes.EMPTY : expectedContractCAddressLogData;

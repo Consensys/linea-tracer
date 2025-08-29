@@ -314,17 +314,22 @@ public class InitCodeTests extends TracerTestBase {
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
     Map<String, List<Bytes>> logsDataMap = new HashMap<>();
 
-    List<Integer> txStatuses = List.of(1);
+    List<Integer> txStatuses = List.of(1, 1, 1);
 
-    logsTopicMap.put(contractCreatedEvent, List.of(1));
-    // logsDataMap.put(contractCreatedEvent, List.of(expectedContractCAddressLogData));
+    logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 1));
+    logsDataMap.put(
+        contractCreatedEvent, List.of(Bytes.EMPTY, Bytes.EMPTY, expectedContractCAddressLogData));
 
     // Instantiate validator
     TransactionProcessingResultValidator create2OneTxValidator =
         new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
 
     List<Transaction> transactions =
-        getTransactions(customCreate2Account, userAccount, List.of(create2FourTimes), List.of(0L));
+        getTransactions(
+            customCreate2Account,
+            userAccount,
+            List.of(storeInitCodeC, storeSalt, create2FourTimes),
+            List.of(0L, 0L, 0L));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(testInfo)

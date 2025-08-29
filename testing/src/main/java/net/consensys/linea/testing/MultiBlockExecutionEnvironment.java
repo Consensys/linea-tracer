@@ -16,8 +16,8 @@
 package net.consensys.linea.testing;
 
 import static net.consensys.linea.reporting.TracerTestBase.testInfo;
+import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
-import static net.consensys.linea.zktracer.Fork.LONDON;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 
 import java.math.BigInteger;
@@ -47,7 +47,11 @@ public class MultiBlockExecutionEnvironment {
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
   private final ZkTracer tracer;
 
-  @Builder.Default public final ChainConfig testsChain = MAINNET_TESTCONFIG(testInfo.chainConfig.fork);
+  @Builder.Default
+  public final ChainConfig testsChain = MAINNET_TESTCONFIG(testInfo.chainConfig.fork);
+
+  @Builder.Default private final long startingBlockNumber = DEFAULT_BLOCK_NUMBER;
+  @Builder.Default private final boolean systemContractDeployedPriorToConflation = true;
 
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was
@@ -66,7 +70,7 @@ public class MultiBlockExecutionEnvironment {
 
   public static class MultiBlockExecutionEnvironmentBuilder {
 
-    private List<BlockSnapshot> blocks = new ArrayList<>();
+    private final List<BlockSnapshot> blocks = new ArrayList<>();
 
     public MultiBlockExecutionEnvironmentBuilder addBlock(List<Transaction> transactions) {
       return addBlock(transactions, LINEA_BLOCK_GAS_LIMIT);
@@ -81,7 +85,8 @@ public class MultiBlockExecutionEnvironment {
                   Optional.of(this.blocks.getLast().header().toBlockHeader()));
       blockHeaderBuilder.coinbase(ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS);
       blockHeaderBuilder.gasLimit(gasLimit);
-      BlockBody blockBody = new BlockBody(transactions, Collections.emptyList());
+      blockHeaderBuilder.number(startingBlockNumber$value + blocks.size());
+      final BlockBody blockBody = new BlockBody(transactions, Collections.emptyList());
       this.blocks.add(BlockSnapshot.of(blockHeaderBuilder.buildBlockHeader(), blockBody));
 
       return this;
@@ -93,6 +98,7 @@ public class MultiBlockExecutionEnvironment {
         .zkTracer(tracer)
         .useCoinbaseAddressFromBlockHeader(true)
         .transactionProcessingResultValidator(this.transactionProcessingResultValidator)
+        .systemContractDeployedPriorToConflation(systemContractDeployedPriorToConflation)
         .build()
         .replay(testsChain, this.buildConflationSnapshot());
   }

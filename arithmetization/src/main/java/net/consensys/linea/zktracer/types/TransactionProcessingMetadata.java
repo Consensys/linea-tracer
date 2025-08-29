@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.types;
 
-import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
@@ -334,12 +333,15 @@ public class TransactionProcessingMetadata {
 
   private long computeRefundEffective() {
     final long maxRefundableAmount = getGasUsed() / MAX_REFUND_QUOTIENT;
+    final long leftoverGasPlusRefunds =
+        leftoverGas + Math.min(maxRefundableAmount, refundCounterMax);
+    final long transactionExecutionCostAfterRefunds =
+        besuTransaction.getGasLimit() - leftoverGasPlusRefunds;
     final long transactionFloorCost =
-        isPostPrague(hub.fork)
-            ? hub.gasCalculator.transactionFloorCost(
-                getBesuTransaction().getPayload(), numberOfNonZeroBytesInPayload)
-            : 0;
-    return Math.min(maxRefundableAmount, refundCounterMax);
+        hub.gasCalculator.transactionFloorCost(
+            besuTransaction.getPayload(), numberOfZeroBytesInPayload);
+    return besuTransaction.getGasLimit()
+        - Math.max(transactionFloorCost, transactionExecutionCostAfterRefunds);
   }
 
   private long computeEffectiveGasPrice() {

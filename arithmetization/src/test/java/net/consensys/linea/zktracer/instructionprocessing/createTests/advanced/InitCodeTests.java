@@ -284,11 +284,13 @@ public class InitCodeTests extends TracerTestBase {
     logsTopicMap.put(staticCallMyselfFailEvent, List.of(1, 0));
     logsTopicMap.put(callContractCFailEvent, List.of(1, 0));
     logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 1));
-    logsDataMap.put(contractCreatedEvent, List.of(expectedContractCAddress, Bytes.EMPTY));
+    logsDataMap.put(
+        contractCreatedEvent,
+        List.of(expectedContractCAddressLogData, expectedContractCAddressLogData));
 
     // Instantiate validator
     TransactionProcessingResultValidator create2OneTxValidator =
-        new SmartContractTestValidator(txStatuses, logsTopicMap, new HashMap<>());
+        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
 
     List<Transaction> transactions =
         getTransactions(
@@ -296,6 +298,58 @@ public class InitCodeTests extends TracerTestBase {
             userAccount,
             List.of(advancedCreateScenariiOneTx, create2WithInitCodeC),
             List.of(2L, 0L));
+
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder(testInfo)
+            .accounts(List.of(userAccount, customCreate2Account))
+            .transactions(transactions)
+            .transactionProcessingResultValidator(create2OneTxValidator)
+            .build();
+    toyExecutionEnvironmentV2.run();
+  }
+
+  @Test
+  void deployScenario1NoRevert() {
+    // Payload preparation
+    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
+    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
+
+    List<Integer> txStatuses = List.of(1);
+
+    logsTopicMap.put(contractCreatedEvent, List.of(1));
+    // logsDataMap.put(contractCreatedEvent, List.of(expectedContractCAddressLogData));
+
+    // Instantiate validator
+    TransactionProcessingResultValidator create2OneTxValidator =
+        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
+
+    List<Transaction> transactions =
+        getTransactions(customCreate2Account, userAccount, List.of(create2FourTimes), List.of(0L));
+
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder(testInfo)
+            .accounts(List.of(userAccount, customCreate2Account))
+            .transactions(transactions)
+            .transactionProcessingResultValidator(create2OneTxValidator)
+            .build();
+    toyExecutionEnvironmentV2.run();
+  }
+
+  @Test
+  void deployScenario2NoRevert() {
+    // Payload preparation
+    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
+    List<Integer> txStatuses = List.of(1);
+
+    logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
+
+    // Instantiate validator
+    TransactionProcessingResultValidator create2OneTxValidator =
+        new SmartContractTestValidator(txStatuses, logsTopicMap, new HashMap<>());
+
+    List<Transaction> transactions =
+        getTransactions(
+            customCreate2Account, userAccount, List.of(create2WithStaticCall), List.of(0L));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(testInfo)

@@ -126,9 +126,7 @@ public class SystemTransactionTests extends TracerTestBase {
     final List<Transaction> blockNb2Transactions = new ArrayList<>();
 
     final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
-        MultiBlockExecutionEnvironment.builder(testInfo)
-            .startingBlockNumber(0)
-            .systemContractDeployedPriorToConflation(systemContractDeployedBeforeBlockNumber == 0);
+        MultiBlockExecutionEnvironment.builder(testInfo, systemContractDeployedBeforeBlockNumber == 0, 0);
     builder
         .accounts(
             List.of(senderAccount, deployerOf2935, deployerOf4788, callerOf2935, callerOf4788))

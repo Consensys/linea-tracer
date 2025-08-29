@@ -24,7 +24,6 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -86,9 +85,6 @@ public class TrmTracerTest extends TracerTestBase {
               + "00000000"
               + "00000000");
 
-  // TODO: enable for Cancun once KZG precomp has been added to address precomp list
-  @Tag("disabled-for-cancun-temporarily")
-  @Test
   void testNonCallTinyParamLessThan16() {
     for (int tiny = 0; tiny < 16; tiny++) {
       nonCall(Bytes32.leftPad(Bytes.of(tiny)));
@@ -102,8 +98,6 @@ public class TrmTracerTest extends TracerTestBase {
     }
   }
 
-  // TODO: enable for Cancun once KZG precomp has been added to address precomp list
-  @Tag("disabled-for-cancun-temporarily")
   @Test
   void testNonCallAddressParameterTinyAfterTrimming() {
     for (int tiny = 0; tiny < 16; tiny++) {
@@ -119,8 +113,6 @@ public class TrmTracerTest extends TracerTestBase {
     nonCall(RANDOM_STRING_FROM_THE_INTERNET);
   }
 
-  // TODO: enable for Cancun once KZG precomp has been added to address precomp list
-  @Tag("disabled-for-cancun-temporarily")
   @Test
   void testSevenArgCall() {
     for (int addr = 0; addr < 16; addr++) {
@@ -128,8 +120,6 @@ public class TrmTracerTest extends TracerTestBase {
     }
   }
 
-  // TODO: enable for Cancun once KZG precomp has been added to address precomp list
-  @Tag("disabled-for-cancun-temporarily")
   @Test
   void testSampleDelegateCall() {
     for (long addr = 0; addr < 16; addr++) {
@@ -143,8 +133,6 @@ public class TrmTracerTest extends TracerTestBase {
         .run(testInfo);
   }
 
-  // TODO: enable for Cancun once KZG precomp has been added to address precomp list
-  @Tag("disabled-for-cancun-temporarily")
   @Test
   void testTrimToUncoverATinyAddressAndQueryItsBalanceCodeHashAndCodeSize() {
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);

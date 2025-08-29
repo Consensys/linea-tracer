@@ -49,6 +49,7 @@ public class MultiBlockExecutionEnvironment {
 
   @Builder.Default
   public final ChainConfig testsChain = MAINNET_TESTCONFIG(testInfo.chainConfig.fork);
+
   @Builder.Default private final long startingBlockNumber = DEFAULT_BLOCK_NUMBER;
   @Builder.Default private final boolean systemContractDeployedPriorToConflation = true;
 
@@ -68,12 +69,14 @@ public class MultiBlockExecutionEnvironment {
   }
 
   public static MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder(
-          TestInfoWithChainConfig testInfo, boolean systemContractDeployedPriorConflation, long firstBlockNumber) {
+      TestInfoWithChainConfig testInfo,
+      boolean systemContractDeployedPriorConflation,
+      long firstBlockNumber) {
     return new MultiBlockExecutionEnvironmentBuilder()
-            .tracer(new ZkTracer(testInfo.chainConfig))
-            .testsChain(testInfo.chainConfig)
-            .systemContractDeployedPriorToConflation(systemContractDeployedPriorConflation)
-            .startingBlockNumber(firstBlockNumber);
+        .tracer(new ZkTracer(testInfo.chainConfig))
+        .testsChain(testInfo.chainConfig)
+        .systemContractDeployedPriorToConflation(systemContractDeployedPriorConflation)
+        .startingBlockNumber(firstBlockNumber);
   }
 
   public static class MultiBlockExecutionEnvironmentBuilder {

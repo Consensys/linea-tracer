@@ -44,23 +44,23 @@ public class SystemTransactionTestUtils {
   }
 
   static Bytes byteCodeCallingBeaconRootSystemAccountFromCallData(
-          TestInfoWithChainConfig testInfo, Address systemContractAddress) {
+      TestInfoWithChainConfig testInfo, Address systemContractAddress) {
     return BytecodeCompiler.newProgram(testInfo)
-            // prepare memory with argument
-            .op(OpCode.CALLDATASIZE) // size@
-            .push(0) // source offset
-            .push(0) // destOffset
-            .op(OpCode.CALLDATACOPY)
+        // prepare memory with argument
+        .op(OpCode.CALLDATASIZE) // size@
+        .push(0) // source offset
+        .push(0) // destOffset
+        .op(OpCode.CALLDATACOPY)
 
-            // call system contract
-            .push(0) // retSize
-            .push(0) // retOffset
-            .push(32) // argSize
-            .push(0) // argOffset
-            .push(0) // value
-            .push(systemContractAddress) // address
-            .push(757575) // gas
-            .op(OpCode.CALL)
-            .compile();
+        // call system contract
+        .push(0) // retSize
+        .push(0) // retOffset
+        .push(32) // argSize
+        .push(0) // argOffset
+        .push(0) // value
+        .push(systemContractAddress) // address
+        .push(757575) // gas
+        .op(OpCode.CALL)
+        .compile();
   }
 }

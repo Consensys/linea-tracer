@@ -93,32 +93,30 @@ public class SystemTransactionTests extends TracerTestBase {
 
     final ToyAccount deployerOf2935 = null;
     final Transaction deploy2935 =
-            ToyTransaction.builder()
-                    .sender(deployerOf2935)
-                    // .keyPair()
-                    .value(Wei.of(0))
-                    .build();
+        ToyTransaction.builder()
+            .sender(deployerOf2935)
+            // .keyPair()
+            .value(Wei.of(0))
+            .build();
     final ToyAccount deployerOf4788 = null;
     final Transaction deploy4788 =
-            ToyTransaction.builder()
-                    .sender(deployerOf4788)
-                    // .keyPair()
-                    .value(Wei.of(0))
-                    .build();
+        ToyTransaction.builder()
+            .sender(deployerOf4788)
+            // .keyPair()
+            .value(Wei.of(0))
+            .build();
 
     final ToyAccount callerOf2935 =
         ToyAccount.builder()
             .address(Address.wrap(leftPadTo(Bytes.fromHexString("0x2935"), Address.SIZE)))
             .code(
-                    byteCodeCallingBeaconRootSystemAccountFromCallData(
+                byteCodeCallingBeaconRootSystemAccountFromCallData(
                     testInfo, HISTORY_STORAGE_ADDRESS))
             .build();
     final ToyAccount callerOf4788 =
         ToyAccount.builder()
             .address(Address.wrap(leftPadTo(Bytes.fromHexString("0x4788"), Address.SIZE)))
-            .code(
-                    byteCodeCallingBeaconRootSystemAccountFromCallData(
-                    testInfo, BEACONROOT_ADDRESS))
+            .code(byteCodeCallingBeaconRootSystemAccountFromCallData(testInfo, BEACONROOT_ADDRESS))
             .build();
 
     final List<Transaction> genesisBlockTransactions = new ArrayList<>();
@@ -126,7 +124,8 @@ public class SystemTransactionTests extends TracerTestBase {
     final List<Transaction> blockNb2Transactions = new ArrayList<>();
 
     final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
-        MultiBlockExecutionEnvironment.builder(testInfo, systemContractDeployedBeforeBlockNumber == 0, 0);
+        MultiBlockExecutionEnvironment.builder(
+            testInfo, systemContractDeployedBeforeBlockNumber == 0, 0);
     builder
         .accounts(
             List.of(senderAccount, deployerOf2935, deployerOf4788, callerOf2935, callerOf4788))

@@ -304,6 +304,21 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
       arguments.add(Arguments.of(MODEXP, ValueCase.ZERO, gasCase, null, false));
       arguments.add(Arguments.of(MODEXP, ValueCase.ZERO, gasCase, null, true));
     }
+
+    // TODO: temporary focus on point evaluation only
+    arguments = new ArrayList<>();
+
+    for (GasCase gasCase : GasCase.values()) {
+      for (ValueCase valueCase : ValueCase.values()) {
+        arguments.add(
+            Arguments.of(
+                KZG_POINT_EVAL,
+                valueCase,
+                gasCase,
+                PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION,
+                false));
+      }
+    }
     return arguments.stream();
   }
 

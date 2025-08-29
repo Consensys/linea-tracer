@@ -223,9 +223,11 @@ public class PrecompileScenarioFragment implements TraceFragment {
         .pScenarioPrcRao(precompileSubSection.returnAtOffset())
         .pScenarioPrcRac(precompileSubSection.returnAtCapacity());
     // TODO: what is a more natural way to handle this?
-    if (trace instanceof TraceCancun || trace instanceof TracePrague) {
+    if (trace instanceof TraceCancun) {
+      trace.pScenarioPrcPointEvaluation(flag == PRC_POINT_EVALUATION);
+    }
+    if (trace instanceof TracePrague) {
       trace
-          .pScenarioPrcPointEvaluation(flag == PRC_POINT_EVALUATION)
           .pScenarioPrcBlsG1Add(flag == PRC_BLS_G1_ADD)
           .pScenarioPrcBlsG1Msm(flag == PRC_BLS_G1_MSM)
           .pScenarioPrcBlsG2Add(flag == PRC_BLS_G2_ADD)

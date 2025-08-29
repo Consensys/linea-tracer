@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.types;
 
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.Util.getTxTypeAsInt;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
@@ -41,6 +42,8 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 public class TransactionProcessingMetadata {
+
+  final Hub hub;
 
   final int userTransactionNumber;
   final int relativeTransactionNumber;
@@ -181,6 +184,7 @@ public class TransactionProcessingMetadata {
       final Transaction transaction,
       final int relativeTransactionNumber,
       final int userTransactionNumber) {
+    this.hub = hub;
     this.userTransactionNumber = userTransactionNumber;
     relativeBlockNumber = hub.blockStack().currentRelativeBlockNumber();
     coinbaseAddress = hub.coinbaseAddress();
@@ -330,6 +334,11 @@ public class TransactionProcessingMetadata {
 
   private long computeRefundEffective() {
     final long maxRefundableAmount = getGasUsed() / MAX_REFUND_QUOTIENT;
+    final long transactionFloorCost =
+        isPostPrague(hub.fork)
+            ? hub.gasCalculator.transactionFloorCost(
+                getBesuTransaction().getPayload(), numberOfNonZeroBytesInPayload)
+            : 0;
     return Math.min(maxRefundableAmount, refundCounterMax);
   }
 

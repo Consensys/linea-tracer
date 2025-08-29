@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.module.txndata.rows;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
@@ -25,17 +26,15 @@ import org.apache.tuweni.bytes.Bytes;
 @Accessors(fluent = true)
 public class EucRow extends TxnDataRow {
 
-    final long dividend;
-    final long divisor;
-    final long quotient;
+  final long dividend;
+  final long divisor;
+  @Getter final long quotient;
 
-    public static EucRow callToEuc(Euc euc, final long dividend, final long divisor) {
-        euc.callEUC(Bytes.ofUnsignedLong(dividend), Bytes.ofUnsignedLong(divisor));
-        return new EucRow(dividend, divisor, dividend / divisor);
-    }
+  public static EucRow callToEuc(Euc euc, final long dividend, final long divisor) {
+    euc.callEUC(Bytes.ofUnsignedLong(dividend), Bytes.ofUnsignedLong(divisor));
+    return new EucRow(dividend, divisor, dividend / divisor);
+  }
 
-    @Override
-    public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
-
-    }
+  @Override
+  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
 }

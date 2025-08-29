@@ -20,12 +20,8 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
 public class RlpRow extends TxnDataRow {
 
-    public RlpRow(TransactionProcessingMetadata txn) {
+  public RlpRow(TransactionProcessingMetadata txn) {}
 
-    }
-
-    @Override
-    public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
-
-    }
+  @Override
+  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
 }

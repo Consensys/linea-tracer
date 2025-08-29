@@ -34,33 +34,27 @@ public class WcpRow extends TxnDataRow {
   @Getter final boolean result;
 
   public static WcpRow smallCallToLt(Wcp wcp, final Bytes arg1, final Bytes arg2) {
+    return new WcpRow(WcpInstruction.LT, arg1, arg2, wcp.callLT(arg1, arg2));
+  }
+
+  public static WcpRow smallCallToLt(Wcp wcp, final long arg1, final long arg2) {
     return new WcpRow(
         WcpInstruction.LT,
-        arg1,
-        arg2,
+        Bytes.ofUnsignedLong(arg1),
+        Bytes.ofUnsignedLong(arg2),
         wcp.callLT(arg1, arg2));
   }
-    static public WcpRow smallCallToLt(Wcp wcp, final long arg1, final long arg2) {
-        return new WcpRow(
-                WcpInstruction.LT,
-                Bytes.ofUnsignedLong(arg1),
-                Bytes.ofUnsignedLong(arg2),
-                wcp.callLT(arg1, arg2));
-    }
 
   public static WcpRow smallCallToLeq(Wcp wcp, final Bytes arg1, final Bytes arg2) {
-    return new WcpRow(
-            WcpInstruction.LEQ,
-            arg1,
-            arg2,
-            wcp.callLT(arg1, arg2));
+    return new WcpRow(WcpInstruction.LEQ, arg1, arg2, wcp.callLT(arg1, arg2));
   }
-  static public WcpRow smallCallToLeq(Wcp wcp, final long arg1, final long arg2) {
+
+  public static WcpRow smallCallToLeq(Wcp wcp, final long arg1, final long arg2) {
     return new WcpRow(
-            WcpInstruction.LEQ,
-            Bytes.ofUnsignedLong(arg1),
-            Bytes.ofUnsignedLong(arg2),
-            wcp.callLT(arg1, arg2));
+        WcpInstruction.LEQ,
+        Bytes.ofUnsignedLong(arg1),
+        Bytes.ofUnsignedLong(arg2),
+        wcp.callLT(arg1, arg2));
   }
 
   private enum WcpInstruction {

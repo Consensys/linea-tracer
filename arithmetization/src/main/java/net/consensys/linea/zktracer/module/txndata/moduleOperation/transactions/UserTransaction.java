@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.txndata.moduleOperation.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
@@ -25,6 +26,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.txndata.module.*;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
@@ -37,10 +39,11 @@ import org.hyperledger.besu.datatypes.TransactionType;
 public class UserTransaction extends TxnDataRedesignOperation {
 
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
-  public final TransactionProcessingMetadata txnMetadata;
+  public final TransactionProcessingMetadata txn;
   public final List<TxnDataRow> rows = new ArrayList<>();
   public final Wcp wcp;
   public final Euc euc;
+  public final Fork fork;
 
   public UserTransaction(
       final TxnDataRedesign txnData, final TransactionProcessingMetadata txnMetadata) {
@@ -55,38 +58,41 @@ public class UserTransaction extends TxnDataRedesignOperation {
         txnMetadata.getUserTransactionNumber(),
         txnData.getUserTransactionNumber());
 
-    this.txnMetadata = txnMetadata;
+    this.txn = txnMetadata;
     this.wcp = txnData.getHub().wcp();
     this.euc = txnData.getHub().euc();
+    this.fork = txnData.getFork();
 
     this.process();
   }
 
   private void process() {
-    addHubRow();
-    addRlpRow();
-    addMaxNonceCheckCmptnRow();
-    addInitialBalanceCheckCmptnRow();
-    addMaxInitCodeSizeCheckCmptnRow();
-    addInitCodePricingCmptnRow();
-    addGasLimitMustCoverTheUpfrontGasCostCmptnRow();
+    hubRow();
+    rlpRow();
+    maxNonceCheckCmptnRow();
+    initialBalanceCheckCmptnRow();
+    maxInitCodeSizeCheckCmptnRow();
+    initCodePricingCmptnRow();
+    gasLimitMustCoverTheUpfrontGasCostCmptnRow();
+    gasLimitMustCoverTheTransactionFloorCostCmptnRow();
+    final long upperLimitForGasRefunds = upperLimitForGasRefundsCmptnRow();
+    final long consumedGasAfterRefunds = effectiveRefundsCmptnRow(upperLimitForGasRefunds);
+    comparingEffectiveRefundToFloorCostCmptnRow(consumedGasAfterRefunds);
   }
 
-  private void addHubRow() {
-    rows.add(new HubRow(txnMetadata));
+  private void hubRow() {
+    rows.add(new HubRow(txn));
   }
 
-  private void addRlpRow() {
-    rows.add(new RlpRow(txnMetadata));
+  private void rlpRow() {
+    rows.add(new RlpRow(txn));
   }
 
   /** Performs the EIP-2681 check that the nonce is less than 2^64 - 1. */
-  private void addMaxNonceCheckCmptnRow() {
+  private void maxNonceCheckCmptnRow() {
     WcpRow maxNonceCheckEip2681 =
         WcpRow.smallCallToLt(
-            wcp,
-            Bytes.ofUnsignedLong(txnMetadata.getBesuTransaction().getNonce()),
-            EIP_2681_MAX_NONCE);
+            wcp, Bytes.ofUnsignedLong(txn.getBesuTransaction().getNonce()), EIP_2681_MAX_NONCE);
     checkArgument(maxNonceCheckEip2681.result(), "Transaction nonce is too high");
     rows.add(maxNonceCheckEip2681);
   }
@@ -95,18 +101,17 @@ public class UserTransaction extends TxnDataRedesignOperation {
    * Ensures that the initial balance of the sender account is sufficient to cover the maximum
    * possible cost of the transaction (value + gas_limit * max(gas_price, max_fee)).
    */
-  private void addInitialBalanceCheckCmptnRow() {
-    final Bytes initialBalance = bigIntegerToBytes(txnMetadata.getInitialBalance());
-    final BigInteger value = txnMetadata.getBesuTransaction().getValue().getAsBigInteger();
+  private void initialBalanceCheckCmptnRow() {
+    final Bytes initialBalance = bigIntegerToBytes(txn.getInitialBalance());
+    final BigInteger value = txn.getBesuTransaction().getValue().getAsBigInteger();
     final BigInteger maxGasPrice =
-        transactionHasEip1559GasSemantics()
-            ? txnMetadata.getBesuTransaction().getMaxFeePerGas().get().getAsBigInteger()
-            : txnMetadata.getBesuTransaction().getGasPrice().get().getAsBigInteger();
+        transactionTypeHasEip1559GasSemantics()
+            ? txn.getBesuTransaction().getMaxFeePerGas().get().getAsBigInteger()
+            : txn.getBesuTransaction().getGasPrice().get().getAsBigInteger();
     final Bytes maxCostInWei =
         bigIntegerToBytes(
             value.add(
-                maxGasPrice.multiply(
-                    BigInteger.valueOf(txnMetadata.getBesuTransaction().getGasLimit()))));
+                maxGasPrice.multiply(BigInteger.valueOf(txn.getBesuTransaction().getGasLimit()))));
     final WcpRow initialBalanceMustCoverValueAndGas =
         WcpRow.smallCallToLeq(wcp, maxCostInWei, initialBalance);
     checkArgument(
@@ -116,61 +121,114 @@ public class UserTransaction extends TxnDataRedesignOperation {
         maxCostInWei);
   }
 
-  private void addMaxInitCodeSizeCheckCmptnRow() {
-    final int initCodeSize = initCodeSize();
+  /** Performs the EIP-3860 check that the init code size is at most 49152 bytes. */
+  private void maxInitCodeSizeCheckCmptnRow() {
+    final int initCodeSize = initCodeSizeOrZero();
     final WcpRow eip3860requiredInitCodeSizeCheck =
         WcpRow.smallCallToLeq(wcp, Bytes.ofUnsignedInt(initCodeSize), MAX_INIT_CODE_SIZE_BYTES);
     checkArgument(
         eip3860requiredInitCodeSizeCheck.result(),
-        "Init code size %s exceeds the EIP-3860 limit of 49152 bytes",
-        initCodeSize);
+        "Init code size %s exceeds the EIP-3860 limit of %s bytes",
+        initCodeSize,
+        MAX_INIT_CODE_SIZE_BYTES);
     rows.add(eip3860requiredInitCodeSizeCheck);
   }
 
-  private void addInitCodePricingCmptnRow() {
-
+  /** Adds the EIP-3860-induced init code pricing computation row. */
+  private void initCodePricingCmptnRow() {
     // Deployment transaction
-    final long dividend = initCodeSize() + ((long) WORD_SIZE_MO);
+    final long dividend = initCodeSizeOrZero() + ((long) WORD_SIZE_MO);
     rows.add(EucRow.callToEuc(euc, dividend, WORD_SIZE));
   }
 
-  private void addGasLimitMustCoverTheUpfrontGasCostCmptnRow() {
-    final long upfrontGasCost =
-        dataCost()
-            + initCodeCost()
-            + GAS_CONST_G_TRANSACTION
-            + (txnMetadata.isDeployment() ? GAS_CONST_G_TX_CREATE : 0)
-            + (transactionSupportsAccessLists() ? txnMetadata.numberOfWarmedAddresses() : 0)
-                * (long) GAS_CONST_G_ACCESS_LIST_ADRESS
-            + (txnMetadata.isDeployment() ? GAS_CONST_G_TX_CREATE : 0)
-            + (transactionSupportsAccessLists() ? txnMetadata.numberOfWarmedStorageKeys() : 0)
-                * (long) GAS_CONST_G_ACCESS_LIST_STORAGE;
+  private void gasLimitMustCoverTheUpfrontGasCostCmptnRow() {
+    final long upfrontGasCost = upfrontGasCost();
     final WcpRow gasLimitMustCoverUpfrontGasCost =
         WcpRow.smallCallToLeq(
             wcp,
             Bytes.ofUnsignedLong(upfrontGasCost),
-            Bytes.ofUnsignedLong(txnMetadata.getBesuTransaction().getGasLimit()));
+            Bytes.ofUnsignedLong(txn.getBesuTransaction().getGasLimit()));
+
     checkArgument(
         gasLimitMustCoverUpfrontGasCost.result(),
         "Gas limit %s does not cover the upfront gas cost %s",
-        txnMetadata.getBesuTransaction().getGasLimit(),
+        txn.getBesuTransaction().getGasLimit(),
         upfrontGasCost);
+
     rows.add(gasLimitMustCoverUpfrontGasCost);
   }
 
+  private void gasLimitMustCoverTheTransactionFloorCostCmptnRow() {
+    final long floorGasCost = callDataFloorCost();
+    final WcpRow gasLimitMustCoverFloorGasCost =
+        WcpRow.smallCallToLeq(
+            wcp,
+            Bytes.ofUnsignedLong(floorGasCost),
+            Bytes.ofUnsignedLong(txn.getBesuTransaction().getGasLimit()));
+
+    if (isPostPrague(fork)) {
+      checkArgument(
+          gasLimitMustCoverFloorGasCost.result(),
+          "Gas limit %s does not cover the transaction floor gas cost %s",
+          txn.getBesuTransaction().getGasLimit(),
+          floorGasCost);
+    }
+
+    rows.add(gasLimitMustCoverFloorGasCost);
+  }
+
+  private long upperLimitForGasRefundsCmptnRow() {
+    final long executionGasCost = txn.getBesuTransaction().getGasLimit() - txn.getLeftoverGas();
+    final EucRow upperLimitForGasRefunds =
+        EucRow.callToEuc(euc, executionGasCost, MAX_REFUND_QUOTIENT);
+
+    return upperLimitForGasRefunds.quotient();
+  }
+
+  private long effectiveRefundsCmptnRow(long upperLimitForGasRefunds) {
+    final WcpRow effectiveRefunds =
+        WcpRow.smallCallToLt(
+            wcp,
+            Bytes.ofUnsignedLong(txn.getRefundCounterMax()),
+            Bytes.ofUnsignedLong(upperLimitForGasRefunds));
+
+    final boolean accruedRefundsAreLtUpperLimit = effectiveRefunds.result();
+    final long consumedGasAfterRefunds =
+        accruedRefundsAreLtUpperLimit
+            ? txn.getBesuTransaction().getGasLimit()
+                - txn.getLeftoverGas()
+                - txn.getRefundCounterMax()
+            : txn.getBesuTransaction().getGasLimit()
+                - txn.getLeftoverGas()
+                - upperLimitForGasRefunds;
+
+    return consumedGasAfterRefunds;
+  }
+
+  private void comparingEffectiveRefundToFloorCostCmptnRow(long consumedGasAfterRefunds) {
+    final WcpRow comparingEffectiveRefundsVsFloorCost =
+        WcpRow.smallCallToLt(
+            wcp,
+            Bytes.ofUnsignedLong(consumedGasAfterRefunds),
+            Bytes.ofUnsignedLong(callDataFloorCost()));
+
+    final long refundEffective =
+        txn.getBesuTransaction().getGasLimit()
+            - (comparingEffectiveRefundsVsFloorCost.result()
+                ? callDataFloorCost()
+                : consumedGasAfterRefunds);
+
+    checkArgument(refundEffective == txn.getRefundEffective());
+  }
+
   private long initCodeCost() {
-    final long numberOfInitCodeWords = (initCodeSize() + WORD_SIZE_MO) / WORD_SIZE;
+    final long numberOfInitCodeWords = (initCodeSizeOrZero() + WORD_SIZE_MO) / WORD_SIZE;
     return GAS_CONST_INIT_CODE_WORD * numberOfInitCodeWords;
   }
 
   private long weightedByteCount() {
-    long nonzeroBytes = 0;
-    for (int i = 0; i < txnMetadata.getBesuTransaction().getPayload().size(); i++) {
-      if (txnMetadata.getBesuTransaction().getPayload().get(i) == 0) {
-        nonzeroBytes++;
-      }
-    }
-    return nonzeroBytes * 3 + (long) txnMetadata.getBesuTransaction().getPayload().size();
+    return ((long) txn.numberOfZeroBytesInPayload())
+        + 4 * ((long) txn.numberOfNonZeroBytesInPayload());
   }
 
   private long dataCost() {
@@ -185,7 +243,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
 
   @Override
   protected int computeLineCount() {
-    TransactionType type = txnMetadata.getBesuTransaction().getType();
+    TransactionType type = txn.getBesuTransaction().getType();
     return switch (type) {
       case FRONTIER, ACCESS_LIST -> 14;
       case EIP1559 -> 16;
@@ -193,17 +251,29 @@ public class UserTransaction extends TxnDataRedesignOperation {
     };
   }
 
-  private boolean transactionHasEip1559GasSemantics() {
-    return !(txnMetadata.getBesuTransaction().getType() == FRONTIER
-        || txnMetadata.getBesuTransaction().getType() == ACCESS_LIST);
+  private boolean transactionTypeHasEip1559GasSemantics() {
+    return !(txn.getBesuTransaction().getType() == FRONTIER
+        || txn.getBesuTransaction().getType() == ACCESS_LIST);
   }
 
   // TODO: this will change with Prague's EIP-7702 and type 4 transactions
-  private boolean transactionSupportsAccessLists() {
-    return txnMetadata.getBesuTransaction().getType() == ACCESS_LIST;
+  private boolean transactionTypeSupportsAccessLists() {
+    return txn.getBesuTransaction().getType() == ACCESS_LIST;
   }
 
-  private int initCodeSize() {
-    return txnMetadata.isDeployment() ? txnMetadata.getBesuTransaction().getPayload().size() : 0;
+  private int initCodeSizeOrZero() {
+    return txn.isDeployment() ? txn.getBesuTransaction().getPayload().size() : 0;
+  }
+
+  private long upfrontGasCost() {
+    return dataCost()
+        + initCodeCost()
+        + GAS_CONST_G_TRANSACTION
+        + (txn.isDeployment() ? GAS_CONST_G_TX_CREATE : 0)
+        + (transactionTypeSupportsAccessLists() ? txn.numberOfWarmedAddresses() : 0)
+            * (long) GAS_CONST_G_ACCESS_LIST_ADRESS
+        + (txn.isDeployment() ? GAS_CONST_G_TX_CREATE : 0)
+        + (transactionTypeSupportsAccessLists() ? txn.numberOfWarmedStorageKeys() : 0)
+            * (long) GAS_CONST_G_ACCESS_LIST_STORAGE;
   }
 }

@@ -21,11 +21,8 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
 @RequiredArgsConstructor
 public class HubRow extends TxnDataRow {
-    final public TransactionProcessingMetadata txn;
+  public final TransactionProcessingMetadata txn;
 
-    @Override
-    public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
-
-    }
-
+  @Override
+  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
 }

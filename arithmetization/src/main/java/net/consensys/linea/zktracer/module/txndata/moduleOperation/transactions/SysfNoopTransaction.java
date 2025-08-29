@@ -14,7 +14,6 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
-import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnDataRedesign;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
 

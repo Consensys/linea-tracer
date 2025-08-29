@@ -636,10 +636,6 @@ public class BlsDataOperation extends ModuleOperation {
     if (isInfinity) {
       return true;
     }
-    // Fp pX = new Fp(Bytes.concatenate(pX3, pX2, pX1, pX0).toUnsignedBigInteger());
-    // Fp pY = new Fp(Bytes.concatenate(pY3, pY2, pY1, pY0).toUnsignedBigInteger());
-    // SmallPoint p = new SmallPoint(pX, pY);
-    // return p.isOnCurve();
 
     byte[] input =
         Bytes.concatenate(
@@ -671,10 +667,6 @@ public class BlsDataOperation extends ModuleOperation {
     if (!isOnCurve) {
       return false;
     }
-    // Fp pX = new Fp(Bytes.concatenate(pX3, pX2, pX1, pX0).toUnsignedBigInteger());
-    // Fp pY = new Fp(Bytes.concatenate(pY3, pY2, pY1, pY0).toUnsignedBigInteger());
-    // SmallPoint p = new SmallPoint(pX, pY);
-    // return p.isInSubGroup();
 
     byte[] input =
         Bytes.concatenate(
@@ -716,14 +708,6 @@ public class BlsDataOperation extends ModuleOperation {
     if (isInfinity) {
       return true;
     }
-    // Fp pXIm = new Fp(Bytes.concatenate(pXIm3, pXIm2, pXIm1, pXIm0).toUnsignedBigInteger());
-    // Fp pXRe = new Fp(Bytes.concatenate(pXRe3, pXRe2, pXRe1, pXRe0).toUnsignedBigInteger());
-    // Fp pYIm = new Fp(Bytes.concatenate(pYIm3, pYIm2, pYIm1, pYIm0).toUnsignedBigInteger());
-    // Fp pYRe = new Fp(Bytes.concatenate(pYRe3, pYRe2, pYRe1, pYRe0).toUnsignedBigInteger());
-    // Fp2 pX = new Fp2(pXRe, pXIm);
-    // Fp2 pY = new Fp2(pYRe, pYIm);
-    // LargePoint p = new LargePoint(pX, pY);
-    // return p.isOnCurve();
 
     byte[] input =
         Bytes.concatenate(
@@ -774,14 +758,6 @@ public class BlsDataOperation extends ModuleOperation {
     if (!isOnCurve) {
       return false;
     }
-    // Fp pXIm = new Fp(Bytes.concatenate(pXIm3, pXIm2, pXIm1, pXIm0).toUnsignedBigInteger());
-    // Fp pXRe = new Fp(Bytes.concatenate(pXRe3, pXRe2, pXRe1, pXRe0).toUnsignedBigInteger());
-    // Fp pYIm = new Fp(Bytes.concatenate(pYIm3, pYIm2, pYIm1, pYIm0).toUnsignedBigInteger());
-    // Fp pYRe = new Fp(Bytes.concatenate(pYRe3, pYRe2, pYRe1, pYRe0).toUnsignedBigInteger());
-    // Fp2 pX = new Fp2(pXRe, pXIm);
-    // Fp2 pY = new Fp2(pYRe, pYIm);
-    // LargePoint p = new LargePoint(pX, pY);
-    // return p.isInSubGroup();
 
     byte[] input =
         Bytes.concatenate(

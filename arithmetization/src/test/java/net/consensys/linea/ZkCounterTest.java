@@ -17,14 +17,13 @@ package net.consensys.linea;
 
 import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
-import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Utils.call;
 import static net.consensys.linea.zktracer.Utils.delegateCall;
 import static net.consensys.linea.zktracer.ZkCounter.*;
 import static net.consensys.linea.zktracer.ZkCounter.MODEXP;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.BLS_PRECOMPILES;
-import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
+import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompileCall;
 import static org.hyperledger.besu.datatypes.Address.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -113,8 +112,8 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(0, lineCountMap.get(MODEXP));
     assertEquals(0, lineCountMap.get(RIP));
     assertEquals(0, lineCountMap.get(BLAKE));
-    assertEquals(0, lineCountMap.get("BLS"));
     assertEquals(0, lineCountMap.get("POINT_EVAL"));
+    assertEquals(0, lineCountMap.get("BLS"));
 
     // L1 block size > 0
     assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);
@@ -211,8 +210,8 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(0, lineCountMap.get(MODEXP));
     assertEquals(0, lineCountMap.get(RIP));
     assertEquals(0, lineCountMap.get(BLAKE));
-    assertEquals(0, lineCountMap.get("BLS"));
     assertEquals(0, lineCountMap.get("POINT_EVAL"));
+    assertEquals(0, lineCountMap.get("BLS"));
 
     // L1 block size > 0
     assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);
@@ -280,8 +279,8 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(expectedRIP, lineCountMap.get(RIP));
     final int expectedBlake = prc.equals(BLAKE2B_F_COMPRESSION) ? Integer.MAX_VALUE : 0;
     assertEquals(expectedBlake, lineCountMap.get(BLAKE));
-    assertEquals(0, lineCountMap.get("BLS"));
     assertEquals(0, lineCountMap.get("POINT_EVAL"));
+    assertEquals(0, lineCountMap.get("BLS"));
 
     // L1 block size > 0
     assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);
@@ -367,8 +366,8 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals((!base && !exp && !mod) ? 0 : Integer.MAX_VALUE, lineCountMap.get(MODEXP));
     assertEquals(0, lineCountMap.get(RIP));
     assertEquals(0, lineCountMap.get(BLAKE));
-    assertEquals(0, lineCountMap.get("BLS"));
     assertEquals(0, lineCountMap.get("POINT_EVAL"));
+    assertEquals(0, lineCountMap.get("BLS"));
 
     // L1 block size > 0
     assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);
@@ -451,15 +450,15 @@ public class ZkCounterTest extends TracerTestBase {
     // no LOG
     assertEquals(0, lineCountMap.get("BLOCK_L2_L1_LOGS"));
 
-    final boolean isBlsCall = isBlsPrecompile(prc) && isPostPrague(testInfo.chainConfig.fork);
-    final boolean isKzgCall = !isBlsPrecompile(prc) && isPostCancun(testInfo.chainConfig.fork);
+    final boolean isKzgCall = prc.equals(KZG_POINT_EVAL) && isPostCancun(testInfo.chainConfig.fork);
+    final boolean isBlsCall = isBlsPrecompileCall(prc, testInfo.chainConfig.fork);
 
     // no precompile call, but a PRC:
     assertEquals(0, lineCountMap.get(MODEXP));
     assertEquals(0, lineCountMap.get(RIP));
     assertEquals(0, lineCountMap.get(BLAKE));
-    assertEquals(isBlsCall ? Integer.MAX_VALUE : 0, lineCountMap.get("BLS"));
     assertEquals(isKzgCall ? Integer.MAX_VALUE : 0, lineCountMap.get("POINT_EVAL"));
+    assertEquals(isBlsCall ? Integer.MAX_VALUE : 0, lineCountMap.get("BLS"));
 
     // L1 block size > 0
     assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);

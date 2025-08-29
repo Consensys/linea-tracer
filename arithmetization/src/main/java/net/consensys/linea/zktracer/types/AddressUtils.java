@@ -16,6 +16,8 @@
 package net.consensys.linea.zktracer.types;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.CREATE2_SHIFT;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
@@ -76,11 +78,19 @@ public class AddressUtils {
     return BLS_PRECOMPILES.contains(address);
   }
 
+  public static boolean isBlsPrecompileCall(Address address, Fork fork) {
+    return isBlsPrecompile(address) && isPostPrague(fork);
+  }
+
+  public static boolean isKzgPrecompileCall(Address address, Fork fork) {
+    return address.equals(Address.KZG_POINT_EVAL) && isPostCancun(fork);
+  }
+
   public static boolean isPrecompile(Fork fork, Address to) {
     return switch (fork) {
       case LONDON, PARIS, SHANGHAI -> precompileAddressLondon.contains(to);
       case CANCUN -> precompileAddressCancun.contains(to);
-      case PRAGUE, OSAKA -> precompileAddressPrague.contains(to);
+      case PRAGUE -> precompileAddressPrague.contains(to);
       default -> throw new IllegalArgumentException("Unknown fork: " + fork);
     };
   }

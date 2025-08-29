@@ -97,30 +97,32 @@ public class InitCodeTests extends TracerTestBase {
       Bytes.fromHexString(
           "0x000000000000000000000000" + expectedContractCAddress.toString().substring(2));
 
+  // Payloads preparation
+  Bytes storeInitCodeC = CustomCreate2Payload.storeInitCodeC(initCodeC);
+  Bytes storeSalt = CustomCreate2Payload.storeSalt(salt);
+  Bytes create2WithInitCodeC = CustomCreate2Payload.create2WithInitCodeC();
+  Bytes callContractCStoreInMapPayload =
+      CustomCreate2Payload.callContractC(
+          ContractCPayload.storeInMap(1, "0x0000000000000000000000000000000000001234"), false);
+  Bytes callContractCSelfDestructPayload =
+      CustomCreate2Payload.callContractC(ContractCPayload.selfDestructOnDemand(), false);
+  Bytes create2WithCallBackAfterCreate2 = CustomCreate2Payload.create2WithCallBackAfterCreate2();
+  Bytes create2CallCAndRevert = CustomCreate2Payload.create2CallCAndRevert();
+  Bytes create2WithStaticCall =
+      CustomCreate2Payload.callMyself(CustomCreate2Payload.create2WithInitCodeC(), true);
+  Bytes create2FourTimes = CustomCreate2Payload.create2FourTimes();
+
+  // Logs for transaction validator
+  String contractCreatedEvent = EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
+  String staticCallMyselfFailEvent = EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
+  String calledCreate2WithInitCodeCEvent =
+      EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
+  String callMyselfFail = EventEncoder.encode(CustomCreate2.CALLMYSELFFAIL_EVENT);
+  String callContractCFailEvent = EventEncoder.encode(CustomCreate2.CALLCONTRACTCFAIL_EVENT);
+
   @Test
   void deployContractCWithCreate2(TestInfo testInfo) {
 
-    // Payloads preparation
-    Bytes storeInitCodeC = CustomCreate2Payload.storeInitCodeC(initCodeC);
-    Bytes storeSalt = CustomCreate2Payload.storeSalt(salt);
-    Bytes create2WithInitCodeC = CustomCreate2Payload.create2WithInitCodeC();
-    Bytes callContractCStoreInMapPayload =
-        CustomCreate2Payload.callContractC(
-            ContractCPayload.storeInMap(1, "0x0000000000000000000000000000000000001234"), false);
-    Bytes callContractCSelfDestructPayload =
-        CustomCreate2Payload.callContractC(ContractCPayload.selfDestructOnDemand(), false);
-    Bytes create2WithCallBackAfterCreate2 = CustomCreate2Payload.create2WithCallBackAfterCreate2();
-    Bytes create2CallCAndRevert = CustomCreate2Payload.create2CallCAndRevert();
-    Bytes create2WithStaticCall =
-        CustomCreate2Payload.callMyself(CustomCreate2Payload.create2WithInitCodeC(), true);
-    Bytes create2FourTimes = CustomCreate2Payload.create2FourTimes();
-
-    // Logs for transaction validator
-    String contractCreatedEvent = EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
-    String staticCallMyselfFailEvent =
-        EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
-    String calledCreate2WithInitCodeCEvent =
-        EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
     Map<String, List<Bytes>> logsDataMap = new HashMap<>();
 
@@ -270,70 +272,6 @@ public class InitCodeTests extends TracerTestBase {
     Bytes advancedCreateScenariiOneTx =
         CustomCreate2Payload.advancedCreateScenariiOneTx(initCodeC, salt);
 
-    // Logs for transaction validator
-    String contractCreatedEvent = EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
-    String staticCallMyselfFailEvent =
-        EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
-    String calledCreate2WithInitCodeCEvent =
-        EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
-    String calledCreate2WithInitCodeCNoValueEvent =
-        EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODECNOVALUE_EVENT);
-    String callContractCFail = EventEncoder.encode(CustomCreate2.CALLCONTRACTCFAIL_EVENT);
-    String callMyselfFail = EventEncoder.encode(CustomCreate2.CALLMYSELFFAIL_EVENT);
-    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
-    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
-
-    // List all logs expected from each topic
-    int lastTxIsContractCreatedEvent = isPostCancun(fork) ? 0 : 1;
-    // logsTopicMap.put(contractCreatedEvent, List.of(1 + lastTxIsContractCreatedEvent));
-    logsTopicMap.put(contractCreatedEvent, List.of(1));
-    // logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
-    logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
-    // logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(1));
-    logsTopicMap.put(calledCreate2WithInitCodeCNoValueEvent, List.of(1));
-    logsTopicMap.put(callContractCFail, List.of(0));
-    logsTopicMap.put(callMyselfFail, List.of(3));
-    // List data expected for each topic
-    Bytes lastTxContractCreatedEvent =
-        isPostCancun(fork) ? Bytes.EMPTY : expectedContractCAddressLogData;
-    logsDataMap.put(contractCreatedEvent, List.of(Bytes.EMPTY));
-    // List status expected per transaction
-    // 0 is FAILED
-    // 1 is SUCCESSFUL
-    List<Integer> txStatuses = List.of(1);
-
-    // Instantiate validator
-    TransactionProcessingResultValidator create2OneTxValidator =
-        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
-
-    List<Transaction> transactions =
-        getTransactions(
-            customCreate2Account, userAccount, List.of(advancedCreateScenariiOneTx), List.of(2L));
-    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder(testInfo)
-            .accounts(List.of(userAccount, customCreate2Account))
-            .transactions(transactions)
-            .transactionProcessingResultValidator(create2OneTxValidator)
-            .build();
-    toyExecutionEnvironmentV2.run();
-  }
-
-  @Test
-  void deployContractCWithCreate2OneTxDebug() {
-    // Payload preparation
-    Bytes advancedCreateScenariiOneTx =
-        CustomCreate2Payload.advancedCreateScenariiOneTx(initCodeC, salt);
-    Bytes create2 = CustomCreate2Payload.create2WithInitCodeC();
-
-    // Logs for transaction validator
-    String contractCreatedEvent = EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
-    String callMyselfFail = EventEncoder.encode(CustomCreate2.CALLMYSELFFAIL_EVENT);
-    String staticCallMyselfFailEvent =
-        EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
-    String callContractCFailEvent = EventEncoder.encode(CustomCreate2.CALLCONTRACTCFAIL_EVENT);
-    String calledCreate2WithInitCodeCEvent =
-        EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
-
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
     Map<String, List<Bytes>> logsDataMap = new HashMap<>();
 
@@ -356,8 +294,9 @@ public class InitCodeTests extends TracerTestBase {
         getTransactions(
             customCreate2Account,
             userAccount,
-            List.of(advancedCreateScenariiOneTx, create2),
+            List.of(advancedCreateScenariiOneTx, create2WithInitCodeC),
             List.of(2L, 0L));
+
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(userAccount, customCreate2Account))

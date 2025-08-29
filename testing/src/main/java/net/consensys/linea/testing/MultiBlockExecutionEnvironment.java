@@ -15,6 +15,7 @@
 
 package net.consensys.linea.testing;
 
+import static net.consensys.linea.reporting.TracerTestBase.testInfo;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Fork.LONDON;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
@@ -46,7 +47,7 @@ public class MultiBlockExecutionEnvironment {
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
   private final ZkTracer tracer;
 
-  @Builder.Default public final ChainConfig testsChain = MAINNET_TESTCONFIG(LONDON);
+  @Builder.Default public final ChainConfig testsChain = MAINNET_TESTCONFIG(testInfo.chainConfig.fork);
 
   /**
    * A transaction validator of each transaction; by default, it asserts that the transaction was

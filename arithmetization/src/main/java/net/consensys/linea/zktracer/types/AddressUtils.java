@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.types;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.Trace.CREATE2_SHIFT;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 import static org.hyperledger.besu.crypto.Hash.keccak256;
@@ -37,7 +38,8 @@ import org.hyperledger.besu.ethereum.rlp.RLP;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class AddressUtils {
-  private static final Bytes CREATE2_PREFIX = Bytes.of(0xff);
+  private static final Bytes CREATE2_PREFIX = Bytes.minimalBytes(CREATE2_SHIFT);
+
   public static final List<Address> precompileAddressLondon =
       List.of(
           Address.ECREC,
@@ -49,26 +51,36 @@ public class AddressUtils {
           Address.ALTBN128_MUL,
           Address.ALTBN128_PAIRING,
           Address.BLAKE2B_F_COMPRESSION);
+
   public static final List<Address> precompileAddressCancun =
       Stream.concat(precompileAddressLondon.stream(), Stream.of(Address.KZG_POINT_EVAL)).toList();
+
+  public static final List<Address> BLS_PRECOMPILES =
+      List.of(
+          Address.BLS12_G1ADD,
+          Address.BLS12_G1MULTIEXP,
+          Address.BLS12_G2ADD,
+          Address.BLS12_G2MULTIEXP,
+          Address.BLS12_PAIRING,
+          Address.BLS12_MAP_FP_TO_G1,
+          Address.BLS12_MAP_FP2_TO_G2);
+
   public static final List<Address> precompileAddressPrague =
-      Stream.concat(
-              precompileAddressCancun.stream(),
-              Stream.of(
-                  Address.BLS12_G1ADD,
-                  Address.BLS12_G1MULTIEXP,
-                  Address.BLS12_G2ADD,
-                  Address.BLS12_G2MULTIEXP,
-                  Address.BLS12_PAIRING,
-                  Address.BLS12_MAP_FP_TO_G1,
-                  Address.BLS12_MAP_FP2_TO_G2))
-          .toList();
+      Stream.concat(precompileAddressCancun.stream(), BLS_PRECOMPILES.stream()).toList();
+
+  /**
+   * Check if the address is one of the BLS precompiles added in Prague (so excluding
+   * KZG_POINT_EVAL).
+   */
+  public static boolean isBlsPrecompile(Address address) {
+    return BLS_PRECOMPILES.contains(address);
+  }
 
   public static boolean isPrecompile(Fork fork, Address to) {
     return switch (fork) {
       case LONDON, PARIS, SHANGHAI -> precompileAddressLondon.contains(to);
       case CANCUN -> precompileAddressCancun.contains(to);
-      case PRAGUE -> precompileAddressPrague.contains(to);
+      case PRAGUE, OSAKA -> precompileAddressPrague.contains(to);
       default -> throw new IllegalArgumentException("Unknown fork: " + fork);
     };
   }

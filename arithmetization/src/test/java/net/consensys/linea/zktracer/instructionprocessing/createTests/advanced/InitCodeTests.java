@@ -81,7 +81,7 @@ public class InitCodeTests extends TracerTestBase {
           .code(SmartContractUtils.getSolidityContractRuntimeByteCode(CustomCreate2.class))
           .build();
 
-  static final Long gasLimit = 50000000L;
+  static final Long gasLimit = 10000000L;
 
   // Compute expected address for ContractC with Create2
   // address = keccak256(0xff + sender_address + salt + keccak256(initialisation_code))[12:]
@@ -309,6 +309,55 @@ public class InitCodeTests extends TracerTestBase {
     List<Transaction> transactions =
         getTransactions(
             customCreate2Account, userAccount, List.of(advancedCreateScenariiOneTx), List.of(2L));
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder(testInfo)
+            .accounts(List.of(userAccount, customCreate2Account))
+            .transactions(transactions)
+            .transactionProcessingResultValidator(create2OneTxValidator)
+            .build();
+    toyExecutionEnvironmentV2.run();
+  }
+
+  @Test
+  void deployContractCWithCreate2OneTxDebug() {
+    // Payload preparation
+    Bytes advancedCreateScenariiOneTx =
+        CustomCreate2Payload.advancedCreateScenariiOneTx(initCodeC, salt);
+    Bytes create2 = CustomCreate2Payload.create2WithInitCodeC();
+
+    // Logs for transaction validator
+    String contractCreatedEvent = EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
+    String callMyselfFail = EventEncoder.encode(CustomCreate2.CALLMYSELFFAIL_EVENT);
+    String staticCallMyselfFailEvent =
+        EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
+    String callContractCFailEvent = EventEncoder.encode(CustomCreate2.CALLCONTRACTCFAIL_EVENT);
+    String calledCreate2WithInitCodeCEvent =
+        EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
+
+    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
+    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
+
+    // int lastTxIsContractCreatedEvent = isPostCancun(fork) ? 0 : 1;
+    // int lastTxStatus = isPostCancun(fork) ? 0 : 1;
+    List<Integer> txStatuses = List.of(1, 1);
+
+    logsTopicMap.put(contractCreatedEvent, List.of(1, 1));
+    logsTopicMap.put(callMyselfFail, List.of(2, 0));
+    logsTopicMap.put(staticCallMyselfFailEvent, List.of(1, 0));
+    logsTopicMap.put(callContractCFailEvent, List.of(1, 0));
+    logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 1));
+    logsDataMap.put(contractCreatedEvent, List.of(expectedContractCAddress, Bytes.EMPTY));
+
+    // Instantiate validator
+    TransactionProcessingResultValidator create2OneTxValidator =
+        new SmartContractTestValidator(txStatuses, logsTopicMap, new HashMap<>());
+
+    List<Transaction> transactions =
+        getTransactions(
+            customCreate2Account,
+            userAccount,
+            List.of(advancedCreateScenariiOneTx, create2),
+            List.of(2L, 0L));
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(testInfo)
             .accounts(List.of(userAccount, customCreate2Account))

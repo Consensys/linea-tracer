@@ -52,9 +52,13 @@ contract CustomCreate2 is TestingBase {
         IContractC(addC).callBackCustomCreate2(address(this));
     }
 
-    function create2WithCallBackAfterCreate2NoValue() public payable {
+    function create2WithCallCtoCallbackNoValue() public payable {
         address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
-        IContractC(addC).callBackCustomCreate2(address(this));
+        addContractC = addC;
+        callContractC(
+            abi.encodeWithSignature("callBackCustomCreate2(address)", address(this)),
+            false
+        );
     }
 
     function create2CallCAndRevert() public payable {
@@ -74,6 +78,15 @@ contract CustomCreate2 is TestingBase {
         deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
     }
 
+    function create2FourTimesWithRevert() public payable {
+        uint256 max = type(uint256).max;
+        deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
+        deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
+        deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
+        deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
+        revert();
+    }
+
     // Behavior on demand
 
     function revertOnDemand() public {
@@ -88,12 +101,12 @@ contract CustomCreate2 is TestingBase {
     function callMyself(bytes memory executePayload, bool staticCall) public {
         bool success;
         if (staticCall) {
-            success = doStaticCall(address(this), executePayload, 5000000, 0);
+            success = doStaticCall(address(this), executePayload, 1000000, 0);
             if (!success) {
                 emit StaticCallMyselfFail();
             }
         } else {
-            success = doCall(address(this), executePayload, 5000000, 0);
+            success = doCall(address(this), executePayload, 1000000, 0);
             if (!success) {
                 emit CallMyselfFail();
             }
@@ -105,12 +118,12 @@ contract CustomCreate2 is TestingBase {
     function callContractC(bytes memory executePayload, bool staticCall) public {
         bool success;
         if (staticCall) {
-            success = doStaticCall(addContractC, executePayload, 5000000, 0);
+            success = doStaticCall(addContractC, executePayload, 2000000, 0);
             if (!success) {
                 emit StaticCallContractCFail();
             }
         } else {
-            success = doCall(addContractC, executePayload, 5000000, 0);
+            success = doCall(addContractC, executePayload, 2000000, 0);
             if (!success) {
                 emit CallContractCFail();
             }
@@ -120,29 +133,28 @@ contract CustomCreate2 is TestingBase {
     function advancedCreateScenariiOneTx(bytes memory code, bytes32 saltEx) public payable{
         storeInitCodeC(code);
         storeSalt(saltEx);
-        create2WithInitCodeCNoValue();
-        callContractC(
-        abi.encodeWithSignature("storeInMap(uint256,address)", 1, "0x0000000000000000000000000000000000001234"),
-        false
-        );
-        callContractC(
-            abi.encodeWithSignature("selfDestructOnDemand()"),
+        callMyself(
+            abi.encodeWithSignature("create2FourTimesWithRevert()"),
             false
         );
         callMyself(
-            abi.encodeWithSignature("create2WithCallBackAfterCreate2NoValue()"),
-            false
+            abi.encodeWithSignature("create2WithInitCodeCNoValue()"),
+            true
         );
         callMyself(
             abi.encodeWithSignature("create2CallCAndRevert()"),
             false
         );
         callMyself(
-           abi.encodeWithSignature("create2WithInitCodeCNoValue()"),
-           true
+            abi.encodeWithSignature("create2WithCallCtoCallbackNoValue()"),
+            false
         );
-        callMyself(
-            abi.encodeWithSignature("create2FourTimes()"),
+        callContractC(
+            abi.encodeWithSignature("storeInMap(uint256,address)", 1, "0x0000000000000000000000000000000000001234"),
+            false
+        );
+        callContractC(
+            abi.encodeWithSignature("selfDestructOnDemand()"),
             false
         );
     }

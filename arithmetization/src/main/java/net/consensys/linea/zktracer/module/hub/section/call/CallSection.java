@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+import static net.consensys.linea.zktracer.types.AddressUtils.*;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import static org.hyperledger.besu.datatypes.Address.*;
 
@@ -163,8 +163,7 @@ public class CallSection extends TraceSection
     if (Exceptions.any(exceptions)) {
       scenarioFragment.setScenario(CALL_EXCEPTION);
       if (opCode.mnemonic() == CALL) {
-        final XCallOobCall oobCall = new XCallOobCall();
-        firstImcFragment.callOob(oobCall);
+        firstImcFragment.callOob(new XCallOobCall());
       }
     }
 
@@ -195,6 +194,14 @@ public class CallSection extends TraceSection
     rawCalleeAddress = frame.getStackItem(1);
     calleeAddress = Address.extract(EWord.of(rawCalleeAddress));
 
+    // TODO: remove me when Linea supports Cancun & Prague precompiles
+    if (isKzgPrecompileCall(calleeAddress, hub.fork)) {
+      hub.pointEval().detectEvent();
+    }
+    if (isBlsPrecompileCall(calleeAddress, hub.fork)) {
+      hub.bls().detectEvent();
+    }
+
     callerFirst = canonical(hub, callerAddress);
     calleeFirst = canonical(hub, calleeAddress);
 
@@ -219,8 +226,7 @@ public class CallSection extends TraceSection
             ? Wei.of(frame.getStackItem(2).toUnsignedBigInteger())
             : Wei.ZERO;
 
-    final CallOobCall oobCall = new CallOobCall();
-    firstImcFragment.callOob(oobCall);
+    final CallOobCall oobCall = (CallOobCall) firstImcFragment.callOob(new CallOobCall());
 
     final boolean aborts = hub.pch().abortingConditions().any();
     checkArgument(oobCall.isAbortingCondition() == aborts);
@@ -330,7 +336,7 @@ public class CallSection extends TraceSection
     }
 
     final WorldUpdater world = frame.getWorldUpdater();
-    if (isPrecompile(calleeAddress)) {
+    if (isPrecompile(hub.fork, calleeAddress)) {
       precompileAddress = Optional.of(calleeAddress);
       scenarioFragment.setScenario(CALL_PRC_UNDEFINED);
     } else {

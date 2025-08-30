@@ -68,6 +68,7 @@ public class TransactionProcessingMetadata {
   final long dataCost;
   final long initCodeCost;
   final long accessListCost;
+  final long floorCost;
 
   /* g in the EYP, defined by g = TG - g0 */
   final long initiallyAvailableGas;
@@ -198,19 +199,23 @@ public class TransactionProcessingMetadata {
 
     initialBalance = getInitialBalance(world);
 
+    numberOfZeroBytesInPayload = Math.toIntExact(besuTransaction.getPayloadZeroBytes());
+    numberOfNonZeroBytesInPayload =
+        besuTransaction.getPayload().size() - numberOfZeroBytesInPayload;
+
     // Note: Besu's dataCost computation contains
     // - the 21_000 transaction cost (we deduce it)
     // - the contract creation cost in case of deployment
     // - the baseline gas (gas for access lists and 7702 authorizations) is set to zero, because we
     // only consider the cost of the transaction payload
-    initCodeCost = hub.gasCalculator.initcodeCost(besuTransaction.getPayload().size());
-    dataCost =
-        hub.gasCalculator.transactionIntrinsicGasCost(besuTransaction, 0)
-            - GAS_CONST_G_TRANSACTION
-            - (isDeployment ? GAS_CONST_G_CREATE : 0)
-            - (isDeployment ? initCodeCost : 0);
+    initCodeCost =
+        isDeployment ? hub.gasCalculator.initcodeCost(besuTransaction.getPayload().size()) : 0;
+    dataCost = 4 * weightedByteCount();
     accessListCost =
         besuTransaction.getAccessList().map(hub.gasCalculator::accessListGasCost).orElse(0L);
+    floorCost =
+        hub.gasCalculator.transactionFloorCost(
+            getBesuTransaction().getPayload(), numberOfZeroBytesInPayload);
     initiallyAvailableGas = getInitiallyAvailableGas();
 
     effectiveRecipient = effectiveToAddress(besuTransaction);
@@ -238,9 +243,6 @@ public class TransactionProcessingMetadata {
             : Bytes.EMPTY;
     replayProtection = besuTransaction.getChainId().isPresent();
     yParity = retrieveYParity();
-    numberOfZeroBytesInPayload = Math.toIntExact(besuTransaction.getPayloadZeroBytes());
-    numberOfNonZeroBytesInPayload =
-        besuTransaction.getPayload().size() - numberOfZeroBytesInPayload;
     final List<AccessListEntry> accessList =
         besuTransaction.getAccessList().orElse(new ArrayList<>());
     numberOfWarmedAddresses = accessList.size();
@@ -321,6 +323,7 @@ public class TransactionProcessingMetadata {
 
   public long getUpfrontGasCost() {
     return dataCost
+        + initCodeCost
         + (isDeployment ? GAS_CONST_G_CREATE : 0)
         + (isDeployment ? initCodeCost : 0)
         + GAS_CONST_G_TRANSACTION
@@ -337,11 +340,8 @@ public class TransactionProcessingMetadata {
         leftoverGas + Math.min(maxRefundableAmount, refundCounterMax);
     final long transactionExecutionCostAfterRefunds =
         besuTransaction.getGasLimit() - leftoverGasPlusRefunds;
-    final long transactionFloorCost =
-        hub.gasCalculator.transactionFloorCost(
-            besuTransaction.getPayload(), numberOfZeroBytesInPayload);
     return besuTransaction.getGasLimit()
-        - Math.max(transactionFloorCost, transactionExecutionCostAfterRefunds);
+        - Math.max(floorCost, transactionExecutionCostAfterRefunds);
   }
 
   private long computeEffectiveGasPrice() {
@@ -423,6 +423,10 @@ public class TransactionProcessingMetadata {
         }
       }
     }
+  }
+
+  public long weightedByteCount() {
+    return 4 * numberOfNonZeroBytesInPayload + numberOfZeroBytesInPayload;
   }
 
   public void captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(Hub hub) {

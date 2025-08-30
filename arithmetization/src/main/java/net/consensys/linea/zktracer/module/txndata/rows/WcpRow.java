@@ -46,7 +46,7 @@ public class WcpRow extends TxnDataRow {
   }
 
   public static WcpRow smallCallToLeq(Wcp wcp, final Bytes arg1, final Bytes arg2) {
-    return new WcpRow(WcpInstruction.LEQ, arg1, arg2, wcp.callLT(arg1, arg2));
+    return new WcpRow(WcpInstruction.LEQ, arg1, arg2, wcp.callLEQ(arg1, arg2));
   }
 
   public static WcpRow smallCallToLeq(Wcp wcp, final long arg1, final long arg2) {
@@ -54,7 +54,12 @@ public class WcpRow extends TxnDataRow {
         WcpInstruction.LEQ,
         Bytes.ofUnsignedLong(arg1),
         Bytes.ofUnsignedLong(arg2),
-        wcp.callLT(arg1, arg2));
+        wcp.callLEQ(arg1, arg2));
+  }
+
+  public static WcpRow smallCallToIszero(Wcp wcp, final long arg1) {
+    final Bytes arg1Bytes = Bytes.ofUnsignedLong(arg1);
+    return new WcpRow(WcpInstruction.ISZERO, arg1Bytes, Bytes.EMPTY, wcp.callISZERO(arg1Bytes));
   }
 
   private enum WcpInstruction {
@@ -63,6 +68,7 @@ public class WcpRow extends TxnDataRow {
     GT,
     // SLT,
     // SGT,
+    ISZERO,
     LEQ,
     GEQ,
   }

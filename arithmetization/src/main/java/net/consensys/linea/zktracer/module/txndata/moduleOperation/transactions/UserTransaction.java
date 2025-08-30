@@ -78,6 +78,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
     final long upperLimitForGasRefunds = upperLimitForGasRefundsComputationRow();
     final long consumedGasAfterRefunds = effectiveRefundsComputationRow(upperLimitForGasRefunds);
     comparingEffectiveRefundToFloorCostComputationRow(consumedGasAfterRefunds);
+    detectingEmptyCallDataComputationRow();
   }
 
   private void hubRow() {
@@ -182,6 +183,8 @@ public class UserTransaction extends TxnDataRedesignOperation {
     final EucRow upperLimitForGasRefunds =
         EucRow.callToEuc(euc, executionGasCost, MAX_REFUND_QUOTIENT);
 
+    rows.add(upperLimitForGasRefunds);
+
     return upperLimitForGasRefunds.quotient();
   }
 
@@ -202,6 +205,8 @@ public class UserTransaction extends TxnDataRedesignOperation {
                 - txn.getLeftoverGas()
                 - upperLimitForGasRefunds;
 
+    rows.add(effectiveRefunds);
+
     return consumedGasAfterRefunds;
   }
 
@@ -212,21 +217,14 @@ public class UserTransaction extends TxnDataRedesignOperation {
             Bytes.ofUnsignedLong(consumedGasAfterRefunds),
             Bytes.ofUnsignedLong(callDataFloorCost()));
 
-    long refundEffective;
+    rows.add(comparingEffectiveRefundsVsFloorCost);
+  }
 
-    if (isPostPrague(fork)) {
-      // Prague case (and beyond)
-      refundEffective =
-          txn.getBesuTransaction().getGasLimit()
-              - (comparingEffectiveRefundsVsFloorCost.result()
-                  ? callDataFloorCost()
-                  : consumedGasAfterRefunds);
-    } else {
-      // Cancun case
-      refundEffective = txn.getBesuTransaction().getGasLimit() - consumedGasAfterRefunds;
-    }
+  private void detectingEmptyCallDataComputationRow() {
+    final WcpRow detectingEmptyCallData =
+        WcpRow.smallCallToIszero(wcp, txn.getBesuTransaction().getPayload().size());
 
-    checkArgument(refundEffective == txn.getRefundEffective());
+    rows.add(detectingEmptyCallData);
   }
 
   private long initCodeCost() {
@@ -238,12 +236,14 @@ public class UserTransaction extends TxnDataRedesignOperation {
     return txn.numberOfZeroBytesInPayload() + 4 * txn.numberOfNonZeroBytesInPayload();
   }
 
+  // TODO: use the appropriate TOKEN_COST constant
   private long dataCost() {
-    return STANDARD_TOKEN_COST * weightedByteCount();
+    return 4 * weightedByteCount();
   }
 
+  // TODO: use the appropriate TOKEN_COST constant
   private long callDataFloorCost() {
-    return FLOOR_TOKEN_COST * weightedByteCount();
+    return 10 * weightedByteCount();
   }
 
   @Override

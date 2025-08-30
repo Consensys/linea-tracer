@@ -19,15 +19,12 @@ import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesi
 
 public class SysfNoopTransaction extends TxnDataRedesignOperation {
 
-  public SysfNoopTransaction(TxnDataRedesign txnData) {
-    super(
-        txnData.getSysiTransactionNumber(),
-        txnData.getUserTransactionNumber(),
-        txnData.getUpdatedSysfTransactionNumber());
+  @Override
+  protected int ctMax() {
+    return 1;
   }
 
-  @Override
-  protected int computeLineCount() {
-    return -1;
+  public SysfNoopTransaction(TxnDataRedesign txnData) {
+    super(txnData);
   }
 }

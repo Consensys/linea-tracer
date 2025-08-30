@@ -14,14 +14,16 @@
  */
 package net.consensys.linea.zktracer.module.txndata.rows;
 
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.List;
+
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
-import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import net.consensys.linea.zktracer.types.EWord;
 
-@RequiredArgsConstructor
-public class HubRow extends TxnDataRow {
-  public final TransactionProcessingMetadata txn;
+public class HubRowForSystemTransactions extends TxnDataRow {
+
+  public final List<EWord> systemTransactionData = new ArrayList<>();
 
   @Override
   public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}

@@ -19,12 +19,8 @@ import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.txndata.moduleOperation.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static org.hyperledger.besu.datatypes.TransactionType.ACCESS_LIST;
-import static org.hyperledger.besu.datatypes.TransactionType.FRONTIER;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.module.euc.Euc;
@@ -34,13 +30,11 @@ import net.consensys.linea.zktracer.module.txndata.rows.*;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.TransactionType;
 
 public class UserTransaction extends TxnDataRedesignOperation {
 
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
   public final TransactionProcessingMetadata txn;
-  public final List<TxnDataRow> rows = new ArrayList<>();
   public final TxnDataRedesign txnData;
   public final Wcp wcp;
   public final Euc euc;
@@ -48,16 +42,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
 
   public UserTransaction(
       final TxnDataRedesign txnData, final TransactionProcessingMetadata txnMetadata) {
-    super(
-        txnData.getSysiTransactionNumber(),
-        txnData.getUpdatedUserTransactionNumber(),
-        txnData.getSysfTransactionNumber());
-
-    checkArgument(
-        txnData.getUserTransactionNumber() == txnMetadata.getUserTransactionNumber(),
-        "User transaction number mismatch: expected %s, got %s",
-        txnMetadata.getUserTransactionNumber(),
-        txnData.getUserTransactionNumber());
+    super(txnData);
 
     this.txnData = txnData;
     this.txn = txnMetadata;
@@ -68,12 +53,12 @@ public class UserTransaction extends TxnDataRedesignOperation {
     this.process();
   }
 
-    /**
-     * Every line of function call in the {@link UserTransaction#process} method corresponds to a
-     * row in the USER transaction processing of the specification.
-     */
+  /**
+   * Every line of function call in the {@link UserTransaction#process} method corresponds to a row
+   * in the USER transaction processing of the specification.
+   */
   private void process() {
-      
+
     hubRow();
     rlpRow();
     maxNonceCheckComputationRow();
@@ -95,11 +80,16 @@ public class UserTransaction extends TxnDataRedesignOperation {
     }
   }
 
-  private void hubRow() {
-    rows.add(new HubRow(txn));
+  @Override
+  protected int ctMax() {
+    return transactionTypeHasEip1559GasSemantics() ? 15 : 13;
   }
 
-  private void rlpRow() {
+  void hubRow() {
+    rows.add(new HubRowForUserTransactions(txn));
+  }
+
+  void rlpRow() {
     rows.add(new RlpRow(txn));
   }
 
@@ -301,16 +291,6 @@ public class UserTransaction extends TxnDataRedesignOperation {
         WcpRow.smallCallToLeq(wcp, maxPriorityFeePerGas + txn.getBaseFee(), maxFeePerGas);
 
     rows.add(computingTheEffectiveGasPrice);
-  }
-
-  @Override
-  protected int computeLineCount() {
-    TransactionType type = txn.getBesuTransaction().getType();
-    return switch (type) {
-      case FRONTIER, ACCESS_LIST -> 14;
-      case EIP1559 -> 16;
-      default -> throw new RuntimeException("Transaction type " + type + " not supported");
-    };
   }
 
   private boolean transactionTypeHasEip1559GasSemantics() {

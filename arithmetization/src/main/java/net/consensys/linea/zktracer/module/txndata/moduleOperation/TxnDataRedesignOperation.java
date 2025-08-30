@@ -14,13 +14,69 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.container.ModuleOperation;
+import java.util.ArrayList;
+import java.util.List;
 
-@RequiredArgsConstructor
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.euc.Euc;
+import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
+import net.consensys.linea.zktracer.module.txndata.module.TxnDataRedesign;
+import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
+
 public abstract class TxnDataRedesignOperation extends ModuleOperation {
-  @Getter private final int sysiTransactionNumber;
-  @Getter private final int userTransactionNumber;
-  @Getter private final int sysfTransactionNumber;
+  public final Hub hub;
+  public final Euc euc;
+  public final Wcp wcp;
+  public final short relativeBlockNumber;
+  public final long number;
+  public final short sysiTransactionNumber;
+  public final short userTransactionNumber;
+  public final short sysfTransactionNumber;
+  public final List<TxnDataRow> rows = new ArrayList<>();
+
+  protected abstract int ctMax();
+
+  @Override
+  public int computeLineCount() {
+    return ctMax() + 1;
+  }
+
+  public TxnDataRedesignOperation(TxnDataRedesign txnData) {
+    hub = txnData.getHub();
+    wcp = hub.wcp();
+    euc = hub.euc();
+    relativeBlockNumber = (short) hub.blockStack().currentRelativeBlockNumber();
+    number = txnData.getNumber();
+    sysiTransactionNumber = hub.state.sysiTransactionNumber();
+    userTransactionNumber = hub.state.getUserTransactionNumber();
+    sysfTransactionNumber = hub.state.sysfTransactionNumber();
+  }
+
+  void traceOperation(Trace.Txndata trace, BlockSnapshot block) {
+    short ct = 0;
+    for (TxnDataRow row : rows) {
+      traceCommonColumnsSaveForFlags(trace, ct);
+      row.traceRow(trace, block);
+      ct++;
+    }
+  }
+
+  private void traceCommonColumnsSaveForFlags(Trace.Txndata trace, int ct) {
+    // trace
+    //     .blkNumber(relativeBlockNumber) // TODO: defcomputed column would be better
+    //     .totlTxnNumber(totlTransactionNumber()) // TODO: defcomputed column would be better
+    //     .sysiTxnNumber(sysiTransactionNumber)
+    //     .userTxnNumber(userTransactionNumber)
+    //     .sysfTxnNumber(sysfTransactionNumber)
+    //     .ct(ct)
+    //     .ctMax(ctMax())
+    // ;
+  }
+
+  private short totlTransactionNumber() {
+    return (short) (sysiTransactionNumber + userTransactionNumber + sysfTransactionNumber);
+  }
 }

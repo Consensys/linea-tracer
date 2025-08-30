@@ -24,7 +24,7 @@ import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class EucRow extends TxnDataRow {
+public class EucRow extends ComputationRow {
 
   final long dividend;
   final long divisor;
@@ -36,5 +36,12 @@ public class EucRow extends TxnDataRow {
   }
 
   @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
+  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
+    super.traceRow(trace, block);
+    // trace
+    //     .pComputationEucFlag(true)
+    //     .pComputationArg1(dividend)
+    //     .pComputationArg2(divisor)
+    //     .pComputationRes(quotient);
+  }
 }

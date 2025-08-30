@@ -14,11 +14,15 @@
  */
 package net.consensys.linea.zktracer.module.txndata.rows;
 
+import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
+import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
-public abstract class TxnDataRow {
+@RequiredArgsConstructor
+public class HubRowForUserTransactions extends TxnDataRow {
+  public final TransactionProcessingMetadata txn;
 
+  @Override
   public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
-  ;
 }

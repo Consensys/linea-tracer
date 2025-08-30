@@ -17,8 +17,9 @@ package net.consensys.linea.zktracer.module.txndata.rows;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 
-public abstract class TxnDataRow {
-
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
-  ;
+public class ComputationRow extends TxnDataRow {
+  @Override
+  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
+    // trace.cmptn(true);
+  }
 }

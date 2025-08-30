@@ -14,6 +14,9 @@
  */
 package net.consensys.linea.zktracer.module.txndata.rows;
 
+import static com.google.common.base.Preconditions.checkState;
+import static net.consensys.linea.zktracer.Trace.*;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -24,9 +27,17 @@ import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class WcpRow extends TxnDataRow {
+public class WcpRow extends ComputationRow {
   @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
+  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
+    super.traceRow(trace, block);
+    // trace
+    //     .pComputationWcpFlag(true)
+    //     .pComputationArg1(arg1)
+    //     .pComputationArg2(arg2)
+    //     .pComputationInst(instruction.opCode)
+    //     .pComputationRes(result ? 1 : 0);
+  }
 
   final WcpInstruction instruction;
   final Bytes arg1;
@@ -34,6 +45,8 @@ public class WcpRow extends TxnDataRow {
   @Getter final boolean result;
 
   public static WcpRow smallCallToLt(Wcp wcp, final Bytes arg1, final Bytes arg2) {
+    checkState(arg1.trimLeadingZeros().size() <= LLARGE, "arg1 = %s too large", arg1);
+    checkState(arg2.trimLeadingZeros().size() <= LLARGE, "arg2 = %s too large", arg2);
     return new WcpRow(WcpInstruction.LT, arg1, arg2, wcp.callLT(arg1, arg2));
   }
 
@@ -62,14 +75,21 @@ public class WcpRow extends TxnDataRow {
     return new WcpRow(WcpInstruction.ISZERO, arg1Bytes, Bytes.EMPTY, wcp.callISZERO(arg1Bytes));
   }
 
+  @Accessors(fluent = true)
   private enum WcpInstruction {
     // EQ,
-    LT,
-    GT,
+    LT(EVM_INST_LT),
+    GT(EVM_INST_GT),
     // SLT,
     // SGT,
-    ISZERO,
-    LEQ,
-    GEQ,
+    ISZERO(EVM_INST_ISZERO),
+    LEQ(WCP_INST_LEQ),
+    GEQ(WCP_INST_GEQ);
+
+    @Getter final int opCode;
+
+    private WcpInstruction(int opCode) {
+      this.opCode = opCode;
+    }
   }
 }

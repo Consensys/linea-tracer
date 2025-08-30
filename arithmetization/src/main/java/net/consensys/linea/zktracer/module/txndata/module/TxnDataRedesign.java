@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.module.txndata.module;
 
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
 
 import java.util.ArrayList;
@@ -34,17 +35,17 @@ import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.BlockBody;
+import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
 public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOperation> {
 
-  @Getter private int sysiTransactionNumber = 0;
-  @Getter private int userTransactionNumber = 0;
-  @Getter private int sysfTransactionNumber = 0;
   @Getter private final Hub hub;
   @Getter private final Fork fork;
   @Getter private final List<BlockSnapshot> blocks = new ArrayList<>();
+  @Getter private long number;
 
   @Getter
   private final ModuleOperationStackedList<TxnDataRedesignOperation> operations =
@@ -55,8 +56,11 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
       WorldView world,
       final ProcessableBlockHeader processableBlockHeader,
       final Address miningBeneficiary) {
-    operations().add(new SysiEip4788Transaction(this, processableBlockHeader));
+
     blocks.add(new BlockSnapshot(processableBlockHeader));
+    number = processableBlockHeader.getNumber();
+    operations().add(new SysiEip4788Transaction(this, processableBlockHeader));
+
     if (isPostPrague(fork)) {
       // operations().add(new SysiEip2935Transaction(this, processableBlockHeader));
     }
@@ -67,7 +71,14 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
     operations().add(new UserTransaction(this, tx));
   }
 
-  public void traceEndBlock() {
+  public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
+
+    checkState(
+        blockHeader.getNumber() == number,
+        "Block header number %s does not match current block number %s",
+        blockHeader.getNumber(),
+        number);
+
     operations().add(new SysfNoopTransaction(this));
   }
 
@@ -89,24 +100,5 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
   @Override
   public ModuleOperationStackedList<TxnDataRedesignOperation> operations() {
     return null;
-  }
-
-  public int getUpdatedSysiTransactionNumber() {
-    sysiTransactionNumber++;
-    return sysiTransactionNumber;
-  }
-
-  public int getUpdatedUserTransactionNumber() {
-    userTransactionNumber++;
-    return userTransactionNumber;
-  }
-
-  public int getUpdatedSysfTransactionNumber() {
-    sysfTransactionNumber++;
-    return sysfTransactionNumber;
-  }
-
-  public int totlTransactionNumber() {
-    return sysiTransactionNumber + userTransactionNumber + sysfTransactionNumber;
   }
 }

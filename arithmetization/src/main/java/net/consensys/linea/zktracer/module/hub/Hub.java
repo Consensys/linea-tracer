@@ -220,6 +220,37 @@ public abstract class Hub implements Module {
     return trace.hub().spillage();
   }
 
+  @Getter
+  final PointEvaluationEffectiveCall pointEvaluationEffectiveCall =
+      new PointEvaluationEffectiveCall();
+
+  @Getter
+  final PointEvaluationFailureCall pointEvaluationFailureCall = new PointEvaluationFailureCall();
+
+  @Getter final BlsG1AddEffectiveCall blsG1AddEffectiveCall = new BlsG1AddEffectiveCall();
+  @Getter final BlsG1MsmEffectiveCall blsG1MsmEffectiveCall = new BlsG1MsmEffectiveCall();
+  @Getter final BlsG2AddEffectiveCall blsG2AddEffectiveCall = new BlsG2AddEffectiveCall();
+  @Getter final BlsG2MsmEffectiveCall blsG2MsmEffectiveCall = new BlsG2MsmEffectiveCall();
+
+  @Getter
+  final BlsPairingCheckMillerLoops blsPairingCheckMillerLoops = new BlsPairingCheckMillerLoops();
+
+  @Getter
+  final BlsPairingCheckFinalExponentiations blsPairingCheckFinalExponentiations =
+      new BlsPairingCheckFinalExponentiations();
+
+  @Getter
+  final BlsG1MapFpToG1EffectiveCall blsG1MapFpToG1EffectiveCall = new BlsG1MapFpToG1EffectiveCall();
+
+  @Getter
+  final BlsG1MapFp2ToG2EffectiveCall blsG1MapFp2ToG2EffectiveCall =
+      new BlsG1MapFp2ToG2EffectiveCall();
+
+  @Getter final BlsC1MembershipCalls blsC1MembershipCalls = new BlsC1MembershipCalls();
+  @Getter final BlsC2MembershipCalls blsC2MembershipCalls = new BlsC2MembershipCalls();
+  @Getter final BlsG1MembershipCalls blsG1MembershipCalls = new BlsG1MembershipCalls();
+  @Getter final BlsG2MembershipCalls blsG2MembershipCalls = new BlsG2MembershipCalls();
+
   /** List of all modules of the ZK-evm */
   // stateless modules
   @Getter private final Wcp wcp = new Wcp();
@@ -227,7 +258,23 @@ public abstract class Hub implements Module {
   private final Add add = setAdd();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
-  public final BlsData blsData = setBlsData(wcp);
+  public final BlsData blsData =
+      setBlsData(
+          wcp,
+          pointEvaluationEffectiveCall,
+          pointEvaluationFailureCall,
+          blsG1AddEffectiveCall,
+          blsG1MsmEffectiveCall,
+          blsG2AddEffectiveCall,
+          blsG2MsmEffectiveCall,
+          blsPairingCheckMillerLoops,
+          blsPairingCheckFinalExponentiations,
+          blsG1MapFpToG1EffectiveCall,
+          blsG1MapFp2ToG2EffectiveCall,
+          blsC1MembershipCalls,
+          blsC2MembershipCalls,
+          blsG1MembershipCalls,
+          blsG2MembershipCalls);
   @Getter private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   @Getter private final Gas gas = new Gas(wcp);
@@ -288,37 +335,6 @@ public abstract class Hub implements Module {
   @Getter private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
   @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
 
-  @Getter
-  final PointEvaluationEffectiveCall pointEvaluationEffectiveCall =
-      new PointEvaluationEffectiveCall();
-
-  @Getter
-  final PointEvaluationFailureCall pointEvaluationFailureCall = new PointEvaluationFailureCall();
-
-  @Getter final BlsG1AddEffectiveCall blsG1AddEffectiveCall = new BlsG1AddEffectiveCall();
-  @Getter final BlsG1MsmEffectiveCall blsG1MsmEffectiveCall = new BlsG1MsmEffectiveCall();
-  @Getter final BlsG2AddEffectiveCall blsG2AddEffectiveCall = new BlsG2AddEffectiveCall();
-  @Getter final BlsG2MsmEffectiveCall blsG2MsmEffectiveCall = new BlsG2MsmEffectiveCall();
-
-  @Getter
-  final BlsPairingCheckMillerLoops blsPairingCheckMillerLoops = new BlsPairingCheckMillerLoops();
-
-  @Getter
-  final BlsPairingCheckFinalExponentiations blsPairingCheckFinalExponentiations =
-      new BlsPairingCheckFinalExponentiations();
-
-  @Getter
-  final BlsG1MapFpToG1EffectiveCall blsG1MapFpToG1EffectiveCall = new BlsG1MapFpToG1EffectiveCall();
-
-  @Getter
-  final BlsG1MapFp2ToG2EffectiveCall blsG1MapFp2ToG2EffectiveCall =
-      new BlsG1MapFp2ToG2EffectiveCall();
-
-  @Getter final BlsC1MembershipCalls blsC1MembershipCalls = new BlsC1MembershipCalls();
-  @Getter final BlsC2MembershipCalls blsC2MembershipCalls = new BlsC2MembershipCalls();
-  @Getter final BlsG1MembershipCalls blsG1MembershipCalls = new BlsG1MembershipCalls();
-  @Getter final BlsG2MembershipCalls blsG2MembershipCalls = new BlsG2MembershipCalls();
-
   // TODO: remove me when Linea supports Cancun & Prague precompiles
   @Getter private final EventDetectorModule pointEval = new EventDetectorModule("POINT_EVAL") {};
   @Getter private final EventDetectorModule bls = new EventDetectorModule("BLS") {};
@@ -339,6 +355,20 @@ public abstract class Hub implements Module {
         ripemdBlocks,
         blakeEffectiveCall,
         blakeRounds,
+        pointEvaluationEffectiveCall,
+        pointEvaluationFailureCall,
+        blsG1AddEffectiveCall,
+        blsG1MsmEffectiveCall,
+        blsG2AddEffectiveCall,
+        blsG2MsmEffectiveCall,
+        blsPairingCheckMillerLoops,
+        blsPairingCheckFinalExponentiations,
+        blsG1MapFpToG1EffectiveCall,
+        blsG1MapFp2ToG2EffectiveCall,
+        blsC1MembershipCalls,
+        blsC2MembershipCalls,
+        blsG1MembershipCalls,
+        blsG2MembershipCalls,
         l1BlockSize,
         l2L1Logs,
         pointEval,
@@ -1139,7 +1169,22 @@ public abstract class Hub implements Module {
 
   protected abstract Add setAdd();
 
-  protected abstract BlsData setBlsData(Wcp wcp);
+  protected abstract BlsData setBlsData(
+      Wcp wcp,
+      PointEvaluationEffectiveCall pointEvaluationEffectiveCall,
+      PointEvaluationFailureCall pointEvaluationFailureCall,
+      BlsG1AddEffectiveCall blsG1AddEffectiveCall,
+      BlsG1MsmEffectiveCall blsG1MsmEffectiveCall,
+      BlsG2AddEffectiveCall blsG2AddEffectiveCall,
+      BlsG2MsmEffectiveCall blsG2MsmEffectiveCall,
+      BlsPairingCheckMillerLoops blsPairingCheckMillerLoops,
+      BlsPairingCheckFinalExponentiations blsPairingCheckFinalExponentiations,
+      BlsG1MapFpToG1EffectiveCall blsG1MapFpToG1EffectiveCall,
+      BlsG1MapFp2ToG2EffectiveCall blsG1MapFp2ToG2EffectiveCall,
+      BlsC1MembershipCalls blsC1MembershipCalls,
+      BlsC2MembershipCalls blsC2MembershipCalls,
+      BlsG1MembershipCalls blsG1MembershipCalls,
+      BlsG2MembershipCalls blsG2MembershipCalls);
 
   protected abstract BlsRt setBlsRt();
 

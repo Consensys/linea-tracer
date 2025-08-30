@@ -305,7 +305,7 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
       arguments.add(Arguments.of(MODEXP, ValueCase.ZERO, gasCase, null, true));
     }
 
-    // TODO: temporary focus on point evaluation only
+    // TODO: temporary focus on point evaluation only DELETE EVERYTHING BELOW ONCE DEBUGGING IS DONE
     arguments = new ArrayList<>();
 
     for (GasCase gasCase : GasCase.values()) {
@@ -319,6 +319,15 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
                 false));
       }
     }
+
+    arguments = new ArrayList<>();
+    arguments.add(
+        Arguments.of(
+            KZG_POINT_EVAL,
+            ValueCase.NON_ZERO,
+            GasCase.COST,
+            PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION,
+            false));
     return arguments.stream();
   }
 

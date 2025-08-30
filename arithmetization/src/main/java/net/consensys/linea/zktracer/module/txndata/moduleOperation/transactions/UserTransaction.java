@@ -41,6 +41,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
   public final TransactionProcessingMetadata txn;
   public final List<TxnDataRow> rows = new ArrayList<>();
+  public final TxnDataRedesign txnData;
   public final Wcp wcp;
   public final Euc euc;
   public final Fork fork;
@@ -58,6 +59,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
         txnMetadata.getUserTransactionNumber(),
         txnData.getUserTransactionNumber());
 
+    this.txnData = txnData;
     this.txn = txnMetadata;
     this.wcp = txnData.getHub().wcp();
     this.euc = txnData.getHub().euc();
@@ -66,7 +68,12 @@ public class UserTransaction extends TxnDataRedesignOperation {
     this.process();
   }
 
+    /**
+     * Every line of function call in the {@link UserTransaction#process} method corresponds to a
+     * row in the USER transaction processing of the specification.
+     */
   private void process() {
+      
     hubRow();
     rlpRow();
     maxNonceCheckComputationRow();
@@ -78,7 +85,14 @@ public class UserTransaction extends TxnDataRedesignOperation {
     final long upperLimitForGasRefunds = upperLimitForGasRefundsComputationRow();
     final long consumedGasAfterRefunds = effectiveRefundsComputationRow(upperLimitForGasRefunds);
     comparingEffectiveRefundToFloorCostComputationRow(consumedGasAfterRefunds);
-    detectingEmptyCallDataComputationRow();
+    detectingEmptyPayloadComputationRow();
+    comparingTheMaximumGasPriceToTheBaseFee();
+    cumulativeGasConsumptionMustNotExceedBlockGasLimitComputationRow();
+
+    if (transactionTypeHasEip1559GasSemantics()) {
+      comparingMaxFeeToMaxPriorityFeeComputationRow();
+      computingTheEffectiveGasPriceComputationRow();
+    }
   }
 
   private void hubRow() {
@@ -143,35 +157,35 @@ public class UserTransaction extends TxnDataRedesignOperation {
   }
 
   private void gasLimitMustCoverTheUpfrontGasCostComputationRow() {
-    final long upfrontGasCost = upfrontGasCost();
+    final long upfrontGasCost = txn.getUpfrontGasCost();
+    final long gasLimit = txn.getBesuTransaction().getGasLimit();
+
     final WcpRow gasLimitMustCoverUpfrontGasCost =
         WcpRow.smallCallToLeq(
-            wcp,
-            Bytes.ofUnsignedLong(upfrontGasCost),
-            Bytes.ofUnsignedLong(txn.getBesuTransaction().getGasLimit()));
+            wcp, Bytes.ofUnsignedLong(upfrontGasCost), Bytes.ofUnsignedLong(gasLimit));
 
     checkArgument(
         gasLimitMustCoverUpfrontGasCost.result(),
         "Gas limit %s does not cover the upfront gas cost %s",
-        txn.getBesuTransaction().getGasLimit(),
+        gasLimit,
         upfrontGasCost);
 
     rows.add(gasLimitMustCoverUpfrontGasCost);
   }
 
   private void gasLimitMustCoverTheTransactionFloorCostComputationRow() {
-    final long floorGasCost = callDataFloorCost();
+    final long floorGasCost = txn.getFloorCost();
+    final long gasLimit = txn.getBesuTransaction().getGasLimit();
+
     final WcpRow gasLimitMustCoverFloorGasCost =
         WcpRow.smallCallToLeq(
-            wcp,
-            Bytes.ofUnsignedLong(floorGasCost),
-            Bytes.ofUnsignedLong(txn.getBesuTransaction().getGasLimit()));
+            wcp, Bytes.ofUnsignedLong(floorGasCost), Bytes.ofUnsignedLong(gasLimit));
 
     if (isPostPrague(fork)) {
       checkArgument(
           gasLimitMustCoverFloorGasCost.result(),
           "Gas limit %s does not cover the transaction floor gas cost %s",
-          txn.getBesuTransaction().getGasLimit(),
+          gasLimit,
           floorGasCost);
     }
 
@@ -215,35 +229,78 @@ public class UserTransaction extends TxnDataRedesignOperation {
         WcpRow.smallCallToLt(
             wcp,
             Bytes.ofUnsignedLong(consumedGasAfterRefunds),
-            Bytes.ofUnsignedLong(callDataFloorCost()));
+            Bytes.ofUnsignedLong(txn.getFloorCost()));
 
     rows.add(comparingEffectiveRefundsVsFloorCost);
   }
 
-  private void detectingEmptyCallDataComputationRow() {
+  private void detectingEmptyPayloadComputationRow() {
     final WcpRow detectingEmptyCallData =
         WcpRow.smallCallToIszero(wcp, txn.getBesuTransaction().getPayload().size());
 
     rows.add(detectingEmptyCallData);
   }
 
-  private long initCodeCost() {
-    final long numberOfInitCodeWords = (initCodeSize() + WORD_SIZE_MO) / WORD_SIZE;
-    return GAS_CONST_INIT_CODE_WORD * numberOfInitCodeWords;
+  private void comparingTheMaximumGasPriceToTheBaseFee() {
+    final long gasPriceOrZero = txn.gasPrice().toLong();
+    final long maxFeePerGasOrZero = txn.maxFeePerGas().toLong();
+    final long maximumGasPrice =
+        transactionTypeHasEip1559GasSemantics() ? maxFeePerGasOrZero : gasPriceOrZero;
+    final long baseFee = txn.getBaseFee();
+
+    final WcpRow maximumGasPriceVsBaseFee = WcpRow.smallCallToLeq(wcp, baseFee, maximumGasPrice);
+
+    final String errorMessage =
+        transactionTypeHasEip1559GasSemantics()
+            ? String.format(
+                "Maximum fee per gas %s is less than the block base fee %s",
+                maximumGasPrice, baseFee)
+            : String.format(
+                "Gas price %s is less than the block base fee %s", maximumGasPrice, baseFee);
+    checkArgument(maximumGasPriceVsBaseFee.result(), errorMessage);
+
+    rows.add(maximumGasPriceVsBaseFee);
   }
 
-  private long weightedByteCount() {
-    return txn.numberOfZeroBytesInPayload() + 4 * txn.numberOfNonZeroBytesInPayload();
+  private void cumulativeGasConsumptionMustNotExceedBlockGasLimitComputationRow() {
+    final WcpRow cumulativeGasConsumptionMustNotExceedBlockGasLimit =
+        WcpRow.smallCallToLeq(
+            wcp,
+            txn.getAccumulatedGasUsedInBlock(),
+            txnData.getBlocks().getLast().getBlockGasLimit().toLong());
+
+    checkArgument(
+        cumulativeGasConsumptionMustNotExceedBlockGasLimit.result(),
+        "Cumulative gas consumption %s exceeds the block gas limit %s",
+        txn.getAccumulatedGasUsedInBlock(),
+        txnData.getBlocks().getLast().getBlockGasLimit().toLong());
   }
 
-  // TODO: use the appropriate TOKEN_COST constant
-  private long dataCost() {
-    return 4 * weightedByteCount();
+  private void comparingMaxFeeToMaxPriorityFeeComputationRow() {
+    final long maxFeePerGas = txn.maxFeePerGas().toLong();
+    final long maxPriorityFeePerGas = txn.maxPriorityFeePerGas().toLong();
+
+    final WcpRow comparingMaxFeeToMaxPriorityFee =
+        WcpRow.smallCallToLeq(
+            wcp, Bytes.ofUnsignedLong(maxPriorityFeePerGas), Bytes.ofUnsignedLong(maxFeePerGas));
+
+    checkArgument(
+        comparingMaxFeeToMaxPriorityFee.result(),
+        "Max priority fee per gas %s exceeds max fee per gas %s",
+        maxPriorityFeePerGas,
+        maxFeePerGas);
+
+    rows.add(comparingMaxFeeToMaxPriorityFee);
   }
 
-  // TODO: use the appropriate TOKEN_COST constant
-  private long callDataFloorCost() {
-    return 10 * weightedByteCount();
+  private void computingTheEffectiveGasPriceComputationRow() {
+    final long maxPriorityFeePerGas = txn.maxPriorityFeePerGas().toLong();
+    final long maxFeePerGas = txn.maxFeePerGas().toLong();
+
+    final WcpRow computingTheEffectiveGasPrice =
+        WcpRow.smallCallToLeq(wcp, maxPriorityFeePerGas + txn.getBaseFee(), maxFeePerGas);
+
+    rows.add(computingTheEffectiveGasPrice);
   }
 
   @Override
@@ -257,28 +314,10 @@ public class UserTransaction extends TxnDataRedesignOperation {
   }
 
   private boolean transactionTypeHasEip1559GasSemantics() {
-    return !(txn.getBesuTransaction().getType() == FRONTIER
-        || txn.getBesuTransaction().getType() == ACCESS_LIST);
-  }
-
-  // TODO: this will change with Prague's EIP-7702 and type 4 transactions
-  private boolean transactionTypeSupportsAccessLists() {
-    return txn.getBesuTransaction().getType() == ACCESS_LIST;
+    return txn.getBesuTransaction().getType().supports1559FeeMarket();
   }
 
   private int initCodeSize() {
     return txn.isDeployment() ? txn.getBesuTransaction().getPayload().size() : 0;
-  }
-
-  private long upfrontGasCost() {
-    return dataCost()
-        + initCodeCost()
-        + GAS_CONST_G_TRANSACTION
-        + (txn.isDeployment() ? GAS_CONST_G_TX_CREATE : 0)
-        + (transactionTypeSupportsAccessLists() ? txn.numberOfWarmedAddresses() : 0)
-            * (long) GAS_CONST_G_ACCESS_LIST_ADRESS
-        + (txn.isDeployment() ? GAS_CONST_G_TX_CREATE : 0)
-        + (transactionTypeSupportsAccessLists() ? txn.numberOfWarmedStorageKeys() : 0)
-            * (long) GAS_CONST_G_ACCESS_LIST_STORAGE;
   }
 }

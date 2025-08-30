@@ -16,6 +16,7 @@ package net.consensys.linea.zktracer.module.txndata.module;
 
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
@@ -25,6 +26,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysfNoopTransaction;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysiEip4788Transaction;
@@ -42,6 +44,7 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
   @Getter private int sysfTransactionNumber = 0;
   @Getter private final Hub hub;
   @Getter private final Fork fork;
+  @Getter private final List<BlockSnapshot> blocks = new ArrayList<>();
 
   @Getter
   private final ModuleOperationStackedList<TxnDataRedesignOperation> operations =
@@ -53,6 +56,7 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
       final ProcessableBlockHeader processableBlockHeader,
       final Address miningBeneficiary) {
     operations().add(new SysiEip4788Transaction(this, processableBlockHeader));
+    blocks.add(new BlockSnapshot(processableBlockHeader));
     if (isPostPrague(fork)) {
       // operations().add(new SysiEip2935Transaction(this, processableBlockHeader));
     }

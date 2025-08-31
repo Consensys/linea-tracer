@@ -14,22 +14,24 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
-import static net.consensys.linea.zktracer.module.txndata.rows.EucRow.callToEuc;
-import static net.consensys.linea.zktracer.module.txndata.rows.WcpRow.smallCallToIszero;
-import static net.consensys.linea.zktracer.module.txndata.rows.WcpRow.smallCallToLeq;
+import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow.callToEuc;
+import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
+import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.module.txndata.module.TxnDataRedesign;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
-import net.consensys.linea.zktracer.module.txndata.rows.EucRow;
-import net.consensys.linea.zktracer.module.txndata.rows.HubRowForSystemTransactions;
-import net.consensys.linea.zktracer.module.txndata.rows.WcpRow;
+import net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow;
+import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
+import net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow;
+import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class SysiEip4788Transaction extends TxnDataRedesignOperation {
-  @Getter private final long timestamp;
-  @Getter private final Bytes32 beaconRoot;
+
+    private final long nonsenseCancunTimestamp = 0x1337L; // Placeholder for the actual Prague fork timestamp
+    private final org.hyperledger.besu.plugin.data.ProcessableBlockHeader blockHeader;
 
   public SysiEip4788Transaction(
       final TxnDataRedesign txnData,
@@ -40,49 +42,52 @@ public class SysiEip4788Transaction extends TxnDataRedesignOperation {
       throw new RuntimeException("Parent beacon block root not present in the block header");
     }
 
-    this.timestamp = processableBlockHeader.getTimestamp();
-    this.beaconRoot = processableBlockHeader.getParentBeaconBlockRoot().get();
+    this.blockHeader = processableBlockHeader;
 
     process();
   }
 
   private void process() {
-    final HubRowForSystemTransactions hubRow = hubRow();
+    hubRow();
     computeTimestampModulo8191ComputationRow();
-    detectingTheGenesisBlockComputationRow();
+    detectTheGenesisBlockComputationRow();
     compareTimestampToLineaCancunForkTimestampComputationRow();
 
     /**
      * <b>% 8191</b> and <b>== 0</b> operations are lightweight enough that we don't care to
      * remember the results from teh computation rows.
      */
-    hubRow.systemTransactionData.add(EWord.of(timestamp));
-    hubRow.systemTransactionData.add(EWord.of(timestamp % 8191));
-    hubRow.systemTransactionData.add(EWord.of(EWord.of(beaconRoot).hi()));
-    hubRow.systemTransactionData.add(EWord.of(EWord.of(beaconRoot).lo()));
-    hubRow.systemTransactionData.add(EWord.of(number == 0 ? 1 : 0));
   }
 
-  protected HubRowForSystemTransactions hubRow() {
-    HubRowForSystemTransactions hubRow = new HubRowForSystemTransactions();
+  protected void hubRow() {
+    HubRowForSystemTransactions hubRow = new HubRowForSystemTransactions(Type.EIP4788);
+
+    long timestamp = blockHeader.getTimestamp();
+    Bytes32 parentBeaconBlockRoot = blockHeader.getParentBeaconBlockRoot().orElseThrow();
+
+      hubRow.systemTransactionData1 = EWord.of(timestamp);
+      hubRow.systemTransactionData2 = EWord.of(timestamp % 8191);
+      hubRow.systemTransactionData3 = EWord.of(EWord.of(parentBeaconBlockRoot).hi());
+      hubRow.systemTransactionData4 = EWord.of(EWord.of(parentBeaconBlockRoot).lo());
+      hubRow.systemTransactionData5 = EWord.of(blockHeader.getNumber() == 0 ? 1 : 0);
+
     rows.add(hubRow);
-    return hubRow;
   }
 
   private void computeTimestampModulo8191ComputationRow() {
     // TODO: use the prime constant
-    EucRow computeTimestampModulo8191Row = callToEuc(euc, timestamp, 8191);
-    rows.add(computeTimestampModulo8191Row);
+    EucRow row = callToEuc(euc, blockHeader.getTimestamp(), 8191);
+    rows.add(row);
   }
 
-  private void detectingTheGenesisBlockComputationRow() {
-    WcpRow detectingTheGenesisBlockRow = smallCallToIszero(wcp, number);
-    rows.add(detectingTheGenesisBlockRow);
+  private void detectTheGenesisBlockComputationRow() {
+    WcpRow row = smallCallToIszero(wcp, blockHeader.getNumber());
+    rows.add(row);
   }
 
   private void compareTimestampToLineaCancunForkTimestampComputationRow() {
-      WcpRow compareTimestampToLineaCancunForkTimestampRow = smallCallToLeq(wcp, timestamp, 0x1337L);
-      rows.add(compareTimestampToLineaCancunForkTimestampRow);
+      WcpRow row = smallCallToLeq(wcp, blockHeader.getTimestamp(), nonsenseCancunTimestamp);
+      rows.add(row);
   }
 
   @Override

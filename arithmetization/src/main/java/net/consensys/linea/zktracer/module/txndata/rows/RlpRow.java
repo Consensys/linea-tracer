@@ -23,5 +23,7 @@ public class RlpRow extends TxnDataRow {
   public RlpRow(TransactionProcessingMetadata txn) {}
 
   @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
+  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
+      // trace.rlp(true);
+  }
 }

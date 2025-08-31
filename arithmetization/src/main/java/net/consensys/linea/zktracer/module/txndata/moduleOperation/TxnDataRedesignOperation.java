@@ -31,7 +31,6 @@ public abstract class TxnDataRedesignOperation extends ModuleOperation {
   public final Euc euc;
   public final Wcp wcp;
   public final short relativeBlockNumber;
-  public final long number;
   public final short sysiTransactionNumber;
   public final short userTransactionNumber;
   public final short sysfTransactionNumber;
@@ -49,7 +48,6 @@ public abstract class TxnDataRedesignOperation extends ModuleOperation {
     wcp = hub.wcp();
     euc = hub.euc();
     relativeBlockNumber = (short) hub.blockStack().currentRelativeBlockNumber();
-    number = txnData.getNumber();
     sysiTransactionNumber = hub.state.sysiTransactionNumber();
     userTransactionNumber = hub.state.getUserTransactionNumber();
     sysfTransactionNumber = hub.state.sysfTransactionNumber();

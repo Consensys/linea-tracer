@@ -30,6 +30,7 @@ import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysfNoopTransaction;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysiEip2935Transaction;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysiEip4788Transaction;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.UserTransaction;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -62,7 +63,7 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
     operations().add(new SysiEip4788Transaction(this, processableBlockHeader));
 
     if (isPostPrague(fork)) {
-      // operations().add(new SysiEip2935Transaction(this, processableBlockHeader));
+     operations().add(new SysiEip2935Transaction(this, processableBlockHeader));
     }
   }
 

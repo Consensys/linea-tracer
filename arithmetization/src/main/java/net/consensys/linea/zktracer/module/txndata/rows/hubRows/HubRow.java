@@ -12,19 +12,16 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.zktracer.module.txndata.rows;
-
-import java.util.ArrayList;
-import java.util.List;
+package net.consensys.linea.zktracer.module.txndata.rows.hubRows;
 
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
-import net.consensys.linea.zktracer.types.EWord;
+import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 
-public class HubRowForSystemTransactions extends TxnDataRow {
+public abstract class HubRow extends TxnDataRow {
 
-  public final List<EWord> systemTransactionData = new ArrayList<>();
-
-  @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
+    @Override
+    public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
+        // trace.hub(true);
+    }
 }

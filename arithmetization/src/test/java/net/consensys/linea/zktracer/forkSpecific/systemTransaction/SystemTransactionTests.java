@@ -15,12 +15,12 @@
 
 package net.consensys.linea.zktracer.forkSpecific.systemTransaction;
 
+import static net.consensys.linea.testing.MultiBlockExecutionEnvironment.DEFAULT_DELTA_TIMESTAMP_BETWEEN_BLOCKS;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_TIME_STAMP;
 import static net.consensys.linea.zktracer.forkSpecific.systemTransaction.SystemTransactionTestUtils.byteCodeCallingBeaconRootSystemAccount;
-import static net.consensys.linea.zktracer.forkSpecific.systemTransaction.SystemTransactionTestUtils.byteCodeCallingBeaconRootSystemAccountFromCallData;
-import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.HISTORY_STORAGE_ADDRESS;
-import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRoot.BEACONROOT_ADDRESS;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.EIP2935_HISTORY_STORAGE_ADDRESS;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRoot.EIP4788_BEACONROOT_ADDRESS;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.util.ArrayList;
@@ -37,6 +37,7 @@ import org.hyperledger.besu.crypto.KeyPair;
 import org.hyperledger.besu.crypto.SECP256K1;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
@@ -52,7 +53,7 @@ public class SystemTransactionTests extends TracerTestBase {
   void systemTransaction2935ConsistencyTest() {
     BytecodeRunner.of(
             byteCodeCallingBeaconRootSystemAccount(
-                testInfo, HISTORY_STORAGE_ADDRESS, DEFAULT_BLOCK_NUMBER - 1))
+                testInfo, EIP2935_HISTORY_STORAGE_ADDRESS, DEFAULT_BLOCK_NUMBER - 1))
         .run(testInfo);
   }
 
@@ -62,19 +63,34 @@ public class SystemTransactionTests extends TracerTestBase {
   void systemTransaction4788ConsistencyTest() {
     BytecodeRunner.of(
             byteCodeCallingBeaconRootSystemAccount(
-                testInfo, BEACONROOT_ADDRESS, DEFAULT_TIME_STAMP))
+                testInfo, EIP4788_BEACONROOT_ADDRESS, DEFAULT_TIME_STAMP))
         .run(testInfo);
   }
 
   private static Stream<Arguments> scenariiForSystemContract() {
-    final List<Address> supportedSystemContracts =
-        List.of(BEACONROOT_ADDRESS, HISTORY_STORAGE_ADDRESS);
+
     final List<Arguments> scenarii = new ArrayList<>();
-    for (Address systemContract : supportedSystemContracts) {
-      for (int systemContractDeployedBeforeBlockNumber = 0;
-          systemContractDeployedBeforeBlockNumber <= 2;
-          systemContractDeployedBeforeBlockNumber++) {
-        scenarii.add(Arguments.of(systemContract, systemContractDeployedBeforeBlockNumber));
+    scenarii.add(Arguments.of(0, false, 0, false));
+    for (int system2935ContractDeployedBeforeBlockNumber = 1;
+        system2935ContractDeployedBeforeBlockNumber <= 2;
+        system2935ContractDeployedBeforeBlockNumber++) {
+      for (short valueTransferedPriorToDeploymentOf2935 = 0;
+          valueTransferedPriorToDeploymentOf2935 <= 1;
+          valueTransferedPriorToDeploymentOf2935++) {
+        for (int system4788ContractDeployedBeforeBlockNumber = 1;
+            system4788ContractDeployedBeforeBlockNumber <= 2;
+            system4788ContractDeployedBeforeBlockNumber++) {
+          for (short valueTransferedPriorToDeploymentOf4788 = 0;
+              valueTransferedPriorToDeploymentOf4788 <= 1;
+              valueTransferedPriorToDeploymentOf4788++) {
+            scenarii.add(
+                Arguments.of(
+                    system2935ContractDeployedBeforeBlockNumber,
+                    valueTransferedPriorToDeploymentOf2935 == 1,
+                    system4788ContractDeployedBeforeBlockNumber,
+                    valueTransferedPriorToDeploymentOf4788 == 1));
+          }
+        }
       }
     }
     return scenarii.stream();
@@ -82,7 +98,11 @@ public class SystemTransactionTests extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("scenariiForSystemContract")
-  void genesisBlockTest(Address systemContract, int systemContractDeployedBeforeBlockNumber) {
+  void genesisBlockTest(
+      int system2935ContractDeployedBeforeBlockNumber,
+      boolean valueTransferedPriorToDeploymentOf2935,
+      int system4788ContractDeployedBeforeBlockNumber,
+      boolean valueTransferedPriorToDeploymentOf4788) {
 
     // random sender account that will send a tx to system account
     final KeyPair senderKeyPair = new SECP256K1().generateKeyPair();
@@ -91,41 +111,162 @@ public class SystemTransactionTests extends TracerTestBase {
     final ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.fromEth(123)).nonce(0).address(senderAddress).build();
 
-    final ToyAccount deployerOf2935 = null;
+    // Note: do not modify me: value coming from https://eips.ethereum.org/EIPS/eip-2935
+    // final KeyPair deployerOf2935KeyPair = KeyPair
+    final ToyAccount deployerOf2935 = ToyAccount.builder().nonce(0).build();
     final Transaction deploy2935 =
         ToyTransaction.builder()
             .sender(deployerOf2935)
-            // .keyPair()
-            .value(Wei.of(0))
-            .build();
-    final ToyAccount deployerOf4788 = null;
-    final Transaction deploy4788 =
-        ToyTransaction.builder()
-            .sender(deployerOf4788)
-            // .keyPair()
+            .transactionType(TransactionType.FRONTIER)
+            .gasLimit(0x3d090L)
+            .gasPrice(Wei.fromHexString("0xe8d4a51000"))
+            .payload(
+                Bytes.fromHexString(
+                    "0x60538060095f395ff33373fffffffffffffffffffffffffffffffffffffffe14604657602036036042575f35600143038111604257611fff81430311604257611fff9006545f5260205ff35b5f5ffd5b5f35611fff60014303065500"))
+            // .keyPair(deployerOf2935KeyPair)
             .value(Wei.of(0))
             .build();
 
+    // Note: do not modify me: value coming from https://eips.ethereum.org/EIPS/eip-4788
+    // final KeyPair deployerOf4788KeyPair = KeyPair.create()
+    final ToyAccount deployerOf4788 = ToyAccount.builder().nonce(0).build();
+    final Transaction deploy4788 =
+        ToyTransaction.builder()
+            .sender(deployerOf4788)
+            .transactionType(TransactionType.FRONTIER)
+            .gasLimit(0x3d090L)
+            .gasPrice(Wei.fromHexString("0xe8d4a51000"))
+            .payload(
+                Bytes.fromHexString(
+                    "0x60618060095f395ff33373fffffffffffffffffffffffffffffffffffffffe14604d57602036146024575f5ffd5b5f35801560495762001fff810690815414603c575f5ffd5b62001fff01545f5260205ff35b5f5ffd5b62001fff42064281555f359062001fff015500"))
+            // .keyPair(deployerOf4788KeyPair)
+            .value(Wei.of(0))
+            .build();
+
+    // This EOA calls 3 times the system account with as input the three block number of the
+    // conflation
     final ToyAccount callerOf2935 =
         ToyAccount.builder()
             .address(Address.wrap(leftPadTo(Bytes.fromHexString("0x2935"), Address.SIZE)))
             .code(
-                byteCodeCallingBeaconRootSystemAccountFromCallData(
-                    testInfo, HISTORY_STORAGE_ADDRESS))
+                Bytes.concatenate(
+                    byteCodeCallingBeaconRootSystemAccount(
+                        testInfo, EIP2935_HISTORY_STORAGE_ADDRESS, 0),
+                    byteCodeCallingBeaconRootSystemAccount(
+                        testInfo, EIP2935_HISTORY_STORAGE_ADDRESS, 1),
+                    byteCodeCallingBeaconRootSystemAccount(
+                        testInfo, EIP2935_HISTORY_STORAGE_ADDRESS, 2)))
             .build();
+
+    // This EOA calls 3 times the system account with as input the three block timestamp of the
+    // conflation
     final ToyAccount callerOf4788 =
         ToyAccount.builder()
             .address(Address.wrap(leftPadTo(Bytes.fromHexString("0x4788"), Address.SIZE)))
-            .code(byteCodeCallingBeaconRootSystemAccountFromCallData(testInfo, BEACONROOT_ADDRESS))
+            .code(
+                Bytes.concatenate(
+                    byteCodeCallingBeaconRootSystemAccount(
+                        testInfo, EIP4788_BEACONROOT_ADDRESS, DEFAULT_TIME_STAMP),
+                    byteCodeCallingBeaconRootSystemAccount(
+                        testInfo,
+                        EIP4788_BEACONROOT_ADDRESS,
+                        DEFAULT_TIME_STAMP + DEFAULT_DELTA_TIMESTAMP_BETWEEN_BLOCKS),
+                    byteCodeCallingBeaconRootSystemAccount(
+                        testInfo,
+                        EIP4788_BEACONROOT_ADDRESS,
+                        DEFAULT_TIME_STAMP + 2 * DEFAULT_DELTA_TIMESTAMP_BETWEEN_BLOCKS)))
             .build();
 
+    Long senderNonce = 0L;
+
     final List<Transaction> genesisBlockTransactions = new ArrayList<>();
+    genesisBlockTransactions.add(
+        ToyTransaction.builder().sender(senderAccount).to(callerOf2935).nonce(senderNonce).build());
+    senderNonce++;
+    genesisBlockTransactions.add(
+        ToyTransaction.builder().sender(senderAccount).to(callerOf4788).nonce(senderNonce).build());
+    senderNonce++;
+    if (valueTransferedPriorToDeploymentOf2935) {
+      genesisBlockTransactions.add(
+          ToyTransaction.builder()
+              .sender(senderAccount)
+              .toAddress(EIP2935_HISTORY_STORAGE_ADDRESS)
+              .nonce(senderNonce)
+              .build());
+      senderNonce++;
+    }
+    if (valueTransferedPriorToDeploymentOf4788) {
+      genesisBlockTransactions.add(
+          ToyTransaction.builder()
+              .sender(senderAccount)
+              .toAddress(EIP4788_BEACONROOT_ADDRESS)
+              .nonce(senderNonce)
+              .build());
+      senderNonce++;
+    }
+    if (system2935ContractDeployedBeforeBlockNumber == 1) {
+      genesisBlockTransactions.add(deploy2935);
+      genesisBlockTransactions.add(
+          ToyTransaction.builder()
+              .sender(senderAccount)
+              .to(callerOf2935)
+              .nonce(senderNonce)
+              .build());
+      senderNonce++;
+    }
+    if (system4788ContractDeployedBeforeBlockNumber == 1) {
+      genesisBlockTransactions.add(deploy4788);
+      genesisBlockTransactions.add(
+          ToyTransaction.builder()
+              .sender(senderAccount)
+              .to(callerOf4788)
+              .nonce(senderNonce)
+              .build());
+      senderNonce++;
+    }
+
     final List<Transaction> blockNb1Transactions = new ArrayList<>();
+    blockNb1Transactions.add(
+        ToyTransaction.builder().sender(senderAccount).to(callerOf2935).nonce(senderNonce).build());
+    senderNonce++;
+    blockNb1Transactions.add(
+        ToyTransaction.builder().sender(senderAccount).to(callerOf4788).nonce(senderNonce).build());
+    senderNonce++;
+    if (system2935ContractDeployedBeforeBlockNumber == 2) {
+      genesisBlockTransactions.add(deploy2935);
+      genesisBlockTransactions.add(
+          ToyTransaction.builder()
+              .sender(senderAccount)
+              .to(callerOf2935)
+              .nonce(senderNonce)
+              .build());
+      senderNonce++;
+    }
+    if (system4788ContractDeployedBeforeBlockNumber == 2) {
+      genesisBlockTransactions.add(deploy4788);
+      genesisBlockTransactions.add(
+          ToyTransaction.builder()
+              .sender(senderAccount)
+              .to(callerOf4788)
+              .nonce(senderNonce)
+              .build());
+      senderNonce++;
+    }
+
     final List<Transaction> blockNb2Transactions = new ArrayList<>();
+    blockNb2Transactions.add(
+        ToyTransaction.builder().sender(senderAccount).to(callerOf2935).nonce(senderNonce).build());
+    senderNonce++;
+    blockNb2Transactions.add(
+        ToyTransaction.builder().sender(senderAccount).to(callerOf4788).nonce(senderNonce).build());
+    senderNonce++;
 
     final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
         MultiBlockExecutionEnvironment.builder(
-            testInfo, systemContractDeployedBeforeBlockNumber == 0, 0);
+            testInfo,
+            system2935ContractDeployedBeforeBlockNumber == 0
+                || system4788ContractDeployedBeforeBlockNumber == 0,
+            0);
     builder
         .accounts(
             List.of(senderAccount, deployerOf2935, deployerOf4788, callerOf2935, callerOf4788))

@@ -47,6 +47,7 @@ public class ToyTransaction {
   private static final Wei DEFAULT_MAX_PRIORITY_FEE_PER_GAS = Wei.of(500_000_000L);
 
   private final ToyAccount to;
+  private final Address toAddress;
   private final ToyAccount sender;
   private final Wei gasPrice;
   private final Long gasLimit;
@@ -69,9 +70,13 @@ public class ToyTransaction {
      * @return an instance of {@link Transaction}
      */
     public Transaction build() {
+      final boolean deploymentTransaction = to == null && toAddress == null;
       final Transaction.Builder builder =
           Transaction.builder()
-              .to(to != null ? to.getAddress() : null)
+              .to(
+                  deploymentTransaction
+                      ? null
+                      : Optional.ofNullable(toAddress).orElse(to.getAddress()))
               .nonce(nonce != null ? nonce : sender.getNonce())
               .accessList(accessList)
               .type(Optional.ofNullable(transactionType).orElse(DEFAULT_TX_TYPE))

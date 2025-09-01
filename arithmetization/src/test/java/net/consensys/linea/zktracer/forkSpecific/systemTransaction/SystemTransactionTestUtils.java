@@ -27,7 +27,7 @@ public class SystemTransactionTestUtils {
   static Bytes byteCodeCallingBeaconRootSystemAccount(
       TestInfoWithChainConfig testInfo, Address systemContractAddress, long arg) {
     return BytecodeCompiler.newProgram(testInfo)
-        // prepare memory with TIMESTAMP left padded
+        // prepare memory with arg left padded
         .push(Bytes32.leftPad(Bytes.minimalBytes(arg))) // value
         .push(0) // offset
         .op(OpCode.MSTORE)
@@ -40,6 +40,7 @@ public class SystemTransactionTestUtils {
         .push(systemContractAddress) // address
         .push(757575) // gas
         .op(OpCode.CALL)
+        .op(OpCode.POP) // clean stack
         .compile();
   }
 

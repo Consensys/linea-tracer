@@ -41,7 +41,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class EIP4788BeaconBlockRoot extends TraceSection {
 
-  public static final Address BEACONROOT_ADDRESS =
+  public static final Address EIP4788_BEACONROOT_ADDRESS =
       AddressUtils.addressFromBytes(
           Bytes.concatenate(
               Bytes.minimalBytes(BEACON_ROOTS_ADDRESS_HI),
@@ -50,7 +50,7 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
   public EIP4788BeaconBlockRoot(Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, (short) 5);
     final AccountSnapshot beaconrootAccount =
-        AccountSnapshot.canonical(hub, world, BEACONROOT_ADDRESS, false);
+        AccountSnapshot.canonical(hub, world, EIP4788_BEACONROOT_ADDRESS, false);
     final long timestamp = blockHeader.getTimestamp();
     final boolean currentBlockIsGenesisBlock = blockHeader.getNumber() == 0;
     final boolean isNonTrivialOperation =
@@ -69,7 +69,7 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
             .makeWithTrm(
                 beaconrootAccount,
                 beaconrootAccount,
-                BEACONROOT_ADDRESS,
+                EIP4788_BEACONROOT_ADDRESS,
                 DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1),
                 SYSI);
     fragments().add(accountFragment);
@@ -79,10 +79,12 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
       final StorageFragment storingTimestamp =
           systemTransactionStoring(
               hub,
-              BEACONROOT_ADDRESS,
+              EIP4788_BEACONROOT_ADDRESS,
               keyTimestamp,
               EWord.of(
-                  world.get(BEACONROOT_ADDRESS).getStorageValue(UInt256.fromBytes(keyTimestamp))),
+                  world
+                      .get(EIP4788_BEACONROOT_ADDRESS)
+                      .getStorageValue(UInt256.fromBytes(keyTimestamp))),
               EWord.of(timestamp),
               2);
       fragments().add(storingTimestamp);
@@ -92,10 +94,12 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
       final StorageFragment storingBeaconroot =
           systemTransactionStoring(
               hub,
-              BEACONROOT_ADDRESS,
+              EIP4788_BEACONROOT_ADDRESS,
               keyBeaconRoot,
               EWord.of(
-                  world.get(BEACONROOT_ADDRESS).getStorageValue(UInt256.fromBytes(keyBeaconRoot))),
+                  world
+                      .get(EIP4788_BEACONROOT_ADDRESS)
+                      .getStorageValue(UInt256.fromBytes(keyBeaconRoot))),
               EWord.of(beaconRoot),
               3);
       fragments().add(storingBeaconroot);

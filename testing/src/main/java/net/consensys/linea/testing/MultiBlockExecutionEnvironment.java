@@ -39,6 +39,8 @@ import org.hyperledger.besu.ethereum.core.*;
 @Builder
 @Slf4j
 public class MultiBlockExecutionEnvironment {
+  public static final short DEFAULT_DELTA_TIMESTAMP_BETWEEN_BLOCKS = 2;
+
   @Singular("addAccount")
   private final List<ToyAccount> accounts;
 

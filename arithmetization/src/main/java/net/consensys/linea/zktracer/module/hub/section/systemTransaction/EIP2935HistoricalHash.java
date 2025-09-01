@@ -39,7 +39,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class EIP2935HistoricalHash extends TraceSection {
 
-  public static final Address HISTORY_STORAGE_ADDRESS =
+  public static final Address EIP2935_HISTORY_STORAGE_ADDRESS =
       AddressUtils.addressFromBytes(
           Bytes.concatenate(
               Bytes.minimalBytes(HISTORY_STORAGE_ADDRESS_HI),
@@ -51,7 +51,7 @@ public class EIP2935HistoricalHash extends TraceSection {
     final short previousBlockNumberModulo =
         currentBlockIsGenesis ? 0 : (short) ((blockHeader.getNumber() - 1) % HISTORY_SERVE_WINDOW);
     final AccountSnapshot blockhashHistoryAccount =
-        AccountSnapshot.canonical(hub, HISTORY_STORAGE_ADDRESS);
+        AccountSnapshot.canonical(hub, EIP2935_HISTORY_STORAGE_ADDRESS);
     final boolean isNonTrivialOperation =
         !currentBlockIsGenesis && !blockhashHistoryAccount.code().isEmpty();
 
@@ -68,7 +68,7 @@ public class EIP2935HistoricalHash extends TraceSection {
             .makeWithTrm(
                 blockhashHistoryAccount,
                 blockhashHistoryAccount,
-                HISTORY_STORAGE_ADDRESS,
+                EIP2935_HISTORY_STORAGE_ADDRESS,
                 DomSubStampsSubFragment.standardDomSubStamps(hubStamp(), 1),
                 SYSI);
     fragments().add(accountFragment);
@@ -78,9 +78,12 @@ public class EIP2935HistoricalHash extends TraceSection {
       final StorageFragment storingBlockhash =
           systemTransactionStoring(
               hub,
-              HISTORY_STORAGE_ADDRESS,
+              EIP2935_HISTORY_STORAGE_ADDRESS,
               key,
-              EWord.of(world.get(HISTORY_STORAGE_ADDRESS).getStorageValue(UInt256.fromBytes(key))),
+              EWord.of(
+                  world
+                      .get(EIP2935_HISTORY_STORAGE_ADDRESS)
+                      .getStorageValue(UInt256.fromBytes(key))),
               EWord.of(blockhash),
               2);
       fragments().add(storingBlockhash);

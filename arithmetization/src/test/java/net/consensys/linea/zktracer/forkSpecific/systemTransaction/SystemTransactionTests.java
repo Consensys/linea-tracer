@@ -167,7 +167,7 @@ public class SystemTransactionTests extends TracerTestBase {
                 Bytes.concatenate(
                     Bytes32.fromHexStringLenient("0x539"), // r
                     Bytes32.fromHexStringLenient("0xaa12693182426612186309f02cfe8a80a0000"), // s
-                    Bytes.fromHexString("0x1b") // v
+                    Bytes.fromHexString("0x00") // v = 0x1B
                     ))
             .build();
 
@@ -191,7 +191,8 @@ public class SystemTransactionTests extends TracerTestBase {
                 Bytes.concatenate(
                     Bytes32.fromHexStringLenient("0x539"), // r
                     Bytes32.fromHexStringLenient("0x1b9b6eb1f0"), // s
-                    Bytes.fromHexString("0x1b"))) // v
+                    Bytes.fromHexString("0x00") // v = 0x1B
+                    ))
             .build();
 
     final List<Transaction> genesisBlockTransactions = new ArrayList<>();

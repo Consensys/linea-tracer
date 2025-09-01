@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 public class ExampleBesuTest extends TracerTestBase {
+
   @Test
   void test(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -40,6 +41,17 @@ public class ExampleBesuTest extends TracerTestBase {
 
     ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+
+    BytecodeCompiler compiler =
+        BytecodeCompiler.newProgram(testInfo).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+
+    switch (fork) {
+      case LONDON -> {}
+      case PARIS -> compiler.op(OpCode.DIFFICULTY);
+      case SHANGHAI -> compiler.op(OpCode.PUSH0);
+      case CANCUN -> compiler.op(OpCode.MCOPY);
+      default -> throw new IllegalArgumentException("Unsupported fork: " + fork);
+    }
 
     ToyAccount receiverAccount =
         ToyAccount.builder()
@@ -53,6 +65,7 @@ public class ExampleBesuTest extends TracerTestBase {
                     .op(OpCode.ADD)
                     // .op(OpCode.PUSH0)
                     .compile())
+            .code(compiler.compile())
             .build();
 
     Transaction tx =

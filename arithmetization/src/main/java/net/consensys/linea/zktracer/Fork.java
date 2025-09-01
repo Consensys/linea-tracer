@@ -17,8 +17,11 @@ package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Trace.*;
 
+import net.consensys.linea.plugins.BesuServiceProvider;
 import org.hyperledger.besu.datatypes.HardforkId.MainnetHardforkId;
 import org.hyperledger.besu.plugin.ServiceManager;
+import org.hyperledger.besu.plugin.services.BlockchainService;
+
 /**
  * release numbers of forks are defined from the <b>Ethereum Protocol Releases</b> table in <a
  * href="https://github.com/ethereum/execution-specs">execution specs</a> repo. We start counting at
@@ -113,21 +116,21 @@ public enum Fork {
   // Waiting for https://github.com/hyperledger/besu/pull/9115 to uncomment
   public static Fork getForkFromBesuBlockchainService(
       ServiceManager context, long fromBlock, long toBlock) {
-    //  MainnetHardforkId hardforkIdFromBlock =  BesuServiceProvider.getBesuService(context,
-    // BlockchainService.class)
-    // .getHardforkId(fromBlock)
-    // .orElseThrow();
-    // if (fromBlock != toBlock) {
-    //  MainnetHardforkId hardforkIdToBlock =  BesuServiceProvider.getBesuService(context,
-    // BlockchainService.class)
-    // .getHardforkId(toBlock)
-    // .orElseThrow();
-    //  if(hardforkIdFromBlock != hardforkIdToBlock) {
-    //    throw new IllegalArgumentException("Fork change between blocks " + fromBlock + " and " +
-    // toBlock) ;
-    //  }    }
-    // return fromMainnetHardforkId(hardforkIdFromBlock);
-    return LONDON;
+    MainnetHardforkId hardforkIdFromBlock =
+        BesuServiceProvider.getBesuService(context, BlockchainService.class)
+            .getHardforkId(fromBlock)
+            .orElseThrow();
+    if (fromBlock != toBlock) {
+      MainnetHardforkId hardforkIdToBlock =
+          BesuServiceProvider.getBesuService(context, BlockchainService.class)
+              .getHardforkId(toBlock)
+              .orElseThrow();
+      if (hardforkIdFromBlock != hardforkIdToBlock) {
+        throw new IllegalArgumentException(
+            "Fork change between blocks " + fromBlock + " and " + toBlock);
+      }
+    }
+    return fromMainnetHardforkId(hardforkIdFromBlock);
   }
 
   /**

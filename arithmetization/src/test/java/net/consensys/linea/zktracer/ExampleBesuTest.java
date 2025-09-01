@@ -33,10 +33,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 public class ExampleBesuTest extends TracerTestBase {
-<<<<<<< HEAD
 
-=======
->>>>>>> ac2b23ea8 (feat: comment EIP4788)
   @Test
   void test(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -61,17 +58,7 @@ public class ExampleBesuTest extends TracerTestBase {
             .balance(Wei.ONE)
             .nonce(6)
             .address(Address.fromHexString("0x111111"))
-<<<<<<< HEAD
             .code(compiler.compile())
-=======
-            .code(
-                BytecodeCompiler.newProgram(testInfo)
-                    .push(32, 0xbeef)
-                    .push(32, 0xdead)
-                    .op(OpCode.ADD)
-                    // .op(OpCode.PUSH0)
-                    .compile())
->>>>>>> ac2b23ea8 (feat: comment EIP4788)
             .build();
 
     Transaction tx =

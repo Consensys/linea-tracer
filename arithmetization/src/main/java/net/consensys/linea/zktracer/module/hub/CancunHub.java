@@ -28,8 +28,12 @@ import net.consensys.linea.zktracer.module.hub.section.McopySection;
 import net.consensys.linea.zktracer.module.hub.section.finalization.CancunFinalizationSection;
 import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.CancunSelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.skip.CancunTxSkipSection;
+<<<<<<< HEAD
 import net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection;
 import net.consensys.linea.zktracer.module.hub.section.systemTransaction.SysfNoopSection;
+=======
+import net.consensys.linea.zktracer.module.hub.section.systemTransaction.Noop;
+>>>>>>> ac2b23ea8 (feat: comment EIP4788)
 import net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.CancunInitializationSection;
@@ -157,7 +161,11 @@ public class CancunHub extends ShanghaiHub {
     state.transactionProcessingType(SYSI);
     state.incrementSysiTransactionNumber();
     state.processingPhase(TX_SKIP);
+<<<<<<< HEAD
     new EIP4788BeaconBlockRootSection(this, world, blockHeader);
+=======
+    // new EIP4788BeaconBlockRoot(this, world, blockHeader);
+>>>>>>> ac2b23ea8 (feat: comment EIP4788)
   }
 
   @Override

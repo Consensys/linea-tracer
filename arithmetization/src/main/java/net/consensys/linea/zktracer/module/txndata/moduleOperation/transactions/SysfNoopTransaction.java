@@ -16,6 +16,10 @@ package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions
 
 import net.consensys.linea.zktracer.module.txndata.module.TxnDataRedesign;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
+import net.consensys.linea.zktracer.module.txndata.rows.computationRows.ComputationRow;
+import net.consensys.linea.zktracer.module.txndata.rows.computationRows.NoopRow;
+import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
+import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 
 public class SysfNoopTransaction extends TxnDataRedesignOperation {
 
@@ -27,4 +31,16 @@ public class SysfNoopTransaction extends TxnDataRedesignOperation {
   public SysfNoopTransaction(TxnDataRedesign txnData) {
     super(txnData);
   }
+
+  public SysfNoopTransaction(
+          final TxnDataRedesign txnData,
+          final org.hyperledger.besu.plugin.data.ProcessableBlockHeader processableBlockHeader) {
+      super(txnData);
+      process();
+  }
+
+    private void process() {
+      rows.add(new HubRowForSystemTransactions(Type.NOOP));
+      rows.add(new NoopRow());
+    }
 }

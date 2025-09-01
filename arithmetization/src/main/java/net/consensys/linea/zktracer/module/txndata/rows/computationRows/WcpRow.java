@@ -31,12 +31,12 @@ public class WcpRow extends ComputationRow {
   @Override
   public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
     super.traceRow(trace, block);
-    // trace
-    //     .pComputationWcpFlag(true)
-    //     .pComputationArg1(arg1)
-    //     .pComputationArg2(arg2)
-    //     .pComputationInst(instruction.opCode)
-    //     .pComputationRes(result ? 1 : 0);
+    trace
+        .pComputationWcpFlag(true)
+        .pComputationArg1Lo(arg1)
+        .pComputationArg2Lo(arg2)
+        .pComputationInst(instruction.opCode)
+        .pComputationRes(result ? Bytes.of(1) : Bytes.EMPTY);
   }
 
   final WcpInstruction instruction;

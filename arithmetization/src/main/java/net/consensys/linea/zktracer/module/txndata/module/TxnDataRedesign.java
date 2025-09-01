@@ -45,7 +45,7 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
 
   @Getter private final Hub hub;
   @Getter private final Fork fork;
-  @Getter private final List<BlockSnapshot> blocks = new ArrayList<>();
+  @Getter private final List<ProcessableBlockHeader> blocks = new ArrayList<>();
   @Getter private long number;
 
   @Getter
@@ -58,12 +58,12 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
       final ProcessableBlockHeader processableBlockHeader,
       final Address miningBeneficiary) {
 
-    blocks.add(new BlockSnapshot(processableBlockHeader));
+    blocks.add(processableBlockHeader);
     number = processableBlockHeader.getNumber();
     operations().add(new SysiEip4788Transaction(this, processableBlockHeader));
 
     if (isPostPrague(fork)) {
-     operations().add(new SysiEip2935Transaction(this, processableBlockHeader));
+      operations().add(new SysiEip2935Transaction(this, processableBlockHeader));
     }
   }
 

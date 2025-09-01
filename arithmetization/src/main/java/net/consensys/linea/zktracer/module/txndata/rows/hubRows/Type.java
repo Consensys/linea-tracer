@@ -15,8 +15,8 @@
 package net.consensys.linea.zktracer.module.txndata.rows.hubRows;
 
 public enum Type {
-    NOOP,
-    USER,
-    EIP2935,
-    EIP4788,
+  NOOP,
+  USER,
+  EIP2935,
+  EIP4788,
 }

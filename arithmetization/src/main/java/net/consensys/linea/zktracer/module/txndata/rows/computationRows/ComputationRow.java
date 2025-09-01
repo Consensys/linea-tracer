@@ -21,6 +21,6 @@ import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 public abstract class ComputationRow extends TxnDataRow {
   @Override
   public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
-    // trace.cmptn(true);
+    trace.cmptn(true);
   }
 }

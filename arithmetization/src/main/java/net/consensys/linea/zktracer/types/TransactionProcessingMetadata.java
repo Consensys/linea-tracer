@@ -168,7 +168,7 @@ public class TransactionProcessingMetadata {
 
   @Accessors(fluent = true)
   @Getter
-  private final int numberOfNonZeroBytesInPayload;
+  private final int numberOfNonzeroBytesInPayload;
 
   @Accessors(fluent = true)
   @Getter
@@ -200,7 +200,7 @@ public class TransactionProcessingMetadata {
     initialBalance = getInitialBalance(world);
 
     numberOfZeroBytesInPayload = Math.toIntExact(besuTransaction.getPayloadZeroBytes());
-    numberOfNonZeroBytesInPayload =
+    numberOfNonzeroBytesInPayload =
         besuTransaction.getPayload().size() - numberOfZeroBytesInPayload;
 
     // Note: Besu's dataCost computation contains
@@ -426,7 +426,7 @@ public class TransactionProcessingMetadata {
   }
 
   public long weightedByteCount() {
-    return 4 * numberOfNonZeroBytesInPayload + numberOfZeroBytesInPayload;
+    return 4 * numberOfNonzeroBytesInPayload + numberOfZeroBytesInPayload;
   }
 
   public void captureUpdatedInitialRecipientAddressDeploymentInfoAtTransactionStart(Hub hub) {

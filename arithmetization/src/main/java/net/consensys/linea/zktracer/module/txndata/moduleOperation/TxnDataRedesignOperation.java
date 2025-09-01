@@ -63,18 +63,17 @@ public abstract class TxnDataRedesignOperation extends ModuleOperation {
   }
 
   private void traceCommonColumnsSaveForFlags(Trace.Txndata trace, int ct) {
-    // trace
-    //     .blkNumber(relativeBlockNumber) // TODO: defcomputed column would be better
-    //     .totlTxnNumber(totlTransactionNumber()) // TODO: defcomputed column would be better
-    //     .sysiTxnNumber(sysiTransactionNumber)
-    //     .userTxnNumber(userTransactionNumber)
-    //     .sysfTxnNumber(sysfTransactionNumber)
-    //     .ct(ct)
-    //     .ctMax(ctMax())
-    // ;
-  }
-
-  private short totlTransactionNumber() {
-    return (short) (sysiTransactionNumber + userTransactionNumber + sysfTransactionNumber);
+    trace
+        .blkNumber(relativeBlockNumber)
+        // TOTL_TXN_NUMBER is (defcomputed ...)
+        .sysiTxnNumber(sysiTransactionNumber)
+        .userTxnNumber(userTransactionNumber)
+        .sysfTxnNumber(sysfTransactionNumber)
+        // SYSI, USER, SYSF flags get traced in by the concrete operations
+        // CMPTN, HUB, RLP flags get traced by the concrete rows
+        .ct(ct)
+        .ctMax(ctMax())
+        // GAS_CUMULATIVE gets traced for USER transactions only
+    ;
   }
 }

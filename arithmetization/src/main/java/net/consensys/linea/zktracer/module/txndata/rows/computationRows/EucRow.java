@@ -38,10 +38,12 @@ public class EucRow extends ComputationRow {
   @Override
   public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
     super.traceRow(trace, block);
-    // trace
-    //     .pComputationEucFlag(true)
-    //     .pComputationArg1(dividend)
-    //     .pComputationArg2(divisor)
-    //     .pComputationRes(quotient);
+     trace
+         .pComputationEucFlag(true)
+         .pComputationArg1Lo(Bytes.ofUnsignedLong(dividend))
+         .pComputationArg2Lo(Bytes.ofUnsignedLong(divisor))
+         // no computation/INST tracing for EUC
+         .pComputationRes(Bytes.ofUnsignedLong(quotient))
+     ;
   }
 }

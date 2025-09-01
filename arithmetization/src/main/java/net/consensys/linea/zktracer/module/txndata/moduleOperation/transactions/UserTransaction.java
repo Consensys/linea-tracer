@@ -33,12 +33,14 @@ import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForUserTra
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class UserTransaction extends TxnDataRedesignOperation {
 
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
   public final TransactionProcessingMetadata txn;
   public final TxnDataRedesign txnData;
+    public final ProcessableBlockHeader blockHeader;
   public final Wcp wcp;
   public final Euc euc;
   public final Fork fork;
@@ -48,6 +50,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
     super(txnData);
 
     this.txnData = txnData;
+    this.blockHeader = txnData.getBlocks().getLast();
     this.txn = txnMetadata;
     this.wcp = txnData.getHub().wcp();
     this.euc = txnData.getHub().euc();
@@ -260,13 +263,13 @@ public class UserTransaction extends TxnDataRedesignOperation {
         WcpRow.smallCallToLeq(
             wcp,
             txn.getAccumulatedGasUsedInBlock(),
-            txnData.getBlocks().getLast().getBlockGasLimit().toLong());
+            blockHeader.getGasLimit());
 
     checkArgument(
         cumulativeGasConsumptionMustNotExceedBlockGasLimit.result(),
         "Cumulative gas consumption %s exceeds the block gas limit %s",
         txn.getAccumulatedGasUsedInBlock(),
-        txnData.getBlocks().getLast().getBlockGasLimit().toLong());
+        blockHeader.getGasLimit());
   }
 
   private void comparingMaxFeeToMaxPriorityFeeComputationRow() {

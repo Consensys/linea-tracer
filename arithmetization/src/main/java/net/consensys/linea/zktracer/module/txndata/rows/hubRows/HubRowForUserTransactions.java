@@ -18,12 +18,50 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
+import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
+
+import static net.consensys.linea.zktracer.Trace.LLARGE;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 @RequiredArgsConstructor
 public class HubRowForUserTransactions extends TxnDataRow {
   public final TransactionProcessingMetadata txn;
 
   @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {}
+  public void traceRow(Trace.Txndata trace, ProcessableBlockHeader blockHeader) {
+
+      Address coinbase = txn.getHub().coinbaseAddressOfRelativeBlock(txn.getRelativeBlockNumber());
+      trace
+              .pHubBtcBlockNumber(blockHeader.getNumber())
+              .pHubBtcBlockGasLimit(blockHeader.getGasLimit())
+              .pHubBtcBasefee(blockHeader.getBaseFee().get().getAsBigInteger().longValueExact())
+              .pHubBtcTimestamp(Bytes.ofUnsignedLong(blockHeader.getTimestamp()))
+              .pHubBtcCoinbaseAddressHi(coinbase.slice(0, 4).toLong())
+              .pHubBtcCoinbaseAddressLo(coinbase.slice(4, LLARGE))
+              .pHubToAddressHi(txn.getEffectiveRecipient().slice(0, 4).toLong())
+              .pHubToAddressLo(txn.getEffectiveRecipient().slice(4, LLARGE))
+              .pHubFromAddressHi(txn.getSender().slice(0, 4).toLong())
+              .pHubFromAddressLo(txn.getSender().slice(4, LLARGE))
+              .pHubIsDeployment(txn.isDeployment())
+              .pHubNonce(Bytes.ofUnsignedLong(txn.getBesuTransaction().getNonce()))
+              .pHubValue(bigIntegerToBytes(txn.getBesuTransaction().getValue().getAsBigInteger()))
+              .pHubGasLimit(txn.getBesuTransaction().getPayload().toLong())
+              .pHubGasPrice(Bytes.ofUnsignedLong(txn.getEffectiveGasPrice()))
+              .pHubGasInitiallyAvailable(txn.getInitiallyAvailableGas())
+              .pHubCallDataSize(txn.isDeployment() ? 0 : txn.getBesuTransaction().getPayload().size())
+              .pHubInitCodeSize(txn.isDeployment() ? txn.getBesuTransaction().getPayload().size() : 0)
+              .pHubHasEip1559GasSemantics(txn.getBesuTransaction().getType().supports1559FeeMarket())
+              .pHubCfi(txn.getCodeFragmentIndex())
+              .pHubInitBalance(bigIntegerToBytes(txn.getInitialBalance()))
+              .pHubStatusCode(txn.statusCode())
+              .pHubGasLeftover(txn.getLeftoverGas())
+              .pHubRefundCounterFinal(txn.getRefundCounterMax())
+              .pHubRefundEffective(txn.getRefundEffective())
+              // EIP-4844, EIP-2935, NOOP flags aswell as SYST_TXN_DATA_k not set for USER transactions
+      ;
+  }
 }

@@ -18,20 +18,20 @@ import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.E
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
 
-import lombok.Getter;
 import net.consensys.linea.zktracer.module.txndata.module.TxnDataRedesign;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow;
-import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow;
+import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class SysiEip4788Transaction extends TxnDataRedesignOperation {
 
-    private final long nonsenseCancunTimestamp = 0x1337L; // Placeholder for the actual Prague fork timestamp
-    private final org.hyperledger.besu.plugin.data.ProcessableBlockHeader blockHeader;
+  private final long nonsenseCancunTimestamp =
+      0x1337L; // Placeholder for the actual Prague fork timestamp
+  private final org.hyperledger.besu.plugin.data.ProcessableBlockHeader blockHeader;
 
   public SysiEip4788Transaction(
       final TxnDataRedesign txnData,
@@ -65,11 +65,11 @@ public class SysiEip4788Transaction extends TxnDataRedesignOperation {
     long timestamp = blockHeader.getTimestamp();
     Bytes32 parentBeaconBlockRoot = blockHeader.getParentBeaconBlockRoot().orElseThrow();
 
-      hubRow.systemTransactionData1 = EWord.of(timestamp);
-      hubRow.systemTransactionData2 = EWord.of(timestamp % 8191);
-      hubRow.systemTransactionData3 = EWord.of(EWord.of(parentBeaconBlockRoot).hi());
-      hubRow.systemTransactionData4 = EWord.of(EWord.of(parentBeaconBlockRoot).lo());
-      hubRow.systemTransactionData5 = EWord.of(blockHeader.getNumber() == 0 ? 1 : 0);
+    hubRow.systemTransactionData1 = EWord.of(timestamp);
+    hubRow.systemTransactionData2 = EWord.of(timestamp % 8191);
+    hubRow.systemTransactionData3 = EWord.of(EWord.of(parentBeaconBlockRoot).hi());
+    hubRow.systemTransactionData4 = EWord.of(EWord.of(parentBeaconBlockRoot).lo());
+    hubRow.systemTransactionData5 = EWord.of(blockHeader.getNumber() == 0 ? 1 : 0);
 
     rows.add(hubRow);
   }
@@ -86,8 +86,8 @@ public class SysiEip4788Transaction extends TxnDataRedesignOperation {
   }
 
   private void compareTimestampToLineaCancunForkTimestampComputationRow() {
-      WcpRow row = smallCallToLeq(wcp, blockHeader.getTimestamp(), nonsenseCancunTimestamp);
-      rows.add(row);
+    WcpRow row = smallCallToLeq(wcp, blockHeader.getTimestamp(), nonsenseCancunTimestamp);
+    rows.add(row);
   }
 
   @Override

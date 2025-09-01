@@ -14,6 +14,9 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
+import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
+import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
+
 import net.consensys.linea.zktracer.module.txndata.module.TxnDataRedesign;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow;
@@ -23,12 +26,10 @@ import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
-import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
-import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
-
 public class SysiEip2935Transaction extends TxnDataRedesignOperation {
 
-  private final long nonsensePragueTimestamp = 0x13370000L; // Placeholder for the actual Prague fork timestamp
+  private final long nonsensePragueTimestamp =
+      0x13370000L; // Placeholder for the actual Prague fork timestamp
   private final org.hyperledger.besu.plugin.data.ProcessableBlockHeader blockHeader;
 
   @Override
@@ -38,7 +39,8 @@ public class SysiEip2935Transaction extends TxnDataRedesignOperation {
 
   public SysiEip2935Transaction(
       final TxnDataRedesign txnData,
-      final org.hyperledger.besu.plugin.data.ProcessableBlockHeader processableBlockHeader) {
+      final org.hyperledger.besu.plugin.data.ProcessableBlockHeader processableBlockHeader
+  ) {
 
     super(txnData);
     this.blockHeader = processableBlockHeader;
@@ -67,25 +69,22 @@ public class SysiEip2935Transaction extends TxnDataRedesignOperation {
   }
 
   private void detectTheGenesisBlockComputationRow() {
-      WcpRow row = smallCallToIszero(wcp, blockHeader.getNumber());
-      rows.add(row);
+    WcpRow row = smallCallToIszero(wcp, blockHeader.getNumber());
+    rows.add(row);
   }
 
   private void computePreviousBlockNumberModulo8191ComputationRow() {
-      EucRow row = EucRow.callToEuc(euc, previousBlockNumber(), 8191);
-      rows.add(row);
+    EucRow row = EucRow.callToEuc(euc, previousBlockNumber(), 8191);
+    rows.add(row);
   }
 
-    private void compareTimestampToLineaCancunForkTimestampComputationRow() {
-        WcpRow row = smallCallToLeq(wcp, blockHeader.getTimestamp(), nonsensePragueTimestamp);
-        rows.add(row);
-    }
+  private void compareTimestampToLineaCancunForkTimestampComputationRow() {
+    WcpRow row = smallCallToLeq(wcp, blockHeader.getTimestamp(), nonsensePragueTimestamp);
+    rows.add(row);
+  }
 
   private long previousBlockNumber() {
-      return
-      currentBlockIsGenesisBlock()
-      ? 0
-        : blockHeader.getNumber() - 1;
+    return currentBlockIsGenesisBlock() ? 0 : blockHeader.getNumber() - 1;
   }
 
   private boolean currentBlockIsGenesisBlock() {
@@ -93,6 +92,6 @@ public class SysiEip2935Transaction extends TxnDataRedesignOperation {
   }
 
   private Bytes previousBlockHash() {
-      return currentBlockIsGenesisBlock() ? blockHeader.getParentHash() : Bytes.EMPTY;
+    return currentBlockIsGenesisBlock() ? blockHeader.getParentHash() : Bytes.EMPTY;
   }
 }

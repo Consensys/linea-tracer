@@ -34,13 +34,6 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 
 @Builder
 public class ToyTransaction {
-  private static final ToyAccount DEFAULT_SENDER =
-      ToyAccount.builder()
-          .nonce(1L)
-          .address(Address.fromHexString("0xe8f1b89"))
-          .balance(Wei.ONE)
-          .build();
-
   private static final Wei DEFAULT_VALUE = Wei.ZERO;
   private static final Bytes DEFAULT_INPUT_DATA = Bytes.EMPTY;
   private static final long DEFAULT_GAS_LIMIT = 50_000L; // i.e. 21 000 + a bit

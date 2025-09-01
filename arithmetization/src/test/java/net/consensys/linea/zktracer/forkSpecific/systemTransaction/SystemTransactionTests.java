@@ -103,7 +103,12 @@ public class SystemTransactionTests extends TracerTestBase {
   private static final Address senderAddress =
       Address.extract(Hash.hash(senderKeyPair.getPublicKey().getEncodedBytes()));
   private static final ToyAccount senderAccount =
-      ToyAccount.builder().balance(Wei.fromEth(123)).nonce(0).address(senderAddress).build();
+      ToyAccount.builder()
+          .balance(Wei.fromEth(123))
+          .nonce(0)
+          .address(senderAddress)
+          .balance(Wei.fromEth(12))
+          .build();
 
   // This EOA calls 3 times the system account with as input the three block number of the
   // conflation
@@ -152,6 +157,7 @@ public class SystemTransactionTests extends TracerTestBase {
         ToyAccount.builder()
             .nonce(0)
             .address(Address.fromHexString("0x3462413Af4609098e1E27A490f554f260213D685"))
+            .balance(Wei.fromEth(109))
             .build();
     final Transaction deploy2935 =
         ToyTransaction.builder()
@@ -176,6 +182,7 @@ public class SystemTransactionTests extends TracerTestBase {
         ToyAccount.builder()
             .nonce(0)
             .address(Address.fromHexString("0x0B799C86a49DEeb90402691F1041aa3AF2d3C875"))
+            .balance(Wei.fromEth(109))
             .build();
     final Transaction deploy4788 =
         ToyTransaction.builder()
@@ -198,13 +205,13 @@ public class SystemTransactionTests extends TracerTestBase {
     final List<Transaction> genesisBlockTransactions = new ArrayList<>();
     genesisBlockTransactions.add(check2935Tx());
     genesisBlockTransactions.add(check4788Tx());
-    senderNonce++;
     if (valueTransferedPriorToDeploymentOf2935) {
       genesisBlockTransactions.add(
           ToyTransaction.builder()
               .sender(senderAccount)
               .toAddress(EIP2935_HISTORY_STORAGE_ADDRESS)
               .nonce(senderNonce)
+              .value(Wei.ONE)
               .keyPair(senderKeyPair)
               .build());
       senderNonce++;
@@ -215,6 +222,7 @@ public class SystemTransactionTests extends TracerTestBase {
               .sender(senderAccount)
               .toAddress(EIP4788_BEACONROOT_ADDRESS)
               .nonce(senderNonce)
+              .value(Wei.ONE)
               .keyPair(senderKeyPair)
               .build());
       senderNonce++;

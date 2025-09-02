@@ -206,26 +206,10 @@ public class SystemTransactionTests extends TracerTestBase {
     genesisBlockTransactions.add(check2935Tx());
     genesisBlockTransactions.add(check4788Tx());
     if (valueTransferedPriorToDeploymentOf2935) {
-      genesisBlockTransactions.add(
-          ToyTransaction.builder()
-              .sender(senderAccount)
-              .toAddress(EIP2935_HISTORY_STORAGE_ADDRESS)
-              .nonce(senderNonce)
-              .value(Wei.ONE)
-              .keyPair(senderKeyPair)
-              .build());
-      senderNonce++;
+      genesisBlockTransactions.add(transferValueTo2935Tx());
     }
     if (valueTransferedPriorToDeploymentOf4788) {
-      genesisBlockTransactions.add(
-          ToyTransaction.builder()
-              .sender(senderAccount)
-              .toAddress(EIP4788_BEACONROOT_ADDRESS)
-              .nonce(senderNonce)
-              .value(Wei.ONE)
-              .keyPair(senderKeyPair)
-              .build());
-      senderNonce++;
+      genesisBlockTransactions.add(transferValueTo4788Tx());
     }
     if (system2935ContractDeployedBeforeBlockNumber == 1) {
       genesisBlockTransactions.add(deploy2935);
@@ -269,26 +253,40 @@ public class SystemTransactionTests extends TracerTestBase {
   }
 
   private Transaction check2935Tx() {
-    final Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(callerOf2935)
-            .nonce(senderNonce)
-            .keyPair(senderKeyPair)
-            .build();
-    senderNonce++;
-    return tx;
+    return ToyTransaction.builder()
+        .sender(senderAccount)
+        .to(callerOf2935)
+        .nonce(senderNonce++)
+        .keyPair(senderKeyPair)
+        .build();
+  }
+
+  private Transaction transferValueTo2935Tx() {
+    return ToyTransaction.builder()
+        .sender(senderAccount)
+        .toAddress(EIP2935_HISTORY_STORAGE_ADDRESS)
+        .nonce(senderNonce++)
+        .value(Wei.ONE)
+        .keyPair(senderKeyPair)
+        .build();
+  }
+
+  private Transaction transferValueTo4788Tx() {
+    return ToyTransaction.builder()
+        .sender(senderAccount)
+        .toAddress(EIP4788_BEACONROOT_ADDRESS)
+        .nonce(senderNonce++)
+        .value(Wei.ONE)
+        .keyPair(senderKeyPair)
+        .build();
   }
 
   private Transaction check4788Tx() {
-    final Transaction tx =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(callerOf4788)
-            .nonce(senderNonce)
-            .keyPair(senderKeyPair)
-            .build();
-    senderNonce++;
-    return tx;
+    return ToyTransaction.builder()
+        .sender(senderAccount)
+        .to(callerOf4788)
+        .nonce(senderNonce++)
+        .keyPair(senderKeyPair)
+        .build();
   }
 }

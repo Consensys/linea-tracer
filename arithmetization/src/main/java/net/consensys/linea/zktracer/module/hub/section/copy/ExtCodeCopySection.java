@@ -59,7 +59,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
     address = Address.extract(Bytes32.leftPad(rawAddress));
     incomingDeploymentNumber = hub.deploymentNumberOf(address);
     incomingDeploymentStatus = hub.deploymentStatusOf(address);
-    incomingWarmth = isAddressWarm(frame, address);
+    incomingWarmth = isAddressWarm(hub.fork, frame, address);
     final ImcFragment imcFragment = ImcFragment.empty(hub);
 
     this.addStack(hub);
@@ -161,6 +161,6 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   }
 
   private static short maxNumberOfRows(Hub hub) {
-    return (short) (hub.opCode().numberOfStackRows() + 3);
+    return (short) (hub.opCodeData().numberOfStackRows() + 3);
   }
 }

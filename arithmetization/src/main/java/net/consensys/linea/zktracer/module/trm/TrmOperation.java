@@ -39,7 +39,6 @@ import net.consensys.linea.zktracer.TraceCancun;
 import net.consensys.linea.zktracer.TraceLondon;
 import net.consensys.linea.zktracer.TracePrague;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.module.wcp.WcpCall;
 import net.consensys.linea.zktracer.types.EWord;
@@ -57,16 +56,17 @@ public class TrmOperation extends ModuleOperation {
   private static final Bytes TWOFIFTYSIX_TO_THE_TWELVE_MO_BYTES =
       bigIntegerToBytes(TWOFIFTYSIX_TO_THE_TWELVE_MO);
 
-  public TrmOperation(Hub hub, EWord rawAddress, Wcp wcp) {
-    this.fork = hub.fork;
+  public TrmOperation(Fork fork, EWord rawAddress, Wcp wcp) {
+    this.fork = fork;
     this.rawAddress = rawAddress;
     final Bytes trmAddress = rawAddress.toAddress();
 
     final int maxPrcAddressPerFork =
-        switch (this.fork) {
+        switch (fork) {
           case LONDON, PARIS, SHANGHAI -> TraceLondon.MAX_PRC_ADDRESS;
           case CANCUN -> TraceCancun.MAX_PRC_ADDRESS;
           case PRAGUE -> TracePrague.MAX_PRC_ADDRESS;
+          default -> throw new IllegalArgumentException("Unknown fork: " + fork);
         };
 
     wcpCalls.add(0, ltCall(wcp, trmAddress, TWOFIFTYSIX_TO_THE_TWENTY_BYTES));
@@ -77,7 +77,7 @@ public class TrmOperation extends ModuleOperation {
 
   void trace(Trace.Trm trace) {
     final Address trmAddress = rawAddress.toAddress();
-    final boolean isPrec = isPrecompile(trmAddress);
+    final boolean isPrec = isPrecompile(fork, trmAddress);
     final long trmAddrHi = trmAddress.slice(0, 4).toLong();
 
     for (int ct = 0; ct <= TRM_CT_MAX; ct++) {

@@ -78,7 +78,7 @@ public class CancunHub extends ShanghaiHub {
 
   @Override
   protected RlpTxn setRlpTxn(Hub hub) {
-    return new CancunRlpTxn(hub.rlpUtils());
+    return new CancunRlpTxn(hub.rlpUtils(), hub.trm());
   }
 
   @Override
@@ -88,7 +88,7 @@ public class CancunHub extends ShanghaiHub {
 
   @Override
   protected InstructionDecoder setInstructionDecoder() {
-    return new CancunInstructionDecoder();
+    return new CancunInstructionDecoder(this.opCodes());
   }
 
   @Override

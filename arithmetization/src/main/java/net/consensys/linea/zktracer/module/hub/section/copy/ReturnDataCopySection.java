@@ -34,8 +34,8 @@ public class ReturnDataCopySection extends TraceSection {
 
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     final ImcFragment imcFragment = ImcFragment.empty(hub);
-    final ReturnDataCopyOobCall oobCall = new ReturnDataCopyOobCall();
-    imcFragment.callOob(oobCall);
+    final ReturnDataCopyOobCall oobCall =
+        (ReturnDataCopyOobCall) imcFragment.callOob(new ReturnDataCopyOobCall());
 
     this.addStack(hub);
     this.addFragment(imcFragment);
@@ -75,6 +75,6 @@ public class ReturnDataCopySection extends TraceSection {
   }
 
   private static short maxNumberOfRows(Hub hub) {
-    return (short) (hub.opCode().numberOfStackRows() + 3);
+    return (short) (hub.opCodeData().numberOfStackRows() + 3);
   }
 }

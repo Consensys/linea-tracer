@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.module.hub.AccountSnapshot.canonical;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFragment.CallScenario.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
-import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
+import static net.consensys.linea.zktracer.types.AddressUtils.*;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import static org.hyperledger.besu.datatypes.Address.*;
 
@@ -51,7 +51,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.scenario.CallScenarioFra
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 import net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.*;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.MemoryRange;
@@ -134,7 +134,7 @@ public class CallSection extends TraceSection
   private AccountSnapshot reEntryCallerSnapshot;
   private AccountSnapshot reEntryCalleeSnapshot;
 
-  private final OpCode opCode;
+  private final OpCodeData opCode;
   private Wei value;
 
   public StpCall stpCall;
@@ -149,7 +149,7 @@ public class CallSection extends TraceSection
     super(hub, maxNumberOfLines(hub));
 
     factory = hub.factories();
-    opCode = hub.opCode();
+    opCode = hub.opCodeData();
 
     final short exceptions = hub.pch().exceptions();
 
@@ -162,9 +162,8 @@ public class CallSection extends TraceSection
 
     if (Exceptions.any(exceptions)) {
       scenarioFragment.setScenario(CALL_EXCEPTION);
-      if (opCode == CALL) {
-        final XCallOobCall oobCall = new XCallOobCall();
-        firstImcFragment.callOob(oobCall);
+      if (opCode.mnemonic() == CALL) {
+        firstImcFragment.callOob(new XCallOobCall());
       }
     }
 
@@ -195,6 +194,14 @@ public class CallSection extends TraceSection
     rawCalleeAddress = frame.getStackItem(1);
     calleeAddress = Address.extract(EWord.of(rawCalleeAddress));
 
+    // TODO: remove me when Linea supports Cancun & Prague precompiles
+    if (isKzgPrecompileCall(calleeAddress, hub.fork)) {
+      hub.pointEval().detectEvent();
+    }
+    if (isBlsPrecompileCall(calleeAddress, hub.fork)) {
+      hub.bls().detectEvent();
+    }
+
     callerFirst = canonical(hub, callerAddress);
     calleeFirst = canonical(hub, calleeAddress);
 
@@ -210,7 +217,8 @@ public class CallSection extends TraceSection
 
     // the call data span and ``return at'' spans are only required once the CALL is unexceptional
     callDataRange =
-        new MemoryRange(currentFrame.contextNumber(), Range.callDataRange(frame), frame);
+        new MemoryRange(
+            currentFrame.contextNumber(), Range.callDataRange(frame, hub.opCodeData(frame)), frame);
     returnAtRange = new MemoryRange(currentFrame.contextNumber(), returnAtRange(frame), frame);
 
     value =
@@ -218,8 +226,7 @@ public class CallSection extends TraceSection
             ? Wei.of(frame.getStackItem(2).toUnsignedBigInteger())
             : Wei.ZERO;
 
-    final CallOobCall oobCall = new CallOobCall();
-    firstImcFragment.callOob(oobCall);
+    final CallOobCall oobCall = (CallOobCall) firstImcFragment.callOob(new CallOobCall());
 
     final boolean aborts = hub.pch().abortingConditions().any();
     checkArgument(oobCall.isAbortingCondition() == aborts);
@@ -329,7 +336,7 @@ public class CallSection extends TraceSection
     }
 
     final WorldUpdater world = frame.getWorldUpdater();
-    if (isPrecompile(calleeAddress)) {
+    if (isPrecompile(hub.fork, calleeAddress)) {
       precompileAddress = Optional.of(calleeAddress);
       scenarioFragment.setScenario(CALL_PRC_UNDEFINED);
     } else {
@@ -406,7 +413,7 @@ public class CallSection extends TraceSection
     callerFirstNew = callerFirst.deepCopy();
     calleeFirstNew = calleeFirst.deepCopy().turnOnWarmth();
 
-    if (opCode == CALL) {
+    if (opCode.mnemonic() == CALL) {
       callerFirstNew.decrementBalanceBy(value);
       calleeFirstNew.incrementBalanceBy(value);
     }

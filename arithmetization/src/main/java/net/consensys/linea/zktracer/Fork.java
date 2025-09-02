@@ -25,7 +25,9 @@ public enum Fork {
   PARIS(17),
   SHANGHAI(18),
   CANCUN(19),
-  PRAGUE(20);
+  PRAGUE(20),
+    OSAKA(21) // not yet live on L1
+    ;
 
   private final int releaseNumber;
 
@@ -44,6 +46,8 @@ public enum Fork {
       case SHANGHAI -> "shanghai";
       case CANCUN -> "cancun";
       case PRAGUE -> "prague";
+      case OSAKA -> "osaka";
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
     };
   }
 

@@ -20,12 +20,12 @@ import static net.consensys.linea.zktracer.Trace.OOB_INST_BLAKE_PARAMS;
 import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_BLAKE2F_PARAMS;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToEQ;
 import static net.consensys.linea.zktracer.module.oob.OobExoCall.callToLT;
-import static net.consensys.linea.zktracer.runtime.callstack.CallFrame.getOpCode;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
 import java.math.BigInteger;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
@@ -35,18 +35,21 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.oob.OobExoCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
-import net.consensys.linea.zktracer.opcode.OpCode;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class Blake2fParamsOobCall extends OobCall {
 
-  BigInteger calleeGas;
-  BigInteger blakeR;
-  BigInteger blakeF;
+  // Inputs
+  @EqualsAndHashCode.Include final BigInteger calleeGas;
+  @EqualsAndHashCode.Include BigInteger blakeR;
+  @EqualsAndHashCode.Include BigInteger blakeF;
 
+  // Outputs
   boolean ramSuccess;
   BigInteger returnGas;
 
@@ -57,7 +60,7 @@ public class Blake2fParamsOobCall extends OobCall {
 
   @Override
   public void setInputData(MessageFrame frame, Hub hub) {
-    final OpCode opCode = getOpCode(frame);
+    final OpCodeData opCode = hub.opCodeData(frame);
     final long argsOffset =
         clampedToLong(
             opCode.callHasValueArgument()
@@ -73,7 +76,7 @@ public class Blake2fParamsOobCall extends OobCall {
   }
 
   @Override
-  public void callExoModules(Add add, Mod mod, Wcp wcp) {
+  public void callExoModulesAndSetOutputs(Add add, Mod mod, Wcp wcp) {
     // row i
     final OobExoCall sufficientGasCall =
         callToLT(wcp, bigIntegerToBytes(calleeGas), bigIntegerToBytes(blakeR));

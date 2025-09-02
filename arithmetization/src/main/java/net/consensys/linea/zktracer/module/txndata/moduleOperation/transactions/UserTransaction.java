@@ -40,7 +40,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
   public final TransactionProcessingMetadata txn;
   public final TxnDataRedesign txnData;
-    public final ProcessableBlockHeader blockHeader;
+  public final ProcessableBlockHeader blockHeader;
   public final Wcp wcp;
   public final Euc euc;
   public final Fork fork;
@@ -92,7 +92,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
   }
 
   void hubRow() {
-    rows.add(new HubRowForUserTransactions(txn));
+    rows.add(new HubRowForUserTransactions(txn, blockHeader));
   }
 
   void rlpRow() {
@@ -122,7 +122,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
     final Bytes maxCostInWei =
         bigIntegerToBytes(
             value.add(
-                maxGasPrice.multiply(BigInteger.valueOf(txn.getBesuTransaction().getGasLimit()))));
+                maxGasPrice.multiply(BigInteger.valueOf(txn.getGasLimit()))));
     final WcpRow initialBalanceMustCoverValueAndGas =
         WcpRow.smallCallToLeq(wcp, maxCostInWei, initialBalance);
     checkArgument(
@@ -154,7 +154,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
 
   private void gasLimitMustCoverTheUpfrontGasCostComputationRow() {
     final long upfrontGasCost = txn.getUpfrontGasCost();
-    final long gasLimit = txn.getBesuTransaction().getGasLimit();
+    final long gasLimit = txn.getGasLimit();
 
     final WcpRow gasLimitMustCoverUpfrontGasCost =
         WcpRow.smallCallToLeq(
@@ -171,7 +171,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
 
   private void gasLimitMustCoverTheTransactionFloorCostComputationRow() {
     final long floorGasCost = txn.getFloorCost();
-    final long gasLimit = txn.getBesuTransaction().getGasLimit();
+    final long gasLimit = txn.getGasLimit();
 
     final WcpRow gasLimitMustCoverFloorGasCost =
         WcpRow.smallCallToLeq(
@@ -189,7 +189,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
   }
 
   private long upperLimitForGasRefundsComputationRow() {
-    final long executionGasCost = txn.getBesuTransaction().getGasLimit() - txn.getLeftoverGas();
+    final long executionGasCost = txn.getGasLimit() - txn.getLeftoverGas();
     final EucRow upperLimitForGasRefunds =
         EucRow.callToEuc(euc, executionGasCost, MAX_REFUND_QUOTIENT);
 
@@ -208,10 +208,10 @@ public class UserTransaction extends TxnDataRedesignOperation {
     final boolean accruedRefundsAreLtUpperLimit = effectiveRefunds.result();
     final long consumedGasAfterRefunds =
         accruedRefundsAreLtUpperLimit
-            ? txn.getBesuTransaction().getGasLimit()
+            ? txn.getGasLimit()
                 - txn.getLeftoverGas()
                 - txn.getRefundCounterMax()
-            : txn.getBesuTransaction().getGasLimit()
+            : txn.getGasLimit()
                 - txn.getLeftoverGas()
                 - upperLimitForGasRefunds;
 
@@ -260,16 +260,13 @@ public class UserTransaction extends TxnDataRedesignOperation {
 
   private void cumulativeGasConsumptionMustNotExceedBlockGasLimitComputationRow() {
     final WcpRow cumulativeGasConsumptionMustNotExceedBlockGasLimit =
-        WcpRow.smallCallToLeq(
-            wcp,
-            txn.getAccumulatedGasUsedInBlock(),
-            blockHeader.getGasLimit());
+        WcpRow.smallCallToLeq(wcp, txn.getAccumulatedGasUsedInBlock(), txn.getGasLimit());
 
     checkArgument(
         cumulativeGasConsumptionMustNotExceedBlockGasLimit.result(),
         "Cumulative gas consumption %s exceeds the block gas limit %s",
         txn.getAccumulatedGasUsedInBlock(),
-        blockHeader.getGasLimit());
+        txn.getGasLimit());
   }
 
   private void comparingMaxFeeToMaxPriorityFeeComputationRow() {

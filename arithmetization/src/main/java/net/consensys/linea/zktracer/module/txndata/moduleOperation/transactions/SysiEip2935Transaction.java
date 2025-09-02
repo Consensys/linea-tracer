@@ -39,8 +39,7 @@ public class SysiEip2935Transaction extends TxnDataRedesignOperation {
 
   public SysiEip2935Transaction(
       final TxnDataRedesign txnData,
-      final org.hyperledger.besu.plugin.data.ProcessableBlockHeader processableBlockHeader
-  ) {
+      final org.hyperledger.besu.plugin.data.ProcessableBlockHeader processableBlockHeader) {
 
     super(txnData);
     this.blockHeader = processableBlockHeader;

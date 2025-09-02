@@ -38,6 +38,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Getter
 public class TransactionProcessingMetadata {
@@ -331,17 +332,12 @@ public class TransactionProcessingMetadata {
   }
 
   public long getInitiallyAvailableGas() {
-    return besuTransaction.getGasLimit() - getUpfrontGasCost();
+    return getGasLimit() - getUpfrontGasCost();
   }
 
   private long computeRefundEffective() {
-    final long maxRefundableAmount = getGasUsed() / MAX_REFUND_QUOTIENT;
-    final long leftoverGasPlusRefunds =
-        leftoverGas + Math.min(maxRefundableAmount, refundCounterMax);
-    final long transactionExecutionCostAfterRefunds =
-        besuTransaction.getGasLimit() - leftoverGasPlusRefunds;
-    return besuTransaction.getGasLimit()
-        - Math.max(floorCost, transactionExecutionCostAfterRefunds);
+    final long upperBoundForRefunds = getGasUsed() / MAX_REFUND_QUOTIENT;
+    return Math.min(upperBoundForRefunds, refundCounterMax);
   }
 
   private long computeEffectiveGasPrice() {
@@ -375,17 +371,22 @@ public class TransactionProcessingMetadata {
 
   /* Tg - g' in the EYP*/
   public long computeGasUsed() {
-    return besuTransaction.getGasLimit() - leftoverGas;
+    return getGasLimit() - leftoverGas;
   }
 
   /* g* in the EYP */
   public long computeRefunded() {
-    return leftoverGas + refundEffective;
+
+      final long leftoverGasPlusEffectiveRefund = leftoverGas + refundEffective;
+      final long executionCostAfterRefunds = getGasLimit() - leftoverGasPlusEffectiveRefund;
+      final long finalTransactionCost = Math.max(floorCost, executionCostAfterRefunds);
+
+    return getGasLimit() - finalTransactionCost;
   }
 
   /* Tg - g* in the EYP */
   public long computeTotalGasUsed() {
-    return besuTransaction.getGasLimit() - getGasRefunded();
+    return getGasLimit() - getGasRefunded();
   }
 
   public long feeRateForCoinbase() {
@@ -472,5 +473,9 @@ public class TransactionProcessingMetadata {
     } else {
       hadCodeInitiallyMap.put(address, newOccurrence);
     }
+  }
+
+  public long getGasLimit() {
+    return besuTransaction.getGasLimit();
   }
 }

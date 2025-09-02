@@ -18,13 +18,12 @@ import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
-import org.hyperledger.besu.ethereum.core.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
 public abstract class HubRow extends TxnDataRow {
 
   @Override
-  public void traceRow(Trace.Txndata trace,  BlockSnapshot block) {
+  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
     trace.hub(true);
   }
 }

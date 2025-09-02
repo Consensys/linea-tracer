@@ -33,14 +33,13 @@ public class HubRowForSystemTransactions extends HubRow {
   public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
     super.traceRow(trace, block);
     trace
-         .pHubSystTxnData1(type == Type.NOOP ? EWord.ZERO : systemTransactionData1)
-         .pHubSystTxnData2(type == Type.NOOP ? EWord.ZERO : systemTransactionData2)
-         .pHubSystTxnData3(type == Type.NOOP ? EWord.ZERO : systemTransactionData3)
-         .pHubSystTxnData4(type == Type.NOOP ? EWord.ZERO : systemTransactionData4)
-         .pHubSystTxnData5(type == Type.NOOP ? EWord.ZERO : systemTransactionData5)
-         .pHubEip2935(type == Type.EIP2935)
-         .pHubEip4788(type == Type.EIP4788)
-         .pHubNoop(type == Type.NOOP)
-         ;
+        .pHubSystTxnData1(type == Type.NOOP ? EWord.ZERO : systemTransactionData1)
+        .pHubSystTxnData2(type == Type.NOOP ? EWord.ZERO : systemTransactionData2)
+        .pHubSystTxnData3(type == Type.NOOP ? EWord.ZERO : systemTransactionData3)
+        .pHubSystTxnData4(type == Type.NOOP ? EWord.ZERO : systemTransactionData4)
+        .pHubSystTxnData5(type == Type.NOOP ? EWord.ZERO : systemTransactionData5)
+        .pHubEip2935(type == Type.EIP2935)
+        .pHubEip4788(type == Type.EIP4788)
+        .pHubNoop(type == Type.NOOP);
   }
 }

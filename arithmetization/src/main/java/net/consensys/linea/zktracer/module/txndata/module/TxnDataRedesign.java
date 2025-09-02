@@ -27,7 +27,6 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysfNoopTransaction;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysiEip2935Transaction;

@@ -73,7 +73,7 @@ public abstract class TxnDataRedesignOperation extends ModuleOperation {
         // CMPTN, HUB, RLP flags get traced by the concrete rows
         .ct(ct)
         .ctMax(ctMax())
-        // GAS_CUMULATIVE gets traced for USER transactions only
+    // GAS_CUMULATIVE gets traced for USER transactions only
     ;
   }
 }

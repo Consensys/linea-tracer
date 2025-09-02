@@ -121,13 +121,11 @@ public enum Fork {
       ServiceManager context, long fromBlock, long toBlock) {
     MainnetHardforkId hardforkIdFromBlock =
         BesuServiceProvider.getBesuService(context, BlockchainService.class)
-            .getHardforkId(fromBlock)
-            .orElseThrow();
+            .getHardforkId(fromBlock);
     if (fromBlock != toBlock) {
       MainnetHardforkId hardforkIdToBlock =
           BesuServiceProvider.getBesuService(context, BlockchainService.class)
-              .getHardforkId(toBlock)
-              .orElseThrow();
+              .getHardforkId(toBlock);
       if (hardforkIdFromBlock != hardforkIdToBlock) {
         throw new IllegalArgumentException(
             "Fork change between blocks " + fromBlock + " and " + toBlock);

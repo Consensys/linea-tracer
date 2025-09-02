@@ -34,6 +34,7 @@ import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.ethereum.core.*;
 
 @Builder
@@ -91,14 +92,18 @@ public class MultiBlockExecutionEnvironment {
 
     public MultiBlockExecutionEnvironmentBuilder addBlock(
         List<Transaction> transactions, long gasLimit) {
-      BlockHeaderBuilder blockHeaderBuilder =
-          this.blocks.isEmpty()
+      final boolean firstBlock = this.blocks.isEmpty();
+      final BlockHeaderBuilder blockHeaderBuilder =
+          firstBlock
               ? ExecutionEnvironment.getLineaBlockHeaderBuilder(Optional.empty())
               : ExecutionEnvironment.getLineaBlockHeaderBuilder(
                   Optional.of(this.blocks.getLast().header().toBlockHeader()));
       blockHeaderBuilder.coinbase(ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS);
       blockHeaderBuilder.gasLimit(gasLimit);
       blockHeaderBuilder.number(startingBlockNumber$value + blocks.size());
+      if (!firstBlock) {
+        blockHeaderBuilder.parentBeaconBlockRoot(Bytes32.fromHexStringLenient("0xBADDADD7"));
+      }
       final BlockBody blockBody = new BlockBody(transactions, Collections.emptyList());
       this.blocks.add(BlockSnapshot.of(blockHeaderBuilder.buildBlockHeader(), blockBody));
 

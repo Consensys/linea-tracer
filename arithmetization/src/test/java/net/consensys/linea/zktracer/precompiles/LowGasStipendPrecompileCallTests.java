@@ -319,15 +319,6 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
                 false));
       }
     }
-
-    arguments = new ArrayList<>();
-    arguments.add(
-        Arguments.of(
-            KZG_POINT_EVAL,
-            ValueCase.NON_ZERO,
-            GasCase.COST,
-            PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION,
-            false));
     return arguments.stream();
   }
 

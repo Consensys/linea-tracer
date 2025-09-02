@@ -95,8 +95,8 @@ public enum Fork {
    * @param hardForkId the hardfork id retrieved from Besu API
    * @return Fork
    */
-  private static Fork fromMainnetHardforkId(HardforkId hardForkId) {
-    return switch ((MainnetHardforkId) hardForkId) {
+  private static Fork fromMainnetHardforkId(MainnetHardforkId hardForkId) {
+    return switch (hardForkId) {
       case MainnetHardforkId.LONDON -> LONDON;
       case MainnetHardforkId.PARIS -> PARIS;
       case MainnetHardforkId.SHANGHAI -> SHANGHAI;
@@ -119,11 +119,11 @@ public enum Fork {
   // Waiting for https://github.com/hyperledger/besu/pull/9115 to uncomment
   public static Fork getForkFromBesuBlockchainService(
       ServiceManager context, long fromBlock, long toBlock) {
-    MainnetHardforkId hardforkIdFromBlock =
+    HardforkId hardforkIdFromBlock =
         BesuServiceProvider.getBesuService(context, BlockchainService.class)
             .getHardforkId(fromBlock);
     if (fromBlock != toBlock) {
-      MainnetHardforkId hardforkIdToBlock =
+      HardforkId hardforkIdToBlock =
           BesuServiceProvider.getBesuService(context, BlockchainService.class)
               .getHardforkId(toBlock);
       if (hardforkIdFromBlock != hardforkIdToBlock) {
@@ -131,7 +131,7 @@ public enum Fork {
             "Fork change between blocks " + fromBlock + " and " + toBlock);
       }
     }
-    return fromMainnetHardforkId(hardforkIdFromBlock);
+    return fromMainnetHardforkId((MainnetHardforkId) hardforkIdFromBlock);
   }
 
   /**

@@ -1,3 +1,4 @@
+permissions: read-all
 name: Daily Blockchain Tests
 
 on:

@@ -168,6 +168,12 @@ public class EmptyBlockTests extends TracerTestBase {
           }
         }
       }
+      /**
+       * The idea is in one block to SSTORE the blockNumber, and few block after to SLOAD, compare
+       * it with the actual block number, and if we have a match, then do a logging we could check.
+       * The idea is to ensue that empty blocks are handled well, ie that the number of the block
+       * number, known by besu and the tracer is updating how we assume it
+       */
       checkArgument(nbOfLog == 1, "There should be exactly one log section");
     }
   }
@@ -183,7 +189,11 @@ public class EmptyBlockTests extends TracerTestBase {
       // One empty block
       builder.addBlock(List.of());
 
-      builder.build().run();
+      final MultiBlockExecutionEnvironment env = builder.build();
+      env.run();
+      checkArgument(
+          env.getHub().txStack().transactions().isEmpty(),
+          "There should be no transaction in the state");
     }
   }
 }

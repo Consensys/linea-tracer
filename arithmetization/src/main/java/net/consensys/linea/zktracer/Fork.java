@@ -15,10 +15,14 @@
 
 package net.consensys.linea.zktracer;
 
+import java.util.Optional;
+
 import static net.consensys.linea.zktracer.Trace.*;
 
 import net.consensys.linea.plugins.BesuServiceProvider;
+import org.hyperledger.besu.datatypes.HardforkId;
 import org.hyperledger.besu.datatypes.HardforkId.MainnetHardforkId;
+import org.hyperledger.besu.ethereum.core.Block;
 import org.hyperledger.besu.plugin.ServiceManager;
 import org.hyperledger.besu.plugin.services.BlockchainService;
 
@@ -92,8 +96,8 @@ public enum Fork {
    * @param hardForkId the hardfork id retrieved from Besu API
    * @return Fork
    */
-  private static Fork fromMainnetHardforkId(MainnetHardforkId hardForkId) {
-    return switch (hardForkId) {
+  private static Fork fromMainnetHardforkId(HardforkId hardForkId) {
+    return switch ((MainnetHardforkId) hardForkId) {
       case MainnetHardforkId.LONDON -> LONDON;
       case MainnetHardforkId.PARIS -> PARIS;
       case MainnetHardforkId.SHANGHAI -> SHANGHAI;
@@ -108,26 +112,41 @@ public enum Fork {
    * Start a Besu Blockchain service and retrieve the hardfork id for a given block range
    *
    * @param context the context on which to start the service
-   * @param fromBlock the block number at which to retrieve the hardfork id
-   * @param toBlock the block number at which to retrieve the hardfork id
+   * @param fromBlockNumber the block number at which to retrieve the hardfork id
+   * @param toBlockNumber the block number at which to retrieve the hardfork id
    * @return Fork corresponding Fork instance if the hardfork id is the same between fromBlock and
    *     toBlock, else throw
    */
   // Waiting for https://github.com/hyperledger/besu/pull/9115 to uncomment
   public static Fork getForkFromBesuBlockchainService(
-      ServiceManager context, long fromBlock, long toBlock) {
-    MainnetHardforkId hardforkIdFromBlock =
+      ServiceManager context, long fromBlockNumber, long toBlockNumber) {
+    Optional<Block> maybeFromBlock =
         BesuServiceProvider.getBesuService(context, BlockchainService.class)
-            .getHardforkId(fromBlock)
+            .getBlockByNumber(fromBlockNumber)
             .orElseThrow();
-    if (fromBlock != toBlock) {
-      MainnetHardforkId hardforkIdToBlock =
+    if (maybeFromBlock.isEmpty()) {
+      throw new IllegalArgumentException("No block found at number " + fromBlockNumber);
+    }
+    HardforkId hardforkIdFromBlock =
+        BesuServiceProvider.getBesuService(context, BlockchainService.class)
+            .getHardforkId(maybeFromBlock.get().getHeader());
+
+    if (fromBlockNumber != toBlockNumber) {
+      Optional<Block> maybeToBlock =
           BesuServiceProvider.getBesuService(context, BlockchainService.class)
-              .getHardforkId(toBlock)
+              .getBlockByNumber(toBlockNumber)
               .orElseThrow();
+
+      if (maybeToBlock.isEmpty()) {
+        throw new IllegalArgumentException("No block found at number " + toBlockNumber);
+      }
+      HardforkId hardforkIdToBlock =
+          BesuServiceProvider.getBesuService(context, BlockchainService.class)
+              .getHardforkId(maybeToBlock.get().getHeader());
+
       if (hardforkIdFromBlock != hardforkIdToBlock) {
         throw new IllegalArgumentException(
-            "Fork change between blocks " + fromBlock + " and " + toBlock);
+            "Fork change between blocks " + fromBlockNumber + " and " + toBlockNumber);
       }
     }
     return fromMainnetHardforkId(hardforkIdFromBlock);

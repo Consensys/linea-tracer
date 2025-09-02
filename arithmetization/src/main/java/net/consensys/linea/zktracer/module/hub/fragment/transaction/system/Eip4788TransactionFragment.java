@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
+import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragmentType.EIP4788_BEACON_BLOCK_ROOT;
-import static org.hyperledger.besu.ethereum.mainnet.ParentBeaconBlockRootHelper.HISTORY_BUFFER_LENGTH;
 
 import net.consensys.linea.zktracer.Trace;
 import org.apache.tuweni.bytes.Bytes;

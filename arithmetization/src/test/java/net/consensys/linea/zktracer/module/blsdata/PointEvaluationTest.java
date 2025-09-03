@@ -59,7 +59,7 @@ public class PointEvaluationTest extends TracerTestBase {
                         + "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
                         + "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"))
             .build();
-    
+
     /* source: https://github.com/ethereum/execution-spec-tests/blob/1983444bbe1a471886ef7c0e82253ffe2a4053e1/tests/cancun/eip4844_blobs/point_evaluation_vectors/go_kzg_4844_verify_kzg_proof.json#L312-L321
                and Ivo
     {

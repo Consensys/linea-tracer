@@ -224,7 +224,7 @@ public class BlsDataOperation extends ModuleOperation {
     final boolean nonTrivialPairOfPointsTot =
         nontrivialPairOfPointsBit.stream().reduce(false, Boolean::logicalOr);
     wtrv =
-        !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || !nonTrivialPairOfPointsTot);
+        !mint && !mext && precompileFlag == PRC_BLS_PAIRING_CHECK && !nonTrivialPairOfPointsTot;
     wnon = !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || nonTrivialPairOfPointsTot);
   }
 
@@ -968,8 +968,6 @@ public class BlsDataOperation extends ModuleOperation {
 
     final Bytes deltaByte =
         leftPadTo(Bytes.minimalBytes(id - previousId - 1), nBYTES_OF_DELTA_BYTES);
-
-    final boolean wellformedData = wtrv || wnon;
 
     int ct = 0;
     boolean isFirstInput = true;

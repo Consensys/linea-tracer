@@ -38,7 +38,6 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
-import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Getter
 public class TransactionProcessingMetadata {
@@ -377,9 +376,9 @@ public class TransactionProcessingMetadata {
   /* g* in the EYP */
   public long computeRefunded() {
 
-      final long leftoverGasPlusEffectiveRefund = leftoverGas + refundEffective;
-      final long executionCostAfterRefunds = getGasLimit() - leftoverGasPlusEffectiveRefund;
-      final long finalTransactionCost = Math.max(floorCost, executionCostAfterRefunds);
+    final long leftoverGasPlusEffectiveRefund = leftoverGas + refundEffective;
+    final long executionCostAfterRefunds = getGasLimit() - leftoverGasPlusEffectiveRefund;
+    final long finalTransactionCost = Math.max(floorCost, executionCostAfterRefunds);
 
     return getGasLimit() - finalTransactionCost;
   }

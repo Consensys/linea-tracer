@@ -496,7 +496,7 @@ public abstract class Hub implements Module {
     blockStack.newBlock(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
     state.enterSectionsStack();
-    traceSystemInitialTransaction(world, processableBlockHeader);
+    traceSysiTransactions(world, processableBlockHeader);
     // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
     // disappear with limitless refacto
     state.lineCounter().add(state.currentTransactionHubSections().lineCount());
@@ -1123,7 +1123,7 @@ public abstract class Hub implements Module {
 
   protected abstract void setMcopySection(Hub hub);
 
-  protected abstract void traceSystemInitialTransaction(
+  protected abstract void traceSysiTransactions(
       WorldView world, ProcessableBlockHeader blockHeader);
 
   protected abstract void traceSystemFinalTransaction();

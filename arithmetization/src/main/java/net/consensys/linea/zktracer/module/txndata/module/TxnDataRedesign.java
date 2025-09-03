@@ -14,15 +14,12 @@
  */
 package net.consensys.linea.zktracer.module.txndata.module;
 
-import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
@@ -43,9 +40,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOperation> {
 
   @Getter private final Hub hub;
-  @Getter private final Fork fork;
-  @Getter private final List<ProcessableBlockHeader> blocks = new ArrayList<>();
-  @Getter private long number;
+  @Getter private ProcessableBlockHeader currentBlockHeader;
 
   @Getter
   private final ModuleOperationStackedList<TxnDataRedesignOperation> operations =
@@ -56,12 +51,10 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
       WorldView world,
       final ProcessableBlockHeader processableBlockHeader,
       final Address miningBeneficiary) {
-
-    blocks.add(processableBlockHeader);
-    number = processableBlockHeader.getNumber();
+    currentBlockHeader = processableBlockHeader;
     operations().add(new SysiEip4788Transaction(this, processableBlockHeader));
 
-    if (isPostPrague(fork)) {
+    if (isPostPrague(hub.fork)) {
       operations().add(new SysiEip2935Transaction(this, processableBlockHeader));
     }
   }
@@ -72,13 +65,6 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
   }
 
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-
-    checkState(
-        blockHeader.getNumber() == number,
-        "Block header number %s does not match current block number %s",
-        blockHeader.getNumber(),
-        number);
-
     operations().add(new SysfNoopTransaction(this));
   }
 

@@ -149,8 +149,7 @@ public class LondonHub extends Hub {
   }
 
   @Override
-  protected void traceSystemInitialTransaction(
-      WorldView world, ProcessableBlockHeader blockHeader) {
+  protected void traceSysiTransactions(WorldView world, ProcessableBlockHeader blockHeader) {
     // Nothing to do, appears in Cancun
   }
 

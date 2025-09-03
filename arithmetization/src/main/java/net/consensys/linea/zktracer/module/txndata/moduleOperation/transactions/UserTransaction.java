@@ -120,9 +120,7 @@ public class UserTransaction extends TxnDataRedesignOperation {
             ? txn.getBesuTransaction().getMaxFeePerGas().get().getAsBigInteger()
             : txn.getBesuTransaction().getGasPrice().get().getAsBigInteger();
     final Bytes maxCostInWei =
-        bigIntegerToBytes(
-            value.add(
-                maxGasPrice.multiply(BigInteger.valueOf(txn.getGasLimit()))));
+        bigIntegerToBytes(value.add(maxGasPrice.multiply(BigInteger.valueOf(txn.getGasLimit()))));
     final WcpRow initialBalanceMustCoverValueAndGas =
         WcpRow.smallCallToLeq(wcp, maxCostInWei, initialBalance);
     checkArgument(
@@ -208,12 +206,8 @@ public class UserTransaction extends TxnDataRedesignOperation {
     final boolean accruedRefundsAreLtUpperLimit = effectiveRefunds.result();
     final long consumedGasAfterRefunds =
         accruedRefundsAreLtUpperLimit
-            ? txn.getGasLimit()
-                - txn.getLeftoverGas()
-                - txn.getRefundCounterMax()
-            : txn.getGasLimit()
-                - txn.getLeftoverGas()
-                - upperLimitForGasRefunds;
+            ? txn.getGasLimit() - txn.getLeftoverGas() - txn.getRefundCounterMax()
+            : txn.getGasLimit() - txn.getLeftoverGas() - upperLimitForGasRefunds;
 
     rows.add(effectiveRefunds);
 

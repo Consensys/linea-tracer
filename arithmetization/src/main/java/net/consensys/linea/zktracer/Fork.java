@@ -26,8 +26,8 @@ public enum Fork {
   SHANGHAI(18),
   CANCUN(19),
   PRAGUE(20),
-    OSAKA(21) // not yet live on L1
-    ;
+  OSAKA(21) // not yet live on L1
+;
 
   private final int releaseNumber;
 

@@ -1018,7 +1018,7 @@ public class BlsDataOperation extends ModuleOperation {
           .index(isData ? i : i - nRowsData)
           .indexMax(indexMax)
           .phase(isData ? precompileFlag.dataPhase() : precompileFlag.resultPhase())
-          .limb(isData || returnDataIsNonEmpty ? limb.slice(i, LLARGE) : ZERO)
+          .limb(isData || returnDataIsNonEmpty ? limb.slice(i * LLARGE, LLARGE) : ZERO)
           .successBit(successBit)
           .ct(ct)
           .ctMax(ctMax)

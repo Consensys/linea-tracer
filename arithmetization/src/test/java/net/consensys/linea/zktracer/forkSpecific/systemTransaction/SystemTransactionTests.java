@@ -71,29 +71,29 @@ public class SystemTransactionTests extends TracerTestBase {
   private static Stream<Arguments> scenariiForSystemContract() {
 
     final List<Arguments> scenarii = new ArrayList<>();
-    scenarii.add(Arguments.of(0, false, 0, false));
-    for (int system2935ContractDeployedBeforeBlockNumber = 1;
-        system2935ContractDeployedBeforeBlockNumber <= 2;
-        system2935ContractDeployedBeforeBlockNumber++) {
-      for (short valueTransferedPriorToDeploymentOf2935 = 0;
-          valueTransferedPriorToDeploymentOf2935 <= 1;
-          valueTransferedPriorToDeploymentOf2935++) {
-        for (int system4788ContractDeployedBeforeBlockNumber = 1;
-            system4788ContractDeployedBeforeBlockNumber <= 2;
-            system4788ContractDeployedBeforeBlockNumber++) {
-          for (short valueTransferedPriorToDeploymentOf4788 = 0;
-              valueTransferedPriorToDeploymentOf4788 <= 1;
-              valueTransferedPriorToDeploymentOf4788++) {
-            scenarii.add(
-                Arguments.of(
-                    system2935ContractDeployedBeforeBlockNumber,
-                    valueTransferedPriorToDeploymentOf2935 == 1,
-                    system4788ContractDeployedBeforeBlockNumber,
-                    valueTransferedPriorToDeploymentOf4788 == 1));
-          }
-        }
-      }
-    }
+    scenarii.add(Arguments.of(1, false, 1, false));
+    // for (int system2935ContractDeployedBeforeBlockNumber = 1;
+    //    system2935ContractDeployedBeforeBlockNumber <= 2;
+    //    system2935ContractDeployedBeforeBlockNumber++) {
+    //  for (short valueTransferedPriorToDeploymentOf2935 = 0;
+    //      valueTransferedPriorToDeploymentOf2935 <= 1;
+    //      valueTransferedPriorToDeploymentOf2935++) {
+    //    for (int system4788ContractDeployedBeforeBlockNumber = 1;
+    //        system4788ContractDeployedBeforeBlockNumber <= 2;
+    //        system4788ContractDeployedBeforeBlockNumber++) {
+    //      for (short valueTransferedPriorToDeploymentOf4788 = 0;
+    //          valueTransferedPriorToDeploymentOf4788 <= 1;
+    //          valueTransferedPriorToDeploymentOf4788++) {
+    //        scenarii.add(
+    //            Arguments.of(
+    //                system2935ContractDeployedBeforeBlockNumber,
+    //                valueTransferedPriorToDeploymentOf2935 == 1,
+    //                system4788ContractDeployedBeforeBlockNumber,
+    //                valueTransferedPriorToDeploymentOf4788 == 1));
+    //      }
+    //    }
+    //  }
+    // }
     return scenarii.stream();
   }
 

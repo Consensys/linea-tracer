@@ -25,7 +25,7 @@ import java.math.BigInteger;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.txndata.module.*;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.rows.*;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow;
@@ -35,26 +35,26 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public class UserTransaction extends TxnDataRedesignOperation {
+public class UserTransaction extends PerspectivizedTxnDataOperation {
 
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
   public final TransactionProcessingMetadata txn;
-  public final TxnDataRedesign txnData;
+  public final PerspectivizedTxnData txnData;
   public final ProcessableBlockHeader blockHeader;
   public final Wcp wcp;
   public final Euc euc;
   public final Fork fork;
 
   public UserTransaction(
-      final TxnDataRedesign txnData, final TransactionProcessingMetadata txnMetadata) {
+      final PerspectivizedTxnData txnData, final TransactionProcessingMetadata txnMetadata) {
     super(txnData);
 
     this.txnData = txnData;
-    this.blockHeader = txnData.getBlocks().getLast();
+    this.blockHeader = txnData.getCurrentBlockHeader();
     this.txn = txnMetadata;
-    this.wcp = txnData.getHub().wcp();
-    this.euc = txnData.getHub().euc();
-    this.fork = txnData.getFork();
+    this.wcp = txnData.wcp();
+    this.euc = txnData.euc();
+    this.fork = txnData.hub().fork;
 
     this.process();
   }
@@ -296,5 +296,10 @@ public class UserTransaction extends TxnDataRedesignOperation {
 
   private int initCodeSize() {
     return txn.isDeployment() ? txn.getBesuTransaction().getPayload().size() : 0;
+  }
+
+  @Override
+  public int computeLineCount() {
+    return 0;
   }
 }

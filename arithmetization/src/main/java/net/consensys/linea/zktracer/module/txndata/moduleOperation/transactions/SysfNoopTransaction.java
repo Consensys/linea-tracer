@@ -14,25 +14,27 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
-import net.consensys.linea.zktracer.module.txndata.module.TxnDataRedesign;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
+import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.NoopRow;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 
-public class SysfNoopTransaction extends TxnDataRedesignOperation {
+public class SysfNoopTransaction extends PerspectivizedTxnDataOperation {
 
   @Override
   protected int ctMax() {
     return 1;
   }
 
-  public SysfNoopTransaction(TxnDataRedesign txnData) {
+  public SysfNoopTransaction(PerspectivizedTxnData txnData) {
     super(txnData);
   }
 
   public SysfNoopTransaction(
-      final TxnDataRedesign txnData,
+      final PerspectivizedTxnData txnData,
       final org.hyperledger.besu.plugin.data.ProcessableBlockHeader processableBlockHeader) {
     super(txnData);
     process();
@@ -42,4 +44,7 @@ public class SysfNoopTransaction extends TxnDataRedesignOperation {
     rows.add(new HubRowForSystemTransactions(Type.NOOP));
     rows.add(new NoopRow());
   }
+
+  @Override
+  public void traceTx(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax) {}
 }

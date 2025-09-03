@@ -18,8 +18,8 @@ import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.E
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
 
-import net.consensys.linea.zktracer.module.txndata.module.TxnDataRedesign;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
+import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
@@ -27,14 +27,14 @@ import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 
-public class SysiEip4788Transaction extends TxnDataRedesignOperation {
+public class SysiEip4788Transaction extends PerspectivizedTxnDataOperation {
 
   private final long nonsenseCancunTimestamp =
       0x1337L; // Placeholder for the actual Prague fork timestamp
   private final org.hyperledger.besu.plugin.data.ProcessableBlockHeader blockHeader;
 
   public SysiEip4788Transaction(
-      final TxnDataRedesign txnData,
+      final PerspectivizedTxnData txnData,
       final org.hyperledger.besu.plugin.data.ProcessableBlockHeader processableBlockHeader) {
     super(txnData);
 

@@ -14,23 +14,19 @@
  */
 package net.consensys.linea.zktracer.module.txndata.module;
 
-import static net.consensys.linea.zktracer.Fork.isPostPrague;
-
 import java.util.List;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
+import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragment;
 import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysfNoopTransaction;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysiEip2935Transaction;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysiEip4788Transaction;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.UserTransaction;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.worldstate.WorldView;
@@ -38,15 +34,17 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-@RequiredArgsConstructor
-public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOperation> {
+public class PerspectivizedTxnData extends TxnData {
 
-  @Getter private final Hub hub;
   @Getter private ProcessableBlockHeader currentBlockHeader;
 
   @Getter
-  private final ModuleOperationStackedList<TxnDataRedesignOperation> operations =
+  private final ModuleOperationStackedList<PerspectivizedTxnDataOperation> operations =
       new ModuleOperationStackedList<>();
+
+  public PerspectivizedTxnData(Hub hub, Wcp wcp, Euc euc) {
+    super(hub, wcp, euc);
+  }
 
   @Override
   public void traceStartBlock(
@@ -81,10 +79,15 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
   }
 
   @Override
-  public ModuleOperationStackedList<TxnDataRedesignOperation> operations() {
+  public int numberOfUserTransactionsInCurrentBlock() {
+    return 0;
+  }
+
+  @Override
+  public ModuleOperationStackedList<TxnDataOperation> operations() {
     return null;
   }
 
-  public void callTxnDataForSystemTransaction(
-            final SystemTransactionType type);
+  public void callTxnDataForSystemTransaction(final SystemTransactionType type) {}
+  ;
 }

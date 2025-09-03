@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys Inc.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,12 +12,13 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.zktracer.module.txndata.moduleOperation;
 
-package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 
-public enum SystemTransactionType {
-  SYSI_NOOP,
-  SYSI_EIP_4788_BEACON_BLOCK_ROOT,
-  SYSI_EIP_2935_HISTORICAL_HASH,
-  SYSF_NOOP,
+public abstract class TxnDataOperation extends ModuleOperation {
+
+  public abstract void traceTx(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax);
 }

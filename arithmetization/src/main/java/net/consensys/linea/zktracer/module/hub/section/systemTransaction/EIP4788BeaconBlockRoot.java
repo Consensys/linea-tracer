@@ -59,7 +59,7 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
     final Eip4788TransactionFragment transactionFragment =
         new Eip4788TransactionFragment(timestamp, beaconRoot);
     fragments().add(transactionFragment);
-    hub.txnData().callTxnDataForSystemTransaction(transactionFragment);
+    hub.txnData().callTxnDataForSystemTransaction(transactionFragment.type());
 
     final AccountSnapshot beaconrootAccount =
         AccountSnapshot.canonical(hub, world, BEACONROOT_ADDRESS, false);

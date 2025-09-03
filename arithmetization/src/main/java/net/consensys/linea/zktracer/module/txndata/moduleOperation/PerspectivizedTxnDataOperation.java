@@ -18,15 +18,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
-import net.consensys.linea.zktracer.module.txndata.module.TxnDataRedesign;
+import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
 import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
-public abstract class TxnDataRedesignOperation extends ModuleOperation {
+public abstract class PerspectivizedTxnDataOperation extends TxnDataOperation {
   public final Hub hub;
   public final Euc euc;
   public final Wcp wcp;
@@ -43,8 +42,8 @@ public abstract class TxnDataRedesignOperation extends ModuleOperation {
     return ctMax() + 1;
   }
 
-  public TxnDataRedesignOperation(TxnDataRedesign txnData) {
-    hub = txnData.getHub();
+  public PerspectivizedTxnDataOperation(PerspectivizedTxnData txnData) {
+    hub = txnData.hub();
     wcp = hub.wcp();
     euc = hub.euc();
     relativeBlockNumber = (short) hub.blockStack().currentRelativeBlockNumber();
@@ -75,5 +74,12 @@ public abstract class TxnDataRedesignOperation extends ModuleOperation {
         .ctMax(ctMax())
     // GAS_CUMULATIVE gets traced for USER transactions only
     ;
+  }
+
+  @Override
+  public void traceTx(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax) {
+    for (TxnDataRow row : rows) {
+      row.traceRow(trace, block);
+    }
   }
 }

@@ -30,6 +30,6 @@ public class Noop extends TraceSection {
 
     addFragments(txFragment, contextFragment);
 
-    hub.txnData().callTxnDataForSystemTransaction(txFragment);
+    hub.txnData().callTxnDataForSystemTransaction(txFragment.type());
   }
 }

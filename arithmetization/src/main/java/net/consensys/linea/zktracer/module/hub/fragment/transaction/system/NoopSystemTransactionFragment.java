@@ -15,14 +15,14 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
-import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.NOOP;
+import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_NOOP;
 
 import net.consensys.linea.zktracer.Trace;
 
 public class NoopSystemTransactionFragment extends SystemTransactionFragment {
 
   public NoopSystemTransactionFragment() {
-    super(NOOP);
+    super(SYSI_NOOP);
   }
 
   @Override

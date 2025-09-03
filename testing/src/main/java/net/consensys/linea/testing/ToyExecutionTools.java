@@ -40,6 +40,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
 import org.hyperledger.besu.ethereum.mainnet.TransactionValidationParams;
+import org.hyperledger.besu.ethereum.mainnet.blockhash.PreExecutionProcessor;
 import org.hyperledger.besu.ethereum.mainnet.systemcall.BlockProcessingContext;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.ethereum.referencetests.GeneralStateTestCaseEipSpec;
@@ -111,17 +112,8 @@ public class ToyExecutionTools {
 
     tracer.traceStartConflation(1);
     tracer.traceStartBlock(worldStateUpdater, blockHeader, blockBody, blockHeader.getCoinbase());
-    final var preExecutionProcessor = protocolSpec.getPreExecutionProcessor();
-    if (isPostCancun(fork)) {
-      final BlockProcessingContext context =
-          new BlockProcessingContext(
-              blockHeader,
-              initialWorldState,
-              protocolSpec,
-              preExecutionProcessor.createBlockHashLookup(blockchain, blockHeader),
-              tracer);
-      preExecutionProcessor.process(context);
-    }
+    runSystemInitialTransactions(protocolSpec, fork, initialWorldState, blockHeader, tracer);
+
     TransactionProcessingResult result = null;
     for (Transaction transaction : blockBody.getTransactions()) {
       // Several of the GeneralStateTests check if the transaction could potentially
@@ -329,5 +321,26 @@ public class ToyExecutionTools {
 
   private static boolean shouldClearEmptyAccounts(final String eip) {
     return !SPECS_PRIOR_TO_DELETING_EMPTY_ACCOUNTS.contains(eip);
+  }
+
+  public static void runSystemInitialTransactions(
+      ProtocolSpec spec,
+      Fork fork,
+      MutableWorldState world,
+      BlockHeader header,
+      ConflationAwareOperationTracer tracer) {
+    if (isPostCancun(fork)) {
+      final PreExecutionProcessor preExecutionProcessor = spec.getPreExecutionProcessor();
+      final ReferenceTestBlockchain blockchain = new ReferenceTestBlockchain(header.getNumber());
+
+      final BlockProcessingContext context =
+          new BlockProcessingContext(
+              header,
+              world,
+              spec,
+              preExecutionProcessor.createBlockHashLookup(blockchain, header),
+              tracer);
+      preExecutionProcessor.process(context);
+    }
   }
 }

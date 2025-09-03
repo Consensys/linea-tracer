@@ -16,6 +16,7 @@
 package net.consensys.linea.testing;
 
 import static net.consensys.linea.testing.ToyExecutionTools.addSystemAccountsIfRequired;
+import static net.consensys.linea.testing.ToyExecutionTools.runSystemInitialTransactions;
 import static net.consensys.linea.zktracer.ChainConfig.OLD_MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.ChainConfig.OLD_SEPOLIA_TESTCONFIG;
 
@@ -50,6 +51,8 @@ import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
+import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
+import org.hyperledger.besu.ethereum.mainnet.blockhash.PreExecutionProcessor;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
 import org.hyperledger.besu.evm.account.MutableAccount;
@@ -263,9 +266,11 @@ public class ReplayExecutionEnvironment {
     }
 
     world.persist(null);
-    // Construct the transaction processor
-    final MainnetTransactionProcessor transactionProcessor =
-        ExecutionEnvironment.getProtocolSpec(chain.id, chain.fork).getTransactionProcessor();
+    // Construct the processor
+    final ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(chain.id, chain.fork);
+    final PreExecutionProcessor preExecutionProcessor = protocolSpec.getPreExecutionProcessor();
+    final MainnetTransactionProcessor transactionProcessor = protocolSpec.getTransactionProcessor();
+
     // Begin
     tracer.traceStartConflation(conflation.blocks().size());
     //
@@ -281,6 +286,7 @@ public class ReplayExecutionEnvironment {
               ? header.getCoinbase()
               : CliqueHelpers.getProposerOfBlock(header);
       tracer.traceStartBlock(world, header, body, miningBeneficiary);
+      runSystemInitialTransactions(protocolSpec, chain.fork, world, header, tracer);
 
       for (TransactionSnapshot txs : blockSnapshot.txs()) {
         final Transaction tx = txs.toTransaction();

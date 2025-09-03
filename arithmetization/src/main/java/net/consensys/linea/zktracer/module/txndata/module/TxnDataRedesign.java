@@ -24,6 +24,8 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataRedesignOperation;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysfNoopTransaction;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysiEip2935Transaction;
@@ -52,11 +54,6 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
       final ProcessableBlockHeader processableBlockHeader,
       final Address miningBeneficiary) {
     currentBlockHeader = processableBlockHeader;
-    operations().add(new SysiEip4788Transaction(this, processableBlockHeader));
-
-    if (isPostPrague(hub.fork)) {
-      operations().add(new SysiEip2935Transaction(this, processableBlockHeader));
-    }
   }
 
   @Override
@@ -87,4 +84,7 @@ public class TxnDataRedesign implements OperationListModule<TxnDataRedesignOpera
   public ModuleOperationStackedList<TxnDataRedesignOperation> operations() {
     return null;
   }
+
+  public void callTxnDataForSystemTransaction(
+            final SystemTransactionType type);
 }

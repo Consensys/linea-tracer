@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
 import static net.consensys.linea.zktracer.Trace.HISTORY_SERVE_WINDOW;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
-import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragmentType.EIP4788_BEACON_BLOCK_ROOT;
+import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_EIP_4788_BEACON_BLOCK_ROOT;
 
 import net.consensys.linea.zktracer.Trace;
 import org.apache.tuweni.bytes.Bytes;
@@ -29,7 +29,7 @@ public class Eip4788TransactionFragment extends SystemTransactionFragment {
   final Bytes32 beaconroot;
 
   public Eip4788TransactionFragment(long timestamp, Bytes32 beaconroot) {
-    super(EIP4788_BEACON_BLOCK_ROOT);
+    super(SYSI_EIP_4788_BEACON_BLOCK_ROOT);
     this.timestamp = timestamp;
     this.beaconroot = beaconroot;
   }

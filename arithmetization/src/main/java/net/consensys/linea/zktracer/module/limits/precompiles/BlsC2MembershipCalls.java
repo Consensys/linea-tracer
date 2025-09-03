@@ -27,7 +27,7 @@ public final class BlsC2MembershipCalls implements CountingOnlyModule {
 
   @Override
   public String moduleKey() {
-    return "PRECOMPILE_BLS_PAIRING_CHECK_MILLER_LOOPS";
+    return "PRECOMPILE_BLS_C2_MEMBERSHIP_CALLS";
   }
 
   @Override

@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.Trace;
 
 public class BlsG2MsmOobCall extends BlsMsmOobCall {
   public BlsG2MsmOobCall(BigInteger calleeGas) {
-    super(calleeGas, OOB_INST_BLS_G1_MSM);
+    super(calleeGas, OOB_INST_BLS_G2_MSM);
   }
 
   @Override

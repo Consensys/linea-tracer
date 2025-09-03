@@ -52,7 +52,6 @@ import org.hyperledger.besu.ethereum.core.*;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.mainnet.MainnetTransactionProcessor;
 import org.hyperledger.besu.ethereum.mainnet.ProtocolSpec;
-import org.hyperledger.besu.ethereum.mainnet.blockhash.PreExecutionProcessor;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.ethereum.referencetests.ReferenceTestWorldState;
 import org.hyperledger.besu.evm.account.MutableAccount;
@@ -268,7 +267,6 @@ public class ReplayExecutionEnvironment {
     world.persist(null);
     // Construct the processor
     final ProtocolSpec protocolSpec = ExecutionEnvironment.getProtocolSpec(chain.id, chain.fork);
-    final PreExecutionProcessor preExecutionProcessor = protocolSpec.getPreExecutionProcessor();
     final MainnetTransactionProcessor transactionProcessor = protocolSpec.getTransactionProcessor();
 
     // Begin
@@ -285,7 +283,7 @@ public class ReplayExecutionEnvironment {
           useCoinbaseAddressFromBlockHeader
               ? header.getCoinbase()
               : CliqueHelpers.getProposerOfBlock(header);
-      tracer.traceStartBlock(world, header, body, miningBeneficiary);
+      tracer.traceStartBlock(world.updater(), header, body, miningBeneficiary);
       runSystemInitialTransactions(protocolSpec, chain.fork, world, header, tracer);
 
       for (TransactionSnapshot txs : blockSnapshot.txs()) {

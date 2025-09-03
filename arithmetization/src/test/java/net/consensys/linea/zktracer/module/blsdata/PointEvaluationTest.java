@@ -26,11 +26,19 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.hyperledger.besu.evm.precompile.KZGPointEvalPrecompiledContract;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
 public class PointEvaluationTest extends TracerTestBase {
+
+  @BeforeAll
+  static void setup() {
+    // Initialize KZG native library before running tests
+    KZGPointEvalPrecompiledContract.init();
+  }
 
   @Test
   void testPointEvaluation() {

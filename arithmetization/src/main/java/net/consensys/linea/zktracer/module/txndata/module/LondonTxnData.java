@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.txndata.module;
 
+import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.TraceLondon.Txndata.NB_ROWS_TYPE_0;
 import static net.consensys.linea.zktracer.TraceLondon.Txndata.NB_ROWS_TYPE_1;
 import static net.consensys.linea.zktracer.TraceLondon.Txndata.NB_ROWS_TYPE_2;
@@ -25,10 +26,10 @@ import java.util.List;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
-import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragment;
+import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragmentType;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.LondonTxndataOperation;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxndataOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOp;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
@@ -55,8 +56,12 @@ public class LondonTxnData extends TxnData {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    currentBlock().setNbOfTxsInBlock(currentTx().tx.getRelativeTransactionNumber());
-    currentTx().setCallWcpLastTxOfBlock(currentBlock().getBlockGasLimit());
+    checkState(currentTx() instanceof LondonTxndataOperation);
+    currentBlock()
+        .setNbOfTxsInBlock(
+            ((LondonTxndataOperation) currentTx()).tx.getRelativeTransactionNumber());
+    ((LondonTxndataOperation) currentTx())
+        .setCallWcpLastTxOfBlock(currentBlock().getBlockGasLimit());
   }
 
   @Override
@@ -77,7 +82,7 @@ public class LondonTxnData extends TxnData {
     return blocks.getLast();
   }
 
-  private TxndataOperation currentTx() {
+  private TxnDataOp currentTx() {
     return operations().getLast();
   }
 
@@ -87,7 +92,12 @@ public class LondonTxnData extends TxnData {
   }
 
   @Override
-  public void callTxnDataForSystemTransaction(SystemTransactionFragment transactionFragment) {
+  public void traceStartConflation(final long blockCount) {
+    wcp().additionalRows.add(4); /* 4 = byte length of LINEA_BLOCK_GAS_LIMIT */
+  }
+
+  @Override
+  public void callTxnDataForSystemTransaction(SystemTransactionFragmentType type) {
     throw new IllegalStateException("System transactions appear in Cancun.");
   }
 
@@ -101,8 +111,11 @@ public class LondonTxnData extends TxnData {
   public void commit(Trace trace) {
     final int absTxNumMax = operations().size();
 
-    for (TxndataOperation tx : operations().getAll()) {
-      tx.traceTx(trace.txndata(), blocks.get(tx.getTx().getRelativeBlockNumber() - 1), absTxNumMax);
+    for (TxnDataOp tx : operations().getAll()) {
+      tx.traceTx(
+          trace.txndata(),
+          blocks.get(((LondonTxndataOperation) tx).getTx().getRelativeBlockNumber() - 1),
+          absTxNumMax);
     }
   }
 }

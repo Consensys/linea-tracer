@@ -26,7 +26,7 @@ import org.hyperledger.besu.datatypes.Wei;
 public class GenesisConfigBuilder {
   private static ObjectNode LINEA_CONFIG =
       JsonUtil.objectNodeFromURL(
-          GenesisConfigBuilder.class.getResource("/BesuExecutionToolsGenesis.json"), true);
+          GenesisConfigBuilder.class.getResource("/BesuExecutionToolsGenesisShanghai.json"), true);
 
   private ObjectNode genesisRoot;
   private ObjectNode configNode;

@@ -1,38 +1,3 @@
-/*
- * Copyright Consensys Software Inc.
- *
- * This file is dual-licensed under either the MIT license or Apache License 2.0.
- * See the LICENSE-MIT and LICENSE-APACHE files in the repository root for details.
- *
- * SPDX-License-Identifier: MIT OR Apache-2.0
- */
-
-package net.consensys.linea.testing;
-
-import static net.consensys.linea.zktracer.Fork.*;
-import static org.assertj.core.api.Assertions.*;
-
-import java.io.IOException;
-import java.util.Optional;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import net.consensys.linea.zktracer.Fork;
-import okhttp3.Call;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
-import org.hyperledger.besu.datatypes.Hash;
-import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
-import org.hyperledger.besu.tests.acceptance.dsl.transaction.eth.EthTransactions;
-import org.web3j.crypto.BlobUtils;
-import org.web3j.protocol.core.methods.response.EthBlock;
 
 /*
  * Copyright Consensys Software Inc.
@@ -48,6 +13,34 @@ import org.web3j.protocol.core.methods.response.EthBlock;
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.testing;
+
+import static org.assertj.core.api.Assertions.*;
+
+import java.io.IOException;
+import java.util.Optional;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import okhttp3.Call;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import org.hyperledger.besu.datatypes.Address;
+import org.hyperledger.besu.datatypes.Hash;
+import org.hyperledger.besu.tests.acceptance.dsl.node.BesuNode;
+import org.hyperledger.besu.tests.acceptance.dsl.transaction.eth.EthTransactions;
+import org.web3j.protocol.core.methods.response.EthBlock;
+
+ /*
+ * Taken from besu-plugins acceptance-tests from linea-monorepo in linea-monorepo/besu-plugins/linea-sequencer/acceptance-tests/src/test/java/org/hyperledger/besu/tests/acceptance/dsl/EngineAPIService.java
+ * EngineAPIService from the monorepo is compatible with Prague, so we adapt it here to Shanghai and Cancun
+ * We use this class to emulate Engine API calls to the Besu Node.
+        */
 public class EngineAPIService {
   private final OkHttpClient httpClient;
   private final ObjectMapper mapper;
@@ -119,41 +112,31 @@ public class EngineAPIService {
     // See - https://github.com/ethereum/execution-apis/blob/main/src/engine/paris.md
     Thread.sleep(blockBuildingTimeMs);
 
-    final Call getPayloadRequest = createGetPayloadRequest(fork, payloadId);
+    final Call getPayloadRequest = createGetPayloadRequest(payloadId);
 
     final ObjectNode executionPayload;
     final ObjectNode blobsBundle;
+    final ArrayNode executionRequests;
     final String newBlockHash;
-    ArrayNode executionRequests = null;
-    String parentBeaconBlockRoot = "";
+    final String parentBeaconBlockRoot;
     ArrayNode expectedBlobVersionedHashes = mapper.createArrayNode();
     try (final Response getPayloadResponse = getPayloadRequest.execute()) {
       assertThat(getPayloadResponse.code()).isEqualTo(200);
       JsonNode result = mapper.readTree(getPayloadResponse.body().string()).get("result");
-      ;
-      executionPayload =
-          (fork == Fork.PARIS) ? (ObjectNode) result : (ObjectNode) result.get("executionPayload");
+      executionPayload = (ObjectNode) result.get("executionPayload");
+      // blobsBundle = (ObjectNode) result.get("blobsBundle");
+      // executionRequests = (ArrayNode) result.get("executionRequests");
       newBlockHash = executionPayload.get("blockHash").asText();
-      if (isPostCancun(fork)) {
-        blobsBundle = (ObjectNode) result.get("blobsBundle");
-        executionRequests = (ArrayNode) result.get("executionRequests");
-        parentBeaconBlockRoot = executionPayload.remove("parentBeaconBlockRoot").asText();
-        // Transform KZG commitments to versioned hashes
-        for (JsonNode kzgCommitment : blobsBundle.get("commitments")) {
+      // parentBeaconBlockRoot = executionPayload.remove("parentBeaconBlockRoot").asText();
+      // Transform KZG commitments to versioned hashes
+      /*            for (JsonNode kzgCommitment : blobsBundle.get("commitments")) {
           Bytes kzgBytes = Bytes.fromHexString(kzgCommitment.asText());
           expectedBlobVersionedHashes.add(BlobUtils.kzgToVersionedHash(kzgBytes).toString());
-        }
-      }
+      }*/
       assertThat(newBlockHash).isNotEmpty();
     }
 
-    final Call newPayloadRequest =
-        createNewPayloadRequest(
-            fork,
-            executionPayload,
-            expectedBlobVersionedHashes,
-            parentBeaconBlockRoot,
-            executionRequests);
+    final Call newPayloadRequest = createNewPayloadRequest(executionPayload);
 
     try (final Response newPayloadResponse = newPayloadRequest.execute()) {
       assertThat(newPayloadResponse.code()).isEqualTo(200);
@@ -162,31 +145,18 @@ public class EngineAPIService {
       assertThat(responseStatus).isEqualTo("VALID");
     }
 
-    final Call moveChainAheadRequest = createForkChoiceRequest(fork, newBlockHash);
+    final Call moveChainAheadRequest = createForkChoiceRequest(newBlockHash);
 
     try (final Response moveChainAheadResponse = moveChainAheadRequest.execute()) {
       assertThat(moveChainAheadResponse.code()).isEqualTo(200);
     }
   }
 
-  private Call createForkChoiceRequest(Fork fork, final String blockHash) {
-    return createForkChoiceRequest(fork, blockHash, null);
+  private Call createForkChoiceRequest(final String blockHash) {
+    return createForkChoiceRequest(blockHash, null);
   }
 
-  private Call createForkChoiceRequest(
-      Fork fork, final String parentBlockHash, final Long blockTimestamp) {
-    ArrayNode params = createParamsForkChoice(fork, parentBlockHash, blockTimestamp);
-    return switch (fork) {
-      case PARIS -> createEngineCall("engine_forkchoiceUpdatedV1", params);
-      case SHANGHAI -> createEngineCall("engine_forkchoiceUpdatedV2", params);
-      case CANCUN, PRAGUE -> createEngineCall("engine_forkchoiceUpdatedV3", params);
-      default -> throw new IllegalArgumentException(
-          "Unsupported fork for createForkChoiceRequest: " + fork);
-    };
-  }
-
-  private ArrayNode createParamsForkChoice(
-      Fork fork, final String parentBlockHash, final Long blockTimestamp) {
+  private Call createForkChoiceRequest(final String parentBlockHash, final Long blockTimestamp) {
     final Optional<Long> maybeTimeStamp = Optional.ofNullable(blockTimestamp);
 
     // Construct the first param - EngineForkchoiceUpdatedParameter
@@ -203,53 +173,25 @@ public class EngineAPIService {
       payloadAttributes.put("timestamp", blockTimestamp + 15000);
       payloadAttributes.put("prevRandao", Hash.ZERO.toString());
       payloadAttributes.put("suggestedFeeRecipient", Address.ZERO.toString());
-      if (isPostShanghai(fork)) {
-        payloadAttributes.set("withdrawals", mapper.createArrayNode());
-      }
-      if (isPostCancun(fork)) {
-        payloadAttributes.put("parentBeaconBlockRoot", Hash.ZERO.toString());
-      }
+      payloadAttributes.set("withdrawals", mapper.createArrayNode());
+      // payloadAttributes.put("parentBeaconBlockRoot", Hash.ZERO.toString());
       params.add(payloadAttributes);
     }
-    return params;
+    // TODO: CANCUN
+    return createEngineCall("engine_forkchoiceUpdatedV2", params);
   }
 
-  private Call createGetPayloadRequest(Fork fork, final String payloadId) {
+  private Call createGetPayloadRequest(final String payloadId) {
     ArrayNode params = mapper.createArrayNode();
     params.add(payloadId);
-    return switch (fork) {
-      case PARIS -> createEngineCall("engine_getPayloadV1", params);
-      case SHANGHAI -> createEngineCall("engine_getPayloadV2", params);
-      case CANCUN -> createEngineCall("engine_getPayloadV3", params);
-      case PRAGUE -> createEngineCall("engine_getPayloadV4", params);
-      default -> throw new IllegalArgumentException(
-          "Unsupported fork for createGetPayloadRequest: " + fork);
-    };
+    return createEngineCall("engine_getPayloadV2", params);
   }
 
-  private Call createNewPayloadRequest(
-      Fork fork,
-      final ObjectNode executionPayload,
-      final ArrayNode expectedBlobVersionedHashes,
-      final String parentBeaconBlockRoot,
-      final ArrayNode executionRequests) {
+  private Call createNewPayloadRequest(final ObjectNode executionPayload) {
     ArrayNode params = mapper.createArrayNode();
     params.add(executionPayload);
-    if (isPostCancun(fork)) {
-      params.add(expectedBlobVersionedHashes);
-      params.add(parentBeaconBlockRoot);
-      if (isPostPrague(fork)) {
-        params.add(executionRequests);
-      }
-    }
-    return switch (fork) {
-      case PARIS -> createEngineCall("engine_newPayloadV1", params);
-      case SHANGHAI -> createEngineCall("engine_newPayloadV2", params);
-      case CANCUN -> createEngineCall("engine_newPayloadV3", params);
-      case PRAGUE -> createEngineCall("engine_newPayloadV4", params);
-      default -> throw new IllegalArgumentException(
-          "Unsupported fork for createNewPayloadRequest: " + fork);
-    };
+
+    return createEngineCall("engine_newPayloadV2", params);
   }
 
   private Call createEngineCall(final String rpcMethod, ArrayNode params) {

@@ -19,10 +19,11 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
-public class CancunTxnData extends TxnData {
+public class CancunTxnData extends TxnData<PerspectivizedTxnDataOperation> {
   public CancunTxnData(Hub hub, Wcp wcp, Euc euc) {
     super(hub, wcp, euc);
   }

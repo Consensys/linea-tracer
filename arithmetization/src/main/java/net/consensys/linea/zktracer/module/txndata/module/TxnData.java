@@ -32,9 +32,9 @@ import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public abstract class TxnData implements OperationListModule<TxnDataOperation> {
+public abstract class TxnData<T extends TxnDataOperation> implements OperationListModule<T> {
   @Getter
-  private final ModuleOperationStackedList<TxnDataOperation> operations =
+  private final ModuleOperationStackedList<T> operations =
       new ModuleOperationStackedList<>();
 
   @Getter private final Hub hub;

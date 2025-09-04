@@ -42,7 +42,10 @@ import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.CancunInstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.module.CancunTxnData;
+import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -67,8 +70,8 @@ public class CancunHub extends ShanghaiHub {
   }
 
   @Override
-  protected TxnData setTxnData() {
-    return new CancunTxnData(this, wcp(), euc());
+  protected TxnData<? extends TxnDataOperation> setTxnData() {
+    return new PerspectivizedTxnData(this, wcp(), euc());
   }
 
   @Override

@@ -110,6 +110,7 @@ import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -227,7 +228,7 @@ public abstract class Hub implements Module {
   private final RlpTxn rlpTxn = setRlpTxn(this);
   private final Mmio mmio;
 
-  @Getter private final TxnData txnData = setTxnData();
+  @Getter private final TxnData<? extends TxnDataOperation> txnData = setTxnData();
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -1091,7 +1092,7 @@ public abstract class Hub implements Module {
 
   protected abstract GasCalculator setGasCalculator();
 
-  protected abstract TxnData setTxnData();
+  protected abstract TxnData<? extends TxnDataOperation> setTxnData();
 
   protected abstract Mxp setMxp();
 

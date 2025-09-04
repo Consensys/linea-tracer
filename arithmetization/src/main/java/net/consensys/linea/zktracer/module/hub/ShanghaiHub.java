@@ -22,6 +22,8 @@ import net.consensys.linea.zktracer.module.hub.section.create.ShanghaiCreateSect
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.ShanghaiInitializationSection;
 import net.consensys.linea.zktracer.module.txndata.module.ShanghaiTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationMono;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.ShanghaiGasCalculator;
@@ -43,7 +45,7 @@ public class ShanghaiHub extends ParisHub {
   }
 
   @Override
-  protected TxnData setTxnData() {
+  protected TxnData<? extends TxnDataOperation> setTxnData() {
     return new ShanghaiTxnData(this, wcp(), euc());
   }
 

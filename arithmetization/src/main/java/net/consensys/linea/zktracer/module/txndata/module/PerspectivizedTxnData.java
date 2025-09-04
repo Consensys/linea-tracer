@@ -34,13 +34,9 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public class PerspectivizedTxnData extends TxnData {
+public class PerspectivizedTxnData extends TxnData<PerspectivizedTxnDataOperation> {
 
   @Getter private ProcessableBlockHeader currentBlockHeader;
-
-  @Getter
-  private final ModuleOperationStackedList<PerspectivizedTxnDataOperation> operations =
-      new ModuleOperationStackedList<>();
 
   public PerspectivizedTxnData(Hub hub, Wcp wcp, Euc euc) {
     super(hub, wcp, euc);
@@ -81,11 +77,6 @@ public class PerspectivizedTxnData extends TxnData {
   @Override
   public int numberOfUserTransactionsInCurrentBlock() {
     return 0;
-  }
-
-  @Override
-  public ModuleOperationStackedList<TxnDataOperation> operations() {
-    return null;
   }
 
   public void callTxnDataForSystemTransaction(final SystemTransactionType type) {}

@@ -14,6 +14,9 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation;
 
+import static com.google.common.base.Preconditions.checkState;
+import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized.TransactionCategory.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,15 +39,24 @@ public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
   public final short userTransactionNumber;
   public final short sysfTransactionNumber;
   public final List<TxnDataRow> rows = new ArrayList<>();
+  public final TransactionCategory category;
+
+  public enum TransactionCategory {
+    SYSI,
+    USER,
+    SYSF,
+  }
 
   protected abstract int ctMax();
 
   @Override
   public int computeLineCount() {
-    return ctMax() + 1;
+    checkState(rows.size() == 1 + ctMax());
+    return rows.size();
   }
 
-  public TxnDataOperationPerspectivized(PerspectivizedTxnData txnData) {
+  public TxnDataOperationPerspectivized(
+      PerspectivizedTxnData txnData, TransactionCategory category) {
     blockHeader = txnData.getCurrentBlockHeader();
     hub = txnData.hub();
     wcp = hub.wcp();
@@ -53,6 +65,7 @@ public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
     sysiTransactionNumber = hub.state.sysiTransactionNumber();
     userTransactionNumber = hub.state.getUserTransactionNumber();
     sysfTransactionNumber = hub.state.sysfTransactionNumber();
+    this.category = category;
   }
 
   public void traceTransaction(Trace.Txndata trace) {
@@ -60,6 +73,7 @@ public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
     for (TxnDataRow row : rows) {
       traceCommonSaveForFlags(trace, ct);
       row.traceRow(trace);
+      trace.fillAndValidateRow();
       ct++;
     }
   }
@@ -71,11 +85,13 @@ public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
         .sysiTxnNumber(sysiTransactionNumber)
         .userTxnNumber(userTransactionNumber)
         .sysfTxnNumber(sysfTransactionNumber)
-        // SYSI, USER, SYSF flags are decided by the inheriting classes
+        .sysi(category == SYSI)
+        .user(category == USER)
+        .sysf(category == SYSF)
         // CMPTN, HUB, RLP flags get traced by the rows themselves
         .ct(ct)
         .ctMax(ctMax())
-        // GAS_CUMULATIVE gets traced for USER transactions only
+    // GAS_CUMULATIVE gets traced for USER transactions only
     ;
   }
 

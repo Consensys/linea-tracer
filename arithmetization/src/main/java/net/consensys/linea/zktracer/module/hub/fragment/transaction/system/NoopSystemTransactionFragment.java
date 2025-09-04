@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
 import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSF_NOOP;
-import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_NOOP;
 
 import net.consensys.linea.zktracer.Trace;
 

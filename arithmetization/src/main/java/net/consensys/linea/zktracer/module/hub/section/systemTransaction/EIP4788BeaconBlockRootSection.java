@@ -48,7 +48,8 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
   final long timestamp;
   final Bytes32 beaconRoot;
 
-  public EIP4788BeaconBlockRootSection(Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
+  public EIP4788BeaconBlockRootSection(
+      Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, (short) 5);
     timestamp = blockHeader.getTimestamp();
     beaconRoot =

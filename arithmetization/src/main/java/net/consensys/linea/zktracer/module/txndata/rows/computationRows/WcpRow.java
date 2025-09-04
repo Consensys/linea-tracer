@@ -35,9 +35,7 @@ public class WcpRow extends ComputationRow {
         .pComputationArg1Lo(arg1)
         .pComputationArg2Lo(arg2)
         .pComputationInst(instruction.opCode)
-        .pComputationRes(result ? Bytes.of(1) : Bytes.EMPTY)
-            .fillAndValidateRow()
-            ;
+        .pComputationRes(result ? Bytes.of(1) : Bytes.EMPTY);
   }
 
   final WcpInstruction instruction;

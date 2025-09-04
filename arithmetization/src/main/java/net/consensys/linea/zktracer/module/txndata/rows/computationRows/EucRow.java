@@ -42,7 +42,6 @@ public class EucRow extends ComputationRow {
         .pComputationArg1Lo(Bytes.ofUnsignedLong(dividend))
         .pComputationArg2Lo(Bytes.ofUnsignedLong(divisor))
         // no computation/INST tracing for EUC
-        .pComputationRes(Bytes.ofUnsignedLong(quotient))
-        .fillAndValidateRow();
+        .pComputationRes(Bytes.ofUnsignedLong(quotient));
   }
 }

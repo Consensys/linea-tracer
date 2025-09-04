@@ -14,6 +14,8 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
+import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized.TransactionCategory.*;
+
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.NoopRow;
@@ -28,8 +30,8 @@ public class SysfNoopTransaction extends TxnDataOperationPerspectivized {
   }
 
   public SysfNoopTransaction(PerspectivizedTxnData txnData) {
-    super(txnData);
-      process();
+    super(txnData, SYSF);
+    process();
   }
 
   private void process() {

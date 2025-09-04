@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.txndata.moduleOperation.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
+import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized.TransactionCategory.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
@@ -42,7 +43,7 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
 
   public UserTransaction(
       final PerspectivizedTxnData txnData, final TransactionProcessingMetadata txnMetadata) {
-    super(txnData);
+    super(txnData, USER);
 
     this.blockHeader = txnData.getCurrentBlockHeader();
     this.txn = txnMetadata;
@@ -292,11 +293,5 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
 
   private int initCodeSize() {
     return txn.isDeployment() ? txn.getBesuTransaction().getPayload().size() : 0;
-  }
-
-  @Override
-  public int computeLineCount() {
-      checkState(rows.size() == 1 + ctMax());
-    return rows.size();
   }
 }

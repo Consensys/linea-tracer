@@ -19,19 +19,19 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @RequiredArgsConstructor
-public class HubRowForUserTransactions extends TxnDataRow {
+public class HubRowForUserTransactions extends HubRow {
   public final TransactionProcessingMetadata txn;
   public final ProcessableBlockHeader blockHeader;
 
   @Override
   public void traceRow(Trace.Txndata trace) {
+    super.traceRow(trace);
 
     Address coinbase = txn.getHub().coinbaseAddressOfRelativeBlock(txn.getRelativeBlockNumber());
     trace
@@ -61,7 +61,6 @@ public class HubRowForUserTransactions extends TxnDataRow {
         .pHubRefundCounterFinal(txn.getRefundCounterMax())
         .pHubRefundEffective(txn.getRefundEffective())
     // EIP-4844, EIP-2935, NOOP flags aswell as SYST_TXN_DATA_k not set for USER transactions
-            .fillAndValidateRow()
     ;
   }
 }

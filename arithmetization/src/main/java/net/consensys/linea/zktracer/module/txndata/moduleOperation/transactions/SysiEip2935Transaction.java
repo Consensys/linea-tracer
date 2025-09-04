@@ -16,8 +16,8 @@ package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions
 
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
-import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
 import static net.consensys.linea.zktracer.Trace.HISTORY_SERVE_WINDOW;
+import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized.TransactionCategory.*;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
 
@@ -41,7 +41,7 @@ public class SysiEip2935Transaction extends TxnDataOperationPerspectivized {
   }
 
   public SysiEip2935Transaction(final PerspectivizedTxnData txnData) {
-    super(txnData);
+    super(txnData, SYSI);
     checkState(isPostPrague(txnData.hub().fork));
     process();
   }

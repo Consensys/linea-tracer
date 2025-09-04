@@ -37,7 +37,7 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public class EIP4788BeaconBlockRoot extends TraceSection {
+public class EIP4788BeaconBlockRootSection extends TraceSection {
 
   public static final Address BEACONROOT_ADDRESS =
       AddressUtils.addressFromBytes(
@@ -48,7 +48,7 @@ public class EIP4788BeaconBlockRoot extends TraceSection {
   final long timestamp;
   final Bytes32 beaconRoot;
 
-  public EIP4788BeaconBlockRoot(Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
+  public EIP4788BeaconBlockRootSection(Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, (short) 5);
     timestamp = blockHeader.getTimestamp();
     beaconRoot =

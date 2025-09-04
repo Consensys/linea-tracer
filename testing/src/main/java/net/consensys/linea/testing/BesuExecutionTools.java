@@ -183,7 +183,8 @@ public class BesuExecutionTools {
         ObjectMapper mapper = new ObjectMapper();
         EngineAPIService engineApiService = new EngineAPIService(besuNode, ethTransactions, mapper);
         var latestTimestamp = this.besuNode.execute(ethTransactions.block()).getTimestamp();
-        engineApiService.buildNewBlock(latestTimestamp.longValue() + 1L, 1000);
+        // TODO: could be done with genesis
+        engineApiService.buildNewBlock(chainConfig.fork, latestTimestamp.longValue() + 1L, 1000);
       }
 
       // We check that the transactions are included in a block

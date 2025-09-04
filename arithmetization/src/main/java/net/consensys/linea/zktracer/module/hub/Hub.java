@@ -499,11 +499,11 @@ public abstract class Hub implements Module {
     state.enterSectionsStack();
     // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
     // disappear with limitless refacto
-    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
     for (Module m : modules) {
       m.traceStartBlock(world, processableBlockHeader, miningBeneficiary);
     }
     traceSysiTransactions(world, processableBlockHeader);
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
   }
 
   @Override

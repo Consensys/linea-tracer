@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
@@ -32,7 +31,7 @@ public class HubRowForUserTransactions extends TxnDataRow {
   public final ProcessableBlockHeader blockHeader;
 
   @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot blockSnapshot) {
+  public void traceRow(Trace.Txndata trace) {
 
     Address coinbase = txn.getHub().coinbaseAddressOfRelativeBlock(txn.getRelativeBlockNumber());
     trace

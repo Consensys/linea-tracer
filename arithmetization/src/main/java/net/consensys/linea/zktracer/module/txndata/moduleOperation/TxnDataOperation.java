@@ -20,5 +20,7 @@ import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 
 public abstract class TxnDataOperation extends ModuleOperation {
 
-  public abstract void traceTx(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax);
+  public abstract void traceTransaction(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax);
+
+  public abstract void traceTransaction(Trace.Txndata trace);
 }

@@ -18,7 +18,6 @@ import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Transaction;
@@ -32,7 +31,7 @@ public class RlpRow extends TxnDataRow {
   }
 
   @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
+  public void traceRow(Trace.Txndata trace) {
     Transaction besuTxn = txn.getBesuTransaction();
     trace
         .rlp(true)

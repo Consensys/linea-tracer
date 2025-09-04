@@ -311,7 +311,7 @@ public abstract class TxnDataOperationMono extends TxnDataOperation {
     };
   }
 
-  public void traceTx(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax) {
+  public void traceTransaction(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax) {
 
     this.setRlptxnValues();
     this.setRlptxrcptValues();
@@ -398,4 +398,7 @@ public abstract class TxnDataOperationMono extends TxnDataOperation {
           .validateRow();
     }
   }
+
+  @Override
+  public void traceTransaction(Trace.Txndata trace) {}
 }

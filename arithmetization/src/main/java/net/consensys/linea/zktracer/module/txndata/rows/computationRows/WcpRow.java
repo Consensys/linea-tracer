@@ -21,7 +21,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 
@@ -29,8 +28,8 @@ import org.apache.tuweni.bytes.Bytes;
 @Accessors(fluent = true)
 public class WcpRow extends ComputationRow {
   @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
-    super.traceRow(trace, block);
+  public void traceRow(Trace.Txndata trace) {
+    super.traceRow(trace);
     trace
         .pComputationWcpFlag(true)
         .pComputationArg1Lo(arg1)

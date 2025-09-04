@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.*;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.LondonTxndataOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.LondonTxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationMono;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -57,11 +57,11 @@ public class LondonTxnData extends TxnData<TxnDataOperationMono> {
 
   @Override
   public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    checkState(currentTx() instanceof LondonTxndataOperation);
+    checkState(currentTx() instanceof LondonTxnDataOperation);
     currentBlock()
         .setNbOfTxsInBlock(
-            ((LondonTxndataOperation) currentTx()).tx.getRelativeTransactionNumber());
-    ((LondonTxndataOperation) currentTx())
+            ((LondonTxnDataOperation) currentTx()).tx.getRelativeTransactionNumber());
+    ((LondonTxnDataOperation) currentTx())
         .setCallWcpLastTxOfBlock(currentBlock().getBlockGasLimit());
   }
 
@@ -69,7 +69,7 @@ public class LondonTxnData extends TxnData<TxnDataOperationMono> {
   public void traceEndTx(TransactionProcessingMetadata tx) {
     operations()
         .add(
-            new LondonTxndataOperation(
+            new LondonTxnDataOperation(
                 wcp(),
                 euc(),
                 tx,
@@ -113,9 +113,9 @@ public class LondonTxnData extends TxnData<TxnDataOperationMono> {
     final int absTxNumMax = operations().size();
 
     for (TxnDataOperation tx : operations().getAll()) {
-      tx.traceTx(
+      tx.traceTransaction(
           trace.txndata(),
-          blocks.get(((LondonTxndataOperation) tx).getTx().getRelativeBlockNumber() - 1),
+          blocks.get(((LondonTxnDataOperation) tx).getTx().getRelativeBlockNumber() - 1),
           absTxNumMax);
     }
   }

@@ -19,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
-import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import org.apache.tuweni.bytes.Bytes;
 
 @RequiredArgsConstructor
@@ -36,8 +35,8 @@ public class EucRow extends ComputationRow {
   }
 
   @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
-    super.traceRow(trace, block);
+  public void traceRow(Trace.Txndata trace) {
+    super.traceRow(trace);
     trace
         .pComputationEucFlag(true)
         .pComputationArg1Lo(Bytes.ofUnsignedLong(dividend))

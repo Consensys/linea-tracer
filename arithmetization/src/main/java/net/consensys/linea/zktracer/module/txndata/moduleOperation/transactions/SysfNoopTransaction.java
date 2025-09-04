@@ -14,8 +14,6 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
-import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.NoopRow;
@@ -44,7 +42,4 @@ public class SysfNoopTransaction extends PerspectivizedTxnDataOperation {
     rows.add(new HubRowForSystemTransactions(Type.NOOP));
     rows.add(new NoopRow());
   }
-
-  @Override
-  public void traceTx(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax) {}
 }

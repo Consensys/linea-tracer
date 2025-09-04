@@ -24,8 +24,10 @@ import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
 import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public abstract class PerspectivizedTxnDataOperation extends TxnDataOperation {
+  public final ProcessableBlockHeader blockHeader;
   public final Hub hub;
   public final Euc euc;
   public final Wcp wcp;
@@ -43,6 +45,7 @@ public abstract class PerspectivizedTxnDataOperation extends TxnDataOperation {
   }
 
   public PerspectivizedTxnDataOperation(PerspectivizedTxnData txnData) {
+    blockHeader = txnData.getCurrentBlockHeader();
     hub = txnData.hub();
     wcp = hub.wcp();
     euc = hub.euc();
@@ -52,11 +55,11 @@ public abstract class PerspectivizedTxnDataOperation extends TxnDataOperation {
     sysfTransactionNumber = hub.state.sysfTransactionNumber();
   }
 
-  void traceOperation(Trace.Txndata trace, BlockSnapshot block) {
+  public void traceTransaction(Trace.Txndata trace) {
     short ct = 0;
     for (TxnDataRow row : rows) {
       traceCommonColumnsSaveForFlags(trace, ct);
-      row.traceRow(trace, block);
+      row.traceRow(trace);
       ct++;
     }
   }
@@ -77,9 +80,5 @@ public abstract class PerspectivizedTxnDataOperation extends TxnDataOperation {
   }
 
   @Override
-  public void traceTx(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax) {
-    for (TxnDataRow row : rows) {
-      row.traceRow(trace, block);
-    }
-  }
+  public void traceTransaction(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax) {}
 }

@@ -14,8 +14,6 @@
  */
 package net.consensys.linea.zktracer.module.txndata.module;
 
-import java.util.List;
-
 import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
@@ -58,25 +56,16 @@ public class PerspectivizedTxnData extends TxnData<PerspectivizedTxnDataOperatio
   }
 
   @Override
-  public String moduleKey() {
-    return "TXN_DATA";
-  }
-
-  @Override
-  public int spillage(Trace trace) {
-    return trace.txndata().spillage();
-  }
-
-  @Override
-  public List<Trace.ColumnHeader> columnHeaders(Trace trace) {
-    return trace.txndata().headers(this.lineCount());
-  }
-
-  @Override
   public int numberOfUserTransactionsInCurrentBlock() {
     return 0;
   }
 
   public void callTxnDataForSystemTransaction(final SystemTransactionType type) {}
-  ;
+
+  @Override
+  public void commit(Trace trace) {
+    for (PerspectivizedTxnDataOperation tx : operations().getAll()) {
+      tx.traceTransaction(trace.txndata());
+    }
+  }
 }

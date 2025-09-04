@@ -16,7 +16,6 @@ package net.consensys.linea.zktracer.module.txndata.rows.hubRows;
 
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.types.EWord;
 
 @RequiredArgsConstructor
@@ -30,8 +29,8 @@ public class HubRowForSystemTransactions extends HubRow {
   public final Type type;
 
   @Override
-  public void traceRow(Trace.Txndata trace, BlockSnapshot block) {
-    super.traceRow(trace, block);
+  public void traceRow(Trace.Txndata trace) {
+    super.traceRow(trace);
     trace
         .pHubSystTxnData1(type == Type.NOOP ? EWord.ZERO : systemTransactionData1)
         .pHubSystTxnData2(type == Type.NOOP ? EWord.ZERO : systemTransactionData2)

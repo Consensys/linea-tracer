@@ -45,7 +45,7 @@ import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.TransactionType;
 
-public abstract class TxnDataOperationMono extends TxnDataOperation {
+public abstract class TxnDataOperationLegacy extends TxnDataOperation {
   protected final Wcp wcp;
   protected final Euc euc;
   @Getter public final TransactionProcessingMetadata tx;
@@ -62,7 +62,7 @@ public abstract class TxnDataOperationMono extends TxnDataOperation {
   private final ArrayList<RlptxrcptOutgoing> valuesToRlpTxrcpt;
   private static final Bytes BYTES_MAX_REFUND_QUOTIENT = Bytes.of(MAX_REFUND_QUOTIENT);
 
-  public TxnDataOperationMono(
+  public TxnDataOperationLegacy(
       Wcp wcp,
       Euc euc,
       TransactionProcessingMetadata tx,

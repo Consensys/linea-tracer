@@ -30,7 +30,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.*;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.LondonTxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationMono;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationLegacy;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.datatypes.Address;
@@ -39,7 +39,7 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public class LondonTxnData extends TxnData<TxnDataOperationMono> {
+public class LondonTxnData extends TxnData<TxnDataOperationLegacy> {
 
   private static final int NB_WCP_EUC_ROWS_FRONTIER_ACCESS_LIST_LONDON = 7;
 

@@ -14,12 +14,15 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
+import static com.google.common.base.Preconditions.checkState;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow.callToEuc;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
 
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
@@ -27,23 +30,13 @@ import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 
-public class SysiEip4788Transaction extends PerspectivizedTxnDataOperation {
+public class SysiEip4788Transaction extends TxnDataOperationPerspectivized {
 
-  private final long nonsenseCancunTimestamp =
-      0x1337L; // Placeholder for the actual Prague fork timestamp
-  private final org.hyperledger.besu.plugin.data.ProcessableBlockHeader blockHeader;
+  private final long NONSENSE_CANCUN_HARDFORK_TIMESTAMP = 0x1337L; // Placeholder for the actual Prague fork timestamp
 
-  public SysiEip4788Transaction(
-      final PerspectivizedTxnData txnData,
-      final org.hyperledger.besu.plugin.data.ProcessableBlockHeader processableBlockHeader) {
+  public SysiEip4788Transaction(final PerspectivizedTxnData txnData) {
     super(txnData);
-
-    if (processableBlockHeader.getParentBeaconBlockRoot().isEmpty()) {
-      throw new RuntimeException("Parent beacon block root not present in the block header");
-    }
-
-    this.blockHeader = processableBlockHeader;
-
+    checkState(isPostCancun(txnData.hub().fork));
     process();
   }
 
@@ -52,11 +45,6 @@ public class SysiEip4788Transaction extends PerspectivizedTxnDataOperation {
     computeTimestampModulo8191ComputationRow();
     detectTheGenesisBlockComputationRow();
     compareTimestampToLineaCancunForkTimestampComputationRow();
-
-    /**
-     * <b>% 8191</b> and <b>== 0</b> operations are lightweight enough that we don't care to
-     * remember the results from teh computation rows.
-     */
   }
 
   protected void hubRow() {
@@ -66,7 +54,7 @@ public class SysiEip4788Transaction extends PerspectivizedTxnDataOperation {
     Bytes32 parentBeaconBlockRoot = blockHeader.getParentBeaconBlockRoot().orElseThrow();
 
     hubRow.systemTransactionData1 = EWord.of(timestamp);
-    hubRow.systemTransactionData2 = EWord.of(timestamp % 8191);
+    hubRow.systemTransactionData2 = EWord.of(timestamp % HISTORY_BUFFER_LENGTH);
     hubRow.systemTransactionData3 = EWord.of(EWord.of(parentBeaconBlockRoot).hi());
     hubRow.systemTransactionData4 = EWord.of(EWord.of(parentBeaconBlockRoot).lo());
     hubRow.systemTransactionData5 = EWord.of(blockHeader.getNumber() == 0 ? 1 : 0);
@@ -76,7 +64,7 @@ public class SysiEip4788Transaction extends PerspectivizedTxnDataOperation {
 
   private void computeTimestampModulo8191ComputationRow() {
     // TODO: use the prime constant
-    EucRow row = callToEuc(euc, blockHeader.getTimestamp(), 8191);
+    EucRow row = callToEuc(euc, blockHeader.getTimestamp(), HISTORY_BUFFER_LENGTH);
     rows.add(row);
   }
 
@@ -86,7 +74,7 @@ public class SysiEip4788Transaction extends PerspectivizedTxnDataOperation {
   }
 
   private void compareTimestampToLineaCancunForkTimestampComputationRow() {
-    WcpRow row = smallCallToLeq(wcp, blockHeader.getTimestamp(), nonsenseCancunTimestamp);
+    WcpRow row = smallCallToLeq(wcp, blockHeader.getTimestamp(), NONSENSE_CANCUN_HARDFORK_TIMESTAMP);
     rows.add(row);
   }
 

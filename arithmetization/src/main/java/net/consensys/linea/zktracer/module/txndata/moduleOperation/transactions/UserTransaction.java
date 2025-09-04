@@ -23,37 +23,29 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Fork;
-import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.txndata.module.*;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized;
 import net.consensys.linea.zktracer.module.txndata.rows.*;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForUserTransactions;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public class UserTransaction extends PerspectivizedTxnDataOperation {
+public class UserTransaction extends TxnDataOperationPerspectivized {
 
   private static final Bytes EIP_2681_MAX_NONCE = bigIntegerToBytes(EIP2681_MAX_NONCE);
   public final TransactionProcessingMetadata txn;
-  public final PerspectivizedTxnData txnData;
   public final ProcessableBlockHeader blockHeader;
-  public final Wcp wcp;
-  public final Euc euc;
   public final Fork fork;
 
   public UserTransaction(
       final PerspectivizedTxnData txnData, final TransactionProcessingMetadata txnMetadata) {
     super(txnData);
 
-    this.txnData = txnData;
     this.blockHeader = txnData.getCurrentBlockHeader();
     this.txn = txnMetadata;
-    this.wcp = txnData.wcp();
-    this.euc = txnData.euc();
     this.fork = txnData.hub().fork;
 
     this.process();
@@ -203,9 +195,9 @@ public class UserTransaction extends PerspectivizedTxnDataOperation {
             Bytes.ofUnsignedLong(txn.getRefundCounterMax()),
             Bytes.ofUnsignedLong(upperLimitForGasRefunds));
 
-    final boolean accruedRefundsAreLtUpperLimit = effectiveRefunds.result();
+    final boolean accruedRefundsAreLessThanTheRefundUpperLimit = effectiveRefunds.result();
     final long consumedGasAfterRefunds =
-        accruedRefundsAreLtUpperLimit
+        accruedRefundsAreLessThanTheRefundUpperLimit
             ? txn.getGasLimit() - txn.getLeftoverGas() - txn.getRefundCounterMax()
             : txn.getGasLimit() - txn.getLeftoverGas() - upperLimitForGasRefunds;
 

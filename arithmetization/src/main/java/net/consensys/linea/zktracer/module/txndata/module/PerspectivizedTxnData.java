@@ -19,8 +19,10 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysfNoopTransaction;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysiEip2935Transaction;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysiEip4788Transaction;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.UserTransaction;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
@@ -30,7 +32,7 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public class PerspectivizedTxnData extends TxnData<PerspectivizedTxnDataOperation> {
+public class PerspectivizedTxnData extends TxnData<TxnDataOperationPerspectivized> {
 
   @Getter private ProcessableBlockHeader currentBlockHeader;
 
@@ -51,20 +53,23 @@ public class PerspectivizedTxnData extends TxnData<PerspectivizedTxnDataOperatio
     operations().add(new UserTransaction(this, tx));
   }
 
-  public void traceEndBlock(final BlockHeader blockHeader, final BlockBody blockBody) {
-    operations().add(new SysfNoopTransaction(this));
-  }
-
   @Override
   public int numberOfUserTransactionsInCurrentBlock() {
     return 0;
   }
 
-  public void callTxnDataForSystemTransaction(final SystemTransactionType type) {}
+  public void callTxnDataForSystemTransaction(final SystemTransactionType type) {
+      switch (type) {
+          case SYSI_NOOP -> throw new IllegalArgumentException("Unsupported system transaction type: " + type);
+          case SYSI_EIP_4788_BEACON_BLOCK_ROOT -> operations().add(new SysiEip4788Transaction(this));
+          case SYSI_EIP_2935_HISTORICAL_HASH -> operations().add(new SysiEip2935Transaction(this));
+          case SYSF_NOOP -> operations().add(new SysfNoopTransaction(this));
+      }
+  }
 
   @Override
   public void commit(Trace trace) {
-    for (PerspectivizedTxnDataOperation tx : operations().getAll()) {
+    for (TxnDataOperationPerspectivized tx : operations().getAll()) {
       tx.traceTransaction(trace.txndata());
     }
   }

@@ -15,12 +15,12 @@
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.NoopRow;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 
-public class SysfNoopTransaction extends PerspectivizedTxnDataOperation {
+public class SysfNoopTransaction extends TxnDataOperationPerspectivized {
 
   @Override
   protected int ctMax() {
@@ -29,13 +29,7 @@ public class SysfNoopTransaction extends PerspectivizedTxnDataOperation {
 
   public SysfNoopTransaction(PerspectivizedTxnData txnData) {
     super(txnData);
-  }
-
-  public SysfNoopTransaction(
-      final PerspectivizedTxnData txnData,
-      final org.hyperledger.besu.plugin.data.ProcessableBlockHeader processableBlockHeader) {
-    super(txnData);
-    process();
+      process();
   }
 
   private void process() {

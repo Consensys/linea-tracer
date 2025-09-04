@@ -26,7 +26,7 @@ import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public abstract class PerspectivizedTxnDataOperation extends TxnDataOperation {
+public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
   public final ProcessableBlockHeader blockHeader;
   public final Hub hub;
   public final Euc euc;
@@ -44,7 +44,7 @@ public abstract class PerspectivizedTxnDataOperation extends TxnDataOperation {
     return ctMax() + 1;
   }
 
-  public PerspectivizedTxnDataOperation(PerspectivizedTxnData txnData) {
+  public TxnDataOperationPerspectivized(PerspectivizedTxnData txnData) {
     blockHeader = txnData.getCurrentBlockHeader();
     hub = txnData.hub();
     wcp = hub.wcp();
@@ -58,24 +58,24 @@ public abstract class PerspectivizedTxnDataOperation extends TxnDataOperation {
   public void traceTransaction(Trace.Txndata trace) {
     short ct = 0;
     for (TxnDataRow row : rows) {
-      traceCommonColumnsSaveForFlags(trace, ct);
+      traceCommonSaveForFlags(trace, ct);
       row.traceRow(trace);
       ct++;
     }
   }
 
-  private void traceCommonColumnsSaveForFlags(Trace.Txndata trace, int ct) {
+  private void traceCommonSaveForFlags(Trace.Txndata trace, int ct) {
     trace
         .blkNumber(relativeBlockNumber)
         // TOTL_TXN_NUMBER is (defcomputed ...)
         .sysiTxnNumber(sysiTransactionNumber)
         .userTxnNumber(userTransactionNumber)
         .sysfTxnNumber(sysfTransactionNumber)
-        // SYSI, USER, SYSF flags get traced in by the concrete operations
-        // CMPTN, HUB, RLP flags get traced by the concrete rows
+        // SYSI, USER, SYSF flags are decided by the inheriting classes
+        // CMPTN, HUB, RLP flags get traced by the rows themselves
         .ct(ct)
         .ctMax(ctMax())
-    // GAS_CUMULATIVE gets traced for USER transactions only
+        // GAS_CUMULATIVE gets traced for USER transactions only
     ;
   }
 

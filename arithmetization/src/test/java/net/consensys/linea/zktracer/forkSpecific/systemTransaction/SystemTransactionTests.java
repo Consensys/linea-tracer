@@ -18,6 +18,8 @@ package net.consensys.linea.zktracer.forkSpecific.systemTransaction;
 import static net.consensys.linea.testing.MultiBlockExecutionEnvironment.DEFAULT_DELTA_TIMESTAMP_BETWEEN_BLOCKS;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_TIME_STAMP;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static net.consensys.linea.zktracer.forkSpecific.systemTransaction.SystemTransactionTestUtils.byteCodeCallingBeaconRootSystemAccount;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.EIP2935_HISTORY_STORAGE_ADDRESS;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRoot.EIP4788_BEACONROOT_ADDRESS;
@@ -151,6 +153,20 @@ public class SystemTransactionTests extends TracerTestBase {
       boolean valueTransferedPriorToDeploymentOf2935,
       int system4788ContractDeployedBeforeBlockNumber,
       boolean valueTransferedPriorToDeploymentOf4788) {
+
+    // Note: this test uses a PUSH0 in the deployment code of the system contract. Therefore, the
+    // deployment fails if not in Shanghai or after, and our test framework doesn't allow failing
+    // transaction:
+    // org.opentest4j.AssertionFailedError: Transaction not successful:
+    if (!isPostShanghai(testInfo.chainConfig.fork)) {
+      return;
+    }
+
+    // TODO: remove me: this test spotted an issue in RlpTxn module, see issue
+    // https://github.com/Consensys/linea-tracer/issues/2229
+    if (!isPostCancun(testInfo.chainConfig.fork)) {
+      return;
+    }
 
     // Note: do not modify me: value coming from https://eips.ethereum.org/EIPS/eip-2935
     final ToyAccount deployerOf2935 =

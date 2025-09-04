@@ -18,7 +18,6 @@ package net.consensys.linea.zktracer.forkSpecific.systemTransaction;
 import static net.consensys.linea.testing.MultiBlockExecutionEnvironment.DEFAULT_DELTA_TIMESTAMP_BETWEEN_BLOCKS;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_TIME_STAMP;
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static net.consensys.linea.zktracer.forkSpecific.systemTransaction.SystemTransactionTestUtils.byteCodeCallingBeaconRootSystemAccount;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.EIP2935_HISTORY_STORAGE_ADDRESS;
@@ -73,7 +72,7 @@ public class SystemTransactionTests extends TracerTestBase {
   private static Stream<Arguments> scenariiForSystemContract() {
 
     final List<Arguments> scenarii = new ArrayList<>();
-    scenarii.add(Arguments.of(1, false, 2, true));
+    scenarii.add(Arguments.of(0, false, 0, false));
     for (int system2935ContractDeployedBeforeBlockNumber = 1;
         system2935ContractDeployedBeforeBlockNumber <= 2;
         system2935ContractDeployedBeforeBlockNumber++) {
@@ -159,12 +158,6 @@ public class SystemTransactionTests extends TracerTestBase {
     // transaction:
     // org.opentest4j.AssertionFailedError: Transaction not successful:
     if (!isPostShanghai(testInfo.chainConfig.fork)) {
-      return;
-    }
-
-    // TODO: remove me: this test spotted an issue in RlpTxn module, see issue
-    // https://github.com/Consensys/linea-tracer/issues/2229
-    if (!isPostCancun(testInfo.chainConfig.fork)) {
       return;
     }
 

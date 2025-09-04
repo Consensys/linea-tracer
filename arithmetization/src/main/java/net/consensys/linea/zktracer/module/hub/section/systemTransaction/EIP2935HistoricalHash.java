@@ -55,7 +55,7 @@ public class EIP2935HistoricalHash extends TraceSection {
     final boolean isNonTrivialOperation =
         !currentBlockIsGenesis && !blockhashHistoryAccount.code().isEmpty();
 
-    final Bytes32 blockhash = isNonTrivialOperation ? Bytes32.ZERO : blockHeader.getParentHash();
+    final Bytes32 blockhash = isNonTrivialOperation ? blockHeader.getParentHash() : Bytes32.ZERO;
 
     final EIP2935TransactionFragment transactionFragment =
         new EIP2935TransactionFragment(previousBlockNumberModulo, blockhash, currentBlockIsGenesis);

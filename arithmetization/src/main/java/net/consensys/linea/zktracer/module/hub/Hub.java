@@ -208,7 +208,7 @@ public abstract class Hub implements Module {
   // stateless modules
   @Getter private final Wcp wcp = new Wcp();
 
-  private final Add add = setAdd();
+  private final Add add = new Add();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
   @Getter private final Euc euc = new Euc(wcp);
@@ -1086,8 +1086,6 @@ public abstract class Hub implements Module {
   public Address coinbaseAddressOfRelativeBlock(final int relativeBlockNumber) {
     return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
   }
-
-  protected abstract Add setAdd();
 
   protected abstract GasCalculator setGasCalculator();
 

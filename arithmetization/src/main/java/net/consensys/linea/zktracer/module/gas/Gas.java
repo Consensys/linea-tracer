@@ -68,7 +68,7 @@ public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
 
   @Override
   public void commit(Trace trace) {
-    for (GasOperation gasOperation : operations.sortOperations(new GasOperationComparator())) {
+    for (GasOperation gasOperation : operations.sortOperations(new GasOperation.GasComparator())) {
       gasOperation.trace(trace.gas());
     }
   }

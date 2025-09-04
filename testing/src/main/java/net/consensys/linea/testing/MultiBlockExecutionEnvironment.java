@@ -101,9 +101,16 @@ public class MultiBlockExecutionEnvironment {
       blockHeaderBuilder.coinbase(ToyExecutionEnvironmentV2.DEFAULT_COINBASE_ADDRESS);
       blockHeaderBuilder.gasLimit(gasLimit);
       blockHeaderBuilder.number(startingBlockNumber$value + blocks.size());
-      if (!firstBlock) {
-        blockHeaderBuilder.parentBeaconBlockRoot(Bytes32.fromHexStringLenient("0xBADDADD7"));
+      // Note: as per https://eips.ethereum.org/EIPS/eip-4788: "If this EIP is active in a genesis
+      // block, the genesis header’s parent_beacon_block_root must be 0x0 and no system transaction
+      // may occur."
+      if (firstBlock) {
+        blockHeaderBuilder.parentBeaconBlockRoot(
+            startingBlockNumber$value == 0 ? Bytes32.ZERO : Bytes32.fromHexString("0xBADDADD7"));
+      } else {
+        blockHeaderBuilder.parentBeaconBlockRoot(blocks.getLast().header().parentBeaconBlockRoot());
       }
+
       final BlockBody blockBody = new BlockBody(transactions, Collections.emptyList());
       this.blocks.add(BlockSnapshot.of(blockHeaderBuilder.buildBlockHeader(), blockBody));
 

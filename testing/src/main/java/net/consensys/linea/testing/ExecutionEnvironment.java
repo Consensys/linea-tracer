@@ -57,6 +57,7 @@ import org.hyperledger.besu.ethereum.mainnet.blockhash.CancunPreExecutionProcess
 import org.hyperledger.besu.ethereum.mainnet.blockhash.PraguePreExecutionProcessor;
 import org.hyperledger.besu.evm.internal.EvmConfiguration;
 import org.hyperledger.besu.metrics.noop.NoOpMetricsSystem;
+import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
 
 public class ExecutionEnvironment {
@@ -103,8 +104,12 @@ public class ExecutionEnvironment {
       CorsetValidator corsetValidator,
       Optional<Logger> logger,
       long startBlock,
-      long endBlock) {
+      long endBlock,
+      TestInfo testInfo) {
     try {
+      if(testInfo != null) {
+        System.out.println("TEST NAME: " + testInfo.getTestMethod().get().getName() + testInfo.getDisplayName());
+      }
       String prefix = constructTestPrefix(zkTracer.getChain());
       Path traceFilePath = Files.createTempFile(prefix, ".lt");
       zkTracer.writeToFile(traceFilePath, startBlock, endBlock);

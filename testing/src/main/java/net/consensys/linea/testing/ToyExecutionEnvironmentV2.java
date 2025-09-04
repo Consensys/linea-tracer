@@ -102,7 +102,8 @@ public class ToyExecutionEnvironmentV2 {
           protocolSpec,
           tracer,
           transactionProcessingResultValidator,
-          zkTracerValidator);
+          zkTracerValidator,
+        testInfo);
     }
   }
 
@@ -118,7 +119,8 @@ public class ToyExecutionEnvironmentV2 {
         protocolSpec,
         zkCounter,
         transactionProcessingResultValidator,
-        zkTracerValidator);
+        zkTracerValidator,
+      testInfo);
   }
 
   public long runForGasCost() {

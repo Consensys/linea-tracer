@@ -86,7 +86,7 @@ public class ReplayTestTools {
         .zkTracer(new ZkTracer(chain))
         .txResultChecking(resultChecking)
         .build()
-        .replay(chain, new BufferedReader(new InputStreamReader(stream)));
+        .replay(chain, null, new BufferedReader(new InputStreamReader(stream)));
   }
 
   /**

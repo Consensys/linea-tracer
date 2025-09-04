@@ -36,6 +36,7 @@ import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.ethereum.core.*;
+import org.junit.jupiter.api.TestInfo;
 
 @Builder
 @Slf4j
@@ -50,8 +51,8 @@ public class MultiBlockExecutionEnvironment {
   public static final BigInteger CHAIN_ID = BigInteger.valueOf(1337);
   private final ZkTracer tracer;
 
-  @Builder.Default
-  public final ChainConfig testsChain = MAINNET_TESTCONFIG(testInfo.chainConfig.fork);
+  public final ChainConfig testsChain;
+  public final TestInfo testInfo;
 
   @Builder.Default private final long startingBlockNumber = DEFAULT_BLOCK_NUMBER;
   @Builder.Default private final boolean systemContractDeployedPriorToConflation = true;
@@ -68,7 +69,8 @@ public class MultiBlockExecutionEnvironment {
       TestInfoWithChainConfig testInfo) {
     return new MultiBlockExecutionEnvironmentBuilder()
         .tracer(new ZkTracer(testInfo.chainConfig))
-        .testsChain(testInfo.chainConfig);
+        .testsChain(testInfo.chainConfig)
+        .testInfo(testInfo.testInfo);
   }
 
   public static MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder(
@@ -125,7 +127,7 @@ public class MultiBlockExecutionEnvironment {
         .transactionProcessingResultValidator(this.transactionProcessingResultValidator)
         .systemContractDeployedPriorToConflation(systemContractDeployedPriorToConflation)
         .build()
-        .replay(testsChain, this.buildConflationSnapshot());
+        .replay(testsChain, testInfo, this.buildConflationSnapshot());
   }
 
   public Hub getHub() {

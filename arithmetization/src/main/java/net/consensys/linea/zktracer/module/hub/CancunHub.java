@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.module.hub.section.finalization.CancunFinali
 import net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.CancunSelfdestructSection;
 import net.consensys.linea.zktracer.module.hub.section.skip.CancunTxSkipSection;
 import net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRoot;
-import net.consensys.linea.zktracer.module.hub.section.systemTransaction.Noop;
+import net.consensys.linea.zktracer.module.hub.section.systemTransaction.SysfNoop;
 import net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection;
 import net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.CancunInitializationSection;
@@ -146,7 +146,7 @@ public class CancunHub extends ShanghaiHub {
     // java > 21
     state.incrementSysfTransactionNumber();
     state.processingPhase(TX_SKIP);
-    new Noop(this);
+    new SysfNoop(this);
   }
 
   @Override

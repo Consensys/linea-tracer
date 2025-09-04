@@ -246,7 +246,7 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
 
   private void cumulativeGasConsumptionMustNotExceedBlockGasLimitComputationRow() {
     final WcpRow cumulativeGasConsumptionMustNotExceedBlockGasLimit =
-        WcpRow.smallCallToLeq(wcp, txn.getAccumulatedGasUsedInBlock(), txn.getGasLimit());
+        WcpRow.smallCallToLeq(wcp, txn.getAccumulatedGasUsedInBlock(), blockHeader.getGasLimit());
 
     checkArgument(
         cumulativeGasConsumptionMustNotExceedBlockGasLimit.result(),

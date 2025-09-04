@@ -65,6 +65,8 @@ public class RlpRow extends TxnDataRow {
         .pRlpNumberOfAccessListStorageKeys(txn.numberOfWarmedStorageKeys())
         .pRlpChainId(txn.chainId().toLong())
         .pRlpCfi(txn.getCodeFragmentIndex())
-        .pRlpRequiresEvmExecution(txn.requiresEvmExecution());
+        .pRlpRequiresEvmExecution(txn.requiresEvmExecution())
+            .fillAndValidateRow()
+      ;
   }
 }

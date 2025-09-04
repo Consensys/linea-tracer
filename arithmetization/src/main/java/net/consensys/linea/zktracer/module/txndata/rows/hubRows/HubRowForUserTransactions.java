@@ -35,7 +35,7 @@ public class HubRowForUserTransactions extends TxnDataRow {
 
     Address coinbase = txn.getHub().coinbaseAddressOfRelativeBlock(txn.getRelativeBlockNumber());
     trace
-        .pHubBtcBlockNumber(blockHeader.getNumber())
+        .pHubBtcBlockNumber(txn.getRelativeBlockNumber())
         .pHubBtcBlockGasLimit(blockHeader.getGasLimit())
         .pHubBtcBasefee(blockHeader.getBaseFee().get().getAsBigInteger().longValueExact())
         .pHubBtcTimestamp(Bytes.ofUnsignedLong(blockHeader.getTimestamp()))
@@ -61,6 +61,7 @@ public class HubRowForUserTransactions extends TxnDataRow {
         .pHubRefundCounterFinal(txn.getRefundCounterMax())
         .pHubRefundEffective(txn.getRefundEffective())
     // EIP-4844, EIP-2935, NOOP flags aswell as SYST_TXN_DATA_k not set for USER transactions
+            .fillAndValidateRow()
     ;
   }
 }

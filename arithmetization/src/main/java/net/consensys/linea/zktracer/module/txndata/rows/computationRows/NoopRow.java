@@ -19,5 +19,6 @@ import net.consensys.linea.zktracer.Trace;
 public class NoopRow extends ComputationRow {
   public void traceRow(Trace.Txndata trace) {
     super.traceRow(trace);
+    trace.fillAndValidateRow();
   }
 }

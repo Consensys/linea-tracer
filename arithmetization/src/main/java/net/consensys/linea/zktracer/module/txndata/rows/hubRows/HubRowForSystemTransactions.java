@@ -39,6 +39,8 @@ public class HubRowForSystemTransactions extends HubRow {
         .pHubSystTxnData5(type == Type.NOOP ? EWord.ZERO : systemTransactionData5)
         .pHubEip2935(type == Type.EIP2935)
         .pHubEip4788(type == Type.EIP4788)
-        .pHubNoop(type == Type.NOOP);
+        .pHubNoop(type == Type.NOOP)
+      .fillAndValidateRow()
+    ;
   }
 }

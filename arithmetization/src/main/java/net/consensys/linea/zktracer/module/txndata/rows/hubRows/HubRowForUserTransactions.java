@@ -48,7 +48,7 @@ public class HubRowForUserTransactions extends TxnDataRow {
         .pHubIsDeployment(txn.isDeployment())
         .pHubNonce(Bytes.ofUnsignedLong(txn.getBesuTransaction().getNonce()))
         .pHubValue(bigIntegerToBytes(txn.getBesuTransaction().getValue().getAsBigInteger()))
-        .pHubGasLimit(txn.getBesuTransaction().getPayload().toLong())
+        .pHubGasLimit(txn.getBesuTransaction().getGasLimit())
         .pHubGasPrice(Bytes.ofUnsignedLong(txn.getEffectiveGasPrice()))
         .pHubGasInitiallyAvailable(txn.getInitiallyAvailableGas())
         .pHubCallDataSize(txn.isDeployment() ? 0 : txn.getBesuTransaction().getPayload().size())

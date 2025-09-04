@@ -120,6 +120,8 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
         "Initial balance %s does not cover the max value and gas cost %s",
         initialBalance,
         maxCostInWei);
+
+    rows.add(initialBalanceMustCoverValueAndGas);
   }
 
   /** Performs the EIP-3860 check that the init code size is at most 49152 bytes. */
@@ -253,6 +255,8 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
         "Cumulative gas consumption %s exceeds the block gas limit %s",
         txn.getAccumulatedGasUsedInBlock(),
         txn.getGasLimit());
+
+    rows.add(cumulativeGasConsumptionMustNotExceedBlockGasLimit);
   }
 
   private void comparingMaxFeeToMaxPriorityFeeComputationRow() {
@@ -292,6 +296,7 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
 
   @Override
   public int computeLineCount() {
-    return 0;
+      checkState(rows.size() == 1 + ctMax());
+    return rows.size();
   }
 }

@@ -323,7 +323,6 @@ public class TransactionProcessingMetadata {
 
   public long getUpfrontGasCost() {
     return dataCost
-        + initCodeCost
         + (isDeployment ? GAS_CONST_G_CREATE : 0)
         + (isDeployment ? initCodeCost : 0)
         + GAS_CONST_G_TRANSACTION

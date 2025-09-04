@@ -51,7 +51,9 @@ public class SysiEip4788Transaction extends TxnDataOperationPerspectivized {
     HubRowForSystemTransactions hubRow = new HubRowForSystemTransactions(Type.EIP4788);
 
     long timestamp = blockHeader.getTimestamp();
-    Bytes32 parentBeaconBlockRoot = blockHeader.getParentBeaconBlockRoot().orElseThrow();
+    Bytes32 parentBeaconBlockRoot = blockHeader.getParentBeaconBlockRoot().isPresent()
+            ? blockHeader.getParentBeaconBlockRoot().get()
+            : Bytes32.ZERO;
 
     hubRow.systemTransactionData1 = EWord.of(timestamp);
     hubRow.systemTransactionData2 = EWord.of(timestamp % HISTORY_BUFFER_LENGTH);

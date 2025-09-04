@@ -36,7 +36,7 @@ public interface TransactionProcessingResultValidator {
                         + "  From: %s%n"
                         + "  To: %s%n"
                         + "  Nonce: %s%n"
-                        + "reason: %s",
+                        + "Reason: %s",
                     t.getHash(), t.getSender(), t.getTo(), t.getNonce(), r));
       };
 

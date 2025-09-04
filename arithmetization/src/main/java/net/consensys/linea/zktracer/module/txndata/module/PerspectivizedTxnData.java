@@ -18,12 +18,10 @@ import java.util.List;
 
 import lombok.Getter;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.PerspectivizedTxnDataOperation;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.SysfNoopTransaction;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.UserTransaction;
 import net.consensys.linea.zktracer.module.wcp.Wcp;

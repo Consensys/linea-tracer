@@ -23,7 +23,6 @@ import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.S
 import net.consensys.linea.zktracer.module.txndata.module.ShanghaiTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationMono;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.ShanghaiGasCalculator;

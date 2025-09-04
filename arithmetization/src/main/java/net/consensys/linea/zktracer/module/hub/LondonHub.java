@@ -42,7 +42,6 @@ import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstr
 import net.consensys.linea.zktracer.module.txndata.module.LondonTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationMono;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.frame.MessageFrame;

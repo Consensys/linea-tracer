@@ -223,8 +223,7 @@ public class BlsDataOperation extends ModuleOperation {
     mext = mextBit.stream().reduce(false, Boolean::logicalOr);
     final boolean nonTrivialPairOfPointsTot =
         nontrivialPairOfPointsBit.stream().reduce(false, Boolean::logicalOr);
-    wtrv =
-        !mint && !mext && precompileFlag == PRC_BLS_PAIRING_CHECK && !nonTrivialPairOfPointsTot;
+    wtrv = !mint && !mext && precompileFlag == PRC_BLS_PAIRING_CHECK && !nonTrivialPairOfPointsTot;
     wnon = !mint && !mext && (precompileFlag != PRC_BLS_PAIRING_CHECK || nonTrivialPairOfPointsTot);
   }
 

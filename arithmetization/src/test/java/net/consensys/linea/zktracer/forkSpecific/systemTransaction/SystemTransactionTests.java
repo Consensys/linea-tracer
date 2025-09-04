@@ -71,7 +71,7 @@ public class SystemTransactionTests extends TracerTestBase {
   private static Stream<Arguments> scenariiForSystemContract() {
 
     final List<Arguments> scenarii = new ArrayList<>();
-    scenarii.add(Arguments.of(0, false, 0, false));
+    scenarii.add(Arguments.of(1, false, 2, true));
     for (int system2935ContractDeployedBeforeBlockNumber = 1;
         system2935ContractDeployedBeforeBlockNumber <= 2;
         system2935ContractDeployedBeforeBlockNumber++) {

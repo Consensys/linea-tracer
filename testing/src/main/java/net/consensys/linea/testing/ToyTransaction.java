@@ -93,7 +93,8 @@ public class ToyTransaction {
 
       if (signature != null) {
         checkArgument(keyPair == null, "Cannot provide both signature and keyPair");
-            signature.size() == BYTES_REQUIRED, "Signature must be %d bytes", BYTES_REQUIRED);
+        checkArgument(
+            signature.size() == BYTES_REQUIRED, "Signature must be % bytes", BYTES_REQUIRED);
         checkArgument(sender.getAddress() != null, "Sender address must be provided");
         return builder
             .sender(sender.getAddress())

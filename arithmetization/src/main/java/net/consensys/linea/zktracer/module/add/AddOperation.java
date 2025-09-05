@@ -41,13 +41,13 @@ public class AddOperation extends ModuleOperation {
   }
 
   public void trace(int stamp, Trace.Add trace) {
-    UInt256 res;
     // Compute result of this operation.
-    if (opCode == ADD) {
-      res = UInt256.fromBytes(arg1).add(UInt256.fromBytes(arg2));
-    } else {
-      res = UInt256.fromBytes(arg1).subtract(UInt256.fromBytes(arg2));
-    }
+    UInt256 res =
+        switch (opCode) {
+          case ADD -> UInt256.fromBytes(arg1).add(UInt256.fromBytes(arg2));
+          case SUB -> UInt256.fromBytes(arg1).subtract(UInt256.fromBytes(arg2));
+          default -> throw new IllegalArgumentException("invalid operation: " + opCode);
+        };
     // Trace it
     trace
         .arg1(arg1)

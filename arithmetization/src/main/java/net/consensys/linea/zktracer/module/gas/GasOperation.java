@@ -24,14 +24,13 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.module.wcp.Wcp;
 
 @Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class GasOperation extends ModuleOperation {
   @EqualsAndHashCode.Include @Getter GasParameters gasParameters;
 
-  public GasOperation(GasParameters gasParameters, Wcp wcp) {
+  public GasOperation(GasParameters gasParameters) {
     this.gasParameters = gasParameters;
   }
 

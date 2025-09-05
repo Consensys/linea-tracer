@@ -26,6 +26,7 @@ import java.lang.reflect.Parameter;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalLong;
 
@@ -235,13 +236,15 @@ public class ExecutionEnvironment {
    * particular, for parameterised tests, we want to change things like "0x000001" into just "0x1",
    * etc.
    *
-   * @param methodName name of the enclosing method.
+   * @param method the enclosing test method.
    * @param displayName provided display name to be processed.
    * @return
    */
   private static String processTestName(Method method, String displayName) {
     String[] values, split;
     StringBuilder builder = new StringBuilder();
+    Parameter[] parameters = method.getParameters();
+    int paramIndex = 0;
     // remove method name if it is embedded
     displayName = displayName.replace(method.getName(), "");
     // remove any commas
@@ -255,10 +258,14 @@ public class ExecutionEnvironment {
       // Skip test index, as not super helpful.
       if (val.startsWith("[")) {
         continue;
+      } else if(paramIndex < parameters.length) {
+        builder.append(parameters[paramIndex].getName());
+        builder.append("=");
       }
       //
       builder.append(processTestArgument(val));
       builder.append("_");
+      paramIndex++;
     }
     // Limit maximum length of string to ensure the filename is not too long.
     String result = builder.toString();

@@ -28,6 +28,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -49,10 +50,11 @@ public class ReturnRevertArguments extends TracerTestBase {
   @EnumSource(
       value = OpCode.class,
       names = {"RETURN", "REVERT"})
-  void rootContextMessageCall(OpCode opCode) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void rootContextMessageCall(OpCode opCode, TestInfo testInfo) {
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram(chainConfig);
     zeroSizeReturnOrRevert(program, opCode);
-    BytecodeRunner.of(program.compile()).run(testInfo);
+    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 
   /**
@@ -67,10 +69,11 @@ public class ReturnRevertArguments extends TracerTestBase {
   @EnumSource(
       value = OpCode.class,
       names = {"RETURN", "REVERT"})
-  void rootContextDeploymentTransaction(OpCode opCode) {
+  void rootContextDeploymentTransaction(OpCode opCode, TestInfo testInfo) {
     checkArgument(opCode.isAnyOf(RETURN, REVERT));
 
-    BytecodeCompiler initCode = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler initCode =
+        BytecodeCompiler.newProgram(chainConfig);
     zeroSizeReturnOrRevert(initCode, opCode);
 
     Transaction deploymentTransaction =
@@ -83,7 +86,7 @@ public class ReturnRevertArguments extends TracerTestBase {
             .payload(initCode.compile())
             .build();
 
-    ToyExecutionEnvironmentV2.builder(testInfo)
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(List.of(userAccount))
         .transaction(deploymentTransaction)
         .build()
@@ -104,11 +107,12 @@ public class ReturnRevertArguments extends TracerTestBase {
   @EnumSource(
       value = OpCode.class,
       names = {"RETURN", "REVERT"})
-  void nonRootContextMessageCall(OpCode opCode) {
+  void nonRootContextMessageCall(OpCode opCode, TestInfo testInfo) {
     checkArgument(opCode.isAnyOf(RETURN, REVERT));
 
     Address calleeAccountAddress = Address.fromHexString("ca11eec0def3fd");
-    BytecodeCompiler calleeAccountCode = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler calleeAccountCode =
+        BytecodeCompiler.newProgram(chainConfig);
     zeroSizeReturnOrRevert(calleeAccountCode, opCode);
 
     ToyAccount calleeAccount =
@@ -120,7 +124,8 @@ public class ReturnRevertArguments extends TracerTestBase {
             .build();
 
     Address callerAccountAddress = Address.fromHexString("ca11e7c0de");
-    BytecodeCompiler callerAccountCode = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler callerAccountCode =
+        BytecodeCompiler.newProgram(chainConfig);
     callerAccountCode
         .push(0) // r@c
         .push(0) // r@o
@@ -153,7 +158,7 @@ public class ReturnRevertArguments extends TracerTestBase {
             .value(Wei.of(1L))
             .build();
 
-    ToyExecutionEnvironmentV2.builder(testInfo)
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(List.of(userAccount, callerAccount, calleeAccount))
         .transaction(transaction)
         .build()
@@ -180,10 +185,11 @@ public class ReturnRevertArguments extends TracerTestBase {
   @EnumSource(
       value = OpCode.class,
       names = {"RETURN", "REVERT"})
-  void nonRootContextDeployment(OpCode opCode) {
+  void nonRootContextDeployment(OpCode opCode, TestInfo testInfo) {
     checkArgument(opCode.isAnyOf(RETURN, REVERT));
 
-    BytecodeCompiler creatorAccountCode = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler creatorAccountCode =
+        BytecodeCompiler.newProgram(chainConfig);
     loadTheFullCallDataToRam(creatorAccountCode, 0);
     creatorAccountCode
         .op(CALLDATASIZE) // init code size
@@ -201,7 +207,8 @@ public class ReturnRevertArguments extends TracerTestBase {
             .address(Address.fromHexString("c0dec0ffeef3fd"))
             .build();
 
-    BytecodeCompiler payload = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler payload =
+        BytecodeCompiler.newProgram(chainConfig);
     zeroSizeReturnOrRevert(payload, opCode);
     Transaction transaction =
         ToyTransaction.builder()
@@ -214,7 +221,7 @@ public class ReturnRevertArguments extends TracerTestBase {
             .payload(payload.compile()) // here: call data, later: init code
             .build();
 
-    ToyExecutionEnvironmentV2.builder(testInfo)
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(List.of(userAccount, creatorAccount))
         .transaction(transaction)
         .build()

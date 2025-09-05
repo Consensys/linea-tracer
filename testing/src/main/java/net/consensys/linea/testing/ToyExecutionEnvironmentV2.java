@@ -29,7 +29,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
-import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
@@ -80,11 +79,11 @@ public class ToyExecutionEnvironmentV2 {
   @Setter @Getter public ZkCounter zkCounter;
 
   public static ToyExecutionEnvironmentV2.ToyExecutionEnvironmentV2Builder builder(
-      TestInfoWithChainConfig testInfo) {
+      ChainConfig chainConfig, TestInfo testInfo) {
     return new ToyExecutionEnvironmentV2Builder()
-        .unitTestsChain(testInfo.chainConfig)
-        .testInfo(testInfo.testInfo)
-        .tracer(new ZkTracer(testInfo.chainConfig));
+        .unitTestsChain(chainConfig)
+        .testInfo(testInfo)
+        .tracer(new ZkTracer(chainConfig));
   }
 
   public void run() {
@@ -103,7 +102,7 @@ public class ToyExecutionEnvironmentV2 {
           tracer,
           transactionProcessingResultValidator,
           zkTracerValidator,
-        testInfo);
+          testInfo);
     }
   }
 
@@ -120,7 +119,7 @@ public class ToyExecutionEnvironmentV2 {
         zkCounter,
         transactionProcessingResultValidator,
         zkTracerValidator,
-      testInfo);
+        testInfo);
   }
 
   public long runForGasCost() {

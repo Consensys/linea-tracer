@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
@@ -45,8 +46,9 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
    */
 
   @Test
-  void zeroReturnAtCapacityTest() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void zeroReturnAtCapacityTest(TestInfo testInfo) {
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0) // return at capacity
         .push("ff".repeat(32)) // return at offset
@@ -56,7 +58,8 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
         .push(1000) // gas
         .op(OpCode.STATICCALL);
 
-    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler calleeProgram =
+        BytecodeCompiler.newProgram(chainConfig);
     calleeProgram.op(OpCode.RETURNDATASIZE).op(OpCode.CALLDATASIZE);
     // .push(0x51) // size
     // .push(0x0f) // offset
@@ -71,13 +74,14 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
             .build();
 
     BytecodeRunner.of(program.compile())
-        .run(Wei.fromEth(1), 30000L, List.of(calleeAccount), testInfo);
+        .run(Wei.fromEth(1), 30000L, List.of(calleeAccount), chainConfig, testInfo);
     // TODO: this test is supposed to fail as the ones below, but it does not. Understand why
   }
 
   @Test
-  void zeroCallDataSizeTest() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void zeroCallDataSizeTest(TestInfo testInfo) {
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0xff) // r@c
         .push(0x7f) // r@o
@@ -89,7 +93,8 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
         .op(OpCode.RETURNDATASIZE)
         .op(OpCode.CALLDATASIZE);
 
-    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler calleeProgram =
+        BytecodeCompiler.newProgram(chainConfig);
     calleeProgram
         .op(OpCode.RETURNDATASIZE)
         .op(OpCode.CALLDATASIZE)
@@ -106,12 +111,13 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
             .build();
 
     BytecodeRunner.of(program.compile())
-        .run(Wei.fromEth(1), 30000L, List.of(calleeAccount), testInfo);
+        .run(Wei.fromEth(1), 30000L, List.of(calleeAccount), chainConfig, testInfo);
   }
 
   @Test
-  void zeroCallDataSizeAndReturnAtCapacityTest() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void zeroCallDataSizeAndReturnAtCapacityTest(TestInfo testInfo) {
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0) // return at capacity
         .push("ff".repeat(32)) // return at offset
@@ -121,7 +127,8 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
         .push(1000) // gas
         .op(OpCode.STATICCALL);
 
-    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler calleeProgram =
+        BytecodeCompiler.newProgram(chainConfig);
     calleeProgram.push(0).push("ff".repeat(32)).op(OpCode.RETURN);
 
     final ToyAccount calleeAccount =
@@ -133,6 +140,6 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
             .build();
 
     BytecodeRunner.of(program.compile())
-        .run(Wei.fromEth(1), 30000L, List.of(calleeAccount), testInfo);
+        .run(Wei.fromEth(1), 30000L, List.of(calleeAccount), chainConfig, testInfo);
   }
 }

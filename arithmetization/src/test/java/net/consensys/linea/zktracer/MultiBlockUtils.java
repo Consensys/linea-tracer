@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
+
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
 import net.consensys.linea.testing.ToyAccount;
@@ -31,14 +32,16 @@ import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Hash;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.TestInfo;
 
 public class MultiBlockUtils extends TracerTestBase {
 
-  public static void multiBlocksTest(List<Bytes> programs) {
-    multiBlocksTest(programs, List.of());
+  public static void multiBlocksTest(List<Bytes> programs, TestInfo testInfo) {
+    multiBlocksTest(programs, List.of(), testInfo);
   }
 
-  public static void multiBlocksTest(List<Bytes> programs, List<Long> gasLimits) {
+  public static void multiBlocksTest(
+      List<Bytes> programs, List<Long> gasLimits, TestInfo testInfo) {
     Preconditions.checkArgument(gasLimits.isEmpty() || programs.size() == gasLimits.size());
 
     List<KeyPair> keyPairs = new ArrayList<>();
@@ -75,7 +78,7 @@ public class MultiBlockUtils extends TracerTestBase {
     }
 
     MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
-        MultiBlockExecutionEnvironment.builder(testInfo)
+        MultiBlockExecutionEnvironment.builder(chainConfig, testInfo)
             .accounts(
                 Stream.concat(senderAccounts.stream(), receiverAccounts.stream())
                     .collect(Collectors.toList()));

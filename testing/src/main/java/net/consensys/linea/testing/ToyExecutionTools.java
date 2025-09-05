@@ -201,7 +201,7 @@ public class ToyExecutionTools {
           blockHeader.getNumber(),
           // block number for last block
           blockHeader.getNumber(),
-        testInfo);
+          testInfo);
     }
   }
 

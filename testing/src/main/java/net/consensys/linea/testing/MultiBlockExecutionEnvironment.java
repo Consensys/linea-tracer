@@ -30,7 +30,6 @@ import lombok.Builder;
 import lombok.Singular;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.blockcapture.snapshots.*;
-import net.consensys.linea.reporting.TestInfoWithChainConfig;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -66,20 +65,21 @@ public class MultiBlockExecutionEnvironment {
       TransactionProcessingResultValidator.DEFAULT_VALIDATOR;
 
   public static MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder(
-      TestInfoWithChainConfig testInfo) {
+      ChainConfig chainConfig, TestInfo testInfo) {
     return new MultiBlockExecutionEnvironmentBuilder()
-        .tracer(new ZkTracer(testInfo.chainConfig))
-        .testsChain(testInfo.chainConfig)
-        .testInfo(testInfo.testInfo);
+        .tracer(new ZkTracer(chainConfig))
+        .testsChain(chainConfig)
+        .testInfo(testInfo);
   }
 
   public static MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder(
-      TestInfoWithChainConfig testInfo,
+      ChainConfig chainConfig, TestInfo testInfo,
       boolean systemContractDeployedPriorConflation,
       long firstBlockNumber) {
     return new MultiBlockExecutionEnvironmentBuilder()
-        .tracer(new ZkTracer(testInfo.chainConfig))
-        .testsChain(testInfo.chainConfig)
+        .tracer(new ZkTracer(chainConfig))
+        .testsChain(chainConfig)
+        .testInfo(testInfo)
         .systemContractDeployedPriorToConflation(systemContractDeployedPriorConflation)
         .startingBlockNumber(firstBlockNumber);
   }

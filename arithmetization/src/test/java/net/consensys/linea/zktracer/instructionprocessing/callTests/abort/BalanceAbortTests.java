@@ -23,6 +23,7 @@ import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.hyperledger.besu.datatypes.Address;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -54,8 +55,9 @@ public class BalanceAbortTests extends TracerTestBase {
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE"})
-  void insufficientBalanceAbortWarmsUpTarget(OpCode callOpCode) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void insufficientBalanceAbortWarmsUpTarget(OpCode callOpCode, TestInfo testInfo) {
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram(chainConfig);
     appendInsufficientBalanceCall(
         program, callOpCode, 1000, Address.fromHexString(eoaAddress), 4, 3, 2, 1);
     program
@@ -64,11 +66,11 @@ public class BalanceAbortTests extends TracerTestBase {
         .op(EXTCODESIZE) // discounted pricing since warm
         .compile();
 
-    BytecodeRunner.of(program).run(testInfo);
+    BytecodeRunner.of(program).run(chainConfig, testInfo);
   }
 
   /**
-   * The same comments apply as for {@link #insufficientBalanceAbortWarmsUpTarget(OpCode)}. In this
+   * The same comments apply as for {@link #insufficientBalanceAbortWarmsUpTarget(OpCode,TestInfo)}. In this
    * test we further impose a REVERT which will affect the warmth of the target address.
    *
    * <p>This test should trigger <b>scenario/CALL_ABORT_WILL_REVERT</b> for both <b>CALL</b> and
@@ -80,12 +82,13 @@ public class BalanceAbortTests extends TracerTestBase {
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE"})
-  void insufficientBalanceAbortWillRevert(OpCode callOpCode) {
+  void insufficientBalanceAbortWillRevert(OpCode callOpCode, TestInfo testInfo) {
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram(chainConfig);
     appendInsufficientBalanceCall(
         program, callOpCode, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
     program.push(6).push(7).op(REVERT);
-    BytecodeRunner.of(program).run(testInfo);
+    BytecodeRunner.of(program).run(chainConfig, testInfo);
   }
 }

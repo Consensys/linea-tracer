@@ -205,17 +205,19 @@ public class ExecutionEnvironment {
   private static final String LINEA_PACKAGE = "net.consensys.linea.";
 
   /**
-   * Construct a suitable prefix for the temporary lt file generated based on details (such as the name) of the
-   * test in question.  If a TestInfo instance is provided, this will be preferred.  If not, then it will fallback on
-   * a stack walking algorithm which attempts to figure out a suitable prefix (which can fail, and never includes
-   * parametric test arguments).
+   * Construct a suitable prefix for the temporary lt file generated based on details (such as the
+   * name) of the test in question. If a TestInfo instance is provided, this will be preferred. If
+   * not, then it will fallback on a stack walking algorithm which attempts to figure out a suitable
+   * prefix (which can fail, and never includes parametric test arguments).
    *
    * @return
    */
   public static String constructTestPrefix(ChainConfig chain, TestInfo testInfo) {
     String fork = chain.fork.toString();
     // Check whether we have suitable testInfo information.
-    if(testInfo == null || testInfo.getTestMethod().isEmpty() || testInfo.getTestClass().isEmpty()) {
+    if (testInfo == null
+        || testInfo.getTestMethod().isEmpty()
+        || testInfo.getTestClass().isEmpty()) {
       // No, therefore fall back on legacy mechanism.
       return constructLegacyTestPrefix(fork);
     }
@@ -229,8 +231,10 @@ public class ExecutionEnvironment {
   }
 
   /**
-   * This method attempts to process the given test name into a more human-readable form.  In particular, for
-   * parameterised tests, we want to change things like "0x000001" into just "0x1", etc.
+   * This method attempts to process the given test name into a more human-readable form. In
+   * particular, for parameterised tests, we want to change things like "0x000001" into just "0x1",
+   * etc.
+   *
    * @param methodName name of the enclosing method.
    * @param displayName provided display name to be processed.
    * @return
@@ -239,17 +243,17 @@ public class ExecutionEnvironment {
     String[] values, split;
     StringBuilder builder = new StringBuilder();
     // remove method name if it is embedded
-    displayName = displayName.replace(method.getName(),"");
+    displayName = displayName.replace(method.getName(), "");
     // remove any commas
-    displayName = displayName.replace(",","");
+    displayName = displayName.replace(",", "");
     // split out any parameters
     split = displayName.split(" ");
     //
-    for (int i=0;i<split.length;i++) {
+    for (int i = 0; i < split.length; i++) {
       String val = split[i];
       Parameter param;
       // Skip test index, as not super helpful.
-      if(val.startsWith("[")) {
+      if (val.startsWith("[")) {
         continue;
       }
       //
@@ -258,13 +262,13 @@ public class ExecutionEnvironment {
     }
     // Limit maximum length of string to ensure the filename is not too long.
     String result = builder.toString();
-    return result.substring(0,Math.min(100,result.length()));
+    return result.substring(0, Math.min(100, result.length()));
   }
 
   private static String processTestArgument(String arg) {
-    if(arg.isEmpty()) {
+    if (arg.isEmpty()) {
       return arg;
-    } else if(Character.isDigit(arg.charAt(0))) {
+    } else if (Character.isDigit(arg.charAt(0))) {
       // Looks like a number
       return processTestNumericArgument(arg);
     } else {
@@ -274,17 +278,17 @@ public class ExecutionEnvironment {
   }
 
   private static String processTestNumericArgument(String arg) {
-    if(arg.startsWith("0x")) {
+    if (arg.startsWith("0x")) {
       // hex
       arg = arg.substring(2);
       arg = arg.replaceFirst("^0*", "");
-      if(arg.isEmpty()) {
+      if (arg.isEmpty()) {
         return "0x0";
       }
       return "0x" + arg;
     } else {
       arg = arg.replaceFirst("^0*", "");
-      if(arg.isEmpty()) {
+      if (arg.isEmpty()) {
         return "0";
       }
       return arg;

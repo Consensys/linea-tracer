@@ -15,15 +15,18 @@
 
 package net.consensys.linea.zktracer.forkSpecific.paris;
 
+
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 public class PrevRandaoTests extends TracerTestBase {
   // just run the EVM with the PREVRANDAO opcode
   @Test
-  void trivialPrevRandao() {
-    BytecodeRunner.of(Bytes.fromHexString("0x44")).run(testInfo);
+  void trivialPrevRandao(TestInfo testInfo) {
+    BytecodeRunner.of(Bytes.fromHexString("0x44"))
+        .run(chainConfig, testInfo);
   }
 }

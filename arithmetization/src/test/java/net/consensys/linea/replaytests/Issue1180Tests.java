@@ -24,6 +24,7 @@ import net.consensys.linea.testing.BytecodeRunner;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 /** This range broke the MOD module's mod.set-absolute-values constraint. */
@@ -38,12 +39,13 @@ public class Issue1180Tests extends TracerTestBase {
   }
 
   @Test
-  void failingSmodInstructionTest() {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void failingSmodInstructionTest(TestInfo testInfo) {
+    BytecodeCompiler program =
+        BytecodeCompiler.newProgram(chainConfig);
     program
         .push("ffffffffffffffffffffffffffffffffffffffffffffffffffdc633cace676d7")
         .push("0000000000000000000000000000000000000000000000000000000000000000")
         .op(OpCode.SDIV);
-    BytecodeRunner.of(program.compile()).run(testInfo);
+    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 }

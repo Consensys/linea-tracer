@@ -24,6 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 import net.consensys.linea.UnitTestWatcher;
+
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
@@ -47,6 +48,7 @@ import org.hyperledger.besu.ethereum.core.Transaction;
 import org.hyperledger.besu.ethereum.processing.TransactionProcessingResult;
 import org.hyperledger.besu.evm.log.Log;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.web3j.abi.EventEncoder;
 import org.web3j.abi.FunctionEncoder;
@@ -58,7 +60,7 @@ import org.web3j.abi.datatypes.generated.Uint256;
 class ExampleMultiBlockTest extends TracerTestBase {
 
   @Test
-  void test() {
+  void test(TestInfo testInfo) {
     final ToyAccount receiverAccount =
         ToyAccount.builder()
             .balance(Wei.fromEth(1))
@@ -165,7 +167,7 @@ class ExampleMultiBlockTest extends TracerTestBase {
             .build();
 
     MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
-        MultiBlockExecutionEnvironment.builder(testInfo);
+        MultiBlockExecutionEnvironment.builder(chainConfig, testInfo);
     builder
         .accounts(
             List.of(
@@ -186,7 +188,7 @@ class ExampleMultiBlockTest extends TracerTestBase {
   }
 
   @Test
-  void test2() {
+  void test2(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -199,7 +201,7 @@ class ExampleMultiBlockTest extends TracerTestBase {
             .nonce(6)
             .address(Address.fromHexString("0x111111"))
             .code(
-                BytecodeCompiler.newProgram(testInfo)
+                BytecodeCompiler.newProgram(chainConfig)
                     .push(32, 0xbeef)
                     .push(32, 0xdead)
                     .op(OpCode.ADD)
@@ -209,7 +211,7 @@ class ExampleMultiBlockTest extends TracerTestBase {
     Transaction tx =
         ToyTransaction.builder().sender(senderAccount).to(receiverAccount).keyPair(keyPair).build();
 
-    MultiBlockExecutionEnvironment.builder(testInfo)
+    MultiBlockExecutionEnvironment.builder(chainConfig, testInfo)
         .accounts(List.of(senderAccount, receiverAccount))
         .addBlock(List.of(tx))
         .build()
@@ -217,7 +219,7 @@ class ExampleMultiBlockTest extends TracerTestBase {
   }
 
   @Test
-  void testWithFrameworkEntrypoint() {
+  void testWithFrameworkEntrypoint(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -306,7 +308,7 @@ class ExampleMultiBlockTest extends TracerTestBase {
           }
         };
 
-    MultiBlockExecutionEnvironment.builder(testInfo)
+    MultiBlockExecutionEnvironment.builder(chainConfig, testInfo)
         .accounts(List.of(senderAccount, frameworkEntrypointAccount, snippetAccount))
         .addBlock(List.of(tx))
         .addBlock(List.of(tx2))

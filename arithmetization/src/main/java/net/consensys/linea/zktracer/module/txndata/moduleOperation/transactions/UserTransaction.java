@@ -163,7 +163,7 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
   }
 
   private void gasLimitMustCoverTheTransactionFloorCostComputationRow() {
-    final long floorGasCost = txn.getFloorCost();
+    final long floorGasCost = txn.getFloorCostPrague(); // Always use the Prague floor cost, even for Cancun
     final long gasLimit = txn.getGasLimit();
 
     final WcpRow gasLimitMustCoverFloorGasCost =

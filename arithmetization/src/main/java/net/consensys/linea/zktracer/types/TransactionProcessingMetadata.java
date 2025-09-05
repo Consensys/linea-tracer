@@ -69,6 +69,7 @@ public class TransactionProcessingMetadata {
   final long initCodeCost;
   final long accessListCost;
   final long floorCost;
+  final long floorCostPrague;
 
   /* g in the EYP, defined by g = TG - g0 */
   final long initiallyAvailableGas;
@@ -214,8 +215,11 @@ public class TransactionProcessingMetadata {
     accessListCost =
         besuTransaction.getAccessList().map(hub.gasCalculator::accessListGasCost).orElse(0L);
     floorCost =
+        // the value below will not work in the Cancun TXN_DATA module (where it spits out 0,
+        // but we still carry out the computation with the Prague value).
         hub.gasCalculator.transactionFloorCost(
             getBesuTransaction().getPayload(), numberOfZeroBytesInPayload);
+    floorCostPrague = GAS_CONST_G_TRANSACTION + this.weightedByteCount() * FLOOR_TOKEN_COST;
     initiallyAvailableGas = getInitiallyAvailableGas();
 
     effectiveRecipient = effectiveToAddress(besuTransaction);

@@ -15,14 +15,16 @@
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
 import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized.TransactionCategory.*;
+import static net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type.NOOP;
 
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.NoopRow;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
-import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 
 public class SysfNoopTransaction extends TxnDataOperationPerspectivized {
+
+  public final PerspectivizedTxnData txnData;
 
   @Override
   protected int ctMax() {
@@ -31,11 +33,12 @@ public class SysfNoopTransaction extends TxnDataOperationPerspectivized {
 
   public SysfNoopTransaction(PerspectivizedTxnData txnData) {
     super(txnData, SYSF);
+    this.txnData = txnData;
     process();
   }
 
   private void process() {
-    rows.add(new HubRowForSystemTransactions(Type.NOOP));
+    rows.add(new HubRowForSystemTransactions(txnData.getCurrentBlockHeader(), NOOP));
     rows.add(new NoopRow());
   }
 }

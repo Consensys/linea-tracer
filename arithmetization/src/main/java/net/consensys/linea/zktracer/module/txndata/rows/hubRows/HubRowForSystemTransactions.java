@@ -14,11 +14,10 @@
  */
 package net.consensys.linea.zktracer.module.txndata.rows.hubRows;
 
-import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.types.EWord;
+import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-@RequiredArgsConstructor
 public class HubRowForSystemTransactions extends HubRow {
 
   public EWord systemTransactionData1;
@@ -27,6 +26,11 @@ public class HubRowForSystemTransactions extends HubRow {
   public EWord systemTransactionData4;
   public EWord systemTransactionData5;
   public final Type type;
+
+  public HubRowForSystemTransactions(ProcessableBlockHeader header, Type type) {
+    super(header);
+    this.type = type;
+  }
 
   @Override
   public void traceRow(Trace.Txndata trace) {

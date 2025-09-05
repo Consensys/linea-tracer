@@ -85,7 +85,7 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
   }
 
   void hubRow() {
-    rows.add(new HubRowForUserTransactions(txn, blockHeader));
+    rows.add(new HubRowForUserTransactions(blockHeader, txn));
   }
 
   void rlpRow() {

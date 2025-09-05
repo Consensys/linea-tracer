@@ -21,13 +21,13 @@ import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDat
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow.callToEuc;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
+import static net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type.EIP4788;
 
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
-import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes32;
 
@@ -50,7 +50,7 @@ public class SysiEip4788Transaction extends TxnDataOperationPerspectivized {
   }
 
   protected void hubRow() {
-    HubRowForSystemTransactions hubRow = new HubRowForSystemTransactions(Type.EIP4788);
+    HubRowForSystemTransactions hubRow = new HubRowForSystemTransactions(blockHeader, EIP4788);
 
     long timestamp = blockHeader.getTimestamp();
     Bytes32 parentBeaconBlockRoot =

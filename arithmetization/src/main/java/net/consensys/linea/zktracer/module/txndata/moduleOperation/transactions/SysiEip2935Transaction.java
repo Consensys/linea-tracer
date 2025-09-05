@@ -55,7 +55,7 @@ public class SysiEip2935Transaction extends TxnDataOperationPerspectivized {
 
   protected void hubRow() {
 
-    HubRowForSystemTransactions hubRow = new HubRowForSystemTransactions(Type.EIP2935);
+    HubRowForSystemTransactions hubRow = new HubRowForSystemTransactions(blockHeader, Type.EIP2935);
 
     hubRow.systemTransactionData1 = EWord.of(previousBlockNumber());
     hubRow.systemTransactionData2 = EWord.of(previousBlockNumber() % HISTORY_SERVE_WINDOW);

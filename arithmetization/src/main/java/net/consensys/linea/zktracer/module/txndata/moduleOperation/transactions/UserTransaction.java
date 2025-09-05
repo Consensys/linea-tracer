@@ -214,7 +214,7 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
         WcpRow.smallCallToLt(
             wcp,
             Bytes.ofUnsignedLong(consumedGasAfterRefunds),
-            Bytes.ofUnsignedLong(txn.getFloorCost()));
+            Bytes.ofUnsignedLong(txn.getFloorCostPrague()));
 
     rows.add(comparingEffectiveRefundsVsFloorCost);
   }

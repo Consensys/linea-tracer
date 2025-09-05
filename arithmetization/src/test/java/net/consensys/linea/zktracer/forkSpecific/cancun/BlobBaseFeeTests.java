@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.forkSpecific.cancun;
 
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
@@ -26,7 +25,6 @@ public class BlobBaseFeeTests extends TracerTestBase {
   // just run the EVM with the BLOBBASEFEE opcode
   @Test
   void trivialBlobbasefee(TestInfo testInfo) {
-    BytecodeRunner.of(Bytes.fromHexString("0x4a"))
-        .run(chainConfig, testInfo);
+    BytecodeRunner.of(Bytes.fromHexString("0x4a")).run(chainConfig, testInfo);
   }
 }

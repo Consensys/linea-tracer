@@ -22,7 +22,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import java.util.stream.Stream;
 
-
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ReturnAtParameter;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallTests;
@@ -55,8 +54,7 @@ public class Tests extends PrecompileCallTests<CallParameters> {
             true);
 
     BytecodeCompiler rootCode =
-        params.customPrecompileCallsSeparatedByReturnDataWipingOperation(
-            chainConfig);
-    runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode, chainConfig,testInfo);
+        params.customPrecompileCallsSeparatedByReturnDataWipingOperation(chainConfig);
+    runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode, chainConfig, testInfo);
   }
 }

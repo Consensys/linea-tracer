@@ -148,10 +148,7 @@ public class BlockhashTest extends TracerTestBase {
   void blockhashArgumentUpperRangeCheckMultiBlockTest(TestInfo testInfo) {
     // Block 1
     Bytes program1 =
-        BytecodeCompiler.newProgram(chainConfig)
-            .op(OpCode.NUMBER)
-            .op(OpCode.BLOCKHASH)
-            .compile();
+        BytecodeCompiler.newProgram(chainConfig).op(OpCode.NUMBER).op(OpCode.BLOCKHASH).compile();
 
     // Block 2
     Bytes program2 =
@@ -167,10 +164,7 @@ public class BlockhashTest extends TracerTestBase {
 
   @Test
   void blockhashArgumentLowerRangeCheckMultiBlockTest(TestInfo testInfo) {
-    Bytes fillerProgram =
-        BytecodeCompiler.newProgram(chainConfig)
-            .op(OpCode.COINBASE)
-            .compile();
+    Bytes fillerProgram = BytecodeCompiler.newProgram(chainConfig).op(OpCode.COINBASE).compile();
 
     Bytes program0 =
         BytecodeCompiler.newProgram(chainConfig)
@@ -211,6 +205,7 @@ public class BlockhashTest extends TracerTestBase {
         Stream.concat(
                 Collections.nCopies(256, fillerProgram).stream(),
                 List.of(program0, program1, program2, program3).stream())
-            .collect(Collectors.toList()), testInfo);
+            .collect(Collectors.toList()),
+        testInfo);
   }
 }

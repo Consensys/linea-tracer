@@ -66,16 +66,26 @@ public final class BytecodeRunner {
 
   @Setter private Consumer<ZkTracer> zkTracerValidator = zkTracer -> {};
 
-
-
   // Default run method
   public void run(ChainConfig chainConfig, TestInfo testInfo) {
-    this.run(Wei.fromEth(1), (long) Trace.LINEA_BLOCK_GAS_LIMIT, List.of(), Bytes.EMPTY, chainConfig, testInfo);
+    this.run(
+        Wei.fromEth(1),
+        (long) Trace.LINEA_BLOCK_GAS_LIMIT,
+        List.of(),
+        Bytes.EMPTY,
+        chainConfig,
+        testInfo);
   }
 
   // Ad-hoc senderBalance
   public void run(Wei senderBalance, ChainConfig chainConfig, TestInfo testInfo) {
-    this.run(senderBalance, (long) Trace.LINEA_BLOCK_GAS_LIMIT, List.of(), Bytes.EMPTY, chainConfig, testInfo);
+    this.run(
+        senderBalance,
+        (long) Trace.LINEA_BLOCK_GAS_LIMIT,
+        List.of(),
+        Bytes.EMPTY,
+        chainConfig,
+        testInfo);
   }
 
   // Ad-hoc gasLimit
@@ -101,7 +111,10 @@ public final class BytecodeRunner {
 
   // Ad-hoc gasLimit and accounts
   public void run(
-      Long gasLimit, List<ToyAccount> additionalAccounts, ChainConfig chainConfig, TestInfo testInfo) {
+      Long gasLimit,
+      List<ToyAccount> additionalAccounts,
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
     this.run(Wei.fromEth(1), gasLimit, additionalAccounts, Bytes.EMPTY, chainConfig, testInfo);
   }
 
@@ -110,7 +123,8 @@ public final class BytecodeRunner {
       Wei senderBalance,
       Long gasLimit,
       List<ToyAccount> additionalAccounts,
-      ChainConfig chainConfig, TestInfo testInfo) {
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
     this.run(senderBalance, gasLimit, additionalAccounts, Bytes.EMPTY, chainConfig, testInfo);
   }
 
@@ -120,7 +134,8 @@ public final class BytecodeRunner {
       Long gasLimit,
       List<ToyAccount> additionalAccounts,
       Bytes payload,
-      ChainConfig chainConfig, TestInfo testInfo) {
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
 
     final KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -159,7 +174,7 @@ public final class BytecodeRunner {
     accounts.addAll(additionalAccounts);
 
     toyExecutionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder(chainConfig,testInfo)
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
             .transactionProcessingResultValidator(
                 TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .accounts(accounts)
@@ -190,7 +205,7 @@ public final class BytecodeRunner {
             .build();
 
     toyExecutionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder(chainConfig,testInfo)
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
             .transactionProcessingResultValidator(
                 TransactionProcessingResultValidator.EMPTY_VALIDATOR)
             .accounts(List.of(senderAccount))
@@ -208,7 +223,12 @@ public final class BytecodeRunner {
   public long runOnlyForGasCost(
       List<ToyAccount> additionalAccounts, ChainConfig chainConfig, TestInfo testInfo) {
     return this.runOnlyForGasCost(
-        Wei.fromEth(1), (long) LINEA_BLOCK_GAS_LIMIT, additionalAccounts, Bytes.EMPTY, chainConfig, testInfo);
+        Wei.fromEth(1),
+        (long) LINEA_BLOCK_GAS_LIMIT,
+        additionalAccounts,
+        Bytes.EMPTY,
+        chainConfig,
+        testInfo);
   }
 
   // Ad-hoc payload
@@ -220,7 +240,12 @@ public final class BytecodeRunner {
   // Ad-hoc payload
   public long runOnlyForGasCost(ChainConfig chainConfig, TestInfo testInfo) {
     return this.runOnlyForGasCost(
-        Wei.fromEth(1), (long) LINEA_BLOCK_GAS_LIMIT, List.of(), Bytes.EMPTY, chainConfig, testInfo);
+        Wei.fromEth(1),
+        (long) LINEA_BLOCK_GAS_LIMIT,
+        List.of(),
+        Bytes.EMPTY,
+        chainConfig,
+        testInfo);
   }
 
   // Ad-hoc senderBalance, accounts and payload
@@ -231,7 +256,8 @@ public final class BytecodeRunner {
       Long gasLimit,
       List<ToyAccount> additionalAccounts,
       Bytes payload,
-      ChainConfig chainConfig, TestInfo testInfo) {
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
     checkArgument(byteCode != null, "byteCode cannot be empty");
 
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -269,7 +295,10 @@ public final class BytecodeRunner {
     accounts.addAll(additionalAccounts);
 
     toyExecutionEnvironmentV2 =
-        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo).accounts(accounts).transaction(tx).build();
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+            .accounts(accounts)
+            .transaction(tx)
+            .build();
     return toyExecutionEnvironmentV2.runForGasCost();
   }
 

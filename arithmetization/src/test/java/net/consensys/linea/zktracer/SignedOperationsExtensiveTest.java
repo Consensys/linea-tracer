@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 
 import lombok.experimental.Accessors;
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -47,11 +46,7 @@ public class SignedOperationsExtensiveTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("signedComparisonsModDivTestSource")
   void signedComparisonsModDivTest(OpCode opCode, String a, String b, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(b)
-            .push(a)
-            .op(opCode);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig).push(b).push(a).op(opCode);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
   }
@@ -119,10 +114,7 @@ public class SignedOperationsExtensiveTest extends TracerTestBase {
   @MethodSource("signExtendTestSource")
   private void signExtendTest(String position, String value, TestInfo testInfo) {
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(value)
-            .push(position)
-            .op(OpCode.SIGNEXTEND);
+        BytecodeCompiler.newProgram(chainConfig).push(value).push(position).op(OpCode.SIGNEXTEND);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
   }

@@ -75,11 +75,7 @@ public class BalanceTests extends TracerTestBase {
           .build();
 
   Bytes revertByteCode =
-      BytecodeCompiler.newProgram(chainConfig)
-          .push(0)
-          .push(0)
-          .op(OpCode.REVERT)
-          .compile();
+      BytecodeCompiler.newProgram(chainConfig).push(0).push(0).op(OpCode.REVERT).compile();
 
   ToyAccount revertAccount =
       ToyAccount.builder()

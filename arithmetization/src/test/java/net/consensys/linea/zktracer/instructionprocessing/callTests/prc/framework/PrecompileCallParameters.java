@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.C
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolderAddress2;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALL;
 
-
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.ChainConfig;
 import org.hyperledger.besu.datatypes.Address;
@@ -40,11 +39,9 @@ public interface PrecompileCallParameters {
       ChainConfig chainConfig) {
 
     // populate foreign accounts' byte code with call data
-    this.memoryContents()
-        .setCodeOfHolderAccounts(chainConfig);
+    this.memoryContents().setCodeOfHolderAccounts(chainConfig);
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // populate memory with the data for first PRECOMPILE call
     copyForeignCodeToRam(program, memoryContentsHolderAddress1);

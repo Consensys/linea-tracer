@@ -25,7 +25,6 @@ public class Push0Tests extends TracerTestBase {
   // only performs a trivial PUSH0 operation
   @Test
   void trivialPush0(TestInfo testInfo) {
-    BytecodeRunner.of(Bytes.fromHexString("0x5F"))
-        .run(chainConfig, testInfo);
+    BytecodeRunner.of(Bytes.fromHexString("0x5F")).run(chainConfig, testInfo);
   }
 }

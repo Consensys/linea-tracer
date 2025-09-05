@@ -18,7 +18,6 @@ import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -34,8 +33,7 @@ public class MultiCallAbortTests extends TracerTestBase {
 
   @Test
   void normalCallThenAbortedCallToEoaThenRevert(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
     appendInsufficientBalanceCall(
         program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
@@ -46,8 +44,7 @@ public class MultiCallAbortTests extends TracerTestBase {
 
   @Test
   void abortedCallNormalCallToEoaThenRevert(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendInsufficientBalanceCall(
         program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);
@@ -59,8 +56,7 @@ public class MultiCallAbortTests extends TracerTestBase {
 
   @Test
   void balanceThenAbortedCallToEoaThenRevert(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     program.push(eoaAddress).op(BALANCE).op(POP);
     appendInsufficientBalanceCall(
@@ -73,8 +69,7 @@ public class MultiCallAbortTests extends TracerTestBase {
 
   @Test
   void abortedCallThenBalanceToEoaThenRevert(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendInsufficientBalanceCall(
         program, CALL, 1000, Address.fromHexString(eoaAddress), 0, 0, 0, 0);

@@ -16,7 +16,6 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.hash;
 
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utilities.populateMemory;
 
-
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallMemoryContents;
@@ -32,8 +31,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
 
   @Override
   public BytecodeCompiler memoryContents(ChainConfig chainConfig) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     populateMemory(program, variant ? 6 : 12, variant ? 0x11 : 0x0a);
     return program;
   }

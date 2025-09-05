@@ -64,7 +64,8 @@ public class ShakiraInputsExtensiveTests extends TracerTestBase {
   @Tag("Weekly")
   @ParameterizedTest
   @MethodSource("inputs")
-  void shakiraInputTesting(final int size, final int offset, final OpCode instruction, TestInfo testInfo) {
+  void shakiraInputTesting(
+      final int size, final int offset, final OpCode instruction, TestInfo testInfo) {
     final BytecodeRunner bytecodeRunner =
         BytecodeRunner.of(
             BytecodeCompiler.newProgram(chainConfig)

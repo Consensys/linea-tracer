@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecadd.MemoryContents.*;
 
-
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallMemoryContents;
@@ -85,8 +84,7 @@ public enum MemoryContents implements PrecompileCallMemoryContents {
 
     String memoryContentsString = pointData + MAX_WORD;
 
-    BytecodeCompiler memoryContents =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler memoryContents = BytecodeCompiler.newProgram(chainConfig);
     memoryContents.immediate(Bytes.fromHexString(memoryContentsString));
 
     return memoryContents;

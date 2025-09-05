@@ -246,8 +246,7 @@ public class ModexpTests extends TracerTestBase {
 
   @Test
   void variationsOnEmptyCalls(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     List<Integer> callDataSizeList = List.of(0, 1, 31, 32, 33, 63, 64, 65, 95, 96, 97, 128);
     for (int callDataSize : callDataSizeList) {

@@ -57,8 +57,7 @@ public class LogsTest extends TracerTestBase {
     BytecodeCompiler program = simpleProgram(opCode);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
-    long gasCostTx =
-        bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+    long gasCostTx = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
 
     int cornerCase = -1;
     // We calculate gas cost to trigger OOGX
@@ -91,8 +90,7 @@ public class LogsTest extends TracerTestBase {
 
     for (boolean roob : triggerRoob) {
       // We prepare a program with an MXPX for the opcode
-      BytecodeCompiler pg =
-          BytecodeCompiler.newProgram(chainConfig);
+      BytecodeCompiler pg = BytecodeCompiler.newProgram(chainConfig);
       new MxpTestUtils(opcodes)
           .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
               fork, pg, roob, triggerMaxCodeSizeException, opCode);

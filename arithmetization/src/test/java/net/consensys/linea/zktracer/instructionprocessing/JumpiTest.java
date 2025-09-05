@@ -48,7 +48,8 @@ public class JumpiTest extends TracerTestBase {
   // byte value of JUMPDEST
   @ParameterizedTest
   @MethodSource("provideJumpiScenario")
-  void jumpiScenarioTest(String description, String jumpiCondition, String pcNew, TestInfo testInfo) {
+  void jumpiScenarioTest(
+      String description, String jumpiCondition, String pcNew, TestInfo testInfo) {
     checkArgument(pcNew.length() <= 64, "pcNew must be at most 32 bytes long");
     final Bytes bytecode =
         BytecodeCompiler.newProgram(chainConfig)

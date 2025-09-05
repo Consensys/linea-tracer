@@ -198,11 +198,7 @@ public class TxWarmTest extends TracerTestBase {
   @Test
   void warmDeploymentAddress(TestInfo testInfo) {
     final Bytes initCode =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(1)
-            .push(0)
-            .op(OpCode.SLT)
-            .compile();
+        BytecodeCompiler.newProgram(chainConfig).push(1).push(0).op(OpCode.SLT).compile();
 
     final Address depAddress =
         Address.extract(getCreateRawAddress(senderAddress, senderAccount.getNonce()));

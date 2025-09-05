@@ -31,8 +31,7 @@ public class ZeroSizeCallDataOrReturnDataTest extends TracerTestBase {
 
   @Test
   void zeroSizeHugeReturnAtOffsetTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0) // return at capacity
         .push("ff".repeat(32)) // return at offset
@@ -42,8 +41,7 @@ public class ZeroSizeCallDataOrReturnDataTest extends TracerTestBase {
         .push(1000) // gas
         .op(OpCode.STATICCALL);
 
-    BytecodeCompiler calleeProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram(chainConfig);
     calleeProgram.op(OpCode.CALLDATASIZE);
 
     final ToyAccount calleeAccount =
@@ -60,8 +58,7 @@ public class ZeroSizeCallDataOrReturnDataTest extends TracerTestBase {
 
   @Test
   void zeroSizeHugeCallDataOffsetTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0) // return at capacity
         .push(0) // return at offset
@@ -71,8 +68,7 @@ public class ZeroSizeCallDataOrReturnDataTest extends TracerTestBase {
         .push(1000) // gas
         .op(OpCode.STATICCALL);
 
-    BytecodeCompiler calleeProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram(chainConfig);
     calleeProgram.op(OpCode.CALLDATASIZE);
 
     final ToyAccount calleeAccount =
@@ -89,8 +85,7 @@ public class ZeroSizeCallDataOrReturnDataTest extends TracerTestBase {
 
   @Test
   void zeroSizeHugeReturnDataOffsetTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0) // return at capacity
         .push(0) // return at offset
@@ -100,8 +95,7 @@ public class ZeroSizeCallDataOrReturnDataTest extends TracerTestBase {
         .push(1000) // gas
         .op(OpCode.STATICCALL);
 
-    BytecodeCompiler calleeProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram(chainConfig);
     calleeProgram.push(0).push("ff".repeat(32)).op(OpCode.RETURN);
 
     final ToyAccount calleeAccount =

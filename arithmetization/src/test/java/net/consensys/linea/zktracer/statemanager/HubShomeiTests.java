@@ -24,7 +24,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -56,19 +55,11 @@ public class HubShomeiTests extends TracerTestBase {
       Address.fromHexString("0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef");
 
   private final Bytes SSLOAD1(ChainConfig chainConfig) {
-    return newProgram(chainConfig)
-        .push(key1)
-        .op(OpCode.SLOAD)
-        .op(OpCode.POP)
-        .compile();
+    return newProgram(chainConfig).push(key1).op(OpCode.SLOAD).op(OpCode.POP).compile();
   }
 
   private Bytes SSTORE1(ChainConfig chainConfig) {
-    return newProgram(chainConfig)
-        .push(value)
-        .push(key1)
-        .op(OpCode.SSTORE)
-        .compile();
+    return newProgram(chainConfig).push(value).push(key1).op(OpCode.SSTORE).compile();
   }
 
   /**
@@ -88,10 +79,8 @@ public class HubShomeiTests extends TracerTestBase {
 
     final Bytes code =
         switch (opcode) {
-          case SSTORE -> Bytes.concatenate(
-              SSTORE1(chainConfig));
-          case SLOAD -> Bytes.concatenate(
-              SSLOAD1(chainConfig));
+          case SSTORE -> Bytes.concatenate(SSTORE1(chainConfig));
+          case SLOAD -> Bytes.concatenate(SSLOAD1(chainConfig));
           default -> throw new IllegalStateException("Unexpected value: " + opcode);
         };
 
@@ -125,12 +114,7 @@ public class HubShomeiTests extends TracerTestBase {
             .gasLimit(1000000L)
             .gasPrice(Wei.of(10L))
             .accessList(List.of(accessListEntry))
-            .payload(
-                newProgram(chainConfig)
-                    .push(1)
-                    .push(1)
-                    .op(OpCode.ADD)
-                    .compile())
+            .payload(newProgram(chainConfig).push(1).push(1).op(OpCode.ADD).compile())
             .build();
 
     final ToyExecutionEnvironmentV2 executionEnvironmentV2 =
@@ -168,10 +152,8 @@ public class HubShomeiTests extends TracerTestBase {
 
     final Bytes code =
         switch (opcode) {
-          case SSTORE -> Bytes.concatenate(
-              SSTORE1(chainConfig));
-          case SLOAD -> Bytes.concatenate(
-              SSLOAD1(chainConfig));
+          case SSTORE -> Bytes.concatenate(SSTORE1(chainConfig));
+          case SLOAD -> Bytes.concatenate(SSLOAD1(chainConfig));
           default -> throw new IllegalStateException("Unexpected value: " + opcode);
         };
 

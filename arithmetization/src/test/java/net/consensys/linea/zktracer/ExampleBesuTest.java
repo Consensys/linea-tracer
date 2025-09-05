@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer;
 
 import java.util.List;
 
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;

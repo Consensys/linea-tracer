@@ -111,7 +111,8 @@ public class TrmTracerTest extends TracerTestBase {
       nonCall(
           RANDOM_STRING_FROM_THE_INTERNET
               .and(BYTE_STRING_OUTSIDE_OF_ADDRESS_RANGE___MAX_VALUE)
-              .or(Bytes32.leftPad(Bytes.of(tiny))), testInfo);
+              .or(Bytes32.leftPad(Bytes.of(tiny))),
+          testInfo);
     }
   }
 
@@ -140,10 +141,7 @@ public class TrmTracerTest extends TracerTestBase {
 
   void nonCall(Bytes bytes, TestInfo testInfo) {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(chainConfig)
-                .push(bytes)
-                .op(OpCode.EXTCODEHASH)
-                .compile())
+            BytecodeCompiler.newProgram(chainConfig).push(bytes).op(OpCode.EXTCODEHASH).compile())
         .run(chainConfig, testInfo);
   }
 
@@ -151,8 +149,7 @@ public class TrmTracerTest extends TracerTestBase {
   @Tag("disabled-for-cancun-temporarily")
   @Test
   void testTrimToUncoverATinyAddressAndQueryItsBalanceCodeHashAndCodeSize(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     List<OpCode> opCodeList = List.of(OpCode.BALANCE, OpCode.EXTCODESIZE, OpCode.EXTCODEHASH);
 

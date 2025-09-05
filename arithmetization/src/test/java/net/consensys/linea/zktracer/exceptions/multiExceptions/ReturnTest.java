@@ -49,8 +49,7 @@ public class ReturnTest extends TracerTestBase {
     BytecodeCompiler programWithoutICP =
         getPgCreateInitCodeWithReturnStartByteAndSize(startByte, 1);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(programWithoutICP.compile());
-    long gascost =
-        bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+    long gascost = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
 
     // We prepare program with Invalid Code Prefix exception
     int startByteWithICPX = EIP_3541_MARKER;
@@ -96,14 +95,12 @@ public class ReturnTest extends TracerTestBase {
 
   @Test
   void maxCodeSizeAndOogExceptionForCreate(TestInfo testInfo) {
-    BytecodeCompiler initProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler initProgram = BytecodeCompiler.newProgram(chainConfig);
     initProgram.push(MAX_CODE_SIZE + 1).push(0).op(OpCode.RETURN);
     final String initProgramAsString = initProgram.compile().toString().substring(2);
     final int initProgramByteSize = initProgram.compile().size();
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     program
         .push(initProgramAsString + "00".repeat(32 - initProgramByteSize))

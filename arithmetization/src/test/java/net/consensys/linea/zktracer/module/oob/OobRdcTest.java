@@ -204,7 +204,8 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigRight(TestInfo testInfo) {
+  void testReturnDataCopyMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigRight(
+      TestInfo testInfo) {
     // maxPos = offset + size = 33 + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program = initReturnDataCopyProgram(BigInteger.valueOf(33), TWO_POW_128_RIGHT);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
@@ -384,7 +385,8 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosSmallerThanRdsAndOffsetZero(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosSmallerThanRdsAndOffsetZero(
+      TestInfo testInfo) {
     // maxPos = offset + size = 0 + 4 < rds = 32
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
@@ -415,7 +417,8 @@ public class OobRdcTest extends TracerTestBase {
 
   // offset smaller cases
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeSmall(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeSmall(
+      TestInfo testInfo) {
     // maxPos = offset + size = 10 + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
@@ -433,8 +436,8 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigLeft(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigLeft(
+      TestInfo testInfo) {
     // maxPos = offset + size = 10 + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(BigInteger.valueOf(10), TWO_POW_128_LEFT);
@@ -450,8 +453,8 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigRight(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetSmallerAndSizeBigRight(
+      TestInfo testInfo) {
     // maxPos = offset + size = 10 + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(BigInteger.valueOf(10), TWO_POW_128_RIGHT);
@@ -468,8 +471,8 @@ public class OobRdcTest extends TracerTestBase {
 
   // offset just greater cases
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeZero(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeZero(
+      TestInfo testInfo) {
     // maxPos = offset + size = 33 + 0 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
@@ -487,7 +490,8 @@ public class OobRdcTest extends TracerTestBase {
 
   @Test
   void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeSmall(TestInfo testInfo) {
+      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeSmall(
+          TestInfo testInfo) {
     // maxPos = offset + size = 33 + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(
@@ -505,7 +509,8 @@ public class OobRdcTest extends TracerTestBase {
 
   @Test
   void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigLeft(TestInfo testInfo) {
+      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigLeft(
+          TestInfo testInfo) {
     // maxPos = offset + size = 33 + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(BigInteger.valueOf(33), TWO_POW_128_LEFT);
@@ -522,7 +527,8 @@ public class OobRdcTest extends TracerTestBase {
 
   @Test
   void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigRight(TestInfo testInfo) {
+      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetJustGreaterAndSizeBigRight(
+          TestInfo testInfo) {
     // maxPos = offset + size = 33 + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(BigInteger.valueOf(33), TWO_POW_128_RIGHT);
@@ -539,7 +545,8 @@ public class OobRdcTest extends TracerTestBase {
 
   // offset big left cases
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeZero(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeZero(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + 0 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_LEFT, BigInteger.valueOf(0));
@@ -555,7 +562,8 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeSmall(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeSmall(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_LEFT, BigInteger.valueOf(23));
@@ -571,8 +579,8 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigLeft(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigLeft(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_LEFT, TWO_POW_128_LEFT);
@@ -588,8 +596,8 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigRight(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigLeftAndSizeBigRight(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_LEFT + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_LEFT, TWO_POW_128_RIGHT);
@@ -606,7 +614,8 @@ public class OobRdcTest extends TracerTestBase {
 
   // offset big right cases
   @Test
-  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeZero(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeZero(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_RIGHT + 0 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_RIGHT, BigInteger.valueOf(0));
@@ -622,8 +631,8 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeSmall(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeSmall(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_RIGHT + 23 > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_RIGHT, BigInteger.valueOf(23));
@@ -639,8 +648,8 @@ public class OobRdcTest extends TracerTestBase {
   }
 
   @Test
-  void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigLeft(TestInfo testInfo) {
+  void testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigLeft(
+      TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_Right + TWO_POW_128_LEFT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_RIGHT, TWO_POW_128_LEFT);
@@ -657,7 +666,8 @@ public class OobRdcTest extends TracerTestBase {
 
   @Test
   void
-      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigRight(TestInfo testInfo) {
+      testReturnDataCopyUsingIdentityPrecompileMaxPosGreaterThanRdsAndOffsetBigRightAndSizeBigRight(
+          TestInfo testInfo) {
     // maxPos = offset + size = TWO_POW_128_RIGHT + TWO_POW_128_RIGHT > 32 = rds
     BytecodeCompiler program =
         initReturnDataCopyProgramUsingIdentityPrecompile(TWO_POW_128_RIGHT, TWO_POW_128_RIGHT);
@@ -674,8 +684,7 @@ public class OobRdcTest extends TracerTestBase {
 
   // Support methods
   BytecodeCompiler initReturnDataCopyProgram(BigInteger offset, BigInteger size) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // Creates a constructor that creates a contract which returns 32 FF
     program
@@ -722,8 +731,7 @@ public class OobRdcTest extends TracerTestBase {
 
   BytecodeCompiler initReturnDataCopyProgramUsingIdentityPrecompile(
       BigInteger offset, BigInteger size) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // First place the parameters in memory
     program

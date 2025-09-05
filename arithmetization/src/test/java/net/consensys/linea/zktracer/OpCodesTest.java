@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer;
 
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -38,8 +37,7 @@ public class OpCodesTest extends TracerTestBase {
   }
 
   private Bytes getAllOpCodesProgram(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     //
     for (OpCodeData opCodeData : opcodes.iterator()) {
       if (opCodeData != null) {

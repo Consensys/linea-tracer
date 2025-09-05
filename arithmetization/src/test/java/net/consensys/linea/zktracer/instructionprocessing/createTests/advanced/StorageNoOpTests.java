@@ -77,7 +77,7 @@ public class StorageNoOpTests extends TracerTestBase {
         ModifyStorage.MODIFY_STORAGE,
         SelfDestruct.SELF_DESTRUCT,
         Revert.DONT_REVERT,
-      testInfo);
+        testInfo);
   }
 
   @ParameterizedTest

@@ -204,8 +204,7 @@ public class ExceptionUtils extends TracerTestBase {
    * CREATE2. Indeed EIP-3860 limits and meters init code at ( 32 * 1536 ) = 49152.
    */
   public static BytecodeCompiler getInitCodeWithSize(Bytes32 initCodeChunk, int nbChunks) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     int decrNbChunks = nbChunks;
 
     while (decrNbChunks > 0) {
@@ -262,8 +261,7 @@ public class ExceptionUtils extends TracerTestBase {
     checkArgument(startByte >= 0);
     checkArgument(startByte < 256);
 
-    BytecodeCompiler initProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler initProgram = BytecodeCompiler.newProgram(chainConfig);
     initProgram
         .push(Integer.toHexString(startByte))
         .push(0)
@@ -275,8 +273,7 @@ public class ExceptionUtils extends TracerTestBase {
     final String initProgramAsString = initProgram.compile().toString().substring(2);
     final int initProgramByteSize = initProgram.compile().size();
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     program
         .push(initProgramAsString + "00".repeat(32 - initProgramByteSize))

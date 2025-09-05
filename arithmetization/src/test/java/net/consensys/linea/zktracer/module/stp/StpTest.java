@@ -181,8 +181,7 @@ public class StpTest extends TracerTestBase {
 
   private Bytes codeCall(OpCode opcode, Address calleeAddress, BigInteger value, long gasCall) {
     return switch (opcode) {
-      case CALL, CALLCODE -> BytecodeCompiler.newProgram(
-              chainConfig)
+      case CALL, CALLCODE -> BytecodeCompiler.newProgram(chainConfig)
           .push(Bytes.minimalBytes(6)) // retLength
           .push(Bytes.minimalBytes(5)) // terOffset
           .push(Bytes.minimalBytes(4)) // argsLength
@@ -192,8 +191,7 @@ public class StpTest extends TracerTestBase {
           .push(longToBytes(gasCall)) // gas
           .op(opcode)
           .compile();
-      case DELEGATECALL, STATICCALL -> BytecodeCompiler.newProgram(
-              chainConfig)
+      case DELEGATECALL, STATICCALL -> BytecodeCompiler.newProgram(chainConfig)
           .push(Bytes.minimalBytes(5)) // retLength
           .push(Bytes.minimalBytes(4)) // terOffset
           .push(Bytes.minimalBytes(3)) // argsLength

@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -42,8 +41,7 @@ public class SmcCallsEoaInRoot extends TracerTestBase {
 
   @Test
   void transfersSomeValueWillRevertTest(TestInfo testInfo) {
-    BytecodeCompiler bytecode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler bytecode = BytecodeCompiler.newProgram(chainConfig);
     appendCall(bytecode, CALL, 0, Address.fromHexString(eoaAddress), 13, 2, 3, 4, 5);
     bytecode.op(POP).push(6).push(7).op(REVERT).compile();
     BytecodeRunner.of(bytecode.compile()).run(chainConfig, testInfo);
@@ -51,16 +49,14 @@ public class SmcCallsEoaInRoot extends TracerTestBase {
 
   @Test
   void transfersSomeValueWontRevertTest(TestInfo testInfo) {
-    BytecodeCompiler bytecode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler bytecode = BytecodeCompiler.newProgram(chainConfig);
     appendCall(bytecode, CALL, 0, Address.fromHexString(eoaAddress), 13, 2, 3, 4, 5);
     BytecodeRunner.of(bytecode.compile()).run(chainConfig, testInfo);
   }
 
   @Test
   void transfersAllValueWillRevertTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     fullBalanceCall(program, CALL, Address.fromHexString(eoaAddress), 1, 2, 3, 4);
     program.push(6).push(7).op(REVERT);
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
@@ -68,16 +64,14 @@ public class SmcCallsEoaInRoot extends TracerTestBase {
 
   @Test
   void transfersAllValueWontRevertTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     fullBalanceCall(program, CALL, Address.fromHexString(eoaAddress), 1, 2, 3, 4);
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 
   @Test
   void transfersNoValueWillRevertTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 1, 2, 3, 4);
     program.op(POP).push(6).push(7).op(REVERT).compile();
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
@@ -85,8 +79,7 @@ public class SmcCallsEoaInRoot extends TracerTestBase {
 
   @Test
   void transfersNoValueWontRevertTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     appendCall(program, CALL, 0, Address.fromHexString(eoaAddress), 0, 1, 2, 3, 4);
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }

@@ -50,11 +50,7 @@ public class FirstCfiAccountIsZeroTests extends TracerTestBase {
 
     // we don't care about the bytecode, we just need a contract with address 0
     final Bytes bytecode =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(256)
-            .push(255)
-            .op(OpCode.SAR)
-            .compile();
+        BytecodeCompiler.newProgram(chainConfig).push(256).push(255).op(OpCode.SAR).compile();
 
     final ToyAccount recipientAccount =
         ToyAccount.builder()

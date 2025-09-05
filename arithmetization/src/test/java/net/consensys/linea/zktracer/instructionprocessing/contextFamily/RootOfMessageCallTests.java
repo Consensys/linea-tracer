@@ -29,8 +29,7 @@ public class RootOfMessageCallTests extends TracerTestBase {
 
   @Test
   public void messageCallTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        allContextOpCodes(chainConfig);
+    BytecodeCompiler program = allContextOpCodes(chainConfig);
     BytecodeRunner.of(program).run(chainConfig, testInfo);
   }
 }

@@ -26,7 +26,6 @@ import java.lang.reflect.Parameter;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.OptionalLong;
 
@@ -258,7 +257,7 @@ public class ExecutionEnvironment {
       // Skip test index, as not super helpful.
       if (val.startsWith("[")) {
         continue;
-      } else if(paramIndex < parameters.length) {
+      } else if (paramIndex < parameters.length) {
         builder.append(parameters[paramIndex].getName());
         builder.append("=");
       }

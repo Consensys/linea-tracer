@@ -43,7 +43,6 @@ public class SeveralSelfDestructsInARowModifyingStorageTests extends TracerTestB
           .nonce(13)
           .address(modifyStorageThenSelfDestructAddress)
           .code(
-              SelfDestructs.storageTouchingSelfDestructorRewardsZeroAddress(chainConfig)
-                  .compile())
+              SelfDestructs.storageTouchingSelfDestructorRewardsZeroAddress(chainConfig).compile())
           .build();
 }

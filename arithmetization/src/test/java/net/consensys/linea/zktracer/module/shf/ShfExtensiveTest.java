@@ -133,8 +133,7 @@ public class ShfExtensiveTest extends TracerTestBase {
   //  Creates a program that concatenates shifts operations (with different relevant shift values)
   //  for a given value and opcode
   private BytecodeRunner shfProgramOf(String value, OpCode opCode) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     for (String shift : SHIFTS) {
       program.push(value).push(shift).op(opCode);
     }
@@ -169,11 +168,7 @@ public class ShfExtensiveTest extends TracerTestBase {
   @MethodSource("shfExtensiveTestSource")
   void shfExtensiveTest(String shift, String value, OpCode opCode, TestInfo testInfo) {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(chainConfig)
-                .push(value)
-                .push(shift)
-                .op(opCode)
-                .compile())
+            BytecodeCompiler.newProgram(chainConfig).push(value).push(shift).op(opCode).compile())
         .run(chainConfig, testInfo);
   }
 

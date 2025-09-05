@@ -108,8 +108,8 @@ public class OobCallTest extends TracerTestBase {
   }
 
   /**
-   * Same as {@link #testRecursiveCallsWithBytecode(TestInfo)} but with an ADD opcode at the end triggering
-   * SUX
+   * Same as {@link #testRecursiveCallsWithBytecode(TestInfo)} but with an ADD opcode at the end
+   * triggering SUX
    */
   @Test
   void testRecursiveCallsWithBytecodeFollowedByStackUnderflow(TestInfo testInfo) {
@@ -122,7 +122,9 @@ public class OobCallTest extends TracerTestBase {
     assertTrue(stackUnderflow(hub.pch().exceptions()));
   }
 
-  /** Same as {@link #testRecursiveCallsWithBytecode(TestInfo)} but with an ADDRESS opcode at the end */
+  /**
+   * Same as {@link #testRecursiveCallsWithBytecode(TestInfo)} but with an ADDRESS opcode at the end
+   */
   @Test
   void testRecursiveCallsWithBytecodeFollowedByAddress(TestInfo testInfo) {
     final BytecodeRunner bytecodeRunner =
@@ -134,7 +136,9 @@ public class OobCallTest extends TracerTestBase {
     assertTrue(Exceptions.none(hub.pch().exceptions()));
   }
 
-  /** Same as {@link #testRecursiveCallsWithBytecode(TestInfo)} but with an STOP opcode at the end */
+  /**
+   * Same as {@link #testRecursiveCallsWithBytecode(TestInfo)} but with an STOP opcode at the end
+   */
   @Test
   void testRecursiveCallsWithBytecodeFollowedByExplicitStop(TestInfo testInfo) {
     final BytecodeRunner bytecodeRunner =
@@ -152,7 +156,10 @@ public class OobCallTest extends TracerTestBase {
   }
 
   private void testCallSendValue(
-      final EWord balanceOfCaller, EWord amountToSend, int numberOfOnesInOobEvent1, TestInfo testInfo) {
+      final EWord balanceOfCaller,
+      EWord amountToSend,
+      int numberOfOnesInOobEvent1,
+      TestInfo testInfo) {
     /* NOTE: The contracts in this method are compiled by using
     solc *.sol --bin-runtime --evm-version london -o compiledContracts
     i.e., we do not include the init code of the contracts in the bytecode
@@ -220,7 +227,8 @@ public class OobCallTest extends TracerTestBase {
     testRecursiveCalls(iterations, 0, testInfo);
   }
 
-  private void testRecursiveCalls(EWord iterations, int numberOfOnesInOobEvent1, TestInfo testInfo) {
+  private void testRecursiveCalls(
+      EWord iterations, int numberOfOnesInOobEvent1, TestInfo testInfo) {
     /* NOTE: The contracts in this method are compiled by using
     solc *.sol --bin-runtime --evm-version london -o compiledContracts
     i.e., we do not include the init code of the contracts in the bytecode

@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.LargePoint.LARGE_POINT_AT_INFINITY;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.ecpairing.SmallPoint.SMALL_POINT_AT_INFINITY;
 
-
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallMemoryContents;
@@ -89,8 +88,7 @@ public class MemoryContents implements PrecompileCallMemoryContents {
         memoryContentsBytes.size()
             == TOTAL_NUMBER_OF_PAIRS_OF_POINTS * SIZE_OF_PAIR_OF_POINTS + WORD_SIZE);
 
-    BytecodeCompiler memoryContents =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler memoryContents = BytecodeCompiler.newProgram(chainConfig);
     return memoryContents.immediate(memoryContentsBytes);
   }
 

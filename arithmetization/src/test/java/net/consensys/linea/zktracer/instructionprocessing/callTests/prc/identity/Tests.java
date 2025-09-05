@@ -22,7 +22,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import java.util.List;
 
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
@@ -68,8 +67,7 @@ public class Tests extends TracerTestBase {
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void nontrivialCallDataIdentityTest(OpCode callOpCode, TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     fullCodeCopyOf(program, byteSource);
     appendCall(
         program,

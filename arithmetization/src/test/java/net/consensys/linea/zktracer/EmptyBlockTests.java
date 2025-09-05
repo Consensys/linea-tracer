@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.util.List;
 
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.MultiBlockExecutionEnvironment;
@@ -186,8 +185,7 @@ public class EmptyBlockTests extends TracerTestBase {
     if (isPostCancun(chainConfig.fork)) {
 
       final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
-          MultiBlockExecutionEnvironment.builder(
-              chainConfig, testInfo);
+          MultiBlockExecutionEnvironment.builder(chainConfig, testInfo);
 
       // One empty block
       builder.addBlock(List.of());

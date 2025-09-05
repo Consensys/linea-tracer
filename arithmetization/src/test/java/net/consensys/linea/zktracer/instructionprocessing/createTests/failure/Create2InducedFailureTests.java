@@ -35,8 +35,7 @@ public class Create2InducedFailureTests extends TracerTestBase {
   @Test
   void failureConditionNonceTest(TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(salt01)
         .push(0)
@@ -69,16 +68,14 @@ public class Create2InducedFailureTests extends TracerTestBase {
   @Test
   void failureConditionNonceAndCodeTest(TestInfo testInfo) {
 
-    BytecodeCompiler initCode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler initCode = BytecodeCompiler.newProgram(chainConfig);
     initCode
         .push(1) // size
         .push(0)
         .op(RETURN);
     Bytes compiledInitCode = initCode.compile();
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(compiledInitCode)
         .push(8 * (32 - compiledInitCode.size()))

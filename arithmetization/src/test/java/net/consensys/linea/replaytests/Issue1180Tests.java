@@ -40,8 +40,7 @@ public class Issue1180Tests extends TracerTestBase {
 
   @Test
   void failingSmodInstructionTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push("ffffffffffffffffffffffffffffffffffffffffffffffffffdc633cace676d7")
         .push("0000000000000000000000000000000000000000000000000000000000000000")

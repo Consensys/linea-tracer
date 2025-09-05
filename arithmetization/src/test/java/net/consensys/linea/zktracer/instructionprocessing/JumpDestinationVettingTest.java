@@ -41,8 +41,7 @@ public class JumpDestinationVettingTest extends TracerTestBase {
   @MethodSource("jumpDestinationVettingCases")
   void jumpDestinationVettingTest(
       int positionOfDeceptiveJumpDest, OpCode pushK, int pushKArgumentLength, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     int nTotalInvalid = 0;
     for (int i = 0; i < N_JUMPS; i++) {
       int nPartialInvalid = random.nextInt(10) + 1;

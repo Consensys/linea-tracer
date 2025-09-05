@@ -49,15 +49,15 @@ public class OutOfGasExceptionTest extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTestSource")
-  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTest(int opcode, int cornerCase, TestInfo testInfo) {
+  void outOfGasExceptionWithEmptyAccountsAndNoMemoryExpansionCostTest(
+      int opcode, int cornerCase, TestInfo testInfo) {
     // Extract relevant opcode data
     OpCodeData opCodeData = opcodes.of(opcode);
     // Only test opcodes which do not cause memory expansion.
     if (noMemoryExpansion(opCodeData)) {
       OpCode opCode = opCodeData.mnemonic();
       int nPushes = opCodeData.stackSettings().delta(); // number of items popped from the stack
-      BytecodeCompiler program =
-          BytecodeCompiler.newProgram(chainConfig);
+      BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
       for (int i = 0; i < nPushes; i++) {
         // In order to disambiguate between empty stack items and writing a result of 0 on the stack
         // we push small integers to the stack which all produce non-zero results
@@ -75,8 +75,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
       Bytes pgCompile = program.compile();
       BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-      long gasCost =
-          bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+      long gasCost = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
 
       bytecodeRunner.run(gasCost + cornerCase, chainConfig, testInfo);
 
@@ -132,8 +131,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
    */
   void outOfGasExceptionCallTest(
       int value, boolean targetAddressExists, boolean isWarm, int cornerCase, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     if (targetAddressExists && isWarm) {
       // Note: this is a possible way to warm the address
@@ -164,8 +162,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
       gasCost = bytecodeRunner.runOnlyForGasCost(List.of(calleeAccount), chainConfig, testInfo);
       bytecodeRunner.run(gasCost + cornerCase, List.of(calleeAccount), chainConfig, testInfo);
     } else {
-      gasCost =
-          bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+      gasCost = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
       bytecodeRunner.run(gasCost + cornerCase, chainConfig, testInfo);
     }
 
@@ -205,8 +202,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionSLoad(int cornerCase, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     program
         .push(2) // value
@@ -220,8 +216,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost =
-        bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, chainConfig, testInfo);
 
@@ -249,8 +244,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
       // 21000L intrinsic gas cost + 3L PUSH + 8L JUMP, and we retrieve 1
       gasCost = GAS_CONST_G_TRANSACTION + GAS_CONST_G_VERY_LOW + GAS_CONST_G_MID - 1L;
     } else {
-      gasCost =
-          bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+      gasCost = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
     }
     bytecodeRunner.run(gasCost, chainConfig, testInfo);
 
@@ -281,8 +275,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
       // 21000L intrinsic gas cost + 3L PUSH + 10L JUMP, and we retrieve 1
       gasCost = GAS_CONST_G_TRANSACTION + 2 * GAS_CONST_G_VERY_LOW + GAS_CONST_G_HIGH - 1L;
     } else {
-      gasCost =
-          bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+      gasCost = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
     }
 
     bytecodeRunner.run(gasCost, chainConfig, testInfo);
@@ -295,8 +288,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionTStore(int cornerCase, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     try {
       program
@@ -311,10 +303,9 @@ public class OutOfGasExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost =
-        bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
 
-    bytecodeRunner.run(gasCost + cornerCase, chainConfig,testInfo);
+    bytecodeRunner.run(gasCost + cornerCase, chainConfig, testInfo);
 
     ExceptionUtils.assertEqualsOutOfGasIfCornerCaseMinusOneElseAssertNotEquals(
         cornerCase, bytecodeRunner);
@@ -323,8 +314,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @ValueSource(ints = {-1, 0, 1})
   void outOfGasExceptionTLoad(int cornerCase, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     try {
       program
@@ -341,8 +331,7 @@ public class OutOfGasExceptionTest extends TracerTestBase {
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
 
-    long gasCost =
-        bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+    long gasCost = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
 
     bytecodeRunner.run(gasCost + cornerCase, chainConfig, testInfo);
 

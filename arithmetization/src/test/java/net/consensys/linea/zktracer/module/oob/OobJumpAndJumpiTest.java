@@ -50,8 +50,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpSequenceSuccessTrivial(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendJump(EWord.of(35), program);
     appendStop(program);
@@ -79,8 +78,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpSequenceSuccessBackAndForth(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendJump(EWord.of(71), program);
     appendStop(program);
@@ -108,8 +106,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpSequenceFailingNoJumpdestTrivial(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendJump(EWord.of(35), program);
     appendStop(program);
@@ -139,8 +136,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpSequenceFailingOobTrivial(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendJump(EWord.of(35), program);
     appendStop(program);
@@ -266,8 +262,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpiSequenceSuccessTrivial(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendJumpi(EWord.of(68), EWord.of(1), program);
     appendStop(program);
@@ -295,8 +290,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpiSequenceSuccessBackAndForth(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendJumpi(EWord.of(137), EWord.of(1), program);
     appendStop(program);
@@ -324,8 +318,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpiSequenceFailingNoJumpdestTrivial(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendJumpi(EWord.of(68), EWord.of(1), program);
     appendStop(program);
@@ -355,8 +348,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpiSequenceFailingOobTrivial(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendJumpi(EWord.of(68), EWord.of(1), program);
     appendStop(program);
@@ -387,8 +379,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testNoJumpi(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     appendJumpi(EWord.of(68), EWord.of(0), program); // jumpCondition is 0, that means no JUMPI
     appendStop(program);
@@ -407,8 +398,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpiHiNonZero(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     EWord jumpCondition = EWord.of(TWO_POW_128_MINUS_ONE, BigInteger.ZERO);
     appendJumpi(EWord.of(68), jumpCondition, program);
@@ -428,8 +418,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpiLoNonZero(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     EWord jumpCondition = EWord.of(BigInteger.valueOf(0), TWO_POW_128_MINUS_ONE);
     appendJumpi(EWord.of(68), jumpCondition, program);
@@ -449,8 +438,7 @@ public class OobJumpAndJumpiTest extends TracerTestBase {
 
   @Test
   void testJumpiHiLoNonZero(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     EWord jumpCondition = EWord.of(TWO_POW_128_MINUS_ONE, TWO_POW_128_MINUS_ONE);
     appendJumpi(EWord.of(68), jumpCondition, program);

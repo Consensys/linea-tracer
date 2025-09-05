@@ -47,8 +47,7 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
 
   @Test
   void zeroReturnAtCapacityTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0) // return at capacity
         .push("ff".repeat(32)) // return at offset
@@ -58,8 +57,7 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
         .push(1000) // gas
         .op(OpCode.STATICCALL);
 
-    BytecodeCompiler calleeProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram(chainConfig);
     calleeProgram.op(OpCode.RETURNDATASIZE).op(OpCode.CALLDATASIZE);
     // .push(0x51) // size
     // .push(0x0f) // offset
@@ -80,8 +78,7 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
 
   @Test
   void zeroCallDataSizeTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0xff) // r@c
         .push(0x7f) // r@o
@@ -93,8 +90,7 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
         .op(OpCode.RETURNDATASIZE)
         .op(OpCode.CALLDATASIZE);
 
-    BytecodeCompiler calleeProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram(chainConfig);
     calleeProgram
         .op(OpCode.RETURNDATASIZE)
         .op(OpCode.CALLDATASIZE)
@@ -116,8 +112,7 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
 
   @Test
   void zeroCallDataSizeAndReturnAtCapacityTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0) // return at capacity
         .push("ff".repeat(32)) // return at offset
@@ -127,8 +122,7 @@ public class CallArgumentsMaybeRedundant extends TracerTestBase {
         .push(1000) // gas
         .op(OpCode.STATICCALL);
 
-    BytecodeCompiler calleeProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler calleeProgram = BytecodeCompiler.newProgram(chainConfig);
     calleeProgram.push(0).push("ff".repeat(32)).op(OpCode.RETURN);
 
     final ToyAccount calleeAccount =

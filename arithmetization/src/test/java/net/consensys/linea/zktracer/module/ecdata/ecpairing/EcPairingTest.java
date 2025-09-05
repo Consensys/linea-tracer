@@ -31,7 +31,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -198,13 +197,7 @@ public class EcPairingTest extends TracerTestBase {
   // testEcPairingSingleForScenarioUsingMethodSource
   // testEcPairingSingleForScenarioUsingCsv
   private static void testEcPairingSingleForScenario(
-      String Ax,
-      String Ay,
-      String BxIm,
-      String BxRe,
-      String ByIm,
-      String ByRe,
-      TestInfo testInfo) {
+      String Ax, String Ay, String BxIm, String BxRe, String ByIm, String ByRe, TestInfo testInfo) {
     // small point: (Ax,Ay)
     // large point: (BxRe + i*BxIm, ByRe + i*ByIm)
     BytecodeCompiler program =
@@ -271,20 +264,21 @@ public class EcPairingTest extends TracerTestBase {
       resources =
           "/ecpairing/test_ec_pairing_generic_for_scenario_using_method_source_failed_placeholder.csv",
       maxCharsPerColumn = 100000)
-  void testEcPairingGenericForScenarioUsingCsv(String description, String pairingsAsString, TestInfo testInfo) {
+  void testEcPairingGenericForScenarioUsingCsv(
+      String description, String pairingsAsString, TestInfo testInfo) {
     testEcPairingGenericForScenario(description, pairingsAsString, testInfo);
   }
 
   // Body of:
   // testEcPairingGenericForScenarioUsingMethodSource
   // testEcPairingGenericForScenarioUsingCsv
-  private void testEcPairingGenericForScenario(String description, String pairingsAsString, TestInfo testInfo) {
+  private void testEcPairingGenericForScenario(
+      String description, String pairingsAsString, TestInfo testInfo) {
     assertFalse(description.contains(" "), "Description cannot contain spaces");
 
     List<Arguments> pairings = pairingsAsStringToArgumentsList(pairingsAsString);
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     for (int i = 0; i < pairings.size(); i++) {
       Arguments pair = pairings.get(i);
 

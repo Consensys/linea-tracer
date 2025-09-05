@@ -62,8 +62,7 @@ public class InvalidCodePrefixAndMaxCodeSizeExceptionTest extends TracerTestBase
     ToyAccount userAccount =
         ToyAccount.builder().balance(Wei.fromEth(1000)).nonce(1).address(userAddress).build();
 
-    BytecodeCompiler initProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler initProgram = BytecodeCompiler.newProgram(chainConfig);
 
     initProgram
         .push(Integer.toHexString(EIP_3541_MARKER))
@@ -113,8 +112,7 @@ public class InvalidCodePrefixAndMaxCodeSizeExceptionTest extends TracerTestBase
     ToyAccount userAccount =
         ToyAccount.builder().balance(Wei.fromEth(1000)).nonce(1).address(userAddress).build();
 
-    BytecodeCompiler initProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler initProgram = BytecodeCompiler.newProgram(chainConfig);
 
     initProgram.push(MAX_CODE_SIZE + 1).push(0).op(OpCode.RETURN);
 
@@ -153,8 +151,7 @@ public class InvalidCodePrefixAndMaxCodeSizeExceptionTest extends TracerTestBase
   // (success)
   @Test
   void invalidCodePrefixExceptionForCreateTest(TestInfo testInfo) {
-    BytecodeCompiler initProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler initProgram = BytecodeCompiler.newProgram(chainConfig);
     initProgram
         .push(Integer.toHexString(EIP_3541_MARKER))
         .push(0)
@@ -165,8 +162,7 @@ public class InvalidCodePrefixAndMaxCodeSizeExceptionTest extends TracerTestBase
     final String initProgramAsString = initProgram.compile().toString().substring(2);
     final int initProgramByteSize = initProgram.compile().size();
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     program
         .push(initProgramAsString + "00".repeat(32 - initProgramByteSize))
@@ -189,14 +185,12 @@ public class InvalidCodePrefixAndMaxCodeSizeExceptionTest extends TracerTestBase
   // (success)
   @Test
   void maxCodeSizeExceptionForCreateTest(TestInfo testInfo) {
-    BytecodeCompiler initProgram =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler initProgram = BytecodeCompiler.newProgram(chainConfig);
     initProgram.push(MAX_CODE_SIZE + 1).push(0).op(OpCode.RETURN);
     final String initProgramAsString = initProgram.compile().toString().substring(2);
     final int initProgramByteSize = initProgram.compile().size();
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     program
         .push(initProgramAsString + "00".repeat(32 - initProgramByteSize))

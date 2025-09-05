@@ -22,7 +22,6 @@ import static org.hyperledger.besu.datatypes.TransactionType.FRONTIER;
 
 import java.util.List;
 
-
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
@@ -96,7 +95,7 @@ public class CodeExecutionMethods {
    * @param testInfo
    */
   public static void runMessageCallTransactionWithProvidedCodeAsRootCode(
-    BytecodeCompiler rootCode, ChainConfig chainConfig, TestInfo testInfo) {
+      BytecodeCompiler rootCode, ChainConfig chainConfig, TestInfo testInfo) {
 
     root.code(rootCode.compile());
 
@@ -121,7 +120,7 @@ public class CodeExecutionMethods {
 
     transaction.payload(transactionInitCode.compile()); // init code
 
-    ToyExecutionEnvironmentV2.builder(chainConfig,testInfo)
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .transaction(transaction.build())
         .accounts(listOfAccounts())
         .zkTracerValidator(zkTracer -> {})
@@ -144,12 +143,12 @@ public class CodeExecutionMethods {
   public static void runForeignByteCodeAsInitCode(
       BytecodeCompiler foreignCode,
       boolean embedRevertIntoInitCode,
-      ChainConfig chainConfig, TestInfo testInfo) {
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
 
     foreignCodeOwner.code(foreignCode.compile());
 
-    BytecodeCompiler rootCode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler rootCode = BytecodeCompiler.newProgram(chainConfig);
     copyForeignCodeAndRunItAsInitCode(rootCode, foreignCodeOwnerAddress);
     if (embedRevertIntoInitCode) revertWith(rootCode, 0, 0);
     root.code(rootCode.compile());
@@ -175,12 +174,14 @@ public class CodeExecutionMethods {
    * @param testInfo
    */
   public static void runMessageCallToAccountEndowedWithProvidedCode(
-      BytecodeCompiler providedCode, boolean revertRoot, ChainConfig chainConfig, TestInfo testInfo) {
+      BytecodeCompiler providedCode,
+      boolean revertRoot,
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
 
     chadPrcEnjoyer.code(providedCode.compile());
 
-    BytecodeCompiler rootCode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler rootCode = BytecodeCompiler.newProgram(chainConfig);
     appendCallTo(rootCode, CALL, chadPrcEnjoyerAddress);
     if (revertRoot) revertWith(rootCode, 0, 0); // we let the ROOT revert
     root.code(rootCode.compile());
@@ -210,12 +211,14 @@ public class CodeExecutionMethods {
    * @param testInfo
    */
   public static void runCreateDeployingForeignCodeAndCallIntoIt(
-      BytecodeCompiler foreignCode, boolean rootReverts, ChainConfig chainConfig, TestInfo testInfo) {
+      BytecodeCompiler foreignCode,
+      boolean rootReverts,
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
 
     // ROOT code
     int key = 65537; // 0x 01 00 01
-    BytecodeCompiler rootCode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler rootCode = BytecodeCompiler.newProgram(chainConfig);
     copyForeignCodeAndRunItAsInitCode(rootCode, initCodeOwnerAddress);
     sstoreTopOfStackTo(rootCode, key); // store deployment address
     pushSeveral(rootCode, 0, 0, 0, 0, 0); // zero value
@@ -225,8 +228,7 @@ public class CodeExecutionMethods {
     root.code(rootCode.compile());
 
     // init code owner code
-    BytecodeCompiler initCode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler initCode = BytecodeCompiler.newProgram(chainConfig);
     copyForeignCodeAndReturnIt(initCode, foreignCodeOwnerAddress);
     initCodeOwner.code(initCode.compile());
 
@@ -235,7 +237,7 @@ public class CodeExecutionMethods {
 
     transaction.to(root.build());
 
-    ToyExecutionEnvironmentV2.builder(chainConfig,testInfo)
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(listOfAccounts())
         .transaction(transaction.build())
         .build()

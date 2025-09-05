@@ -46,8 +46,7 @@ public class GasStipendTests extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void zeroValueEcRecoverCallTest(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     validEcrecoverData(program);
     appendCall(
         program,
@@ -68,8 +67,7 @@ public class GasStipendTests extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void nonzeroValueEcRecoverCallTest(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     validEcrecoverData(program);
     appendCall(
         program,
@@ -90,8 +88,7 @@ public class GasStipendTests extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void nonzeroValueEcRecoverCallWillRevertTest(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     validEcrecoverData(program);
     appendCall(
         program,
@@ -113,8 +110,7 @@ public class GasStipendTests extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE"})
   void stipendCompletesGasEcRecoverCallTest(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     validEcrecoverData(program);
     appendCall(
         program,
@@ -136,8 +132,7 @@ public class GasStipendTests extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void gasFallsShortForEcRecoverTest(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     validEcrecoverData(program);
     appendCall(
         program,
@@ -157,9 +152,9 @@ public class GasStipendTests extends TracerTestBase {
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE"})
-  void stipendFromValueFallsShortOfCompletingGasEcrecoverCallTest(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+  void stipendFromValueFallsShortOfCompletingGasEcrecoverCallTest(
+      OpCode callOpCode, TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     validEcrecoverData(program);
     appendCall(
         program,

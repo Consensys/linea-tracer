@@ -37,8 +37,7 @@ public class DoubleCall extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void doubleCallToSameAddressWontRevert(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     appendCall(program, callOpCode, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
     appendCall(program, callOpCode, 0, Address.fromHexString(eoaAddress), 2, 0, 0, 0, 0);
 
@@ -50,8 +49,7 @@ public class DoubleCall extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void doubleCallToSameAddressWillRevert(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     appendCall(program, callOpCode, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
     appendCall(program, callOpCode, 0, Address.fromHexString(eoaAddress), 2, 0, 0, 0, 0);
     program.op(REVERT); // N.B. The stack contains the two success bits
@@ -65,8 +63,7 @@ public class DoubleCall extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void doubleCallTodifferentAddressesWontRevert(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     appendCall(program, callOpCode, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
     appendCall(program, callOpCode, 0, Address.fromHexString(eoaAddress2), 2, 0, 0, 0, 0);
 
@@ -78,8 +75,7 @@ public class DoubleCall extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void doubleCallTodifferentAddressesWillRevert(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     appendCall(program, callOpCode, 0, Address.fromHexString(eoaAddress), 1, 0, 0, 0, 0);
     appendCall(program, callOpCode, 0, Address.fromHexString(eoaAddress2), 2, 0, 0, 0, 0);
     program.push(13).push(71); // the stack already contains two items but why not ...

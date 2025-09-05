@@ -38,8 +38,7 @@ public class InvalidOpcodeExceptionTest extends TracerTestBase {
 
   @Test
   void invalidOpcodeExceptionTest(TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program.op(OpCode.INVALID);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
@@ -51,8 +50,7 @@ public class InvalidOpcodeExceptionTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("nonOpcodeExceptionSource")
   void nonOpcodeExceptionTest(int value, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program.immediate(value);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);

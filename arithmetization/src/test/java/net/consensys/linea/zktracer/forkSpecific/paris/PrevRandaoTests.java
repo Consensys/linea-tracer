@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.forkSpecific.paris;
 
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeRunner;
 import org.apache.tuweni.bytes.Bytes;
@@ -26,7 +25,6 @@ public class PrevRandaoTests extends TracerTestBase {
   // just run the EVM with the PREVRANDAO opcode
   @Test
   void trivialPrevRandao(TestInfo testInfo) {
-    BytecodeRunner.of(Bytes.fromHexString("0x44"))
-        .run(chainConfig, testInfo);
+    BytecodeRunner.of(Bytes.fromHexString("0x44")).run(chainConfig, testInfo);
   }
 }

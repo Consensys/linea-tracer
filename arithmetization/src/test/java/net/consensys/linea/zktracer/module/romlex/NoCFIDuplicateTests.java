@@ -50,11 +50,7 @@ public class NoCFIDuplicateTests extends TracerTestBase {
         ToyAccount.builder().balance(Wei.fromEth(0xffff)).nonce(128).address(senderAddress).build();
 
     final Bytes bytecode =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(256)
-            .push(255)
-            .op(OpCode.SLT)
-            .compile();
+        BytecodeCompiler.newProgram(chainConfig).push(256).push(255).op(OpCode.SLT).compile();
 
     final ToyAccount recipientAccount =
         ToyAccount.builder()

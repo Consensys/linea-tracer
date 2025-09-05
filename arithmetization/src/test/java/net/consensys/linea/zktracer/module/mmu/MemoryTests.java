@@ -51,34 +51,19 @@ class MemoryTests extends TracerTestBase {
 
   @Test
   void fastMload(TestInfo testInfo) {
-    BytecodeRunner.of(
-            newProgram(chainConfig)
-                .push(34)
-                .push(0)
-                .op(OpCode.MLOAD)
-                .compile())
+    BytecodeRunner.of(newProgram(chainConfig).push(34).push(0).op(OpCode.MLOAD).compile())
         .run(chainConfig, testInfo);
   }
 
   @Test
   void alignedMstore8(TestInfo testInfo) {
-    BytecodeRunner.of(
-            newProgram(chainConfig)
-                .push(12)
-                .push(0)
-                .op(OpCode.MSTORE8)
-                .compile())
+    BytecodeRunner.of(newProgram(chainConfig).push(12).push(0).op(OpCode.MSTORE8).compile())
         .run(chainConfig, testInfo);
   }
 
   @Test
   void nonAlignedMstore8(TestInfo testInfo) {
-    BytecodeRunner.of(
-            newProgram(chainConfig)
-                .push(66872)
-                .push(35)
-                .op(OpCode.MSTORE8)
-                .compile())
+    BytecodeRunner.of(newProgram(chainConfig).push(66872).push(35).op(OpCode.MSTORE8).compile())
         .run(chainConfig, testInfo);
   }
 

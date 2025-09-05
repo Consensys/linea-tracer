@@ -23,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -44,8 +43,7 @@ STATIC & OOGX : SSTORE
 public class SstoreTest extends TracerTestBase {
   @Test
   public void staticAndOutOfSStoreExceptions(TestInfo testInfo) {
-    BytecodeCompiler pg =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler pg = BytecodeCompiler.newProgram(chainConfig);
 
     pg.push(0).push(0).op(OpCode.SSTORE);
 
@@ -57,7 +55,7 @@ public class SstoreTest extends TracerTestBase {
         getProgramStaticCallToCodeAddress(gasCostToTriggerOutOfSStore);
 
     BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
-    bytecodeRunnerStaticCall.run(List.of(codeProviderAccount), chainConfig,testInfo);
+    bytecodeRunnerStaticCall.run(List.of(codeProviderAccount), chainConfig, testInfo);
 
     // Static check happens before outOfStore exception
     assertEquals(
@@ -75,8 +73,7 @@ public class SstoreTest extends TracerTestBase {
     BytecodeCompiler program = simpleProgram(OpCode.SSTORE);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
-    long gasCostTx =
-        bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+    long gasCostTx = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
     int cornerCase = -1;
 
     // We calculate gas cost to trigger OOGX
@@ -88,7 +85,7 @@ public class SstoreTest extends TracerTestBase {
 
     // Run with linea block gas limit so gas cost is passed to child without 63/64
     BytecodeRunner bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
-    bytecodeRunnerStaticCall.run(List.of(codeProviderAccount), chainConfig,testInfo);
+    bytecodeRunnerStaticCall.run(List.of(codeProviderAccount), chainConfig, testInfo);
 
     // Static check happens before OOGX in tracer
     assertEquals(

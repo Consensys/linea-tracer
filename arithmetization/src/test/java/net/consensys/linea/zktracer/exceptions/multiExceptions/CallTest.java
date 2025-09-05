@@ -1,4 +1,4 @@
- /*
+/*
  * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
@@ -64,8 +64,7 @@ public class CallTest extends TracerTestBase {
     // execution, even if no code is executed
     // call stipend - 1
     int cornerCase = 2299;
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     if (targetAddressExists && isWarm) {
       // Note: this is a possible way to warm the address
@@ -104,10 +103,10 @@ public class CallTest extends TracerTestBase {
       BytecodeCompiler pgStaticCallToCode =
           getProgramStaticCallToCodeAddress(gasCostPlusCornerCase);
       bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
-      bytecodeRunnerStaticCall.run(List.of(calleeAccount, CallProviderAccount), chainConfig, testInfo);
+      bytecodeRunnerStaticCall.run(
+          List.of(calleeAccount, CallProviderAccount), chainConfig, testInfo);
     } else {
-      gasCost =
-          bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+      gasCost = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
       // We calculate gas cost to trigger OOGX
       // We retrieve the gas cost of the transaction as it's the gas used for the static call, so
       // intrinsic gas cost already accounted
@@ -115,7 +114,8 @@ public class CallTest extends TracerTestBase {
       BytecodeCompiler pgStaticCallToCode =
           getProgramStaticCallToCodeAddress(gasCostPlusCornerCase);
       bytecodeRunnerStaticCall = BytecodeRunner.of(pgStaticCallToCode.compile());
-      bytecodeRunnerStaticCall.run(gasCost + cornerCase, List.of(CallProviderAccount), chainConfig, testInfo);
+      bytecodeRunnerStaticCall.run(
+          gasCost + cornerCase, List.of(CallProviderAccount), chainConfig, testInfo);
     }
 
     assertEquals(
@@ -143,8 +143,7 @@ public class CallTest extends TracerTestBase {
 
     for (boolean roob : triggerRoob) {
       // We prepare a program with an MXPX for the opcode
-      BytecodeCompiler pg =
-          BytecodeCompiler.newProgram(chainConfig);
+      BytecodeCompiler pg = BytecodeCompiler.newProgram(chainConfig);
       new MxpTestUtils(opcodes)
           .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
               fork, pg, roob, triggerMaxCodeSizeException, OpCode.CALL);

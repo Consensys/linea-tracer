@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framewo
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolder1;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.memoryContentsHolder2;
 
-
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.ChainConfig;
 
@@ -28,10 +27,8 @@ public interface PrecompileCallMemoryContents {
   BytecodeCompiler memoryContents(ChainConfig chainConfig);
 
   default void setCodeOfHolderAccounts(ChainConfig chainConfig) {
-    memoryContentsHolder1.code(
-        this.memoryContents(chainConfig).compile());
+    memoryContentsHolder1.code(this.memoryContents(chainConfig).compile());
     this.switchVariant();
-    memoryContentsHolder2.code(
-        this.memoryContents(chainConfig).compile());
+    memoryContentsHolder2.code(this.memoryContents(chainConfig).compile());
   }
 }

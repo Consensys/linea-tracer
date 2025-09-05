@@ -40,8 +40,7 @@ public class OutOfSStoreExceptionTest extends TracerTestBase {
         Trace.GAS_CONST_G_CALL_STIPEND + 1
       })
   void outOfSStoreExceptionTest(long remainingGasAfterPushes, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     program.push(0).push(0).op(OpCode.SSTORE);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());

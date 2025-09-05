@@ -193,8 +193,7 @@ public class OobSha2RipemdIdentityTest extends TracerTestBase {
     int retSize = address == Address.ID ? argSize : 32;
     int retOffset = 0;
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // MSTORE data if argSize > 0
     if (argSize > 0) {

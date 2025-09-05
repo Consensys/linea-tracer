@@ -101,7 +101,10 @@ public class DynamicTests {
    */
   public Stream<DynamicTest> run(ChainConfig chainConfig, TestInfo testInfo) {
     return this.testCaseRegistry.stream()
-        .flatMap(e -> generateTestCases(e.name(), e.arguments(), e.customAssertions(), chainConfig, testInfo));
+        .flatMap(
+            e ->
+                generateTestCases(
+                    e.name(), e.arguments(), e.customAssertions(), chainConfig, testInfo));
   }
 
   private List<OpCode> supportedOpCodes(Module module) {
@@ -168,7 +171,8 @@ public class DynamicTests {
       final String testCaseName,
       final List<OpcodeCall> args,
       final BiConsumer<OpCode, List<Bytes32>> customAssertions,
-      ChainConfig chainConfig, TestInfo testInfo) {
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
     return args.stream()
         .map(
             e -> {
@@ -181,7 +185,8 @@ public class DynamicTests {
                   testName,
                   () -> {
                     if (customAssertions == null) {
-                      ModuleTests.runTestWithOpCodeArgs(e.opCode(), e.args(), chainConfig, testInfo);
+                      ModuleTests.runTestWithOpCodeArgs(
+                          e.opCode(), e.args(), chainConfig, testInfo);
                     } else {
                       customAssertions.accept(e.opCode(), e.args());
                     }

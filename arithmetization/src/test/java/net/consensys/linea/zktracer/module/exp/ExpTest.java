@@ -62,10 +62,7 @@ public class ExpTest extends TracerTestBase {
   @Test
   void testExpLogSingleCase(TestInfo testInfo) {
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(2)
-            .push(10)
-            .op(OpCode.EXP);
+        BytecodeCompiler.newProgram(chainConfig).push(2).push(10).op(OpCode.EXP);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
   }
@@ -110,10 +107,7 @@ public class ExpTest extends TracerTestBase {
   void testExpLogFFBlockCase(int k, TestInfo testInfo) {
     Bytes exponent = Bytes.fromHexString(ffBlock(k));
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(exponent)
-            .push(10)
-            .op(OpCode.EXP);
+        BytecodeCompiler.newProgram(chainConfig).push(exponent).push(10).op(OpCode.EXP);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
   }
@@ -127,10 +121,7 @@ public class ExpTest extends TracerTestBase {
   void testExpLogFFAtCase(int k, TestInfo testInfo) {
     Bytes exponent = Bytes.fromHexString(ffAt(k));
     BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(exponent)
-            .push(10)
-            .op(OpCode.EXP);
+        BytecodeCompiler.newProgram(chainConfig).push(exponent).push(10).op(OpCode.EXP);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(chainConfig, testInfo);
   }
@@ -138,7 +129,8 @@ public class ExpTest extends TracerTestBase {
   @Disabled("We may want to run these long tests only during nightly builds")
   @ParameterizedTest
   @MethodSource("testModexpLogSource")
-  void testModexpLogFFBlockWithLDCase(int ebsCutoff, int cdsCutoff, int k, int LDIndex, TestInfo testInfo) {
+  void testModexpLogFFBlockWithLDCase(
+      int ebsCutoff, int cdsCutoff, int k, int LDIndex, TestInfo testInfo) {
     log.debug("k: " + k);
     log.debug("LDIndex: " + LDIndex);
     // 0x00000000000000000000000000000040ffffffffffffffffffffffffffffffff

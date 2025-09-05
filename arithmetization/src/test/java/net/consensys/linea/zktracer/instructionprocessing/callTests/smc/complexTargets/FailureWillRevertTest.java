@@ -42,8 +42,7 @@ public class FailureWillRevertTest extends TracerTestBase {
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   public void singleSelfCallFailureWillRevertTest(OpCode callOpCode, TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     sloadFrom(program, 0x00);
     addX(program, 0x01);
     duplicateTop(program);
@@ -67,8 +66,7 @@ public class FailureWillRevertTest extends TracerTestBase {
   @Test
   public void banalAdditionTest(TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     sloadFrom(program, 0x00); // puts 0 on stack
     addX(program, 0x01);
     sstoreAt(program, 0x00);
@@ -88,22 +86,24 @@ public class FailureWillRevertTest extends TracerTestBase {
   @Test
   public void banalSwapTest(TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program.push(1).push(2).op(SWAP1).push(3).op(SWAP1);
 
     BytecodeRunner.of(program).run(chainConfig, testInfo);
   }
 
-  /** Similar to {@link #singleSelfCallFailureWillRevertTest(OpCode,TestInfo)} but with two self calls. */
+  /**
+   * Similar to {@link #singleSelfCallFailureWillRevertTest(OpCode,TestInfo)} but with two self
+   * calls.
+   */
   @ParameterizedTest
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-  public void thirdSelfCallBreaksTriggeringFailureWillRevertTest(OpCode callOpCode, TestInfo testInfo) {
+  public void thirdSelfCallBreaksTriggeringFailureWillRevertTest(
+      OpCode callOpCode, TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     sloadFrom(program, 0x00);
     addX(program, 0x01);
     duplicateTop(program);

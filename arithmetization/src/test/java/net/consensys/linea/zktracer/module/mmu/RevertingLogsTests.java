@@ -110,10 +110,7 @@ public class RevertingLogsTests extends TracerTestBase {
             .compile();
 
     final Bytes NON_REVERTING_LOG_BYTECODE =
-        newProgram(chainConfig)
-            .immediate(POPULATE_MEMORY)
-            .immediate(LOG4)
-            .compile();
+        newProgram(chainConfig).immediate(POPULATE_MEMORY).immediate(LOG4).compile();
 
     final ToyAccount nonRevertingLogSMC =
         ToyAccount.builder()

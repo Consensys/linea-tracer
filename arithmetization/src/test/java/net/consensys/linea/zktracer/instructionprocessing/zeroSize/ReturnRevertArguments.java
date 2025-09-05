@@ -51,8 +51,7 @@ public class ReturnRevertArguments extends TracerTestBase {
       value = OpCode.class,
       names = {"RETURN", "REVERT"})
   void rootContextMessageCall(OpCode opCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     zeroSizeReturnOrRevert(program, opCode);
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
@@ -72,8 +71,7 @@ public class ReturnRevertArguments extends TracerTestBase {
   void rootContextDeploymentTransaction(OpCode opCode, TestInfo testInfo) {
     checkArgument(opCode.isAnyOf(RETURN, REVERT));
 
-    BytecodeCompiler initCode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler initCode = BytecodeCompiler.newProgram(chainConfig);
     zeroSizeReturnOrRevert(initCode, opCode);
 
     Transaction deploymentTransaction =
@@ -111,8 +109,7 @@ public class ReturnRevertArguments extends TracerTestBase {
     checkArgument(opCode.isAnyOf(RETURN, REVERT));
 
     Address calleeAccountAddress = Address.fromHexString("ca11eec0def3fd");
-    BytecodeCompiler calleeAccountCode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler calleeAccountCode = BytecodeCompiler.newProgram(chainConfig);
     zeroSizeReturnOrRevert(calleeAccountCode, opCode);
 
     ToyAccount calleeAccount =
@@ -124,8 +121,7 @@ public class ReturnRevertArguments extends TracerTestBase {
             .build();
 
     Address callerAccountAddress = Address.fromHexString("ca11e7c0de");
-    BytecodeCompiler callerAccountCode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler callerAccountCode = BytecodeCompiler.newProgram(chainConfig);
     callerAccountCode
         .push(0) // r@c
         .push(0) // r@o
@@ -188,8 +184,7 @@ public class ReturnRevertArguments extends TracerTestBase {
   void nonRootContextDeployment(OpCode opCode, TestInfo testInfo) {
     checkArgument(opCode.isAnyOf(RETURN, REVERT));
 
-    BytecodeCompiler creatorAccountCode =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler creatorAccountCode = BytecodeCompiler.newProgram(chainConfig);
     loadTheFullCallDataToRam(creatorAccountCode, 0);
     creatorAccountCode
         .op(CALLDATASIZE) // init code size
@@ -207,8 +202,7 @@ public class ReturnRevertArguments extends TracerTestBase {
             .address(Address.fromHexString("c0dec0ffeef3fd"))
             .build();
 
-    BytecodeCompiler payload =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler payload = BytecodeCompiler.newProgram(chainConfig);
     zeroSizeReturnOrRevert(payload, opCode);
     Transaction transaction =
         ToyTransaction.builder()

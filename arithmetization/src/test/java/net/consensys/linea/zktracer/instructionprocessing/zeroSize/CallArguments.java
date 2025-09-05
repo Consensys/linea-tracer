@@ -41,8 +41,7 @@ public class CallArguments extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void emptyCallDataAndReturnAtCall(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     extremalCallContract(program, callOpCode, true, true);
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
@@ -52,8 +51,7 @@ public class CallArguments extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void emptyReturnAtCall(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     extremalCallContract(program, callOpCode, false, true);
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
@@ -63,8 +61,7 @@ public class CallArguments extends TracerTestBase {
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void emptyCallDataCall(OpCode callOpCode, TestInfo testInfo) {
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     extremalCallContract(program, callOpCode, true, false);
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }

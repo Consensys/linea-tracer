@@ -30,11 +30,7 @@ public class BinTest extends TracerTestBase {
   @Test
   public void edgeCase(TestInfo testInfo) {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(chainConfig)
-                .push(0xf0)
-                .push(0xf0)
-                .op(OpCode.AND)
-                .compile())
+            BytecodeCompiler.newProgram(chainConfig).push(0xf0).push(0xf0).op(OpCode.AND).compile())
         .run(chainConfig, testInfo);
   }
 

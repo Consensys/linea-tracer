@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -138,13 +137,15 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
                               BytecodeRunner.of(preCallProgram(address, false, false, 0))
                                   .runOnlyForGasCost(
                                       address == MODEXP ? additionalAccounts : List.of(),
-                                      chainConfig,null));
+                                      chainConfig,
+                                      null));
                           put(
                               true,
                               BytecodeRunner.of(preCallProgram(address, false, true, 0))
                                   .runOnlyForGasCost(
                                       address == MODEXP ? additionalAccounts : List.of(),
-                                      chainConfig,null));
+                                      chainConfig,
+                                      null));
                         }
                       }));
 
@@ -161,12 +162,12 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
    */
   @ParameterizedTest
   @MethodSource("fixedCostEcAddTestSource")
-  void fixedCostEcAddTest(long gasLimit, boolean insufficientGasForPrecompileExpected, TestInfo testInfo) {
+  void fixedCostEcAddTest(
+      long gasLimit, boolean insufficientGasForPrecompileExpected, TestInfo testInfo) {
     // Whenever transferValue = true, gas is enough
     // so we only test the case in which transferValue = false
 
-    final BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    final BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     program.immediate(preCallProgram(ALTBN128_ADD, false, false, 0)).op(CALL);
 
@@ -217,12 +218,12 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
       boolean targetAddressExists,
       int cds,
       TestInfo testInfo) {
-    final BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    final BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program.immediate(preCallProgram(address, transfersValue, targetAddressExists, cds)).op(CALL);
 
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program);
-    bytecodeRunner.run(gasLimit, address == MODEXP ? additionalAccounts : List.of(), chainConfig, testInfo);
+    bytecodeRunner.run(
+        gasLimit, address == MODEXP ? additionalAccounts : List.of(), chainConfig, testInfo);
 
     assertNotEquals(
         OUT_OF_GAS_EXCEPTION,

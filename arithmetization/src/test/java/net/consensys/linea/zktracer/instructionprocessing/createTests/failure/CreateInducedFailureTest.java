@@ -79,9 +79,7 @@ public class CreateInducedFailureTest extends TracerTestBase {
   final Address targetAddress = Address.fromHexString("797add7e55");
 
   final BytecodeCompiler simpleSelfDestruct =
-      BytecodeCompiler.newProgram(chainConfig)
-          .op(ORIGIN)
-          .op(SELFDESTRUCT);
+      BytecodeCompiler.newProgram(chainConfig).op(ORIGIN).op(SELFDESTRUCT);
 
   /**
    * Account that can only do one thing: do a <b>SELFDESTRUCT</b> sending the funds to the

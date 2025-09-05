@@ -113,7 +113,7 @@ public class CodeCopyingInitializationCodeTest extends TracerTestBase {
   void testCreateContractFromInitCodeWithMload(TestInfo testInfo) {
     Transaction messageCallTransaction =
         messageCallTransactionToDeployerAccount(accountInitCodeWithMload);
-    runTransaction(messageCallTransaction,testInfo);
+    runTransaction(messageCallTransaction, testInfo);
   }
 
   @Test

@@ -19,7 +19,6 @@ import static net.consensys.linea.zktracer.instructionprocessing.callTests.Utili
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.*;
 import static net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods.runCreateDeployingForeignCodeAndCallIntoIt;
 
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.CodeExecutionMethods;
@@ -40,8 +39,7 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters>
   public void messageCallTransactionTest(T callParameter, TestInfo testInfo) {
 
     BytecodeCompiler rootCode =
-        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(
-            chainConfig);
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(chainConfig);
     if (callParameter.willRevert()) revertWith(rootCode, 0, 5 * WORD_SIZE);
 
     runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode, chainConfig, testInfo);
@@ -57,8 +55,7 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters>
   public void deploymentTransactionTest(T callParameter, TestInfo testInfo) {
 
     BytecodeCompiler txInitCode =
-        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(
-            chainConfig);
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(chainConfig);
     if (callParameter.willRevert()) revertWith(txInitCode, 0, 0);
 
     runDeploymentTransactionWithProvidedCodeAsInitCode(txInitCode, chainConfig, testInfo);
@@ -73,8 +70,7 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters>
   @MethodSource("parameterGeneration")
   public void messageCallFromRootTest(T callParameter, TestInfo testInfo) {
     BytecodeCompiler chadPrcEnjoyerCode =
-        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(
-            chainConfig);
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(chainConfig);
     runMessageCallToAccountEndowedWithProvidedCode(
         chadPrcEnjoyerCode, callParameter.willRevert(), chainConfig, testInfo);
   }
@@ -93,10 +89,8 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters>
   @MethodSource("parameterGeneration")
   public void happyPathDuringCreate(T callParameter, TestInfo testInfo) {
     BytecodeCompiler foreignCode =
-        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(
-            chainConfig);
-    runForeignByteCodeAsInitCode(foreignCode, callParameter.willRevert(),
-      chainConfig, testInfo);
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(chainConfig);
+    runForeignByteCodeAsInitCode(foreignCode, callParameter.willRevert(), chainConfig, testInfo);
   }
 
   /**
@@ -108,8 +102,7 @@ public abstract class PrecompileCallTests<T extends PrecompileCallParameters>
   @MethodSource("parameterGeneration")
   public void happyPathAfterCreate(T callParameter, TestInfo testInfo) {
     BytecodeCompiler chadPrcEnjoyerCode =
-        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(
-            chainConfig);
+        callParameter.customPrecompileCallsSeparatedByReturnDataWipingOperation(chainConfig);
     runCreateDeployingForeignCodeAndCallIntoIt(
         chadPrcEnjoyerCode, callParameter.willRevert(), chainConfig, testInfo);
   }

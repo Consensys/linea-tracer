@@ -57,11 +57,7 @@ public class TestRlpAddress extends TracerTestBase {
             .build();
 
     final Bytes initCode =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(1)
-            .push(1)
-            .op(OpCode.SLT)
-            .compile();
+        BytecodeCompiler.newProgram(chainConfig).push(1).push(1).op(OpCode.SLT).compile();
 
     final Transaction tx =
         ToyTransaction.builder()

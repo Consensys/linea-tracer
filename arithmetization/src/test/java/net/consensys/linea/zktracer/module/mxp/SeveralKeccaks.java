@@ -29,11 +29,7 @@ public class SeveralKeccaks extends TracerTestBase {
   @Test
   public void testMul(TestInfo testInfo) {
     BytecodeRunner.of(
-            BytecodeCompiler.newProgram(chainConfig)
-                .push(32)
-                .push(7)
-                .op(OpCode.MUL)
-                .compile())
+            BytecodeCompiler.newProgram(chainConfig).push(32).push(7).op(OpCode.MUL).compile())
         .run(chainConfig, testInfo);
   }
 

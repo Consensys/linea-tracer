@@ -18,7 +18,6 @@ import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.Calls.appendRevert;
 
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -38,10 +37,9 @@ public class CallStackDepthAbortTests extends TracerTestBase {
   @EnumSource(
       value = OpCode.class,
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
-  void attemptAtCallStackDepthAbortWillRevert(OpCode callOpCode,TestInfo testInfo) {
+  void attemptAtCallStackDepthAbortWillRevert(OpCode callOpCode, TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     appendRecursiveSelfCall(program, callOpCode);
     appendRevert(program, 6, 7);
 
@@ -54,8 +52,7 @@ public class CallStackDepthAbortTests extends TracerTestBase {
       names = {"CALL", "CALLCODE", "DELEGATECALL", "STATICCALL"})
   void attemptAtCallStackDepthAbort(OpCode callOpCode, TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     appendRecursiveSelfCall(program, callOpCode);
 
     BytecodeRunner.of(program).run(chainConfig, testInfo);

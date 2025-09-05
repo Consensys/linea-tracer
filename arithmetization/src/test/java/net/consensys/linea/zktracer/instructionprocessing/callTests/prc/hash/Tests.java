@@ -23,7 +23,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import java.util.stream.Stream;
 
-
 import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.*;
 import net.consensys.linea.zktracer.instructionprocessing.callTests.prc.framework.PrecompileCallTests;
@@ -94,6 +93,6 @@ public class Tests extends PrecompileCallTests<CallParameters> {
         params.customPrecompileCallsSeparatedByReturnDataWipingOperation(chainConfig);
     if (params.willRevert()) revertWith(rootCode, 3 * WORD_SIZE, 2 * WORD_SIZE);
 
-    runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode, chainConfig,testInfo);
+    runMessageCallTransactionWithProvidedCodeAsRootCode(rootCode, chainConfig, testInfo);
   }
 }

@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Optional;
 
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.ChainConfig;
@@ -200,7 +199,8 @@ public class RepeatedSelfDestructsOfSameAccountTests extends TracerTestBase {
 
   @ParameterizedTest
   @EnumSource(Heir.class)
-  public void calleeInducesSelfDestructInCallerViaDelegateCallReverted(Heir heir, TestInfo testInfo) {
+  public void calleeInducesSelfDestructInCallerViaDelegateCallReverted(
+      Heir heir, TestInfo testInfo) {
 
     appendCall(
         toAccountCode(chainConfig),

@@ -49,12 +49,7 @@ public class TxFinalTest extends TracerTestBase {
       ToyAccount.builder()
           .balance(Wei.fromEth(1))
           .address(Address.fromHexString("0xdead000000000000000000000000000beef"))
-          .code(
-              BytecodeCompiler.newProgram(chainConfig)
-                  .push(12)
-                  .push(35)
-                  .op(OpCode.SGT)
-                  .compile())
+          .code(BytecodeCompiler.newProgram(chainConfig).push(12).push(35).op(OpCode.SGT).compile())
           .build();
 
   private static final Bytes initCode =

@@ -21,7 +21,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.SELFDESTRUCT;
 
 import java.util.Optional;
 
-
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.ToyAccount;
 import net.consensys.linea.zktracer.ChainConfig;
@@ -42,8 +41,7 @@ public enum Heir {
   public static ToyAccount basicSelfDestructor(
       Heir heir, Optional<Address> selfDestructAddress, ChainConfig chainConfig) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     switch (heir) {
       case HEIR_IS_ZERO:
         program.push(0);

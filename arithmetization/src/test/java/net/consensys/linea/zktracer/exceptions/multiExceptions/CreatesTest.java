@@ -63,8 +63,7 @@ public class CreatesTest extends TracerTestBase {
     BytecodeCompiler program = simpleProgram(opCode);
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);
-    long gasCostTx =
-        bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
+    long gasCostTx = bytecodeRunner.runOnlyForGasCost(chainConfig, testInfo);
 
     /*
     for CREATE/CREATE2, Static Exception happens before deployment, so we test OOGX before deployment
@@ -102,8 +101,7 @@ public class CreatesTest extends TracerTestBase {
 
     for (boolean roob : triggerRoob) {
       // We prepare a program with an MXPX for the opcode
-      BytecodeCompiler pg =
-          BytecodeCompiler.newProgram(chainConfig);
+      BytecodeCompiler pg = BytecodeCompiler.newProgram(chainConfig);
       new MxpTestUtils(opcodes)
           .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
               fork, pg, roob, triggerMaxCodeSizeException, opCode);
@@ -166,8 +164,7 @@ public class CreatesTest extends TracerTestBase {
     BytecodeRunner bytecodeRunnerInitCodeForGasCost =
         BytecodeRunner.of(initCodeForGasCost.compile());
     long gasCostForInitCodeWithoutMaxCodeSizeException =
-        bytecodeRunnerInitCodeForGasCost.runOnlyForGasCost(
-            chainConfig, testInfo);
+        bytecodeRunnerInitCodeForGasCost.runOnlyForGasCost(chainConfig, testInfo);
 
     // We now prepare a create program with an init code of (1537 * 32) byte size that will trigger
     // a Max code size exception
@@ -200,8 +197,7 @@ public class CreatesTest extends TracerTestBase {
 
     for (boolean roob : triggerRoob) {
       // We prepare a program with an MXPX and MAX_CODE_SIZE_EXCEPTION for the opcode
-      BytecodeCompiler pg =
-          BytecodeCompiler.newProgram(chainConfig);
+      BytecodeCompiler pg = BytecodeCompiler.newProgram(chainConfig);
       new MxpTestUtils(opcodes)
           .triggerNonTrivialButMxpxOrRoobOrMaxCodeSizeExceptionForOpCode(
               fork, pg, roob, maxCodeSizeException, opCode);

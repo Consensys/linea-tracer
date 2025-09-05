@@ -33,7 +33,10 @@ public class ModuleTests {
    * @param arguments args of the opcode for which the test should be run
    */
   public static void runTestWithOpCodeArgs(
-    final OpCode opCode, final List<Bytes32> arguments, ChainConfig chainConfig, TestInfo testInfo) {
+      final OpCode opCode,
+      final List<Bytes32> arguments,
+      ChainConfig chainConfig,
+      TestInfo testInfo) {
     Bytes bytecode =
         BytecodeCompiler.newProgram(chainConfig).opAnd32ByteArgs(opCode, arguments).compile();
 

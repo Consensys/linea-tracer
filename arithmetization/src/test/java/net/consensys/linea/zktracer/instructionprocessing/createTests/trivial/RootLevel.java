@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
-
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;
 import net.consensys.linea.testing.BytecodeRunner;
@@ -47,8 +46,7 @@ public class RootLevel extends TracerTestBase {
   @Test
   void basicCreate2Test(TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(0xadd7) // salt
         .push(1) // size
@@ -68,8 +66,7 @@ public class RootLevel extends TracerTestBase {
       boolean revert,
       TestInfo testInfo) {
 
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     genericCreate(
         program, createType, valueParameter, offsetParameter, SizeParameter.s_ZERO, salt01);
 
@@ -85,8 +82,7 @@ public class RootLevel extends TracerTestBase {
   void rootLevelCreate2AndExtCodeHash(WhenToTestParameter when, TestInfo testInfo) {
 
     int storageKey = 0;
-    BytecodeCompiler program =
-        BytecodeCompiler.newProgram(chainConfig);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     precomputeDeploymentAddressOfEmptyInitCodeCreate2(program, salt01);
     storeAt(program, storageKey);
 

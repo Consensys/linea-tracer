@@ -15,6 +15,10 @@
 
 package net.consensys.linea.zktracer.module.blsdata;
 
+import static net.consensys.linea.zktracer.module.blsdata.BlsDataOperation.POINT_EVALUATION_PRIME;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.List;
 
 import net.consensys.linea.UnitTestWatcher;
@@ -41,39 +45,80 @@ public class PointEvaluationTest extends TracerTestBase {
   }
 
   @Test
-  void testPointEvaluation() {
+  void validInputTest() {
+    // source:
+    // https://github.com/ethereum/execution-spec-tests/blob/1983444bbe1a471886ef7c0e82253ffe2a4053e1/tests/cancun/eip4844_blobs/point_evaluation_vectors/go_kzg_4844_verify_kzg_proof.json#L312-L321 and Ivo
+    BytecodeRunner bytecodeRunner =
+        pointEvaluationProgram(
+            "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
+    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
+  }
+
+  @Test
+  void mintDueToZNotInRangeTest() {
+    BytecodeRunner bytecodeRunner =
+        pointEvaluationProgram(
+            "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
+            (POINT_EVALUATION_PRIME.add(1)).toHexString().substring(2),
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
+    assertFalse(
+        bytecodeRunner
+            .getHub()
+            .blsData()
+            .blsDataOperation()
+            .successBit()); // TODO: here success bit should be false, check it
+  }
+
+  @Test
+  void mintDueToYNotInRangeTest() {
+    BytecodeRunner bytecodeRunner =
+        pointEvaluationProgram(
+            "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            (POINT_EVALUATION_PRIME.add(1)).toHexString().substring(2),
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
+  }
+
+  @Test
+  void mintDueToZAndYNotInRangeTest() {
+    BytecodeRunner bytecodeRunner =
+        pointEvaluationProgram(
+            "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
+            (POINT_EVALUATION_PRIME.add(1)).toHexString().substring(2),
+            (POINT_EVALUATION_PRIME.add(1)).toHexString().substring(2),
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
+  }
+
+  BytecodeRunner pointEvaluationProgram(
+      String versionedHash, String z, String y, String commitment, String proof) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
 
-    // TODO: extract method for that
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
     final ToyAccount codeOwnerAccount =
         ToyAccount.builder()
             .balance(Wei.of(0))
             .nonce(1)
             .address(codeOwnerAddress)
-            .code(
-                Bytes.fromHexString(
-                    "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014"
-                        + "0000000000000000000000000000000000000000000000000000000000000000"
-                        + "0000000000000000000000000000000000000000000000000000000000000000"
-                        + "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-                        + "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"))
+            .code(Bytes.fromHexString(versionedHash + z + y + commitment + proof))
             .build();
-
-    /* source: https://github.com/ethereum/execution-spec-tests/blob/1983444bbe1a471886ef7c0e82253ffe2a4053e1/tests/cancun/eip4844_blobs/point_evaluation_vectors/go_kzg_4844_verify_kzg_proof.json#L312-L321
-               and Ivo
-    {
-    "input": {
-      "versioned_hash": "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
-      "z": "0000000000000000000000000000000000000000000000000000000000000000",
-      "y": "0000000000000000000000000000000000000000000000000000000000000000",
-       "commitment": "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-      "proof": "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
-    },
-    "output": true,
-    "name": "verify_kzg_proof_case_correct_proof_c3d4322ec17fe7cd"
-     }
-     */
 
     // First place the parameters in memory
     // Copy to targetOffset the code of codeOwnerAccount
@@ -96,5 +141,6 @@ public class PointEvaluationTest extends TracerTestBase {
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), testInfo);
+    return bytecodeRunner;
   }
 }

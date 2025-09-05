@@ -108,7 +108,7 @@ public class BlsDataOperation extends ModuleOperation {
   @Getter private final long id;
   private final int totalSizeData;
   private final int totalSizeResult;
-  private final boolean successBit;
+  @Getter private final boolean successBit;
 
   private final List<Boolean> mintBit;
   private final List<Boolean> mextBit;
@@ -1038,8 +1038,8 @@ public class BlsDataOperation extends ModuleOperation {
           .accInputs(accInputs)
           .byteDelta(
               i < nBYTES_OF_DELTA_BYTES ? UnsignedByte.of(deltaByte.get(i)) : UnsignedByte.of(0))
-          .malformedDataInternalBit(mintBit.get(i))
-          .malformedDataInternalAcc(mintBitAcc)
+          .malformedDataInternalBit(mintBit.get(i) && isData)
+          .malformedDataInternalAcc(mintBitAcc && isData)
           .malformedDataInternalAccTot(mint)
           .malformedDataExternalBit(mextBit.get(i) && isData)
           .malformedDataExternalAcc(mextBitAcc && isData)

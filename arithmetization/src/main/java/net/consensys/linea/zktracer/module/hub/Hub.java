@@ -258,7 +258,9 @@ public abstract class Hub implements Module {
   private final Add add = setAdd();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
-  public final BlsData blsData =
+
+  @Getter
+  final BlsData blsData =
       setBlsData(
           wcp,
           pointEvaluationEffectiveCall,
@@ -275,6 +277,7 @@ public abstract class Hub implements Module {
           blsC2MembershipCalls,
           blsG1MembershipCalls,
           blsG2MembershipCalls);
+
   @Getter private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
   @Getter private final Gas gas = new Gas(wcp);

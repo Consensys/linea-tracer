@@ -80,7 +80,7 @@ public class SysiEip4788Transaction extends TxnDataOperationPerspectivized {
 
   private void compareTimestampToLineaCancunForkTimestampComputationRow() {
     WcpRow row =
-        smallCallToLeq(wcp, NONSENSE_CANCUN_HARDFORK_TIMESTAMP,  blockHeader.getTimestamp());
+        smallCallToLeq(wcp, NONSENSE_CANCUN_HARDFORK_TIMESTAMP, blockHeader.getTimestamp());
     rows.add(row);
   }
 

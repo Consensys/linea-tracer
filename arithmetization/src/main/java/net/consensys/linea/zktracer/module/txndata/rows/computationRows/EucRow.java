@@ -27,11 +27,12 @@ public class EucRow extends ComputationRow {
 
   final long dividend;
   final long divisor;
+  @Getter final long quotient;
   @Getter final long remainder;
 
   public static EucRow callToEuc(Euc euc, final long dividend, final long divisor) {
     euc.callEUC(Bytes.ofUnsignedLong(dividend), Bytes.ofUnsignedLong(divisor));
-    return new EucRow(dividend, divisor, dividend % divisor);
+    return new EucRow(dividend, divisor, dividend / divisor, dividend % divisor);
   }
 
   @Override
@@ -42,6 +43,7 @@ public class EucRow extends ComputationRow {
         .pComputationArg1Lo(Bytes.ofUnsignedLong(dividend))
         .pComputationArg2Lo(Bytes.ofUnsignedLong(divisor))
         // no computation/INST tracing for EUC
-        .pComputationRes(Bytes.ofUnsignedLong(remainder));
+        .pComputationEucQuotient(Bytes.ofUnsignedLong(quotient))
+        .pComputationEucRemainder(Bytes.ofUnsignedLong(remainder));
   }
 }

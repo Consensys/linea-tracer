@@ -38,7 +38,7 @@ public class SysfNoopTransaction extends TxnDataOperationPerspectivized {
   }
 
   private void process() {
-    rows.add(new HubRowForSystemTransactions(txnData.getCurrentBlockHeader(), NOOP));
+    rows.add(new HubRowForSystemTransactions(txnData.getCurrentBlockHeader(), txnData.hub(), NOOP));
     rows.add(new NoopRow());
   }
 }

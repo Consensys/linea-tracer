@@ -20,7 +20,6 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 public class HubRowForUserTransactions extends HubRow {
@@ -28,7 +27,7 @@ public class HubRowForUserTransactions extends HubRow {
 
   public HubRowForUserTransactions(
       final ProcessableBlockHeader header, final TransactionProcessingMetadata txn) {
-    super(header);
+    super(header, txn.getHub());
     this.txn = txn;
   }
 
@@ -36,8 +35,8 @@ public class HubRowForUserTransactions extends HubRow {
   public void traceRow(Trace.Txndata trace) {
     super.traceRow(trace);
 
-    Address coinbase = txn.getHub().coinbaseAddressOfRelativeBlock(txn.getRelativeBlockNumber());
     trace
+        // BTC columns are traced indiscriminately for all HubRow's in the parent class
         .pHubToAddressHi(txn.getEffectiveRecipient().slice(0, 4).toLong())
         .pHubToAddressLo(txn.getEffectiveRecipient().slice(4, LLARGE))
         .pHubFromAddressHi(txn.getSender().slice(0, 4).toLong())
@@ -48,9 +47,11 @@ public class HubRowForUserTransactions extends HubRow {
         .pHubGasLimit(txn.getBesuTransaction().getGasLimit())
         .pHubGasPrice(Bytes.ofUnsignedLong(txn.getEffectiveGasPrice()))
         .pHubGasInitiallyAvailable(txn.getInitiallyAvailableGas())
-        .pHubCallDataSize(txn.isDeployment() ? 0 : txn.getBesuTransaction().getPayload().size())
+        .pHubCallDataSize(txn.isMessageCall() ? txn.getBesuTransaction().getPayload().size() : 0)
         .pHubInitCodeSize(txn.isDeployment() ? txn.getBesuTransaction().getPayload().size() : 0)
         .pHubHasEip1559GasSemantics(txn.getBesuTransaction().getType().supports1559FeeMarket())
+        .pHubRequiresEvmExecution(txn.requiresEvmExecution())
+        .pHubCopyTxcd(txn.copyTransactionCallData())
         .pHubCfi(txn.getCodeFragmentIndex())
         .pHubInitBalance(bigIntegerToBytes(txn.getInitialBalance()))
         .pHubStatusCode(txn.statusCode())

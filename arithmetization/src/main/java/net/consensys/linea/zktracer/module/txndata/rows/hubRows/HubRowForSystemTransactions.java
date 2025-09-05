@@ -15,6 +15,7 @@
 package net.consensys.linea.zktracer.module.txndata.rows.hubRows;
 
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.types.EWord;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
@@ -27,8 +28,8 @@ public class HubRowForSystemTransactions extends HubRow {
   public EWord systemTransactionData5;
   public final Type type;
 
-  public HubRowForSystemTransactions(ProcessableBlockHeader header, Type type) {
-    super(header);
+  public HubRowForSystemTransactions(ProcessableBlockHeader header, Hub hub, Type type) {
+    super(header, hub);
     this.type = type;
   }
 

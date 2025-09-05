@@ -50,7 +50,7 @@ public class SysiEip4788Transaction extends TxnDataOperationPerspectivized {
   }
 
   protected void hubRow() {
-    HubRowForSystemTransactions hubRow = new HubRowForSystemTransactions(blockHeader, EIP4788);
+    HubRowForSystemTransactions hubRow = new HubRowForSystemTransactions(blockHeader, hub, EIP4788);
 
     long timestamp = blockHeader.getTimestamp();
     Bytes32 parentBeaconBlockRoot =

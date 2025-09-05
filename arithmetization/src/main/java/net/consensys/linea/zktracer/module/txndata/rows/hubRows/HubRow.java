@@ -14,16 +14,24 @@
  */
 package net.consensys.linea.zktracer.module.txndata.rows.hubRows;
 
-import lombok.RequiredArgsConstructor;
+import static net.consensys.linea.zktracer.Trace.LLARGE;
+
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-@RequiredArgsConstructor
 public abstract class HubRow extends TxnDataRow {
 
   public final ProcessableBlockHeader header;
+  public final Address coinbase;
+
+  public HubRow(ProcessableBlockHeader header, Hub hub) {
+    this.header = header;
+    this.coinbase = hub.coinbaseAddress();
+  }
 
   public void traceRow(Trace.Txndata trace) {
     trace
@@ -32,8 +40,7 @@ public abstract class HubRow extends TxnDataRow {
         .pHubBtcBlockGasLimit(header.getGasLimit())
         .pHubBtcBasefee(header.getBaseFee().get().getAsBigInteger().longValueExact())
         .pHubBtcTimestamp(Bytes.ofUnsignedLong(header.getTimestamp()))
-    // .pHubBtcCoinbaseAddressHi(coinbase.slice(0, 4).toLong())
-    // .pHubBtcCoinbaseAddressLo(coinbase.slice(4, LLARGE))
-    ;
+        .pHubBtcCoinbaseAddressHi(coinbase.slice(0, 4).toLong())
+        .pHubBtcCoinbaseAddressLo(coinbase.slice(4, LLARGE));
   }
 }

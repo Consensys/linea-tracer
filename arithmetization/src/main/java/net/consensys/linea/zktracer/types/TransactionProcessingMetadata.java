@@ -476,4 +476,8 @@ public class TransactionProcessingMetadata {
   public long getGasLimit() {
     return besuTransaction.getGasLimit();
   }
+
+  public boolean isMessageCall() {
+    return !isDeployment;
+  }
 }

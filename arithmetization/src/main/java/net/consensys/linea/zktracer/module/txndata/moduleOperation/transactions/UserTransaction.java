@@ -189,7 +189,7 @@ public class UserTransaction extends TxnDataOperationPerspectivized {
 
     rows.add(upperLimitForGasRefunds);
 
-    return upperLimitForGasRefunds.remainder();
+    return upperLimitForGasRefunds.quotient();
   }
 
   private long effectiveRefundsComputationRow(long upperLimitForGasRefunds) {

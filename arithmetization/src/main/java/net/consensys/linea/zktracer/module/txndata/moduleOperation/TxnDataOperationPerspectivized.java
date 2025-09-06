@@ -96,9 +96,9 @@ public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
     ;
 
     if (this instanceof UserTransaction) {
-        UserTransaction userTransaction = (UserTransaction) this;
-        trace.gasCumulative(userTransaction.txn.getAccumulatedGasUsedInBlock());
-        }
+      UserTransaction userTransaction = (UserTransaction) this;
+      trace.gasCumulative(userTransaction.txn.getAccumulatedGasUsedInBlock());
+    }
   }
 
   @Override

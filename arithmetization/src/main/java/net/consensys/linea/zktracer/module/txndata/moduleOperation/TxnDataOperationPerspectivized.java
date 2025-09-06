@@ -25,6 +25,7 @@ import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.UserTransaction;
 import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
@@ -93,6 +94,11 @@ public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
         .ctMax(ctMax())
     // GAS_CUMULATIVE gets traced for USER transactions only
     ;
+
+    if (this instanceof UserTransaction) {
+        UserTransaction userTransaction = (UserTransaction) this;
+        trace.gasCumulative(userTransaction.txn.getAccumulatedGasUsedInBlock());
+        }
   }
 
   @Override

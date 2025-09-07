@@ -34,8 +34,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 public class Issue1180Tests extends TracerTestBase {
 
   @Test
-  void split_range_2321470_2321479() {
-    replay(OLD_MAINNET_TESTCONFIG, "2321470-2321479.mainnet.json.gz");
+  void split_range_2321470_2321479(TestInfo testInfo) {
+    replay(OLD_MAINNET_TESTCONFIG, "2321470-2321479.mainnet.json.gz", testInfo);
   }
 
   @Test

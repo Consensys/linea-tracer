@@ -218,7 +218,9 @@ public class ExecutionEnvironment {
     if (testInfo == null
         || testInfo.getTestMethod().isEmpty()
         || testInfo.getTestClass().isEmpty()) {
-      // No, therefore fall back on legacy mechanism.
+      // No, therefore fall back on legacy mechanism.  In principle, this should never happen now
+      // and this could be
+      // removed eventually.
       return constructLegacyTestPrefix(fork);
     }
     // Extract key information
@@ -256,6 +258,9 @@ public class ExecutionEnvironment {
       Parameter param;
       // Skip test index, as not super helpful.
       if (val.startsWith("[")) {
+        continue;
+      } else if (paramIndex < parameters.length
+          && parameters[paramIndex].getType() == TestInfo.class) {
         continue;
       } else if (paramIndex < parameters.length) {
         builder.append(parameters[paramIndex].getName());

@@ -15,9 +15,7 @@
 
 package net.consensys.linea.testing;
 
-import static net.consensys.linea.reporting.TracerTestBase.testInfo;
 import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.DEFAULT_BLOCK_NUMBER;
-import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Trace.LINEA_BLOCK_GAS_LIMIT;
 
 import java.math.BigInteger;
@@ -73,7 +71,8 @@ public class MultiBlockExecutionEnvironment {
   }
 
   public static MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder(
-      ChainConfig chainConfig, TestInfo testInfo,
+      ChainConfig chainConfig,
+      TestInfo testInfo,
       boolean systemContractDeployedPriorConflation,
       long firstBlockNumber) {
     return new MultiBlockExecutionEnvironmentBuilder()

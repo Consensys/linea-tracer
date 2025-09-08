@@ -115,7 +115,7 @@ public class CommonFragmentValues {
 
     final InstructionFamily instructionFamily = opCode.instructionFamily();
     this.contextMayChange =
-        hubProcessingPhase == HubProcessingPhase.TX_EXEC
+        isExec
             && ((instructionFamily == CALL
                     || instructionFamily == CREATE
                     || instructionFamily == HALT

@@ -32,9 +32,6 @@ import org.apache.tuweni.bytes.Bytes32;
 
 public class SysiEip4788Transaction extends TxnDataOperationCancun {
 
-  private final long NONSENSE_CANCUN_HARDFORK_TIMESTAMP =
-      0x1337L; // Placeholder for the actual Prague fork timestamp
-
   public SysiEip4788Transaction(final PerspectivizedTxnData txnData) {
     super(txnData, SYSI);
     checkState(isPostCancun(txnData.hub().fork));
@@ -66,7 +63,6 @@ public class SysiEip4788Transaction extends TxnDataOperationCancun {
   }
 
   private void computeTimestampModulo8191ComputationRow() {
-    // TODO: use the prime constant
     EucRow row = callToEuc(euc, blockHeader.getTimestamp(), HISTORY_BUFFER_LENGTH);
     rows.add(row);
   }

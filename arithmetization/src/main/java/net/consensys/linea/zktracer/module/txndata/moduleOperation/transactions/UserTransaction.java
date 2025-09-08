@@ -17,8 +17,8 @@ package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.txndata.moduleOperation.ShanghaiTxndataOperation.MAX_INIT_CODE_SIZE_BYTES;
-import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationCancun.TransactionCategory.*;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;

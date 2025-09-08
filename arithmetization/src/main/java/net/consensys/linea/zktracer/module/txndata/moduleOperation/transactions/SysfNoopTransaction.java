@@ -14,7 +14,7 @@
  */
 package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions;
 
-import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationCancun.TransactionCategory.*;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.SYSF;
 import static net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type.NOOP;
 
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;

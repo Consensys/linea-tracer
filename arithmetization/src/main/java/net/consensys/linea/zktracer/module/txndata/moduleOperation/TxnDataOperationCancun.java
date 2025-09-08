@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.module.txndata.moduleOperation;
 
 import static com.google.common.base.Preconditions.checkState;
-import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationCancun.TransactionCategory.*;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +23,7 @@ import java.util.List;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.Hub;
+import net.consensys.linea.zktracer.module.hub.TransactionProcessingType;
 import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
 import net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions.UserTransaction;
@@ -40,13 +41,7 @@ public abstract class TxnDataOperationCancun extends TxnDataOperation {
   public final short userTransactionNumber;
   public final short sysfTransactionNumber;
   public final List<TxnDataRow> rows = new ArrayList<>();
-  public final TransactionCategory category;
-
-  public enum TransactionCategory {
-    SYSI,
-    USER,
-    SYSF,
-  }
+  public final TransactionProcessingType category;
 
   protected abstract int ctMax();
 
@@ -57,7 +52,7 @@ public abstract class TxnDataOperationCancun extends TxnDataOperation {
   }
 
   public TxnDataOperationCancun(
-      PerspectivizedTxnData txnData, TransactionCategory category) {
+      PerspectivizedTxnData txnData, TransactionProcessingType category) {
     blockHeader = txnData.getCurrentBlockHeader();
     hub = txnData.hub();
     wcp = hub.wcp();

@@ -17,10 +17,9 @@ package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
-import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationCancun.TransactionCategory.*;
+import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.SYSI;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow.callToEuc;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
-import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
 import static net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type.EIP4788;
 
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;

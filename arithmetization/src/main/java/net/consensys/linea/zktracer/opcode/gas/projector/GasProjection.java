@@ -125,8 +125,4 @@ public abstract class GasProjection {
         + sStoreValue()
         + initCode();
   }
-
-  public final long childGasAllowance() {
-    return gasPaidOutOfPocket() + stipend();
-  }
 }

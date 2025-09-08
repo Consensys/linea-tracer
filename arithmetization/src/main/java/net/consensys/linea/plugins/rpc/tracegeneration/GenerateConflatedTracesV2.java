@@ -15,23 +15,12 @@
 
 package net.consensys.linea.plugins.rpc.tracegeneration;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.common.base.Stopwatch;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +30,7 @@ import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.Validator;
 import net.consensys.linea.tracewriter.TraceWriter;
 import net.consensys.linea.zktracer.Fork;
+import net.consensys.linea.zktracer.LtTraceFile;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.ServiceManager;
@@ -115,43 +105,45 @@ public class GenerateConflatedTracesV2 {
     final long fromBlock = params.startBlockNumber();
     final long toBlock = params.endBlockNumber();
     // Determine expected path of the trace file.
-    Path path = this.traceWriter.traceFilePath(fromBlock, toBlock, params.expectedTracesEngineVersion());
+    Path path =
+        this.traceWriter.traceFilePath(fromBlock, toBlock, params.expectedTracesEngineVersion());
     // Check whether the trace file already exists (or not).
-    if(cachedTraceFileAvailable(path)) {
-      log.info("[TRACING] reusing existing trace for {}-{} serialized to {} in {}", toBlock, fromBlock, path, sw);
+    if (cachedTraceFileAvailable(path)) {
+      log.info("[TRACING] cached trace for {}-{} detected as {}", fromBlock, toBlock, path);
     } else {
       final ZkTracer tracer =
-        new ZkTracer(
-          fork,
-          l1L2BridgeSharedConfiguration,
-          BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
-            .getChainId()
-            .orElseThrow());
+          new ZkTracer(
+              fork,
+              l1L2BridgeSharedConfiguration,
+              BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
+                  .getChainId()
+                  .orElseThrow());
 
       traceService.trace(
-        fromBlock,
-        toBlock,
-        worldStateBeforeTracing -> tracer.traceStartConflation(toBlock - fromBlock + 1),
-        tracer::traceEndConflation,
-        tracer);
+          fromBlock,
+          toBlock,
+          worldStateBeforeTracing -> tracer.traceStartConflation(toBlock - fromBlock + 1),
+          tracer::traceEndConflation,
+          tracer);
 
       log.info("[TRACING] trace for {}-{} computed in {}", fromBlock, toBlock, sw);
       sw.reset().start();
       // Generate trace file
-      path = traceWriter.writeTraceToFile(
-          tracer,
-          params.startBlockNumber(),
-          params.endBlockNumber(),
-          params.expectedTracesEngineVersion());
-      log.info("[TRACING] trace for {}-{} serialized to {} in {}", path, toBlock, fromBlock, sw);
+      path =
+          traceWriter.writeTraceToFile(
+              tracer,
+              params.startBlockNumber(),
+              params.endBlockNumber(),
+              params.expectedTracesEngineVersion());
+      log.info("[TRACING] trace for {}-{} serialized to {} in {}", fromBlock, toBlock, path, sw);
     }
 
     return new TraceFile(params.expectedTracesEngineVersion(), path.toString());
   }
 
   /**
-   * Determine whether a suitable trace file already exists in the desired location, and that it has the correction
-   * versioning, etc.
+   * Determine whether a suitable trace file already exists in the desired location, and that it has
+   * the correction versioning, etc.
    *
    * @param path Expected path for tracefile
    * @return
@@ -159,79 +151,38 @@ public class GenerateConflatedTracesV2 {
   @SneakyThrows(IOException.class)
   private boolean cachedTraceFileAvailable(final Path path) {
     // Initial sanity checks
-    if(!traceFileCaching || !Files.exists(path)) {
-     // Caching disabled or trace file doesn't exist.
+    if (!Files.exists(path)) {
+      // trace file doesn't exist.
+      return false;
+    } else if (!traceFileCaching) {
+      // Caching disabled.
+      log.info("[TRACING] cached trace {} ignored (caching disabled)", path);
       return false;
     }
-    // Trace file exists.  Check that it has matching tracer versioning.
-    String expectedVersion = ZkTracer.class.getPackage().getSpecificationVersion();
-    String actualVersion = extractTraceFileReleaseVersion(path);
-    //
-    return expectedVersion.equals(actualVersion);
-  }
-
-  /**
-   * Extract the embedded release version from the trace file.  This requires loading the file, and
-   * parsing its metadata to look for the release version.
-   *
-   * @param path
-   * @return
-   */
-  private String extractTraceFileReleaseVersion(final Path path) throws IOException {
-    HashMap<String,Object> metadata = new HashMap<>();
-    byte[] bytes = extractTraceFileMetaDataBytes(path);
-    // Sanity check we correctly read something
-    if(bytes != null) {
-      // Attempt to parse metadata bytes
-      JsonNode node = objectMapper.readTree(bytes).get("releaseVersion");
-      // Look for the appropriate field
-      if(node != null && node.isValueNode()) {
-        return node.asText();
-      }
-    }
-    // Return empty string
-    return "";
-  }
-
-  private byte[] extractTraceFileMetaDataBytes(final Path path) throws IOException {
-    byte[] zktracer = {'z','k','t','r','a','c','e','r'};
-
-    try (FileChannel ch = FileChannel.open(path)) {
-      ByteBuffer header = ByteBuffer.allocate(16);
-      // Reader header bytes
-      int nBytes = ch.read(header);
-      //
-      if(nBytes != 16) {
-        return null;
-      }
-      // Sanity check watermark
-      for(int i=0;i<zktracer.length;i++) {
-        if(zktracer[i] != header.get(i)) {
-          // corrupted trace file
-          return null;
+    // Read trace file header
+    try (LtTraceFile tf = new LtTraceFile(path)) {
+      LtTraceFile.Header header = tf.getHeader();
+      // Sanity check we got something
+      if (header != null) {
+        // Trace file exists.  Check that it has matching release version.
+        String expectedVersion = TraceRequestParams.getTracerRuntime();
+        Object actualVersion = header.getMetaData().get("releaseVersion");
+        boolean matchedTracer = expectedVersion != null && expectedVersion.equals(actualVersion);
+        // Log decision to ignore
+        if (!matchedTracer) {
+          log.info(
+              "[TRACING] cached trace {} ignored (incompatible release version {})",
+              path,
+              actualVersion);
         }
+        //
+        return matchedTracer;
+      } else {
+        // Provide useful information on what happened.
+        log.info("[TRACING] cached trace {} ignored (corrupted header)", path);
       }
-      // Read metadata bytes
-      int metadataLength = header.getInt(8 + 2 + 2);
-      //
-      ByteBuffer metadata = ByteBuffer.allocate(metadataLength);
-      byte []metadataBytes = new byte[metadataLength];
-      nBytes = ch.read(metadata);
-      // Sanity check
-      if(nBytes != metadataLength) {
-        return null;
-      }
-      // Looks ok.
-      metadata.get(metadataBytes);
-      //
-      return metadataBytes;
     }
+    // Default
+    return false;
   }
-
-
-  /**
-   * Object writer is used for generating JSON byte strings.
-   */
-   private static final ObjectMapper objectMapper = new ObjectMapper();
-
 }

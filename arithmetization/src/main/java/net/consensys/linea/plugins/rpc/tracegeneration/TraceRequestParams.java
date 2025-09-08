@@ -50,7 +50,7 @@ public record TraceRequestParams(
     }
   }
 
-  private static String getTracerRuntime() {
+  static String getTracerRuntime() {
     return ZkTracer.class.getPackage().getSpecificationVersion();
   }
 }

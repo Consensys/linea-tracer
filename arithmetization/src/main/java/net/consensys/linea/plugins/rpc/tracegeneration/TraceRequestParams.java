@@ -18,6 +18,7 @@ package net.consensys.linea.plugins.rpc.tracegeneration;
 import java.security.InvalidParameterException;
 
 import net.consensys.linea.zktracer.ZkTracer;
+import org.hyperledger.besu.evm.EVM;
 
 /** Holds needed parameters for sending an execution trace generation request. */
 public record TraceRequestParams(
@@ -52,5 +53,9 @@ public record TraceRequestParams(
 
   static String getTracerRuntime() {
     return ZkTracer.class.getPackage().getSpecificationVersion();
+  }
+
+  static String getBesuRuntime() {
+    return EVM.class.getPackage().getSpecificationVersion();
   }
 }

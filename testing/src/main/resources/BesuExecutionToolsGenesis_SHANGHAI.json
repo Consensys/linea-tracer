@@ -15,6 +15,7 @@
     "terminalTotalDifficulty": 0,
     "ethash": {},
     "shanghaiTime": 0,
+    "cancunTime": 1742242802,
     "clique": {
       "blockperiodseconds": 1,
       "epochlength": 1,

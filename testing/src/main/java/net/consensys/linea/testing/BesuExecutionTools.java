@@ -16,6 +16,7 @@ package net.consensys.linea.testing;
 
 import static net.consensys.linea.testing.ShomeiNode.MerkelProofResponse;
 import static net.consensys.linea.zktracer.Fork.isPostParis;
+import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.tests.acceptance.dsl.WaitUtils.waitFor;
 
@@ -33,6 +34,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import net.consensys.linea.zktracer.Fork;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -166,23 +168,32 @@ public class BesuExecutionTools {
 
       // Send transaction to the transaction pool with eth_sendRawTransaction
       EthTransactions ethTransactions = new EthTransactions();
-      List<String> txHashes =
+/*      List<String> txHashes =
           transactions.stream()
               .map(
                   tx ->
                       besuNode.execute(
                           ethTransactions.sendRawTransaction(tx.encoded().toHexString())))
-              .toList();
-      Map<String, Boolean> txReceiptProcessed = new HashMap<>();
-      ConcurrentSet<Long> blockNumbers = new ConcurrentSet<>();
+              .toList();*/
+        var txHashShanghai =
+                besuNode.execute(
+                        ethTransactions.sendRawTransaction(transactions.getFirst().encoded().toHexString()));
+
+        Map<String, Boolean> txReceiptProcessedShanghai = new HashMap<>();
+        Map<String, Boolean> txReceiptProcessedCancun = new HashMap<>();
+        ConcurrentSet<Long> blockNumbersShanghai = new ConcurrentSet<>();
+        ConcurrentSet<Long> blockNumbersCancun = new ConcurrentSet<>();
 
       // If fork is Paris or after, Clique as a consensus layer defined in the genesis file
       // doesn't work anymore
       // We use EngineAPIService to mimick the consensus layer steps and build a new block
+      ObjectMapper mapper = new ObjectMapper();
+      EngineAPIService engineApiService = new EngineAPIService(besuNode, ethTransactions, mapper);
+      var latestTimestamp = this.besuNode.execute(ethTransactions.block()).getTimestamp();
       if (isPostParis(chainConfig.fork)) {
-        ObjectMapper mapper = new ObjectMapper();
+        /*        ObjectMapper mapper = new ObjectMapper();
         EngineAPIService engineApiService = new EngineAPIService(besuNode, ethTransactions, mapper);
-        var latestTimestamp = this.besuNode.execute(ethTransactions.block()).getTimestamp();
+        var latestTimestamp = this.besuNode.execute(ethTransactions.block()).getTimestamp();*/
         // TODO: could be done with genesis
         engineApiService.buildNewBlock(chainConfig.fork, latestTimestamp.longValue() + 1L, 1000);
       }
@@ -191,63 +202,122 @@ public class BesuExecutionTools {
       waitFor(
           100,
           () -> {
-            txHashes.forEach(
-                (txHash) -> {
-                  if (txReceiptProcessed.containsKey(txHash)) {
-                    return;
-                  }
-                  var maybeTxReceipt =
-                      besuNode.execute(ethTransactions.getTransactionReceipt(txHash));
-                  assertThat(maybeTxReceipt).isPresent();
-                  var txReceipt = maybeTxReceipt.get();
-                  blockNumbers.add(txReceipt.getBlockNumber().longValue());
-                  txReceiptProcessed.put(txHash, true);
-                  log.info(
-                      "Executed transaction txHash={}, blockNumber={}",
-                      txReceipt.getTransactionHash(),
-                      txReceipt.getBlockNumber());
-                });
+            if (txReceiptProcessedShanghai.containsKey(txHashShanghai)) {
+              return;
+            }
+            var maybeTxReceiptShanghai =
+                besuNode.execute(ethTransactions.getTransactionReceipt(txHashShanghai));
+            assertThat(maybeTxReceiptShanghai).isPresent();
+            var txReceiptShanghai = maybeTxReceiptShanghai.get();
+            blockNumbersShanghai.add(txReceiptShanghai.getBlockNumber().longValue());
+            txReceiptProcessedShanghai.put(txHashShanghai, true);
+            log.info(
+                "Executed transaction shanghai txHash={}, blockNumber={}",
+                txReceiptShanghai.getTransactionHash(),
+                txReceiptShanghai.getBlockNumber());
           });
 
-      assertThat(blockNumbers).isNotEmpty();
-      long startBlockNumber = Collections.min(blockNumbers);
-      long endBlockNumber = Collections.max(blockNumbers);
-      String previousBlockStateRoot =
+      assertThat(blockNumbersShanghai).isNotEmpty();
+      long startBlockNumberShanghai = Collections.min(blockNumbersShanghai);
+      long endBlockNumberShanghai = Collections.max(blockNumbersShanghai);
+      String previousBlockStateRootShanghai =
           besuNode
               .execute(
                   ethTransactions.block(
-                      DefaultBlockParameter.valueOf(BigInteger.valueOf(startBlockNumber - 1))))
+                      DefaultBlockParameter.valueOf(
+                          BigInteger.valueOf(startBlockNumberShanghai - 1))))
               .getStateRoot();
-      TraceFile traceFile = lineaGenerateConflatedTracesToFileV2(startBlockNumber, endBlockNumber);
-      Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
+      TraceFile traceFileShanghai =
+          lineaGenerateConflatedTracesToFileV2(startBlockNumberShanghai, endBlockNumberShanghai);
+      Path traceFilePathShanghai = Path.of(traceFileShanghai.conflatedTracesFileName());
       waitFor(
           10,
           () -> {
-            assertThat(traceFilePath.toFile().exists())
-                .withFailMessage("Trace file %s does not exist", traceFilePath)
+            assertThat(traceFilePathShanghai.toFile().exists())
+                .withFailMessage("Trace file %s does not exist", traceFilePathShanghai)
                 .isTrue();
           });
 
-      ExecutionEnvironment.checkTracer(traceFilePath, corsetValidator, false, Optional.of(log));
+      ExecutionEnvironment.checkTracer(
+          traceFilePathShanghai, corsetValidator, false, Optional.of(log));
+
+      var txHashCancun =
+          besuNode.execute(
+              ethTransactions.sendRawTransaction(transactions.get(1).encoded().toHexString()));
+      var latestlatestTimestamp = this.besuNode.execute(ethTransactions.block()).getTimestamp();
+      var nb = this.besuNode.execute(ethTransactions.block()).getNumber();
+      if (isPostParis(chainConfig.fork)) {
+        // TODO: could be done with genesis
+        log.debug(
+            " Building new block for fork {}, latestTimestamp={}",
+            chainConfig.fork,
+            latestlatestTimestamp);
+        log.debug(" Building new block for fork {}, number={}", chainConfig.fork, nb);
+        engineApiService.buildNewBlock(Fork.CANCUN, latestlatestTimestamp.longValue() + 1L, 1000);
+      }
+      waitFor(
+          200,
+          () -> {
+            if (txReceiptProcessedCancun.containsKey(txHashCancun)) {
+              return;
+            }
+            var maybeTxReceiptCancun =
+                besuNode.execute(ethTransactions.getTransactionReceipt(txHashCancun));
+            assertThat(maybeTxReceiptCancun).isPresent();
+            var txReceiptCancun = maybeTxReceiptCancun.get();
+            blockNumbersCancun.add(txReceiptCancun.getBlockNumber().longValue());
+            txReceiptProcessedCancun.put(txHashCancun, true);
+            log.info(
+                "Executed transaction cancun txHash={}, blockNumber={}",
+                txReceiptCancun.getTransactionHash(),
+                txReceiptCancun.getBlockNumber());
+          });
+
+      assertThat(blockNumbersCancun).isNotEmpty();
+      long startBlockNumberCancun = Collections.min(blockNumbersCancun);
+      long endBlockNumberCancun = Collections.max(blockNumbersCancun);
+      String previousBlockStateRootCancun =
+          besuNode
+              .execute(
+                  ethTransactions.block(
+                      DefaultBlockParameter.valueOf(
+                          BigInteger.valueOf(startBlockNumberCancun - 1))))
+              .getStateRoot();
+      TraceFile traceFileCancun =
+          lineaGenerateConflatedTracesToFileV2(startBlockNumberCancun, endBlockNumberCancun);
+      Path traceFilePathCancun = Path.of(traceFileCancun.conflatedTracesFileName());
+
+      waitFor(
+          10,
+          () -> {
+            assertThat(traceFilePathCancun.toFile().exists())
+                .withFailMessage("Trace file %s does not exist", traceFilePathCancun)
+                .isTrue();
+          });
+
+      CorsetValidator corsetValidatorCancun =
+          new CorsetValidator(ChainConfig.MAINNET_TESTCONFIG(Fork.CANCUN));
+      ExecutionEnvironment.checkTracer(
+          traceFilePathCancun, corsetValidatorCancun, false, Optional.of(log));
       MerkelProofResponse merkelProofResponse =
-          rollupGetZkEVMStateMerkleProofV0(startBlockNumber, endBlockNumber);
+          rollupGetZkEVMStateMerkleProofV0(startBlockNumberShanghai, endBlockNumberShanghai);
       log.info("rollupGetZkEVMStateMerkleProofV0={}", merkelProofResponse);
 
       ExecutionProof.BatchExecutionProofRequestDto executionProofRequestDto =
           new ExecutionProof.BatchExecutionProofRequestDto(
               merkelProofResponse.zkParentStateRootHash(),
-              previousBlockStateRoot,
-              traceFilePath.getFileName().toString(),
-              traceFile.tracesEngineVersion(),
+              previousBlockStateRootShanghai,
+              traceFilePathShanghai.getFileName().toString(),
+              traceFileShanghai.tracesEngineVersion(),
               merkelProofResponse.zkStateManagerVersion(),
               merkelProofResponse.zkStateMerkleProof(),
               Collections.emptyList() /* blocksData */);
 
       String executionProofFileName =
           ExecutionProof.getExecutionProofRequestFilename(
-              startBlockNumber,
-              endBlockNumber,
-              traceFile.tracesEngineVersion(),
+              startBlockNumberShanghai,
+              endBlockNumberShanghai,
+              traceFileShanghai.tracesEngineVersion(),
               merkelProofResponse.zkStateManagerVersion());
       File executionProofRequestFile = testDataDir.resolve(executionProofFileName).toFile();
       assertThat(executionProofRequestFile.createNewFile()).isTrue();

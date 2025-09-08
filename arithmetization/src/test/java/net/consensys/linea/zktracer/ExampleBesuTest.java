@@ -35,7 +35,7 @@ import org.junit.jupiter.api.TestInfo;
 public class ExampleBesuTest extends TracerTestBase {
 
   @Test
-  void test(TestInfo testInfo) {
+  void testPerFork() {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -67,6 +67,68 @@ public class ExampleBesuTest extends TracerTestBase {
     ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(List.of(senderAccount, receiverAccount))
         .transaction(tx)
+        .runWithBesuNode(true)
+        .build()
+        .run();
+  }
+
+  @Test
+  void testForkSwitch() {
+    KeyPair keyPair = new SECP256K1().generateKeyPair();
+    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+
+    ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+
+    BytecodeCompiler compilerShanghai =
+        BytecodeCompiler.newProgram(testInfo)
+            .push(32, 0xbeef)
+            .push(32, 0xdead)
+            .op(OpCode.ADD)
+            .op(OpCode.DIFFICULTY);
+
+    // TODO: test MCOPY
+    BytecodeCompiler compilerCancun =
+        BytecodeCompiler.newProgram(testInfo)
+            .push(32, 0xbeef)
+            .push(32, 0xdead)
+            .op(OpCode.ADD)
+            .op(OpCode.PUSH0);
+
+    ToyAccount receiverAccountShanghai =
+        ToyAccount.builder()
+            .balance(Wei.ONE)
+            .nonce(6)
+            .address(Address.fromHexString("0x111111"))
+            .code(compilerShanghai.compile())
+            .build();
+
+    ToyAccount receiverAccountCancun =
+        ToyAccount.builder()
+            .balance(Wei.ONE)
+            .nonce(6)
+            .address(Address.fromHexString("0x111112"))
+            .code(compilerCancun.compile())
+            .build();
+
+    Transaction txShanghai =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(receiverAccountShanghai)
+            .keyPair(keyPair)
+            .build();
+
+    Transaction txCancun =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(receiverAccountCancun)
+            .keyPair(keyPair)
+            .nonce(senderAccount.getNonce() + 1L)
+            .build();
+
+    ToyExecutionEnvironmentV2.builder(testInfo)
+        .accounts(List.of(senderAccount, receiverAccountShanghai, receiverAccountCancun))
+        .transactions(List.of(txShanghai, txCancun))
         .runWithBesuNode(true)
         .build()
         .run();

@@ -58,13 +58,6 @@ public class ExampleBesuTest extends TracerTestBase {
             .balance(Wei.ONE)
             .nonce(6)
             .address(Address.fromHexString("0x111111"))
-            .code(
-                BytecodeCompiler.newProgram(chainConfig)
-                    .push(32, 0xbeef)
-                    .push(32, 0xdead)
-                    .op(OpCode.ADD)
-                    // .op(OpCode.PUSH0)
-                    .compile())
             .code(compiler.compile())
             .build();
 

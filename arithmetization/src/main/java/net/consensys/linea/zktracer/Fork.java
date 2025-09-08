@@ -77,6 +77,10 @@ public enum Fork {
     return fork.getReleaseNumber() >= threshold.getReleaseNumber();
   }
 
+  public static boolean isPostParis(Fork fork) {
+    return forkIsAtLeast(fork, PARIS);
+  }
+
   public static boolean isPostShanghai(Fork fork) {
     return forkIsAtLeast(fork, SHANGHAI);
   }

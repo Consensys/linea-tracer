@@ -15,7 +15,7 @@
 package net.consensys.linea.testing;
 
 import static net.consensys.linea.testing.ShomeiNode.MerkelProofResponse;
-import static net.consensys.linea.zktracer.Fork.isPostShanghai;
+import static net.consensys.linea.zktracer.Fork.isPostParis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.tests.acceptance.dsl.WaitUtils.waitFor;
 
@@ -176,10 +176,10 @@ public class BesuExecutionTools {
       Map<String, Boolean> txReceiptProcessed = new HashMap<>();
       ConcurrentSet<Long> blockNumbers = new ConcurrentSet<>();
 
-      // If fork is Shanghai or after, Clique as a consensus layer defined in the genesis file
+      // If fork is Paris or after, Clique as a consensus layer defined in the genesis file
       // doesn't work anymore
       // We use EngineAPIService to mimick the consensus layer steps and build a new block
-      if (isPostShanghai(chainConfig.fork)) {
+      if (isPostParis(chainConfig.fork)) {
         ObjectMapper mapper = new ObjectMapper();
         EngineAPIService engineApiService = new EngineAPIService(besuNode, ethTransactions, mapper);
         var latestTimestamp = this.besuNode.execute(ethTransactions.block()).getTimestamp();

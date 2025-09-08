@@ -46,7 +46,6 @@ public class SysiEip4788Transaction extends TxnDataOperationPerspectivized {
     hubRow();
     computeTimestampModulo8191ComputationRow();
     detectTheGenesisBlockComputationRow();
-    compareTimestampToLineaCancunForkTimestampComputationRow();
   }
 
   protected void hubRow() {
@@ -59,10 +58,10 @@ public class SysiEip4788Transaction extends TxnDataOperationPerspectivized {
             : Bytes32.ZERO;
 
     hubRow.systemTransactionData1 = EWord.of(timestamp);
-    hubRow.systemTransactionData2 = EWord.of(timestamp % HISTORY_BUFFER_LENGTH);
+    hubRow.systemTransactionData2 = timestamp % HISTORY_BUFFER_LENGTH;
     hubRow.systemTransactionData3 = EWord.of(EWord.of(parentBeaconBlockRoot).hi());
     hubRow.systemTransactionData4 = EWord.of(EWord.of(parentBeaconBlockRoot).lo());
-    hubRow.systemTransactionData5 = EWord.of(blockHeader.getNumber() == 0 ? 1 : 0);
+    hubRow.systemTransactionData5 = blockHeader.getNumber() == 0;
 
     rows.add(hubRow);
   }
@@ -78,14 +77,8 @@ public class SysiEip4788Transaction extends TxnDataOperationPerspectivized {
     rows.add(row);
   }
 
-  private void compareTimestampToLineaCancunForkTimestampComputationRow() {
-    WcpRow row =
-        smallCallToLeq(wcp, NONSENSE_CANCUN_HARDFORK_TIMESTAMP, blockHeader.getTimestamp());
-    rows.add(row);
-  }
-
   @Override
   protected int ctMax() {
-    return 3;
+    return 2;
   }
 }

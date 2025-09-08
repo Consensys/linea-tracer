@@ -38,7 +38,6 @@ public class TracesEndpointCliOptions implements LineaCliOptions {
 
 
   @CommandLine.Option(
-          required = true,
           names = {CACHING},
           hidden = true,
           paramLabel = "<CACHING>",

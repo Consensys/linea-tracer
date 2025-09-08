@@ -43,6 +43,7 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -52,21 +53,21 @@ public class SystemTransactionTests extends TracerTestBase {
   // This test checks the consistency of system account by calling the system account eip-2935 in
   // happy path: not genesis block, system address exists
   @Test
-  void systemTransaction2935ConsistencyTest() {
+  void systemTransaction2935ConsistencyTest(TestInfo testInfo) {
     BytecodeRunner.of(
             byteCodeCallingBeaconRootSystemAccount(
-                testInfo, EIP2935_HISTORY_STORAGE_ADDRESS, DEFAULT_BLOCK_NUMBER - 1))
-        .run(testInfo);
+                chainConfig, EIP2935_HISTORY_STORAGE_ADDRESS, DEFAULT_BLOCK_NUMBER - 1))
+        .run(chainConfig, testInfo);
   }
 
   // This test checks the consistency of system account by calling the system account of eip-4788 in
   // happy path: not genesis block, system address exists
   @Test
-  void systemTransaction4788ConsistencyTest() {
+  void systemTransaction4788ConsistencyTest(TestInfo testInfo) {
     BytecodeRunner.of(
             byteCodeCallingBeaconRootSystemAccount(
-                testInfo, EIP4788_BEACONROOT_ADDRESS, DEFAULT_TIME_STAMP))
-        .run(testInfo);
+                chainConfig, EIP4788_BEACONROOT_ADDRESS, DEFAULT_TIME_STAMP))
+        .run(chainConfig, testInfo);
   }
 
   private static Stream<Arguments> scenariiForSystemContract() {
@@ -119,11 +120,11 @@ public class SystemTransactionTests extends TracerTestBase {
           .code(
               Bytes.concatenate(
                   byteCodeCallingBeaconRootSystemAccount(
-                      testInfo, EIP2935_HISTORY_STORAGE_ADDRESS, 0),
+                      chainConfig, EIP2935_HISTORY_STORAGE_ADDRESS, 0),
                   byteCodeCallingBeaconRootSystemAccount(
-                      testInfo, EIP2935_HISTORY_STORAGE_ADDRESS, 1),
+                      chainConfig, EIP2935_HISTORY_STORAGE_ADDRESS, 1),
                   byteCodeCallingBeaconRootSystemAccount(
-                      testInfo, EIP2935_HISTORY_STORAGE_ADDRESS, 2)))
+                      chainConfig, EIP2935_HISTORY_STORAGE_ADDRESS, 2)))
           .build();
 
   // This EOA calls 3 times the system account with as input the three block timestamp of the
@@ -134,13 +135,13 @@ public class SystemTransactionTests extends TracerTestBase {
           .code(
               Bytes.concatenate(
                   byteCodeCallingBeaconRootSystemAccount(
-                      testInfo, EIP4788_BEACONROOT_ADDRESS, DEFAULT_TIME_STAMP),
+                      chainConfig, EIP4788_BEACONROOT_ADDRESS, DEFAULT_TIME_STAMP),
                   byteCodeCallingBeaconRootSystemAccount(
-                      testInfo,
+                      chainConfig,
                       EIP4788_BEACONROOT_ADDRESS,
                       DEFAULT_TIME_STAMP + DEFAULT_DELTA_TIMESTAMP_BETWEEN_BLOCKS),
                   byteCodeCallingBeaconRootSystemAccount(
-                      testInfo,
+                      chainConfig,
                       EIP4788_BEACONROOT_ADDRESS,
                       DEFAULT_TIME_STAMP + 2 * DEFAULT_DELTA_TIMESTAMP_BETWEEN_BLOCKS)))
           .build();
@@ -151,13 +152,14 @@ public class SystemTransactionTests extends TracerTestBase {
       int system2935ContractDeployedBeforeBlockNumber,
       boolean valueTransferedPriorToDeploymentOf2935,
       int system4788ContractDeployedBeforeBlockNumber,
-      boolean valueTransferedPriorToDeploymentOf4788) {
+      boolean valueTransferedPriorToDeploymentOf4788,
+      TestInfo testInfo) {
 
     // Note: this test uses a PUSH0 in the deployment code of the system contract. Therefore, the
     // deployment fails if not in Shanghai or after, and our test framework doesn't allow failing
     // transaction:
     // org.opentest4j.AssertionFailedError: Transaction not successful:
-    if (!isPostShanghai(testInfo.chainConfig.fork)) {
+    if (!isPostShanghai(chainConfig.fork)) {
       return;
     }
 
@@ -247,6 +249,7 @@ public class SystemTransactionTests extends TracerTestBase {
 
     final MultiBlockExecutionEnvironment.MultiBlockExecutionEnvironmentBuilder builder =
         MultiBlockExecutionEnvironment.builder(
+            chainConfig,
             testInfo,
             system2935ContractDeployedBeforeBlockNumber == 0
                 || system4788ContractDeployedBeforeBlockNumber == 0,

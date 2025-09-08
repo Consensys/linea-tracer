@@ -15,14 +15,12 @@
 
 package net.consensys.linea.plugins.rpc.tracegeneration;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
 import com.google.common.base.Stopwatch;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.plugins.BesuServiceProvider;
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
@@ -30,7 +28,6 @@ import net.consensys.linea.plugins.rpc.RequestLimiter;
 import net.consensys.linea.plugins.rpc.Validator;
 import net.consensys.linea.tracewriter.TraceWriter;
 import net.consensys.linea.zktracer.Fork;
-import net.consensys.linea.zktracer.LtTraceFile;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import org.hyperledger.besu.plugin.ServiceManager;
@@ -107,8 +104,11 @@ public class GenerateConflatedTracesV2 {
     final long toBlock = params.endBlockNumber();
     // Determine expected path of the trace file.
     Path path =
-        this.traceWriter.traceFilePath(fromBlock, toBlock, params.expectedTracesEngineVersion(),
-                                       TraceRequestParams.getBesuRuntime());
+        this.traceWriter.traceFilePath(
+            fromBlock,
+            toBlock,
+            params.expectedTracesEngineVersion(),
+            TraceRequestParams.getBesuRuntime());
     // Check whether the trace file already exists (or not).
     if (cachedTraceFileAvailable(path)) {
       log.info("[TRACING] cached trace for {}-{} detected as {}", fromBlock, toBlock, path);
@@ -151,7 +151,6 @@ public class GenerateConflatedTracesV2 {
    * @param path Expected path for tracefile
    * @return
    */
-  @SneakyThrows(IOException.class)
   private boolean cachedTraceFileAvailable(final Path path) {
     // Initial sanity checks
     if (!Files.exists(path)) {
@@ -162,30 +161,7 @@ public class GenerateConflatedTracesV2 {
       log.info("[TRACING] cached trace {} ignored (caching disabled)", path);
       return false;
     }
-    // Read trace file header
-    try (LtTraceFile tf = new LtTraceFile(path)) {
-      LtTraceFile.Header header = tf.getHeader();
-      // Sanity check we got something
-      if (header != null) {
-        // Trace file exists.  Check that it has matching release version.
-        String expectedVersion = TraceRequestParams.getTracerRuntime();
-        Object actualVersion = header.getMetaData().get("releaseVersion");
-        boolean matchedTracer = expectedVersion != null && expectedVersion.equals(actualVersion);
-        // Log decision to ignore
-        if (!matchedTracer) {
-          log.info(
-              "[TRACING] cached trace {} ignored (incompatible release version {})",
-              path,
-              actualVersion);
-        }
-        //
-        return matchedTracer;
-      } else {
-        // Provide useful information on what happened.
-        log.info("[TRACING] cached trace {} ignored (corrupted header)", path);
-      }
-    }
-    // Default
-    return false;
+    //
+    return true;
   }
 }

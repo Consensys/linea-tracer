@@ -51,8 +51,7 @@ public abstract class TxnDataOperationCancun extends TxnDataOperation {
     return rows.size();
   }
 
-  public TxnDataOperationCancun(
-      PerspectivizedTxnData txnData, TransactionProcessingType category) {
+  public TxnDataOperationCancun(PerspectivizedTxnData txnData, TransactionProcessingType category) {
     blockHeader = txnData.getCurrentBlockHeader();
     hub = txnData.hub();
     wcp = hub.wcp();

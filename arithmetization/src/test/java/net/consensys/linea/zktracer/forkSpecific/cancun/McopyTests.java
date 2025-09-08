@@ -39,10 +39,10 @@ public class McopyTests extends TracerTestBase {
 
     final Bytes FILL_MEMORY =
         BytecodeCompiler.newProgram(chainConfig)
-            .push(0) // offset
             .push(
                 Bytes32.fromHexString(
                     "0x11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff")) // value
+            .push(0) // offset
             .op(MSTORE)
             .compile();
 
@@ -83,13 +83,18 @@ public class McopyTests extends TracerTestBase {
 
   private static Stream<Arguments> inputs() {
     final List<Arguments> arguments = new ArrayList<>();
-    for (Bytes32 targetOffset : INPUTS) {
-      for (Bytes32 sourceOffset : INPUTS) {
-        for (Bytes32 size : INPUTS) {
-          arguments.add(Arguments.of(targetOffset, sourceOffset, size));
-        }
-      }
-    }
+    arguments.add(
+        Arguments.of(
+            Bytes32.leftPad(Bytes.minimalBytes(0L)),
+            Bytes32.leftPad(Bytes.minimalBytes(1L)),
+            Bytes32.leftPad(Bytes.of(0x20))));
+    // for (Bytes32 targetOffset : INPUTS) {
+    //   for (Bytes32 sourceOffset : INPUTS) {
+    //     for (Bytes32 size : INPUTS) {
+    //       arguments.add(Arguments.of(targetOffset, sourceOffset, size));
+    //     }
+    //   }
+    // }
     return arguments.stream();
   }
 

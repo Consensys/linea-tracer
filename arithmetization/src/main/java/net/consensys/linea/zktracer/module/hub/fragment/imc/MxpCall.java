@@ -22,7 +22,6 @@ import lombok.Setter;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.TraceSubFragment;
-import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.module.hub.state.State;
 import net.consensys.linea.zktracer.module.mxp.moduleCall.*;
 import net.consensys.linea.zktracer.opcode.OpCode;

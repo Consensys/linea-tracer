@@ -17,12 +17,12 @@ package net.consensys.linea.zktracer.module.txndata.moduleOperation.transactions
 import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.Trace.HISTORY_SERVE_WINDOW;
-import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized.TransactionCategory.*;
+import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationCancun.TransactionCategory.*;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToLeq;
 
 import net.consensys.linea.zktracer.module.txndata.module.PerspectivizedTxnData;
-import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationCancun;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow;
 import net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow;
 import net.consensys.linea.zktracer.module.txndata.rows.hubRows.HubRowForSystemTransactions;
@@ -30,7 +30,7 @@ import net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
 
-public class SysiEip2935Transaction extends TxnDataOperationPerspectivized {
+public class SysiEip2935Transaction extends TxnDataOperationCancun {
 
   private final long nonsensePragueTimestamp =
       0x13370000L; // Placeholder for the actual Prague fork timestamp

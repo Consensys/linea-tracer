@@ -15,7 +15,7 @@
 package net.consensys.linea.zktracer.module.txndata.moduleOperation;
 
 import static com.google.common.base.Preconditions.checkState;
-import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationPerspectivized.TransactionCategory.*;
+import static net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperationCancun.TransactionCategory.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ import net.consensys.linea.zktracer.module.txndata.rows.TxnDataRow;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
-public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
+public abstract class TxnDataOperationCancun extends TxnDataOperation {
   public final ProcessableBlockHeader blockHeader;
   public final Hub hub;
   public final Euc euc;
@@ -56,7 +56,7 @@ public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
     return rows.size();
   }
 
-  public TxnDataOperationPerspectivized(
+  public TxnDataOperationCancun(
       PerspectivizedTxnData txnData, TransactionCategory category) {
     blockHeader = txnData.getCurrentBlockHeader();
     hub = txnData.hub();

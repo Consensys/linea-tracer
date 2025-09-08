@@ -130,7 +130,7 @@ public enum Fork {
       HardforkId hardforkIdToBlock =
           BesuServiceProvider.getBesuService(context, BlockchainService.class)
               .getHardforkId(toBlock);
-      if (hardforkIdFromBlock != hardforkIdToBlock) {
+      if (!hardforkIdFromBlock.equals(hardforkIdToBlock)) {
         throw new IllegalArgumentException(
             "Fork change between blocks " + fromBlock + " and " + toBlock);
       }

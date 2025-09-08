@@ -36,7 +36,7 @@ import org.web3j.protocol.core.methods.response.EthBlock;
 
 /*
  * Taken from besu-plugins acceptance-tests from linea-monorepo in linea-monorepo/besu-plugins/linea-sequencer/acceptance-tests/src/test/java/org/hyperledger/besu/tests/acceptance/dsl/EngineAPIService.java
- * EngineAPIService from the monorepo is compatible with Prague, so we adapt it here to Shanghai and Cancun
+ * EngineAPIService from the monorepo is compatible with Prague, so we adapt it here to Paris, Shanghai and Cancun
  * We use this class to emulate Engine API calls to the Besu Node.
  */
 public class EngineAPIService {
@@ -121,7 +121,9 @@ public class EngineAPIService {
     try (final Response getPayloadResponse = getPayloadRequest.execute()) {
       assertThat(getPayloadResponse.code()).isEqualTo(200);
       JsonNode result = mapper.readTree(getPayloadResponse.body().string()).get("result");
-      executionPayload = (ObjectNode) result.get("executionPayload");
+      ;
+      executionPayload =
+          (fork == Fork.PARIS) ? (ObjectNode) result : (ObjectNode) result.get("executionPayload");
       newBlockHash = executionPayload.get("blockHash").asText();
       if (isPostCancun(fork)) {
         blobsBundle = (ObjectNode) result.get("blobsBundle");

@@ -81,7 +81,7 @@ public abstract class TxnDataOperationPerspectivized extends TxnDataOperation {
 
   private void traceCommonSaveForFlags(Trace.Txndata trace, int ct) {
     trace
-        .blkNumber(relativeBlockNumber)
+        // BLK_NUMBER is (defcomputed ...)
         // TOTL_TXN_NUMBER is (defcomputed ...)
         .sysiTxnNumber(sysiTransactionNumber)
         .userTxnNumber(userTransactionNumber)

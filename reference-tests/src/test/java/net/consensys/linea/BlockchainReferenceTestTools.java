@@ -64,7 +64,7 @@ import org.junit.jupiter.api.Assumptions;
 @Slf4j
 public class BlockchainReferenceTestTools {
   // Keep the forkName and the zkevm_fork in github worklow in PascalCase
-  private static final String forkName = getForkOrDefault("London");
+  private static final String forkName = getForkOrDefault("Cancun");
   private static final ReferenceTestProtocolSchedules REFERENCE_TEST_PROTOCOL_SCHEDULES =
       ReferenceTestProtocolSchedules.create();
 
@@ -482,38 +482,54 @@ public class BlockchainReferenceTestTools {
 
     // Timestamp is more than Long.MAX_VALUE, which Besu does not support as
     // ProcessableBlockHeader.getTimestamp() returns a negative value
-    PARAMS.ignore(
-        "Cancun-auto_access_list=False-beacon_root=18446744073709551614-timestamp=18446744073709551614");
-    PARAMS.ignore(
-        "Cancun-empty_system_address-auto_access_list=False-timestamp=18446744073709551614-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-auto_access_list=False-beacon_root=18446744073709551615-timestamp=18446744073709551615");
-    PARAMS.ignore(
-        "Cancun-empty_system_address-auto_access_list=False-timestamp=18446744073709551615-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-auto_access_list=True-beacon_root=18446744073709551614-timestamp=18446744073709551614");
-    PARAMS.ignore(
-        "Cancun-empty_system_address-auto_access_list=True-timestamp=18446744073709551614-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-auto_access_list=True-beacon_root=18446744073709551615-timestamp=18446744073709551615");
-    PARAMS.ignore(
-        "Cancun-empty_system_address-auto_access_list=True-timestamp=18446744073709551615-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-one_wei_system_address-auto_access_list=False-timestamp=18446744073709551614-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-one_wei_system_address-auto_access_list=False-timestamp=18446744073709551615-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-one_wei_system_address-auto_access_list=True-timestamp=18446744073709551614-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-one_wei_system_address-auto_access_list=True-timestamp=18446744073709551615-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-one_eth_system_address-auto_access_list=False-timestamp=18446744073709551614-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-one_eth_system_address-auto_access_list=False-timestamp=18446744073709551615-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-one_eth_system_address-auto_access_list=True-timestamp=18446744073709551614-valid_input=True");
-    PARAMS.ignore(
-        "Cancun-one_eth_system_address-auto_access_list=True-timestamp=18446744073709551615-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-auto_access_list=False-beacon_root=18446744073709551614-timestamp=18446744073709551614");
+    // PARAMS.ignore(
+    //
+    // "Cancun-empty_system_address-auto_access_list=False-timestamp=18446744073709551614-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-auto_access_list=False-beacon_root=18446744073709551615-timestamp=18446744073709551615");
+    // PARAMS.ignore(
+    //
+    // "Cancun-empty_system_address-auto_access_list=False-timestamp=18446744073709551615-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-auto_access_list=True-beacon_root=18446744073709551614-timestamp=18446744073709551614");
+    // PARAMS.ignore(
+    //
+    // "Cancun-empty_system_address-auto_access_list=True-timestamp=18446744073709551614-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-auto_access_list=True-beacon_root=18446744073709551615-timestamp=18446744073709551615");
+    // PARAMS.ignore(
+    //
+    // "Cancun-empty_system_address-auto_access_list=True-timestamp=18446744073709551615-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-one_wei_system_address-auto_access_list=False-timestamp=18446744073709551614-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-one_wei_system_address-auto_access_list=False-timestamp=18446744073709551615-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-one_wei_system_address-auto_access_list=True-timestamp=18446744073709551614-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-one_wei_system_address-auto_access_list=True-timestamp=18446744073709551615-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-one_eth_system_address-auto_access_list=False-timestamp=18446744073709551614-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-one_eth_system_address-auto_access_list=False-timestamp=18446744073709551615-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-one_eth_system_address-auto_access_list=True-timestamp=18446744073709551614-valid_input=True");
+    // PARAMS.ignore(
+    //
+    // "Cancun-one_eth_system_address-auto_access_list=True-timestamp=18446744073709551615-valid_input=True");
   }
 
   public static CompletableFuture<Set<String>> getRecordedFailedTestsFromJson(

@@ -37,7 +37,7 @@ public class SysiEip2935Transaction extends TxnDataOperationPerspectivized {
 
   @Override
   protected int ctMax() {
-    return 3;
+    return 2;
   }
 
   public SysiEip2935Transaction(final PerspectivizedTxnData txnData) {
@@ -50,7 +50,6 @@ public class SysiEip2935Transaction extends TxnDataOperationPerspectivized {
     hubRow();
     detectTheGenesisBlockComputationRow();
     computePreviousBlockNumberModulo8191ComputationRow();
-    compareTimestampToLineaCancunForkTimestampComputationRow();
   }
 
   protected void hubRow() {
@@ -59,10 +58,10 @@ public class SysiEip2935Transaction extends TxnDataOperationPerspectivized {
         new HubRowForSystemTransactions(blockHeader, hub, Type.EIP2935);
 
     hubRow.systemTransactionData1 = EWord.of(previousBlockNumber());
-    hubRow.systemTransactionData2 = EWord.of(previousBlockNumber() % HISTORY_SERVE_WINDOW);
+    hubRow.systemTransactionData2 = previousBlockNumber() % HISTORY_SERVE_WINDOW;
     hubRow.systemTransactionData3 = EWord.of(EWord.of(previousBlockHash()).hi());
     hubRow.systemTransactionData4 = EWord.of(EWord.of(previousBlockHash()).lo());
-    hubRow.systemTransactionData5 = EWord.of(currentBlockIsGenesisBlock() ? 1 : 0);
+    hubRow.systemTransactionData5 = currentBlockIsGenesisBlock();
 
     rows.add(hubRow);
   }
@@ -74,11 +73,6 @@ public class SysiEip2935Transaction extends TxnDataOperationPerspectivized {
 
   private void computePreviousBlockNumberModulo8191ComputationRow() {
     EucRow row = EucRow.callToEuc(euc, previousBlockNumber(), HISTORY_SERVE_WINDOW);
-    rows.add(row);
-  }
-
-  private void compareTimestampToLineaCancunForkTimestampComputationRow() {
-    WcpRow row = smallCallToLeq(wcp, blockHeader.getTimestamp(), nonsensePragueTimestamp);
     rows.add(row);
   }
 

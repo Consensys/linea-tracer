@@ -43,7 +43,7 @@ public class ExampleBesuTest extends TracerTestBase {
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     BytecodeCompiler compiler =
-        BytecodeCompiler.newProgram(testInfo).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
 
     switch (fork) {
       case LONDON -> {}

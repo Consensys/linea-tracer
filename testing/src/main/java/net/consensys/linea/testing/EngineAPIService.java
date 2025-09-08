@@ -15,8 +15,7 @@
  */
 package net.consensys.linea.testing;
 
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
-import static net.consensys.linea.zktracer.Fork.isPostPrague;
+import static net.consensys.linea.zktracer.Fork.*;
 import static org.assertj.core.api.Assertions.*;
 
 import java.io.IOException;
@@ -173,6 +172,7 @@ public class EngineAPIService {
       Fork fork, final String parentBlockHash, final Long blockTimestamp) {
     ArrayNode params = createParamsForkChoice(fork, parentBlockHash, blockTimestamp);
     return switch (fork) {
+      case PARIS -> createEngineCall("engine_forkchoiceUpdatedV1", params);
       case SHANGHAI -> createEngineCall("engine_forkchoiceUpdatedV2", params);
       case CANCUN, PRAGUE -> createEngineCall("engine_forkchoiceUpdatedV3", params);
       default -> throw new IllegalArgumentException(
@@ -198,7 +198,9 @@ public class EngineAPIService {
       payloadAttributes.put("timestamp", blockTimestamp + 15000);
       payloadAttributes.put("prevRandao", Hash.ZERO.toString());
       payloadAttributes.put("suggestedFeeRecipient", Address.ZERO.toString());
-      payloadAttributes.set("withdrawals", mapper.createArrayNode());
+      if (isPostShanghai(fork)) {
+        payloadAttributes.set("withdrawals", mapper.createArrayNode());
+      }
       if (isPostCancun(fork)) {
         payloadAttributes.put("parentBeaconBlockRoot", Hash.ZERO.toString());
       }
@@ -211,6 +213,7 @@ public class EngineAPIService {
     ArrayNode params = mapper.createArrayNode();
     params.add(payloadId);
     return switch (fork) {
+      case PARIS -> createEngineCall("engine_getPayloadV1", params);
       case SHANGHAI -> createEngineCall("engine_getPayloadV2", params);
       case CANCUN -> createEngineCall("engine_getPayloadV3", params);
       case PRAGUE -> createEngineCall("engine_getPayloadV4", params);
@@ -235,6 +238,7 @@ public class EngineAPIService {
       }
     }
     return switch (fork) {
+      case PARIS -> createEngineCall("engine_newPayloadV1", params);
       case SHANGHAI -> createEngineCall("engine_newPayloadV2", params);
       case CANCUN -> createEngineCall("engine_newPayloadV3", params);
       case PRAGUE -> createEngineCall("engine_newPayloadV4", params);

@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys Inc.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -15,9 +15,9 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
-import static net.consensys.linea.zktracer.Trace.HISTORY_SERVE_WINDOW;
+import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
-import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragmentType.EIP4788_BEACON_BLOCK_ROOT;
+import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_EIP_4788_BEACON_BLOCK_ROOT;
 
 import net.consensys.linea.zktracer.Trace;
 import org.apache.tuweni.bytes.Bytes;
@@ -25,13 +25,15 @@ import org.apache.tuweni.bytes.Bytes32;
 
 public class Eip4788TransactionFragment extends SystemTransactionFragment {
 
+  final boolean isGenesisBlock;
   final long timestamp;
   final Bytes32 beaconroot;
 
-  public Eip4788TransactionFragment(long timestamp, Bytes32 beaconroot) {
-    super(EIP4788_BEACON_BLOCK_ROOT);
+  public Eip4788TransactionFragment(long timestamp, Bytes32 beaconroot, boolean isGenesisBlock) {
+    super(SYSI_EIP_4788_BEACON_BLOCK_ROOT);
     this.timestamp = timestamp;
     this.beaconroot = beaconroot;
+    this.isGenesisBlock = isGenesisBlock;
   }
 
   @Override
@@ -40,8 +42,9 @@ public class Eip4788TransactionFragment extends SystemTransactionFragment {
     return trace
         .pTransactionEip4788(true)
         .pTransactionSystTxnData1(Bytes.ofUnsignedLong(timestamp))
-        .pTransactionSystTxnData2(Bytes.ofUnsignedLong(timestamp % HISTORY_SERVE_WINDOW))
+        .pTransactionSystTxnData2(timestamp % HISTORY_BUFFER_LENGTH)
         .pTransactionSystTxnData3(beaconroot.slice(0, LLARGE))
-        .pTransactionSystTxnData4(beaconroot.slice(LLARGE, LLARGE));
+        .pTransactionSystTxnData4(beaconroot.slice(LLARGE, LLARGE))
+        .pTransactionSystTxnData5(isGenesisBlock);
   }
 }

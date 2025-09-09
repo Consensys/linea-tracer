@@ -16,12 +16,11 @@
 package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
-import net.consensys.linea.zktracer.module.add.Add;
-import net.consensys.linea.zktracer.module.add.ShanghaiAdd;
 import net.consensys.linea.zktracer.module.hub.section.create.ShanghaiCreateSection;
 import net.consensys.linea.zktracer.module.hub.section.txInitializationSection.ShanghaiInitializationSection;
 import net.consensys.linea.zktracer.module.txndata.module.ShanghaiTxnData;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.gascalculator.ShanghaiGasCalculator;
@@ -33,17 +32,12 @@ public class ShanghaiHub extends ParisHub {
   }
 
   @Override
-  protected Add setAdd() {
-    return new ShanghaiAdd();
-  }
-
-  @Override
   protected GasCalculator setGasCalculator() {
     return new ShanghaiGasCalculator();
   }
 
   @Override
-  protected TxnData setTxnData() {
+  protected TxnData<? extends TxnDataOperation> setTxnData() {
     return new ShanghaiTxnData(this, wcp(), euc());
   }
 

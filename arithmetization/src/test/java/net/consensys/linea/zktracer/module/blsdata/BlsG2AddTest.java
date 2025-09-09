@@ -29,6 +29,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -70,11 +71,11 @@ public class BlsG2AddTest extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("blsG2AddSource")
-  void testBlsG2Add(String a, String b) {
+  void testBlsG2Add(String a, String b, TestInfo testInfo) {
     Preconditions.checkArgument(a.length() == 512, "G2 point 'a' must be 512 hex chars");
     Preconditions.checkArgument(b.length() == 512, "G2 point 'b' must be 512 hex chars");
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // TODO: extract method for that
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
@@ -106,7 +107,7 @@ public class BlsG2AddTest extends TracerTestBase {
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(testInfo);
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
   private static Stream<Arguments> blsG2AddSource() {

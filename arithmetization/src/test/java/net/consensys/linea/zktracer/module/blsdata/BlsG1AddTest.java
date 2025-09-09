@@ -29,6 +29,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -62,11 +63,11 @@ public class BlsG1AddTest extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("blsG1AddSource")
-  void testBlsG1Add(String a, String b) {
+  void testBlsG1Add(String a, String b, TestInfo testInfo) {
     Preconditions.checkArgument(a.length() == 256, "G1 point 'a' must be 256 hex chars");
     Preconditions.checkArgument(b.length() == 256, "G1 point 'b' must be 256 hex chars");
 
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // TODO: extract method for that
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
@@ -98,7 +99,7 @@ public class BlsG1AddTest extends TracerTestBase {
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(List.of(codeOwnerAccount), testInfo);
+    bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
   }
 
   private static Stream<Arguments> blsG1AddSource() {

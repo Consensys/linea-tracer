@@ -12,12 +12,11 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
-package net.consensys.linea.reporting;
+package net.consensys.linea.zktracer.module.txndata.rows.hubRows;
 
-import net.consensys.linea.zktracer.ChainConfig;
-import org.junit.jupiter.api.TestInfo;
-
-public class TestInfoWithChainConfig {
-  public TestInfo testInfo;
-  public ChainConfig chainConfig;
+public enum Type {
+  NOOP,
+  USER,
+  EIP2935,
+  EIP4788,
 }

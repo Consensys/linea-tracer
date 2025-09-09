@@ -33,6 +33,7 @@ import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.evm.precompile.KZGPointEvalPrecompiledContract;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(UnitTestWatcher.class)
@@ -45,7 +46,7 @@ public class PointEvaluationTest extends TracerTestBase {
   }
 
   @Test
-  void validInputTest() {
+  void validInputTest(TestInfo testInfo) throws Exception {
     // source:
     // https://github.com/ethereum/execution-spec-tests/blob/1983444bbe1a471886ef7c0e82253ffe2a4053e1/tests/cancun/eip4844_blobs/point_evaluation_vectors/go_kzg_4844_verify_kzg_proof.json#L312-L321 and Ivo
     BytecodeRunner bytecodeRunner =
@@ -54,21 +55,23 @@ public class PointEvaluationTest extends TracerTestBase {
             "0000000000000000000000000000000000000000000000000000000000000000",
             "0000000000000000000000000000000000000000000000000000000000000000",
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            testInfo);
     assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
     assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
     assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
   }
 
   @Test
-  void mintDueToZNotInRangeTest() {
+  void mintDueToZNotInRangeTest(TestInfo testInfo) {
     BytecodeRunner bytecodeRunner =
         pointEvaluationProgram(
             "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
             (POINT_EVALUATION_PRIME.add(1)).toHexString().substring(2),
             "0000000000000000000000000000000000000000000000000000000000000000",
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            testInfo);
     assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
     assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
     assertFalse(
@@ -80,36 +83,43 @@ public class PointEvaluationTest extends TracerTestBase {
   }
 
   @Test
-  void mintDueToYNotInRangeTest() {
+  void mintDueToYNotInRangeTest(TestInfo testInfo) {
     BytecodeRunner bytecodeRunner =
         pointEvaluationProgram(
             "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
             "0000000000000000000000000000000000000000000000000000000000000000",
             (POINT_EVALUATION_PRIME.add(1)).toHexString().substring(2),
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            testInfo);
     assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
     assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
     assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
   }
 
   @Test
-  void mintDueToZAndYNotInRangeTest() {
+  void mintDueToZAndYNotInRangeTest(TestInfo testInfo) {
     BytecodeRunner bytecodeRunner =
         pointEvaluationProgram(
             "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
             (POINT_EVALUATION_PRIME.add(1)).toHexString().substring(2),
             (POINT_EVALUATION_PRIME.add(1)).toHexString().substring(2),
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            testInfo);
     assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
     assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
     assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
   }
 
   BytecodeRunner pointEvaluationProgram(
-      String versionedHash, String z, String y, String commitment, String proof) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+      String versionedHash,
+      String z,
+      String y,
+      String commitment,
+      String proof,
+      TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
     final ToyAccount codeOwnerAccount =
@@ -140,7 +150,7 @@ public class PointEvaluationTest extends TracerTestBase {
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(List.of(codeOwnerAccount), testInfo);
+    bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
     return bytecodeRunner;
   }
 }

@@ -39,6 +39,7 @@ import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Wei;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -49,8 +50,8 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("blsPrecompilesSizeTestSource")
-  void blsPrecompilesSizeTest(Address address, Integer size) {
-    BytecodeCompiler program = BytecodeCompiler.newProgram(testInfo);
+  void blsPrecompilesSizeTest(Address address, Integer size, TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
     final ToyAccount codeOwnerAccount =
@@ -81,7 +82,7 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(List.of(codeOwnerAccount), testInfo);
+    bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
   }
 
   private static Stream<Arguments> blsPrecompilesSizeTestSource() {

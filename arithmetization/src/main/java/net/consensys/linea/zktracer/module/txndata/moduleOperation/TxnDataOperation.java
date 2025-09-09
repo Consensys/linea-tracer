@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys Inc.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -12,14 +12,15 @@
  *
  * SPDX-License-Identifier: Apache-2.0
  */
+package net.consensys.linea.zktracer.module.txndata.moduleOperation;
 
-package net.consensys.linea.zktracer.module.gas;
+import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.ModuleOperation;
+import net.consensys.linea.zktracer.module.txndata.BlockSnapshot;
 
-import java.util.Comparator;
+public abstract class TxnDataOperation extends ModuleOperation {
 
-public class GasOperationComparator implements Comparator<GasOperation> {
-  @Override
-  public int compare(GasOperation o1, GasOperation o2) {
-    return o1.gasParameters().compareTo(o2.gasParameters());
-  }
+  public abstract void traceTransaction(Trace.Txndata trace, BlockSnapshot block, int absTxNumMax);
+
+  public abstract void traceTransaction(Trace.Txndata trace);
 }

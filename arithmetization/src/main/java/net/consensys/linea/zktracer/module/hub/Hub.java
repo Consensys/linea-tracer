@@ -126,6 +126,7 @@ import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txndata.module.TxnData;
+import net.consensys.linea.zktracer.module.txndata.moduleOperation.TxnDataOperation;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -255,7 +256,7 @@ public abstract class Hub implements Module {
   // stateless modules
   @Getter private final Wcp wcp = new Wcp();
 
-  private final Add add = setAdd();
+  private final Add add = new Add();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
 
@@ -280,7 +281,7 @@ public abstract class Hub implements Module {
 
   @Getter private final Euc euc = new Euc(wcp);
   @Getter private final Ext ext = new Ext(this);
-  @Getter private final Gas gas = new Gas(wcp);
+  @Getter private final Gas gas = new Gas();
   private final Mul mul = new Mul(this);
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
@@ -294,7 +295,7 @@ public abstract class Hub implements Module {
   private final RlpTxn rlpTxn = setRlpTxn(this);
   private final Mmio mmio;
 
-  @Getter private final TxnData txnData = setTxnData();
+  @Getter private final TxnData<? extends TxnDataOperation> txnData = setTxnData();
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
@@ -579,13 +580,13 @@ public abstract class Hub implements Module {
     blockStack.newBlock(processableBlockHeader, miningBeneficiary);
     txStack.resetBlock();
     state.enterSectionsStack();
-    traceSystemInitialTransaction(world, processableBlockHeader);
     // Compute the line counting of the HUB of the current transaction TODO: this is ugly but will
     // disappear with limitless refacto
-    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
     for (Module m : modules) {
       m.traceStartBlock(world, processableBlockHeader, miningBeneficiary);
     }
+    traceSysiTransactions(world, processableBlockHeader);
+    state.lineCounter().add(state.currentTransactionHubSections().lineCount());
   }
 
   @Override
@@ -1170,8 +1171,6 @@ public abstract class Hub implements Module {
     return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
   }
 
-  protected abstract Add setAdd();
-
   protected abstract BlsData setBlsData(
       Wcp wcp,
       PointEvaluationEffectiveCall pointEvaluationEffectiveCall,
@@ -1193,7 +1192,7 @@ public abstract class Hub implements Module {
 
   protected abstract GasCalculator setGasCalculator();
 
-  protected abstract TxnData setTxnData();
+  protected abstract TxnData<? extends TxnDataOperation> setTxnData();
 
   protected abstract Mxp setMxp();
 
@@ -1225,7 +1224,7 @@ public abstract class Hub implements Module {
 
   protected abstract void setMcopySection(Hub hub);
 
-  protected abstract void traceSystemInitialTransaction(
+  protected abstract void traceSysiTransactions(
       WorldView world, ProcessableBlockHeader blockHeader);
 
   protected abstract void traceSystemFinalTransaction();

@@ -360,7 +360,7 @@ public class MxpTest extends TracerTestBase {
         .push(0) // offset (arbitrary value)
         .push(
             BigInteger.valueOf(13)
-                .subtract(LONDON_MXPX_THRESHOLD)
+                .add(LONDON_MXPX_THRESHOLD)
                 .subtract(BigInteger.valueOf(32))) // destOffset
         .op(OpCode.CODECOPY);
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);

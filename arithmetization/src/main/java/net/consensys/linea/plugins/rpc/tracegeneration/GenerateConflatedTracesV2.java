@@ -15,9 +15,9 @@
 
 package net.consensys.linea.plugins.rpc.tracegeneration;
 
-import java.nio.file.Files;
 import static net.consensys.linea.zktracer.Fork.getForkFromBesuBlockchainService;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -101,27 +101,27 @@ public class GenerateConflatedTracesV2 {
 
     final long fromBlock = params.startBlockNumber();
     final long toBlock = params.endBlockNumber();
-      // Determine expected path of the trace file.
-      Path path =
-              this.traceWriter.traceFilePath(
-                      fromBlock,
-                      toBlock,
-                      params.expectedTracesEngineVersion(),
-                      TraceRequestParams.getBesuRuntime());
-      // Check whether the trace file already exists (or not).
-      if (cachedTraceFileAvailable(path)) {
-          log.info("[TRACING] cached trace for {}-{} detected as {}", fromBlock, toBlock, path);
-      } else {
-    // Retrieve fork from Besu plugin API with block number
-    final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
+    // Determine expected path of the trace file.
+    Path path =
+        this.traceWriter.traceFilePath(
+            fromBlock,
+            toBlock,
+            params.expectedTracesEngineVersion(),
+            TraceRequestParams.getBesuRuntime());
+    // Check whether the trace file already exists (or not).
+    if (cachedTraceFileAvailable(path)) {
+      log.info("[TRACING] cached trace for {}-{} detected as {}", fromBlock, toBlock, path);
+    } else {
+      // Retrieve fork from Besu plugin API with block number
+      final Fork fork = getForkFromBesuBlockchainService(besuContext, fromBlock, toBlock);
 
-    final ZkTracer tracer =
-        new ZkTracer(
-            fork,
-            l1L2BridgeSharedConfiguration,
-            BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
-                .getChainId()
-                .orElseThrow());
+      final ZkTracer tracer =
+          new ZkTracer(
+              fork,
+              l1L2BridgeSharedConfiguration,
+              BesuServiceProvider.getBesuService(besuContext, BlockchainService.class)
+                  .getChainId()
+                  .orElseThrow());
 
       traceService.trace(
           fromBlock,

@@ -15,8 +15,6 @@
 
 package net.consensys.linea.zktracer;
 
-import java.util.Optional;
-
 import static net.consensys.linea.zktracer.Trace.*;
 
 import net.consensys.linea.plugins.BesuServiceProvider;

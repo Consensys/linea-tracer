@@ -744,7 +744,7 @@ public class RlpTxn implements OperationListModule<RlpTxnOperation> {
       if (inputLen <= traceValue.nStep) {
         ByteCountAndPowerOutput byteCountingOutput = byteCounting(inputLen, traceValue.nStep);
         BitDecOutput bitDecOutput =
-            bitDecomposition(inputByte.get(inputByte.size() - 1), traceValue.nStep);
+            bitDecomposition((0xFF & inputByte.get(inputByte.size() - 1)), traceValue.nStep);
 
         for (int ct = 0; ct < traceValue.nStep; ct++) {
           traceValue.counter = ct;

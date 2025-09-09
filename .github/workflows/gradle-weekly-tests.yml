@@ -1,3 +1,4 @@
+permissions: read-all
 name: Weekly Tests
 
 on:

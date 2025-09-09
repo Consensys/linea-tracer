@@ -1,3 +1,4 @@
+permissions: read-all
 name: "Unit & Fast Replay Tests"
 
 on:

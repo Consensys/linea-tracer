@@ -35,9 +35,18 @@ import org.web3j.crypto.BlobUtils;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
 /*
- * Taken from besu-plugins acceptance-tests from linea-monorepo in linea-monorepo/besu-plugins/linea-sequencer/acceptance-tests/src/test/java/org/hyperledger/besu/tests/acceptance/dsl/EngineAPIService.java
- * EngineAPIService from the monorepo is compatible with Prague, so we adapt it here to Paris, Shanghai and Cancun
- * We use this class to emulate Engine API calls to the Besu Node.
+ * Copyright Consensys Software Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+ * an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations under the License.
+ *
+ * SPDX-License-Identifier: Apache-2.0
  */
 public class EngineAPIService {
   private final OkHttpClient httpClient;

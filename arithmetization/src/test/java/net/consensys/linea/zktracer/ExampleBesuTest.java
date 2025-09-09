@@ -35,7 +35,7 @@ import org.junit.jupiter.api.TestInfo;
 public class ExampleBesuTest extends TracerTestBase {
 
   @Test
-  void testPerFork() {
+  void testPerFork(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -73,7 +73,7 @@ public class ExampleBesuTest extends TracerTestBase {
   }
 
   @Test
-  void testForkSwitch() {
+  void testForkSwitch(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
     Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
 
@@ -81,7 +81,7 @@ public class ExampleBesuTest extends TracerTestBase {
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     BytecodeCompiler compilerShanghai =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram(chainConfig)
             .push(32, 0xbeef)
             .push(32, 0xdead)
             .op(OpCode.ADD)
@@ -89,7 +89,7 @@ public class ExampleBesuTest extends TracerTestBase {
 
     // TODO: test MCOPY
     BytecodeCompiler compilerCancun =
-        BytecodeCompiler.newProgram(testInfo)
+        BytecodeCompiler.newProgram(chainConfig)
             .push(32, 0xbeef)
             .push(32, 0xdead)
             .op(OpCode.ADD)
@@ -126,7 +126,7 @@ public class ExampleBesuTest extends TracerTestBase {
             .nonce(senderAccount.getNonce() + 1L)
             .build();
 
-    ToyExecutionEnvironmentV2.builder(testInfo)
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(List.of(senderAccount, receiverAccountShanghai, receiverAccountCancun))
         .transactions(List.of(txShanghai, txCancun))
         .runWithBesuNode(true)

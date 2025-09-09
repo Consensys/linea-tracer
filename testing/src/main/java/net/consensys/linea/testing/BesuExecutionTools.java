@@ -16,7 +16,6 @@ package net.consensys.linea.testing;
 
 import static net.consensys.linea.testing.ShomeiNode.MerkelProofResponse;
 import static net.consensys.linea.zktracer.Fork.isPostParis;
-import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.tests.acceptance.dsl.WaitUtils.waitFor;
 
@@ -34,7 +33,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import net.consensys.linea.zktracer.Fork;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -45,6 +43,7 @@ import net.consensys.linea.corset.CorsetValidator;
 import net.consensys.linea.plugins.rpc.tracegeneration.TraceFile;
 import net.consensys.linea.plugins.rpc.tracegeneration.TraceRequestParams;
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.json.JsonConverter;
 import net.consensys.shomei.rpc.server.model.RollupGetZkEvmStateV0Parameter;
 import okhttp3.MediaType;
@@ -168,21 +167,21 @@ public class BesuExecutionTools {
 
       // Send transaction to the transaction pool with eth_sendRawTransaction
       EthTransactions ethTransactions = new EthTransactions();
-/*      List<String> txHashes =
-          transactions.stream()
-              .map(
-                  tx ->
-                      besuNode.execute(
-                          ethTransactions.sendRawTransaction(tx.encoded().toHexString())))
-              .toList();*/
-        var txHashShanghai =
-                besuNode.execute(
-                        ethTransactions.sendRawTransaction(transactions.getFirst().encoded().toHexString()));
+      /*      List<String> txHashes =
+      transactions.stream()
+          .map(
+              tx ->
+                  besuNode.execute(
+                      ethTransactions.sendRawTransaction(tx.encoded().toHexString())))
+          .toList();*/
+      var txHashShanghai =
+          besuNode.execute(
+              ethTransactions.sendRawTransaction(transactions.getFirst().encoded().toHexString()));
 
-        Map<String, Boolean> txReceiptProcessedShanghai = new HashMap<>();
-        Map<String, Boolean> txReceiptProcessedCancun = new HashMap<>();
-        ConcurrentSet<Long> blockNumbersShanghai = new ConcurrentSet<>();
-        ConcurrentSet<Long> blockNumbersCancun = new ConcurrentSet<>();
+      Map<String, Boolean> txReceiptProcessedShanghai = new HashMap<>();
+      Map<String, Boolean> txReceiptProcessedCancun = new HashMap<>();
+      ConcurrentSet<Long> blockNumbersShanghai = new ConcurrentSet<>();
+      ConcurrentSet<Long> blockNumbersCancun = new ConcurrentSet<>();
 
       // If fork is Paris or after, Clique as a consensus layer defined in the genesis file
       // doesn't work anymore

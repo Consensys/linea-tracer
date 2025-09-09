@@ -28,7 +28,7 @@ import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
-import net.consensys.linea.zktracer.opcode.gas.projector.GasProjector;
+import net.consensys.linea.zktracer.opcode.gas.projector.GasProjection;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 
@@ -126,13 +126,12 @@ public class Exceptions {
         > 1024;
   }
 
-  private static boolean isMemoryExpansionFault(
-      MessageFrame frame, OpCodeData opCode, GasProjector gp) {
-    return gp.of(frame, opCode).largestOffset() > 0xffffffffL;
+  private static boolean isMemoryExpansionFault(GasProjection op) {
+    return op.largestOffset() > 0xffffffffL;
   }
 
-  private static boolean isOutOfGas(MessageFrame frame, OpCodeData opCode, GasProjector gp) {
-    final long required = gp.of(frame, opCode).upfrontGasCost();
+  private static boolean isOutOfGas(GasProjection op, MessageFrame frame) {
+    final long required = op.upfrontGasCost();
     return required > frame.getRemainingGas();
   }
 
@@ -263,7 +262,7 @@ public class Exceptions {
       return MAX_CODE_SIZE_EXCEPTION;
     }
 
-    final GasProjector gp = hub.gasProjector;
+    final GasProjection op = hub.gasProjector.of(hub.messageFrame(), opCodeData);
     switch (opCodeData.mnemonic()) {
       case CALLDATACOPY,
           CODECOPY,
@@ -287,10 +286,10 @@ public class Exceptions {
           MLOAD,
           MSTORE,
           MSTORE8 -> {
-        if (isMemoryExpansionFault(frame, opCodeData, gp)) {
+        if (isMemoryExpansionFault(op)) {
           return MEMORY_EXPANSION_EXCEPTION;
         }
-        if (isOutOfGas(frame, opCodeData, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
       }
@@ -299,10 +298,10 @@ public class Exceptions {
         if (isReturnDataCopyFault(frame, opCodeData)) {
           return RETURN_DATA_COPY_FAULT;
         }
-        if (isMemoryExpansionFault(frame, opCodeData, gp)) {
+        if (isMemoryExpansionFault(op)) {
           return MEMORY_EXPANSION_EXCEPTION;
         }
-        if (isOutOfGas(frame, opCodeData, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
       }
@@ -310,7 +309,7 @@ public class Exceptions {
       case STOP -> {}
 
       case JUMP, JUMPI -> {
-        if (isOutOfGas(frame, opCodeData, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
         if (isJumpFault(frame, opCodeData)) {
@@ -322,13 +321,13 @@ public class Exceptions {
         if (isOutOfSStore(frame, opCodeData)) {
           return OUT_OF_SSTORE;
         }
-        if (isOutOfGas(frame, opCodeData, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
       }
 
       default -> {
-        if (isOutOfGas(frame, opCodeData, gp)) {
+        if (isOutOfGas(op, frame)) {
           return OUT_OF_GAS_EXCEPTION;
         }
       }

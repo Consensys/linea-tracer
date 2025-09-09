@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub.signals;
 
 import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static org.hyperledger.besu.evm.internal.Words.clampedToInt;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
@@ -126,8 +127,12 @@ public class Exceptions {
         > 1024;
   }
 
-  private static boolean isMemoryExpansionFault(GasProjection op) {
-    return op.largestOffset() > 0xffffffffL;
+  private static boolean isMemoryExpansionFault(Fork fork, GasProjection op) {
+    return switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> op.mxpxOffset(fork) >= MXPX_THRESHOLD;
+      case CANCUN, PRAGUE, OSAKA -> op.mxpxOffset(fork) > MXPX_THRESHOLD;
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
   }
 
   private static boolean isOutOfGas(GasProjection op, MessageFrame frame) {
@@ -286,7 +291,7 @@ public class Exceptions {
           MLOAD,
           MSTORE,
           MSTORE8 -> {
-        if (isMemoryExpansionFault(op)) {
+        if (isMemoryExpansionFault(hub.fork, op)) {
           return MEMORY_EXPANSION_EXCEPTION;
         }
         if (isOutOfGas(op, frame)) {
@@ -298,7 +303,7 @@ public class Exceptions {
         if (isReturnDataCopyFault(frame, opCodeData)) {
           return RETURN_DATA_COPY_FAULT;
         }
-        if (isMemoryExpansionFault(op)) {
+        if (isMemoryExpansionFault(hub.fork, op)) {
           return MEMORY_EXPANSION_EXCEPTION;
         }
         if (isOutOfGas(op, frame)) {

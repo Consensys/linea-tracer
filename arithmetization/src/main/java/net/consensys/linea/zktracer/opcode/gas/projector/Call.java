@@ -60,14 +60,28 @@ public class Call extends GasProjection {
   }
 
   @Override
-  public long largestOffset() {
+  public long mxpxOffset(Fork fork) {
     if (this.isInvalid()) {
       return 0;
     }
 
-    return Math.max(
-        inputData.isEmpty() ? 0 : Words.clampedAdd(inputData.offset(), inputData.size()),
-        returnData.isEmpty() ? 0 : Words.clampedAdd(returnData.offset(), returnData.size()));
+    switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> {
+        return Math.max(
+            inputData.isEmpty() ? 0 : Words.clampedAdd(inputData.offset(), inputData.size() - 1),
+            returnData.isEmpty()
+                ? 0
+                : Words.clampedAdd(returnData.offset(), returnData.size() - 1));
+      }
+      case CANCUN, PRAGUE, OSAKA -> {
+        return (inputData.isEmpty() && returnData.isEmpty())
+            ? 0
+            : Math.max(
+                Math.max(inputData.offset(), inputData.size()),
+                Math.max(returnData.offset(), returnData.size()));
+      }
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    }
   }
 
   @Override

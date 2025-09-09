@@ -15,23 +15,55 @@
 
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
+import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_COPY;
+import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
+import net.consensys.linea.zktracer.Fork;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 
-public final class MCopy extends DataCopy {
+public final class MCopy extends GasProjection {
+  final GasCalculator gc;
+  private final MessageFrame frame;
+  private long targetOffset = 0;
   private long sourceOffset = 0;
+  private long size = 0;
 
   public MCopy(GasCalculator gc, MessageFrame frame) {
-    super(gc, frame);
+    this.gc = gc;
+    this.frame = frame;
     if (frame.stackSize() > 2) {
+      targetOffset = clampedToLong(frame.getStackItem(0));
       sourceOffset = clampedToLong(frame.getStackItem(1));
+      size = clampedToLong(frame.getStackItem(2));
     }
   }
 
   @Override
-  protected long offset() {
-    return Math.max(sourceOffset, targetOffset);
+  public long staticGas() {
+    return gc.getVeryLowTierGasCost();
+  }
+
+  @Override
+  public long memoryExpansion() {
+    return gc.memoryExpansionGasCost(frame, Math.max(sourceOffset, targetOffset), size);
+  }
+
+  @Override
+  public long linearPerWord() {
+    return linearCost(GAS_CONST_G_COPY, size, WORD_SIZE);
+  }
+
+  @Override
+  public long mxpxOffset(Fork fork) {
+    return switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> throw new IllegalStateException(
+          "MCOPY doesn't exist in fork: " + fork);
+      case CANCUN, PRAGUE, OSAKA -> size == 0
+          ? 0
+          : Math.max(size, Math.max(targetOffset, sourceOffset));
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
   }
 }

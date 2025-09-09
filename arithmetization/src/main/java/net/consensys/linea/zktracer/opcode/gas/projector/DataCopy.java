@@ -25,10 +25,10 @@ import org.hyperledger.besu.evm.gascalculator.GasCalculator;
 import org.hyperledger.besu.evm.internal.Words;
 
 @Slf4j
-public final class DataCopy extends GasProjection {
+public class DataCopy extends GasProjection {
   final GasCalculator gc;
   private final MessageFrame frame;
-  private long targetOffset = 0;
+  protected long targetOffset = 0;
   private long size = 0;
 
   public DataCopy(GasCalculator gc, MessageFrame frame) {
@@ -47,7 +47,7 @@ public final class DataCopy extends GasProjection {
 
   @Override
   public long memoryExpansion() {
-    return gc.memoryExpansionGasCost(frame, targetOffset, size);
+    return gc.memoryExpansionGasCost(frame, offset(), size);
   }
 
   @Override
@@ -57,6 +57,10 @@ public final class DataCopy extends GasProjection {
 
   @Override
   public long largestOffset() {
-    return size == 0 ? 0 : Words.clampedAdd(targetOffset, size);
+    return size == 0 ? 0 : Words.clampedAdd(offset(), size);
+  }
+
+  protected long offset() {
+    return targetOffset;
   }
 }

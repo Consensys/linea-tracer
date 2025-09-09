@@ -83,18 +83,13 @@ public class McopyTests extends TracerTestBase {
 
   private static Stream<Arguments> inputs() {
     final List<Arguments> arguments = new ArrayList<>();
-    arguments.add(
-        Arguments.of(
-            Bytes32.leftPad(Bytes.minimalBytes(0L)),
-            Bytes32.leftPad(Bytes.minimalBytes(1L)),
-            Bytes32.leftPad(Bytes.of(0x20))));
-    // for (Bytes32 targetOffset : INPUTS) {
-    //   for (Bytes32 sourceOffset : INPUTS) {
-    //     for (Bytes32 size : INPUTS) {
-    //       arguments.add(Arguments.of(targetOffset, sourceOffset, size));
-    //     }
-    //   }
-    // }
+    for (Bytes32 targetOffset : INPUTS) {
+      for (Bytes32 sourceOffset : INPUTS) {
+        for (Bytes32 size : INPUTS) {
+          arguments.add(Arguments.of(targetOffset, sourceOffset, size));
+        }
+      }
+    }
     return arguments.stream();
   }
 

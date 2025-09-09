@@ -192,9 +192,9 @@ public abstract class SelfdestructSection extends TraceSection
     if (!selfdestructorNew.balance().isZero()) {
 
       // sanity checks
-      checkState(recipientAddress.equals(selfdestructor.address()));
-      checkState(selfdestructorNew.balance().equals(selfdestructor.balance()));
+      checkState(selfdestructTargetsItself());
       checkState(softAccountWiping());
+      checkState(selfdestructorNew.balance().equals(selfdestructor.balance()));
 
       selfdestructorNew.setBalanceToZero();
     }

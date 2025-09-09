@@ -420,7 +420,6 @@ public class MxpTest extends TracerTestBase {
     for (BigInteger a : values) {
       for (BigInteger b : values) {
         arguments.add(Arguments.of(a, b));
-        arguments.add(Arguments.of(b, a));
       }
     }
     return arguments.stream();

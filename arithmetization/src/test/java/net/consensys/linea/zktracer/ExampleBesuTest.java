@@ -80,20 +80,23 @@ public class ExampleBesuTest extends TracerTestBase {
     ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
+    BytecodeCompiler compilerParis =
+        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+
     BytecodeCompiler compilerShanghai =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(32, 0xbeef)
-            .push(32, 0xdead)
-            .op(OpCode.ADD)
-            .op(OpCode.DIFFICULTY);
+        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
 
     // TODO: test MCOPY
     BytecodeCompiler compilerCancun =
-        BytecodeCompiler.newProgram(chainConfig)
-            .push(32, 0xbeef)
-            .push(32, 0xdead)
-            .op(OpCode.ADD)
-            .op(OpCode.PUSH0);
+        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+
+    ToyAccount receiverAccountParis =
+        ToyAccount.builder()
+            .balance(Wei.ONE)
+            .nonce(6)
+            .address(Address.fromHexString("0x111110"))
+            .code(compilerParis.compile())
+            .build();
 
     ToyAccount receiverAccountShanghai =
         ToyAccount.builder()
@@ -109,6 +112,13 @@ public class ExampleBesuTest extends TracerTestBase {
             .nonce(6)
             .address(Address.fromHexString("0x111112"))
             .code(compilerCancun.compile())
+            .build();
+
+    Transaction txParis =
+        ToyTransaction.builder()
+            .sender(senderAccount)
+            .to(receiverAccountShanghai)
+            .keyPair(keyPair)
             .build();
 
     Transaction txShanghai =

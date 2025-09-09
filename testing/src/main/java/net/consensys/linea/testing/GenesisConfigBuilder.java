@@ -99,4 +99,24 @@ public class GenesisConfigBuilder {
   public String buildAsString() {
     return genesisRoot.toPrettyString();
   }
+
+  public String getTTD() {
+    var ttd = configNode.get("terminalTotalDifficulty");
+    return ttd == null ? null : ttd.asText();
+  }
+
+  public String getShanghaiTime() {
+    var shanghaiTime = configNode.get("shanghaiTime");
+    return shanghaiTime == null ? null : shanghaiTime.asText();
+  }
+
+  public String getCancunTime() {
+    var cancunTime = configNode.get("cancunTime");
+    return cancunTime == null ? null : cancunTime.asText();
+  }
+
+  public String getPragueTime() {
+    var pragueTime = configNode.get("pragueTime");
+    return pragueTime == null ? null : pragueTime.asText();
+  }
 }

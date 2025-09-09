@@ -353,7 +353,7 @@ public class MxpTest extends TracerTestBase {
 
   @ParameterizedTest
   @ValueSource(ints = {16, 17, 18, 19, 20, 21})
-  void testCodeCopy(int size, TestInfo testInfo) {
+  void testCodeCopyForDifferentSizes(int size, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
     program
         .push(size)
@@ -364,6 +364,66 @@ public class MxpTest extends TracerTestBase {
                 .subtract(BigInteger.valueOf(32))) // destOffset
         .op(OpCode.CODECOPY);
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
+  }
+
+  @ParameterizedTest
+  @MethodSource({
+    "testCodeCopyOverflowWithOneTinyParameterSource",
+    "testCodeCopyOverflowWithTwoSimilarValuesSource",
+    "testCodeCopyOverflowWithTwoLargeValuesSource"
+  })
+  void testCodeCopyOverflow(BigInteger size, BigInteger destOffset, TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
+    program
+        .push(size)
+        .push(0) // offset (arbitrary value)
+        .push(destOffset) // destOffset
+        .op(OpCode.CODECOPY);
+    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
+  }
+
+  static Stream<Arguments> testCodeCopyOverflowWithOneTinyParameterSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    List<BigInteger> aValues =
+        List.of(BigInteger.valueOf(16), BigInteger.valueOf(17), BigInteger.valueOf(18));
+    BigInteger b =
+        LONDON_MXPX_THRESHOLD.subtract(BigInteger.valueOf(32)).add(BigInteger.valueOf(15));
+    for (BigInteger a : aValues) {
+      arguments.add(Arguments.of(a, b));
+      arguments.add(Arguments.of(b, a));
+    }
+    return arguments.stream();
+  }
+
+  static Stream<Arguments> testCodeCopyOverflowWithTwoSimilarValuesSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    List<BigInteger> aValues =
+        List.of(
+            BigInteger.TWO.pow(31),
+            BigInteger.TWO.pow(31).add(BigInteger.valueOf(1)),
+            BigInteger.TWO.pow(31).add(BigInteger.valueOf(1)));
+    BigInteger b = BigInteger.TWO.pow(31);
+    for (BigInteger a : aValues) {
+      arguments.add(Arguments.of(a, b));
+      arguments.add(Arguments.of(b, a));
+    }
+    return arguments.stream();
+  }
+
+  static Stream<Arguments> testCodeCopyOverflowWithTwoLargeValuesSource() {
+    List<Arguments> arguments = new ArrayList<>();
+    List<BigInteger> values =
+        List.of(
+            LONDON_MXPX_THRESHOLD,
+            LONDON_MXPX_THRESHOLD.add(BigInteger.valueOf(1)),
+            LONDON_MXPX_THRESHOLD.add(BigInteger.valueOf(1)));
+    for (BigInteger a : values) {
+      for (BigInteger b : values) {
+        arguments.add(Arguments.of(a, b));
+        arguments.add(Arguments.of(b, a));
+      }
+    }
+    return arguments.stream();
   }
 
   // Support methods

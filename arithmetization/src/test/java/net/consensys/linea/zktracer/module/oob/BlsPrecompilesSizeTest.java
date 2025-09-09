@@ -122,15 +122,6 @@ public class BlsPrecompilesSizeTest extends TracerTestBase {
       }
     }
 
-    // TODO: temporary focus on point evaluation only DELETE EVERYTHING BELOW ONCE DEBUGGING IS DONE
-    arguments = new ArrayList<>();
-    Address address = Address.KZG_POINT_EVAL;
-    arguments.add(Arguments.of(address, 0));
-    arguments.add(Arguments.of(address, 1));
-    int size = FIXED_SIZE_PRECOMPILE_ADDRESS_TO_SIZE.get(address);
-    for (int cornerCase = -1; cornerCase <= 1; cornerCase++) {
-      arguments.add(Arguments.of(address, size + cornerCase));
-    }
     return arguments.stream();
   }
 }

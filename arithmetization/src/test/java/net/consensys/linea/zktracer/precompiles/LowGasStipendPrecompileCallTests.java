@@ -121,7 +121,6 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
       Integer callDataSize,
       boolean modexpCostGT200OrBlake2fRoundsGT0,
       TestInfo testInfo) {
-    // TODO: consider splitting this test in separated ones for each precompile
     final BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // In order to actually trigger the insufficient gas we need to:
@@ -310,20 +309,6 @@ public class LowGasStipendPrecompileCallTests extends TracerTestBase {
       arguments.add(Arguments.of(MODEXP, ValueCase.ZERO, gasCase, null, true));
     }
 
-    // TODO: temporary focus on point evaluation only DELETE EVERYTHING BELOW ONCE DEBUGGING IS DONE
-    arguments = new ArrayList<>();
-
-    for (GasCase gasCase : GasCase.values()) {
-      for (ValueCase valueCase : ValueCase.values()) {
-        arguments.add(
-            Arguments.of(
-                KZG_POINT_EVAL,
-                valueCase,
-                gasCase,
-                PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION,
-                false));
-      }
-    }
     return arguments.stream();
   }
 

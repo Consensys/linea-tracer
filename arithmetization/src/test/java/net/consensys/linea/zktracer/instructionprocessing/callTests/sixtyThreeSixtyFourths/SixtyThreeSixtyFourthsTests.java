@@ -35,6 +35,7 @@ import static org.hyperledger.besu.datatypes.Address.ALTBN128_PAIRING;
 import static org.hyperledger.besu.datatypes.Address.BLAKE2B_F_COMPRESSION;
 import static org.hyperledger.besu.datatypes.Address.ECREC;
 import static org.hyperledger.besu.datatypes.Address.ID;
+import static org.hyperledger.besu.datatypes.Address.KZG_POINT_EVAL;
 import static org.hyperledger.besu.datatypes.Address.MODEXP;
 import static org.hyperledger.besu.datatypes.Address.RIPEMD160;
 import static org.hyperledger.besu.datatypes.Address.SHA256;
@@ -75,7 +76,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  */
 
 public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
-  // TODO: consider adding BLS precompiles
+  // TODO: add BLS precompiles beyond POINT_EVALUATION
 
   /*
   Cases to cover:
@@ -126,7 +127,8 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
               ALTBN128_ADD,
               ALTBN128_MUL,
               ALTBN128_PAIRING,
-              BLAKE2B_F_COMPRESSION)
+              BLAKE2B_F_COMPRESSION,
+              KZG_POINT_EVAL)
           .collect(
               Collectors.toMap(
                   address -> address,
@@ -242,7 +244,8 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
             MODEXP,
             ALTBN128_MUL,
             ALTBN128_PAIRING,
-            BLAKE2B_F_COMPRESSION)) {
+            BLAKE2B_F_COMPRESSION,
+            KZG_POINT_EVAL)) {
       final int cds = getCallDataSize(address);
       final long targetCalleeGas =
           address == BLAKE2B_F_COMPRESSION
@@ -304,7 +307,9 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
         address,
         address == BLAKE2B_F_COMPRESSION
             ? PRECOMPILE_CALL_DATA_SIZE___BLAKE2F
-            : 0, // For BLAKE2F we need a meaningful cds for the call to succeed
+            : address == KZG_POINT_EVAL
+                ? PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION
+                : 0, // For BLAKE2F and POINT_EVALUATION we need a meaningful cds for the call to succeed
         true);
   }
 
@@ -389,8 +394,9 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
       return 96 + bbs + ebs + mbs; // Ensures cost is greater than stipend with non-zero non-trivial
     } else if (address == BLAKE2B_F_COMPRESSION) {
       return PRECOMPILE_CALL_DATA_SIZE___BLAKE2F; // Ensures cost is greater than stipend with
-      // non-zero non-trivial
-      // input
+      // non-zero non-trivial input
+    } else if (address == KZG_POINT_EVAL) {
+      return PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION;
     } else {
       return 0;
     }

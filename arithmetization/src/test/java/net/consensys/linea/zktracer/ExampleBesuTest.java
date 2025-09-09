@@ -117,7 +117,7 @@ public class ExampleBesuTest extends TracerTestBase {
     Transaction txParis =
         ToyTransaction.builder()
             .sender(senderAccount)
-            .to(receiverAccountShanghai)
+            .to(receiverAccountParis)
             .keyPair(keyPair)
             .build();
 
@@ -126,6 +126,7 @@ public class ExampleBesuTest extends TracerTestBase {
             .sender(senderAccount)
             .to(receiverAccountShanghai)
             .keyPair(keyPair)
+            .nonce(senderAccount.getNonce() + 1L)
             .build();
 
     Transaction txCancun =
@@ -133,12 +134,12 @@ public class ExampleBesuTest extends TracerTestBase {
             .sender(senderAccount)
             .to(receiverAccountCancun)
             .keyPair(keyPair)
-            .nonce(senderAccount.getNonce() + 1L)
+            .nonce(senderAccount.getNonce() + 2L)
             .build();
 
     ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(List.of(senderAccount, receiverAccountShanghai, receiverAccountCancun))
-        .transactions(List.of(txShanghai, txCancun))
+        .transactions(List.of(txParis, txShanghai, txCancun))
         .runWithBesuNode(true)
         .build()
         .run();

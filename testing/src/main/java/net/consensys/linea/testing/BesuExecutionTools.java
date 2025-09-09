@@ -369,7 +369,7 @@ public class BesuExecutionTools {
   }
 
   private Fork nextBlockFork(Block block) {
-    var blockNbr = block.getNumber();
+    var blockNbr = block.getNumber().add(BigInteger.ONE);
     var blockTimestamp = block.getTimestamp();
 
     var TTD = genesisConfigBuilder.getTTD();

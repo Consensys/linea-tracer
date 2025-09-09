@@ -12,10 +12,10 @@
     "berlinBlock":0,
     "londonBlock":0,
     "preMergeForkBlock": 0,
-    "terminalTotalDifficulty": 0,
+    "terminalTotalDifficulty": 1,
     "ethash": {},
-    "shanghaiTime": 0,
-    "cancunTime": 1742242802,
+    "shanghaiTime": 1742242802,
+    "cancunTime": 1742257803,
     "clique": {
       "blockperiodseconds": 1,
       "epochlength": 1,

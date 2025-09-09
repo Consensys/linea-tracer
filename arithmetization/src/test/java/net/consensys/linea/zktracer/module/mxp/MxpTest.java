@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.mxp;
 
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.appendOpCodeCall;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.isMxpx;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.isRoob;
@@ -24,6 +25,7 @@ import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType3;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4ExcludingHalting;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4Halting;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,6 +60,7 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 // https://github.com/Consensys/linea-besu-plugin/issues/197
 @Execution(ExecutionMode.SAME_THREAD)
@@ -301,18 +304,66 @@ public class MxpTest extends TracerTestBase {
   }
 
   @ParameterizedTest
-  @MethodSource("testCodeCopySource")
-  void testCodeCopy(int destOffset, int offset, int size, TestInfo testInfo) {
+  @MethodSource("testMxpxThresholdSource")
+  void testMxpxThreshold(
+      BigInteger destOffset, BigInteger offset, BigInteger size, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
-    program.push(size).push(offset).push(destOffset).op(OpCode.CODECOPY);
+    program
+        .push(size)
+        .push(offset)
+        .push(destOffset)
+        .op(OpCode.CODECOPY); // TODO: generalize for other opcodes later
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 
-  static Stream<Arguments> testCodeCopySource() {
+  static final BigInteger MAX_UINT256 =
+      BigInteger.TWO.pow(256).subtract(BigInteger.ONE); // 2^256 - 1
+  static final BigInteger LONDON_MXPX_THRESHOLD = (BigInteger.valueOf(256).pow(4));
+  static final BigInteger CANCUN_MXPX_THRESHOLD =
+      (BigInteger.valueOf(256).pow(4)).subtract(BigInteger.ONE);
+
+  static Stream<Arguments> testMxpxThresholdSource() {
+    final BigInteger MXPX_THRESHOLD = mxpxThreshold();
     List<Arguments> arguments = new ArrayList<>();
-    // TODO: add arguments
-    arguments.add(Arguments.of(1,2,3));
+    List<BigInteger> values =
+        List.of(
+            BigInteger.ZERO,
+            BigInteger.ONE,
+            BigInteger.valueOf(32),
+            MXPX_THRESHOLD,
+            MXPX_THRESHOLD.add(BigInteger.ONE),
+            MAX_UINT256); // TODO: add randomHuge
+    for (BigInteger destOffset : values) {
+      for (BigInteger offset : values) {
+        for (BigInteger size : values) {
+          arguments.add(Arguments.of(destOffset, offset, size));
+        }
+      }
+    }
     return arguments.stream();
+  }
+
+  static BigInteger mxpxThreshold() {
+    if (isPostCancun(chainConfig.fork)) {
+      return CANCUN_MXPX_THRESHOLD;
+    } else {
+      return LONDON_MXPX_THRESHOLD;
+    }
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {16, 17, 18, 19, 20, 21})
+  void testCodeCopy(int size, TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
+    program
+        .push(size)
+        .push(0) // offset (arbitrary value)
+        .push(
+            BigInteger.valueOf(13)
+                .subtract(LONDON_MXPX_THRESHOLD)
+                .subtract(BigInteger.valueOf(32))) // destOffset
+        .op(OpCode.CODECOPY);
+    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 
   // Support methods

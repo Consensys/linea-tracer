@@ -24,6 +24,7 @@ import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType3;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4ExcludingHalting;
 import static net.consensys.linea.zktracer.module.mxp.MxpTestUtils.opCodesType4Halting;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,6 +55,9 @@ import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 // https://github.com/Consensys/linea-besu-plugin/issues/197
 @Execution(ExecutionMode.SAME_THREAD)
@@ -294,6 +298,21 @@ public class MxpTest extends TracerTestBase {
             .build();
 
     toyExecutionEnvironmentV2.run();
+  }
+
+  @ParameterizedTest
+  @MethodSource("testCodeCopySource")
+  void testCodeCopy(int destOffset, int offset, int size, TestInfo testInfo) {
+    BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
+    program.push(size).push(offset).push(destOffset).op(OpCode.CODECOPY);
+    BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
+  }
+
+  static Stream<Arguments> testCodeCopySource() {
+    List<Arguments> arguments = new ArrayList<>();
+    // TODO: add arguments
+    arguments.add(Arguments.of(1,2,3));
+    return arguments.stream();
   }
 
   // Support methods

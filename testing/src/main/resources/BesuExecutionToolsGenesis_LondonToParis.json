@@ -11,10 +11,7 @@
     "istanbulBlock":0,
     "berlinBlock":0,
     "londonBlock":0,
-    "preMergeForkBlock": 0,
-    "terminalTotalDifficulty": 0,
-    "ethash": {},
-    "shanghaiTime": 0,
+    "terminalTotalDifficulty": 4,
     "clique": {
       "blockperiodseconds": 1,
       "epochlength": 1,
@@ -22,7 +19,7 @@
     }
   },
   "nonce": "0x1234",
-  "timestamp": "1742212800",
+  "timestamp": "0x6391BFF3",
   "gasLimit": "0x77359400",
   "baseFeePerGas": "0x7",
   "difficulty": "0x01",

@@ -15,6 +15,7 @@
 package net.consensys.linea.testing;
 
 import static net.consensys.linea.testing.ShomeiNode.MerkelProofResponse;
+import static net.consensys.linea.zktracer.Fork.isPostParis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hyperledger.besu.tests.acceptance.dsl.WaitUtils.waitFor;
 
@@ -80,13 +81,16 @@ public class BesuExecutionTools {
   private final List<Transaction> transactions;
   private final String testName;
   private final GenesisConfigBuilder genesisConfigBuilder;
+  private final Boolean oneTxPerBlock;
 
   public BesuExecutionTools(
       String testName,
       ChainConfig chainConfig,
       Address coinbase,
       List<ToyAccount> accounts,
-      List<Transaction> transactions) {
+      List<Transaction> transactions,
+      Boolean oneTxPerBlock,
+      String customGenesisFile) {
     String randomUUID = UUID.randomUUID().toString();
     String tmpTestName =
         Optional.ofNullable(testName)
@@ -97,10 +101,12 @@ public class BesuExecutionTools {
     int besuPort = findFreePort();
     int shomeiPort = findFreePort();
     this.httpClient = new OkHttpClient();
-    // Generate file per fork in resources
-    // TODO: change path to the genesis file if needed
-    // String genesisFileName = "BesuExecutionToolsGenesis_" + chainConfig.fork.name() + ".json";
-    String genesisFileName = "BesuExecutionToolsGenesis_SHANGHAI.json";
+    this.oneTxPerBlock = oneTxPerBlock;
+    // Generate file per fork in testing/src/main/resources folder
+    String genesisFileName =
+        (customGenesisFile == null)
+            ? "BesuExecutionToolsGenesis_" + chainConfig.fork.name() + ".json"
+            : customGenesisFile;
     GenesisConfigBuilder genesisConfigBuilder = new GenesisConfigBuilder(genesisFileName);
     genesisConfigBuilder.setChainId(chainConfig.id);
     genesisConfigBuilder.setCoinbase(coinbase);
@@ -150,8 +156,17 @@ public class BesuExecutionTools {
       ChainConfig chainConfig,
       Address coinbase,
       List<ToyAccount> accounts,
-      List<Transaction> transactions) {
-    this(getTestName(testInfo), chainConfig, coinbase, accounts, transactions);
+      List<Transaction> transactions,
+      Boolean oneTxPerBlock,
+      String customGenesisFile) {
+    this(
+        getTestName(testInfo),
+        chainConfig,
+        coinbase,
+        accounts,
+        transactions,
+        oneTxPerBlock,
+        customGenesisFile);
   }
 
   public void executeTest() {
@@ -167,8 +182,10 @@ public class BesuExecutionTools {
 
       // Send transaction to the transaction pool with eth_sendRawTransaction
       EthTransactions ethTransactions = new EthTransactions();
+      Fork nextFork = null;
 
       for (Transaction tx : transactions) {
+        Fork currentFork = nextFork;
         Map<String, Boolean> txReceiptProcessed = new HashMap<>();
         ConcurrentSet<Long> blockNumbers = new ConcurrentSet<>();
         var txHash =
@@ -179,19 +196,20 @@ public class BesuExecutionTools {
         // We use EngineAPIService to mimick the consensus layer steps and build a new block
         var blockInfo = this.besuNode.execute(ethTransactions.block());
         var latestTimestamp = this.besuNode.execute(ethTransactions.block()).getTimestamp();
-        var nextFork = nextBlockFork(blockInfo);
+        nextFork = nextBlockFork(blockInfo);
         ObjectMapper mapper = new ObjectMapper();
         EngineAPIService engineApiService = new EngineAPIService(besuNode, ethTransactions, mapper);
         // TODO: retrieve blockpersec in genesis
-        engineApiService.buildNewBlock(nextFork, latestTimestamp.longValue() + 1L, 1000);
-
-        log.info(
-            "Executed transaction {}, nextFork={}, blockNumber={}, blockTimestamp={}",
-            txHash,
-            nextFork,
-            blockInfo.getNumber(),
-            blockInfo.getTimestamp());
+        if (isPostParis(nextFork)) {
+          engineApiService.buildNewBlock(nextFork, latestTimestamp.longValue() + 1L, 1000);
+        }
         // We check that the transactions are included in a block
+        // In case we switch Forks from London to Paris, the transaction is included in the next
+        // block
+        // One empty block with new consensus is created to replace Clique one
+        if (currentFork == Fork.LONDON && nextFork == Fork.PARIS) {
+          continue;
+        }
         waitFor(
             100,
             () -> {
@@ -205,7 +223,7 @@ public class BesuExecutionTools {
               blockNumbers.add(txReceiptShanghai.getBlockNumber().longValue());
               txReceiptProcessed.put(txHash, true);
               log.info(
-                  "Executed transaction shanghai txHash={}, blockNumber={}",
+                  "Executed transaction txHash={}, blockNumber={}",
                   txReceiptShanghai.getTransactionHash(),
                   txReceiptShanghai.getBlockNumber());
             });
@@ -369,7 +387,7 @@ public class BesuExecutionTools {
   }
 
   private Fork nextBlockFork(Block block) {
-    var blockNbr = block.getNumber().add(BigInteger.ONE);
+    var blockNbr = block.getTotalDifficulty().add(BigInteger.ONE);
     var blockTimestamp = block.getTimestamp();
 
     var TTD = genesisConfigBuilder.getTTD();
@@ -387,11 +405,10 @@ public class BesuExecutionTools {
     // Fork from Paris specified
     if (blockNbr.compareTo(totalDifficulty) >= 0) {
       if (shanghaiTime != null
-          && (blockTimestamp.longValue() + 1L + 15000) >= Long.parseLong(shanghaiTime)) {
-        if (cancunTime != null
-            && (blockTimestamp.longValue() + 1L + 15000) >= Long.parseLong(cancunTime)) {
+          && (blockTimestamp.longValue() + 1L) >= Long.parseLong(shanghaiTime)) {
+        if (cancunTime != null && (blockTimestamp.longValue() + 1L) >= Long.parseLong(cancunTime)) {
           if (pragueTime != null
-              && (blockTimestamp.longValue() + 1L + 15000) >= Long.parseLong(pragueTime)) {
+              && (blockTimestamp.longValue() + 1L) >= Long.parseLong(pragueTime)) {
             return Fork.PRAGUE;
           }
           return Fork.CANCUN;
@@ -400,9 +417,7 @@ public class BesuExecutionTools {
       }
       return Fork.PARIS;
     }
-    throw new IllegalStateException(
-        "Please check Genesis file again, fork switch is not correct blockNbr=%s, blockTimestamp=%s, TTD=%s, shanghaiTime=%s, cancunTime=%s, pragueTime=%s"
-            .formatted(blockNbr, blockTimestamp, TTD, shanghaiTime, cancunTime, pragueTime));
+    return Fork.LONDON;
   }
 
   private static CorsetValidator getCorsetValidatorPerFork(Fork fork) {

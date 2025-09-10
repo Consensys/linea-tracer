@@ -79,47 +79,8 @@ public class PointEvaluationTest extends TracerTestBase {
             .getHub()
             .blsData()
             .blsDataOperation()
-            .successBit()); // TODO: here success bit should be false, check it
+            .successBit());
   }
-
-  /*
-    @Test
-  void mintDueToZNotInRangeTest(TestInfo testInfo) {
-    BigInteger upper = new BigInteger("ff".repeat(32), 16);
-    BigInteger lower = POINT_EVALUATION_PRIME.toBigInteger();
-    BigInteger middle = upper.add(lower).divide(BigInteger.valueOf(2));
-    List<BigInteger> middles = new ArrayList<>();
-
-    for (int i = 0; i < 256; i++) {
-      upper = middle;
-      middle = upper.add(lower).divide(BigInteger.valueOf(2));
-      middles.add(middle);
-    }
-
-    for (int i = 127; i < middles.size(); i++) {
-      assertEquals(64, middles.get(i).toString(16).length());
-      BytecodeRunner bytecodeRunner =
-          pointEvaluationProgram(
-              "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
-              middles.get(i).toString(16),
-              "0000000000000000000000000000000000000000000000000000000000000000",
-              "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-              "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
-              testInfo);
-
-      System.out.println(i + ":" + middles.get(i));
-
-      assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
-      assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
-      assertFalse(
-          bytecodeRunner
-              .getHub()
-              .blsData()
-              .blsDataOperation()
-              .successBit());
-    }
-  }
-   */
 
   @Test
   void mintDueToYNotInRangeTest(TestInfo testInfo) {

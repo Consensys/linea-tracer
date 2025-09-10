@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub.signals;
 
 import static net.consensys.linea.zktracer.Fork.isPostShanghai;
 import static net.consensys.linea.zktracer.Trace.*;
-import static net.consensys.linea.zktracer.TraceCancun.Mxp.MXPX_THRESHOLD;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.CANCUN_MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.TraceLondon.Mxp.LONDON_MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static org.hyperledger.besu.evm.internal.Words.clampedToInt;
@@ -131,7 +131,7 @@ public class Exceptions {
   private static boolean isMemoryExpansionFault(Fork fork, GasProjection op) {
     return switch (fork) {
       case LONDON, PARIS, SHANGHAI -> op.mxpxOffset(fork) >= LONDON_MXPX_THRESHOLD;
-      case CANCUN, PRAGUE, OSAKA -> op.mxpxOffset(fork) > MXPX_THRESHOLD;
+      case CANCUN, PRAGUE, OSAKA -> op.mxpxOffset(fork) > CANCUN_MXPX_THRESHOLD;
       default -> throw new IllegalArgumentException("Unknown fork: " + fork);
     };
   }

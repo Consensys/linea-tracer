@@ -309,7 +309,8 @@ public class SixtyThreeSixtyFourthsTests extends TracerTestBase {
             ? PRECOMPILE_CALL_DATA_SIZE___BLAKE2F
             : address == KZG_POINT_EVAL
                 ? PRECOMPILE_CALL_DATA_SIZE___POINT_EVALUATION
-                : 0, // For BLAKE2F and POINT_EVALUATION we need a meaningful cds for the call to succeed
+                : 0, // For BLAKE2F and POINT_EVALUATION we need a meaningful cds for the call to
+        // succeed
         true);
   }
 

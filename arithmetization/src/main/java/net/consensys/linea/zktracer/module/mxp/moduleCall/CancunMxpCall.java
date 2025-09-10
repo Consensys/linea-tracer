@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.mxp.moduleCall;
 
-import static net.consensys.linea.zktracer.TraceCancun.Mxp.MXPX_THRESHOLD;
 import static net.consensys.linea.zktracer.module.mxp.MxpUtils.memoryCost;
 import static net.consensys.linea.zktracer.types.Conversions.*;
 

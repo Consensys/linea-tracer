@@ -74,12 +74,22 @@ public class PointEvaluationTest extends TracerTestBase {
             testInfo);
     assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
     assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
-    assertFalse(
-        bytecodeRunner
-            .getHub()
-            .blsData()
-            .blsDataOperation()
-            .successBit());
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
+  }
+
+  @Test
+  void accidentallyValidInputTemporaryTest(TestInfo testInfo) {
+    BytecodeRunner bytecodeRunner =
+        pointEvaluationProgram(
+            "010657f37554c781402a22917dee2f75def7ab966d7b770905398eba3c444014",
+            "73eda753299d7d483339d80809a1d805" + "1b4d2c3f4b6a0c7e8f3f5a0e9d1b2c3f",
+            "0000000000000000000000000000000000000000000000000000000000000000",
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+            testInfo);
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
+    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
+    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().successBit()); // TODO: why?
   }
 
   @Test

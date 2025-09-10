@@ -34,8 +34,8 @@ public class Call extends GasProjection {
   final GasCalculator gc;
   private final MessageFrame frame;
   private final long stipend;
-  private final Range inputData;
-  private final Range returnData;
+  private final Range callDataRange;
+  private final Range returnAtRange;
   private final Wei value;
   private final Account recipient;
   private final Address to;
@@ -53,10 +53,9 @@ public class Call extends GasProjection {
     if (this.isInvalid()) {
       return 0;
     }
-
     return Math.max(
-        gc.memoryExpansionGasCost(frame, inputData.offset(), inputData.size()),
-        gc.memoryExpansionGasCost(frame, returnData.offset(), returnData.size()));
+        gc.memoryExpansionGasCost(frame, callDataRange.offset(), callDataRange.size()),
+        gc.memoryExpansionGasCost(frame, returnAtRange.offset(), returnAtRange.size()));
   }
 
   @Override
@@ -68,17 +67,17 @@ public class Call extends GasProjection {
     switch (fork) {
       case LONDON, PARIS, SHANGHAI -> {
         return Math.max(
-            inputData.isEmpty() ? 0 : Words.clampedAdd(inputData.offset(), inputData.size() - 1),
-            returnData.isEmpty()
+            callDataRange.isEmpty()
                 ? 0
-                : Words.clampedAdd(returnData.offset(), returnData.size() - 1));
+                : Words.clampedAdd(callDataRange.offset(), callDataRange.size() - 1),
+            returnAtRange.isEmpty()
+                ? 0
+                : Words.clampedAdd(returnAtRange.offset(), returnAtRange.size() - 1));
       }
       case CANCUN, PRAGUE, OSAKA -> {
-        return (inputData.isEmpty() && returnData.isEmpty())
-            ? 0
-            : Math.max(
-                Math.max(inputData.offset(), inputData.size()),
-                Math.max(returnData.offset(), returnData.size()));
+        return Math.max(
+            callDataRange.isEmpty() ? 0 : Math.max(callDataRange.offset(), callDataRange.size()),
+            returnAtRange.isEmpty() ? 0 : Math.max(returnAtRange.offset(), returnAtRange.size()));
       }
       default -> throw new IllegalArgumentException("Unknown fork: " + fork);
     }

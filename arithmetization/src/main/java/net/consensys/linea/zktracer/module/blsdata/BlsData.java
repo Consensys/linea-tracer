@@ -72,12 +72,12 @@ public class BlsData implements OperationListModule<BlsDataOperation> {
 
   @Override
   public List<Trace.ColumnHeader> columnHeaders(Trace trace) {
-    return trace.bls().headers(this.lineCount());
+    return trace.blsdata().headers(this.lineCount());
   }
 
   @Override
   public int spillage(Trace trace) {
-    return trace.bls().spillage();
+    return trace.blsdata().spillage();
   }
 
   @Override
@@ -85,7 +85,7 @@ public class BlsData implements OperationListModule<BlsDataOperation> {
     int stamp = 0;
     long previousId = 0;
     for (BlsDataOperation op : operations.getAll()) {
-      op.trace(trace.bls(), ++stamp, previousId);
+      op.trace(trace.blsdata(), ++stamp, previousId);
       previousId = op.id();
     }
   }

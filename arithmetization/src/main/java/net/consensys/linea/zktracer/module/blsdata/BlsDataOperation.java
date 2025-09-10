@@ -18,34 +18,34 @@ package net.consensys.linea.zktracer.module.blsdata;
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_0;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_1;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_2;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.BLS_PRIME_3;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_LARGE_POINT;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_MAP_FP2_TO_G2;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_MAP_FP_TO_G1;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_POINT_EVALUATION;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_SCALAR;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.CT_MAX_SMALL_POINT;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G1_ADD;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G1_MSM_MIN;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G2_ADD;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_G2_MSM_MIN;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_MAP_FP2_TO_G2;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_MAP_FP_TO_G1;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_PAIRING_CHECK_MIN;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_DATA_POINT_EVALUATION;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G1_ADD;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G1_MSM;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G2_ADD;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_G2_MSM;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP2_TO_G2;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_MAP_FP_TO_G1;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_PAIRING_CHECK;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.INDEX_MAX_RSLT_POINT_EVALUATION;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_HI;
-import static net.consensys.linea.zktracer.TraceCancun.Bls.POINT_EVALUATION_PRIME_LO;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.BLS_PRIME_0;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.BLS_PRIME_1;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.BLS_PRIME_2;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.BLS_PRIME_3;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.CT_MAX_LARGE_POINT;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.CT_MAX_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.CT_MAX_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.CT_MAX_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.CT_MAX_SCALAR;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.CT_MAX_SMALL_POINT;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_DATA_G1_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_DATA_G1_MSM_MIN;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_DATA_G2_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_DATA_G2_MSM_MIN;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_DATA_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_DATA_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_DATA_PAIRING_CHECK_MIN;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_DATA_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_RSLT_G1_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_RSLT_G1_MSM;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_RSLT_G2_ADD;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_RSLT_G2_MSM;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_RSLT_MAP_FP2_TO_G2;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_RSLT_MAP_FP_TO_G1;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_RSLT_PAIRING_CHECK;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.INDEX_MAX_RSLT_POINT_EVALUATION;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.POINT_EVALUATION_PRIME_HI;
+import static net.consensys.linea.zktracer.TraceCancun.Blsdata.POINT_EVALUATION_PRIME_LO;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_ADD;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G1_MSM;
 import static net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment.PrecompileFlag.PRC_BLS_G2_ADD;
@@ -961,7 +961,7 @@ public class BlsDataOperation extends ModuleOperation {
     }
   }
 
-  void trace(Trace.Bls trace, final int stamp, final long previousId) {
+  void trace(Trace.Blsdata trace, final int stamp, final long previousId) {
     final Bytes limb = Bytes.concatenate(callData, returnData);
     final boolean returnDataIsNonEmpty = returnData.toArray().length > 0;
 

@@ -18,10 +18,7 @@ package net.consensys.linea.zktracer;
 import java.util.List;
 
 import net.consensys.linea.reporting.TracerTestBase;
-import net.consensys.linea.testing.BytecodeCompiler;
-import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
-import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -73,6 +70,7 @@ public class ExampleBesuTest extends TracerTestBase {
         .run();
   }
 
+  // Fails - issue opened https://github.com/Consensys/linea-tracer/issues/2263
   @Test
   void testForkSwitchParisToCancun(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -81,65 +79,37 @@ public class ExampleBesuTest extends TracerTestBase {
     ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
-    BytecodeCompiler compilerParis =
+    BytecodeCompiler compilerMain =
         BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
 
-    BytecodeCompiler compilerShanghai =
-        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+    // PREVRANDAO opcode
+    Bytes codeParis = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x5F"));
 
-    Bytes forShanghai = Bytes.concatenate(compilerShanghai.compile(), Bytes.fromHexString("0x5F"));
+    // PUSH0
+    Bytes codeShanghai = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x5F"));
 
-    BytecodeCompiler compilerCancun =
-        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+    // MCOPY
+    Bytes codeCancun = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x5E"));
 
-    Bytes forCancun = Bytes.concatenate(compilerCancun.compile(), Bytes.fromHexString("0x5E"));
+    ToyAccount receiverAccountParis = getReceiverAccount("0x111120", codeParis);
 
-    ToyAccount receiverAccountParis =
-        ToyAccount.builder()
-            .balance(Wei.ONE)
-            .nonce(6)
-            .address(Address.fromHexString("0x111120"))
-            .code(compilerParis.compile())
-            .build();
+    ToyAccount receiverAccountShanghai = getReceiverAccount("0x111112", codeShanghai);
 
-    ToyAccount receiverAccountShanghai =
-        ToyAccount.builder()
-            .balance(Wei.ONE)
-            .nonce(6)
-            .address(Address.fromHexString("0x111111"))
-            .code(forShanghai)
-            .build();
+    ToyAccount receiverAccountCancun = getReceiverAccount("0x111112", codeCancun);
 
-    ToyAccount receiverAccountCancun =
-        ToyAccount.builder()
-            .balance(Wei.ONE)
-            .nonce(6)
-            .address(Address.fromHexString("0x111112"))
-            .code(forCancun)
-            .build();
+    ToyTransaction.ToyTransactionBuilder txBuilderParis =
+        ToyTransaction.builder().to(receiverAccountParis).keyPair(keyPair);
 
-    Transaction txParis =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(receiverAccountParis)
-            .keyPair(keyPair)
-            .build();
+    ToyTransaction.ToyTransactionBuilder txBuilderShanghai =
+        ToyTransaction.builder().to(receiverAccountShanghai).keyPair(keyPair);
 
-    Transaction txShanghai =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(receiverAccountShanghai)
-            .keyPair(keyPair)
-            .nonce(senderAccount.getNonce() + 1L)
-            .build();
+    ToyTransaction.ToyTransactionBuilder txBuilderCancun =
+        ToyTransaction.builder().to(receiverAccountCancun).keyPair(keyPair);
 
-    Transaction txCancun =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(receiverAccountCancun)
-            .keyPair(keyPair)
-            .nonce(senderAccount.getNonce() + 2L)
-            .build();
+    // create transactions with the same sender, manages nonce
+    final List<Transaction> transactions =
+        ToyMultiTransaction.builder()
+            .build(List.of(txBuilderParis, txBuilderShanghai, txBuilderCancun), senderAccount);
 
     ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(
@@ -148,7 +118,7 @@ public class ExampleBesuTest extends TracerTestBase {
                 receiverAccountParis,
                 receiverAccountShanghai,
                 receiverAccountCancun))
-        .transactions(List.of(txParis, txShanghai, txCancun))
+        .transactions(transactions)
         .runWithBesuNode(true)
         .oneTxPerBlockOnBesuNode(true)
         .customBesuNodeGenesis("BesuExecutionToolsGenesis_ParisToCancun.json")
@@ -164,58 +134,46 @@ public class ExampleBesuTest extends TracerTestBase {
     ToyAccount senderAccount =
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
-    BytecodeCompiler compilerLondon =
+    BytecodeCompiler compilerMain =
         BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
 
-    BytecodeCompiler compilerParis =
-        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+    // PREVRANDAO opcode
+    Bytes codeParis = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x44"));
 
-    ToyAccount receiverAccountLondon =
-        ToyAccount.builder()
-            .balance(Wei.ONE)
-            .nonce(6)
-            .address(Address.fromHexString("0x111100"))
-            .code(compilerLondon.compile())
-            .build();
+    ToyAccount receiverAccountLondon = getReceiverAccount("0x111100", compilerMain.compile());
 
-    ToyAccount receiverAccountParis =
-        ToyAccount.builder()
-            .balance(Wei.ONE)
-            .nonce(6)
-            .address(Address.fromHexString("0x111120"))
-            .code(compilerParis.compile())
-            .build();
+    ToyAccount receiverAccountParis = getReceiverAccount("0x111120", codeParis);
 
-    Transaction txLondon =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(receiverAccountLondon)
-            .keyPair(keyPair)
-            .build();
+    ToyTransaction.ToyTransactionBuilder txBuilderLondon =
+        ToyTransaction.builder().to(receiverAccountLondon).keyPair(keyPair);
 
-    Transaction txParis =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(receiverAccountParis)
-            .keyPair(keyPair)
-            .nonce(senderAccount.getNonce() + 1L)
-            .build();
+    ToyTransaction.ToyTransactionBuilder txBuilderParis =
+        ToyTransaction.builder().to(receiverAccountParis).keyPair(keyPair);
 
-    Transaction txParis2 =
-        ToyTransaction.builder()
-            .sender(senderAccount)
-            .to(receiverAccountParis)
-            .keyPair(keyPair)
-            .nonce(senderAccount.getNonce() + 2L)
-            .build();
+    ToyTransaction.ToyTransactionBuilder txBuilderParis2 =
+        ToyTransaction.builder().to(receiverAccountParis).keyPair(keyPair);
+
+    // create transactions with the same sender, manages nonce
+    final List<Transaction> transactions =
+        ToyMultiTransaction.builder()
+            .build(List.of(txBuilderLondon, txBuilderParis, txBuilderParis2), senderAccount);
 
     ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
         .accounts(List.of(senderAccount, receiverAccountLondon, receiverAccountParis))
-        .transactions(List.of(txLondon, txParis, txParis2))
+        .transactions(transactions)
         .runWithBesuNode(true)
         .oneTxPerBlockOnBesuNode(true)
         .customBesuNodeGenesis("BesuExecutionToolsGenesis_LondonToParis.json")
         .build()
         .run();
+  }
+
+  private ToyAccount getReceiverAccount(String address, Bytes code) {
+    return ToyAccount.builder()
+        .balance(Wei.ONE)
+        .nonce(6)
+        .address(Address.fromHexString(address))
+        .code(code)
+        .build();
   }
 }

@@ -41,6 +41,7 @@ import net.consensys.linea.reporting.TestOutcome;
 import net.consensys.linea.reporting.TestOutcomeWriterTool;
 import net.consensys.linea.testing.ExecutionEnvironment;
 import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkTracer;
 import org.hyperledger.besu.ethereum.BlockValidator;
 import org.hyperledger.besu.ethereum.MainnetBlockValidatorBuilder;
@@ -433,31 +434,31 @@ public class BlockchainReferenceTestTools {
     // Contantinople+Fix
     // - in state tests, they run on the 3 forks above only
     // - coinbase is in pre and not post and has no balance
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g0v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g1v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g2v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g3v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g0v0_*");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g1v0_*");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g2v0_*");
+    PARAMS.ignore("ecmul_1-3_0_28000_80_d0g3v0_*");
     // - all the other ecmul tests for point 0,3 factor
     // 21888242871839275222246405745257275088548364400416034343698204186575808495616 have coinbase
     // pre and post with balance
     // - coinbase is in pre and not post and has no balance
-    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g0v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g1v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g2v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g0v0_*");
+    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g1v0_*");
+    PARAMS.ignore("ecmul_0-3_5616_28000_96_d0g2v0_*");
     // - all the other ecadd tests for points (0,0) and (0,0) have coinbase pre and post with
     // balance
     // - coinbase is in pre and not post and has no balance
-    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g0v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g1v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g2v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g3v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g0v0_*");
+    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g1v0_*");
+    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g2v0_*");
+    PARAMS.ignore("ecadd_0-0_0-0_21000_80_d0g3v0_*");
     // - all the other ecadd tests for points (1,3) and (0,0) have coinbase pre and post with
     // balance
     // - coinbase is in pre and not post and has no balance
-    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g0v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g1v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g2v0_Shanghai\\[Shanghai\\]");
-    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g3v0_Shanghai\\[Shanghai\\]");
+    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g0v0_*");
+    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g1v0_*");
+    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g2v0_*");
+    PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g3v0_*");
 
     // System transactions Withdrawals are not supported
     // Breaks hub.account-consistency---linking---conflation-level---balance as the transition on
@@ -561,7 +562,8 @@ public class BlockchainReferenceTestTools {
 
     final ProtocolSchedule schedule =
         REFERENCE_TEST_PROTOCOL_SCHEDULES.getByName(spec.getNetwork());
-    final ChainConfig chain = ChainConfig.ETHEREUM_CHAIN(spec.getNetwork());
+    final Fork fork = getForkFromNetwork(spec.getNetwork());
+    final ChainConfig chain = ChainConfig.ETHEREUM_CHAIN(fork);
     final MutableBlockchain blockchain = spec.getBlockchain();
     final ProtocolContext context = spec.getProtocolContext();
 
@@ -653,5 +655,12 @@ public class BlockchainReferenceTestTools {
             corsetBlockProcessor);
 
     return new MainnetBlockImporter(blockValidator);
+  }
+
+  private static Fork getForkFromNetwork(String string) {
+    if (string.equals("Merge")) {
+      return Fork.PARIS;
+    }
+    return Fork.fromString(string);
   }
 }

@@ -631,9 +631,7 @@ public class MmuCall implements TraceSubFragment, EndTransactionDefer {
         .sourceId(precompileContextNumber)
         .sourceRamBytes(
             Optional.of(
-                leftPadTo(
-                    subsection.returnDataRange.extract(),
-                    TOTAL_SIZE_ECPAIRING_RESULT)))
+                leftPadTo(subsection.returnDataRange.extract(), TOTAL_SIZE_ECPAIRING_RESULT)))
         .targetId(hub.currentFrame().contextNumber())
         .targetRamBytes(Optional.of(subsection.rawCallerMemory()))
         .size(TOTAL_SIZE_ECPAIRING_RESULT)

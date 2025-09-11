@@ -60,7 +60,6 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
@@ -71,7 +70,6 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.module.hub.fragment.scenario.PrecompileScenarioFragment;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.EWord;
 import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes;
@@ -266,7 +264,7 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean wellFormedCoordinate =
           wellFormedFpCoordinate(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean isSmallPointOnCurve =
-          isSmallPointOnCurve(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+          isSmallPointOnCurve(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBit = wellFormedCoordinate && !isSmallPointOnCurve;
       Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
@@ -300,7 +298,7 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean wellFormedCoordinate =
           wellFormedFpCoordinate(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean isSmallPointInSubgroup =
-          isSmallPointInSubGroup(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+          isSmallPointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBit = wellFormedCoordinate && !isSmallPointInSubgroup;
       Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
@@ -358,24 +356,7 @@ public class BlsDataOperation extends ModuleOperation {
               aYRe1,
               aYRe0);
       final boolean isLargePointOnCurve =
-          isLargePointOnCurve(
-              indexOffset,
-              aXIm3,
-              aXIm2,
-              aXIm1,
-              aXIm0,
-              aXRe3,
-              aXRe2,
-              aXRe1,
-              aXRe0,
-              aYIm3,
-              aYIm2,
-              aYIm1,
-              aYIm0,
-              aYRe3,
-              aYRe2,
-              aYRe1,
-              aYRe0);
+          isLargePointOnCurve(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
       final boolean mextBit = wellFormedCoordinate && !isLargePointOnCurve;
       Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
@@ -434,24 +415,7 @@ public class BlsDataOperation extends ModuleOperation {
               aYRe1,
               aYRe0);
       final boolean isLargePointInSubgroup =
-          isLargePointInSubGroup(
-              indexOffset,
-              aXIm3,
-              aXIm2,
-              aXIm1,
-              aXIm0,
-              aXRe3,
-              aXRe2,
-              aXRe1,
-              aXRe0,
-              aYIm3,
-              aYIm2,
-              aYIm1,
-              aYIm0,
-              aYRe3,
-              aYRe2,
-              aYRe1,
-              aYRe0);
+          isLargePointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
       final boolean mextBit = wellFormedCoordinate && !isLargePointInSubgroup;
       Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
@@ -503,7 +467,7 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean wellFormedFpCoordinate =
           wellFormedFpCoordinate(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
       final boolean isSmallPointInSubgroup =
-          isSmallPointInSubGroup(indexOffset, aX3, aX2, aX1, aX0, aY3, aY2, aY1, aY0);
+          isSmallPointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBitSmall = wellFormedFpCoordinate && !isSmallPointInSubgroup;
       Preconditions.checkArgument(mextBitSmall == (wellFormedFpCoordinate && !successBit));
 
@@ -536,23 +500,7 @@ public class BlsDataOperation extends ModuleOperation {
               bYRe0);
       final boolean isLargePointInSubgroup =
           isLargePointInSubGroup(
-              8 + indexOffset,
-              bXIm3,
-              bXIm2,
-              bXIm1,
-              bXIm0,
-              bXRe3,
-              bXRe2,
-              bXRe1,
-              bXRe0,
-              bYIm3,
-              bYIm2,
-              bYIm1,
-              bYIm0,
-              bYRe3,
-              bYRe2,
-              bYRe1,
-              bYRe0);
+              8 + indexOffset, callData.slice(8 * LLARGE + sizeOffset, SIZE_LARGE_POINT));
       final boolean mextBitLarge = wellFormedFp2Coordinate && !isLargePointInSubgroup;
       Preconditions.checkArgument(mextBitLarge == (wellFormedFp2Coordinate && !successBit));
 
@@ -621,162 +569,49 @@ public class BlsDataOperation extends ModuleOperation {
     }
   }
 
-  private boolean isSmallPointOnCurve(
-      int i,
-      Bytes pX3,
-      Bytes pX2,
-      Bytes pX1,
-      Bytes pX0,
-      Bytes pY3,
-      Bytes pY2,
-      Bytes pY1,
-      Bytes pY0) {
-    final boolean isInfinity = isInfinity(i, pX3, pX2, pX1, pX0, pY3, pY2, pY1, pY0);
+  private boolean isSmallPointOnCurve(int i, Bytes smallPoint) {
+    final boolean isInfinity = isInfinity(i, smallPoint);
     if (isInfinity) {
       return true;
     }
 
-    byte[] input =
-        Bytes.concatenate(
-                Bytes16.leftPad(pX3),
-                Bytes16.leftPad(pX2),
-                Bytes16.leftPad(pX1),
-                Bytes16.leftPad(pX0),
-                Bytes16.leftPad(pY3),
-                Bytes16.leftPad(pY2),
-                Bytes16.leftPad(pY1),
-                Bytes16.leftPad(pY0))
-            .toArray();
+    byte[] input = smallPoint.toArray();
     byte[] error = new byte[256];
-    return LibGnarkEIP2537.eip2537G1IsOnCurve(input, error, input.length, error.length);
+    return LibGnarkEIP2537.eip2537G1IsOnCurve(
+        smallPoint.toArray(), error, input.length, error.length);
   }
 
   // Note: this checks also if the point is on curve
-  private boolean isSmallPointInSubGroup(
-      int i,
-      Bytes pX3,
-      Bytes pX2,
-      Bytes pX1,
-      Bytes pX0,
-      Bytes pY3,
-      Bytes pY2,
-      Bytes pY1,
-      Bytes pY0) {
-    final boolean isOnCurve = isSmallPointOnCurve(i, pX3, pX2, pX1, pX0, pY3, pY2, pY1, pY0);
+  private boolean isSmallPointInSubGroup(int i, Bytes smallPoint) {
+    final boolean isOnCurve = isSmallPointOnCurve(i, smallPoint);
     if (!isOnCurve) {
       return false;
     }
 
-    byte[] input =
-        Bytes.concatenate(
-                Bytes16.leftPad(pX3),
-                Bytes16.leftPad(pX2),
-                Bytes16.leftPad(pX1),
-                Bytes16.leftPad(pX0),
-                Bytes16.leftPad(pY3),
-                Bytes16.leftPad(pY2),
-                Bytes16.leftPad(pY1),
-                Bytes16.leftPad(pY0))
-            .toArray();
+    byte[] input = smallPoint.toArray();
     byte[] error = new byte[256];
     return LibGnarkEIP2537.eip2537G1IsInSubGroup(input, error, input.length, error.length);
   }
 
-  private boolean isLargePointOnCurve(
-      int i,
-      Bytes pXIm3,
-      Bytes pXIm2,
-      Bytes pXIm1,
-      Bytes pXIm0,
-      Bytes pXRe3,
-      Bytes pXRe2,
-      Bytes pXRe1,
-      Bytes pXRe0,
-      Bytes pYIm3,
-      Bytes pYIm2,
-      Bytes pYIm1,
-      Bytes pYIm0,
-      Bytes pYRe3,
-      Bytes pYRe2,
-      Bytes pYRe1,
-      Bytes pYRe0) {
-    final boolean isInfinity =
-        isInfinity(
-            i, pXIm3, pXIm2, pXIm1, pXIm0, pXRe3, pXRe2, pXRe1, pXRe0, pYIm3, pYIm2, pYIm1, pYIm0,
-            pYRe3, pYRe2, pYRe1, pYRe0);
+  private boolean isLargePointOnCurve(int i, Bytes largePoint) {
+    final boolean isInfinity = isInfinity(i, largePoint);
     if (isInfinity) {
       return true;
     }
 
-    byte[] input =
-        Bytes.concatenate(
-                Bytes16.leftPad(pXIm3),
-                Bytes16.leftPad(pXIm2),
-                Bytes16.leftPad(pXIm1),
-                Bytes16.leftPad(pXIm0),
-                Bytes16.leftPad(pXRe3),
-                Bytes16.leftPad(pXRe2),
-                Bytes16.leftPad(pXRe1),
-                Bytes16.leftPad(pXRe0),
-                Bytes16.leftPad(pYIm3),
-                Bytes16.leftPad(pYIm2),
-                Bytes16.leftPad(pYIm1),
-                Bytes16.leftPad(pYIm0),
-                Bytes16.leftPad(pYRe3),
-                Bytes16.leftPad(pYRe2),
-                Bytes16.leftPad(pYRe1),
-                Bytes16.leftPad(pYRe0))
-            .toArray();
+    byte[] input = largePoint.toArray();
     byte[] error = new byte[256];
     return LibGnarkEIP2537.eip2537G2IsOnCurve(input, error, input.length, error.length);
   }
 
   // Note: this checks also if the point is on curve
-  private boolean isLargePointInSubGroup(
-      int i,
-      Bytes pXIm3,
-      Bytes pXIm2,
-      Bytes pXIm1,
-      Bytes pXIm0,
-      Bytes pXRe3,
-      Bytes pXRe2,
-      Bytes pXRe1,
-      Bytes pXRe0,
-      Bytes pYIm3,
-      Bytes pYIm2,
-      Bytes pYIm1,
-      Bytes pYIm0,
-      Bytes pYRe3,
-      Bytes pYRe2,
-      Bytes pYRe1,
-      Bytes pYRe0) {
-    final boolean isOnCurve =
-        isLargePointOnCurve(
-            i, pXIm3, pXIm2, pXIm1, pXIm0, pXRe3, pXRe2, pXRe1, pXRe0, pYIm3, pYIm2, pYIm1, pYIm0,
-            pYRe3, pYRe2, pYRe1, pYRe0);
+  private boolean isLargePointInSubGroup(int i, Bytes largePoint) {
+    final boolean isOnCurve = isLargePointOnCurve(i, largePoint);
     if (!isOnCurve) {
       return false;
     }
 
-    byte[] input =
-        Bytes.concatenate(
-                Bytes16.leftPad(pXIm3),
-                Bytes16.leftPad(pXIm2),
-                Bytes16.leftPad(pXIm1),
-                Bytes16.leftPad(pXIm0),
-                Bytes16.leftPad(pXRe3),
-                Bytes16.leftPad(pXRe2),
-                Bytes16.leftPad(pXRe1),
-                Bytes16.leftPad(pXRe0),
-                Bytes16.leftPad(pYIm3),
-                Bytes16.leftPad(pYIm2),
-                Bytes16.leftPad(pYIm1),
-                Bytes16.leftPad(pYIm0),
-                Bytes16.leftPad(pYRe3),
-                Bytes16.leftPad(pYRe2),
-                Bytes16.leftPad(pYRe1),
-                Bytes16.leftPad(pYRe0))
-            .toArray();
+    byte[] input = largePoint.toArray();
     byte[] error = new byte[256];
     return LibGnarkEIP2537.eip2537G2IsInSubGroup(input, error, input.length, error.length);
   }
@@ -925,15 +760,11 @@ public class BlsDataOperation extends ModuleOperation {
   }
 
   // Note: in the specs isInfinity receives directly the sum of the coordinate
-  private boolean isInfinity(int i, Bytes... coordinate) {
-    BigInteger coordinateSum =
-        Arrays.stream(coordinate).map(Bytes::toBigInteger).reduce(BigInteger.ZERO, BigInteger::add);
+  private boolean isInfinity(int i, Bytes point) {
+    final boolean isInfinity = point.isZero();
 
-    // Check if the sum of coordinates is zero, i.e., the point is at infinity
-    final boolean isInfinity = coordinateSum.signum() == 0;
-
-    // Set the isInfinity flag for all coordinates
-    for (int j = 0; j < coordinate.length; j++) {
+    // Set the isInfinity flag for all coordinate
+    for (int j = 0; j < point.size() / LLARGE; j++) {
       this.isInfinity.set(i + j, isInfinity);
     }
 

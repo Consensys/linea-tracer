@@ -80,7 +80,7 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
     fragments().add(accountFragment);
 
     if (isNonTrivialOperation) {
-      final EWord keyTimestamp = EWord.of(timestamp.remainder(HISTORY_BUFFER_LENGTH_BI));
+      final EWord keyTimestamp = EWord.of(timestamp.mod(HISTORY_BUFFER_LENGTH_BI));
       final StorageFragment storingTimestamp =
           systemTransactionStoring(
               hub,

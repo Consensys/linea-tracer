@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.SYSI;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.HISTORY_BUFFER_LENGTH_BI;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.EucRow.callToEuc;
 import static net.consensys.linea.zktracer.module.txndata.rows.computationRows.WcpRow.smallCallToIszero;
 import static net.consensys.linea.zktracer.module.txndata.rows.hubRows.Type.EIP4788;
@@ -57,8 +58,7 @@ public class SysiEip4788Transaction extends TxnDataOperationCancun {
             : Bytes32.ZERO;
 
     hubRow.systemTransactionData1 = EWord.of(timestamp);
-    hubRow.systemTransactionData2 =
-        timestamp.mod(BigInteger.valueOf(HISTORY_BUFFER_LENGTH)).longValue();
+    hubRow.systemTransactionData2 = timestamp.mod(HISTORY_BUFFER_LENGTH_BI).longValue();
     hubRow.systemTransactionData3 = EWord.of(EWord.of(parentBeaconBlockRoot).hi());
     hubRow.systemTransactionData4 = EWord.of(EWord.of(parentBeaconBlockRoot).lo());
     hubRow.systemTransactionData5 = blockHeader.getNumber() == 0;

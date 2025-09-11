@@ -48,6 +48,9 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
               Bytes.minimalBytes(BEACON_ROOTS_ADDRESS_HI),
               bigIntegerToBytes16(BEACON_ROOTS_ADDRESS_LO)));
 
+  public static final BigInteger HISTORY_BUFFER_LENGTH_BI =
+      BigInteger.valueOf(HISTORY_BUFFER_LENGTH);
+
   public EIP4788BeaconBlockRootSection(
       Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, (short) 5);
@@ -77,8 +80,7 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
     fragments().add(accountFragment);
 
     if (isNonTrivialOperation) {
-      final EWord keyTimestamp =
-          EWord.of(timestamp.remainder(BigInteger.valueOf(HISTORY_BUFFER_LENGTH)));
+      final EWord keyTimestamp = EWord.of(timestamp.remainder(HISTORY_BUFFER_LENGTH_BI));
       final StorageFragment storingTimestamp =
           systemTransactionStoring(
               hub,

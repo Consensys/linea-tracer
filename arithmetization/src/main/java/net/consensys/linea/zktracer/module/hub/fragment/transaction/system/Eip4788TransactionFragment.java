@@ -16,9 +16,9 @@
 package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
 import static net.consensys.linea.zktracer.Trace.*;
-import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_EIP_4788_BEACON_BLOCK_ROOT;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.HISTORY_BUFFER_LENGTH_BI;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
@@ -46,8 +46,7 @@ public class Eip4788TransactionFragment extends SystemTransactionFragment {
     return trace
         .pTransactionEip4788(true)
         .pTransactionSystTxnData1(bigIntegerToBytes(timestamp))
-        .pTransactionSystTxnData2(
-            (timestamp.remainder(BigInteger.valueOf(HISTORY_BUFFER_LENGTH))).longValueExact())
+        .pTransactionSystTxnData2((timestamp.remainder(HISTORY_BUFFER_LENGTH_BI)).longValueExact())
         .pTransactionSystTxnData3(beaconroot.slice(0, LLARGE))
         .pTransactionSystTxnData4(beaconroot.slice(LLARGE, LLARGE))
         .pTransactionSystTxnData5(isGenesisBlock);

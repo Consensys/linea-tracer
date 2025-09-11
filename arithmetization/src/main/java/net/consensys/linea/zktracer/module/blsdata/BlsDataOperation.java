@@ -59,7 +59,6 @@ import static net.consensys.linea.zktracer.types.Conversions.ZERO;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 import static net.consensys.linea.zktracer.types.Utils.leftPadTo;
 
-import java.math.BigInteger;
 import java.util.List;
 
 import com.google.common.base.Preconditions;
@@ -77,14 +76,6 @@ import org.hyperledger.besu.nativelib.gnark.LibGnarkEIP2537;
 
 @Accessors(fluent = true)
 public class BlsDataOperation extends ModuleOperation {
-  public static final BigInteger BLS_PRIME =
-      Bytes.concatenate(
-              Bytes.ofUnsignedShort(BLS_PRIME_3),
-              bigIntegerToBytes(BLS_PRIME_2),
-              bigIntegerToBytes(BLS_PRIME_1),
-              bigIntegerToBytes(BLS_PRIME_0))
-          .toUnsignedBigInteger();
-
   static final EWord POINT_EVALUATION_PRIME =
       EWord.of(POINT_EVALUATION_PRIME_HI, POINT_EVALUATION_PRIME_LO);
 

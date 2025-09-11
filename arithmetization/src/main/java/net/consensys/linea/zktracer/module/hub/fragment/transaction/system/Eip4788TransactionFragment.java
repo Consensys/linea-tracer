@@ -1,5 +1,5 @@
 /*
- * Copyright ConsenSys Inc.
+ * Copyright Consensys Software Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -21,6 +21,12 @@ import static net.consensys.linea.zktracer.module.hub.fragment.transaction.syste
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
+import static net.consensys.linea.zktracer.Trace.*;
+import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_EIP_4788_BEACON_BLOCK_ROOT;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
+
+import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
 import org.apache.tuweni.bytes.Bytes32;
@@ -33,7 +39,7 @@ public class Eip4788TransactionFragment extends SystemTransactionFragment {
 
   public Eip4788TransactionFragment(
       BigInteger timestamp, Bytes32 beaconroot, boolean isGenesisBlock) {
-    super(EIP4788_BEACON_BLOCK_ROOT);
+    super(SYSI_EIP_4788_BEACON_BLOCK_ROOT);
     this.timestamp = timestamp;
     this.beaconroot = beaconroot;
     this.isGenesisBlock = isGenesisBlock;

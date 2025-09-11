@@ -58,7 +58,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
   private final BlockHeader blockHeader;
   private final BlockHeader prevBlockHeader;
   private static final EWord POWER_256_20 = EWord.of(TWOFIFTYSIX_TO_THE_TWENTY);
-  private static final EWord POWER_256_6 = EWord.of(BigInteger.ONE.shiftLeft(6 * 8));
+  private static final EWord POWER_256_8 = EWord.of(BigInteger.ONE.shiftLeft(8 * 8));
 
   private final boolean firstBlockInConflation;
   private final int nbRows;
@@ -134,12 +134,12 @@ public abstract class BlockdataOperation extends ModuleOperation {
   }
 
   private void handleTimestamp() {
-    data = EWord.of(longToUnsignedBigInteger(blockHeader.getTimestamp()));
+    data = EWord.of(Bytes.ofUnsignedLong(blockHeader.getTimestamp()));
     final EWord prevData =
         prevBlockHeader == null ? EWord.ZERO : EWord.of(prevBlockHeader.getTimestamp());
 
     // row i
-    wcpCallToLT(0, data, POWER_256_6);
+    wcpCallToLT(0, data, POWER_256_8);
 
     // row i + 1
     wcpCallToGT(1, data, prevData);
@@ -152,7 +152,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
 
     // row i
     if (firstBlockInConflation) {
-      wcpCallToLT(1, data, POWER_256_6);
+      wcpCallToLT(1, data, POWER_256_8);
     }
   }
 

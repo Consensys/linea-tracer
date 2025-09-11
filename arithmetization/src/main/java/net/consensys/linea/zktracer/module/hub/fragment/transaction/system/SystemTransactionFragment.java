@@ -25,7 +25,7 @@ import net.consensys.linea.zktracer.module.hub.fragment.TraceFragment;
 @Getter
 @Accessors(fluent = true)
 public abstract class SystemTransactionFragment implements TraceFragment {
-  final SystemTransactionFragmentType type;
+  final SystemTransactionType type;
 
   @Override
   public Trace.Hub trace(Trace.Hub trace) {

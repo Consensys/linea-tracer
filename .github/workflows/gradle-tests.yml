@@ -1,3 +1,4 @@
+permissions: read-all
 name: "Unit & Fast Replay Tests"
 
 on:
@@ -65,6 +66,14 @@ jobs:
       zkevm_fork: LONDON
       tests-with-ssh: ${{ inputs.tests-with-ssh || false }}
 
+  unit-tests-paris:
+    if: github.event.pull_request.draft == false && github.base_ref != 'main'
+    needs: [ build ]
+    uses: ./.github/workflows/reusable-unit-tests.yml
+    with:
+      zkevm_fork: PARIS
+      tests-with-ssh: ${{ inputs.tests-with-ssh || false}}
+
   unit-tests-shanghai:
     if: github.event.pull_request.draft == false && github.base_ref != 'main'
     needs: [ build ]
@@ -103,7 +112,6 @@ jobs:
         env:
           JAVA_OPTS: -Dorg.gradle.daemon=false
           REPLAY_TESTS_PARALLELISM: 4
-          CORSET_FLAGS: disable
           GOCORSET_FLAGS: -b1024 -v --ansi-escapes=false --report --air
           ZKEVM_FORK: LONDON
 

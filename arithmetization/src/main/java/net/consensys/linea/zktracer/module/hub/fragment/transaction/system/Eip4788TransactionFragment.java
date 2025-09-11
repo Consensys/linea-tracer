@@ -15,16 +15,11 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
-import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionFragmentType.EIP4788_BEACON_BLOCK_ROOT;
-import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-
-import java.math.BigInteger;
-import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_EIP_4788_BEACON_BLOCK_ROOT;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
-import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
 
 import java.math.BigInteger;
 

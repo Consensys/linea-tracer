@@ -16,11 +16,12 @@
 package net.consensys.linea.zktracer.opcode.gas.projector;
 
 import static net.consensys.linea.zktracer.Trace.WORD_SIZE;
+import static org.hyperledger.besu.evm.internal.Words.clampedAdd;
 import static org.hyperledger.besu.evm.internal.Words.clampedToLong;
 
+import net.consensys.linea.zktracer.Fork;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.gascalculator.GasCalculator;
-import org.hyperledger.besu.evm.internal.Words;
 
 public final class MLoadStore extends GasProjection {
   final GasCalculator gc;
@@ -46,7 +47,11 @@ public final class MLoadStore extends GasProjection {
   }
 
   @Override
-  public long largestOffset() {
-    return Words.clampedAdd(this.offset, WORD_SIZE);
+  public long mxpxOffset(Fork fork) {
+    return switch (fork) {
+      case LONDON, PARIS, SHANGHAI -> clampedAdd(offset, WORD_SIZE - 1);
+      case CANCUN, PRAGUE, OSAKA -> offset;
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
   }
 }

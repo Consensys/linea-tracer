@@ -15,21 +15,25 @@
 
 package net.consensys.linea.zktracer.module.hub.fragment.transaction.system;
 
-import static net.consensys.linea.zktracer.Trace.HISTORY_BUFFER_LENGTH;
+import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_EIP_4788_BEACON_BLOCK_ROOT;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.HISTORY_BUFFER_LENGTH_BI;
+import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
+
+import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.Trace;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class Eip4788TransactionFragment extends SystemTransactionFragment {
 
   final boolean isGenesisBlock;
-  final long timestamp;
+  final BigInteger timestamp;
   final Bytes32 beaconroot;
 
-  public Eip4788TransactionFragment(long timestamp, Bytes32 beaconroot, boolean isGenesisBlock) {
+  public Eip4788TransactionFragment(
+      BigInteger timestamp, Bytes32 beaconroot, boolean isGenesisBlock) {
     super(SYSI_EIP_4788_BEACON_BLOCK_ROOT);
     this.timestamp = timestamp;
     this.beaconroot = beaconroot;
@@ -41,8 +45,8 @@ public class Eip4788TransactionFragment extends SystemTransactionFragment {
     super.trace(trace);
     return trace
         .pTransactionEip4788(true)
-        .pTransactionSystTxnData1(Bytes.ofUnsignedLong(timestamp))
-        .pTransactionSystTxnData2(timestamp % HISTORY_BUFFER_LENGTH)
+        .pTransactionSystTxnData1(bigIntegerToBytes(timestamp))
+        .pTransactionSystTxnData2((timestamp.mod(HISTORY_BUFFER_LENGTH_BI)).longValueExact())
         .pTransactionSystTxnData3(beaconroot.slice(0, LLARGE))
         .pTransactionSystTxnData4(beaconroot.slice(LLARGE, LLARGE))
         .pTransactionSystTxnData5(isGenesisBlock);

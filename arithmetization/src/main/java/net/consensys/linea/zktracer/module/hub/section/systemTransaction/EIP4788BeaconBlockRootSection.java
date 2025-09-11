@@ -19,6 +19,9 @@ import static net.consensys.linea.zktracer.Trace.*;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.SYSI;
 import static net.consensys.linea.zktracer.module.hub.fragment.storage.StorageFragment.systemTransactionStoring;
 import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes16;
+import static net.consensys.linea.zktracer.types.Conversions.longToUnsignedBigInteger;
+
+import java.math.BigInteger;
 
 import net.consensys.linea.zktracer.module.hub.AccountSnapshot;
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -45,12 +48,15 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
               Bytes.minimalBytes(BEACON_ROOTS_ADDRESS_HI),
               bigIntegerToBytes16(BEACON_ROOTS_ADDRESS_LO)));
 
+  public static final BigInteger HISTORY_BUFFER_LENGTH_BI =
+      BigInteger.valueOf(HISTORY_BUFFER_LENGTH);
+
   public EIP4788BeaconBlockRootSection(
       Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, (short) 5);
     final AccountSnapshot beaconrootAccount =
         AccountSnapshot.canonical(hub, world, EIP4788_BEACONROOT_ADDRESS, false);
-    final long timestamp = blockHeader.getTimestamp();
+    final BigInteger timestamp = longToUnsignedBigInteger(blockHeader.getTimestamp());
     final boolean currentBlockIsGenesisBlock = blockHeader.getNumber() == 0;
     final boolean isNonTrivialOperation =
         !currentBlockIsGenesisBlock && !beaconrootAccount.code().isEmpty();
@@ -74,7 +80,7 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
     fragments().add(accountFragment);
 
     if (isNonTrivialOperation) {
-      final EWord keyTimestamp = EWord.of(timestamp % HISTORY_BUFFER_LENGTH);
+      final EWord keyTimestamp = EWord.of(timestamp.mod(HISTORY_BUFFER_LENGTH_BI));
       final StorageFragment storingTimestamp =
           systemTransactionStoring(
               hub,
@@ -88,8 +94,7 @@ public class EIP4788BeaconBlockRootSection extends TraceSection {
               2);
       fragments().add(storingTimestamp);
 
-      final EWord keyBeaconRoot =
-          EWord.of((timestamp % HISTORY_BUFFER_LENGTH) + HISTORY_BUFFER_LENGTH);
+      final EWord keyBeaconRoot = keyTimestamp.add(HISTORY_BUFFER_LENGTH);
       final StorageFragment storingBeaconroot =
           systemTransactionStoring(
               hub,

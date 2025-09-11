@@ -1,4 +1,3 @@
-
 /*
  * Copyright Consensys Software Inc.
  *
@@ -40,11 +39,11 @@ import org.hyperledger.besu.tests.acceptance.dsl.transaction.eth.EthTransactions
 import org.web3j.crypto.BlobUtils;
 import org.web3j.protocol.core.methods.response.EthBlock;
 
- /*
+/*
  * Taken from besu-plugins acceptance-tests from linea-monorepo in linea-monorepo/besu-plugins/linea-sequencer/acceptance-tests/src/test/java/org/hyperledger/besu/tests/acceptance/dsl/EngineAPIService.java
  * EngineAPIService from the monorepo is compatible with Prague, so we adapt it here to Paris, Shanghai and Cancun
  * We use this class to emulate Engine API calls to the Besu Node.
-        */
+ */
 public class EngineAPIService {
   private final OkHttpClient httpClient;
   private final ObjectMapper mapper;

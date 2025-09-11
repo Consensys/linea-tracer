@@ -17,6 +17,7 @@ package net.consensys.linea.plugins.rpc.tracegeneration;
 
 import static net.consensys.linea.zktracer.Fork.getForkFromBesuBlockchainService;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;

@@ -26,12 +26,7 @@ import java.math.BigInteger;
 import java.net.ServerSocket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -181,19 +176,34 @@ public class BesuExecutionTools {
       shomeiThread.start();
       besuCluster.start(besuNode);
 
-      // Send transaction to the transaction pool with eth_sendRawTransaction
       EthTransactions ethTransactions = new EthTransactions();
       Map<String, Boolean> txReceiptProcessed = new HashMap<>();
       ConcurrentSet<Long> blockNumbers = new ConcurrentSet<>();
-      List<String> txHashes = new java.util.ArrayList<>();
+      List<String> txHashes = new ArrayList<>();
       Fork nextFork = null;
+      Fork currentFork = nextFork;
+      Iterator<Transaction> txs = transactions.iterator();
+      Boolean txHasNext = txs.hasNext();
 
-      for (Transaction tx : transactions) {
-        // We broadcast the transaction to the network
-        Fork currentFork = nextFork;
-        String txHash =
-            besuNode.execute(ethTransactions.sendRawTransaction(tx.encoded().toHexString()));
-        txHashes.add(txHash);
+      while (txHasNext) {
+        // Send transaction to the transaction pool with eth_sendRawTransaction
+        // If oneTxPerBlock is true, we send one transaction per block
+        if (oneTxPerBlock) {
+          String txHash =
+              besuNode.execute(
+                  ethTransactions.sendRawTransaction(txs.next().encoded().toHexString()));
+          txHashes.add(txHash);
+          txHasNext = txs.hasNext();
+        } else {
+          // Send all transactions in the same block
+          while (txHasNext) {
+            String txHash =
+                besuNode.execute(
+                    ethTransactions.sendRawTransaction(txs.next().encoded().toHexString()));
+            txHashes.add(txHash);
+            txHasNext = txs.hasNext();
+          }
+        }
 
         // After Paris, Clique as a consensus layer defined in the genesis file
         // doesn't work anymore
@@ -211,12 +221,13 @@ public class BesuExecutionTools {
           continue;
         }
         waitForTxReceipts(besuNode, ethTransactions, txHashes, txReceiptProcessed, blockNumbers);
+        currentFork = nextFork;
 
         // We trace the conflation
         assertThat(blockNumbers).isNotEmpty();
         long startBlockNumber = Collections.min(blockNumbers);
         long endBlockNumber = Collections.max(blockNumbers);
-        TraceFile traceFile = traceAndCheckTracer(startBlockNumber, endBlockNumber, nextFork);
+        TraceFile traceFile = traceAndCheckTracer(startBlockNumber, endBlockNumber, currentFork);
         Path traceFilePath = Path.of(traceFile.conflatedTracesFileName());
 
         // Clean up for next transaction

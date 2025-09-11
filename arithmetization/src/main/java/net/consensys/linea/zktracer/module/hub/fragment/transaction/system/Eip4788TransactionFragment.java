@@ -46,7 +46,7 @@ public class Eip4788TransactionFragment extends SystemTransactionFragment {
     return trace
         .pTransactionEip4788(true)
         .pTransactionSystTxnData1(bigIntegerToBytes(timestamp))
-        .pTransactionSystTxnData2((timestamp.remainder(HISTORY_BUFFER_LENGTH_BI)).longValueExact())
+        .pTransactionSystTxnData2((timestamp.mod(HISTORY_BUFFER_LENGTH_BI)).longValueExact())
         .pTransactionSystTxnData3(beaconroot.slice(0, LLARGE))
         .pTransactionSystTxnData4(beaconroot.slice(LLARGE, LLARGE))
         .pTransactionSystTxnData5(isGenesisBlock);

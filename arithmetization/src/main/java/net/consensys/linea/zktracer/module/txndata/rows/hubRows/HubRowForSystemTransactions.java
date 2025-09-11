@@ -22,7 +22,7 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class HubRowForSystemTransactions extends HubRow {
 
   public EWord systemTransactionData1;
-  public long systemTransactionData2;
+  public short systemTransactionData2;
   public EWord systemTransactionData3;
   public EWord systemTransactionData4;
   public boolean systemTransactionData5;

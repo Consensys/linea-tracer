@@ -57,7 +57,7 @@ public class SysiEip2935Transaction extends TxnDataOperationCancun {
         new HubRowForSystemTransactions(blockHeader, hub, Type.EIP2935);
 
     hubRow.systemTransactionData1 = EWord.of(previousBlockNumber());
-    hubRow.systemTransactionData2 = previousBlockNumber() % HISTORY_SERVE_WINDOW;
+    hubRow.systemTransactionData2 = (short) (previousBlockNumber() % HISTORY_SERVE_WINDOW);
     hubRow.systemTransactionData3 = EWord.of(EWord.of(previousBlockHash()).hi());
     hubRow.systemTransactionData4 = EWord.of(EWord.of(previousBlockHash()).lo());
     hubRow.systemTransactionData5 = currentBlockIsGenesisBlock();

@@ -58,7 +58,7 @@ public class SysiEip4788Transaction extends TxnDataOperationCancun {
             : Bytes32.ZERO;
 
     hubRow.systemTransactionData1 = EWord.of(timestamp);
-    hubRow.systemTransactionData2 = timestamp.mod(HISTORY_BUFFER_LENGTH_BI).longValue();
+    hubRow.systemTransactionData2 = timestamp.mod(HISTORY_BUFFER_LENGTH_BI).shortValueExact();
     hubRow.systemTransactionData3 = EWord.of(EWord.of(parentBeaconBlockRoot).hi());
     hubRow.systemTransactionData4 = EWord.of(EWord.of(parentBeaconBlockRoot).lo());
     hubRow.systemTransactionData5 = blockHeader.getNumber() == 0;

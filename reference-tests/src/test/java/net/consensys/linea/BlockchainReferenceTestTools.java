@@ -478,8 +478,8 @@ public class BlockchainReferenceTestTools {
         "BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/use_value_in_contract.json");
     // for account EIP4788_BEACONROOT_ADDRESS
     PARAMS.ignore("Cancun-block_count=10-buffer_wraparound");
-    PARAMS.ignore(" Cancun-block_count=10-buffer_wraparound_overwrite");
-    PARAMS.ignore(" Cancun-block_count=10-buffer_wraparound_overwrite_high_timestamp");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_overwrite");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_overwrite_high_timestamp");
     PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite");
     PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite_2");
 

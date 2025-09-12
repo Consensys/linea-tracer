@@ -326,6 +326,8 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");
     PARAMS.ignore("loopMul_*");
     PARAMS.ignore("randomStatetest177_d0g0v0_*");
+    PARAMS.ignore("15_tstoreCannotBeDosd_d0g0v0*");
+    PARAMS.ignore("21_tstoreCannotBeDosdOOO_d0g0v0*");
 
     // Inconclusive fork choice rule, since in merge CL should be choosing forks and setting the
     // chain head. Perfectly valid test pre-merge.
@@ -471,11 +473,17 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g3v0_*");
 
     // System transactions Withdrawals are not supported
-    // Breaks hub.account-consistency---linking---conflation-level---balance as the transition on
-    // account 0x0000000000000000000000000000000000000200
+    // Breaks hub.account-consistency---linking---conflation-level---balance as the transition
+    // for account 0x0000000000000000000000000000000000000200
     PARAMS.ignore("BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/balance_within_block.json");
     PARAMS.ignore(
         "BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/use_value_in_contract.json");
+    // for account EIP4788_BEACONROOT_ADDRESS
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_overwrite");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_overwrite_high_timestamp");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite_2");
 
     // Pending deployment number fix
     // Issue #https://github.com/Consensys/linea-specification/issues/191

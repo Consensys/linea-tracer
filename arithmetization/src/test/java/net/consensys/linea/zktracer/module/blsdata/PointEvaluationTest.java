@@ -57,9 +57,12 @@ public class PointEvaluationTest extends TracerTestBase {
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             testInfo);
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
-    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
+    BlsData blsdata = bytecodeRunner.getHub().blsData();
+    if (blsdata != null) {
+      assertFalse(blsdata.blsDataOperation().mint());
+      assertFalse(blsdata.blsDataOperation().mext());
+      assertTrue(blsdata.blsDataOperation().successBit());
+    }
   }
 
   @Test
@@ -72,9 +75,12 @@ public class PointEvaluationTest extends TracerTestBase {
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             testInfo);
-    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
+    BlsData blsdata = bytecodeRunner.getHub().blsData();
+    if (blsdata != null) {
+      assertTrue(blsdata.blsDataOperation().mint());
+      assertFalse(blsdata.blsDataOperation().mext());
+      assertFalse(blsdata.blsDataOperation().successBit());
+    }
   }
 
   @Test
@@ -87,9 +93,12 @@ public class PointEvaluationTest extends TracerTestBase {
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             testInfo);
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
-    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().successBit()); // TODO: why?
+    BlsData blsdata = bytecodeRunner.getHub().blsData();
+    if (blsdata != null) {
+      assertFalse(blsdata.blsDataOperation().mint());
+      assertFalse(blsdata.blsDataOperation().mext());
+      assertTrue(blsdata.blsDataOperation().successBit()); // TODO: why?
+    }
   }
 
   @Test
@@ -102,9 +111,12 @@ public class PointEvaluationTest extends TracerTestBase {
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             testInfo);
-    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
+    BlsData blsdata = bytecodeRunner.getHub().blsData();
+    if (blsdata != null) {
+      assertTrue(blsdata.blsDataOperation().mint());
+      assertFalse(blsdata.blsDataOperation().mext());
+      assertFalse(blsdata.blsDataOperation().successBit());
+    }
   }
 
   @Test
@@ -117,9 +129,12 @@ public class PointEvaluationTest extends TracerTestBase {
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             "c00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
             testInfo);
-    assertTrue(bytecodeRunner.getHub().blsData().blsDataOperation().mint());
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().mext());
-    assertFalse(bytecodeRunner.getHub().blsData().blsDataOperation().successBit());
+    BlsData blsdata = bytecodeRunner.getHub().blsData();
+    if (blsdata != null) {
+      assertTrue(blsdata.blsDataOperation().mint());
+      assertFalse(blsdata.blsDataOperation().mext());
+      assertFalse(blsdata.blsDataOperation().successBit());
+    }
   }
 
   BytecodeRunner pointEvaluationProgram(

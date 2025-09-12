@@ -58,8 +58,10 @@ public class OobExoCall {
         .outgoingData3(arg2.slice(0, LLARGE))
         .outgoingData4(arg2.slice(LLARGE, LLARGE))
         .outgoingResLo(addFlag ? ZERO : result);
-    // Meaningful only in Prague
-    trace.blsRefTableFlag(blsRtFlag);
+    // Prague
+    if (blsRtFlag) {
+      trace.blsRefTableFlag(true);
+    }
   }
 
   public static OobExoCall callToADD(final Add add, final Bytes arg1, final Bytes arg2) {

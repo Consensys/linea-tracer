@@ -221,19 +221,22 @@ public class PrecompileScenarioFragment implements TraceFragment {
         .pScenarioPrcRao(precompileSubSection.returnAtOffset())
         .pScenarioPrcRac(precompileSubSection.returnAtCapacity());
 
-    // TODO: is this a canonical way to do it?
     // Cancun
-    trace.pScenarioPrcPointEvaluation(flag == PRC_POINT_EVALUATION);
+    if (flag == PRC_POINT_EVALUATION) {
+      trace.pScenarioPrcPointEvaluation(true);
+    }
 
     // Prague
-    trace
-        .pScenarioPrcBlsG1Add(flag == PRC_BLS_G1_ADD)
-        .pScenarioPrcBlsG1Msm(flag == PRC_BLS_G1_MSM)
-        .pScenarioPrcBlsG2Add(flag == PRC_BLS_G2_ADD)
-        .pScenarioPrcBlsG2Msm(flag == PRC_BLS_G2_MSM)
-        .pScenarioPrcBlsPairingCheck(flag == PRC_BLS_PAIRING_CHECK)
-        .pScenarioPrcBlsMapFpToG1(flag == PRC_BLS_MAP_FP_TO_G1)
-        .pScenarioPrcBlsMapFp2ToG2(flag == PRC_BLS_MAP_FP2_TO_G2);
+    if (flag.isBlsPrecompile() && flag != PRC_POINT_EVALUATION) {
+      trace
+          .pScenarioPrcBlsG1Add(flag == PRC_BLS_G1_ADD)
+          .pScenarioPrcBlsG1Msm(flag == PRC_BLS_G1_MSM)
+          .pScenarioPrcBlsG2Add(flag == PRC_BLS_G2_ADD)
+          .pScenarioPrcBlsG2Msm(flag == PRC_BLS_G2_MSM)
+          .pScenarioPrcBlsPairingCheck(flag == PRC_BLS_PAIRING_CHECK)
+          .pScenarioPrcBlsMapFpToG1(flag == PRC_BLS_MAP_FP_TO_G1)
+          .pScenarioPrcBlsMapFp2ToG2(flag == PRC_BLS_MAP_FP2_TO_G2);
+    }
 
     return trace;
   }

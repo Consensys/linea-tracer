@@ -26,7 +26,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -39,8 +39,8 @@ public class Euc implements OperationSetModule<EucOperation> {
   private final Wcp wcp;
 
   @Getter
-  private final ModuleOperationStackedSet<EucOperation> operations =
-      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedMap<EucOperation> operations =
+      new ModuleOperationStackedMap<>();
 
   /** count the number of rows that could be added after the sequencer counts the number of line */
   public final CountOnlyOperation additionalRows = new CountOnlyOperation();

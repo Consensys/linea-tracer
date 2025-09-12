@@ -19,7 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 
 import net.consensys.linea.zktracer.container.ModuleOperation;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 /**
@@ -28,7 +28,7 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
  */
 public interface OperationSetModule<E extends ModuleOperation> extends Module {
 
-  ModuleOperationStackedSet<E> operations();
+  ModuleOperationStackedMap<E> operations();
 
   @Override
   default void commitTransactionBundle() {

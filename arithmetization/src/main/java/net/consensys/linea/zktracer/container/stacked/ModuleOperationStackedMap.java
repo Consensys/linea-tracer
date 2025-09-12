@@ -28,25 +28,25 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 
 /**
  * Implements a system of pseudo-stacked squashed sets where {@link
- * ModuleOperationStackedSet#operationsCommitedToTheConflation()} represents the set of all
+ * ModuleOperationStackedMap#operationsCommitedToTheConflation()} represents the set of all
  * operations since the beginning of the conflation and {@link
- * ModuleOperationStackedSet#operationsInTransactionBundle()} represents the operations added by the
+ * ModuleOperationStackedMap#operationsInTransactionBundle()} represents the operations added by the
  * last transaction. We can pop only the operations added by last transaction. The line counting is
  * done by a separate {@link CountOnlyOperation}.
  *
  * @param <E> the type of elements stored in the set
  */
 @Accessors(fluent = true)
-public class ModuleOperationStackedSet<E extends ModuleOperation> extends StackedSet<E> {
+public class ModuleOperationStackedMap<E extends ModuleOperation> extends StackedMap<E> {
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   @Getter private boolean conflationFinished = false;
 
-  public ModuleOperationStackedSet() {
+  public ModuleOperationStackedMap() {
     super();
   }
 
   /** Prefer this constructor as we preallocate more needed memory */
-  public ModuleOperationStackedSet(
+  public ModuleOperationStackedMap(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
     super(expectedConflationNumberOperations, expectedTransactionNumberOperations);
   }
@@ -67,7 +67,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
 
   public Set<E> getAll() {
     Preconditions.checkState(conflationFinished, "Conflation not finished");
-    return operationsCommitedToTheConflation();
+    return operationsCommitedToTheConflation().keySet();
   }
 
   public boolean isEmpty() {
@@ -75,36 +75,31 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
   }
 
   public boolean contains(Object o) {
-    return operationsInTransactionBundle().contains(o)
-        || operationsCommitedToTheConflation().contains(o);
+    return operationsInTransactionBundle().containsKey(o)
+        || operationsCommitedToTheConflation().containsKey(o);
   }
 
   public boolean add(E e) {
-    if (!operationsCommitedToTheConflation().contains(e)) {
-      final boolean isNew = operationsInTransactionBundle().add(e);
-      if (isNew) {
+    if (!operationsCommitedToTheConflation().containsKey(e)) {
+      final E isNew = operationsInTransactionBundle().putIfAbsent(e, e);
+      if (isNew == null) {
         lineCounter.add(e.lineCount());
       }
-      return isNew;
+      return (isNew == null);
     }
     return false;
   }
 
   public ModuleOperationAdder addAndGet(E e) {
     // First search if the operation is already present
-    for (E op : operationsInTransactionBundle()) {
-      if (op.equals(e)) {
-        return existingOperation(op);
-      }
-    }
-    for (E op : operationsCommitedToTheConflation()) {
-      if (op.equals(e)) {
-        return existingOperation(op);
-      }
-    }
+    E existing = operationsInTransactionBundle().get(e);
+    if (existing != null) return existingOperation(existing);
+
+    E existingInCommitted = operationsCommitedToTheConflation().get(e);
+    if (existingInCommitted != null) return existingOperation(existingInCommitted);
 
     // Not found, add it
-    operationsInTransactionBundle().add(e);
+    operationsInTransactionBundle().put(e, e);
     lineCounter.add(e.lineCount());
     return newOperation(e);
   }
@@ -117,7 +112,7 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
 
   public void finishConflation() {
     conflationFinished = true;
-    operationsCommitedToTheConflation().addAll(operationsInTransactionBundle());
+    operationsCommitedToTheConflation().putAll(operationsInTransactionBundle());
     operationsInTransactionBundle().clear();
     lineCounter.commitTransactionBundle(); // this is not mandatory but it is more consistent
   }

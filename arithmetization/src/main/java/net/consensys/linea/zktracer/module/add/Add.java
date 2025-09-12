@@ -27,7 +27,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
 import org.hyperledger.besu.evm.frame.MessageFrame;
@@ -38,8 +38,8 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 public class Add implements OperationSetModule<AddOperation> {
 
-  protected final ModuleOperationStackedSet<AddOperation> operations =
-      new ModuleOperationStackedSet<>();
+  protected final ModuleOperationStackedMap<AddOperation> operations =
+      new ModuleOperationStackedMap<>();
 
   @Override
   public String moduleKey() {

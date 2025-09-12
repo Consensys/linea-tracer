@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
@@ -36,8 +36,8 @@ import org.hyperledger.besu.datatypes.Address;
 public class Trm implements OperationSetModule<TrmOperation> {
   private final Hub hub;
   private final Wcp wcp;
-  private final ModuleOperationStackedSet<TrmOperation> operations =
-      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedMap<TrmOperation> operations =
+      new ModuleOperationStackedMap<>();
 
   @Override
   public String moduleKey() {

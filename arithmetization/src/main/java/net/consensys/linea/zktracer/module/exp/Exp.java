@@ -23,7 +23,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -36,8 +36,8 @@ public class Exp implements OperationSetModule<ExpOperation> {
   private final Wcp wcp;
 
   @Getter
-  private final ModuleOperationStackedSet<ExpOperation> operations =
-      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedMap<ExpOperation> operations =
+      new ModuleOperationStackedMap<>();
 
   @Override
   public String moduleKey() {

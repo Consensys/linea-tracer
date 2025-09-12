@@ -26,7 +26,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationAdder;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.Bytes16;
 import org.apache.tuweni.bytes.Bytes;
@@ -50,8 +50,8 @@ public class RlpUtils implements OperationSetModule<RlpUtilsCall> {
   private final Wcp wcp;
 
   @Getter
-  private final ModuleOperationStackedSet<RlpUtilsCall> operations =
-      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedMap<RlpUtilsCall> operations =
+      new ModuleOperationStackedMap<>();
 
   @Override
   public String moduleKey() {

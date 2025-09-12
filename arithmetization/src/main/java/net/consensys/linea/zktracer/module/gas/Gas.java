@@ -23,7 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.hub.fragment.common.CommonFragmentValues;
@@ -37,8 +37,8 @@ import org.hyperledger.besu.evm.operation.Operation;
 public class Gas implements OperationSetModule<GasOperation>, PostOpcodeDefer {
   /** A list of the operations to trace */
   @Getter
-  private final ModuleOperationStackedSet<GasOperation> operations =
-      new ModuleOperationStackedSet<>();
+  private final ModuleOperationStackedMap<GasOperation> operations =
+      new ModuleOperationStackedMap<>();
 
   private CommonFragmentValues commonValues;
   private GasParameters gasParameters;

@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.LondonBlockData;
+import net.consensys.linea.zktracer.module.blsdata.BlsData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.create.LondonCreateSection;
 import net.consensys.linea.zktracer.module.hub.section.finalization.LondonFinalizationSection;
@@ -35,6 +36,7 @@ import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxn.london.LondonRlpTxn;
 import net.consensys.linea.zktracer.module.tables.PowerRt;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.LondonInstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -51,6 +53,18 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class LondonHub extends Hub {
   public LondonHub(ChainConfig chain) {
     super(chain);
+  }
+
+  @Override
+  protected BlsData setBlsData(Hub hub) {
+    // Bls is not used in London
+    return null;
+  }
+
+  @Override
+  protected BlsRt setBlsRt() {
+    // BlsRt is not used in London
+    return null;
   }
 
   @Override

@@ -22,6 +22,7 @@ import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockdata.module.CancunBlockData;
+import net.consensys.linea.zktracer.module.blsdata.BlsData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.hub.section.McopySection;
 import net.consensys.linea.zktracer.module.hub.section.finalization.CancunFinalizationSection;
@@ -39,6 +40,7 @@ import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.CancunRlpTxn;
 import net.consensys.linea.zktracer.module.tables.PowerRt;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.CancunInstructionDecoder;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.InstructionDecoder;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -55,6 +57,31 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class CancunHub extends ShanghaiHub {
   public CancunHub(ChainConfig chain) {
     super(chain);
+  }
+
+  @Override
+  protected BlsData setBlsData(Hub hub) {
+    return new BlsData(
+        hub.wcp(),
+        pointEvaluationEffectiveCall,
+        pointEvaluationFailureCall,
+        blsG1AddEffectiveCall,
+        blsG1MsmEffectiveCall,
+        blsG2AddEffectiveCall,
+        blsG2MsmEffectiveCall,
+        blsPairingCheckMillerLoops,
+        blsPairingCheckFinalExponentiations,
+        blsG1MapFpToG1EffectiveCall,
+        blsG1MapFp2ToG2EffectiveCall,
+        blsC1MembershipCalls,
+        blsC2MembershipCalls,
+        blsG1MembershipCalls,
+        blsG2MembershipCalls);
+  }
+
+  @Override
+  protected BlsRt setBlsRt() {
+    return new BlsRt();
   }
 
   @Override

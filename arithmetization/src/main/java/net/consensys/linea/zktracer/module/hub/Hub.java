@@ -25,6 +25,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
+import static net.consensys.linea.zktracer.module.limits.CountingModuleName.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
@@ -39,13 +40,16 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.container.module.EventDetectorModule;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
+import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.blake2fmodexpdata.BlakeModexpData;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
 import net.consensys.linea.zktracer.module.blockhash.Blockhash;
+import net.consensys.linea.zktracer.module.blsdata.BlsData;
 import net.consensys.linea.zktracer.module.ecdata.EcData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
@@ -74,16 +78,7 @@ import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L1BlockSizeOld;
-import net.consensys.linea.zktracer.module.limits.L2L1Logs;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2MembershipCalls;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logdata.LogData;
@@ -106,6 +101,7 @@ import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
 import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.tables.shf.ShfRt;
 import net.consensys.linea.zktracer.module.trm.Trm;
@@ -141,12 +137,13 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 
 @Slf4j
 @Accessors(fluent = true)
+@Getter
 public abstract class Hub implements Module {
   /** Active fork for this hub. */
   public final Fork fork;
 
   /** Active opcode information for this hub. */
-  @Getter private final OpCodes opCodes;
+  private final OpCodes opCodes;
 
   /** The {@link GasCalculator} used in this version of the arithmetization */
   public final GasCalculator gasCalculator = setGasCalculator();
@@ -154,31 +151,31 @@ public abstract class Hub implements Module {
   public final GasProjector gasProjector;
 
   /** accumulate the trace information for the Hub */
-  @Getter public final State state = new State();
+  public final State state = new State();
 
   /** contain the factories for trace segments that need complex initialization */
-  @Getter private final Factories factories = new Factories(this);
+  private final Factories factories = new Factories(this);
 
   /** provides phase-related volatile information */
-  @Getter Transients transients = new Transients(this);
+  Transients transients = new Transients(this);
 
   /**
    * Long-lived states, not used in tracing per se but keeping track of data of the associated
    * lifetime
    */
-  @Getter CallStack callStack = new CallStack();
+  CallStack callStack = new CallStack();
 
   /** Stores the transaction Metadata of all the transaction of the conflated block */
-  @Getter TransactionStack txStack = new TransactionStack();
+  TransactionStack txStack = new TransactionStack();
 
   /** Stores the block Metadata of all the blocks of the conflation */
-  @Getter BlockStack blockStack = new BlockStack();
+  BlockStack blockStack = new BlockStack();
 
   /** Stores all the actions that must be deferred to a later time */
-  @Getter private final DeferRegistry defers = new DeferRegistry();
+  private final DeferRegistry defers = new DeferRegistry();
 
   /** stores all data related to failure states & module activation */
-  @Getter private final PlatformController pch = new PlatformController(this);
+  private final PlatformController pch = new PlatformController(this);
 
   @Override
   public String moduleKey() {
@@ -207,74 +204,106 @@ public abstract class Hub implements Module {
 
   /** List of all modules of the ZK-evm */
   // stateless modules
-  @Getter private final Wcp wcp = new Wcp();
+  private final Wcp wcp = new Wcp();
 
   private final Add add = new Add();
   private final Bin bin = new Bin();
   private final Blockhash blockhash = new Blockhash(this, wcp);
-  @Getter private final Euc euc = new Euc(wcp);
-  @Getter private final Ext ext = new Ext(this);
-  @Getter private final Gas gas = new Gas();
+  private final Euc euc = new Euc(wcp);
+  private final Ext ext = new Ext(this);
+  private final Gas gas = new Gas();
   private final Mul mul = new Mul(this);
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
-  @Getter private final Trm trm = new Trm(this, wcp);
-  @Getter private final RlpUtils rlpUtils = setRlpUtils(wcp);
+  private final Trm trm = new Trm(this, wcp);
+  private final RlpUtils rlpUtils = setRlpUtils(wcp);
 
   // other
-  @Getter private final Blockdata blockdata;
-  @Getter private final RomLex romLex = new RomLex(this);
+  private final Blockdata blockdata;
+  private final RomLex romLex = new RomLex(this);
   private final Rom rom = new Rom(romLex);
   private final RlpTxn rlpTxn = setRlpTxn(this);
   private final Mmio mmio;
-
-  @Getter private final TxnData<? extends TxnDataOperation> txnData = setTxnData();
+  private final TxnData<? extends TxnDataOperation> txnData = setTxnData();
   private final RlpTxnRcpt rlpTxnRcpt = new RlpTxnRcpt();
   private final LogInfo logInfo = new LogInfo(rlpTxnRcpt);
   private final LogData logData = new LogData(rlpTxnRcpt);
-  @Getter private final RlpAddr rlpAddr;
+  private final RlpAddr rlpAddr;
 
   // modules triggered by sub-fragments of the MISCELLANEOUS / IMC perspective
-  @Getter private final Mxp mxp = setMxp();
-  @Getter private final Oob oob = new Oob(this, add, mod, wcp);
-  @Getter private final Mmu mmu;
-  @Getter private final Stp stp = new Stp(wcp, mod);
-  @Getter private final Exp exp = new Exp(this, wcp);
+  private final Mxp mxp = setMxp();
+  private final Oob oob = new Oob(this, add, mod, wcp);
+  private final Mmu mmu;
+  private final Stp stp = new Stp(wcp, mod);
+  private final Exp exp = new Exp(this, wcp);
 
   /*
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
   private final BlockTransactions blockTransactions = new BlockTransactions(this);
-  @Getter private final Keccak keccak;
-  @Getter private final Sha256Blocks sha256Blocks = new Sha256Blocks();
+  private final Keccak keccak;
+  private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
-  @Getter private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
-  @Getter private final EcMulEffectiveCall ecMulEffectiveCall = new EcMulEffectiveCall();
+  // related to EcData
+  private final IncrementingModule ecAddEffectiveCall =
+      new IncrementingModule(PRECOMPILE_ECADD_EFFECTIVE_CALLS);
+  private final IncrementingModule ecMulEffectiveCall =
+      new IncrementingModule(PRECOMPILE_ECMUL_EFFECTIVE_CALLS);
+  private final IncrementingModule ecRecoverEffectiveCall =
+      new IncrementingModule(PRECOMPILE_ECRECOVER_EFFECTIVE_CALLS);
+  private final CountingOnlyModule ecPairingG2MembershipCalls =
+      new CountingOnlyModule(PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS);
+  private final CountingOnlyModule ecPairingMillerLoops =
+      new CountingOnlyModule(PRECOMPILE_ECPAIRING_MILLER_LOOPS);
+  private final IncrementingModule ecPairingFinalExponentiations =
+      new IncrementingModule(PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS);
 
-  @Getter
-  private final EcRecoverEffectiveCall ecRecoverEffectiveCall = new EcRecoverEffectiveCall();
+  //  related to Modexp
+  private final IncrementAndDetectModule modexpEffectiveCall =
+      new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS);
 
-  @Getter
-  private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls =
-      new EcPairingG2MembershipCalls();
+  // related to Rip
+  private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 
-  @Getter private final EcPairingMillerLoops ecPairingMillerLoops = new EcPairingMillerLoops();
+  // related to Blake
+  private final IncrementingModule blakeEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
+  private final BlakeRounds blakeRounds = new BlakeRounds();
 
-  @Getter
-  private final EcPairingFinalExponentiations ecPairingFinalExponentiations =
-      new EcPairingFinalExponentiations();
-
-  @Getter private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
-
-  @Getter private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
-
-  @Getter private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
-  @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
-
+  // Related to Bls
   // TODO: remove me when Linea supports Cancun & Prague precompiles
-  @Getter private final EventDetectorModule pointEval = new EventDetectorModule("POINT_EVAL") {};
-  @Getter private final EventDetectorModule bls = new EventDetectorModule("BLS") {};
+  private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
+  private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
+
+  final IncrementingModule pointEvaluationEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS);
+  final IncrementingModule pointEvaluationFailureCall =
+      new IncrementingModule(PRECOMPILE_POINT_EVALUATION_FAILURE_EFFECTIVE_CALLS);
+  final IncrementingModule blsG1AddEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G1_ADD_EFFECTIVE_CALLS);
+  final IncrementingModule blsG1MsmEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G1_MSM_EFFECTIVE_CALLS);
+  final IncrementingModule blsG2AddEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G2_ADD_EFFECTIVE_CALLS);
+  final IncrementingModule blsG2MsmEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G2_MSM_EFFECTIVE_CALLS);
+  final CountingOnlyModule blsPairingCheckMillerLoops =
+      new CountingOnlyModule(PRECOMPILE_BLS_PAIRING_CHECK_MILLER_LOOPS);
+  final IncrementingModule blsPairingCheckFinalExponentiations =
+      new IncrementingModule(PRECOMPILE_BLS_FINAL_EXPONENTIATIONS);
+  final IncrementingModule blsG1MapFpToG1EffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_MAP_FP_TO_G1_EFFECTIVE_CALLS);
+  final IncrementingModule blsG1MapFp2ToG2EffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_MAP_FP2_TO_G2_EFFECTIVE_CALLS);
+  final IncrementingModule blsC1MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_C1_MEMBERSHIP_CHECKS);
+  final IncrementingModule blsC2MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_C2_MEMBERSHIP_CALLS);
+  final IncrementingModule blsG1MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_G1_MEMBERSHIP_CALLS);
+  final IncrementingModule blsG2MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_G2_MEMBERSHIP_CALLS);
 
   /** Those modules are used only by the sequencer, they don't have associated trace */
   public List<Module> getTracelessModules() {
@@ -292,6 +321,20 @@ public abstract class Hub implements Module {
         ripemdBlocks,
         blakeEffectiveCall,
         blakeRounds,
+        pointEvaluationEffectiveCall,
+        pointEvaluationFailureCall,
+        blsG1AddEffectiveCall,
+        blsG1MsmEffectiveCall,
+        blsG2AddEffectiveCall,
+        blsG2MsmEffectiveCall,
+        blsPairingCheckMillerLoops,
+        blsPairingCheckFinalExponentiations,
+        blsG1MapFpToG1EffectiveCall,
+        blsG1MapFp2ToG2EffectiveCall,
+        blsC1MembershipCalls,
+        blsC2MembershipCalls,
+        blsG1MembershipCalls,
+        blsG2MembershipCalls,
         l1BlockSize,
         l2L1Logs,
         pointEval,
@@ -302,13 +345,9 @@ public abstract class Hub implements Module {
    * precompile-data modules
    * those module are traced (and could be count)
    */
-  @Getter private final ShakiraData shakiraData;
-
-  @Getter
+  private final ShakiraData shakiraData;
   private final BlakeModexpData blakeModexpData =
       new BlakeModexpData(wcp, modexpEffectiveCall, blakeEffectiveCall, blakeRounds);
-
-  @Getter
   public final EcData ecData =
       new EcData(
           wcp,
@@ -319,12 +358,13 @@ public abstract class Hub implements Module {
           ecPairingG2MembershipCalls,
           ecPairingMillerLoops,
           ecPairingFinalExponentiations);
+  final BlsData blsData = setBlsData(this);
 
-  @Getter private final L1BlockSizeOld l1BlockSize;
-  @Getter private final L2L1Logs l2L1Logs;
+  private final L1BlockSizeOld l1BlockSize;
+  private final IncrementingModule l2L1Logs;
 
   /** list of module than can be modified during execution */
-  @Getter private final List<Module> modules;
+  private final List<Module> modules;
 
   /** reference table modules */
   private final List<Module> refTableModules;
@@ -341,6 +381,7 @@ public abstract class Hub implements Module {
                     blakeModexpData,
                     blockdata,
                     blockhash,
+                    blsData,
                     ecData,
                     exp,
                     ext,
@@ -392,7 +433,7 @@ public abstract class Hub implements Module {
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
       log.info("WARN: Using default testing L2L1 contract address");
     }
-    l2L1Logs = new L2L1Logs();
+    l2L1Logs = new IncrementingModule(BLOCK_L2_L1_LOGS);
     keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
     l1BlockSize =
         new L1BlockSizeOld(
@@ -404,7 +445,7 @@ public abstract class Hub implements Module {
     mmio = new Mmio(mmu);
 
     refTableModules =
-        Stream.of(new BinRt(), setInstructionDecoder(), new ShfRt(), setPower())
+        Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), new ShfRt(), setPower())
             .filter(Objects::nonNull)
             .toList();
 
@@ -415,6 +456,7 @@ public abstract class Hub implements Module {
                         bin,
                         blakeModexpData,
                         blockhash, /* WARN: must be called BEFORE WCP (for traceEndConflation) */
+                        blsData,
                         ecData,
                         euc,
                         ext,
@@ -1087,6 +1129,10 @@ public abstract class Hub implements Module {
   public Address coinbaseAddressOfRelativeBlock(final int relativeBlockNumber) {
     return blockStack.getBlockByRelativeBlockNumber(relativeBlockNumber).coinbaseAddress();
   }
+
+  protected abstract BlsData setBlsData(Hub hub);
+
+  protected abstract BlsRt setBlsRt();
 
   protected abstract GasCalculator setGasCalculator();
 

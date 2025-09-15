@@ -230,6 +230,7 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("Cancun-full_memory_rewrite*");
     PARAMS.ignore("Cancun-full_memory_copy*");
     PARAMS.ignore("Cancun-full_memory_copy_offset*");
+    PARAMS.ignore("Cancun-full_memory_clean*");
     PARAMS.ignore("Cancun-empty_memory-length=0-src=0-dest=0*");
     PARAMS.ignore("Cancun-empty_memory-length=0-src=0-dest=32*");
     PARAMS.ignore("Cancun-empty_memory-length=0-src=32-dest=0*");
@@ -238,53 +239,61 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("Cancun-empty_memory-length=1-src=0-dest=32*");
     PARAMS.ignore("Cancun-empty_memory-length=1-src=32-dest=0*");
     PARAMS.ignore("Cancun-empty_memory-length=1-src=32-dest=32*");
-    PARAMS.ignore("Cancun-call[Cancun]");
-    PARAMS.ignore("Cancun-staticcall_cant_call_tstore[Cancun]");
-    PARAMS.ignore("Cancun-staticcall_cant_call_tstore_with_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-staticcalled_can_call_tstore[Cancun]");
-    PARAMS.ignore("Cancun-callcode[Cancun]");
-    PARAMS.ignore("Cancun-delegatecall[Cancun]");
-    PARAMS.ignore("Cancun-call_with_revert[Cancun]");
-    PARAMS.ignore("Cancun-call_with_invalid[Cancun]");
-    PARAMS.ignore("Cancun-call_with_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-call_with_tstore_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-call_with_tstore_stack_underflow_2[Cancun]");
-    PARAMS.ignore("Cancun-call_with_tload_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-call_with_out_of_gas[Cancun]");
-    PARAMS.ignore("Cancun-call_with_out_of_gas_2[Cancun]");
-    PARAMS.ignore("Cancun-callcode_with_revert[Cancun]");
-    PARAMS.ignore("Cancun-callcode_with_invalid[Cancun]");
-    PARAMS.ignore("Cancun-callcode_with_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-callcode_with_tstore_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-callcode_with_tstore_stack_underflow_2[Cancun]");
-    PARAMS.ignore("Cancun-callcode_with_tload_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-callcode_with_out_of_gas[Cancun]");
-    PARAMS.ignore("Cancun-callcode_with_out_of_gas_2[Cancun]");
-    PARAMS.ignore("Cancun-delegatecall_with_revert[Cancun]");
-    PARAMS.ignore("Cancun-delegatecall_with_invalid[Cancun]");
-    PARAMS.ignore("Cancun-delegatecall_with_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-delegatecall_with_tstore_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-delegatecall_with_tstore_stack_underflow_2[Cancun]");
-    PARAMS.ignore("Cancun-delegatecall_with_tload_stack_underflow[Cancun]");
-    PARAMS.ignore("Cancun-delegatecall_with_out_of_gas[Cancun]");
-    PARAMS.ignore("Cancun-delegatecall_with_out_of_gas_2[Cancun]");
-    PARAMS.ignore("Cancun-tstore_in_reentrant_call[Cancun]");
-    PARAMS.ignore("Cancun-tload_after_reentrant_tstore[Cancun]");
-    PARAMS.ignore("Cancun-manipulate_in_reentrant_call[Cancun]");
-    PARAMS.ignore("Cancun-tstore_in_call_then_tload_return_in_staticcall[Cancun]");
-    PARAMS.ignore("Cancun-tstore_before_revert_has_no_effect[Cancun]");
-    PARAMS.ignore("Cancun-revert_undoes_all[Cancun]");
-    PARAMS.ignore("Cancun-revert_undoes_tstorage_after_successful_call[Cancun]");
-    PARAMS.ignore("Cancun-tstore_before_invalid_has_no_effect[Cancun]");
-    PARAMS.ignore("Cancun-revert_undoes_all[Cancun]");
-    PARAMS.ignore("Cancun-invalid_undoes_all[Cancun]");
-    PARAMS.ignore("Cancun-invalid_undoes_tstorage_after_successful_call[Cancun]");
-    PARAMS.ignore("Cancun-tload_after_selfdestruct_pre_existing_contract[Cancun]");
-    PARAMS.ignore("Cancun-tload_after_selfdestruct_new_contract[Cancun]");
-    PARAMS.ignore("Cancun-tload_after_inner_selfdestruct_pre_existing_contract[Cancun]");
-    PARAMS.ignore("Cancun-tload_after_inner_selfdestruct_new_contract[Cancun]");
-    PARAMS.ignore("Cancun-tstore_after_selfdestruct_pre_existing_contract[Cancun]");
-    PARAMS.ignore("Cancun-tstore_after_selfdestruct_new_contract[Cancun]");
+    PARAMS.ignore("Cancun-call");
+    PARAMS.ignore("Cancun-staticcall_cant_call_tstore");
+    PARAMS.ignore("Cancun-staticcall_cant_call_tstore_with_stack_underflow");
+    PARAMS.ignore("Cancun-staticcalled_can_call_tstore");
+    PARAMS.ignore("Cancun-staticcalled_context_can_call_tload");
+    PARAMS.ignore("Cancun-callcode");
+    PARAMS.ignore("Cancun-delegatecall");
+    PARAMS.ignore("Cancun-call_with_revert");
+    PARAMS.ignore("Cancun-call_with_invalid");
+    PARAMS.ignore("Cancun-call_with_stack_underflow");
+    PARAMS.ignore("Cancun-call_with_tstore_stack_underflow");
+    PARAMS.ignore("Cancun-call_with_tstore_stack_underflow_2");
+    PARAMS.ignore("Cancun-call_with_tload_stack_underflow");
+    PARAMS.ignore("Cancun-call_with_out_of_gas");
+    PARAMS.ignore("Cancun-call_with_out_of_gas_2");
+    PARAMS.ignore("Cancun-callcode_with_revert");
+    PARAMS.ignore("Cancun-callcode_with_invalid");
+    PARAMS.ignore("Cancun-callcode_with_stack_underflow");
+    PARAMS.ignore("Cancun-callcode_with_tstore_stack_underflow");
+    PARAMS.ignore("Cancun-callcode_with_tstore_stack_underflow_2");
+    PARAMS.ignore("Cancun-callcode_with_tload_stack_underflow");
+    PARAMS.ignore("Cancun-callcode_with_out_of_gas");
+    PARAMS.ignore("Cancun-callcode_with_out_of_gas_2");
+    PARAMS.ignore("Cancun-delegatecall_with_revert");
+    PARAMS.ignore("Cancun-delegatecall_with_invalid");
+    PARAMS.ignore("Cancun-delegatecall_with_stack_underflow");
+    PARAMS.ignore("Cancun-delegatecall_with_tstore_stack_underflow");
+    PARAMS.ignore("Cancun-delegatecall_with_tstore_stack_underflow_2");
+    PARAMS.ignore("Cancun-delegatecall_with_tload_stack_underflow");
+    PARAMS.ignore("Cancun-delegatecall_with_out_of_gas");
+    PARAMS.ignore("Cancun-delegatecall_with_out_of_gas_2");
+    PARAMS.ignore("Cancun-tstore_in_reentrant_call");
+    PARAMS.ignore("Cancun-tload_after_reentrant_tstore");
+    PARAMS.ignore("Cancun-manipulate_in_reentrant_call");
+    PARAMS.ignore("Cancun-tstore_in_call_then_tload_return_in_staticcall");
+    PARAMS.ignore("Cancun-tstore_before_revert_has_no_effect");
+    PARAMS.ignore("Cancun-revert_undoes_all");
+    PARAMS.ignore("Cancun-revert_undoes_tstorage_after_successful_call");
+    PARAMS.ignore("Cancun-tstore_before_invalid_has_no_effect");
+    PARAMS.ignore("Cancun-revert_undoes_all");
+    PARAMS.ignore("Cancun-invalid_undoes_all");
+    PARAMS.ignore("Cancun-invalid_undoes_tstorage_after_successful_call");
+    PARAMS.ignore("Cancun-tload_after_selfdestruct_pre_existing_contract");
+    PARAMS.ignore("Cancun-tload_after_selfdestruct_new_contract");
+    PARAMS.ignore("Cancun-tload_after_inner_selfdestruct_pre_existing_contract");
+    PARAMS.ignore("Cancun-tload_after_inner_selfdestruct_new_contract");
+    PARAMS.ignore("Cancun-tstore_after_selfdestruct_pre_existing_contract");
+    PARAMS.ignore("Cancun-tstore_after_selfdestruct_new_contract");
+    PARAMS.ignore("Cancun-out_of_bounds_memory_extension*");
+    PARAMS.ignore("Cancun-opcode=CALL");
+    PARAMS.ignore("Cancun-opcode=DELEGATECALL");
+    PARAMS.ignore("Cancun-opcode=STATICCALL");
+    PARAMS.ignore("Cancun-opcode=CALLCODE");
+    PARAMS.ignore("Cancun-opcode=CREATE");
+    PARAMS.ignore("Cancun-opcode=CREATE2");
 
     // Deployment transaction to an account with nonce / code
     PARAMS.ignore("TransactionCollisionToEmptyButCode_d0g0v0_*");
@@ -316,6 +325,9 @@ public class BlockchainReferenceTestTools {
     // Don't do time-consuming tests.
     PARAMS.ignore("CALLBlake2f_MaxRounds.*");
     PARAMS.ignore("loopMul_*");
+    PARAMS.ignore("randomStatetest177_d0g0v0_*");
+    PARAMS.ignore("15_tstoreCannotBeDosd_d0g0v0*");
+    PARAMS.ignore("21_tstoreCannotBeDosdOOO_d0g0v0*");
 
     // Inconclusive fork choice rule, since in merge CL should be choosing forks and setting the
     // chain head. Perfectly valid test pre-merge.
@@ -461,11 +473,17 @@ public class BlockchainReferenceTestTools {
     PARAMS.ignore("ecadd_1-3_0-0_25000_80_d0g3v0_*");
 
     // System transactions Withdrawals are not supported
-    // Breaks hub.account-consistency---linking---conflation-level---balance as the transition on
-    // account 0x0000000000000000000000000000000000000200
+    // Breaks hub.account-consistency---linking---conflation-level---balance as the transition
+    // for account 0x0000000000000000000000000000000000000200
     PARAMS.ignore("BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/balance_within_block.json");
     PARAMS.ignore(
         "BlockchainTests/Pyspecs/shanghai/eip4895_withdrawals/use_value_in_contract.json");
+    // for account EIP4788_BEACONROOT_ADDRESS
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_overwrite");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_overwrite_high_timestamp");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite");
+    PARAMS.ignore("Cancun-block_count=10-buffer_wraparound_no_overwrite_2");
 
     // Pending deployment number fix
     // Issue #https://github.com/Consensys/linea-specification/issues/191

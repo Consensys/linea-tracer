@@ -99,8 +99,8 @@ public class ZkTracer implements LineCountingTracer {
           case PARIS -> new TraceParis();
           case SHANGHAI -> new TraceShanghai();
           case CANCUN -> new TraceCancun();
-          default -> throw new IllegalArgumentException(
-              "Fork config can only be up to Cancun for now");
+          case PRAGUE -> new TracePrague();
+          default -> throw new IllegalArgumentException("Unknown fork: " + chain.fork);
         };
     final DebugMode.PinLevel debugLevel = new DebugMode.PinLevel();
     this.debugMode =

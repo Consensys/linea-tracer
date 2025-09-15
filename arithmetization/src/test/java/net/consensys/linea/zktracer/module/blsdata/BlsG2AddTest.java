@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blsdata;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -107,7 +109,15 @@ public class BlsG2AddTest extends TracerTestBase {
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(chainConfig, testInfo);
+    // TODO: run it normally once we don't exclude BLS precompiles
+    try {
+      bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
+    } catch (Exception e) {
+      // We ignore any exception as we want to check the trace
+      checkArgument(
+          e.getMessage()
+              .contains("Shouldn't commit transaction as an unprovable event has been detected."));
+    }
   }
 
   private static Stream<Arguments> blsG2AddSource() {

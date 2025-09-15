@@ -79,6 +79,15 @@ public class CustomCreate2Payload {
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
+  public static Bytes create2CallC_withRevertTrigger(boolean triggerRevert) {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CREATE2CALLC_WITHREVERTTRIGGER,
+            Arrays.asList(new org.web3j.abi.datatypes.Bool(triggerRevert)),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
   public static Bytes create2FourTimes_withRevertTrigger(boolean triggerRevert) {
     Function function =
         new Function(

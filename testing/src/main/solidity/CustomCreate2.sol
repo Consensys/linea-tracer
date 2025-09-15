@@ -70,14 +70,18 @@ contract CustomCreate2 is TestingBase {
         revertOnDemand();
     }
 
-    function create2CallCNoRevert() public payable {
+    function create2CallC_withRevertTrigger(bool revertTrigger) public payable {
         address addC = deployWithCreate2(salt, initCodeC);
         addContractC = addC;
         addC.call(
             abi.encodeWithSignature("storeInMap(uint256,address)", msg.value, addC)
         );
+        if (revertTrigger) {
+            revertOnDemand();
+        }
     }
 
+    // SCENARIO 1
     function create2FourTimes_withRevertTrigger(bool triggerRevert) public payable {
         uint256 max = type(uint256).max;
         // Attempt 1 with max value, fails
@@ -94,11 +98,13 @@ contract CustomCreate2 is TestingBase {
         // Attempt 4 with no value, collision with attempt 2, fails
         deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
         if (triggerRevert) {
-            revert();
+            revertOnDemand();
         }
     }
 
+    /////////////////////
     // Behavior on demand
+    /////////////////////
 
     function revertOnDemand() public {
         revert();
@@ -124,7 +130,6 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
-
     // Call Contract C
     function callContractC(bytes memory executePayload, bool staticCall) public {
         bool success;
@@ -141,6 +146,7 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
+    // Combine 5 scenarii in one transaction
     function advancedCreateScenariiOneTx(bytes memory code, bytes32 saltEx) public payable{
         storeInitCodeC(code);
         storeSalt(saltEx);
@@ -153,7 +159,7 @@ contract CustomCreate2 is TestingBase {
             true
         );
         callMyself(
-            abi.encodeWithSignature("create2CallCAndRevert()"),
+            abi.encodeWithSignature("create2CallC_withRevertTrigger(bool)", true),
             false
         );
         callMyself(

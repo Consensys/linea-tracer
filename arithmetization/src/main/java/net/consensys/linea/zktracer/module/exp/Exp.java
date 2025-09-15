@@ -62,9 +62,7 @@ public class Exp implements OperationSetModule<ExpOperation> {
   public void commit(Trace trace) {
     int stamp = 0;
     for (ExpOperation expOp : operations.sortOperations(new ExpOperationComparator())) {
-      expOp.traceComputation(++stamp, trace.exp());
-      expOp.traceMacro(stamp, trace.exp());
-      expOp.tracePreprocessing(stamp, trace.exp());
+      expOp.trace(stamp, trace.exp());
     }
   }
 }

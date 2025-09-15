@@ -25,10 +25,10 @@ import java.util.Set;
 
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.container.module.EventDetectorModule;
+import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.L1BlockSize;
-import net.consensys.linea.zktracer.module.limits.L2L1Logs;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -50,7 +50,7 @@ public class ZkCounter implements LineCountingTracer {
   final EventDetectorModule pointEval = new EventDetectorModule("POINT_EVAL") {};
   final EventDetectorModule bls = new EventDetectorModule("BLS") {};
   final L1BlockSize l1BlockSize;
-  final L2L1Logs l2l1Logs = new L2L1Logs();
+  final IncrementingModule l2l1Logs = new IncrementingModule("BLOCK_L2_L1_LOGS");
   final List<Module> moduleToCount;
 
   public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {

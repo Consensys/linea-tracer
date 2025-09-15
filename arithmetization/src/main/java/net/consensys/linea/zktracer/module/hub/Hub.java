@@ -39,7 +39,9 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import net.consensys.linea.zktracer.container.module.EventDetectorModule;
+import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
@@ -75,8 +77,6 @@ import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L1BlockSizeOld;
-import net.consensys.linea.zktracer.module.limits.L2L1Logs;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlsC1MembershipCalls;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlsC2MembershipCalls;
@@ -90,12 +90,6 @@ import net.consensys.linea.zktracer.module.limits.precompiles.BlsG2MembershipCal
 import net.consensys.linea.zktracer.module.limits.precompiles.BlsG2MsmEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlsPairingCheckFinalExponentiations;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlsPairingCheckMillerLoops;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcAddEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcMulEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingFinalExponentiations;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingG2MembershipCalls;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcPairingMillerLoops;
-import net.consensys.linea.zktracer.module.limits.precompiles.EcRecoverEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.PointEvaluationEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.PointEvaluationFailureCall;
@@ -316,27 +310,27 @@ public abstract class Hub implements Module {
   @Getter private final Keccak keccak;
   @Getter private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
-  @Getter private final EcAddEffectiveCall ecAddEffectiveCall = new EcAddEffectiveCall();
-  @Getter private final EcMulEffectiveCall ecMulEffectiveCall = new EcMulEffectiveCall();
+  @Getter private final IncrementingModule ecAddEffectiveCall = new IncrementingModule("PRECOMPILE_ECADD_EFFECTIVE_CALLS");
+  @Getter private final IncrementingModule ecMulEffectiveCall = new IncrementingModule("PRECOMPILE_ECMUL_EFFECTIVE_CALLS");
 
   @Getter
-  private final EcRecoverEffectiveCall ecRecoverEffectiveCall = new EcRecoverEffectiveCall();
+  private final IncrementingModule ecRecoverEffectiveCall = new IncrementingModule("PRECOMPILE_ECRECOVER_EFFECTIVE_CALLS");
 
   @Getter
-  private final EcPairingG2MembershipCalls ecPairingG2MembershipCalls =
-      new EcPairingG2MembershipCalls();
+  private final CountingOnlyModule ecPairingG2MembershipCalls =
+      new CountingOnlyModule("PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS");
 
-  @Getter private final EcPairingMillerLoops ecPairingMillerLoops = new EcPairingMillerLoops();
+  @Getter private final CountingOnlyModule ecPairingMillerLoops = new CountingOnlyModule("PRECOMPILE_ECPAIRING_MILLER_LOOPS");
 
   @Getter
-  private final EcPairingFinalExponentiations ecPairingFinalExponentiations =
-      new EcPairingFinalExponentiations();
+  private final IncrementingModule ecPairingFinalExponentiations =
+      new IncrementingModule("PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS");
 
   @Getter private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
 
   @Getter private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 
-  @Getter private final BlakeEffectiveCall blakeEffectiveCall = new BlakeEffectiveCall();
+  @Getter private final IncrementingModule blakeEffectiveCall = new IncrementingModule("PRECOMPILE_BLAKE_EFFECTIVE_CALLS");
   @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
 
   // TODO: remove me when Linea supports Cancun & Prague precompiles
@@ -402,7 +396,7 @@ public abstract class Hub implements Module {
           ecPairingFinalExponentiations);
 
   @Getter private final L1BlockSizeOld l1BlockSize;
-  @Getter private final L2L1Logs l2L1Logs;
+  @Getter private final IncrementingModule l2L1Logs;
 
   /** list of module than can be modified during execution */
   @Getter private final List<Module> modules;
@@ -474,7 +468,7 @@ public abstract class Hub implements Module {
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
       log.info("WARN: Using default testing L2L1 contract address");
     }
-    l2L1Logs = new L2L1Logs();
+    l2L1Logs = new IncrementingModule("BLOCK_L2_L1_LOGS");
     keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
     l1BlockSize =
         new L1BlockSizeOld(

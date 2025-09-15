@@ -30,15 +30,13 @@ import org.apache.tuweni.bytes.Bytes;
 
 @Getter
 @Accessors(fluent = true)
-public final class BlakeRounds implements CountingOnlyModule {
-  private final CountOnlyOperation counts = new CountOnlyOperation();
+public final class BlakeRounds extends CountingOnlyModule {
   @Setter private boolean transactionBundleContainsIllegalOperation = false;
 
   private static final BigInteger INTEGER_MAX_VALUE_BI = BigInteger.valueOf(MAX_VALUE);
 
-  @Override
-  public String moduleKey() {
-    return "PRECOMPILE_BLAKE_ROUNDS";
+  public BlakeRounds() {
+    super("PRECOMPILE_BLAKE_ROUNDS");
   }
 
   @Override
@@ -70,12 +68,12 @@ public final class BlakeRounds implements CountingOnlyModule {
   public int lineCount() {
     return transactionBundleContainsIllegalOperation
         ? MAX_VALUE
-        : CountingOnlyModule.super.lineCount();
+        : super.lineCount();
   }
 
   @Override
   public void popTransactionBundle() {
-    CountingOnlyModule.super.popTransactionBundle();
+    super.popTransactionBundle();
     transactionBundleContainsIllegalOperation(false);
   }
 }

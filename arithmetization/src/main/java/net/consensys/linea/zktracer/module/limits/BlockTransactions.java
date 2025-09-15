@@ -26,14 +26,12 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 @Accessors(fluent = true)
-@RequiredArgsConstructor
-public class BlockTransactions implements CountingOnlyModule {
+public class BlockTransactions extends CountingOnlyModule {
   private final Hub hub;
-  private final CountOnlyOperation counts = new CountOnlyOperation();
 
-  @Override
-  public String moduleKey() {
-    return "BLOCK_TRANSACTIONS";
+  public BlockTransactions(Hub hub) {
+    super("BLOCK_TRANSACTIONS");
+    this.hub = hub;
   }
 
   @Override

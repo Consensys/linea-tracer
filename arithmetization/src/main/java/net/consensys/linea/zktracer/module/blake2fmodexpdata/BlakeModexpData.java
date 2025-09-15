@@ -21,10 +21,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.OperationListModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedList;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlakeEffectiveCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -35,7 +35,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 public class BlakeModexpData implements OperationListModule<BlakeModexpDataOperation> {
   private final Wcp wcp;
   private final ModexpEffectiveCall modexpEffectiveCall;
-  private final BlakeEffectiveCall blakeEffectiveCall;
+  private final IncrementingModule blakeEffectiveCall;
   private final BlakeRounds blakeRounds;
 
   private final ModuleOperationStackedList<BlakeModexpDataOperation> operations =

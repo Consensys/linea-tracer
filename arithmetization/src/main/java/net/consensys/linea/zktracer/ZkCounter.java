@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
-import net.consensys.linea.zktracer.container.module.EventDetectorModule;
+import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
 import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
@@ -44,11 +44,11 @@ public class ZkCounter implements LineCountingTracer {
   public static final String RIP = "RIP";
   public static final String BLAKE = "BLAKE";
 
-  final EventDetectorModule modexp = new EventDetectorModule(MODEXP) {};
-  final EventDetectorModule rip = new EventDetectorModule(RIP) {};
-  final EventDetectorModule blake = new EventDetectorModule(BLAKE) {};
-  final EventDetectorModule pointEval = new EventDetectorModule("POINT_EVAL") {};
-  final EventDetectorModule bls = new EventDetectorModule("BLS") {};
+  final IncrementAndDetectModule modexp = new IncrementAndDetectModule(MODEXP) {};
+  final IncrementAndDetectModule rip = new IncrementAndDetectModule(RIP) {};
+  final IncrementAndDetectModule blake = new IncrementAndDetectModule(BLAKE) {};
+  final IncrementAndDetectModule pointEval = new IncrementAndDetectModule("POINT_EVAL") {};
+  final IncrementAndDetectModule bls = new IncrementAndDetectModule("BLS") {};
   final L1BlockSize l1BlockSize;
   final IncrementingModule l2l1Logs = new IncrementingModule("BLOCK_L2_L1_LOGS");
   final List<Module> moduleToCount;

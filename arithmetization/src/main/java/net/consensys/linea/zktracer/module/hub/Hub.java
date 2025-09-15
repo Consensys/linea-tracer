@@ -40,7 +40,7 @@ import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
-import net.consensys.linea.zktracer.container.module.EventDetectorModule;
+import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
 import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
@@ -78,21 +78,6 @@ import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L1BlockSizeOld;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsC1MembershipCalls;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsC2MembershipCalls;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1AddEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1MapFp2ToG2EffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1MapFpToG1EffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1MembershipCalls;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsG1MsmEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsG2AddEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsG2MembershipCalls;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsG2MsmEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsPairingCheckFinalExponentiations;
-import net.consensys.linea.zktracer.module.limits.precompiles.BlsPairingCheckMillerLoops;
-import net.consensys.linea.zktracer.module.limits.precompiles.ModexpEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.PointEvaluationEffectiveCall;
-import net.consensys.linea.zktracer.module.limits.precompiles.PointEvaluationFailureCall;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.logdata.LogData;
@@ -260,63 +245,103 @@ public abstract class Hub implements Module {
   @Getter private final Keccak keccak;
   @Getter private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 
-  @Getter private final IncrementingModule ecAddEffectiveCall = new IncrementingModule("PRECOMPILE_ECADD_EFFECTIVE_CALLS");
-  @Getter private final IncrementingModule ecMulEffectiveCall = new IncrementingModule("PRECOMPILE_ECMUL_EFFECTIVE_CALLS");
+  @Getter
+  private final IncrementingModule ecAddEffectiveCall =
+      new IncrementingModule("PRECOMPILE_ECADD_EFFECTIVE_CALLS");
 
   @Getter
-  private final IncrementingModule ecRecoverEffectiveCall = new IncrementingModule("PRECOMPILE_ECRECOVER_EFFECTIVE_CALLS");
+  private final IncrementingModule ecMulEffectiveCall =
+      new IncrementingModule("PRECOMPILE_ECMUL_EFFECTIVE_CALLS");
+
+  @Getter
+  private final IncrementingModule ecRecoverEffectiveCall =
+      new IncrementingModule("PRECOMPILE_ECRECOVER_EFFECTIVE_CALLS");
 
   @Getter
   private final CountingOnlyModule ecPairingG2MembershipCalls =
       new CountingOnlyModule("PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS");
 
-  @Getter private final CountingOnlyModule ecPairingMillerLoops = new CountingOnlyModule("PRECOMPILE_ECPAIRING_MILLER_LOOPS");
+  @Getter
+  private final CountingOnlyModule ecPairingMillerLoops =
+      new CountingOnlyModule("PRECOMPILE_ECPAIRING_MILLER_LOOPS");
 
   @Getter
   private final IncrementingModule ecPairingFinalExponentiations =
       new IncrementingModule("PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS");
 
-  @Getter private final ModexpEffectiveCall modexpEffectiveCall = new ModexpEffectiveCall();
+  @Getter
+  private final IncrementAndDetectModule modexpEffectiveCall =
+      new IncrementAndDetectModule("PRECOMPILE_MODEXP_EFFECTIVE_CALLS");
 
   @Getter private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 
-  @Getter private final IncrementingModule blakeEffectiveCall = new IncrementingModule("PRECOMPILE_BLAKE_EFFECTIVE_CALLS");
+  @Getter
+  private final IncrementingModule blakeEffectiveCall =
+      new IncrementingModule("PRECOMPILE_BLAKE_EFFECTIVE_CALLS");
+
   @Getter private final BlakeRounds blakeRounds = new BlakeRounds();
 
   // TODO: remove me when Linea supports Cancun & Prague precompiles
-  @Getter private final EventDetectorModule pointEval = new EventDetectorModule("POINT_EVAL") {};
-  @Getter private final EventDetectorModule bls = new EventDetectorModule("BLS") {};
+  @Getter
+  private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule("POINT_EVAL") {};
+
+  @Getter private final IncrementAndDetectModule bls = new IncrementAndDetectModule("BLS") {};
 
   @Getter
-  final PointEvaluationEffectiveCall pointEvaluationEffectiveCall =
-      new PointEvaluationEffectiveCall();
+  final IncrementingModule pointEvaluationEffectiveCall =
+      new IncrementingModule("PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS");
 
   @Getter
-  final PointEvaluationFailureCall pointEvaluationFailureCall = new PointEvaluationFailureCall();
-
-  @Getter final BlsG1AddEffectiveCall blsG1AddEffectiveCall = new BlsG1AddEffectiveCall();
-  @Getter final BlsG1MsmEffectiveCall blsG1MsmEffectiveCall = new BlsG1MsmEffectiveCall();
-  @Getter final BlsG2AddEffectiveCall blsG2AddEffectiveCall = new BlsG2AddEffectiveCall();
-  @Getter final BlsG2MsmEffectiveCall blsG2MsmEffectiveCall = new BlsG2MsmEffectiveCall();
+  final IncrementingModule pointEvaluationFailureCall =
+      new IncrementingModule("PRECOMPILE_POINT_EVALUATION_FAILURE_EFFECTIVE_CALLS");
 
   @Getter
-  final BlsPairingCheckMillerLoops blsPairingCheckMillerLoops = new BlsPairingCheckMillerLoops();
+  final IncrementingModule blsG1AddEffectiveCall =
+      new IncrementingModule("PRECOMPILE_BLS_G1_ADD_EFFECTIVE_CALLS");
 
   @Getter
-  final BlsPairingCheckFinalExponentiations blsPairingCheckFinalExponentiations =
-      new BlsPairingCheckFinalExponentiations();
+  final IncrementingModule blsG1MsmEffectiveCall =
+      new IncrementingModule("PRECOMPILE_BLS_G1_MSM_EFFECTIVE_CALLS");
 
   @Getter
-  final BlsG1MapFpToG1EffectiveCall blsG1MapFpToG1EffectiveCall = new BlsG1MapFpToG1EffectiveCall();
+  final IncrementingModule blsG2AddEffectiveCall =
+      new IncrementingModule("PRECOMPILE_BLS_G2_ADD_EFFECTIVE_CALLS");
 
   @Getter
-  final BlsG1MapFp2ToG2EffectiveCall blsG1MapFp2ToG2EffectiveCall =
-      new BlsG1MapFp2ToG2EffectiveCall();
+  final IncrementingModule blsG2MsmEffectiveCall =
+      new IncrementingModule("PRECOMPILE_BLS_G2_MSM_EFFECTIVE_CALLS");
 
-  @Getter final BlsC1MembershipCalls blsC1MembershipCalls = new BlsC1MembershipCalls();
-  @Getter final BlsC2MembershipCalls blsC2MembershipCalls = new BlsC2MembershipCalls();
-  @Getter final BlsG1MembershipCalls blsG1MembershipCalls = new BlsG1MembershipCalls();
-  @Getter final BlsG2MembershipCalls blsG2MembershipCalls = new BlsG2MembershipCalls();
+  @Getter
+  final CountingOnlyModule blsPairingCheckMillerLoops =
+      new CountingOnlyModule("PRECOMPILE_BLS_PAIRING_CHECK_MILLER_LOOPS");
+
+  @Getter
+  final IncrementingModule blsPairingCheckFinalExponentiations =
+      new IncrementingModule("PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS");
+
+  @Getter
+  final IncrementingModule blsG1MapFpToG1EffectiveCall =
+      new IncrementingModule("PRECOMPILE_BLS_MAP_FP_TO_G1_EFFECTIVE_CALLS");
+
+  @Getter
+  final IncrementingModule blsG1MapFp2ToG2EffectiveCall =
+      new IncrementingModule("PRECOMPILE_BLS_MAP_FP2_TO_G2_EFFECTIVE_CALLS");
+
+  @Getter
+  final IncrementingModule blsC1MembershipCalls =
+      new IncrementingModule("PRECOMPILE_BLS_C1_MEMBERSHIP_CHECKS");
+
+  @Getter
+  final IncrementingModule blsC2MembershipCalls =
+      new IncrementingModule("PRECOMPILE_BLS_C2_MEMBERSHIP_CALLS");
+
+  @Getter
+  final IncrementingModule blsG1MembershipCalls =
+      new IncrementingModule("PRECOMPILE_BLS_G1_MEMBERSHIP_CALLS");
+
+  @Getter
+  final IncrementingModule blsG2MembershipCalls =
+      new IncrementingModule("PRECOMPILE_BLS_G2_MEMBERSHIP_CALLS");
 
   @Getter final BlsData blsData = setBlsData(this);
 

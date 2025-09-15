@@ -32,11 +32,11 @@ public class Keccak extends CountingOnlyModule {
   private final IncrementingModule ecRecoverEffectiveCall;
   private final BlockTransactions blockTransactions;
 
-    public Keccak(IncrementingModule ecRecoverEffectiveCall, BlockTransactions blockTransactions) {
-      super("BLOCK_KECCAK");
-        this.ecRecoverEffectiveCall = ecRecoverEffectiveCall;
-        this.blockTransactions = blockTransactions;
-    }
+  public Keccak(IncrementingModule ecRecoverEffectiveCall, BlockTransactions blockTransactions) {
+    super("BLOCK_KECCAK");
+    this.ecRecoverEffectiveCall = ecRecoverEffectiveCall;
+    this.blockTransactions = blockTransactions;
+  }
 
   @Override
   public void updateTally(final int count) {

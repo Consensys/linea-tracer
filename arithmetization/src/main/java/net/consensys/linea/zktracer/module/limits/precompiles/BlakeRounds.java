@@ -25,7 +25,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
-import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import org.apache.tuweni.bytes.Bytes;
 
 @Getter
@@ -66,9 +65,7 @@ public final class BlakeRounds extends CountingOnlyModule {
 
   @Override
   public int lineCount() {
-    return transactionBundleContainsIllegalOperation
-        ? MAX_VALUE
-        : super.lineCount();
+    return transactionBundleContainsIllegalOperation ? MAX_VALUE : super.lineCount();
   }
 
   @Override

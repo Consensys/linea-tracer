@@ -19,14 +19,15 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 public class IncrementingModule extends CountingOnlyModule {
 
-    public IncrementingModule(String moduleKey) {
-        super(moduleKey);
-    }
+  public IncrementingModule(String moduleKey) {
+    super(moduleKey);
+  }
 
-    @Override
-    public void updateTally(final int numberEffectiveCall) {
-        checkArgument(
-                numberEffectiveCall == 0 || numberEffectiveCall == 1, "Can only update the tally by one at the time.");
-        counts.add(numberEffectiveCall);
-    }
+  @Override
+  public void updateTally(final int numberEffectiveCall) {
+    checkArgument(
+        numberEffectiveCall == 0 || numberEffectiveCall == 1,
+        "Can only update the tally by one at the time.");
+    counts.add(numberEffectiveCall);
+  }
 }

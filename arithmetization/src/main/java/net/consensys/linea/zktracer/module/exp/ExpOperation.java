@@ -90,35 +90,38 @@ public class ExpOperation extends ModuleOperation {
 
   final void trace(int stamp, Trace.Exp trace) {
     // Handle each case separately
-    switch(expCall.expInstruction()){
-      case EXP_INST_EXPLOG: {
-        ExplogExpCall call = (ExplogExpCall) expCall;
-        trace
-          .inst(EXP_INST_EXPLOG)
-          .arg(call.exponent())
-          .cds(0)
-          .ebs(0)
-          .res(Bytes.ofUnsignedLong(call.dynCost()))
-          .validateRow();
-      }
-      case EXP_INST_MODEXPLOG: {
-        ModexpLogExpCall call = (ModexpLogExpCall) expCall;
-        trace
-          .inst(EXP_INST_EXPLOG)
-          .arg(call.getRawLeadingWord())
-          .cds(call.getCdsCutoff())
-          .ebs(call.getEbsCutoff())
-          .res(bigIntegerToBytes(call.getLeadLog()))
-          .validateRow();
-      }
+    switch (expCall.expInstruction()) {
+      case EXP_INST_EXPLOG:
+        {
+          ExplogExpCall call = (ExplogExpCall) expCall;
+          trace
+              .inst(EXP_INST_EXPLOG)
+              .arg(call.exponent())
+              .cds(0)
+              .ebs(0)
+              .res(Bytes.ofUnsignedLong(call.dynCost()))
+              .validateRow();
+        }
+      case EXP_INST_MODEXPLOG:
+        {
+          ModexpLogExpCall call = (ModexpLogExpCall) expCall;
+          trace
+              .inst(EXP_INST_EXPLOG)
+              .arg(call.getRawLeadingWord())
+              .cds(call.getCdsCutoff())
+              .ebs(call.getEbsCutoff())
+              .res(bigIntegerToBytes(call.getLeadLog()))
+              .validateRow();
+        }
       default:
         throw new IllegalArgumentException("invalid EXP instruction: " + expCall.expInstruction());
     }
-
   }
 
   @Override
-  protected int computeLineCount() { return 1; }
+  protected int computeLineCount() {
+    return 1;
+  }
 
   public record LeadLogTrimLead(int leadLog, BigInteger trim) {
     public static LeadLogTrimLead fromArgs(EWord rawLead, int cdsCutoff, int ebsCutoff) {

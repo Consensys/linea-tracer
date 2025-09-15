@@ -15,25 +15,14 @@
 
 package net.consensys.linea.zktracer.module.shf;
 
-import static net.consensys.linea.zktracer.Trace.LLARGE;
-import static net.consensys.linea.zktracer.Trace.LLARGEMO;
-import static net.consensys.linea.zktracer.module.Util.byteBits;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.Bytes16;
 import net.consensys.linea.zktracer.types.UnsignedByte;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
-import org.apache.tuweni.units.bigints.UInt256;
 
 @Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
@@ -53,15 +42,17 @@ final class ShfOperation extends ModuleOperation {
     Bytes32 res = Shifter.shift(this.opCode, this.arg2, shiftBy(this.arg1));
     // trace function instance
     trace
-      .inst(UnsignedByte.of(opCode.byteValue() & 0xff))
-      .arg1(this.arg1)
-      .arg2(this.arg2)
-      .res(res)
-      .validateRow();
+        .inst(UnsignedByte.of(opCode.byteValue() & 0xff))
+        .arg1(this.arg1)
+        .arg2(this.arg2)
+        .res(res)
+        .validateRow();
   }
 
   @Override
-  protected int computeLineCount() { return 1; }
+  protected int computeLineCount() {
+    return 1;
+  }
 
   private static int shiftBy(final Bytes32 arg) {
     return allButLastByteZero(arg) ? arg.get(31) & 0xff : 256;

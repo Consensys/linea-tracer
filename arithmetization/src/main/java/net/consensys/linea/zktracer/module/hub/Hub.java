@@ -201,6 +201,37 @@ public abstract class Hub implements Module {
     return trace.hub().spillage();
   }
 
+  @Getter
+  final PointEvaluationEffectiveCall pointEvaluationEffectiveCall =
+      new PointEvaluationEffectiveCall();
+
+  @Getter
+  final PointEvaluationFailureCall pointEvaluationFailureCall = new PointEvaluationFailureCall();
+
+  @Getter final BlsG1AddEffectiveCall blsG1AddEffectiveCall = new BlsG1AddEffectiveCall();
+  @Getter final BlsG1MsmEffectiveCall blsG1MsmEffectiveCall = new BlsG1MsmEffectiveCall();
+  @Getter final BlsG2AddEffectiveCall blsG2AddEffectiveCall = new BlsG2AddEffectiveCall();
+  @Getter final BlsG2MsmEffectiveCall blsG2MsmEffectiveCall = new BlsG2MsmEffectiveCall();
+
+  @Getter
+  final BlsPairingCheckMillerLoops blsPairingCheckMillerLoops = new BlsPairingCheckMillerLoops();
+
+  @Getter
+  final BlsPairingCheckFinalExponentiations blsPairingCheckFinalExponentiations =
+      new BlsPairingCheckFinalExponentiations();
+
+  @Getter
+  final BlsG1MapFpToG1EffectiveCall blsG1MapFpToG1EffectiveCall = new BlsG1MapFpToG1EffectiveCall();
+
+  @Getter
+  final BlsG1MapFp2ToG2EffectiveCall blsG1MapFp2ToG2EffectiveCall =
+      new BlsG1MapFp2ToG2EffectiveCall();
+
+  @Getter final BlsC1MembershipCalls blsC1MembershipCalls = new BlsC1MembershipCalls();
+  @Getter final BlsC2MembershipCalls blsC2MembershipCalls = new BlsC2MembershipCalls();
+  @Getter final BlsG1MembershipCalls blsG1MembershipCalls = new BlsG1MembershipCalls();
+  @Getter final BlsG2MembershipCalls blsG2MembershipCalls = new BlsG2MembershipCalls();
+
   /** List of all modules of the ZK-evm */
   // stateless modules
   private final Wcp wcp = new Wcp();

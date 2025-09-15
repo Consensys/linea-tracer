@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
 import static com.google.common.base.Preconditions.checkState;
+import static net.consensys.linea.zktracer.module.limits.CountingModuleName.PRECOMPILE_RIPEMD_BLOCKS;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -30,7 +31,7 @@ public final class RipemdBlocks extends CountingOnlyModule {
   private static final int RIPEMD160_ND_PADDED_ONE = 1;
 
   public RipemdBlocks() {
-    super("PRECOMPILE_RIPEMD_BLOCKS");
+    super(PRECOMPILE_RIPEMD_BLOCKS);
   }
 
   @Override

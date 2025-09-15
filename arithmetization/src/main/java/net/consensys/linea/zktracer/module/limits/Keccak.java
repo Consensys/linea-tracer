@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.limits;
 
 import static com.google.common.base.Preconditions.checkState;
+import static net.consensys.linea.zktracer.module.limits.CountingModuleName.BLOCK_KECCAK;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
@@ -33,7 +34,7 @@ public class Keccak extends CountingOnlyModule {
   private final BlockTransactions blockTransactions;
 
   public Keccak(IncrementingModule ecRecoverEffectiveCall, BlockTransactions blockTransactions) {
-    super("BLOCK_KECCAK");
+    super(BLOCK_KECCAK);
     this.ecRecoverEffectiveCall = ecRecoverEffectiveCall;
     this.blockTransactions = blockTransactions;
   }

@@ -21,11 +21,12 @@ import com.google.common.base.Preconditions;
 import lombok.RequiredArgsConstructor;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.module.limits.CountingModuleName;
 
 /** A {@link CountingOnlyModule} is a {@link Module} that only counts certain outcomes. */
 @RequiredArgsConstructor
 public class CountingOnlyModule implements Module {
-  private final String moduleKey;
+  private final CountingModuleName moduleKey;
 
   protected final CountOnlyOperation counts = new CountOnlyOperation();
 
@@ -36,7 +37,7 @@ public class CountingOnlyModule implements Module {
 
   @Override
   public String moduleKey() {
-    return moduleKey;
+    return moduleKey.toString();
   }
 
   @Override

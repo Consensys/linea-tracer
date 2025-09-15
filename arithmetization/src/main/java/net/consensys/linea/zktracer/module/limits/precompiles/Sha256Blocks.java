@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.limits.precompiles;
 
+import static net.consensys.linea.zktracer.module.limits.CountingModuleName.PRECOMPILE_SHA2_BLOCKS;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
@@ -28,7 +30,7 @@ public final class Sha256Blocks extends CountingOnlyModule {
   private static final int SHA256_NB_PADDED_ONE = 1;
 
   public Sha256Blocks() {
-    super("PRECOMPILE_SHA2_BLOCKS");
+    super(PRECOMPILE_SHA2_BLOCKS);
   }
 
   @Override

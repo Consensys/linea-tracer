@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.container.module;
 import static com.google.common.base.Preconditions.checkState;
 
 import lombok.Setter;
+import net.consensys.linea.zktracer.module.limits.CountingModuleName;
 
 public class IncrementAndDetectModule extends IncrementingModule {
 
@@ -26,7 +27,7 @@ public class IncrementAndDetectModule extends IncrementingModule {
 
   @Setter boolean eventDetected = false;
 
-  public IncrementAndDetectModule(String moduleKey) {
+  public IncrementAndDetectModule(CountingModuleName moduleKey) {
     super(moduleKey);
   }
 

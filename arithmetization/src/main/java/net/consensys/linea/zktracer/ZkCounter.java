@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer;
 
+import static net.consensys.linea.zktracer.module.limits.CountingModuleName.*;
+import static net.consensys.linea.zktracer.module.limits.CountingModuleName.MODEXP;
 import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
 import static org.hyperledger.besu.datatypes.Address.*;
 
@@ -40,17 +42,13 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class ZkCounter implements LineCountingTracer {
-  public static final String MODEXP = "MODEXP";
-  public static final String RIP = "RIP";
-  public static final String BLAKE = "BLAKE";
-
   final IncrementAndDetectModule modexp = new IncrementAndDetectModule(MODEXP) {};
   final IncrementAndDetectModule rip = new IncrementAndDetectModule(RIP) {};
   final IncrementAndDetectModule blake = new IncrementAndDetectModule(BLAKE) {};
-  final IncrementAndDetectModule pointEval = new IncrementAndDetectModule("POINT_EVAL") {};
-  final IncrementAndDetectModule bls = new IncrementAndDetectModule("BLS") {};
+  final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL);
+  final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS);
   final L1BlockSize l1BlockSize;
-  final IncrementingModule l2l1Logs = new IncrementingModule("BLOCK_L2_L1_LOGS");
+  final IncrementingModule l2l1Logs = new IncrementingModule(BLOCK_L2_L1_LOGS);
   final List<Module> moduleToCount;
 
   public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {

@@ -25,6 +25,7 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
+import static net.consensys.linea.zktracer.module.limits.CountingModuleName.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
@@ -246,63 +247,63 @@ public abstract class Hub implements Module {
 
   // related to EcData
   private final IncrementingModule ecAddEffectiveCall =
-      new IncrementingModule("PRECOMPILE_ECADD_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_ECADD_EFFECTIVE_CALLS);
   private final IncrementingModule ecMulEffectiveCall =
-      new IncrementingModule("PRECOMPILE_ECMUL_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_ECMUL_EFFECTIVE_CALLS);
   private final IncrementingModule ecRecoverEffectiveCall =
-      new IncrementingModule("PRECOMPILE_ECRECOVER_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_ECRECOVER_EFFECTIVE_CALLS);
   private final CountingOnlyModule ecPairingG2MembershipCalls =
-      new CountingOnlyModule("PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS");
+      new CountingOnlyModule(PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS);
   private final CountingOnlyModule ecPairingMillerLoops =
-      new CountingOnlyModule("PRECOMPILE_ECPAIRING_MILLER_LOOPS");
+      new CountingOnlyModule(PRECOMPILE_ECPAIRING_MILLER_LOOPS);
   private final IncrementingModule ecPairingFinalExponentiations =
-      new IncrementingModule("PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS");
+      new IncrementingModule(PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS);
 
   //  related to Modexp
   private final IncrementAndDetectModule modexpEffectiveCall =
-      new IncrementAndDetectModule("PRECOMPILE_MODEXP_EFFECTIVE_CALLS");
+      new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS);
 
   // related to Rip
   private final RipemdBlocks ripemdBlocks = new RipemdBlocks();
 
   // related Blake
   private final IncrementingModule blakeEffectiveCall =
-      new IncrementingModule("PRECOMPILE_BLAKE_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
   private final BlakeRounds blakeRounds = new BlakeRounds();
 
   // Related to Bls
   // TODO: remove me when Linea supports Cancun & Prague precompiles
-  private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule("POINT_EVAL") {};
-  private final IncrementAndDetectModule bls = new IncrementAndDetectModule("BLS") {};
+  private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
+  private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
 
   final IncrementingModule pointEvaluationEffectiveCall =
-      new IncrementingModule("PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS);
   final IncrementingModule pointEvaluationFailureCall =
-      new IncrementingModule("PRECOMPILE_POINT_EVALUATION_FAILURE_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_POINT_EVALUATION_FAILURE_EFFECTIVE_CALLS);
   final IncrementingModule blsG1AddEffectiveCall =
-      new IncrementingModule("PRECOMPILE_BLS_G1_ADD_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_G1_ADD_EFFECTIVE_CALLS);
   final IncrementingModule blsG1MsmEffectiveCall =
-      new IncrementingModule("PRECOMPILE_BLS_G1_MSM_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_G1_MSM_EFFECTIVE_CALLS);
   final IncrementingModule blsG2AddEffectiveCall =
-      new IncrementingModule("PRECOMPILE_BLS_G2_ADD_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_G2_ADD_EFFECTIVE_CALLS);
   final IncrementingModule blsG2MsmEffectiveCall =
-      new IncrementingModule("PRECOMPILE_BLS_G2_MSM_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_G2_MSM_EFFECTIVE_CALLS);
   final CountingOnlyModule blsPairingCheckMillerLoops =
-      new CountingOnlyModule("PRECOMPILE_BLS_PAIRING_CHECK_MILLER_LOOPS");
+      new CountingOnlyModule(PRECOMPILE_BLS_PAIRING_CHECK_MILLER_LOOPS);
   final IncrementingModule blsPairingCheckFinalExponentiations =
-      new IncrementingModule("PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS");
+      new IncrementingModule(PRECOMPILE_BLS_FINAL_EXPONENTIATIONS);
   final IncrementingModule blsG1MapFpToG1EffectiveCall =
-      new IncrementingModule("PRECOMPILE_BLS_MAP_FP_TO_G1_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_MAP_FP_TO_G1_EFFECTIVE_CALLS);
   final IncrementingModule blsG1MapFp2ToG2EffectiveCall =
-      new IncrementingModule("PRECOMPILE_BLS_MAP_FP2_TO_G2_EFFECTIVE_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_MAP_FP2_TO_G2_EFFECTIVE_CALLS);
   final IncrementingModule blsC1MembershipCalls =
-      new IncrementingModule("PRECOMPILE_BLS_C1_MEMBERSHIP_CHECKS");
+      new IncrementingModule(PRECOMPILE_BLS_C1_MEMBERSHIP_CHECKS);
   final IncrementingModule blsC2MembershipCalls =
-      new IncrementingModule("PRECOMPILE_BLS_C2_MEMBERSHIP_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_C2_MEMBERSHIP_CALLS);
   final IncrementingModule blsG1MembershipCalls =
-      new IncrementingModule("PRECOMPILE_BLS_G1_MEMBERSHIP_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_G1_MEMBERSHIP_CALLS);
   final IncrementingModule blsG2MembershipCalls =
-      new IncrementingModule("PRECOMPILE_BLS_G2_MEMBERSHIP_CALLS");
+      new IncrementingModule(PRECOMPILE_BLS_G2_MEMBERSHIP_CALLS);
 
   /** Those modules are used only by the sequencer, they don't have associated trace */
   public List<Module> getTracelessModules() {
@@ -432,7 +433,7 @@ public abstract class Hub implements Module {
     if (l2l1ContractAddress.equals(TEST_DEFAULT.contract())) {
       log.info("WARN: Using default testing L2L1 contract address");
     }
-    l2L1Logs = new IncrementingModule("BLOCK_L2_L1_LOGS");
+    l2L1Logs = new IncrementingModule(BLOCK_L2_L1_LOGS);
     keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
     l1BlockSize =
         new L1BlockSizeOld(

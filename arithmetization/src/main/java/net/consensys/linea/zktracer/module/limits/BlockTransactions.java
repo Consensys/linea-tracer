@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.limits;
 
+import static net.consensys.linea.zktracer.module.limits.CountingModuleName.BLOCK_TRANSACTIONS;
+
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
@@ -28,7 +30,7 @@ public class BlockTransactions extends CountingOnlyModule {
   private final Hub hub;
 
   public BlockTransactions(Hub hub) {
-    super("BLOCK_TRANSACTIONS");
+    super(BLOCK_TRANSACTIONS);
     this.hub = hub;
   }
 

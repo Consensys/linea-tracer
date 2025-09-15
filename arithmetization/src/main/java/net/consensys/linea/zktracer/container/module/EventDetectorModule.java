@@ -26,6 +26,9 @@ public abstract class EventDetectorModule implements Module {
 
   final String moduleKey;
 
+  public static final String ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX =
+      "Shouldn't commit transaction as an unprovable event has been detected.";
+
   @Setter boolean eventDetected = false;
 
   protected EventDetectorModule(String moduleKey) {
@@ -34,8 +37,7 @@ public abstract class EventDetectorModule implements Module {
 
   @Override
   public void commitTransactionBundle() {
-    checkState(
-        !eventDetected, "Shouldn't commit transaction as an unprovable event has been detected.");
+    checkState(!eventDetected, ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX);
   }
 
   @Override

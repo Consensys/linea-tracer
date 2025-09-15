@@ -110,7 +110,8 @@ public class ToyExecutionEnvironmentV2 {
             testInfo);
       } catch (Exception e) {
         // Tmp: we ignore this error, as BLS precompiles are excluded in prod, but not in test
-        checkArgument(e.getMessage().contains(ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX));
+        checkArgument(
+            e.getMessage().contains(ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX), e.getMessage());
       }
     }
   }

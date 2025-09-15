@@ -41,7 +41,7 @@ contract CustomCreate2 is TestingBase {
         emit CalledCreate2WithInitCodeC();
     }
 
-    function create2WithInitCodeCNoValue() public payable {
+    function create2WithInitCodeC_noValue() public payable {
         address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
         addContractC = addC;
         emit CalledCreate2WithInitCodeCNoValue();
@@ -78,21 +78,24 @@ contract CustomCreate2 is TestingBase {
         );
     }
 
-    function create2FourTimes() public payable {
+    function create2FourTimes_withRevertTrigger(bool triggerRevert) public payable {
         uint256 max = type(uint256).max;
+        // Attempt 1 with max value, fails
         deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
-        deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
+        // Attempt 2 with no value, deploys the contract
+        address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
+        addContractC = addC;
+        // We test that the contract code is not empty
+        addContractC.call(
+            abi.encodeWithSignature("storeInMap(uint256,address)", msg.value, addC)
+        );
+        // Attempt 3 with max value, fails
         deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
+        // Attempt 4 with no value, collision with attempt 2, fails
         deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
-    }
-
-    function create2FourTimesWithRevert() public payable {
-        uint256 max = type(uint256).max;
-        deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
-        deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
-        deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
-        deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
-        revert();
+        if (triggerRevert) {
+            revert();
+        }
     }
 
     // Behavior on demand
@@ -142,11 +145,11 @@ contract CustomCreate2 is TestingBase {
         storeInitCodeC(code);
         storeSalt(saltEx);
         callMyself(
-            abi.encodeWithSignature("create2FourTimesWithRevert()"),
+            abi.encodeWithSignature("create2FourTimes_withRevertTrigger(bool)", true),
             false
         );
         callMyself(
-            abi.encodeWithSignature("create2WithInitCodeCNoValue()"),
+            abi.encodeWithSignature("create2WithInitCodeC_noValue()"),
             true
         );
         callMyself(

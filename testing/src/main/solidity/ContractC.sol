@@ -15,6 +15,7 @@ contract ContractC {
 
 
     event ImmediateRedeploymentFail();
+    event StoreInMap(uint key);
 
     constructor() payable {
         uint256 value = msg.value;
@@ -46,6 +47,7 @@ contract ContractC {
 
     function storeInMap(uint key, address add) public {
         storageMap[key] = add;
+        emit StoreInMap(key);
     }
 
     function callBackCustomCreate2(address addCustomCreate2) public {

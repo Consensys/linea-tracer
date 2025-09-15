@@ -106,8 +106,8 @@ public class BlsG2AddTest extends TracerTestBase {
         .push(13) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
-    BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
+    final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
+    bytecodeRunner.run(chainConfig, testInfo);
   }
 
   private static Stream<Arguments> blsG2AddSource() {

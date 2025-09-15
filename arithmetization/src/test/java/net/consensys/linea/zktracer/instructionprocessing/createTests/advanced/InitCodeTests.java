@@ -267,7 +267,7 @@ public class InitCodeTests extends TracerTestBase {
   }
 
   @Test
-  void deployContractCWithCreate2OneTx() {
+  void deployContractCWithCreate2OneTx(TestInfo testInfo) {
     // Payload preparation
     Bytes advancedCreateScenariiOneTx =
         CustomCreate2Payload.advancedCreateScenariiOneTx(initCodeC, salt);
@@ -309,7 +309,7 @@ public class InitCodeTests extends TracerTestBase {
   }
 
   @Test
-  void deployScenario1NoRevert() {
+  void deployScenario1NoRevert(TestInfo testInfo) {
     // Payload preparation
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
     Map<String, List<Bytes>> logsDataMap = new HashMap<>();
@@ -341,7 +341,7 @@ public class InitCodeTests extends TracerTestBase {
   }
 
   @Test
-  void deployScenario2NoRevert() {
+  void deployScenario2NoRevert(TestInfo testInfo) {
     // Payload preparation
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
     List<Integer> txStatuses = List.of(1);

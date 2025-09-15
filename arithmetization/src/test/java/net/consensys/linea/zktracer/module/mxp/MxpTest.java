@@ -306,13 +306,20 @@ public class MxpTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("testMxpxThresholdSource")
   void testMxpxThreshold(
-      BigInteger destOffset, BigInteger offset, BigInteger size, TestInfo testInfo) {
+      OpCode opCode, BigInteger offset1, BigInteger offset2, BigInteger size1, BigInteger size2, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
-    program
-        .push(size)
-        .push(offset)
-        .push(destOffset)
-        .op(OpCode.CODECOPY); // TODO: generalize for other opcodes later
+
+    switch (opCode) {
+      case MLOAD -> program.push(offset1).op(opCode);
+      case MSTORE, MSTORE8 -> program.push(0).push(offset1).op(opCode);
+      case CODECOPY, MCOPY ->
+        program
+          .push(size1)
+          .push(offset2)
+          .push(offset1)
+          .op(opCode);
+    }
+
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
   }
 
@@ -333,13 +340,49 @@ public class MxpTest extends TracerTestBase {
             MXPX_THRESHOLD,
             MXPX_THRESHOLD.add(BigInteger.ONE),
             MAX_UINT256); // TODO: add randomHuge
-    for (BigInteger destOffset : values) {
-      for (BigInteger offset : values) {
-        for (BigInteger size : values) {
-          arguments.add(Arguments.of(destOffset, offset, size));
+
+    // TODO: check if something is missing
+    final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MLOAD, OpCode.MSTORE, OpCode.MSTORE8);
+    final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.CODECOPY, OpCode.EXTCODECOPY, OpCode.RETURNDATACOPY, OpCode.RETURN, OpCode.REVERT);
+    final List<OpCode> twoOffsetSizePairOpCodes = List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);
+    final List<OpCode> twoOffsetOneSizeOpCodes = List.of(OpCode.CODECOPY, OpCode.MCOPY);
+
+    for (BigInteger offset1 : values) {
+      for (OpCode opCode : oneOffsetOpCodes) {
+        arguments.add(Arguments.of(opCode, offset1, null, null, null));
+      }
+    }
+
+    for (BigInteger offset1 : values) {
+      for (BigInteger size1 : values) {
+        for (OpCode opCode : oneOffsetSizePairOpCodes) {
+          arguments.add(Arguments.of(opCode, offset1, null, size1, null));
         }
       }
     }
+
+    for (BigInteger offset1 : values) {
+      for (BigInteger offset2 : values) {
+        for (BigInteger size1 : values) {
+          for (BigInteger size2 : values) {
+            for (OpCode opCode : twoOffsetSizePairOpCodes) {
+              // arguments.add(Arguments.of(opCode, offset1, offset2, size1, size2));
+            }
+          }
+        }
+      }
+    }
+
+    for (BigInteger offset1 : values) {
+      for (BigInteger offset2 : values) {
+        for (BigInteger size1 : values) {
+          for (OpCode opCode : twoOffsetOneSizeOpCodes) {
+            arguments.add(Arguments.of(opCode, offset1, offset2, size1, null));
+          }
+        }
+      }
+    }
+
     return arguments.stream();
   }
 

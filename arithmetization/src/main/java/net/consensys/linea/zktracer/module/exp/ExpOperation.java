@@ -46,77 +46,69 @@ import org.apache.tuweni.bytes.Bytes;
 public class ExpOperation extends ModuleOperation {
   @EqualsAndHashCode.Include ExpCall expCall;
 
-  protected int pMacroExpInst;
-  protected Bytes pMacroData1 = Bytes.EMPTY;
-  protected Bytes pMacroData2 = Bytes.EMPTY;
-  protected Bytes pMacroData3 = Bytes.EMPTY;
-  protected Bytes pMacroData4 = Bytes.EMPTY;
-  protected Bytes pMacroData5 = Bytes.EMPTY;
-
   public ExpOperation(ExpCall expCall, Wcp wcp, Hub hub) {
     this.expCall = expCall;
 
-    if (expCall.expInstruction() == EXP_INST_EXPLOG) {
-      ExplogExpCall explogExpCall = (ExplogExpCall) expCall;
-
-      // Extract inputs
-      EWord exponent = EWord.of(hub.messageFrame().getStackItem(1));
-      long dynCost = (long) GAS_CONST_G_EXP_BYTE * exponent.byteLength();
-
-      // Fill expCall
-      explogExpCall.exponent(exponent);
-      explogExpCall.dynCost(dynCost);
-    } else if (expCall.expInstruction() == EXP_INST_MODEXPLOG) {
-      ModexpLogExpCall modexplogExpCall = (ModexpLogExpCall) expCall;
-
-      // Extract inputs
-      final ModexpMetadata modexpMetadata = modexplogExpCall.getModexpMetadata();
-      final int bbsInt = modexpMetadata.bbs().toUnsignedBigInteger().intValueExact();
-      final int ebsInt = modexpMetadata.ebs().toUnsignedBigInteger().intValueExact();
-      checkArgument(modexpMetadata.callData().size() - 96 - bbsInt >= 0);
-      EWord rawLead = modexpMetadata.rawLeadingWord();
-      int cdsCutoff = Math.min(modexpMetadata.callData().size() - 96 - bbsInt, 32);
-      int ebsCutoff = Math.min(ebsInt, 32);
-      BigInteger leadLog =
-          BigInteger.valueOf(LeadLogTrimLead.fromArgs(rawLead, cdsCutoff, ebsCutoff).leadLog());
-
-      // Fill expCall
-      modexplogExpCall.setRawLeadingWord(rawLead);
-      modexplogExpCall.setCdsCutoff(cdsCutoff);
-      modexplogExpCall.setEbsCutoff(ebsCutoff);
-      modexplogExpCall.setLeadLog(leadLog);
+    switch (expCall.expInstruction()) {
+      case EXP_INST_EXPLOG -> {
+        ExplogExpCall explogExpCall = (ExplogExpCall) expCall;
+        // Extract inputs
+        EWord exponent = EWord.of(hub.messageFrame().getStackItem(1));
+        long dynCost = (long) GAS_CONST_G_EXP_BYTE * exponent.byteLength();
+        // Fill expCall
+        explogExpCall.exponent(exponent);
+        explogExpCall.dynCost(dynCost);
+      }
+      case EXP_INST_MODEXPLOG -> {
+        ModexpLogExpCall modexplogExpCall = (ModexpLogExpCall) expCall;
+        // Extract inputs
+        final ModexpMetadata modexpMetadata = modexplogExpCall.getModexpMetadata();
+        final int bbsInt = modexpMetadata.bbs().toUnsignedBigInteger().intValueExact();
+        final int ebsInt = modexpMetadata.ebs().toUnsignedBigInteger().intValueExact();
+        checkArgument(modexpMetadata.callData().size() - 96 - bbsInt >= 0);
+        EWord rawLead = modexpMetadata.rawLeadingWord();
+        int cdsCutoff = Math.min(modexpMetadata.callData().size() - 96 - bbsInt, 32);
+        int ebsCutoff = Math.min(ebsInt, 32);
+        BigInteger leadLog =
+            BigInteger.valueOf(LeadLogTrimLead.fromArgs(rawLead, cdsCutoff, ebsCutoff).leadLog());
+        // Fill expCall
+        modexplogExpCall.setRawLeadingWord(rawLead);
+        modexplogExpCall.setCdsCutoff(cdsCutoff);
+        modexplogExpCall.setEbsCutoff(ebsCutoff);
+        modexplogExpCall.setLeadLog(leadLog);
+      }
+      default -> throw new IllegalArgumentException(
+          "invalid EXP instruction: " + expCall.expInstruction());
     }
   }
 
   final void trace(Trace.Exp trace) {
     // Handle each case separately
     switch (expCall.expInstruction()) {
-      case EXP_INST_EXPLOG:
-        {
-          ExplogExpCall call = (ExplogExpCall) expCall;
-          trace
-              .inst(EXP_INST_EXPLOG)
-              .arg(call.exponent())
-              .cds(0)
-              .ebs(0)
-              .res(Bytes.ofUnsignedLong(call.dynCost()))
-              .validateRow();
-          break;
-        }
-      case EXP_INST_MODEXPLOG:
-        {
-          ModexpLogExpCall call = (ModexpLogExpCall) expCall;
-          trace
-              .inst(EXP_INST_MODEXPLOG)
-              .arg(call.getRawLeadingWord())
-              .cds(call.getCdsCutoff())
-              .ebs(call.getEbsCutoff())
-              .res(bigIntegerToBytes(call.getLeadLog()))
-              .validateRow();
-          break;
-        }
-      default:
-        throw new IllegalArgumentException("invalid EXP instruction: " + expCall.expInstruction());
+      case EXP_INST_EXPLOG -> {
+        ExplogExpCall call = (ExplogExpCall) expCall;
+        trace
+            .inst(EXP_INST_EXPLOG)
+            .arg(call.exponent())
+            .cds(0)
+            .ebs(0)
+            .res(Bytes.ofUnsignedLong(call.dynCost()))
+            .validateRow();
+        break;
+      }
+      case EXP_INST_MODEXPLOG -> {
+        ModexpLogExpCall call = (ModexpLogExpCall) expCall;
+        trace
+            .inst(EXP_INST_MODEXPLOG)
+            .arg(call.getRawLeadingWord())
+            .cds(call.getCdsCutoff())
+            .ebs(call.getEbsCutoff())
+            .res(bigIntegerToBytes(call.getLeadLog()))
+            .validateRow();
+        break;
+      }
+      default -> throw new IllegalArgumentException(
+          "invalid EXP instruction: " + expCall.expInstruction());
     }
   }
 

@@ -21,7 +21,6 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.ModuleOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
-import net.consensys.linea.zktracer.types.UnsignedByte;
 import org.apache.tuweni.bytes.Bytes32;
 
 @Accessors(fluent = true)
@@ -41,12 +40,7 @@ final class ShfOperation extends ModuleOperation {
     // compute result
     Bytes32 res = Shifter.shift(this.opCode, this.arg2, shiftBy(this.arg1));
     // trace function instance
-    trace
-        .inst(UnsignedByte.of(opCode.byteValue() & 0xff))
-        .arg1(this.arg1)
-        .arg2(this.arg2)
-        .res(res)
-        .validateRow();
+    trace.inst(opCode.unsignedByteValue()).arg1(this.arg1).arg2(this.arg2).res(res).validateRow();
   }
 
   @Override

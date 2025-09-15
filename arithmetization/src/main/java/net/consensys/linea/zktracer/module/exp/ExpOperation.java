@@ -88,7 +88,7 @@ public class ExpOperation extends ModuleOperation {
     }
   }
 
-  final void trace(int stamp, Trace.Exp trace) {
+  final void trace(Trace.Exp trace) {
     // Handle each case separately
     switch (expCall.expInstruction()) {
       case EXP_INST_EXPLOG:
@@ -101,17 +101,19 @@ public class ExpOperation extends ModuleOperation {
               .ebs(0)
               .res(Bytes.ofUnsignedLong(call.dynCost()))
               .validateRow();
+          break;
         }
       case EXP_INST_MODEXPLOG:
         {
           ModexpLogExpCall call = (ModexpLogExpCall) expCall;
           trace
-              .inst(EXP_INST_EXPLOG)
+              .inst(EXP_INST_MODEXPLOG)
               .arg(call.getRawLeadingWord())
               .cds(call.getCdsCutoff())
               .ebs(call.getEbsCutoff())
               .res(bigIntegerToBytes(call.getLeadLog()))
               .validateRow();
+          break;
         }
       default:
         throw new IllegalArgumentException("invalid EXP instruction: " + expCall.expInstruction());

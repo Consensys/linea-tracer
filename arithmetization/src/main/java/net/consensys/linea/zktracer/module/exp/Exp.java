@@ -60,9 +60,8 @@ public class Exp implements OperationSetModule<ExpOperation> {
 
   @Override
   public void commit(Trace trace) {
-    int stamp = 0;
     for (ExpOperation expOp : operations.sortOperations(new ExpOperationComparator())) {
-      expOp.trace(stamp, trace.exp());
+      expOp.trace(trace.exp());
     }
   }
 }

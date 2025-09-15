@@ -37,7 +37,7 @@ final class ShfOperation extends ModuleOperation {
     this.arg2 = arg2;
   }
 
-  public void trace(Trace.Shf trace, int stamp) {
+  public void trace(Trace.Shf trace) {
     // compute result
     Bytes32 res = Shifter.shift(this.opCode, this.arg2, shiftBy(this.arg1));
     // trace function instance

@@ -98,7 +98,8 @@ public class ExpOperation extends ModuleOperation {
           .arg(call.exponent())
           .cds(0)
           .ebs(0)
-          .res(Bytes.ofUnsignedLong(call.dynCost()));
+          .res(Bytes.ofUnsignedLong(call.dynCost()))
+          .validateRow();
       }
       case EXP_INST_MODEXPLOG: {
         ModexpLogExpCall call = (ModexpLogExpCall) expCall;
@@ -107,7 +108,8 @@ public class ExpOperation extends ModuleOperation {
           .arg(call.getRawLeadingWord())
           .cds(call.getCdsCutoff())
           .ebs(call.getEbsCutoff())
-          .res(bigIntegerToBytes(call.getLeadLog()));
+          .res(bigIntegerToBytes(call.getLeadLog()))
+          .validateRow();
       }
       default:
         throw new IllegalArgumentException("invalid EXP instruction: " + expCall.expInstruction());

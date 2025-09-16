@@ -52,6 +52,7 @@ import org.hyperledger.besu.datatypes.TransactionType;
 import org.hyperledger.besu.datatypes.Wei;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -303,6 +304,7 @@ public class MxpTest extends TracerTestBase {
     toyExecutionEnvironmentV2.run();
   }
 
+  @Tag("nightly")
   @ParameterizedTest
   @MethodSource("testMxpxThresholdSource")
   void testMxpxThreshold(
@@ -375,18 +377,21 @@ public class MxpTest extends TracerTestBase {
             BigInteger.ZERO,
             BigInteger.ONE,
             BigInteger.valueOf(32),
+            MXPX_THRESHOLD.subtract(BigInteger.valueOf(32)),
+            MXPX_THRESHOLD.divide(BigInteger.valueOf(2)),
             MXPX_THRESHOLD,
             MXPX_THRESHOLD.add(BigInteger.ONE),
-            MAX_UINT256); // TODO: add randomHuge
+            MAX_UINT256.subtract(BigInteger.valueOf(123)), // random huge number
+            MAX_UINT256);
 
     final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MLOAD, OpCode.MSTORE, OpCode.MSTORE8);
 
     final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.RETURN, OpCode.REVERT);
 
-    final List<OpCode> twoOffsetOneSizeOpCodes =
+    final List<OpCode> twoOffsetsOneSizeOpCodes =
         List.of(OpCode.CODECOPY, OpCode.MCOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY);
 
-    final List<OpCode> twoOffsetSizePairOpCodes =
+    final List<OpCode> twoOffsetSizePairsOpCodes =
         List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);
 
     for (BigInteger offset1 : values) {
@@ -406,7 +411,7 @@ public class MxpTest extends TracerTestBase {
     for (BigInteger offset1 : values) {
       for (BigInteger offset2 : values) {
         for (BigInteger size1 : values) {
-          for (OpCode opCode : twoOffsetOneSizeOpCodes) {
+          for (OpCode opCode : twoOffsetsOneSizeOpCodes) {
             arguments.add(Arguments.of(opCode, offset1, offset2, size1, null));
           }
         }
@@ -417,7 +422,7 @@ public class MxpTest extends TracerTestBase {
       for (BigInteger offset2 : values) {
         for (BigInteger size1 : values) {
           for (BigInteger size2 : values) {
-            for (OpCode opCode : twoOffsetSizePairOpCodes) {
+            for (OpCode opCode : twoOffsetSizePairsOpCodes) {
               arguments.add(Arguments.of(opCode, offset1, offset2, size1, size2));
             }
           }

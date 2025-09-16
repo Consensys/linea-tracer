@@ -78,6 +78,13 @@ public class ModexpLogExpCall implements ExpCall {
   }
 
   public String toString() {
-    return "MODEXPLOG(" + rawLeadingWord.toString() + ", " + cdsCutoff + ", " + ebsCutoff + ")=" + leadLog.toString();
+    return "MODEXPLOG("
+        + rawLeadingWord.toString()
+        + ", "
+        + cdsCutoff
+        + ", "
+        + ebsCutoff
+        + ")="
+        + leadLog.toString();
   }
 }

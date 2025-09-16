@@ -47,35 +47,30 @@ public class CustomCreate2Payload {
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
-  public static Bytes create2WithInitCodeC() {
+  public static Bytes create2WithInitCodeC_withValueAndRevert() {
     Function function =
         new Function(
-            CustomCreate2.FUNC_CREATE2WITHINITCODEC, Arrays.asList(), Collections.emptyList());
-    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
-  }
-
-  public static Bytes create2WithInitCodeC_noValue() {
-    Function function =
-        new Function(
-            CustomCreate2.FUNC_CREATE2WITHINITCODEC_NOVALUE,
+            CustomCreate2.FUNC_CREATE2WITHINITCODEC_WITHVALUEANDREVERT,
             Arrays.asList(),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
-  public static Bytes create2WithCallBackAfterCreate2() {
+  public static Bytes create2WithInitCodeC_noValueNoRevert() {
     Function function =
         new Function(
-            CustomCreate2.FUNC_CREATE2WITHCALLBACKAFTERCREATE2,
+            CustomCreate2.FUNC_CREATE2WITHINITCODEC_NOVALUENOREVERT,
             Arrays.asList(),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
-  public static Bytes create2CallCAndRevert() {
+  public static Bytes create2WithCallCtoCallback_noValue() {
     Function function =
         new Function(
-            CustomCreate2.FUNC_CREATE2CALLCANDREVERT, Arrays.asList(), Collections.emptyList());
+            CustomCreate2.FUNC_CREATE2WITHCALLCTOCALLBACK_NOVALUE,
+            Arrays.asList(),
+            Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
@@ -93,6 +88,15 @@ public class CustomCreate2Payload {
         new Function(
             CustomCreate2.FUNC_CREATE2FOURTIMES_WITHREVERTTRIGGER,
             Arrays.asList(new org.web3j.abi.datatypes.Bool(triggerRevert)),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes callCToModifyStorageAndSelfdestruct() {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CALLCTOMODIFYSTORAGEANDSELFDESTRUCT,
+            Arrays.asList(),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }

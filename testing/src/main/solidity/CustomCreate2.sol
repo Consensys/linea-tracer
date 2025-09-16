@@ -22,8 +22,8 @@ contract CustomCreate2 is TestingBase {
     event StaticCallMyselfFail();
     event CallContractCFail();
     event StaticCallContractCFail();
-    event CalledCreate2WithInitCodeC();
-    event CalledCreate2WithInitCodeCNoValue();
+    event CallCreate2WithInitCodeC_withValue();
+    event CallCreate2WithInitCodeC_noValue();
 
     function storeInitCodeC(bytes memory code) public {
         initCodeC = code;
@@ -33,51 +33,21 @@ contract CustomCreate2 is TestingBase {
         salt = saltEx;
     }
 
+    /////////////////////////
     // Custom CREATE2 methods
+    /////////////////////////
 
-    function create2WithInitCodeC() public payable {
-        address addC = deployWithCreate2(salt, initCodeC);
+    function create2WithInitCodeC_withValueAndRevert() public payable {
+        address addC = deployWithCreate2_withValueAndRevert(salt, initCodeC, msg.value);
         addContractC = addC;
-        emit CalledCreate2WithInitCodeC();
+        emit CallCreate2WithInitCodeC_withValue();
     }
 
-    function create2WithInitCodeC_noValue() public payable {
+    function create2WithInitCodeC_noValueNoRevert() public payable {
         address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
-        addContractC = addC;
-        emit CalledCreate2WithInitCodeCNoValue();
-    }
-
-    function create2WithCallBackAfterCreate2() public payable {
-        address addC = deployWithCreate2(salt, initCodeC);
-        IContractC(addC).callBackCustomCreate2(address(this));
-    }
-
-    function create2WithCallCtoCallbackNoValue() public payable {
-        address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
-        addContractC = addC;
-        callContractC(
-            abi.encodeWithSignature("callBackCustomCreate2(address)", address(this)),
-            false
-        );
-    }
-
-    function create2CallCAndRevert() public payable {
-        address addC = deployWithCreate2(salt, initCodeC);
-        addContractC = addC;
-        addC.call(
-            abi.encodeWithSignature("storeInMap(uint256,address)", msg.value, addC)
-        );
-        revertOnDemand();
-    }
-
-    function create2CallC_withRevertTrigger(bool revertTrigger) public payable {
-        address addC = deployWithCreate2(salt, initCodeC);
-        addContractC = addC;
-        addC.call(
-            abi.encodeWithSignature("storeInMap(uint256,address)", msg.value, addC)
-        );
-        if (revertTrigger) {
-            revertOnDemand();
+        emit CallCreate2WithInitCodeC_noValue();
+        if (addC != address(0)) {
+            addContractC = addC;
         }
     }
 
@@ -100,6 +70,40 @@ contract CustomCreate2 is TestingBase {
         if (triggerRevert) {
             revertOnDemand();
         }
+    }
+
+    // SCENARIO 3 when called with msg.value == 2
+    function create2CallC_withRevertTrigger(bool revertTrigger) public payable {
+        address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, msg.value);
+        addContractC = addC;
+        addC.call(
+            abi.encodeWithSignature("storeInMap(uint256,address)", msg.value, addC)
+        );
+        if (revertTrigger) {
+            revertOnDemand();
+        }
+    }
+
+    // SCENARIO 4
+    function create2WithCallCtoCallback_noValue() public payable {
+        address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
+        addContractC = addC;
+        callContractC(
+            abi.encodeWithSignature("callBackCustomCreate2(address)", address(this)),
+            false
+        );
+    }
+
+    // SCENARIO 5
+    function callCToModifyStorageAndSelfdestruct() public payable {
+        callContractC(
+            abi.encodeWithSignature("storeInMap(uint256,address)", 1, "0x0000000000000000000000000000000000001234"),
+            false
+        );
+        callContractC(
+            abi.encodeWithSignature("selfDestructOnDemand()"),
+            false
+        );
     }
 
     /////////////////////
@@ -155,7 +159,7 @@ contract CustomCreate2 is TestingBase {
             false
         );
         callMyself(
-            abi.encodeWithSignature("create2WithInitCodeC_noValue()"),
+            abi.encodeWithSignature("create2WithInitCodeC_withValueAndRevert()"),
             true
         );
         callMyself(
@@ -163,15 +167,11 @@ contract CustomCreate2 is TestingBase {
             false
         );
         callMyself(
-            abi.encodeWithSignature("create2WithCallCtoCallbackNoValue()"),
+            abi.encodeWithSignature("create2WithCallCtoCallback_noValue()"),
             false
         );
-        callContractC(
-            abi.encodeWithSignature("storeInMap(uint256,address)", 1, "0x0000000000000000000000000000000000001234"),
-            false
-        );
-        callContractC(
-            abi.encodeWithSignature("selfDestructOnDemand()"),
+        callMyself(
+            abi.encodeWithSignature("callCToModifyStorageAndSelfdestruct()"),
             false
         );
     }

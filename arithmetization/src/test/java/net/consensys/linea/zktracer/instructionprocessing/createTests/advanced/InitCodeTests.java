@@ -102,32 +102,43 @@ public class InitCodeTests extends TracerTestBase {
   // Payloads preparation
   Bytes storeInitCodeC = CustomCreate2Payload.storeInitCodeC(initCodeC);
   Bytes storeSalt = CustomCreate2Payload.storeSalt(salt);
-  Bytes create2WithInitCodeC = CustomCreate2Payload.create2WithInitCodeC();
+  Bytes create2WithInitCodeC = CustomCreate2Payload.create2WithInitCodeC_withValueAndRevert();
   Bytes callContractCStoreInMapPayload =
       CustomCreate2Payload.callContractC(
           ContractCPayload.storeInMap(1, "0x0000000000000000000000000000000000001234"), false);
   Bytes callContractCSelfDestructPayload =
       CustomCreate2Payload.callContractC(ContractCPayload.selfDestructOnDemand(), false);
-  Bytes create2WithCallBackAfterCreate2 = CustomCreate2Payload.create2WithCallBackAfterCreate2();
-  Bytes create2CallCAndRevert = CustomCreate2Payload.create2CallCAndRevert();
+  Bytes create2WithCallBackAfterCreate2_noValue =
+      CustomCreate2Payload.create2WithCallCtoCallback_noValue();
+  Bytes create2WithInitCodeC_withValue =
+      CustomCreate2Payload.create2WithInitCodeC_withValueAndRevert();
+
+  Bytes create2CallC_withRevert = CustomCreate2Payload.create2CallC_withRevertTrigger(true);
   Bytes create2CallC_noRevert = CustomCreate2Payload.create2CallC_withRevertTrigger(false);
   Bytes create2WithStaticCall =
-      CustomCreate2Payload.callMyself(CustomCreate2Payload.create2WithInitCodeC(), true);
-  Bytes create2WithStaticCall_noValue =
-      CustomCreate2Payload.callMyself(CustomCreate2Payload.create2WithInitCodeC_noValue(), true);
+      CustomCreate2Payload.callMyself(
+          CustomCreate2Payload.create2WithInitCodeC_withValueAndRevert(), true);
   // Bytes create2FourTimes = CustomCreate2Payload.create2FourTimes();
   Bytes create2FourTimes_noRevert = CustomCreate2Payload.create2FourTimes_withRevertTrigger(false);
+  Bytes create2FourTimes_withRevert = CustomCreate2Payload.create2FourTimes_withRevertTrigger(true);
+  Bytes create2WithCallCtoCallback_noValue =
+      CustomCreate2Payload.create2WithCallCtoCallback_noValue();
+  Bytes callCToModifyStorageAndSelfdestruct =
+      CustomCreate2Payload.callCToModifyStorageAndSelfdestruct();
 
   // Logs for transaction validator
   String contractCreatedEvent = EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
   String staticCallMyselfFailEvent = EventEncoder.encode(CustomCreate2.STATICCALLMYSELFFAIL_EVENT);
-  String calledCreate2WithInitCodeCEvent =
-      EventEncoder.encode(CustomCreate2.CALLEDCREATE2WITHINITCODEC_EVENT);
+  String callCreate2WithInitCodeC_withValue_Event =
+      EventEncoder.encode(CustomCreate2.CALLCREATE2WITHINITCODEC_WITHVALUE_EVENT);
+  String callCreate2WithInitCodeC_noValue_Event =
+      EventEncoder.encode(CustomCreate2.CALLCREATE2WITHINITCODEC_NOVALUE_EVENT);
   String callMyselfFail = EventEncoder.encode(CustomCreate2.CALLMYSELFFAIL_EVENT);
   String callContractCFailEvent = EventEncoder.encode(CustomCreate2.CALLCONTRACTCFAIL_EVENT);
   String storeInMapEvent = EventEncoder.encode(ContractC.STOREINMAP_EVENT);
   String immediateRedeploymentFailEvent =
       EventEncoder.encode(ContractC.IMMEDIATEREDEPLOYMENTFAIL_EVENT);
+  String selfDestructEvent = EventEncoder.encode(ContractC.SELFDESTRUCT_EVENT);
 
   @Test
   void deployContractCWithCreate2(TestInfo testInfo) {
@@ -144,7 +155,7 @@ public class InitCodeTests extends TracerTestBase {
         contractCreatedEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, lastTxIsContractCreatedEvent));
     logsTopicMap.put(storeInMapEvent, List.of(0, 0, 0, 1, 0, 0, 0, 0, 1));
     logsTopicMap.put(staticCallMyselfFailEvent, List.of(0, 0, 0, 0, 0, 0, 0, 1, 0));
-    logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 0, 1, 0, 0, 0, 0, 0, 0));
+    logsTopicMap.put(callCreate2WithInitCodeC_withValue_Event, List.of(0, 0, 1, 0, 0, 0, 0, 0, 0));
     // List data expected for each topic
     Bytes lastTxContractCreatedEvent =
         isPostCancun(fork) ? Bytes.EMPTY : expectedContractCAddressLogData;
@@ -212,7 +223,7 @@ public class InitCodeTests extends TracerTestBase {
                 // TXSTATUS : Failed
                 // LOGS: no logs
                 // Note : 2 CREATE2 opcode called
-                create2WithCallBackAfterCreate2,
+                create2WithCallBackAfterCreate2_noValue,
                 // SCENARIO 3 - Deploy ContractC and the deployment attempts redeployment
                 // The ContractC deployment is done with value 2 - this value pilots the initcode so
                 // immediate redeployment is attempted
@@ -225,7 +236,7 @@ public class InitCodeTests extends TracerTestBase {
                 // TXSTATUS : Failed
                 // LOGS: no logs
                 // Note : 2 CREATE2 opcode called
-                create2CallCAndRevert,
+                create2CallC_withRevert,
                 // SCENARIO 4 - Attempt ContractC deployment with a staticCall
                 // TXSTATUS : Successfull
                 // LOGS: 1 StaticCallMyselfFail
@@ -305,12 +316,21 @@ public class InitCodeTests extends TracerTestBase {
     // int lastTxStatus = isPostCancun(fork) ? 0 : 1;
     List<Integer> txStatuses = List.of(1, 1);
 
-    logsTopicMap.put(contractCreatedEvent, List.of(1, 1));
+    // 1 in scenario 1
+    // 1 in scenario 3
     logsTopicMap.put(callMyselfFail, List.of(2, 0));
+    // 1 in scenario 2
     logsTopicMap.put(staticCallMyselfFailEvent, List.of(1, 0));
-    logsTopicMap.put(callContractCFailEvent, List.of(1, 0));
-    logsTopicMap.put(calledCreate2WithInitCodeCEvent, List.of(0, 1));
+    // 1 in scenario 4
+    logsTopicMap.put(contractCreatedEvent, List.of(1, 1));
+    logsTopicMap.put(callCreate2WithInitCodeC_noValue_Event, List.of(1, 0));
+    // 1 in scenario 5
     logsTopicMap.put(storeInMapEvent, List.of(1, 0));
+    logsTopicMap.put(selfDestructEvent, List.of(1, 0));
+    // In the last create2 from the last transaction, to see if selfdestruct from previous
+    // transaction has worked
+    logsTopicMap.put(callCreate2WithInitCodeC_withValue_Event, List.of(0, 1));
+
     logsDataMap.put(
         contractCreatedEvent,
         List.of(expectedContractCAddressLogData, expectedContractCAddressLogData));
@@ -330,7 +350,7 @@ public class InitCodeTests extends TracerTestBase {
         getTransactions(
             customCreate2Account,
             userAccount,
-            List.of(advancedCreateScenariiOneTx, create2WithInitCodeC),
+            List.of(advancedCreateScenariiOneTx, create2WithInitCodeC_withValue),
             List.of(2L, 0L));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
@@ -349,7 +369,7 @@ public class InitCodeTests extends TracerTestBase {
   // (3) max value - aborted
   // (4) acceptable value - ContractC deployment fails as it's a collision with attempt (2)
   // TXSTATUS : Successful
-  // LOGS: 1 ContractCreated
+  // LOGS: 1 ContractCreated, 1 StoreInMap
   // Note : 4 CREATE2 opcode called
   // Note 2 : transactions are sent with no values
   @Test
@@ -392,6 +412,47 @@ public class InitCodeTests extends TracerTestBase {
     toyExecutionEnvironmentV2.run();
   }
 
+  // SCENARIO 1 - NO REVERT AT THE END
+  // CREATE2 four times
+  // (1) with max value - aborted
+  // (2) acceptable value - ContractC deployed
+  // (3) max value - aborted
+  // (4) acceptable value - ContractC deployment fails as it's a collision with attempt (2)
+  // Revert on demand
+  // TXSTATUS : Failed
+  // LOGS: 0 ContractCreated, 0 StoreInMap
+  // Note : 4 CREATE2 opcode called
+  // Note 2 : transactions are sent with no values
+  @Test
+  void deployScenario1(TestInfo testInfo) {
+    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
+    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
+
+    List<Integer> txStatuses = List.of(1, 1, 0);
+
+    logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 0));
+    logsTopicMap.put(storeInMapEvent, List.of(0, 0, 0));
+
+    // Instantiate validator
+    TransactionProcessingResultValidator create2OneTxValidator =
+        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
+
+    List<Transaction> transactions =
+        getTransactions(
+            customCreate2Account,
+            userAccount,
+            List.of(storeInitCodeC, storeSalt, create2FourTimes_withRevert),
+            List.of(0L, 0L, 0L));
+
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+            .accounts(List.of(userAccount, customCreate2Account))
+            .transactions(transactions)
+            .transactionProcessingResultValidator(create2OneTxValidator)
+            .build();
+    toyExecutionEnvironmentV2.run();
+  }
+
   // SCENARIO 2 - STATIC CALL A CREATE2
   // Attempt to static call a create2 deployment
   // TXSTATUS : Successful
@@ -410,7 +471,7 @@ public class InitCodeTests extends TracerTestBase {
 
     List<Transaction> transactions =
         getTransactions(
-            customCreate2Account, userAccount, List.of(create2WithStaticCall_noValue), List.of(0L));
+            customCreate2Account, userAccount, List.of(create2WithStaticCall), List.of(0L));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
@@ -425,7 +486,8 @@ public class InitCodeTests extends TracerTestBase {
   // Attempts a create 2 within a create2, goes back to initCodeC and stops
   // Code deployed is empty. We call contract C to modify storage
   // TXSTATUS : Successful
-  // LOGS: 1 ContractCreated, 1 ImmediateRedeploymentFail, 0 StoreInMap as the code is empty
+  // LOGS: 1 ContractCreated, 1 ImmediateRedeploymentFail, 0 CallCreate2WithInitCodeC_withValue
+  // because the create2 reverts, 0 StoreInMap as the code is empty
   // Note: transaction is sent with value 2 to do a create2 within a create2
   @Test
   void deployScenario3NoRevert(TestInfo testInfo) {
@@ -447,6 +509,119 @@ public class InitCodeTests extends TracerTestBase {
             userAccount,
             List.of(storeInitCodeC, storeSalt, create2CallC_noRevert),
             List.of(0L, 0L, 2L));
+
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+            .accounts(List.of(userAccount, customCreate2Account))
+            .transactions(transactions)
+            .transactionProcessingResultValidator(create2OneTxValidator)
+            .build();
+    toyExecutionEnvironmentV2.run();
+  }
+
+  // SCENARIO 3 - ATTEMPT CREATE2 WITHIN A CREATE2, WITH REVERT AT THE END
+  // Attempts a create 2 within a create2, goes back to initCodeC and stops
+  // Code deployed is empty. We call contract C to modify storage. We revert the whole transaction
+  // TXSTATUS : Failed
+  // LOGS: 0 ContractCreated, O ImmediateRedeploymentFail, 0 CallCreate2WithInitCodeC_withValue
+  // because the create2 reverts, 0 StoreInMap as the code is empty
+  // Note: transaction is sent with value 2 to do a create2 within a create2
+  @Test
+  void deployScenario3(TestInfo testInfo) {
+    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
+    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
+    List<Integer> txStatuses = List.of(1, 1, 0);
+
+    logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 0));
+    // Callback to attempt a create2 within a create2, triggered by the msg.value == 2
+    logsTopicMap.put(immediateRedeploymentFailEvent, List.of(0, 0, 0));
+
+    // Instantiate validator
+    TransactionProcessingResultValidator create2OneTxValidator =
+        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
+
+    List<Transaction> transactions =
+        getTransactions(
+            customCreate2Account,
+            userAccount,
+            List.of(storeInitCodeC, storeSalt, create2CallC_withRevert),
+            List.of(0L, 0L, 2L));
+
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+            .accounts(List.of(userAccount, customCreate2Account))
+            .transactions(transactions)
+            .transactionProcessingResultValidator(create2OneTxValidator)
+            .build();
+    toyExecutionEnvironmentV2.run();
+  }
+
+  // SCENARIO 4 - ATTEMPT CREATE2 AFTER A CREATE2
+  // Attempts a create 2 after a successful create2, by calling ContractC that does a callback to
+  // CustomCreate2
+  // TXSTATUS : Successful
+  // LOGS: 1 ContractCreated, 1 CallCreate2WithInitCodeC_noValue
+  // Note: transaction is sent with value 0
+  @Test
+  void deployScenario4(TestInfo testInfo) {
+    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
+    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
+    List<Integer> txStatuses = List.of(1, 1, 1);
+
+    logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 1));
+    // Callback to attempt a create2 within a create2, triggered by the msg.value == 2
+    logsTopicMap.put(callCreate2WithInitCodeC_noValue_Event, List.of(0, 0, 1));
+
+    // Instantiate validator
+    TransactionProcessingResultValidator create2OneTxValidator =
+        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
+
+    List<Transaction> transactions =
+        getTransactions(
+            customCreate2Account,
+            userAccount,
+            List.of(storeInitCodeC, storeSalt, create2WithCallCtoCallback_noValue),
+            List.of(0L, 0L, 0L));
+
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+            .accounts(List.of(userAccount, customCreate2Account))
+            .transactions(transactions)
+            .transactionProcessingResultValidator(create2OneTxValidator)
+            .build();
+    toyExecutionEnvironmentV2.run();
+  }
+
+  // SCENARIO 5 - CREATE2, MODIFY STORAGE, SELFDESTRUCT
+  // After a successful create 2, we modify the contract storage and self-destruct
+  // TXSTATUS : Successful
+  // LOGS: 1 ContractCreated, 1 CallCreate2WithInitCodeC_noValue, 1 StoreInMap, 1 SelfDestruct
+  // Note: transaction is sent with value 0
+  @Test
+  void deployScenario5(TestInfo testInfo) {
+    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
+    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
+    List<Integer> txStatuses = List.of(1, 1, 1, 1);
+
+    logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 1, 0));
+    logsTopicMap.put(callCreate2WithInitCodeC_noValue_Event, List.of(0, 0, 1, 0));
+    logsTopicMap.put(storeInMapEvent, List.of(0, 0, 0, 1));
+    logsTopicMap.put(selfDestructEvent, List.of(0, 0, 0, 1));
+
+    // Instantiate validator
+    TransactionProcessingResultValidator create2OneTxValidator =
+        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
+
+    List<Transaction> transactions =
+        getTransactions(
+            customCreate2Account,
+            userAccount,
+            List.of(
+                storeInitCodeC,
+                storeSalt,
+                create2WithCallCtoCallback_noValue,
+                callCToModifyStorageAndSelfdestruct),
+            List.of(0L, 0L, 0L, 0L));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)

@@ -74,4 +74,9 @@ public class ModexpLogExpCall implements ExpCall {
         .pMiscExpData4(Bytes.ofUnsignedShort(ebsCutoff))
         .pMiscExpData5(bigIntegerToBytes(leadLog));
   }
+
+  public String toString() {
+    return "MODEXPLOG(" + rawLeadingWord.toString() + ", " + cdsCutoff + ", " + ebsCutoff + ")=" + leadLog.toString();
+  }
+
 }

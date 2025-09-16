@@ -56,4 +56,8 @@ public class ExplogExpCall implements ExpCall {
         .pMiscExpData2(exponent.lo())
         .pMiscExpData5(Bytes.ofUnsignedLong(dynCost));
   }
+
+  public String toString() {
+    return "EXPLOG(" + exponent.toString() + ")=" + dynCost;
+  }
 }

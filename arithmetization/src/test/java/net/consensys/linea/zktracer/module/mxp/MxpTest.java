@@ -315,9 +315,47 @@ public class MxpTest extends TracerTestBase {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     switch (opCode) {
+        // 1 offset
       case MLOAD -> program.push(offset1).op(opCode);
-      case MSTORE, MSTORE8 -> program.push(0).push(offset1).op(opCode);
-      case CODECOPY, MCOPY -> program.push(size1).push(offset2).push(offset1).op(opCode);
+      case MSTORE, MSTORE8 -> program
+          .push(0) // value
+          .push(offset1)
+          .op(opCode);
+
+        // 1 offset, 1 size
+      case RETURN, REVERT -> program.push(size1).push(offset1).op(opCode);
+
+        // 2 offsets, 1 size
+      case CODECOPY, MCOPY, RETURNDATACOPY -> program
+          .push(size1)
+          .push(offset2)
+          .push(offset1)
+          .op(opCode);
+      case EXTCODECOPY -> program
+          .push(size1)
+          .push(offset2)
+          .push(offset1)
+          .push(0) // address
+          .op(opCode);
+
+        // 2 offsets, 2 sizes
+      case CALL, CALLCODE -> program
+          .push(size2)
+          .push(offset2)
+          .push(size1)
+          .push(offset1)
+          .push(0) // value
+          .push(0) // address
+          .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+          .op(opCode);
+      case STATICCALL, DELEGATECALL -> program
+          .push(size2)
+          .push(offset2)
+          .push(size1)
+          .push(offset1)
+          .push(0) // address
+          .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
+          .op(opCode);
     }
 
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
@@ -341,18 +379,15 @@ public class MxpTest extends TracerTestBase {
             MXPX_THRESHOLD.add(BigInteger.ONE),
             MAX_UINT256); // TODO: add randomHuge
 
-    // TODO: check if something is missing
     final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MLOAD, OpCode.MSTORE, OpCode.MSTORE8);
-    final List<OpCode> oneOffsetSizePairOpCodes =
-        List.of(
-            OpCode.CODECOPY,
-            OpCode.EXTCODECOPY,
-            OpCode.RETURNDATACOPY,
-            OpCode.RETURN,
-            OpCode.REVERT);
+
+    final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.RETURN, OpCode.REVERT);
+
+    final List<OpCode> twoOffsetOneSizeOpCodes =
+        List.of(OpCode.CODECOPY, OpCode.MCOPY, OpCode.RETURNDATACOPY, OpCode.EXTCODECOPY);
+
     final List<OpCode> twoOffsetSizePairOpCodes =
         List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);
-    final List<OpCode> twoOffsetOneSizeOpCodes = List.of(OpCode.CODECOPY, OpCode.MCOPY);
 
     for (BigInteger offset1 : values) {
       for (OpCode opCode : oneOffsetOpCodes) {
@@ -371,10 +406,8 @@ public class MxpTest extends TracerTestBase {
     for (BigInteger offset1 : values) {
       for (BigInteger offset2 : values) {
         for (BigInteger size1 : values) {
-          for (BigInteger size2 : values) {
-            for (OpCode opCode : twoOffsetSizePairOpCodes) {
-              // arguments.add(Arguments.of(opCode, offset1, offset2, size1, size2));
-            }
+          for (OpCode opCode : twoOffsetOneSizeOpCodes) {
+            arguments.add(Arguments.of(opCode, offset1, offset2, size1, null));
           }
         }
       }
@@ -383,8 +416,10 @@ public class MxpTest extends TracerTestBase {
     for (BigInteger offset1 : values) {
       for (BigInteger offset2 : values) {
         for (BigInteger size1 : values) {
-          for (OpCode opCode : twoOffsetOneSizeOpCodes) {
-            arguments.add(Arguments.of(opCode, offset1, offset2, size1, null));
+          for (BigInteger size2 : values) {
+            for (OpCode opCode : twoOffsetSizePairOpCodes) {
+              arguments.add(Arguments.of(opCode, offset1, offset2, size1, size2));
+            }
           }
         }
       }

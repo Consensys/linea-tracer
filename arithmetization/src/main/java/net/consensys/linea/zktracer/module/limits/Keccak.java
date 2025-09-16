@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.limits;
 
 import static com.google.common.base.Preconditions.checkState;
-import static net.consensys.linea.zktracer.module.limits.CountingModuleName.BLOCK_KECCAK;
+import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_KECCAK;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;

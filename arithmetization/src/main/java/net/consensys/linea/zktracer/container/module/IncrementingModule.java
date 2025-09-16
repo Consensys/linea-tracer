@@ -17,11 +17,11 @@ package net.consensys.linea.zktracer.container.module;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import net.consensys.linea.zktracer.module.limits.CountingModuleName;
+import net.consensys.linea.zktracer.module.ModuleName;
 
 public class IncrementingModule extends CountingOnlyModule {
 
-  public IncrementingModule(CountingModuleName moduleKey) {
+  public IncrementingModule(ModuleName moduleKey) {
     super(moduleKey);
   }
 

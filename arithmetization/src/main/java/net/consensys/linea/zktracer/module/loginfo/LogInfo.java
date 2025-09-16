@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_DATA_SIZE;
 import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_NO_LOG_ENTRY;
 import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_TOPIC_BASE;
 import static net.consensys.linea.zktracer.Trace.RLP_RCPT_SUBPHASE_ID_TOPIC_DELTA;
+import static net.consensys.linea.zktracer.module.ModuleName.LOG_INFO;
 
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class LogInfo implements Module {
 
   @Override
   public String moduleKey() {
-    return "LOG_INFO";
+    return LOG_INFO.toString();
   }
 
   @Override

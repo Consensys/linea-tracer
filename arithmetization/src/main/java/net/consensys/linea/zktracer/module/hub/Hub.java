@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub;
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___STACK_STAMP;
+import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_INIT;
@@ -25,7 +26,6 @@ import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_SKIP
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_WARM;
 import static net.consensys.linea.zktracer.module.hub.TransactionProcessingType.USER;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.*;
-import static net.consensys.linea.zktracer.module.limits.CountingModuleName.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.RETURN;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.effectiveToAddress;
@@ -179,7 +179,7 @@ public abstract class Hub implements Module {
 
   @Override
   public String moduleKey() {
-    return "HUB";
+    return HUB.toString();
   }
 
   @Override
@@ -212,10 +212,10 @@ public abstract class Hub implements Module {
   private final Euc euc = new Euc(wcp);
   private final Ext ext = new Ext(this);
   private final Gas gas = new Gas();
-  private final Mul mul = new Mul(this);
+  private final Mul mul = new Mul();
   private final Mod mod = new Mod();
   private final Shf shf = new Shf();
-  private final Trm trm = new Trm(this, wcp);
+  private final Trm trm;
   private final RlpUtils rlpUtils = setRlpUtils(wcp);
 
   // other
@@ -439,6 +439,7 @@ public abstract class Hub implements Module {
         new L1BlockSizeOld(
             blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
+    trm = new Trm(fork, wcp);
     rlpAddr = new RlpAddr(this, trm, keccak);
     blockdata = setBlockData(this, wcp, euc, chain);
     mmu = new Mmu(euc, wcp);

@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.limits;
 
-import static net.consensys.linea.zktracer.module.limits.CountingModuleName.BLOCK_TRANSACTIONS;
+import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_TRANSACTIONS;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.logdata;
 
+import static net.consensys.linea.zktracer.module.ModuleName.LOG_DATA;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
 import java.util.List;
@@ -36,7 +37,7 @@ public class LogData implements Module {
 
   @Override
   public String moduleKey() {
-    return "LOG_DATA";
+    return LOG_DATA.toString();
   }
 
   @Override

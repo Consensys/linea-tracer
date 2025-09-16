@@ -15,8 +15,14 @@
 
 package net.consensys.linea.zktracer;
 
-import static net.consensys.linea.zktracer.module.limits.CountingModuleName.*;
-import static net.consensys.linea.zktracer.module.limits.CountingModuleName.MODEXP;
+import static net.consensys.linea.zktracer.Fork.CANCUN;
+import static net.consensys.linea.zktracer.Fork.PRAGUE;
+import static net.consensys.linea.zktracer.TraceCancun.Hub.*;
+import static net.consensys.linea.zktracer.TracePrague.Hub.NROWS_HUB_SYSI_EIP2935;
+import static net.consensys.linea.zktracer.TracePrague.Hub.NROWS_HUB_SYSI_EIP4788;
+import static net.consensys.linea.zktracer.module.ModuleName.*;
+import static net.consensys.linea.zktracer.module.ModuleName.MODEXP;
+import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
 import static org.hyperledger.besu.datatypes.Address.*;
 
@@ -26,11 +32,25 @@ import java.util.Map;
 import java.util.Set;
 
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
+import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
 import net.consensys.linea.zktracer.container.module.IncrementAndDetectModule;
 import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
+import net.consensys.linea.zktracer.module.add.Add;
+import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
+import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.limits.L1BlockSize;
+import net.consensys.linea.zktracer.module.mod.Mod;
+import net.consensys.linea.zktracer.module.mul.Mul;
+import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
+import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
+import net.consensys.linea.zktracer.module.rlptxn.cancun.CancunRlpTxn;
+import net.consensys.linea.zktracer.module.shf.Shf;
+import net.consensys.linea.zktracer.module.trm.Trm;
+import net.consensys.linea.zktracer.module.wcp.Wcp;
+import net.consensys.linea.zktracer.opcode.OpCodeData;
+import net.consensys.linea.zktracer.opcode.OpCodes;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -42,6 +62,44 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class ZkCounter implements LineCountingTracer {
+  private final OpCodes opCodes = OpCodes.load(CANCUN);
+  ;
+  // traced modules
+  final Add add = new Add();
+  final Bin bin = new Bin();
+  // blakemodexp
+  // final Blockdata blockData; //TODO
+  final CountingOnlyModule blockHash = new CountingOnlyModule(BLOCK_HASH);
+  // blsdata
+  // ecdata
+  // euc
+  // ext //TODO
+  // gas // TODO
+  final CountingOnlyModule hub = new CountingOnlyModule(HUB);
+  final CountingOnlyModule logData = new CountingOnlyModule(LOG_DATA);
+  final CountingOnlyModule logInfo = new CountingOnlyModule(LOG_INFO);
+  // mmio
+  final CountingOnlyModule mmu = new CountingOnlyModule(MMU);
+  final Mod mod = new Mod();
+  final Mul mul = new Mul();
+  final CountingOnlyModule mxp = new CountingOnlyModule(MXP);
+  // final Oob oob = new Oob(); //TODO
+  // final Exp exp = new Exp(); // TODO
+  final CountingOnlyModule rlpAddr = new CountingOnlyModule(RLP_ADDR);
+  final RlpTxn rlpTxn;
+  final CountingOnlyModule rlpTxnRcpt = new CountingOnlyModule(RLP_TXN_RCPT);
+  final RlpUtils rlpUtils;
+  // rom // TODO
+  // rolex // TODO
+  // shakiradata
+  final Shf shf = new Shf();
+  // stp // TODO
+  final Trm trm;
+  // final TxnData txnData; // TODO
+  final Wcp wcp = new Wcp();
+
+  // counting only modules
+  // TODO ...
   final IncrementAndDetectModule modexp = new IncrementAndDetectModule(MODEXP) {};
   final IncrementAndDetectModule rip = new IncrementAndDetectModule(RIP) {};
   final IncrementAndDetectModule blake = new IncrementAndDetectModule(BLAKE) {};
@@ -52,9 +110,39 @@ public class ZkCounter implements LineCountingTracer {
   final List<Module> moduleToCount;
 
   public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {
+    this.trm = new Trm(PRAGUE, wcp);
+    this.rlpUtils = new RlpUtils(wcp);
+    this.rlpTxn = new CancunRlpTxn(rlpUtils, trm);
+
     l1BlockSize =
         new L1BlockSize(l2l1Logs, bridgeConfiguration.contract(), bridgeConfiguration.topic());
-    moduleToCount = List.of(modexp, rip, blake, bls, pointEval, l1BlockSize, l2l1Logs);
+    moduleToCount =
+        List.of(
+            add,
+            bin,
+            // blockData,
+            blockHash,
+            hub,
+            logData,
+            logInfo,
+            mmu,
+            mod,
+            mul,
+            mxp,
+            rlpAddr,
+            rlpTxn,
+            rlpTxnRcpt,
+            rlpUtils,
+            shf,
+            trm,
+            wcp,
+            modexp,
+            rip,
+            blake,
+            bls,
+            pointEval,
+            l1BlockSize,
+            l2l1Logs);
   }
 
   @Override
@@ -70,6 +158,11 @@ public class ZkCounter implements LineCountingTracer {
       final BlockBody blockBody,
       final Address miningBeneficiary) {
     l1BlockSize.traceStartBlock(world, blockHeader, miningBeneficiary);
+    hub.updateTally(NROWS_HUB_SYSI_EIP4788);
+    hub.updateTally(NROWS_HUB_SYSI_EIP2935);
+    hub.updateTally(NROWS_HUB_SYSF_NOOP);
+
+    commitTransactionBundle();
   }
 
   @Override
@@ -86,6 +179,78 @@ public class ZkCounter implements LineCountingTracer {
       case FRONTIER, ACCESS_LIST, EIP1559 -> l1BlockSize.traceEndTx(tx, logs);
       case BLOB, DELEGATE_CODE -> throw new IllegalStateException(
           "Unsupported tx type: " + tx.getType());
+    }
+    hub.updateTally(NROWS_HUB_INIT + NROWS_HUB_FINL);
+    if (tx.getAccessList().isPresent()) {
+      final int nRowsWarmPhase =
+          tx.getAccessList().get().stream()
+              .mapToInt(listEntry -> listEntry.storageKeys().size() + 1)
+              .sum();
+      hub.updateTally(nRowsWarmPhase);
+    }
+  }
+
+  public void tracePreExecution(final MessageFrame frame) {
+    final OpCodeData opcode = opCodes.of(frame.getCurrentOperation().getOpcode());
+    final short stackSize = (short) frame.stackSize();
+    final short deleted = (short) opcode.stackSettings().delta();
+
+    final boolean underflow = wcp.callLT(stackSize, deleted);
+    if (underflow) {
+      hub.updateTally(NROWS_HUB_SUXSOX_INVALID);
+      return;
+    }
+    final short heightNew = (short) (stackSize + opcode.stackSettings().alpha() - deleted);
+    final boolean overflow = wcp.callGT(heightNew, MAX_STACK_SIZE);
+    if (overflow) {
+      hub.updateTally(NROWS_HUB_SUXSOX_INVALID);
+      return;
+    }
+
+    switch (opcode.instructionFamily()) {
+      case PUSH_POP, DUP, SWAP, BATCH -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+      case ADD -> {
+        hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+        add.tracePreOpcode(frame, opcode.mnemonic());
+      }
+      case MOD -> {
+        hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+        mod.tracePreOpcode(frame, opcode.mnemonic());
+      }
+      case SHF -> {
+        hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+        shf.tracePreOpcode(frame, opcode.mnemonic());
+      }
+      case BIN -> {
+        hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+        bin.tracePreOpcode(frame, opcode.mnemonic());
+      }
+      case WCP -> {
+        hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+        wcp.tracePreOpcode(frame, opcode.mnemonic());
+      }
+      case EXT -> {
+        hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+        // ext.tracePreOpcode(frame, opcode.mnemonic()); //TODO
+      }
+      case MACHINE_STATE -> {} // TODO
+      case MUL -> {} // TODO
+      case HALT -> {} // TODO
+      case KEC -> {} // TODO
+      case CONTEXT -> {} // TODO
+      case LOG -> {} // TODO
+      case ACCOUNT -> {} // TODO
+      case COPY -> {} // TODO
+      case MCOPY -> {} // TODO
+      case TRANSACTION -> {} // TODO
+      case STACK_RAM -> {} // TODO
+      case STORAGE -> {} // TODO
+      case TRANSIENT -> {} // TODO
+      case JUMP -> {} // TODO
+      case CREATE -> {} // TODO
+      case CALL -> {} // TODO
+      case INVALID -> hub.updateTally(NROWS_HUB_SUXSOX_INVALID);
+      default -> throw new UnsupportedOperationException("not yet implemented");
     }
   }
 

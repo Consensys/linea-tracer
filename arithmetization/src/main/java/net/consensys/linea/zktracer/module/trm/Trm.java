@@ -20,10 +20,10 @@ import java.util.List;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
-import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.types.EWord;
 import org.apache.tuweni.bytes.Bytes;
@@ -34,7 +34,7 @@ import org.hyperledger.besu.datatypes.Address;
 @Accessors(fluent = true)
 @RequiredArgsConstructor
 public class Trm implements OperationSetModule<TrmOperation> {
-  private final Hub hub;
+  private final Fork fork;
   private final Wcp wcp;
   private final ModuleOperationStackedSet<TrmOperation> operations =
       new ModuleOperationStackedSet<>();
@@ -45,7 +45,7 @@ public class Trm implements OperationSetModule<TrmOperation> {
   }
 
   public Address callTrimming(final Bytes32 rawAddress) {
-    operations.add(new TrmOperation(hub.fork, EWord.of(rawAddress), wcp));
+    operations.add(new TrmOperation(fork, EWord.of(rawAddress), wcp));
     return Address.extract(rawAddress);
   }
 

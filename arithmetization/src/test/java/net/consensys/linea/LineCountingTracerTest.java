@@ -32,6 +32,9 @@ public class LineCountingTracerTest extends TracerTestBase {
     final ZkTracer tracer = new ZkTracer(chainConfig);
     final List<String> tracerToCount =
         tracer.getModulesToCount().stream().map(Module::moduleKey).toList();
+    final List<String> tracedModules =
+        tracer.getHub().getModulesToTrace().stream().map(Module::moduleKey).toList();
+    checkArgument(tracerToCount.containsAll(tracedModules), "Some traced modules are not counted");
     checkArgument(
         tracerToCount.size() == tracerToCount.stream().distinct().toList().size(),
         "Duplicate has been found");

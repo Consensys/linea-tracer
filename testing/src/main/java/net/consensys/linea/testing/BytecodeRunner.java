@@ -16,10 +16,12 @@
 package net.consensys.linea.testing;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -27,6 +29,7 @@ import lombok.Setter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
+import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
@@ -182,6 +185,37 @@ public final class BytecodeRunner {
             .transaction(tx)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    // This is to check that the light counter is really counting more than the full tracer
+    final ZkTracer tracer = toyExecutionEnvironmentV2.tracer;
+
+    if (isPostCancun(tracer.getHub().fork)) {
+      final Map<String, Integer> tracerCount = tracer.getModulesLineCount();
+
+      final ZkCounter lightCounter = new ZkCounter(chainConfig.bridgeConfiguration);
+      toyExecutionEnvironmentV2 =
+          ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+              .transactionProcessingResultValidator(
+                  TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+              .accounts(accounts)
+              .zkTracerValidator(zkTracerValidator)
+              .zkCounter(lightCounter)
+              .transaction(tx)
+              .build();
+      toyExecutionEnvironmentV2.run();
+      final Map<String, Integer> lightCounterCount = lightCounter.getModulesLineCount();
+
+      for (String module : lightCounterCount.keySet()) {
+        checkArgument(
+            tracerCount.get(module) < lightCounterCount.get(module),
+            "Module "
+                + module
+                + " has more lines in full tracer: "
+                + tracerCount.get(module)
+                + " than in light counter: "
+                + lightCounterCount.get(module));
+      }
+    }
   }
 
   public void runInitcode(ChainConfig chainConfig, TestInfo testInfo) {

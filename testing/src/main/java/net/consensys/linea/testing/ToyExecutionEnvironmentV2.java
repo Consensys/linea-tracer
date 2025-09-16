@@ -77,7 +77,7 @@ public class ToyExecutionEnvironmentV2 {
 
   @Builder.Default private final Consumer<ZkTracer> zkTracerValidator = x -> {};
 
-  private ZkTracer tracer;
+  ZkTracer tracer;
   @Setter @Getter public ZkCounter zkCounter;
 
   public static ToyExecutionEnvironmentV2.ToyExecutionEnvironmentV2Builder builder(
@@ -99,7 +99,7 @@ public class ToyExecutionEnvironmentV2 {
       final GeneralStateTestCaseEipSpec generalStateTestCaseEipSpec =
           this.buildGeneralStateTestCaseSpec(protocolSpec);
 
-      // TODO: run it normally once we don't exclude BLS precompiles
+      // TODO: remove the try catch once we don't exclude BLS precompiles
       try {
         ToyExecutionTools.executeTest(
             generalStateTestCaseEipSpec,

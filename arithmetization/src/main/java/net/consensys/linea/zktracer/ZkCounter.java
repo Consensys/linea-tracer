@@ -208,7 +208,7 @@ public class ZkCounter implements LineCountingTracer {
     }
 
     switch (opcode.instructionFamily()) {
-      case PUSH_POP, DUP, SWAP, BATCH -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+      case PUSH_POP, DUP, SWAP, BATCH -> hub.updateTally(1);
       case ADD -> {
         hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
         add.tracePreOpcode(frame, opcode.mnemonic());

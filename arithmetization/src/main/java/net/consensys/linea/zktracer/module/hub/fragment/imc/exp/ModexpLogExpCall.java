@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.types.Conversions.bigIntegerToBytes;
 
 import java.math.BigInteger;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -31,12 +32,13 @@ import org.apache.tuweni.bytes.Bytes;
 @Setter
 @Getter
 @RequiredArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ModexpLogExpCall implements ExpCall {
   final ModexpMetadata modexpMetadata;
-  EWord rawLeadingWord;
-  int cdsCutoff;
-  int ebsCutoff;
-  BigInteger leadLog;
+  @EqualsAndHashCode.Include EWord rawLeadingWord;
+  @EqualsAndHashCode.Include int cdsCutoff;
+  @EqualsAndHashCode.Include int ebsCutoff;
+  @EqualsAndHashCode.Include BigInteger leadLog;
 
   @Override
   public int expInstruction() {
@@ -78,5 +80,4 @@ public class ModexpLogExpCall implements ExpCall {
   public String toString() {
     return "MODEXPLOG(" + rawLeadingWord.toString() + ", " + cdsCutoff + ", " + ebsCutoff + ")=" + leadLog.toString();
   }
-
 }

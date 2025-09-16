@@ -306,18 +306,18 @@ public class MxpTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("testMxpxThresholdSource")
   void testMxpxThreshold(
-      OpCode opCode, BigInteger offset1, BigInteger offset2, BigInteger size1, BigInteger size2, TestInfo testInfo) {
+      OpCode opCode,
+      BigInteger offset1,
+      BigInteger offset2,
+      BigInteger size1,
+      BigInteger size2,
+      TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     switch (opCode) {
       case MLOAD -> program.push(offset1).op(opCode);
       case MSTORE, MSTORE8 -> program.push(0).push(offset1).op(opCode);
-      case CODECOPY, MCOPY ->
-        program
-          .push(size1)
-          .push(offset2)
-          .push(offset1)
-          .op(opCode);
+      case CODECOPY, MCOPY -> program.push(size1).push(offset2).push(offset1).op(opCode);
     }
 
     BytecodeRunner.of(program.compile()).run(chainConfig, testInfo);
@@ -343,8 +343,15 @@ public class MxpTest extends TracerTestBase {
 
     // TODO: check if something is missing
     final List<OpCode> oneOffsetOpCodes = List.of(OpCode.MLOAD, OpCode.MSTORE, OpCode.MSTORE8);
-    final List<OpCode> oneOffsetSizePairOpCodes = List.of(OpCode.CODECOPY, OpCode.EXTCODECOPY, OpCode.RETURNDATACOPY, OpCode.RETURN, OpCode.REVERT);
-    final List<OpCode> twoOffsetSizePairOpCodes = List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);
+    final List<OpCode> oneOffsetSizePairOpCodes =
+        List.of(
+            OpCode.CODECOPY,
+            OpCode.EXTCODECOPY,
+            OpCode.RETURNDATACOPY,
+            OpCode.RETURN,
+            OpCode.REVERT);
+    final List<OpCode> twoOffsetSizePairOpCodes =
+        List.of(OpCode.CALL, OpCode.CALLCODE, OpCode.STATICCALL, OpCode.DELEGATECALL);
     final List<OpCode> twoOffsetOneSizeOpCodes = List.of(OpCode.CODECOPY, OpCode.MCOPY);
 
     for (BigInteger offset1 : values) {

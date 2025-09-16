@@ -74,21 +74,21 @@ public class McopyTests extends TracerTestBase {
       List.of(
           Bytes32.ZERO,
           Bytes32.leftPad(Bytes.ofUnsignedInt(1)),
-          Bytes32.leftPad(Bytes.ofUnsignedInt(LLARGEMO)),
-          Bytes32.leftPad(Bytes.ofUnsignedInt(LLARGE)),
-          Bytes32.leftPad(Bytes.ofUnsignedInt(LLARGEPO)),
-          Bytes32.leftPad(Bytes.ofUnsignedInt(WORD_SIZE_MO)),
-          Bytes32.leftPad(Bytes.ofUnsignedInt(WORD_SIZE)),
-          Bytes32.leftPad(Bytes.ofUnsignedInt(33)),
-          Bytes32.leftPad(Bytes.ofUnsignedLong(Long.MAX_VALUE)),
+          Bytes32.leftPad(Bytes.ofUnsignedLong(CANCUN_MXPX_THRESHOLD - 1)),
+          Bytes32.leftPad(Bytes.ofUnsignedLong(CANCUN_MXPX_THRESHOLD)),
           Bytes32.repeat((byte) 0xff));
 
   private static final List<Bytes32> inputsValuesNightly =
       Stream.concat(
               inputsValuesUnit.stream(),
               Stream.of(
-                  Bytes32.leftPad(Bytes.ofUnsignedLong(CANCUN_MXPX_THRESHOLD - 1)),
-                  Bytes32.leftPad(Bytes.ofUnsignedLong(CANCUN_MXPX_THRESHOLD)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(LLARGEMO)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(LLARGE)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(LLARGEPO)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(WORD_SIZE_MO)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(WORD_SIZE)),
+                  Bytes32.leftPad(Bytes.ofUnsignedInt(33)),
+                  Bytes32.leftPad(Bytes.ofUnsignedLong(Long.MAX_VALUE)),
                   Bytes32.leftPad(Bytes.ofUnsignedLong(CANCUN_MXPX_THRESHOLD + 1))))
           .toList();
 

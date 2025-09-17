@@ -1,0 +1,71 @@
+package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
+
+import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.*;
+import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import net.consensys.linea.reporting.TracerTestBase;
+import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
+import net.consensys.linea.testing.TransactionProcessingResultValidator;
+import net.consensys.linea.zktracer.instructionprocessing.utilities.SmartContractTestValidator;
+import org.apache.tuweni.bytes.Bytes;
+import org.hyperledger.besu.ethereum.core.Transaction;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+
+// Recap : CustomCreate2 is a contract with multiple methods to deploy ContractC using CREATE2
+// opcode
+// See more details in AllScenariiInitCodeTests
+
+/// ////////////////////////////////////////////
+// SCENARIO 5 - MODIFY STORAGE, SELFDESTRUCT
+/// ////////////////////////////////////////////
+// After a successful create2 (from Scenario 4), we modify the contract storage and self-destruct
+
+public class Scenario5UnitTests extends TracerTestBase {
+
+  // SCENARIO 5 - CREATE2, MODIFY STORAGE, SELFDESTRUCT
+  // After a successful create2 (from Scenario 4), we modify the contract storage and self-destruct
+  // TXSTATUS : Successful
+  // LOGS: 1 ContractCreated, 1 CallCreate2WithInitCodeC_noValue, 1 StoreInMap, 1 SelfDestruct
+  // Note: transaction is sent with value 0
+  @Test
+  void deployScenario5(TestInfo testInfo) {
+    Map<String, List<Integer>> logsTopicMap = new HashMap<>();
+    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
+    List<Integer> txStatuses = List.of(1, 1, 1, 1);
+
+    // Logs from deployment done in scenario 4
+    logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 1, 0));
+    logsTopicMap.put(callCreate2WithInitCodeC_noValue_Event, List.of(0, 0, 1, 0));
+    // Logs from scenario 5
+    logsTopicMap.put(storeInMapEvent, List.of(0, 0, 0, 1));
+    logsTopicMap.put(selfDestructEvent, List.of(0, 0, 0, 1));
+
+    // Instantiate validator
+    TransactionProcessingResultValidator txValidator =
+        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
+
+    List<Transaction> transactions =
+        getTransactions(
+            customCreate2Account,
+            userAccount,
+            List.of(
+                storeInitCodeC,
+                storeSalt,
+                create2WithCallCtoCallback_noValue, /* Same deployment as scenario 4 */
+                callCToModifyStorageAndSelfdestruct),
+            List.of(0L, 0L, 0L, 0L));
+
+    final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
+        ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+            .accounts(List.of(userAccount, customCreate2Account))
+            .transactions(transactions)
+            .transactionProcessingResultValidator(txValidator)
+            .build();
+    toyExecutionEnvironmentV2.run();
+  }
+}

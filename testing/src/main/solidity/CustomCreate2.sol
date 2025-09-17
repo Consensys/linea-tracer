@@ -33,9 +33,9 @@ contract CustomCreate2 is TestingBase {
         salt = saltEx;
     }
 
-    /////////////////////////
-    // Custom CREATE2 methods
-    /////////////////////////
+    ////////////////////////////
+    // Custom CREATE2 methods //
+    ////////////////////////////
 
     function create2WithInitCodeC_withValueAndRevert() public payable {
         address addC = deployWithCreate2_withValueAndRevert(salt, initCodeC, msg.value);
@@ -51,8 +51,18 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
-    // SCENARIO 1
-    function create2FourTimes_withRevertTrigger(bool triggerRevert, bool nested) public payable {
+    /////////////////////
+    // SCENARII 1 to 5 //
+    /////////////////////
+
+    // SCENARIO 1 - CREATE2 FOUR TIMES
+    // (1) with max value - aborted because of balance too low
+    // (2) acceptable value - ContractC deployed
+    // We test that ContractC is deployed with non-empty code by modifying it's storage
+    // (3) max value - aborted
+    // (4) acceptable value - ContractC deployment fails as it's a collision with attempt (2)
+    // Revert on demand
+    function create2FourTimes_withRevertTrigger(bool triggerRevert) public payable {
         uint256 max = type(uint256).max;
         // Attempt 1 with max value, fails
         deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
@@ -72,23 +82,34 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
-    // SCENARIO 2
-    function create2WithStaticCall(bool nested) public {
+    // SCENARIO 2 - STATIC CALL A CREATE2
+    // Attempt to static call a create2 deployment
+    // Can trigger nested call to scenario 1
+    function create2WithStaticCall(bool nested) public payable {
         if (nested) {
             callMyself(
-                abi.encodeWithSignature("create2FourTimes_withRevertTrigger(bool,bool)", true, true),
+                abi.encodeWithSignature("create2FourTimes_withRevertTrigger(bool)", true),
                 false,
-        9000000
+        1000000
             );
         }
         callMyself(
-            abi.encodeWithSignature("create2CallC_withRevertTrigger(bool,bool)", false ,false),
+            abi.encodeWithSignature("create2WithInitCodeC_withValueAndRevert()"),
             true,
-        9000000
+        1000000
         );
     }
 
-    // SCENARIO 3 when called with msg.value == 2
+    // SCENARIO 3 - ATTEMPT CREATE2 WITHIN A CREATE2
+    // Deploy ContractC and the deployment attempts redeployment
+    // The ContractC deployment is done with msg.value == 2 - this value pilots the initcode so
+    // immediate redeployment is attempted
+    // While deploying ContractC adds STOP opcode after immediate redeployment attempt
+    // has failed
+    // ContractC is deployed with empty bytecode
+    // Call ContractC to modify storage
+    // Revert on demand
+    // Can trigger nested call to scenario 2
     function create2CallC_withRevertTrigger(bool revertTrigger, bool nested) public payable {
         if (nested) {
             callMyself(
@@ -107,7 +128,10 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
-    // SCENARIO 4
+    // SCENARIO 4 - ATTEMPT CREATE2 AFTER A CREATE2
+    // Attempts a create2 after a successful create2, by calling ContractC that does a callback to
+    // CustomCreate2 to deploy
+    // Can trigger nested call to scenario 3
     function create2WithCallCtoCallback_noValue(bool nested) public payable {
         if (nested) {
             callMyself(
@@ -124,7 +148,9 @@ contract CustomCreate2 is TestingBase {
         );
     }
 
-    // SCENARIO 5
+    // SCENARIO 5 - MODIFY STORAGE, SELFDESTRUCT
+    // We modify the contract storage and self-destruct
+    // Can trigger nested call to scenario 4
     function callCToModifyStorageAndSelfdestruct() public payable {
         callContractC(
             abi.encodeWithSignature("storeInMap(uint256,address)", 1, "0x0000000000000000000000000000000000001234"),
@@ -136,9 +162,9 @@ contract CustomCreate2 is TestingBase {
         );
     }
 
-    /////////////////////
-    // Behavior on demand
-    /////////////////////
+    ////////////////////////
+    // Behavior on demand //
+    ////////////////////////
 
     function revertOnDemand() public {
         revert();
@@ -180,23 +206,23 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
-    ///////////////////////
-    // Scenarii combination
-    ///////////////////////
+    //////////////////////////
+    // Scenarii combination //
+    //////////////////////////
 
     // Combine 5 scenarii in one transaction, with calls launched from root context
     function advancedCreateScenariiTriggeredFromRoot(bytes memory code, bytes32 saltEx) public payable{
         storeInitCodeC(code);
         storeSalt(saltEx);
         callMyself(
-            abi.encodeWithSignature("create2FourTimes_withRevertTrigger(bool,bool)", true, false),
+            abi.encodeWithSignature("create2FourTimes_withRevertTrigger(bool)", true),
             false,
         1000000
         );
         callMyself(
             abi.encodeWithSignature("create2WithInitCodeC_withValueAndRevert()"),
             true,
-    1000000
+        1000000
         );
         callMyself(
             abi.encodeWithSignature("create2CallC_withRevertTrigger(bool,bool)", true, false),

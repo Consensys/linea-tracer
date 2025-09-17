@@ -25,12 +25,11 @@ import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.opcode.CallDataLoad;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall;
 import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
-import net.consensys.linea.zktracer.opcode.OpCode;
 
 public class CallDataLoadSection extends TraceSection {
 
   public CallDataLoadSection(Hub hub) {
-    super(hub, (short) (hub.opCode().equals(OpCode.CALLDATALOAD) ? 4 : 3));
+    super(hub, (short) 4);
     this.addStack(hub);
 
     final short exception = hub.pch().exceptions();

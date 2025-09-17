@@ -74,35 +74,28 @@ public class StackRamSection extends TraceSection {
             ? EWord.of(currentFrame.frame().shadowReadMemory(longOffset, WORD_SIZE))
             : EWord.of(currentFrame.frame().getStackItem(1));
 
-    MmuCall mmuCall;
-
-    switch (instruction) {
-      case MSTORE -> mmuCall =
-          new MmuCall(hub, MMU_INST_MSTORE)
+    final MmuCall mmuCall =
+        switch (instruction) {
+          case MSTORE -> new MmuCall(hub, MMU_INST_MSTORE)
               .targetId(currentContextNumber)
               .targetOffset(offset)
               .limb1(value.hi())
               .limb2(value.lo())
               .targetRamBytes(Optional.of(currentRam));
-
-      case MSTORE8 -> mmuCall =
-          new MmuCall(hub, MMU_INST_MSTORE8)
+          case MSTORE8 -> new MmuCall(hub, MMU_INST_MSTORE8)
               .targetId(currentContextNumber)
               .targetOffset(offset)
               .limb1(value.hi())
               .limb2(value.lo())
               .targetRamBytes(Optional.of(currentRam));
-
-      case MLOAD -> mmuCall =
-          new MmuCall(hub, MMU_INST_MLOAD)
+          case MLOAD -> new MmuCall(hub, MMU_INST_MLOAD)
               .sourceId(currentContextNumber)
               .sourceOffset(offset)
               .limb1(value.hi())
               .limb2(value.lo())
               .sourceRamBytes(Optional.of(currentRam));
-
-      default -> throw new IllegalStateException("Not a STACK_RAM instruction");
-    }
+          default -> throw new IllegalStateException("Not a STACK_RAM instruction");
+        };
 
     imcFragment.callMmu(mmuCall);
   }

@@ -16,14 +16,15 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CDL;
 import static net.consensys.linea.zktracer.TraceCancun.Hub.*;
-import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_MSIZE;
-import static net.consensys.linea.zktracer.TraceCancun.Mxp.CT_MAX_MXPX;
+import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TracePrague.Hub.NROWS_HUB_SYSI_EIP2935;
 import static net.consensys.linea.zktracer.TracePrague.Hub.NROWS_HUB_SYSI_EIP4788;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation.MXP_FROM_CTMAX_TO_LINECOUNT;
+import static net.consensys.linea.zktracer.opcode.OpCode.CALLDATALOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
@@ -280,7 +281,25 @@ public class ZkCounter implements LineCountingTracer {
         hub.updateTally(NROWS_HUB_MCOPY);
         // TODO MMU
       }
-      case STACK_RAM -> {} // TODO
+      case STACK_RAM -> {
+        switch (opcode.mnemonic()) {
+          case CALLDATALOAD -> {
+            hub.updateTally(4);
+            oob.updateTally(CT_MAX_CDL + 1);
+            // TODO MMU
+          }
+          case MSTORE, MLOAD -> {
+            hub.updateTally(3);
+            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+            // TODO MMU
+          }
+          case MSTORE8 -> {
+            hub.updateTally(3);
+            mxp.updateTally(CT_MAX_UPDT_B + MXP_FROM_CTMAX_TO_LINECOUNT);
+            // TODO MMU
+          }
+        }
+      }
       case STORAGE -> hub.updateTally(NROWS_HUB_STORAGE);
       case TRANSIENT -> {
         switch (opcode.mnemonic()) {
@@ -295,11 +314,11 @@ public class ZkCounter implements LineCountingTracer {
         // Note: in case of precompile call, we'll add more rows, done in tracePrecompileCall
         gas.updateTally(1); // as CMC == 1
         oob.updateTally(CT_MAX_CALL + 1);
-        mxp.updateTally(CT_MAX_MXPX + MXP_FROM_CTMAX_TO_LINECOUNT);
+        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
         // TODO STP
       }
       case INVALID -> hub.updateTally(NROWS_HUB_SUXSOX_INVALID);
-      default -> throw new UnsupportedOperationException("not yet implemented");
+      default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
     }
   }
 

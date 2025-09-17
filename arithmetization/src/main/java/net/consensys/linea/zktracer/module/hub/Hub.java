@@ -439,8 +439,7 @@ public abstract class Hub implements Module {
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
-    refTableModules =
-        Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower()).toList();
+    refTableModules = List.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower());
 
     modules =
         Stream.concat(

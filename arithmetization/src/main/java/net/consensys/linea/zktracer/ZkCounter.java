@@ -223,23 +223,25 @@ public class ZkCounter implements LineCountingTracer {
   @Override
   public void tracePreExecution(final MessageFrame frame) {
     final OpCodeData opcode = opCodes.of(frame.getCurrentOperation().getOpcode());
+
+    // Check for SUX / SOX, this is the only exception we check for
     final short stackSize = (short) frame.stackSize();
     final short deleted = (short) opcode.stackSettings().delta();
-
     final boolean underflow = wcp.callLT(stackSize, deleted);
     if (underflow) {
-      hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+      hub.updateTally(opcode.numberOfStackRows());
       return;
     }
     final short heightNew = (short) (stackSize + opcode.stackSettings().alpha() - deleted);
     final boolean overflow = wcp.callGT(heightNew, MAX_STACK_SIZE);
     if (overflow) {
-      hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+      hub.updateTally(opcode.numberOfStackRows());
       return;
     }
 
+    // No stack exception, we can move on
     switch (opcode.instructionFamily()) {
-      case PUSH_POP, DUP, SWAP, BATCH -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+      case PUSH_POP, DUP, SWAP, BATCH, INVALID -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
       case ADD -> {
         hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
         add.tracePreOpcode(frame, opcode.mnemonic());
@@ -327,7 +329,6 @@ public class ZkCounter implements LineCountingTracer {
         mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
         // TODO STP
       }
-      case INVALID -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
     }
   }

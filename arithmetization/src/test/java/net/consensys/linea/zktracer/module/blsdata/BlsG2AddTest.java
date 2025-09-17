@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blsdata;
 
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.LARGE_POINTS;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -37,37 +39,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(UnitTestWatcher.class)
 public class BlsG2AddTest extends TracerTestBase {
-
-  // Valid G2 point - 256 bytes (512 hex chars)
-  private static final String VALID_G2_POINT =
-      "00000000000000000000000000000000124aca13d9ead2e5194eb097360743fc996551a5f339d644ded3571c5588a1fedf3f26ecdca73845241e47337e8ad990"
-          + "000000000000000000000000000000000299bfd77515b688335e58acb31f7e0e6416840989cb08775287f90f7e6c921438b7b476cfa387742fcdc43bcecfe45f"
-          + "00000000000000000000000000000000032e78350f525d673e75a3430048a7931d21264ac1b2c8dc58aee07e77790dfc9afb530b004145f0040c48bce128135e"
-          + "0000000000000000000000000000000015963bcbd8fa50808bdce4f8de40eb9706c1a41ada22f0e469ecceb3e0b0fa3404ccdcc66a286b5a9e221c4a088a9145";
-
-  // Invalid G2 point (not on curve)
-  private static final String INVALID_G2_POINT_NOT_ON_CURVE =
-      "000000000000000000000000000000000b2c619263417e8f6cffa2e53261cb8cf5fbbabb9e6f4188aeaabe50d434a0489b6cccd2b65b4d1393a26911021baffa"
-          + "00000000000000000000000000000000007bcd4156af7ebe5e2f6ac63db859c9f42d5f11682792a0de2ec1db76648c0c98fdd8a82cf640bdcd309901afd4f570"
-          + "00000000000000000000000000000000153a9002d117a518b2c1786f9e8b95b00e936f3f15302a27a16d7f2f8fc48ca834c0cf4fce456e96d72f01f252f4d084"
-          + "000000000000000000000000000000001091fc53100190db07ec2057727859e65da996f6792ac5602cb9dfbc3ed4a5a67d6b82bd82112075ef8afc4155db2621";
-
-  // G2 point that's on curve but not in subgroup
-  private static final String G2_POINT_NOT_IN_SUBGROUP =
-      "000000000000000000000000000000000380f5c0d9ae49e3904c5ae7ad83043158d68fa721b06b561e714b71a2c48c2307b5258892f999a882bed3549a286b7f"
-          + "0000000000000000000000000000000004886f7f17a8e9918b4bfa8ebe450b0216ed5e1fa103dfc671332dc38b04ed3105526fb0dda7e032b6fb67debf9f0bc5"
-          + "0000000000000000000000000000000018146b7ed1ecf2a4f2d1f75bb6e9ddbb9796bb03576686346995566cf3b3831ec5462e61028355504fc90f877408ac17"
-          + "0000000000000000000000000000000003da9de8dcd94d7793b19e45a5521b1bc42f1a6d693139d03bb26402678ee6a635a4d50eaddfd326e446ed0330fa67fb";
-
-  // Invalid padding (non-zero leading bytes)
-  private static final String INVALID_G2_PADDING =
-      "01000000000000000000000000000000124aca13d9ead2e5194eb097360743fc996551a5f339d644ded3571c5588a1fedf3f26ecdca73845241e47337e8ad990"
-          + "000000000000000000000000000000000299bfd77515b688335e58acb31f7e0e6416840989cb08775287f90f7e6c921438b7b476cfa387742fcdc43bcecfe45f"
-          + "00000000000000000000000000000000032e78350f525d673e75a3430048a7931d21264ac1b2c8dc58aee07e77790dfc9afb530b004145f0040c48bce128135e"
-          + "0000000000000000000000000000000015963bcbd8fa50808bdce4f8de40eb9706c1a41ada22f0e469ecceb3e0b0fa3404ccdcc66a286b5a9e221c4a088a9145";
-
-  // Invalid length input
-  private static final String INVALID_LENGTH_INPUT = "0001020304";
 
   @ParameterizedTest
   @MethodSource("blsG2AddSource")
@@ -103,7 +74,7 @@ public class BlsG2AddTest extends TracerTestBase {
         .push(0x100) // retOffset
         .push(0x100) // argSize
         .push(0) // argOffset
-        .push(13) // address
+        .push(Address.BLS12_G2ADD) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
@@ -112,7 +83,11 @@ public class BlsG2AddTest extends TracerTestBase {
 
   private static Stream<Arguments> blsG2AddSource() {
     List<Arguments> arguments = new ArrayList<>();
-    arguments.add(Arguments.of(VALID_G2_POINT, VALID_G2_POINT));
+    for (String a : LARGE_POINTS) {
+      for (String b : LARGE_POINTS) {
+        arguments.add(Arguments.of(a, b));
+      }
+    }
     return arguments.stream();
   }
 }

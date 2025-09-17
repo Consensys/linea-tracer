@@ -16,10 +16,12 @@
 package net.consensys.linea.zktracer.module.blsdata;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.LARGE_POINTS;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.SMALL_POINTS;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import net.consensys.linea.UnitTestWatcher;
@@ -38,13 +40,21 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 @ExtendWith(UnitTestWatcher.class)
-public class BlsG1AddTest extends TracerTestBase {
+public class BlsPairingCheckTest extends TracerTestBase {
 
   @ParameterizedTest
-  @MethodSource("blsG1AddSource")
-  void testBlsG1Add(String a, String b, TestInfo testInfo) {
-    checkArgument(a.length() == 256, "G1 point 'a' must be 256 hex chars");
-    checkArgument(b.length() == 256, "G1 point 'b' must be 256 hex chars");
+  @MethodSource("blsPairingCheckSource")
+  void testBlsPairingCheckTest(
+      List<String> smallPoints, List<String> largePoints, TestInfo testInfo) {
+    checkArgument(smallPoints.size() == largePoints.size());
+    Bytes input =
+        IntStream.range(0, smallPoints.size())
+            .mapToObj(
+                i ->
+                    Bytes.concatenate(
+                        Bytes.fromHexString(smallPoints.get(i)),
+                        Bytes.fromHexString(largePoints.get(i))))
+            .reduce(Bytes.EMPTY, Bytes::concatenate);
 
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
@@ -55,7 +65,7 @@ public class BlsG1AddTest extends TracerTestBase {
             .balance(Wei.of(0))
             .nonce(1)
             .address(codeOwnerAddress)
-            .code(Bytes.concatenate(Bytes.fromHexString(a), Bytes.fromHexString(b)))
+            .code(input)
             .build();
 
     // First place the parameters in memory
@@ -74,18 +84,28 @@ public class BlsG1AddTest extends TracerTestBase {
         .push(0x100) // retOffset
         .push(0x100) // argSize
         .push(0) // argOffset
-        .push(Address.BLS12_G1ADD) // address
+        .push(Address.BLS12_PAIRING) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
   }
 
-  private static Stream<Arguments> blsG1AddSource() {
+  private static Stream<Arguments> blsPairingCheckSource() {
     List<Arguments> arguments = new ArrayList<>();
-    for (String a : SMALL_POINTS) {
-      for (String b : SMALL_POINTS) {
-        arguments.add(Arguments.of(a, b));
+    for (String s1 : SMALL_POINTS) {
+      for (String l1 : LARGE_POINTS) {
+        arguments.add(Arguments.of(List.of(s1), List.of(l1)));
+        for (String s2 : SMALL_POINTS) {
+          for (String l2 : LARGE_POINTS) {
+            arguments.add(Arguments.of(List.of(s1, s2), List.of(l1, l2)));
+            for (String s3 : SMALL_POINTS) {
+              for (String l3 : LARGE_POINTS) {
+                arguments.add(Arguments.of(List.of(s1, s2, s3), List.of(l1, l2, l3)));
+              }
+            }
+          }
+        }
       }
     }
     return arguments.stream();

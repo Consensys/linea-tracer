@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.section.transients;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.TraceCancun.Hub.NROWS_HUB_TSTORE;
 import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.tstoreDoing;
 import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.tstoreUndoing;
 
@@ -33,10 +32,12 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class TStoreSection extends TraceSection implements PostRollbackDefer {
 
+  public static final short NROWS_HUB_TSTORE = 4; // stack + con + 2 STO
+
   TransientFragment tstoreDoing;
 
   public TStoreSection(Hub hub) {
-    super(hub, (short) NROWS_HUB_TSTORE);
+    super(hub, NROWS_HUB_TSTORE);
 
     final short exceptions = hub.pch().exceptions();
     final ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);

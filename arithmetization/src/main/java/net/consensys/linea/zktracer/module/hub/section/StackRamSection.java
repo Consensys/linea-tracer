@@ -38,8 +38,10 @@ import org.hyperledger.besu.evm.internal.Words;
 
 public class StackRamSection extends TraceSection {
 
+  public static final short NROWS_HUB_STACKRAM = 3;
+
   public StackRamSection(Hub hub) {
-    super(hub, (short) 3);
+    super(hub, NROWS_HUB_STACKRAM);
 
     this.addStack(hub);
 

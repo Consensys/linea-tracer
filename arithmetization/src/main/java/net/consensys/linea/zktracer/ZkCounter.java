@@ -20,9 +20,20 @@ import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CDL;
 import static net.consensys.linea.zktracer.TraceCancun.Hub.*;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
-import static net.consensys.linea.zktracer.TracePrague.Hub.NROWS_HUB_SYSI_EIP2935;
-import static net.consensys.linea.zktracer.TracePrague.Hub.NROWS_HUB_SYSI_EIP4788;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
+import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NROWS_HUB_CALLDATALOAD;
+import static net.consensys.linea.zktracer.module.hub.section.McopySection.NROWS_HUB_MCOPY;
+import static net.consensys.linea.zktracer.module.hub.section.SstoreSection.NROWS_HUB_STORAGE;
+import static net.consensys.linea.zktracer.module.hub.section.StackOnlySection.NROWS_HUB_SIMPLE_STACK_OP;
+import static net.consensys.linea.zktracer.module.hub.section.StackRamSection.NROWS_HUB_STACKRAM;
+import static net.consensys.linea.zktracer.module.hub.section.call.CallSection.NROWS_HUB_CALL;
+import static net.consensys.linea.zktracer.module.hub.section.finalization.TxFinalizationSection.NROWS_HUB_FINL;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.NROWS_HUB_SYSI_EIP2935;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.NROWS_HUB_SYSI_EIP4788;
+import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.SysfNoopSection.NROWS_HUB_SYSF_NOOP;
+import static net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection.NROWS_HUB_TLOAD;
+import static net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection.NROWS_HUB_TSTORE;
+import static net.consensys.linea.zktracer.module.hub.section.txInitializationSection.TxInitializationSection.NROWS_HUB_INIT;
 import static net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation.MXP_FROM_CTMAX_TO_LINECOUNT;
 import static net.consensys.linea.zktracer.opcode.OpCode.CALLDATALOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
@@ -217,13 +228,13 @@ public class ZkCounter implements LineCountingTracer {
 
     final boolean underflow = wcp.callLT(stackSize, deleted);
     if (underflow) {
-      hub.updateTally(NROWS_HUB_SUXSOX_INVALID);
+      hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
       return;
     }
     final short heightNew = (short) (stackSize + opcode.stackSettings().alpha() - deleted);
     final boolean overflow = wcp.callGT(heightNew, MAX_STACK_SIZE);
     if (overflow) {
-      hub.updateTally(NROWS_HUB_SUXSOX_INVALID);
+      hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
       return;
     }
 
@@ -284,17 +295,17 @@ public class ZkCounter implements LineCountingTracer {
       case STACK_RAM -> {
         switch (opcode.mnemonic()) {
           case CALLDATALOAD -> {
-            hub.updateTally(4);
+            hub.updateTally(NROWS_HUB_CALLDATALOAD);
             oob.updateTally(CT_MAX_CDL + 1);
             // TODO MMU
           }
           case MSTORE, MLOAD -> {
-            hub.updateTally(3);
+            hub.updateTally(NROWS_HUB_STACKRAM);
             mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
             // TODO MMU
           }
           case MSTORE8 -> {
-            hub.updateTally(3);
+            hub.updateTally(NROWS_HUB_STACKRAM);
             mxp.updateTally(CT_MAX_UPDT_B + MXP_FROM_CTMAX_TO_LINECOUNT);
             // TODO MMU
           }
@@ -310,14 +321,13 @@ public class ZkCounter implements LineCountingTracer {
       case JUMP -> {} // TODO
       case CREATE -> {} // TODO
       case CALL -> {
-        hub.updateTally(11); // 2 stack + up to 9 for SMC failure will revert
-        // Note: in case of precompile call, we'll add more rows, done in tracePrecompileCall
+        hub.updateTally(NROWS_HUB_CALL);
         gas.updateTally(1); // as CMC == 1
         oob.updateTally(CT_MAX_CALL + 1);
         mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
         // TODO STP
       }
-      case INVALID -> hub.updateTally(NROWS_HUB_SUXSOX_INVALID);
+      case INVALID -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
     }
   }

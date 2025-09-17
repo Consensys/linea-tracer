@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.section;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.TraceCancun.Hub.NROWS_HUB_MCOPY;
 import static net.consensys.linea.zktracer.module.hub.fragment.imc.mmu.MmuCall.mcopyCopy;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -27,8 +26,11 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 import net.consensys.linea.zktracer.runtime.callstack.CallFrame;
 
 public class McopySection extends TraceSection {
+
+  public static final short NROWS_HUB_MCOPY = 3;
+
   public McopySection(Hub hub) {
-    super(hub, (short) NROWS_HUB_MCOPY);
+    super(hub, NROWS_HUB_MCOPY);
 
     final MxpCall mxpCall = MxpCall.newMxpCall(hub);
     final ImcFragment firstImcFragment = ImcFragment.empty(hub).callMxp(mxpCall);

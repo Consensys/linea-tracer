@@ -16,7 +16,6 @@
 package net.consensys.linea.zktracer.module.hub.section.transients;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.TraceCancun.Hub.NROWS_HUB_TLOAD;
 import static net.consensys.linea.zktracer.module.hub.fragment.TransientFragment.tload;
 
 import net.consensys.linea.zktracer.module.hub.Hub;
@@ -30,10 +29,13 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.operation.Operation;
 
 public class TLoadSection extends TraceSection implements PostOpcodeDefer {
+
+  public static final short NROWS_HUB_TLOAD = 3; // stack + con + trans
+
   final Bytes32 storageKey;
 
   public TLoadSection(Hub hub) {
-    super(hub, (short) NROWS_HUB_TLOAD);
+    super(hub, NROWS_HUB_TLOAD);
     final short exceptions = hub.pch().exceptions();
     final ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
 

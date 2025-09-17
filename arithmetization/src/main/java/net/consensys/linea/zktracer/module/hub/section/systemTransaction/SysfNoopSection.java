@@ -22,8 +22,11 @@ import net.consensys.linea.zktracer.module.hub.fragment.transaction.system.Syste
 import net.consensys.linea.zktracer.module.hub.section.TraceSection;
 
 public class SysfNoopSection extends TraceSection {
+
+  public static final short NROWS_HUB_SYSF_NOOP = 2;
+
   public SysfNoopSection(Hub hub) {
-    super(hub, (short) 2);
+    super(hub, NROWS_HUB_SYSF_NOOP);
 
     final SystemTransactionFragment txFragment = new NoopSystemTransactionFragment();
     final ContextFragment contextFragment = ContextFragment.readZeroContextData(hub);

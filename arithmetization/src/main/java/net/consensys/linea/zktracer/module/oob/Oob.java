@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.oob;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.List;
 
 import lombok.Getter;
@@ -22,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationAdder;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.add.Add;
@@ -43,6 +46,8 @@ public class Oob implements OperationSetModule<OobOperation> {
   @Getter
   private final ModuleOperationStackedSet<OobOperation> operations =
       new ModuleOperationStackedSet<>();
+
+  public final CountOnlyOperation additionalRows = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {
@@ -88,9 +93,33 @@ public class Oob implements OperationSetModule<OobOperation> {
 
   @Override
   public void commit(Trace trace) {
+    checkArgument(
+        additionalRows.lineCount() == 0,
+        "OOB additionalRows should be 0 when used by the ZkTracer");
     int stamp = 0;
     for (OobOperation op : operations.getAll()) {
       traceOperation(op, ++stamp, trace.oob());
     }
+  }
+
+  @Override
+  public void commitTransactionBundle() {
+    operations().commitTransactionBundle();
+    additionalRows.commitTransactionBundle();
+  }
+
+  @Override
+  public void popTransactionBundle() {
+    operations().popTransactionBundle();
+    additionalRows.popTransactionBundle();
+  }
+
+  @Override
+  public int lineCount() {
+    return operations().lineCount() + additionalRows.lineCount();
+  }
+
+  public void updateTally(int count) {
+    additionalRows.add(count);
   }
 }

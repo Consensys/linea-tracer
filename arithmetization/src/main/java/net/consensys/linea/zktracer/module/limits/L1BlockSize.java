@@ -90,7 +90,7 @@ public class L1BlockSize implements Module {
 
   @Override
   public int spillage(Trace trace) {
-    throw new IllegalStateException("should never be called");
+    return 0;
   }
 
   @Override

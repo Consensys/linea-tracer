@@ -37,6 +37,8 @@ public enum Fork {
   OSAKA(EVM_OSAKA) // not yet live on L1
 ;
 
+  public static final Fork FORK_IN_PROD = CANCUN;
+
   private final int releaseNumber;
 
   Fork(int releaseNumber) {
@@ -145,5 +147,16 @@ public enum Fork {
    */
   public static Fork getForkFromBesuBlockchainService(ServiceManager context, long blockNumber) {
     return getForkFromBesuBlockchainService(context, blockNumber, blockNumber);
+  }
+
+  public static Trace getTraceFromFork(Fork fork) {
+    return switch (fork) {
+      case LONDON -> new TraceLondon();
+      case PARIS -> new TraceParis();
+      case SHANGHAI -> new TraceShanghai();
+      case CANCUN -> new TraceCancun();
+      case PRAGUE -> new TracePrague();
+      default -> throw new IllegalArgumentException("Unknown fork: " + fork);
+    };
   }
 }

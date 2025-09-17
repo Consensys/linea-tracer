@@ -19,8 +19,7 @@ import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfigurat
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Utils.call;
 import static net.consensys.linea.zktracer.Utils.delegateCall;
-import static net.consensys.linea.zktracer.module.ModuleName.BLS;
-import static net.consensys.linea.zktracer.module.ModuleName.POINT_EVAL;
+import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata.*;
 import static net.consensys.linea.zktracer.types.AddressUtils.BLS_PRECOMPILES;
 import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompileCall;
@@ -111,9 +110,9 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(2, lineCountMap.get("BLOCK_L2_L1_LOGS"));
 
     // no precompile call:
-    assertEquals(0, lineCountMap.get(ModuleName.MODEXP.toString()));
-    assertEquals(0, lineCountMap.get(ModuleName.RIP.toString()));
-    assertEquals(0, lineCountMap.get(ModuleName.BLAKE.toString()));
+    assertEquals(0, lineCountMap.get(ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
+    assertEquals(0, lineCountMap.get(PRECOMPILE_RIPEMD_BLOCKS.toString()));
+    assertEquals(0, lineCountMap.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()));
     assertEquals(0, lineCountMap.get("POINT_EVAL"));
     assertEquals(0, lineCountMap.get("BLS"));
 
@@ -209,9 +208,9 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(0, lineCountMap.get("BLOCK_L2_L1_LOGS"));
 
     // no precompile call:
-    assertEquals(0, lineCountMap.get(ModuleName.MODEXP.toString()));
-    assertEquals(0, lineCountMap.get(ModuleName.RIP.toString()));
-    assertEquals(0, lineCountMap.get(ModuleName.BLAKE.toString()));
+    assertEquals(0, lineCountMap.get(ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
+    assertEquals(0, lineCountMap.get(PRECOMPILE_RIPEMD_BLOCKS.toString()));
+    assertEquals(0, lineCountMap.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()));
     assertEquals(0, lineCountMap.get(POINT_EVAL.toString()));
     assertEquals(0, lineCountMap.get(BLS.toString()));
 
@@ -276,11 +275,11 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(0, lineCountMap.get("BLOCK_L2_L1_LOGS"));
 
     // no precompile call, but a PRC:
-    assertEquals(0, lineCountMap.get(ModuleName.MODEXP.toString()));
+    assertEquals(0, lineCountMap.get(ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
     final int expectedRIP = prc.equals(RIPEMD160) ? Integer.MAX_VALUE : 0;
-    assertEquals(expectedRIP, lineCountMap.get(ModuleName.RIP.toString()));
+    assertEquals(expectedRIP, lineCountMap.get(PRECOMPILE_RIPEMD_BLOCKS.toString()));
     final int expectedBlake = prc.equals(BLAKE2B_F_COMPRESSION) ? Integer.MAX_VALUE : 0;
-    assertEquals(expectedBlake, lineCountMap.get(ModuleName.BLAKE.toString()));
+    assertEquals(expectedBlake, lineCountMap.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()));
     assertEquals(0, lineCountMap.get(POINT_EVAL.toString()));
     assertEquals(0, lineCountMap.get(BLS.toString()));
 
@@ -367,9 +366,9 @@ public class ZkCounterTest extends TracerTestBase {
     // no precompile call, but a MODEXP:
     assertEquals(
         (!base && !exp && !mod) ? 0 : Integer.MAX_VALUE,
-        lineCountMap.get(ModuleName.MODEXP.toString()));
-    assertEquals(0, lineCountMap.get(ModuleName.RIP.toString()));
-    assertEquals(0, lineCountMap.get(ModuleName.BLAKE.toString()));
+        lineCountMap.get(ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
+    assertEquals(0, lineCountMap.get(PRECOMPILE_RIPEMD_BLOCKS.toString()));
+    assertEquals(0, lineCountMap.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()));
     assertEquals(0, lineCountMap.get(POINT_EVAL.toString()));
     assertEquals(0, lineCountMap.get(BLS.toString()));
 
@@ -458,9 +457,9 @@ public class ZkCounterTest extends TracerTestBase {
     final boolean isBlsCall = isBlsPrecompileCall(prc, chainConfig.fork);
 
     // no precompile call, but a PRC:
-    assertEquals(0, lineCountMap.get(ModuleName.MODEXP.toString()));
-    assertEquals(0, lineCountMap.get(ModuleName.RIP.toString()));
-    assertEquals(0, lineCountMap.get(ModuleName.BLAKE.toString()));
+    assertEquals(0, lineCountMap.get(PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
+    assertEquals(0, lineCountMap.get(PRECOMPILE_RIPEMD_BLOCKS.toString()));
+    assertEquals(0, lineCountMap.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()));
     assertEquals(isKzgCall ? Integer.MAX_VALUE : 0, lineCountMap.get(POINT_EVAL.toString()));
     assertEquals(isBlsCall ? Integer.MAX_VALUE : 0, lineCountMap.get(BLS.toString()));
 

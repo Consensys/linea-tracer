@@ -41,10 +41,7 @@ public abstract class PhaseSection {
         .pTxnTxType(tx.type())
         .pTxnChainId(tx.chainId())
         .pTxnNonce(Bytes.ofUnsignedLong(tx.getBesuTransaction().getNonce()))
-        .pTxnGasPrice(
-            tx.getBesuTransaction().getType().supports1559FeeMarket()
-                ? Bytes.EMPTY
-                : bigIntegerToBytes(tx.getBesuTransaction().getGasPrice().get().getAsBigInteger()))
+        .pTxnGasPrice(tx.gasPrice())
         .pTxnMaxPriorityFeePerGas(tx.maxPriorityFeePerGas())
         .pTxnMaxFeePerGas(tx.maxFeePerGas())
         .pTxnGasLimit(Bytes.ofUnsignedLong(tx.getBesuTransaction().getGasLimit()))

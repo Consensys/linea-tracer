@@ -41,11 +41,7 @@ public class IntegerPhaseSection extends PhaseSection {
         switch (entry) {
           case CHAIN_ID -> Bytes32.leftPad(tx.chainId());
           case NONCE -> longToBytes32(tx.getBesuTransaction().getNonce());
-          case GAS_PRICE -> Bytes32.leftPad(
-              tx.getBesuTransaction().getType().supports1559FeeMarket()
-                  ? Bytes.EMPTY
-                  : bigIntegerToBytes(
-                      tx.getBesuTransaction().getGasPrice().get().getAsBigInteger()));
+          case GAS_PRICE -> Bytes32.leftPad(tx.gasPrice());
           case MAX_PRIORITY_FEE_PER_GAS -> Bytes32.leftPad(tx.maxPriorityFeePerGas());
           case MAX_FEE_PER_GAS -> Bytes32.leftPad(tx.maxFeePerGas());
           case GAS_LIMIT -> longToBytes32(tx.getBesuTransaction().getGasLimit());

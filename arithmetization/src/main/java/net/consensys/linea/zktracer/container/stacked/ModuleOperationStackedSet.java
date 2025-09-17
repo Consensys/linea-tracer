@@ -92,10 +92,10 @@ public class ModuleOperationStackedSet<E extends ModuleOperation> extends Stacke
 
   public ModuleOperationAdder addAndGet(E e) {
     // First search if the operation is already present
-    E existing = operationsInTransactionBundle().get(e);
+    final E existing = operationsInTransactionBundle().get(e);
     if (existing != null) return existingOperation(existing);
 
-    E existingInCommitted = operationsCommitedToTheConflation().get(e);
+    final E existingInCommitted = operationsCommitedToTheConflation().get(e);
     if (existingInCommitted != null) return existingOperation(existingInCommitted);
 
     // Not found, add it

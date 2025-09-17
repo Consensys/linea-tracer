@@ -236,8 +236,7 @@ public class TransactionProcessingMetadata {
     gasPrice =
         besuTransaction.getType().supports1559FeeMarket()
             ? Bytes.EMPTY
-            : bigIntegerToBytes(besuTransaction.getGasPrice().get().getAsBigInteger())
-    ;
+            : bigIntegerToBytes(besuTransaction.getGasPrice().get().getAsBigInteger());
     maxPriorityFeePerGas =
         besuTransaction.getMaxPriorityFeePerGas().isPresent()
             ? bigIntegerToBytes(besuTransaction.getMaxPriorityFeePerGas().get().getAsBigInteger())

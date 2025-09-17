@@ -24,7 +24,6 @@ import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtilsCall;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
-import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class IntegerPhaseSection extends PhaseSection {

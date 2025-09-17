@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.hub;
 
 import static com.google.common.base.Preconditions.*;
 import static net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration.TEST_DEFAULT;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.Hub.MULTIPLIER___STACK_STAMP;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_EXEC;
 import static net.consensys.linea.zktracer.module.hub.HubProcessingPhase.TX_FINL;
@@ -368,43 +369,56 @@ public abstract class Hub implements Module {
    * @return a list of all modules for which to generate traces
    */
   public List<Module> getModulesToTrace() {
-    return Stream.concat(
-            Stream.of(
-                    this,
-                    add,
-                    bin,
-                    blakeModexpData,
-                    blockdata,
-                    blockhash,
-                    blsData,
-                    ecData,
-                    exp,
-                    ext,
-                    euc,
-                    gas,
-                    logData,
-                    logInfo,
-                    mmu, // WARN: must be traced before the MMIO
-                    mmio,
-                    mod,
-                    mul,
-                    mxp,
-                    oob,
-                    rlpAddr,
-                    rlpTxn,
-                    rlpTxnRcpt,
-                    rlpUtils,
-                    rom,
-                    romLex,
-                    shakiraData,
-                    shf,
-                    stp,
-                    trm,
-                    txnData,
-                    wcp)
-                .filter(Objects::nonNull),
-            refTableModules.stream())
-        .toList();
+    final List<Module> allModules =
+        new ArrayList<>(
+            Stream.concat(
+                    Stream.of(
+                            this,
+                            add,
+                            bin,
+                            blakeModexpData,
+                            blockdata,
+                            blockhash,
+                            blsData,
+                            ecData,
+                            exp,
+                            ext,
+                            euc,
+                            gas,
+                            logData,
+                            logInfo,
+                            mmu, // WARN: must be traced before the MMIO
+                            mmio,
+                            mod,
+                            mul,
+                            mxp,
+                            oob,
+                            rlpAddr,
+                            rlpTxn,
+                            rlpTxnRcpt,
+                            rlpUtils,
+                            rom,
+                            romLex,
+                            shakiraData,
+                            shf,
+                            stp,
+                            trm,
+                            txnData,
+                            wcp)
+                        .filter(Objects::nonNull),
+                    refTableModules.stream())
+                .toList());
+
+    // All modules are in this list for the coordinator to have the same set of module whatever the
+    // fork. But we don't trace them.
+    final List<Module> appearsInCancun =
+        allModules.stream().filter(module -> module instanceof CountingOnlyModule).toList();
+    if (!appearsInCancun.isEmpty()) {
+      checkArgument(!isPostCancun(fork), "No modules to remove after Cancun");
+      checkArgument(appearsInCancun.size() == 4); // blsData, rlpUtils, PowerRefTable, blsRefTable
+    }
+
+    return allModules.stream().filter(module -> !appearsInCancun.contains(module)).toList();
   }
 
   /**

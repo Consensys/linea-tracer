@@ -304,7 +304,7 @@ public class MxpTest extends TracerTestBase {
     toyExecutionEnvironmentV2.run();
   }
 
-  @Tag("nightly")
+  @Tag("weekly")
   @ParameterizedTest
   @MethodSource("testMxpxThresholdSource")
   void testMxpxThreshold(

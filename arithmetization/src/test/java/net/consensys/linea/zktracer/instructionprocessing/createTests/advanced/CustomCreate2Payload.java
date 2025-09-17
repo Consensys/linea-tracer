@@ -14,7 +14,8 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
-import static net.consensys.linea.testing.generated.CustomCreate2.FUNC_ADVANCEDCREATESCENARIIONETX;
+import static net.consensys.linea.testing.generated.CustomCreate2.FUNC_ADVANCEDCREATESCENARIINESTEDCALLS;
+import static net.consensys.linea.testing.generated.CustomCreate2.FUNC_ADVANCEDCREATESCENARIITRIGGEREDFROMROOT;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -65,29 +66,42 @@ public class CustomCreate2Payload {
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
-  public static Bytes create2WithCallCtoCallback_noValue() {
-    Function function =
-        new Function(
-            CustomCreate2.FUNC_CREATE2WITHCALLCTOCALLBACK_NOVALUE,
-            Arrays.asList(),
-            Collections.emptyList());
-    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
-  }
-
-  public static Bytes create2CallC_withRevertTrigger(boolean triggerRevert) {
-    Function function =
-        new Function(
-            CustomCreate2.FUNC_CREATE2CALLC_WITHREVERTTRIGGER,
-            Arrays.asList(new org.web3j.abi.datatypes.Bool(triggerRevert)),
-            Collections.emptyList());
-    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
-  }
-
-  public static Bytes create2FourTimes_withRevertTrigger(boolean triggerRevert) {
+  public static Bytes create2FourTimes_withRevertTrigger(boolean triggerRevert, boolean nested) {
     Function function =
         new Function(
             CustomCreate2.FUNC_CREATE2FOURTIMES_WITHREVERTTRIGGER,
-            Arrays.asList(new org.web3j.abi.datatypes.Bool(triggerRevert)),
+            Arrays.asList(
+                new org.web3j.abi.datatypes.Bool(triggerRevert),
+                new org.web3j.abi.datatypes.Bool(nested)),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes create2WithStaticCall(boolean nested) {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CREATE2WITHSTATICCALL,
+            Arrays.asList(new org.web3j.abi.datatypes.Bool(nested)),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes create2CallC_withRevertTrigger(boolean triggerRevert, boolean nested) {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CREATE2CALLC_WITHREVERTTRIGGER,
+            Arrays.asList(
+                new org.web3j.abi.datatypes.Bool(triggerRevert),
+                new org.web3j.abi.datatypes.Bool(nested)),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes create2WithCallCtoCallback_noValue(boolean nested) {
+    Function function =
+        new Function(
+            CustomCreate2.FUNC_CREATE2WITHCALLCTOCALLBACK_NOVALUE,
+            Arrays.asList(new org.web3j.abi.datatypes.Bool(nested)),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
@@ -101,13 +115,14 @@ public class CustomCreate2Payload {
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
-  public static Bytes callMyself(Bytes executePayload, Boolean staticCall) {
+  public static Bytes callMyself(Bytes executePayload, Boolean staticCall, int gas) {
     Function function =
         new Function(
             CustomCreate2.FUNC_CALLMYSELF,
             Arrays.asList(
                 new org.web3j.abi.datatypes.DynamicBytes(executePayload.toArray()),
-                new org.web3j.abi.datatypes.Bool(staticCall)),
+                new org.web3j.abi.datatypes.Bool(staticCall),
+                new org.web3j.abi.datatypes.generated.Uint256(gas)),
             Collections.emptyList());
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
@@ -123,10 +138,22 @@ public class CustomCreate2Payload {
     return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
   }
 
-  public static Bytes advancedCreateScenariiOneTx(String initCodeC, String salt) {
+  public static Bytes advancedCreateScenariiTriggeredFromRoot(String initCodeC, String salt) {
     Function function =
         new Function(
-            FUNC_ADVANCEDCREATESCENARIIONETX,
+            FUNC_ADVANCEDCREATESCENARIITRIGGEREDFROMROOT,
+            Arrays.asList(
+                new org.web3j.abi.datatypes.DynamicBytes(Bytes.fromHexString(initCodeC).toArray()),
+                new org.web3j.abi.datatypes.generated.Bytes32(
+                    Bytes.fromHexStringLenient(salt).toArray())),
+            Collections.emptyList());
+    return Bytes.fromHexStringLenient(FunctionEncoder.encode(function));
+  }
+
+  public static Bytes advancedCreateScenariiNestedCalls(String initCodeC, String salt) {
+    Function function =
+        new Function(
+            FUNC_ADVANCEDCREATESCENARIINESTEDCALLS,
             Arrays.asList(
                 new org.web3j.abi.datatypes.DynamicBytes(Bytes.fromHexString(initCodeC).toArray()),
                 new org.web3j.abi.datatypes.generated.Bytes32(

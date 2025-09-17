@@ -52,7 +52,7 @@ contract CustomCreate2 is TestingBase {
     }
 
     // SCENARIO 1
-    function create2FourTimes_withRevertTrigger(bool triggerRevert) public payable {
+    function create2FourTimes_withRevertTrigger(bool triggerRevert, bool nested) public payable {
         uint256 max = type(uint256).max;
         // Attempt 1 with max value, fails
         deployWithCreate2_withValueNoRevert(salt, initCodeC, max);
@@ -72,8 +72,31 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
+    // SCENARIO 2
+    function create2WithStaticCall(bool nested) public {
+        if (nested) {
+            callMyself(
+                abi.encodeWithSignature("create2FourTimes_withRevertTrigger(bool,bool)", true, true),
+                false,
+        9000000
+            );
+        }
+        callMyself(
+            abi.encodeWithSignature("create2CallC_withRevertTrigger(bool,bool)", false ,false),
+            true,
+        9000000
+        );
+    }
+
     // SCENARIO 3 when called with msg.value == 2
-    function create2CallC_withRevertTrigger(bool revertTrigger) public payable {
+    function create2CallC_withRevertTrigger(bool revertTrigger, bool nested) public payable {
+        if (nested) {
+            callMyself(
+                abi.encodeWithSignature("create2WithStaticCall(bool)", true),
+                false,
+                9000000
+            );
+        }
         address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, msg.value);
         addContractC = addC;
         addC.call(
@@ -85,7 +108,14 @@ contract CustomCreate2 is TestingBase {
     }
 
     // SCENARIO 4
-    function create2WithCallCtoCallback_noValue() public payable {
+    function create2WithCallCtoCallback_noValue(bool nested) public payable {
+        if (nested) {
+            callMyself(
+                abi.encodeWithSignature("create2CallC_withRevertTrigger(bool,bool)", true, true),
+                false,
+                9000000
+            );
+        }
         address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);
         addContractC = addC;
         callContractC(
@@ -119,15 +149,15 @@ contract CustomCreate2 is TestingBase {
         selfdestruct(thisAddr);
     }
 
-    function callMyself(bytes memory executePayload, bool staticCall) public {
+    function callMyself(bytes memory executePayload, bool staticCall, uint256 gas) public payable {
         bool success;
         if (staticCall) {
-            success = doStaticCall(address(this), executePayload, 1000000, 0);
+            success = doStaticCall(address(this), executePayload, gas, 0);
             if (!success) {
                 emit StaticCallMyselfFail();
             }
         } else {
-            success = doCall(address(this), executePayload, 1000000, 0);
+            success = doCall(address(this), executePayload, gas, msg.value);
             if (!success) {
                 emit CallMyselfFail();
             }
@@ -150,30 +180,50 @@ contract CustomCreate2 is TestingBase {
         }
     }
 
-    // Combine 5 scenarii in one transaction
-    function advancedCreateScenariiOneTx(bytes memory code, bytes32 saltEx) public payable{
+    ///////////////////////
+    // Scenarii combination
+    ///////////////////////
+
+    // Combine 5 scenarii in one transaction, with calls launched from root context
+    function advancedCreateScenariiTriggeredFromRoot(bytes memory code, bytes32 saltEx) public payable{
         storeInitCodeC(code);
         storeSalt(saltEx);
         callMyself(
-            abi.encodeWithSignature("create2FourTimes_withRevertTrigger(bool)", true),
-            false
+            abi.encodeWithSignature("create2FourTimes_withRevertTrigger(bool,bool)", true, false),
+            false,
+        1000000
         );
         callMyself(
             abi.encodeWithSignature("create2WithInitCodeC_withValueAndRevert()"),
-            true
+            true,
+    1000000
         );
         callMyself(
-            abi.encodeWithSignature("create2CallC_withRevertTrigger(bool)", true),
-            false
+            abi.encodeWithSignature("create2CallC_withRevertTrigger(bool,bool)", true, false),
+            false,
+            1000000
         );
         callMyself(
-            abi.encodeWithSignature("create2WithCallCtoCallback_noValue()"),
-            false
+            abi.encodeWithSignature("create2WithCallCtoCallback_noValue(bool)", false),
+            false,
+            1000000
         );
         callMyself(
             abi.encodeWithSignature("callCToModifyStorageAndSelfdestruct()"),
-            false
+            false,
+            1000000
         );
     }
 
+    // Combine 5 scenarii in a tower of calls
+    function advancedCreateScenariiNestedCalls(bytes memory code, bytes32 saltEx) public payable{
+        storeInitCodeC(code);
+        storeSalt(saltEx);
+        callMyself(
+            abi.encodeWithSignature("create2WithCallCtoCallback_noValue(bool)", true),
+            false,
+        9000000
+        );
+        callCToModifyStorageAndSelfdestruct();
+    }
 }

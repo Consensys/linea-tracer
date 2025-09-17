@@ -24,6 +24,7 @@ import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtilsCall;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.GenericTracedValue;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class IntegerPhaseSection extends PhaseSection {
@@ -40,7 +41,11 @@ public class IntegerPhaseSection extends PhaseSection {
         switch (entry) {
           case CHAIN_ID -> Bytes32.leftPad(tx.chainId());
           case NONCE -> longToBytes32(tx.getBesuTransaction().getNonce());
-          case GAS_PRICE -> Bytes32.leftPad(tx.gasPrice());
+          case GAS_PRICE -> Bytes32.leftPad(
+              tx.getBesuTransaction().getType().supports1559FeeMarket()
+                  ? Bytes.EMPTY
+                  : bigIntegerToBytes(
+                      tx.getBesuTransaction().getGasPrice().get().getAsBigInteger()));
           case MAX_PRIORITY_FEE_PER_GAS -> Bytes32.leftPad(tx.maxPriorityFeePerGas());
           case MAX_FEE_PER_GAS -> Bytes32.leftPad(tx.maxFeePerGas());
           case GAS_LIMIT -> longToBytes32(tx.getBesuTransaction().getGasLimit());

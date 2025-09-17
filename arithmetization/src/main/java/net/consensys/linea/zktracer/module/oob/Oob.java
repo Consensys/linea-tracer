@@ -23,7 +23,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationAdder;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.oob.OobCall;
@@ -41,8 +41,8 @@ public class Oob implements OperationSetModule<OobOperation> {
   private final Wcp wcp;
 
   @Getter
-  private final ModuleOperationStackedMap<OobOperation> operations =
-      new ModuleOperationStackedMap<>();
+  private final ModuleOperationStackedSet<OobOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {

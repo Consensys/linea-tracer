@@ -23,17 +23,17 @@ import lombok.experimental.Accessors;
 
 @Accessors(fluent = true)
 @Getter
-public class StackedMap<E> {
+public class StackedSet<E> {
   private final Map<E, E> operationsCommitedToTheConflation;
   private final Map<E, E> operationsInTransactionBundle;
 
-  public StackedMap() {
+  public StackedSet() {
     operationsCommitedToTheConflation = new LinkedHashMap<>();
     operationsInTransactionBundle = new LinkedHashMap<>();
   }
 
   /** Prefer this constructor as we preallocate more needed memory */
-  public StackedMap(
+  public StackedSet(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
     operationsCommitedToTheConflation = new LinkedHashMap<>(expectedConflationNumberOperations);
     operationsInTransactionBundle = new LinkedHashMap<>(expectedTransactionNumberOperations);

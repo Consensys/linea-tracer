@@ -19,7 +19,7 @@ import java.math.BigInteger;
 
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.add.AddOperation;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -45,7 +45,7 @@ public class StackedSetTests extends TracerTestBase {
 
   @Test
   public void push() {
-    ModuleOperationStackedMap<AddOperation> chunks = new ModuleOperationStackedMap<>();
+    ModuleOperationStackedSet<AddOperation> chunks = new ModuleOperationStackedSet<>();
 
     chunks.add(ONE_PLUS_ONE);
     chunks.add(ONE_PLUS_ONE);
@@ -57,7 +57,7 @@ public class StackedSetTests extends TracerTestBase {
 
   @Test
   public void multiplePushPop() {
-    ModuleOperationStackedMap<AddOperation> chunks = new ModuleOperationStackedMap<>();
+    ModuleOperationStackedSet<AddOperation> chunks = new ModuleOperationStackedSet<>();
     chunks.add(ONE_PLUS_ONE);
     chunks.add(ONE_PLUS_ONE);
     Assertions.assertEquals(1, chunks.size());

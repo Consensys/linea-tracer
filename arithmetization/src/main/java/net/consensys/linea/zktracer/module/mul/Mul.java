@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -36,8 +36,8 @@ public class Mul implements OperationSetModule<MulOperation> {
   private final Hub hub;
 
   @Getter
-  private final ModuleOperationStackedMap<MulOperation> operations =
-      new ModuleOperationStackedMap<>();
+  private final ModuleOperationStackedSet<MulOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {

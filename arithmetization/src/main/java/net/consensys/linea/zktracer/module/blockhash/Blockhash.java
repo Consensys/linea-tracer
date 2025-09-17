@@ -26,7 +26,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.PostOpcodeDefer;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
@@ -43,8 +43,8 @@ import org.hyperledger.besu.plugin.data.ProcessableBlockHeader;
 public class Blockhash implements OperationSetModule<BlockhashOperation>, PostOpcodeDefer {
   private final Hub hub;
   private final Wcp wcp;
-  private final ModuleOperationStackedMap<BlockhashOperation> operations =
-      new ModuleOperationStackedMap<>();
+  private final ModuleOperationStackedSet<BlockhashOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   List<BlockhashOperation> sortedOperations;
 

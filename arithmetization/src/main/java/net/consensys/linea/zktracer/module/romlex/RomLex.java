@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.hub.defer.ContextEntryDefer;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
@@ -50,8 +50,8 @@ public class RomLex implements OperationSetModule<RomOperation>, ContextEntryDef
   private final Hub hub;
 
   @Getter
-  private final ModuleOperationStackedMap<RomOperation> operations =
-      new ModuleOperationStackedMap<>();
+  private final ModuleOperationStackedSet<RomOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   @Getter private List<RomOperation> sortedOperations;
   Map<ContractMetadata, Integer> cfiMetadataCorrespondance = new HashMap<>();

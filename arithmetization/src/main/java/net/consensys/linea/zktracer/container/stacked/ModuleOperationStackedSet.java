@@ -28,25 +28,25 @@ import net.consensys.linea.zktracer.container.ModuleOperation;
 
 /**
  * Implements a system of pseudo-stacked squashed sets where {@link
- * ModuleOperationStackedMap#operationsCommitedToTheConflation()} represents the set of all
+ * ModuleOperationStackedSet#operationsCommitedToTheConflation()} represents the set of all
  * operations since the beginning of the conflation and {@link
- * ModuleOperationStackedMap#operationsInTransactionBundle()} represents the operations added by the
+ * ModuleOperationStackedSet#operationsInTransactionBundle()} represents the operations added by the
  * last transaction. We can pop only the operations added by last transaction. The line counting is
  * done by a separate {@link CountOnlyOperation}.
  *
  * @param <E> the type of elements stored in the set
  */
 @Accessors(fluent = true)
-public class ModuleOperationStackedMap<E extends ModuleOperation> extends StackedMap<E> {
+public class ModuleOperationStackedSet<E extends ModuleOperation> extends StackedSet<E> {
   private final CountOnlyOperation lineCounter = new CountOnlyOperation();
   @Getter private boolean conflationFinished = false;
 
-  public ModuleOperationStackedMap() {
+  public ModuleOperationStackedSet() {
     super();
   }
 
   /** Prefer this constructor as we preallocate more needed memory */
-  public ModuleOperationStackedMap(
+  public ModuleOperationStackedSet(
       final int expectedConflationNumberOperations, final int expectedTransactionNumberOperations) {
     super(expectedConflationNumberOperations, expectedTransactionNumberOperations);
   }

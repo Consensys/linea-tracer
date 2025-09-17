@@ -39,7 +39,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedMap;
+import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.rlputilsOld.ByteCountAndPowerOutput;
@@ -59,8 +59,8 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 @Accessors(fluent = true)
 public class RlpAddr implements OperationSetModule<RlpAddrOperation> {
   @Getter
-  private final ModuleOperationStackedMap<RlpAddrOperation> operations =
-      new ModuleOperationStackedMap<>();
+  private final ModuleOperationStackedSet<RlpAddrOperation> operations =
+      new ModuleOperationStackedSet<>();
 
   public static final Bytes CREATE2_SHIFT = Bytes.minimalBytes(Trace.CREATE2_SHIFT);
   private static final UnsignedByte BYTES_LLARGE = UnsignedByte.of(LLARGE);

@@ -21,6 +21,7 @@ import static net.consensys.linea.zktracer.TraceCancun.Hub.*;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
+import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NROWS_HUB_ACCOUNT;
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NROWS_HUB_CALLDATALOAD;
 import static net.consensys.linea.zktracer.module.hub.section.McopySection.NROWS_HUB_MCOPY;
 import static net.consensys.linea.zktracer.module.hub.section.SstoreSection.NROWS_HUB_STORAGE;
@@ -230,13 +231,15 @@ public class ZkCounter implements LineCountingTracer {
     // Check for SUX / SOX, this is the only exception we check for
     final short stackSize = (short) frame.stackSize();
     final short deleted = (short) opcode.stackSettings().delta();
-    final boolean underflow = wcp.callLT(stackSize, deleted);
+    // TODO: final boolean underflow = wcp.callLT(stackSize, deleted);
+    final boolean underflow = stackSize < deleted;
     if (underflow) {
       hub.updateTally(opcode.numberOfStackRows());
       return;
     }
     final short heightNew = (short) (stackSize + opcode.stackSettings().alpha() - deleted);
-    final boolean overflow = wcp.callGT(heightNew, MAX_STACK_SIZE);
+    // TODO: final boolean overflow = wcp.callGT(heightNew, MAX_STACK_SIZE);
+    final boolean overflow = heightNew > MAX_STACK_SIZE;
     if (overflow) {
       hub.updateTally(opcode.numberOfStackRows());
       return;
@@ -263,7 +266,7 @@ public class ZkCounter implements LineCountingTracer {
       }
       case WCP -> {
         hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
-        wcp.tracePreOpcode(frame, opcode.mnemonic());
+        // TODO wcp.tracePreOpcode(frame, opcode.mnemonic());
       }
       case EXT -> {
         hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
@@ -291,7 +294,7 @@ public class ZkCounter implements LineCountingTracer {
       case KEC -> {} // TODO
       case CONTEXT, TRANSACTION -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP + 1);
       case LOG -> {} // TODO
-      case ACCOUNT -> {} // TODO
+      case ACCOUNT -> hub.updateTally(NROWS_HUB_ACCOUNT);
       case COPY -> {} // TODO
       case MCOPY -> {
         hub.updateTally(NROWS_HUB_MCOPY);

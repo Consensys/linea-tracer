@@ -131,7 +131,7 @@ public enum Fork {
       if (!forkStart.equals(forkEnd)) {
         // ... except from London to Paris
         if ((!forkStart.equals(MainnetHardforkId.LONDON))
-            || (!forkStart.equals(MainnetHardforkId.PARIS))) {
+            || (!forkEnd.equals(MainnetHardforkId.PARIS))) {
           throw new IllegalStateException(
               "Illegal fork change from  "
                   + forkStart

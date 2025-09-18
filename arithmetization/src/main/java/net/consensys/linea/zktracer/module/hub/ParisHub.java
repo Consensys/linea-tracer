@@ -28,9 +28,7 @@ public class ParisHub extends LondonHub {
 
   @Override
   protected Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
-    // should be return new ParisBlockData(hub, wcp, euc, chain); as there is a column name change,
-    // but we do it only after Shanghai to be able to run a conflation with both London and Paris
-    // block
+    // TODO rollback to new ParisBlockData(hub, wcp, euc, chain); this is just for testing now
     return new LondonBlockData(hub, wcp, euc, chain);
   }
 }

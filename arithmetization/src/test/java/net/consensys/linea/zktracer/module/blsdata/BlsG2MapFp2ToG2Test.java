@@ -76,6 +76,7 @@ public class BlsG2MapFp2ToG2Test extends TracerTestBase {
 
   private static Stream<Arguments> blsG2MapFp2ToG2Source() {
     List<Arguments> arguments = new ArrayList<>();
+    // valid input
     arguments.add(Arguments.of("00000000000000000000000000000000167ab0f743a50c14cfe36fe095886cefd958c60233367db3f904f6f2b40d5df62f75958a02b52daca5316718966a8fb7000000000000000000000000000000001904f0ab97b4fad64e7833426ba8a6311c0694716cf407c8a015cb266153aae30e45b5796e0143da9f608fd01aaf77d2"));
     return arguments.stream();
   }

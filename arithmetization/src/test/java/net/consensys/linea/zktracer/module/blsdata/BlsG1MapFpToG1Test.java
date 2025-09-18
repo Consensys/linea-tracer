@@ -81,6 +81,7 @@ public class BlsG1MapFpToG1Test extends TracerTestBase {
 
   private static Stream<Arguments> blsG1MapFpToG1Source() {
     List<Arguments> arguments = new ArrayList<>();
+    // valid input
     arguments.add(Arguments.of("0000000000000000000000000000000014f10c6ba2ffdf4d14eca5cb0af2470b9b42ba9d42bb5c4ae307784c04accde631e66119d25bf93a86baf0a435c23f14"));
     return arguments.stream();
   }

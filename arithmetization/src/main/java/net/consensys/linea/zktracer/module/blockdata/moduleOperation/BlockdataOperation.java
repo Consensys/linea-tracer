@@ -331,7 +331,7 @@ public abstract class BlockdataOperation extends ModuleOperation {
       case CHAINID -> nROWS_ID;
       case BASEFEE -> nROWS_BF;
       case BLOBBASEFEE -> nROWS_BL; // Cancun and after
-      default -> throw new IllegalArgumentException("Not a valid opcode for lockData: " + opCode);
+      default -> throw new IllegalArgumentException("Not a valid opcode for BlockData: " + opCode);
     };
   }
 }

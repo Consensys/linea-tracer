@@ -93,7 +93,7 @@ public class LineCountingTracerTest extends TracerTestBase {
           "Module " + module + " is in London but not in Shanghai");
     }
 
-    // check that shanghai ⊆ london
+    // check that cancun ⊆ london
     for (String module : cancunTracer) {
       checkArgument(
           londonTracer.contains(module), "Module " + module + " is in Cancun but not in London");
@@ -105,13 +105,13 @@ public class LineCountingTracerTest extends TracerTestBase {
           cancunTracer.contains(module), "Module " + module + " is in London but not in Cancun");
     }
 
-    // check that shanghai ⊆ london
+    // check that prague ⊆ london
     for (String module : pragueTracer) {
       checkArgument(
           londonTracer.contains(module), "Module " + module + " is in Prague but not in London");
     }
 
-    // check that london ⊆ paris
+    // check that london ⊆ prague
     for (String module : londonTracer) {
       checkArgument(
           pragueTracer.contains(module), "Module " + module + " is in London but not in Prague");

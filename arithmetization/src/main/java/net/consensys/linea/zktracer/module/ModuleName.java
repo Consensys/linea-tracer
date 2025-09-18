@@ -32,6 +32,7 @@ public enum ModuleName {
   RLP_TXN_RCPT,
   RLP_UTILS,
   SHAKIRA_DATA,
+  STP,
 
   // precompiles
   // ecdata:

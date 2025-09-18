@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.stp;
 
 import static com.google.common.base.Preconditions.*;
+import static net.consensys.linea.zktracer.module.ModuleName.STP;
 import static net.consensys.linea.zktracer.types.Conversions.longToBytes32;
 
 import java.util.List;
@@ -73,7 +74,7 @@ public class Stp implements OperationSetModule<StpOperation> {
 
   @Override
   public String moduleKey() {
-    return "STP";
+    return STP.toString();
   }
 
   @Override

@@ -20,6 +20,9 @@ import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CDL;
 import static net.consensys.linea.zktracer.TraceCancun.Hub.*;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
+import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
+import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE;
+import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE2;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NROWS_HUB_ACCOUNT;
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NROWS_HUB_CALLDATALOAD;
@@ -28,6 +31,7 @@ import static net.consensys.linea.zktracer.module.hub.section.SstoreSection.NROW
 import static net.consensys.linea.zktracer.module.hub.section.StackOnlySection.NROWS_HUB_SIMPLE_STACK_OP;
 import static net.consensys.linea.zktracer.module.hub.section.StackRamSection.NROWS_HUB_STACKRAM;
 import static net.consensys.linea.zktracer.module.hub.section.call.CallSection.NROWS_HUB_CALL;
+import static net.consensys.linea.zktracer.module.hub.section.create.CreateSection.NROWS_HUB_CREATE;
 import static net.consensys.linea.zktracer.module.hub.section.finalization.TxFinalizationSection.NROWS_HUB_FINL;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.NROWS_HUB_SYSI_EIP2935;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.NROWS_HUB_SYSI_EIP4788;
@@ -121,7 +125,7 @@ public class ZkCounter implements LineCountingTracer {
   final CountingOnlyModule shakiradata =
       new CountingOnlyModule(SHAKIRA_DATA); // useless to count imho
   final Shf shf = new Shf();
-  // stp // TODO
+  final IncrementingModule stp = new IncrementingModule(STP);
   final Trm trm;
   // final TxnData txnData; // TODO
   final Wcp wcp = new Wcp(); // TODO need MMU to be counted
@@ -229,6 +233,7 @@ public class ZkCounter implements LineCountingTracer {
             // rlpTxnRcpt,
             // rlpUtils,
             shf,
+            stp,
             // trm,
             // wcp,
             modexpEffectiveCall,
@@ -412,13 +417,26 @@ public class ZkCounter implements LineCountingTracer {
         }
       }
       case JUMP -> {} // TODO
-      case CREATE -> {} // TODO
+      case CREATE -> {
+        hub.updateTally(NROWS_HUB_CREATE);
+        // first IMC
+        stp.updateTally(1);
+        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+        oob.updateTally(CT_MAX_CREATE + 1);
+        // TODO: MMU
+        final boolean isCreate2 = opcode.mnemonic() == OpCode.CREATE2;
+        rlpAddr.updateTally(1 + (isCreate2 ? MAX_CT_CREATE2 : MAX_CT_CREATE));
+        if (isCreate2) {
+          final int size = Words.clampedToInt(frame.getStackItem(2));
+          keccak.updateTally(size);
+        }
+      }
       case CALL -> {
         hub.updateTally(NROWS_HUB_CALL);
         gas.updateTally(1); // as CMC == 1
         oob.updateTally(CT_MAX_CALL + 1);
         mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-        // TODO STP
+        stp.updateTally(1);
       }
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
     }

@@ -231,7 +231,7 @@ public abstract class Hub implements Module {
   private final Oob oob = new Oob(this, add, mod, wcp);
   private final Mmu mmu;
   private final Stp stp = new Stp(wcp, mod);
-  private final Exp exp = new Exp(this, wcp);
+  private final Exp exp = new Exp();
 
   /*
    * Those modules are not traced, we just compute the number of calls to those

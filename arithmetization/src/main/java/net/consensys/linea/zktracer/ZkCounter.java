@@ -50,7 +50,9 @@ import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
+import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.limits.L1BlockSize;
@@ -90,7 +92,7 @@ public class ZkCounter implements LineCountingTracer {
   // blsdata
   // ecdata
   // euc
-  // final Exp exp = new Exp(); // TODO
+  final Exp exp = new Exp();
   final Ext ext = new Ext();
   final CountingOnlyModule gas = new CountingOnlyModule(GAS, trace.gas().spillage());
   final CountingOnlyModule hub = new CountingOnlyModule(HUB, trace.hub().spillage());
@@ -143,6 +145,7 @@ public class ZkCounter implements LineCountingTracer {
             bin,
             // blockData,
             blockHash,
+            exp,
             ext,
             gas,
             hub,
@@ -276,7 +279,7 @@ public class ZkCounter implements LineCountingTracer {
         switch (opcode.mnemonic()) {
           case OpCode.EXP -> {
             hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP + 1);
-            // TODO EXP once exp asm is merged
+            exp.call(new ExplogExpCall(frame));
           }
           case OpCode.MUL -> {
             hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);

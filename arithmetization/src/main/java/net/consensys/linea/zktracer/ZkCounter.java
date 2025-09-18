@@ -37,6 +37,9 @@ import static net.consensys.linea.zktracer.module.hub.section.copy.ExtCodeCopySe
 import static net.consensys.linea.zktracer.module.hub.section.copy.ReturnDataCopySection.NBROWS_HUB_RETURN_DATA_COPY;
 import static net.consensys.linea.zktracer.module.hub.section.create.CreateSection.NROWS_HUB_CREATE;
 import static net.consensys.linea.zktracer.module.hub.section.finalization.TxFinalizationSection.NROWS_HUB_FINL;
+import static net.consensys.linea.zktracer.module.hub.section.halt.RevertSection.NBROWS_HUB_REVERT;
+import static net.consensys.linea.zktracer.module.hub.section.halt.StopSection.NBROWS_HUB_STOP_DEPLOYMENT;
+import static net.consensys.linea.zktracer.module.hub.section.halt.StopSection.NBROWS_HUB_STOP_MSG_CALL;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.NROWS_HUB_SYSI_EIP2935;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.NROWS_HUB_SYSI_EIP4788;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.SysfNoopSection.NROWS_HUB_SYSF_NOOP;
@@ -368,7 +371,21 @@ public class ZkCounter implements LineCountingTracer {
           }
         }
       }
-      case HALT -> {} // TODO
+      case HALT -> {
+        switch (opcode.mnemonic()) {
+          case RETURN -> {}
+          case REVERT -> {
+            hub.updateTally(NBROWS_HUB_REVERT);
+            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+            // TODO MMU
+          }
+          case STOP -> hub.updateTally(
+              frame.getType() == MessageFrame.Type.MESSAGE_CALL
+                  ? NBROWS_HUB_STOP_MSG_CALL
+                  : NBROWS_HUB_STOP_DEPLOYMENT);
+          case SELFDESTRUCT -> {}
+        }
+      }
       case KEC -> {
         hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP + 1);
         mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);

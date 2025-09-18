@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
 import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CDL;
-import static net.consensys.linea.zktracer.TraceCancun.Hub.*;
+import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_RDC;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
@@ -31,6 +31,10 @@ import static net.consensys.linea.zktracer.module.hub.section.SstoreSection.NROW
 import static net.consensys.linea.zktracer.module.hub.section.StackOnlySection.NROWS_HUB_SIMPLE_STACK_OP;
 import static net.consensys.linea.zktracer.module.hub.section.StackRamSection.NROWS_HUB_STACKRAM;
 import static net.consensys.linea.zktracer.module.hub.section.call.CallSection.NROWS_HUB_CALL;
+import static net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection.NBROWS_HUB_CALL_DATA_COPY;
+import static net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection.NBROWS_HUB_CODE_COPY;
+import static net.consensys.linea.zktracer.module.hub.section.copy.ExtCodeCopySection.NBROWS_HUB_EXT_CODE_COPY;
+import static net.consensys.linea.zktracer.module.hub.section.copy.ReturnDataCopySection.NBROWS_HUB_RETURN_DATA_COPY;
 import static net.consensys.linea.zktracer.module.hub.section.create.CreateSection.NROWS_HUB_CREATE;
 import static net.consensys.linea.zktracer.module.hub.section.finalization.TxFinalizationSection.NROWS_HUB_FINL;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.NROWS_HUB_SYSI_EIP2935;
@@ -40,7 +44,6 @@ import static net.consensys.linea.zktracer.module.hub.section.transients.TLoadSe
 import static net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection.NROWS_HUB_TSTORE;
 import static net.consensys.linea.zktracer.module.hub.section.txInitializationSection.TxInitializationSection.NROWS_HUB_INIT;
 import static net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation.MXP_FROM_CTMAX_TO_LINECOUNT;
-import static net.consensys.linea.zktracer.opcode.OpCode.CALLDATALOAD;
 import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
@@ -59,7 +62,6 @@ import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
-import net.consensys.linea.zktracer.module.hub.section.*;
 import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L1BlockSize;
@@ -384,7 +386,33 @@ public class ZkCounter implements LineCountingTracer {
         // Note: nothing to do for LOG info / data / rlp, done at the end of the tx
       }
       case ACCOUNT -> hub.updateTally(NROWS_HUB_ACCOUNT);
-      case COPY -> {} // TODO
+      case COPY -> {
+        switch (opcode.mnemonic()) {
+          case CALLDATACOPY -> {
+            hub.updateTally(NBROWS_HUB_CALL_DATA_COPY);
+            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+            // TODO MMU
+          }
+          case RETURNDATACOPY -> {
+            hub.updateTally(NBROWS_HUB_RETURN_DATA_COPY);
+            oob.updateTally(CT_MAX_RDC + 1);
+            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+            // TODO MMU
+          }
+          case CODECOPY -> {
+            hub.updateTally(NBROWS_HUB_CODE_COPY);
+            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+            // TODO MMU
+            // TODO ROM
+          }
+          case EXTCODECOPY -> {
+            hub.updateTally(NBROWS_HUB_EXT_CODE_COPY);
+            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+            // TODO MMU
+            // TODO ROM
+          }
+        }
+      }
       case MCOPY -> {
         hub.updateTally(NROWS_HUB_MCOPY);
         mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);

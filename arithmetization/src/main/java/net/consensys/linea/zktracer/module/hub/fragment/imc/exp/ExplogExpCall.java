@@ -18,6 +18,7 @@ package net.consensys.linea.zktracer.module.hub.fragment.imc.exp;
 import static net.consensys.linea.zktracer.Trace.EXP_INST_EXPLOG;
 import static net.consensys.linea.zktracer.Trace.GAS_CONST_G_EXP_BYTE;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
@@ -29,9 +30,10 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @Accessors(fluent = true)
 @Getter
 @Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ExplogExpCall implements ExpCall {
-  final EWord exponent;
-  final long dynCost;
+  @EqualsAndHashCode.Include final EWord exponent;
+  @EqualsAndHashCode.Include final long dynCost;
 
   public ExplogExpCall(MessageFrame frame) {
     this.exponent = EWord.of(frame.getStackItem(1));
@@ -62,5 +64,9 @@ public class ExplogExpCall implements ExpCall {
         .pMiscExpData1(exponent.hi())
         .pMiscExpData2(exponent.lo())
         .pMiscExpData5(Bytes.ofUnsignedLong(dynCost));
+  }
+
+  public String toString() {
+    return "EXPLOG(" + exponent.toString() + ")=" + dynCost;
   }
 }

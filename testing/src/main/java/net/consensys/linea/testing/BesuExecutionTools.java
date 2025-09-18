@@ -217,9 +217,10 @@ public class BesuExecutionTools {
         // In case we switch Forks from London to Paris, the transaction is included in the next
         // block
         // One empty block with new consensus is created to replace Clique one
-        if (currentFork == Fork.LONDON && nextFork == Fork.PARIS) {
+        // TODO remove once Besu API is fixed
+        /*        if (currentFork == Fork.LONDON && nextFork == Fork.PARIS) {
           continue;
-        }
+        }*/
         waitForTxReceipts(besuNode, ethTransactions, txHashes, txReceiptProcessed, blockNumbers);
         currentFork = nextFork;
 
@@ -366,8 +367,8 @@ public class BesuExecutionTools {
   /// // /////////////////////////
 
   private Fork nextBlockFork(Block block) {
-    var blockNbr = block.getTotalDifficulty().add(BigInteger.ONE);
-    var blockTimestamp = block.getTimestamp();
+    var nextTotalDifficulty = block.getTotalDifficulty().add(BigInteger.TWO);
+    var nextBlockTimestamp = block.getTimestamp().longValue() + 1L;
 
     var TTD = genesisConfigBuilder.getTTD();
     var shanghaiTime = genesisConfigBuilder.getShanghaiTime();
@@ -379,13 +380,13 @@ public class BesuExecutionTools {
       return Fork.LONDON;
     }
 
-    var totalDifficulty = new BigInteger(TTD);
+    var terminalTotalDifficulty = new BigInteger(TTD);
 
     // Fork from Paris specified
-    if (blockNbr.compareTo(totalDifficulty) >= 0) {
-      if (shanghaiTime != null && (blockTimestamp.longValue() + 1L) >= parseLong(shanghaiTime)) {
-        if (cancunTime != null && (blockTimestamp.longValue() + 1L) >= parseLong(cancunTime)) {
-          if (pragueTime != null && (blockTimestamp.longValue() + 1L) >= parseLong(pragueTime)) {
+    if (nextTotalDifficulty.compareTo(terminalTotalDifficulty) > 0) {
+      if (shanghaiTime != null && (nextBlockTimestamp >= parseLong(shanghaiTime))) {
+        if (cancunTime != null && (nextBlockTimestamp >= parseLong(cancunTime))) {
+          if (pragueTime != null && (nextBlockTimestamp >= parseLong(pragueTime))) {
             return Fork.PRAGUE;
           }
           return Fork.CANCUN;

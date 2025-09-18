@@ -176,4 +176,43 @@ public class ExampleBesuTest extends TracerTestBase {
         .code(code)
         .build();
   }
+
+  @Test
+  void testForkSwitchLondonToParisWithBesuFix(TestInfo testInfo) {
+    KeyPair keyPair = new SECP256K1().generateKeyPair();
+    Address senderAddress = Address.extract(Hash.hash(keyPair.getPublicKey().getEncodedBytes()));
+
+    ToyAccount senderAccount =
+        ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
+
+    BytecodeCompiler compilerMain =
+        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+
+    // PREVRANDAO opcode
+    Bytes codeParis = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x44"));
+
+    ToyAccount receiverAccountLondon = getReceiverAccount("0x111100", compilerMain.compile());
+
+    ToyAccount receiverAccountParis = getReceiverAccount("0x111120", codeParis);
+
+    ToyTransaction.ToyTransactionBuilder txBuilderLondon =
+        ToyTransaction.builder().to(receiverAccountLondon).keyPair(keyPair);
+
+    ToyTransaction.ToyTransactionBuilder txBuilderParis =
+        ToyTransaction.builder().to(receiverAccountParis).keyPair(keyPair);
+
+    // create transactions with the same sender, manages nonce
+    final List<Transaction> transactions =
+        ToyMultiTransaction.builder()
+            .build(List.of(txBuilderLondon, txBuilderParis), senderAccount);
+
+    ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+        .accounts(List.of(senderAccount, receiverAccountLondon, receiverAccountParis))
+        .transactions(transactions)
+        .runWithBesuNode(true)
+        .oneTxPerBlockOnBesuNode(true)
+        .customBesuNodeGenesis("BesuExecutionToolsGenesis_LondonToParisBesuFix.json")
+        .build()
+        .run();
+  }
 }

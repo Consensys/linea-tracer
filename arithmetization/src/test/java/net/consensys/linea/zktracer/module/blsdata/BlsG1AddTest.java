@@ -16,7 +16,12 @@
 package net.consensys.linea.zktracer.module.blsdata;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.SMALL_POINTS;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G1_POINT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,9 +48,6 @@ public class BlsG1AddTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("blsG1AddSource")
   void testBlsG1Add(String a, String b, TestInfo testInfo) {
-    checkArgument(a.length() == 256, "G1 point 'a' must be 256 hex chars");
-    checkArgument(b.length() == 256, "G1 point 'b' must be 256 hex chars");
-
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     // TODO: extract method for that
@@ -79,6 +81,13 @@ public class BlsG1AddTest extends TracerTestBase {
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
+
+    if (isPostCancun(fork)) {
+      final boolean failureIsExpected = !a.equals(VALID_G1_POINT) || !b.equals(VALID_G1_POINT);
+      final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
+      assertEquals(blsdata.blsDataOperation().mext(), failureIsExpected);
+      assertEquals(blsdata.blsDataOperation().successBit(), failureIsExpected);
+    }
   }
 
   private static Stream<Arguments> blsG1AddSource() {

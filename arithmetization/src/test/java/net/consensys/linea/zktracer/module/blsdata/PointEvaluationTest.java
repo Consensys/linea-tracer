@@ -98,7 +98,7 @@ public class PointEvaluationTest extends TracerTestBase {
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
       assertFalse(blsdata.blsDataOperation().mint());
       assertFalse(blsdata.blsDataOperation().mext());
-      assertTrue(blsdata.blsDataOperation().successBit()); // TODO: why?
+      assertTrue(blsdata.blsDataOperation().successBit());
     }
   }
 

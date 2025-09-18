@@ -44,7 +44,6 @@ public class StateManagerTestValidator implements TransactionProcessingResultVal
     TransactionProcessingResultValidator.DEFAULT_VALIDATOR.accept(transaction, result);
     // One event from the snippet
     // One event from the framework entrypoint about contract call
-    // System.out.println("Number of logs: " + result.getLogs().size());
     assertEquals(
         expectedNoLogs.get(txCounter),
         result.getLogs().size(),

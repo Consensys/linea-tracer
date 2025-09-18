@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.statemanager;
 
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.statemanager.StateManagerUtils.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -39,14 +40,21 @@ public class ConflationAccountTest extends TracerTestBase {
     this.tc = new TestContext();
     this.tc.initializeTestContext();
     // prepare the transaction validator
+
+    // Transaction 10 (starts at tx 0) is a create2 after a self-destruct
+    // From Cancun and on, if the self-destruct doesn't happen in the same transaction, the contract
+    // is not deleted and the following create2 cannot happen.
+    // Instead of 2 logs for Creates (1 CallExecuted and 1 ContractCreated), we are left with 1 log
+    // only which is CallExecuted
+    // (See TestingBase.sol contract)
+    final int nbLogsForTransaction10 = isPostCancun(fork) ? 1 : 2;
+
     final TransactionProcessingResultValidator resultValidator =
         new StateManagerTestValidator(
             tc.frameworkEntryPointAccount,
             // Creates and self-destructs generate 2 logs,
             // Transfers generate 3 logs, the 1s are for reverted operations
-            List.of(3, 3, 1, 3, 2, 3, 3, 2, 3, 2, 2, 3, 2, 1)); /*
-        // fetch the Hub metadata for the state manager maps
-        StateManagerMetadata stateManagerMetadata = Hub.stateManagerMetadata();*/
+            List.of(3, 3, 1, 3, 2, 3, 3, 2, 3, 2, nbLogsForTransaction10, 3, 2, 1));
 
     // prepare a multi-block execution of transactions
     final MultiBlockExecutionEnvironment multiBlockEnv =
@@ -58,7 +66,7 @@ public class ConflationAccountTest extends TracerTestBase {
                     tc.externallyOwnedAccounts[0],
                     tc.initialAccounts[2],
                     tc.frameworkEntryPointAccount))
-            // test account operations for an account prexisting in the state
+            // Transaction 0 : test account operations for an account prexisting in the state
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -69,6 +77,7 @@ public class ConflationAccountTest extends TracerTestBase {
                         8L,
                         false,
                         BigInteger.ONE)))
+            // Transaction 1
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -79,6 +88,7 @@ public class ConflationAccountTest extends TracerTestBase {
                         20L,
                         false,
                         BigInteger.ONE)))
+            // Transaction 2
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -89,6 +99,7 @@ public class ConflationAccountTest extends TracerTestBase {
                         50L,
                         true,
                         BigInteger.ONE))) // this action is reverted
+            // Transaction 3
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -99,7 +110,8 @@ public class ConflationAccountTest extends TracerTestBase {
                         10L,
                         false,
                         BigInteger.ONE)))
-            // deploy another account ctxt.addresses[3] and perform account operations on it
+            // Transaction 4 : deploy another account ctxt.addresses[3] and perform account
+            // operations on it
             .addBlock(
                 List.of(
                     tc.deployWithCreate2_withRevertTrigger(
@@ -109,6 +121,7 @@ public class ConflationAccountTest extends TracerTestBase {
                         tc.salts[0],
                         TestContext.snippetsCodeForCreate2,
                         false)))
+            // Transaction 5
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -119,6 +132,7 @@ public class ConflationAccountTest extends TracerTestBase {
                         49L,
                         false,
                         BigInteger.ONE)))
+            // Transaction 6
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -129,8 +143,10 @@ public class ConflationAccountTest extends TracerTestBase {
                         27L,
                         false,
                         BigInteger.ONE)))
-            // deploy another account and self destruct it at the end, redeploy it and change its
+            // Transaction 7 : deploy another account and self destruct it at the end, redeploy it
+            // and change its
             // balance  again
+            // Account at newAddresses[1], deployed with salt[1]
             .addBlock(
                 List.of(
                     tc.deployWithCreate2_withRevertTrigger(
@@ -140,6 +156,7 @@ public class ConflationAccountTest extends TracerTestBase {
                         tc.salts[1],
                         TestContext.snippetsCodeForCreate2,
                         false)))
+            // Transaction 8
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -150,6 +167,8 @@ public class ConflationAccountTest extends TracerTestBase {
                         98L,
                         false,
                         BigInteger.ONE)))
+            // Transaction 9 : self-destruct the account with newAddresses[1] deployed in
+            // transaction 7
             .addBlock(
                 List.of(
                     tc.selfDestruct(
@@ -159,6 +178,9 @@ public class ConflationAccountTest extends TracerTestBase {
                         tc.addresses[2],
                         false,
                         BigInteger.ONE)))
+            // Transaction 10 : attempt to redeploy the account with salt[1] that was just
+            // self-destructed if the fork
+            // allows it
             .addBlock(
                 List.of(
                     tc.deployWithCreate2_withRevertTrigger(
@@ -168,6 +190,7 @@ public class ConflationAccountTest extends TracerTestBase {
                         tc.salts[1],
                         TestContext.snippetsCodeForCreate2,
                         false)))
+            // Transaction 11
             .addBlock(
                 List.of(
                     tc.transferTo(
@@ -178,7 +201,7 @@ public class ConflationAccountTest extends TracerTestBase {
                         123L,
                         false,
                         BigInteger.ONE)))
-            // deploy a new account and check revert operations on it
+            // Transaction 12 : deploy a new account and check revert operations on it
             .addBlock(
                 List.of(
                     tc.deployWithCreate2_withRevertTrigger(
@@ -188,6 +211,7 @@ public class ConflationAccountTest extends TracerTestBase {
                         tc.salts[2],
                         TestContext.snippetsCodeForCreate2,
                         false)))
+            // Transaction 13
             .addBlock(
                 List.of(
                     tc.transferTo(

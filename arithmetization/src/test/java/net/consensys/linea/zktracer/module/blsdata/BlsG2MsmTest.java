@@ -57,7 +57,6 @@ public class BlsG2MsmTest extends TracerTestBase {
 
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
-    // TODO: extract method for that
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
     final ToyAccount codeOwnerAccount =
         ToyAccount.builder()

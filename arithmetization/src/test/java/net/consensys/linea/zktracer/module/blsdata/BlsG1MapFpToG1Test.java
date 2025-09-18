@@ -47,7 +47,6 @@ public class BlsG1MapFpToG1Test extends TracerTestBase {
   void testBlsG1MapFpToG1(String input, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
-    // TODO: extract method for that
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
     final ToyAccount codeOwnerAccount =
         ToyAccount.builder()

@@ -50,7 +50,6 @@ public class BlsG1AddTest extends TracerTestBase {
   void testBlsG1Add(String a, String b, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
-    // TODO: extract method for that
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
     final ToyAccount codeOwnerAccount =
         ToyAccount.builder()

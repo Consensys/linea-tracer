@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
-import net.consensys.linea.zktracer.module.blockdata.module.ParisBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
@@ -28,6 +27,9 @@ public class ParisHub extends LondonHub {
 
   @Override
   protected Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
-    return new ParisBlockData(hub, wcp, euc, chain);
+    // should be return new ParisBlockData(hub, wcp, euc, chain); as there is a column name change,
+    // but we do it only after Shanghai to be able to run a conflation with both London and Paris
+    // block
+    return null;
   }
 }

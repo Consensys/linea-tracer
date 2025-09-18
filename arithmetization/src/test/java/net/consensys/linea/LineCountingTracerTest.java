@@ -17,6 +17,7 @@ package net.consensys.linea;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
+import static net.consensys.linea.zktracer.Fork.*;
 
 import java.util.List;
 

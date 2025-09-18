@@ -56,7 +56,11 @@ import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.hub.section.*;
+import net.consensys.linea.zktracer.module.limits.BlockTransactions;
+import net.consensys.linea.zktracer.module.limits.Keccak;
 import net.consensys.linea.zktracer.module.limits.L1BlockSize;
+import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
+import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
 import net.consensys.linea.zktracer.module.oob.Oob;
@@ -74,6 +78,7 @@ import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
 import org.hyperledger.besu.evm.frame.MessageFrame;
+import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
@@ -121,17 +126,72 @@ public class ZkCounter implements LineCountingTracer {
   // final TxnData txnData; // TODO
   final Wcp wcp = new Wcp(); // TODO need MMU to be counted
 
-  // precompile counting only modules
-  // TODO ...
-  final IncrementAndDetectModule modexp =
-      new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS);
-  final IncrementAndDetectModule rip = new IncrementAndDetectModule(PRECOMPILE_RIPEMD_BLOCKS);
-  final IncrementAndDetectModule blake =
-      new IncrementAndDetectModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
-  final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL);
-  final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS);
+  // precompiles limits:
+  // related to EcData
+  private final IncrementingModule ecAddEffectiveCall =
+      new IncrementingModule(PRECOMPILE_ECADD_EFFECTIVE_CALLS);
+  private final IncrementingModule ecMulEffectiveCall =
+      new IncrementingModule(PRECOMPILE_ECMUL_EFFECTIVE_CALLS);
+  private final IncrementingModule ecRecoverEffectiveCall =
+      new IncrementingModule(PRECOMPILE_ECRECOVER_EFFECTIVE_CALLS);
+  private final CountingOnlyModule ecPairingG2MembershipCalls =
+      new CountingOnlyModule(PRECOMPILE_ECPAIRING_G2_MEMBERSHIP_CALLS);
+  private final CountingOnlyModule ecPairingMillerLoops =
+      new CountingOnlyModule(PRECOMPILE_ECPAIRING_MILLER_LOOPS);
+  private final IncrementingModule ecPairingFinalExponentiations =
+      new IncrementingModule(PRECOMPILE_ECPAIRING_FINAL_EXPONENTIATIONS);
 
-  // Other:
+  //  related to Modexp
+  private final IncrementAndDetectModule modexpEffectiveCall =
+      new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS);
+
+  // related to Blake
+  private final IncrementAndDetectModule blakeEffectiveCall =
+      new IncrementAndDetectModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
+  private final BlakeRounds blakeRounds = new BlakeRounds();
+
+  // related to Shakira:
+  private final Keccak keccak;
+  private final Sha256Blocks sha256Blocks = new Sha256Blocks();
+  private final IncrementAndDetectModule ripemdBlocks =
+      new IncrementAndDetectModule(PRECOMPILE_RIPEMD_BLOCKS);
+
+  // Related to Bls
+  // TODO: remove me when Linea supports Cancun & Prague precompiles
+  private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
+  private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
+
+  final IncrementingModule pointEvaluationEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_POINT_EVALUATION_EFFECTIVE_CALLS);
+  final IncrementingModule pointEvaluationFailureCall =
+      new IncrementingModule(PRECOMPILE_POINT_EVALUATION_FAILURE_EFFECTIVE_CALLS);
+  final IncrementingModule blsG1AddEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G1_ADD_EFFECTIVE_CALLS);
+  final IncrementingModule blsG1MsmEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G1_MSM_EFFECTIVE_CALLS);
+  final IncrementingModule blsG2AddEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G2_ADD_EFFECTIVE_CALLS);
+  final IncrementingModule blsG2MsmEffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_G2_MSM_EFFECTIVE_CALLS);
+  final CountingOnlyModule blsPairingCheckMillerLoops =
+      new CountingOnlyModule(PRECOMPILE_BLS_PAIRING_CHECK_MILLER_LOOPS);
+  final IncrementingModule blsPairingCheckFinalExponentiations =
+      new IncrementingModule(PRECOMPILE_BLS_FINAL_EXPONENTIATIONS);
+  final IncrementingModule blsG1MapFpToG1EffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_MAP_FP_TO_G1_EFFECTIVE_CALLS);
+  final IncrementingModule blsG1MapFp2ToG2EffectiveCall =
+      new IncrementingModule(PRECOMPILE_BLS_MAP_FP2_TO_G2_EFFECTIVE_CALLS);
+  final IncrementingModule blsC1MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_C1_MEMBERSHIP_CHECKS);
+  final IncrementingModule blsC2MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_C2_MEMBERSHIP_CALLS);
+  final IncrementingModule blsG1MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_G1_MEMBERSHIP_CALLS);
+  final IncrementingModule blsG2MembershipCalls =
+      new IncrementingModule(PRECOMPILE_BLS_G2_MEMBERSHIP_CALLS);
+
+  // others:
+  private final BlockTransactions blockTransactions = new BlockTransactions();
   final L1BlockSize l1BlockSize;
   final IncrementingModule l2l1Logs = new IncrementingModule(BLOCK_L2_L1_LOGS);
 
@@ -143,6 +203,7 @@ public class ZkCounter implements LineCountingTracer {
     this.rlpUtils = new RlpUtils(wcp);
     this.rlpTxn = new CancunRlpTxn(rlpUtils, trm);
     this.oob = new Oob(null, add, mod, wcp); // TODO fix me
+    this.keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
 
     l1BlockSize =
         new L1BlockSize(l2l1Logs, bridgeConfiguration.contract(), bridgeConfiguration.topic());
@@ -170,9 +231,9 @@ public class ZkCounter implements LineCountingTracer {
             shf,
             // trm,
             // wcp,
-            modexp,
-            rip,
-            blake,
+            modexpEffectiveCall,
+            ripemdBlocks,
+            blakeEffectiveCall,
             bls,
             pointEval,
             l1BlockSize,
@@ -214,6 +275,7 @@ public class ZkCounter implements LineCountingTracer {
       case BLOB, DELEGATE_CODE -> throw new IllegalStateException(
           "Unsupported tx type: " + tx.getType());
     }
+    // HUB line count
     hub.updateTally(NROWS_HUB_INIT + NROWS_HUB_FINL);
     if (tx.getAccessList().isPresent()) {
       final int nRowsWarmPhase =
@@ -222,6 +284,9 @@ public class ZkCounter implements LineCountingTracer {
               .sum();
       hub.updateTally(nRowsWarmPhase);
     }
+
+    // other modules:
+    blockTransactions.traceStartTx(null, null);
   }
 
   @Override
@@ -297,7 +362,15 @@ public class ZkCounter implements LineCountingTracer {
         }
       }
       case HALT -> {} // TODO
-      case KEC -> {} // TODO
+      case KEC -> {
+        hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP + 1);
+        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+        final int sizeToHash = Words.clampedToInt(frame.getStackItem(1));
+        if (sizeToHash != 0) {
+          // TODO MMU
+          keccak.updateTally(sizeToHash);
+        }
+      }
       case CONTEXT, TRANSACTION -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP + 1);
       case LOG -> {
         hub.updateTally(opcode.numberOfStackRows() + 2); // CON + MISC
@@ -360,7 +433,7 @@ public class ZkCounter implements LineCountingTracer {
       final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
       final ModexpMetadata modexpMetadata = new ModexpMetadata(memoryRange);
       if (modexpMetadata.unprovableModexp()) {
-        modexp.detectEvent();
+        modexpEffectiveCall.detectEvent();
       }
       return;
     }
@@ -381,12 +454,12 @@ public class ZkCounter implements LineCountingTracer {
       // if (frame.getInputData().isEmpty()) {
       //   return;
       // }
-      rip.detectEvent();
+      ripemdBlocks.detectEvent();
       return;
     }
 
     if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
-      blake.detectEvent();
+      blakeEffectiveCall.detectEvent();
       return;
     }
     // No other precompiles are tracked

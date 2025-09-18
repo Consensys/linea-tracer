@@ -62,9 +62,18 @@ public class LineCountingTracerTest extends TracerTestBase {
       final List<String> tracerModules =
           tracer.getModulesToCount().stream().map(Module::moduleKey).toList();
 
-      checkArgument(
-          counterModules.containsAll(tracerModules) && tracerModules.containsAll(counterModules),
-          "Different modules between tracer and counter for fork " + fork);
+      // check that counter ⊆ tracer(fork)
+      for (String module : counterModules) {
+        checkArgument(
+            tracerModules.contains(module),
+            "Module " + module + " is missing in tracer for fork " + fork);
+      }
+      // check that tracer(fork) ⊆ counter
+      for (String module : tracerModules) {
+        checkArgument(
+            counterModules.contains(module),
+            "Module " + module + " is missing in counter for fork " + fork);
+      }
     }
   }
 }

@@ -237,7 +237,7 @@ public abstract class Hub implements Module {
    * Those modules are not traced, we just compute the number of calls to those
    * precompile to meet the prover limits
    */
-  private final BlockTransactions blockTransactions = new BlockTransactions(this);
+  private final BlockTransactions blockTransactions = new BlockTransactions();
   private final Keccak keccak;
   private final Sha256Blocks sha256Blocks = new Sha256Blocks();
 

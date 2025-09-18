@@ -203,12 +203,14 @@ public class CallSection extends TraceSection
     calleeAddress = Address.extract(EWord.of(rawCalleeAddress));
 
     // TODO: remove me when Linea supports Cancun & Prague precompiles
+    /*
     if (isKzgPrecompileCall(calleeAddress, hub.fork)) {
       hub.pointEval().detectEvent();
     }
     if (isBlsPrecompileCall(calleeAddress, hub.fork)) {
       hub.bls().detectEvent();
     }
+     */
 
     callerFirst = canonical(hub, callerAddress);
     calleeFirst = canonical(hub, calleeAddress);

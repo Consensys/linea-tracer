@@ -15,13 +15,10 @@
 
 package net.consensys.linea.zktracer.module.blsdata;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.SMALL_POINTS;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G1_POINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;

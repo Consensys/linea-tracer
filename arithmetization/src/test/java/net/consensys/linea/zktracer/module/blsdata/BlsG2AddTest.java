@@ -17,7 +17,6 @@ package net.consensys.linea.zktracer.module.blsdata;
 
 import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.LARGE_POINTS;
-import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G1_POINT;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G2_POINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -25,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import net.consensys.linea.UnitTestWatcher;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.BytecodeCompiler;

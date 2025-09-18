@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.blake2fmodexpdata;
 
+import static net.consensys.linea.zktracer.module.ModuleName.BLAKE_MODEXP_DATA;
+
 import java.util.List;
 
 import lombok.Getter;
@@ -45,7 +47,7 @@ public class BlakeModexpData implements OperationListModule<BlakeModexpDataOpera
 
   @Override
   public String moduleKey() {
-    return "BLAKE_MODEXP_DATA";
+    return BLAKE_MODEXP_DATA.toString();
   }
 
   public void callModexp(final ModexpMetadata modexpMetaData, final int operationID) {

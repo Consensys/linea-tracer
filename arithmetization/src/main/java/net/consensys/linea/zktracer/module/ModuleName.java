@@ -17,9 +17,11 @@ package net.consensys.linea.zktracer.module;
 
 public enum ModuleName {
   // tracing Modules
+  BLAKE_MODEXP_DATA,
   BLOCK_DATA,
   BLOCK_HASH,
   BLS_DATA,
+  EC_DATA,
   GAS,
   HUB,
   LOG_DATA,
@@ -29,6 +31,7 @@ public enum ModuleName {
   RLP_ADDR,
   RLP_TXN_RCPT,
   RLP_UTILS,
+  SHAKIRA_DATA,
 
   // precompiles
   // ecdata:

@@ -86,13 +86,14 @@ public class ZkCounter implements LineCountingTracer {
   // traced modules
   final Add add = new Add();
   final Bin bin = new Bin();
-  // blakemodexp
+  final CountingOnlyModule blakemodexp =
+      new CountingOnlyModule(BLAKE_MODEXP_DATA); // useless to count imho
   // final Blockdata blockData; //TODO
   final CountingOnlyModule blockHash =
       new CountingOnlyModule(BLOCK_HASH, trace.blockhash().spillage());
-  // blsdata
-  // ecdata
-  // euc
+  final CountingOnlyModule blsdata = new CountingOnlyModule(BLS_DATA); // useless to count imho
+  final CountingOnlyModule ecdata = new CountingOnlyModule(EC_DATA); // useless to count imho
+  // euc //TODO need MMU to be counted
   final Exp exp = new Exp();
   final Ext ext = new Ext();
   final CountingOnlyModule gas = new CountingOnlyModule(GAS, trace.gas().spillage());
@@ -112,24 +113,29 @@ public class ZkCounter implements LineCountingTracer {
   final RlpUtils rlpUtils;
   // rom // TODO
   // rolex // TODO
-  // shakiradata
+  final CountingOnlyModule shakiradata =
+      new CountingOnlyModule(SHAKIRA_DATA); // useless to count imho
   final Shf shf = new Shf();
   // stp // TODO
   final Trm trm;
   // final TxnData txnData; // TODO
-  final Wcp wcp = new Wcp();
+  final Wcp wcp = new Wcp(); // TODO need MMU to be counted
 
-  // counting only modules
+  // precompile counting only modules
   // TODO ...
   final IncrementAndDetectModule modexp =
-      new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS) {};
-  final IncrementAndDetectModule rip = new IncrementAndDetectModule(PRECOMPILE_RIPEMD_BLOCKS) {};
+      new IncrementAndDetectModule(PRECOMPILE_MODEXP_EFFECTIVE_CALLS);
+  final IncrementAndDetectModule rip = new IncrementAndDetectModule(PRECOMPILE_RIPEMD_BLOCKS);
   final IncrementAndDetectModule blake =
-      new IncrementAndDetectModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS) {};
+      new IncrementAndDetectModule(PRECOMPILE_BLAKE_EFFECTIVE_CALLS);
   final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL);
   final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS);
+
+  // Other:
   final L1BlockSize l1BlockSize;
   final IncrementingModule l2l1Logs = new IncrementingModule(BLOCK_L2_L1_LOGS);
+
+  // all modules
   final List<Module> moduleToCount;
 
   public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {
@@ -293,11 +299,17 @@ public class ZkCounter implements LineCountingTracer {
       case HALT -> {} // TODO
       case KEC -> {} // TODO
       case CONTEXT, TRANSACTION -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP + 1);
-      case LOG -> {} // TODO
+      case LOG -> {
+        hub.updateTally(opcode.numberOfStackRows() + 2); // CON + MISC
+        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+        // TODO: MMU
+        // Note: nothing to do for LOG info / data / rlp, done at the end of the tx
+      }
       case ACCOUNT -> hub.updateTally(NROWS_HUB_ACCOUNT);
       case COPY -> {} // TODO
       case MCOPY -> {
         hub.updateTally(NROWS_HUB_MCOPY);
+        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
         // TODO MMU
       }
       case STACK_RAM -> {

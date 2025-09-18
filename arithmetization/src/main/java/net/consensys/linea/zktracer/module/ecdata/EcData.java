@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.ecdata;
 
+import static net.consensys.linea.zktracer.module.ModuleName.EC_DATA;
+
 import java.util.List;
 
 import lombok.Getter;
@@ -52,7 +54,7 @@ public class EcData implements OperationListModule<EcDataOperation> {
 
   @Override
   public String moduleKey() {
-    return "EC_DATA";
+    return EC_DATA.toString();
   }
 
   @Override

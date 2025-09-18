@@ -33,7 +33,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ExplogExpCall implements ExpCall {
   @EqualsAndHashCode.Include final EWord exponent;
-  @EqualsAndHashCode.Include final long dynCost;
+  final long dynCost;
 
   public ExplogExpCall(MessageFrame frame) {
     this.exponent = EWord.of(frame.getStackItem(1));

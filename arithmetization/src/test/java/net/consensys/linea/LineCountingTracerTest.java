@@ -16,10 +16,13 @@
 package net.consensys.linea;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 
 import java.util.List;
 
 import net.consensys.linea.reporting.TracerTestBase;
+import net.consensys.linea.zktracer.ChainConfig;
+import net.consensys.linea.zktracer.Fork;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.module.Module;
@@ -45,5 +48,23 @@ public class LineCountingTracerTest extends TracerTestBase {
     checkArgument(
         counterToCount.size() == counterToCount.stream().distinct().toList().size(),
         "Duplicate has been found");
+  }
+
+  @Test
+  void sameModuleAcrossAllForkWithZkCounterAndTracer() {
+    final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
+    final List<String> counterModules =
+        counter.getModulesToCount().stream().map(Module::moduleKey).toList();
+
+    for (Fork fork : Fork.values()) {
+      final ChainConfig config = MAINNET_TESTCONFIG(fork);
+      final ZkTracer tracer = new ZkTracer(config);
+      final List<String> tracerModules =
+          tracer.getModulesToCount().stream().map(Module::moduleKey).toList();
+
+      checkArgument(
+          counterModules.containsAll(tracerModules) && tracerModules.containsAll(counterModules),
+          "Different modules between tracer and counter for fork " + fork);
+    }
   }
 }

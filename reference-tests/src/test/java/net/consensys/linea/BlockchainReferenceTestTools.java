@@ -640,14 +640,16 @@ public class BlockchainReferenceTestTools {
       } catch (final RLPException e) {
         log.info("caught RLP exception, checking it's invalid {}", candidateBlock.isValid());
         assertThat(candidateBlock.isValid()).isFalse();
-      } catch (Exception e) {
-        // Tmp: we ignore this error, as BLS precompiles are excluded in prod, but not in test
-        checkArgument(
-            e.getMessage().contains(ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX), e.getMessage());
       }
     }
 
-    zkTracer.traceEndConflation(worldState);
+    try {
+      zkTracer.traceEndConflation(worldState);
+    } catch (Exception e) {
+      // Tmp: we ignore this error, as BLS precompiles are excluded in prod, but not in test
+      checkArgument(
+          e.getMessage().contains(ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX), e.getMessage());
+    }
 
     ExecutionEnvironment.checkTracer(
         zkTracer,

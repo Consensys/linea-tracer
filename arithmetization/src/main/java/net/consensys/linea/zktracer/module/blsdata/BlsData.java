@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blsdata;
 
-import static net.consensys.linea.zktracer.module.limits.CountingModuleName.BLS_DATA;
+import static net.consensys.linea.zktracer.module.ModuleName.BLS_DATA;
 
 import java.util.List;
 

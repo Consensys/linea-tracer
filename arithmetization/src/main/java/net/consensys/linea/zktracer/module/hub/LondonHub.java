@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.hub;
 
-import static net.consensys.linea.zktracer.module.limits.CountingModuleName.*;
+import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.opcode.OpCode.REVERT;
 import static net.consensys.linea.zktracer.types.AddressUtils.isAddressWarm;
 import static net.consensys.linea.zktracer.types.AddressUtils.isPrecompile;

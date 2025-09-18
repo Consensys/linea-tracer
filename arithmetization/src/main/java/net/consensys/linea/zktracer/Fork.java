@@ -129,19 +129,15 @@ public enum Fork {
               .getHardforkId(toBlock);
       // Do not accept conflations with different fork ...
       if (!forkStart.equals(forkEnd)) {
-        // ... except from London to Paris
-        if ((!forkStart.equals(MainnetHardforkId.LONDON))
-            || (!forkEnd.equals(MainnetHardforkId.PARIS))) {
-          throw new IllegalStateException(
-              "Illegal fork change from  "
-                  + forkStart
-                  + " at start block "
-                  + fromBlock
-                  + " to "
-                  + forkEnd
-                  + " at end block "
-                  + toBlock);
-        }
+        throw new IllegalStateException(
+            "Illegal fork change from  "
+                + forkStart
+                + " at start block "
+                + fromBlock
+                + " to "
+                + forkEnd
+                + " at end block "
+                + toBlock);
       }
     }
     return fromMainnetHardforkId((MainnetHardforkId) forkStart);

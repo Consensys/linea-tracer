@@ -17,7 +17,7 @@ package net.consensys.linea.zktracer.module.hub;
 
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.module.blockdata.module.Blockdata;
-import net.consensys.linea.zktracer.module.blockdata.module.LondonBlockData;
+import net.consensys.linea.zktracer.module.blockdata.module.ParisBlockData;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.wcp.Wcp;
 
@@ -28,7 +28,6 @@ public class ParisHub extends LondonHub {
 
   @Override
   protected Blockdata setBlockData(Hub hub, Wcp wcp, Euc euc, ChainConfig chain) {
-    // TODO rollback to new ParisBlockData(hub, wcp, euc, chain); this is just for testing now
-    return new LondonBlockData(hub, wcp, euc, chain);
+    return new ParisBlockData(hub, wcp, euc, chain);
   }
 }

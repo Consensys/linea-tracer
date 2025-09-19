@@ -16,8 +16,7 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
-import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_CDL;
-import static net.consensys.linea.zktracer.Trace.Oob.CT_MAX_RDC;
+import static net.consensys.linea.zktracer.Trace.Oob.*;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
@@ -40,6 +39,7 @@ import static net.consensys.linea.zktracer.module.hub.section.finalization.TxFin
 import static net.consensys.linea.zktracer.module.hub.section.halt.RevertSection.NBROWS_HUB_REVERT;
 import static net.consensys.linea.zktracer.module.hub.section.halt.StopSection.NBROWS_HUB_STOP_DEPLOYMENT;
 import static net.consensys.linea.zktracer.module.hub.section.halt.StopSection.NBROWS_HUB_STOP_MSG_CALL;
+import static net.consensys.linea.zktracer.module.hub.section.halt.selfdestruct.SelfdestructSection.NBROWS_HUB_SELFDESTRUCT;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP2935HistoricalHash.NROWS_HUB_SYSI_EIP2935;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.EIP4788BeaconBlockRootSection.NROWS_HUB_SYSI_EIP4788;
 import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.SysfNoopSection.NROWS_HUB_SYSF_NOOP;
@@ -86,6 +86,7 @@ import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.datatypes.Transaction;
+import org.hyperledger.besu.evm.frame.ExceptionalHaltReason;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
@@ -373,7 +374,14 @@ public class ZkCounter implements LineCountingTracer {
       }
       case HALT -> {
         switch (opcode.mnemonic()) {
-          case RETURN -> {}
+          case RETURN -> {
+            hub.updateTally(7);
+            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+            oob.updateTally(CT_MAX_DEPLOYMENT + 1);
+            // TODO MMU
+            // Note: the unexceptional RETURN_FROM_DEPLOYMENT case is handled in
+            // traceAccountCreationResult()
+          }
           case REVERT -> {
             hub.updateTally(NBROWS_HUB_REVERT);
             mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
@@ -383,7 +391,7 @@ public class ZkCounter implements LineCountingTracer {
               frame.getType() == MessageFrame.Type.MESSAGE_CALL
                   ? NBROWS_HUB_STOP_MSG_CALL
                   : NBROWS_HUB_STOP_DEPLOYMENT);
-          case SELFDESTRUCT -> {}
+          case SELFDESTRUCT -> hub.updateTally(NBROWS_HUB_SELFDESTRUCT);
         }
       }
       case KEC -> {
@@ -485,6 +493,12 @@ public class ZkCounter implements LineCountingTracer {
       }
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
     }
+  }
+
+  @Override
+  public void traceAccountCreationResult(
+      final MessageFrame frame, final Optional<ExceptionalHaltReason> haltReason) {
+    // TODO: do the stuff from RETURN section, unexceptional RETURN_FROM_DEPLOYMENT case
   }
 
   @Override

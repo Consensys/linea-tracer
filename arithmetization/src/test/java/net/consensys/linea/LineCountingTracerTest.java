@@ -58,6 +58,9 @@ public class LineCountingTracerTest extends TracerTestBase {
         counter.getModulesToCount().stream().map(Module::moduleKey).toList();
 
     for (Fork fork : Fork.values()) {
+      if (forkNotSupported(fork)) {
+        return;
+      }
       final ChainConfig config = MAINNET_TESTCONFIG(fork);
       final ZkTracer tracer = new ZkTracer(config);
       final List<String> tracerModules =

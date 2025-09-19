@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer;
 
 import static net.consensys.linea.zktracer.Fork.*;
+import static net.consensys.linea.zktracer.Trace.Ecdata.TOTAL_SIZE_ECPAIRING_DATA_MIN;
 import static net.consensys.linea.zktracer.Trace.Oob.*;
 import static net.consensys.linea.zktracer.TraceCancun.Mxp.*;
 import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CALL;
@@ -24,6 +25,7 @@ import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE;
 import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE2;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NBROWS_ADD;
+import static net.consensys.linea.zktracer.module.ext.ExtOperation.NBROWS_EXT;
 import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NROWS_HUB_ACCOUNT;
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NROWS_HUB_CALLDATALOAD;
 import static net.consensys.linea.zktracer.module.hub.section.JumpSection.NBROWS_HUB_JUMP;
@@ -32,6 +34,9 @@ import static net.consensys.linea.zktracer.module.hub.section.SstoreSection.NROW
 import static net.consensys.linea.zktracer.module.hub.section.StackOnlySection.NROWS_HUB_SIMPLE_STACK_OP;
 import static net.consensys.linea.zktracer.module.hub.section.StackRamSection.NROWS_HUB_STACKRAM;
 import static net.consensys.linea.zktracer.module.hub.section.call.CallSection.NROWS_HUB_CALL;
+import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.EllipticCurvePrecompileSubsection.NBROWS_HUB_PRC_ELLIPTIC_CURVE;
+import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.IdentitySubsection.NBROWS_HUB_PRC_IDENTITY;
+import static net.consensys.linea.zktracer.module.hub.section.call.precompileSubsection.ShaTwoOrRipemdSubSection.NBROWS_HUB_PRC_SHARIP;
 import static net.consensys.linea.zktracer.module.hub.section.copy.CallDataCopySection.NBROWS_HUB_CALL_DATA_COPY;
 import static net.consensys.linea.zktracer.module.hub.section.copy.CodeCopySection.NBROWS_HUB_CODE_COPY;
 import static net.consensys.linea.zktracer.module.hub.section.copy.ExtCodeCopySection.NBROWS_HUB_EXT_CODE_COPY;
@@ -52,7 +57,7 @@ import static net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpO
 import static net.consensys.linea.zktracer.opcode.OpCode.JUMPI;
 import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
-import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
+import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 import static org.hyperledger.besu.datatypes.Address.*;
 
 import java.util.*;
@@ -68,7 +73,9 @@ import net.consensys.linea.zktracer.module.bin.Bin;
 import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExpCall;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
+import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ModexpLogExpCall;
 import net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata;
 import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
@@ -86,6 +93,7 @@ import net.consensys.linea.zktracer.module.wcp.Wcp;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import net.consensys.linea.zktracer.opcode.OpCodeData;
 import net.consensys.linea.zktracer.opcode.OpCodes;
+import net.consensys.linea.zktracer.types.AddressUtils;
 import net.consensys.linea.zktracer.types.MemoryRange;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.datatypes.Address;
@@ -215,9 +223,34 @@ public class ZkCounter implements LineCountingTracer {
   // The line counting for those modules is known to be incomplete / inaccurate
   public List<Module> uncheckedModules() {
     return List.of(
-        blakemodexp, blockData, blsdata, ecdata, euc, mmio, mmu, rom, rolex, shakiradata, trm, wcp
+        blakemodexp,
+        blockData,
+        blsdata,
+        ecdata,
+        euc,
+        mmio,
+        mmu,
+        rom,
+        rolex,
+        shakiradata,
+        trm,
+        wcp,
         // traceless modules
-        );
+        blakeRounds,
+        pointEvaluationEffectiveCall,
+        pointEvaluationFailureCall,
+        blsG1AddEffectiveCall,
+        blsG1MsmEffectiveCall,
+        blsG2AddEffectiveCall,
+        blsG2MsmEffectiveCall,
+        blsPairingCheckMillerLoops,
+        blsPairingCheckFinalExponentiations,
+        blsG1MapFpToG1EffectiveCall,
+        blsG1MapFp2ToG2EffectiveCall,
+        blsC1MembershipCalls,
+        blsC2MembershipCalls,
+        blsG1MembershipCalls,
+        blsG2MembershipCalls);
   }
 
   // The line counting for those modules are supposed to be accurate
@@ -244,10 +277,17 @@ public class ZkCounter implements LineCountingTracer {
         stp,
         txnData,
         // traceless modules
+        ecAddEffectiveCall,
+        ecMulEffectiveCall,
+        ecRecoverEffectiveCall,
+        ecPairingG2MembershipCalls,
+        ecPairingMillerLoops,
+        ecPairingFinalExponentiations,
+        sha256Blocks,
+        ripemdBlocks,
         blockTransactions,
         keccak,
         modexpEffectiveCall,
-        ripemdBlocks,
         blakeEffectiveCall,
         bls,
         pointEval,
@@ -486,6 +526,7 @@ public class ZkCounter implements LineCountingTracer {
             (opcode.mnemonic() == JUMPI ? CT_MAX_JUMPI : CT_MAX_JUMP) + 1); // TODO: rm duplicates
       }
       case CREATE -> {
+        // TODO ROM
         hub.updateTally(NROWS_HUB_CREATE);
         gas.updateTally(1); // as CMC == 1
         // first IMC
@@ -506,6 +547,7 @@ public class ZkCounter implements LineCountingTracer {
         oob.updateTally(CT_MAX_CALL + 1);
         mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
         stp.updateTally(1);
+        // Note: precompiles specific limits are done in tracePrecompileCall()
       }
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
     }
@@ -525,43 +567,84 @@ public class ZkCounter implements LineCountingTracer {
 
   @Override
   public void tracePrecompileCall(MessageFrame frame, long gasRequirement, Bytes output) {
-    final Address precompileAddress = frame.getContractAddress();
+    final AddressUtils.PRC precompile = AddressUtils.PRC.fromAddress(frame.getContractAddress());
+    final Bytes callData = frame.getInputData();
+    final int callDataSize = callData.size();
+    final boolean prcSuccess = bytesToBoolean(frame.getStackItem(0));
 
-    if (precompileAddress.equals(Address.MODEXP)) {
-      final Bytes callData = frame.getInputData();
-      final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
-      final ModexpMetadata modexpMetadata = new ModexpMetadata(memoryRange);
-      if (modexpMetadata.unprovableModexp()) {
-        modexpEffectiveCall.detectEvent();
+    // TODO MMU
+    switch (precompile) {
+      case PRC_ECRECOVER -> {
+        hub.updateTally(NBROWS_HUB_PRC_ELLIPTIC_CURVE);
+        oob.updateTally(CT_MAX_ECRECOVER + 1);
+        ecRecoverEffectiveCall.updateTally(prcSuccess ? 1 : 0);
       }
-      return;
-    }
 
-    if (precompileAddress.equals(KZG_POINT_EVAL)) {
-      pointEval.detectEvent();
-      return;
+      case PRC_SHA -> {
+        hub.updateTally(NBROWS_HUB_PRC_SHARIP);
+        oob.updateTally(CT_MAX_SHA2 + 1);
+        if (prcSuccess && callDataSize != 0) {
+          sha256Blocks.updateTally(callData.size());
+        }
+      }
+      case PRC_RIP -> {
+        // hub.updateTally(NBROWS_HUB_PRC_SHARIP);
+        // oob.updateTally(CT_MAX_RIPEMD + 1);
+        // if (callDataSize != 0) {
+        //   ripemdBlocks.updateTally(callDataSize);
+        // }
+        ripemdBlocks.detectEvent();
+      }
+      case PRC_IDENTITY -> {
+        hub.updateTally(NBROWS_HUB_PRC_IDENTITY);
+        oob.updateTally(1 + 1);
+      }
+      case PRC_MODEXP -> {
+        final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
+        final ModexpMetadata modexpMetadata = new ModexpMetadata(memoryRange);
+        if (modexpMetadata.unprovableModexp()) {
+          modexpEffectiveCall.detectEvent();
+          return;
+        }
+        modexpEffectiveCall.updateTally(prcSuccess ? 1 : 0);
+        final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);
+        exp.call(modexpLogCallToExp);
+      }
+      case PRC_ECADD -> {
+        hub.updateTally(NBROWS_HUB_PRC_ELLIPTIC_CURVE);
+        oob.updateTally(CT_MAX_ECADD + 1);
+        ecAddEffectiveCall.updateTally(prcSuccess ? 1 : 0);
+        ext.updateTally(8 * NBROWS_EXT);
+      }
+      case PRC_ECMUL -> {
+        hub.updateTally(NBROWS_HUB_PRC_ELLIPTIC_CURVE);
+        oob.updateTally(CT_MAX_ECMUL + 1);
+        ecMulEffectiveCall.updateTally(prcSuccess ? 1 : 0);
+        ext.updateTally(4 * NBROWS_EXT);
+      }
+      case PRC_ECPARING -> {
+        final int nbOfPairs = callData.size() / TOTAL_SIZE_ECPAIRING_DATA_MIN;
+        hub.updateTally(NBROWS_HUB_PRC_ELLIPTIC_CURVE);
+        oob.updateTally(CT_MAX_ECPAIRING + 1);
+        final boolean fktr = (callData.size() % TOTAL_SIZE_ECPAIRING_DATA_MIN) != 0;
+        if (!fktr) {
+          ecPairingG2MembershipCalls.updateTally(nbOfPairs);
+          ecPairingMillerLoops.updateTally(nbOfPairs);
+          ecPairingFinalExponentiations.updateTally(1);
+          ext.updateTally(nbOfPairs * 4 * NBROWS_EXT);
+        }
+      }
+      case PRC_BLAKE -> blakeEffectiveCall.detectEvent();
+      case PRC_POINT_EVALUATION -> pointEval.detectEvent();
+      case PRC_BLS_G1ADD,
+          PRC_BLS_G1_MSM,
+          PRC_BLS_G2ADD,
+          PRC_BLS_G2_MSM,
+          PRC_BLS_PAIRING_CHECK,
+          PRC_BLS_MAP_FP_TO_G1,
+          PRC_BLS_MAP_FP2_TO_G2 -> bls.detectEvent();
+      default -> throw new IllegalStateException("Unsupported precompile: " + precompile);
     }
-
-    if (isBlsPrecompile(precompileAddress)) {
-      bls.detectEvent();
-      return;
-    }
-
-    if (precompileAddress.equals(RIPEMD160)) {
-      // We COULD accept empty input data, as it implies no gnark circuit, so nothing to detect. We
-      // don't do it for simplicity.
-      // if (frame.getInputData().isEmpty()) {
-      //   return;
-      // }
-      ripemdBlocks.detectEvent();
-      return;
-    }
-
-    if (precompileAddress.equals(BLAKE2B_F_COMPRESSION)) {
-      blakeEffectiveCall.detectEvent();
-      return;
-    }
-    // No other precompiles are tracked
   }
 
   /** When called, erase all tracing related to the bundle of all transactions since the last. */

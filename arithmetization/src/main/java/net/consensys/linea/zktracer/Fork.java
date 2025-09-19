@@ -93,6 +93,18 @@ public enum Fork {
     return forkIsAtLeast(fork, PRAGUE);
   }
 
+  public static boolean isPostOsaka(Fork fork) {
+    return forkIsAtLeast(fork, OSAKA);
+  }
+
+  public static boolean forkSupported(Fork fork) {
+    return !forkNotSupported(fork);
+  }
+
+  public static boolean forkNotSupported(Fork fork) {
+    return isPostOsaka(fork);
+  }
+
   /**
    * Map MainnetHardforkId, datatype from Besu, to Fork enum instance
    *

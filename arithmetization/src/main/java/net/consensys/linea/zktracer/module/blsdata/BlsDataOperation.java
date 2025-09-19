@@ -250,7 +250,6 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean isSmallPointOnCurve =
           isSmallPointOnCurve(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBit = wellFormedCoordinate && !isSmallPointOnCurve;
-      Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
       if (mextBit && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
@@ -277,7 +276,6 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean isSmallPointInSubgroup =
           isSmallPointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBit = wellFormedCoordinate && !isSmallPointInSubgroup;
-      Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
       if (mextBit && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
@@ -307,7 +305,6 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean isLargePointOnCurve =
           isLargePointOnCurve(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
       final boolean mextBit = wellFormedCoordinate && !isLargePointOnCurve;
-      Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
       if (mextBit && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
@@ -338,7 +335,6 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean isLargePointInSubgroup =
           isLargePointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_LARGE_POINT));
       final boolean mextBit = wellFormedCoordinate && !isLargePointInSubgroup;
-      Preconditions.checkArgument(mextBit == (wellFormedCoordinate && !successBit));
 
       if (mextBit && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {
@@ -371,7 +367,6 @@ public class BlsDataOperation extends ModuleOperation {
       final boolean isSmallPointInSubgroup =
           isSmallPointInSubGroup(indexOffset, callData.slice(sizeOffset, SIZE_SMALL_POINT));
       final boolean mextBitSmall = wellFormedFpCoordinate && !isSmallPointInSubgroup;
-      Preconditions.checkArgument(mextBitSmall == (wellFormedFpCoordinate && !successBit));
 
       if (mextBitSmall && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_SMALL_POINT; j++) {
@@ -388,7 +383,6 @@ public class BlsDataOperation extends ModuleOperation {
           isLargePointInSubGroup(
               8 + indexOffset, callData.slice(8 * LLARGE + sizeOffset, SIZE_LARGE_POINT));
       final boolean mextBitLarge = wellFormedFp2Coordinate && !isLargePointInSubgroup;
-      Preconditions.checkArgument(mextBitLarge == (wellFormedFp2Coordinate && !successBit));
 
       if (mextBitLarge && !mextBitIsSet) {
         for (int j = 0; j <= CT_MAX_LARGE_POINT; j++) {

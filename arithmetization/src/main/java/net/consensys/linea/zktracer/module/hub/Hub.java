@@ -98,7 +98,9 @@ import net.consensys.linea.zktracer.module.romlex.RomLex;
 import net.consensys.linea.zktracer.module.shakiradata.ShakiraData;
 import net.consensys.linea.zktracer.module.shf.Shf;
 import net.consensys.linea.zktracer.module.stp.Stp;
+import net.consensys.linea.zktracer.module.tables.PowerRt;
 import net.consensys.linea.zktracer.module.tables.bin.BinRt;
+import net.consensys.linea.zktracer.module.tables.bls.BlsRt;
 import net.consensys.linea.zktracer.module.tables.instructionDecoder.*;
 import net.consensys.linea.zktracer.module.trm.Trm;
 import net.consensys.linea.zktracer.module.txndata.TxnData;
@@ -431,10 +433,7 @@ public abstract class Hub implements Module {
    * @return the modules to count
    */
   public List<Module> getModulesToCount() {
-    return Stream.concat(
-            Stream.concat(realModule().stream(), refTableModules.stream()),
-            getTracelessModules().stream())
-        .toList();
+    return Stream.concat(realModule().stream(), getTracelessModules().stream()).toList();
   }
 
   public Hub(final ChainConfig chain) {
@@ -460,7 +459,10 @@ public abstract class Hub implements Module {
     mmu = new Mmu(euc, wcp);
     mmio = new Mmio(mmu);
 
-    refTableModules = List.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower());
+    refTableModules =
+        Stream.of(new BinRt(), setBlsRt(), setInstructionDecoder(), setPower())
+            .filter(Objects::nonNull)
+            .toList();
 
     modules =
         Stream.concat(
@@ -1145,7 +1147,7 @@ public abstract class Hub implements Module {
 
   protected abstract Module setBlsData(Hub hub);
 
-  protected abstract Module setBlsRt();
+  protected abstract BlsRt setBlsRt();
 
   protected abstract GasCalculator setGasCalculator();
 
@@ -1161,7 +1163,7 @@ public abstract class Hub implements Module {
 
   protected abstract InstructionDecoder setInstructionDecoder();
 
-  protected abstract Module setPower();
+  protected abstract PowerRt setPower();
 
   protected abstract void setSkipSection(
       Hub hub,

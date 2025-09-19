@@ -15,6 +15,8 @@
 
 package net.consensys.linea.zktracer.module.trm;
 
+import static net.consensys.linea.zktracer.module.ModuleName.TRM;
+
 import java.util.List;
 
 import lombok.Getter;
@@ -41,7 +43,7 @@ public class Trm implements OperationSetModule<TrmOperation> {
 
   @Override
   public String moduleKey() {
-    return "TRM";
+    return TRM.toString();
   }
 
   public Address callTrimming(final Bytes32 rawAddress) {

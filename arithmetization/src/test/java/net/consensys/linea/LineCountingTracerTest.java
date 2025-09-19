@@ -67,13 +67,13 @@ public class LineCountingTracerTest extends TracerTestBase {
       for (String module : counterModules) {
         checkArgument(
             tracerModules.contains(module),
-            "Module " + module + " is missing in tracer for fork " + fork);
+            "Module " + module + " is missing in ZkTracer for fork " + fork);
       }
       // check that tracer(fork) ⊆ counter
       for (String module : tracerModules) {
         checkArgument(
             counterModules.contains(module),
-            "Module " + module + " is missing in counter for fork " + fork);
+            "Module " + module + " is missing in ZkCounter for fork " + fork);
       }
     }
   }

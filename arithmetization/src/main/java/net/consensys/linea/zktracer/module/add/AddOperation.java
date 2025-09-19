@@ -30,6 +30,8 @@ import org.apache.tuweni.units.bigints.UInt256;
 @Accessors(fluent = true)
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class AddOperation extends ModuleOperation {
+  public static final short NBROWS_ADD = 1;
+
   @EqualsAndHashCode.Include @Getter protected final OpCode opCode;
   @EqualsAndHashCode.Include @Getter protected final Bytes32 arg1;
   @EqualsAndHashCode.Include @Getter protected final Bytes32 arg2;
@@ -59,7 +61,7 @@ public class AddOperation extends ModuleOperation {
 
   @Override
   protected int computeLineCount() {
-    return 1;
+    return NBROWS_ADD;
   }
 
   public static class Comparator implements java.util.Comparator<AddOperation> {

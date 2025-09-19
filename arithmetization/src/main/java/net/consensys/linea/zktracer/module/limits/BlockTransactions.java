@@ -19,13 +19,13 @@ import static net.consensys.linea.zktracer.module.ModuleName.BLOCK_TRANSACTIONS;
 
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
+import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.types.TransactionProcessingMetadata;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 
 @Getter
 @Accessors(fluent = true)
-public class BlockTransactions extends CountingOnlyModule {
+public class BlockTransactions extends IncrementingModule {
 
   public BlockTransactions() {
     super(BLOCK_TRANSACTIONS);

@@ -23,6 +23,7 @@ import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
 import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE;
 import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE2;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
+import static net.consensys.linea.zktracer.module.add.AddOperation.NBROWS_ADD;
 import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NROWS_HUB_ACCOUNT;
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NROWS_HUB_CALLDATALOAD;
 import static net.consensys.linea.zktracer.module.hub.section.JumpSection.NBROWS_HUB_JUMP;
@@ -55,6 +56,7 @@ import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
 import static org.hyperledger.besu.datatypes.Address.*;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 import net.consensys.linea.plugins.config.LineaL1L2BridgeSharedConfiguration;
 import net.consensys.linea.zktracer.container.module.CountingOnlyModule;
@@ -63,6 +65,7 @@ import net.consensys.linea.zktracer.container.module.IncrementingModule;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.add.Add;
 import net.consensys.linea.zktracer.module.bin.Bin;
+import net.consensys.linea.zktracer.module.euc.Euc;
 import net.consensys.linea.zktracer.module.exp.Exp;
 import net.consensys.linea.zktracer.module.ext.Ext;
 import net.consensys.linea.zktracer.module.hub.fragment.imc.exp.ExplogExpCall;
@@ -96,6 +99,7 @@ import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
 
 public class ZkCounter implements LineCountingTracer {
+
   private final OpCodes opCodes = OpCodes.load(FORK_IN_PROD);
   private static final Trace trace = getTraceFromFork(FORK_IN_PROD);
 
@@ -104,19 +108,19 @@ public class ZkCounter implements LineCountingTracer {
   final Bin bin = new Bin();
   final CountingOnlyModule blakemodexp =
       new CountingOnlyModule(BLAKE_MODEXP_DATA); // useless to count imho
-  // final Blockdata blockData; //TODO
+  final CountingOnlyModule blockData = new CountingOnlyModule(BLOCK_DATA);
   final CountingOnlyModule blockHash =
       new CountingOnlyModule(BLOCK_HASH, trace.blockhash().spillage());
   final CountingOnlyModule blsdata = new CountingOnlyModule(BLS_DATA); // useless to count imho
   final CountingOnlyModule ecdata = new CountingOnlyModule(EC_DATA); // useless to count imho
-  // euc //TODO need MMU to be counted
+  final Euc euc;
   final Exp exp = new Exp();
   final Ext ext = new Ext();
   final CountingOnlyModule gas = new CountingOnlyModule(GAS, trace.gas().spillage());
   final CountingOnlyModule hub = new CountingOnlyModule(HUB, trace.hub().spillage());
   final CountingOnlyModule logData = new CountingOnlyModule(LOG_DATA, trace.logdata().spillage());
   final CountingOnlyModule logInfo = new CountingOnlyModule(LOG_INFO, trace.loginfo().spillage());
-  // mmio
+  final CountingOnlyModule mmio = new CountingOnlyModule(MMIO, trace.mmio().spillage());
   final CountingOnlyModule mmu = new CountingOnlyModule(MMU, trace.mmu().spillage());
   final Mod mod = new Mod();
   final Mul mul = new Mul();
@@ -127,14 +131,13 @@ public class ZkCounter implements LineCountingTracer {
   final CountingOnlyModule rlpTxnRcpt =
       new CountingOnlyModule(RLP_TXN_RCPT, trace.rlptxrcpt().spillage());
   final RlpUtils rlpUtils;
-  // rom // TODO
-  // rolex // TODO
-  final CountingOnlyModule shakiradata =
-      new CountingOnlyModule(SHAKIRA_DATA); // useless to count imho
+  final CountingOnlyModule rom = new CountingOnlyModule(ROM, trace.rom().spillage());
+  final CountingOnlyModule rolex = new CountingOnlyModule(ROM_LEX, trace.romlex().spillage());
+  final CountingOnlyModule shakiradata = new CountingOnlyModule(SHAKIRA_DATA);
   final Shf shf = new Shf();
   final IncrementingModule stp = new IncrementingModule(STP);
   final Trm trm;
-  // final TxnData txnData; // TODO
+  final CountingOnlyModule txnData = new CountingOnlyModule(TXN_DATA, trace.txndata().spillage());
   final Wcp wcp = new Wcp(); // TODO need MMU to be counted
 
   // precompiles limits:
@@ -209,46 +212,59 @@ public class ZkCounter implements LineCountingTracer {
   // all modules
   final List<Module> moduleToCount;
 
+  // The line counting for those modules is known to be incomplete / inaccurate
+  public List<Module> uncheckedModules() {
+    return List.of(
+        blakemodexp, blockData, blsdata, ecdata, euc, mmio, mmu, rom, rolex, shakiradata, trm, wcp
+        // traceless modules
+        );
+  }
+
+  // The line counting for those modules are supposed to be accurate
+  public List<Module> checkedModules() {
+    return List.of(
+        add,
+        bin,
+        blockHash,
+        exp,
+        ext,
+        gas,
+        hub,
+        logData,
+        logInfo,
+        mod,
+        mul,
+        mxp,
+        oob,
+        rlpAddr,
+        rlpTxn,
+        rlpTxnRcpt,
+        rlpUtils,
+        shf,
+        stp,
+        txnData,
+        // traceless modules
+        blockTransactions,
+        keccak,
+        modexpEffectiveCall,
+        ripemdBlocks,
+        blakeEffectiveCall,
+        bls,
+        pointEval,
+        l1BlockSize,
+        l2l1Logs);
+  }
+
   public ZkCounter(LineaL1L2BridgeSharedConfiguration bridgeConfiguration) {
-    this.trm = new Trm(PRAGUE, wcp);
+    this.euc = new Euc(wcp);
     this.rlpUtils = new RlpUtils(wcp);
+    this.trm = new Trm(FORK_IN_PROD, wcp);
     this.rlpTxn = new CancunRlpTxn(rlpUtils, trm);
     this.keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
 
     l1BlockSize =
         new L1BlockSize(l2l1Logs, bridgeConfiguration.contract(), bridgeConfiguration.topic());
-    moduleToCount =
-        List.of(
-            add,
-            bin,
-            // blockData,
-            blockHash,
-            exp,
-            ext,
-            gas,
-            hub,
-            // logData,
-            // logInfo,
-            // mmu,
-            mod,
-            mul,
-            // mxp,
-            // oob,
-            // rlpAddr,
-            // rlpTxn,
-            // rlpTxnRcpt,
-            // rlpUtils,
-            shf,
-            stp,
-            // trm,
-            // wcp,
-            modexpEffectiveCall,
-            ripemdBlocks,
-            blakeEffectiveCall,
-            bls,
-            pointEval,
-            l1BlockSize,
-            l2l1Logs);
+    moduleToCount = Stream.concat(checkedModules().stream(), uncheckedModules().stream()).toList();
   }
 
   @Override
@@ -298,12 +314,6 @@ public class ZkCounter implements LineCountingTracer {
 
     // other modules:
     blockTransactions.traceStartTx(null, null);
-  }
-
-  @Override
-  public void traceContextExit(final MessageFrame frame) {
-    hub.updateTally(1); // One context row in case of exception
-    gas.updateTally(1); // One gas row in case of exception
   }
 
   @Override
@@ -421,6 +431,7 @@ public class ZkCounter implements LineCountingTracer {
           case RETURNDATACOPY -> {
             hub.updateTally(NBROWS_HUB_RETURN_DATA_COPY);
             oob.updateTally(CT_MAX_RDC + 1);
+            add.updateTally(NBROWS_ADD); // coming from OOB call
             mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
             // TODO MMU
           }
@@ -476,6 +487,7 @@ public class ZkCounter implements LineCountingTracer {
       }
       case CREATE -> {
         hub.updateTally(NROWS_HUB_CREATE);
+        gas.updateTally(1); // as CMC == 1
         // first IMC
         stp.updateTally(1);
         mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
@@ -497,6 +509,12 @@ public class ZkCounter implements LineCountingTracer {
       }
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
     }
+  }
+
+  @Override
+  public void traceContextExit(final MessageFrame frame) {
+    hub.updateTally(1); // One context row in case of exception
+    gas.updateTally(1); // One gas row in case of exception
   }
 
   @Override

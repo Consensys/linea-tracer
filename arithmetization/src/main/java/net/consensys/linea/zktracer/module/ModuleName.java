@@ -26,14 +26,19 @@ public enum ModuleName {
   HUB,
   LOG_DATA,
   LOG_INFO,
+  MMIO,
   MMU,
   MXP,
   OOB,
   RLP_ADDR,
   RLP_TXN_RCPT,
   RLP_UTILS,
+  ROM,
+  ROM_LEX,
   SHAKIRA_DATA,
   STP,
+  TRM,
+  TXN_DATA,
 
   // precompiles
   // ecdata:

@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.add;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.opcode.OpCode.ADD;
 import static net.consensys.linea.zktracer.opcode.OpCode.SUB;
 
@@ -27,6 +28,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationSetModule;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -40,6 +42,8 @@ public class Add implements OperationSetModule<AddOperation> {
 
   protected final ModuleOperationStackedSet<AddOperation> operations =
       new ModuleOperationStackedSet<>();
+
+  public final CountOnlyOperation additionalRows = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {
@@ -66,6 +70,9 @@ public class Add implements OperationSetModule<AddOperation> {
 
   @Override
   public void commit(Trace trace) {
+    checkArgument(
+        additionalRows.lineCount() == 0,
+        "OOB additionalRows should be 0 when used by the ZkTracer");
     int stamp = 0;
     for (AddOperation op : sortOperations(new AddOperation.Comparator())) {
       op.trace(++stamp, trace.add());
@@ -97,5 +104,26 @@ public class Add implements OperationSetModule<AddOperation> {
 
   protected void addOperation(OpCode opcode, Bytes32 arg1, Bytes32 arg2) {
     operations.add(new AddOperation(opcode, arg1, arg2));
+  }
+
+  @Override
+  public void commitTransactionBundle() {
+    operations().commitTransactionBundle();
+    additionalRows.commitTransactionBundle();
+  }
+
+  @Override
+  public void popTransactionBundle() {
+    operations().popTransactionBundle();
+    additionalRows.popTransactionBundle();
+  }
+
+  @Override
+  public int lineCount() {
+    return operations().lineCount() + additionalRows.lineCount();
+  }
+
+  public void updateTally(int count) {
+    additionalRows.add(count);
   }
 }

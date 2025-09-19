@@ -20,6 +20,7 @@ import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.LARGE_POINTS;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.SMALL_POINTS;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G1_POINT;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G2_POINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
@@ -95,7 +96,7 @@ public class BlsPairingCheckTest extends TracerTestBase {
     if (isPostCancun(fork)) {
       final boolean failureIsExpected =
           smallPoints.stream().anyMatch(p -> !p.equals(VALID_G1_POINT))
-              || largePoints.stream().anyMatch(p -> !p.equals(VALID_G1_POINT));
+              || largePoints.stream().anyMatch(p -> !p.equals(VALID_G2_POINT));
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
       assertEquals(blsdata.blsDataOperation().mext(), failureIsExpected);
       assertEquals(blsdata.blsDataOperation().successBit(), failureIsExpected);

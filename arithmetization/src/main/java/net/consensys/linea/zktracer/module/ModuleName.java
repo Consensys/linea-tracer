@@ -28,6 +28,7 @@ public enum ModuleName {
   LOG_INFO,
   MMU,
   MXP,
+  OOB,
   RLP_ADDR,
   RLP_TXN_RCPT,
   RLP_UTILS,

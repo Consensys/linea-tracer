@@ -25,6 +25,7 @@ import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE2;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
 import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NROWS_HUB_ACCOUNT;
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NROWS_HUB_CALLDATALOAD;
+import static net.consensys.linea.zktracer.module.hub.section.JumpSection.NBROWS_HUB_JUMP;
 import static net.consensys.linea.zktracer.module.hub.section.McopySection.NROWS_HUB_MCOPY;
 import static net.consensys.linea.zktracer.module.hub.section.SstoreSection.NROWS_HUB_STORAGE;
 import static net.consensys.linea.zktracer.module.hub.section.StackOnlySection.NROWS_HUB_SIMPLE_STACK_OP;
@@ -47,6 +48,7 @@ import static net.consensys.linea.zktracer.module.hub.section.transients.TLoadSe
 import static net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection.NROWS_HUB_TSTORE;
 import static net.consensys.linea.zktracer.module.hub.section.txInitializationSection.TxInitializationSection.NROWS_HUB_INIT;
 import static net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation.MXP_FROM_CTMAX_TO_LINECOUNT;
+import static net.consensys.linea.zktracer.opcode.OpCode.JUMPI;
 import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompile;
@@ -72,7 +74,6 @@ import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
 import net.consensys.linea.zktracer.module.mod.Mod;
 import net.consensys.linea.zktracer.module.mul.Mul;
-import net.consensys.linea.zktracer.module.oob.Oob;
 import net.consensys.linea.zktracer.module.rlpUtils.RlpUtils;
 import net.consensys.linea.zktracer.module.rlptxn.RlpTxn;
 import net.consensys.linea.zktracer.module.rlptxn.cancun.CancunRlpTxn;
@@ -120,7 +121,7 @@ public class ZkCounter implements LineCountingTracer {
   final Mod mod = new Mod();
   final Mul mul = new Mul();
   final CountingOnlyModule mxp = new CountingOnlyModule(MXP, trace.mxp().spillage());
-  final Oob oob;
+  final CountingOnlyModule oob = new CountingOnlyModule(OOB, trace.oob().spillage());
   final CountingOnlyModule rlpAddr = new CountingOnlyModule(RLP_ADDR, trace.rlpaddr().spillage());
   final RlpTxn rlpTxn;
   final CountingOnlyModule rlpTxnRcpt =
@@ -212,7 +213,6 @@ public class ZkCounter implements LineCountingTracer {
     this.trm = new Trm(PRAGUE, wcp);
     this.rlpUtils = new RlpUtils(wcp);
     this.rlpTxn = new CancunRlpTxn(rlpUtils, trm);
-    this.oob = new Oob(null, add, mod, wcp); // TODO fix me
     this.keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
 
     l1BlockSize =
@@ -469,7 +469,11 @@ public class ZkCounter implements LineCountingTracer {
           case TSTORE -> hub.updateTally(NROWS_HUB_TSTORE);
         }
       }
-      case JUMP -> {} // TODO
+      case JUMP -> {
+        hub.updateTally(NBROWS_HUB_JUMP);
+        oob.updateTally(
+            (opcode.mnemonic() == JUMPI ? CT_MAX_JUMPI : CT_MAX_JUMP) + 1); // TODO: rm duplicates
+      }
       case CREATE -> {
         hub.updateTally(NROWS_HUB_CREATE);
         // first IMC

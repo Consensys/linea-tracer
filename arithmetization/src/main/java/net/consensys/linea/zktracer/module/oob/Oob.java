@@ -16,6 +16,7 @@
 package net.consensys.linea.zktracer.module.oob;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.module.ModuleName.OOB;
 
 import java.util.List;
 
@@ -51,7 +52,7 @@ public class Oob implements OperationSetModule<OobOperation> {
 
   @Override
   public String moduleKey() {
-    return "OOB";
+    return OOB.toString();
   }
 
   public OobCall call(OobCall oobCall) {

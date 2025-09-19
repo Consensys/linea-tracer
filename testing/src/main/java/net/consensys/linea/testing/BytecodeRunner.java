@@ -30,6 +30,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.crypto.KeyPair;
@@ -203,7 +204,12 @@ public final class BytecodeRunner {
       final Map<String, Integer> lightCounterCount =
           toyExecutionEnvironmentV2.zkCounter.getModulesLineCount();
 
-      for (String module : lightCounterCount.keySet()) {
+      final List<String> moduleToCheck =
+          toyExecutionEnvironmentV2.zkCounter.checkedModules().stream()
+              .map(Module::moduleKey)
+              .toList();
+
+      for (String module : moduleToCheck) {
         checkArgument(
             tracerCount.get(module) <= lightCounterCount.get(module),
             "Module "

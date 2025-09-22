@@ -16,7 +16,7 @@
 package net.consensys.linea.zktracer.module.blsdata;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.LARGE_POINTS;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.SMALL_POINTS;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G1_POINT;
@@ -93,7 +93,7 @@ public class BlsPairingCheckTest extends TracerTestBase {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
 
-    if (isPostCancun(fork)) {
+    if (isPostPrague(fork)) {
       final boolean failureIsExpected =
           smallPoints.stream().anyMatch(p -> !p.equals(VALID_G1_POINT))
               || largePoints.stream().anyMatch(p -> !p.equals(VALID_G2_POINT));

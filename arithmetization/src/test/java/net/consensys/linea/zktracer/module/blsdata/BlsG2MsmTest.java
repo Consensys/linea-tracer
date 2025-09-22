@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blsdata;
 
-import static net.consensys.linea.zktracer.Fork.isPostCancun;
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.LARGE_POINTS;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G1_POINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -88,7 +88,7 @@ public class BlsG2MsmTest extends TracerTestBase {
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
 
-    if (isPostCancun(fork)) {
+    if (isPostPrague(fork)) {
       final boolean failureIsExpected =
           largePoints.stream().anyMatch(p -> !p.equals(VALID_G1_POINT));
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();

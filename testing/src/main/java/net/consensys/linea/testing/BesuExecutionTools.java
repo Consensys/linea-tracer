@@ -214,13 +214,6 @@ public class BesuExecutionTools {
           callEngineAPIToBuildNewBlock(besuNode, ethTransactions, genesisConfigBuilder, nextFork);
         }
         // We check that the transactions are included in a block
-        // In case we switch Forks from London to Paris, the transaction is included in the next
-        // block
-        // One empty block with new consensus is created to replace Clique one
-        // TODO remove once Besu API is fixed
-        /*        if (currentFork == Fork.LONDON && nextFork == Fork.PARIS) {
-          continue;
-        }*/
         waitForTxReceipts(besuNode, ethTransactions, txHashes, txReceiptProcessed, blockNumbers);
         currentFork = nextFork;
 
@@ -237,7 +230,6 @@ public class BesuExecutionTools {
         resetTxHashes(txHashes);
 
         // Execution proof request
-        // TODO: check how to handle forks
         requestAndStoreExecutionProof(
             besuNode,
             ethTransactions,

@@ -24,7 +24,9 @@ import static net.consensys.linea.zktracer.TraceCancun.Oob.CT_MAX_CREATE;
 import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE;
 import static net.consensys.linea.zktracer.TraceCancun.Rlpaddr.MAX_CT_CREATE2;
 import static net.consensys.linea.zktracer.module.ModuleName.*;
+import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NBROWS_ADD;
+import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
 import static net.consensys.linea.zktracer.module.ext.ExtOperation.NBROWS_EXT;
 import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NROWS_HUB_ACCOUNT;
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NROWS_HUB_CALLDATALOAD;
@@ -57,8 +59,7 @@ import static net.consensys.linea.zktracer.module.logdata.LogData.lineCountForLo
 import static net.consensys.linea.zktracer.module.loginfo.LogInfo.lineCountForLogInfo;
 import static net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation.MXP_FROM_CTMAX_TO_LINECOUNT;
 import static net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation.lineCountForRlpTxnRcpt;
-import static net.consensys.linea.zktracer.opcode.OpCode.JUMPI;
-import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
 
@@ -149,7 +150,7 @@ public class ZkCounter implements LineCountingTracer {
   final IncrementingModule stp = new IncrementingModule(STP);
   final Trm trm;
   final CountingOnlyModule txnData = new CountingOnlyModule(TXN_DATA, trace.txndata().spillage());
-  final Wcp wcp = new Wcp(); // TODO need MMU to be counted
+  final Wcp wcp = new Wcp();
 
   // precompiles limits:
   // related to EcData
@@ -226,24 +227,25 @@ public class ZkCounter implements LineCountingTracer {
   // The line counting for those modules is known to be incomplete / inaccurate
   public List<Module> uncheckedModules() {
     return List.of(
-        blakemodexp,
-        blockData,
-        blsdata,
-        ecdata,
-        euc,
-        mmio,
-        mmu,
-        rlpTxn,
-        rlpUtils,
-        rom,
+        blakemodexp, // useless to check as the underlying nb of precompiles is already bounded
+        blockData, // useless to check as the nb of rows is constant per block
+        blsdata, // useless to check as the underlying nb of precompiles is already bounded
+        ecdata, // useless to check as the underlying nb of precompiles is already bounded
+        euc, // need MMU
+        mmio, // need MMU
+        mmu, // not trivial
+        rlpTxn, // need a refacto to have rlpTxn using not only TransactionProcessingMetadata
+        rlpUtils, // need a refacto to have rlpTxn using not only TransactionProcessingMetadata
+        rom, // not trivial
         rolex,
-        shakiradata,
-        stp,
-        trm,
-        txnData,
-        wcp,
+        shakiradata, // useless to check as the underlying nb of precompiles is already bounded
+        stp, // currently under zkasmification
+        trm, // not trivial
+        txnData, // almost directly proportional to nb of txs
+        wcp, // need MMU/TxnData to be counted
         // traceless modules
-        blakeRounds,
+        blakeRounds, // blakeEffectiveCall is counted and already rejects all BLAKE calls
+        // all Cancun / Prague precompiles are rejected via bls pointEval for now
         pointEvaluationEffectiveCall,
         pointEvaluationFailureCall,
         blsG1AddEffectiveCall,
@@ -390,7 +392,13 @@ public class ZkCounter implements LineCountingTracer {
 
     // No stack exception, we can move on
     switch (opcode.instructionFamily()) {
-      case PUSH_POP, DUP, SWAP, BATCH, INVALID -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+      case PUSH_POP, DUP, SWAP, INVALID -> hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+      case BATCH -> {
+        hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
+        if (opcode.mnemonic() == BLOCKHASH) {
+          blockHash.updateTally(NB_ROWS_BLOCKHASH);
+        }
+      }
       case ADD -> {
         hub.updateTally(NROWS_HUB_SIMPLE_STACK_OP);
         add.tracePreOpcode(frame, opcode.mnemonic());

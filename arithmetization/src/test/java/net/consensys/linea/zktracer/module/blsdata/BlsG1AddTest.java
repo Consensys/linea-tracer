@@ -47,6 +47,8 @@ public class BlsG1AddTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("blsG1AddSource")
   void testBlsG1Add(String a, String b, TestInfo testInfo) {
+    final Bytes input = Bytes.concatenate(Bytes.fromHexString(a), Bytes.fromHexString(b));
+
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
@@ -55,7 +57,7 @@ public class BlsG1AddTest extends TracerTestBase {
             .balance(Wei.of(0))
             .nonce(1)
             .address(codeOwnerAddress)
-            .code(Bytes.concatenate(Bytes.fromHexString(a), Bytes.fromHexString(b)))
+            .code(input)
             .build();
 
     // First place the parameters in memory
@@ -70,9 +72,9 @@ public class BlsG1AddTest extends TracerTestBase {
 
     // Do the call
     program
-        .push(0x80) // retSize
-        .push(0x100) // retOffset
-        .push(0x100) // argSize
+        .push(128) // retSize
+        .push(input.size()) // retOffset
+        .push(input.size()) // argSize
         .push(0) // argOffset
         .push(Address.BLS12_G1ADD) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas

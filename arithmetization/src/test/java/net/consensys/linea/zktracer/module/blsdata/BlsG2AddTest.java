@@ -47,6 +47,8 @@ public class BlsG2AddTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("blsG2AddSource")
   void testBlsG2Add(String a, String b, TestInfo testInfo) {
+    final Bytes input = Bytes.concatenate(Bytes.fromHexString(a), Bytes.fromHexString(b));
+
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
@@ -70,9 +72,9 @@ public class BlsG2AddTest extends TracerTestBase {
 
     // Do the call
     program
-        .push(0x80) // retSize
-        .push(0x100) // retOffset
-        .push(0x100) // argSize
+        .push(256) // retSize
+        .push(input.size()) // retOffset
+        .push(input.size()) // argSize
         .push(0) // argOffset
         .push(Address.BLS12_G2ADD) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas

@@ -48,7 +48,7 @@ public class BlsG2MsmTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("blsG2MsmSource")
   void testBlsG2MsmTest(List<String> largePoints, TestInfo testInfo) {
-    Bytes input =
+    final Bytes input =
         IntStream.range(0, largePoints.size())
             .mapToObj(
                 i ->
@@ -79,9 +79,9 @@ public class BlsG2MsmTest extends TracerTestBase {
 
     // Do the call
     program
-        .push(0x80) // retSize
-        .push(0x100) // retOffset
-        .push(0x100) // argSize
+        .push(256) // retSize
+        .push(input.size()) // retOffset
+        .push(input.size()) // argSize
         .push(0) // argOffset
         .push(Address.BLS12_G2MULTIEXP) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas

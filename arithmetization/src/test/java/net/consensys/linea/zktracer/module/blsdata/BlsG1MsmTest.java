@@ -47,7 +47,7 @@ public class BlsG1MsmTest extends TracerTestBase {
   @ParameterizedTest
   @MethodSource("blsG1MsmSource")
   void testBlsG1MsmTest(List<String> smallPoints, TestInfo testInfo) {
-    Bytes input =
+    final Bytes input =
         IntStream.range(0, smallPoints.size())
             .mapToObj(
                 i ->
@@ -78,9 +78,9 @@ public class BlsG1MsmTest extends TracerTestBase {
 
     // Do the call
     program
-        .push(0x80) // retSize
-        .push(0x100) // retOffset
-        .push(0x100) // argSize
+        .push(128) // retSize
+        .push(input.size()) // retOffset
+        .push(input.size()) // argSize
         .push(0) // argOffset
         .push(Address.BLS12_G1MULTIEXP) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas

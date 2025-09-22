@@ -39,7 +39,9 @@ public class BlsG2MapFp2ToG2Test extends TracerTestBase {
 
   @ParameterizedTest
   @MethodSource("blsG2MapFp2ToG2Source")
-  void testBlsG2MapFpToG2(String input, TestInfo testInfo) {
+  void testBlsG2MapFpToG2(String inputString, TestInfo testInfo) {
+    final Bytes input = Bytes.fromHexString(inputString);
+
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
     final Address codeOwnerAddress = Address.fromHexString("0xC0DE");
@@ -48,7 +50,7 @@ public class BlsG2MapFp2ToG2Test extends TracerTestBase {
             .balance(Wei.of(0))
             .nonce(1)
             .address(codeOwnerAddress)
-            .code(Bytes.fromHexString(input))
+            .code(input)
             .build();
 
     // First place the parameters in memory
@@ -64,8 +66,8 @@ public class BlsG2MapFp2ToG2Test extends TracerTestBase {
     // Do the call
     program
         .push(0x80) // retSize
-        .push(0x100) // retOffset
-        .push(0x100) // argSize
+        .push(input.size()) // retOffset
+        .push(input.size()) // argSize
         .push(0) // argOffset
         .push(Address.BLS12_MAP_FP2_TO_G2) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas

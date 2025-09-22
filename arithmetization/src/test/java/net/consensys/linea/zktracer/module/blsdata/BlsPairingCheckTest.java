@@ -83,9 +83,9 @@ public class BlsPairingCheckTest extends TracerTestBase {
 
     // Do the call
     program
-        .push(0x80) // retSize
-        .push(0x100) // retOffset
-        .push(0x100) // argSize
+        .push(32) // retSize
+        .push(input.size()) // retOffset
+        .push(input.size()) // argSize
         .push(0) // argOffset
         .push(Address.BLS12_PAIRING) // address
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas

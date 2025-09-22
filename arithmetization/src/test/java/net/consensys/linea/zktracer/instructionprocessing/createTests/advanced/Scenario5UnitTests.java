@@ -20,18 +20,31 @@ import org.junit.jupiter.api.TestInfo;
 // opcode
 // See more details in AllScenariiInitCodeTests
 
-/// ////////////////////////////////////////////
-// SCENARIO 5 - MODIFY STORAGE, SELFDESTRUCT
-/// ////////////////////////////////////////////
-// After a successful create2 (from Scenario 4), we modify the contract storage and self-destruct
+/*
+
+SCENARIO 5 - MODIFY STORAGE, SELFDESTRUCT
+
+After a successful create2 (from Scenario 4), we modify the contract storage and self-destruct
+
+       CALLC
+     -------->  - (1) Modify storage
+       CALLC
+     -------->  - (2) Self-destruct
+
+Note : storeInitCodeC and storeSalt and create2WithCallCtoCallback_noValue transactions are preparation transactions. create2WithCallCtoCallback_noValue is there to have the state post scenario 4
+
+ */
 
 public class Scenario5UnitTests extends TracerTestBase {
 
-  // SCENARIO 5 - CREATE2, MODIFY STORAGE, SELFDESTRUCT
-  // After a successful create2 (from Scenario 4), we modify the contract storage and self-destruct
-  // TXSTATUS : Successful
-  // LOGS: 1 ContractCreated, 1 CallCreate2WithInitCodeC_noValue, 1 StoreInMap, 1 SelfDestruct
-  // Note: transaction is sent with value 0
+  /*
+  SCENARIO 5 - CREATE2, MODIFY STORAGE, SELFDESTRUCT
+  After a successful create2 (from Scenario 4), we modify the contract storage and self-destruct
+  TXSTATUS : Successful
+  LOGS: 1 ContractCreated, 1 CallCreate2WithInitCodeC_noValue, 1 StoreInMap, 1 SelfDestruct
+  Note: transaction is sent with value 2
+  Note 2 : used in ScenariiTriggeredFromRoot
+   */
   @Test
   void deployScenario5(TestInfo testInfo) {
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
@@ -58,7 +71,7 @@ public class Scenario5UnitTests extends TracerTestBase {
                 storeSalt,
                 create2WithCallCtoCallback_noValue, /* Same deployment as scenario 4 */
                 callCToModifyStorageAndSelfdestruct),
-            List.of(0L, 0L, 0L, 0L));
+            List.of(0L, 0L, 2L, 2L));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)

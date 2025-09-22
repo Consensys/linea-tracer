@@ -24,7 +24,6 @@ import org.junit.jupiter.api.TestInfo;
 
 SCENARIO 3 - ATTEMPT CREATE2 WITHIN A CREATE2
 
-
 (1) Deploy ContractC and the deployment attempts redeployment.
 The ContractC deployment is done with value 2 - this value pilots the initcode so immediate redeployment is attempted.
 While deploying ContractC adds STOP opcode after immediate redeployment attempt has failed.
@@ -32,25 +31,34 @@ ContractC is deployed with empty bytecode.
 (2) Call ContractC to modify storage
 (3) And Revert
 
-Note : storeInitCodeC and storeSalt transactions are preparation transactions
-
-       CALL                    CALL
-     -------->  (1) CREATE2  -------> CREATE2
+       CALL                    CALL            fails
+     -------->  (1) CREATE2  -------> CREATE2 -------> add STOP, deploy ContractC with empty bytecode
                      CALLC
                 (2) ---------> modify storage
                 (3) REVERT
+
+When Nested :
+
+       CALL           CALL              CALL
+     -------->  (0) -------> Scenario2 -------> Scenario1
+                (1) (2) and (3) stay the same
+
+
+Note : storeInitCodeC and storeSalt transactions are preparation transactions
+
  */
 
 public class Scenario3UnitTests extends TracerTestBase {
 
   /*
   SCENARIO 3 - NO REVERT AT THE END
-  (1) Attempts a create 2 within a create2, goes back to initCodeC and stops
-  Code deployed is empty.
-  (2) We call contract C to modify storage
+  We test Scenario 3 with no revert at the end to check
+  - ContractC is effectively deployed in attempt (1)
+  - Immediate redeployment is attempted and fails
+  - ContractC code is empty, so no storage modification is done
   TXSTATUS : Successful
   LOGS: 1 ContractCreated, 1 ImmediateRedeploymentFail, 0 CallCreate2WithInitCodeC_withValue
-  because the create2 reverts, 0 StoreInMap as the code is empty
+  because the create2 in the redeployment fails, 0 StoreInMap as the code is empty
   Note: transaction is sent with value 2 to do a create2 within a create2
    */
   @Test
@@ -86,15 +94,16 @@ public class Scenario3UnitTests extends TracerTestBase {
   }
 
   /*
-  SCENARIO 3 - WITH REVERT AT THE END
+  SCENARIO 3 -
   (1) Attempts a create 2 within a create2, goes back to initCodeC and stops
   Code deployed is empty.
   (2) We call contract C to modify storage.
   (3) We revert the whole transaction.
   TXSTATUS : Failed
   LOGS: 0 ContractCreated, O ImmediateRedeploymentFail, 0 CallCreate2WithInitCodeC_withValue
-  because the create2 reverts, 0 StoreInMap as the code is empty
-  Note: transaction is sent with value 2 to do a create2 within a create2
+  0 StoreInMap as the whole transaction is reverted
+  Note: transaction is sent with value 2 to pilot initcode and do a create2 within a create2
+  Note 2 : used in ScenariiTriggeredFromRoot
    */
   @Test
   void deployScenario3(TestInfo testInfo) {
@@ -126,22 +135,24 @@ public class Scenario3UnitTests extends TracerTestBase {
     toyExecutionEnvironmentV2.run();
   }
 
-  // SCENARIO 3 - WITH REVERT AT THE END, WITH CALL TO SCENARIO 1 AND 2 NESTED
-  // Call to Scenario 2 that calls Scenario 1 and then
-  // Attempts a create 2 within a create2, goes back to initCodeC and stops
-  // Code deployed is empty. We call contract C to modify storage. We revert the whole transaction
-  // TXSTATUS : Successful
-  // LOGS: 1 CallMyselfFail, 0 ContractCreated, O ImmediateRedeploymentFail, 0
-  // CallCreate2WithInitCodeC_withValue
-  // because the create2 reverts, 0 StoreInMap as the code is empty
-  // Note: transaction is sent with value 2 to do a create2 within a create2
+  /*
+  SCENARIO 3 - WITH NESTED CALLS TO SCENARIO 1 AND 2
+  Call to Scenario 2 that calls Scenario 1 and then
+  Attempts a create2 within a create2, goes back to initCodeC and stops
+  Code deployed is empty. We call contract C to modify storage. We revert the whole transaction
+  TXSTATUS : Successful
+  LOGS: 1 CallMyselfFail, 0 ContractCreated, O ImmediateRedeploymentFail, 0
+  CallCreate2WithInitCodeC_withValue, 0 StoreInMap
+  Note: transaction is sent with value 2 to pilot initcode and do a create2 within a create2
+  Note 2 : used in ScenariiNestedCalls
+   */
   @Test
   void deployScenario3Nested(TestInfo testInfo) {
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
     Map<String, List<Bytes>> logsDataMap = new HashMap<>();
     List<Integer> txStatuses = List.of(1, 1, 1);
 
-    logsTopicMap.put(callMyselfFail, List.of(0, 0, 1));
+    logsTopicMap.put(callMyselfFailEvent, List.of(0, 0, 1));
 
     // Instantiate validator
     TransactionProcessingResultValidator create2OneTxValidator =

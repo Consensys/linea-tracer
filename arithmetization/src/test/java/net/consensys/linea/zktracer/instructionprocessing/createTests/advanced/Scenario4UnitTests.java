@@ -11,7 +11,6 @@ import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
 import net.consensys.linea.zktracer.instructionprocessing.utilities.SmartContractTestValidator;
-import org.apache.tuweni.bytes.Bytes;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -20,22 +19,40 @@ import org.junit.jupiter.api.TestInfo;
 // opcode
 // See more details in AllScenariiInitCodeTests
 
-/// ////////////////////////////////////////////
-// SCENARIO 4 - ATTEMPT CREATE2 AFTER A CREATE2
-/// ////////////////////////////////////////////
-// Attempts a create2 after a successful create2, by calling ContractC that does a callback to
-// CustomCreate2 to deploy
+/*
+
+SCENARIO 1 - ATTEMPT CREATE2 AFTER A CREATE2
+
+Attempts a create2 after a successful create2.
+Done by calling the ContractC that has just been deployed to do a callback to CustomCreate2 and attempt redeployment.
+
+       CALL
+     -------->  (1) CREATE2 -----> ContractC deployed
+                     CALLC                CALL
+                (2) ---------> callback ---------> CREATE2 -----> Collision, deployment fails
+
+When Nested :
+
+       CALL           CALL               CALL               CALL
+      -------->  (0) -------> Scenario3 -------> Scenario2 -------> Scenario1
+                 (1) and (2) stay the same
+
+Note : storeInitCodeC and storeSalt transactions are preparation transactions
+
+*/
 
 public class Scenario4UnitTests extends TracerTestBase {
 
-  // SCENARIO 4 -
-  // TXSTATUS : Successful
-  // LOGS: 1 ContractCreated, 1 CallCreate2WithInitCodeC_noValue
-  // Note: transaction is sent with value 2
+  /*
+  SCENARIO 4 -
+  TXSTATUS : Successful
+  LOGS: 1 ContractCreated, 1 CallCreate2WithInitCodeC_noValue
+  Note: transaction is sent with value 2
+  Note 2 : used in ScenariiTriggeredFromRoot
+   */
   @Test
   void deployScenario4(TestInfo testInfo) {
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
-    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
     List<Integer> txStatuses = List.of(1, 1, 1);
 
     logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 1));
@@ -44,7 +61,7 @@ public class Scenario4UnitTests extends TracerTestBase {
 
     // Instantiate validator
     TransactionProcessingResultValidator create2OneTxValidator =
-        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
+        new SmartContractTestValidator(txStatuses, logsTopicMap, new HashMap<>());
 
     List<Transaction> transactions =
         getTransactions(
@@ -62,26 +79,28 @@ public class Scenario4UnitTests extends TracerTestBase {
     toyExecutionEnvironmentV2.run();
   }
 
-  // SCENARIO 4 - WITH NESTED CALLS TO SCENARIO 1 AND 2 AND 3
-  // TXSTATUS : Successful
-  // LOGS: 1 CallMyselfFail, 1 ContractCreated, 1 CallCreate2WithInitCodeC_noValue
-  // Note: transaction is sent with value 2
+  /*
+  SCENARIO 4 - WITH NESTED CALLS TO SCENARIO 1 AND 2 AND 3
+  TXSTATUS : Successful
+  LOGS: 1 CallMyselfFail, 1 ContractCreated, 1 CallCreate2WithInitCodeC_noValue
+  Note: transaction is sent with value 2
+  Note 2 : used in ScenariiNestedCalls
+   */
   @Test
   void deployScenario4Nested(TestInfo testInfo) {
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
-    Map<String, List<Bytes>> logsDataMap = new HashMap<>();
     List<Integer> txStatuses = List.of(1, 1, 1);
 
     // 1 from the nested call
-    logsTopicMap.put(callMyselfFail, List.of(0, 0, 1));
+    logsTopicMap.put(callMyselfFailEvent, List.of(0, 0, 1));
     // 1 from the scenario 4
     logsTopicMap.put(contractCreatedEvent, List.of(0, 0, 1));
-    // Call to attempt a redeployment after the successful one
+    // Callback from ContractC to attempt a redeployment after the successful one
     logsTopicMap.put(callCreate2WithInitCodeC_noValue_Event, List.of(0, 0, 1));
 
     // Instantiate validator
     TransactionProcessingResultValidator txValidator =
-        new SmartContractTestValidator(txStatuses, logsTopicMap, logsDataMap);
+        new SmartContractTestValidator(txStatuses, logsTopicMap, new HashMap<>());
 
     List<Transaction> transactions =
         getTransactions(

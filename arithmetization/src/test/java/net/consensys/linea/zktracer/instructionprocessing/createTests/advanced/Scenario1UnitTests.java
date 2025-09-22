@@ -27,19 +27,20 @@ SCENARIO 1 - CREATE2 FOUR TIMES
 Four ContractC deployment attempts :
   (1) with max value - aborted because of balance too low
   (2) acceptable value - ContractC deployed
-  We test that ContractC is deployed with non-empty code by modifying it's storage
+  We test that ContractC is deployed with non-empty code by modifying its storage
   (3) max value - aborted
   (4) acceptable value - ContractC deployment fails as it's a collision with attempt (2)
   Ends with a revert
 
+       CALL
+     -------->  - (1) CREATE2
+                - (2) CREATE2 -----> ContractC deployed
+                - (3) CREATE2
+                - (4) CREATE2 -----> Collision, deployment fails
+                - REVERT
+
 Note : storeInitCodeC and storeSalt transactions are preparation transactions
 
-       CALL
-     -------->  - CREATE2 (1)
-                - CREATE2 (2) -----> ContractC deployed
-                - CREATE2 (3)
-                - CREATE2 (4) -----> Collision, deployment fails
-                - REVERT
  */
 
 public class Scenario1UnitTests extends TracerTestBase {
@@ -48,11 +49,11 @@ public class Scenario1UnitTests extends TracerTestBase {
    SCENARIO 1 - NO REVERT AT THE END
    We test Scenario 1 with no revert at the end to check
    - ContractC is effectively deployed in attempt (2)
-   - ContractC code is non-empty and we can modify it's storage
+   - ContractC code is non-empty and we can modify its storage
    TXSTATUS : Successful
    LOGS: 1 ContractCreated, 1 StoreInMap
    Note : 4 CREATE2 opcode called
-   Note 2 : transactions are sent with value 2 as will be done in the final AllScenarii test
+   Note 2 : transactions are sent with value 2 as will be done in the final AllScenarii test (see Scenarii 3 for reason to use value 2)
   */
   @Test
   void deployScenario1NoRevert(TestInfo testInfo) {
@@ -99,12 +100,12 @@ public class Scenario1UnitTests extends TracerTestBase {
   /*
   SCENARIO 1 - WITH REVERT AT THE END
   TXSTATUS : Failed
-  LOGS: 0 ContractCreated, 0 StoreInMap
+  LOGS: 0 ContractCreated, 0 StoreInMap as the whole transaction is reverted
   Note : 4 CREATE2 opcode called
   Note 2 : transactions are sent with value 2 as will be done in the final AllScenarii test
    */
   @Test
-  void deployScenario1(TestInfo testInfo) {
+  void deployScenario1WithRevert(TestInfo testInfo) {
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
 
     // Tx status
@@ -143,7 +144,7 @@ public class Scenario1UnitTests extends TracerTestBase {
   Note 3 : used in ScenariiTriggeredFromRoot and in ScenariiNestedCalls
    */
   @Test
-  void deployScenario1ThroughACall(TestInfo testInfo) {
+  void deployScenario1(TestInfo testInfo) {
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
 
     // Tx status

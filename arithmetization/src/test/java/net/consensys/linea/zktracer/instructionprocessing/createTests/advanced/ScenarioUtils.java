@@ -21,7 +21,9 @@ import org.web3j.abi.EventEncoder;
 
 public class ScenarioUtils {
 
-  static final Wei defaultBalance = Wei.of(4500L);
+  /*
+  Deployment params
+   */
 
   // Deployment code from testing/src/main/solidity/ContractC.sol
   // Generated for the London EVM in testing/build/resources/main/solidity/ContractC.json
@@ -32,6 +34,10 @@ public class ScenarioUtils {
   static final String salt = "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
   static final String buildCustomCreate2Address = "789101";
 
+  /*
+  Transaction params
+   */
+  static final Wei defaultBalance = Wei.of(4500L);
   static ToyAccount customCreate2Account =
       ToyAccount.builder()
           .address(Address.fromHexString("0x" + buildCustomCreate2Address))
@@ -41,6 +47,10 @@ public class ScenarioUtils {
           .build();
 
   static final Long gasLimit = 10000000L;
+
+  /*
+  Utils for logs validation
+  */
 
   // Compute expected address for ContractC with Create2
   // address = keccak256(0xff + sender_address + salt + keccak256(initialisation_code))[12:]
@@ -76,43 +86,35 @@ public class ScenarioUtils {
   // For Scenario 2 Unit tests
   public static final Bytes create2WithStaticCall =
       CustomCreate2Payload.create2WithStaticCall(false);
-  public static final Bytes create2WithStaticCall_nested =
-      CustomCreate2Payload.create2WithStaticCall(true);
   public static final Bytes callMyselfWithCreate2WithStaticCall_nested =
       CustomCreate2Payload.callMyself(
-          CustomCreate2Payload.create2WithStaticCall(true), false, 1000000);
+          CustomCreate2Payload.create2WithStaticCall(true), false, 9000000);
 
-  public static final Bytes create2WithInitCodeC =
-      CustomCreate2Payload.create2WithInitCodeC_withValueAndRevert();
-  public static final Bytes callContractCStoreInMapPayload =
-      CustomCreate2Payload.callContractC(
-          ContractCPayload.storeInMap(1, "0x0000000000000000000000000000000000001234"), false);
-  public static final Bytes callContractCSelfDestructPayload =
-      CustomCreate2Payload.callContractC(ContractCPayload.selfDestructOnDemand(), false);
-  public static final Bytes create2WithCallBackAfterCreate2_noValue =
-      CustomCreate2Payload.create2WithCallCtoCallback_noValue(false);
-  public static final Bytes callMyselfWithCreate2WithCallCtoCallback_noValueAndNested =
-      CustomCreate2Payload.callMyself(
-          CustomCreate2Payload.create2WithCallCtoCallback_noValue(true), false, 9000000);
-  public static final Bytes create2WithInitCodeC_withValue =
-      CustomCreate2Payload.create2WithInitCodeC_withValueAndRevert();
-
+  // For Scenario 3 Unit tests
+  public static final Bytes create2CallC_noRevert =
+      CustomCreate2Payload.create2CallC_withRevertTrigger(false, false);
   public static final Bytes create2CallC_withRevert =
       CustomCreate2Payload.create2CallC_withRevertTrigger(true, false);
   public static final Bytes callMyselfWithCreate2CallC_withRevertAndNested =
       CustomCreate2Payload.callMyself(
           CustomCreate2Payload.create2CallC_withRevertTrigger(true, true), false, 9000000);
-  public static final Bytes create2CallC_noRevert =
-      CustomCreate2Payload.create2CallC_withRevertTrigger(false, false);
+
+  // For Scenario 4 Unit tests
   public static final Bytes create2WithCallCtoCallback_noValue =
       CustomCreate2Payload.create2WithCallCtoCallback_noValue(false);
-  public static final Bytes create2WithCallCtoCallback_noValueAndNested =
-      CustomCreate2Payload.create2WithCallCtoCallback_noValue(true);
+  public static final Bytes callMyselfWithCreate2WithCallCtoCallback_noValueAndNested =
+      CustomCreate2Payload.callMyself(
+          CustomCreate2Payload.create2WithCallCtoCallback_noValue(true), false, 9000000);
 
+  // For Scenario 5 Unit tests
+  public static final Bytes create2WithInitCodeC_withValue =
+      CustomCreate2Payload.create2WithInitCodeC_withValueAndRevert();
   public static final Bytes callCToModifyStorageAndSelfdestruct =
       CustomCreate2Payload.callCToModifyStorageAndSelfdestruct();
 
-  // Logs for transaction validator
+  /*
+  Logs for transaction validator
+  */
   public static final String contractCreatedEvent =
       EventEncoder.encode(CustomCreate2.CONTRACTCREATED_EVENT);
   public static final String staticCallMyselfFailEvent =
@@ -121,21 +123,18 @@ public class ScenarioUtils {
       EventEncoder.encode(CustomCreate2.CALLCREATE2WITHINITCODEC_WITHVALUE_EVENT);
   public static final String callCreate2WithInitCodeC_noValue_Event =
       EventEncoder.encode(CustomCreate2.CALLCREATE2WITHINITCODEC_NOVALUE_EVENT);
-  // TODO
   public static final String callMyselfFailEvent =
       EventEncoder.encode(CustomCreate2.CALLMYSELFFAIL_EVENT);
-  public static final String callMyselfFail =
-      EventEncoder.encode(CustomCreate2.CALLMYSELFFAIL_EVENT);
-  public static final String callContractCFailEvent =
-      EventEncoder.encode(CustomCreate2.CALLCONTRACTCFAIL_EVENT);
   public static final String storeInMapEvent = EventEncoder.encode(ContractC.STOREINMAP_EVENT);
   public static final String immediateRedeploymentFailEvent =
       EventEncoder.encode(ContractC.IMMEDIATEREDEPLOYMENTFAIL_EVENT);
   public static final String selfDestructEvent = EventEncoder.encode(ContractC.SELFDESTRUCT_EVENT);
 
-  /// /////////////////////////////////////////////////////////////////////////////////////////////
   /// Common helpers
-  /// Create transactions with payloads/values for the same user and the same to account
+
+  /*
+  Create transactions with payloads/values for the same user and the same to account
+  */
   public static List<Transaction> getTransactions(
       ToyAccount to, ToyAccount userAccount, List<Bytes> payloads, List<Long> values) {
 

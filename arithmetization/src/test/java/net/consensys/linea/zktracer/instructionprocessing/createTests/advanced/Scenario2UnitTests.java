@@ -69,7 +69,7 @@ public class Scenario2UnitTests extends TracerTestBase {
 
   /*
   SCENARIO 2 - WITH NESTED CALL TO SCENARIO 1
-  Attempt to static call a create2 deployment, after create2 four times call
+  Through a call, after create2 four times call, attempt to static call a create2 deployment
   TXSTATUS : Successful
   LOGS: 1 CallMyselfFail, 1 StaticCallMyselfFail
   Note 2 : used in ScenariiNestedCalls
@@ -92,7 +92,10 @@ public class Scenario2UnitTests extends TracerTestBase {
 
     List<Transaction> transactions =
         getTransactions(
-            customCreate2Account, userAccount, List.of(create2WithStaticCall_nested), List.of(2L));
+            customCreate2Account,
+            userAccount,
+            List.of(callMyselfWithCreate2WithStaticCall_nested),
+            List.of(2L));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)

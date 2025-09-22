@@ -80,6 +80,7 @@ public enum ModuleName {
   PRECOMPILE_BLS_G2_MEMBERSHIP_CALLS,
 
   // other limits modules
+  BLOCK_L1_SIZE,
   BLOCK_L2_L1_LOGS,
   BLOCK_TRANSACTIONS,
   BLOCK_KECCAK,

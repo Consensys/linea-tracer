@@ -77,7 +77,7 @@ import net.consensys.linea.zktracer.module.hub.state.TransactionStack;
 import net.consensys.linea.zktracer.module.hub.transients.Transients;
 import net.consensys.linea.zktracer.module.limits.BlockTransactions;
 import net.consensys.linea.zktracer.module.limits.Keccak;
-import net.consensys.linea.zktracer.module.limits.L1BlockSizeOld;
+import net.consensys.linea.zktracer.module.limits.L1BlockSize;
 import net.consensys.linea.zktracer.module.limits.precompiles.BlakeRounds;
 import net.consensys.linea.zktracer.module.limits.precompiles.RipemdBlocks;
 import net.consensys.linea.zktracer.module.limits.precompiles.Sha256Blocks;
@@ -358,7 +358,7 @@ public abstract class Hub implements Module {
           ecPairingFinalExponentiations);
   final Module blsData = setBlsData(this);
 
-  private final L1BlockSizeOld l1BlockSize;
+  private final L1BlockSize l1BlockSize;
   private final IncrementingModule l2L1Logs;
 
   /** list of module than can be modified during execution */
@@ -450,7 +450,7 @@ public abstract class Hub implements Module {
     l2L1Logs = new IncrementingModule(BLOCK_L2_L1_LOGS);
     keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
     l1BlockSize =
-        new L1BlockSizeOld(
+        new L1BlockSize(
             blockTransactions, keccak, l2L1Logs, l2l1ContractAddress, LogTopic.of(l2l1Topic));
     shakiraData = new ShakiraData(wcp, sha256Blocks, keccak, ripemdBlocks);
     trm = new Trm(fork, wcp);

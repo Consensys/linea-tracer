@@ -61,7 +61,6 @@ import static net.consensys.linea.zktracer.opcode.OpCode.JUMPI;
 import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
 import static net.consensys.linea.zktracer.types.Conversions.bytesToBoolean;
-import static org.hyperledger.besu.datatypes.Address.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -105,6 +104,7 @@ import org.hyperledger.besu.evm.frame.ExceptionalHaltReason;
 import org.hyperledger.besu.evm.frame.MessageFrame;
 import org.hyperledger.besu.evm.internal.Words;
 import org.hyperledger.besu.evm.log.Log;
+import org.hyperledger.besu.evm.log.LogTopic;
 import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.hyperledger.besu.plugin.data.BlockBody;
 import org.hyperledger.besu.plugin.data.BlockHeader;
@@ -306,7 +306,12 @@ public class ZkCounter implements LineCountingTracer {
     this.keccak = new Keccak(ecRecoverEffectiveCall, blockTransactions);
 
     l1BlockSize =
-        new L1BlockSize(l2l1Logs, bridgeConfiguration.contract(), bridgeConfiguration.topic());
+        new L1BlockSize(
+            blockTransactions,
+            keccak,
+            l2l1Logs,
+            bridgeConfiguration.contract(),
+            LogTopic.of(bridgeConfiguration.topic()));
     moduleToCount = Stream.concat(checkedModules().stream(), uncheckedModules().stream()).toList();
   }
 

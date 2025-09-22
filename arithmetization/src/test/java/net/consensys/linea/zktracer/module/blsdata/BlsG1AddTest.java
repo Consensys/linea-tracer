@@ -16,10 +16,8 @@
 package net.consensys.linea.zktracer.module.blsdata;
 
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
-import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.G1_POINT_NOT_IN_SUBGROUP;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.INVALID_G1_POINT_NOT_ON_CURVE;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.SMALL_POINTS;
-import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G1_POINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
@@ -83,7 +81,8 @@ public class BlsG1AddTest extends TracerTestBase {
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
 
     if (isPostPrague(fork)) {
-      final boolean failureIsExpected = a.equals(INVALID_G1_POINT_NOT_ON_CURVE) || b.equals(INVALID_G1_POINT_NOT_ON_CURVE);
+      final boolean failureIsExpected =
+          a.equals(INVALID_G1_POINT_NOT_ON_CURVE) || b.equals(INVALID_G1_POINT_NOT_ON_CURVE);
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
       assertEquals(failureIsExpected, blsdata.blsDataOperation().mext());
       assertEquals(failureIsExpected, !blsdata.blsDataOperation().successBit());

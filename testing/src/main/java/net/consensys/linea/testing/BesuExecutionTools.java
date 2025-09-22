@@ -359,7 +359,8 @@ public class BesuExecutionTools {
   /// // /////////////////////////
 
   private Fork nextBlockFork(Block block) {
-    var nextTotalDifficulty = block.getTotalDifficulty().add(BigInteger.TWO);
+    var nextTotalDifficulty =
+        block.getTotalDifficulty().add(BigInteger.TWO); /* Clique increments by 2 */
     var nextBlockTimestamp = block.getTimestamp().longValue() + 1L;
 
     var TTD = genesisConfigBuilder.getTTD();

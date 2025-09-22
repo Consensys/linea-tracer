@@ -70,7 +70,6 @@ public class ExampleBesuTest extends TracerTestBase {
         .run();
   }
 
-  // Fails - issue opened https://github.com/Consensys/linea-tracer/issues/2263
   @Test
   void testForkSwitchParisToCancun(TestInfo testInfo) {
     KeyPair keyPair = new SECP256K1().generateKeyPair();
@@ -83,7 +82,7 @@ public class ExampleBesuTest extends TracerTestBase {
         BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
 
     // PREVRANDAO opcode
-    Bytes codeParis = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x5F"));
+    Bytes codeParis = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x44"));
 
     // PUSH0
     Bytes codeShanghai = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x5F"));
@@ -93,7 +92,7 @@ public class ExampleBesuTest extends TracerTestBase {
 
     ToyAccount receiverAccountParis = getReceiverAccount("0x111120", codeParis);
 
-    ToyAccount receiverAccountShanghai = getReceiverAccount("0x111112", codeShanghai);
+    ToyAccount receiverAccountShanghai = getReceiverAccount("0x111111", codeShanghai);
 
     ToyAccount receiverAccountCancun = getReceiverAccount("0x111112", codeCancun);
 

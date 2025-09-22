@@ -53,7 +53,10 @@ import static net.consensys.linea.zktracer.module.hub.section.systemTransaction.
 import static net.consensys.linea.zktracer.module.hub.section.transients.TLoadSection.NROWS_HUB_TLOAD;
 import static net.consensys.linea.zktracer.module.hub.section.transients.TStoreSection.NROWS_HUB_TSTORE;
 import static net.consensys.linea.zktracer.module.hub.section.txInitializationSection.TxInitializationSection.NROWS_HUB_INIT;
+import static net.consensys.linea.zktracer.module.logdata.LogData.lineCountForLogData;
+import static net.consensys.linea.zktracer.module.loginfo.LogInfo.lineCountForLogInfo;
 import static net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation.MXP_FROM_CTMAX_TO_LINECOUNT;
+import static net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation.lineCountForRlpTxnRcpt;
 import static net.consensys.linea.zktracer.opcode.OpCode.JUMPI;
 import static net.consensys.linea.zktracer.opcode.OpCode.MSIZE;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
@@ -230,10 +233,14 @@ public class ZkCounter implements LineCountingTracer {
         euc,
         mmio,
         mmu,
+        rlpTxn,
+        rlpUtils,
         rom,
         rolex,
         shakiradata,
+        stp,
         trm,
+        txnData,
         wcp,
         // traceless modules
         blakeRounds,
@@ -270,12 +277,8 @@ public class ZkCounter implements LineCountingTracer {
         mxp,
         oob,
         rlpAddr,
-        rlpTxn,
         rlpTxnRcpt,
-        rlpUtils,
         shf,
-        stp,
-        txnData,
         // traceless modules
         ecAddEffectiveCall,
         ecMulEffectiveCall,
@@ -354,6 +357,9 @@ public class ZkCounter implements LineCountingTracer {
 
     // other modules:
     blockTransactions.traceStartTx(null, null);
+    rlpTxnRcpt.updateTally(lineCountForRlpTxnRcpt(logs));
+    logData.updateTally(lineCountForLogData(logs));
+    logInfo.updateTally(lineCountForLogInfo(logs));
   }
 
   @Override
@@ -530,7 +536,7 @@ public class ZkCounter implements LineCountingTracer {
         hub.updateTally(NROWS_HUB_CREATE);
         gas.updateTally(1); // as CMC == 1
         // first IMC
-        stp.updateTally(1);
+        // TODO: stp.updateTally(1);
         mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
         oob.updateTally(CT_MAX_CREATE + 1);
         // TODO: MMU
@@ -546,7 +552,7 @@ public class ZkCounter implements LineCountingTracer {
         gas.updateTally(1); // as CMC == 1
         oob.updateTally(CT_MAX_CALL + 1);
         mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-        stp.updateTally(1);
+        // TODO: stp.updateTally(1);
         // Note: precompiles specific limits are done in tracePrecompileCall()
       }
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());

@@ -101,14 +101,18 @@ public class LogInfo implements Module {
   }
 
   private int lineCountForLogInfo(RlpTxrcptOperation tx) {
+    return lineCountForLogInfo(tx.logs());
+  }
+
+  public static short lineCountForLogInfo(List<Log> logs) {
     int txRowSize = 0;
-    if (tx.logs().isEmpty()) {
+    if (logs.isEmpty()) {
       return 1;
     } else {
-      for (Log log : tx.logs()) {
+      for (Log log : logs) {
         txRowSize += ctMax(log) + 1;
       }
-      return txRowSize;
+      return (short) txRowSize;
     }
   }
 
@@ -233,7 +237,7 @@ public class LogInfo implements Module {
     }
   }
 
-  private int ctMax(Log log) {
+  private static int ctMax(Log log) {
     return log.getTopics().size() + 1;
   }
 }

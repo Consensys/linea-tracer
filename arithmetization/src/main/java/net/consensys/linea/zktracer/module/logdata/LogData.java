@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.logdata;
 
+import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.ModuleName.LOG_DATA;
 import static net.consensys.linea.zktracer.types.Utils.rightPadTo;
 
@@ -67,19 +68,23 @@ public class LogData implements Module {
   }
 
   private int lineCountForLogData(RlpTxrcptOperation tx) {
+    return lineCountForLogData(tx.logs());
+  }
+
+  public static short lineCountForLogData(List<Log> logs) {
     int txRowSize = 0;
-    if (tx.logs().isEmpty()) {
+    if (logs.isEmpty()) {
       return 0;
     } else {
-      for (Log log : tx.logs()) {
+      for (Log log : logs) {
         txRowSize += indexMax(log) + 1;
       }
-      return txRowSize;
+      return (short) txRowSize;
     }
   }
 
-  private int indexMax(Log log) {
-    return log.getData().isEmpty() ? 0 : (log.getData().size() - 1) / 16;
+  private static short indexMax(Log log) {
+    return log.getData().isEmpty() ? 0 : (short) ((log.getData().size() - 1) / LLARGE);
   }
 
   @Override

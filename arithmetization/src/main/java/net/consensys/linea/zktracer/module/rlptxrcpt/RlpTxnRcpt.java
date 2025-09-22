@@ -739,7 +739,7 @@ public class RlpTxnRcpt implements OperationListModule<RlpTxrcptOperation> {
   }
 
   // Gives the byte size of the RLP-isation of a log entry WITHOUT its RLP prefix.
-  private int logSize(Log log) {
+  private static int logSize(Log log) {
     // The size of RLP(Oa) is always 21.
     int logSize = 21;
 

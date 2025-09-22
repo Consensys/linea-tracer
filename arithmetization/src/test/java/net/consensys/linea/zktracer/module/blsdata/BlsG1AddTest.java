@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.module.blsdata;
 
 import static net.consensys.linea.zktracer.Fork.isPostPrague;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.G1_POINT_NOT_IN_SUBGROUP;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.INVALID_G1_POINT_NOT_ON_CURVE;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.SMALL_POINTS;
 import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.VALID_G1_POINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -80,8 +81,7 @@ public class BlsG1AddTest extends TracerTestBase {
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
 
     if (isPostPrague(fork)) {
-      // TODO: fix this also in the other BLS tests
-      final boolean failureIsExpected = !a.equals(VALID_G1_POINT) || !b.equals(VALID_G1_POINT);
+      final boolean failureIsExpected = a.equals(INVALID_G1_POINT_NOT_ON_CURVE) || b.equals(INVALID_G1_POINT_NOT_ON_CURVE);
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
       assertEquals(failureIsExpected, blsdata.blsDataOperation().mext());
       assertEquals(failureIsExpected, !blsdata.blsDataOperation().successBit());
@@ -95,8 +95,6 @@ public class BlsG1AddTest extends TracerTestBase {
         arguments.add(Arguments.of(a, b));
       }
     }
-    arguments.clear();
-    arguments.add(Arguments.of(G1_POINT_NOT_IN_SUBGROUP, G1_POINT_NOT_IN_SUBGROUP));
     return arguments.stream();
   }
 }

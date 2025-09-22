@@ -92,8 +92,8 @@ public class BlsG1MsmTest extends TracerTestBase {
       final boolean failureIsExpected =
           smallPoints.stream().anyMatch(p -> !p.equals(VALID_G1_POINT));
       final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
-      assertEquals(blsdata.blsDataOperation().mext(), failureIsExpected);
-      assertEquals(blsdata.blsDataOperation().successBit(), failureIsExpected);
+      assertEquals(failureIsExpected, blsdata.blsDataOperation().mext());
+      assertEquals(failureIsExpected, !blsdata.blsDataOperation().successBit());
     }
   }
 

@@ -119,7 +119,7 @@ public class AllScenariiInitCodeTests extends TracerTestBase {
 
     // 1 in scenario 1
     // 1 in scenario 3
-    logsTopicMap.put(callMyselfFail, List.of(2, 0));
+    logsTopicMap.put(callMyselfFailEvent, List.of(2, 0));
     // 1 in scenario 2
     logsTopicMap.put(staticCallMyselfFailEvent, List.of(1, 0));
     // 1 in scenario 4
@@ -219,7 +219,7 @@ public class AllScenariiInitCodeTests extends TracerTestBase {
     List<Integer> txStatuses = List.of(1, 1);
 
     // 1 in call to scenario 3
-    logsTopicMap.put(callMyselfFail, List.of(1, 0));
+    logsTopicMap.put(callMyselfFailEvent, List.of(1, 0));
     // 1 in scenario 4
     logsTopicMap.put(contractCreatedEvent, List.of(1, 1));
     logsTopicMap.put(callCreate2WithInitCodeC_noValue_Event, List.of(1, 0));

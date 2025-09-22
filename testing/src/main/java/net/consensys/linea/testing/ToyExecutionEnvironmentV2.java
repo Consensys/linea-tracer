@@ -16,8 +16,10 @@
 package net.consensys.linea.testing;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.reporting.TracerTestBase.chainConfig;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Fork.LONDON;
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.Trace.LINEA_BASE_FEE;
 import static net.consensys.linea.zktracer.container.module.IncrementAndDetectModule.ERROR_MESSAGE_TRIED_TO_COMMIT_UNPROVABLE_TX;
 
@@ -34,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.zktracer.ChainConfig;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.hub.Hub;
 import org.hyperledger.besu.datatypes.*;
 import org.hyperledger.besu.ethereum.core.*;
@@ -108,6 +111,47 @@ public class ToyExecutionEnvironmentV2 {
             transactionProcessingResultValidator,
             zkTracerValidator,
             testInfo);
+
+        if (isPostCancun(tracer.getHub().fork)) {
+          // This is to check that the light counter is really counting more than the full tracer
+          final ZkTracer tracer = this.tracer;
+
+          final Map<String, Integer> tracerCount = tracer.getModulesLineCount();
+
+          final ToyExecutionEnvironmentV2 copyEnvironment =
+              ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
+                  .transactionProcessingResultValidator(
+                      TransactionProcessingResultValidator.EMPTY_VALIDATOR)
+                  .accounts(accounts)
+                  .zkTracerValidator(zkTracerValidator)
+                  .transactions(transactions)
+                  .build();
+          copyEnvironment.runForCounting();
+          final Map<String, Integer> lightCounterCount =
+              copyEnvironment.zkCounter.getModulesLineCount();
+
+          final List<String> moduleToCheck =
+              copyEnvironment.zkCounter.checkedModules().stream().map(Module::moduleKey).toList();
+
+          for (String module : moduleToCheck) {
+            checkArgument(
+                tracerCount.get(module) <= lightCounterCount.get(module),
+                "Module "
+                    + module
+                    + " has more lines in full tracer: "
+                    + tracerCount.get(module)
+                    + " than in light counter: "
+                    + lightCounterCount.get(module));
+            checkArgument(
+                lightCounterCount.get(module) <= 2 * tracerCount.get(module),
+                "Module "
+                    + module
+                    + " has more than twice line counts in light tracer: "
+                    + lightCounterCount.get(module)
+                    + " than in full counter: "
+                    + tracerCount.get(module));
+          }
+        }
       } catch (Exception e) {
         // Tmp: we ignore this error, as BLS precompiles are excluded in prod, but not in test
         checkArgument(

@@ -24,8 +24,7 @@ import static net.consensys.linea.zktracer.module.hub.precompiles.ModexpMetadata
 import static net.consensys.linea.zktracer.types.AddressUtils.BLS_PRECOMPILES;
 import static net.consensys.linea.zktracer.types.AddressUtils.isBlsPrecompileCall;
 import static org.hyperledger.besu.datatypes.Address.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +33,8 @@ import java.util.stream.Stream;
 
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.*;
+import net.consensys.linea.zktracer.ZkCounter;
+import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.module.ModuleName;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -50,6 +51,38 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 public class ZkCounterTest extends TracerTestBase {
+
+  @Test
+  void checkedAndUncheckedAreExclusive() {
+    final ZkCounter counter = new ZkCounter(chainConfig.bridgeConfiguration);
+    final List<Module> allModules = counter.getModulesToCount();
+    final List<Module> checked = counter.checkedModules();
+    final List<Module> unchecked = counter.uncheckedModules();
+
+    for (Module m : checked) {
+      assertFalse(
+          unchecked.contains(m),
+          "Module " + m.moduleKey() + " is in both checked and unchecked list");
+      assertTrue(
+          allModules.contains(m),
+          "Module " + m.moduleKey() + " is in checked but not in all modules list");
+    }
+
+    for (Module m : unchecked) {
+      assertFalse(
+          checked.contains(m),
+          "Module " + m.moduleKey() + " is in both checked and unchecked list");
+      assertTrue(
+          allModules.contains(m),
+          "Module " + m.moduleKey() + " is in checked but not in all modules list");
+    }
+
+    for (Module m : allModules) {
+      assertTrue(
+          checked.contains(m) || unchecked.contains(m),
+          "Module " + m.moduleKey() + " is in all modules but not in checked or unchecked list");
+    }
+  }
 
   @Test
   void twoSuccessfullL2l1Logs(TestInfo testInfo) {
@@ -107,17 +140,17 @@ public class ZkCounterTest extends TracerTestBase {
     final Map<String, Integer> lineCountMap = toyWorld.getZkCounter().getModulesLineCount();
 
     // We made two LOGs, one with 1 topic, and one with 4 topics and data
-    assertEquals(2, lineCountMap.get("BLOCK_L2_L1_LOGS"));
+    assertEquals(2, lineCountMap.get(BLOCK_L2_L1_LOGS.toString()));
 
     // no precompile call:
     assertEquals(0, lineCountMap.get(ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
     assertEquals(0, lineCountMap.get(PRECOMPILE_RIPEMD_BLOCKS.toString()));
     assertEquals(0, lineCountMap.get(PRECOMPILE_BLAKE_EFFECTIVE_CALLS.toString()));
-    assertEquals(0, lineCountMap.get("POINT_EVAL"));
-    assertEquals(0, lineCountMap.get("BLS"));
+    assertEquals(0, lineCountMap.get(POINT_EVAL.toString()));
+    assertEquals(0, lineCountMap.get(BLS.toString()));
 
     // L1 block size > 0
-    assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);
+    assertTrue(lineCountMap.get(BLOCK_L1_SIZE.toString()) > 0);
   }
 
   @Test
@@ -205,7 +238,7 @@ public class ZkCounterTest extends TracerTestBase {
     final Map<String, Integer> lineCountMap = toyWorld.getZkCounter().getModulesLineCount();
 
     // We made a reverted LOG, LOG with wrong address, and LOG with TOPIC at the wrong place
-    assertEquals(0, lineCountMap.get("BLOCK_L2_L1_LOGS"));
+    assertEquals(0, lineCountMap.get(BLOCK_L2_L1_LOGS.toString()));
 
     // no precompile call:
     assertEquals(0, lineCountMap.get(ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
@@ -215,7 +248,7 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(0, lineCountMap.get(BLS.toString()));
 
     // L1 block size > 0
-    assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);
+    assertTrue(lineCountMap.get(BLOCK_L1_SIZE.toString()) > 0);
   }
 
   @ParameterizedTest
@@ -272,7 +305,7 @@ public class ZkCounterTest extends TracerTestBase {
     final Map<String, Integer> lineCountMap = toyWorld.getZkCounter().getModulesLineCount();
 
     // no LOG
-    assertEquals(0, lineCountMap.get("BLOCK_L2_L1_LOGS"));
+    assertEquals(0, lineCountMap.get(BLOCK_L2_L1_LOGS.toString()));
 
     // no precompile call, but a PRC:
     assertEquals(0, lineCountMap.get(ModuleName.PRECOMPILE_MODEXP_EFFECTIVE_CALLS.toString()));
@@ -284,7 +317,7 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(0, lineCountMap.get(BLS.toString()));
 
     // L1 block size > 0
-    assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);
+    assertTrue(lineCountMap.get(BLOCK_L1_SIZE.toString()) > 0);
   }
 
   private static Stream<Arguments> ripBlakeInput() {
@@ -361,7 +394,7 @@ public class ZkCounterTest extends TracerTestBase {
     final Map<String, Integer> lineCountMap = toyWorld.getZkCounter().getModulesLineCount();
 
     // no LOG
-    assertEquals(0, lineCountMap.get("BLOCK_L2_L1_LOGS"));
+    assertEquals(0, lineCountMap.get(BLOCK_L2_L1_LOGS.toString()));
 
     // no precompile call, but a MODEXP:
     assertEquals(
@@ -373,7 +406,7 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(0, lineCountMap.get(BLS.toString()));
 
     // L1 block size > 0
-    assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);
+    assertTrue(lineCountMap.get(BLOCK_L1_SIZE.toString()) > 0);
   }
 
   private static Stream<Arguments> modexpInput() {
@@ -451,7 +484,7 @@ public class ZkCounterTest extends TracerTestBase {
     final Map<String, Integer> lineCountMap = toyWorld.getZkCounter().getModulesLineCount();
 
     // no LOG
-    assertEquals(0, lineCountMap.get("BLOCK_L2_L1_LOGS"));
+    assertEquals(0, lineCountMap.get(BLOCK_L2_L1_LOGS.toString()));
 
     final boolean isKzgCall = prc.equals(KZG_POINT_EVAL) && isPostCancun(chainConfig.fork);
     final boolean isBlsCall = isBlsPrecompileCall(prc, chainConfig.fork);
@@ -464,6 +497,6 @@ public class ZkCounterTest extends TracerTestBase {
     assertEquals(isBlsCall ? Integer.MAX_VALUE : 0, lineCountMap.get(BLS.toString()));
 
     // L1 block size > 0
-    assertTrue(lineCountMap.get("BLOCK_L1_SIZE") > 0);
+    assertTrue(lineCountMap.get(BLOCK_L1_SIZE.toString()) > 0);
   }
 }

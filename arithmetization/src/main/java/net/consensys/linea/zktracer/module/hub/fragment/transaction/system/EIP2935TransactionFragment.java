@@ -23,14 +23,16 @@ import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class EIP2935TransactionFragment extends SystemTransactionFragment {
-    final long previousBlockNumber;
+  final long previousBlockNumber;
   final short previousBlockNumberModulo;
   final Bytes32 blockhash;
   final boolean isGenesisBlock;
 
   public EIP2935TransactionFragment(
-          long previousBlockNumber,
-      short previousBlockNumberModulo, Bytes32 blockhash, boolean isGenesisBlock) {
+      long previousBlockNumber,
+      short previousBlockNumberModulo,
+      Bytes32 blockhash,
+      boolean isGenesisBlock) {
     super(SYSI_EIP_2935_HISTORICAL_HASH);
     this.previousBlockNumber = previousBlockNumber;
     this.previousBlockNumberModulo = previousBlockNumberModulo;

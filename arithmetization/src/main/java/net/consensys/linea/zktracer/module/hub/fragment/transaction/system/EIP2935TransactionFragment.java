@@ -19,16 +19,20 @@ import static net.consensys.linea.zktracer.Trace.LLARGE;
 import static net.consensys.linea.zktracer.module.hub.fragment.transaction.system.SystemTransactionType.SYSI_EIP_2935_HISTORICAL_HASH;
 
 import net.consensys.linea.zktracer.Trace;
+import org.apache.tuweni.bytes.Bytes;
 import org.apache.tuweni.bytes.Bytes32;
 
 public class EIP2935TransactionFragment extends SystemTransactionFragment {
+    final long previousBlockNumber;
   final short previousBlockNumberModulo;
   final Bytes32 blockhash;
   final boolean isGenesisBlock;
 
   public EIP2935TransactionFragment(
+          long previousBlockNumber,
       short previousBlockNumberModulo, Bytes32 blockhash, boolean isGenesisBlock) {
     super(SYSI_EIP_2935_HISTORICAL_HASH);
+    this.previousBlockNumber = previousBlockNumber;
     this.previousBlockNumberModulo = previousBlockNumberModulo;
     this.blockhash = blockhash;
     this.isGenesisBlock = isGenesisBlock;
@@ -39,6 +43,7 @@ public class EIP2935TransactionFragment extends SystemTransactionFragment {
     super.trace(trace);
     return trace
         .pTransactionEip2935(true)
+        .pTransactionSystTxnData1(Bytes.ofUnsignedLong(previousBlockNumber))
         .pTransactionSystTxnData2(previousBlockNumberModulo)
         .pTransactionSystTxnData3(blockhash.slice(0, LLARGE))
         .pTransactionSystTxnData4(blockhash.slice(LLARGE, LLARGE))

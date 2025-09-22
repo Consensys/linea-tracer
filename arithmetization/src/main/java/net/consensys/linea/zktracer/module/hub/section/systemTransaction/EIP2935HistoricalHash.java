@@ -47,18 +47,20 @@ public class EIP2935HistoricalHash extends TraceSection {
 
   public EIP2935HistoricalHash(final Hub hub, WorldView world, ProcessableBlockHeader blockHeader) {
     super(hub, (short) 4);
-    final boolean currentBlockIsGenesis = blockHeader.getNumber() == 0;
-    final short previousBlockNumberModulo =
-        currentBlockIsGenesis ? 0 : (short) ((blockHeader.getNumber() - 1) % HISTORY_SERVE_WINDOW);
+    final long blockNumber = blockHeader.getNumber();
+    final boolean currentBlockIsGenesis = blockNumber == 0;
+    final long previousBlockNumber = currentBlockIsGenesis ? 0 : blockNumber - 1;
+    final short previousBlockNumberModulo = (short) (previousBlockNumber % HISTORY_SERVE_WINDOW);
     final AccountSnapshot blockhashHistoryAccount =
         AccountSnapshot.canonical(hub, world, EIP2935_HISTORY_STORAGE_ADDRESS, false);
     final boolean isNonTrivialOperation =
         !currentBlockIsGenesis && !blockhashHistoryAccount.code().isEmpty();
 
-    final Bytes32 blockhash = isNonTrivialOperation ? blockHeader.getParentHash() : Bytes32.ZERO;
+    final Bytes32 blockhash = currentBlockIsGenesis ? Bytes32.ZERO : blockHeader.getParentHash();
 
     final EIP2935TransactionFragment transactionFragment =
-        new EIP2935TransactionFragment(previousBlockNumberModulo, blockhash, currentBlockIsGenesis);
+        new EIP2935TransactionFragment(
+            previousBlockNumber, previousBlockNumberModulo, blockhash, currentBlockIsGenesis);
     fragments().add(transactionFragment);
     hub.txnData().callTxnDataForSystemTransaction(transactionFragment.type());
 

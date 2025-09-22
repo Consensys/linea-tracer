@@ -82,7 +82,7 @@ public class Scenario2UnitTests extends TracerTestBase {
 
     // Tx logs to check in validator
     // 1 from scenario 1 nested
-    logsTopicMap.put(callMyselfFail, List.of(1));
+    logsTopicMap.put(callMyselfFailEvent, List.of(1));
     // 1 from scenario 2's static call
     logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
 

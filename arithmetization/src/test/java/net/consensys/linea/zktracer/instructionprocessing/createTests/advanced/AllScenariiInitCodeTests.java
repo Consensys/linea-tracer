@@ -61,6 +61,35 @@ In this test, we test Scenario 1 to 5 in two ways
 - we trigger nested Calls going from Scenario 5 to 1, with 1 being executed first
 The 5 scenarii are unit tested in separate tests for clarity and ease of debugging
 
+When Triggered from root context, in one transaction
+
+      - (1) Scenario 1
+              CALL
+             -------->  - create2 four times
+      - (2) Scenario 2
+             STATICCALL
+           -------------->  - CREATE2
+      - (3) Scenario 3
+              CALL
+             -------->  - create2 within create2
+      - (4) Scenario 4
+              CALL
+             -------->  - create2 after create2
+      - (5) Scenario 5
+              CALLC
+             --------> - Modify storage
+              CALLC
+             --------> - Self-destruct
+
+When Nested
+
+       CALL            CALL               CALL               CALL               CALL
+     --------> - (0) -------> Scenario4 -------> Scenario3 -------> Scenario2 -------> Scenario1
+       CALLC
+     -------->  - (1) Modify storage
+       CALLC
+     -------->  - (2) Self-destruct
+
  */
 
 @Slf4j

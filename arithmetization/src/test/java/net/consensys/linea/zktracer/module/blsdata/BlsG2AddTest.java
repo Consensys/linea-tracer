@@ -57,7 +57,7 @@ public class BlsG2AddTest extends TracerTestBase {
             .balance(Wei.of(0))
             .nonce(1)
             .address(codeOwnerAddress)
-            .code(Bytes.concatenate(Bytes.fromHexString(a), Bytes.fromHexString(b)))
+            .code(input)
             .build();
 
     // First place the parameters in memory
@@ -80,7 +80,7 @@ public class BlsG2AddTest extends TracerTestBase {
         .push(Bytes.fromHexStringLenient("0xFFFFFFFF")) // gas
         .op(OpCode.STATICCALL);
     final BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
-    bytecodeRunner.run(chainConfig, testInfo);
+    bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
 
     if (isPostPrague(fork)) {
       final boolean failureIsExpected = a.equals(INVALID_G2_POINT_NOT_ON_CURVE) || b.equals(INVALID_G2_POINT_NOT_ON_CURVE);

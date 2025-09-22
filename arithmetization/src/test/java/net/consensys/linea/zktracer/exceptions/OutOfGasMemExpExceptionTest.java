@@ -17,6 +17,7 @@ package net.consensys.linea.zktracer.exceptions;
 
 import static net.consensys.linea.zktracer.exceptions.ExceptionUtils.*;
 import static net.consensys.linea.zktracer.module.hub.signals.TracedException.OUT_OF_GAS_EXCEPTION;
+import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
@@ -122,13 +123,12 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
   void outOfGasExceptionCallDataCopy(int cornerCase, TestInfo testInfo) {
     BytecodeCompiler program = BytecodeCompiler.newProgram(chainConfig);
 
-    Bytes calldata =
-        Bytes.fromHexString("0x7FFFFFFFFFFFFF00FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF");
+    Bytes calldata = Bytes.fromHexString("0x");
     program
-        .push(31) // size
+        .push(31)
         .push(1) // offset
         .push(2) // offset, trigger mem expansion
-        .op(OpCode.CALLDATACOPY);
+        .op(CALLDATACOPY);
 
     Bytes pgCompile = program.compile();
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(pgCompile);

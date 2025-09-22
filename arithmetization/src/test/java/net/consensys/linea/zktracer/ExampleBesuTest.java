@@ -120,7 +120,8 @@ public class ExampleBesuTest extends TracerTestBase {
         .transactions(transactions)
         .runWithBesuNode(true)
         .oneTxPerBlockOnBesuNode(true)
-        .customBesuNodeGenesis("BesuExecutionToolsGenesis_ParisToCancun.json")
+        .customBesuNodeGenesis(
+            "BesuExecutionToolsGenesis_ParisToCancun.json") /* Block 0 has totalDifficulty at 1, so TTD is set to 1 in genesis to have Block 1 on Paris fork */
         .build()
         .run();
   }
@@ -159,7 +160,8 @@ public class ExampleBesuTest extends TracerTestBase {
         .transactions(transactions)
         .runWithBesuNode(true)
         .oneTxPerBlockOnBesuNode(true)
-        .customBesuNodeGenesis("BesuExecutionToolsGenesis_LondonToParis.json")
+        .customBesuNodeGenesis(
+            "BesuExecutionToolsGenesis_LondonToParis.json") /* Block 0 has totalDifficulty at 1 and increases by 2, so TTD is set to 3 in genesis to have Block 1 on London fork, and Block 1 on Paris fork */
         .build()
         .run();
   }

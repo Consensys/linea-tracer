@@ -22,32 +22,32 @@ import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 public interface OperationSetWithAdditionalRowsModule<E extends ModuleOperation>
     extends OperationSetModule<E> {
 
-  CountOnlyOperation additionalRows = new CountOnlyOperation();
+  CountOnlyOperation additionalRows();
 
   default void updateTally(int count) {
-    additionalRows.add(count);
+    additionalRows().add(count);
   }
 
   @Override
   default void commitTransactionBundle() {
     operations().commitTransactionBundle();
-    additionalRows.commitTransactionBundle();
+    additionalRows().commitTransactionBundle();
   }
 
   @Override
   default void popTransactionBundle() {
     operations().popTransactionBundle();
-    additionalRows.popTransactionBundle();
+    additionalRows().popTransactionBundle();
   }
 
   @Override
   default int lineCount() {
-    return operations().lineCount() + additionalRows.lineCount();
+    return operations().lineCount() + additionalRows().lineCount();
   }
 
   @Override
   default void commit(Trace trace) {
-    assert additionalRows.lineCount() == 0
+    assert additionalRows().lineCount() == 0
         : "Additional rows should be 0 when committing module " + this.moduleKey();
   }
 }

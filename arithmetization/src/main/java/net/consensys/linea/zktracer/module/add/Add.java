@@ -27,6 +27,7 @@ import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
 import net.consensys.linea.zktracer.container.module.OperationSetWithAdditionalRowsModule;
+import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -40,6 +41,8 @@ public class Add implements OperationSetWithAdditionalRowsModule<AddOperation> {
 
   protected final ModuleOperationStackedSet<AddOperation> operations =
       new ModuleOperationStackedSet<>();
+
+  private final CountOnlyOperation additionalRows = new CountOnlyOperation();
 
   @Override
   public String moduleKey() {

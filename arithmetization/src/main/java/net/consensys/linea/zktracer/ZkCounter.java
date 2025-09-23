@@ -554,10 +554,7 @@ public class ZkCounter implements LineCountingTracer {
       }
       case JUMP -> {
         hub.updateTally(NB_ROWS_HUB_JUMP);
-        oob.updateTally(
-            opcode.mnemonic() == JUMPI
-                ? NB_ROWS_OOB_JUMPI
-                : NB_ROWS_OOB_JUMP); // TODO: rm duplicates
+        oob.updateTally(opcode.mnemonic() == JUMPI ? NB_ROWS_OOB_JUMPI : NB_ROWS_OOB_JUMP);
       }
       case CREATE -> {
         // ROM
@@ -596,7 +593,7 @@ public class ZkCounter implements LineCountingTracer {
   @Override
   public void traceAccountCreationResult(
       final MessageFrame frame, final Optional<ExceptionalHaltReason> haltReason) {
-    // TODO: do the stuff from RETURN section, unexceptional RETURN_FROM_DEPLOYMENT case
+    keccak.updateTally(frame.getCreatedCode().getSize());
   }
 
   @Override

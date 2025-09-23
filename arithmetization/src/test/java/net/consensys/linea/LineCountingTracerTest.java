@@ -59,7 +59,7 @@ public class LineCountingTracerTest extends TracerTestBase {
 
     for (Fork fork : Fork.values()) {
       if (forkNotSupported(fork)) {
-        return;
+        continue;
       }
       final ChainConfig config = MAINNET_TESTCONFIG(fork);
       final ZkTracer tracer = new ZkTracer(config);

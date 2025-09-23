@@ -139,7 +139,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
     program
         .push(31) // size
         .push(1) // offset in call data
-        .push(6848 + 2) // offset, trigger mem expansion
+        .push(6848 + 2) // offset in RAM, triggers memory expansion
         .op(CALLDATACOPY);
 
     Bytes pgCompile = program.compile();

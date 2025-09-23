@@ -137,7 +137,7 @@ contract CustomCreate2 is TestingBase {
             callMyself(
                 abi.encodeWithSignature("create2CallC_withRevertTrigger(bool,bool)", true, true),
                 false,
-                9000000
+                1000000
             );
         }
         address addC = deployWithCreate2_withValueNoRevert(salt, initCodeC, 0);

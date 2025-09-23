@@ -111,7 +111,7 @@ public class ScenarioUtils {
       CustomCreate2Payload.create2CallC_withRevertTrigger(true, false);
   public static final Bytes callMyselfWithCreate2CallC_withRevertAndNested =
       CustomCreate2Payload.callMyself(
-          CustomCreate2Payload.create2CallC_withRevertTrigger(true, true), false, 9000000);
+          CustomCreate2Payload.create2CallC_withRevertTrigger(true, true), false, 1000000);
 
   // For Scenario 4 Unit tests
   public static final Bytes create2WithCallCtoCallback_noValue =

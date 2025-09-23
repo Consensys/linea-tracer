@@ -125,7 +125,7 @@ public class OutOfGasMemExpExceptionTest extends TracerTestBase {
 
     Bytes calldata = Bytes.fromHexString("0x");
     program
-        .push(31)
+        .push(31) // size
         .push(1) // offset
         .push(2) // offset, trigger mem expansion
         .op(CALLDATACOPY);

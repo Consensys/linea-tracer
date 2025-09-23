@@ -50,17 +50,21 @@ public class EIP2935HistoricalHash extends TraceSection {
     final long blockNumber = blockHeader.getNumber();
     final boolean currentBlockIsGenesis = blockNumber == 0;
     final long previousBlockNumber = currentBlockIsGenesis ? 0 : blockNumber - 1;
-    final short previousBlockNumberModulo = (short) (previousBlockNumber % HISTORY_SERVE_WINDOW);
+    final short previousBlockNumberMod8191 = (short) (previousBlockNumber % HISTORY_SERVE_WINDOW);
     final AccountSnapshot blockhashHistoryAccount =
         AccountSnapshot.canonical(hub, world, EIP2935_HISTORY_STORAGE_ADDRESS, false);
     final boolean isNonTrivialOperation =
         !currentBlockIsGenesis && !blockhashHistoryAccount.code().isEmpty();
 
-    final Bytes32 blockhash = currentBlockIsGenesis ? Bytes32.ZERO : blockHeader.getParentHash();
+    final Bytes32 previousBlockhashOrZero =
+        currentBlockIsGenesis ? Bytes32.ZERO : blockHeader.getParentHash();
 
     final EIP2935TransactionFragment transactionFragment =
         new EIP2935TransactionFragment(
-            previousBlockNumber, previousBlockNumberModulo, blockhash, currentBlockIsGenesis);
+            previousBlockNumber,
+            previousBlockNumberMod8191,
+            previousBlockhashOrZero,
+            currentBlockIsGenesis);
     fragments().add(transactionFragment);
     hub.txnData().callTxnDataForSystemTransaction(transactionFragment.type());
 
@@ -76,7 +80,7 @@ public class EIP2935HistoricalHash extends TraceSection {
     fragments().add(accountFragment);
 
     if (isNonTrivialOperation) {
-      final EWord key = EWord.of(previousBlockNumberModulo);
+      final EWord key = EWord.of(previousBlockNumberMod8191);
       final StorageFragment storingBlockhash =
           systemTransactionStoring(
               hub,
@@ -86,7 +90,7 @@ public class EIP2935HistoricalHash extends TraceSection {
                   world
                       .get(EIP2935_HISTORY_STORAGE_ADDRESS)
                       .getStorageValue(UInt256.fromBytes(key))),
-              EWord.of(blockhash),
+              EWord.of(previousBlockhashOrZero),
               2);
       fragments().add(storingBlockhash);
     }

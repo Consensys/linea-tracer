@@ -24,19 +24,19 @@ import org.apache.tuweni.bytes.Bytes32;
 
 public class EIP2935TransactionFragment extends SystemTransactionFragment {
   final long previousBlockNumber;
-  final short previousBlockNumberModulo;
-  final Bytes32 blockhash;
+  final short previousBlockNumberMod8191;
+  final Bytes32 previousBlockhashOrZero;
   final boolean isGenesisBlock;
 
   public EIP2935TransactionFragment(
       long previousBlockNumber,
-      short previousBlockNumberModulo,
-      Bytes32 blockhash,
+      short previousBlockNumberMod8191,
+      Bytes32 previousBlockhashOrZero,
       boolean isGenesisBlock) {
     super(SYSI_EIP_2935_HISTORICAL_HASH);
     this.previousBlockNumber = previousBlockNumber;
-    this.previousBlockNumberModulo = previousBlockNumberModulo;
-    this.blockhash = blockhash;
+    this.previousBlockNumberMod8191 = previousBlockNumberMod8191;
+    this.previousBlockhashOrZero = previousBlockhashOrZero;
     this.isGenesisBlock = isGenesisBlock;
   }
 
@@ -46,9 +46,9 @@ public class EIP2935TransactionFragment extends SystemTransactionFragment {
     return trace
         .pTransactionEip2935(true)
         .pTransactionSystTxnData1(Bytes.ofUnsignedLong(previousBlockNumber))
-        .pTransactionSystTxnData2(previousBlockNumberModulo)
-        .pTransactionSystTxnData3(blockhash.slice(0, LLARGE))
-        .pTransactionSystTxnData4(blockhash.slice(LLARGE, LLARGE))
+        .pTransactionSystTxnData2(previousBlockNumberMod8191)
+        .pTransactionSystTxnData3(previousBlockhashOrZero.slice(0, LLARGE))
+        .pTransactionSystTxnData4(previousBlockhashOrZero.slice(LLARGE, LLARGE))
         .pTransactionSystTxnData5(isGenesisBlock);
   }
 }

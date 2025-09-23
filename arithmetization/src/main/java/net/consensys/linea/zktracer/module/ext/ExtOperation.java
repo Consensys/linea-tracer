@@ -36,7 +36,7 @@ import org.apache.tuweni.units.bigints.UInt256;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class ExtOperation extends ModuleOperation {
 
-  public static final short NBROWS_EXT = MMEDIUM;
+  public static final short NB_ROWS_EXT = MMEDIUM;
 
   @EqualsAndHashCode.Include @Getter private final OpCode opCode;
   @EqualsAndHashCode.Include @Getter private final BaseBytes arg1;
@@ -124,7 +124,7 @@ public class ExtOperation extends ModuleOperation {
   }
 
   private int numberOfRows() {
-    return isOneLineInstruction ? 1 : NBROWS_EXT;
+    return isOneLineInstruction ? 1 : NB_ROWS_EXT;
   }
 
   @Override

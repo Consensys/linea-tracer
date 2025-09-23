@@ -55,7 +55,7 @@ public abstract class SelfdestructSection extends TraceSection
         EndTransactionDefer,
         AfterTransactionFinalizationDefer {
 
-  public static final short NBROWS_HUB_SELFDESTRUCT = 8; // up to 8 = 1 + 7 rows
+  public static final short NB_ROWS_HUB_SELFDESTRUCT = 8; // up to 8 = 1 + 7 rows
 
   final int id;
   final int hubStamp;
@@ -78,7 +78,7 @@ public abstract class SelfdestructSection extends TraceSection
   ContextFragment finalUnexceptionalContextFragment;
 
   public SelfdestructSection(Hub hub, MessageFrame frame) {
-    super(hub, NBROWS_HUB_SELFDESTRUCT);
+    super(hub, NB_ROWS_HUB_SELFDESTRUCT);
 
     // Init
     id = hub.currentFrame().id();

@@ -32,10 +32,10 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class CodeCopySection extends TraceSection {
 
-  public static final short NBROWS_HUB_CODE_COPY = 4; // 4 = 1 + 3
+  public static final short NB_ROWS_HUB_CODE_COPY = 4; // 4 = 1 + 3
 
   public CodeCopySection(Hub hub) {
-    super(hub, NBROWS_HUB_CODE_COPY);
+    super(hub, NB_ROWS_HUB_CODE_COPY);
 
     // Miscellaneous row
     final ImcFragment imcFragment = ImcFragment.empty(hub);

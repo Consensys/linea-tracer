@@ -28,10 +28,10 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class CallDataLoadSection extends TraceSection {
 
-  public static final short NROWS_HUB_CALLDATALOAD = 4;
+  public static final short NB_ROWS_HUB_CALLDATALOAD = 4;
 
   public CallDataLoadSection(Hub hub) {
-    super(hub, NROWS_HUB_CALLDATALOAD);
+    super(hub, NB_ROWS_HUB_CALLDATALOAD);
     this.addStack(hub);
 
     final short exception = hub.pch().exceptions();

@@ -18,10 +18,10 @@ package net.consensys.linea.zktracer.module.hub.section;
 import net.consensys.linea.zktracer.module.hub.Hub;
 
 public class StackOnlySection extends TraceSection {
-  public static final short NROWS_HUB_SIMPLE_STACK_OP = 1;
+  public static final short NB_ROWS_HUB_SIMPLE_STACK_OP = 1;
 
   public StackOnlySection(Hub hub) {
-    super(hub, NROWS_HUB_SIMPLE_STACK_OP);
+    super(hub, NB_ROWS_HUB_SIMPLE_STACK_OP);
 
     this.addStack(hub);
   }

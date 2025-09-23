@@ -39,7 +39,7 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class ExtCodeCopySection extends TraceSection implements PostRollbackDefer {
 
-  public static final short NBROWS_HUB_EXT_CODE_COPY = 4; // 4 = 1 + 3
+  public static final short NB_ROWS_HUB_EXT_CODE_COPY = 4; // 4 = 1 + 3
 
   final Bytes rawAddress;
   final Address address;
@@ -54,7 +54,7 @@ public class ExtCodeCopySection extends TraceSection implements PostRollbackDefe
   AccountSnapshot secondForeignNew;
 
   public ExtCodeCopySection(Hub hub, MessageFrame frame) {
-    super(hub, NBROWS_HUB_EXT_CODE_COPY);
+    super(hub, NB_ROWS_HUB_EXT_CODE_COPY);
 
     rawAddress = frame.getStackItem(0);
     address = Address.extract(Bytes32.leftPad(rawAddress));

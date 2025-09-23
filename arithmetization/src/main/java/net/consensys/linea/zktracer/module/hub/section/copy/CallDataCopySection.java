@@ -28,10 +28,10 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class CallDataCopySection extends TraceSection {
 
-  public static final short NBROWS_HUB_CALL_DATA_COPY = 3; // 3 = 1 + 2
+  public static final short NB_ROWS_HUB_CALL_DATA_COPY = 3; // 3 = 1 + 2
 
   public CallDataCopySection(Hub hub) {
-    super(hub, NBROWS_HUB_CALL_DATA_COPY);
+    super(hub, NB_ROWS_HUB_CALL_DATA_COPY);
 
     final ImcFragment imcFragment = ImcFragment.empty(hub);
     this.addStack(hub);

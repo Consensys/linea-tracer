@@ -15,7 +15,6 @@
 
 package net.consensys.linea.zktracer.module.add;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.opcode.OpCode.ADD;
 import static net.consensys.linea.zktracer.opcode.OpCode.SUB;
 
@@ -27,8 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
 import net.consensys.linea.zktracer.container.module.Module;
-import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.container.module.OperationSetWithAdditionalRowsModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -38,16 +36,14 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 @RequiredArgsConstructor
 @Getter
 @Accessors(fluent = true)
-public class Add implements OperationSetModule<AddOperation> {
+public class Add implements OperationSetWithAdditionalRowsModule<AddOperation> {
 
   protected final ModuleOperationStackedSet<AddOperation> operations =
       new ModuleOperationStackedSet<>();
 
-  public final CountOnlyOperation additionalRows = new CountOnlyOperation();
-
   @Override
   public String moduleKey() {
-    return "ADD";
+    return ADD.toString();
   }
 
   @Override
@@ -70,12 +66,9 @@ public class Add implements OperationSetModule<AddOperation> {
 
   @Override
   public void commit(Trace trace) {
-    checkArgument(
-        additionalRows.lineCount() == 0,
-        "OOB additionalRows should be 0 when used by the ZkTracer");
-    int stamp = 0;
+    OperationSetWithAdditionalRowsModule.super.commit(trace);
     for (AddOperation op : sortOperations(new AddOperation.Comparator())) {
-      op.trace(++stamp, trace.add());
+      op.trace(trace.add());
     }
   }
 
@@ -104,26 +97,5 @@ public class Add implements OperationSetModule<AddOperation> {
 
   protected void addOperation(OpCode opcode, Bytes32 arg1, Bytes32 arg2) {
     operations.add(new AddOperation(opcode, arg1, arg2));
-  }
-
-  @Override
-  public void commitTransactionBundle() {
-    operations().commitTransactionBundle();
-    additionalRows.commitTransactionBundle();
-  }
-
-  @Override
-  public void popTransactionBundle() {
-    operations().popTransactionBundle();
-    additionalRows.popTransactionBundle();
-  }
-
-  @Override
-  public int lineCount() {
-    return operations().lineCount() + additionalRows.lineCount();
-  }
-
-  public void updateTally(int count) {
-    additionalRows.add(count);
   }
 }

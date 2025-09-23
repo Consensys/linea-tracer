@@ -30,12 +30,12 @@ import org.hyperledger.besu.evm.operation.Operation;
 
 public class TLoadSection extends TraceSection implements PostOpcodeDefer {
 
-  public static final short NROWS_HUB_TLOAD = 3; // stack + con + trans
+  public static final short NB_ROWS_HUB_TLOAD = 3; // stack + con + trans
 
   final Bytes32 storageKey;
 
   public TLoadSection(Hub hub) {
-    super(hub, NROWS_HUB_TLOAD);
+    super(hub, NB_ROWS_HUB_TLOAD);
     final short exceptions = hub.pch().exceptions();
     final ContextFragment readCurrentContext = ContextFragment.readCurrentContextData(hub);
 

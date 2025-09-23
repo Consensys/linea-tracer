@@ -29,10 +29,10 @@ import net.consensys.linea.zktracer.module.hub.signals.Exceptions;
 
 public class ReturnDataCopySection extends TraceSection {
 
-  public static final short NBROWS_HUB_RETURN_DATA_COPY = 4; // 4 = 1 + 3
+  public static final short NB_ROWS_HUB_RETURN_DATA_COPY = 4; // 4 = 1 + 3
 
   public ReturnDataCopySection(Hub hub) {
-    super(hub, NBROWS_HUB_RETURN_DATA_COPY);
+    super(hub, NB_ROWS_HUB_RETURN_DATA_COPY);
 
     final ContextFragment currentContext = ContextFragment.readCurrentContextData(hub);
     final ImcFragment imcFragment = ImcFragment.empty(hub);

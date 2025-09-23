@@ -48,13 +48,13 @@ public class AccountSection extends TraceSection implements PostRollbackDefer {
   // for SELF ACCOUNT: 1 stack + 1 CON + 1 ACC
   // for EXT ACCOUNT: 1 stack + ACC + ACC (undo warmth if exception)
   // + 1 CON for all in case of exceptions
-  public static final short NROWS_HUB_ACCOUNT = 3;
+  public static final short NB_ROWS_HUB_ACCOUNT = 3;
   private static final List<OpCode> SELF_ACCOUNT_OPCODES = List.of(SELFBALANCE, CODESIZE);
   private static final List<OpCode> EXT_ACCOUNT_OPCODES =
       List.of(BALANCE, EXTCODESIZE, EXTCODEHASH);
 
   public AccountSection(Hub hub) {
-    super(hub, (short) (NROWS_HUB_ACCOUNT + (Exceptions.any(hub.pch().exceptions()) ? 1 : 0)));
+    super(hub, (short) (NB_ROWS_HUB_ACCOUNT + (Exceptions.any(hub.pch().exceptions()) ? 1 : 0)));
     hubStamp = hub.stamp();
     this.addStack(hub);
 

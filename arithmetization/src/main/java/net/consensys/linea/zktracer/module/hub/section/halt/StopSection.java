@@ -39,9 +39,9 @@ import org.hyperledger.besu.evm.worldstate.WorldView;
 
 public class StopSection extends TraceSection implements PostRollbackDefer, EndTransactionDefer {
 
-  public static final short NBROWS_HUB_STOP_MSG_CALL =
+  public static final short NB_ROWS_HUB_STOP_MSG_CALL =
       3; // 3 = 1 + max_NON_STACK_ROWS in message call case
-  public static final short NBROWS_HUB_STOP_DEPLOYMENT =
+  public static final short NB_ROWS_HUB_STOP_DEPLOYMENT =
       5; // 5 = 1 + max_NON_STACK_ROWS in deployment case
 
   final int hubStamp;
@@ -55,8 +55,8 @@ public class StopSection extends TraceSection implements PostRollbackDefer, EndT
     super(
         hub,
         hub.callStack().currentCallFrame().isMessageCall()
-            ? NBROWS_HUB_STOP_MSG_CALL
-            : NBROWS_HUB_STOP_DEPLOYMENT);
+            ? NB_ROWS_HUB_STOP_MSG_CALL
+            : NB_ROWS_HUB_STOP_DEPLOYMENT);
     final short exceptions = hub.pch().exceptions();
     checkArgument(
         Exceptions.none(exceptions),

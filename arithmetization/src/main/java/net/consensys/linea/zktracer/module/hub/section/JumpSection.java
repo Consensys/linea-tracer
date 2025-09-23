@@ -33,10 +33,10 @@ import org.hyperledger.besu.datatypes.Address;
 
 public class JumpSection extends TraceSection {
 
-  public static final short NBROWS_HUB_JUMP = 5; // 5 = 1 + 4
+  public static final short NB_ROWS_HUB_JUMP = 5; // 5 = 1 + 4
 
   public JumpSection(Hub hub) {
-    super(hub, NBROWS_HUB_JUMP);
+    super(hub, NB_ROWS_HUB_JUMP);
 
     this.addStackAndFragments(hub);
 

@@ -24,7 +24,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.container.module.OperationSetModule;
+import net.consensys.linea.zktracer.container.module.OperationSetWithAdditionalRowsModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes32;
@@ -32,13 +32,13 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @Getter
 @Accessors(fluent = true)
-public class Mod implements OperationSetModule<ModOperation> {
+public class Mod implements OperationSetWithAdditionalRowsModule<ModOperation> {
   private final ModuleOperationStackedSet<ModOperation> operations =
       new ModuleOperationStackedSet<>();
 
   @Override
   public String moduleKey() {
-    return "MOD";
+    return MOD.toString();
   }
 
   @Override

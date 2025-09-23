@@ -31,13 +31,13 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 public class RevertSection extends TraceSection {
 
-  public static final short NBROWS_HUB_REVERT = 4; // 4 = 1 + 3
+  public static final short NB_ROWS_HUB_REVERT = 4; // 4 = 1 + 3
 
   final ImcFragment imcFragment;
   MmuCall mmuCall;
 
   public RevertSection(Hub hub, MessageFrame frame) {
-    super(hub, NBROWS_HUB_REVERT);
+    super(hub, NB_ROWS_HUB_REVERT);
 
     short exceptions = hub.pch().exceptions();
 

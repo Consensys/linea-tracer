@@ -15,7 +15,7 @@
 
 package net.consensys.linea.zktracer.module.ext;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.zktracer.module.ModuleName.EXT;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 
 import java.util.List;
@@ -24,8 +24,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import net.consensys.linea.zktracer.Trace;
-import net.consensys.linea.zktracer.container.module.OperationSetModule;
-import net.consensys.linea.zktracer.container.stacked.CountOnlyOperation;
+import net.consensys.linea.zktracer.container.module.OperationSetWithAdditionalRowsModule;
 import net.consensys.linea.zktracer.container.stacked.ModuleOperationStackedSet;
 import net.consensys.linea.zktracer.opcode.OpCode;
 import org.apache.tuweni.bytes.Bytes;
@@ -34,17 +33,15 @@ import org.hyperledger.besu.evm.frame.MessageFrame;
 
 @RequiredArgsConstructor
 @Accessors(fluent = true)
-public class Ext implements OperationSetModule<ExtOperation> {
+public class Ext implements OperationSetWithAdditionalRowsModule<ExtOperation> {
 
   @Getter
   private final ModuleOperationStackedSet<ExtOperation> operations =
       new ModuleOperationStackedSet<>();
 
-  public final CountOnlyOperation additionalRows = new CountOnlyOperation();
-
   @Override
   public String moduleKey() {
-    return "EXT";
+    return EXT.toString();
   }
 
   @Override
@@ -89,33 +86,10 @@ public class Ext implements OperationSetModule<ExtOperation> {
 
   @Override
   public void commit(Trace trace) {
-    checkArgument(
-        additionalRows.lineCount() == 0,
-        "EXT additionalRows should be 0 when used by the ZkTracer");
+    OperationSetWithAdditionalRowsModule.super.commit(trace);
     int stamp = 0;
     for (ExtOperation operation : operations.sortOperations(new ExtOperationComparator())) {
       operation.trace(trace.ext(), ++stamp);
     }
-  }
-
-  @Override
-  public void commitTransactionBundle() {
-    operations().commitTransactionBundle();
-    additionalRows.commitTransactionBundle();
-  }
-
-  @Override
-  public void popTransactionBundle() {
-    operations().popTransactionBundle();
-    additionalRows.popTransactionBundle();
-  }
-
-  @Override
-  public int lineCount() {
-    return operations().lineCount() + additionalRows.lineCount();
-  }
-
-  public void updateTally(int count) {
-    additionalRows.add(count);
   }
 }

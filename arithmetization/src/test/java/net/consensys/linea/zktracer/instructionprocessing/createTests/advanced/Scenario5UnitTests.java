@@ -94,5 +94,8 @@ public class Scenario5UnitTests extends TracerTestBase {
             .transactionProcessingResultValidator(txValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    // 1 create2 + 1 Selfdestruct
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 2);
   }
 }

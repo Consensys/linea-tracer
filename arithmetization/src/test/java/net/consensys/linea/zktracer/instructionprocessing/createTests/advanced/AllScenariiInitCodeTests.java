@@ -16,7 +16,6 @@ package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +27,6 @@ import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.*;
 import net.consensys.linea.zktracer.instructionprocessing.utilities.SmartContractTestValidator;
 import org.apache.tuweni.bytes.Bytes;
-import org.hyperledger.besu.datatypes.Address;
 import org.hyperledger.besu.ethereum.core.Transaction;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -183,15 +181,7 @@ public class AllScenariiInitCodeTests extends TracerTestBase {
     // - Attempts a redeployment of ContractC at the same address as in transaction 1
     // - deploymentNumber = 5
 
-    int deploymentNumber =
-        toyExecutionEnvironmentV2
-            .getHub()
-            .transients()
-            .conflation()
-            .deploymentInfo()
-            .deploymentNumber(Address.fromHexString(expectedContractCAddress.toString()));
-    int expectedDeploymentNumber = 5;
-    assertEquals(expectedDeploymentNumber, deploymentNumber);
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 5);
   }
 
   /*
@@ -260,14 +250,7 @@ public class AllScenariiInitCodeTests extends TracerTestBase {
             .build();
     toyExecutionEnvironmentV2.run();
 
-    int deploymentNumber =
-        toyExecutionEnvironmentV2
-            .getHub()
-            .transients()
-            .conflation()
-            .deploymentInfo()
-            .deploymentNumber(Address.fromHexString(expectedContractCAddress.toString()));
-    int expectedDeploymentNumber = 5;
-    assertEquals(expectedDeploymentNumber, deploymentNumber);
+    // See explanation in test deployContractCWithCreate2ScenariiTriggeredFromRoot above
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 5);
   }
 }

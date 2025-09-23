@@ -109,6 +109,8 @@ public class Scenario1UnitTests extends TracerTestBase {
             .transactionProcessingResultValidator(txValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 1);
   }
 
   /*
@@ -147,6 +149,8 @@ public class Scenario1UnitTests extends TracerTestBase {
             .transactionProcessingResultValidator(txValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 1);
   }
 
   /*
@@ -187,5 +191,7 @@ public class Scenario1UnitTests extends TracerTestBase {
             .transactionProcessingResultValidator(txValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 1);
   }
 }

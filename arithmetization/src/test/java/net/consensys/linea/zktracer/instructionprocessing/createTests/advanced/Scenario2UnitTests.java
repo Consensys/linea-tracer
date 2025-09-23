@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
 import net.consensys.linea.reporting.TracerTestBase;
 import net.consensys.linea.testing.ToyExecutionEnvironmentV2;
 import net.consensys.linea.testing.TransactionProcessingResultValidator;
@@ -44,6 +45,7 @@ Attempt to static call a create2 deployment of ContractC
 
  */
 
+@Slf4j
 public class Scenario2UnitTests extends TracerTestBase {
 
   /*
@@ -79,6 +81,8 @@ public class Scenario2UnitTests extends TracerTestBase {
             .transactionProcessingResultValidator(txValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 0);
   }
 
   /*
@@ -92,14 +96,16 @@ public class Scenario2UnitTests extends TracerTestBase {
   void deployScenario2Nested(TestInfo testInfo) {
     Map<String, List<Integer>> logsTopicMap = new HashMap<>();
     // Tx status
-    List<Integer> txStatuses = List.of(1);
+    List<Integer> txStatuses = List.of(1, 1, 1);
 
     // Tx logs to check in validator
     // 1 from scenario 1 nested
-    logsTopicMap.put(callMyselfFailEvent, List.of(1));
+    logsTopicMap.put(callMyselfFailEvent, List.of(0, 0, 1));
     // 1 from scenario 2's static call
-    logsTopicMap.put(staticCallMyselfFailEvent, List.of(1));
+    logsTopicMap.put(staticCallMyselfFailEvent, List.of(0, 0, 1));
 
+    log.info("callMyselfFailEvent: {}", callMyselfFailEvent);
+    log.info("staticCallMyselfFailEvent: {}", staticCallMyselfFailEvent);
     // Instantiate validator
     TransactionProcessingResultValidator txValidator =
         new SmartContractTestValidator(txStatuses, logsTopicMap, new HashMap<>());
@@ -108,8 +114,8 @@ public class Scenario2UnitTests extends TracerTestBase {
         getTransactions(
             customCreate2Account,
             userAccount,
-            List.of(callMyselfWithCreate2WithStaticCall_nested),
-            List.of(2L));
+            List.of(storeInitCodeC, storeSalt, callMyselfWithCreate2WithStaticCall_nested),
+            List.of(0L, 0L, 2L));
 
     final ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2 =
         ToyExecutionEnvironmentV2.builder(chainConfig, testInfo)
@@ -118,5 +124,7 @@ public class Scenario2UnitTests extends TracerTestBase {
             .transactionProcessingResultValidator(txValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 1);
   }
 }

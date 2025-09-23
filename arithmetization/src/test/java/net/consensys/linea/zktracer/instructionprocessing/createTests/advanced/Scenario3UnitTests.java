@@ -105,6 +105,8 @@ public class Scenario3UnitTests extends TracerTestBase {
             .transactionProcessingResultValidator(txValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 1);
   }
 
   /*
@@ -147,6 +149,8 @@ public class Scenario3UnitTests extends TracerTestBase {
             .transactionProcessingResultValidator(txValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 1);
   }
 
   /*
@@ -186,5 +190,8 @@ public class Scenario3UnitTests extends TracerTestBase {
             .transactionProcessingResultValidator(create2OneTxValidator)
             .build();
     toyExecutionEnvironmentV2.run();
+
+    // 1 create2 reverted (scenario 1) and 1 create2 reverted (scenario 3)
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 2);
   }
 }

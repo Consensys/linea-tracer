@@ -16,14 +16,12 @@ package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.keyPair;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import net.consensys.linea.testing.SmartContractUtils;
-import net.consensys.linea.testing.ToyAccount;
-import net.consensys.linea.testing.ToyMultiTransaction;
-import net.consensys.linea.testing.ToyTransaction;
+import net.consensys.linea.testing.*;
 import net.consensys.linea.testing.generated.ContractC;
 import net.consensys.linea.testing.generated.CustomCreate2;
 import org.apache.tuweni.bytes.Bytes;
@@ -102,7 +100,7 @@ public class ScenarioUtils {
       CustomCreate2Payload.create2WithStaticCall(false);
   public static final Bytes callMyselfWithCreate2WithStaticCall_nested =
       CustomCreate2Payload.callMyself(
-          CustomCreate2Payload.create2WithStaticCall(true), false, 9000000);
+          CustomCreate2Payload.create2WithStaticCall(true), false, 3000000);
 
   // For Scenario 3 Unit tests
   public static final Bytes create2CallC_noRevert =
@@ -111,14 +109,14 @@ public class ScenarioUtils {
       CustomCreate2Payload.create2CallC_withRevertTrigger(true, false);
   public static final Bytes callMyselfWithCreate2CallC_withRevertAndNested =
       CustomCreate2Payload.callMyself(
-          CustomCreate2Payload.create2CallC_withRevertTrigger(true, true), false, 1000000);
+          CustomCreate2Payload.create2CallC_withRevertTrigger(true, true), false, 5000000);
 
   // For Scenario 4 Unit tests
   public static final Bytes create2WithCallCtoCallback_noValue =
       CustomCreate2Payload.create2WithCallCtoCallback_noValue(false);
   public static final Bytes callMyselfWithCreate2WithCallCtoCallback_noValueAndNested =
       CustomCreate2Payload.callMyself(
-          CustomCreate2Payload.create2WithCallCtoCallback_noValue(true), false, 9000000);
+          CustomCreate2Payload.create2WithCallCtoCallback_noValue(true), false, 7000000);
 
   // For Scenario 5 Unit tests
   public static final Bytes create2WithInitCodeC_withValue =
@@ -166,5 +164,18 @@ public class ScenarioUtils {
       builders.add(builder);
     }
     return ToyMultiTransaction.builder().build(builders, userAccount);
+  }
+
+  public static void assertDeploymentNumberContractC(
+      ToyExecutionEnvironmentV2 toyExecutionEnvironmentV2, int expectedDeploymentNumber) {
+    int deploymentNumber =
+        toyExecutionEnvironmentV2
+            .getHub()
+            .transients()
+            .conflation()
+            .deploymentInfo()
+            .deploymentNumber(Address.fromHexString(expectedContractCAddress.toString()));
+    assertEquals(
+        expectedDeploymentNumber, deploymentNumber, "Unexpected deployment number for ContractC");
   }
 }

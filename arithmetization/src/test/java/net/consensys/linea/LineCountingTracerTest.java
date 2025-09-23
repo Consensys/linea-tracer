@@ -16,15 +16,20 @@
 package net.consensys.linea;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static net.consensys.linea.testing.ToyExecutionEnvironmentV2.*;
 import static net.consensys.linea.zktracer.ChainConfig.MAINNET_TESTCONFIG;
 import static net.consensys.linea.zktracer.Fork.*;
 
 import java.util.List;
+import java.util.Optional;
 
 import net.consensys.linea.reporting.TracerTestBase;
+import net.consensys.linea.testing.ExecutionEnvironment;
 import net.consensys.linea.zktracer.ZkCounter;
 import net.consensys.linea.zktracer.ZkTracer;
 import net.consensys.linea.zktracer.container.module.Module;
+import org.hyperledger.besu.ethereum.core.BlockHeader;
+import org.hyperledger.besu.evm.worldstate.WorldView;
 import org.junit.jupiter.api.Test;
 
 public class LineCountingTracerTest extends TracerTestBase {
@@ -116,5 +121,28 @@ public class LineCountingTracerTest extends TracerTestBase {
       checkArgument(
           pragueTracer.contains(module), "Module " + module + " is in London but not in Prague");
     }
+  }
+
+  @Test
+  void startBlockStuffAreNotPopped() {
+    final WorldView world = WorldView.EMPTY;
+    final BlockHeader blockHeader =
+        ExecutionEnvironment.getLineaBlockHeaderBuilder(Optional.empty())
+            .number(DEFAULT_BLOCK_NUMBER)
+            .coinbase(DEFAULT_COINBASE_ADDRESS)
+            .timestamp(DEFAULT_TIME_STAMP)
+            .parentHash(DEFAULT_HASH)
+            .baseFee(DEFAULT_BASE_FEE)
+            .buildBlockHeader();
+
+    final ZkTracer tracer = new ZkTracer(chainConfig);
+    tracer.traceStartConflation(1);
+    tracer.traceStartBlock(world, blockHeader, DEFAULT_COINBASE_ADDRESS);
+    final int sizeBefore = tracer.getHub().lineCount();
+    tracer.popTransactionBundle();
+    final int sizeAfter = tracer.getHub().lineCount();
+    checkArgument(sizeBefore == sizeAfter, "Some start block stuff have been popped");
+
+    // TODO: do the same for ZkCounter
   }
 }

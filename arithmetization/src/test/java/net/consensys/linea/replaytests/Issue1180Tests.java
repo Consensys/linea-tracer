@@ -29,10 +29,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 /** This range broke the MOD module's mod.set-absolute-values constraint. */
 @Tag("replay")
+@Tag("weekly")
 @ExtendWith(UnitTestWatcher.class)
 public class Issue1180Tests extends TracerTestBase {
 
-  @Tag("weekly")
   @Test
   void split_range_2321470_2321479(TestInfo testInfo) {
     replay(OLD_MAINNET_TESTCONFIG, "2321470-2321479.mainnet.json.gz", testInfo);

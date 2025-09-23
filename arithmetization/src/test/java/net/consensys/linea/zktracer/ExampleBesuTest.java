@@ -47,7 +47,14 @@ public class ExampleBesuTest extends TracerTestBase {
       case LONDON -> {}
       case PARIS -> compiler.op(OpCode.PREVRANDAO);
       case SHANGHAI -> compiler.op(OpCode.PUSH0);
-      case CANCUN, PRAGUE -> compiler.op(OpCode.MCOPY);
+      case CANCUN, PRAGUE -> compiler
+          .push(Bytes.fromHexString("0x7F")) // value
+          .push(32) // offset
+          .op(OpCode.MSTORE)
+          .push(32) // size
+          .push(32) // offset to trigger mem expansion
+          .push(0) // dest offset
+          .op(OpCode.MCOPY);
       default -> throw new IllegalArgumentException("Unsupported fork: " + fork);
     }
 
@@ -79,7 +86,16 @@ public class ExampleBesuTest extends TracerTestBase {
         ToyAccount.builder().balance(Wei.fromEth(1)).nonce(5).address(senderAddress).build();
 
     BytecodeCompiler compilerMain =
-        BytecodeCompiler.newProgram(chainConfig).push(32, 0xbeef).push(32, 0xdead).op(OpCode.ADD);
+        BytecodeCompiler.newProgram(chainConfig)
+            .push(32, 0xbeef)
+            .push(32, 0xdead)
+            .op(OpCode.ADD)
+            .push(Bytes.fromHexString("0x7F")) // value
+            .push(32) // offset
+            .op(OpCode.MSTORE)
+            .push(32) // size (for MCOPY use)
+            .push(32) // offset to trigger mem expansion  (for MCOPY use)
+            .push(0); // dest offset  (for MCOPY use)
 
     // PREVRANDAO opcode
     Bytes codeParis = Bytes.concatenate(compilerMain.compile(), Bytes.fromHexString("0x44"));

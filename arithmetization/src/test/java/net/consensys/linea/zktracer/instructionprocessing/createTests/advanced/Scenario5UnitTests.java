@@ -14,6 +14,7 @@
  */
 package net.consensys.linea.zktracer.instructionprocessing.createTests.advanced;
 
+import static net.consensys.linea.zktracer.Fork.isPostCancun;
 import static net.consensys.linea.zktracer.instructionprocessing.createTests.advanced.ScenarioUtils.*;
 import static net.consensys.linea.zktracer.instructionprocessing.utilities.MonoOpCodeSmcs.userAccount;
 
@@ -95,7 +96,9 @@ public class Scenario5UnitTests extends TracerTestBase {
             .build();
     toyExecutionEnvironmentV2.run();
 
-    // 1 create2 + 1 Selfdestruct
-    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, 2);
+    // Pre-Cancun : 1 create2 + 1 selfdestruct
+    // Post-Cancun : 1 create2 only as selfdestruct is not in the same transaction
+    int expectedDeploymentNumber = isPostCancun(fork) ? 1 : 2;
+    assertDeploymentNumberContractC(toyExecutionEnvironmentV2, expectedDeploymentNumber);
   }
 }

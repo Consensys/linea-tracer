@@ -28,6 +28,16 @@ import static net.consensys.linea.zktracer.module.ModuleName.GAS;
 import static net.consensys.linea.zktracer.module.add.AddOperation.NB_ROWS_ADD;
 import static net.consensys.linea.zktracer.module.blockhash.BlockhashOperation.NB_ROWS_BLOCKHASH;
 import static net.consensys.linea.zktracer.module.ext.ExtOperation.NB_ROWS_EXT;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.CallDataLoadOobCall.NB_ROWS_OOB_CDL;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.DeploymentOobCall.NB_ROWS_OOB_DEPLOYMENT;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpOobCall.NB_ROWS_OOB_JUMP;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.JumpiOobCall.NB_ROWS_OOB_JUMPI;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.opcodes.ReturnDataCopyOobCall.NB_ROWS_OOB_RDC;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpCallDataSizeOobCall.NB_ROWS_OOB_MODEXP_CDS;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpExtractOobCall.NB_ROWS_OOB_MODEXP_EXTRACT;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpLeadOobCall.NB_ROWS_OOB_MODEXP_LEAD;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpPricingOobCall.NB_ROWS_OOB_MODEXP_PRICING;
+import static net.consensys.linea.zktracer.module.hub.fragment.imc.oob.precompiles.modexp.ModexpXbsOobCall.NB_ROWS_OOB_MODEXP_XBS;
 import static net.consensys.linea.zktracer.module.hub.section.AccountSection.NB_ROWS_HUB_ACCOUNT;
 import static net.consensys.linea.zktracer.module.hub.section.CallDataLoadSection.NB_ROWS_HUB_CALLDATALOAD;
 import static net.consensys.linea.zktracer.module.hub.section.JumpSection.NB_ROWS_HUB_JUMP;
@@ -57,7 +67,10 @@ import static net.consensys.linea.zktracer.module.hub.section.transients.TStoreS
 import static net.consensys.linea.zktracer.module.hub.section.txInitializationSection.TxInitializationSection.NB_ROWS_HUB_INIT;
 import static net.consensys.linea.zktracer.module.logdata.LogData.lineCountForLogData;
 import static net.consensys.linea.zktracer.module.loginfo.LogInfo.lineCountForLogInfo;
-import static net.consensys.linea.zktracer.module.mxp.moduleOperation.CancunMxpOperation.MXP_FROM_CTMAX_TO_LINECOUNT;
+import static net.consensys.linea.zktracer.module.mod.ModOperation.NB_ROWS_MOD;
+import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunMSizeMxpCall.NB_ROWS_MXP_MSIZE;
+import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateMxpCall.NB_ROWS_MXP_UPDT_B;
+import static net.consensys.linea.zktracer.module.mxp.moduleCall.CancunStateUpdateWordPricingMxpCall.NB_ROWS_MXP_UPDT_W;
 import static net.consensys.linea.zktracer.module.rlptxrcpt.RlpTxrcptOperation.lineCountForRlpTxnRcpt;
 import static net.consensys.linea.zktracer.opcode.OpCode.*;
 import static net.consensys.linea.zktracer.runtime.stack.Stack.MAX_STACK_SIZE;
@@ -183,7 +196,7 @@ public class ZkCounter implements LineCountingTracer {
       new IncrementAndDetectModule(PRECOMPILE_RIPEMD_BLOCKS);
 
   // Related to Bls
-  // TODO: remove me when Linea supports Cancun & Prague precompiles
+  // remove me when Linea supports Cancun & Prague precompiles
   private final IncrementAndDetectModule pointEval = new IncrementAndDetectModule(POINT_EVAL) {};
   private final IncrementAndDetectModule bls = new IncrementAndDetectModule(BLS) {};
 
@@ -242,7 +255,7 @@ public class ZkCounter implements LineCountingTracer {
         stp, // currently under zkasmification
         trm, // not trivial
         txnData, // almost directly proportional to nb of txs
-        wcp, // need MMU/TxnData to be counted
+        wcp, // need MMU/TxnData/Oob etc ... to be counted
         // traceless modules
         blakeRounds, // blakeEffectiveCall is counted and already rejects all BLAKE calls
         // all Cancun / Prague precompiles are rejected via bls pointEval for now
@@ -376,14 +389,14 @@ public class ZkCounter implements LineCountingTracer {
     // Check for SUX / SOX, this is the only exception we check for
     final short stackSize = (short) frame.stackSize();
     final short deleted = (short) opcode.stackSettings().delta();
-    // TODO: final boolean underflow = wcp.callLT(stackSize, deleted);
+    // if we count WCP: final boolean underflow = wcp.callLT(stackSize, deleted);
     final boolean underflow = stackSize < deleted;
     if (underflow) {
       hub.updateTally(opcode.numberOfStackRows());
       return;
     }
     final short heightNew = (short) (stackSize + opcode.stackSettings().alpha() - deleted);
-    // TODO: final boolean overflow = wcp.callGT(heightNew, MAX_STACK_SIZE);
+    // if we count WCP: final boolean overflow = wcp.callGT(heightNew, MAX_STACK_SIZE);
     final boolean overflow = heightNew > MAX_STACK_SIZE;
     if (overflow) {
       hub.updateTally(opcode.numberOfStackRows());
@@ -417,7 +430,7 @@ public class ZkCounter implements LineCountingTracer {
       }
       case WCP -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
-        // TODO wcp.tracePreOpcode(frame, opcode.mnemonic());
+        // if we count WCP:  wcp.tracePreOpcode(frame, opcode.mnemonic());
       }
       case EXT -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
@@ -426,7 +439,7 @@ public class ZkCounter implements LineCountingTracer {
       case MACHINE_STATE -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP);
         if (opcode.mnemonic() == MSIZE) {
-          mxp.updateTally(CT_MAX_MSIZE + MXP_FROM_CTMAX_TO_LINECOUNT);
+          mxp.updateTally(NB_ROWS_MXP_MSIZE);
         }
       }
       case MUL -> {
@@ -445,16 +458,16 @@ public class ZkCounter implements LineCountingTracer {
         switch (opcode.mnemonic()) {
           case RETURN -> {
             hub.updateTally(7);
-            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-            oob.updateTally(CT_MAX_DEPLOYMENT + 1);
-            // TODO MMU
+            mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+            oob.updateTally(NB_ROWS_OOB_DEPLOYMENT);
+            // MMU
             // Note: the unexceptional RETURN_FROM_DEPLOYMENT case is handled in
             // traceAccountCreationResult()
           }
           case REVERT -> {
             hub.updateTally(NB_ROWS_HUB_REVERT);
-            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-            // TODO MMU
+            mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+            // MMU
           }
           case STOP -> hub.updateTally(
               frame.getType() == MessageFrame.Type.MESSAGE_CALL
@@ -465,18 +478,18 @@ public class ZkCounter implements LineCountingTracer {
       }
       case KEC -> {
         hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP + 1);
-        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+        mxp.updateTally(NB_ROWS_MXP_UPDT_W);
         final int sizeToHash = Words.clampedToInt(frame.getStackItem(1));
         if (sizeToHash != 0) {
-          // TODO MMU
+          // MMU
           keccak.updateTally(sizeToHash);
         }
       }
       case CONTEXT, TRANSACTION -> hub.updateTally(NB_ROWS_HUB_SIMPLE_STACK_OP + 1);
       case LOG -> {
         hub.updateTally(opcode.numberOfStackRows() + 2); // CON + MISC
-        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-        // TODO: MMU
+        mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+        // MMU
         // Note: nothing to do for LOG info / data / rlp, done at the end of the tx
       }
       case ACCOUNT -> hub.updateTally(NB_ROWS_HUB_ACCOUNT);
@@ -484,51 +497,51 @@ public class ZkCounter implements LineCountingTracer {
         switch (opcode.mnemonic()) {
           case CALLDATACOPY -> {
             hub.updateTally(NB_ROWS_HUB_CALL_DATA_COPY);
-            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-            // TODO MMU
+            mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+            // MMU
           }
           case RETURNDATACOPY -> {
             hub.updateTally(NB_ROWS_HUB_RETURN_DATA_COPY);
-            oob.updateTally(CT_MAX_RDC + 1);
+            oob.updateTally(NB_ROWS_OOB_RDC);
             add.updateTally(NB_ROWS_ADD); // coming from OOB call
-            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-            // TODO MMU
+            mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+            // MMU
           }
           case CODECOPY -> {
             hub.updateTally(NB_ROWS_HUB_CODE_COPY);
-            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-            // TODO MMU
-            // TODO ROM
+            mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+            // MMU
+            // ROM
           }
           case EXTCODECOPY -> {
             hub.updateTally(NB_ROWS_HUB_EXT_CODE_COPY);
-            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-            // TODO MMU
-            // TODO ROM
+            mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+            // MMU
+            // ROM
           }
         }
       }
       case MCOPY -> {
         hub.updateTally(NB_ROWS_HUB_MCOPY);
-        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-        // TODO MMU
+        mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+        // MMU
       }
       case STACK_RAM -> {
         switch (opcode.mnemonic()) {
           case CALLDATALOAD -> {
             hub.updateTally(NB_ROWS_HUB_CALLDATALOAD);
-            oob.updateTally(CT_MAX_CDL + 1);
-            // TODO MMU
+            oob.updateTally(NB_ROWS_OOB_CDL);
+            // MMU
           }
           case MSTORE, MLOAD -> {
             hub.updateTally(NB_ROWS_HUB_STACKRAM);
-            mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-            // TODO MMU
+            mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+            // MMU
           }
           case MSTORE8 -> {
             hub.updateTally(NB_ROWS_HUB_STACKRAM);
-            mxp.updateTally(CT_MAX_UPDT_B + MXP_FROM_CTMAX_TO_LINECOUNT);
-            // TODO MMU
+            mxp.updateTally(NB_ROWS_MXP_UPDT_B);
+            // MMU
           }
         }
       }
@@ -542,17 +555,19 @@ public class ZkCounter implements LineCountingTracer {
       case JUMP -> {
         hub.updateTally(NB_ROWS_HUB_JUMP);
         oob.updateTally(
-            (opcode.mnemonic() == JUMPI ? CT_MAX_JUMPI : CT_MAX_JUMP) + 1); // TODO: rm duplicates
+            opcode.mnemonic() == JUMPI
+                ? NB_ROWS_OOB_JUMPI
+                : NB_ROWS_OOB_JUMP); // TODO: rm duplicates
       }
       case CREATE -> {
-        // TODO ROM
+        // ROM
         hub.updateTally(NB_ROWS_HUB_CREATE);
         gas.updateTally(1); // as CMC == 1
         // first IMC
-        // TODO: stp.updateTally(1);
-        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
+        stp.updateTally(1);
+        mxp.updateTally(NB_ROWS_MXP_UPDT_W);
         oob.updateTally(CT_MAX_CREATE + 1);
-        // TODO: MMU
+        // MMU
         final boolean isCreate2 = opcode.mnemonic() == OpCode.CREATE2;
         rlpAddr.updateTally(1 + (isCreate2 ? MAX_CT_CREATE2 : MAX_CT_CREATE));
         if (isCreate2) {
@@ -564,8 +579,8 @@ public class ZkCounter implements LineCountingTracer {
         hub.updateTally(NB_ROWS_HUB_CALL);
         gas.updateTally(1); // as CMC == 1
         oob.updateTally(CT_MAX_CALL + 1);
-        mxp.updateTally(CT_MAX_UPDT_W + MXP_FROM_CTMAX_TO_LINECOUNT);
-        // TODO: stp.updateTally(1);
+        mxp.updateTally(NB_ROWS_MXP_UPDT_W);
+        stp.updateTally(1);
         // Note: precompiles specific limits are done in tracePrecompileCall()
       }
       default -> throw new IllegalArgumentException("Unknown opcode: " + opcode.byteValue());
@@ -591,7 +606,7 @@ public class ZkCounter implements LineCountingTracer {
     final int callDataSize = callData.size();
     final boolean prcSuccess = bytesToBoolean(frame.getStackItem(0));
 
-    // TODO MMU
+    // MMU
     switch (precompile) {
       case PRC_ECRECOVER -> {
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
@@ -602,6 +617,7 @@ public class ZkCounter implements LineCountingTracer {
       case PRC_SHA -> {
         hub.updateTally(NB_ROWS_HUB_PRC_SHARIP);
         oob.updateTally(CT_MAX_SHA2 + 1);
+        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
         if (prcSuccess && callDataSize != 0) {
           sha256Blocks.updateTally(callData.size());
         }
@@ -609,6 +625,7 @@ public class ZkCounter implements LineCountingTracer {
       case PRC_RIP -> {
         // hub.updateTally(NBROWS_HUB_PRC_SHARIP);
         // oob.updateTally(CT_MAX_RIPEMD + 1);
+        // mod.updateTally(NB_ROWS_MOD); // coming from OOB call
         // if (callDataSize != 0) {
         //   ripemdBlocks.updateTally(callDataSize);
         // }
@@ -616,7 +633,8 @@ public class ZkCounter implements LineCountingTracer {
       }
       case PRC_IDENTITY -> {
         hub.updateTally(NB_ROWS_HUB_PRC_IDENTITY);
-        oob.updateTally(1 + 1);
+        oob.updateTally(CT_MAX_IDENTITY + 1);
+        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
       }
       case PRC_MODEXP -> {
         final MemoryRange memoryRange = new MemoryRange(0, 0, callData.size(), callData);
@@ -628,6 +646,13 @@ public class ZkCounter implements LineCountingTracer {
         modexpEffectiveCall.updateTally(prcSuccess ? 1 : 0);
         final ExpCall modexpLogCallToExp = new ModexpLogExpCall(modexpMetadata);
         exp.call(modexpLogCallToExp);
+        oob.updateTally(
+            NB_ROWS_OOB_MODEXP_CDS
+                + 3 * NB_ROWS_OOB_MODEXP_XBS
+                + NB_ROWS_OOB_MODEXP_LEAD
+                + NB_ROWS_OOB_MODEXP_PRICING
+                + NB_ROWS_OOB_MODEXP_EXTRACT);
+        mod.updateTally(2 * NB_ROWS_MOD); // 2 coming from OOB pricing call
       }
       case PRC_ECADD -> {
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
@@ -645,6 +670,7 @@ public class ZkCounter implements LineCountingTracer {
         final int nbOfPairs = callData.size() / TOTAL_SIZE_ECPAIRING_DATA_MIN;
         hub.updateTally(NB_ROWS_HUB_PRC_ELLIPTIC_CURVE);
         oob.updateTally(CT_MAX_ECPAIRING + 1);
+        mod.updateTally(NB_ROWS_MOD); // coming from OOB call
         final boolean fktr = (callData.size() % TOTAL_SIZE_ECPAIRING_DATA_MIN) != 0;
         if (!fktr) {
           ecPairingG2MembershipCalls.updateTally(nbOfPairs);

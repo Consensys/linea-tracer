@@ -15,6 +15,15 @@
 
 package net.consensys.linea.zktracer.module.blsdata;
 
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.BLS_PRIME;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.leadFailure;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.leadSuccess;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.tailFailure;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.tailSuccess;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -38,7 +47,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class BlsG2MapFp2ToG2Test extends TracerTestBase {
 
   @ParameterizedTest
-  @MethodSource("blsG2MapFp2ToG2Source")
+  @MethodSource({"blsG2MapFp2ToG2Source", "blsG2MapFp2ToG2Source2"})
   void testBlsG2MapFpToG2(String inputString, TestInfo testInfo) {
     final Bytes input = Bytes.fromHexString(inputString);
 
@@ -74,6 +83,15 @@ public class BlsG2MapFp2ToG2Test extends TracerTestBase {
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
+
+    if (isPostPrague(fork)) {
+      final boolean failureIsExpected =
+          new BigInteger(inputString.substring(0, 128), 16).compareTo(BLS_PRIME) >= 0
+              || new BigInteger(inputString.substring(128, 256), 16).compareTo(BLS_PRIME) >= 0;
+      final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
+      assertEquals(failureIsExpected, blsdata.blsDataOperation().mint());
+      assertEquals(failureIsExpected, !blsdata.blsDataOperation().successBit());
+    }
   }
 
   private static Stream<Arguments> blsG2MapFp2ToG2Source() {
@@ -82,6 +100,21 @@ public class BlsG2MapFp2ToG2Test extends TracerTestBase {
     arguments.add(
         Arguments.of(
             "00000000000000000000000000000000167ab0f743a50c14cfe36fe095886cefd958c60233367db3f904f6f2b40d5df62f75958a02b52daca5316718966a8fb7000000000000000000000000000000001904f0ab97b4fad64e7833426ba8a6311c0694716cf407c8a015cb266153aae30e45b5796e0143da9f608fd01aaf77d2"));
+    return arguments.stream();
+  }
+
+  private static Stream<Arguments> blsG2MapFp2ToG2Source2() {
+    // Some of the input do not belong to Fp2
+    List<Arguments> arguments = new ArrayList<>();
+    for (String leadIm : Stream.concat(leadSuccess.stream(), leadFailure.stream()).toList()) {
+      for (String tailIm : Stream.concat(tailSuccess.stream(), tailFailure.stream()).toList()) {
+        for (String leadRe : Stream.concat(leadSuccess.stream(), leadFailure.stream()).toList()) {
+          for (String tailRe : Stream.concat(tailSuccess.stream(), tailFailure.stream()).toList()) {
+            arguments.add(Arguments.of(leadIm + tailIm + leadRe + tailRe));
+          }
+        }
+      }
+    }
     return arguments.stream();
   }
 }

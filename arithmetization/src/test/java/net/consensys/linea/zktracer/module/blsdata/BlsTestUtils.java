@@ -15,6 +15,7 @@
 
 package net.consensys.linea.zktracer.module.blsdata;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public class BlsTestUtils {
@@ -60,4 +61,29 @@ public class BlsTestUtils {
 
   static final List<String> LARGE_POINTS =
       List.of(VALID_G2_POINT, INVALID_G2_POINT_NOT_ON_CURVE, G2_POINT_NOT_IN_SUBGROUP);
+
+  static final BigInteger BLS_PRIME =
+      new BigInteger(
+          "1a0111ea397fe69a4b1ba7b6434bacd764774b84f38512bf6730d2a0f6b0f6241eabfffeb153ffffb9feffffffffaaab",
+          16);
+
+  // Fp elements testing data
+  static final List<String> leadSuccess = List.of("00".repeat(16));
+  static final List<String> leadFailure =
+      List.of(
+          "ff".repeat(16),
+          "10" + "00".repeat(15),
+          "00".repeat(13) + "eeff00",
+          "00".repeat(15) + "01");
+  static final List<String> tailSuccess =
+      List.of(
+          BLS_PRIME.subtract(BigInteger.ONE).toString(16),
+          "00".repeat(45) + "aabbcc",
+          "00".repeat(47) + "01",
+          "00".repeat(48));
+  static final List<String> tailFailure =
+      List.of(
+          "ff".repeat(48),
+          BLS_PRIME.toString(16),
+          BLS_PRIME.add(BigInteger.valueOf(123)).toString(16));
 }

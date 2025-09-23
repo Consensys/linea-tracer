@@ -15,6 +15,15 @@
 
 package net.consensys.linea.zktracer.module.blsdata;
 
+import static net.consensys.linea.zktracer.Fork.isPostPrague;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.BLS_PRIME;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.leadFailure;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.leadSuccess;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.tailFailure;
+import static net.consensys.linea.zktracer.module.blsdata.BlsTestUtils.tailSuccess;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -38,7 +47,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class BlsG1MapFpToG1Test extends TracerTestBase {
 
   @ParameterizedTest
-  @MethodSource("blsG1MapFpToG1Source")
+  @MethodSource({"blsG1MapFpToG1Source", "blsG1MapFpToG1Source2"})
   void testBlsG1MapFpToG1(String inputString, TestInfo testInfo) {
     final Bytes input = Bytes.fromHexString(inputString);
 
@@ -74,6 +83,13 @@ public class BlsG1MapFpToG1Test extends TracerTestBase {
         .op(OpCode.STATICCALL);
     BytecodeRunner bytecodeRunner = BytecodeRunner.of(program.compile());
     bytecodeRunner.run(List.of(codeOwnerAccount), chainConfig, testInfo);
+
+    if (isPostPrague(fork)) {
+      final boolean failureIsExpected = new BigInteger(inputString, 16).compareTo(BLS_PRIME) >= 0;
+      final BlsData blsdata = (BlsData) bytecodeRunner.getHub().blsData();
+      assertEquals(failureIsExpected, blsdata.blsDataOperation().mint());
+      assertEquals(failureIsExpected, !blsdata.blsDataOperation().successBit());
+    }
   }
 
   private static Stream<Arguments> blsG1MapFpToG1Source() {
@@ -82,6 +98,17 @@ public class BlsG1MapFpToG1Test extends TracerTestBase {
     arguments.add(
         Arguments.of(
             "0000000000000000000000000000000014f10c6ba2ffdf4d14eca5cb0af2470b9b42ba9d42bb5c4ae307784c04accde631e66119d25bf93a86baf0a435c23f14"));
+    return arguments.stream();
+  }
+
+  private static Stream<Arguments> blsG1MapFpToG1Source2() {
+    // Some of these inputs to do not belong to Fp
+    List<Arguments> arguments = new ArrayList<>();
+    for (String lead : Stream.concat(leadSuccess.stream(), leadFailure.stream()).toList()) {
+      for (String tail : Stream.concat(tailSuccess.stream(), tailFailure.stream()).toList()) {
+        arguments.add(Arguments.of(lead + tail));
+      }
+    }
     return arguments.stream();
   }
 }
